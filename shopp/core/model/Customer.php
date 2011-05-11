@@ -15,7 +15,6 @@ require("Address.php");
 
 class Customer extends DatabaseObject {
 	static $table = "customer";
-	var $api = 'customer';
 
 	var $login = false;
 	var $info = false;
@@ -446,19 +445,513 @@ class Customer extends DatabaseObject {
 			);
 	}
 
-	/**
-	 * Provides shopp('customer') template API functionality
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @deprecated 1.2
-	 *
-	 * @return mixed
-	 **/
 	function tag ($property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp($this,$property,$options);
+		global $Shopp;
+
+		$Order =& $Shopp->Order;
+		$checkout = false;
+		if (isset($Shopp->Flow->Controller->checkout))
+			$checkout = $Shopp->Flow->Controller->checkout;
+
+		// Return strings with no options
+		switch ($property) {
+			case "url":
+				return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure); break;
+			case "action":
+				$action = null;
+				if (isset($this->pages[$_GET['acct']])) $action = $_GET['acct'];
+				return shoppurl(array('acct'=>$action),'account');
+				break;
+
+			case "accounturl": return shoppurl(false,'account'); break;
+			case "recover-url": return add_query_arg('acct','recover',shoppurl(false,'account'));
+			case "registration-form":
+				$regions = Lookup::country_zones();
+				add_storefrontjs("var regions = ".json_encode($regions).";",true);
+				return $_SERVER['REQUEST_URI'];
+				break;
+			case "registration-errors":
+				$Errors =& ShoppErrors();
+				if (!$Errors->exist(SHOPP_ERR)) return false;
+				ob_start();
+				include(SHOPP_TEMPLATES.'/errors.php');
+				$markup = ob_get_contents();
+				ob_end_clean();
+				return $markup;
+				break;
+			case "register":
+				return '<input type="submit" name="shopp_registration" value="Register" />';
+				break;
+			case "process":
+				if (!empty($_GET['acct']) && isset($this->pages[$_GET['acct']])) return $_GET['acct'];
+				return false;
+
+			case "loggedin": return $Shopp->Order->Customer->login; break;
+			case "notloggedin": return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "login-label":
+				$accounts = $Shopp->Settings->get('account_system');
+				$label = __('Email Address','Shopp');
+				if ($accounts == "wordpress") $label = __('Login Name','Shopp');
+				if (isset($options['label'])) $label = $options['label'];
+				return $label;
+				break;
+			case "email-login":
+			case "loginname-login":
+			case "account-login":
+				$id = "account-login".($checkout?"-checkout":'');
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login'];
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				return '<input type="text" name="account-login" id="'.$id.'"'.inputattrs($options).' />';
+				break;
+			case "password-login":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				$id = "password-login".($checkout?"-checkout":'');
+
+				if (!empty($_POST['password-login']))
+					$options['value'] = $_POST['password-login'];
+				return '<input type="password" name="password-login" id="'.$id.'"'.inputattrs($options).' />';
+				break;
+			case "recover-button":
+				if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
+ 					return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
+				break;
+			case "submit-login": // Deprecating
+			case "login-button":
+				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
+				$string = "";
+				$id = "submit-login";
+
+				$request = $_GET;
+				if (isset($request['acct']) && $request['acct'] == "logout") unset($request['acct']);
+
+				if ($checkout) {
+					$id .= "-checkout";
+					$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
+					$string .= '<input type="hidden" name="redirect" value="checkout" />';
+				} else $string .= '<input type="hidden" name="process-login" value="true" /><input type="hidden" name="redirect" value="'.shoppurl($request,'account',$Order->security()).'" />';
+				$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
+				return $string;
+				break;
+			case "profile-saved":
+				$saved = (isset($this->_saved) && $this->_saved);
+				unset($this->_saved);
+				return $saved;
+			case "password-changed":
+				$change = (isset($this->_password_change) && $this->_password_change);
+				unset($this->_password_change);
+				return $change;
+			case "errors-exist": return true;
+				$Errors = &ShoppErrors();
+				return ($Errors->exist(SHOPP_AUTH_ERR));
+				break;
+			case "login-errors": // @deprecated
+			case "errors":
+				if (!apply_filters('shopp_show_account_errors',true)) return false;
+				$Errors = &ShoppErrors();
+				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
+
+				ob_start();
+				include(SHOPP_TEMPLATES."/errors.php");
+				$errors = ob_get_contents();
+				ob_end_clean();
+				return $errors;
+				break;
+
+			case "menu":
+				if (!isset($this->_menu_looping)) {
+					reset($this->menus);
+					$this->_menu_looping = true;
+				} else next($this->menus);
+
+				if (current($this->menus) !== false) return true;
+				else {
+					unset($this->_menu_looping);
+					reset($this->menus);
+					return false;
+				}
+				break;
+			case "management":
+				$page = current($this->menus);
+				if (array_key_exists('url',$options)) return shoppurl(array('acct'=>$page->request),'account');
+				if (array_key_exists('action',$options)) return $page->request;
+				return $page->label;
+			case "accounts": return $Shopp->Settings->get('account_system'); break;
+			case "hasaccount":
+				$system = $Shopp->Settings->get('account_system');
+				if ($system == "wordpress") return ($this->wpuser != 0);
+				elseif ($system == "shopp") return (!empty($this->password));
+				else return false;
+			case "wpuser-created": return $this->newuser;
+			case "order-lookup":
+				$auth = $Shopp->Settings->get('account_system');
+				if ($auth != "none") return true;
+
+				if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
+					require_once("Purchase.php");
+					$Purchase = new Purchase($_POST['purchaseid']);
+					if ($Purchase->email == $_POST['email']) {
+						$Shopp->Purchase = $Purchase;
+						$Purchase->load_purchased();
+						ob_start();
+						include(SHOPP_TEMPLATES."/receipt.php");
+						$content = ob_get_contents();
+						ob_end_clean();
+						return apply_filters('shopp_order_lookup',$content);
+					}
+				}
+
+				ob_start();
+				include(SHOPP_ADMIN_PATH."/orders/account.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return apply_filters('shopp_order_lookup',$content);
+				break;
+
+			case "firstname":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->firstname;
+				if (!empty($this->firstname))
+					$options['value'] = $this->firstname;
+				return '<input type="text" name="firstname" id="firstname"'.inputattrs($options).' />';
+				break;
+			case "lastname":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->lastname;
+				if (!empty($this->lastname))
+					$options['value'] = $this->lastname;
+				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />';
+				break;
+			case "company":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->company;
+				if (!empty($this->company))
+					$options['value'] = $this->company;
+				return '<input type="text" name="company" id="company"'.inputattrs($options).' />';
+				break;
+			case "email":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->email;
+				if (!empty($this->email))
+					$options['value'] = $this->email;
+				return '<input type="text" name="email" id="email"'.inputattrs($options).' />';
+				break;
+			case "loginname":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->loginname;
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($this->loginname))
+					$options['value'] = $this->loginname;
+				return '<input type="text" name="loginname" id="login"'.inputattrs($options).' />';
+				break;
+			case "password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (isset($options['mode']) && $options['mode'] == "value")
+					return strlen($this->password) == 34?str_pad('&bull;',8):$this->password;
+				$options['value'] = "";
+				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
+				break;
+			case "confirm-password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				$options['value'] = "";
+				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
+				break;
+			case "phone":
+				if (isset($options['mode']) && $options['mode'] == "value") return $this->phone;
+				if (!empty($this->phone))
+					$options['value'] = $this->phone;
+				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />';
+				break;
+			case "hasinfo":
+			case "has-info":
+				if (!is_object($this->info) || empty($this->info->meta)) return false;
+				if (!isset($this->_info_looping)) {
+					reset($this->info->meta);
+					$this->_info_looping = true;
+				} else next($this->info->meta);
+
+				if (current($this->info->meta) !== false) return true;
+				else {
+					unset($this->_info_looping);
+					reset($this->info->meta);
+					return false;
+				}
+				break;
+			case "info":
+				$defaults = array(
+					'mode' => 'input',
+					'type' => 'text',
+					'name' => false,
+					'value' => false
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				if ($this->_info_looping)
+					$info = current($this->info->meta);
+				elseif ($name !== false && is_object($this->info->named[$name]))
+					$info = $this->info->named[$name];
+
+				switch ($mode) {
+					case "name": return $info->name; break;
+					case "value": return $info->value; break;
+				}
+
+				if (!$name && !empty($info->name)) $options['name'] = $info->name;
+				elseif (!$name) return false;
+
+				if (!$value && !empty($info->value)) $options['value'] = $info->value;
+
+				$allowed_types = array("text","password","hidden","checkbox","radio");
+				$type = in_array($type,$allowed_types)?$type:'hidden';
+				return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
+				break;
+
+			// SHIPPING TAGS
+			case "shipping": return $Order->Shipping;
+			case "shipping-address":
+				if ($options['mode'] == "value") return $Order->Shipping->address;
+				if (!empty($Order->Shipping->address))
+					$options['value'] = $Order->Shipping->address;
+				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
+				break;
+			case "shipping-xaddress":
+				if ($options['mode'] == "value") return $Order->Shipping->xaddress;
+				if (!empty($Order->Shipping->xaddress))
+					$options['value'] = $Order->Shipping->xaddress;
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
+				break;
+			case "shipping-city":
+				if ($options['mode'] == "value") return $Order->Shipping->city;
+				if (!empty($Order->Shipping->city))
+					$options['value'] = $Order->Shipping->city;
+				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
+				break;
+			case "shipping-province":
+			case "shipping-state":
+				if ($options['mode'] == "value") return $Order->Shipping->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($Order->Shipping->state)) {
+					$options['selected'] = $Order->Shipping->state;
+					$options['value'] = $Order->Shipping->state;
+				}
+				$countries = Lookup::countries();
+				$output = false;
+				$country = $base['country'];
+				if (!empty($Order->Shipping->country))
+					$country = $Order->Shipping->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				if (empty($options['type'])) $options['type'] = "menu";
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable';
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "shipping-postcode":
+				if ($options['mode'] == "value") return $Order->Shipping->postcode;
+				if (!empty($Order->Shipping->postcode))
+					$options['value'] = $Order->Shipping->postcode;
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
+			case "shipping-country":
+				if ($options['mode'] == "value") return $Order->Shipping->country;
+				$base = $Shopp->Settings->get('base_operations');
+				if (!empty($Order->Shipping->country))
+					$options['selected'] = $Order->Shipping->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+
+				$countries = $Shopp->Settings->get('target_markets');
+
+				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "same-shipping-address":
+				$label = __("Same shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				$checked = ' checked="checked"';
+				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+			case "residential-shipping-address":
+				$label = __("Residential shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
+				$output = '<label for="residential-shipping"><input type="hidden" name="shipping[residential]" value="no" /><input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+
+			// BILLING TAGS
+			case "billing-address":
+				if ($options['mode'] == "value") return $Order->Billing->address;
+				if (!empty($Order->Billing->address))
+					$options['value'] = $Order->Billing->address;
+				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
+				break;
+			case "billing-xaddress":
+				if ($options['mode'] == "value") return $Order->Billing->xaddress;
+				if (!empty($Order->Billing->xaddress))
+					$options['value'] = $Order->Billing->xaddress;
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
+				break;
+			case "billing-city":
+				if ($options['mode'] == "value") return $Order->Billing->city;
+				if (!empty($Order->Billing->city))
+					$options['value'] = $Order->Billing->city;
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
+				break;
+			case "billing-province":
+			case "billing-state":
+				if ($options['mode'] == "value") return $Order->Billing->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($Order->Billing->state)) {
+					$options['selected'] = $Order->Billing->state;
+					$options['value'] = $Order->Billing->state;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				$countries = Lookup::countries();
+
+				$output = false;
+				$country = $base['country'];
+				if (!empty($Order->Billing->country))
+					$country = $Order->Billing->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable';
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "billing-postcode":
+				if ($options['mode'] == "value") return $Order->Billing->postcode;
+				if (!empty($Order->Billing->postcode))
+					$options['value'] = $Order->Billing->postcode;
+				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
+				break;
+			case "billing-country":
+				if ($options['mode'] == "value") return $Order->Billing->country;
+				$base = $Shopp->Settings->get('base_operations');
+
+				if (!empty($Order->Billing->country))
+					$options['selected'] = $Order->Billing->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+
+				$countries = $Shopp->Settings->get('target_markets');
+
+				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+
+			case "save-button":
+				if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
+				$result = '<input type="hidden" name="customer" value="true" />';
+				$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />';
+				return $result;
+				break;
+			case "marketing":
+				if ($options['mode'] == "value") return $this->marketing;
+				if (!empty($this->marketing) && value_is_true($this->marketing)) $options['checked'] = true;
+				$attrs = array("accesskey","alt","checked","class","disabled","format",
+					"minlength","maxlength","readonly","size","src","tabindex",
+					"title");
+				$input = '<input type="hidden" name="marketing" value="no" />';
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
+				return $input;
+				break;
+
+
+			// Downloads UI tags
+			case "hasdownloads":
+			case "has-downloads": return (!empty($this->downloads)); break;
+			case "downloads":
+				if (empty($this->downloads)) return false;
+				if (!isset($this->_dowload_looping)) {
+					reset($this->downloads);
+					$this->_dowload_looping = true;
+				} else next($this->downloads);
+
+				if (current($this->downloads) !== false) return true;
+				else {
+					unset($this->_dowload_looping);
+					reset($this->downloads);
+					return false;
+				}
+				break;
+			case "download":
+				$download = current($this->downloads);
+				$df = get_option('date_format');
+				$properties = unserialize($download->properties);
+				$string = '';
+				if (array_key_exists('id',$options)) $string .= $download->download;
+				if (array_key_exists('purchase',$options)) $string .= $download->purchase;
+				if (array_key_exists('name',$options)) $string .= $download->name;
+				if (array_key_exists('variation',$options)) $string .= $download->optionlabel;
+				if (array_key_exists('downloads',$options)) $string .= $download->downloads;
+				if (array_key_exists('key',$options)) $string .= $download->dkey;
+				if (array_key_exists('created',$options)) $string .= $download->created;
+				if (array_key_exists('total',$options)) $string .= money($download->total);
+				if (array_key_exists('filetype',$options)) $string .= $properties['mimetype'];
+				if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
+				if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
+				if (array_key_exists('url',$options))
+					$string .= SHOPP_PRETTYURLS?
+						shoppurl("download/$download->dkey"):
+						shoppurl(array('s_dl'=>$download->dkey),'account');
+
+				return $string;
+				break;
+
+			// Downloads UI tags
+			case "haspurchases":
+			case "has-purchases":
+				$filters = array();
+				if (isset($options['daysago']))
+					$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
+				if (empty($Shopp->purchases)) $this->load_orders($filters);
+				return (!empty($Shopp->purchases));
+				break;
+			case "purchases":
+				if (!isset($this->_purchaseloop)) {
+					reset($Shopp->purchases);
+					$Shopp->Purchase = current($Shopp->purchases);
+					$this->_purchaseloop = true;
+				} else {
+					$Shopp->Purchase = next($Shopp->purchases);
+				}
+
+				if (current($Shopp->purchases) !== false) return true;
+				else {
+					unset($this->_purchaseloop);
+					return false;
+				}
+				break;
+			case "receipt": // DEPRECATED
+			case "order":
+				return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
+				break;
+
+		}
 	}
 
 } // end Customer class

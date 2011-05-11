@@ -898,14 +898,773 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 1.2
 	 *
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp($this,$property,$options);
+		global $Shopp,$wp;
+
+		$pages = $Shopp->Settings->get('pages');
+		$base = $Shopp->Settings->get('base_operations');
+		$countries = $Shopp->Settings->get('target_markets');
+		$process = get_query_var('s_pr');
+
+		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
+		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
+
+		if (!isset($options['mode'])) $options['mode'] = "input";
+
+		switch ($property) {
+			case "url":
+				$link = shoppurl(false,'checkout',$this->security());
+
+				// Pass any arguments along
+				$args = $_GET;
+				unset($args['page_id'],$args['acct']);
+				$link = esc_url(add_query_arg($args,$link));
+				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
+				else $link = apply_filters('shopp_checkout_url',$link);
+				return $link;
+				break;
+			case "function":
+				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
+				$regions = Lookup::country_zones();
+				$base = $Shopp->Settings->get('base_operations');
+
+				$js = "var regions = ".json_encode($regions).",".
+									"SHIPCALC_STATUS = '".$options['shipcalc']."',".
+									"d_pm = '".sanitize_title_with_dashes($this->paymethod)."',".
+									"pm_cards = {};";
+
+				foreach ($this->payoptions as $handle => $option) {
+					if (empty($option->cards)) continue;
+					$js .= "pm_cards['".$handle."'] = ".json_encode($option->cards).";";
+				}
+				add_storefrontjs($js,true);
+
+				if (!empty($options['value'])) $value = $options['value'];
+				else $value = "process";
+				$output = '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>';
+				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
+				else $output = apply_filters('shopp_checkout_form',$output);
+				return $output;
+				break;
+			case "errors":
+			case "error":
+				$Errors = &ShoppErrors();
+				if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
+				$errors = $Errors->get(SHOPP_COMM_ERR);
+				$defaults = array(
+					'before' => '<li>',
+					'after' => '</li>'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$result = "";
+				foreach ((array)$errors as $error)
+					if (!$error->blank()) $result .= $before.$error->message(true).$after;
+				return $result;
+				break;
+			case "cart-summary":
+				ob_start();
+				include(SHOPP_TEMPLATES."/summary.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+
+				// If inside the checkout form, strip the extra <form> tag so we don't break standards
+				// This is ugly, but necessary given the different markup contexts the cart summary is used in
+				$Storefront =& ShoppStorefront();
+				if ($Storefront !== false && $Storefront->checkout)
+					$content = preg_replace('/<\/?form.*?>/','',$content);
+
+				return $content;
+				break;
+			case "loggedin": return $this->Customer->login; break;
+			case "notloggedin": return (!$this->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "email-login":  // Deprecating
+			case "loginname-login":  // Deprecating
+			case "account-login":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login'];
+				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
+				break;
+			case "password-login":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($_POST['password-login']))
+					$options['value'] = $_POST['password-login'];
+				return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
+				break;
+			case "submit-login": // Deprecating
+			case "login-button":
+				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
+				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
+				return $string;
+				break;
+			case "firstname":
+				if ($options['mode'] == "value") return $this->Customer->firstname;
+				if (!empty($this->Customer->firstname))
+					$options['value'] = $this->Customer->firstname;
+				return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
+				break;
+			case "lastname":
+				if ($options['mode'] == "value") return $this->Customer->lastname;
+				if (!empty($this->Customer->lastname))
+					$options['value'] = $this->Customer->lastname;
+				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
+				break;
+			case "email":
+				if ($options['mode'] == "value") return $this->Customer->email;
+				if (!empty($this->Customer->email))
+					$options['value'] = $this->Customer->email;
+				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
+				break;
+			case "loginname":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if ($options['mode'] == "value") return $this->Customer->loginname;
+				if (!empty($this->Customer->loginname))
+					$options['value'] = $this->Customer->loginname;
+				return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
+				break;
+			case "password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if ($options['mode'] == "value")
+					return strlen($this->Customer->password) == 34?str_pad('&bull;',8):$this->Customer->password;
+				if (!empty($this->Customer->password))
+					$options['value'] = $this->Customer->password;
+				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
+				break;
+			case "confirm-password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($this->Customer->_confirm_password))
+					$options['value'] = $this->Customer->_confirm_password;
+				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
+				break;
+			case "phone":
+				if ($options['mode'] == "value") return $this->Customer->phone;
+				if (!empty($this->Customer->phone))
+					$options['value'] = $this->Customer->phone;
+				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />';
+				break;
+			case "organization":
+			case "company":
+				if ($options['mode'] == "value") return $this->Customer->company;
+				if (!empty($this->Customer->company))
+					$options['value'] = $this->Customer->company;
+				return '<input type="text" name="company" id="company" '.inputattrs($options).' />';
+				break;
+			case "marketing":
+				if ($options['mode'] == "value") return $this->Customer->marketing;
+				if (!empty($this->Customer->marketing))
+					$options['value'] = $this->Customer->marketing;
+				$attrs = array("accesskey","alt","checked","class","disabled","format",
+					"minlength","maxlength","readonly","size","src","tabindex",
+					"title");
+				$input = '<input type="hidden" name="marketing" value="no" />';
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
+				return $input;
+				break;
+			case "customer-info":
+				$defaults = array(
+					'name' => false, // REQUIRED
+					'info' => false,
+					'mode' => false,
+					'title' => '',
+					'type' => 'hidden',
+					'value' => '',
+					'cols' => '30',
+					'rows' => '3',
+					'options' => ''
+				);
+				$op = array_merge($defaults,$options);
+				extract($op);
+
+				// Allowed input types
+				$allowed_types = array("text","hidden","password","checkbox","radio","textarea","menu");
+
+				// Input types that can override option-specified value with the loaded data value
+				$value_override = array("text","hidden","password","textarea","menu");
+
+				/// Allowable attributes for textarea inputs
+				$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
+
+				if (!$name) { // Iterator for order data
+					if (!isset($this->_customer_info_loop)) {
+						reset($this->Customer->info->named);
+						$this->_customer_info_loop = true;
+					} else next($this->Customer->info->named);
+
+					if (current($this->Customer->info->named) !== false) return true;
+					else {
+						unset($this->_customer_info_loop);
+						return false;
+					}
+				}
+
+				if (isset($this->Customer->info->named[$name])) $info = $this->Customer->info->named[$name];
+				if ($name && $mode == "value") return $info;
+
+				if (!in_array($type,$allowed_types)) $type = 'hidden';
+				if (empty($title)) $title = $name;
+				$id = 'customer-info-'.sanitize_title_with_dashes($name);
+
+				if (in_array($type,$value_override) && !empty($info))
+					$value = $info;
+				switch (strtolower($type)) {
+					case "textarea":
+						return '<textarea name="info['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
+						break;
+					case "menu":
+						if (is_string($options)) $options = explode(',',$options);
+						return '<select name="info['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+						break;
+					default:
+						return '<input type="'.$type.'" name="info['.$name.']" id="'.$id.'" '.inputattrs($op).' />';
+						break;
+				}
+				break;
+
+			// SHIPPING TAGS
+			case "shipping": return (!empty($this->shipped)); break;
+			case "shipping-address":
+				if ($options['mode'] == "value") return $this->Shipping->address;
+				if (!empty($this->Shipping->address))
+					$options['value'] = $this->Shipping->address;
+				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
+				break;
+			case "shipping-xaddress":
+				if ($options['mode'] == "value") return $this->Shipping->xaddress;
+				if (!empty($this->Shipping->xaddress))
+					$options['value'] = $this->Shipping->xaddress;
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
+				break;
+			case "shipping-city":
+				if ($options['mode'] == "value") return $this->Shipping->city;
+				if (!empty($this->Shipping->city))
+					$options['value'] = $this->Shipping->city;
+				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
+				break;
+			case "shipping-province":
+			case "shipping-state":
+				if ($options['mode'] == "value") return $this->Shipping->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Shipping->state)) {
+					$options['selected'] = $this->Shipping->state;
+					$options['value'] = $this->Shipping->state;
+				}
+
+				$output = false;
+				$country = $base['country'];
+				if (!empty($this->Shipping->country))
+					$country = $this->Shipping->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+
+				if (isset($options['options']) && empty($states)) $states = explode(",",$options['options']);
+
+				if (isset($options['type']) && $options['type'] == "text")
+					return '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+
+				$classname = isset($options['class'])?$options['class']:'';
+				$label = (!empty($options['label']))?$options['label']:'';
+				$options['disabled'] = 'disabled';
+				$options['class'] = ($classname?"$classname ":"").'disabled hidden';
+
+				$output .= '<select name="shipping[state]" id="shipping-state-menu" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="">'.$label.'</option>';
+				if (is_array($states) && !empty($states)) $output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				unset($options['disabled']);
+				$options['class'] = $classname;
+				$output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+
+				return $output;
+				break;
+			case "shipping-postcode":
+				if ($options['mode'] == "value") return $this->Shipping->postcode;
+				if (!empty($this->Shipping->postcode))
+					$options['value'] = $this->Shipping->postcode;
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
+			case "shipping-country":
+				if ($options['mode'] == "value") return $this->Shipping->country;
+				if (!empty($this->Shipping->country))
+					$options['selected'] = $this->Shipping->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "same-shipping-address":
+				$label = __("Same shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				$checked = ' checked="checked"';
+				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+			case "residential-shipping-address":
+				$label = __("Residential shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
+				$output = '<label for="residential-shipping"><input type="hidden" name="shipping[residential]" value="no" /><input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+
+			// BILLING TAGS
+			case "billing-required": // DEPRECATED
+			case "card-required":
+				if ($this->Cart->Totals->total == 0) return false;
+				foreach ($Shopp->Gateways->active as $gateway)
+					if (!empty($gateway->cards)) return true;
+				return false;
+				break;
+			case "billing-address":
+				if ($options['mode'] == "value") return $this->Billing->address;
+				if (!empty($this->Billing->address))
+					$options['value'] = $this->Billing->address;
+				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
+				break;
+			case "billing-xaddress":
+				if ($options['mode'] == "value") return $this->Billing->xaddress;
+				if (!empty($this->Billing->xaddress))
+					$options['value'] = $this->Billing->xaddress;
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
+				break;
+			case "billing-city":
+				if ($options['mode'] == "value") return $this->Billing->city;
+				if (!empty($this->Billing->city))
+					$options['value'] = $this->Billing->city;
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
+				break;
+			case "billing-province":
+			case "billing-state":
+				if ($options['mode'] == "value") return $this->Billing->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->state)) {
+					$options['selected'] = $this->Billing->state;
+					$options['value'] = $this->Billing->state;
+				}
+
+				$output = false;
+				$country = $base['country'];
+				if (!empty($this->Billing->country))
+					$country = $this->Billing->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+
+				if (isset($options['options']) && empty($states)) $states = explode(",",$options['options']);
+
+				if (isset($options['type']) && $options['type'] == "text")
+					return '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+
+				$classname = isset($options['class'])?$options['class']:'';
+				$label = (!empty($options['label']))?$options['label']:'';
+				$options['disabled'] = 'disabled';
+				$options['class'] = ($classname?"$classname ":"").'disabled hidden';
+
+				$output .= '<select name="billing[state]" id="billing-state-menu" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="">'.$label.'</option>';
+				if (is_array($states) && !empty($states)) $output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				unset($options['disabled']);
+				$options['class'] = $classname;
+				$output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+
+				return $output;
+				break;
+			case "billing-postcode":
+				if ($options['mode'] == "value") return $this->Billing->postcode;
+				if (!empty($this->Billing->postcode))
+					$options['value'] = $this->Billing->postcode;
+				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
+				break;
+			case "billing-country":
+				if ($options['mode'] == "value") return $this->Billing->country;
+				if (!empty($this->Billing->country))
+					$options['selected'] = $this->Billing->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-card":
+				if ($options['mode'] == "value")
+					return str_repeat('X',strlen($this->Billing->card)-4)
+						.substr($this->Billing->card,-4);
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				if (!empty($this->Billing->card))
+					$options['value'] = $this->Billing->card;
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
+				break;
+			case "billing-cardexpires-mm":
+				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($this->Billing->cardexpires))
+					$options['value'] = date("m",$this->Billing->cardexpires);
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />';
+				break;
+			case "billing-cardexpires-yy":
+				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($this->Billing->cardexpires))
+					$options['value'] = date("y",$this->Billing->cardexpires);
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />';
+				break;
+			case "billing-cardtype":
+				if ($options['mode'] == "value") return $this->Billing->cardtype;
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->cardtype))
+					$options['selected'] = $this->Billing->cardtype;
+
+				$cards = array();
+				foreach ($this->paycards as $paycard)
+					$cards[$paycard->symbol] = $paycard->name;
+
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="" selected="selected">'.$label.'</option>';
+			 	$output .= menuoptions($cards,$options['selected'],true);
+				$output .= '</select>';
+
+				$js = array();
+				$js[] = "var paycards = {};";
+				foreach ($this->paycards as $handle => $paycard) {
+					$js[] = "paycards['".$handle."'] = ".json_encode($paycard).";";
+				}
+				add_storefrontjs(join("",$js), true);
+
+				return $output;
+				break;
+			case "billing-cardholder":
+				if ($options['mode'] == "value") return $this->Billing->cardholder;
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($this->Billing->cardholder))
+					$options['value'] = $this->Billing->cardholder;
+				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
+				break;
+			case "billing-cvv":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				if (!empty($_POST['billing']['cvv']))
+					$options['value'] = $_POST['billing']['cvv'];
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
+				break;
+			case "billing-xcsc-required":
+				$Gateways = $Shopp->Gateways->active;
+				foreach ($Gateways as $Gateway) {
+					foreach ((array)$Gateway->settings['cards'] as $card) {
+						$PayCard = Lookup::paycard($card);
+						if (!empty($PayCard->inputs)) return true;
+					}
+				}
+				return false;
+				break;
+			case "billing-xcsc":
+				if (empty($options['input'])) return;
+				$input = $options['input'];
+
+				$cards = array();
+				$valid = array();
+				// Collect valid card inputs for all gateways
+				foreach ($this->payoptions as $payoption) {
+					foreach ($payoption->cards as $card) {
+						$PayCard = Lookup::paycard($card);
+						if (empty($PayCard->inputs)) continue;
+						$cards[] = $PayCard->symbol;
+						foreach ($PayCard->inputs as $field => $size)
+							$valid[$field] = $size;
+					}
+				}
+
+				if (!array_key_exists($input,$valid)) return;
+
+				if (!empty($_POST['billing']['xcsc'][$input]))
+					$options['value'] = $_POST['billing']['xcsc'][$input];
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard xcsc':'paycard xcsc';
+
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
+				return $string;
+				break;
+			case "billing-xco": return; break; // DEPRECATED
+			case "billing-localities":
+				$rates = $Shopp->Settings->get("taxrates");
+				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
+				return false;
+				break;
+			case "billing-locale":
+				if ($options['mode'] == "value") return $this->Billing->locale;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->locale)) {
+					$options['selected'] = $this->Billing->locale;
+					$options['value'] = $this->Billing->locale;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				$output = false;
+
+
+				$rates = $Shopp->Settings->get("taxrates");
+				foreach ($rates as $rate) if (is_array($rate['locals']))
+					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+
+				add_storefrontjs('var locales = '.json_encode($locales).';',true);
+
+				$Taxes = new CartTax();
+				$rate = $Taxes->rate(false,true);
+
+		        if(!isset($rate['locals']))
+		            foreach ($this->Cart->contents as $Item)
+		                if ( ( $rate = $Taxes->rate($Item,true) )
+		                    && isset($rate['locals']) )
+		                    break;
+
+				if (!is_array($rate)) return;
+				$localities = array_keys($rate['locals']);
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($localities,$options['selected']);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "has-data":
+			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
+			case "order-data":
+			case "orderdata":
+				$defaults = array(
+					'name' => false, // REQUIRED
+					'data' => false,
+					'mode' => false,
+					'title' => '',
+					'type' => 'hidden',
+					'value' => '',
+					'cols' => '30',
+					'rows' => '3',
+					'options' => ''
+				);
+				$op = array_merge($defaults,$options);
+				extract($op);
+
+				// Allowed input types
+				$allowed_types = array("text","hidden","password","checkbox","radio","textarea","menu");
+
+				// Input types that can override option-specified value with the loaded data value
+				$value_override = array("text","hidden","password","textarea","menu");
+
+				/// Allowable attributes for textarea inputs
+				$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
+
+				if (!$name) { // Iterator for order data
+					if (!isset($this->_data_loop)) {
+						reset($this->data);
+						$this->_data_loop = true;
+					} else next($this->data);
+
+					if (current($this->data) !== false) return true;
+					else {
+						unset($this->_data_loop);
+						return false;
+					}
+				}
+
+				if (isset($this->data[$name])) $data = $this->data[$name];
+				if ($name && $mode == "value") return $data;
+
+				if (!in_array($type,$allowed_types)) $type = 'hidden';
+				if (empty($title)) $title = $name;
+				$id = 'order-data-'.sanitize_title_with_dashes($name);
+
+				if (in_array($type,$value_override) && !empty($data))
+					$value = $data;
+				switch (strtolower($type)) {
+					case "textarea":
+						return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
+						break;
+					case "menu":
+						if (is_string($options)) $options = explode(',',$options);
+						return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+						break;
+					default:
+						return '<input type="'.$type.'" name="data['.$name.']" id="'.$id.'" '.inputattrs($op).' />';
+						break;
+				}
+				break;
+			case "data":
+				if (!is_array($this->data)) return false;
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "submit":
+				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
+				$options['class'] = isset($options['class'])?$options['class'].' checkout-button':'checkout-button';
+
+				$wrapclass = '';
+				if (isset($options['wrapclass'])) $wrapclass = ' '.$options['wrapclass'];
+
+				$buttons = array('<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />');
+
+				if (!$this->Cart->orderisfree())
+					$buttons = apply_filters('shopp_checkout_submit_button',$buttons,$options,$submit_attrs);
+
+				$_ = array();
+				foreach ($buttons as $label => $button)
+					$_[] = '<span class="payoption-button payoption-'.sanitize_title_with_dashes($label).($label === 0?$wrapclass:'').'">'.$button.'</span>';
+
+				return join("\n",$_);
+				break;
+			case "confirm-button":
+				if (empty($options['errorlabel'])) $options['errorlabel'] = __('Return to Checkout','Shopp');
+				if (empty($options['value'])) $options['value'] = __('Confirm Order','Shopp');
+
+				$button = '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />';
+				$return = '<a href="'.shoppurl(false,'checkout',$this->security()).'"'.inputattrs($options,array('class')).'>'.
+								$options['errorlabel'].'</a>';
+
+				if (!$this->validated) $markup = $return;
+				else $markup = $button;
+				return apply_filters('shopp_checkout_confirm_button',$markup,$options,$submit_attrs);
+				break;
+			case "local-payment": return true; break; // DEPRECATED
+			case "xco-buttons": return;	break; // DEPRECATED
+			case "payoptions":
+			case "payment-options":
+			case "paymentoptions":
+				if ($this->Cart->orderisfree()) return false;
+				$payment_methods = apply_filters('shopp_payment_methods',count($this->payoptions));
+				if ($payment_methods <= 1) return false; // Skip if only one gateway is active
+				$defaults = array(
+					'default' => false,
+					'exclude' => false,
+					'type' => 'menu',
+					'mode' => false
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+				unset($options['type']);
+
+				if ("loop" == $mode) {
+					if (!isset($this->_pay_loop)) {
+						reset($this->payoptions);
+						$this->_pay_loop = true;
+					} else next($this->payoptions);
+
+					if (current($this->payoptions) !== false) return true;
+					else {
+						unset($this->_pay_loop);
+						return false;
+					}
+					return true;
+				}
+
+				$excludes = array_map('sanitize_title_with_dashes',explode(",",$exclude));
+				$payoptions = array_keys($this->payoptions);
+
+				$payoptions = array_diff($payoptions,$excludes);
+				$paymethod = current($payoptions);
+
+				if ($default !== false && !isset($this->_paymethod_selected)) {
+					$default = sanitize_title_with_dashes($default);
+					if (in_array($default,$payoptions)) $paymethod = $default;
+				}
+
+				if ($this->paymethod != $paymethod) {
+					$this->paymethod = $paymethod;
+					$processor = $this->payoptions[$this->paymethod]->processor;
+					if (!empty($processor)) $this->processor($processor);
+				}
+
+				$output = '';
+				switch ($type) {
+					case "list":
+						$output .= '<span><ul>';
+						foreach ($payoptions as $value) {
+							if (in_array($value,$excludes)) continue;
+							$payoption = $this->payoptions[$value];
+							$options['value'] = $value;
+							$options['checked'] = ($this->paymethod == $value)?'checked':false;
+							if ($options['checked'] === false) unset($options['checked']);
+							$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$payoption->label.'</label></li>';
+						}
+						$output .= '</ul></span>';
+						break;
+					case "hidden":
+						if (!isset($options['value']) && $default) $options['value'] = $this->paymethod;
+						$output .= '<input type="hidden" name="paymethod"'.inputattrs($options).' />';
+						break;
+					default:
+						$output .= '<select name="paymethod" '.inputattrs($options,$select_attrs).'>';
+						foreach ($payoptions as $value) {
+							if (in_array($value,$excludes)) continue;
+							$payoption = $this->payoptions[$value];
+							$selected = ($this->paymethod == $value)?' selected="selected"':'';
+							$output .= '<option value="'.$value.'"'.$selected.'>'.$payoption->label.'</option>';
+						}
+						$output .= '</select>';
+						break;
+				}
+
+				return $output;
+				break;
+			case "payoption":
+			case "payment-option":
+			case "paymentoption":
+				$payoption = current($this->payoptions);
+				$defaults = array(
+					'labelpos' => 'after',
+					'labeling' => false,
+					'type' => 'hidden',
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				if (value_is_true($return)) return $payoption;
+
+				$types = array('radio','checkbox','hidden');
+				if (!in_array($type,$types)) $type = 'hidden';
+
+				if (empty($options['value'])) $options['value'] = key($this->payoptions);
+
+				$_ = array();
+				if (value_is_true($labeling))
+					$_[] = '<label>';
+				if ($labelpos == "before") $_[] = $payoption->label;
+				$_[] = '<input type="'.$type.'" name="paymethod"'.inputattrs($options).' />';
+				if ($labelpos == "after") $_[] = $payoption->label;
+				if (value_is_true($labeling))
+					$_[] = '</label>';
+
+				return join("",$_);
+				break;
+			case "gatewayinputs":
+			case "gateway-inputs":
+				return apply_filters('shopp_checkout_gateway_inputs',false);
+				break;
+			case "completed":
+				if (empty($Shopp->Purchase->id) && $this->purchase !== false) {
+					$Shopp->Purchase = new Purchase($this->purchase);
+					$Shopp->Purchase->load_purchased();
+					return (!empty($Shopp->Purchase->id));
+				}
+				return false;
+				break;
+			case "receipt":
+				if (!empty($Shopp->Purchase->id))
+					return $Shopp->Purchase->receipt();
+				break;
+		}
 	}
 
 } // END class Order

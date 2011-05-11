@@ -13,8 +13,6 @@
  * @subpackage cart
  **/
 class Item {
-	var $api = 'cartitem';
-
 	var $product = false;		// The source product ID
 	var $priceline = false;		// The source price ID
 	var $category = false;		// The breadcrumb category
@@ -558,13 +556,232 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * @deprecated 1.2
+	 *
 	 * @return mixed
 	 **/
 	function tag ($id,$property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp($this,$property,$options);
+		global $Shopp;
+
+		// Return strings with no options
+		switch ($property) {
+			case "id": return $id;
+			case "product": return $this->product;
+			case "name": return $this->name;
+			case "type": return $this->type;
+			case "link":
+			case "url":
+				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('s_pid'=>$this->product));
+			case "sku": return $this->sku;
+		}
+
+		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
+		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
+			$taxes = shopp_taxrate($taxes,$this->taxable,$this) > 0?true:false;
+
+		// Handle currency values
+		$result = "";
+		switch ($property) {
+			case "discount": $result = (float)$this->discount; break;
+			case "unitprice": $result = (float)$this->unitprice+($taxes?$this->unittax:0); break;
+			case "unittax": $result = (float)$this->unittax; break;
+			case "discounts": $result = (float)$this->discounts; break;
+			case "tax": $result = (float)$this->tax; break;
+			case "total": $result = (float)$this->total+($taxes?($this->unittax*$this->quantity):0); break;
+		}
+		if (is_float($result)) {
+			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
+			else return money($result);
+		}
+
+		// Handle values with complex options
+		switch ($property) {
+			case "taxrate": return percentage($this->taxrate*100,array('precision' => 1)); break;
+			case "quantity":
+				$result = $this->quantity;
+				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
+				if ($this->type == "Subscription" || $this->type == "Membership") return $result;
+				if (isset($options['input']) && $options['input'] == "menu") {
+					if (!isset($options['value'])) $options['value'] = $this->quantity;
+					if (!isset($options['options']))
+						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
+					else $values = $options['options'];
+
+					if (strpos($values,",") !== false) $values = explode(",",$values);
+					else $values = array($values);
+					$qtys = array();
+					foreach ($values as $value) {
+						if (strpos($value,"-") !== false) {
+							$value = explode("-",$value);
+							if ($value[0] >= $value[1]) $qtys[] = $value[0];
+							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
+						} else $qtys[] = $value;
+					}
+					$result = '<select name="items['.$id.']['.$property.']">';
+					foreach ($qtys as $qty)
+						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
+					$result .= '</select>';
+				} elseif (isset($options['input']) && valid_input($options['input'])) {
+					if (!isset($options['size'])) $options['size'] = 5;
+					if (!isset($options['value'])) $options['value'] = $this->quantity;
+					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items-'.$id.'-'.$property.'" '.inputattrs($options).'/>';
+				} else $result = $this->quantity;
+				break;
+			case "remove":
+				$label = __("Remove");
+				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
+				else $class = ' class="remove"';
+				if (isset($options['input'])) {
+					switch ($options['input']) {
+						case "button":
+							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>'; break;
+						case "checkbox":
+						    $result = '<input type="checkbox" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
+					}
+				} else {
+					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),shoppurl(false,'cart')).'"'.$class.'>'.$label.'</a>';
+				}
+				break;
+			case "optionlabel": $result = $this->option->label; break;
+			case "options":
+				$class = "";
+				if (!isset($options['before'])) $options['before'] = '';
+				if (!isset($options['after'])) $options['after'] = '';
+				if (isset($options['show']) &&
+					strtolower($options['show']) == "selected")
+					return (!empty($this->option->label))?
+						$options['before'].$this->option->label.$options['after']:'';
+
+				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
+				if (count($this->variations) > 1) {
+					$result .= $options['before'];
+					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
+					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
+					$result .= $this->options($this->priceline);
+					$result .= '</select>';
+					$result .= $options['after'];
+				}
+				break;
+			case "addons-list":
+			case "addonslist":
+				if (empty($this->addons)) return false;
+				$defaults = array(
+					'before' => '',
+					'after' => '',
+					'class' => '',
+					'exclude' => '',
+					'prices' => true,
+
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$classes = !empty($class)?' class="'.join(' ',$class).'"':'';
+				$excludes = explode(',',$exclude);
+				$prices = value_is_true($prices);
+
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($this->addons as $id => $addon) {
+					if (in_array($addon->label,$excludes)) continue;
+
+					$price = ($addon->onsale?$addon->promoprice:$addon->price);
+					if ($this->taxrate > 0) $price = $price+($price*$this->taxrate);
+
+					if ($prices) $pricing = " (".($addon->unitprice < 0?'-':'+').money($price).")";
+					$result .= '<li>'.$addon->label.$pricing.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
+				break;
+			case "hasinputs":
+			case "has-inputs": return (count($this->data) > 0); break;
+			case "inputs":
+				if (!isset($this->_data_loop)) {
+					reset($this->data);
+					$this->_data_loop = true;
+				} else next($this->data);
+
+				if (current($this->data) !== false) return true;
+				else {
+					unset($this->_data_loop);
+					reset($this->data);
+					return false;
+				}
+				break;
+			case "input":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "inputs-list":
+			case "inputslist":
+				if (empty($this->data)) return false;
+				$defaults = array(
+					'class' => '',
+					'exclude' => array(),
+					'before' => '',
+					'after' => '',
+					'separator' => '<br />'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$classes = '';
+				if (!empty($class)) $classes = ' class="'.$class.'"';
+
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($this->data as $name => $data) {
+					if (in_array($name,$excludes)) continue;
+					if (is_array($data)) $data = join($separator,$data);
+					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
+				break;
+			case "coverimage":
+			case "thumbnail":
+				$defaults = array(
+					'class' => '',
+					'width' => 48,
+					'height' => 48,
+					'size' => false,
+					'fit' => false,
+					'sharpen' => false,
+					'quality' => false,
+					'bg' => false,
+					'alt' => false,
+					'title' => false
+				);
+
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				if ($this->image !== false) {
+					$img = $this->image;
+
+					if ($size !== false) $width = $height = $size;
+					$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
+					$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
+					$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
+					$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
+					$scaled = $img->scaled($width,$height,$scale);
+
+					$alt = empty($alt)?$img->alt:$alt;
+					$title = empty($title)?$img->title:$title;
+					$title = empty($title)?'':' title="'.esc_attr($title).'"';
+					$class = !empty($class)?' class="'.esc_attr($class).'"':'';
+
+					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
+					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
+				}
+				break;
+
+		}
+		if (!empty($result)) return $result;
+
+		return false;
 	}
 
 } // END class Item
