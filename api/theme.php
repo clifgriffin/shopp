@@ -83,7 +83,7 @@ function shopp () {
 require_once('theme/cart.php');
 require_once('theme/cartitem.php');
 require_once('theme/shipping.php');
-require_once('theme/category.php');
+require_once('theme/collection.php');
 require_once('theme/catalog.php');
 require_once('theme/product.php');
 require_once('theme/checkout.php');
@@ -104,6 +104,7 @@ class shoppapi {
 		if (isset($params[1])) $Object = $params[1];
 
 		$result = false;
+
 		if ($Object === false)
 		switch (strtolower($object)) {
 			case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
@@ -127,6 +128,15 @@ class shoppapi {
 			case "customer": 	if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
 			case "error": 		if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
 			default: $Object = apply_filters('shopp_tag_domain',$Object,$object);
+		}
+
+		// Handle collection objects
+		switch (strtolower($object)) {
+			case "taxonomy":
+			case "collection":
+			case "category":
+			case "subcategory":
+			$object = "collection";
 		}
 
 		if ('has-context' == $property) return ($Object);
