@@ -232,7 +232,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	function returned () {
-		$process = get_query_var('shopp_proc');
+		$process = get_query_var('s_pr');
 		if ($process != 'thanks') return;
 		global $Shopp;
 
