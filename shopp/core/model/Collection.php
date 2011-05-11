@@ -105,7 +105,7 @@ class ProductCollection implements Iterator {
 
 		// Load core product data and product summary columns
 		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date_gmt','p.post_modified',
-						's.id AS sumid','s.modified AS summed','s.sold','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+						's.modified AS summed','s.sold','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
 
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";

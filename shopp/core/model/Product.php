@@ -426,9 +426,7 @@ class Product extends WPShoppObject {
 		$Summary = new ProductSummary();
 
 		$properties = array_keys($Summary->_datatypes);
-		$ignore = array('id','product');
-		if (isset($data->sumid)) $this->sumid = $data->sumid;
-		else $this->sumid = $data->id;
+		$ignore = array('product');
 		foreach ($properties as $property) {
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
@@ -488,7 +486,6 @@ class Product extends WPShoppObject {
 		$Summary = new ProductSummary();
 		$Summary->copydata($this);
 
-		if (!empty($this->sumid)) $Summary->id = $this->sumid;
 		$Summary->product = $this->id;
 		$Summary->save();
 	}
@@ -1635,6 +1632,7 @@ class ProductSummary extends DatabaseObject {
 
 	function __construct ($id=false,$key='product') {
 		$this->init(self::$table);
+		$this->_key = 'product';
 		$this->load($id,$key);
 	}
 
