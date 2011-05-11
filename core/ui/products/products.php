@@ -22,9 +22,7 @@
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions filters">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
-		<select name="cat" class="filters">
 		<?php echo $categories_menu; ?>
-		</select>
 		<select name="sl" class="filters">
 		<?php echo $inventory_menu; ?>
 		</select>

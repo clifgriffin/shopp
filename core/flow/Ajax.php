@@ -287,15 +287,15 @@ class AjaxFlow {
 
 	function rebuild_search_index () {
 		check_admin_referer('wp_ajax_shopp_rebuild_search_index');
+		global $wpdb;
 		$db = DB::get();
 		require(SHOPP_MODEL_PATH."/Search.php");
 		new ContentParser();
 
 		$set = 10;
-		$product_table = DatabaseObject::tablename(Product::$table);
 		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 
-		$total = $db->query("SELECT count(id) AS products,now() as start FROM $product_table");
+		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts");
 		if (empty($total->products)) die('-1');
 
 		$Settings = &ShoppSettings();
@@ -303,9 +303,9 @@ class AjaxFlow {
 
 		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
-			$row = $db->query("SELECT id FROM $product_table LIMIT ".($i*$set).",$set",AS_ARRAY);
-			foreach ($row as $index => $product) {
-				$Indexer = new IndexProduct($product->id);
+			$products = DB::query("SELECT ID FROM $wpdb->posts LIMIT ".($i*$set).",$set",'array','col','ID');
+			foreach ($products as $id) {
+				$Indexer = new IndexProduct($id);
 				$Indexer->index();
 				$indexed++;
 			}

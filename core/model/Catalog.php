@@ -20,12 +20,12 @@ class Catalog extends DatabaseObject {
 
 	var $categories = array();
 	var $outofstock = false;
+	var $type = false; 			// @deprecated
 
-	function __construct ($type="catalog") {
-		global $Shopp;
+	function __construct () {
+		$Settings = ShoppSettings();
 		$this->init(self::$table);
-		$this->type = $type;
-		$this->outofstock = ($Shopp->Settings->get('outofstock_catalog') == "on");
+		$this->outofstock = ($Settings->get('outofstock_catalog') == "on");
 	}
 
 	/**
@@ -251,6 +251,7 @@ class Catalog extends DatabaseObject {
 
 				$defaults = array(
 					'orderby' => 'name',
+					'order' => false,
 					'number' => 45,
 					'levels' => 7,
 					'format' => 'list',
@@ -273,7 +274,7 @@ class Catalog extends DatabaseObject {
 				}
 
 				// Sorting
-				$sorted = apply_filters( 'tag_cloud_sort', $tags, $args );
+				$sorted = apply_filters( 'tag_cloud_sort', $tags, $options );
 				if ( $sorted != $tags  ) $tags = &$sorted;
 				else {
 					if ( 'RAND' == $order ) shuffle($tags);
@@ -443,7 +444,7 @@ class Catalog extends DatabaseObject {
 							}
 						}
 
-						$category_uri = empty($category->id)?$category->uri:$category->id;
+						// $category_uri = empty($category->id)?$category->uri:$category->id;
 						// $link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 						$link = get_term_link($category->name,$category->taxonomy);
 						$total = '';

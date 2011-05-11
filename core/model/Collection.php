@@ -47,6 +47,7 @@ class ProductCollection implements Iterator {
 			'adjacent' => false,	//
 			'product' => false,		//
 			'load' => array(),		// Product data to load
+			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
 		extract($loading);
@@ -109,10 +110,12 @@ class ProductCollection implements Iterator {
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
 		$where[] = "p.post_type='$Processing->_post_type'";
-		$joins[$stats_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
+		$joins[$summary_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
 
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
 		$query = DB::select($options);
+
+		if ($debug) echo $query.BR.BR;
 
 		$this->products = DB::query($query,'array',array($this,'loader'));
 		$this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
@@ -984,10 +987,10 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	static function register ($class) {
-		$slug = SHOPP_NAMESPACE_TAXONOMIES ? SHOPP_CATALOG_SLUG.'/'.$class::$namespace : $class::$namespace;
+		$slug = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$class::$namespace : $class::$namespace;
 		register_taxonomy($class::$taxonomy,array(Product::$posttype), array(
 			'hierarchical' => $class::$hierarchical,
-			'labels' => $class::labels(),
+			'labels' => $class::labels($class),
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug ),
@@ -1128,6 +1131,7 @@ class ProductTaxonomy extends ProductCollection {
 				if (isset($results[$id])) continue;
 				$results[$id] = get_term($id,$taxonomy);
 				$results[$id]->level = $level;
+				$results[$id]->_children = isset($children[$id]);
 			}
 			++$count;
 			unset($terms[$id]);
@@ -3577,10 +3581,10 @@ class SearchResults extends SmartCollection {
 		*/
 		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
-			'joins'=>array($index => "INNER JOIN $index AS search ON search.product=p.id"),
+			'joins'=>array($index => "INNER JOIN $index AS search ON search.product=p.ID"),
 			'columns'=> "$score AS score",
-			'where'=> $where,
-			'groupby'=>'p.id',
+			'where'=> array($where),
+			'groupby'=>'p.ID',
 			'orderby'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];

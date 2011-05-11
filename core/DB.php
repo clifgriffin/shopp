@@ -936,13 +936,13 @@ class WPShoppObject extends WPDatabaseObject {
 		parent::load($p);
 	}
 
-	function register ($class,$labels) {
+	function register ($class,$slug) {
 		register_post_type( $class::$posttype,array(
 				'labels' => array(
 					'name' => __('Products','Shopp'),
 					'singular_name' => __('Product','Shopp')
 				),
-			'rewrite' => array( 'slug' => $class::$namespace ),
+			'rewrite' => array( 'slug' => $slug ),
 			'public' => true,
 			'has_archive' => true,
 			'show_ui' => false,

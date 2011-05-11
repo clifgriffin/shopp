@@ -60,12 +60,8 @@ class ShoppInstallation extends FlowController {
 		if ($this->Settings->availability() && $this->Settings->get('db_version'))
 			$this->Settings->save('maintenance','off');
 
-		// Publish/re-enable Shopp pages
-		$this->pages_status('publish');
-
 		// Update rewrite rules
-		$wp_rewrite->flush_rules();
-
+		flush_rewrite_rules();
 
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
@@ -81,14 +77,12 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
-		if (!isset($this->Settings)) return;
 
-		// Unpublish/disable Shopp pages
-		$this->pages_status('draft');
+		//if (!isset($this->Settings)) return;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
 		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));
-		$wp_rewrite->flush_rules();
+		flush_rewrite_rules();
 
 		$this->Settings->save('data_model','');
 
@@ -178,25 +172,6 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->save("pages",$pages);
 	}
 
-	/**
-	 * Sets the content gateway pages publish status
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $mode The publish status (publish or draft)
-	 * @return void
-	 **/
-	function pages_status ($mode) {
-		global $wpdb;
-		$status = array('publish','draft');
-		if (!in_array($mode,$status)) return;
-
-		$_ = array();
-		$pages = shopp_locate_pages();
-		foreach ($pages as $page) if (!empty($page['id'])) $_[] = $page['id'];
-		if (!empty($_)) $wpdb->query("UPDATE $wpdb->posts SET post_status='$mode' WHERE 0<FIND_IN_SET(ID,'".join(',',$_)."')");
-	}
 
 	/**
 	 * Performs database upgrades when required
@@ -555,18 +530,6 @@ class ShoppInstallation extends FlowController {
 			$db_version = intval($this->Settings->get('db_version'));
 		}
 
-		// if ($db_version <= 1120) {
-		// 	// Move tags to meta table
-		// 	$meta_table = DatabaseObject::tablename('meta');
-		// 	$tag_table = DatabaseObject::tablename('tag');
-		// 	$catalog_table = DatabaseObject::tablename('catalog');
-		//
-		// 	$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-		// 				SELECT 0,'catalog','tag',name,name,0,0,created,modified FROM $tag_table");
-		//
-		// 	$db->query("UPDATE $catalog_table AS c JOIN $tag_table AS t ON c.parent=t.id AND c.type='tag' LEFT JOIN $meta_table AS m ON t.name=m.name SET c.parent=m.id");
-		// }
-
 		if ($db_version <= 1121) {
 			$address_table = DatabaseObject::tablename('address');
 			$billing_table = DatabaseObject::tablename('billing');
@@ -579,15 +542,6 @@ class ShoppInstallation extends FlowController {
 			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
-
-		// if ($db_version <= 1125) {
-		// 	// Upgrade catalog to use taxonomy system
-		// 	$catalog_table = DatabaseObject::tablename('catalog');
-		// 	$ct_id = 0;
-		// 	$tt_id = 1;
-		// 	$db->query("UPDATE $catalog_table SET taxonomy='$ct_id' WHERE type='category'");
-		// 	$db->query("UPDATE $catalog_table SET taxonomy='$tt_id' WHERE type='tag'");
-		// }
 
 		if ($db_version <= 1127) {
 			// Upgrade price tag to use settings column
@@ -607,6 +561,7 @@ class ShoppInstallation extends FlowController {
 				$category_table = DatabaseObject::tablename('category');
 				$tag_table = DatabaseObject::tablename('tag');
 				$purchased_table = DatabaseObject::tablename('purchased');
+				$index_table = DatabaseObject::tablename('index');
 
 				$post_type = 'shopp_product';
 
@@ -623,6 +578,8 @@ class ShoppInstallation extends FlowController {
 				// Update product links for prices and meta
 				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts wp ON price.product=wp.post_parent AND wp.post_type='$post_type' SET price.product=wp.ID");
 				DB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
+
+				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
 
 				// Move product options column to meta setting
 				DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
@@ -756,6 +713,29 @@ class ShoppInstallation extends FlowController {
 						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
 
 		} // END if ($db_version <= 1132)
+
+		if ($db_version <= 1133) {
+
+			// Ditch old WP pages for pseudorific new ones
+			$search = array();
+			$shortcodes = array('[catalog]','[cart]','[checkout]','[account]');
+			foreach ($shortcodes as $string) $search[] = "post_content LIKE '%$string%'";
+			$results = DB::query("SELECT ID,post_title AS title,post_name AS slug,post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ",$search).")",'array');
+
+			$pages = $trash = array();
+			foreach ($results as $post) {
+				$trash[] = $post->ID;
+				foreach ($shortcodes as $code) {
+					if (strpos($post->post_content,$code) === false) continue;
+					$pagename = trim($code,'[]');
+					$pages[$pagename] = array('title' => $post->title,'slug' => $post->slug);
+				} // end foreach $shortcodes
+			} // end foreach $results
+
+			$this->Settings->save('storefront_pages',$pages);
+
+			DB::query("UPDATE $wpdb->posts SET post_status='trash' where ID IN (".join(',',$trash).")");
+		}
 
 		$this->roles(); // Setup Roles and Capabilities
 

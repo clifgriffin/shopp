@@ -63,6 +63,7 @@ class AdminFlow extends FlowController {
 		'settings-shipping'=>'shopp_settings_shipping',
 		'settings-taxes'=>'shopp_settings_taxes',
 		'settings-presentation'=>'shopp_settings_presentation',
+		'settings-pages'=>'shopp_settings',
 		'settings-system'=>'shopp_settings_system'
 	);
 
@@ -102,6 +103,7 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
+		$this->addpage('settings-pages',__('Pages','Shopp'),'Setup','Page Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// Action hook for adding custom third-party pages
@@ -566,7 +568,7 @@ class AdminFlow extends FlowController {
 		echo $widget_name;
 		echo $after_title;
 
-		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
+		$RecentBestsellers = new BestsellerProducts(array('where'=>array('UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)'),'show'=>3));
 		$RecentBestsellers->load();
 
 		echo '<table><tbody><tr>';

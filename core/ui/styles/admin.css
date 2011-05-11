@@ -557,6 +557,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #payment-settings td button.deleteRate { position:absolute;right:5px; }
 #payment-settings table th,#payment-settings table td { border:none;padding:2px; }
 
+#page-settings label { display: inline-block; }
+
 div.storage-settings { clear:both;margin-top:8px; }
 
 #help { list-style-type:none;padding:0; }
@@ -602,3 +604,9 @@ div.storage-settings { clear:both;margin-top:8px; }
 #error_notify li { width:200px;display:inline-block; }
 
 #error-page.shopp-update { margin-top:20px;margin-bottom:20px;width:540px; }
+
+
+/** Inline editors **/
+tr.inline-edit-row td  { padding: 10px; }
+.inline-edit-row label { line-height: 20px; font-size: 11px; }
+
