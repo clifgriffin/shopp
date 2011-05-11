@@ -1,8 +1,8 @@
 <?php
 
 add_filter('shoppapi_product_addons', array('ShoppProductAPI', 'addons'), 10, 3);
-add_filter('shoppapi_product_addtocart', array('ShoppProductAPI', 'addtocart'), 10, 3);
-add_filter('shoppapi_product_buynow', array('ShoppProductAPI', 'buynow'), 10, 3);
+add_filter('shoppapi_product_addtocart', array('ShoppProductAPI', 'add_to_cart'), 10, 3);
+add_filter('shoppapi_product_buynow', array('ShoppProductAPI', 'buy_now'), 10, 3);
 add_filter('shoppapi_product_categories', array('ShoppProductAPI', 'categories'), 10, 3);
 add_filter('shoppapi_product_category', array('ShoppProductAPI', 'category'), 10, 3);
 add_filter('shoppapi_product_coverimage', array('ShoppProductAPI', 'coverimage'), 10, 3);
@@ -11,27 +11,27 @@ add_filter('shoppapi_product_donation', array('ShoppProductAPI', 'quantity'), 10
 add_filter('shoppapi_product_amount', array('ShoppProductAPI', 'quantity'), 10, 3);
 add_filter('shoppapi_product_quantity', array('ShoppProductAPI', 'quantity'), 10, 3);
 add_filter('shoppapi_product_found', array('ShoppProductAPI', 'found'), 10, 3);
-add_filter('shoppapi_product_freeshipping', array('ShoppProductAPI', 'freeshipping'), 10, 3);
+add_filter('shoppapi_product_freeshipping', array('ShoppProductAPI', 'free_shipping'), 10, 3);
 add_filter('shoppapi_product_gallery', array('ShoppProductAPI', 'gallery'), 10, 3);
-add_filter('shoppapi_product_hasaddons', array('ShoppProductAPI', 'hasaddons'), 10, 3);
-add_filter('shoppapi_product_hascategories', array('ShoppProductAPI', 'hascategories'), 10, 3);
-add_filter('shoppapi_product_hassavings', array('ShoppProductAPI', 'hassavings'), 10, 3);
-add_filter('shoppapi_product_hasvariations', array('ShoppProductAPI', 'hasvariations'), 10, 3);
-add_filter('shoppapi_product_hasimages', array('ShoppProductAPI', 'hasimages'), 10, 3);
-add_filter('shoppapi_product_hasspecs', array('ShoppProductAPI', 'hasspecs'), 10, 3);
-add_filter('shoppapi_product_hastags', array('ShoppProductAPI', 'hastags'), 10, 3);
+add_filter('shoppapi_product_hasaddons', array('ShoppProductAPI', 'has_addons'), 10, 3);
+add_filter('shoppapi_product_hascategories', array('ShoppProductAPI', 'has_categories'), 10, 3);
+add_filter('shoppapi_product_hassavings', array('ShoppProductAPI', 'has_savings'), 10, 3);
+add_filter('shoppapi_product_hasvariations', array('ShoppProductAPI', 'has_variations'), 10, 3);
+add_filter('shoppapi_product_hasimages', array('ShoppProductAPI', 'has_images'), 10, 3);
+add_filter('shoppapi_product_hasspecs', array('ShoppProductAPI', 'has_specs'), 10, 3);
+add_filter('shoppapi_product_hastags', array('ShoppProductAPI', 'has_tags'), 10, 3);
 add_filter('shoppapi_product_id', array('ShoppProductAPI', 'id'), 10, 3);
 add_filter('shoppapi_product_image', array('ShoppProductAPI', 'image'), 10, 3);
 add_filter('shoppapi_product_thumbnail', array('ShoppProductAPI', 'image'), 10, 3);
 add_filter('shoppapi_product_images', array('ShoppProductAPI', 'images'), 10, 3);
-add_filter('shoppapi_product_incategory', array('ShoppProductAPI', 'incategory'), 10, 3);
+add_filter('shoppapi_product_incategory', array('ShoppProductAPI', 'in_category'), 10, 3);
 add_filter('shoppapi_product_input', array('ShoppProductAPI', 'input'), 10, 3);
-add_filter('shoppapi_product_isfeatured', array('ShoppProductAPI', 'isfeatured'), 10, 3);
+add_filter('shoppapi_product_isfeatured', array('ShoppProductAPI', 'is_featured'), 10, 3);
 add_filter('shoppapi_product_link', array('ShoppProductAPI', 'url'), 10, 3);
 add_filter('shoppapi_product_url', array('ShoppProductAPI', 'url'), 10, 3);
 add_filter('shoppapi_product_name', array('ShoppProductAPI', 'name'), 10, 3);
-add_filter('shoppapi_product_onsale', array('ShoppProductAPI', 'onsale'), 10, 3);
-add_filter('shoppapi_product_outofstock', array('ShoppProductAPI', 'outofstock'), 10, 3);
+add_filter('shoppapi_product_onsale', array('ShoppProductAPI', 'on_sale'), 10, 3);
+add_filter('shoppapi_product_outofstock', array('ShoppProductAPI', 'out_of_stock'), 10, 3);
 add_filter('shoppapi_product_price', array('ShoppProductAPI', 'price'), 10, 3);
 add_filter('shoppapi_product_saleprice', array('ShoppProductAPI', 'price'), 10, 3);
 add_filter('shoppapi_product_relevance', array('ShoppProductAPI', 'relevance'), 10, 3);
@@ -159,7 +159,7 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function addtocart ($result, $options, $O) {
+	function add_to_cart ($result, $options, $O) {
 		global $Shopp;
 		if (!isset($options['class'])) $options['class'] = "addtocart";
 		else $options['class'] .= " addtocart";
@@ -198,7 +198,7 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function buynow ($result, $options, $O) {
+	function buy_now ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
 		return self::addtocart($result, $options, $O);
 	}
@@ -242,7 +242,7 @@ class ShoppProductAPI {
 		return true;
 	}
 
-	function freeshipping ($result, $options, $O) {
+	function free_shipping ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 		return $O->freeshipping;
 	}
@@ -400,21 +400,21 @@ class ShoppProductAPI {
 		return $result;
 	}
 
-	function hasaddons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
+	function has_addons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
 
-	function hascategories ($result, $options, $O) {
+	function has_categories ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function hasimages ($result, $options, $O) {
+	function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_data(array('images'));
 		return (!empty($O->images));
 	}
 
-	function hassavings ($result, $options, $O) { return ($O->onsale && $O->min['saved'] > 0); }
+	function has_savings ($result, $options, $O) { return ($O->onsale && $O->min['saved'] > 0); }
 
-	function hasspecs ($result, $options, $O) {
+	function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
 		if (count($O->specs) > 0) {
 			$O->merge_specs();
@@ -422,12 +422,12 @@ class ShoppProductAPI {
 		} else return false;
 	}
 
-	function hastags ($result, $options, $O) {
+	function has_tags ($result, $options, $O) {
 		if (empty($O->tags)) $O->load_data(array('tags'));
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
-	function hasvariations ($result, $options, $O) { return ($O->variations == "on" && (!empty($O->options['v']) || !empty($O->options))); }
+	function has_variations ($result, $options, $O) { return ($O->variations == "on" && (!empty($O->options['v']) || !empty($O->options))); }
 
 	function id ($result, $options, $O) { return $O->id; }
 
@@ -542,7 +542,7 @@ class ShoppProductAPI {
 		}
 	}
 
-	function incategory ($result, $options, $O) {
+	function in_category ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
 		if (isset($options['id'])) $field = "id";
 		if (isset($options['name'])) $field = "name";
@@ -584,17 +584,17 @@ class ShoppProductAPI {
 		return $result;
 	}
 
-	function isfeatured ($result, $options, $O) { return ($O->featured == "on"); }
+	function is_featured ($result, $options, $O) { return ($O->featured == "on"); }
 
 	function name ($result, $options, $O) { return apply_filters('shopp_product_name',$O->name); }
 
-	function onsale ($result, $options, $O) {
+	function on_sale ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 		if (empty($O->prices)) return false;
 		return $O->onsale;
 	}
 
-	function outofstock ($result, $options, $O) {
+	function out_of_stock ($result, $options, $O) {
 		global $Shopp;
 		if ($O->outofstock) {
 			$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');

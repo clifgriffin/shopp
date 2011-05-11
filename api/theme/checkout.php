@@ -1,73 +1,73 @@
 <?php
 
-add_filter('shoppapi_checkout_billingaddress', array('ShoppCheckoutAPI','billingaddress'), 10, 3);
-add_filter('shoppapi_checkout_billingcard', array('ShoppCheckoutAPI','billingcard'), 10, 3);
-add_filter('shoppapi_checkout_billingcardexpiresmm', array('ShoppCheckoutAPI','billingcardexpiresmm'), 10, 3);
-add_filter('shoppapi_checkout_billingcardexpiresyy', array('ShoppCheckoutAPI','billingcardexpiresyy'), 10, 3);
-add_filter('shoppapi_checkout_billingcardholder', array('ShoppCheckoutAPI','billingcardholder'), 10, 3);
-add_filter('shoppapi_checkout_billingcardtype', array('ShoppCheckoutAPI','billingcardtype'), 10, 3);
-add_filter('shoppapi_checkout_billingcity', array('ShoppCheckoutAPI','billingcity'), 10, 3);
-add_filter('shoppapi_checkout_billingcountry', array('ShoppCheckoutAPI','billingcountry'), 10, 3);
-add_filter('shoppapi_checkout_billingcvv', array('ShoppCheckoutAPI','billingcvv'), 10, 3);
-add_filter('shoppapi_checkout_billinglocale', array('ShoppCheckoutAPI','billinglocale'), 10, 3);
-add_filter('shoppapi_checkout_billinglocalities', array('ShoppCheckoutAPI','billinglocalities'), 10, 3);
-add_filter('shoppapi_checkout_billingpostcode', array('ShoppCheckoutAPI','billingpostcode'), 10, 3);
-add_filter('shoppapi_checkout_billingprovince', array('ShoppCheckoutAPI','billingstate'), 10, 3);
-add_filter('shoppapi_checkout_billingstate', array('ShoppCheckoutAPI','billingstate'), 10, 3);
-add_filter('shoppapi_checkout_billingrequired', array('ShoppCheckoutAPI','cardrequired'), 10, 3);
-add_filter('shoppapi_checkout_cardrequired', array('ShoppCheckoutAPI','cardrequired'), 10, 3);
-add_filter('shoppapi_checkout_billingxaddress', array('ShoppCheckoutAPI','billingxaddress'), 10, 3);
-add_filter('shoppapi_checkout_billingxco', array('ShoppCheckoutAPI','billingxco'), 10, 3);
-add_filter('shoppapi_checkout_billingxcsc', array('ShoppCheckoutAPI','billingxcsc'), 10, 3);
-add_filter('shoppapi_checkout_billingxcscrequired', array('ShoppCheckoutAPI','billingxcscrequired'), 10, 3);
-add_filter('shoppapi_checkout_cartsummary', array('ShoppCheckoutAPI','cartsummary'), 10, 3);
+add_filter('shoppapi_checkout_billingaddress', array('ShoppCheckoutAPI','billing_address'), 10, 3);
+add_filter('shoppapi_checkout_billingcard', array('ShoppCheckoutAPI','billing_card'), 10, 3);
+add_filter('shoppapi_checkout_billingcardexpiresmm', array('ShoppCheckoutAPI','billing_card_expires_mm'), 10, 3);
+add_filter('shoppapi_checkout_billingcardexpiresyy', array('ShoppCheckoutAPI','billing_card_expires_yy'), 10, 3);
+add_filter('shoppapi_checkout_billingcardholder', array('ShoppCheckoutAPI','billing_card_holder'), 10, 3);
+add_filter('shoppapi_checkout_billingcardtype', array('ShoppCheckoutAPI','billing_card_type'), 10, 3);
+add_filter('shoppapi_checkout_billingcity', array('ShoppCheckoutAPI','billing_city'), 10, 3);
+add_filter('shoppapi_checkout_billingcountry', array('ShoppCheckoutAPI','billing_country'), 10, 3);
+add_filter('shoppapi_checkout_billingcvv', array('ShoppCheckoutAPI','billing_cvv'), 10, 3);
+add_filter('shoppapi_checkout_billinglocale', array('ShoppCheckoutAPI','billing_locale'), 10, 3);
+add_filter('shoppapi_checkout_billinglocalities', array('ShoppCheckoutAPI','billing_localities'), 10, 3);
+add_filter('shoppapi_checkout_billingpostcode', array('ShoppCheckoutAPI','billing_postcode'), 10, 3);
+add_filter('shoppapi_checkout_billingprovince', array('ShoppCheckoutAPI','billing_state'), 10, 3);
+add_filter('shoppapi_checkout_billingstate', array('ShoppCheckoutAPI','billing_state'), 10, 3);
+add_filter('shoppapi_checkout_billingrequired', array('ShoppCheckoutAPI','card_required'), 10, 3);
+add_filter('shoppapi_checkout_cardrequired', array('ShoppCheckoutAPI','card_required'), 10, 3);
+add_filter('shoppapi_checkout_billingxaddress', array('ShoppCheckoutAPI','billing_xaddress'), 10, 3);
+add_filter('shoppapi_checkout_billingxco', array('ShoppCheckoutAPI','billing_xco'), 10, 3);
+add_filter('shoppapi_checkout_billingxcsc', array('ShoppCheckoutAPI','billing_xcsc'), 10, 3);
+add_filter('shoppapi_checkout_billingxcscrequired', array('ShoppCheckoutAPI','billing_xcsc_required'), 10, 3);
+add_filter('shoppapi_checkout_cartsummary', array('ShoppCheckoutAPI','cart_summary'), 10, 3);
 add_filter('shoppapi_checkout_completed', array('ShoppCheckoutAPI','completed'), 10, 3);
-add_filter('shoppapi_checkout_confirmbutton', array('ShoppCheckoutAPI','confirmbutton'), 10, 3);
-add_filter('shoppapi_checkout_confirmpassword', array('ShoppCheckoutAPI','confirmpassword'), 10, 3);
-add_filter('shoppapi_checkout_customerinfo', array('ShoppCheckoutAPI','customerinfo'), 10, 3);
+add_filter('shoppapi_checkout_confirmbutton', array('ShoppCheckoutAPI','confirm_button'), 10, 3);
+add_filter('shoppapi_checkout_confirmpassword', array('ShoppCheckoutAPI','confirm_password'), 10, 3);
+add_filter('shoppapi_checkout_customerinfo', array('ShoppCheckoutAPI','customer_info'), 10, 3);
 add_filter('shoppapi_checkout_data', array('ShoppCheckoutAPI','data'), 10, 3);
 add_filter('shoppapi_checkout_email', array('ShoppCheckoutAPI','email'), 10, 3);
-add_filter('shoppapi_checkout_emaillogin', array('ShoppCheckoutAPI','accountlogin'), 10, 3);
-add_filter('shoppapi_checkout_loginnamelogin', array('ShoppCheckoutAPI','accountlogin'), 10, 3);
-add_filter('shoppapi_checkout_accountlogin', array('ShoppCheckoutAPI','accountlogin'), 10, 3);
+add_filter('shoppapi_checkout_emaillogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
+add_filter('shoppapi_checkout_loginnamelogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
+add_filter('shoppapi_checkout_accountlogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
 add_filter('shoppapi_checkout_errors', array('ShoppCheckoutAPI','error'), 10, 3);
 add_filter('shoppapi_checkout_error', array('ShoppCheckoutAPI','error'), 10, 3);
-add_filter('shoppapi_checkout_firstname', array('ShoppCheckoutAPI','firstname'), 10, 3);
-add_filter('shoppapi_checkout_function', array('ShoppCheckoutAPI','checkoutfunction'), 10, 3);
-add_filter('shoppapi_checkout_gatewayinputs', array('ShoppCheckoutAPI','gatewayinputs'), 10, 3);
-add_filter('shoppapi_checkout_hasdata', array('ShoppCheckoutAPI','hasdata'), 10, 3);
-add_filter('shoppapi_checkout_lastname', array('ShoppCheckoutAPI','lastname'), 10, 3);
-add_filter('shoppapi_checkout_localpayment', array('ShoppCheckoutAPI','localpayment'), 10, 3);
-add_filter('shoppapi_checkout_loggedin', array('ShoppCheckoutAPI','loggedin'), 10, 3);
-add_filter('shoppapi_checkout_loginname', array('ShoppCheckoutAPI','loginname'), 10, 3);
+add_filter('shoppapi_checkout_firstname', array('ShoppCheckoutAPI','first_name'), 10, 3);
+add_filter('shoppapi_checkout_function', array('ShoppCheckoutAPI','checkout_function'), 10, 3);
+add_filter('shoppapi_checkout_gatewayinputs', array('ShoppCheckoutAPI','gateway_inputs'), 10, 3);
+add_filter('shoppapi_checkout_hasdata', array('ShoppCheckoutAPI','has_data'), 10, 3);
+add_filter('shoppapi_checkout_lastname', array('ShoppCheckoutAPI','last_name'), 10, 3);
+add_filter('shoppapi_checkout_localpayment', array('ShoppCheckoutAPI','local_payment'), 10, 3);
+add_filter('shoppapi_checkout_loggedin', array('ShoppCheckoutAPI','logged_in'), 10, 3);
+add_filter('shoppapi_checkout_loginname', array('ShoppCheckoutAPI','login_name'), 10, 3);
 add_filter('shoppapi_checkout_marketing', array('ShoppCheckoutAPI','marketing'), 10, 3);
-add_filter('shoppapi_checkout_notloggedin', array('ShoppCheckoutAPI','notloggedin'), 10, 3);
-add_filter('shoppapi_checkout_orderdata', array('ShoppCheckoutAPI','orderdata'), 10, 3);
+add_filter('shoppapi_checkout_notloggedin', array('ShoppCheckoutAPI','not_logged_in'), 10, 3);
+add_filter('shoppapi_checkout_orderdata', array('ShoppCheckoutAPI','order_data'), 10, 3);
 add_filter('shoppapi_checkout_organization', array('ShoppCheckoutAPI','company'), 10, 3);
 add_filter('shoppapi_checkout_company', array('ShoppCheckoutAPI','company'), 10, 3);
 add_filter('shoppapi_checkout_password', array('ShoppCheckoutAPI','password'), 10, 3);
-add_filter('shoppapi_checkout_passwordlogin', array('ShoppCheckoutAPI','passwordlogin'), 10, 3);
+add_filter('shoppapi_checkout_passwordlogin', array('ShoppCheckoutAPI','password_login'), 10, 3);
 add_filter('shoppapi_checkout_payoption', array('ShoppCheckoutAPI','payoption'), 10, 3);
 add_filter('shoppapi_checkout_paymentoption', array('ShoppCheckoutAPI','payoption'), 10, 3);
 add_filter('shoppapi_checkout_payoptions', array('ShoppCheckoutAPI','payoptions'), 10, 3);
 add_filter('shoppapi_checkout_paymentoptions', array('ShoppCheckoutAPI','payoptions'), 10, 3);
 add_filter('shoppapi_checkout_phone', array('ShoppCheckoutAPI','phone'), 10, 3);
 add_filter('shoppapi_checkout_receipt', array('ShoppCheckoutAPI','receipt'), 10, 3);
-add_filter('shoppapi_checkout_residentialshippingaddress', array('ShoppCheckoutAPI','residentialshippingaddress'), 10, 3);
-add_filter('shoppapi_checkout_sameshippingaddress', array('ShoppCheckoutAPI','sameshippingaddress'), 10, 3);
+add_filter('shoppapi_checkout_residentialshippingaddress', array('ShoppCheckoutAPI','residential_shipping_address'), 10, 3);
+add_filter('shoppapi_checkout_sameshippingaddress', array('ShoppCheckoutAPI','same_shipping_address'), 10, 3);
 add_filter('shoppapi_checkout_shipping', array('ShoppCheckoutAPI','shipping'), 10, 3);
-add_filter('shoppapi_checkout_shippingaddress', array('ShoppCheckoutAPI','shippingaddress'), 10, 3);
-add_filter('shoppapi_checkout_shippingcity', array('ShoppCheckoutAPI','shippingcity'), 10, 3);
-add_filter('shoppapi_checkout_shippingcountry', array('ShoppCheckoutAPI','shippingcountry'), 10, 3);
-add_filter('shoppapi_checkout_shippingpostcode', array('ShoppCheckoutAPI','shippingpostcode'), 10, 3);
-add_filter('shoppapi_checkout_shippingprovince', array('ShoppCheckoutAPI','shippingstate'), 10, 3);
-add_filter('shoppapi_checkout_shippingstate', array('ShoppCheckoutAPI','shippingstate'), 10, 3);
-add_filter('shoppapi_checkout_shippingxaddress', array('ShoppCheckoutAPI','shippingxaddress'), 10, 3);
+add_filter('shoppapi_checkout_shippingaddress', array('ShoppCheckoutAPI','shipping_address'), 10, 3);
+add_filter('shoppapi_checkout_shippingcity', array('ShoppCheckoutAPI','shipping_city'), 10, 3);
+add_filter('shoppapi_checkout_shippingcountry', array('ShoppCheckoutAPI','shipping_country'), 10, 3);
+add_filter('shoppapi_checkout_shippingpostcode', array('ShoppCheckoutAPI','shipping_postcode'), 10, 3);
+add_filter('shoppapi_checkout_shippingprovince', array('ShoppCheckoutAPI','shipping_state'), 10, 3);
+add_filter('shoppapi_checkout_shippingstate', array('ShoppCheckoutAPI','shipping_state'), 10, 3);
+add_filter('shoppapi_checkout_shippingxaddress', array('ShoppCheckoutAPI','shipping_xaddress'), 10, 3);
 add_filter('shoppapi_checkout_submit', array('ShoppCheckoutAPI','submit'), 10, 3);
-add_filter('shoppapi_checkout_submitlogin', array('ShoppCheckoutAPI','submitlogin'), 10, 3);
-add_filter('shoppapi_checkout_loginbutton', array('ShoppCheckoutAPI','submitlogin'), 10, 3);
+add_filter('shoppapi_checkout_submitlogin', array('ShoppCheckoutAPI','submit_login'), 10, 3);
+add_filter('shoppapi_checkout_loginbutton', array('ShoppCheckoutAPI','submit_login'), 10, 3);
 add_filter('shoppapi_checkout_url', array('ShoppCheckoutAPI','url'), 10, 3);
-add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xcobuttons'), 10, 3);
+add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xco_buttons'), 10, 3);
 
 /**
  * Provides shopp('checkout') theme API functionality
@@ -76,14 +76,14 @@ add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xcobuttons'
  * @since 1.2
  **/
 class ShoppCheckoutAPI {
-	function accountlogin ($result, $options, $O) {
+	function account_login ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['account-login']))
 			$options['value'] = $_POST['account-login'];
 		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 	}
 
-	function billingaddress ($result, $options, $O) {
+	function billing_address ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Billing->address;
 		if (!empty($O->Billing->address))
@@ -91,7 +91,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 	}
 
-	function billingcard ($result, $options, $O) {
+	function billing_card ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value")
 			return str_repeat('X',strlen($O->Billing->card)-4)
@@ -103,7 +103,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 	}
 
-	function billingcardexpiresmm ($result, $options, $O) {
+	function billing_card_expires_mm ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return date("m",$O->Billing->cardexpires);
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
@@ -113,7 +113,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />';
 	}
 
-	function billingcardexpiresyy ($result, $options, $O) {
+	function billing_card_expires_yy ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return date("y",$O->Billing->cardexpires);
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
@@ -123,7 +123,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />';
 	}
 
-	function billingcardholder ($result, $options, $O) {
+	function billing_card_holder ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Billing->cardholder;
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
@@ -133,7 +133,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
 	}
 
-	function billingcardtype ($result, $options, $O) {
+	function billing_card_type ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
@@ -163,7 +163,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingcity ($result, $options, $O) {
+	function billing_city ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Billing->city;
 		if (!empty($O->Billing->city))
@@ -171,7 +171,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 	}
 
-	function billingcountry ($result, $options, $O) {
+	function billing_country ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -188,7 +188,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingcvv ($result, $options, $O) {
+	function billing_cvv ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['billing']['cvv']))
 			$options['value'] = $_POST['billing']['cvv'];
@@ -196,7 +196,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 	}
 
-	function billinglocale ($result, $options, $O) {
+	function billing_locale ($result, $options, $O) {
 		global $Shopp;
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
@@ -235,14 +235,14 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billinglocalities ($result, $options, $O) {
+	function billing_localities ($result, $options, $O) {
 		global $Shopp;
 		$rates = $Shopp->Settings->get("taxrates");
 		foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 		return false;
 	}
 
-	function billingpostcode ($result, $options, $O) {
+	function billing_postcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Billing->postcode;
 		if (!empty($O->Billing->postcode))
@@ -250,7 +250,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 	}
 
-	function billingstate ($result, $options, $O) {
+	function billing_state ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -294,7 +294,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingxaddress ($result, $options, $O) {
+	function billing_xaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Billing->xaddress;
 		if (!empty($O->Billing->xaddress))
@@ -306,9 +306,9 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function billingxco ($result, $options, $O) { return; }
+	function billing_xco ($result, $options, $O) { return; }
 
-	function billingxcsc ($result, $options, $O) {
+	function billing_xcsc ($result, $options, $O) {
 		if (empty($options['input'])) return;
 		$input = $options['input'];
 
@@ -336,7 +336,7 @@ class ShoppCheckoutAPI {
 		return $string;
 	}
 
-	function billingxcscrequired ($result, $options, $O) {
+	function billing_xcsc_required ($result, $options, $O) {
 		global $Shopp;
 		$Gateways = $Shopp->Gateways->active;
 		foreach ($Gateways as $Gateway) {
@@ -348,7 +348,7 @@ class ShoppCheckoutAPI {
 		return false;
 	}
 
-	function cardrequired ($result, $options, $O) {
+	function card_required ($result, $options, $O) {
 		global $Shopp;
 		if ($O->Cart->Totals->total == 0) return false;
 		foreach ($Shopp->Gateways->active as $gateway)
@@ -356,7 +356,7 @@ class ShoppCheckoutAPI {
 		return false;
 	}
 
-	function cartsummary ($result, $options, $O) {
+	function cart_summary ($result, $options, $O) {
 		ob_start();
 		include(SHOPP_TEMPLATES."/summary.php");
 		$content = ob_get_contents();
@@ -389,7 +389,7 @@ class ShoppCheckoutAPI {
 		return false;
 	}
 
-	function confirmbutton ($result, $options, $O) {
+	function confirm_button ($result, $options, $O) {
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
 		if (empty($options['errorlabel'])) $options['errorlabel'] = __('Return to Checkout','Shopp');
@@ -404,14 +404,14 @@ class ShoppCheckoutAPI {
 		return apply_filters('shopp_checkout_confirm_button',$markup,$options,$submit_attrs);
 	}
 
-	function confirmpassword ($result, $options, $O) {
+	function confirm_password ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($O->Customer->_confirm_password))
 			$options['value'] = $O->Customer->_confirm_password;
 		return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 	}
 
-	function customerinfo ($result, $options, $O) {
+	function customer_info ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$defaults = array(
 			'name' => false, // REQUIRED
@@ -505,7 +505,7 @@ class ShoppCheckoutAPI {
 		return $result;
 	}
 
-	function firstname ($result, $options, $O) {
+	function first_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Customer->firstname;
 		if (!empty($O->Customer->firstname))
@@ -513,7 +513,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 	}
 
-	function checkoutfunction ($result, $options, $O) {
+	function checkout_function ($result, $options, $O) {
 		global $Shopp;
 		if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 		$regions = Lookup::country_zones();
@@ -538,11 +538,11 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function gatewayinputs ($result, $options, $O) { return apply_filters('shopp_checkout_gateway_inputs',false); }
+	function gateway_inputs ($result, $options, $O) { return apply_filters('shopp_checkout_gateway_inputs',false); }
 
-	function hasdata ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
+	function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
-	function lastname ($result, $options, $O) {
+	function last_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Customer->lastname;
 		if (!empty($O->Customer->lastname))
@@ -554,11 +554,11 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function localpayment ($result, $options, $O) { return true; }
+	function local_payment ($result, $options, $O) { return true; }
 
-	function loggedin ($result, $options, $O) { return $O->Customer->login; }
+	function logged_in ($result, $options, $O) { return $O->Customer->login; }
 
-	function loginname ($result, $options, $O) {
+	function login_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value") return $O->Customer->loginname;
@@ -580,9 +580,9 @@ class ShoppCheckoutAPI {
 		return $input;
 	}
 
-	function notloggedin ($result, $options, $O) { global $Shopp; return (!$O->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) { global $Shopp; return (!$O->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
 
-	function orderdata ($result, $options, $O) {
+	function order_data ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$defaults = array(
 			'name' => false, // REQUIRED
@@ -653,7 +653,7 @@ class ShoppCheckoutAPI {
 		return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 	}
 
-	function passwordlogin ($result, $options, $O) {
+	function password_login ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['password-login']))
 			$options['value'] = $_POST['password-login'];
@@ -779,7 +779,7 @@ class ShoppCheckoutAPI {
 
 	function receipt ($result, $options, $O) { global $Shopp; if (!empty($Shopp->Purchase->id)) return $Shopp->Purchase->receipt(); }
 
-	function residentialshippingaddress ($result, $options, $O) {
+	function residential_shipping_address ($result, $options, $O) {
 		$label = __("Residential shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
@@ -787,7 +787,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function sameshippingaddress ($result, $options, $O) {
+	function same_shipping_address ($result, $options, $O) {
 		$label = __("Same shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		$checked = ' checked="checked"';
@@ -798,7 +798,7 @@ class ShoppCheckoutAPI {
 
 	function shipping ($result, $options, $O) { return (!empty($O->shipped)); }
 
-	function shippingaddress ($result, $options, $O) {
+	function shipping_address ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Shipping->address;
 		if (!empty($O->Shipping->address))
@@ -806,7 +806,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 	}
 
-	function shippingcity ($result, $options, $O) {
+	function shipping_city ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Shipping->city;
 		if (!empty($O->Shipping->city))
@@ -814,7 +814,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 	}
 
-	function shippingcountry ($result, $options, $O) {
+	function shipping_country ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -831,7 +831,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function shippingpostcode ($result, $options, $O) {
+	function shipping_postcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Shipping->postcode;
 		if (!empty($O->Shipping->postcode))
@@ -839,7 +839,7 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />';
 	}
 
-	function shippingstate ($result, $options, $O) {
+	function shipping_state ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -883,7 +883,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function shippingxaddress ($result, $options, $O) {
+	function shipping_xaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->Shipping->xaddress;
 		if (!empty($O->Shipping->xaddress))
@@ -912,7 +912,7 @@ class ShoppCheckoutAPI {
 		return join("\n",$_);
 	}
 
-	function submitlogin ($result, $options, $O) {
+	function submit_login ($result, $options, $O) {
 		$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
 		$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 		return $string;
@@ -935,7 +935,7 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function xcobuttons ($result, $options, $O) { return; }
+	function xco_buttons ($result, $options, $O) { return; }
 
 }
 

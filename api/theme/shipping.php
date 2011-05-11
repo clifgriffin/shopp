@@ -1,19 +1,19 @@
 <?php
 
 add_filter('shoppapi_shipping_url', array('ShoppCartShippingAPI', 'url'), 10, 3);
-add_filter('shoppapi_shipping_hasestimates', array('ShoppCartShippingAPI', 'hasestimates'), 10, 3);
+add_filter('shoppapi_shipping_hasestimates', array('ShoppCartShippingAPI', 'has_estimates'), 10, 3);
 add_filter('shoppapi_shipping_options', array('ShoppCartShippingAPI', 'options'), 10, 3);
 add_filter('shoppapi_shipping_methods', array('ShoppCartShippingAPI', 'options'), 10, 3);
-add_filter('shoppapi_shipping_optionmenu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
-add_filter('shoppapi_shipping_methodmenu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
-add_filter('shoppapi_shipping_optionname', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
-add_filter('shoppapi_shipping_methodname', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
-add_filter('shoppapi_shipping_methodselected', array('ShoppCartShippingAPI', 'methodselected'), 10, 3);
-add_filter('shoppapi_shipping_optioncost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
-add_filter('shoppapi_shipping_methodcost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
-add_filter('shoppapi_shipping_methodselector', array('ShoppCartShippingAPI', 'methodselector'), 10, 3);
-add_filter('shoppapi_shipping_optiondelivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
-add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
+add_filter('shoppapi_shipping_optionmenu', array('ShoppCartShippingAPI', 'option_menu'), 10, 3);
+add_filter('shoppapi_shipping_methodmenu', array('ShoppCartShippingAPI', 'option_menu'), 10, 3);
+add_filter('shoppapi_shipping_optionname', array('ShoppCartShippingAPI', 'option_name'), 10, 3);
+add_filter('shoppapi_shipping_methodname', array('ShoppCartShippingAPI', 'option_name'), 10, 3);
+add_filter('shoppapi_shipping_methodselected', array('ShoppCartShippingAPI', 'method_selected'), 10, 3);
+add_filter('shoppapi_shipping_optioncost', array('ShoppCartShippingAPI', 'option_cost'), 10, 3);
+add_filter('shoppapi_shipping_methodcost', array('ShoppCartShippingAPI', 'option_cost'), 10, 3);
+add_filter('shoppapi_shipping_methodselector', array('ShoppCartShippingAPI', 'method_selector'), 10, 3);
+add_filter('shoppapi_shipping_optiondelivery', array('ShoppCartShippingAPI', 'option_delivery'), 10, 3);
+add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'option_delivery'), 10, 3);
 
 
 /**
@@ -26,9 +26,9 @@ add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'op
  *
  **/
 class ShoppCartShippingAPI {
-	function hasestimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
+	function has_estimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
-	function methodselector ($result, $options, $O) {
+	function method_selector ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 
@@ -41,19 +41,19 @@ class ShoppCartShippingAPI {
 		return $result;
 	}
 
-	function methodselected ($result, $options, $O) {
+	function method_selected ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
 			$Shopp->Order->Shipping->method == $method->name));
 	}
 
-	function optioncost ($result, $options, $O) {
+	function option_cost ($result, $options, $O) {
 		$option = current($O->shipping);
 		return money($option->amount);
 	}
 
-	function optiondelivery ($result, $options, $O) {
+	function option_delivery ($result, $options, $O) {
 		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 		$option = current($O->shipping);
 		if (!$option->delivery) return "";
@@ -72,7 +72,7 @@ class ShoppCartShippingAPI {
 		return $result;
 	}
 
-	function optionmenu ($result, $options, $O) {
+	function option_menu ($result, $options, $O) {
 		global $Shopp;
 		// @todo Add options for differential pricing and estimated delivery dates
 		$_ = array();
@@ -87,7 +87,7 @@ class ShoppCartShippingAPI {
 		return join("",$_);
 	}
 
-	function optionname ($result, $options, $O) {
+	function option_name ($result, $options, $O) {
 		$option = current($O->shipping);
 		return $option->name;
 	}
