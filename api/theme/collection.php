@@ -1,32 +1,32 @@
 <?php
 
-add_filter('shoppapi_category_carousel', array('ShoppCategoryAPI','carousel'), 10, 3);
-add_filter('shoppapi_category_coverimage', array('ShoppCategoryAPI','coverimage'), 10, 3);
-add_filter('shoppapi_category_description', array('ShoppCategoryAPI','description'), 10, 3);
-add_filter('shoppapi_category_facetedmenu', array('ShoppCategoryAPI','facetedmenu'), 10, 3);
-add_filter('shoppapi_category_feedurl', array('ShoppCategoryAPI','feedurl'), 10, 3);
-add_filter('shoppapi_category_hascategories', array('ShoppCategoryAPI','hascategories'), 10, 3);
-add_filter('shoppapi_category_hasfacetedmenu', array('ShoppCategoryAPI','hasfacetedmenu'), 10, 3);
-add_filter('shoppapi_category_hasimages', array('ShoppCategoryAPI','hasimages'), 10, 3);
-add_filter('shoppapi_category_hasproducts', array('ShoppCategoryAPI','loadproducts'), 10, 3);
-add_filter('shoppapi_category_loadproducts', array('ShoppCategoryAPI','loadproducts'), 10, 3);
-add_filter('shoppapi_category_id', array('ShoppCategoryAPI','id'), 10, 3);
-add_filter('shoppapi_category_image', array('ShoppCategoryAPI','image'), 10, 3);
-add_filter('shoppapi_category_images', array('ShoppCategoryAPI','images'), 10, 3);
-add_filter('shoppapi_category_issubcategory', array('ShoppCategoryAPI','issubcategory'), 10, 3);
-add_filter('shoppapi_category_link', array('ShoppCategoryAPI','url'), 10, 3);
-add_filter('shoppapi_category_name', array('ShoppCategoryAPI','name'), 10, 3);
-add_filter('shoppapi_category_pagination', array('ShoppCategoryAPI','pagination'), 10, 3);
-add_filter('shoppapi_category_parent', array('ShoppCategoryAPI','parent'), 10, 3);
-add_filter('shoppapi_category_products', array('ShoppCategoryAPI','products'), 10, 3);
-add_filter('shoppapi_category_row', array('ShoppCategoryAPI','row'), 10, 3);
-add_filter('shoppapi_category_sectionlist', array('ShoppCategoryAPI','sectionlist'), 10, 3);
-add_filter('shoppapi_category_slideshow', array('ShoppCategoryAPI','slideshow'), 10, 3);
-add_filter('shoppapi_category_slug', array('ShoppCategoryAPI','slug'), 10, 3);
-add_filter('shoppapi_category_subcategories', array('ShoppCategoryAPI','subcategories'), 10, 3);
-add_filter('shoppapi_category_subcategorylist', array('ShoppCategoryAPI','subcategorylist'), 10, 3);
-add_filter('shoppapi_category_total', array('ShoppCategoryAPI','total'), 10, 3);
-add_filter('shoppapi_category_url', array('ShoppCategoryAPI','url'), 10, 3);
+add_filter('shoppapi_collection_carousel', array('ShoppCollectionAPI','carousel'), 10, 3);
+add_filter('shoppapi_collection_coverimage', array('ShoppCollectionAPI','cover_image'), 10, 3);
+add_filter('shoppapi_collection_description', array('ShoppCollectionAPI','description'), 10, 3);
+add_filter('shoppapi_collection_facetedmenu', array('ShoppCollectionAPI','faceted_menu'), 10, 3);
+add_filter('shoppapi_collection_feedurl', array('ShoppCollectionAPI','feed_url'), 10, 3);
+add_filter('shoppapi_collection_hascategories', array('ShoppCollectionAPI','has_categories'), 10, 3);
+add_filter('shoppapi_collection_hasfacetedmenu', array('ShoppCollectionAPI','has_faceted_menu'), 10, 3);
+add_filter('shoppapi_collection_hasimages', array('ShoppCollectionAPI','has_images'), 10, 3);
+add_filter('shoppapi_collection_hasproducts', array('ShoppCollectionAPI','load_products'), 10, 3);
+add_filter('shoppapi_collection_loadproducts', array('ShoppCollectionAPI','load_products'), 10, 3);
+add_filter('shoppapi_collection_id', array('ShoppCollectionAPI','id'), 10, 3);
+add_filter('shoppapi_collection_image', array('ShoppCollectionAPI','image'), 10, 3);
+add_filter('shoppapi_collection_images', array('ShoppCollectionAPI','images'), 10, 3);
+add_filter('shoppapi_collection_issubcategory', array('ShoppCollectionAPI','is_subcategory'), 10, 3);
+add_filter('shoppapi_collection_link', array('ShoppCollectionAPI','url'), 10, 3);
+add_filter('shoppapi_collection_name', array('ShoppCollectionAPI','name'), 10, 3);
+add_filter('shoppapi_collection_pagination', array('ShoppCollectionAPI','pagination'), 10, 3);
+add_filter('shoppapi_collection_parent', array('ShoppCollectionAPI','parent'), 10, 3);
+add_filter('shoppapi_collection_products', array('ShoppCollectionAPI','products'), 10, 3);
+add_filter('shoppapi_collection_row', array('ShoppCollectionAPI','row'), 10, 3);
+add_filter('shoppapi_collection_sectionlist', array('ShoppCollectionAPI','section_list'), 10, 3);
+add_filter('shoppapi_collection_slideshow', array('ShoppCollectionAPI','slideshow'), 10, 3);
+add_filter('shoppapi_collection_slug', array('ShoppCollectionAPI','slug'), 10, 3);
+add_filter('shoppapi_collection_subcategories', array('ShoppCollectionAPI','subcategories'), 10, 3);
+add_filter('shoppapi_collection_subcategorylist', array('ShoppCollectionAPI','subcategory_list'), 10, 3);
+add_filter('shoppapi_collection_total', array('ShoppCollectionAPI','total'), 10, 3);
+add_filter('shoppapi_collection_url', array('ShoppCollectionAPI','url'), 10, 3);
 
 /**
  * shopp('category','...') tags
@@ -37,7 +37,7 @@ add_filter('shoppapi_category_url', array('ShoppCategoryAPI','url'), 10, 3);
  * @see http://docs.shopplugin.net/Category_Tags
  *
  **/
-class ShoppCategoryAPI {
+class ShoppCollectionAPI {
 	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
 		if (!$O->loaded) $O->load_products($options);
@@ -68,18 +68,17 @@ class ShoppCategoryAPI {
 		return $string;
 	}
 
-	function coverimage ($result, $options, $O) {
+	function cover_image ($result, $options, $O) {
+		// Force select the first loaded image
 		unset($options['id']);
 		$options['index'] = 0;
 		return self::image($result, $options, $O);
 	}
 
-	function description ($result, $options, $O) { return wpautop($O->description); }
+	function description ($result, $options, $O) { return wpautop($O->description);  }
 
-	function facetedmenu ($result, $options, $O) {
+	function faceted_menu ($result, $options, $O) {
 		global $Shopp;
-		$db = DB::get();
-
 		if ($O->facetedmenus == "off") return;
 		$output = "";
 		$CategoryFilters =& $Shopp->Flow->Controller->browsing[$O->slug];
@@ -132,7 +131,7 @@ class ShoppCategoryAPI {
 			LEFT JOIN $spectable AS spec ON p.id=spec.parent AND spec.context='product' AND spec.type='spec'
 			WHERE cat.parent=$O->id AND cat.taxonomy='$O->taxonomy' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
 
-		$results = $db->query($query,AS_ARRAY);
+		$results = $db::query($query,AS_ARRAY);
 
 		$specdata = array();
 		foreach ($results as $data) {
@@ -221,20 +220,20 @@ class ShoppCategoryAPI {
 		return $output;
 	}
 
-	function feedurl ($result, $options, $O) {
+	function feed_url ($result, $options, $O) {
 		$uri = 'category/'.$O->uri;
 		if ($O->slug == "tag") $uri = $O->slug.'/'.$O->tag;
 		return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('s_cat'=>urldecode($O->uri),'src'=>'category_rss'));
 	}
 
-	function hascategories ($result, $options, $O) {
+	function has_categories ($result, $options, $O) {
 		if (empty($O->children)) $O->load_children();
 		return (!empty($O->children));
 	}
 
-	function hasfacetedmenu ($result, $options, $O) { return ($O->facetedmenus == "on"); }
+	function has_faceted_menu ($result, $options, $O) { return ($O->facetedmenus == "on"); }
 
-	function hasimages ($result, $options, $O) {
+	function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_images();
 		if (empty($O->images)) return false;
 		return true;
@@ -242,106 +241,7 @@ class ShoppCategoryAPI {
 
 	function id ($result, $options, $O) { return $O->id; }
 
-	function image ($result, $options, $O) {
-		global $Shopp;
-		if (empty($O->images)) $O->load_images();
-		if (!(count($O->images) > 0)) return "";
-
-		// Compatibility defaults
-		$_size = 96;
-		$_width = $Shopp->Settings->get('gallery_thumbnail_width');
-		$_height = $Shopp->Settings->get('gallery_thumbnail_height');
-		if (!$_width) $_width = $_size;
-		if (!$_height) $_height = $_size;
-
-		$defaults = array(
-			'img' => false,
-			'id' => false,
-			'index' => false,
-			'class' => '',
-			'width' => false,
-			'height' => false,
-			'width_a' => false,
-			'height_a' => false,
-			'size' => false,
-			'fit' => false,
-			'sharpen' => false,
-			'quality' => false,
-			'bg' => false,
-			'alt' => '',
-			'title' => '',
-			'zoom' => '',
-			'zoomfx' => 'shopp-zoom',
-			'property' => false
-		);
-		$options = array_merge($defaults,$options);
-		extract($options);
-
-		// Select image by database id
-		if ($id !== false) {
-			for ($i = 0; $i < count($O->images); $i++) {
-				if ($img->id == $id) {
-					$img = $O->images[$i]; //break;
-				}
-			}
-			if (!$img) return "";
-		}
-
-		// Select image by index position in the list
-		if ($index !== false && isset($O->images[$index]))
-			$img = $O->images[$index];
-
-		// Use the current image pointer by default
-		if (!$img) $img = current($O->images);
-
-		if ($size !== false) $width = $height = $size;
-		if (!$width) $width = $_width;
-		if (!$height) $height = $_height;
-
-		$scale = $fit?array_search($fit,$img->_scaling):false;
-		$sharpen = $sharpen?min($sharpen,$img->_sharpen):false;
-		$quality = $quality?min($quality,$img->_quality):false;
-		$fill = $bg?hexdec(ltrim($bg,'#')):false;
-
-		list($width_a,$height_a) = array_values($img->scaled($width,$height,$scale));
-		if ($size == "original") {
-			$width_a = $img->width;
-			$height_a = $img->height;
-		}
-		if ($width_a === false) $width_a = $width;
-		if ($height_a === false) $height_a = $height;
-
-		$alt = esc_attr(empty($alt)?(empty($img->alt)?$img->name:$img->alt):$alt);
-		$title = empty($title)?$img->title:$title;
-		$titleattr = empty($title)?'':' title="'.esc_attr($title).'"';
-		$classes = empty($class)?'':' class="'.esc_attr($class).'"';
-
-		$src = shoppurl($img->id,'images');
-		if ($size != "original") {
-			$src = add_query_string(
-				$img->resizing($width,$height,$scale,$sharpen,$quality,$fill),
-				trailingslashit(shoppurl($img->id,'images')).$img->filename
-			);
-		}
-
-		switch (strtolower($property)) {
-			case 'id': return $img->id; break;
-			case 'url':
-			case 'src': return $src; break;
-			case 'title': return $title; break;
-			case 'alt': return $alt; break;
-			case 'width': return $width_a; break;
-			case 'height': return $height_a; break;
-			case 'class': return $class; break;
-		}
-
-		$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
-
-		if (value_is_true($zoom))
-			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$O->id.'">'.$imgtag.'</a>';
-
-		return $imgtag;
-	}
+	function image ($result, $options, $O) {}
 
 	function images ($result, $options, $O) {
 		if (!isset($O->_images_loop)) {
@@ -356,9 +256,11 @@ class ShoppCategoryAPI {
 		}
 	}
 
-	function issubcategory ($result, $options, $O) { return ($O->parent != 0); }
+	function is_subcategory ($result, $options, $O) {
+		return ($O->parent != 0);
+	}
 
-	function loadproducts ($result, $options, $O) {
+	function load_products ($result, $options, $O) {
 		if (empty($O->id) && empty($O->slug)) return false;
 		if (isset($options['load'])) {
 			$dataset = explode(",",$options['load']);
@@ -367,7 +269,7 @@ class ShoppCategoryAPI {
 		 } else {
 			$options['load'] = array('prices');
 		}
-		if (!$O->loaded) $O->load_products($options);
+		if (!$O->loaded) $O->load($options);
 		if (count($O->products) > 0) return true; else return false;
 	}
 
@@ -465,7 +367,7 @@ class ShoppCategoryAPI {
 		return join("\n",$_);
 	}
 
-	function parent ($result, $options, $O) { return $O->parent; }
+	function parent ($result, $options, $O) { return $O->parent;  }
 
 	function products ($result, $options, $O) {
 		global $Shopp;
@@ -497,7 +399,8 @@ class ShoppCategoryAPI {
 		else return false;
 	}
 
-	function sectionlist ($result, $options, $O) {
+	function section_list ($result, $options, $O) {
+		return true; // @todo Handle section-list listing in ShoppCategory
 		global $Shopp;
 		if (empty($O->id)) return false;
 		if (isset($Shopp->Category->controls)) return false;
@@ -540,9 +443,9 @@ class ShoppCategoryAPI {
 		if (empty($O->id)) return false;
 		$parent = '_'.$O->id;
 		while($parent != 0) {
-			if (!isset($Shopp->Catalog->categories[$parent])) //break;
+			if (!isset($Shopp->Catalog->categories[$parent])) break;
 			if ($Shopp->Catalog->categories[$parent]->parent == 0
-				|| $Shopp->Catalog->categories[$parent]->parent == $parent) //break;
+				|| $Shopp->Catalog->categories[$parent]->parent == $parent) break;
 			$parent = '_'.$Shopp->Catalog->categories[$parent]->parent;
 		}
 		$root = $Shopp->Catalog->categories[$parent];
@@ -552,7 +455,7 @@ class ShoppCategoryAPI {
 		$section[] = $root;
 		$in = false;
 		foreach ($Shopp->Catalog->categories as &$c) {
-			if ($in && $c->depth == $root->depth) //break; // Done
+			if ($in && $c->depth == $root->depth) break; // Done
 			if ($in) $section[] = $c;
 			if (!$in && isset($c->id) && $c->id == $root->id) $in = true;
 		}
@@ -677,7 +580,8 @@ class ShoppCategoryAPI {
 		}
 	}
 
-	function subcategorylist ($result, $options, $O) {
+	function subcategory_list ($result, $options, $O) {
+		return true; // @todo Handle sub-category listing in ShoppCategory
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 
@@ -721,7 +625,7 @@ class ShoppCategoryAPI {
 			$string .= '<select name="shopp_cats" id="shopp-'.$O->slug.'-subcategories-menu" class="shopp-categories-menu">';
 			$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 			foreach ($O->children as &$category) {
-				if (!empty($show) && $count+1 > $show) //break;
+				if (!empty($show) && $count+1 > $show) break;
 				if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
 				if ($category->products == 0) continue; // Only show categories with products
 				if (value_is_true($hierarchy) && $category->depth > $depth) {
