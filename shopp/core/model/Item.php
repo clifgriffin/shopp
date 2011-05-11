@@ -13,6 +13,8 @@
  * @subpackage cart
  **/
 class Item {
+	var $api = 'cartitem';
+
 	var $product = false;		// The source product ID
 	var $priceline = false;		// The source price ID
 	var $category = false;		// The breadcrumb category
@@ -560,8 +562,9 @@ class Item {
 	 * @return mixed
 	 **/
 	function tag ($id,$property,$options=array()) {
-		$options['return'] = 'on';
-		return shopp('cartitem',$property,$options,$this);
+		if (is_array($options)) $options['return'] = 'on';
+		else $options .= (!empty($options)?"&":"").'return=on';
+		return shopp($this,$property,$options);
 	}
 
 } // END class Item

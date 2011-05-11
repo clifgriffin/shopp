@@ -8,14 +8,13 @@ add_filter('shoppapi_category_feedurl', 'feedurl', 10, 3);
 add_filter('shoppapi_category_hascategories', 'hascategories', 10, 3);
 add_filter('shoppapi_category_hasfacetedmenu', 'hasfacetedmenu', 10, 3);
 add_filter('shoppapi_category_hasimages', 'hasimages', 10, 3);
-add_filter('shoppapi_category_hasproducts', 'hasproducts', 10, 3);
 add_filter('shoppapi_category_hasproducts', 'loadproducts', 10, 3);
+add_filter('shoppapi_category_loadproducts', 'loadproducts', 10, 3);
 add_filter('shoppapi_category_id', 'id', 10, 3);
 add_filter('shoppapi_category_image', 'image', 10, 3);
 add_filter('shoppapi_category_images', 'images', 10, 3);
 add_filter('shoppapi_category_issubcategory', 'issubcategory', 10, 3);
 add_filter('shoppapi_category_link', 'url', 10, 3);
-add_filter('shoppapi_category_loadproducts', 'loadproducts', 10, 3);
 add_filter('shoppapi_category_name', 'name', 10, 3);
 add_filter('shoppapi_category_pagination', 'pagination', 10, 3);
 add_filter('shoppapi_category_parent', 'parent', 10, 3);
@@ -240,8 +239,6 @@ class ShoppCategoryAPI {
 		if (empty($obj->images)) return false;
 		return true;
 	}
-
-	function hasproducts ($result, $options, $obj) {}
 
 	function id ($result, $options, $obj) { return $obj->id; }
 

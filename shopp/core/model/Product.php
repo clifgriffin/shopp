@@ -18,6 +18,8 @@ require_once("Promotion.php");
 
 class Product extends DatabaseObject {
 	static $table = "product";
+	var $api = 'product';
+
 	var $prices = array();
 	var $pricekey = array();
 	var $priceid = array();
@@ -885,8 +887,9 @@ class Product extends DatabaseObject {
 	 *
 	 **/
 	function tag ($property,$options=array()) {
-		$options['return'] = 'on';
-		return shopp('product',$property,$options, $this);
+		if (is_array($options)) $options['return'] = 'on';
+		else $options .= (!empty($options)?"&":"").'return=on';
+		return shopp($this,$property,$options);
 	}
 
 } // END class Product

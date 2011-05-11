@@ -13,6 +13,8 @@ require_once("Purchased.php");
 
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
+	var $api = 'purchase';
+
 	var $purchased = array();
 	var $columns = array();
 	var $downloads = false;

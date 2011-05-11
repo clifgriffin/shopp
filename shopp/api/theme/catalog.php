@@ -1,0 +1,714 @@
+<?
+
+add_filter('shoppapi_catalog_bestsellerproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
+add_filter('shoppapi_catalog_bestsellersproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
+add_filter('shoppapi_catalog_bestsellingproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
+add_filter('shoppapi_catalog_breadcrumb', array('ShoppCatalogAPI','breadcrumb'), 10, 3);
+add_filter('shoppapi_catalog_catalogproducts', array('ShoppCatalogAPI','catalogproducts'), 10, 3);
+add_filter('shoppapi_catalog_categories', array('ShoppCatalogAPI','categories'), 10, 3);
+add_filter('shoppapi_catalog_category', array('ShoppCatalogAPI','category'), 10, 3);
+add_filter('shoppapi_catalog_categorylist', array('ShoppCatalogAPI','categorylist'), 10, 3);
+add_filter('shoppapi_catalog_display', array('ShoppCatalogAPI','type'), 10, 3);
+add_filter('shoppapi_catalog_type', array('ShoppCatalogAPI','type'), 10, 3);
+add_filter('shoppapi_catalog_featuredproducts', array('ShoppCatalogAPI','featuredproducts'), 10, 3);
+add_filter('shoppapi_catalog_hascategories', array('ShoppCatalogAPI','hascategories'), 10, 3);
+add_filter('shoppapi_catalog_isaccount', array('ShoppCatalogAPI','isaccount'), 10, 3);
+add_filter('shoppapi_catalog_iscart', array('ShoppCatalogAPI','iscart'), 10, 3);
+add_filter('shoppapi_catalog_iscategory', array('ShoppCatalogAPI','iscategory'), 10, 3);
+add_filter('shoppapi_catalog_ischeckout', array('ShoppCatalogAPI','ischeckout'), 10, 3);
+add_filter('shoppapi_catalog_islanding', array('ShoppCatalogAPI','iscatalog'), 10, 3);
+add_filter('shoppapi_catalog_iscatalog', array('ShoppCatalogAPI','iscatalog'), 10, 3);
+add_filter('shoppapi_catalog_isproduct', array('ShoppCatalogAPI','isproduct'), 10, 3);
+add_filter('shoppapi_catalog_newproducts', array('ShoppCatalogAPI','newproducts'), 10, 3);
+add_filter('shoppapi_catalog_onsaleproducts', array('ShoppCatalogAPI','onsaleproducts'), 10, 3);
+add_filter('shoppapi_catalog_orderbylist', array('ShoppCatalogAPI','orderbylist'), 10, 3);
+add_filter('shoppapi_catalog_product', array('ShoppCatalogAPI','product'), 10, 3);
+add_filter('shoppapi_catalog_promoproducts', array('ShoppCatalogAPI','promoproducts'), 10, 3);
+add_filter('shoppapi_catalog_randomproducts', array('ShoppCatalogAPI','randomproducts'), 10, 3);
+add_filter('shoppapi_catalog_relatedproducts', array('ShoppCatalogAPI','relatedproducts'), 10, 3);
+add_filter('shoppapi_catalog_search', array('ShoppCatalogAPI','search'), 10, 3);
+add_filter('shoppapi_catalog_searchproducts', array('ShoppCatalogAPI','searchproducts'), 10, 3);
+add_filter('shoppapi_catalog_searchform', array('ShoppCatalogAPI','searchform'), 10, 3);
+add_filter('shoppapi_catalog_sideproduct', array('ShoppCatalogAPI','sideproduct'), 10, 3);
+add_filter('shoppapi_catalog_tagproducts', array('ShoppCatalogAPI','tagproducts'), 10, 3);
+add_filter('shoppapi_catalog_tagcloud', array('ShoppCatalogAPI','tagcloud'), 10, 3);
+add_filter('shoppapi_catalog_url', array('ShoppCatalogAPI','url'), 10, 3);
+add_filter('shoppapi_catalog_views', array('ShoppCatalogAPI','views'), 10, 3);
+add_filter('shoppapi_catalog_zoomoptions', array('ShoppCatalogAPI','zoomoptions'), 10, 3);
+
+class ShoppCatalogAPI {
+
+	function bestsellerproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new BestsellerProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function breadcrumb ($result, $options, $obj) {
+		global $Shopp;
+		$defaults = array(
+			'separator' => '&nbsp;&raquo; ',
+			'depth'		=> 7
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (isset($Shopp->Category->controls)) return false;
+		if (empty($obj->categories)) $obj->load_categories(array('outofstock' => true));
+
+		$category = false;
+		if (isset($Shopp->Flow->Controller->breadcrumb))
+			$category = $Shopp->Flow->Controller->breadcrumb;
+
+		$trail = false;
+		$search = array();
+		if (isset($Shopp->Flow->Controller->search)) $search = array('search'=>$Shopp->Flow->Controller->search);
+		$path = explode("/",$category);
+		if ($path[0] == "tag") {
+			$category = "tag";
+			$search = array('tag'=>urldecode($path[1]));
+		}
+		$Category = Catalog::load_category($category,$search);
+
+		if (!empty($Category->uri)) {
+			$type = "category";
+			if (isset($Category->tag)) $type = "tag";
+
+			$category_uri = isset($Category->smart)?$Category->slug:$Category->id;
+
+			$link = SHOPP_PRETTYURLS?
+				shoppurl("$type/$Category->uri") :
+				shoppurl(array_merge($_GET,array('s_cat'=>$category_uri,'s_pid'=>null)));
+
+			$filters = false;
+			if (!empty($Shopp->Cart->data->Category[$Category->slug]))
+				$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
+
+			if (!empty($Shopp->Product))
+				$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
+			elseif (!empty($Category->name))
+				$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
+
+			// Build category names path by going from the target category up the parent chain
+			$parentkey = (!empty($Category->id)
+				&& isset($obj->categories['_'.$Category->id]->parent)?
+					'_'.$obj->categories['_'.$Category->id]->parent:'_0');
+
+			while ($parentkey != '_0' && $depth-- > 0) {
+				$tree_category = $obj->categories[$parentkey];
+
+				$link = SHOPP_PRETTYURLS?
+					shoppurl("category/$tree_category->uri"):
+					shoppurl(array_merge($_GET,array('s_cat'=>$tree_category->id,'s_pid'=>null)));
+
+				$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
+					(empty($trail)?'':$separator).'</li>'.$trail;
+
+				$parentkey = '_'.$tree_category->parent;
+			}
+		}
+		$pages = $Shopp->Settings->get('pages');
+
+		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
+		return '<ul class="breadcrumb">'.$trail.'</ul>';
+	}
+
+	function catalogproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new CatalogProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function categories ($result, $options, $obj) {
+		global $Shopp;
+		if (!isset($obj->_category_loop)) {
+			reset($obj->categories);
+			$Shopp->Category = current($obj->categories);
+			$obj->_category_loop = true;
+		} else {
+			$Shopp->Category = next($obj->categories);
+		}
+
+		if (current($obj->categories) !== false) return true;
+		else {
+			unset($obj->_category_loop);
+			reset($obj->categories);
+			return false;
+		}
+	}
+
+	function category ($result, $options, $obj) {
+		global $Shopp;
+
+		if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
+		else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
+		else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
+
+		if (isset($options['reset']))
+			return (get_class($Shopp->Requested) == "Category"?($Shopp->Category = $Shopp->Requested):false);
+		if (isset($options['title'])) $Shopp->Category->name = $options['title'];
+		if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
+		if (isset($options['order'])) $Shopp->Category->loading['order'] = $options['order'];
+
+		if (isset($options['load'])) return true;
+		if (isset($options['controls']) && !value_is_true($options['controls']))
+			$Shopp->Category->controls = false;
+		if (isset($options['view'])) {
+			if ($options['view'] == "grid") $Shopp->Category->view = "grid";
+			else $Shopp->Category->view = "list";
+		}
+
+		ob_start();
+		if (isset($Shopp->Category->slug) &&
+				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
+		elseif (isset($Shopp->Category->id) &&
+			file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
+		else include(SHOPP_TEMPLATES."/category.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		$Shopp->Category = false; // Reset the current category
+
+		if (isset($options['wrap']) && value_is_true($options['wrap'])) $content = shoppdiv($content);
+
+		return $content;
+	}
+
+	function categorylist ($result, $options, $obj) {
+		global $Shopp;
+		$defaults = array(
+			'title' => '',
+			'before' => '',
+			'after' => '',
+			'class' => '',
+			'exclude' => '',
+			'orderby' => 'name',
+			'order' => 'ASC',
+			'depth' => 0,
+			'childof' => 0,
+			'parent' => false,
+			'showall' => false,
+			'linkall' => false,
+			'linkcount' => false,
+			'dropdown' => false,
+			'hierarchy' => false,
+			'products' => false,
+			'wraplist' => true,
+			'showsmart' => false
+			);
+
+		$options = array_merge($defaults,$options);
+		extract($options, EXTR_SKIP);
+
+		$obj->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
+
+		$string = "";
+		$depthlimit = $depth;
+		$depth = 0;
+		$exclude = explode(",",$exclude);
+		$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
+		$wraplist = value_is_true($wraplist);
+
+		if (value_is_true($dropdown)) {
+			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
+			$string .= $title;
+			$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
+			$string .= '<option value="">'.$default.'</option>';
+			foreach ($obj->categories as &$category) {
+				// If the parent of this category was excluded, add this to the excludes and skip
+				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
+					$exclude[] = $category->id;
+					continue;
+				}
+				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
+				if ($category->total == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
+				if ($depthlimit && $category->depth >= $depthlimit) continue;
+
+				if (value_is_true($hierarchy) && $category->depth > $depth) {
+					$parent = &$previous;
+					if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
+				}
+
+				if (value_is_true($hierarchy))
+					$padding = str_repeat("&nbsp;",$category->depth*3);
+
+				$category_uri = empty($category->id)?$category->uri:$category->id;
+				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+
+				$total = '';
+				if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
+
+				$string .= '<option value="'.$link.'">'.$padding.$category->name.$total.'</option>';
+				$previous = &$category;
+				$depth = $category->depth;
+
+			}
+			$string .= '</select></form>';
+
+			$script = "$('#shopp-categories-menu').change(function (){";
+			$script .= "document.location.href = $(this).val();";
+			$script .= "});";
+			add_storefrontjs($script);
+
+		} else {
+			$string .= $title;
+			if ($wraplist) $string .= '<ul'.$classes.'>';
+			foreach ($obj->categories as &$category) {
+				if (!isset($category->total)) $category->total = 0;
+				if (!isset($category->depth)) $category->depth = 0;
+
+				// If the parent of this category was excluded, add this to the excludes and skip
+				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
+					$exclude[] = $category->id;
+					continue;
+				}
+
+				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
+				if ($depthlimit && $category->depth >= $depthlimit) continue;
+				if (value_is_true($hierarchy) && $category->depth > $depth) {
+					$parent = &$previous;
+					if (!isset($parent->path)) $parent->path = $parent->slug;
+					if (substr($string,-5,5) == "</li>") // Keep everything but the
+						$string = substr($string,0,-5);  // last </li> to re-open the entry
+					$active = '';
+
+					if (isset($Shopp->Category->uri) && !empty($parent->slug)
+							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
+						$active = ' active';
+					}
+
+					$subcategories = '<ul class="children'.$active.'">';
+					$string .= $subcategories;
+				}
+
+				if (value_is_true($hierarchy) && $category->depth < $depth) {
+					for ($i = $depth; $i > $category->depth; $i--) {
+						if (substr($string,strlen($subcategories)*-1) == $subcategories) {
+							// If the child menu is empty, remove the <ul> to avoid breaking standards
+							$string = substr($string,0,strlen($subcategories)*-1).'</li>';
+						} else $string .= '</ul></li>';
+					}
+				}
+
+				$category_uri = empty($category->id)?$category->uri:$category->id;
+				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+
+				$total = '';
+				if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
+
+				$current = '';
+				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
+					$current = ' class="current"';
+
+				$listing = '';
+				if ($category->total > 0 || isset($category->smart) || $linkall)
+					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
+				else $listing = $category->name;
+
+				if (value_is_true($showall) ||
+					$category->total > 0 ||
+					isset($category->smart) ||
+					$category->_children)
+					$string .= '<li'.$current.'>'.$listing.'</li>';
+
+				$previous = &$category;
+				$depth = $category->depth;
+			}
+			if (value_is_true($hierarchy) && $depth > 0)
+				for ($i = $depth; $i > 0; $i--) {
+					if (substr($string,strlen($subcategories)*-1) == $subcategories) {
+						// If the child menu is empty, remove the <ul> to avoid breaking standards
+						$string = substr($string,0,strlen($subcategories)*-1).'</li>';
+					} else $string .= '</ul></li>';
+				}
+			if ($wraplist) $string .= '</ul>';
+		}
+		return $string;
+	}
+
+	function type ($result, $options, $obj) { return $obj->type; }
+
+	function featuredproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new FeaturedProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function hascategories ($result, $options, $obj) {
+		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
+		if (empty($obj->categories)) $obj->load_categories(array('where'=>'true'),$showsmart);
+		if (count($obj->categories) > 0) return true; else return false;
+	}
+
+	function isaccount ($result, $options, $obj) { return (is_shopp_page('account')); }
+
+	function iscart ($result, $options, $obj) { return (is_shopp_page('cart')); }
+
+	function iscategory ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "category"); }
+
+	function ischeckout ($result, $options, $obj) { return (is_shopp_page('checkout')); }
+
+	function iscatalog ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "catalog"); }
+
+	function isproduct ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "product"); }
+
+	function newproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new NewProducts($options);
+	}
+
+	function onsaleproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new OnSaleProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function orderbylist ($result, $options, $obj) {
+		global $Shopp;
+		if (isset($Shopp->Category->controls)) return false;
+		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
+
+		$menuoptions = Category::sortoptions();
+		// Don't show custom product order for smart categories
+		if (isset($Shopp->Category->smart)) unset($menuoptions['custom']);
+
+		$title = "";
+		$string = "";
+		$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
+		$default = $Shopp->Settings->get('default_product_order');
+		if (empty($default)) $default = "title";
+
+		if (isset($options['default'])) $default = $options['default'];
+		if (isset($options['title'])) $title = $options['title'];
+
+		if (value_is_true($dropdown)) {
+			if (isset($Shopp->Flow->Controller->browsing['orderby']))
+				$default = $Shopp->Flow->Controller->browsing['orderby'];
+			$string .= $title;
+			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
+			if (!SHOPP_PRETTYURLS) {
+				foreach ($_GET as $key => $value)
+					if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
+			}
+			$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
+			$string .= menuoptions($menuoptions,$default,true);
+			$string .= '</select>';
+			$string .= '</form>';
+		} else {
+			$link = "";
+			$query = "";
+			if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
+				list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
+			$query = $_GET;
+			unset($query['s_ob']);
+			$query = http_build_query($query);
+			if (!empty($query)) $query .= '&';
+
+			foreach($menuoptions as $value => $option) {
+				$label = $option;
+				$href = esc_url($link.'?'.$query.'shopp_orderby='.$value);
+				$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+			}
+
+		}
+		return $string;
+	}
+
+	function product ($result, $options, $obj) {
+		global $Shopp;
+		if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
+		else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
+		else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
+
+		if (isset($options['reset']))
+			return (get_class($Shopp->Requested) == "Product"?($Shopp->Product = $Shopp->Requested):false);
+
+		if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
+			$Category = clone($Shopp->Category);
+
+			if (isset($options['load'])) {
+				if ($options['load'] == "next") $Shopp->Product = $Category->adjacent_product(1);
+				elseif ($options['load'] == "previous") $Shopp->Product = $Category->adjacent_product(-1);
+			} else {
+				if (isset($options['next']) && value_is_true($options['next']))
+					$Shopp->Product = $Category->adjacent_product(1);
+				elseif (isset($options['previous']) && value_is_true($options['previous']))
+					$Shopp->Product = $Category->adjacent_product(-1);
+			}
+		}
+
+		if (isset($options['load'])) return true;
+		ob_start();
+		if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
+			include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
+		else include(SHOPP_TEMPLATES."/product.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return $content;
+	}
+
+	function promoproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new PromoProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function randomproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new RandomProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function relatedproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new RelatedProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function search ($result, $options, $obj) {
+		$Storefront =& ShoppStorefront();
+		global $wp;
+
+		$defaults = array(
+			'type' => 'hidden',
+			'option' => 'shopp',
+			'blog_option' => __('Search the blog','Shopp'),
+			'shop_option' => __('Search the shop','Shopp'),
+			'label_before' => '',
+			'label_after' => '',
+			'checked' => false
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		$searching = is_search(); // Flag when searching (the blog or shopp)
+		$shopsearch = ($Storefront !== false && $Storefront->searching); // Flag when searching shopp
+
+		$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
+			"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
+
+		$options['value'] = ($option == "shopp");
+
+		// Reset the checked option
+		unset($options['checked']);
+
+		// If searching the blog, check the non-store search option
+		if ($searching && !$shopsearch && $option != "shopp") $options['checked'] = "checked";
+
+		// If searching the storefront, mark the store search option
+		if ($shopsearch && $option == "shopp") $options['checked'] = "checked";
+
+		// Override any other settings with the supplied default 'checked' option
+		if (!$searching && $checked) $options['checked'] = $checked;
+
+		switch ($type) {
+			case "checkbox":
+				$input =  '<input type="checkbox" name="s_cs"'.inputattrs($options,$allowed).' />';
+				break;
+			case "radio":
+				$input =  '<input type="radio" name="s_cs"'.inputattrs($options,$allowed).' />';
+				break;
+			case "menu":
+				$allowed = array("accesskey","alt","class","disabled","format", "id",
+					"readonly","required","size","tabindex","title");
+
+				$input = '<select name="s_cs"'.inputattrs($options,$allowed).'>';
+				$input .= '<option value="">'.$blog_option.'</option>';
+				$input .= '<option value="1"'.($shopsearch || (!$searching && $option == 'shopp')?' selected="selected"':'').'>'.$shop_option.'</option>';
+				$input .= '</select>';
+				break;
+			default:
+				$allowed = array("alt","class","disabled","format","id","readonly","title","value");
+				$input =  '<input type="hidden" name="s_cs"'.inputattrs($options,$allowed).' />';
+				break;
+		}
+
+		$before = (!empty($label_before))?'<label>'.$label_before:'<label>';
+		$after = (!empty($label_after))?$label_after.'</label>':'</label>';
+		return $before.$input.$after;
+	}
+
+	function searchproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new SearchResults($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function searchform ($result, $options, $obj) {
+		ob_start();
+		get_search_form();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		preg_match('/^(.*?<form[^>]*>)(.*?)(<\/form>.*?)$/is',$content,$_);
+		list($all,$open,$content,$close) = $_;
+
+		$markup = array(
+			$open,
+			$content,
+			'<div><input type="hidden" name="s_cs" value="true" /></div>',
+			$close
+		);
+
+		return join('',$markup);
+	}
+
+	function sideproduct ($result, $options, $obj) {
+		global $Shopp;
+		$content = false;
+		$source = isset($options['source'])?$options['source']:'product';
+		if ($source == "product" && isset($options['product'])) {
+			 // Save original requested product
+			if ($Shopp->Product) $Requested = $Shopp->Product;
+			$products = explode(",",$options['product']);
+			if (!is_array($products)) $products = array($products);
+			foreach ($products as $product) {
+				$product = trim($product);
+				if (empty($product)) continue;
+				if (preg_match('/^\d+$/',$product))
+					$Shopp->Product = new Product($product);
+				else $Shopp->Product = new Product($product,'slug');
+
+				if (empty($Shopp->Product->id)) continue;
+				if (isset($options['load'])) return true;
+				ob_start();
+				if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
+					include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
+				else include(SHOPP_TEMPLATES."/sideproduct.php");
+				$content .= ob_get_contents();
+				ob_end_clean();
+			}
+			 // Restore original requested Product
+			if (!empty($Requested)) $Shopp->Product = $Requested;
+			else $Shopp->Product = false;
+		}
+
+		if ($source == "category" && isset($options['category'])) {
+			 // Save original requested category
+			if ($Shopp->Category) $Requested = $Shopp->Category;
+			if ($Shopp->Product) $RequestedProduct = $Shopp->Product;
+			if (empty($options['category'])) return false;
+			$Shopp->Category = Catalog::load_category($options['category']);
+			$Shopp->Category->load_products($options);
+			if (isset($options['load'])) return true;
+			foreach ($Shopp->Category->products as $product) {
+				$Shopp->Product = $product;
+				ob_start();
+				if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
+					include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
+				else include(SHOPP_TEMPLATES."/sideproduct.php");
+				$content .= ob_get_contents();
+				ob_end_clean();
+			}
+			 // Restore original requested category
+			if (!empty($Requested)) $Shopp->Category = $Requested;
+			else $Shopp->Category = false;
+			if (!empty($RequestedProduct)) $Shopp->Product = $RequestedProduct;
+			else $Shopp->Product = false;
+		}
+
+		return $content;
+	}
+
+	function tagproducts ($result, $options, $obj) {
+		global $Shopp;
+		$Shopp->Category = new TagProducts($options);
+		return self::category($result, $options, $obj);
+	}
+
+	function tagcloud ($result, $options, $obj) {
+		if (!empty($options['levels'])) $levels = $options['levels'];
+		else $levels = 7;
+		if (empty($obj->tags)) $obj->load_tags();
+		$min = -1; $max = -1;
+		foreach ($obj->tags as $tag) {
+			if ($min == -1 || $tag->products < $min) $min = $tag->products;
+			if ($max == -1 || $tag->products > $max) $max = $tag->products;
+		}
+		if ($max == 0) $max = 1;
+		$string = '<ul class="shopp tagcloud">';
+		foreach ($obj->tags as $tag) {
+			$level = floor((1-$tag->products/$max)*$levels)+1;
+			$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
+			$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
+		}
+		$string .= '</ul>';
+		return $string;
+	}
+
+	function url ($result, $options, $obj) { return shoppurl(false,'catalog'); }
+
+	function views ($result, $options, $obj) {
+		global $Shopp;
+		if (isset($Shopp->Category->controls)) return false;
+		$string = "";
+		$string .= '<ul class="views">';
+		if (isset($options['label'])) $string .= '<li>'.$options['label'].'</li>';
+		$string .= '<li><button type="button" class="grid"></button></li>';
+		$string .= '<li><button type="button" class="list"></button></li>';
+		$string .= '</ul>';
+		return $string;
+	}
+
+	function zoomoptions ($result, $options, $obj) {
+		$defaults = array(				// Colorbox 1.3.15
+			'transition' => 'elastic',	// The transition type. Can be set to 'elastic', 'fade', or 'none'.
+			'speed' => 350,				// Sets the speed of the fade and elastic transitions, in milliseconds.
+			'href' => false,			// This can be used as an alternative anchor URL or to associate a URL for non-anchor elements such as images or form buttons. Example: $('h1').colorbox({href:'welcome.html'})
+			'title' => false,			// This can be used as an anchor title alternative for ColorBox.
+			'rel' => false,				// This can be used as an anchor rel alternative for ColorBox. This allows the user to group any combination of elements together for a gallery, or to override an existing rel so elements are not grouped together. Example: $('#example a').colorbox({rel:'group1'}) Note: The value can also be set to 'nofollow' to disable grouping.
+			'width' => false,			// Set a fixed total width. This includes borders and buttons. Example: '100%', '500px', or 500
+			'height' => false,			// Set a fixed total height. This includes borders and buttons. Example: '100%', '500px', or 500
+			'innerWidth' => false,		// This is an alternative to 'width' used to set a fixed inner width. This excludes borders and buttons. Example: '50%', '500px', or 500
+			'innerHeight' => false,		// This is an alternative to 'height' used to set a fixed inner height. This excludes borders and buttons. Example: '50%', '500px', or 500
+			'initialWidth' => 300,		// Set the initial width, prior to any content being loaded.
+			'initialHeight' => 100,		// Set the initial height, prior to any content being loaded.
+			'maxWidth' => false,		// Set a maximum width for loaded content. Example: '100%', 500, '500px'
+			'maxHeight' => false,		// Set a maximum height for loaded content. Example: '100%', 500, '500px'
+			'scalePhotos' => true,		// If 'true' and if maxWidth, maxHeight, innerWidth, innerHeight, width, or height have been defined, ColorBox will scale photos to fit within the those values.
+			'scrolling' => true,		// If 'false' ColorBox will hide scrollbars for overflowing content. This could be used on conjunction with the resize method (see below) for a smoother transition if you are appending content to an already open instance of ColorBox.
+			'iframe' => false,			// If 'true' specifies that content should be displayed in an iFrame.
+			'inline' => false,			// If 'true' a jQuery selector can be used to display content from the current page. Example:  $('#inline').colorbox({inline:true, href:'#myForm'});
+			'html' => false,			// This allows an HTML string to be used directly instead of pulling content from another source (ajax, inline, or iframe). Example: $.colorbox({html:'<p>Hello</p>'});
+			'photo' => false,			// If true, this setting forces ColorBox to display a link as a photo. Use this when automatic photo detection fails (such as using a url like 'photo.php' instead of 'photo.jpg', 'photo.jpg#1', or 'photo.jpg?pic=1')
+			'opacity' => 0.85,			// The overlay opacity level. Range: 0 to 1.
+			'open' => false,			// If true, the lightbox will automatically open with no input from the visitor.
+			'returnFocus' => true,		// If true, focus will be returned when ColorBox exits to the element it was launched from.
+			'preloading' => true,		// Allows for preloading of 'Next' and 'Previous' content in a shared relation group (same values for the 'rel' attribute), after the current content has finished loading. Set to 'false' to disable.
+			'overlayClose' => true,		// If false, disables closing ColorBox by clicking on the background overlay.
+			'escKey' => true, 			// If false, will disable closing colorbox on esc key press.
+			'arrowKey' => true, 		// If false, will disable the left and right arrow keys from navigating between the items in a group.
+			'loop' => true, 			// If false, will disable the ability to loop back to the beginning of the group when on the last element.
+			'slideshow' => false, 		// If true, adds an automatic slideshow to a content group / gallery.
+			'slideshowSpeed' => 2500, 	// Sets the speed of the slideshow, in milliseconds.
+			'slideshowAuto' => true, 	// If true, the slideshow will automatically start to play.
+
+			'slideshowStart' => __('start slideshow','Shopp'),	// Text for the slideshow start button.
+			'slideshowStop' => __('stop slideshow','Shopp'),	// Text for the slideshow stop button
+			'previous' => __('previous','Shopp'), 				// Text for the previous button in a shared relation group (same values for 'rel' attribute).
+			'next' => __('next','Shopp'), 						// Text for the next button in a shared relation group (same values for 'rel' attribute).
+			'close' => __('close','Shopp'),						// Text for the close button. The 'Esc' key will also close ColorBox.
+
+			// Text format for the content group / gallery count. {current} and {total} are detected and replaced with actual numbers while ColorBox runs.
+			'current' => sprintf(__('image %s of %s','Shopp'),'{current}','{total}'),
+
+			'onOpen' => false,			// Callback that fires right before ColorBox begins to open.
+			'onLoad' => false,			// Callback that fires right before attempting to load the target content.
+			'onComplete' => false,		// Callback that fires right after loaded content is displayed.
+			'onCleanup' => false,		// Callback that fires at the start of the close process.
+			'onClosed' => false			// Callback that fires once ColorBox is closed.
+		);
+		$options = array_diff($options, $defaults);
+
+		$js = 'var cbo = '.json_encode($options).';';
+		add_storefrontjs($js,true);
+	}
+
+}
+
+
+
+?>

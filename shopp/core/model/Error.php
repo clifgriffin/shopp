@@ -37,6 +37,7 @@ define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
  **/
 class ShoppErrors {
 
+	var $api = 'error';
 	var $errors = array();				// Error message registry
 	var $notifications;					// Notification subscription registry
 	var $reporting = SHOPP_ALL_ERR;		// level of reporting
