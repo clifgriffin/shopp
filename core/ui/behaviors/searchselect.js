@@ -4,13 +4,24 @@
  * Licensed under the GPLv3 {@see license.txt}
  */
 
-function SearchSelector (type,parent,url,field,label,classname) {
+function SearchSelector (settings) {
 	var $ = jqnc(),
 		_ = this,
 		$this = $(this),form,
-		ui = $('<ul class="search-select">'+
-					'<li><input type="text" name="entry" class="input" /></li>'+
-				'</ul>'),
+		defaults = {
+			source:'shopp_tags',	// Source content type
+			parent:'',				// Parent container element to attach to
+			url:ajaxurl,			// Default lookup URL
+			action:'shopp_suggestions', // Default search action
+			fieldname:'input[]',	// Name of the hidden input container for new entries
+			label:'Begin typing to search&hellip;',	// Default label (no l10n)
+			classname:'',			// Additional classes to add to the ui
+			freeform:false,			// Allow free form new entries (without lookup)
+			autosuggest:false,		// Source lookup to enable automatic suggestions
+			autodelay:3000			// Default delay for automatic suggestions
+		},
+		settings = $.extend(defaults,settings),
+		ui = $('<ul class="search-select"><li><input type="text" name="entry" class="input" /></li></ul>'),
 		$input = ui.find('input.input').focus(function () {
 			ui.find('li.selected').removeClass('selected');
 			$(document).unbind('keydown').keydown(_.keyhandler);
@@ -29,6 +40,7 @@ function SearchSelector (type,parent,url,field,label,classname) {
 		};
 
 		_.keyhandler = function (e) {
+			var entry = $input.val();
 
 			if (!(/8$|9$|13$|46$|37$|39$/.test(e.keyCode))) return;
 			var selection = ui.find('li.item.selected'),previous;
@@ -37,10 +49,23 @@ function SearchSelector (type,parent,url,field,label,classname) {
 				previous = $input.parent().prev();
 
 				switch (e.keyCode) {
+
 					case 9: // tab key
 					case 13: // return key
 						_.stopEvent(e);
+						if (settings.freeform && entry.length > 0) {
+							ui.append(_.newItem('',entry));
+							$input.val('').parent().appendTo(ui);
+							$input.focus();
+						}
 						break;
+					case 188: // comma key
+						if (settings.freeform && entry.length > 0) {
+							_.stopEvent(e);
+							ui.append(_.newItem('',entry));
+							$input.val('').parent().appendTo(ui);
+							$input.focus();
+						}
 					case 37:	// left arrow
 					case 8:		// backspace key
 					case 46:	// delete key
@@ -51,6 +76,7 @@ function SearchSelector (type,parent,url,field,label,classname) {
 						previous.click();
 						break;
 				}
+				return;
 			}
 
 			if (selection.length) {
@@ -75,7 +101,7 @@ function SearchSelector (type,parent,url,field,label,classname) {
 		};
 
 	_.newItem = function (id,label) {
-		var ui = $('<li class="item"><input type="hidden" name="'+field+'['+id+']" value="'+label+'" />'+label+'<a href="#" class="remove"></a></li>').hoverClass().click(function (e) {
+		var ui = $('<li class="item"><input type="hidden" name="'+settings.fieldname+'['+id+']" value="'+label+'" />'+label+'<a href="#" class="remove"></a></li>').hoverClass().click(function (e) {
 				if (e.preventDefault)
 					e.preventDefault();
 				if (e.stopPropagation)
@@ -107,15 +133,17 @@ function SearchSelector (type,parent,url,field,label,classname) {
 		$input.val('').attr('alt','').focus();
 	};
 
-	ui.appendTo(parent).click(function () { $input.focus(); }).suggest(
-			url+'&action=shopp_suggestions&s='+type,
+	ui.appendTo(settings.parent).click(function () { $input.focus(); }).suggest(
+			settings.url+'&action='+settings.action+'&s='+settings.source,
 			{	delay:300,
 				minchars:2,
 				format:'json',
 				showOnFocus:true,
 				autoSelect:true,
-				label:label,
-				resultsClass:'search-select-results'+(classname?' '+classname:''),
+				autoDelay:settings.autodelay,
+				autoSuggest:settings.autosuggest,
+				label:settings.label,
+				resultsClass:'search-select-results'+(settings.classname?' '+settings.classname:''),
 				onSelect:this.selection
 			});
 

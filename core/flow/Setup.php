@@ -17,7 +17,7 @@
  * @package shopp
  * @author Jonathan Davis
  **/
-class Setup extends FlowController {
+class Setup extends AdminController {
 
 	var $screen = false;
 
@@ -30,9 +30,14 @@ class Setup extends FlowController {
 	function __construct () {
 		parent::__construct();
 
+		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 		$pages = explode("-",$_GET['page']);
 		$this->screen = end($pages);
 		switch ($this->screen) {
+			case "checkout":
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('status-labels');
+				break;
 			case "taxes":
 				wp_enqueue_script("suggest");
 				shopp_enqueue_script('ocupload');
@@ -40,6 +45,11 @@ class Setup extends FlowController {
 				break;
 			case "system":
 				shopp_enqueue_script('colorbox');
+				break;
+			case "pages":
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('pages-settings');
+				$this->pages_ui();
 				break;
 			case "settings":
 				shopp_enqueue_script('setup');
@@ -63,6 +73,7 @@ class Setup extends FlowController {
 			case "shipping": 		$this->shipping(); break;
 			case "taxes": 			$this->taxes(); break;
 			case "presentation":	$this->presentation(); break;
+			case "pages":			$this->pages(); break;
 			case "system":			$this->system(); break;
 			case "update":			$this->update(); break;
 			default: 				$this->general();
@@ -134,7 +145,6 @@ class Setup extends FlowController {
 		$targets = $Shopp->Settings->get('target_markets');
 		if (!$targets) $targets = array();
 
-		$statusLabels = $Shopp->Settings->get('order_status');
 		include(SHOPP_ADMIN_PATH."/settings/settings.php");
 	}
 
@@ -182,7 +192,7 @@ class Setup extends FlowController {
 
 		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
-		$productOrderOptions = Category::sortoptions();
+		$productOrderOptions = ProductCategory::sortoptions();
 		$productOrderOptions['custom'] = __('Custom','Shopp');
 
 		$orderOptions = array("ASC" => __('Order','Shopp'),
@@ -199,13 +209,15 @@ class Setup extends FlowController {
 
 	function checkout () {
 		global $Shopp;
+
+		$Settings = ShoppSettings();
 		$db =& DB::get();
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_checkout')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
-		$next_setting = $Shopp->Settings->get('next_order_id');
+		$next_setting = $Settings->get('next_order_id');
 
 		if ($next->id > $next_setting) $next_setting = $next->id;
 
@@ -242,6 +254,8 @@ class Setup extends FlowController {
 			'15901200' => __('6 months','Shopp'),
 			'31536000' => __('1 year','Shopp'),
 			);
+
+		$statusLabels = $Settings->get('order_status');
 
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
@@ -365,6 +379,37 @@ class Setup extends FlowController {
 		else $gateways = explode(",",$active_gateways);
 
 		include(SHOPP_ADMIN_PATH."/settings/payments.php");
+	}
+
+	function pages () {
+
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-pages');
+			$catalog_slug = Storefront::slug();
+			$_POST['settings']['storefront_pages'] = Storefront::pages_settings($_POST['settings']['storefront_pages']);
+			$this->settings_save();
+
+			// If the catalog slug changes
+			// $hardflush is false (soft flush... plenty of fiber, no .htaccess update needed)
+			$hardflush = ($catalog_slug != Storefront::slug());
+			flush_rewrite_rules($hardflush);
+		}
+
+		$pages = Storefront::pages_settings();
+		include(SHOPP_ADMIN_PATH."/settings/pages.php");
+
+	}
+
+	function pages_ui () {
+		register_column_headers('shopp_page_shopp-settings-pages', array(
+			'title'=>__('Title','Shopp'),
+			'slug'=>__('Slug','Shopp'),
+			'decription'=>__('Description','Shopp')
+		));
 	}
 
 	function payments_ui () {

@@ -83,35 +83,4 @@ jQuery(document).ready(function () {
 		else $('#target_markets input').not(this).attr('checked',false);
 	});
 
-	function addLabel (id,label,location) {
-		if (isNaN(id)) return;
-		var i = labelInputs.length+1,id = !id?i:id,
-			entry = '<li id="item-'+i+'"><span>'+
-					'<input type="text" name="settings[order_status]['+id+']" id="label-'+i+'" size="14" />'+
-					'<button type="button" class="delete">'+
-					'<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />'+
-					'</button>'+
-					'<button type="button" class="add">'+
-					'<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/add.png" alt="Add" width="16" height="16" />'+
-					'</button></span></li>',
-			li = !location?$(entry).appendTo('#order-statuslabels'):$(entry).insertAfter(location),
-			input = li.find('input').val(label?label:''),
-			deleteButton = li.find('button.delete').hide().click(function () {
-				if (confirm(SHOPP_CONFIRM_DELETE_LABEL)) li.remove();
-			}),
-			addButton = li.find('button.add').click(function () {
-				addLabel(null,null,'#'+li.attr('id'));
-			}),
-			wrap = li.find('span').hover(function() {
-				if (i > 0) deleteButton.show();
-			}, function () {
-				deleteButton.hide();
-			});
-
-		labelInputs.push(li);
-	}
-
-	if (labels) for (var id in labels) addLabel(id,labels[id]);
-	else addLabel();
-
 });

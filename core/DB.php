@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @package shopp
  **/
 class DB {
-	static $version = 1130;	// Database schema version
+	static $version = 1132;	// Database schema version
 
 	private static $instance;
 	// Define datatypes for MySQL
@@ -107,7 +107,7 @@ class DB {
 	function connect ($user, $password, $database, $host) {
 		$this->dbh = @mysql_connect($host, $user, $password);
 		if (!$this->dbh) trigger_error("Could not connect to the database server '$host'.");
-		else $this->select($database);
+		else $this->db($database);
 	}
 
 	/**
@@ -139,7 +139,7 @@ class DB {
 	 * @param string $database The database name
 	 * @return void
 	 **/
-	function select ($database) {
+	function db ($database) {
 		if(!@mysql_select_db($database,$this->dbh))
 			trigger_error("Could not select the '$database' database.");
 	}
@@ -177,6 +177,19 @@ class DB {
 		return $data;
 	}
 
+	function caller () {
+		$backtrace  = debug_backtrace();
+		$stack = array();
+
+		foreach ( $backtrace as $caller )
+			$stack[] = isset( $caller['class'] ) ?
+				"{$caller['class']}->{$caller['function']}"
+				: $caller['function'];
+
+		return join( ', ', $stack );
+
+	}
+
 	/**
 	 * Send a query to the database and retrieve the results
 	 *
@@ -195,6 +208,7 @@ class DB {
 		// Supports deprecated AS_ARRAY argument
 		if ($format === AS_ARRAY) $format = 'array';
 
+		// if (SHOPP_QUERY_DEBUG) $db->queries[] = array($query,$db->caller());
 		if (SHOPP_QUERY_DEBUG) $db->queries[] = $query;
 		$result = @mysql_query($query, $db->dbh);
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
@@ -230,7 +244,6 @@ class DB {
 			$callback =  array('DB','auto');
 
 		$records = array();
-
 		while ($row = @mysql_fetch_object($result)) {
 			call_user_func_array($callback,array_merge(array(&$records,&$row),$args));
 		}
@@ -242,6 +255,36 @@ class DB {
 			case 'array': return $records; break;
 			default: return (count($records) == 1)?reset($records):$records; break;
 		}
+	}
+
+	function select ($options=array()) {
+		$defaults = array(
+			'columns' => '*',
+			'useindex' => '',
+			'joins' => array(),
+			'table' => '',
+			'where' => array(),
+			'groupby' => false,
+			'having' => array(),
+			'limit' => false,
+			'orderby' => false
+		);
+		$options = array_merge($defaults,$options);
+		extract ($options);
+
+		if (class_exists('ShoppErrors')) { // Log errors if error system is available
+			if (empty($table)) return new ShoppError('No table specified for SELECT query.','db_select_sql',SHOPP_ADMIN_ERR);
+		}
+
+		$useindex 	= empty($useindex)?'':"FORCE INDEX($useindex)";
+		$joins 		= empty($joins)?'':"\n\t\t".join("\n\t\t",$joins);
+		$where 		= empty($where)?'':"\n\tWHERE ".join(' AND ',$where);
+		$groupby 	= empty($groupby)?'':"GROUP BY $groupby";
+		$having 	= empty($having)?'':"HAVING ".join(" AND ",$having);
+		$orderby	= empty($orderby)?'':"\n\tORDER BY $orderby";
+		$limit 		= empty($limit)?'':"\n\tLIMIT $limit";
+
+		return "SELECT $columns\n\tFROM $table $useindex $joins $where $groupby $having $orderby $limit";
 	}
 
 	/**
@@ -520,10 +563,10 @@ abstract class DatabaseObject implements Iterator {
 		if (empty($args[0])) return false;
 
 		$where = "";
-		if (is_array($args[0]))
+		if (is_array($args[0])) {
 			foreach ($args[0] as $key => $id)
 				$where .= ($where == ""?"":" AND ")."$key='".DB::escape($id)."'";
-		else {
+		} else {
 			$id = $args[0];
 			$key = $this->_key;
 			if (!empty($args[1])) $key = $args[1];
@@ -556,11 +599,60 @@ abstract class DatabaseObject implements Iterator {
 		if (!isset($DatabaseObject) || !class_exists($DatabaseObject)) return;
 		$Object = new $DatabaseObject();
 		$Object->populate($record);
+		if (method_exists($Object,'expopulate'))
+			$Object->expopulate();
 
 		if ($collate) {
 			if (!isset($records[$index])) $records[$index] = array();
 			$records[$index][] = $Object;
 		} else $records[$index] = $Object;
+	}
+
+	/**
+	 * Callback for loading object-related meta data into properties
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $records A reference to the loaded record set
+	 * @param object $record Result record data object
+	 * @param array $objects
+	 * @param string $id
+	 * @param string $property
+	 * @param boolean $collate
+	 * @param boolean $merge
+	 * @return void
+	 **/
+	function metaloader (&$records,&$record,$objects=array(),$id='id',$property='',$collate=true,$merge=false) {
+
+		if (is_array($objects) && isset($objects[$record->{$id}])) {
+			$target = $objects[$record->{$id}];
+		} elseif (isset($this)) {
+			$target = $this;
+		}
+
+		// Remove record ID before attaching record (duplicates $this->id)
+		unset($record->{$id});
+
+		if (property_exists($target,$property)) {
+			if ($collate) {
+				if (!is_array($target->{$property})) $target->{$property} = array();
+
+				// Named collation if collate is a valid record property
+				if (isset($record->{$collate})) $target->{$property}[$record->{$collate}] = $record;
+				else $target->{$property}[] = $record;
+			} else {
+				$target->{$property} = $record;
+			}
+		}
+
+		if ($merge) {
+			foreach (get_object_vars($record) as $name => $value) {
+				if ($name == 'id' // Protect $target object's' id column from being overwritten by meta data
+					|| (isset($target->_datatypes) && in_array($name,$target->_datatypes))) continue; // Protect $target object's' db columns
+				$target->{$name} = &$record->{$name};
+			}
+		}
 	}
 
 	/**
@@ -593,14 +685,20 @@ abstract class DatabaseObject implements Iterator {
 		$data = DB::prepare($this,$this->_map);
 
 		$id = $this->{$this->_key};
-		// Update record
+		if (!empty($this->_map)) {
+			$remap = array_flip($this->_map);
+			if (isset($remap[$this->_key]))
+				$id = $this->{$remap[$this->_key]};
+		}
+
 		if (!empty($id)) {
+			// Update record
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
 			DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
 			return true;
-		// Insert new record
 		} else {
+			// Insert new record
 			if (isset($data['created'])) $data['created'] = "now()";
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
@@ -715,9 +813,12 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	function updates($data,$ignores = array()) {
 		foreach ($data as $key => $value) {
-			if (!is_null($value) &&
-				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) &&
-				property_exists($this, $key) ) {
+			if (!is_null($value)
+				&& ($ignores === false
+					|| (is_array($ignores)
+							&& !in_array($key,$ignores)
+						)
+					) && property_exists($this, $key) ) {
 				$this->{$key} = DB::clean($value);
 			}
 		}
@@ -736,7 +837,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
 	 **/
-	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","id","created","modified")) {
+	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
 		if ($ignores === false) $ignored = array();
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
@@ -801,7 +902,7 @@ abstract class DatabaseObject implements Iterator {
 class WPDatabaseObject extends DatabaseObject {
 
 	/**
-	 * Builds a table name from the defined WP table prefix and Shopp prefix
+	 * Builds a table name from the defined WP table prefix
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
@@ -816,8 +917,8 @@ class WPDatabaseObject extends DatabaseObject {
 
 }
 
-class WPPostTypeObject extends WPDatabaseObject {
-	protected $_post_type = false;
+class WPShoppObject extends WPDatabaseObject {
+	static $posttype = 'shopp_post';
 
 	function load () {
 		$args = func_get_args();
@@ -825,14 +926,29 @@ class WPPostTypeObject extends WPDatabaseObject {
 
 		if (count($args) == 2) {
 			list($id,$key) = $args;
+			if (empty($key)) $key = $this->_key;
 			$p = array($key => $id);
 		}
 		if (is_array($args[0])) $p = $args[0];
+
 		if ($this->_post_type !== false) $p['post_type'] = $this->_post_type;
 
 		parent::load($p);
 	}
 
+	function register ($class,$slug) {
+		register_post_type( $class::$posttype,array(
+				'labels' => array(
+					'name' => __('Products','Shopp'),
+					'singular_name' => __('Product','Shopp')
+				),
+			'rewrite' => array( 'slug' => $slug ),
+			'public' => true,
+			'has_archive' => true,
+			'show_ui' => false,
+			'_edit_link' => 'admin.php?page=shopp-products&id=%d'
+		));
+	}
 }
 
 /**

@@ -49,6 +49,8 @@
 			$input.focus(function() {
 				resetPosition();
 				displayItems();
+				if (options.autoSuggest) autoSuggest();
+
 			});
 		}
 
@@ -124,6 +126,9 @@
 
 			var q = $.trim($input.val()), multipleSepPos, items;
 
+			// Use a default query when none has been entered
+			if (q.length == 0 && options.autoSuggest) q = options.autoSuggest;
+
 			if ( options.multiple ) {
 				multipleSepPos = q.lastIndexOf(options.multipleSep);
 				if ( multipleSepPos != -1 ) {
@@ -154,11 +159,17 @@
 
 				}
 
-			} else {
-				$results.hide();
+			} else $results.hide();
 
-			}
+		}
 
+		function autoSuggest () {
+			var timeout = false;
+			if (timeout) clearTimeout(timeout);
+			timeout = setTimeout(suggest, 3000);
+			$input.blur(function () {
+				clearTimeout(timeout);
+			});
 		}
 
 
@@ -329,6 +340,8 @@
 		options.source = source;
 		options.yoffset = options.yoffset || 0;
 		options.delay = options.delay || 100;
+		options.autoDelay = options.autoDelay || 3000;
+		options.autoQuery = options.autoQuery || false;
 		options.resultsClass = options.resultsClass || 'suggest-results';
 		options.selectClass = options.selectClass || 'suggest-select';
 		options.matchClass = options.matchClass || 'suggest-match';

@@ -63,6 +63,7 @@ class AdminFlow extends FlowController {
 		'settings-shipping'=>'shopp_settings_shipping',
 		'settings-taxes'=>'shopp_settings_taxes',
 		'settings-presentation'=>'shopp_settings_presentation',
+		'settings-pages'=>'shopp_settings',
 		'settings-system'=>'shopp_settings_system'
 	);
 
@@ -86,7 +87,8 @@ class AdminFlow extends FlowController {
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
-		add_action("load-update.php", array(&$this, 'admin_css'));
+		add_action('load-update.php', array(&$this, 'admin_css'));
+		add_action('admin_footer',array(&$this,'debug'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -101,6 +103,7 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
+		$this->addpage('settings-pages',__('Pages','Shopp'),'Setup','Page Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// Action hook for adding custom third-party pages
@@ -565,8 +568,8 @@ class AdminFlow extends FlowController {
 		echo $widget_name;
 		echo $after_title;
 
-		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
-		$RecentBestsellers->load_products();
+		$RecentBestsellers = new BestsellerProducts(array('where'=>array('UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)'),'show'=>3));
+		$RecentBestsellers->load();
 
 		echo '<table><tbody><tr>';
 		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
@@ -578,7 +581,7 @@ class AdminFlow extends FlowController {
 
 
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
-		$LifetimeBestsellers->load_products();
+		$LifetimeBestsellers->load();
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
@@ -738,6 +741,26 @@ class AdminFlow extends FlowController {
 	 **/
 	function pluginspage () {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
+	}
+
+
+	function debug () {
+		// return true;
+		$db = DB::get();
+		global $wpdb;
+		return;
+		if (SAVEQUERIES) {
+			echo "<pre>\nWP QUERIES\n\n";
+			print_r($wpdb->queries);
+			echo "\n\n</pre>";
+		}
+
+		if (SHOPP_QUERY_DEBUG) {
+			echo "<pre>\n\nSHOPP QUERIES\n\n";
+			print_r($db->queries);
+			echo "\n\n</pre>";
+		}
+
 	}
 
 

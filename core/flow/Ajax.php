@@ -126,7 +126,7 @@ class AjaxFlow {
 	function load_spec_template () {
 		check_admin_referer('wp_ajax_shopp_spec_template');
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['category']}' AND spectemplate='on'");
 		echo json_encode(unserialize($result->specs));
 		exit();
@@ -135,7 +135,7 @@ class AjaxFlow {
 	function load_options_template() {
 		check_admin_referer('wp_ajax_shopp_options_template');
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$result = $db->query("SELECT options,prices FROM $table WHERE id='{$_GET['category']}' AND variations='on'");
 		if (empty($result)) exit();
 		$result->options = unserialize($result->options);
@@ -177,7 +177,7 @@ class AjaxFlow {
 		$Catalog = new Catalog();
 		$Catalog->load_categories();
 
-		$Category = new Category();
+		$Category = new ProductCategory();
 		$Category->name = $_GET['name'];
 		$Category->slug = sanitize_title_with_dashes($Category->name);
 		$Category->parent = $_GET['parent'];
@@ -212,7 +212,7 @@ class AjaxFlow {
 
 		switch ($_REQUEST['type']) {
 			case "category":
-				$Category = new Category($_REQUEST['id']);
+				$Category = new ProductCategory($_REQUEST['id']);
 				if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 				$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
 				$Category->update_slug();
@@ -287,15 +287,15 @@ class AjaxFlow {
 
 	function rebuild_search_index () {
 		check_admin_referer('wp_ajax_shopp_rebuild_search_index');
+		global $wpdb;
 		$db = DB::get();
 		require(SHOPP_MODEL_PATH."/Search.php");
 		new ContentParser();
 
 		$set = 10;
-		$product_table = DatabaseObject::tablename(Product::$table);
 		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 
-		$total = $db->query("SELECT count(id) AS products,now() as start FROM $product_table");
+		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts");
 		if (empty($total->products)) die('-1');
 
 		$Settings = &ShoppSettings();
@@ -303,9 +303,9 @@ class AjaxFlow {
 
 		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
-			$row = $db->query("SELECT id FROM $product_table LIMIT ".($i*$set).",$set",AS_ARRAY);
-			foreach ($row as $index => $product) {
-				$Indexer = new IndexProduct($product->id);
+			$products = DB::query("SELECT ID FROM $wpdb->posts LIMIT ".($i*$set).",$set",'array','col','ID');
+			foreach ($products as $id) {
+				$Indexer = new IndexProduct($id);
 				$Indexer->index();
 				$indexed++;
 			}
@@ -339,7 +339,7 @@ class AjaxFlow {
 			switch($_GET['t']) {
 				case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
 				case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
-				case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
+				case "product-category": $table = DatabaseObject::tablename(ProductCategory::$table); break;
 				case "customer-type":
 					$types = Lookup::customer_types();
 					$results = array();
@@ -414,14 +414,24 @@ class AjaxFlow {
 				case 'shopp_categories':
 					$id = 'id';
 					$name = 'name';
-					$table = DatabaseObject::tablename(Category::$table);
+					$table = DatabaseObject::tablename(ProductCategory::$table);
 					break;
 				case 'shopp_tags':
-					$id = 'id';
+					$id = 't.term_id';
 					$name = 'name';
-					$table = DatabaseObject::tablename('meta');
-					$where[] = "context='catalog'";
-					$where[] = "type='tag'";
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'shopp_tag'";
+					if ('shopp_popular_tags' == strtolower($q)) {
+						$q = ''; $orderlimit = "ORDER BY tt.count DESC LIMIT 15";
+					}
+					break;
+				case 'shopp_tags':
+					$id = 't.term_id';
+					$name = 'name';
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'shopp_tag'";
 					break;
 				case 'shopp_promotions':
 					$id = 'id';
@@ -436,10 +446,11 @@ class AjaxFlow {
 					$where[] = "type='download'";
 					break;
 			}
-			$where[] = "$name LIKE '%$q%'";
+			if (!empty($q))
+				$where[] = "$name LIKE '%$q%'";
 			$wheres = join(' AND ',$where);
 
-			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres";
+			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres $orderlimit";
 
 			$items = $db->query($query,AS_ARRAY);
 			echo json_encode($items);
@@ -513,7 +524,7 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_feature_product');
 
 		if (empty($_GET['feature'])) die('0');
-		$Product = new Product($_GET['feature']);
+		$Product = new ProductSummary($_GET['feature']);
 		if ($Product->featured == "on") $Product->featured = "off";
 		else $Product->featured = "on";
 		$Product->save();
@@ -708,7 +719,7 @@ class AjaxFlow {
 		if (empty($_POST['position']) || !is_array($_POST['position'])) die('0');
 
 		$db =& DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$updates = $_POST['position'];
 		foreach ($updates as $id => $position)
 			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
