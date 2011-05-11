@@ -13,6 +13,8 @@ require_once("Product.php");
 
 class Category extends DatabaseObject {
 	static $table = "category";
+	var $api = 'category';
+
 	var $loaded = false;
 	var $paged = false;
 	var $children = array();
@@ -804,8 +806,9 @@ class Category extends DatabaseObject {
 	 *
 	 **/
 	function tag ($property,$options=array()) {
-		$options['return'] = 'on';
-		return shopp('category',$property,$options, $this);
+		if (is_array($options)) $options['return'] = 'on';
+		else $options .= (!empty($options)?"&":"").'return=on';
+		return shopp($this,$property,$options);
 	}
 
 } // END class Category

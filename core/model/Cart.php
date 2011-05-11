@@ -15,6 +15,7 @@
 require("Item.php");
 
 class Cart {
+	var $api = 'cart';
 
 	// properties
 	var $contents = array();	// The contents (Items) of the cart
@@ -608,8 +609,9 @@ class Cart {
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
-		$options['return'] = 'on';
-		return shopp('cart',$property,$options);
+		if (is_array($options)) $options['return'] = 'on';
+		else $options .= (!empty($options)?"&":"").'return=on';
+		return shopp($this,$property,$options);
 	}
 
 	/**
@@ -644,8 +646,9 @@ class Cart {
 	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
-		$options['return'] = 'on';
-		return shopp('shipping',$property,$options, $this);
+		if (is_array($options)) $options['return'] = 'on';
+		else $options .= (!empty($options)?"&":"").'return=on';
+		return shopp('shipping',$property,$options);
 	}
 
 

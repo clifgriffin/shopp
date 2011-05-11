@@ -15,7 +15,6 @@ require_once('theme/cart.php');
 require_once('theme/cartitem.php');
 require_once('theme/shipping.php');
 require_once('theme/category.php');
-require_once('theme/subcategory.php');
 require_once('theme/catalog.php');
 require_once('theme/product.php');
 require_once('theme/checkout.php');
@@ -112,7 +111,7 @@ class shoppapi {
  * @since 1.0
  * @version 1.2
  *
- * @param $object The object to get the tag property from
+ * @param mixed $object The object label or Object to get the tag property from
  * @param $property The property of the object to get/output
  * @param $options Custom options for the property result in query form
  *                   (option1=value&option2=value&...) or alternatively as an associative array
@@ -122,18 +121,22 @@ function shopp () {
 	$Object = false;
 
 	$args = func_get_args();
-	list($object,$property) = explode('.', strtolower($args[0]));
+
+	if (isset($args[0]) && is_object($args[0])) {
+		$Object = $args[0];
+		if (property_exists($Object, 'api')) $object = $Object->api;
+		else $object = strtolower(get_class($Object));
+	} else list($object,$property) = explode('.', strtolower($args[0]));
 
 	if (!empty($object) && !empty($property)) {
 		if(isset($args[1])) $optionsarg = $args[1];
-		if(isset($args[2])) $Object = $args[2];
 	} else {
 		if (count($args) < 2) return; // missing property
-		$object = strtolower($args[0]);
-		$property = strtolower($args[1]);
+		if(empty($object)) $object = strtolower($args[0]);
+		if(empty($property)) $property = strtolower($args[1]);
 		if(isset($args[2])) $optionsarg = $args[2];
-		if(isset($args[3])) $Object = $args[3];
 	}
+	// echo "shopp('$object','$property','$optionsarg');".BR;
 
 	$options = array();
 	if (isset($optionsarg)) {

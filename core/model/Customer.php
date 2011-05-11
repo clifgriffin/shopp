@@ -15,6 +15,7 @@ require("Address.php");
 
 class Customer extends DatabaseObject {
 	static $table = "customer";
+	var $api = 'customer';
 
 	var $login = false;
 	var $info = false;
