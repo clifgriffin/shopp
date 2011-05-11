@@ -1607,6 +1607,33 @@ function shopp_pagename ($page) {
 }
 
 /**
+ * Parses tag option strings or arrays
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string|array $options URL-compatible query string or associative array of tag options
+ * @return array API-ready options list
+ **/
+function shopp_parse_options ($options) {
+
+	$paramset = array();
+	if ( empty($options) ) return $paramset;
+	if ( is_string($options) ) parse_str($options,$paramset);
+	else $paramset = $options;
+
+	$options = array();
+	foreach ( array_keys($paramset) as $key )
+		$options[ strtolower($key) ] = $paramset[$key];
+
+	if ( get_magic_quotes_gpc() )
+		$options = stripslashes_deep( $options );
+
+	return $options;
+
+}
+
+/**
  * Redirects the browser to a specified URL
  *
  * A wrapper for the wp_redirect function
