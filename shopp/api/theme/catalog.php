@@ -68,7 +68,7 @@ class ShoppCatalogAPI {
 			$category = "tag";
 			$search = array('tag'=>urldecode($path[1]));
 		}
-		$Category = Catalog::load_category($category,$search);
+		$Category = Catalog::load_collection($category,$search);
 
 		if (!empty($Category->uri)) {
 			$type = "category";
@@ -178,7 +178,6 @@ class ShoppCatalogAPI {
 	}
 
 	function categorylist ($result, $options, $O) {
-		global $Shopp;
 		$defaults = array(
 			'title' => '',
 			'before' => '',
@@ -203,7 +202,12 @@ class ShoppCatalogAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		$O->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
+		$taxonomy = 'shopp_category';
+
+		$categories = array(); $count = 0;
+		$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'id=>parent') );
+		$children = _get_term_hierarchy($taxonomy);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories);
 
 		$string = "";
 		$depthlimit = $depth;
@@ -217,14 +221,14 @@ class ShoppCatalogAPI {
 			$string .= $title;
 			$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
-			foreach ($O->categories as &$category) {
+			foreach ($this->categories as &$category) {
 				// If the parent of this category was excluded, add this to the excludes and skip
 				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
 					$exclude[] = $category->id;
 					continue;
 				}
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-				if ($category->total == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
+				if ($category->count == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
 				if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 				if (value_is_true($hierarchy) && $category->depth > $depth) {
@@ -239,7 +243,7 @@ class ShoppCatalogAPI {
 				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 				$total = '';
-				if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
+				if (value_is_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
 
 				$string .= '<option value="'.$link.'">'.$padding.$category->name.$total.'</option>';
 				$previous = &$category;
@@ -256,9 +260,9 @@ class ShoppCatalogAPI {
 		} else {
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
-			foreach ($O->categories as &$category) {
-				if (!isset($category->total)) $category->total = 0;
-				if (!isset($category->depth)) $category->depth = 0;
+			foreach ($categories as &$category) {
+				if (!isset($category->count)) $category->count = 0;
+				if (!isset($category->level)) $category->level = 0;
 
 				// If the parent of this category was excluded, add this to the excludes and skip
 				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
@@ -267,8 +271,8 @@ class ShoppCatalogAPI {
 				}
 
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-				if ($depthlimit && $category->depth >= $depthlimit) continue;
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+			if ($depthlimit && $category->level >= $depthlimit) continue;
+				if (value_is_true($hierarchy) && $category->level > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
 					if (substr($string,-5,5) == "</li>") // Keep everything but the
@@ -284,8 +288,8 @@ class ShoppCatalogAPI {
 					$string .= $subcategories;
 				}
 
-				if (value_is_true($hierarchy) && $category->depth < $depth) {
-					for ($i = $depth; $i > $category->depth; $i--) {
+				if (value_is_true($hierarchy) && $category->level < $depth) {
+					for ($i = $depth; $i > $category->level; $i--) {
 						if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 							// If the child menu is empty, remove the <ul> to avoid breaking standards
 							$string = substr($string,0,strlen($subcategories)*-1).'</li>';
@@ -293,29 +297,29 @@ class ShoppCatalogAPI {
 					}
 				}
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
-
+				// $category_uri = empty($category->id)?$category->uri:$category->id;
+				// $link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+				$link = get_term_link($category->name,$category->taxonomy);
 				$total = '';
-				if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
+				if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
 
 				$current = '';
 				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
 					$current = ' class="current"';
 
 				$listing = '';
-				if ($category->total > 0 || isset($category->smart) || $linkall)
+				if ($category->count > 0 || isset($category->smart) || $linkall)
 					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
 				if (value_is_true($showall) ||
-					$category->total > 0 ||
+					$category->count > 0 ||
 					isset($category->smart) ||
 					$category->_children)
 					$string .= '<li'.$current.'>'.$listing.'</li>';
 
 				$previous = &$category;
-				$depth = $category->depth;
+				$depth = $category->level;
 			}
 			if (value_is_true($hierarchy) && $depth > 0)
 				for ($i = $depth; $i > 0; $i--) {
@@ -327,6 +331,7 @@ class ShoppCatalogAPI {
 			if ($wraplist) $string .= '</ul>';
 		}
 		return $string;
+		break;
 	}
 
 	function type ($result, $options, $O) { return $O->type; }
@@ -371,7 +376,7 @@ class ShoppCatalogAPI {
 		if (isset($Shopp->Category->controls)) return false;
 		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
 
-		$menuoptions = Category::sortoptions();
+		$menuoptions = ProductCategory::sortoptions();
 		// Don't show custom product order for smart categories
 		if (isset($Shopp->Category->smart)) unset($menuoptions['custom']);
 
@@ -620,23 +625,58 @@ class ShoppCatalogAPI {
 	}
 
 	function tagcloud ($result, $options, $O) {
-		if (!empty($options['levels'])) $levels = $options['levels'];
-		else $levels = 7;
-		if (empty($O->tags)) $O->load_tags();
-		$min = -1; $max = -1;
-		foreach ($O->tags as $tag) {
-			if ($min == -1 || $tag->products < $min) $min = $tag->products;
-			if ($max == -1 || $tag->products > $max) $max = $tag->products;
+		$defaults = array(
+			'orderby' => 'name',
+			'order' => false,
+			'number' => 45,
+			'levels' => 7,
+			'format' => 'list',
+			'link' => 'view'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		$tags = get_terms( ProductTag::$taxonomy, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
+
+		if (empty($tags)) return false;
+
+		$min = $max = false;
+		foreach ($tags as &$tag) {
+			$min = !$min?$tag->count:min($min,$tag->count);
+			$max = !$max?$tag->count:max($max,$tag->count);
+
+			$link_function = ('edit' == $link?'get_edit_tag_link':'get_term_link');
+			$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxonomy);
 		}
-		if ($max == 0) $max = 1;
-		$string = '<ul class="shopp tagcloud">';
-		foreach ($O->tags as $tag) {
-			$level = floor((1-$tag->products/$max)*$levels)+1;
-			$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
-			$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
+
+		// Sorting
+		$sorted = apply_filters( 'tag_cloud_sort', $tags, $options );
+		if ( $sorted != $tags  ) $tags = &$sorted;
+		else {
+			if ( 'RAND' == $order ) shuffle($tags);
+			else {
+				if ( 'name' == $orderby )
+					uasort( $tags, create_function('$a, $b', 'return strnatcasecmp($a->name, $b->name);') );
+				else
+					uasort( $tags, create_function('$a, $b', 'return ($a->count > $b->count);') );
+
+				if ( 'DESC' == $order ) $tags = array_reverse( $tags, true );
+			}
 		}
-		$string .= '</ul>';
-		return $string;
+
+		// Markup
+		if ('inline' == $format) $markup = '<div class="shopp tagcloud">';
+		if ('list' == $format) $markup = '<ul class="shopp tagcloud">';
+		foreach ((array)$tags as $tag) {
+			$level = floor((1-$tag->count/$max)*$levels)+1;
+			if ('list' == $format) $markup .= '<li class="level-'.$level.'">';
+			$markup .= '<a href="'.esc_url($tag->link).'" rel="tag">'.$tag->name.'</a>';
+			if ('list' == $format) $markup .= '</li> ';
+		}
+		if ('list' == $format) $markup .= '</ul>';
+		if ('inline' == $format) $markup .= '</div>';
+
+		return $markup;
 	}
 
 	function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
