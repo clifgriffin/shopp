@@ -42,29 +42,12 @@ function shopp () {
 		if (count($args) < 2) return; // missing property
 		if(empty($object)) $object = strtolower($args[0]);
 		if(empty($property)) $property = strtolower($args[1]);
-		if(isset($args[2])) $optionsarg = $args[2];
+		if(isset($args[2])) $options = $args[2];
 	}
 	// echo "shopp('$object','$property','$optionsarg');".BR;
 
-	$options = array();
-	if (isset($optionsarg)) {
-		if (is_array($optionsarg) && !empty($optionsarg)) {
-			// handle associative array for options
-			foreach(array_keys($optionsarg) as $key)
-				$options[strtolower($key)] = $optionsarg[$key];
-		} else {
-			// regular url-compatible arguments
-			$paramsets = explode("&",$optionsarg);
-			foreach ((array)$paramsets as $paramset) {
-				if (empty($paramset)) continue;
-				$key = $paramset;
-				$value = "";
-				if (strpos($paramset,"=") !== false)
-					list($key,$value) = explode("=",$paramset);
-				$options[strtolower($key)] = $value;
-			}
-		}
-	}
+	// normalize options to associative array of lowercased-key/value pairs
+	$options = shopp_parse_options($options);
 
 	// strip hypens from all properties, allows all manner of hyphenated properties without creating invalid method call
 	$property = str_replace ( "-", "", $property);
