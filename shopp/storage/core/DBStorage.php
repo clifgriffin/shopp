@@ -21,18 +21,18 @@
  * @package shopp
  **/
 class DBStorage extends StorageModule implements StorageEngine {
-	
+
 	var $_table = "asset";
 	var $_metatable = "meta";
 	var $_key = "id";
-	
+
 	function __construct () {
 		parent::__construct();
 		$this->name = __('Database','Shopp');
 		$this->_table = DatabaseObject::tablename($this->_table);
 		$this->_metatable = DatabaseObject::tablename($this->_metatable);
 	}
-	
+
 	/**
 	 * Save an asset to the database
 	 *
@@ -46,23 +46,23 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 **/
 	function save ($asset,$data,$type='binary') {
 		$db = &DB::get();
-		
+
 		if (empty($data)) return false;
 
 		if ($type != "binary") {
 			if (!is_readable($data)) die("Could not read the file."); // Die because we can't use ShoppError
 			$data = file_get_contents($data);
 		}
-		
+
 		$data = @mysql_real_escape_string($data);
 
 		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");
 		else $db->query("UPDATE $this->_table SET data='$data' WHERE $this->_key='$asset->uri'");
-		
+
 		if (isset($uri)) return $uri;
 		return false;
 	}
-	
+
 	/**
 	 * Gets the size and mimetype meta of a stored asset
 	 *
@@ -81,7 +81,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 		if ($filename !== false) $_['mime'] = file_mimetype(false,$filename);
 		return $_;
 	}
-	
+
 	/**
 	 * Determine if the provided resource exists
 	 *
@@ -117,7 +117,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 		}
 		return $file->data;
 	}
-	
+
 } // END class DBStorage
 
 ?>
