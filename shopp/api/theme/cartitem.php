@@ -18,13 +18,13 @@ add_filter('shoppapi_cartitem_total', array('ShoppCartItemAPI', 'total'), 10, 3)
 add_filter('shoppapi_cartitem_taxrate', array('ShoppCartItemAPI', 'taxrate'), 10, 3);
 add_filter('shoppapi_cartitem_quantity', array('ShoppCartItemAPI', 'quantity'), 10, 3);
 add_filter('shoppapi_cartitem_remove', array('ShoppCartItemAPI', 'remove'), 10, 3);
-add_filter('shoppapi_cartitem_optionlabel', array('ShoppCartItemAPI', 'optionlabel'), 10, 3);
+add_filter('shoppapi_cartitem_optionlabel', array('ShoppCartItemAPI', 'option_label'), 10, 3);
 add_filter('shoppapi_cartitem_options', array('ShoppCartItemAPI', 'options'), 10, 3);
-add_filter('shoppapi_cartitem_addonslist', array('ShoppCartItemAPI', 'addonslist'), 10, 3);
-add_filter('shoppapi_cartitem_hasinputs', array('ShoppCartItemAPI', 'hasinputs'), 10, 3);
+add_filter('shoppapi_cartitem_addonslist', array('ShoppCartItemAPI', 'addons_list'), 10, 3);
+add_filter('shoppapi_cartitem_hasinputs', array('ShoppCartItemAPI', 'has_inputs'), 10, 3);
 add_filter('shoppapi_cartitem_inputs', array('ShoppCartItemAPI', 'inputs'), 10, 3);
 add_filter('shoppapi_cartitem_input', array('ShoppCartItemAPI', 'input'), 10, 3);
-add_filter('shoppapi_cartitem_inputslist', array('ShoppCartItemAPI', 'inputslist'), 10, 3);
+add_filter('shoppapi_cartitem_inputslist', array('ShoppCartItemAPI', 'inputs_list'), 10, 3);
 add_filter('shoppapi_cartitem_coverimage', array('ShoppCartItemAPI', 'coverimage'), 10, 3);
 add_filter('shoppapi_cartitem_thumbnail', array('ShoppCartItemAPI', 'coverimage'), 10, 3);
 
@@ -133,7 +133,7 @@ class ShoppCartItemAPI {
 		return $result;
 	}
 
-	function optionlabel ($result, $options, $O) { return $O->option->label; }
+	function option_label ($result, $options, $O) { return $O->option->label; }
 
 	function options ($result, $options, $O) {
 		$class = "";
@@ -156,7 +156,7 @@ class ShoppCartItemAPI {
 		return $result;
 	}
 
-	function addonslist ($result, $options, $O) {
+	function addons_list ($result, $options, $O) {
 		if (empty($O->addons)) return false;
 		$defaults = array(
 			'before' => '',
@@ -187,7 +187,7 @@ class ShoppCartItemAPI {
 		return $result;
 	}
 
-	function hasinputs ($result, $options, $O) { return (count($O->data) > 0); }
+	function has_inputs ($result, $options, $O) { return (count($O->data) > 0); }
 
 	function inputs ($result, $options, $O) {
 		if (!isset($O->_data_loop)) {
@@ -209,7 +209,7 @@ class ShoppCartItemAPI {
 		return $data;
 	}
 
-	function inputslist ($result, $options, $O) {
+	function inputs_list ($result, $options, $O) {
 		if (empty($O->data)) return false;
 		$defaults = array(
 			'class' => '',

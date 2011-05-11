@@ -1,72 +1,72 @@
 <?php
 
 add_filter('shoppapi_customer_accounts', array('ShoppCustomerAPI', 'accounts'), 10, 3);
-add_filter('shoppapi_customer_accounturl', array('ShoppCustomerAPI', 'accounturl'), 10, 3);
+add_filter('shoppapi_customer_accounturl', array('ShoppCustomerAPI', 'account_url'), 10, 3);
 add_filter('shoppapi_customer_action', array('ShoppCustomerAPI', 'action'), 10, 3);
-add_filter('shoppapi_customer_billingaddress', array('ShoppCustomerAPI', 'billingaddress'), 10, 3);
-add_filter('shoppapi_customer_billingcity', array('ShoppCustomerAPI', 'billingcity'), 10, 3);
-add_filter('shoppapi_customer_billingcountry', array('ShoppCustomerAPI', 'billingcountry'), 10, 3);
-add_filter('shoppapi_customer_billingpostcode', array('ShoppCustomerAPI', 'billingpostcode'), 10, 3);
-add_filter('shoppapi_customer_billingprovince', array('ShoppCustomerAPI', 'billingstate'), 10, 3);
-add_filter('shoppapi_customer_billingstate', array('ShoppCustomerAPI', 'billingstate'), 10, 3);
-add_filter('shoppapi_customer_billingxaddress', array('ShoppCustomerAPI', 'billingxaddress'), 10, 3);
+add_filter('shoppapi_customer_billingaddress', array('ShoppCustomerAPI', 'billing_address'), 10, 3);
+add_filter('shoppapi_customer_billingcity', array('ShoppCustomerAPI', 'billing_city'), 10, 3);
+add_filter('shoppapi_customer_billingcountry', array('ShoppCustomerAPI', 'billing_country'), 10, 3);
+add_filter('shoppapi_customer_billingpostcode', array('ShoppCustomerAPI', 'billing_postcode'), 10, 3);
+add_filter('shoppapi_customer_billingprovince', array('ShoppCustomerAPI', 'billing_state'), 10, 3);
+add_filter('shoppapi_customer_billingstate', array('ShoppCustomerAPI', 'billing_state'), 10, 3);
+add_filter('shoppapi_customer_billingxaddress', array('ShoppCustomerAPI', 'billing_xaddress'), 10, 3);
 add_filter('shoppapi_customer_company', array('ShoppCustomerAPI', 'company'), 10, 3);
-add_filter('shoppapi_customer_confirmpassword', array('ShoppCustomerAPI', 'confirmpassword'), 10, 3);
+add_filter('shoppapi_customer_confirmpassword', array('ShoppCustomerAPI', 'confirm_password'), 10, 3);
 add_filter('shoppapi_customer_download', array('ShoppCustomerAPI', 'download'), 10, 3);
 add_filter('shoppapi_customer_downloads', array('ShoppCustomerAPI', 'downloads'), 10, 3);
 add_filter('shoppapi_customer_email', array('ShoppCustomerAPI', 'email'), 10, 3);
-add_filter('shoppapi_customer_emaillogin', array('ShoppCustomerAPI', 'accountlogin'), 10, 3);
-add_filter('shoppapi_customer_loginnamelogin', array('ShoppCustomerAPI', 'accountlogin'), 10, 3);
-add_filter('shoppapi_customer_accountlogin', array('ShoppCustomerAPI', 'accountlogin'), 10, 3);
-add_filter('shoppapi_customer_errorsexist', array('ShoppCustomerAPI', 'errorsexist'), 10, 3);
-add_filter('shoppapi_customer_firstname', array('ShoppCustomerAPI', 'firstname'), 10, 3);
-add_filter('shoppapi_customer_hasaccount', array('ShoppCustomerAPI', 'hasaccount'), 10, 3);
-add_filter('shoppapi_customer_hasdownloads', array('ShoppCustomerAPI', 'hasdownloads'), 10, 3);
-add_filter('shoppapi_customer_hasinfo', array('ShoppCustomerAPI', 'hasinfo'), 10, 3);
-add_filter('shoppapi_customer_haspurchases', array('ShoppCustomerAPI', 'haspurchases'), 10, 3);
+add_filter('shoppapi_customer_emaillogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
+add_filter('shoppapi_customer_loginnamelogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
+add_filter('shoppapi_customer_accountlogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
+add_filter('shoppapi_customer_errorsexist', array('ShoppCustomerAPI', 'errors_exist'), 10, 3);
+add_filter('shoppapi_customer_firstname', array('ShoppCustomerAPI', 'first_name'), 10, 3);
+add_filter('shoppapi_customer_hasaccount', array('ShoppCustomerAPI', 'has_account'), 10, 3);
+add_filter('shoppapi_customer_hasdownloads', array('ShoppCustomerAPI', 'has_downloads'), 10, 3);
+add_filter('shoppapi_customer_hasinfo', array('ShoppCustomerAPI', 'has_info'), 10, 3);
+add_filter('shoppapi_customer_haspurchases', array('ShoppCustomerAPI', 'has_purchases'), 10, 3);
 add_filter('shoppapi_customer_info', array('ShoppCustomerAPI', 'info'), 10, 3);
-add_filter('shoppapi_customer_lastname', array('ShoppCustomerAPI', 'lastname'), 10, 3);
-add_filter('shoppapi_customer_loggedin', array('ShoppCustomerAPI', 'loggedin'), 10, 3);
+add_filter('shoppapi_customer_lastname', array('ShoppCustomerAPI', 'last_name'), 10, 3);
+add_filter('shoppapi_customer_loggedin', array('ShoppCustomerAPI', 'logged_in'), 10, 3);
 add_filter('shoppapi_customer_loginerrors', array('ShoppCustomerAPI', 'errors'), 10, 3);
-add_filter('shoppapi_customer_loginlabel', array('ShoppCustomerAPI', 'loginlabel'), 10, 3);
-add_filter('shoppapi_customer_loginname', array('ShoppCustomerAPI', 'loginname'), 10, 3);
+add_filter('shoppapi_customer_loginlabel', array('ShoppCustomerAPI', 'login_label'), 10, 3);
+add_filter('shoppapi_customer_loginname', array('ShoppCustomerAPI', 'login_name'), 10, 3);
 add_filter('shoppapi_customer_management', array('ShoppCustomerAPI', 'management'), 10, 3);
 add_filter('shoppapi_customer_marketing', array('ShoppCustomerAPI', 'marketing'), 10, 3);
 add_filter('shoppapi_customer_menu', array('ShoppCustomerAPI', 'menu'), 10, 3);
-add_filter('shoppapi_customer_notloggedin', array('ShoppCustomerAPI', 'notloggedin'), 10, 3);
-add_filter('shoppapi_customer_orderlookup', array('ShoppCustomerAPI', 'orderlookup'), 10, 3);
+add_filter('shoppapi_customer_notloggedin', array('ShoppCustomerAPI', 'not_logged_in'), 10, 3);
+add_filter('shoppapi_customer_orderlookup', array('ShoppCustomerAPI', 'order_lookup'), 10, 3);
 add_filter('shoppapi_customer_password', array('ShoppCustomerAPI', 'password'), 10, 3);
-add_filter('shoppapi_customer_passwordchanged', array('ShoppCustomerAPI', 'passwordchanged'), 10, 3);
-add_filter('shoppapi_customer_passwordlogin', array('ShoppCustomerAPI', 'passwordlogin'), 10, 3);
+add_filter('shoppapi_customer_passwordchanged', array('ShoppCustomerAPI', 'password_changed'), 10, 3);
+add_filter('shoppapi_customer_passwordlogin', array('ShoppCustomerAPI', 'password_login'), 10, 3);
 add_filter('shoppapi_customer_phone', array('ShoppCustomerAPI', 'phone'), 10, 3);
 add_filter('shoppapi_customer_process', array('ShoppCustomerAPI', 'process'), 10, 3);
-add_filter('shoppapi_customer_profilesaved', array('ShoppCustomerAPI', 'profilesaved'), 10, 3);
+add_filter('shoppapi_customer_profilesaved', array('ShoppCustomerAPI', 'profile_saved'), 10, 3);
 add_filter('shoppapi_customer_purchases', array('ShoppCustomerAPI', 'purchases'), 10, 3);
 add_filter('shoppapi_customer_receipt', array('ShoppCustomerAPI', 'order'), 10, 3);
 add_filter('shoppapi_customer_order', array('ShoppCustomerAPI', 'order'), 10, 3);
-add_filter('shoppapi_customer_recoverbutton', array('ShoppCustomerAPI', 'recoverbutton'), 10, 3);
-add_filter('shoppapi_customer_recoverurl', array('ShoppCustomerAPI', 'recoverurl'), 10, 3);
+add_filter('shoppapi_customer_recoverbutton', array('ShoppCustomerAPI', 'recover_button'), 10, 3);
+add_filter('shoppapi_customer_recoverurl', array('ShoppCustomerAPI', 'recover_url'), 10, 3);
 add_filter('shoppapi_customer_register', array('ShoppCustomerAPI', 'register'), 10, 3);
-add_filter('shoppapi_customer_registrationerrors', array('ShoppCustomerAPI', 'registrationerrors'), 10, 3);
-add_filter('shoppapi_customer_registrationform', array('ShoppCustomerAPI', 'registrationform'), 10, 3);
-add_filter('shoppapi_customer_residentialshippingaddress', array('ShoppCustomerAPI', 'residentialshippingaddress'), 10, 3);
-add_filter('shoppapi_customer_sameshippingaddress', array('ShoppCustomerAPI', 'sameshippingaddress'), 10, 3);
-add_filter('shoppapi_customer_savebutton', array('ShoppCustomerAPI', 'savebutton'), 10, 3);
+add_filter('shoppapi_customer_registrationerrors', array('ShoppCustomerAPI', 'registration_errors'), 10, 3);
+add_filter('shoppapi_customer_registrationform', array('ShoppCustomerAPI', 'registration_form'), 10, 3);
+add_filter('shoppapi_customer_residentialshippingaddress', array('ShoppCustomerAPI', 'residential_shipping_address'), 10, 3);
+add_filter('shoppapi_customer_sameshippingaddress', array('ShoppCustomerAPI', 'same_shipping_address'), 10, 3);
+add_filter('shoppapi_customer_savebutton', array('ShoppCustomerAPI', 'save_button'), 10, 3);
 add_filter('shoppapi_customer_shipping', array('ShoppCustomerAPI', 'shipping'), 10, 3);
-add_filter('shoppapi_customer_shippingaddress', array('ShoppCustomerAPI', 'shippingaddress'), 10, 3);
-add_filter('shoppapi_customer_shippingcity', array('ShoppCustomerAPI', 'shippingcity'), 10, 3);
-add_filter('shoppapi_customer_shippingcountry', array('ShoppCustomerAPI', 'shippingcountry'), 10, 3);
-add_filter('shoppapi_customer_shippingpostcode', array('ShoppCustomerAPI', 'shippingpostcode'), 10, 3);
-add_filter('shoppapi_customer_shippingprovince', array('ShoppCustomerAPI', 'shippingstate'), 10, 3);
-add_filter('shoppapi_customer_shippingstate', array('ShoppCustomerAPI', 'shippingstate'), 10, 3);
-add_filter('shoppapi_customer_shippingxaddress', array('ShoppCustomerAPI', 'shippingxaddress'), 10, 3);
-add_filter('shoppapi_customer_submitlogin', array('ShoppCustomerAPI', 'submitlogin'), 10, 3);
-add_filter('shoppapi_customer_loginbutton', array('ShoppCustomerAPI', 'submitlogin'), 10, 3);
+add_filter('shoppapi_customer_shippingaddress', array('ShoppCustomerAPI', 'shipping_address'), 10, 3);
+add_filter('shoppapi_customer_shippingcity', array('ShoppCustomerAPI', 'shipping_city'), 10, 3);
+add_filter('shoppapi_customer_shippingcountry', array('ShoppCustomerAPI', 'shipping_country'), 10, 3);
+add_filter('shoppapi_customer_shippingpostcode', array('ShoppCustomerAPI', 'shipping_postcode'), 10, 3);
+add_filter('shoppapi_customer_shippingprovince', array('ShoppCustomerAPI', 'shipping_state'), 10, 3);
+add_filter('shoppapi_customer_shippingstate', array('ShoppCustomerAPI', 'shipping_state'), 10, 3);
+add_filter('shoppapi_customer_shippingxaddress', array('ShoppCustomerAPI', 'shipping_xaddress'), 10, 3);
+add_filter('shoppapi_customer_submitlogin', array('ShoppCustomerAPI', 'submit_login'), 10, 3);
+add_filter('shoppapi_customer_loginbutton', array('ShoppCustomerAPI', 'submit_login'), 10, 3);
 add_filter('shoppapi_customer_url', array('ShoppCustomerAPI', 'url'), 10, 3);
-add_filter('shoppapi_customer_wpusercreated', array('ShoppCustomerAPI', 'wpusercreated'), 10, 3);
+add_filter('shoppapi_customer_wpusercreated', array('ShoppCustomerAPI', 'wpuser_created'), 10, 3);
 
 class ShoppCustomerAPI {
-	function accountlogin ($result, $options, $O) {
+	function account_login ($result, $options, $O) {
 		global $Shopp;
 		$checkout = false;
 		if (isset($Shopp->Flow->Controller->checkout))
@@ -81,7 +81,7 @@ class ShoppCustomerAPI {
 
 	function accounts ($result, $options, $O) { return $Shopp->Settings->get('account_system'); }
 
-	function accounturl ($result, $options, $O) { return shoppurl(false,'account'); }
+	function account_url ($result, $options, $O) { return shoppurl(false,'account'); }
 
 	function action ($result, $options, $O) {
 		$action = null;
@@ -89,7 +89,7 @@ class ShoppCustomerAPI {
 		return shoppurl(array('acct'=>$action),'account');
 	}
 
-	function billingaddress ($result, $options, $O) {
+	function billing_address ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->address;
 		if (!empty($Order->Billing->address))
@@ -97,7 +97,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 	}
 
-	function billingcity ($result, $options, $O) {
+	function billing_city ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->city;
 		if (!empty($Order->Billing->city))
@@ -105,7 +105,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 	}
 
-	function billingcountry ($result, $options, $O) {
+	function billing_country ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->country;
 		$base = $Shopp->Settings->get('base_operations');
@@ -122,7 +122,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function billingpostcode ($result, $options, $O) {
+	function billing_postcode ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->postcode;
 		if (!empty($Order->Billing->postcode))
@@ -130,7 +130,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 	}
 
-	function billingstate ($result, $options, $O) {
+	function billing_state ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
@@ -164,7 +164,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function billingxaddress ($result, $options, $O) {
+	function billing_xaddress ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Billing->xaddress;
 		if (!empty($Order->Billing->xaddress))
@@ -179,7 +179,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="company" id="company"'.inputattrs($options).' />';
 	}
 
-	function confirmpassword ($result, $options, $O) {
+	function confirm_password ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		$options['value'] = "";
 		return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
@@ -243,30 +243,30 @@ class ShoppCustomerAPI {
 		return $errors;
 	}
 
-	function errorsexist ($result, $options, $O) {
+	function errors_exist ($result, $options, $O) {
 		$Errors = &ShoppErrors();
 		return ($Errors->exist(SHOPP_AUTH_ERR));
 	}
 
-	function firstname ($result, $options, $O) {
+	function first_name ($result, $options, $O) {
 		if (isset($options['mode']) && $options['mode'] == "value") return $O->firstname;
 		if (!empty($O->firstname))
 			$options['value'] = $O->firstname;
 		return '<input type="text" name="firstname" id="firstname"'.inputattrs($options).' />';
 	}
 
-	function hasaccount ($result, $options, $O) {
+	function has_account ($result, $options, $O) {
 		$system = $Shopp->Settings->get('account_system');
 		if ($system == "wordpress") return ($O->wpuser != 0);
 		elseif ($system == "shopp") return (!empty($O->password));
 		else return false;
 	}
 
-	function hasdownloads ($result, $options, $O) {
+	function has_downloads ($result, $options, $O) {
 		return (!empty($O->downloads));
 	}
 
-	function hasinfo ($result, $options, $O) {
+	function has_info ($result, $options, $O) {
 		if (!is_object($O->info) || empty($O->info->meta)) return false;
 		if (!isset($O->_info_looping)) {
 			reset($O->info->meta);
@@ -281,7 +281,7 @@ class ShoppCustomerAPI {
 		}
 	}
 
-	function haspurchases ($result, $options, $O) {
+	function has_purchases ($result, $options, $O) {
 		$filters = array();
 		if (isset($options['daysago']))
 			$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
@@ -319,16 +319,16 @@ class ShoppCustomerAPI {
 		return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
 	}
 
-	function lastname ($result, $options, $O) {
+	function last_name ($result, $options, $O) {
 		if (isset($options['mode']) && $options['mode'] == "value") return $O->lastname;
 		if (!empty($O->lastname))
 			$options['value'] = $O->lastname;
 		return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />';
 	}
 
-	function loggedin ($result, $options, $O) { return $Shopp->Order->Customer->login; }
+	function logged_in ($result, $options, $O) { return $Shopp->Order->Customer->login; }
 
-	function loginlabel ($result, $options, $O) {
+	function login_label ($result, $options, $O) {
 		$accounts = $Shopp->Settings->get('account_system');
 		$label = __('Email Address','Shopp');
 		if ($accounts == "wordpress") $label = __('Login Name','Shopp');
@@ -336,7 +336,7 @@ class ShoppCustomerAPI {
 		return $label;
 	}
 
-	function loginname ($result, $options, $O) {
+	function login_name ($result, $options, $O) {
 		if (isset($options['mode']) && $options['mode'] == "value") return $O->loginname;
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($O->loginname))
@@ -376,13 +376,13 @@ class ShoppCustomerAPI {
 		}
 	}
 
-	function notloggedin ($result, $options, $O) { return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) { return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
 
 	function order ($result, $options, $O) {
 		return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
 	}
 
-	function orderlookup ($result, $options, $O) {
+	function order_lookup ($result, $options, $O) {
 		$auth = $Shopp->Settings->get('account_system');
 		if ($auth != "none") return true;
 
@@ -415,13 +415,13 @@ class ShoppCustomerAPI {
 		return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
 	}
 
-	function passwordchanged ($result, $options, $O) {
+	function password_changed ($result, $options, $O) {
 		$change = (isset($O->_password_change) && $O->_password_change);
 		unset($O->_password_change);
 		return $change;
 	}
 
-	function passwordlogin ($result, $options, $O) {
+	function password_login ($result, $options, $O) {
 		global $Shopp;
 		$checkout = false;
 		if (isset($Shopp->Flow->Controller->checkout))
@@ -446,7 +446,7 @@ class ShoppCustomerAPI {
 		return false;
 	}
 
-	function profilesaved ($result, $options, $O) {
+	function profile_saved ($result, $options, $O) {
 		$saved = (isset($O->_saved) && $O->_saved);
 		unset($O->_saved);
 		return $saved;
@@ -468,18 +468,18 @@ class ShoppCustomerAPI {
 		}
 	}
 
-	function recoverbutton ($result, $options, $O) {
+	function recover_button ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
 			return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 	}
 
-	function recoverurl ($result, $options, $O) { return add_query_arg('acct','recover',shoppurl(false,'account')); }
+	function recover_url ($result, $options, $O) { return add_query_arg('acct','recover',shoppurl(false,'account')); }
 
 	function register ($result, $options, $O) {
 		return '<input type="submit" name="shopp_registration" value="Register" />';
 	}
 
-	function registrationerrors ($result, $options, $O) {
+	function registration_errors ($result, $options, $O) {
 		$Errors =& ShoppErrors();
 		if (!$Errors->exist(SHOPP_ERR)) return false;
 		ob_start();
@@ -489,13 +489,13 @@ class ShoppCustomerAPI {
 		return $markup;
 	}
 
-	function registrationform ($result, $options, $O) {
+	function registration_form ($result, $options, $O) {
 		$regions = Lookup::country_zones();
 		add_storefrontjs("var regions = ".json_encode($regions).";",true);
 		return $_SERVER['REQUEST_URI'];
 	}
 
-	function residentialshippingaddress ($result, $options, $O) {
+	function residential_shipping_address ($result, $options, $O) {
 		$label = __("Residential shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
@@ -503,7 +503,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function sameshippingaddress ($result, $options, $O) {
+	function same_shipping_address ($result, $options, $O) {
 		$label = __("Same shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		$checked = ' checked="checked"';
@@ -512,7 +512,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function savebutton ($result, $options, $O) {
+	function save_button ($result, $options, $O) {
 		if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
 		$result = '<input type="hidden" name="customer" value="true" />';
 		$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />';
@@ -521,7 +521,7 @@ class ShoppCustomerAPI {
 
 	function shipping ($result, $options, $O) { $Order =& ShoppOrder(); return $Order->Shipping; }
 
-	function shippingaddress ($result, $options, $O) {
+	function shipping_address ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->address;
 		if (!empty($Order->Shipping->address))
@@ -529,7 +529,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 	}
 
-	function shippingcity ($result, $options, $O) {
+	function shipping_city ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->city;
 		if (!empty($Order->Shipping->city))
@@ -537,7 +537,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 	}
 
-	function shippingcountry ($result, $options, $O) {
+	function shipping_country ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->country;
 		$base = $Shopp->Settings->get('base_operations');
@@ -553,7 +553,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function shippingpostcode ($result, $options, $O) {
+	function shipping_postcode ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->postcode;
 		if (!empty($Order->Shipping->postcode))
@@ -561,7 +561,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />';
 	}
 
-	function shippingstate ($result, $options, $O) {
+	function shipping_state ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
@@ -594,7 +594,7 @@ class ShoppCustomerAPI {
 		return $output;
 	}
 
-	function shippingxaddress ($result, $options, $O) {
+	function shipping_xaddress ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->xaddress;
 		if (!empty($Order->Shipping->xaddress))
@@ -602,7 +602,7 @@ class ShoppCustomerAPI {
 		return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 	}
 
-	function submitlogin ($result, $options, $O) {
+	function submit_login ($result, $options, $O) {
 		global $Shopp;
 		$checkout = false;
 		if (isset($Shopp->Flow->Controller->checkout))
@@ -629,7 +629,7 @@ class ShoppCustomerAPI {
 		return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure);
 	}
 
-	function wpusercreated ($result, $options, $O) { return $O->newuser; }
+	function wpuser_created ($result, $options, $O) { return $O->newuser; }
 
 }
 

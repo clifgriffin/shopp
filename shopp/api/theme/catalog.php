@@ -1,44 +1,44 @@
 <?php
 
-add_filter('shoppapi_catalog_bestsellerproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
-add_filter('shoppapi_catalog_bestsellersproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
-add_filter('shoppapi_catalog_bestsellingproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
+add_filter('shoppapi_catalog_bestsellerproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
+add_filter('shoppapi_catalog_bestsellersproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
+add_filter('shoppapi_catalog_bestsellingproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
 add_filter('shoppapi_catalog_breadcrumb', array('ShoppCatalogAPI','breadcrumb'), 10, 3);
-add_filter('shoppapi_catalog_catalogproducts', array('ShoppCatalogAPI','catalogproducts'), 10, 3);
+add_filter('shoppapi_catalog_catalogproducts', array('ShoppCatalogAPI','catalog_products'), 10, 3);
 add_filter('shoppapi_catalog_categories', array('ShoppCatalogAPI','categories'), 10, 3);
 add_filter('shoppapi_catalog_category', array('ShoppCatalogAPI','category'), 10, 3);
-add_filter('shoppapi_catalog_categorylist', array('ShoppCatalogAPI','categorylist'), 10, 3);
+add_filter('shoppapi_catalog_categorylist', array('ShoppCatalogAPI','category_list'), 10, 3);
 add_filter('shoppapi_catalog_display', array('ShoppCatalogAPI','type'), 10, 3);
 add_filter('shoppapi_catalog_type', array('ShoppCatalogAPI','type'), 10, 3);
-add_filter('shoppapi_catalog_featuredproducts', array('ShoppCatalogAPI','featuredproducts'), 10, 3);
-add_filter('shoppapi_catalog_hascategories', array('ShoppCatalogAPI','hascategories'), 10, 3);
-add_filter('shoppapi_catalog_isaccount', array('ShoppCatalogAPI','isaccount'), 10, 3);
-add_filter('shoppapi_catalog_iscart', array('ShoppCatalogAPI','iscart'), 10, 3);
-add_filter('shoppapi_catalog_iscategory', array('ShoppCatalogAPI','iscategory'), 10, 3);
-add_filter('shoppapi_catalog_ischeckout', array('ShoppCatalogAPI','ischeckout'), 10, 3);
-add_filter('shoppapi_catalog_islanding', array('ShoppCatalogAPI','iscatalog'), 10, 3);
-add_filter('shoppapi_catalog_iscatalog', array('ShoppCatalogAPI','iscatalog'), 10, 3);
-add_filter('shoppapi_catalog_isproduct', array('ShoppCatalogAPI','isproduct'), 10, 3);
-add_filter('shoppapi_catalog_newproducts', array('ShoppCatalogAPI','newproducts'), 10, 3);
-add_filter('shoppapi_catalog_onsaleproducts', array('ShoppCatalogAPI','onsaleproducts'), 10, 3);
-add_filter('shoppapi_catalog_orderbylist', array('ShoppCatalogAPI','orderbylist'), 10, 3);
+add_filter('shoppapi_catalog_featuredproducts', array('ShoppCatalogAPI','featured_products'), 10, 3);
+add_filter('shoppapi_catalog_hascategories', array('ShoppCatalogAPI','has_categories'), 10, 3);
+add_filter('shoppapi_catalog_isaccount', array('ShoppCatalogAPI','is_account'), 10, 3);
+add_filter('shoppapi_catalog_iscart', array('ShoppCatalogAPI','is_cart'), 10, 3);
+add_filter('shoppapi_catalog_iscategory', array('ShoppCatalogAPI','is_category'), 10, 3);
+add_filter('shoppapi_catalog_ischeckout', array('ShoppCatalogAPI','is_checkout'), 10, 3);
+add_filter('shoppapi_catalog_islanding', array('ShoppCatalogAPI','is_catalog'), 10, 3);
+add_filter('shoppapi_catalog_iscatalog', array('ShoppCatalogAPI','is_catalog'), 10, 3);
+add_filter('shoppapi_catalog_isproduct', array('ShoppCatalogAPI','is_product'), 10, 3);
+add_filter('shoppapi_catalog_newproducts', array('ShoppCatalogAPI','new_products'), 10, 3);
+add_filter('shoppapi_catalog_onsaleproducts', array('ShoppCatalogAPI','onsale_products'), 10, 3);
+add_filter('shoppapi_catalog_orderbylist', array('ShoppCatalogAPI','orderby_list'), 10, 3);
 add_filter('shoppapi_catalog_product', array('ShoppCatalogAPI','product'), 10, 3);
-add_filter('shoppapi_catalog_promoproducts', array('ShoppCatalogAPI','promoproducts'), 10, 3);
-add_filter('shoppapi_catalog_randomproducts', array('ShoppCatalogAPI','randomproducts'), 10, 3);
-add_filter('shoppapi_catalog_relatedproducts', array('ShoppCatalogAPI','relatedproducts'), 10, 3);
+add_filter('shoppapi_catalog_promoproducts', array('ShoppCatalogAPI','promo_products'), 10, 3);
+add_filter('shoppapi_catalog_randomproducts', array('ShoppCatalogAPI','random_products'), 10, 3);
+add_filter('shoppapi_catalog_relatedproducts', array('ShoppCatalogAPI','related_products'), 10, 3);
 add_filter('shoppapi_catalog_search', array('ShoppCatalogAPI','search'), 10, 3);
-add_filter('shoppapi_catalog_searchproducts', array('ShoppCatalogAPI','searchproducts'), 10, 3);
-add_filter('shoppapi_catalog_searchform', array('ShoppCatalogAPI','searchform'), 10, 3);
-add_filter('shoppapi_catalog_sideproduct', array('ShoppCatalogAPI','sideproduct'), 10, 3);
-add_filter('shoppapi_catalog_tagproducts', array('ShoppCatalogAPI','tagproducts'), 10, 3);
-add_filter('shoppapi_catalog_tagcloud', array('ShoppCatalogAPI','tagcloud'), 10, 3);
+add_filter('shoppapi_catalog_searchproducts', array('ShoppCatalogAPI','search_products'), 10, 3);
+add_filter('shoppapi_catalog_searchform', array('ShoppCatalogAPI','search_form'), 10, 3);
+add_filter('shoppapi_catalog_sideproduct', array('ShoppCatalogAPI','side_product'), 10, 3);
+add_filter('shoppapi_catalog_tagproducts', array('ShoppCatalogAPI','tag_products'), 10, 3);
+add_filter('shoppapi_catalog_tagcloud', array('ShoppCatalogAPI','tag_cloud'), 10, 3);
 add_filter('shoppapi_catalog_url', array('ShoppCatalogAPI','url'), 10, 3);
 add_filter('shoppapi_catalog_views', array('ShoppCatalogAPI','views'), 10, 3);
-add_filter('shoppapi_catalog_zoomoptions', array('ShoppCatalogAPI','zoomoptions'), 10, 3);
+add_filter('shoppapi_catalog_zoomoptions', array('ShoppCatalogAPI','zoom_options'), 10, 3);
 
 class ShoppCatalogAPI {
 
-	function bestsellerproducts ($result, $options, $O) {
+	function bestseller_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new BestsellerProducts($options);
 		return self::category($result, $options, $O);
@@ -113,7 +113,7 @@ class ShoppCatalogAPI {
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
 	}
 
-	function catalogproducts ($result, $options, $O) {
+	function catalog_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new CatalogProducts($options);
 		return self::category($result, $options, $O);
@@ -177,7 +177,7 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function categorylist ($result, $options, $O) {
+	function category_list ($result, $options, $O) {
 		$defaults = array(
 			'title' => '',
 			'before' => '',
@@ -336,42 +336,42 @@ class ShoppCatalogAPI {
 
 	function type ($result, $options, $O) { return $O->type; }
 
-	function featuredproducts ($result, $options, $O) {
+	function featured_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new FeaturedProducts($options);
 		return self::category($result, $options, $O);
 	}
 
-	function hascategories ($result, $options, $O) {
+	function has_categories ($result, $options, $O) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
 		if (empty($O->categories)) $O->load_categories(array('where'=>'true'),$showsmart);
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function isaccount ($result, $options, $O) { return (is_shopp_page('account')); }
+	function is_account ($result, $options, $O) { return (is_shopp_page('account')); }
 
-	function iscart ($result, $options, $O) { return (is_shopp_page('cart')); }
+	function is_cart ($result, $options, $O) { return (is_shopp_page('cart')); }
 
-	function iscategory ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "category"); }
+	function is_category ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "category"); }
 
-	function ischeckout ($result, $options, $O) { return (is_shopp_page('checkout')); }
+	function is_checkout ($result, $options, $O) { return (is_shopp_page('checkout')); }
 
-	function iscatalog ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "catalog"); }
+	function is_catalog ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "catalog"); }
 
-	function isproduct ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "product"); }
+	function is_product ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "product"); }
 
-	function newproducts ($result, $options, $O) {
+	function new_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new NewProducts($options);
 	}
 
-	function onsaleproducts ($result, $options, $O) {
+	function onsale_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new OnSaleProducts($options);
 		return self::category($result, $options, $O);
 	}
 
-	function orderbylist ($result, $options, $O) {
+	function orderby_list ($result, $options, $O) {
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
@@ -455,19 +455,19 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function promoproducts ($result, $options, $O) {
+	function promo_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new PromoProducts($options);
 		return self::category($result, $options, $O);
 	}
 
-	function randomproducts ($result, $options, $O) {
+	function random_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new RandomProducts($options);
 		return self::category($result, $options, $O);
 	}
 
-	function relatedproducts ($result, $options, $O) {
+	function related_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new RelatedProducts($options);
 		return self::category($result, $options, $O);
@@ -536,13 +536,13 @@ class ShoppCatalogAPI {
 		return $before.$input.$after;
 	}
 
-	function searchproducts ($result, $options, $O) {
+	function search_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new SearchResults($options);
 		return self::category($result, $options, $O);
 	}
 
-	function searchform ($result, $options, $O) {
+	function search_form ($result, $options, $O) {
 		ob_start();
 		get_search_form();
 		$content = ob_get_contents();
@@ -561,7 +561,7 @@ class ShoppCatalogAPI {
 		return join('',$markup);
 	}
 
-	function sideproduct ($result, $options, $O) {
+	function side_product ($result, $options, $O) {
 		global $Shopp;
 		$content = false;
 		$source = isset($options['source'])?$options['source']:'product';
@@ -618,13 +618,13 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function tagproducts ($result, $options, $O) {
+	function tag_products ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new TagProducts($options);
 		return self::category($result, $options, $O);
 	}
 
-	function tagcloud ($result, $options, $O) {
+	function tag_cloud ($result, $options, $O) {
 		$defaults = array(
 			'orderby' => 'name',
 			'order' => false,
@@ -693,7 +693,7 @@ class ShoppCatalogAPI {
 		return $string;
 	}
 
-	function zoomoptions ($result, $options, $O) {
+	function zoom_options ($result, $options, $O) {
 		$defaults = array(				// Colorbox 1.3.15
 			'transition' => 'elastic',	// The transition type. Can be set to 'elastic', 'fade', or 'none'.
 			'speed' => 350,				// Sets the speed of the fade and elastic transitions, in milliseconds.

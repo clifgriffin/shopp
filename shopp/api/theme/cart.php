@@ -5,33 +5,33 @@ add_filter('shoppapi_cart', array('ShoppCartAPI', '_cart'), 10, 4); // default f
 add_filter('shoppapi_cart_url', array('ShoppCartAPI', 'url'), 10, 3);
 add_filter('shoppapi_cart_referrer', array('ShoppCartAPI', 'referrer'), 10, 3);
 add_filter('shoppapi_cart_referer', array('ShoppCartAPI', 'referrer'), 10, 3);
-add_filter('shoppapi_cart_hasitems', array('ShoppCartAPI', 'hasitems'), 10, 3);
-add_filter('shoppapi_cart_totalitems', array('ShoppCartAPI', 'totalitems'), 10, 3);
+add_filter('shoppapi_cart_hasitems', array('ShoppCartAPI', 'has_items'), 10, 3);
+add_filter('shoppapi_cart_totalitems', array('ShoppCartAPI', 'total_items'), 10, 3);
 add_filter('shoppapi_cart_items', array('ShoppCartAPI', 'items'), 10, 3);
-add_filter('shoppapi_cart_hasshipped', array('ShoppCartAPI', 'hasshipped'), 10, 3);
-add_filter('shoppapi_cart_shippeditems', array('ShoppCartAPI', 'shippeditems'), 10, 3);
-add_filter('shoppapi_cart_hasdownloads', array('ShoppCartAPI', 'hasdownloads'), 10, 3);
-add_filter('shoppapi_cart_downloaditems', array('ShoppCartAPI', 'downloaditems'), 10, 3);
-add_filter('shoppapi_cart_lastitem', array('ShoppCartAPI', 'lastitem'), 10, 3);
-add_filter('shoppapi_cart_totalpromos', array('ShoppCartAPI', 'totalpromos'), 10, 3);
-add_filter('shoppapi_cart_haspromos', array('ShoppCartAPI', 'haspromos'), 10, 3);
+add_filter('shoppapi_cart_hasshipped', array('ShoppCartAPI', 'has_shipped'), 10, 3);
+add_filter('shoppapi_cart_shippeditems', array('ShoppCartAPI', 'shipped_items'), 10, 3);
+add_filter('shoppapi_cart_hasdownloads', array('ShoppCartAPI', 'has_downloads'), 10, 3);
+add_filter('shoppapi_cart_downloaditems', array('ShoppCartAPI', 'download_items'), 10, 3);
+add_filter('shoppapi_cart_lastitem', array('ShoppCartAPI', 'last_item'), 10, 3);
+add_filter('shoppapi_cart_totalpromos', array('ShoppCartAPI', 'total_promos'), 10, 3);
+add_filter('shoppapi_cart_haspromos', array('ShoppCartAPI', 'has_promos'), 10, 3);
 add_filter('shoppapi_cart_discounts', array('ShoppCartAPI', 'discounts'), 10, 3);
 add_filter('shoppapi_cart_promos', array('ShoppCartAPI', 'promos'), 10, 3);
-add_filter('shoppapi_cart_promoname', array('ShoppCartAPI', 'promoname'), 10, 3);
-add_filter('shoppapi_cart_promodiscount', array('ShoppCartAPI', 'promodiscount'), 10, 3);
-add_filter('shoppapi_cart_function', array('ShoppCartAPI', 'cartfunction'), 10, 3);
-add_filter('shoppapi_cart_emptybutton', array('ShoppCartAPI', 'emptybutton'), 10, 3);
-add_filter('shoppapi_cart_updatebutton', array('ShoppCartAPI', 'updatebutton'), 10, 3);
+add_filter('shoppapi_cart_promoname', array('ShoppCartAPI', 'promo_name'), 10, 3);
+add_filter('shoppapi_cart_promodiscount', array('ShoppCartAPI', 'promo_discount'), 10, 3);
+add_filter('shoppapi_cart_function', array('ShoppCartAPI', 'cart_function'), 10, 3);
+add_filter('shoppapi_cart_emptybutton', array('ShoppCartAPI', 'empty_button'), 10, 3);
+add_filter('shoppapi_cart_updatebutton', array('ShoppCartAPI', 'update_button'), 10, 3);
 add_filter('shoppapi_cart_sidecart', array('ShoppCartAPI', 'sidecart'), 10, 3);
-add_filter('shoppapi_cart_hasdiscount', array('ShoppCartAPI', 'hasdiscount'), 10, 3);
+add_filter('shoppapi_cart_hasdiscount', array('ShoppCartAPI', 'has_discount'), 10, 3);
 add_filter('shoppapi_cart_discount', array('ShoppCartAPI', 'discount'), 10, 3);
-add_filter('shoppapi_cart_promosavailable', array('ShoppCartAPI', 'promosavailable'), 10, 3);
+add_filter('shoppapi_cart_promosavailable', array('ShoppCartAPI', 'promos_available'), 10, 3);
 add_filter('shoppapi_cart_promocode', array('ShoppCartAPI', 'promocode'), 10, 3);
-add_filter('shoppapi_cart_hasshippingmethods', array('ShoppCartAPI', 'hasshippingmethods'), 10, 3);
-add_filter('shoppapi_cart_needsshipped', array('ShoppCartAPI', 'needsshipped'), 10, 3);
-add_filter('shoppapi_cart_hasshipcosts', array('ShoppCartAPI', 'hasshipcosts'), 10, 3);
-add_filter('shoppapi_cart_needsshippingestimates', array('ShoppCartAPI', 'needsshippingestimates'), 10, 3);
-add_filter('shoppapi_cart_shippingestimates', array('ShoppCartAPI', 'shippingestimates'), 10, 3);
+add_filter('shoppapi_cart_hasshippingmethods', array('ShoppCartAPI', 'has_shippingmethods'), 10, 3);
+add_filter('shoppapi_cart_needsshipped', array('ShoppCartAPI', 'needs_shipped'), 10, 3);
+add_filter('shoppapi_cart_hasshipcosts', array('ShoppCartAPI', 'has_ship_costs'), 10, 3);
+add_filter('shoppapi_cart_needsshippingestimates', array('ShoppCartAPI', 'needs_shipping_estimates'), 10, 3);
+add_filter('shoppapi_cart_shippingestimates', array('ShoppCartAPI', 'shipping_estimates'), 10, 3);
 add_filter('shoppapi_cart_subtotal', array('ShoppCartAPI', 'subtotal'), 10, 3);
 add_filter('shoppapi_cart_shipping', array('ShoppCartAPI', 'shipping'), 10, 3);
 add_filter('shoppapi_cart_hastaxes', array('ShoppCartAPI', 'hastaxes'), 10, 3);
@@ -75,7 +75,7 @@ class ShoppCartAPI {
 		}
 	}
 
-	function downloaditems ($result, $options, $O) {
+	function download_items ($result, $options, $O) {
 		if (!isset($O->_downloads_loop)) {
 			reset($O->downloads);
 			$O->_downloads_loop = true;
@@ -89,13 +89,13 @@ class ShoppCartAPI {
 		}
 	}
 
-	function emptybutton ($result, $options, $O) {
+	function empty_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 		return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 	}
 
-	function cartfunction ($result, $options, $O) {
+	function cart_function ($result, $options, $O) {
 		$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 
 		$Errors = &ShoppErrors();
@@ -108,19 +108,19 @@ class ShoppCartAPI {
 		return $result.$errors;
 	}
 
-	function hasdiscount ($result, $options, $O) { return ($O->Totals->discount > 0); }
+	function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
 
-	function hasdownloads ($result, $options, $O) { return $O->downloads(); }
+	function has_downloads ($result, $options, $O) { return $O->downloads(); }
 
-	function hasitems ($result, $options, $O) { return (count($O->contents) > 0); }
+	function has_items ($result, $options, $O) { return (count($O->contents) > 0); }
 
-	function haspromos ($result, $options, $O) { return (count($O->discounts) > 0);  }
+	function has_promos ($result, $options, $O) { return (count($O->discounts) > 0);  }
 
-	function hasshipcosts ($result, $options, $O) { return ($O->Totals->shipping > 0); }
+	function has_ship_costs ($result, $options, $O) { return ($O->Totals->shipping > 0); }
 
-	function hasshipped ($result, $options, $O) { return $O->shipped();	}
+	function has_shipped ($result, $options, $O) { return $O->shipped();	}
 
-	function hasshippingmethods ($result, $options, $O) {
+	function has_shipping_methods ($result, $options, $O) {
 		return apply_filters(
 					'shopp_shipping_hasestimates',
 					(!empty($O->shipping) && !$O->noshipping),
@@ -128,7 +128,7 @@ class ShoppCartAPI {
 				);
 	}
 
-	function hastaxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
+	function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
 
 	function items ($result, $options, $O) {
 		if (!isset($O->_item_loop)) {
@@ -144,11 +144,11 @@ class ShoppCartAPI {
 		}
 	}
 
-	function lastitem ($result, $options, $O) { return $O->contents[$O->added]; }
+	function last_item ($result, $options, $O) { return $O->contents[$O->added]; }
 
-	function needsshipped ($result, $options, $O) { return (!empty($O->shipped)); }
+	function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
-	function needsshippingestimates ($result, $options, $O) {
+	function needs_shipping_estimates ($result, $options, $O) {
 		global $Shopp;
 		$markets = $Shopp->Settings->get('target_markets');
 		return (!empty($O->shipped) && !$O->noshipping && ($O->showpostcode || count($markets) > 1));
@@ -178,7 +178,7 @@ class ShoppCartAPI {
 		return $result;
 	}
 
-	function promodiscount ($result, $options, $O) {
+	function promo_discount ($result, $options, $O) {
 		$discount = current($O->discounts);
 		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
@@ -197,7 +197,7 @@ class ShoppCartAPI {
 		return $string;
 	}
 
-	function promoname ($result, $options, $O) {
+	function promo_name ($result, $options, $O) {
 		$discount = current($O->discounts);
 		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		return $discount->name;
@@ -205,7 +205,7 @@ class ShoppCartAPI {
 
 	function promos ($result, $options, $O) {}
 
-	function promosavailable ($result, $options, $O) {
+	function promos_available ($result, $options, $O) {
 		global $Shopp;
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
@@ -221,7 +221,7 @@ class ShoppCartAPI {
 		return $referrer;
 	}
 
-	function shippeditems ($result, $options, $O) {
+	function shipped_items ($result, $options, $O) {
 		if (!isset($O->_shipped_loop)) {
 			reset($O->shipped);
 			$O->_shipped_loop = true;
@@ -256,7 +256,7 @@ class ShoppCartAPI {
 		return $result;
 	}
 
-	function shippingestimates ($result, $options, $O) {
+	function shipping_estimates ($result, $options, $O) {
 		global $Shopp;
 		if (empty($O->shipped)) return "";
 		$base = $Shopp->Settings->get('base_operations');
