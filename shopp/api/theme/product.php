@@ -56,32 +56,32 @@ add_filter('shoppapi_product_weight', array('ShoppProductAPI', 'weight'), 10, 3)
  *
  **/
 class ShoppProductAPI {
-	function addons ($result, $options, $obj) {
+	function addons ($result, $options, $O) {
 		global $Shopp;
 		$string = "";
 
 		if (!isset($options['mode'])) {
-			if (!$obj->priceloop) {
-				reset($obj->prices);
-				$obj->priceloop = true;
-			} else next($obj->prices);
-			$thisprice = current($obj->prices);
+			if (!$O->priceloop) {
+				reset($O->prices);
+				$O->priceloop = true;
+			} else next($O->prices);
+			$thisprice = current($O->prices);
 
 			if ($thisprice && $thisprice->type == "N/A")
-				next($obj->prices);
+				next($O->prices);
 
 			if ($thisprice && $thisprice->context != "addon")
-				next($obj->prices);
+				next($O->prices);
 
-			if (current($obj->prices) !== false) return true;
+			if (current($O->prices) !== false) return true;
 			else {
-				$obj->priceloop = false;
+				$O->priceloop = false;
 				return false;
 			}
 			return true;
 		}
 
-		if ($obj->outofstock) return false; // Completely out of stock, hide menus
+		if ($O->outofstock) return false; // Completely out of stock, hide menus
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
 		$defaults = array(
@@ -97,12 +97,12 @@ class ShoppProductAPI {
 		if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 		if ($options['mode'] == "single") {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$obj->id.'">'. __('Options').': </label> '."\n";
+			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options').': </label> '."\n";
 
-			$string .= '<select name="products['.$obj->id.'][price]" id="product-options'.$obj->id.'">';
+			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-			foreach ($obj->prices as $pricetag) {
+			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "addon") continue;
 
 				if (isset($options['taxes']))
@@ -120,22 +120,22 @@ class ShoppProductAPI {
 			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 		} else {
-			if (!isset($obj->options['a'])) return;
+			if (!isset($O->options['a'])) return;
 
 			$taxrate = shopp_taxrate($options['taxes'],true,$this);
 
 			// Index addon prices by option
 			$pricing = array();
-			foreach ($obj->prices as $pricetag) {
+			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "addon") continue;
 				$pricing[$pricetag->options] = $pricetag;
 			}
 
-			foreach ($obj->options['a'] as $id => $menu) {
+			foreach ($O->options['a'] as $id => $menu) {
 				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 				$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-				$string .= '<select name="products['.$obj->id.'][addons][]" class="'.$category_class.' product'.$obj->id.' addons" id="addons-'.$menu['id'].'">';
+				$string .= '<select name="products['.$O->id.'][addons][]" class="'.$category_class.' product'.$O->id.' addons" id="addons-'.$menu['id'].'">';
 				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 				foreach ($menu['options'] as $key => $option) {
 
@@ -159,30 +159,30 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function addtocart ($result, $options, $obj) {
+	function addtocart ($result, $options, $O) {
 		global $Shopp;
 		if (!isset($options['class'])) $options['class'] = "addtocart";
 		else $options['class'] .= " addtocart";
 		if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
 		$string = "";
 
-		if ($obj->outofstock) {
+		if ($O->outofstock) {
 			$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 			return $string;
 		}
 		if (isset($options['redirect']) && !isset($options['ajax']))
 			$string .= '<input type="hidden" name="redirect" value="'.$options['redirect'].'" />';
 
-		$string .= '<input type="hidden" name="products['.$obj->id.'][product]" value="'.$obj->id.'" />';
+		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
-		if (!empty($obj->prices[0]) && $obj->prices[0]->type != "N/A")
-			$string .= '<input type="hidden" name="products['.$obj->id.'][price]" value="'.$obj->prices[0]->id.'" />';
+		if (!empty($O->prices[0]) && $O->prices[0]->type != "N/A")
+			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$O->prices[0]->id.'" />';
 
 		if (!empty($Shopp->Category)) {
 			if (SHOPP_PRETTYURLS)
-				$string .= '<input type="hidden" name="products['.$obj->id.'][category]" value="'.$Shopp->Category->uri.'" />';
+				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.$Shopp->Category->uri.'" />';
 			else
-				$string .= '<input type="hidden" name="products['.$obj->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';
+				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';
 		}
 
 		$string .= '<input type="hidden" name="cart" value="add" />';
@@ -198,26 +198,26 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function buynow ($result, $options, $obj) {
+	function buynow ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
-		return self::addtocart($result, $options, $obj);
+		return self::addtocart($result, $options, $O);
 	}
 
-	function categories ($result, $options, $obj) {
-		if (!isset($obj->_categories_loop)) {
-			reset($obj->categories);
-			$obj->_categories_loop = true;
-		} else next($obj->categories);
+	function categories ($result, $options, $O) {
+		if (!isset($O->_categories_loop)) {
+			reset($O->categories);
+			$O->_categories_loop = true;
+		} else next($O->categories);
 
-		if (current($obj->categories) !== false) return true;
+		if (current($O->categories) !== false) return true;
 		else {
-			unset($obj->_categories_loop);
+			unset($O->_categories_loop);
 			return false;
 		}
 	}
 
-	function category ($result, $options, $obj) {
-		$category = current($obj->categories);
+	function category ($result, $options, $O) {
+		$category = current($O->categories);
 		if (isset($options['show'])) {
 			if ($options['show'] == "id") return $category->id;
 			if ($options['show'] == "slug") return $category->slug;
@@ -225,32 +225,32 @@ class ShoppProductAPI {
 		return $category->name;
 	}
 
-	function coverimage ($result, $options, $obj) {
+	function coverimage ($result, $options, $O) {
 		// Force select the first loaded image
 		unset($options['id']);
 		$options['index'] = 0;
-		return self::image($result, $options, $obj);
+		return self::image($result, $options, $O);
 	}
 
-	function description ($result, $options, $obj) { return apply_filters('shopp_product_description',$obj->description); }
+	function description ($result, $options, $O) { return apply_filters('shopp_product_description',$O->description); }
 
-	function found ($result, $options, $obj) {
-		if (empty($obj->id)) return false;
+	function found ($result, $options, $O) {
+		if (empty($O->id)) return false;
 		$load = array('prices','images','specs','tags','categories');
 		if (isset($options['load'])) $load = explode(",",$options['load']);
-		$obj->load_data($load);
+		$O->load_data($load);
 		return true;
 	}
 
-	function freeshipping ($result, $options, $obj) {
-		if (empty($obj->prices)) $obj->load_data(array('prices'));
-		return $obj->freeshipping;
+	function freeshipping ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
+		return $O->freeshipping;
 	}
 
-	function gallery ($result, $options, $obj) {
+	function gallery ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->images)) $obj->load_data(array('images'));
-		if (empty($obj->images)) return false;
+		if (empty($O->images)) $O->load_data(array('images'));
+		if (empty($O->images)) return false;
 		$styles = '';
 		$_size = 240;
 		$_width = $Shopp->Settings->get('gallery_small_width');
@@ -315,7 +315,7 @@ class ShoppProductAPI {
 
 		// Find the max dimensions to use for the preview spacing image
 		$maxwidth = $maxheight = 0;
-		foreach ($obj->images as $img) {
+		foreach ($O->images as $img) {
 			$scale = $p_fit?false:array_search($p_fit,$img->_scaling);
 			$scaled = $img->scaled($width,$height,$scale);
 			$maxwidth = max($maxwidth,$scaled['width']);
@@ -327,7 +327,7 @@ class ShoppProductAPI {
 
 		$p_link = value_is_true($p_link);
 
-		foreach ($obj->images as $img) {
+		foreach ($O->images as $img) {
 
 			$scale = $p_fit?array_search($p_fit,$img->_scaling):false;
 			$sharpen = $p_sharpen?min($p_sharpen,$img->_sharpen):false;
@@ -347,7 +347,7 @@ class ShoppProductAPI {
 			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 
 			$href = shoppurl(SHOPP_PERMALINKS?trailingslashit($img->id).$img->filename:$img->id,'images');
-			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$obj->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').'>';
+			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').'>';
 			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
 			$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 			if ($p_link) $previews .= '</a>';
@@ -359,7 +359,7 @@ class ShoppProductAPI {
 		$thumbs = "";
 		$twidth = $preview_width+$margins;
 
-		if (count($obj->images) > 1) {
+		if (count($O->images) > 1) {
 			$default_size = 64;
 			$_thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
 			$_thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
@@ -373,7 +373,7 @@ class ShoppProductAPI {
 
 			$firstThumb = true;
 			$thumbs = '<ul class="thumbnails">';
-			foreach ($obj->images as $img) {
+			foreach ($O->images as $img) {
 				$scale = $thumbfit?array_search($thumbfit,$img->_scaling):false;
 				$sharpen = $thumbsharpen?min($thumbsharpen,$img->_sharpen):false;
 				$quality = $thumbquality?min($thumbquality,$img->_quality):false;
@@ -393,48 +393,48 @@ class ShoppProductAPI {
 		}
 		if ($rowthumbs > 0) $twidth = ($width+$margins+2)*(int)$rowthumbs;
 
-		$result = '<div id="gallery-'.$obj->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-		$script = "\t".'ShoppGallery("#gallery-'.$obj->id.'","'.$preview.'"'.($twidth?",$twidth":"").');';
+		$result = '<div id="gallery-'.$O->id.'" class="gallery">'.$previews.$thumbs.'</div>';
+		$script = "\t".'ShoppGallery("#gallery-'.$O->id.'","'.$preview.'"'.($twidth?",$twidth":"").');';
 		add_storefrontjs($script);
 
 		return $result;
 	}
 
-	function hasaddons ($result, $options, $obj) { return ($obj->addons == "on" && !empty($obj->options['a'])); }
+	function hasaddons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
 
-	function hascategories ($result, $options, $obj) {
-		if (empty($obj->categories)) $obj->load_data(array('categories'));
-		if (count($obj->categories) > 0) return true; else return false;
+	function hascategories ($result, $options, $O) {
+		if (empty($O->categories)) $O->load_data(array('categories'));
+		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function hasimages ($result, $options, $obj) {
-		if (empty($obj->images)) $obj->load_data(array('images'));
-		return (!empty($obj->images));
+	function hasimages ($result, $options, $O) {
+		if (empty($O->images)) $O->load_data(array('images'));
+		return (!empty($O->images));
 	}
 
-	function hassavings ($result, $options, $obj) { return ($obj->onsale && $obj->min['saved'] > 0); }
+	function hassavings ($result, $options, $O) { return ($O->onsale && $O->min['saved'] > 0); }
 
-	function hasspecs ($result, $options, $obj) {
-		if (empty($obj->specs)) $obj->load_data(array('specs'));
-		if (count($obj->specs) > 0) {
-			$obj->merge_specs();
+	function hasspecs ($result, $options, $O) {
+		if (empty($O->specs)) $O->load_data(array('specs'));
+		if (count($O->specs) > 0) {
+			$O->merge_specs();
 			return true;
 		} else return false;
 	}
 
-	function hastags ($result, $options, $obj) {
-		if (empty($obj->tags)) $obj->load_data(array('tags'));
-		if (count($obj->tags) > 0) return true; else return false;
+	function hastags ($result, $options, $O) {
+		if (empty($O->tags)) $O->load_data(array('tags'));
+		if (count($O->tags) > 0) return true; else return false;
 	}
 
-	function hasvariations ($result, $options, $obj) { return ($obj->variations == "on" && (!empty($obj->options['v']) || !empty($obj->options))); }
+	function hasvariations ($result, $options, $O) { return ($O->variations == "on" && (!empty($O->options['v']) || !empty($O->options))); }
 
-	function id ($result, $options, $obj) { return $obj->id; }
+	function id ($result, $options, $O) { return $O->id; }
 
-	function image ($result, $options, $obj) {
+	function image ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->images)) $obj->load_data(array('images'));
-		if (!(count($obj->images) > 0)) return "";
+		if (empty($O->images)) $O->load_data(array('images'));
+		if (!(count($O->images) > 0)) return "";
 
 		// Compatibility defaults
 		$_size = 96;
@@ -466,20 +466,20 @@ class ShoppProductAPI {
 
 		// Select image by database id
 		if ($id !== false) {
-			for ($i = 0; $i < count($obj->images); $i++) {
+			for ($i = 0; $i < count($O->images); $i++) {
 				if ($img->id == $id) {
-					$img = $obj->images[$i]; //break;
+					$img = $O->images[$i]; //break;
 				}
 			}
 			if (!$img) return "";
 		}
 
 		// Select image by index position in the list
-		if ($index !== false && isset($obj->images[$index]))
-			$img = $obj->images[$index];
+		if ($index !== false && isset($O->images[$index]))
+			$img = $O->images[$index];
 
 		// Use the current image pointer by default
-		if (!$img) $img = current($obj->images);
+		if (!$img) $img = current($O->images);
 
 		if ($size !== false) $width = $height = $size;
 		if (!$width) $width = $_width;
@@ -523,36 +523,36 @@ class ShoppProductAPI {
 		$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
 
 		if (value_is_true($zoom))
-			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$obj->id.'">'.$imgtag.'</a>';
+			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$O->id.'">'.$imgtag.'</a>';
 
 		return $imgtag;
 	}
 
-	function images ($result, $options, $obj) {
-		if (!$obj->images) return false;
-		if (!isset($obj->_images_loop)) {
-			reset($obj->images);
-			$obj->_images_loop = true;
-		} else next($obj->images);
+	function images ($result, $options, $O) {
+		if (!$O->images) return false;
+		if (!isset($O->_images_loop)) {
+			reset($O->images);
+			$O->_images_loop = true;
+		} else next($O->images);
 
-		if (current($obj->images) !== false) return true;
+		if (current($O->images) !== false) return true;
 		else {
-			unset($obj->_images_loop);
+			unset($O->_images_loop);
 			return false;
 		}
 	}
 
-	function incategory ($result, $options, $obj) {
-		if (empty($obj->categories)) $obj->load_data(array('categories'));
+	function incategory ($result, $options, $O) {
+		if (empty($O->categories)) $O->load_data(array('categories'));
 		if (isset($options['id'])) $field = "id";
 		if (isset($options['name'])) $field = "name";
 		if (isset($options['slug'])) $field = "slug";
-		foreach ($obj->categories as $category)
+		foreach ($O->categories as $category)
 			if ($category->{$field} == $options[$field]) return true;
 		return false;
 	}
 
-	function input ($result, $options, $obj) {
+	function input ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
@@ -560,7 +560,7 @@ class ShoppProductAPI {
 			($options['type'] != "menu" && $options['type'] != "textarea" && !valid_input($options['type']))) $options['type'] = "text";
 		if (!isset($options['name'])) return "";
 		if ($options['type'] == "menu") {
-			$result = '<select name="products['.$obj->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$obj->id.'"'.inputattrs($options,$select_attrs).'>';
+			$result = '<select name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.inputattrs($options,$select_attrs).'>';
 			if (isset($options['options']))
 				$menuoptions = preg_split('/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/',$options['options']);
 			if (is_array($menuoptions)) {
@@ -576,35 +576,35 @@ class ShoppProductAPI {
 		} elseif ($options['type'] == "textarea") {
 			if (isset($options['cols'])) $cols = ' cols="'.$options['cols'].'"';
 			if (isset($options['rows'])) $rows = ' rows="'.$options['rows'].'"';
-			$result .= '<textarea name="products['.$obj->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$obj->id.'"'.$cols.$rows.inputattrs($options).'>'.$options['value'].'</textarea>';
+			$result .= '<textarea name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.$cols.$rows.inputattrs($options).'>'.$options['value'].'</textarea>';
 		} else {
-			$result = '<input type="'.$options['type'].'" name="products['.$obj->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$obj->id.'"'.inputattrs($options).' />';
+			$result = '<input type="'.$options['type'].'" name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.inputattrs($options).' />';
 		}
 
 		return $result;
 	}
 
-	function isfeatured ($result, $options, $obj) { return ($obj->featured == "on"); }
+	function isfeatured ($result, $options, $O) { return ($O->featured == "on"); }
 
-	function name ($result, $options, $obj) { return apply_filters('shopp_product_name',$obj->name); }
+	function name ($result, $options, $O) { return apply_filters('shopp_product_name',$O->name); }
 
-	function onsale ($result, $options, $obj) {
-		if (empty($obj->prices)) $obj->load_data(array('prices'));
-		if (empty($obj->prices)) return false;
-		return $obj->onsale;
+	function onsale ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
+		if (empty($O->prices)) return false;
+		return $O->onsale;
 	}
 
-	function outofstock ($result, $options, $obj) {
+	function outofstock ($result, $options, $O) {
 		global $Shopp;
-		if ($obj->outofstock) {
+		if ($O->outofstock) {
 			$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
 			$string = '<span class="outofstock">'.$label.'</span>';
 			return $string;
 		} else return false;
 	}
 
-	function price ($result, $options, $obj) {
-		if (empty($obj->prices)) $obj->load_data(array('prices'));
+	function price ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'taxes' => null,
 			'starting' => ''
@@ -614,18 +614,18 @@ class ShoppProductAPI {
 
 		if (!is_null($taxes)) $taxes = value_is_true($taxes);
 
-		$min = $obj->min[$property];
-		$mintax = $obj->min[$property.'_tax'];
+		$min = $O->min[$property];
+		$mintax = $O->min[$property.'_tax'];
 
-		$max = $obj->max[$property];
-		$maxtax = $obj->max[$property.'_tax'];
+		$max = $O->max[$property];
+		$maxtax = $O->max[$property.'_tax'];
 
-		$taxrate = shopp_taxrate($taxes,$obj->prices[0]->tax,$this);
+		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$this);
 
-		if ('saleprice' == $property) $pricetag = $obj->prices[0]->promoprice;
-		else $pricetag = $obj->prices[0]->price;
+		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
+		else $pricetag = $O->prices[0]->price;
 
-		if (count($obj->options) > 0) {
+		if (count($O->options) > 0) {
 			$taxrate = shopp_taxrate($taxes,true,$this);
 			$mintax = $mintax?$min*$taxrate:0;
 			$maxtax = $maxtax?$max*$taxrate:0;
@@ -638,8 +638,8 @@ class ShoppProductAPI {
 		} else return money($pricetag+($pricetag*$taxrate));
 	}
 
-	function quantity ($result, $options, $obj) {
-		if ($obj->outofstock) return false;
+	function quantity ($result, $options, $O) {
+		if ($O->outofstock) return false;
 
 		$inputs = array('text','menu');
 		$defaults = array(
@@ -655,15 +655,15 @@ class ShoppProductAPI {
 		extract($options);
 
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
-		$labeling = '<label for="quantity-'.$obj->id.'">'.$label.'</label>';
+		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
-		if (!isset($obj->_prices_loop)) reset($obj->prices);
-		$variation = current($obj->prices);
+		if (!isset($O->_prices_loop)) reset($O->prices);
+		$variation = current($O->prices);
 		$_ = array();
 
 		if ("before" == $labelpos) $_[] = $labeling;
 		if ("menu" == $input) {
-			if ($obj->inventory && $obj->max['stock'] == 0) return "";
+			if ($O->inventory && $O->max['stock'] == 0) return "";
 
 			if (strpos($options,",") !== false) $options = explode(",",$options);
 			else $options = array($options);
@@ -676,16 +676,16 @@ class ShoppProductAPI {
 					else for ($i = $v[0]; $i < $v[1]+1; $i++) $qtys[] = $i;
 				} else $qtys[] = $v;
 			}
-			$_[] = '<select name="products['.$obj->id.'][quantity]" id="quantity-'.$obj->id.'">';
+			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'">';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
-				$selection = (isset($obj->quantity))?$obj->quantity:1;
+				$selection = (isset($O->quantity))?$O->quantity:1;
 				if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
 					if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 					$amount = money($amount);
 					$selection = $variation->price;
 				} else {
-					if ($obj->inventory && $amount > $obj->max['stock']) continue;
+					if ($O->inventory && $amount > $O->max['stock']) continue;
 				}
 				$selected = ($qty==$selection)?' selected="selected"':'';
 				$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
@@ -696,17 +696,17 @@ class ShoppProductAPI {
 				if ($variation->donation['min']) $_options['value'] = $variation->price;
 				$_options['class'] .= " currency";
 			}
-			$_[] = '<input type="'.$input.'" name="products['.$obj->id.'][quantity]" id="quantity-'.$obj->id.'"'.inputattrs($_options).' />';
+			$_[] = '<input type="'.$input.'" name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'"'.inputattrs($_options).' />';
 		}
 
 		if ("after" == $labelpos) $_[] = $labeling;
 		return join("\n",$_);
 	}
 
-	function relevance ($result, $options, $obj) { return (string)$obj->score; }
+	function relevance ($result, $options, $O) { return (string)$O->score; }
 
-	function savings ($result, $options, $obj) {
-		if (empty($obj->prices)) $obj->load_data(array('prices'));
+	function savings ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
 		$taxrate = shopp_taxrate($options['taxes']);
@@ -714,42 +714,42 @@ class ShoppProductAPI {
 
 		if (!isset($options['show'])) $options['show'] = '';
 		if ($options['show'] == "%" || $options['show'] == "percent") {
-			if ($obj->options > 1) {
-				if (round($obj->min['savings']) != round($obj->max['savings'])) {
-					$range = array($obj->min['savings'],$obj->max['savings']);
+			if ($O->options > 1) {
+				if (round($O->min['savings']) != round($O->max['savings'])) {
+					$range = array($O->min['savings'],$O->max['savings']);
 					sort($range);
 				}
-				if (!$range) return percentage($obj->min['savings'],array('precision' => 0)); // No price range
+				if (!$range) return percentage($O->min['savings'],array('precision' => 0)); // No price range
 				else return percentage($range[0],array('precision' => 0))." &mdash; ".percentage($range[1],array('precision' => 0));
-			} else return percentage($obj->max['savings'],array('precision' => 0));
+			} else return percentage($O->max['savings'],array('precision' => 0));
 		} else {
-			if ($obj->options > 1) {
-				if (round($obj->min['saved']) != round($obj->max['saved'])) {
-					$range = array($obj->min['saved'],$obj->max['saved']);
+			if ($O->options > 1) {
+				if (round($O->min['saved']) != round($O->max['saved'])) {
+					$range = array($O->min['saved'],$O->max['saved']);
 					sort($range);
 				}
-				if (!$range) return money($obj->min['saved']+($obj->min['saved']*$taxrate)); // No price range
+				if (!$range) return money($O->min['saved']+($O->min['saved']*$taxrate)); // No price range
 				else return money($range[0]+($range[0]*$taxrate))." &mdash; ".money($range[1]+($range[1]*$taxrate));
-			} else return money($obj->max['saved']+($obj->max['saved']*$taxrate));
+			} else return money($O->max['saved']+($O->max['saved']*$taxrate));
 		}
 	}
 
-	function slug ($result, $options, $obj) { return $obj->slug; }
+	function slug ($result, $options, $O) { return $O->slug; }
 
-	function spec ($result, $options, $obj) {
+	function spec ($result, $options, $O) {
 		$string = "";
 		$separator = ": ";
 		$delimiter = ", ";
 		if (isset($options['separator'])) $separator = $options['separator'];
 		if (isset($options['delimiter'])) $separator = $options['delimiter'];
 
-		$spec = current($obj->specs);
+		$spec = current($O->specs);
 		if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
 
 		if (isset($options['name'])
 			&& !empty($options['name'])
-			&& isset($obj->specskey[$options['name']])) {
-				$spec = $obj->specskey[$options['name']];
+			&& isset($O->specskey[$options['name']])) {
+				$spec = $O->specskey[$options['name']];
 				if (is_array($spec)) {
 					if (isset($options['index'])) {
 						foreach ($spec as $index => $entry)
@@ -772,58 +772,58 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function specs ($result, $options, $obj) {
-		if (!isset($obj->_specs_loop)) {
-			reset($obj->specs);
-			$obj->_specs_loop = true;
-		} else next($obj->specs);
+	function specs ($result, $options, $O) {
+		if (!isset($O->_specs_loop)) {
+			reset($O->specs);
+			$O->_specs_loop = true;
+		} else next($O->specs);
 
-		if (current($obj->specs) !== false) return true;
+		if (current($O->specs) !== false) return true;
 		else {
-			unset($obj->_specs_loop);
+			unset($O->_specs_loop);
 			return false;
 		}
 	}
 
-	function summary ($result, $options, $obj) { return apply_filters('shopp_product_summary',$obj->summary); }
+	function summary ($result, $options, $O) { return apply_filters('shopp_product_summary',$O->summary); }
 
-	function tag ($result, $options, $obj) {
-		$tag = current($obj->tags);
+	function tag ($result, $options, $O) {
+		$tag = current($O->tags);
 		if (isset($options['show'])) {
 			if ($options['show'] == "id") return $tag->id;
 		}
 		return $tag->name;
 	}
 
-	function tagged ($result, $options, $obj) {
-		if (empty($obj->tags)) $obj->load_data(array('tags'));
+	function tagged ($result, $options, $O) {
+		if (empty($O->tags)) $O->load_data(array('tags'));
 		if (isset($options['id'])) $field = "id";
 		if (isset($options['name'])) $field = "name";
-		foreach ($obj->tags as $tag)
+		foreach ($O->tags as $tag)
 			if ($tag->{$field} == $options[$field]) return true;
 		return false;
 	}
 
-	function tags ($result, $options, $obj) {
-		if (!isset($obj->_tags_loop)) {
-			reset($obj->tags);
-			$obj->_tags_loop = true;
-		} else next($obj->tags);
+	function tags ($result, $options, $O) {
+		if (!isset($O->_tags_loop)) {
+			reset($O->tags);
+			$O->_tags_loop = true;
+		} else next($O->tags);
 
-		if (current($obj->tags) !== false) return true;
+		if (current($O->tags) !== false) return true;
 		else {
-			unset($obj->_tags_loop);
+			unset($O->_tags_loop);
 			return false;
 		}
 	}
 
-	function taxrate ($result, $options, $obj) { return shopp_taxrate(null,true,$this); }
+	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$this); }
 
-	function url ($result, $options, $obj) { return shoppurl(SHOPP_PRETTYURLS?$obj->slug:array('s_pid'=>$obj->id)); }
+	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?$O->slug:array('s_pid'=>$O->id)); }
 
-	function variation ($result, $options, $obj) {
+	function variation ($result, $options, $O) {
 		global $Shopp;
-		$variation = current($obj->prices);
+		$variation = current($O->prices);
 
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 		else $options['taxes'] = value_is_true($options['taxes']);
@@ -852,29 +852,29 @@ class ShoppProductAPI {
 		return $string;
 	}
 
-	function variations ($result, $options, $obj) {
+	function variations ($result, $options, $O) {
 		global $Shopp;
 		$string = "";
 
 		if (!isset($options['mode'])) {
-			if (!isset($obj->_prices_loop)) {
-				reset($obj->prices);
-				$obj->_prices_loop = true;
-			} else next($obj->prices);
-			$price = current($obj->prices);
+			if (!isset($O->_prices_loop)) {
+				reset($O->prices);
+				$O->_prices_loop = true;
+			} else next($O->prices);
+			$price = current($O->prices);
 
 			if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
-				next($obj->prices);
+				next($O->prices);
 
-			if (current($obj->prices) !== false) return true;
+			if (current($O->prices) !== false) return true;
 			else {
-				unset($obj->_prices_loop);
+				unset($O->_prices_loop);
 				return false;
 			}
 			return true;
 		}
 
-		if ($obj->outofstock) return false; // Completely out of stock, hide menus
+		if ($O->outofstock) return false; // Completely out of stock, hide menus
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
 		$defaults = array(
@@ -890,12 +890,12 @@ class ShoppProductAPI {
 
 		if ($options['mode'] == "single") {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$obj->id.'">'. __('Options').': </label> '."\n";
+			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options').': </label> '."\n";
 
-			$string .= '<select name="products['.$obj->id.'][price]" id="product-options'.$obj->id.'">';
+			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-			foreach ($obj->prices as $pricetag) {
+			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "variation") continue;
 
 				if (!isset($options['taxes']))
@@ -912,10 +912,10 @@ class ShoppProductAPI {
 			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 		} else {
-			if (!isset($obj->options)) return;
+			if (!isset($O->options)) return;
 
-			$menuoptions = $obj->options;
-			if (!empty($obj->options['v'])) $menuoptions = $obj->options['v'];
+			$menuoptions = $O->options;
+			if (!empty($O->options['v'])) $menuoptions = $O->options['v'];
 
 			$baseop = $Shopp->Settings->get('base_operations');
 			$precision = $baseop['currency']['format']['precision'];
@@ -925,7 +925,7 @@ class ShoppProductAPI {
 			else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$this);
 
 			$pricekeys = array();
-			foreach ($obj->pricekey as $key => $pricing) {
+			foreach ($O->pricekey as $key => $pricing) {
 				$filter = array('');
 				$_ = new StdClass();
 				if ($pricing->type != "Donation")
@@ -947,8 +947,8 @@ sjss.opdef = true;
 <?php if (!empty($options['required'])): ?>
 sjss.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
-pricetags[<?php echo $obj->id; ?>] = <?php echo json_encode($pricekeys); ?>;
-new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $obj->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $obj->id; ?>]});
+pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
+new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
 <?php
 			$script = ob_get_contents();
 			ob_end_clean();
@@ -959,7 +959,7 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 				$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-				$string .= '<select name="products['.$obj->id.'][options][]" class="'.$category_class.' product'.$obj->id.' options" id="options-'.$menu['id'].'">';
+				$string .= '<select name="products['.$O->id.'][options][]" class="'.$category_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
 				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 				foreach ($menu['options'] as $key => $option)
 					$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
@@ -972,20 +972,20 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 		return $string;
 	}
 
-	function weight ($result, $options, $obj) {
+	function weight ($result, $options, $O) {
 		global $Shopp;
-		if(empty($obj->prices)) $obj->load_data(array('prices'));
+		if(empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'unit' => $Shopp->Settings->get('weight_unit'),
-			'min' => $obj->min['weight'],
-			'max' => $obj->max['weight'],
+			'min' => $O->min['weight'],
+			'max' => $O->max['weight'],
 			'units' => true,
 			'convert' => false
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if(!isset($obj->min['weight'])) return false;
+		if(!isset($O->min['weight'])) return false;
 
 		if ($convert !== false) {
 			$min = convert_unit($min,$convert);

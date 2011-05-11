@@ -76,75 +76,75 @@ add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xcobuttons'
  * @since 1.2
  **/
 class ShoppCheckoutAPI {
-	function accountlogin ($result, $options, $obj) {
+	function accountlogin ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['account-login']))
 			$options['value'] = $_POST['account-login'];
 		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 	}
 
-	function billingaddress ($result, $options, $obj) {
+	function billingaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->address;
-		if (!empty($obj->Billing->address))
-			$options['value'] = $obj->Billing->address;
+		if ($options['mode'] == "value") return $O->Billing->address;
+		if (!empty($O->Billing->address))
+			$options['value'] = $O->Billing->address;
 		return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 	}
 
-	function billingcard ($result, $options, $obj) {
+	function billingcard ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value")
-			return str_repeat('X',strlen($obj->Billing->card)-4)
-				.substr($obj->Billing->card,-4);
+			return str_repeat('X',strlen($O->Billing->card)-4)
+				.substr($O->Billing->card,-4);
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
-		if (!empty($obj->Billing->card))
-			$options['value'] = $obj->Billing->card;
+		if (!empty($O->Billing->card))
+			$options['value'] = $O->Billing->card;
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 	}
 
-	function billingcardexpiresmm ($result, $options, $obj) {
+	function billingcardexpiresmm ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return date("m",$obj->Billing->cardexpires);
+		if ($options['mode'] == "value") return date("m",$O->Billing->cardexpires);
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if (!empty($obj->Billing->cardexpires))
-			$options['value'] = date("m",$obj->Billing->cardexpires);
+		if (!empty($O->Billing->cardexpires))
+			$options['value'] = date("m",$O->Billing->cardexpires);
 		return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />';
 	}
 
-	function billingcardexpiresyy ($result, $options, $obj) {
+	function billingcardexpiresyy ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return date("y",$obj->Billing->cardexpires);
+		if ($options['mode'] == "value") return date("y",$O->Billing->cardexpires);
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if (!empty($obj->Billing->cardexpires))
-			$options['value'] = date("y",$obj->Billing->cardexpires);
+		if (!empty($O->Billing->cardexpires))
+			$options['value'] = date("y",$O->Billing->cardexpires);
 		return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />';
 	}
 
-	function billingcardholder ($result, $options, $obj) {
+	function billingcardholder ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->cardholder;
+		if ($options['mode'] == "value") return $O->Billing->cardholder;
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if (!empty($obj->Billing->cardholder))
-			$options['value'] = $obj->Billing->cardholder;
+		if (!empty($O->Billing->cardholder))
+			$options['value'] = $O->Billing->cardholder;
 		return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
 	}
 
-	function billingcardtype ($result, $options, $obj) {
+	function billingcardtype ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->cardtype;
+		if ($options['mode'] == "value") return $O->Billing->cardtype;
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($obj->Billing->cardtype))
-			$options['selected'] = $obj->Billing->cardtype;
+		if (!empty($O->Billing->cardtype))
+			$options['selected'] = $O->Billing->cardtype;
 
 		$cards = array();
-		foreach ($obj->paycards as $paycard)
+		foreach ($O->paycards as $paycard)
 			$cards[$paycard->symbol] = $paycard->name;
 
 		$label = (!empty($options['label']))?$options['label']:'';
@@ -155,7 +155,7 @@ class ShoppCheckoutAPI {
 
 		$js = array();
 		$js[] = "var paycards = {};";
-		foreach ($obj->paycards as $handle => $paycard) {
+		foreach ($O->paycards as $handle => $paycard) {
 			$js[] = "paycards['".$handle."'] = ".json_encode($paycard).";";
 		}
 		add_storefrontjs(join("",$js), true);
@@ -163,24 +163,24 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingcity ($result, $options, $obj) {
+	function billingcity ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->city;
-		if (!empty($obj->Billing->city))
-			$options['value'] = $obj->Billing->city;
+		if ($options['mode'] == "value") return $O->Billing->city;
+		if (!empty($O->Billing->city))
+			$options['value'] = $O->Billing->city;
 		return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 	}
 
-	function billingcountry ($result, $options, $obj) {
+	function billingcountry ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->country;
-		if (!empty($obj->Billing->country))
-			$options['selected'] = $obj->Billing->country;
+		if ($options['mode'] == "value") return $O->Billing->country;
+		if (!empty($O->Billing->country))
+			$options['selected'] = $O->Billing->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 		$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
 	 	$output .= menuoptions($countries,$options['selected'],true);
@@ -188,7 +188,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingcvv ($result, $options, $obj) {
+	function billingcvv ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['billing']['cvv']))
 			$options['value'] = $_POST['billing']['cvv'];
@@ -196,16 +196,16 @@ class ShoppCheckoutAPI {
 		return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 	}
 
-	function billinglocale ($result, $options, $obj) {
+	function billinglocale ($result, $options, $O) {
 		global $Shopp;
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->locale;
+		if ($options['mode'] == "value") return $O->Billing->locale;
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($obj->Billing->locale)) {
-			$options['selected'] = $obj->Billing->locale;
-			$options['value'] = $obj->Billing->locale;
+		if (!empty($O->Billing->locale)) {
+			$options['selected'] = $O->Billing->locale;
+			$options['value'] = $O->Billing->locale;
 		}
 		if (empty($options['type'])) $options['type'] = "menu";
 		$output = false;
@@ -221,7 +221,7 @@ class ShoppCheckoutAPI {
 		$rate = $Taxes->rate(false,true);
 
 	    if(!isset($rate['locals']))
-	        foreach ($obj->Cart->contents as $Item)
+	        foreach ($O->Cart->contents as $Item)
 	            if ( ( $rate = $Taxes->rate($Item,true) )
 	                && isset($rate['locals']) )
 	                break;
@@ -235,39 +235,39 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billinglocalities ($result, $options, $obj) {
+	function billinglocalities ($result, $options, $O) {
 		global $Shopp;
 		$rates = $Shopp->Settings->get("taxrates");
 		foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 		return false;
 	}
 
-	function billingpostcode ($result, $options, $obj) {
+	function billingpostcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->postcode;
-		if (!empty($obj->Billing->postcode))
-			$options['value'] = $obj->Billing->postcode;
+		if ($options['mode'] == "value") return $O->Billing->postcode;
+		if (!empty($O->Billing->postcode))
+			$options['value'] = $O->Billing->postcode;
 		return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 	}
 
-	function billingstate ($result, $options, $obj) {
+	function billingstate ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->state;
+		if ($options['mode'] == "value") return $O->Billing->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($obj->Billing->state)) {
-			$options['selected'] = $obj->Billing->state;
-			$options['value'] = $obj->Billing->state;
+		if (!empty($O->Billing->state)) {
+			$options['selected'] = $O->Billing->state;
+			$options['value'] = $O->Billing->state;
 		}
 
 		$output = false;
 		$country = $base['country'];
-		if (!empty($obj->Billing->country))
-			$country = $obj->Billing->country;
+		if (!empty($O->Billing->country))
+			$country = $O->Billing->country;
 		if (!array_key_exists($country,$countries)) $country = key($countries);
 
 		$regions = Lookup::country_zones();
@@ -294,11 +294,11 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function billingxaddress ($result, $options, $obj) {
+	function billingxaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Billing->xaddress;
-		if (!empty($obj->Billing->xaddress))
-			$options['value'] = $obj->Billing->xaddress;
+		if ($options['mode'] == "value") return $O->Billing->xaddress;
+		if (!empty($O->Billing->xaddress))
+			$options['value'] = $O->Billing->xaddress;
 		return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 	}
 
@@ -306,16 +306,16 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function billingxco ($result, $options, $obj) { return; }
+	function billingxco ($result, $options, $O) { return; }
 
-	function billingxcsc ($result, $options, $obj) {
+	function billingxcsc ($result, $options, $O) {
 		if (empty($options['input'])) return;
 		$input = $options['input'];
 
 		$cards = array();
 		$valid = array();
 		// Collect valid card inputs for all gateways
-		foreach ($obj->payoptions as $payoption) {
+		foreach ($O->payoptions as $payoption) {
 			foreach ($payoption->cards as $card) {
 				$PayCard = Lookup::paycard($card);
 				if (empty($PayCard->inputs)) continue;
@@ -336,7 +336,7 @@ class ShoppCheckoutAPI {
 		return $string;
 	}
 
-	function billingxcscrequired ($result, $options, $obj) {
+	function billingxcscrequired ($result, $options, $O) {
 		global $Shopp;
 		$Gateways = $Shopp->Gateways->active;
 		foreach ($Gateways as $Gateway) {
@@ -348,15 +348,15 @@ class ShoppCheckoutAPI {
 		return false;
 	}
 
-	function cardrequired ($result, $options, $obj) {
+	function cardrequired ($result, $options, $O) {
 		global $Shopp;
-		if ($obj->Cart->Totals->total == 0) return false;
+		if ($O->Cart->Totals->total == 0) return false;
 		foreach ($Shopp->Gateways->active as $gateway)
 			if (!empty($gateway->cards)) return true;
 		return false;
 	}
 
-	function cartsummary ($result, $options, $obj) {
+	function cartsummary ($result, $options, $O) {
 		ob_start();
 		include(SHOPP_TEMPLATES."/summary.php");
 		$content = ob_get_contents();
@@ -371,47 +371,47 @@ class ShoppCheckoutAPI {
 		return $content;
 	}
 
-	function company ($result, $options, $obj) {
+	function company ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->company;
-		if (!empty($obj->Customer->company))
-			$options['value'] = $obj->Customer->company;
+		if ($options['mode'] == "value") return $O->Customer->company;
+		if (!empty($O->Customer->company))
+			$options['value'] = $O->Customer->company;
 		return '<input type="text" name="company" id="company" '.inputattrs($options).' />';
 	}
 
-	function completed ($result, $options, $obj) {
+	function completed ($result, $options, $O) {
 		global $Shopp;
-		if (empty($Shopp->Purchase->id) && $obj->purchase !== false) {
-			$Shopp->Purchase = new Purchase($obj->purchase);
+		if (empty($Shopp->Purchase->id) && $O->purchase !== false) {
+			$Shopp->Purchase = new Purchase($O->purchase);
 			$Shopp->Purchase->load_purchased();
 			return (!empty($Shopp->Purchase->id));
 		}
 		return false;
 	}
 
-	function confirmbutton ($result, $options, $obj) {
+	function confirmbutton ($result, $options, $O) {
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
 		if (empty($options['errorlabel'])) $options['errorlabel'] = __('Return to Checkout','Shopp');
 		if (empty($options['value'])) $options['value'] = __('Confirm Order','Shopp');
 
 		$button = '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />';
-		$return = '<a href="'.shoppurl(false,'checkout',$obj->security()).'"'.inputattrs($options,array('class')).'>'.
+		$return = '<a href="'.shoppurl(false,'checkout',$O->security()).'"'.inputattrs($options,array('class')).'>'.
 						$options['errorlabel'].'</a>';
 
-		if (!$obj->validated) $markup = $return;
+		if (!$O->validated) $markup = $return;
 		else $markup = $button;
 		return apply_filters('shopp_checkout_confirm_button',$markup,$options,$submit_attrs);
 	}
 
-	function confirmpassword ($result, $options, $obj) {
+	function confirmpassword ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if (!empty($obj->Customer->_confirm_password))
-			$options['value'] = $obj->Customer->_confirm_password;
+		if (!empty($O->Customer->_confirm_password))
+			$options['value'] = $O->Customer->_confirm_password;
 		return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 	}
 
-	function customerinfo ($result, $options, $obj) {
+	function customerinfo ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$defaults = array(
 			'name' => false, // REQUIRED
@@ -437,19 +437,19 @@ class ShoppCheckoutAPI {
 		$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
 
 		if (!$name) { // Iterator for order data
-			if (!isset($obj->_customer_info_loop)) {
-				reset($obj->Customer->info->named);
-				$obj->_customer_info_loop = true;
-			} else next($obj->Customer->info->named);
+			if (!isset($O->_customer_info_loop)) {
+				reset($O->Customer->info->named);
+				$O->_customer_info_loop = true;
+			} else next($O->Customer->info->named);
 
-			if (current($obj->Customer->info->named) !== false) return true;
+			if (current($O->Customer->info->named) !== false) return true;
 			else {
-				unset($obj->_customer_info_loop);
+				unset($O->_customer_info_loop);
 				return false;
 			}
 		}
 
-		if (isset($obj->Customer->info->named[$name])) $info = $obj->Customer->info->named[$name];
+		if (isset($O->Customer->info->named[$name])) $info = $O->Customer->info->named[$name];
 		if ($name && $mode == "value") return $info;
 
 		if (!in_array($type,$allowed_types)) $type = 'hidden';
@@ -472,23 +472,23 @@ class ShoppCheckoutAPI {
 		}
 	}
 
-	function data ($result, $options, $obj) {
-		if (!is_array($obj->data)) return false;
-		$data = current($obj->data);
-		$name = key($obj->data);
+	function data ($result, $options, $O) {
+		if (!is_array($O->data)) return false;
+		$data = current($O->data);
+		$name = key($O->data);
 		if (isset($options['name'])) return $name;
 		return $data;
 	}
 
-	function email ($result, $options, $obj) {
+	function email ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->email;
-		if (!empty($obj->Customer->email))
-			$options['value'] = $obj->Customer->email;
+		if ($options['mode'] == "value") return $O->Customer->email;
+		if (!empty($O->Customer->email))
+			$options['value'] = $O->Customer->email;
 		return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
 	}
 
-	function error ($result, $options, $obj) {
+	function error ($result, $options, $O) {
 		$Errors = &ShoppErrors();
 		if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
 		$errors = $Errors->get(SHOPP_COMM_ERR);
@@ -505,15 +505,15 @@ class ShoppCheckoutAPI {
 		return $result;
 	}
 
-	function firstname ($result, $options, $obj) {
+	function firstname ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->firstname;
-		if (!empty($obj->Customer->firstname))
-			$options['value'] = $obj->Customer->firstname;
+		if ($options['mode'] == "value") return $O->Customer->firstname;
+		if (!empty($O->Customer->firstname))
+			$options['value'] = $O->Customer->firstname;
 		return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 	}
 
-	function checkoutfunction ($result, $options, $obj) {
+	function checkoutfunction ($result, $options, $O) {
 		global $Shopp;
 		if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 		$regions = Lookup::country_zones();
@@ -521,10 +521,10 @@ class ShoppCheckoutAPI {
 
 		$js = "var regions = ".json_encode($regions).",".
 							"SHIPCALC_STATUS = '".$options['shipcalc']."',".
-							"d_pm = '".sanitize_title_with_dashes($obj->paymethod)."',".
+							"d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
 							"pm_cards = {};";
 
-		foreach ($obj->payoptions as $handle => $option) {
+		foreach ($O->payoptions as $handle => $option) {
 			if (empty($option->cards)) continue;
 			$js .= "pm_cards['".$handle."'] = ".json_encode($option->cards).";";
 		}
@@ -538,15 +538,15 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function gatewayinputs ($result, $options, $obj) { return apply_filters('shopp_checkout_gateway_inputs',false); }
+	function gatewayinputs ($result, $options, $O) { return apply_filters('shopp_checkout_gateway_inputs',false); }
 
-	function hasdata ($result, $options, $obj) { return (is_array($obj->data) && count($obj->data) > 0); }
+	function hasdata ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
-	function lastname ($result, $options, $obj) {
+	function lastname ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->lastname;
-		if (!empty($obj->Customer->lastname))
-			$options['value'] = $obj->Customer->lastname;
+		if ($options['mode'] == "value") return $O->Customer->lastname;
+		if (!empty($O->Customer->lastname))
+			$options['value'] = $O->Customer->lastname;
 		return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
 	}
 
@@ -554,24 +554,24 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function localpayment ($result, $options, $obj) { return true; }
+	function localpayment ($result, $options, $O) { return true; }
 
-	function loggedin ($result, $options, $obj) { return $obj->Customer->login; }
+	function loggedin ($result, $options, $O) { return $O->Customer->login; }
 
-	function loginname ($result, $options, $obj) {
+	function loginname ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if ($options['mode'] == "value") return $obj->Customer->loginname;
-		if (!empty($obj->Customer->loginname))
-			$options['value'] = $obj->Customer->loginname;
+		if ($options['mode'] == "value") return $O->Customer->loginname;
+		if (!empty($O->Customer->loginname))
+			$options['value'] = $O->Customer->loginname;
 		return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
 	}
 
-	function marketing ($result, $options, $obj) {
+	function marketing ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->marketing;
-		if (!empty($obj->Customer->marketing))
-			$options['value'] = $obj->Customer->marketing;
+		if ($options['mode'] == "value") return $O->Customer->marketing;
+		if (!empty($O->Customer->marketing))
+			$options['value'] = $O->Customer->marketing;
 		$attrs = array("accesskey","alt","checked","class","disabled","format",
 			"minlength","maxlength","readonly","size","src","tabindex",
 			"title");
@@ -580,9 +580,9 @@ class ShoppCheckoutAPI {
 		return $input;
 	}
 
-	function notloggedin ($result, $options, $obj) { global $Shopp; return (!$obj->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
+	function notloggedin ($result, $options, $O) { global $Shopp; return (!$O->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
 
-	function orderdata ($result, $options, $obj) {
+	function orderdata ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$defaults = array(
 			'name' => false, // REQUIRED
@@ -608,19 +608,19 @@ class ShoppCheckoutAPI {
 		$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
 
 		if (!$name) { // Iterator for order data
-			if (!isset($obj->_data_loop)) {
-				reset($obj->data);
-				$obj->_data_loop = true;
-			} else next($obj->data);
+			if (!isset($O->_data_loop)) {
+				reset($O->data);
+				$O->_data_loop = true;
+			} else next($O->data);
 
-			if (current($obj->data) !== false) return true;
+			if (current($O->data) !== false) return true;
 			else {
-				unset($obj->_data_loop);
+				unset($O->_data_loop);
 				return false;
 			}
 		}
 
-		if (isset($obj->data[$name])) $data = $obj->data[$name];
+		if (isset($O->data[$name])) $data = $O->data[$name];
 		if ($name && $mode == "value") return $data;
 
 		if (!in_array($type,$allowed_types)) $type = 'hidden';
@@ -643,25 +643,25 @@ class ShoppCheckoutAPI {
 		}
 	}
 
-	function password ($result, $options, $obj) {
+	function password ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value")
-			return strlen($obj->Customer->password) == 34?str_pad('&bull;',8):$obj->Customer->password;
-		if (!empty($obj->Customer->password))
-			$options['value'] = $obj->Customer->password;
+			return strlen($O->Customer->password) == 34?str_pad('&bull;',8):$O->Customer->password;
+		if (!empty($O->Customer->password))
+			$options['value'] = $O->Customer->password;
 		return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 	}
 
-	function passwordlogin ($result, $options, $obj) {
+	function passwordlogin ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['password-login']))
 			$options['value'] = $_POST['password-login'];
 		return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
 	}
 
-	function payoption ($result, $options, $obj) {
-		$payoption = current($obj->payoptions);
+	function payoption ($result, $options, $O) {
+		$payoption = current($O->payoptions);
 		$defaults = array(
 			'labelpos' => 'after',
 			'labeling' => false,
@@ -675,7 +675,7 @@ class ShoppCheckoutAPI {
 		$types = array('radio','checkbox','hidden');
 		if (!in_array($type,$types)) $type = 'hidden';
 
-		if (empty($options['value'])) $options['value'] = key($obj->payoptions);
+		if (empty($options['value'])) $options['value'] = key($O->payoptions);
 
 		$_ = array();
 		if (value_is_true($labeling))
@@ -689,11 +689,11 @@ class ShoppCheckoutAPI {
 		return join("",$_);
 	}
 
-	function payoptions ($result, $options, $obj) {
+	function payoptions ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		if ($obj->Cart->orderisfree()) return false;
-		$payment_methods = apply_filters('shopp_payment_methods',count($obj->payoptions));
+		if ($O->Cart->orderisfree()) return false;
+		$payment_methods = apply_filters('shopp_payment_methods',count($O->payoptions));
 		if ($payment_methods <= 1) return false; // Skip if only one gateway is active
 		$defaults = array(
 			'default' => false,
@@ -706,34 +706,34 @@ class ShoppCheckoutAPI {
 		unset($options['type']);
 
 		if ("loop" == $mode) {
-			if (!isset($obj->_pay_loop)) {
-				reset($obj->payoptions);
-				$obj->_pay_loop = true;
-			} else next($obj->payoptions);
+			if (!isset($O->_pay_loop)) {
+				reset($O->payoptions);
+				$O->_pay_loop = true;
+			} else next($O->payoptions);
 
-			if (current($obj->payoptions) !== false) return true;
+			if (current($O->payoptions) !== false) return true;
 			else {
-				unset($obj->_pay_loop);
+				unset($O->_pay_loop);
 				return false;
 			}
 			return true;
 		}
 
 		$excludes = array_map('sanitize_title_with_dashes',explode(",",$exclude));
-		$payoptions = array_keys($obj->payoptions);
+		$payoptions = array_keys($O->payoptions);
 
 		$payoptions = array_diff($payoptions,$excludes);
 		$paymethod = current($payoptions);
 
-		if ($default !== false && !isset($obj->_paymethod_selected)) {
+		if ($default !== false && !isset($O->_paymethod_selected)) {
 			$default = sanitize_title_with_dashes($default);
 			if (in_array($default,$payoptions)) $paymethod = $default;
 		}
 
-		if ($obj->paymethod != $paymethod) {
-			$obj->paymethod = $paymethod;
-			$processor = $obj->payoptions[$obj->paymethod]->processor;
-			if (!empty($processor)) $obj->processor($processor);
+		if ($O->paymethod != $paymethod) {
+			$O->paymethod = $paymethod;
+			$processor = $O->payoptions[$O->paymethod]->processor;
+			if (!empty($processor)) $O->processor($processor);
 		}
 
 		$output = '';
@@ -742,24 +742,24 @@ class ShoppCheckoutAPI {
 				$output .= '<span><ul>';
 				foreach ($payoptions as $value) {
 					if (in_array($value,$excludes)) continue;
-					$payoption = $obj->payoptions[$value];
+					$payoption = $O->payoptions[$value];
 					$options['value'] = $value;
-					$options['checked'] = ($obj->paymethod == $value)?'checked':false;
+					$options['checked'] = ($O->paymethod == $value)?'checked':false;
 					if ($options['checked'] === false) unset($options['checked']);
 					$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$payoption->label.'</label></li>';
 				}
 				$output .= '</ul></span>';
 				break;
 			case "hidden":
-				if (!isset($options['value']) && $default) $options['value'] = $obj->paymethod;
+				if (!isset($options['value']) && $default) $options['value'] = $O->paymethod;
 				$output .= '<input type="hidden" name="paymethod"'.inputattrs($options).' />';
 				break;
 			default:
 				$output .= '<select name="paymethod" '.inputattrs($options,$select_attrs).'>';
 				foreach ($payoptions as $value) {
 					if (in_array($value,$excludes)) continue;
-					$payoption = $obj->payoptions[$value];
-					$selected = ($obj->paymethod == $value)?' selected="selected"':'';
+					$payoption = $O->payoptions[$value];
+					$selected = ($O->paymethod == $value)?' selected="selected"':'';
 					$output .= '<option value="'.$value.'"'.$selected.'>'.$payoption->label.'</option>';
 				}
 				$output .= '</select>';
@@ -769,17 +769,17 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function phone ($result, $options, $obj) {
+	function phone ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Customer->phone;
-		if (!empty($obj->Customer->phone))
-			$options['value'] = $obj->Customer->phone;
+		if ($options['mode'] == "value") return $O->Customer->phone;
+		if (!empty($O->Customer->phone))
+			$options['value'] = $O->Customer->phone;
 		return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />';
 	}
 
-	function receipt ($result, $options, $obj) { global $Shopp; if (!empty($Shopp->Purchase->id)) return $Shopp->Purchase->receipt(); }
+	function receipt ($result, $options, $O) { global $Shopp; if (!empty($Shopp->Purchase->id)) return $Shopp->Purchase->receipt(); }
 
-	function residentialshippingaddress ($result, $options, $obj) {
+	function residentialshippingaddress ($result, $options, $O) {
 		$label = __("Residential shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
@@ -787,7 +787,7 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function sameshippingaddress ($result, $options, $obj) {
+	function sameshippingaddress ($result, $options, $O) {
 		$label = __("Same shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		$checked = ' checked="checked"';
@@ -796,34 +796,34 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function shipping ($result, $options, $obj) { return (!empty($obj->shipped)); }
+	function shipping ($result, $options, $O) { return (!empty($O->shipped)); }
 
-	function shippingaddress ($result, $options, $obj) {
+	function shippingaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->address;
-		if (!empty($obj->Shipping->address))
-			$options['value'] = $obj->Shipping->address;
+		if ($options['mode'] == "value") return $O->Shipping->address;
+		if (!empty($O->Shipping->address))
+			$options['value'] = $O->Shipping->address;
 		return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 	}
 
-	function shippingcity ($result, $options, $obj) {
+	function shippingcity ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->city;
-		if (!empty($obj->Shipping->city))
-			$options['value'] = $obj->Shipping->city;
+		if ($options['mode'] == "value") return $O->Shipping->city;
+		if (!empty($O->Shipping->city))
+			$options['value'] = $O->Shipping->city;
 		return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 	}
 
-	function shippingcountry ($result, $options, $obj) {
+	function shippingcountry ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->country;
-		if (!empty($obj->Shipping->country))
-			$options['selected'] = $obj->Shipping->country;
+		if ($options['mode'] == "value") return $O->Shipping->country;
+		if (!empty($O->Shipping->country))
+			$options['selected'] = $O->Shipping->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 		$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
 	 	$output .= menuoptions($countries,$options['selected'],true);
@@ -831,32 +831,32 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function shippingpostcode ($result, $options, $obj) {
+	function shippingpostcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->postcode;
-		if (!empty($obj->Shipping->postcode))
-			$options['value'] = $obj->Shipping->postcode;
+		if ($options['mode'] == "value") return $O->Shipping->postcode;
+		if (!empty($O->Shipping->postcode))
+			$options['value'] = $O->Shipping->postcode;
 		return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />';
 	}
 
-	function shippingstate ($result, $options, $obj) {
+	function shippingstate ($result, $options, $O) {
 		global $Shopp;
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->state;
+		if ($options['mode'] == "value") return $O->Shipping->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($obj->Shipping->state)) {
-			$options['selected'] = $obj->Shipping->state;
-			$options['value'] = $obj->Shipping->state;
+		if (!empty($O->Shipping->state)) {
+			$options['selected'] = $O->Shipping->state;
+			$options['value'] = $O->Shipping->state;
 		}
 
 		$output = false;
 		$country = $base['country'];
-		if (!empty($obj->Shipping->country))
-			$country = $obj->Shipping->country;
+		if (!empty($O->Shipping->country))
+			$country = $O->Shipping->country;
 		if (!array_key_exists($country,$countries)) $country = key($countries);
 
 		$regions = Lookup::country_zones();
@@ -883,15 +883,15 @@ class ShoppCheckoutAPI {
 		return $output;
 	}
 
-	function shippingxaddress ($result, $options, $obj) {
+	function shippingxaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $obj->Shipping->xaddress;
-		if (!empty($obj->Shipping->xaddress))
-			$options['value'] = $obj->Shipping->xaddress;
+		if ($options['mode'] == "value") return $O->Shipping->xaddress;
+		if (!empty($O->Shipping->xaddress))
+			$options['value'] = $O->Shipping->xaddress;
 		return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 	}
 
-	function submit ($result, $options, $obj) {
+	function submit ($result, $options, $O) {
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
 		if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
@@ -902,7 +902,7 @@ class ShoppCheckoutAPI {
 
 		$buttons = array('<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />');
 
-		if (!$obj->Cart->orderisfree())
+		if (!$O->Cart->orderisfree())
 			$buttons = apply_filters('shopp_checkout_submit_button',$buttons,$options,$submit_attrs);
 
 		$_ = array();
@@ -912,15 +912,15 @@ class ShoppCheckoutAPI {
 		return join("\n",$_);
 	}
 
-	function submitlogin ($result, $options, $obj) {
+	function submitlogin ($result, $options, $O) {
 		$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
 		$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 		return $string;
 	}
 
-	function url ($result, $options, $obj) {
+	function url ($result, $options, $O) {
 		$process = get_query_var('s_pr');
-		$link = shoppurl(false,'checkout',$obj->security());
+		$link = shoppurl(false,'checkout',$O->security());
 
 		// Pass any arguments along
 		$args = $_GET;
@@ -935,7 +935,7 @@ class ShoppCheckoutAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	function xcobuttons ($result, $options, $obj) { return; }
+	function xcobuttons ($result, $options, $O) { return; }
 
 }
 

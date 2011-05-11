@@ -11,6 +11,75 @@
  * @subpackage Template
  **/
 
+/**
+ * Defines the shopp() 'tag' handler for complete template customization
+ *
+ * Appropriately routes tag calls to the tag handler for the requested object.
+ *
+ * @since 1.0
+ * @version 1.2
+ *
+ * @param mixed $object The object label or Object to get the tag property from
+ * @param $property The property of the object to get/output
+ * @param $options Custom options for the property result in query form
+ *                   (option1=value&option2=value&...) or alternatively as an associative array
+ */
+function shopp () {
+	$shoppapi = new shoppapi();
+	$Object = false;
+
+	$args = func_get_args();
+
+	if (isset($args[0]) && is_object($args[0])) {
+		$Object = $args[0];
+		if (property_exists($Object, 'api')) $object = $Object->api;
+		else $object = strtolower(get_class($Object));
+	} else list($object,$property) = explode('.', strtolower($args[0]));
+
+	if (!empty($object) && !empty($property)) {
+		if(isset($args[1])) $optionsarg = $args[1];
+	} else {
+		if (count($args) < 2) return; // missing property
+		if(empty($object)) $object = strtolower($args[0]);
+		if(empty($property)) $property = strtolower($args[1]);
+		if(isset($args[2])) $optionsarg = $args[2];
+	}
+	// echo "shopp('$object','$property','$optionsarg');".BR;
+
+	$options = array();
+	if (isset($optionsarg)) {
+		if (is_array($optionsarg) && !empty($optionsarg)) {
+			// handle associative array for options
+			foreach(array_keys($optionsarg) as $key)
+				$options[strtolower($key)] = $optionsarg[$key];
+		} else {
+			// regular url-compatible arguments
+			$paramsets = explode("&",$optionsarg);
+			foreach ((array)$paramsets as $paramset) {
+				if (empty($paramset)) continue;
+				$key = $paramset;
+				$value = "";
+				if (strpos($paramset,"=") !== false)
+					list($key,$value) = explode("=",$paramset);
+				$options[strtolower($key)] = $value;
+			}
+		}
+	}
+
+	// strip hypens from all properties, allows all manner of hyphenated properties without creating invalid method call
+	$property = str_replace ( "-", "", $property);
+
+	if (!empty($object) && !empty($property)) {
+		$apicall = $object."_".$property;
+		if (!preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*./', $apicall )) {
+			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
+			return;
+		}
+		return $shoppapi->$apicall($options, $Object);
+	}
+	return;
+}
+
 require_once('theme/cart.php');
 require_once('theme/cartitem.php');
 require_once('theme/shipping.php');
@@ -101,75 +170,6 @@ class shoppapi {
 		return true;
 
 	}
-}
-
-/**
- * Defines the shopp() 'tag' handler for complete template customization
- *
- * Appropriately routes tag calls to the tag handler for the requested object.
- *
- * @since 1.0
- * @version 1.2
- *
- * @param mixed $object The object label or Object to get the tag property from
- * @param $property The property of the object to get/output
- * @param $options Custom options for the property result in query form
- *                   (option1=value&option2=value&...) or alternatively as an associative array
- */
-function shopp () {
-	$shoppapi = new shoppapi();
-	$Object = false;
-
-	$args = func_get_args();
-
-	if (isset($args[0]) && is_object($args[0])) {
-		$Object = $args[0];
-		if (property_exists($Object, 'api')) $object = $Object->api;
-		else $object = strtolower(get_class($Object));
-	} else list($object,$property) = explode('.', strtolower($args[0]));
-
-	if (!empty($object) && !empty($property)) {
-		if(isset($args[1])) $optionsarg = $args[1];
-	} else {
-		if (count($args) < 2) return; // missing property
-		if(empty($object)) $object = strtolower($args[0]);
-		if(empty($property)) $property = strtolower($args[1]);
-		if(isset($args[2])) $optionsarg = $args[2];
-	}
-	// echo "shopp('$object','$property','$optionsarg');".BR;
-
-	$options = array();
-	if (isset($optionsarg)) {
-		if (is_array($optionsarg) && !empty($optionsarg)) {
-			// handle associative array for options
-			foreach(array_keys($optionsarg) as $key)
-				$options[strtolower($key)] = $optionsarg[$key];
-		} else {
-			// regular url-compatible arguments
-			$paramsets = explode("&",$optionsarg);
-			foreach ((array)$paramsets as $paramset) {
-				if (empty($paramset)) continue;
-				$key = $paramset;
-				$value = "";
-				if (strpos($paramset,"=") !== false)
-					list($key,$value) = explode("=",$paramset);
-				$options[strtolower($key)] = $value;
-			}
-		}
-	}
-
-	// strip hypens from all properties, allows all manner of hyphenated properties without creating invalid method call
-	$property = str_replace ( "-", "", $property);
-
-	if (!empty($object) && !empty($property)) {
-		$apicall = $object."_".$property;
-		if (!preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*./', $apicall )) {
-			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
-			return;
-		}
-		return $shoppapi->$apicall($options, $Object);
-	}
-	return;
 }
 
 ?>

@@ -75,81 +75,81 @@ add_filter('shoppapi_purchase_xaddress', array('ShoppPurchaseAPI', 'xaddress'), 
  *
  **/
 class ShoppPurchaseAPI {
-	function address ($result, $options, $obj) { return esc_html($obj->address); }
+	function address ($result, $options, $O) { return esc_html($O->address); }
 
-	function card ($result, $options, $obj) { return (!empty($obj->card))?sprintf("%'X16d",$obj->card):''; }
+	function card ($result, $options, $O) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }
 
-	function cardtype ($result, $options, $obj) { return $obj->cardtype; }
+	function cardtype ($result, $options, $O) { return $O->cardtype; }
 
-	function city ($result, $options, $obj) { return esc_html($obj->city); }
+	function city ($result, $options, $O) { return esc_html($O->city); }
 
-	function company ($result, $options, $obj) { return esc_html($obj->company); }
+	function company ($result, $options, $O) { return esc_html($O->company); }
 
-	function country ($result, $options, $obj) {
+	function country ($result, $options, $O) {
 		global $Shopp;
 		$countries = $Shopp->Settings->get('target_markets');
-		return $countries[$obj->country];
+		return $countries[$O->country];
 	}
 
-	function customer ($result, $options, $obj) { return $obj->customer; }
+	function customer ($result, $options, $O) { return $O->customer; }
 
-	function data ($result, $options, $obj) {
-		if (!is_array($obj->data)) return false;
-		$data = current($obj->data);
-		$name = key($obj->data);
+	function data ($result, $options, $O) {
+		if (!is_array($O->data)) return false;
+		$data = current($O->data);
+		$name = key($O->data);
 		if (isset($options['name'])) return esc_html($name);
 		return esc_html($data);
 	}
 
-	function date ($result, $options, $obj) {
+	function date ($result, $options, $O) {
 		if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
-		return _d($options['format'],((is_int($obj->created))?$obj->created:mktimestamp($obj->created)));
+		return _d($options['format'],((is_int($O->created))?$O->created:mktimestamp($O->created)));
 	}
 
-	function discount ($result, $options, $obj) { return money($obj->discount); }
+	function discount ($result, $options, $O) { return money($O->discount); }
 
-	function email ($result, $options, $obj) { return esc_html($obj->email); }
+	function email ($result, $options, $O) { return esc_html($O->email); }
 
-	function firstname ($result, $options, $obj) { return esc_html($obj->firstname); }
+	function firstname ($result, $options, $O) { return esc_html($O->firstname); }
 
-	function freight ($result, $options, $obj) { return money($obj->freight); }
+	function freight ($result, $options, $O) { return money($O->freight); }
 
-	function hasdata ($result, $options, $obj) { return (is_array($obj->data) && count($obj->data) > 0); }
+	function hasdata ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
-	function hasdiscount ($result, $options, $obj) { return ($obj->discount > 0); }
+	function hasdiscount ($result, $options, $O) { return ($O->discount > 0); }
 
-	function hasdownloads ($result, $options, $obj) { return ($obj->downloads); }
+	function hasdownloads ($result, $options, $O) { return ($O->downloads); }
 
-	function hasfreight ($result, $options, $obj) { return (!empty($obj->shipmethod) || $obj->freight > 0); }
+	function hasfreight ($result, $options, $O) { return (!empty($O->shipmethod) || $O->freight > 0); }
 
-	function hasitems ($result, $options, $obj) {
-		if (empty($obj->purchased)) $obj->load_purchased();
-		return (count($obj->purchased) > 0);
+	function hasitems ($result, $options, $O) {
+		if (empty($O->purchased)) $O->load_purchased();
+		return (count($O->purchased) > 0);
 	}
 
-	function haspromo ($result, $options, $obj) {
+	function haspromo ($result, $options, $O) {
 		if (empty($options['name'])) return false;
-		return (in_array($options['name'],$obj->promos));
+		return (in_array($options['name'],$O->promos));
 	}
 
-	function hastax ($result, $options, $obj) { return ($obj->tax > 0)?true:false; }
+	function hastax ($result, $options, $O) { return ($O->tax > 0)?true:false; }
 
-	function id ($result, $options, $obj) { return $obj->id; }
+	function id ($result, $options, $O) { return $O->id; }
 
-	function itemaddons ($result, $options, $obj) {
-		$item = current($obj->purchased);
-		if (!isset($obj->_itemaddons_loop)) {
+	function itemaddons ($result, $options, $O) {
+		$item = current($O->purchased);
+		if (!isset($O->_itemaddons_loop)) {
 			reset($item->addons->meta);
-			$obj->_itemaddons_loop = true;
+			$O->_itemaddons_loop = true;
 		} else next($item->addons->meta);
 
 		if (current($item->addons->meta) !== false) return true;
 		else {
-			unset($obj->_itemaddons_loop);
+			unset($O->_itemaddons_loop);
 			return false;
 		}
 		// @todo Do we need this somewhere?
-		// $item = current($obj->purchased);
+		// $item = current($O->purchased);
 		// $addon = current($item->addons->meta);
 		// if (isset($options['id'])) return esc_html($addon->id);
 		// if (isset($options['name'])) return esc_html($addon->name);
@@ -162,8 +162,8 @@ class ShoppPurchaseAPI {
 		// return money($addon->value->unitprice);
 	}
 
-	function itemaddonslist ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemaddonslist ($result, $options, $O) {
+		$item = current($O->purchased);
 		if (empty($item->addons)) return false;
 		$defaults = array(
 			'prices' => "on",
@@ -184,7 +184,7 @@ class ShoppPurchaseAPI {
 		$result = $before.'<ul'.$class.'>';
 		foreach ($item->addons->meta as $id => $addon) {
 			if (in_array($addon->name,$excludes)) continue;
-			if ($obj->taxing == "inclusive")
+			if ($O->taxing == "inclusive")
 				$price = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
 			else $price = $addon->value->unitprice;
 
@@ -203,13 +203,13 @@ class ShoppPurchaseAPI {
 		return $result;
 	}
 
-	function itemdescription ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemdescription ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->description;
 	}
 
-	function itemdownload ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemdownload ($result, $options, $O) {
+		$item = current($O->purchased);
 		if (empty($item->download)) return "";
 		if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
 		$classes = "";
@@ -221,45 +221,45 @@ class ShoppPurchaseAPI {
 		return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>';
 	}
 
-	function itemhasaddons ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemhasaddons ($result, $options, $O) {
+		$item = current($O->purchased);
 		return (count($item->addons) > 0);
 	}
 
-	function itemhasinputs ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemhasinputs ($result, $options, $O) {
+		$item = current($O->purchased);
 		return (count($item->data) > 0);
 	}
 
-	function itemid ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemid ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->id;
 	}
 
-	function iteminput ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function iteminput ($result, $options, $O) {
+		$item = current($O->purchased);
 		$data = current($item->data);
 		$name = key($item->data);
 		if (isset($options['name'])) return esc_html($name);
 		return esc_html($data);
 	}
 
-	function iteminputs ($result, $options, $obj) {
-		$item = current($obj->purchased);
-		if (!isset($obj->_iteminputs_loop)) {
+	function iteminputs ($result, $options, $O) {
+		$item = current($O->purchased);
+		if (!isset($O->_iteminputs_loop)) {
 			reset($item->data);
-			$obj->_iteminputs_loop = true;
+			$O->_iteminputs_loop = true;
 		} else next($item->data);
 
 		if (current($item->data) !== false) return true;
 		else {
-			unset($obj->_iteminputs_loop);
+			unset($O->_iteminputs_loop);
 			return false;
 		}
 	}
 
-	function iteminputslist ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function iteminputslist ($result, $options, $O) {
+		$item = current($O->purchased);
 		if (empty($item->data)) return false;
 		$before = ""; $after = ""; $classes = ""; $excludes = array();
 		if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
@@ -276,159 +276,159 @@ class ShoppPurchaseAPI {
 		return $result;
 	}
 
-	function itemname ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemname ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->name;
 	}
 
-	function itemoptions ($result, $options, $obj) {
+	function itemoptions ($result, $options, $O) {
 		if (!isset($options['after'])) $options['after'] = "";
-		$item = current($obj->purchased);
+		$item = current($O->purchased);
 		return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:'';
 	}
 
-	function itemprice ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemprice ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->price;
 	}
 
-	function itemproduct ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemproduct ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->product;
 	}
 
-	function itemquantity ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemquantity ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->quantity;
 	}
 
-	function items ($result, $options, $obj) {
-		if (!isset($obj->_items_loop)) {
-			reset($obj->purchased);
-			$obj->_items_loop = true;
-		} else next($obj->purchased);
+	function items ($result, $options, $O) {
+		if (!isset($O->_items_loop)) {
+			reset($O->purchased);
+			$O->_items_loop = true;
+		} else next($O->purchased);
 
-		if (current($obj->purchased) !== false) return true;
+		if (current($O->purchased) !== false) return true;
 		else {
-			unset($obj->_items_loop);
+			unset($O->_items_loop);
 			return false;
 		}
 	}
 
-	function itemsku ($result, $options, $obj) {
-		$item = current($obj->purchased);
+	function itemsku ($result, $options, $O) {
+		$item = current($O->purchased);
 		return $item->sku;
 	}
 
-	function itemtotal ($result, $options, $obj) {
-		$item = current($obj->purchased);
-		$amount = $item->total+($obj->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
+	function itemtotal ($result, $options, $O) {
+		$item = current($O->purchased);
+		$amount = $item->total+($O->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
 		return money($amount);
 	}
 
-	function itemunitprice ($result, $options, $obj) {
-		$item = current($obj->purchased);
-		$amount = $item->unitprice+($obj->taxing == 'inclusive'?$item->unittax:0);
+	function itemunitprice ($result, $options, $O) {
+		$item = current($O->purchased);
+		$amount = $item->unitprice+($O->taxing == 'inclusive'?$item->unittax:0);
 		return money($amount);
 	}
 
-	function lastname ($result, $options, $obj) { return esc_html($obj->lastname); }
+	function lastname ($result, $options, $O) { return esc_html($O->lastname); }
 
-	function notpaid ($result, $options, $obj) { return ($obj->txnstatus != "CHARGED"); }
+	function notpaid ($result, $options, $O) { return ($O->txnstatus != "CHARGED"); }
 
-	function orderdata ($result, $options, $obj) {
-		if (!isset($obj->_data_loop)) {
-			reset($obj->data);
-			$obj->_data_loop = true;
-		} else next($obj->data);
+	function orderdata ($result, $options, $O) {
+		if (!isset($O->_data_loop)) {
+			reset($O->data);
+			$O->_data_loop = true;
+		} else next($O->data);
 
-		if (current($obj->data) !== false) return true;
+		if (current($O->data) !== false) return true;
 		else {
-			unset($obj->_data_loop);
+			unset($O->_data_loop);
 			return false;
 		}
 	}
 
-	function paid ($result, $options, $obj) { return ($obj->txnstatus == "CHARGED"); }
+	function paid ($result, $options, $O) { return ($O->txnstatus == "CHARGED"); }
 
-	function payment ($result, $options, $obj) {
+	function payment ($result, $options, $O) {
 		$labels = Lookup::payment_status_labels();
-		return isset($labels[$obj->txnstatus])?$labels[$obj->txnstatus]:$obj->txnstatus;
+		return isset($labels[$O->txnstatus])?$labels[$O->txnstatus]:$O->txnstatus;
 	}
 
-	function phone ($result, $options, $obj) { return esc_html($obj->phone); }
+	function phone ($result, $options, $O) { return esc_html($O->phone); }
 
-	function postcode ($result, $options, $obj) { return esc_html($obj->postcode); }
+	function postcode ($result, $options, $O) { return esc_html($O->postcode); }
 
-	function promolist ($result, $options, $obj) {
+	function promolist ($result, $options, $O) {
 		$output = "";
-		if (!empty($obj->promos)) {
+		if (!empty($O->promos)) {
 			$output .= '<ul>';
-			foreach ($obj->promos as $promo)
+			foreach ($O->promos as $promo)
 				$output .= '<li>'.$promo.'</li>';
 			$output .= '</ul>';
 		}
 		return $output;
 	}
 
-	function receipt ($result, $options, $obj) {
+	function receipt ($result, $options, $O) {
 		// Skip the receipt processing when sending order notifications in admin without the receipt
 		if (defined('WP_ADMIN') && isset($_POST['receipt']) && $_POST['receipt'] == "no") return;
 		if (isset($options['template']) && is_readable(SHOPP_TEMPLATES."/".$options['template']))
-			return $obj->receipt($template);
-		else return $obj->receipt();
+			return $O->receipt($template);
+		else return $O->receipt();
 	}
 
-	function shipaddress ($result, $options, $obj) { return esc_html($obj->shipaddress); }
+	function shipaddress ($result, $options, $O) { return esc_html($O->shipaddress); }
 
-	function shipcity ($result, $options, $obj) { return esc_html($obj->shipcity); }
+	function shipcity ($result, $options, $O) { return esc_html($O->shipcity); }
 
-	function shipcountry ($result, $options, $obj) {
+	function shipcountry ($result, $options, $O) {
 		global $Shopp;
 		$countries = $Shopp->Settings->get('target_markets');
-		return $countries[$obj->shipcountry];
+		return $countries[$O->shipcountry];
 	}
 
-	function shipmethod ($result, $options, $obj) { return esc_html($obj->shipmethod); }
+	function shipmethod ($result, $options, $O) { return esc_html($O->shipmethod); }
 
-	function shippostcode ($result, $options, $obj) { return esc_html($obj->shippostcode); }
+	function shippostcode ($result, $options, $O) { return esc_html($O->shippostcode); }
 
-	function shipstate ($result, $options, $obj) {
-		if (strlen($obj->shipstate > 2)) return esc_html($obj->shipstate);
+	function shipstate ($result, $options, $O) {
+		if (strlen($O->shipstate > 2)) return esc_html($O->shipstate);
 		$regions = Lookup::country_zones();
-		$states = $regions[$obj->country];
-		return $states[$obj->shipstate];
+		$states = $regions[$O->country];
+		return $states[$O->shipstate];
 	}
 
-	function shipxaddress ($result, $options, $obj) { return esc_html($obj->shipxaddress); }
+	function shipxaddress ($result, $options, $O) { return esc_html($O->shipxaddress); }
 
-	function state ($result, $options, $obj) {
-		if (strlen($obj->state > 2)) return esc_html($obj->state);
+	function state ($result, $options, $O) {
+		if (strlen($O->state > 2)) return esc_html($O->state);
 		$regions = Lookup::country_zones();
-		$states = $regions[$obj->country];
-		return $states[$obj->state];
+		$states = $regions[$O->country];
+		return $states[$O->state];
 	}
 
-	function status ($result, $options, $obj) {
+	function status ($result, $options, $O) {
 		global $Shopp;
 		$labels = $Shopp->Settings->get('order_status');
 		if (empty($labels)) $labels = array('');
-		return $labels[$obj->status];
+		return $labels[$O->status];
 	}
 
-	function subtotal ($result, $options, $obj) { return money($obj->subtotal); }
+	function subtotal ($result, $options, $O) { return money($O->subtotal); }
 
-	function tax ($result, $options, $obj) { return money($obj->tax); }
+	function tax ($result, $options, $O) { return money($O->tax); }
 
-	function total ($result, $options, $obj) { return money($obj->total); }
+	function total ($result, $options, $O) { return money($O->total); }
 
-	function totalitems ($result, $options, $obj) { return count($obj->purchased); }
+	function totalitems ($result, $options, $O) { return count($O->purchased); }
 
-	function txnid ($result, $options, $obj) { return $obj->txnid; }
+	function txnid ($result, $options, $O) { return $O->txnid; }
 
-	function url ($result, $options, $obj) { return shoppurl(false,'account'); }
+	function url ($result, $options, $O) { return shoppurl(false,'account'); }
 
-	function xaddress ($result, $options, $obj) { return esc_html($obj->xaddress); }
+	function xaddress ($result, $options, $O) { return esc_html($O->xaddress); }
 
 }
 

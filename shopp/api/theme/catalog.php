@@ -38,13 +38,13 @@ add_filter('shoppapi_catalog_zoomoptions', array('ShoppCatalogAPI','zoomoptions'
 
 class ShoppCatalogAPI {
 
-	function bestsellerproducts ($result, $options, $obj) {
+	function bestsellerproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new BestsellerProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function breadcrumb ($result, $options, $obj) {
+	function breadcrumb ($result, $options, $O) {
 		global $Shopp;
 		$defaults = array(
 			'separator' => '&nbsp;&raquo; ',
@@ -54,7 +54,7 @@ class ShoppCatalogAPI {
 		extract($options);
 
 		if (isset($Shopp->Category->controls)) return false;
-		if (empty($obj->categories)) $obj->load_categories(array('outofstock' => true));
+		if (empty($O->categories)) $O->load_categories(array('outofstock' => true));
 
 		$category = false;
 		if (isset($Shopp->Flow->Controller->breadcrumb))
@@ -91,11 +91,11 @@ class ShoppCatalogAPI {
 
 			// Build category names path by going from the target category up the parent chain
 			$parentkey = (!empty($Category->id)
-				&& isset($obj->categories['_'.$Category->id]->parent)?
-					'_'.$obj->categories['_'.$Category->id]->parent:'_0');
+				&& isset($O->categories['_'.$Category->id]->parent)?
+					'_'.$O->categories['_'.$Category->id]->parent:'_0');
 
 			while ($parentkey != '_0' && $depth-- > 0) {
-				$tree_category = $obj->categories[$parentkey];
+				$tree_category = $O->categories[$parentkey];
 
 				$link = SHOPP_PRETTYURLS?
 					shoppurl("category/$tree_category->uri"):
@@ -113,31 +113,31 @@ class ShoppCatalogAPI {
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
 	}
 
-	function catalogproducts ($result, $options, $obj) {
+	function catalogproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new CatalogProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function categories ($result, $options, $obj) {
+	function categories ($result, $options, $O) {
 		global $Shopp;
-		if (!isset($obj->_category_loop)) {
-			reset($obj->categories);
-			$Shopp->Category = current($obj->categories);
-			$obj->_category_loop = true;
+		if (!isset($O->_category_loop)) {
+			reset($O->categories);
+			$Shopp->Category = current($O->categories);
+			$O->_category_loop = true;
 		} else {
-			$Shopp->Category = next($obj->categories);
+			$Shopp->Category = next($O->categories);
 		}
 
-		if (current($obj->categories) !== false) return true;
+		if (current($O->categories) !== false) return true;
 		else {
-			unset($obj->_category_loop);
-			reset($obj->categories);
+			unset($O->_category_loop);
+			reset($O->categories);
 			return false;
 		}
 	}
 
-	function category ($result, $options, $obj) {
+	function category ($result, $options, $O) {
 		global $Shopp;
 
 		if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
@@ -177,7 +177,7 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function categorylist ($result, $options, $obj) {
+	function categorylist ($result, $options, $O) {
 		global $Shopp;
 		$defaults = array(
 			'title' => '',
@@ -203,7 +203,7 @@ class ShoppCatalogAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		$obj->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
+		$O->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
 
 		$string = "";
 		$depthlimit = $depth;
@@ -217,7 +217,7 @@ class ShoppCatalogAPI {
 			$string .= $title;
 			$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
-			foreach ($obj->categories as &$category) {
+			foreach ($O->categories as &$category) {
 				// If the parent of this category was excluded, add this to the excludes and skip
 				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
 					$exclude[] = $category->id;
@@ -256,7 +256,7 @@ class ShoppCatalogAPI {
 		} else {
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
-			foreach ($obj->categories as &$category) {
+			foreach ($O->categories as &$category) {
 				if (!isset($category->total)) $category->total = 0;
 				if (!isset($category->depth)) $category->depth = 0;
 
@@ -329,44 +329,44 @@ class ShoppCatalogAPI {
 		return $string;
 	}
 
-	function type ($result, $options, $obj) { return $obj->type; }
+	function type ($result, $options, $O) { return $O->type; }
 
-	function featuredproducts ($result, $options, $obj) {
+	function featuredproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new FeaturedProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function hascategories ($result, $options, $obj) {
+	function hascategories ($result, $options, $O) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
-		if (empty($obj->categories)) $obj->load_categories(array('where'=>'true'),$showsmart);
-		if (count($obj->categories) > 0) return true; else return false;
+		if (empty($O->categories)) $O->load_categories(array('where'=>'true'),$showsmart);
+		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function isaccount ($result, $options, $obj) { return (is_shopp_page('account')); }
+	function isaccount ($result, $options, $O) { return (is_shopp_page('account')); }
 
-	function iscart ($result, $options, $obj) { return (is_shopp_page('cart')); }
+	function iscart ($result, $options, $O) { return (is_shopp_page('cart')); }
 
-	function iscategory ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "category"); }
+	function iscategory ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "category"); }
 
-	function ischeckout ($result, $options, $obj) { return (is_shopp_page('checkout')); }
+	function ischeckout ($result, $options, $O) { return (is_shopp_page('checkout')); }
 
-	function iscatalog ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "catalog"); }
+	function iscatalog ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "catalog"); }
 
-	function isproduct ($result, $options, $obj) { return (is_shopp_page('catalog') && $obj->type == "product"); }
+	function isproduct ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "product"); }
 
-	function newproducts ($result, $options, $obj) {
+	function newproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new NewProducts($options);
 	}
 
-	function onsaleproducts ($result, $options, $obj) {
+	function onsaleproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new OnSaleProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function orderbylist ($result, $options, $obj) {
+	function orderbylist ($result, $options, $O) {
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
@@ -417,7 +417,7 @@ class ShoppCatalogAPI {
 		return $string;
 	}
 
-	function product ($result, $options, $obj) {
+	function product ($result, $options, $O) {
 		global $Shopp;
 		if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
 		else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
@@ -450,25 +450,25 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function promoproducts ($result, $options, $obj) {
+	function promoproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new PromoProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function randomproducts ($result, $options, $obj) {
+	function randomproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new RandomProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function relatedproducts ($result, $options, $obj) {
+	function relatedproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new RelatedProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function search ($result, $options, $obj) {
+	function search ($result, $options, $O) {
 		$Storefront =& ShoppStorefront();
 		global $wp;
 
@@ -531,13 +531,13 @@ class ShoppCatalogAPI {
 		return $before.$input.$after;
 	}
 
-	function searchproducts ($result, $options, $obj) {
+	function searchproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new SearchResults($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function searchform ($result, $options, $obj) {
+	function searchform ($result, $options, $O) {
 		ob_start();
 		get_search_form();
 		$content = ob_get_contents();
@@ -556,7 +556,7 @@ class ShoppCatalogAPI {
 		return join('',$markup);
 	}
 
-	function sideproduct ($result, $options, $obj) {
+	function sideproduct ($result, $options, $O) {
 		global $Shopp;
 		$content = false;
 		$source = isset($options['source'])?$options['source']:'product';
@@ -613,24 +613,24 @@ class ShoppCatalogAPI {
 		return $content;
 	}
 
-	function tagproducts ($result, $options, $obj) {
+	function tagproducts ($result, $options, $O) {
 		global $Shopp;
 		$Shopp->Category = new TagProducts($options);
-		return self::category($result, $options, $obj);
+		return self::category($result, $options, $O);
 	}
 
-	function tagcloud ($result, $options, $obj) {
+	function tagcloud ($result, $options, $O) {
 		if (!empty($options['levels'])) $levels = $options['levels'];
 		else $levels = 7;
-		if (empty($obj->tags)) $obj->load_tags();
+		if (empty($O->tags)) $O->load_tags();
 		$min = -1; $max = -1;
-		foreach ($obj->tags as $tag) {
+		foreach ($O->tags as $tag) {
 			if ($min == -1 || $tag->products < $min) $min = $tag->products;
 			if ($max == -1 || $tag->products > $max) $max = $tag->products;
 		}
 		if ($max == 0) $max = 1;
 		$string = '<ul class="shopp tagcloud">';
-		foreach ($obj->tags as $tag) {
+		foreach ($O->tags as $tag) {
 			$level = floor((1-$tag->products/$max)*$levels)+1;
 			$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
 			$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
@@ -639,9 +639,9 @@ class ShoppCatalogAPI {
 		return $string;
 	}
 
-	function url ($result, $options, $obj) { return shoppurl(false,'catalog'); }
+	function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
 
-	function views ($result, $options, $obj) {
+	function views ($result, $options, $O) {
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 		$string = "";
@@ -653,7 +653,7 @@ class ShoppCatalogAPI {
 		return $string;
 	}
 
-	function zoomoptions ($result, $options, $obj) {
+	function zoomoptions ($result, $options, $O) {
 		$defaults = array(				// Colorbox 1.3.15
 			'transition' => 'elastic',	// The transition type. Can be set to 'elastic', 'fade', or 'none'.
 			'speed' => 350,				// Sets the speed of the fade and elastic transitions, in milliseconds.

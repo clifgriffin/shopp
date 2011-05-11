@@ -26,11 +26,11 @@ add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'op
  *
  **/
 class ShoppCartShippingAPI {
-	function hasestimates ($result, $options, $obj) { return apply_filters('shopp_shipping_hasestimates',!empty($obj->shipping));  }
+	function hasestimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
-	function methodselector ($result, $options, $obj) {
+	function methodselector ($result, $options, $O) {
 		global $Shopp;
-		$method = current($obj->shipping);
+		$method = current($O->shipping);
 
 		$checked = '';
 		if ((isset($Shopp->Order->Shipping->method) &&
@@ -41,21 +41,21 @@ class ShoppCartShippingAPI {
 		return $result;
 	}
 
-	function methodselected ($result, $options, $obj) {
+	function methodselected ($result, $options, $O) {
 		global $Shopp;
-		$method = current($obj->shipping);
+		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
 			$Shopp->Order->Shipping->method == $method->name));
 	}
 
-	function optioncost ($result, $options, $obj) {
-		$option = current($obj->shipping);
+	function optioncost ($result, $options, $O) {
+		$option = current($O->shipping);
 		return money($option->amount);
 	}
 
-	function optiondelivery ($result, $options, $obj) {
+	function optiondelivery ($result, $options, $O) {
 		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-		$option = current($obj->shipping);
+		$option = current($O->shipping);
 		if (!$option->delivery) return "";
 		$estimates = explode("-",$option->delivery);
 		$format = get_option('date_format');
@@ -72,12 +72,12 @@ class ShoppCartShippingAPI {
 		return $result;
 	}
 
-	function optionmenu ($result, $options, $obj) {
+	function optionmenu ($result, $options, $O) {
 		global $Shopp;
 		// @todo Add options for differential pricing and estimated delivery dates
 		$_ = array();
 		$_[] = '<select name="shipmethod" class="shopp shipmethod">';
-		foreach ($obj->shipping as $method) {
+		foreach ($O->shipping as $method) {
 			$selected = ((isset($Shopp->Order->Shipping->method) &&
 				$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
 
@@ -87,27 +87,27 @@ class ShoppCartShippingAPI {
 		return join("",$_);
 	}
 
-	function optionname ($result, $options, $obj) {
-		$option = current($obj->shipping);
+	function optionname ($result, $options, $O) {
+		$option = current($O->shipping);
 		return $option->name;
 	}
 
-	function options ($result, $options, $obj) {
-		if (!isset($obj->sclooping)) $obj->sclooping = false;
-		if (!$obj->sclooping) {
-			reset($obj->shipping);
-			$obj->sclooping = true;
-		} else next($obj->shipping);
+	function options ($result, $options, $O) {
+		if (!isset($O->sclooping)) $O->sclooping = false;
+		if (!$O->sclooping) {
+			reset($O->shipping);
+			$O->sclooping = true;
+		} else next($O->shipping);
 
-		if (current($obj->shipping) !== false) return true;
+		if (current($O->shipping) !== false) return true;
 		else {
-			$obj->sclooping = false;
-			reset($obj->shipping);
+			$O->sclooping = false;
+			reset($O->shipping);
 			return false;
 		}
 	}
 
-	function url ($result, $options, $obj) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
+	function url ($result, $options, $O) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
 
 }
 

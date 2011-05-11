@@ -38,10 +38,10 @@ add_filter('shoppapi_category_url', array('ShoppCategoryAPI','url'), 10, 3);
  *
  **/
 class ShoppCategoryAPI {
-	function carousel ($result, $options, $obj) {
+	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
-		if (!$obj->loaded) $obj->load_products($options);
-		if (count($obj->products) == 0) return false;
+		if (!$O->loaded) $O->load_products($options);
+		if (count($O->products) == 0) return false;
 
 		$defaults = array(
 			'imagewidth' => '96',
@@ -55,7 +55,7 @@ class ShoppCategoryAPI {
 		$string = '<div class="carousel duration-'.$duration.'">';
 		$string .= '<div class="frame">';
 		$string .= '<ul>';
-		foreach ($obj->products as $Product) {
+		foreach ($O->products as $Product) {
 			if (empty($Product->images)) continue;
 			$string .= '<li><a href="'.$Product->tag('url').'">';
 			$string .= $Product->tag('image',array('width'=>$imagewidth,'height'=>$imageheight,'fit'=>$fit));
@@ -68,21 +68,21 @@ class ShoppCategoryAPI {
 		return $string;
 	}
 
-	function coverimage ($result, $options, $obj) {
+	function coverimage ($result, $options, $O) {
 		unset($options['id']);
 		$options['index'] = 0;
-		return self::image($result, $options, $obj);
+		return self::image($result, $options, $O);
 	}
 
-	function description ($result, $options, $obj) { return wpautop($obj->description); }
+	function description ($result, $options, $O) { return wpautop($O->description); }
 
-	function facetedmenu ($result, $options, $obj) {
+	function facetedmenu ($result, $options, $O) {
 		global $Shopp;
 		$db = DB::get();
 
-		if ($obj->facetedmenus == "off") return;
+		if ($O->facetedmenus == "off") return;
 		$output = "";
-		$CategoryFilters =& $Shopp->Flow->Controller->browsing[$obj->slug];
+		$CategoryFilters =& $Shopp->Flow->Controller->browsing[$O->slug];
 		$link = $_SERVER['REQUEST_URI'];
 		if (!isset($options['cancel'])) $options['cancel'] = "X";
 		if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
@@ -105,18 +105,18 @@ class ShoppCategoryAPI {
 			$output .= '<ul class="filters enabled">'.$list.'</ul>';
 		}
 
-		if ($obj->pricerange == "auto" && empty($CategoryFilters['Price'])) {
-			// if (!$obj->loaded) $obj->load_products();
+		if ($O->pricerange == "auto" && empty($CategoryFilters['Price'])) {
+			// if (!$O->loaded) $O->load_products();
 			$list = "";
-			$obj->priceranges = auto_ranges($obj->pricing['average'],$obj->pricing['max'],$obj->pricing['min']);
-			foreach ($obj->priceranges as $range) {
+			$O->priceranges = auto_ranges($O->pricing['average'],$O->pricing['max'],$O->pricing['min']);
+			foreach ($O->priceranges as $range) {
 				$href = add_query_arg('shopp_catfilters[Price]',urlencode(money($range['min']).'-'.money($range['max'])),$link);
 				$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 				if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
 				elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
 				$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 			}
-			if (!empty($obj->priceranges)) $output .= '<h4>'.__('Price Range','Shopp').'</h4>';
+			if (!empty($O->priceranges)) $output .= '<h4>'.__('Price Range','Shopp').'</h4>';
 			$output .= '<ul>'.$list.'</ul>';
 		}
 
@@ -130,7 +130,7 @@ class ShoppCategoryAPI {
 			FROM $catalogtable AS cat
 			LEFT JOIN $producttable AS p ON cat.product=p.id
 			LEFT JOIN $spectable AS spec ON p.id=spec.parent AND spec.context='product' AND spec.type='spec'
-			WHERE cat.parent=$obj->id AND cat.taxonomy='$obj->taxonomy' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
+			WHERE cat.parent=$O->id AND cat.taxonomy='$O->taxonomy' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
 
 		$results = $db->query($query,AS_ARRAY);
 
@@ -143,8 +143,8 @@ class ShoppCategoryAPI {
 			} else $specdata[$data->name] = $data;
 		}
 
-		if (is_array($obj->specs)) {
-			foreach ($obj->specs as $spec) {
+		if (is_array($O->specs)) {
+			foreach ($O->specs as $spec) {
 				$list = "";
 				if (!empty($CategoryFilters[$spec['name']])) continue;
 
@@ -221,31 +221,31 @@ class ShoppCategoryAPI {
 		return $output;
 	}
 
-	function feedurl ($result, $options, $obj) {
-		$uri = 'category/'.$obj->uri;
-		if ($obj->slug == "tag") $uri = $obj->slug.'/'.$obj->tag;
-		return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('s_cat'=>urldecode($obj->uri),'src'=>'category_rss'));
+	function feedurl ($result, $options, $O) {
+		$uri = 'category/'.$O->uri;
+		if ($O->slug == "tag") $uri = $O->slug.'/'.$O->tag;
+		return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('s_cat'=>urldecode($O->uri),'src'=>'category_rss'));
 	}
 
-	function hascategories ($result, $options, $obj) {
-		if (empty($obj->children)) $obj->load_children();
-		return (!empty($obj->children));
+	function hascategories ($result, $options, $O) {
+		if (empty($O->children)) $O->load_children();
+		return (!empty($O->children));
 	}
 
-	function hasfacetedmenu ($result, $options, $obj) { return ($obj->facetedmenus == "on"); }
+	function hasfacetedmenu ($result, $options, $O) { return ($O->facetedmenus == "on"); }
 
-	function hasimages ($result, $options, $obj) {
-		if (empty($obj->images)) $obj->load_images();
-		if (empty($obj->images)) return false;
+	function hasimages ($result, $options, $O) {
+		if (empty($O->images)) $O->load_images();
+		if (empty($O->images)) return false;
 		return true;
 	}
 
-	function id ($result, $options, $obj) { return $obj->id; }
+	function id ($result, $options, $O) { return $O->id; }
 
-	function image ($result, $options, $obj) {
+	function image ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->images)) $obj->load_images();
-		if (!(count($obj->images) > 0)) return "";
+		if (empty($O->images)) $O->load_images();
+		if (!(count($O->images) > 0)) return "";
 
 		// Compatibility defaults
 		$_size = 96;
@@ -279,20 +279,20 @@ class ShoppCategoryAPI {
 
 		// Select image by database id
 		if ($id !== false) {
-			for ($i = 0; $i < count($obj->images); $i++) {
+			for ($i = 0; $i < count($O->images); $i++) {
 				if ($img->id == $id) {
-					$img = $obj->images[$i]; //break;
+					$img = $O->images[$i]; //break;
 				}
 			}
 			if (!$img) return "";
 		}
 
 		// Select image by index position in the list
-		if ($index !== false && isset($obj->images[$index]))
-			$img = $obj->images[$index];
+		if ($index !== false && isset($O->images[$index]))
+			$img = $O->images[$index];
 
 		// Use the current image pointer by default
-		if (!$img) $img = current($obj->images);
+		if (!$img) $img = current($O->images);
 
 		if ($size !== false) $width = $height = $size;
 		if (!$width) $width = $_width;
@@ -338,28 +338,28 @@ class ShoppCategoryAPI {
 		$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
 
 		if (value_is_true($zoom))
-			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$obj->id.'">'.$imgtag.'</a>';
+			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$O->id.'">'.$imgtag.'</a>';
 
 		return $imgtag;
 	}
 
-	function images ($result, $options, $obj) {
-		if (!isset($obj->_images_loop)) {
-			reset($obj->images);
-			$obj->_images_loop = true;
-		} else next($obj->images);
+	function images ($result, $options, $O) {
+		if (!isset($O->_images_loop)) {
+			reset($O->images);
+			$O->_images_loop = true;
+		} else next($O->images);
 
-		if (current($obj->images) !== false) return true;
+		if (current($O->images) !== false) return true;
 		else {
-			unset($obj->_images_loop);
+			unset($O->_images_loop);
 			return false;
 		}
 	}
 
-	function issubcategory ($result, $options, $obj) { return ($obj->parent != 0); }
+	function issubcategory ($result, $options, $O) { return ($O->parent != 0); }
 
-	function loadproducts ($result, $options, $obj) {
-		if (empty($obj->id) && empty($obj->slug)) return false;
+	function loadproducts ($result, $options, $O) {
+		if (empty($O->id) && empty($O->slug)) return false;
 		if (isset($options['load'])) {
 			$dataset = explode(",",$options['load']);
 			$options['load'] = array();
@@ -367,14 +367,14 @@ class ShoppCategoryAPI {
 		 } else {
 			$options['load'] = array('prices');
 		}
-		if (!$obj->loaded) $obj->load_products($options);
-		if (count($obj->products) > 0) return true; else return false;
+		if (!$O->loaded) $O->load_products($options);
+		if (count($O->products) > 0) return true; else return false;
 	}
 
-	function name ($result, $options, $obj) { return $obj->name; }
+	function name ($result, $options, $O) { return $O->name; }
 
-	function pagination ($result, $options, $obj) {
-		if (!$obj->paged) return "";
+	function pagination ($result, $options, $O) {
+		if (!$O->paged) return "";
 
 		$defaults = array(
 			'label' => __("Pages:","Shopp"),
@@ -390,11 +390,11 @@ class ShoppCategoryAPI {
 		extract($options);
 
 		$_ = array();
-		if (isset($obj->alpha) && $obj->paged) {
+		if (isset($O->alpha) && $O->paged) {
 			$_[] = $before.$label;
 			$_[] = '<ul class="paging">';
-			foreach ($obj->alpha as $alpha) {
-				$link = $obj->pagelink($alpha->letter);
+			foreach ($O->alpha as $alpha) {
+				$link = $O->pagelink($alpha->letter);
 				if ($alpha->total > 0)
 					$_[] = '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
 				else $_[] = '<li><span>'.$alpha->letter.'</span></li>';
@@ -404,58 +404,58 @@ class ShoppCategoryAPI {
 			return join("\n",$_);
 		}
 
-		if ($obj->pages > 1) {
+		if ($O->pages > 1) {
 
-			if ( $obj->pages > $show ) $visible_pages = $show + 1;
-			else $visible_pages = $obj->pages + 1;
+			if ( $O->pages > $show ) $visible_pages = $show + 1;
+			else $visible_pages = $O->pages + 1;
 			$jumps = ceil($visible_pages/2);
 			$_[] = $before.$label;
 
 			$_[] = '<ul class="paging">';
-			if ( $obj->page <= floor(($show) / 2) ) {
+			if ( $O->page <= floor(($show) / 2) ) {
 				$i = 1;
 			} else {
-				$i = $obj->page - floor(($show) / 2);
-				$visible_pages = $obj->page + floor(($show) / 2) + 1;
-				if ($visible_pages > $obj->pages) $visible_pages = $obj->pages + 1;
+				$i = $O->page - floor(($show) / 2);
+				$visible_pages = $O->page + floor(($show) / 2) + 1;
+				if ($visible_pages > $O->pages) $visible_pages = $O->pages + 1;
 				if ($i > 1) {
-					$link = $obj->pagelink(1);
+					$link = $O->pagelink(1);
 					$_[] = '<li><a href="'.$link.'">1</a></li>';
 
-					$pagenum = ($obj->page - $jumps);
+					$pagenum = ($O->page - $jumps);
 					if ($pagenum < 1) $pagenum = 1;
-					$link = $obj->pagelink($pagenum);
+					$link = $O->pagelink($pagenum);
 					$_[] = '<li><a href="'.$link.'">'.$jumpback.'</a></li>';
 				}
 			}
 
 			// Add previous button
-			if (!empty($previous) && $obj->page > 1) {
-				$prev = $obj->page-1;
-				$link = $obj->pagelink($prev);
+			if (!empty($previous) && $O->page > 1) {
+				$prev = $O->page-1;
+				$link = $O->pagelink($prev);
 				$_[] = '<li class="previous"><a href="'.$link.'">'.$previous.'</a></li>';
 			} else $_[] = '<li class="previous disabled">'.$previous.'</li>';
 			// end previous button
 
 			while ($i < $visible_pages) {
-				$link = $obj->pagelink($i);
-				if ( $i == $obj->page ) $_[] = '<li class="active">'.$i.'</li>';
+				$link = $O->pagelink($i);
+				if ( $i == $O->page ) $_[] = '<li class="active">'.$i.'</li>';
 				else $_[] = '<li><a href="'.$link.'">'.$i.'</a></li>';
 				$i++;
 			}
-			if ($obj->pages > $visible_pages) {
-				$pagenum = ($obj->page + $jumps);
-				if ($pagenum > $obj->pages) $pagenum = $obj->pages;
-				$link = $obj->pagelink($pagenum);
+			if ($O->pages > $visible_pages) {
+				$pagenum = ($O->page + $jumps);
+				if ($pagenum > $O->pages) $pagenum = $O->pages;
+				$link = $O->pagelink($pagenum);
 				$_[] = '<li><a href="'.$link.'">'.$jumpfwd.'</a></li>';
-				$link = $obj->pagelink($obj->pages);
-				$_[] = '<li><a href="'.$link.'">'.$obj->pages.'</a></li>';
+				$link = $O->pagelink($O->pages);
+				$_[] = '<li><a href="'.$link.'">'.$O->pages.'</a></li>';
 			}
 
 			// Add next button
-			if (!empty($next) && $obj->page < $obj->pages) {
-				$pagenum = $obj->page+1;
-				$link = $obj->pagelink($pagenum);
+			if (!empty($next) && $O->page < $O->pages) {
+				$pagenum = $O->page+1;
+				$link = $O->pagelink($pagenum);
 				$_[] = '<li class="next"><a href="'.$link.'">'.$next.'</a></li>';
 			} else $_[] = '<li class="next disabled">'.$next.'</li>';
 
@@ -465,46 +465,46 @@ class ShoppCategoryAPI {
 		return join("\n",$_);
 	}
 
-	function parent ($result, $options, $obj) { return $obj->parent; }
+	function parent ($result, $options, $O) { return $O->parent; }
 
-	function products ($result, $options, $obj) {
+	function products ($result, $options, $O) {
 		global $Shopp;
-		if (!isset($obj->_product_loop)) {
-			reset($obj->products);
-			$Shopp->Product = current($obj->products);
-			$obj->_pindex = 0;
-			$obj->_rindex = false;
-			$obj->_product_loop = true;
+		if (!isset($O->_product_loop)) {
+			reset($O->products);
+			$Shopp->Product = current($O->products);
+			$O->_pindex = 0;
+			$O->_rindex = false;
+			$O->_product_loop = true;
 		} else {
-			$Shopp->Product = next($obj->products);
-			$obj->_pindex++;
+			$Shopp->Product = next($O->products);
+			$O->_pindex++;
 		}
 
-		if (current($obj->products) !== false) return true;
+		if (current($O->products) !== false) return true;
 		else {
-			unset($obj->_product_loop);
-			$obj->_pindex = 0;
+			unset($O->_product_loop);
+			$O->_pindex = 0;
 			return false;
 		}
 	}
 
-	function row ($result, $options, $obj) {
+	function row ($result, $options, $O) {
 		global $Shopp;
-		if (!isset($obj->_rindex) || $obj->_rindex === false) $obj->_rindex = 0;
-		else $obj->_rindex++;
+		if (!isset($O->_rindex) || $O->_rindex === false) $O->_rindex = 0;
+		else $O->_rindex++;
 		if (empty($options['products'])) $options['products'] = $Shopp->Settings->get('row_products');
-		if (isset($obj->_rindex) && $obj->_rindex > 0 && $obj->_rindex % $options['products'] == 0) return true;
+		if (isset($O->_rindex) && $O->_rindex > 0 && $O->_rindex % $options['products'] == 0) return true;
 		else return false;
 	}
 
-	function sectionlist ($result, $options, $obj) {
+	function sectionlist ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->id)) return false;
+		if (empty($O->id)) return false;
 		if (isset($Shopp->Category->controls)) return false;
 		if (empty($Shopp->Catalog->categories))
 			$Shopp->Catalog->load_categories(array("where"=>"(pd.status='publish' OR pd.id IS NULL)"));
 		if (empty($Shopp->Catalog->categories)) return false;
-		if (!$obj->children) $obj->load_children();
+		if (!$O->children) $O->load_children();
 
 		$defaults = array(
 			'title' => '',
@@ -537,8 +537,8 @@ class ShoppCategoryAPI {
 		$section = array();
 
 		// Identify root parent
-		if (empty($obj->id)) return false;
-		$parent = '_'.$obj->id;
+		if (empty($O->id)) return false;
+		$parent = '_'.$O->id;
 		while($parent != 0) {
 			if (!isset($Shopp->Catalog->categories[$parent])) //break;
 			if ($Shopp->Catalog->categories[$parent]->parent == 0
@@ -546,7 +546,7 @@ class ShoppCategoryAPI {
 			$parent = '_'.$Shopp->Catalog->categories[$parent]->parent;
 		}
 		$root = $Shopp->Catalog->categories[$parent];
-		if ($obj->id == $parent && empty($obj->children)) return false;
+		if ($O->id == $parent && empty($O->children)) return false;
 
 		// Build the section
 		$section[] = $root;
@@ -559,7 +559,7 @@ class ShoppCategoryAPI {
 
 		if (value_is_true($dropdown)) {
 			$string .= $title;
-			$string .= '<select name="shopp_cats" id="shopp-'.$obj->slug.'-subcategories-menu" class="shopp-categories-menu">';
+			$string .= '<select name="shopp_cats" id="shopp-'.$O->slug.'-subcategories-menu" class="shopp-categories-menu">';
 			$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 			foreach ($section as &$category) {
 				if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
@@ -623,10 +623,10 @@ class ShoppCategoryAPI {
 		return $string;
 	}
 
-	function slideshow ($result, $options, $obj) {
+	function slideshow ($result, $options, $O) {
 		$options['load'] = array('images');
-		if (!$obj->loaded) $obj->load_products($options);
-		if (count($obj->products) == 0) return false;
+		if (!$O->loaded) $O->load_products($options);
+		if (count($O->products) == 0) return false;
 
 		$defaults = array(
 			'width' => '440',
@@ -645,7 +645,7 @@ class ShoppCategoryAPI {
 
 		$string = '<ul class="slideshow '.$fx.'-fx '.$order.'-order duration-'.$duration.' delay-'.$delay.'">';
 		$string .= '<li class="clear"><img src="'.$imgsrc.'" width="'.$width.'" height="'.$height.'" /></li>';
-		foreach ($obj->products as $Product) {
+		foreach ($O->products as $Product) {
 			if (empty($Product->images)) continue;
 			$string .= '<li><a href="'.$Product->tag('url').'">';
 			$string .= $Product->tag('image',array('width'=>$width,'height'=>$height,'fit'=>$fit));
@@ -655,29 +655,29 @@ class ShoppCategoryAPI {
 		return $string;
 	}
 
-	function slug ($result, $options, $obj) { return urldecode($obj->slug); }
+	function slug ($result, $options, $O) { return urldecode($O->slug); }
 
-	function subcategories ($result, $options, $obj) {
-		if (!isset($obj->_children_loop)) {
-			reset($obj->children);
-			$obj->child = current($obj->children);
-			$obj->_cindex = 0;
-			$obj->_children_loop = true;
+	function subcategories ($result, $options, $O) {
+		if (!isset($O->_children_loop)) {
+			reset($O->children);
+			$O->child = current($O->children);
+			$O->_cindex = 0;
+			$O->_children_loop = true;
 		} else {
-			$obj->child = next($obj->children);
-			$obj->_cindex++;
+			$O->child = next($O->children);
+			$O->_cindex++;
 		}
 
-		if ($obj->child !== false) return true;
+		if ($O->child !== false) return true;
 		else {
-			unset($obj->_children_loop);
-			$obj->_cindex = 0;
-			$obj->child = false;
+			unset($O->_children_loop);
+			$O->_cindex = 0;
+			$O->child = false;
 			return false;
 		}
 	}
 
-	function subcategorylist ($result, $options, $obj) {
+	function subcategorylist ($result, $options, $O) {
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 
@@ -705,8 +705,8 @@ class ShoppCategoryAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		if (!$obj->children) $obj->load_children(array('orderby'=>$orderby,'order'=>$order));
-		if (empty($obj->children)) return false;
+		if (!$O->children) $O->load_children(array('orderby'=>$orderby,'order'=>$order));
+		if (empty($O->children)) return false;
 
 		$string = "";
 		$depthlimit = $depth;
@@ -718,9 +718,9 @@ class ShoppCategoryAPI {
 		if (value_is_true($dropdown)) {
 			$count = 0;
 			$string .= $title;
-			$string .= '<select name="shopp_cats" id="shopp-'.$obj->slug.'-subcategories-menu" class="shopp-categories-menu">';
+			$string .= '<select name="shopp_cats" id="shopp-'.$O->slug.'-subcategories-menu" class="shopp-categories-menu">';
 			$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
-			foreach ($obj->children as &$category) {
+			foreach ($O->children as &$category) {
 				if (!empty($show) && $count+1 > $show) //break;
 				if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
 				if ($category->products == 0) continue; // Only show categories with products
@@ -746,7 +746,7 @@ class ShoppCategoryAPI {
 			if (!empty($class)) $classes = ' class="'.$class.'"';
 			$string .= $title.'<ul'.$classes.'>';
 			$count = 0;
-			foreach ($obj->children as &$category) {
+			foreach ($O->children as &$category) {
 				if (!isset($category->total)) $category->total = 0;
 				if (!isset($category->depth)) $category->depth = 0;
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
@@ -814,9 +814,9 @@ class ShoppCategoryAPI {
 		return $string;
 	}
 
-	function total ($result, $options, $obj) { return $obj->loaded?$obj->total:false; }
+	function total ($result, $options, $O) { return $O->loaded?$O->total:false; }
 
-	function url ($result, $options, $obj) { return shoppurl(SHOPP_PRETTYURLS?'category/'.$obj->uri:array('s_cat'=>$obj->id)); }
+	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?'category/'.$O->uri:array('s_cat'=>$O->id)); }
 
 }
 
