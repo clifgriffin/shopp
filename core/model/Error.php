@@ -37,7 +37,6 @@ define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
  **/
 class ShoppErrors {
 
-	var $api = 'error';
 	var $errors = array();				// Error message registry
 	var $notifications;					// Notification subscription registry
 	var $reporting = SHOPP_ALL_ERR;		// level of reporting
@@ -211,16 +210,25 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 1.2
 	 *
 	 * @param string $property The error property for the tag
 	 * @param array $options Tag options
 	 * @return void
 	 **/
 	function tag ($property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp($this,$property,$options);
+		global $Shopp;
+		if (empty($options)) return false;
+		switch ($property) {
+			case "trxn": new ShoppError(key($options),'template_error',SHOPP_TRXN_ERR); break;
+			case "auth": new ShoppError(key($options),'template_error',SHOPP_AUTH_ERR); break;
+			case "addon": new ShoppError(key($options),'template_error',SHOPP_ADDON_ERR); break;
+			case "comm": new ShoppError(key($options),'template_error',SHOPP_COMM_ERR); break;
+			case "stock": new ShoppError(key($options),'template_error',SHOPP_STOCK_ERR); break;
+			case "admin": new ShoppError(key($options),'template_error',SHOPP_ADMIN_ERR); break;
+			case "db": new ShoppError(key($options),'template_error',SHOPP_DB_ERR); break;
+			case "debug": new ShoppError(key($options),'template_error',SHOPP_DEBUG_ERR); break;
+			default: new ShoppError(key($options),'template_error',SHOPP_ERR); break;
+		}
 	}
 
 }

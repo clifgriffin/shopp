@@ -15,7 +15,6 @@
 require("Item.php");
 
 class Cart {
-	var $api = 'cart';
 
 	// properties
 	var $contents = array();	// The contents (Items) of the cart
@@ -605,13 +604,277 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 2.1
+	 *
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp($this,$property,$options);
+		global $Shopp;
+		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
+
+		// Return strings with no options
+		switch ($property) {
+			case "url": return shoppurl(false,'cart'); break;
+			case "referrer":
+			case "referer":
+				$referrer = $Shopp->Shopping->data->referrer;
+				if (!$referrer) $referrer = shopp('catalog','url','return=1');
+				return $referrer;
+				break;
+			case "hasitems":
+			case "has-items": return (count($this->contents) > 0); break;
+			case "totalitems":
+			case "total-items": return $this->Totals->quantity; break;
+			case "items":
+				if (!isset($this->_item_loop)) {
+					reset($this->contents);
+					$this->_item_loop = true;
+				} else next($this->contents);
+
+				if (current($this->contents)) return true;
+				else {
+					unset($this->_item_loop);
+					reset($this->contents);
+					return false;
+				}
+				break;
+			case "hasshipped":
+			case "has-shipped": return $this->shipped(); break;
+			case "shippeditems":
+			case "shipped-items":
+				if (!isset($this->_shipped_loop)) {
+					reset($this->shipped);
+					$this->_shipped_loop = true;
+				} else next($this->shipped);
+
+				if (current($this->shipped)) return true;
+				else {
+					unset($this->_shipped_loop);
+					reset($this->shipped);
+					return false;
+				}
+				break;
+			case "hasdownloads":
+			case "has-downloads": return $this->downloads(); break;
+			case "downloaditems":
+			case "download-items":
+				if (!isset($this->_downloads_loop)) {
+					reset($this->downloads);
+					$this->_downloads_loop = true;
+				} else next($this->downloads);
+
+				if (current($this->downloads)) return true;
+				else {
+					unset($this->_downloads_loop);
+					reset($this->downloads);
+					return false;
+				}
+				break;
+			case "lastitem":
+			case "last-item": return $this->contents[$this->added]; break;
+			case "totalpromos":
+			case "total-promos": return count($this->discounts); break;
+			case "haspromos":
+			case "has-promos": return (count($this->discounts) > 0); break;
+			case "discounts":
+			case "promos":
+				if (!isset($this->_promo_looping)) {
+					reset($this->discounts);
+					$this->_promo_looping = true;
+				} else next($this->discounts);
+
+				$discount = current($this->discounts);
+				while ($discount && empty($discount->applied) && !$discount->freeshipping)
+					$discount = next($this->discounts);
+
+				if (current($this->discounts)) return true;
+				else {
+					unset($this->_promo_looping);
+					reset($this->discounts);
+					return false;
+				}
+			case "promoname":
+			case "promo-name":
+				$discount = current($this->discounts);
+				if ($discount->applied == 0 && empty($discount->items) && !isset($this->freeshipping)) return false;
+				return $discount->name;
+				break;
+			case "promodiscount":
+			case "promo-discount":
+				$discount = current($this->discounts);
+				if ($discount->applied == 0 && empty($discount->items) && !isset($this->freeshipping)) return false;
+				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
+				else $options['label'] = ' '.$options['label'];
+				$string = false;
+				if (!empty($options['before'])) $string = $options['before'];
+
+				switch($discount->type) {
+					case "Free Shipping": $string .= money($discount->freeshipping).$options['label']; break;
+					case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
+					case "Amount Off": $string .= money($discount->discount).$options['label']; break;
+					case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
+				}
+				if (!empty($options['after'])) $string .= $options['after'];
+
+				return $string;
+				break;
+			case "function":
+				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
+
+				$Errors = &ShoppErrors();
+				if (!$Errors->exist(SHOPP_STOCK_ERR)) return $result;
+
+				ob_start();
+				include(SHOPP_TEMPLATES."/errors.php");
+				$errors = ob_get_contents();
+				ob_end_clean();
+				return $result.$errors;
+				break;
+			case "emptybutton":
+			case "empty-button":
+				if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
+				return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
+				break;
+			case "updatebutton":
+			case "update-button":
+				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
+				if (isset($options['class'])) $options['class'] .= " update-button";
+				else $options['class'] = "update-button";
+				return '<input type="submit" name="update"'.inputattrs($options,$submit_attrs).' />';
+				break;
+			case "sidecart":
+				ob_start();
+				include(SHOPP_TEMPLATES."/sidecart.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+			case "hasdiscount":
+			case "has-discount": return ($this->Totals->discount > 0); break;
+			case "discount": return money($this->Totals->discount); break;
+		}
+
+		$result = "";
+		switch ($property) {
+			case "promos-available":
+				if (!$Shopp->Promotions->available()) return false;
+				// Skip if the promo limit has been reached
+				if ($Shopp->Settings->get('promo_limit') > 0 &&
+					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+				return true;
+				break;
+			case "promo-code":
+				// Skip if no promotions exist
+				if (!$Shopp->Promotions->available()) return false;
+				// Skip if the promo limit has been reached
+				if ($Shopp->Settings->get('promo_limit') > 0 &&
+					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
+				$result = '<ul><li>';
+
+				if ($Shopp->Errors->exist()) {
+					$result .= '<p class="error">';
+					$errors = $Shopp->Errors->source('CartDiscounts');
+					foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message(true,false);
+					$result .= '</p>';
+				}
+
+				$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
+				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
+				$result .= '</li></ul>';
+				return $result;
+			case "has-shipping-methods":
+				return apply_filters(
+							'shopp_shipping_hasestimates',
+							(!empty($this->shipping) && !$this->noshipping),
+							$this->shipping
+						); break;
+			case "needs-shipped": return (!empty($this->shipped)); break;
+			case "hasshipcosts":
+			case "has-shipcosts":
+			case "hasship-costs":
+			case "has-ship-costs": return ($this->Totals->shipping > 0); break;
+			case "needs-shipping-estimates":
+				$markets = $Shopp->Settings->get('target_markets');
+				return (!empty($this->shipped) && !$this->noshipping && ($this->showpostcode || count($markets) > 1));
+				break;
+			case "shipping-estimates":
+				if (empty($this->shipped)) return "";
+				$base = $Shopp->Settings->get('base_operations');
+				$markets = $Shopp->Settings->get('target_markets');
+				$Shipping = &$Shopp->Order->Shipping;
+				if (empty($markets)) return "";
+				foreach ($markets as $iso => $country) $countries[$iso] = $country;
+				if (!empty($Shipping->country)) $selected = $Shipping->country;
+				else $selected = $base['country'];
+				$postcode = false;
+				$result .= '<ul><li>';
+				if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $this->showpostcode) {
+					$postcode = true;
+					$result .= '<span>';
+					$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
+					$result .= '</span>';
+				}
+				if (count($countries) > 1) {
+					$result .= '<span>';
+					$result .= '<select name="shipping[country]" id="shipping-country">';
+					$result .= menuoptions($countries,$selected,true);
+					$result .= '</select>';
+					$result .= '</span>';
+				} else $result .= '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
+				if ($postcode) {
+					$result .= '</li><li>';
+					$result .= shopp('cart','update-button',array('value' => __('Estimate Shipping & Taxes','Shopp'),'return'=>'1'));
+				}
+
+				$result .= '</li></ul>';
+				return $result;
+				break;
+		}
+
+		$result = "";
+		switch ($property) {
+			case "subtotal": $result = $this->Totals->subtotal; break;
+			case "shipping":
+				if (empty($this->shipped)) return "";
+				if (isset($options['label'])) {
+					$options['currency'] = "false";
+					if ($this->freeshipping) {
+						$result = $Shopp->Settings->get('free_shipping_text');
+						if (empty($result)) $result = __('Free Shipping!','Shopp');
+					}
+
+					else $result = $options['label'];
+				} else {
+					if ($this->Totals->shipping === null)
+						return __("Enter Postal Code","Shopp");
+					elseif ($this->Totals->shipping === false)
+						return __("Not Available","Shopp");
+					else $result = $this->Totals->shipping;
+				}
+				break;
+			case "hastaxes":
+			case "has-taxes":
+				return ($this->Totals->tax > 0); break;
+			case "tax":
+				if ($this->Totals->tax > 0) {
+					if (isset($options['label'])) {
+						$options['currency'] = "false";
+						$result = $options['label'];
+					} else $result = $this->Totals->tax;
+				} else $options['currency'] = "false";
+				break;
+			case "total":
+				$result = $this->Totals->total;
+				break;
+		}
+
+		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
+		if (is_numeric($result)) {
+			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
+			return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+		}
+
+		return false;
 	}
 
 	/**
@@ -619,7 +882,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 2.1
+	 *
 	 * @return mixed
 	 **/
 	function itemtag ($property,$options=array()) {
@@ -642,13 +905,91 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 1.2
+	 *
 	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
-		if (is_array($options)) $options['return'] = 'on';
-		else $options .= (!empty($options)?"&":"").'return=on';
-		return shopp('shipping',$property,$options);
+		global $Shopp;
+		$result = "";
+
+		switch ($property) {
+			case "url": return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart');
+			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping)); break;
+			case "options":
+			case "methods":
+				if (!isset($this->sclooping)) $this->sclooping = false;
+				if (!$this->sclooping) {
+					reset($this->shipping);
+					$this->sclooping = true;
+				} else next($this->shipping);
+
+				if (current($this->shipping) !== false) return true;
+				else {
+					$this->sclooping = false;
+					reset($this->shipping);
+					return false;
+				}
+				break;
+			case "option-menu":
+			case "method-menu":
+				// @todo Add options for differential pricing and estimated delivery dates
+				$_ = array();
+				$_[] = '<select name="shipmethod" class="shopp shipmethod">';
+				foreach ($this->shipping as $method) {
+					$selected = ((isset($Shopp->Order->Shipping->method) &&
+						$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
+
+					$_[] = '<option value="'.$method->name.'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
+				}
+				$_[] = '</select>';
+				return join("",$_);
+				break;
+			case "option-name":
+			case "method-name":
+				$option = current($this->shipping);
+				return $option->name;
+				break;
+			case "method-selected":
+				$method = current($this->shipping);
+				return ((isset($Shopp->Order->Shipping->method) &&
+					$Shopp->Order->Shipping->method == $method->name));
+				break;
+			case "option-cost":
+			case "method-cost":
+				$option = current($this->shipping);
+				return money($option->amount);
+				break;
+			case "method-selector":
+				$method = current($this->shipping);
+
+				$checked = '';
+				if ((isset($Shopp->Order->Shipping->method) &&
+					$Shopp->Order->Shipping->method == $method->name))
+						$checked = ' checked="checked"';
+
+				$result = '<input type="radio" name="shipmethod" value="'.urlencode($method->name).'" class="shopp shipmethod" '.$checked.' />';
+				return $result;
+
+				break;
+			case "option-delivery":
+			case "method-delivery":
+				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+				$option = current($this->shipping);
+				if (!$option->delivery) return "";
+				$estimates = explode("-",$option->delivery);
+				$format = get_option('date_format');
+				if (count($estimates) > 1
+					&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+				$result = "";
+				for ($i = 0; $i < count($estimates); $i++) {
+					list($interval,$p) = sscanf($estimates[$i],'%d%s');
+					if (empty($interval)) $interval = 1;
+					if (empty($p)) $p = 'd';
+					if (!empty($result)) $result .= "&mdash;";
+					$result .= _d($format,mktime()+($interval*$periods[$p]));
+				}
+				return $result;
+		}
 	}
 
 
