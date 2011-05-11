@@ -65,12 +65,12 @@ class ShoppProductAPI {
 				reset($O->prices);
 				$O->priceloop = true;
 			} else next($O->prices);
-			$thisprice = current($O->prices);
+			$Oprice = current($O->prices);
 
-			if ($thisprice && $thisprice->type == "N/A")
+			if ($Oprice && $Oprice->type == "N/A")
 				next($O->prices);
 
-			if ($thisprice && $thisprice->context != "addon")
+			if ($Oprice && $Oprice->context != "addon")
 				next($O->prices);
 
 			if (current($O->prices) !== false) return true;
@@ -106,8 +106,8 @@ class ShoppProductAPI {
 				if ($pricetag->context != "addon") continue;
 
 				if (isset($options['taxes']))
-					$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$this);
-				else $taxrate = shopp_taxrate(null,$pricetag->tax,$this);
+					$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$O);
+				else $taxrate = shopp_taxrate(null,$pricetag->tax,$O);
 				$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 				$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
@@ -122,7 +122,7 @@ class ShoppProductAPI {
 		} else {
 			if (!isset($O->options['a'])) return;
 
-			$taxrate = shopp_taxrate($options['taxes'],true,$this);
+			$taxrate = shopp_taxrate($options['taxes'],true,$O);
 
 			// Index addon prices by option
 			$pricing = array();
@@ -142,8 +142,8 @@ class ShoppProductAPI {
 					$pricetag = $pricing[$option['id']];
 
 					if (isset($options['taxes']))
-						$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$this);
-					else $taxrate = shopp_taxrate(null,$pricetag->tax,$this);
+						$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$O);
+					else $taxrate = shopp_taxrate(null,$pricetag->tax,$O);
 
 					$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 					if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
@@ -620,13 +620,13 @@ class ShoppProductAPI {
 		$max = $O->max[$property];
 		$maxtax = $O->max[$property.'_tax'];
 
-		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$this);
+		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$O);
 
 		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
 		else $pricetag = $O->prices[0]->price;
 
 		if (count($O->options) > 0) {
-			$taxrate = shopp_taxrate($taxes,true,$this);
+			$taxrate = shopp_taxrate($taxes,true,$O);
 			$mintax = $mintax?$min*$taxrate:0;
 			$maxtax = $maxtax?$max*$taxrate:0;
 
@@ -817,7 +817,7 @@ class ShoppProductAPI {
 		}
 	}
 
-	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$this); }
+	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$O); }
 
 	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?$O->slug:array('s_pid'=>$O->id)); }
 
@@ -827,7 +827,7 @@ class ShoppProductAPI {
 
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 		else $options['taxes'] = value_is_true($options['taxes']);
-		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$this);
+		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$O);
 
 		$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
 
@@ -921,8 +921,8 @@ class ShoppProductAPI {
 			$precision = $baseop['currency']['format']['precision'];
 
 			if (!isset($options['taxes']))
-				$taxrate = shopp_taxrate(null,true,$this);
-			else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$this);
+				$taxrate = shopp_taxrate(null,true,$O);
+			else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$O);
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {

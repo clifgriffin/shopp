@@ -64,7 +64,7 @@ class ShoppCartItemAPI {
 	function unitprice ($result, $options, $O) {
 		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
 		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$O->taxable,$this) > 0?true:false;
+			$taxes = shopp_taxrate($taxes,$O->taxable,$O) > 0?true:false;
 		return (float)$O->unitprice+($taxes?$O->unittax:0);
 	}
 
@@ -77,7 +77,7 @@ class ShoppCartItemAPI {
 	function total ($result, $options, $O) {
 		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
 		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$O->taxable,$this) > 0?true:false;
+			$taxes = shopp_taxrate($taxes,$O->taxable,$O) > 0?true:false;
 		return (float)$O->total+($taxes?($O->unittax*$O->quantity):0);
 	}
 
