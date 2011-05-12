@@ -1728,12 +1728,13 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 
+	$path[] = Storefront::slug('catalog');
+
 	// Build request path based on Storefront shopp_page requested
 	if ('images' == $page) {
 		$path[] = 'images';
 		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
 	} else {
-		$path[] = Storefront::slug('catalog');
 		if ($page != 'catalog') {
 			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
 			$page_slug = Storefront::slug($page);
