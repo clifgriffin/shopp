@@ -22,6 +22,8 @@
  **/
 abstract class ModuleLoader {
 
+	protected $loader = 'ModuleFile'; // Module File load manager
+
 	var $legacy = array();		// Legacy module checksums
 	var $modules = array();		// Installed available modules
 	var $activated = array();	// List of selected modules to be activated
@@ -48,7 +50,8 @@ abstract class ModuleLoader {
 			// Skip if the file can't be read or isn't a real file at all
 			if (!is_readable($path.$file) && !is_dir($path.$file)) continue;
 			// Add the module file to the registry
-			$module = new ModuleFile($path,$file);
+			$Loader = $this->loader;
+			$module = new $Loader($path,$file);
 			if ($module->addon) $this->modules[$module->subpackage] = $module;
 			else $this->legacy[] = md5_file($path.$file);
 		}
