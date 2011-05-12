@@ -52,7 +52,7 @@ class ShoppCatalogAPI {
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
-
+		return false; // @todo Fix CatalogAPI breadcrumb
 		if (isset($Shopp->Category->controls)) return false;
 		if (empty($O->categories)) $O->load_categories(array('outofstock' => true));
 
