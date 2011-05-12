@@ -678,11 +678,14 @@ abstract class DatabaseObject implements Iterator {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @version 1.2
 	 *
+	 * @param string $op (optional) Force DB operation of either INSERT or UPDATE
 	 * @return boolean|int Returns true when UPDATEs are successful; returns an integer with the record ID
 	 **/
-	function save () {
+	function save ($op='update') {
 		$data = DB::prepare($this,$this->_map);
+		$op = strtolower($op);
 
 		$id = $this->{$this->_key};
 		if (!empty($this->_map)) {
@@ -691,13 +694,7 @@ abstract class DatabaseObject implements Iterator {
 				$id = $this->{$remap[$this->_key]};
 		}
 
-		if (!empty($id)) {
-			// Update record
-			if (isset($data['modified'])) $data['modified'] = "now()";
-			$dataset = $this->dataset($data);
-			DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
-			return true;
-		} else {
+		if (empty($id) || $op != 'update') {
 			// Insert new record
 			if (isset($data['created'])) $data['created'] = "now()";
 			if (isset($data['modified'])) $data['modified'] = "now()";
@@ -705,6 +702,12 @@ abstract class DatabaseObject implements Iterator {
 			$this->id = DB::query("INSERT $this->_table SET $dataset");
 			return $this->id;
 		}
+
+		// Update record
+		if (isset($data['modified'])) $data['modified'] = "now()";
+		$dataset = $this->dataset($data);
+		DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
+		return true;
 
 	}
 
