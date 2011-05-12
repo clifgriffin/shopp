@@ -180,7 +180,7 @@ class ShoppProductAPI {
 
 		if (!empty($Shopp->Category)) {
 			if (SHOPP_PRETTYURLS)
-				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.$Shopp->Category->uri.'" />';
+				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.$Shopp->Category->slug.'" />';
 			else
 				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';
 		}
@@ -607,7 +607,8 @@ class ShoppProductAPI {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'taxes' => null,
-			'starting' => ''
+			'starting' => '',
+			'property' => 'price'
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
@@ -625,7 +626,7 @@ class ShoppProductAPI {
 		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
 		else $pricetag = $O->prices[0]->price;
 
-		if (count($O->options) > 0) {
+		if (count($O->prices) > 0) {
 			$taxrate = shopp_taxrate($taxes,true,$O);
 			$mintax = $mintax?$min*$taxrate:0;
 			$maxtax = $maxtax?$max*$taxrate:0;
