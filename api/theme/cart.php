@@ -1,42 +1,13 @@
 <?php
-
-add_filter('shoppapi_cart', array('ShoppCartAPI', '_cart'), 10, 4); // default filter
-
-add_filter('shoppapi_cart_url', array('ShoppCartAPI', 'url'), 10, 3);
-add_filter('shoppapi_cart_referrer', array('ShoppCartAPI', 'referrer'), 10, 3);
-add_filter('shoppapi_cart_referer', array('ShoppCartAPI', 'referrer'), 10, 3);
-add_filter('shoppapi_cart_hasitems', array('ShoppCartAPI', 'has_items'), 10, 3);
-add_filter('shoppapi_cart_totalitems', array('ShoppCartAPI', 'total_items'), 10, 3);
-add_filter('shoppapi_cart_items', array('ShoppCartAPI', 'items'), 10, 3);
-add_filter('shoppapi_cart_hasshipped', array('ShoppCartAPI', 'has_shipped'), 10, 3);
-add_filter('shoppapi_cart_shippeditems', array('ShoppCartAPI', 'shipped_items'), 10, 3);
-add_filter('shoppapi_cart_hasdownloads', array('ShoppCartAPI', 'has_downloads'), 10, 3);
-add_filter('shoppapi_cart_downloaditems', array('ShoppCartAPI', 'download_items'), 10, 3);
-add_filter('shoppapi_cart_lastitem', array('ShoppCartAPI', 'last_item'), 10, 3);
-add_filter('shoppapi_cart_totalpromos', array('ShoppCartAPI', 'total_promos'), 10, 3);
-add_filter('shoppapi_cart_haspromos', array('ShoppCartAPI', 'has_promos'), 10, 3);
-add_filter('shoppapi_cart_discounts', array('ShoppCartAPI', 'discounts'), 10, 3);
-add_filter('shoppapi_cart_promos', array('ShoppCartAPI', 'promos'), 10, 3);
-add_filter('shoppapi_cart_promoname', array('ShoppCartAPI', 'promo_name'), 10, 3);
-add_filter('shoppapi_cart_promodiscount', array('ShoppCartAPI', 'promo_discount'), 10, 3);
-add_filter('shoppapi_cart_function', array('ShoppCartAPI', 'cart_function'), 10, 3);
-add_filter('shoppapi_cart_emptybutton', array('ShoppCartAPI', 'empty_button'), 10, 3);
-add_filter('shoppapi_cart_updatebutton', array('ShoppCartAPI', 'update_button'), 10, 3);
-add_filter('shoppapi_cart_sidecart', array('ShoppCartAPI', 'sidecart'), 10, 3);
-add_filter('shoppapi_cart_hasdiscount', array('ShoppCartAPI', 'has_discount'), 10, 3);
-add_filter('shoppapi_cart_discount', array('ShoppCartAPI', 'discount'), 10, 3);
-add_filter('shoppapi_cart_promosavailable', array('ShoppCartAPI', 'promos_available'), 10, 3);
-add_filter('shoppapi_cart_promocode', array('ShoppCartAPI', 'promocode'), 10, 3);
-add_filter('shoppapi_cart_hasshippingmethods', array('ShoppCartAPI', 'has_shippingmethods'), 10, 3);
-add_filter('shoppapi_cart_needsshipped', array('ShoppCartAPI', 'needs_shipped'), 10, 3);
-add_filter('shoppapi_cart_hasshipcosts', array('ShoppCartAPI', 'has_ship_costs'), 10, 3);
-add_filter('shoppapi_cart_needsshippingestimates', array('ShoppCartAPI', 'needs_shipping_estimates'), 10, 3);
-add_filter('shoppapi_cart_shippingestimates', array('ShoppCartAPI', 'shipping_estimates'), 10, 3);
-add_filter('shoppapi_cart_subtotal', array('ShoppCartAPI', 'subtotal'), 10, 3);
-add_filter('shoppapi_cart_shipping', array('ShoppCartAPI', 'shipping'), 10, 3);
-add_filter('shoppapi_cart_hastaxes', array('ShoppCartAPI', 'hastaxes'), 10, 3);
-add_filter('shoppapi_cart_tax', array('ShoppCartAPI', 'tax'), 10, 3);
-add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
+/**
+* ShoppCartThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCartThemeAPI
+*
+**/
 
 /**
  * Provides shopp('cart') theme api functionality
@@ -45,7 +16,61 @@ add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
  * @since 1.2
  *
  **/
-class ShoppCartAPI {
+class ShoppCartThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'_cart',
+		'url' => 'url',
+		'referrer' => 'referrer',
+		'referer' => 'referrer',
+		'hasitems' => 'has_items',
+		'totalitems' => 'total_items',
+		'items' => 'items',
+		'hasshipped' => 'has_shipped',
+		'shippeditems' => 'shipped_items',
+		'hasdownloads' => 'has_downloads',
+		'downloaditems' => 'download_items',
+		'lastitem' => 'last_item',
+		'totalpromos' => 'total_promos',
+		'haspromos' => 'has_promos',
+		'discounts' => 'discounts',
+		'promos' => 'promos',
+		'promoname' => 'promo_name',
+		'promodiscount' => 'promo_discount',
+		'function' => 'cart_function',
+		'emptybutton' => 'empty_button',
+		'updatebutton' => 'update_button',
+		'sidecart' => 'sidecart',
+		'hasdiscount' => 'has_discount',
+		'discount' => 'discount',
+		'promosavailable' => 'promos_available',
+		'promocode' => 'promocode',
+		'hasshippingmethods' => 'has_shippingmethods',
+		'needsshipped' => 'needs_shipped',
+		'hasshipcosts' => 'has_ship_costs',
+		'needsshippingestimates' => 'needs_shipping_estimates',
+		'shippingestimates' => 'shipping_estimates',
+		'subtotal' => 'subtotal',
+		'shipping' => 'shipping',
+		'hastaxes' => 'hastaxes',
+		'tax' => 'tax',
+		'total' => 'total'
+	);
+
+	/**
+	 * _context - returns the global context object used in the shopp('cart') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ($Object, $object) {
+		if ( strtolower($object) != 'cart' ) return $Object; // not mine, do nothing
+		else {
+			$Order =& ShoppOrder();
+			return $Order->Cart;
+		}
+	}
+
 	function _cart ($result, $options, $property, $O) {
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 		if (is_numeric($result)) {

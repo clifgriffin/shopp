@@ -1,13 +1,13 @@
 <?php
-
-add_filter('shoppapi_error_trxn', array('ShoppErrorAPI', 'trxn'),10, 3);
-add_filter('shoppapi_error_auth', array('ShoppErrorAPI', 'auth'),10, 3);
-add_filter('shoppapi_error_addon', array('ShoppErrorAPI', 'addon'),10, 3);
-add_filter('shoppapi_error_comm', array('ShoppErrorAPI', 'comm'),10, 3);
-add_filter('shoppapi_error_stock', array('ShoppErrorAPI', 'stock'),10, 3);
-add_filter('shoppapi_error_admin', array('ShoppErrorAPI', 'admin'),10, 3);
-add_filter('shoppapi_error_db', array('ShoppErrorAPI', 'db'),10, 3);
-add_filter('shoppapi_error_debug', array('ShoppErrorAPI', 'debug'),10, 3);
+/**
+* ShoppErrorThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppErrorThemeAPI
+*
+**/
 
 /**
  * Provides functionality for the shopp('error') tags
@@ -18,7 +18,31 @@ add_filter('shoppapi_error_debug', array('ShoppErrorAPI', 'debug'),10, 3);
  * @since 1.2
  *
  **/
-class ShoppErrorAPI {
+class ShoppErrorThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'trxn' => 'trxn',
+		'auth' => 'auth',
+		'addon' => 'addon',
+		'comm' => 'comm',
+		'stock' => 'stock',
+		'admin' => 'admin',
+		'db' => 'db',
+		'debug' => 'debug'
+	);
+
+	/**
+	 * _context - returns the global context object used in the shopp('error') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ($Object, $object) {
+		if ( strtolower($object) != 'error' ) return false; // not mine
+		return ShoppErrors();
+	}
+
+
 	function trxn ($result, $options, $O) { if (empty($options)) return false; new ShoppError(key($options),'template_error',SHOPP_TRXN_ERR); }
 
 	function auth ($result, $options, $O) { if (empty($options)) return false; new ShoppError(key($options),'template_error',SHOPP_AUTH_ERR); }

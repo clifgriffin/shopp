@@ -1,20 +1,13 @@
 <?php
-
-add_filter('shoppapi_shipping_url', array('ShoppCartShippingAPI', 'url'), 10, 3);
-add_filter('shoppapi_shipping_hasestimates', array('ShoppCartShippingAPI', 'has_estimates'), 10, 3);
-add_filter('shoppapi_shipping_options', array('ShoppCartShippingAPI', 'options'), 10, 3);
-add_filter('shoppapi_shipping_methods', array('ShoppCartShippingAPI', 'options'), 10, 3);
-add_filter('shoppapi_shipping_optionmenu', array('ShoppCartShippingAPI', 'option_menu'), 10, 3);
-add_filter('shoppapi_shipping_methodmenu', array('ShoppCartShippingAPI', 'option_menu'), 10, 3);
-add_filter('shoppapi_shipping_optionname', array('ShoppCartShippingAPI', 'option_name'), 10, 3);
-add_filter('shoppapi_shipping_methodname', array('ShoppCartShippingAPI', 'option_name'), 10, 3);
-add_filter('shoppapi_shipping_methodselected', array('ShoppCartShippingAPI', 'method_selected'), 10, 3);
-add_filter('shoppapi_shipping_optioncost', array('ShoppCartShippingAPI', 'option_cost'), 10, 3);
-add_filter('shoppapi_shipping_methodcost', array('ShoppCartShippingAPI', 'option_cost'), 10, 3);
-add_filter('shoppapi_shipping_methodselector', array('ShoppCartShippingAPI', 'method_selector'), 10, 3);
-add_filter('shoppapi_shipping_optiondelivery', array('ShoppCartShippingAPI', 'option_delivery'), 10, 3);
-add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'option_delivery'), 10, 3);
-
+/**
+* ShoppShippingThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppShippingThemeAPI
+*
+**/
 
 /**
  * Provides shopp('shipping') theme API functionality
@@ -25,7 +18,39 @@ add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'op
  * @since 1.2
  *
  **/
-class ShoppCartShippingAPI {
+class ShoppShippingThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+	'url' => 'url',
+	'hasestimates' => 'has_estimates',
+	'options' => 'options',
+	'methods' => 'options',
+	'optionmenu' => 'option_menu',
+	'methodmenu' => 'option_menu',
+	'optionname' => 'option_name',
+	'methodname' => 'option_name',
+	'methodselected' => 'method_selected',
+	'optioncost' => 'option_cost',
+	'methodcost' => 'option_cost',
+	'methodselector' => 'method_selector',
+	'optiondelivery' => 'option_delivery',
+	'methoddelivery' => 'option_delivery'
+	);
+
+	/**
+	 * _context - returns the global context object used in the shopp('cart') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ($Object, $object) {
+		if ( strtolower($object) != 'shipping' ) return $Object; // not mine, do nothing
+		else {
+			$Order =& ShoppOrder();
+			return $Order->Cart;
+		}
+	}
+
 	function has_estimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
 	function method_selector ($result, $options, $O) {
