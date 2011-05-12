@@ -1,73 +1,13 @@
 <?php
-
-add_filter('shoppapi_checkout_billingaddress', array('ShoppCheckoutAPI','billing_address'), 10, 3);
-add_filter('shoppapi_checkout_billingcard', array('ShoppCheckoutAPI','billing_card'), 10, 3);
-add_filter('shoppapi_checkout_billingcardexpiresmm', array('ShoppCheckoutAPI','billing_card_expires_mm'), 10, 3);
-add_filter('shoppapi_checkout_billingcardexpiresyy', array('ShoppCheckoutAPI','billing_card_expires_yy'), 10, 3);
-add_filter('shoppapi_checkout_billingcardholder', array('ShoppCheckoutAPI','billing_card_holder'), 10, 3);
-add_filter('shoppapi_checkout_billingcardtype', array('ShoppCheckoutAPI','billing_card_type'), 10, 3);
-add_filter('shoppapi_checkout_billingcity', array('ShoppCheckoutAPI','billing_city'), 10, 3);
-add_filter('shoppapi_checkout_billingcountry', array('ShoppCheckoutAPI','billing_country'), 10, 3);
-add_filter('shoppapi_checkout_billingcvv', array('ShoppCheckoutAPI','billing_cvv'), 10, 3);
-add_filter('shoppapi_checkout_billinglocale', array('ShoppCheckoutAPI','billing_locale'), 10, 3);
-add_filter('shoppapi_checkout_billinglocalities', array('ShoppCheckoutAPI','billing_localities'), 10, 3);
-add_filter('shoppapi_checkout_billingpostcode', array('ShoppCheckoutAPI','billing_postcode'), 10, 3);
-add_filter('shoppapi_checkout_billingprovince', array('ShoppCheckoutAPI','billing_state'), 10, 3);
-add_filter('shoppapi_checkout_billingstate', array('ShoppCheckoutAPI','billing_state'), 10, 3);
-add_filter('shoppapi_checkout_billingrequired', array('ShoppCheckoutAPI','card_required'), 10, 3);
-add_filter('shoppapi_checkout_cardrequired', array('ShoppCheckoutAPI','card_required'), 10, 3);
-add_filter('shoppapi_checkout_billingxaddress', array('ShoppCheckoutAPI','billing_xaddress'), 10, 3);
-add_filter('shoppapi_checkout_billingxco', array('ShoppCheckoutAPI','billing_xco'), 10, 3);
-add_filter('shoppapi_checkout_billingxcsc', array('ShoppCheckoutAPI','billing_xcsc'), 10, 3);
-add_filter('shoppapi_checkout_billingxcscrequired', array('ShoppCheckoutAPI','billing_xcsc_required'), 10, 3);
-add_filter('shoppapi_checkout_cartsummary', array('ShoppCheckoutAPI','cart_summary'), 10, 3);
-add_filter('shoppapi_checkout_completed', array('ShoppCheckoutAPI','completed'), 10, 3);
-add_filter('shoppapi_checkout_confirmbutton', array('ShoppCheckoutAPI','confirm_button'), 10, 3);
-add_filter('shoppapi_checkout_confirmpassword', array('ShoppCheckoutAPI','confirm_password'), 10, 3);
-add_filter('shoppapi_checkout_customerinfo', array('ShoppCheckoutAPI','customer_info'), 10, 3);
-add_filter('shoppapi_checkout_data', array('ShoppCheckoutAPI','data'), 10, 3);
-add_filter('shoppapi_checkout_email', array('ShoppCheckoutAPI','email'), 10, 3);
-add_filter('shoppapi_checkout_emaillogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
-add_filter('shoppapi_checkout_loginnamelogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
-add_filter('shoppapi_checkout_accountlogin', array('ShoppCheckoutAPI','account_login'), 10, 3);
-add_filter('shoppapi_checkout_errors', array('ShoppCheckoutAPI','error'), 10, 3);
-add_filter('shoppapi_checkout_error', array('ShoppCheckoutAPI','error'), 10, 3);
-add_filter('shoppapi_checkout_firstname', array('ShoppCheckoutAPI','first_name'), 10, 3);
-add_filter('shoppapi_checkout_function', array('ShoppCheckoutAPI','checkout_function'), 10, 3);
-add_filter('shoppapi_checkout_gatewayinputs', array('ShoppCheckoutAPI','gateway_inputs'), 10, 3);
-add_filter('shoppapi_checkout_hasdata', array('ShoppCheckoutAPI','has_data'), 10, 3);
-add_filter('shoppapi_checkout_lastname', array('ShoppCheckoutAPI','last_name'), 10, 3);
-add_filter('shoppapi_checkout_localpayment', array('ShoppCheckoutAPI','local_payment'), 10, 3);
-add_filter('shoppapi_checkout_loggedin', array('ShoppCheckoutAPI','logged_in'), 10, 3);
-add_filter('shoppapi_checkout_loginname', array('ShoppCheckoutAPI','login_name'), 10, 3);
-add_filter('shoppapi_checkout_marketing', array('ShoppCheckoutAPI','marketing'), 10, 3);
-add_filter('shoppapi_checkout_notloggedin', array('ShoppCheckoutAPI','not_logged_in'), 10, 3);
-add_filter('shoppapi_checkout_orderdata', array('ShoppCheckoutAPI','order_data'), 10, 3);
-add_filter('shoppapi_checkout_organization', array('ShoppCheckoutAPI','company'), 10, 3);
-add_filter('shoppapi_checkout_company', array('ShoppCheckoutAPI','company'), 10, 3);
-add_filter('shoppapi_checkout_password', array('ShoppCheckoutAPI','password'), 10, 3);
-add_filter('shoppapi_checkout_passwordlogin', array('ShoppCheckoutAPI','password_login'), 10, 3);
-add_filter('shoppapi_checkout_payoption', array('ShoppCheckoutAPI','payoption'), 10, 3);
-add_filter('shoppapi_checkout_paymentoption', array('ShoppCheckoutAPI','payoption'), 10, 3);
-add_filter('shoppapi_checkout_payoptions', array('ShoppCheckoutAPI','payoptions'), 10, 3);
-add_filter('shoppapi_checkout_paymentoptions', array('ShoppCheckoutAPI','payoptions'), 10, 3);
-add_filter('shoppapi_checkout_phone', array('ShoppCheckoutAPI','phone'), 10, 3);
-add_filter('shoppapi_checkout_receipt', array('ShoppCheckoutAPI','receipt'), 10, 3);
-add_filter('shoppapi_checkout_residentialshippingaddress', array('ShoppCheckoutAPI','residential_shipping_address'), 10, 3);
-add_filter('shoppapi_checkout_sameshippingaddress', array('ShoppCheckoutAPI','same_shipping_address'), 10, 3);
-add_filter('shoppapi_checkout_shipping', array('ShoppCheckoutAPI','shipping'), 10, 3);
-add_filter('shoppapi_checkout_shippingaddress', array('ShoppCheckoutAPI','shipping_address'), 10, 3);
-add_filter('shoppapi_checkout_shippingcity', array('ShoppCheckoutAPI','shipping_city'), 10, 3);
-add_filter('shoppapi_checkout_shippingcountry', array('ShoppCheckoutAPI','shipping_country'), 10, 3);
-add_filter('shoppapi_checkout_shippingpostcode', array('ShoppCheckoutAPI','shipping_postcode'), 10, 3);
-add_filter('shoppapi_checkout_shippingprovince', array('ShoppCheckoutAPI','shipping_state'), 10, 3);
-add_filter('shoppapi_checkout_shippingstate', array('ShoppCheckoutAPI','shipping_state'), 10, 3);
-add_filter('shoppapi_checkout_shippingxaddress', array('ShoppCheckoutAPI','shipping_xaddress'), 10, 3);
-add_filter('shoppapi_checkout_submit', array('ShoppCheckoutAPI','submit'), 10, 3);
-add_filter('shoppapi_checkout_submitlogin', array('ShoppCheckoutAPI','submit_login'), 10, 3);
-add_filter('shoppapi_checkout_loginbutton', array('ShoppCheckoutAPI','submit_login'), 10, 3);
-add_filter('shoppapi_checkout_url', array('ShoppCheckoutAPI','url'), 10, 3);
-add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xco_buttons'), 10, 3);
+/**
+* ShoppCheckoutThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCheckoutThemeAPI
+*
+**/
 
 /**
  * Provides shopp('checkout') theme API functionality
@@ -75,7 +15,90 @@ add_filter('shoppapi_checkout_xcobuttons', array('ShoppCheckoutAPI','xco_buttons
  * @author Jonathan Davis, John Dillick
  * @since 1.2
  **/
-class ShoppCheckoutAPI {
+class ShoppCheckoutThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'billingaddress' => 'billing_address',
+		'billingcard' => 'billing_card',
+		'billingcardexpiresmm' => 'billing_card_expires_mm',
+		'billingcardexpiresyy' => 'billing_card_expires_yy',
+		'billingcardholder' => 'billing_card_holder',
+		'billingcardtype' => 'billing_card_type',
+		'billingcity' => 'billing_city',
+		'billingcountry' => 'billing_country',
+		'billingcvv' => 'billing_cvv',
+		'billinglocale' => 'billing_locale',
+		'billinglocalities' => 'billing_localities',
+		'billingpostcode' => 'billing_postcode',
+		'billingprovince' => 'billing_state',
+		'billingstate' => 'billing_state',
+		'billingrequired' => 'card_required',
+		'cardrequired' => 'card_required',
+		'billingxaddress' => 'billing_xaddress',
+		'billingxco' => 'billing_xco',
+		'billingxcsc' => 'billing_xcsc',
+		'billingxcscrequired' => 'billing_xcsc_required',
+		'cartsummary' => 'cart_summary',
+		'completed' => 'completed',
+		'confirmbutton' => 'confirm_button',
+		'confirmpassword' => 'confirm_password',
+		'customerinfo' => 'customer_info',
+		'data' => 'data',
+		'email' => 'email',
+		'emaillogin' => 'account_login',
+		'loginnamelogin' => 'account_login',
+		'accountlogin' => 'account_login',
+		'errors' => 'error',
+		'error' => 'error',
+		'firstname' => 'first_name',
+		'function' => 'checkout_function',
+		'gatewayinputs' => 'gateway_inputs',
+		'hasdata' => 'has_data',
+		'lastname' => 'last_name',
+		'localpayment' => 'local_payment',
+		'loggedin' => 'logged_in',
+		'loginname' => 'login_name',
+		'marketing' => 'marketing',
+		'notloggedin' => 'not_logged_in',
+		'orderdata' => 'order_data',
+		'organization' => 'company',
+		'company' => 'company',
+		'password' => 'password',
+		'passwordlogin' => 'password_login',
+		'payoption' => 'payoption',
+		'paymentoption' => 'payoption',
+		'payoptions' => 'payoptions',
+		'paymentoptions' => 'payoptions',
+		'phone' => 'phone',
+		'receipt' => 'receipt',
+		'residentialshippingaddress' => 'residential_shipping_address',
+		'sameshippingaddress' => 'same_shipping_address',
+		'shipping' => 'shipping',
+		'shippingaddress' => 'shipping_address',
+		'shippingcity' => 'shipping_city',
+		'shippingcountry' => 'shipping_country',
+		'shippingpostcode' => 'shipping_postcode',
+		'shippingprovince' => 'shipping_state',
+		'shippingstate' => 'shipping_state',
+		'shippingxaddress' => 'shipping_xaddress',
+		'submit' => 'submit',
+		'submitlogin' => 'submit_login',
+		'loginbutton' => 'submit_login',
+		'url' => 'url',
+		'xcobuttons' => 'xco_buttons'
+	);
+
+	/**
+	 * _context - returns the global context object used in the shopp('checkout) call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ($Object, $object) {
+		if ( strtolower($object) != 'checkout' ) return $Object; // not mine, do nothing
+		else return ShoppOrder();
+	}
+
 	function account_login ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['account-login']))

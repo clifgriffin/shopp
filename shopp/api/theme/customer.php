@@ -1,71 +1,100 @@
 <?php
+/**
+* ShoppCustomerThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCustomerThemeAPI
+*
+**/
 
-add_filter('shoppapi_customer_accounts', array('ShoppCustomerAPI', 'accounts'), 10, 3);
-add_filter('shoppapi_customer_accounturl', array('ShoppCustomerAPI', 'account_url'), 10, 3);
-add_filter('shoppapi_customer_action', array('ShoppCustomerAPI', 'action'), 10, 3);
-add_filter('shoppapi_customer_billingaddress', array('ShoppCustomerAPI', 'billing_address'), 10, 3);
-add_filter('shoppapi_customer_billingcity', array('ShoppCustomerAPI', 'billing_city'), 10, 3);
-add_filter('shoppapi_customer_billingcountry', array('ShoppCustomerAPI', 'billing_country'), 10, 3);
-add_filter('shoppapi_customer_billingpostcode', array('ShoppCustomerAPI', 'billing_postcode'), 10, 3);
-add_filter('shoppapi_customer_billingprovince', array('ShoppCustomerAPI', 'billing_state'), 10, 3);
-add_filter('shoppapi_customer_billingstate', array('ShoppCustomerAPI', 'billing_state'), 10, 3);
-add_filter('shoppapi_customer_billingxaddress', array('ShoppCustomerAPI', 'billing_xaddress'), 10, 3);
-add_filter('shoppapi_customer_company', array('ShoppCustomerAPI', 'company'), 10, 3);
-add_filter('shoppapi_customer_confirmpassword', array('ShoppCustomerAPI', 'confirm_password'), 10, 3);
-add_filter('shoppapi_customer_download', array('ShoppCustomerAPI', 'download'), 10, 3);
-add_filter('shoppapi_customer_downloads', array('ShoppCustomerAPI', 'downloads'), 10, 3);
-add_filter('shoppapi_customer_email', array('ShoppCustomerAPI', 'email'), 10, 3);
-add_filter('shoppapi_customer_emaillogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
-add_filter('shoppapi_customer_loginnamelogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
-add_filter('shoppapi_customer_accountlogin', array('ShoppCustomerAPI', 'account_login'), 10, 3);
-add_filter('shoppapi_customer_errorsexist', array('ShoppCustomerAPI', 'errors_exist'), 10, 3);
-add_filter('shoppapi_customer_firstname', array('ShoppCustomerAPI', 'first_name'), 10, 3);
-add_filter('shoppapi_customer_hasaccount', array('ShoppCustomerAPI', 'has_account'), 10, 3);
-add_filter('shoppapi_customer_hasdownloads', array('ShoppCustomerAPI', 'has_downloads'), 10, 3);
-add_filter('shoppapi_customer_hasinfo', array('ShoppCustomerAPI', 'has_info'), 10, 3);
-add_filter('shoppapi_customer_haspurchases', array('ShoppCustomerAPI', 'has_purchases'), 10, 3);
-add_filter('shoppapi_customer_info', array('ShoppCustomerAPI', 'info'), 10, 3);
-add_filter('shoppapi_customer_lastname', array('ShoppCustomerAPI', 'last_name'), 10, 3);
-add_filter('shoppapi_customer_loggedin', array('ShoppCustomerAPI', 'logged_in'), 10, 3);
-add_filter('shoppapi_customer_loginerrors', array('ShoppCustomerAPI', 'errors'), 10, 3);
-add_filter('shoppapi_customer_loginlabel', array('ShoppCustomerAPI', 'login_label'), 10, 3);
-add_filter('shoppapi_customer_loginname', array('ShoppCustomerAPI', 'login_name'), 10, 3);
-add_filter('shoppapi_customer_management', array('ShoppCustomerAPI', 'management'), 10, 3);
-add_filter('shoppapi_customer_marketing', array('ShoppCustomerAPI', 'marketing'), 10, 3);
-add_filter('shoppapi_customer_menu', array('ShoppCustomerAPI', 'menu'), 10, 3);
-add_filter('shoppapi_customer_notloggedin', array('ShoppCustomerAPI', 'not_logged_in'), 10, 3);
-add_filter('shoppapi_customer_orderlookup', array('ShoppCustomerAPI', 'order_lookup'), 10, 3);
-add_filter('shoppapi_customer_password', array('ShoppCustomerAPI', 'password'), 10, 3);
-add_filter('shoppapi_customer_passwordchanged', array('ShoppCustomerAPI', 'password_changed'), 10, 3);
-add_filter('shoppapi_customer_passwordlogin', array('ShoppCustomerAPI', 'password_login'), 10, 3);
-add_filter('shoppapi_customer_phone', array('ShoppCustomerAPI', 'phone'), 10, 3);
-add_filter('shoppapi_customer_process', array('ShoppCustomerAPI', 'process'), 10, 3);
-add_filter('shoppapi_customer_profilesaved', array('ShoppCustomerAPI', 'profile_saved'), 10, 3);
-add_filter('shoppapi_customer_purchases', array('ShoppCustomerAPI', 'purchases'), 10, 3);
-add_filter('shoppapi_customer_receipt', array('ShoppCustomerAPI', 'order'), 10, 3);
-add_filter('shoppapi_customer_order', array('ShoppCustomerAPI', 'order'), 10, 3);
-add_filter('shoppapi_customer_recoverbutton', array('ShoppCustomerAPI', 'recover_button'), 10, 3);
-add_filter('shoppapi_customer_recoverurl', array('ShoppCustomerAPI', 'recover_url'), 10, 3);
-add_filter('shoppapi_customer_register', array('ShoppCustomerAPI', 'register'), 10, 3);
-add_filter('shoppapi_customer_registrationerrors', array('ShoppCustomerAPI', 'registration_errors'), 10, 3);
-add_filter('shoppapi_customer_registrationform', array('ShoppCustomerAPI', 'registration_form'), 10, 3);
-add_filter('shoppapi_customer_residentialshippingaddress', array('ShoppCustomerAPI', 'residential_shipping_address'), 10, 3);
-add_filter('shoppapi_customer_sameshippingaddress', array('ShoppCustomerAPI', 'same_shipping_address'), 10, 3);
-add_filter('shoppapi_customer_savebutton', array('ShoppCustomerAPI', 'save_button'), 10, 3);
-add_filter('shoppapi_customer_shipping', array('ShoppCustomerAPI', 'shipping'), 10, 3);
-add_filter('shoppapi_customer_shippingaddress', array('ShoppCustomerAPI', 'shipping_address'), 10, 3);
-add_filter('shoppapi_customer_shippingcity', array('ShoppCustomerAPI', 'shipping_city'), 10, 3);
-add_filter('shoppapi_customer_shippingcountry', array('ShoppCustomerAPI', 'shipping_country'), 10, 3);
-add_filter('shoppapi_customer_shippingpostcode', array('ShoppCustomerAPI', 'shipping_postcode'), 10, 3);
-add_filter('shoppapi_customer_shippingprovince', array('ShoppCustomerAPI', 'shipping_state'), 10, 3);
-add_filter('shoppapi_customer_shippingstate', array('ShoppCustomerAPI', 'shipping_state'), 10, 3);
-add_filter('shoppapi_customer_shippingxaddress', array('ShoppCustomerAPI', 'shipping_xaddress'), 10, 3);
-add_filter('shoppapi_customer_submitlogin', array('ShoppCustomerAPI', 'submit_login'), 10, 3);
-add_filter('shoppapi_customer_loginbutton', array('ShoppCustomerAPI', 'submit_login'), 10, 3);
-add_filter('shoppapi_customer_url', array('ShoppCustomerAPI', 'url'), 10, 3);
-add_filter('shoppapi_customer_wpusercreated', array('ShoppCustomerAPI', 'wpuser_created'), 10, 3);
+class ShoppCustomerThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'accounts' => 'accounts',
+		'accounturl' => 'account_url',
+		'action' => 'action',
+		'billingaddress' => 'billing_address',
+		'billingcity' => 'billing_city',
+		'billingcountry' => 'billing_country',
+		'billingpostcode' => 'billing_postcode',
+		'billingprovince' => 'billing_state',
+		'billingstate' => 'billing_state',
+		'billingxaddress' => 'billing_xaddress',
+		'company' => 'company',
+		'confirmpassword' => 'confirm_password',
+		'download' => 'download',
+		'downloads' => 'downloads',
+		'email' => 'email',
+		'emaillogin' => 'account_login',
+		'loginnamelogin' => 'account_login',
+		'accountlogin' => 'account_login',
+		'errorsexist' => 'errors_exist',
+		'firstname' => 'first_name',
+		'hasaccount' => 'has_account',
+		'hasdownloads' => 'has_downloads',
+		'hasinfo' => 'has_info',
+		'haspurchases' => 'has_purchases',
+		'info' => 'info',
+		'lastname' => 'last_name',
+		'loggedin' => 'logged_in',
+		'loginerrors' => 'errors',
+		'loginlabel' => 'login_label',
+		'loginname' => 'login_name',
+		'management' => 'management',
+		'marketing' => 'marketing',
+		'menu' => 'menu',
+		'notloggedin' => 'not_logged_in',
+		'orderlookup' => 'order_lookup',
+		'password' => 'password',
+		'passwordchanged' => 'password_changed',
+		'passwordlogin' => 'password_login',
+		'phone' => 'phone',
+		'process' => 'process',
+		'profilesaved' => 'profile_saved',
+		'purchases' => 'purchases',
+		'receipt' => 'order',
+		'order' => 'order',
+		'recoverbutton' => 'recover_button',
+		'recoverurl' => 'recover_url',
+		'register' => 'register',
+		'registrationerrors' => 'registration_errors',
+		'registrationform' => 'registration_form',
+		'residentialshippingaddress' => 'residential_shipping_address',
+		'sameshippingaddress' => 'same_shipping_address',
+		'savebutton' => 'save_button',
+		'shipping' => 'shipping',
+		'shippingaddress' => 'shipping_address',
+		'shippingcity' => 'shipping_city',
+		'shippingcountry' => 'shipping_country',
+		'shippingpostcode' => 'shipping_postcode',
+		'shippingprovince' => 'shipping_state',
+		'shippingstate' => 'shipping_state',
+		'shippingxaddress' => 'shipping_xaddress',
+		'submitlogin' => 'submit_login',
+		'loginbutton' => 'submit_login',
+		'url' => 'url',
+		'wpusercreated' => 'wpuser_created'
+	);
 
-class ShoppCustomerAPI {
+	/**
+	 * _context - returns the global context object used in the shopp('customer') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ($Object, $object) {
+		if ( strtolower($object) != 'customer' ) return $Object; // not mine, do nothing
+		else {
+			if (is_object($Object) && 'Customer' == get_class($Object)) return $Object;
+
+			$Order =& ShoppOrder();
+			if(isset($Order->Customer)) return $Order->Customer;
+		}
+		return false;
+	}
+
 	function account_login ($result, $options, $O) {
 		global $Shopp;
 		$checkout = false;

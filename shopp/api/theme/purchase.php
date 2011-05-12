@@ -1,71 +1,13 @@
 <?php
-
-add_filter('shoppapi_purchase_address', array('ShoppPurchaseAPI', 'address'), 10, 3);
-add_filter('shoppapi_purchase_card', array('ShoppPurchaseAPI', 'card'), 10, 3);
-add_filter('shoppapi_purchase_cardtype', array('ShoppPurchaseAPI', 'card_type'), 10, 3);
-add_filter('shoppapi_purchase_city', array('ShoppPurchaseAPI', 'city'), 10, 3);
-add_filter('shoppapi_purchase_company', array('ShoppPurchaseAPI', 'company'), 10, 3);
-add_filter('shoppapi_purchase_country', array('ShoppPurchaseAPI', 'country'), 10, 3);
-add_filter('shoppapi_purchase_customer', array('ShoppPurchaseAPI', 'customer'), 10, 3);
-add_filter('shoppapi_purchase_data', array('ShoppPurchaseAPI', 'data'), 10, 3);
-add_filter('shoppapi_purchase_date', array('ShoppPurchaseAPI', 'date'), 10, 3);
-add_filter('shoppapi_purchase_discount', array('ShoppPurchaseAPI', 'discount'), 10, 3);
-add_filter('shoppapi_purchase_email', array('ShoppPurchaseAPI', 'email'), 10, 3);
-add_filter('shoppapi_purchase_firstname', array('ShoppPurchaseAPI', 'first_name'), 10, 3);
-add_filter('shoppapi_purchase_freight', array('ShoppPurchaseAPI', 'freight'), 10, 3);
-add_filter('shoppapi_purchase_hasdata', array('ShoppPurchaseAPI', 'has_data'), 10, 3);
-add_filter('shoppapi_purchase_hasitems', array('ShoppPurchaseAPI', 'has_items'), 10, 3);
-add_filter('shoppapi_purchase_haspromo', array('ShoppPurchaseAPI', 'has_promo'), 10, 3);
-add_filter('shoppapi_purchase_hasdiscount', array('ShoppPurchaseAPI', 'has_discount'), 10, 3);
-add_filter('shoppapi_purchase_hasdownloads', array('ShoppPurchaseAPI', 'has_downloads'), 10, 3);
-add_filter('shoppapi_purchase_hasfreight', array('ShoppPurchaseAPI', 'has_freight'), 10, 3);
-add_filter('shoppapi_purchase_hastax', array('ShoppPurchaseAPI', 'has_tax'), 10, 3);
-add_filter('shoppapi_purchase_id', array('ShoppPurchaseAPI', 'id'), 10, 3);
-add_filter('shoppapi_purchase_itemaddons', array('ShoppPurchaseAPI', 'item_addons'), 10, 3);
-add_filter('shoppapi_purchase_itemaddonslist', array('ShoppPurchaseAPI', 'item_addons_list'), 10, 3);
-add_filter('shoppapi_purchase_itemdescription', array('ShoppPurchaseAPI', 'item_description'), 10, 3);
-add_filter('shoppapi_purchase_itemdownload', array('ShoppPurchaseAPI', 'item_download'), 10, 3);
-add_filter('shoppapi_purchase_itemhasaddons', array('ShoppPurchaseAPI', 'item_has_addons'), 10, 3);
-add_filter('shoppapi_purchase_itemhasinputs', array('ShoppPurchaseAPI', 'item_has_inputs'), 10, 3);
-add_filter('shoppapi_purchase_itemid', array('ShoppPurchaseAPI', 'item_id'), 10, 3);
-add_filter('shoppapi_purchase_iteminput', array('ShoppPurchaseAPI', 'item_input'), 10, 3);
-add_filter('shoppapi_purchase_iteminputs', array('ShoppPurchaseAPI', 'item_inputs'), 10, 3);
-add_filter('shoppapi_purchase_iteminputslist', array('ShoppPurchaseAPI', 'item_inputs_list'), 10, 3);
-add_filter('shoppapi_purchase_itemname', array('ShoppPurchaseAPI', 'item_name'), 10, 3);
-add_filter('shoppapi_purchase_itemoptions', array('ShoppPurchaseAPI', 'item_options'), 10, 3);
-add_filter('shoppapi_purchase_itemprice', array('ShoppPurchaseAPI', 'item_price'), 10, 3);
-add_filter('shoppapi_purchase_itemproduct', array('ShoppPurchaseAPI', 'item_product'), 10, 3);
-add_filter('shoppapi_purchase_itemquantity', array('ShoppPurchaseAPI', 'item_quantity'), 10, 3);
-add_filter('shoppapi_purchase_itemsku', array('ShoppPurchaseAPI', 'item_sku'), 10, 3);
-add_filter('shoppapi_purchase_itemtotal', array('ShoppPurchaseAPI', 'item_total'), 10, 3);
-add_filter('shoppapi_purchase_itemunitprice', array('ShoppPurchaseAPI', 'item_unitprice'), 10, 3);
-add_filter('shoppapi_purchase_items', array('ShoppPurchaseAPI', 'items'), 10, 3);
-add_filter('shoppapi_purchase_lastname', array('ShoppPurchaseAPI', 'last_name'), 10, 3);
-add_filter('shoppapi_purchase_notpaid', array('ShoppPurchaseAPI', 'not_paid'), 10, 3);
-add_filter('shoppapi_purchase_orderdata', array('ShoppPurchaseAPI', 'order_data'), 10, 3);
-add_filter('shoppapi_purchase_paid', array('ShoppPurchaseAPI', 'paid'), 10, 3);
-add_filter('shoppapi_purchase_payment', array('ShoppPurchaseAPI', 'payment'), 10, 3);
-add_filter('shoppapi_purchase_phone', array('ShoppPurchaseAPI', 'phone'), 10, 3);
-add_filter('shoppapi_purchase_postcode', array('ShoppPurchaseAPI', 'post_code'), 10, 3);
-add_filter('shoppapi_purchase_promolist', array('ShoppPurchaseAPI', 'promo_list'), 10, 3);
-add_filter('shoppapi_purchase_receipt', array('ShoppPurchaseAPI', 'receipt'), 10, 3);
-add_filter('shoppapi_purchase_shipaddress', array('ShoppPurchaseAPI', 'ship_address'), 10, 3);
-add_filter('shoppapi_purchase_shipcity', array('ShoppPurchaseAPI', 'ship_city'), 10, 3);
-add_filter('shoppapi_purchase_shipcountry', array('ShoppPurchaseAPI', 'ship_country'), 10, 3);
-add_filter('shoppapi_purchase_shipmethod', array('ShoppPurchaseAPI', 'ship_method'), 10, 3);
-add_filter('shoppapi_purchase_shippostcode', array('ShoppPurchaseAPI', 'ship_postcode'), 10, 3);
-add_filter('shoppapi_purchase_shipstate', array('ShoppPurchaseAPI', 'ship_state'), 10, 3);
-add_filter('shoppapi_purchase_shipxaddress', array('ShoppPurchaseAPI', 'ship_xaddress'), 10, 3);
-add_filter('shoppapi_purchase_state', array('ShoppPurchaseAPI', 'state'), 10, 3);
-add_filter('shoppapi_purchase_status', array('ShoppPurchaseAPI', 'status'), 10, 3);
-add_filter('shoppapi_purchase_subtotal', array('ShoppPurchaseAPI', 'subtotal'), 10, 3);
-add_filter('shoppapi_purchase_tax', array('ShoppPurchaseAPI', 'tax'), 10, 3);
-add_filter('shoppapi_purchase_total', array('ShoppPurchaseAPI', 'total'), 10, 3);
-add_filter('shoppapi_purchase_totalitems', array('ShoppPurchaseAPI', 'total_items'), 10, 3);
-add_filter('shoppapi_purchase_txnid', array('ShoppPurchaseAPI', 'txnid'), 10, 3);
-add_filter('shoppapi_purchase_transactionid', array('ShoppPurchaseAPI', 'txnid'), 10, 3);
-add_filter('shoppapi_purchase_url', array('ShoppPurchaseAPI', 'url'), 10, 3);
-add_filter('shoppapi_purchase_xaddress', array('ShoppPurchaseAPI', 'xaddress'), 10, 3);
+/**
+* ShoppPurchaseThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppPurchaseThemeAPI
+*
+**/
 
 /**
  * Provides shopp('purchase') theme API functionality
@@ -74,7 +16,77 @@ add_filter('shoppapi_purchase_xaddress', array('ShoppPurchaseAPI', 'xaddress'), 
  * @since 1.2
  *
  **/
-class ShoppPurchaseAPI {
+class ShoppPurchaseThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $context = 'Purchase';
+	static $map = array(
+		'address' => 'address',
+		'card' => 'card',
+		'cardtype' => 'card_type',
+		'city' => 'city',
+		'company' => 'company',
+		'country' => 'country',
+		'customer' => 'customer',
+		'data' => 'data',
+		'date' => 'date',
+		'discount' => 'discount',
+		'email' => 'email',
+		'firstname' => 'first_name',
+		'freight' => 'freight',
+		'hasdata' => 'has_data',
+		'hasitems' => 'has_items',
+		'haspromo' => 'has_promo',
+		'hasdiscount' => 'has_discount',
+		'hasdownloads' => 'has_downloads',
+		'hasfreight' => 'has_freight',
+		'hastax' => 'has_tax',
+		'id' => 'id',
+		'itemaddons' => 'item_addons',
+		'itemaddonslist' => 'item_addons_list',
+		'itemdescription' => 'item_description',
+		'itemdownload' => 'item_download',
+		'itemhasaddons' => 'item_has_addons',
+		'itemhasinputs' => 'item_has_inputs',
+		'itemid' => 'item_id',
+		'iteminput' => 'item_input',
+		'iteminputs' => 'item_inputs',
+		'iteminputslist' => 'item_inputs_list',
+		'itemname' => 'item_name',
+		'itemoptions' => 'item_options',
+		'itemprice' => 'item_price',
+		'itemproduct' => 'item_product',
+		'itemquantity' => 'item_quantity',
+		'itemsku' => 'item_sku',
+		'itemtotal' => 'item_total',
+		'itemunitprice' => 'item_unitprice',
+		'items' => 'items',
+		'lastname' => 'last_name',
+		'notpaid' => 'not_paid',
+		'orderdata' => 'order_data',
+		'paid' => 'paid',
+		'payment' => 'payment',
+		'phone' => 'phone',
+		'postcode' => 'post_code',
+		'promolist' => 'promo_list',
+		'receipt' => 'receipt',
+		'shipaddress' => 'ship_address',
+		'shipcity' => 'ship_city',
+		'shipcountry' => 'ship_country',
+		'shipmethod' => 'ship_method',
+		'shippostcode' => 'ship_postcode',
+		'shipstate' => 'ship_state',
+		'shipxaddress' => 'ship_xaddress',
+		'state' => 'state',
+		'status' => 'status',
+		'subtotal' => 'subtotal',
+		'tax' => 'tax',
+		'total' => 'total',
+		'totalitems' => 'total_items',
+		'txnid' => 'txnid',
+		'transactionid' => 'txnid',
+		'url' => 'url',
+		'xaddress' => 'xaddress'
+	);
+
 	function address ($result, $options, $O) { return esc_html($O->address); }
 
 	function card ($result, $options, $O) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }

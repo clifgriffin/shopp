@@ -1,52 +1,13 @@
 <?php
-
-add_filter('shoppapi_product_addons', array('ShoppProductAPI', 'addons'), 10, 3);
-add_filter('shoppapi_product_addtocart', array('ShoppProductAPI', 'add_to_cart'), 10, 3);
-add_filter('shoppapi_product_buynow', array('ShoppProductAPI', 'buy_now'), 10, 3);
-add_filter('shoppapi_product_categories', array('ShoppProductAPI', 'categories'), 10, 3);
-add_filter('shoppapi_product_category', array('ShoppProductAPI', 'category'), 10, 3);
-add_filter('shoppapi_product_coverimage', array('ShoppProductAPI', 'coverimage'), 10, 3);
-add_filter('shoppapi_product_description', array('ShoppProductAPI', 'description'), 10, 3);
-add_filter('shoppapi_product_donation', array('ShoppProductAPI', 'quantity'), 10, 3);
-add_filter('shoppapi_product_amount', array('ShoppProductAPI', 'quantity'), 10, 3);
-add_filter('shoppapi_product_quantity', array('ShoppProductAPI', 'quantity'), 10, 3);
-add_filter('shoppapi_product_found', array('ShoppProductAPI', 'found'), 10, 3);
-add_filter('shoppapi_product_freeshipping', array('ShoppProductAPI', 'free_shipping'), 10, 3);
-add_filter('shoppapi_product_gallery', array('ShoppProductAPI', 'gallery'), 10, 3);
-add_filter('shoppapi_product_hasaddons', array('ShoppProductAPI', 'has_addons'), 10, 3);
-add_filter('shoppapi_product_hascategories', array('ShoppProductAPI', 'has_categories'), 10, 3);
-add_filter('shoppapi_product_hassavings', array('ShoppProductAPI', 'has_savings'), 10, 3);
-add_filter('shoppapi_product_hasvariations', array('ShoppProductAPI', 'has_variations'), 10, 3);
-add_filter('shoppapi_product_hasimages', array('ShoppProductAPI', 'has_images'), 10, 3);
-add_filter('shoppapi_product_hasspecs', array('ShoppProductAPI', 'has_specs'), 10, 3);
-add_filter('shoppapi_product_hastags', array('ShoppProductAPI', 'has_tags'), 10, 3);
-add_filter('shoppapi_product_id', array('ShoppProductAPI', 'id'), 10, 3);
-add_filter('shoppapi_product_image', array('ShoppProductAPI', 'image'), 10, 3);
-add_filter('shoppapi_product_thumbnail', array('ShoppProductAPI', 'image'), 10, 3);
-add_filter('shoppapi_product_images', array('ShoppProductAPI', 'images'), 10, 3);
-add_filter('shoppapi_product_incategory', array('ShoppProductAPI', 'in_category'), 10, 3);
-add_filter('shoppapi_product_input', array('ShoppProductAPI', 'input'), 10, 3);
-add_filter('shoppapi_product_isfeatured', array('ShoppProductAPI', 'is_featured'), 10, 3);
-add_filter('shoppapi_product_link', array('ShoppProductAPI', 'url'), 10, 3);
-add_filter('shoppapi_product_url', array('ShoppProductAPI', 'url'), 10, 3);
-add_filter('shoppapi_product_name', array('ShoppProductAPI', 'name'), 10, 3);
-add_filter('shoppapi_product_onsale', array('ShoppProductAPI', 'on_sale'), 10, 3);
-add_filter('shoppapi_product_outofstock', array('ShoppProductAPI', 'out_of_stock'), 10, 3);
-add_filter('shoppapi_product_price', array('ShoppProductAPI', 'price'), 10, 3);
-add_filter('shoppapi_product_saleprice', array('ShoppProductAPI', 'price'), 10, 3);
-add_filter('shoppapi_product_relevance', array('ShoppProductAPI', 'relevance'), 10, 3);
-add_filter('shoppapi_product_savings', array('ShoppProductAPI', 'savings'), 10, 3);
-add_filter('shoppapi_product_slug', array('ShoppProductAPI', 'slug'), 10, 3);
-add_filter('shoppapi_product_spec', array('ShoppProductAPI', 'spec'), 10, 3);
-add_filter('shoppapi_product_specs', array('ShoppProductAPI', 'specs'), 10, 3);
-add_filter('shoppapi_product_summary', array('ShoppProductAPI', 'summary'), 10, 3);
-add_filter('shoppapi_product_tag', array('ShoppProductAPI', 'tag'), 10, 3);
-add_filter('shoppapi_product_tagged', array('ShoppProductAPI', 'tagged'), 10, 3);
-add_filter('shoppapi_product_tags', array('ShoppProductAPI', 'tags'), 10, 3);
-add_filter('shoppapi_product_taxrate', array('ShoppProductAPI', 'taxrate'), 10, 3);
-add_filter('shoppapi_product_variation', array('ShoppProductAPI', 'variation'), 10, 3);
-add_filter('shoppapi_product_variations', array('ShoppProductAPI', 'variations'), 10, 3);
-add_filter('shoppapi_product_weight', array('ShoppProductAPI', 'weight'), 10, 3);
+/**
+* ShoppProductThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppProductThemeAPI
+*
+**/
 
 /**
  * Provides shopp('product') template API functionality
@@ -55,7 +16,57 @@ add_filter('shoppapi_product_weight', array('ShoppProductAPI', 'weight'), 10, 3)
  * @since 1.2
  *
  **/
-class ShoppProductAPI {
+class ShoppProductThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'addons' => 'addons',
+		'addtocart' => 'add_to_cart',
+		'buynow' => 'buy_now',
+		'categories' => 'categories',
+		'category' => 'category',
+		'coverimage' => 'coverimage',
+		'description' => 'description',
+		'donation' => 'quantity',
+		'amount' => 'quantity',
+		'quantity' => 'quantity',
+		'found' => 'found',
+		'freeshipping' => 'free_shipping',
+		'gallery' => 'gallery',
+		'hasaddons' => 'has_addons',
+		'hascategories' => 'has_categories',
+		'hassavings' => 'has_savings',
+		'hasvariations' => 'has_variations',
+		'hasimages' => 'has_images',
+		'hasspecs' => 'has_specs',
+		'hastags' => 'has_tags',
+		'id' => 'id',
+		'image' => 'image',
+		'thumbnail' => 'image',
+		'images' => 'images',
+		'incategory' => 'in_category',
+		'input' => 'input',
+		'isfeatured' => 'is_featured',
+		'link' => 'url',
+		'url' => 'url',
+		'name' => 'name',
+		'onsale' => 'on_sale',
+		'outofstock' => 'out_of_stock',
+		'price' => 'price',
+		'saleprice' => 'price',
+		'relevance' => 'relevance',
+		'savings' => 'savings',
+		'slug' => 'slug',
+		'spec' => 'spec',
+		'specs' => 'specs',
+		'summary' => 'summary',
+		'tag' => 'tag',
+		'tagged' => 'tagged',
+		'tags' => 'tags',
+		'taxrate' => 'taxrate',
+		'variation' => 'variation',
+		'variations' => 'variations',
+		'weight' => 'weight'
+	);
+
 	function addons ($result, $options, $O) {
 		global $Shopp;
 		$string = "";

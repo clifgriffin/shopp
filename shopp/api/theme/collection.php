@@ -1,32 +1,13 @@
 <?php
-
-add_filter('shoppapi_collection_carousel', array('ShoppCollectionAPI','carousel'), 10, 3);
-add_filter('shoppapi_collection_coverimage', array('ShoppCollectionAPI','cover_image'), 10, 3);
-add_filter('shoppapi_collection_description', array('ShoppCollectionAPI','description'), 10, 3);
-add_filter('shoppapi_collection_facetedmenu', array('ShoppCollectionAPI','faceted_menu'), 10, 3);
-add_filter('shoppapi_collection_feedurl', array('ShoppCollectionAPI','feed_url'), 10, 3);
-add_filter('shoppapi_collection_hascategories', array('ShoppCollectionAPI','has_categories'), 10, 3);
-add_filter('shoppapi_collection_hasfacetedmenu', array('ShoppCollectionAPI','has_faceted_menu'), 10, 3);
-add_filter('shoppapi_collection_hasimages', array('ShoppCollectionAPI','has_images'), 10, 3);
-add_filter('shoppapi_collection_hasproducts', array('ShoppCollectionAPI','load_products'), 10, 3);
-add_filter('shoppapi_collection_loadproducts', array('ShoppCollectionAPI','load_products'), 10, 3);
-add_filter('shoppapi_collection_id', array('ShoppCollectionAPI','id'), 10, 3);
-add_filter('shoppapi_collection_image', array('ShoppCollectionAPI','image'), 10, 3);
-add_filter('shoppapi_collection_images', array('ShoppCollectionAPI','images'), 10, 3);
-add_filter('shoppapi_collection_issubcategory', array('ShoppCollectionAPI','is_subcategory'), 10, 3);
-add_filter('shoppapi_collection_link', array('ShoppCollectionAPI','url'), 10, 3);
-add_filter('shoppapi_collection_name', array('ShoppCollectionAPI','name'), 10, 3);
-add_filter('shoppapi_collection_pagination', array('ShoppCollectionAPI','pagination'), 10, 3);
-add_filter('shoppapi_collection_parent', array('ShoppCollectionAPI','parent'), 10, 3);
-add_filter('shoppapi_collection_products', array('ShoppCollectionAPI','products'), 10, 3);
-add_filter('shoppapi_collection_row', array('ShoppCollectionAPI','row'), 10, 3);
-add_filter('shoppapi_collection_sectionlist', array('ShoppCollectionAPI','section_list'), 10, 3);
-add_filter('shoppapi_collection_slideshow', array('ShoppCollectionAPI','slideshow'), 10, 3);
-add_filter('shoppapi_collection_slug', array('ShoppCollectionAPI','slug'), 10, 3);
-add_filter('shoppapi_collection_subcategories', array('ShoppCollectionAPI','subcategories'), 10, 3);
-add_filter('shoppapi_collection_subcategorylist', array('ShoppCollectionAPI','subcategory_list'), 10, 3);
-add_filter('shoppapi_collection_total', array('ShoppCollectionAPI','total'), 10, 3);
-add_filter('shoppapi_collection_url', array('ShoppCollectionAPI','url'), 10, 3);
+/**
+* ShoppCollectionThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCollectionThemeAPI
+*
+**/
 
 /**
  * shopp('category','...') tags
@@ -37,7 +18,38 @@ add_filter('shoppapi_collection_url', array('ShoppCollectionAPI','url'), 10, 3);
  * @see http://docs.shopplugin.net/Category_Tags
  *
  **/
-class ShoppCollectionAPI {
+class ShoppCollectionThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $context = 'Category'; // TODO transition to Collection
+	static $map = array(
+		'carousel' => 'carousel',
+		'coverimage' => 'cover_image',
+		'description' => 'description',
+		'facetedmenu' => 'faceted_menu',
+		'feedurl' => 'feed_url',
+		'hascategories' => 'has_categories',
+		'hasfacetedmenu' => 'has_faceted_menu',
+		'hasimages' => 'has_images',
+		'hasproducts' => 'load_products',
+		'loadproducts' => 'load_products',
+		'id' => 'id',
+		'image' => 'image',
+		'images' => 'images',
+		'issubcategory' => 'is_subcategory',
+		'link' => 'url',
+		'name' => 'name',
+		'pagination' => 'pagination',
+		'parent' => 'parent',
+		'products' => 'products',
+		'row' => 'row',
+		'sectionlist' => 'section_list',
+		'slideshow' => 'slideshow',
+		'slug' => 'slug',
+		'subcategories' => 'subcategories',
+		'subcategorylist' => 'subcategory_list',
+		'total' => 'total',
+		'url' => 'url'
+	);
+
 	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
 		if (!$O->loaded) $O->load_products($options);

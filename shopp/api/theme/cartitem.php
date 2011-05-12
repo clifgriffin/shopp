@@ -1,33 +1,13 @@
 <?php
-
-add_filter('shoppapi_cartitem', array('ShoppCartItemAPI', '_cartitem'), 10, 4);
-
-add_filter('shoppapi_cartitem_id', array('ShoppCartItemAPI', 'id'), 10, 3);
-add_filter('shoppapi_cartitem_product', array('ShoppCartItemAPI', 'product'), 10, 3);
-add_filter('shoppapi_cartitem_name', array('ShoppCartItemAPI', 'name'), 10, 3);
-add_filter('shoppapi_cartitem_type', array('ShoppCartItemAPI', 'type'), 10, 3);
-add_filter('shoppapi_cartitem_link', array('ShoppCartItemAPI', 'url'), 10, 3);
-add_filter('shoppapi_cartitem_url', array('ShoppCartItemAPI', 'url'), 10, 3);
-add_filter('shoppapi_cartitem_sku', array('ShoppCartItemAPI', 'sku'), 10, 3);
-add_filter('shoppapi_cartitem_discount', array('ShoppCartItemAPI', 'discount'), 10, 3);
-add_filter('shoppapi_cartitem_unitprice', array('ShoppCartItemAPI', 'unitprice'), 10, 3);
-add_filter('shoppapi_cartitem_unittax', array('ShoppCartItemAPI', 'unittax'), 10, 3);
-add_filter('shoppapi_cartitem_discounts', array('ShoppCartItemAPI', 'discounts'), 10, 3);
-add_filter('shoppapi_cartitem_tax', array('ShoppCartItemAPI', 'tax'), 10, 3);
-add_filter('shoppapi_cartitem_total', array('ShoppCartItemAPI', 'total'), 10, 3);
-add_filter('shoppapi_cartitem_taxrate', array('ShoppCartItemAPI', 'taxrate'), 10, 3);
-add_filter('shoppapi_cartitem_quantity', array('ShoppCartItemAPI', 'quantity'), 10, 3);
-add_filter('shoppapi_cartitem_remove', array('ShoppCartItemAPI', 'remove'), 10, 3);
-add_filter('shoppapi_cartitem_optionlabel', array('ShoppCartItemAPI', 'option_label'), 10, 3);
-add_filter('shoppapi_cartitem_options', array('ShoppCartItemAPI', 'options'), 10, 3);
-add_filter('shoppapi_cartitem_addonslist', array('ShoppCartItemAPI', 'addons_list'), 10, 3);
-add_filter('shoppapi_cartitem_hasinputs', array('ShoppCartItemAPI', 'has_inputs'), 10, 3);
-add_filter('shoppapi_cartitem_inputs', array('ShoppCartItemAPI', 'inputs'), 10, 3);
-add_filter('shoppapi_cartitem_input', array('ShoppCartItemAPI', 'input'), 10, 3);
-add_filter('shoppapi_cartitem_inputslist', array('ShoppCartItemAPI', 'inputs_list'), 10, 3);
-add_filter('shoppapi_cartitem_coverimage', array('ShoppCartItemAPI', 'coverimage'), 10, 3);
-add_filter('shoppapi_cartitem_thumbnail', array('ShoppCartItemAPI', 'coverimage'), 10, 3);
-
+/**
+* ShoppCartItemThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCartItemThemeAPI
+*
+**/
 
 /**
  * Provides support for the shopp('cartitem') tags
@@ -36,7 +16,57 @@ add_filter('shoppapi_cartitem_thumbnail', array('ShoppCartItemAPI', 'coverimage'
  * @since 1.2
  *
  **/
-class ShoppCartItemAPI {
+class ShoppCartItemThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $map = array(
+		'_cartitem',
+		'id' => 'id',
+		'product' => 'product',
+		'name' => 'name',
+		'type' => 'type',
+		'link' => 'url',
+		'url' => 'url',
+		'sku' => 'sku',
+		'discount' => 'discount',
+		'unitprice' => 'unitprice',
+		'unittax' => 'unittax',
+		'discounts' => 'discounts',
+		'tax' => 'tax',
+		'total' => 'total',
+		'taxrate' => 'taxrate',
+		'quantity' => 'quantity',
+		'remove' => 'remove',
+		'optionlabel' => 'option_label',
+		'options' => 'options',
+		'addonslist' => 'addons_list',
+		'hasinputs' => 'has_inputs',
+		'inputs' => 'inputs',
+		'input' => 'input',
+		'inputslist' => 'inputs_list',
+		'coverimage' => 'coverimage',
+		'thumbnail' => 'coverimage'
+	);
+
+	/**
+	 * _context - returns the global context object used in the shopp('cartitem) call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _context ( $Object, $object ) {
+		if (strtolower($object) != 'cartitem') return $Object; // not mine, do nothing
+		else {
+			if (is_object($Object) && 'Item' == get_class($Object)) return $Object;
+
+			$Order =& ShoppOrder();
+			$Cart =& $Order->Cart;
+			$Item = false;
+			if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); return $Item; }
+			elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); return $Item; }
+			elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); return $Item; }
+			return false;
+		}
+	}
 
 	function _cartitem ($result, $options, $property, $O) {
 		if (is_float($result)) {

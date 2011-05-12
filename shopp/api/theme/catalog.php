@@ -1,42 +1,53 @@
 <?php
+/**
+* ShoppCatalogThemeAPI - Provided theme api tags.
+*
+* @version 1.0
+* @since 1.2
+* @package shopp
+* @subpackage ShoppCatalogThemeAPI
+*
+**/
 
-add_filter('shoppapi_catalog_bestsellerproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
-add_filter('shoppapi_catalog_bestsellersproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
-add_filter('shoppapi_catalog_bestsellingproducts', array('ShoppCatalogAPI','best_seller_products'), 10, 3);
-add_filter('shoppapi_catalog_breadcrumb', array('ShoppCatalogAPI','breadcrumb'), 10, 3);
-add_filter('shoppapi_catalog_catalogproducts', array('ShoppCatalogAPI','catalog_products'), 10, 3);
-add_filter('shoppapi_catalog_categories', array('ShoppCatalogAPI','categories'), 10, 3);
-add_filter('shoppapi_catalog_category', array('ShoppCatalogAPI','category'), 10, 3);
-add_filter('shoppapi_catalog_categorylist', array('ShoppCatalogAPI','category_list'), 10, 3);
-add_filter('shoppapi_catalog_display', array('ShoppCatalogAPI','type'), 10, 3);
-add_filter('shoppapi_catalog_type', array('ShoppCatalogAPI','type'), 10, 3);
-add_filter('shoppapi_catalog_featuredproducts', array('ShoppCatalogAPI','featured_products'), 10, 3);
-add_filter('shoppapi_catalog_hascategories', array('ShoppCatalogAPI','has_categories'), 10, 3);
-add_filter('shoppapi_catalog_isaccount', array('ShoppCatalogAPI','is_account'), 10, 3);
-add_filter('shoppapi_catalog_iscart', array('ShoppCatalogAPI','is_cart'), 10, 3);
-add_filter('shoppapi_catalog_iscategory', array('ShoppCatalogAPI','is_category'), 10, 3);
-add_filter('shoppapi_catalog_ischeckout', array('ShoppCatalogAPI','is_checkout'), 10, 3);
-add_filter('shoppapi_catalog_islanding', array('ShoppCatalogAPI','is_catalog'), 10, 3);
-add_filter('shoppapi_catalog_iscatalog', array('ShoppCatalogAPI','is_catalog'), 10, 3);
-add_filter('shoppapi_catalog_isproduct', array('ShoppCatalogAPI','is_product'), 10, 3);
-add_filter('shoppapi_catalog_newproducts', array('ShoppCatalogAPI','new_products'), 10, 3);
-add_filter('shoppapi_catalog_onsaleproducts', array('ShoppCatalogAPI','onsale_products'), 10, 3);
-add_filter('shoppapi_catalog_orderbylist', array('ShoppCatalogAPI','orderby_list'), 10, 3);
-add_filter('shoppapi_catalog_product', array('ShoppCatalogAPI','product'), 10, 3);
-add_filter('shoppapi_catalog_promoproducts', array('ShoppCatalogAPI','promo_products'), 10, 3);
-add_filter('shoppapi_catalog_randomproducts', array('ShoppCatalogAPI','random_products'), 10, 3);
-add_filter('shoppapi_catalog_relatedproducts', array('ShoppCatalogAPI','related_products'), 10, 3);
-add_filter('shoppapi_catalog_search', array('ShoppCatalogAPI','search'), 10, 3);
-add_filter('shoppapi_catalog_searchproducts', array('ShoppCatalogAPI','search_products'), 10, 3);
-add_filter('shoppapi_catalog_searchform', array('ShoppCatalogAPI','search_form'), 10, 3);
-add_filter('shoppapi_catalog_sideproduct', array('ShoppCatalogAPI','side_product'), 10, 3);
-add_filter('shoppapi_catalog_tagproducts', array('ShoppCatalogAPI','tag_products'), 10, 3);
-add_filter('shoppapi_catalog_tagcloud', array('ShoppCatalogAPI','tag_cloud'), 10, 3);
-add_filter('shoppapi_catalog_url', array('ShoppCatalogAPI','url'), 10, 3);
-add_filter('shoppapi_catalog_views', array('ShoppCatalogAPI','views'), 10, 3);
-add_filter('shoppapi_catalog_zoomoptions', array('ShoppCatalogAPI','zoom_options'), 10, 3);
-
-class ShoppCatalogAPI {
+class ShoppCatalogThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+	static $context = 'Catalog';
+	static $map = array(
+		'bestsellerproducts' => 'best_seller_products',
+		'bestsellersproducts' => 'best_seller_products',
+		'bestsellingproducts' => 'best_seller_products',
+		'breadcrumb' => 'breadcrumb',
+		'catalogproducts' => 'catalog_products',
+		'categories' => 'categories',
+		'category' => 'category',
+		'categorylist' => 'category_list',
+		'display' => 'type',
+		'type' => 'type',
+		'featuredproducts' => 'featured_products',
+		'hascategories' => 'has_categories',
+		'isaccount' => 'is_account',
+		'iscart' => 'is_cart',
+		'iscategory' => 'is_category',
+		'ischeckout' => 'is_checkout',
+		'islanding' => 'is_catalog',
+		'iscatalog' => 'is_catalog',
+		'isproduct' => 'is_product',
+		'newproducts' => 'new_products',
+		'onsaleproducts' => 'onsale_products',
+		'orderbylist' => 'orderby_list',
+		'product' => 'product',
+		'promoproducts' => 'promo_products',
+		'randomproducts' => 'random_products',
+		'relatedproducts' => 'related_products',
+		'search' => 'search',
+		'searchproducts' => 'search_products',
+		'searchform' => 'search_form',
+		'sideproduct' => 'side_product',
+		'tagproducts' => 'tag_products',
+		'tagcloud' => 'tag_cloud',
+		'url' => 'url',
+		'views' => 'views',
+		'zoomoptions' => 'zoom_options'
+	);
 
 	function bestseller_products ($result, $options, $O) {
 		global $Shopp;
