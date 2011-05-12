@@ -15,6 +15,7 @@
 
 class ProductCollection implements Iterator {
 	var $api = "collection";
+	var $loaded = false;
 	var $paged = false;
 	var $pagination = false;
 	var $products = array();
@@ -117,7 +118,7 @@ class ProductCollection implements Iterator {
 
 		if ($debug) echo $query.BR.BR;
 
-		$this->products = DB::query($query,'array',array($this,'loader'));
+		$this->products = DB::query($query,'array',array($Processing,'loader'));
 		$this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
 
 		if ($this->pagination > 0 && $this->total > $this->pagination) {
@@ -131,6 +132,8 @@ class ProductCollection implements Iterator {
 		if (!empty($this->resum)) {
 			$Processing->load_data(array('prices'),$this->resum);
 		}
+
+		$this->loaded = true;
 
 		return (count($this->products) > 0);
 	}
