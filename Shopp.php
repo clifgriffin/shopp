@@ -55,6 +55,7 @@ require('core/flow/Scripts.php');
 require('core/model/Modules.php');
 require('core/model/Gateway.php');
 require('core/model/Shipping.php');
+require('core/model/API.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
 require('core/model/Order.php');
@@ -98,6 +99,7 @@ class Shopp {
 	var $Collections;		// Collections registry
 	var $Gateways;			// Gateway modules
 	var $Shipping;			// Shipping modules
+	var $APIs;				// Loaded API modules
 	var $Storage;			// Storage engine modules
 
 	var $_debug;
@@ -161,6 +163,7 @@ class Shopp {
 		define('SHOPP_GATEWAYS',SHOPP_PATH.'/gateways');
 		define('SHOPP_SHIPPING',SHOPP_PATH.'/shipping');
 		define('SHOPP_STORAGE',SHOPP_PATH.'/storage');
+		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
 		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
 		define('SHOPP_TEMPLATES',($this->Settings->get('theme_templates') != 'off'
@@ -228,6 +231,7 @@ class Shopp {
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
+		$this->APIs = new ShoppAPIModules();
 		$this->Collections = array();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
