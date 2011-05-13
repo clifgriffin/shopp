@@ -16,8 +16,8 @@
  * @since 1.2
  *
  **/
-class ShoppCartItemThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppCartItemThemeAPI {
+	static $register = array(
 		'_cartitem',
 		'id' => 'id',
 		'product' => 'product',
@@ -46,14 +46,16 @@ class ShoppCartItemThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'thumbnail' => 'coverimage'
 	);
 
+	static function _apicontext () { return "cartitem"; }
+
 	/**
-	 * _context - returns the global context object used in the shopp('cartitem) call
+	 * _setobject - returns the global context object used in the shopp('cartitem) call
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 **/
-	static function _context ( $Object, $object ) {
+	static function _setobject ( $Object, $object ) {
 		if (strtolower($object) != 'cartitem') return $Object; // not mine, do nothing
 		else {
 			if (is_object($Object) && 'Item' == get_class($Object)) return $Object;

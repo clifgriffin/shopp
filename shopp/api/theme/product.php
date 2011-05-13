@@ -16,8 +16,9 @@
  * @since 1.2
  *
  **/
-class ShoppProductThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppProductThemeAPI implements ShoppAPI {
+	static $context = 'Product';
+	static $register = array(
 		'addons' => 'addons',
 		'addtocart' => 'add_to_cart',
 		'buynow' => 'buy_now',
@@ -66,6 +67,8 @@ class ShoppProductThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'variations' => 'variations',
 		'weight' => 'weight'
 	);
+
+	static function _apicontext () { return "product"; }
 
 	function addons ($result, $options, $O) {
 		global $Shopp;

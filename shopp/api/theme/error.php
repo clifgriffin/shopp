@@ -18,8 +18,8 @@
  * @since 1.2
  *
  **/
-class ShoppErrorThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppErrorThemeAPI implements ShoppAPI {
+	static $register = array(
 		'trxn' => 'trxn',
 		'auth' => 'auth',
 		'addon' => 'addon',
@@ -30,15 +30,18 @@ class ShoppErrorThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'debug' => 'debug'
 	);
 
+	static function _apicontext () { return "error"; }
+
+
 	/**
-	 * _context - returns the global context object used in the shopp('error') call
+	 * _setobject - returns the global context object used in the shopp('error') call
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 **/
-	static function _context ($Object, $object) {
-		if ( strtolower($object) != 'error' ) return false; // not mine
+	static function _setobject ($Object, $object) {
+		if ( strtolower($object) != 'error' ) return $Object; // not mine
 		return ShoppErrors();
 	}
 

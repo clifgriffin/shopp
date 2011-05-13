@@ -9,8 +9,8 @@
 *
 **/
 
-class ShoppCustomerThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppCustomerThemeAPI implements ShoppAPI {
+	static $register = array(
 		'accounts' => 'accounts',
 		'accounturl' => 'account_url',
 		'action' => 'action',
@@ -77,14 +77,17 @@ class ShoppCustomerThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'wpusercreated' => 'wpuser_created'
 	);
 
+
+	static function _apicontext () { return "customer"; }
+
 	/**
-	 * _context - returns the global context object used in the shopp('customer') call
+	 * _setobject - returns the global context object used in the shopp('customer') call
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 **/
-	static function _context ($Object, $object) {
+	static function _setobject ($Object, $object) {
 		if ( strtolower($object) != 'customer' ) return $Object; // not mine, do nothing
 		else {
 			if (is_object($Object) && 'Customer' == get_class($Object)) return $Object;

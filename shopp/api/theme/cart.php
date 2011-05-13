@@ -16,8 +16,8 @@
  * @since 1.2
  *
  **/
-class ShoppCartThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppCartThemeAPI implements ShoppAPI {
+	static $register = array(
 		'_cart',
 		'url' => 'url',
 		'referrer' => 'referrer',
@@ -56,14 +56,16 @@ class ShoppCartThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'total' => 'total'
 	);
 
+	static function _apicontext () { return "cart"; }
+
 	/**
-	 * _context - returns the global context object used in the shopp('cart') call
+	 * _setobject - returns the global context object used in the shopp('cart') call
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 **/
-	static function _context ($Object, $object) {
+	static function _setobject ($Object, $object) {
 		if ( strtolower($object) != 'cart' ) return $Object; // not mine, do nothing
 		else {
 			$Order =& ShoppOrder();

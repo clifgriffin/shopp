@@ -9,6 +9,8 @@
 *
 **/
 
+add_filter('shopp_themeapi_context_name', array('ShoppCollectionThemeAPI', '_context_name'));
+
 /**
  * shopp('category','...') tags
  *
@@ -18,9 +20,9 @@
  * @see http://docs.shopplugin.net/Category_Tags
  *
  **/
-class ShoppCollectionThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+class ShoppCollectionThemeAPI implements ShoppAPI {
 	static $context = 'Category'; // TODO transition to Collection
-	static $map = array(
+	static $register = array(
 		'carousel' => 'carousel',
 		'coverimage' => 'cover_image',
 		'description' => 'description',
@@ -49,6 +51,19 @@ class ShoppCollectionThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI
 		'total' => 'total',
 		'url' => 'url'
 	);
+
+	static function _context_name ( $name ) {
+		switch ( $name ) {
+			case "collection":
+			case "category":
+			case "subcategory":
+			return "collection";
+			break;
+		}
+		return $name;
+	}
+
+	static function _apicontext () { return "collection"; }
 
 	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
