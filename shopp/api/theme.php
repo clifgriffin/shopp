@@ -45,6 +45,7 @@ function shopp () {
 	if ( is_object($first) ) { // Handle Object instances as first argument
 		$Object = $first;
 		$context = isset($Object->api) ? $Object->api : strtolower(get_class($Object));
+		$tag = strtolower($second);
 	} elseif ( false !== strpos($context,'.') ) { // Handle object.tag first argument
 		list($context,$tag) = explode('.', strtolower($context));
 	} elseif ('' == $context.$tag) { // Normal tag handler
