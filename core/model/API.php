@@ -13,6 +13,11 @@
  * @subpackage shopp
  **/
 
+interface ShoppAPI {
+	static function _apicontext(); // returns the correct contextual object, if possible
+	static function _register(); // registers api tag filters
+}
+
 /**
  * ShoppAPILoader
  *
@@ -50,16 +55,19 @@ class ShoppAPIFile extends ModuleFile {
 
 	function register () {
 		// Hook _context
-		$class = $this->subpackage;
-		add_filter('shopp_themeapi_object', array($this, 'context'), 10, 2);
+		$api = $this->subpackage;
+		$apicontext = $api::_apicontext();
+
+		$setobject_call = method_exists($api,'_setobject')?array($api, '_setobject'):array($this,'setobject');
+		add_filter('shopp_themeapi_object', $setobject_call, 10, 2);
 
 		// Define a static $map property as an associative array or tag => member function names.
 		// Without the tag key, it will be registered as a general purpose filter for all tags in this context
-		if (!empty($class::$register)) {
-			foreach ( $class::$register as $tag => $method ) {
-				if ( is_callable(array($class, $method)) ) {
-					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($class::$context), array($class, $method), 10, 4 ); // general filter
-					else add_filter( 'shopp_themeapi_'.strtolower($class::$context.'_'.$tag), array($class, $method), 10, 3 );
+		if (!empty($api::$register)) {
+			foreach ( $api::$register as $tag => $method ) {
+				if ( is_callable(array($api, $method)) ) {
+					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($api, $method), 10, 4 ); // general filter
+					else add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $method), 10, 3 );
 				}
 			}
 			return;
@@ -67,24 +75,22 @@ class ShoppAPIFile extends ModuleFile {
 
 		// Otherwise, the register function will assume that all method names (excluding _ prefixed methods) correspond to tag you want.
 		// _ prefix members can be used as helper functions
-		$methods = array_filter( get_class_methods ($class), create_function( '$m','return ( "_" != substr($m, 0, 1) );' ) );
+		$methods = array_filter( get_class_methods ($api), create_function( '$m','return ( "_" != $m{0} );' ) );
 		foreach ( $methods as $tag )
-			add_filter( 'shopp_themeapi_'.strtolower($class::$context.'_'.$tag), array($class, $tag), 10, 3 );
+			add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $tag), 10, 3 );
 	}
 
-	function context ($Object,$object) {
-		$class = $this->subpackage;
-		$context = $class::$context;
+	function setobject ($Object,$context) {
+		$api = $this->subpackage;
+		$apicontext = $api::_apicontext();
 
-		if (method_exists($class,'_context')) return $class::_context();
+		if (strtolower($object) != strtolower($apicontext)) return $Object; // do nothing
 
-		if (strtolower($object) != strtolower($class::$context)) return $Object; // do nothing
-
-		if (is_object($Object) && self::$context == get_class($Object)) return $Object;  // still do nothing
+		if (is_object($Object) && $apicontext == get_class($Object)) return $Object;  // still do nothing
 
 		global $Shopp;
-		if (property_exists($Shopp->{self::$context})) {
-			return $Shopp->{self::$context};
+		if (property_exists($Shopp->{$apicontext})) {
+			return $Shopp->{$apicontext};
 		}
 		return false;
 	}
