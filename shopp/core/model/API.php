@@ -77,20 +77,21 @@ class ShoppAPIFile extends ModuleFile {
 		$methods = array_filter( get_class_methods ($api), create_function( '$m','return ( "_" != $m{0} );' ) );
 		foreach ( $methods as $tag )
 			add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $tag), 10, 3 );
+
 	}
 
 	function setobject ($Object,$context) {
 		$api = $this->subpackage;
 		$apicontext = $api::_apicontext();
 
-		if (strtolower($object) != strtolower($apicontext)) return $Object; // do nothing
-
+		if (strtolower($context) != strtolower($apicontext)) return $Object; // do nothing
 		if (is_object($Object) && $apicontext == get_class($Object)) return $Object;  // still do nothing
 
 		global $Shopp;
-		if (property_exists($Shopp->{$apicontext})) {
-			return $Shopp->{$apicontext};
-		}
+		$property = ucfirst($apicontext);
+		if (property_exists($Shopp,$property))
+			return $Shopp->{$property};
+
 		return false;
 	}
 
