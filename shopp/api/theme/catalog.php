@@ -12,9 +12,9 @@
 class ShoppCatalogThemeAPI implements ShoppAPI {
 	static $context = 'Catalog';
 	static $register = array(
-		'bestsellerproducts' => 'best_seller_products',
-		'bestsellersproducts' => 'best_seller_products',
-		'bestsellingproducts' => 'best_seller_products',
+		'bestsellerproducts' => 'bestseller_products',
+		'bestsellersproducts' => 'bestseller_products',
+		'bestsellingproducts' => 'bestseller_products',
 		'breadcrumb' => 'breadcrumb',
 		'catalogproducts' => 'catalog_products',
 		'categories' => 'categories',
@@ -214,7 +214,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
-
 		$taxonomy = 'shopp_category';
 
 		$categories = array(); $count = 0;
