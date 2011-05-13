@@ -16,9 +16,9 @@
  * @since 1.2
  *
  **/
-class ShoppPurchaseThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+class ShoppPurchaseThemeAPI implements ShoppAPI {
 	static $context = 'Purchase';
-	static $map = array(
+	static $register = array(
 		'address' => 'address',
 		'card' => 'card',
 		'cardtype' => 'card_type',
@@ -86,6 +86,8 @@ class ShoppPurchaseThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'url' => 'url',
 		'xaddress' => 'xaddress'
 	);
+
+	static function _apicontext () { return "purchase"; }
 
 	function address ($result, $options, $O) { return esc_html($O->address); }
 

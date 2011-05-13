@@ -9,9 +9,9 @@
 *
 **/
 
-class ShoppCatalogThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
+class ShoppCatalogThemeAPI implements ShoppAPI {
 	static $context = 'Catalog';
-	static $map = array(
+	static $register = array(
 		'bestsellerproducts' => 'best_seller_products',
 		'bestsellersproducts' => 'best_seller_products',
 		'bestsellingproducts' => 'best_seller_products',
@@ -48,6 +48,8 @@ class ShoppCatalogThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'views' => 'views',
 		'zoomoptions' => 'zoom_options'
 	);
+
+	static function _apicontext () { return "catalog"; }
 
 	function bestseller_products ($result, $options, $O) {
 		global $Shopp;

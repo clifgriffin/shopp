@@ -15,8 +15,8 @@
  * @author Jonathan Davis, John Dillick
  * @since 1.2
  **/
-class ShoppCheckoutThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
-	static $map = array(
+class ShoppCheckoutThemeAPI implements ShoppAPI {
+	static $register = array(
 		'billingaddress' => 'billing_address',
 		'billingcard' => 'billing_card',
 		'billingcardexpiresmm' => 'billing_card_expires_mm',
@@ -87,14 +87,16 @@ class ShoppCheckoutThemeAPI extends ShoppThemeAPIFramework implements ShoppAPI {
 		'xcobuttons' => 'xco_buttons'
 	);
 
+	static function _apicontext () { return "checkout"; }
+
 	/**
-	 * _context - returns the global context object used in the shopp('checkout) call
+	 * _setobject - returns the global context object used in the shopp('checkout) call
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 **/
-	static function _context ($Object, $object) {
+	static function _setobject ($Object, $object) {
 		if ( strtolower($object) != 'checkout' ) return $Object; // not mine, do nothing
 		else return ShoppOrder();
 	}

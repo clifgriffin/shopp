@@ -1,6 +1,6 @@
 <?php
 /**
- * Template API
+ * Shopp Theme API
  *
  * @author Jonathan Davis, John Dillick
  * @version 1.0
@@ -8,7 +8,7 @@
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package Shopp
  * @since 1.2
- * @subpackage Template
+ * @subpackage Theme
  **/
 
 /**
@@ -19,48 +19,110 @@
  * @since 1.0
  * @version 1.2
  *
- * @param mixed $object The object label or Object to get the tag property from
+ * @param mixed $context The object label or Object to get the tag property from
  * @param $property The property of the object to get/output
  * @param $options Custom options for the property result in query form
  *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {
-	$shoppapi = new shoppapi();
 	$Object = false;
+	$result = false;
 
-	$args = func_get_args();
+	$parameters = array('first','second','third');	// Parameter prototype
+	$num = func_num_args();							// Determine number of arguments provided
+	$context = $tag = false;							// object API to use and tag name
+	$options = array();								// options to pass to API call
 
-	if (isset($args[0]) && is_object($args[0])) {
-		$Object = $args[0];
-		if (property_exists($Object, 'api')) $object = $Object->api;
-		else $object = strtolower(get_class($Object));
-	} else list($object,$property) = explode('.', strtolower($args[0]));
-
-	if (!empty($object) && !empty($property)) {
-		if(isset($args[1])) $optionsarg = $args[1];
-	} else {
-		if (count($args) < 2) return; // missing property
-		if(empty($object)) $object = strtolower($args[0]);
-		if(empty($property)) $property = strtolower($args[1]);
-		if(isset($args[2])) $options = $args[2];
+	if ($num < 1) { // Not enough arguments to do anything, bail
+		new ShoppError(__('shopp() theme tag syntax error: no object property specified.','Shopp'));
+		return;
 	}
-	// echo "shopp('$object','$property','$optionsarg');".BR;
 
-	// normalize options to associative array of lowercased-key/value pairs
-	$options = shopp_parse_options($options);
+	// Grab the arguments (up to 3)
+	$args = array_combine(array_slice($parameters,0,$num),func_get_args());
+	extract($args);
 
-	// strip hypens from all properties, allows all manner of hyphenated properties without creating invalid method call
-	$property = str_replace ( "-", "", $property);
+	if ( is_object($first) ) { // Handle Object instances as first argument
+		$Object = $first;
+		$context = isset($Object->api) ? $Object->api : strtolower(get_class($Object));
+	} elseif ( false !== strpos($context,'.') ) { // Handle object.tag first argument
+		list($context,$tag) = explode('.', strtolower($context));
+	} elseif ('' == $context.$tag) { // Normal tag handler
+		list($context,$tag) = array_map('strtolower',array($first,$second));
+	}
 
-	if (!empty($object) && !empty($property)) {
-		$apicall = $object."_".$property;
-		if (!preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*./', $apicall )) {
-			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
-			return;
+	$options = shopp_parse_options($num < 3?$second:$third);
+
+	// strip hypens from tag names
+	$tag = str_replace ( '-', '', $tag );
+
+	// strip get prefix from requested tag
+	$get = false;
+	if ( 'get' == substr($tag, 0, 3) ) {
+		$tag = substr($tag,3);
+		$get = true;
+	}
+
+	// switch (strtolower($context)) {
+	// case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+	// case "cartitem": 	if (isset($Shopp->Order->Cart)) {
+	// 						$Cart =& $Shopp->Order->Cart;
+	// 						$Item = false;
+	// 						if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); }
+	// 						elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); }
+	// 						elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); }
+	// 						if ($Item === false) return false;
+	// 						$Object = $Item;
+	// 					}
+	// 					break;
+	// case "shipping": 	if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+	// case "category": 	if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
+	// case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
+	// case "catalog": 	if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
+	// case "product": 	if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
+	// case "checkout": 	if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
+	// case "purchase": 	if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
+	// case "customer": 	if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
+	// case "error": 		if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
+
+	$Object = apply_filters('shopp_themeapi_object', $Object, $context);
+	$Object = apply_filters('shopp_tag_domain', $Object, $context); // @deprecated
+	echo "object: $context Object: "._object_r($Object)." property: ".$tag.BR;
+
+	if ('has-context' == $tag) return ($Object);
+
+	if (!$Object) new ShoppError( sprintf( __('The shopp(\'%s\') tag cannot be used in this context because the object responsible for handling it doesn\'t exist.', 'Shopp'), $context ),'shopp_tag_error',SHOPP_ADMIN_ERR);
+
+	$themeapi = apply_filters('shopp_themeapi_context_name',$context);
+	$result = apply_filters('shopp_themeapi_'.strtolower($themeapi.'_'.$tag),$result,$options,$Object); // tag specific tag filter
+	$result = apply_filters('shopp_tag_'.strtolower($context.'_'.$tag),$result,$options,$Object); // @deprecated
+
+	$result = apply_filters('shopp_themeapi_'.strtolower($themeapi),$result,$options,$tag,$Object); // global object tag filter
+	$result = apply_filters('shopp_ml_t',$result,$options,$tag,$Object);
+
+	// Force boolean result
+	if (isset($options['is'])) {
+		if (value_is_true($options['is'])) {
+			if ($result) return true;
+		} else {
+			if ($result == false) return true;
 		}
-		return $shoppapi->$apicall($options, $Object);
+		return false;
 	}
-	return;
+
+	// Always return a boolean if the result is boolean
+	if (is_bool($result)) return $result;
+
+	if ( $get ||
+		( isset($options['return']) && value_is_true($options['return']) ) ||
+		( isset($options['echo']) && !value_is_true($options['echo']) )	)
+		return $result;
+
+	// Output the result
+	if (is_scalar($result)) echo $result;
+	else return $result;
+	return true;
+
 }
 
 require_once('theme/cart.php');
@@ -73,96 +135,5 @@ require_once('theme/checkout.php');
 require_once('theme/purchase.php');
 require_once('theme/customer.php');
 require_once('theme/error.php');
-
-class shoppapi {
-	function __call($method, $params) {
-		global $Shopp;
-		$Object = false;
-		$options = array();
-
-		list($object,$property) = explode("_",$method);
-		if (empty($object) || empty($property)) return;
-
-		if (isset($params[0])) $options = $params[0];
-		if (isset($params[1])) $Object = $params[1];
-
-		$result = false;
-
-		if ($Object === false)
-		switch (strtolower($object)) {
-			case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-			case "cartitem": 	if (isset($Shopp->Order->Cart)) {
-									$Cart =& $Shopp->Order->Cart;
-									$Item = false;
-									if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); }
-									elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); }
-									elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); }
-									if ($Item === false) return false;
-									$Object = $Item;
-								}
-								break;
-			case "shipping": 	if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-			case "category": 	if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
-			case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
-			case "catalog": 	if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
-			case "product": 	if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
-			case "checkout": 	if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
-			case "purchase": 	if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
-			case "customer": 	if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
-			case "error": 		if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
-			default: $Object = apply_filters('shopp_tag_domain',$Object,$object);
-		}
-
-		// Handle collection objects
-		switch (strtolower($object)) {
-			case "taxonomy":
-			case "collection":
-			case "category":
-			case "subcategory":
-			$object = "collection";
-		}
-
-		if ('has-context' == $property) return ($Object);
-
-		if (!$Object) new ShoppError( sprintf( __('The shopp(\'%s\') tag cannot be used in this context because the object responsible for handling it doesn\'t exist.', 'Shopp'), $object ),'shopp_tag_error',SHOPP_ADMIN_ERR);
-
-		// global property getters
-		if ( 'get' == substr($property, 0, 3) && property_exists($Object, substr($property, 3)) ) {
-			$getter = substr($property, 4);
-			$result = $Object->$getter;
-		}
-
-		$result = apply_filters('shoppapi_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object); // property specific tag filter
-		$result = apply_filters('shoppapi_'.strtolower($object),$result,$options,$property,$Object); // global object tag filter
-
-		$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object); // deprecated
-
-		$result = apply_filters('shopp_ml_t',$result,$options,$property,$Object);
-
-		// Force boolean result
-		if (isset($options['is'])) {
-			if (value_is_true($options['is'])) {
-				if ($result) return true;
-			} else {
-				if ($result == false) return true;
-			}
-			return false;
-		}
-
-		// Always return a boolean if the result is boolean
-		if (is_bool($result)) return $result;
-
-		// Return the result instead of outputting it
-		if ((isset($options['return']) && value_is_true($options['return'])) ||
-				isset($options['echo']) && !value_is_true($options['echo']))
-			return $result;
-
-		// Output the result
-		if (is_scalar($result)) echo $result;
-		else return $result;
-		return true;
-
-	}
-}
 
 ?>
