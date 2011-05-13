@@ -15,7 +15,6 @@
 
 interface ShoppAPI {
 	static function _apicontext(); // returns the correct contextual object, if possible
-	static function _register(); // registers api tag filters
 }
 
 /**
