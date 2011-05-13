@@ -57,13 +57,13 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			case "collection":
 			case "category":
 			case "subcategory":
-			return "collection";
+			return "category";
 			break;
 		}
 		return $name;
 	}
 
-	static function _apicontext () { return "collection"; }
+	static function _apicontext () { return "category"; }
 
 	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');

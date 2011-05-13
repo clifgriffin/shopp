@@ -63,31 +63,8 @@ function shopp () {
 		$get = true;
 	}
 
-	// switch (strtolower($context)) {
-	// case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-	// case "cartitem": 	if (isset($Shopp->Order->Cart)) {
-	// 						$Cart =& $Shopp->Order->Cart;
-	// 						$Item = false;
-	// 						if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); }
-	// 						elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); }
-	// 						elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); }
-	// 						if ($Item === false) return false;
-	// 						$Object = $Item;
-	// 					}
-	// 					break;
-	// case "shipping": 	if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-	// case "category": 	if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
-	// case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
-	// case "catalog": 	if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
-	// case "product": 	if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
-	// case "checkout": 	if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
-	// case "purchase": 	if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
-	// case "customer": 	if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
-	// case "error": 		if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
-
 	$Object = apply_filters('shopp_themeapi_object', $Object, $context);
 	$Object = apply_filters('shopp_tag_domain', $Object, $context); // @deprecated
-	echo "object: $context Object: "._object_r($Object)." property: ".$tag.BR;
 
 	if ('has-context' == $tag) return ($Object);
 
