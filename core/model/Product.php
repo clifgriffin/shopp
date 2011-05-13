@@ -25,6 +25,22 @@ class Product extends WPShoppObject {
 	static $posttype = 'shopp_product';
 
 
+	var $prices = array();
+	var $pricekey = array();
+	var $priceid = array();
+	var $categories = array();
+	var $tags = array();
+	var $images = array();
+	var $specs = array();
+	var $meta = array();
+	var $max = array();
+	var $min = array();
+	var $onsale = false;
+	var $freeshipping = false;
+	var $outofstock = false;
+	var $stock = 0;
+	var $options = 0;
+
 	protected $_map = array(
 		'id' => 'ID',
 		'name' => 'post_title',
@@ -37,23 +53,6 @@ class Product extends WPShoppObject {
 	);
 
 	var $_post_type;
-
-	var $prices = array();
-	var $pricekey = array();
-	var $priceid = array();
-	var $categories = array();
-	var $tags = array();
-	var $images = array();
-	var $specs = array();
-	var $meta = array();
-	var $max = array();
-	var $min = array();
-	var $summary = false;
-	var $onsale = false;
-	var $freeshipping = false;
-	var $outofstock = false;
-	var $stock = 0;
-	var $options = 0;
 
 	/**
 	 * Product constructor
@@ -104,7 +103,7 @@ class Product extends WPShoppObject {
 		if (!empty($products) ) {
 			$ids = join(',',array_keys($products));
 			$this->products = &$products;
-		} else $ids = $this->id;
+		} else $ids = $this->id;	// @todo Undefined property Product::$id in context of the shopp_themeapi_collection_hasproducts handler (ShoppCollectionThemeAPI::load_products)
 		if ( empty($ids) ) return;
 
 		foreach ($loadcalls as $loadmethod) {
@@ -135,10 +134,14 @@ class Product extends WPShoppObject {
 
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
-		if ( $this->_last_product != false
-				&& $this->_last_product != $price->product
-				&& isset($this->products[$this->_last_product]) )
-			$this->products[$this->_last_product]->sumup();
+		if ( isset($this->products) && !empty($this->products) ) {
+			if (!isset($this->_last_product)) $this->_last_product = false;
+
+			if ( $this->_last_product != false
+					// && $this->_last_product != $price->product
+					&& isset($this->products[$this->_last_product]) )
+				$this->products[$this->_last_product]->sumup();
+		}
 
 	}
 
@@ -187,9 +190,38 @@ class Product extends WPShoppObject {
 		} // END foreach ($terms)
 	}
 
+	/**
+	 * Callback for loading products from a record set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $records A reference to the loaded record set
+	 * @param object $record Result record data object
+	 * @return void
+	 **/
+	function loader (&$records,&$record,$DatabaseObject=false,$index='id',$collate=false) {
+		if (isset($this)) {
+			$index = $this->_key;
+			$DatabaseObject = get_class($this);
+		} else $DatabaseObject = __CLASS__;
+		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
+		if (!isset($DatabaseObject) || !class_exists($DatabaseObject)) return;
+		$Object = new $DatabaseObject();
+		$Object->populate($record);
+		// Join summary data to the object
+		$Object->summary($records,$record);
+
+		if ($collate) {
+			if (!isset($records[$index])) $records[$index] = array();
+			$records[$index][] = $Object;
+		} else $records[$index] = $Object;
+	}
+
 	function metaloader (&$records,&$record,$id='id',$property=false,$collate=true,$merge=false) {
 
 		if (isset($this->products) && !empty($this->products)) $products = &$this->products;
+		else $products = array();
 
 		$metamap = array(
 			'image' => 'images',
@@ -250,8 +282,12 @@ class Product extends WPShoppObject {
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 
-		$variations = ($target->variants == 'on');
+
+		$variations = ((isset($target->variants) && $target->variants == 'on')
+							|| ($price->type != 'N/A' && $price->context == 'variation'));
+
 		$freeshipping = true;
+		if (!isset($price->freeshipping)) $price->freeshipping = false; // @todo Can be set from promotions applied to priceline, still needed?
 
 		// do_action('shopp_init_product_pricing');
 		// foreach ($this->prices as $i => &$price) {
@@ -281,11 +317,13 @@ class Product extends WPShoppObject {
 			$target->pricekey[$price->optionkey] = $price;
 
 			// Boolean flag for custom product sales
+			$price->onsale = false;
 			$target->sale = 'off';
 			if ($price->sale == 'on') {
 				$target->sale = 'on'; $price->onsale = true;
 			}
 
+			$price->stocked = false;
 			if ($price->inventory == 'on') {
 				$target->stock += $price->stock;
 				$target->inventory = 'on';
@@ -308,7 +346,6 @@ class Product extends WPShoppObject {
 			// Grab price and saleprice ranges (minimum - maximum)
 			if (!$price->price) $price->price = 0;
 			if ($price->stocked) $varranges['stock'] = 'stock';
-
 			// do_action_ref_array('shopp_product_stats',array(&$price));
 
 			foreach ($varranges as $name => $prop) {
@@ -317,7 +354,6 @@ class Product extends WPShoppObject {
 				if (!isset($target->min[$name])) $target->min[$name] = $price->$prop;
 				else $target->min[$name] = min($target->min[$name],$price->$prop);
 				if ($target->min[$name] == $price->$prop) $target->min[$name.'_tax'] = ($price->tax == "on");
-
 
 				if (!isset($target->max[$name])) $target->max[$name] = $price->$prop;
 				else $target->max[$name] = max($target->max[$name],$price->$prop);
@@ -355,6 +391,7 @@ class Product extends WPShoppObject {
 		// Update stats
 		$target->maxprice = $target->max['price'];
 		$target->minprice = $target->min['price'];
+
 		if ($target->sale == 'on') $target->minprice = $target->min['saleprice'];
 
 		// $this->save_stats();
@@ -426,11 +463,13 @@ class Product extends WPShoppObject {
 		$Summary = new ProductSummary();
 
 		$properties = array_keys($Summary->_datatypes);
-		$ignore = array('product');
+		$ignore = array('product','modified');
 		foreach ($properties as $property) {
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
 		}
+		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
+
 
 	}
 
@@ -485,9 +524,9 @@ class Product extends WPShoppObject {
 		if (empty($this->id)) return;
 		$Summary = new ProductSummary();
 		$Summary->copydata($this);
-
+		$Summary->modified = $this->summed;
 		$Summary->product = $this->id;
-		$Summary->save();
+		$Summary->save( (!$Summary->modified) );
 	}
 
 	/**
@@ -704,7 +743,7 @@ class Product extends WPShoppObject {
 		return false;
 	}
 
-	function tag ($property,$options=array()) {
+	function __tag__ ($property,$options=array()) {
 		global $Shopp;
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
@@ -1634,6 +1673,11 @@ class ProductSummary extends DatabaseObject {
 		$this->init(self::$table);
 		$this->_key = 'product';
 		$this->load($id,$key);
+	}
+
+	function save () {
+		$save = (!$this->modified) ? 'insert' : 'update';
+		parent::save( $save );
 	}
 
 } // END class ProductSummary

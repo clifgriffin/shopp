@@ -68,8 +68,8 @@ require('core/model/Customer.php');
 
 // Load public development API
 require('api/core.php');
-require('api/taxonomy.php');
 require('api/theme.php');
+require('api/taxonomy.php');
 require('api/collection.php');
 
 // Start up the core

@@ -117,13 +117,13 @@ class Storefront extends FlowController {
 	}
 
 	function noquery ($request) {
-		if (!$this->is_shopp_request()) return $request;
-		return false;
+		if ($this->is_shopp_request()) return false;
+		return $request;
 	}
 
 	function found ($results) {
-		if (!$this->is_shopp_request()) return $results;
-		return array(1);
+		if ($this->is_shopp_request()) return array(1);
+		return $results;
 	}
 
 	function query ($wp_query) {
@@ -139,6 +139,7 @@ class Storefront extends FlowController {
 		$tag	 	= get_query_var(ProductTag::$taxonomy);
 		$collection = get_query_var('shopp_collection');
 		$sortorder 	= get_query_var('s_so');
+
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 

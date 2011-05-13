@@ -118,6 +118,7 @@ class ProductCollection implements Iterator {
 
 		if ($debug) echo $query.BR.BR;
 
+		// @todo Add support for wp_transient (caching) for faster results
 		$this->products = DB::query($query,'array',array($Processing,'loader'));
 		$this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
 
