@@ -145,6 +145,35 @@ class DB {
 	}
 
 	/**
+	 * Generates a timestamp from a MySQL datetime format
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param string $datetime A MySQL date time string
+	 * @return int A timestamp number usable by PHP date functions
+	 **/
+	function mktime ($datetime) {
+		$h = $mn = $s = 0;
+		list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,"%d-%d-%d %d:%d:%d");
+		if (max($Y, $M, $D, $h, $mn, $s) == 0) return 0;
+		return mktime($h, $mn, $s, $M, $D, $Y);
+	}
+
+	/**
+	 * Converts a timestamp number to an SQL datetime formatted string
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param int $timestamp A timestamp number
+	 * @return string An SQL datetime formatted string
+	 **/
+	function mkdatetime ($timestamp) {
+		return date("Y-m-d H:i:s",$timestamp);
+	}
+
+	/**
 	 * Escape the contents of data for safe insertion into the database
 	 *
 	 * @author Jonathan Davis
@@ -769,7 +798,7 @@ abstract class DatabaseObject implements Iterator {
 			// Process the data
 			switch ($this->_datatypes[$var]) {
 				case "date":
-					$this->{$property} = mktimestamp($value);
+					$this->{$property} = DB::mktime($value);
 					break;
 				case "float": $this->{$property} = (float)$value; break;
 				case "int": $this->{$property} = (int)$value; break;
@@ -1083,8 +1112,8 @@ abstract class SessionObject {
 			}
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
-			$this->created = mktimestamp($result->created);
-			$this->modified = mktimestamp($result->modified);
+			$this->created = DB::mktime($result->created);
+			$this->modified = DB::mktime($result->modified);
 			$loaded = true;
 
 			do_action('shopp_session_loaded');
