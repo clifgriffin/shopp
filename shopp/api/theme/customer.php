@@ -408,7 +408,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function not_logged_in ($result, $options, $O) { return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) { global $Shopp; return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
 
 	function order ($result, $options, $O) {
 		return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');

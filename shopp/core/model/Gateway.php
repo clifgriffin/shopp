@@ -313,7 +313,7 @@ class GatewayModules extends ModuleLoader {
 	var $secure = false;		// SSL-required flag
 
 	/**
-	 * Initializes the shipping module loader
+	 * Initializes the gateway module loader
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
