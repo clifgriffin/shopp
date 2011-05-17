@@ -1006,7 +1006,7 @@ class ProductCategory extends ProductTaxonomy {
 			if ($product->onsale) {
 				if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
 				if ($product->min['saleprice'] != $product->max['saleprice'])
-					$pricing .= "from ";
+					$pricing .= __("from ",'Shopp');
 				$pricing .= money($product->min['saleprice']);
 			} else {
 				if ($taxrate) {
@@ -1015,7 +1015,7 @@ class ProductCategory extends ProductTaxonomy {
 				}
 
 				if ($product->min['price'] != $product->max['price'])
-					$pricing .= "from ";
+					$pricing .= __("from ",'Shopp');
 				$pricing .= money($product->min['price']);
 			}
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
@@ -1800,11 +1800,11 @@ class __Category extends DatabaseObject {
 			$pricing = "";
 			if ($product->onsale) {
 				if ($product->min['saleprice'] != $product->max['saleprice'])
-					$pricing .= "from ";
+					$pricing .= __("from ",'Shopp');
 				$pricing .= money($product->min['saleprice']);
 			} else {
 				if ($product->min['price'] != $product->max['price'])
-					$pricing .= "from ";
+					$pricing .= __("from ",'Shopp');
 				$pricing .= money($product->min['price']);
 			}
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
