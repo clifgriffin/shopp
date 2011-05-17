@@ -1574,28 +1574,24 @@ class CartShipping {
 			// Add in the fees
 			$option->amount += apply_filters('shopp_cart_fees',$this->fees);
 			// Skip if not to be included
-			if (!$option->estimate) {
+			if (!$option->estimate) continue;
 
-				continue;
-			}
 			// If the option amount is less than current estimate
 			// Update the estimate to use this option instead
 			if (!$estimate || $option->amount < $estimate->amount)
 				$estimate = $option;
 		}
 
-		// Wipe out the selected shipping method if the option doesn't exist
-		if (!isset($this->options[$this->Shipping->method]))
-			$this->Shipping->method = false;
-
 		// Always return the selected shipping option if a method has been set
-		if (!empty($this->Shipping->method))
-			return $this->options[$this->Shipping->method]->amount;
-		else $this->Shipping->method = $estimate->name;
+		if (empty($this->Shipping->method)
+			&& !isset($this->options[$this->Shipping->method]))
+				$this->Shipping->method = $estimate->name;
 
+		$amount = $this->options[$this->Shipping->method]->amount;
+		$this->Cart->freeshipping = ($amount == 0);
 
 		// Return the estimated amount
-		return $estimate->amount;
+		return $amount;
 	}
 
 	/**
