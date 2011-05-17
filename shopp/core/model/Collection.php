@@ -955,6 +955,7 @@ class ProductCategory extends ProductTaxonomy {
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
+	    $base = $Shopp->Settings->get('base_operations');
 
 		add_filter('shopp_rss_description','wptexturize');
 		add_filter('shopp_rss_description','convert_chars');
@@ -980,6 +981,12 @@ class ProductCategory extends ProductTaxonomy {
 
 		$items = array();
 		foreach ($this->products as $product) {
+		    if ($base['vat']) {
+				$Product = new Product($product->id);
+				$Item = new Item($Product);
+		        $taxrate = shopp_taxrate(null, true, $Item);
+		    }
+
 			$item = array();
 			$item['guid'] = $product->tag('url','return=1');
 			$item['title'] = $product->name;
@@ -997,10 +1004,16 @@ class ProductCategory extends ProductTaxonomy {
 
 			$pricing = "";
 			if ($product->onsale) {
+				if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
 				if ($product->min['saleprice'] != $product->max['saleprice'])
 					$pricing .= "from ";
 				$pricing .= money($product->min['saleprice']);
 			} else {
+				if ($taxrate) {
+					$product->min['price'] += $product->min['price'] * $taxrate;
+					$product->max['price'] += $product->max['price'] * $taxrate;
+				}
+
 				if ($product->min['price'] != $product->max['price'])
 					$pricing .= "from ";
 				$pricing .= money($product->min['price']);
