@@ -25,6 +25,7 @@ class MetaObject extends DatabaseObject {
 
 	var $context = 'product';
 	var $type = 'meta';
+	var $_xcols = array();
 
 	/**
 	 * Meta constructor
@@ -35,7 +36,42 @@ class MetaObject extends DatabaseObject {
 	 **/
 	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
-		$this->load($id,$key);
+		if (is_array($id)) $this->load($id);
+		else $this->load(array($key=>$id,'type'=>$this->type));
+
+		if (!empty($this->id)) $this->expopulate();
+	}
+
+	/**
+	 * Populate extended fields loaded from the MetaObject
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function expopulate () {
+		if (!is_object($this->value)) return;
+		$properties = $this->value;
+		unset($this->value);
+		$this->copydata($properties);
+	}
+
+	/**
+	 * Save the object back to the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function save () {
+		if (!empty($this->_xcols)) {
+			$this->value = new stdClass();
+			foreach ((array)$this->_xcols as $col)
+				$this->value->{$col} = $this->{$col};
+		}
+		parent::save();
 	}
 
 } // END class Meta

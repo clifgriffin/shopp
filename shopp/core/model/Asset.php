@@ -31,28 +31,15 @@ class FileAsset extends MetaObject {
 	var $_xcols = array('mime','size','storage','uri');
 
 	function __construct ($id=false) {
-		global $Shopp;
 		$this->init(self::$table);
 		$this->extensions();
 		if (!$id) return;
 		$this->load($id);
 
+		if (!empty($this->id))
+			$this->expopulate();
 	}
 
-	/**
-	 * Load a FileAsset from the database
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void Description...
-	 **/
-	function load ($id) {
-		if (is_array($id)) parent::load($id);
-		parent::load(array('id'=>$id,'type'=>$this->type));
-		if (empty($this->id)) return false;
-		$this->expopulate();
-	}
 
 	/**
 	 * Populate extended fields loaded from the MetaObject
@@ -63,27 +50,8 @@ class FileAsset extends MetaObject {
 	 * @return void
 	 **/
 	function expopulate () {
-		if (is_object($this->value)) {
-			$properties = $this->value;
-			unset($this->value);
-			$this->copydata($properties);
-			$this->uri = stripslashes($this->uri);
-		}
-	}
-
-	/**
-	 * Save the object back to the database
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function save () {
-		$this->value = new stdClass();
-		foreach ($this->_xcols as $col)
-			$this->value->{$col} = $this->{$col};
-		parent::save();
+		parent::expopulate();
+		$this->uri = stripslashes($this->uri);
 	}
 
 	/**
@@ -666,5 +634,48 @@ abstract class StorageModule {
 	}
 
 }
+
+class ImageSetting extends MetaObject {
+
+	var $width;
+	var $height;
+	var $scaling = 0;
+	var $quality = 100;
+	var $sharpen = 0;
+	var $bg = array(255,255,255);
+	var $context = 'setting';
+	var $type = 'image_setting';
+	var $_xcols = array('width','height','scaling','quality','sharpen','bg');
+
+	function __construct ($id=false) {
+		$this->init(self::$table);
+		$this->load($id);
+	}
+
+	function scaling_menu () {
+ 		return array(	__('Scale to fit','Shopp'),
+						__('Scale &amp; crop','Shopp'),
+						__('Scale by width','Shopp'),
+						__('Scale by height','Shopp'),
+						__('Scale to fit &amp; fill','Shopp')
+					);
+	}
+
+	function quality_menu () {
+		return array(	__('Highest quality, largest file size','Shopp'),
+						__('Higher quality, larger file size','Shopp'),
+						__('Balanced quality &amp; file size','Shopp'),
+						__('Lower quality, smaller file size','Shopp'),
+						__('Lowest quality, smallest file size','Shopp')
+					);
+	}
+
+	function quality_value ($value) {
+		$quality = array(100,92,80,70,60);
+		if (isset($quality[$value])) return $quality[$value];
+		return $quality[2];
+	}
+
+} // END class ImageSetting
 
 ?>
