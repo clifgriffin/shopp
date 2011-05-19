@@ -621,7 +621,7 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	function loader (&$records,&$record,$DatabaseObject=false,$index='id',$collate=false) {
 		if (isset($this)) {
-			$index = $this->_key;
+			if ($index == 'id') $index = $this->_key;
 			$DatabaseObject = get_class($this);
 		}
 		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';

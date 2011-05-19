@@ -6,7 +6,6 @@
 	<div>
 		<?php wp_nonce_field('shopp-settings-pages'); ?>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
-		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
 
 	<br class="clear" />

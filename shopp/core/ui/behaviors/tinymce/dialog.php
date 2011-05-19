@@ -64,7 +64,7 @@ if(!function_exists('sanitize_path')){
 $loader = shopp_find_wpload();
 if (!file_exists($loader)) return false;
 $adminpath = dirname($loader).'/wp-admin';
-require_once($adminpath.'/admin.php');
+require($adminpath.'/admin.php');
 if(!current_user_can('edit_posts')) die;
 do_action('admin_init');
 

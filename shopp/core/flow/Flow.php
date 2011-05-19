@@ -72,7 +72,7 @@ class Flow {
 		if (defined('WP_ADMIN')) {
 			if (!isset($_GET['page'])) return;
 			if ($this->Admin === false) {
-				require_once(SHOPP_FLOW_PATH."/Admin.php");
+				require(SHOPP_FLOW_PATH."/Admin.php");
 				$this->Admin = new AdminFlow();
 			}
 			$controller = $this->Admin->controller(strtolower($request['page']));
@@ -107,7 +107,8 @@ class Flow {
 	 **/
 	function handler ($controller) {
 		if (!$controller) return false;
-		require_once(SHOPP_FLOW_PATH."/$controller.php");
+		if (!class_exists($controller))
+			require(SHOPP_FLOW_PATH."/$controller.php");
 		$this->Controller = new $controller();
 		do_action('shopp_'.strtolower($controller).'_init');
 		return true;
@@ -123,8 +124,7 @@ class Flow {
 	function admin () {
 		if (!defined('WP_ADMIN')) return false;
 		$controller = $this->Admin->controller(strtolower($_GET['page']));
-		require_once(SHOPP_FLOW_PATH."/$controller.php");
-		$this->Controller = new $controller();
+		$this->handler($controller);
 		$this->Controller->admin();
 		return true;
 	}
@@ -137,19 +137,19 @@ class Flow {
 	 * @return void
 	 **/
 	function menu () {
-		require_once(SHOPP_FLOW_PATH."/Admin.php");
+		require(SHOPP_FLOW_PATH."/Admin.php");
 		$this->Admin = new AdminFlow();
 		$this->Admin->menus();
 	}
 
 	function ajax () {
 		if (!isset($_REQUEST['action']) || !defined('DOING_AJAX')) return;
-		require_once(SHOPP_FLOW_PATH."/Ajax.php");
+		require(SHOPP_FLOW_PATH."/Ajax.php");
 		$this->Ajax = new AjaxFlow();
 	}
 
 	function resources ($request) {
-		require_once(SHOPP_FLOW_PATH."/Resources.php");
+		require(SHOPP_FLOW_PATH."/Resources.php");
 		$this->Controller = new Resources($request);
 	}
 
@@ -178,7 +178,7 @@ class Flow {
 		if (!defined('WP_ADMIN')) return;
 		if ($this->Installer !== false) return;
 
-		require_once(SHOPP_FLOW_PATH."/Install.php");
+		require(SHOPP_FLOW_PATH."/Install.php");
 		if (!$this->Installer) $this->Installer = new ShoppInstallation();
 	}
 

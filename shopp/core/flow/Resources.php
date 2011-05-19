@@ -59,7 +59,6 @@ class Resources {
 	 **/
 	function category_rss () {
 		global $Shopp;
-		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
 		$Storefront = new Storefront();
 		header("Content-type: application/rss+xml; charset=utf-8");
 		$Storefront->catalog($this->request);

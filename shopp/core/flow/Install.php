@@ -139,8 +139,6 @@ class ShoppInstallation extends FlowController {
 	function install_pages () {
 		global $wpdb;
 
-		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
-
 		$pages = Storefront::$_pages;
 
 		// Locate any Shopp pages that already exist
@@ -209,7 +207,7 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function upschema () {
-		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
+		require(ABSPATH.'wp-admin/includes/upgrade.php');
 
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
@@ -461,7 +459,7 @@ class ShoppInstallation extends FlowController {
 		$where = "name like '%".join("%' OR name like '%",$gateways)."%'";
 		$query = "SELECT name,value FROM $setting_table WHERE $where";
 		$result = $db->query($query,AS_ARRAY);
-		require_once(SHOPP_MODEL_PATH.'/Lookup.php');
+		require(SHOPP_MODEL_PATH.'/Lookup.php');
 		$paycards = Lookup::paycards();
 
 		// Convert settings to 1.1-compatible settings
@@ -764,7 +762,7 @@ class ShoppInstallation extends FlowController {
 			$title = __('Upgrade Shopp','Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
-			require_once(ABSPATH.'wp-admin/admin-header.php');
+			require(ABSPATH.'wp-admin/admin-header.php');
 
 			$nonce = 'upgrade-plugin_' . $plugin;
 			$url = 'update.php?action=shopp&plugin=' . $plugin;
@@ -778,7 +776,7 @@ class ShoppInstallation extends FlowController {
 			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
-			require_once(ABSPATH.'wp-admin/admin-header.php');
+			require(ABSPATH.'wp-admin/admin-header.php');
 
 			$nonce = 'upgrade-shopp-addon_' . $plugin;
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
@@ -793,7 +791,7 @@ class ShoppInstallation extends FlowController {
 			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
-			require_once(ABSPATH.'wp-admin/admin-header.php');
+			require(ABSPATH.'wp-admin/admin-header.php');
 
 			$nonce = 'upgrade-shopp-addon_' . $plugin;
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
@@ -807,7 +805,7 @@ class ShoppInstallation extends FlowController {
 			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
-			require_once(ABSPATH.'wp-admin/admin-header.php');
+			require(ABSPATH.'wp-admin/admin-header.php');
 
 			$nonce = 'upgrade-shopp-addon_' . $plugin;
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
@@ -822,7 +820,7 @@ class ShoppInstallation extends FlowController {
 } // END class ShoppInstallation
 
 if (!class_exists('Plugin_Upgrader'))
-	require_once(ABSPATH."wp-admin/includes/class-wp-upgrader.php");
+	require(ABSPATH."wp-admin/includes/class-wp-upgrader.php");
 
 /**
  * Shopp_Upgrader class

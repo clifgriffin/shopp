@@ -386,7 +386,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function create_wpuser () {
-		require_once(ABSPATH."/wp-includes/registration.php");
+		require(ABSPATH."/wp-includes/registration.php");
 		if (empty($this->loginname)) return false;
 		if (!validate_username($this->loginname)) {
 			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
@@ -588,7 +588,7 @@ class Customer extends DatabaseObject {
 				if ($auth != "none") return true;
 
 				if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-					require_once("Purchase.php");
+					require("Purchase.php");
 					$Purchase = new Purchase($_POST['purchaseid']);
 					if ($Purchase->email == $_POST['email']) {
 						$Shopp->Purchase = $Purchase;

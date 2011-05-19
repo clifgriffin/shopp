@@ -21,7 +21,6 @@ class ShoppSearchWidget extends WP_Widget {
     }
 
     function widget($args, $options) {
-		require_once(SHOPP_MODEL_PATH."/XML.php");
 		global $Shopp;
 		if (!empty($args)) extract($args);
 

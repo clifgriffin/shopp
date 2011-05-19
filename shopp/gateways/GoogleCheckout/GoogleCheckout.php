@@ -13,11 +13,10 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XML.php");
-
 class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 	var $secure = false;
+	var $xml = true;
 
 	function __construct () {
 		parent::__construct();

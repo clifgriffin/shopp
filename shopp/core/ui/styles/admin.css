@@ -610,3 +610,4 @@ div.storage-settings { clear:both;margin-top:8px; }
 tr.inline-edit-row td  { padding: 10px; }
 .inline-edit-row label { line-height: 20px; font-size: 11px; }
 
+.inline-edit-row span { display: inline-block; }

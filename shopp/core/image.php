@@ -12,14 +12,14 @@
 
 chdir(dirname(__FILE__));
 
-require_once(realpath('DB.php'));
-require_once(realpath('functions.php'));
-require_once('model/Error.php');
-require_once('model/Settings.php');
-require_once("model/Modules.php");
+require(realpath('DB.php'));
+require(realpath('functions.php'));
+require('model/Error.php');
+require('model/Settings.php');
+require("model/Modules.php");
 
-require_once("model/Meta.php");
-require_once("model/Asset.php");
+require("model/Meta.php");
+require("model/Asset.php");
 
 /**
  * ImageServer class
@@ -47,6 +47,8 @@ class ImageServer extends DatabaseObject {
 	function __construct () {
 		if (!defined('SHOPP_PATH'))
 			define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
+		if (!defined('SHOPP_MODEL_PATH'))
+			define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
 		if (!defined('SHOPP_STORAGE'))
 			define("SHOPP_STORAGE",SHOPP_PATH."/storage");
 		if (!defined('SHOPP_QUERY_DEBUG'))
@@ -141,7 +143,6 @@ class ImageServer extends DatabaseObject {
 		// Use the cached version if it exists, otherwise resize the image
 		if (!empty($Cached->id) && $this->caching) $this->Image = $Cached;
 		else $this->resize(); // No cached copy exists, recreate
-
 	}
 
 	function resize () {
@@ -152,7 +153,8 @@ class ImageServer extends DatabaseObject {
 			die('');
 		}
 
-		require_once(SHOPP_PATH."/core/model/Image.php");
+		if (!class_exists('ImageProcessor'))
+			require(SHOPP_MODEL_PATH."/Image.php");
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
 		$alpha = ($this->Image->mime == "image/png");
@@ -172,6 +174,7 @@ class ImageServer extends DatabaseObject {
 		$ResizedImage->id = false;
 		$ResizedImage->width = $Resized->width;
 		$ResizedImage->height = $Resized->height;
+
 		foreach ($this->args as $index => $arg)
 			$ResizedImage->settings[$arg] = isset($this->parameters[$index])?intval($this->parameters[$index]):false;
 
@@ -240,7 +243,8 @@ class ImageServer extends DatabaseObject {
 	 * @return void Description...
 	 **/
 	function clearpng () {
-		require_once(SHOPP_PATH."/core/model/Image.php");
+		if (!class_exists('ImageProcessor'))
+			require(SHOPP_MODEL_PATH.'/Image.php');
 		$max = 1920;
 		$this->width = min($max,$this->width);
 		$this->height = min($max,$this->height);

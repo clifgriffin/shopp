@@ -268,7 +268,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function id ($result, $options, $O) { return $O->id; }
 
-	function image ($result, $options, $O) {}
+	function image ($result, $options, $O) {
+		// @todo Implement collection 'image' ThemeAPI tag
+	}
 
 	function images ($result, $options, $O) {
 		if (!isset($O->_images_loop)) {

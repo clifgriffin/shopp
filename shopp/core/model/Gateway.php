@@ -67,6 +67,8 @@ abstract class GatewayFramework {
 	var $baseop = false; 		// Base of operation setting
 	var $precision = 2;			// Currency precision
 	var $settings = array();	// List of settings for the module
+	var $xml = false;			// Flag to load and enable XML parsing
+	var $soap = false;			// Flag to load and SOAP client helper
 
 	/**
 	 * Setup the module for runtime
@@ -86,6 +88,9 @@ abstract class GatewayFramework {
 		$this->settings = $Shopp->Settings->get($this->module);
 		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
+
+		if ($this->xml && !class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
+		if (!has_soap() && $this->soap && !class_exists('nusoap_base')) require(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$this->baseop = $Shopp->Settings->get('base_operations');
 		$this->precision = $this->baseop['currency']['format']['precision'];

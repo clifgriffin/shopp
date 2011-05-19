@@ -103,15 +103,15 @@ function shopp () {
 
 }
 
-require_once('theme/cart.php');
-require_once('theme/cartitem.php');
-require_once('theme/shipping.php');
-require_once('theme/collection.php');
-require_once('theme/catalog.php');
-require_once('theme/product.php');
-require_once('theme/checkout.php');
-require_once('theme/purchase.php');
-require_once('theme/customer.php');
-require_once('theme/error.php');
+require('theme/cart.php');
+require('theme/cartitem.php');
+require('theme/shipping.php');
+require('theme/collection.php');
+require('theme/catalog.php');
+require('theme/product.php');
+require('theme/checkout.php');
+require('theme/purchase.php');
+require('theme/customer.php');
+require('theme/error.php');
 
 ?>

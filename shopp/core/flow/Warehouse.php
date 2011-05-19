@@ -54,7 +54,8 @@ class Warehouse extends AdminController {
 		do_action('shopp_product_admin_scripts');
 
 		// Load the search model for indexing
-		require_once(SHOPP_MODEL_PATH."/Search.php");
+		if (!class_exists('ContentParser'))
+			require(SHOPP_MODEL_PATH.'/Search.php');
 		new ContentParser();
 		add_action('shopp_product_saved',array(&$this,'index'),99,1);
 	}
@@ -415,8 +416,6 @@ class Warehouse extends AdminController {
 		$Product->slug = apply_filters('editable_slug',$Product->slug);
 		$permalink = trailingslashit(shoppurl());
 
-		require_once(SHOPP_PATH.'/core/model/Asset.php');
-
 		$Price = new Price();
 
 		$priceTypes = Price::types();
@@ -767,8 +766,8 @@ class Warehouse extends AdminController {
 		$error = false;
 		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
-
-		require(SHOPP_PATH."/core/model/Image.php");
+		if (!class_exists('ImageProcessor'))
+			require(SHOPP_MODEL_PATH."/Image.php");
 
 		if (isset($_REQUEST['type'])) {
 			$parent = $_REQUEST['parent'];

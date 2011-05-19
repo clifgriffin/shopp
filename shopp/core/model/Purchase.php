@@ -9,7 +9,7 @@
  * @package shopp
  **/
 
-require_once("Purchased.php");
+require("Purchased.php");
 
 class Purchase extends DatabaseObject {
 	static $table = "purchase";

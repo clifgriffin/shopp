@@ -21,8 +21,10 @@
  * @package shopp
  **/
 /** From BackPress */
-require_once( ABSPATH . WPINC . '/class.wp-dependencies.php' );
-require_once( ABSPATH . WPINC . '/class.wp-scripts.php' );
+if (!class_exists('WP_Scripts')) {
+	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
+	require( ABSPATH . WPINC . '/class.wp-scripts.php' );
+}
 
 class ShoppScripts extends WP_Scripts {
 
@@ -243,6 +245,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('pages-settings', '/ui/behaviors/pages-settings.js', array('jquery'), '20100101');
 	$scripts->add_data('pages-settings', 'group', 1);
 
+	$scripts->add('image-settings', '/ui/behaviors/image-settings.js', array('jquery'), '20110518');
+	$scripts->add_data('image-settings', 'group', 1);
+
 	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.js', array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);
 
@@ -263,9 +268,6 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('status-labels', '/ui/behaviors/status-labels.js', array('jquery','jquery-tmpl'), '20110508');
 	$scripts->add_data('status-labels', 'group', 1);
-	$scripts->localize( 'status-labels', '$sl', array(
-		'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
-	));
 
 }
 

@@ -347,7 +347,7 @@ class DownloadAsset extends FileAsset {
 
 	function loadby_dkey ($key) {
 		$db = &DB::get();
-		require_once(SHOPP_MODEL_PATH."/Purchased.php");
+		require(SHOPP_MODEL_PATH."/Purchased.php");
 		$pricetable = DatabaseObject::tablename(Price::$table);
 
 		$Purchased = new Purchased($key,"dkey");
@@ -373,7 +373,7 @@ class DownloadAsset extends FileAsset {
 	}
 
 	function purchased () {
-		require_once(SHOPP_MODEL_PATH."/Purchased.php");
+		require(SHOPP_MODEL_PATH."/Purchased.php");
 		if (!$this->purchased) return false;
 		return new Purchased($this->purchased);
 	}
@@ -635,29 +635,35 @@ abstract class StorageModule {
 
 }
 
+// Prevent loading image setting classes when run in image server script context
+if ( !class_exists('RegistryFramework') ) return;
+
 class ImageSetting extends MetaObject {
+
+	static $qualities = array(100,92,80,70,60);
+	static $fittings = array('all','matte','crop','width','height');
 
 	var $width;
 	var $height;
-	var $scaling = 0;
+	var $fit = 0;
 	var $quality = 100;
-	var $sharpen = 0;
-	var $bg = array(255,255,255);
+	var $sharpen = 100;
+	var $bg = false;
 	var $context = 'setting';
 	var $type = 'image_setting';
-	var $_xcols = array('width','height','scaling','quality','sharpen','bg');
+	var $_xcols = array('width','height','fit','quality','sharpen','bg');
 
 	function __construct ($id=false) {
 		$this->init(self::$table);
 		$this->load($id);
 	}
 
-	function scaling_menu () {
- 		return array(	__('Scale to fit','Shopp'),
-						__('Scale &amp; crop','Shopp'),
-						__('Scale by width','Shopp'),
-						__('Scale by height','Shopp'),
-						__('Scale to fit &amp; fill','Shopp')
+	function fit_menu () {
+ 		return array(	__('All','Shopp'),
+						__('Crop','Shopp'),
+						__('Width','Shopp'),
+						__('Height','Shopp'),
+						__('Fill','Shopp')
 					);
 	}
 
@@ -670,12 +676,75 @@ class ImageSetting extends MetaObject {
 					);
 	}
 
+	function fit_value ($value) {
+		if (isset(self::$fittings[$value])) return self::$fittings[$value];
+		return self::$fittings[0];
+	}
+
 	function quality_value ($value) {
-		$quality = array(100,92,80,70,60);
-		if (isset($quality[$value])) return $quality[$value];
-		return $quality[2];
+		if (isset(self::$qualities[$value])) return self::$qualities[$value];
+		return self::$qualities[2];
+	}
+
+	function options() {
+		$settings = array();
+		$properties = array('width','height','fit','quality','sharpen','bg');
+		foreach ($properties as $property) {
+			$value = $this->{$property};
+			if ('quality' == $property) $value = $this->quality_value($this->{$property});
+			if ('fit' == $property) $value = $this->fit_value($this->{$property});
+			$settings[$property] = $value;
+		}
+		return $settings;
 	}
 
 } // END class ImageSetting
+
+class ImageSettings extends RegistryManager {
+
+	private static $instance;
+
+	function __construct () {
+		$ImageSetting = new ImageSetting($edit);
+		$table = $ImageSetting->_table;
+		$where = array(
+			"type='$ImageSetting->type'",
+			"context='$ImageSetting->context'"
+		);
+		$options = compact('table','where');
+		$query = DB::select($options);
+		$this->populate(DB::query($query,'array',array($ImageSetting,'loader'),false,'name'));
+		$this->found = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+	}
+
+	/**
+	 * Prevents cloning the DB singleton
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return void
+	 **/
+	function __clone () { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+
+	/**
+	 * Provides a reference to the instantiated singleton
+	 *
+	 * The ImageSettings class uses a singleton to ensure only one DB object is
+	 * instantiated at any time
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return DB Returns a reference to the DB object
+	 **/
+	static function &__instance () {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
+	}
+
+
+} // END class ImageSettings
 
 ?>
