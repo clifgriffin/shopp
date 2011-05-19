@@ -49,9 +49,11 @@ class Storefront extends FlowController {
 		parent::__construct();
 
 		$this->Settings = &$Shopp->Settings;
-		$this->Catalog = &$Shopp->Catalog;
 		$this->Category = &$Shopp->Category;
 		$this->Product = &$Shopp->Product;
+
+		$Catalog = new Catalog();
+		ShoppCatalog($Catalog);
 
 		$pages = $this->Settings->get('pages');
 		if (!empty($pages)) $this->pages = $pages;
@@ -129,9 +131,6 @@ class Storefront extends FlowController {
 	function query ($wp_query) {
 		global $Shopp;
 
-		$Catalog = new Catalog();
-		ShoppCatalog($Catalog);
-
 		$page	 	= get_query_var('shopp_page');
 		$posttype 	= get_query_var('post_type');
 		$product 	= get_query_var(Product::$posttype);
@@ -139,7 +138,6 @@ class Storefront extends FlowController {
 		$tag	 	= get_query_var(ProductTag::$taxonomy);
 		$collection = get_query_var('shopp_collection');
 		$sortorder 	= get_query_var('s_so');
-
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
@@ -153,6 +151,7 @@ class Storefront extends FlowController {
 			// Overrides to enforce page behavior
 			$wp_query->is_home = false;
 			$wp_query->is_singular = false;
+			$wp_query->is_archive = false;
 			$wp_query->is_page = true;
 			$wp_query->post_count = true;
 			return;
