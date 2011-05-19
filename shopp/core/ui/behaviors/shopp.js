@@ -96,7 +96,7 @@ function formatNumber (n,f,pr) {
 		sequence = '',
 		ng = [],
 		d = n.toFixed(f.precision).toString().split("."),
-		grouping = f.grouping;
+		grouping = f.grouping?f.grouping:[3];
 
 	n = "";
 	whole = d[0];
