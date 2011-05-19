@@ -28,6 +28,11 @@ class RegistryManager implements Iterator {
 		$this->rekey();
 	}
 
+	public function populate ($records) {
+		$this->_list = $records;
+		$this->rekey();
+	}
+
 	public function update ($key,$entry) {
 		if (!$this->exists($key)) return false;
 		$entry = array_merge($this->_list[$key],$entry);
@@ -52,6 +57,7 @@ class RegistryManager implements Iterator {
 	private function rekey () {
 		$this->_keys = array_keys($this->_list);
 	}
+
 
 	function current () {
 		return $this->_list[ $this->keys[$this->_position] ];

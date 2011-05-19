@@ -2775,7 +2775,8 @@ class SearchResults extends SmartCollection {
 		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
 
 		// Load search engine components
-		require_once(SHOPP_MODEL_PATH."/Search.php");
+		if (!class_exists('SearchParser'))
+			require(SHOPP_MODEL_PATH.'/Search.php');
 		new SearchParser();
 		new BooleanParser();
 		new ShortwordParser();

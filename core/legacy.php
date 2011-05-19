@@ -83,7 +83,7 @@ function shopp_prereqs () {
 	}
 
 	if (!function_exists('deactivate_plugins'))
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		require( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 	$plugin = basename($plugin_path)."/Shopp.php";
 	deactivate_plugins($plugin,true);

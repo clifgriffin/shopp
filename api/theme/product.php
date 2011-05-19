@@ -462,6 +462,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'id' => false,
 			'index' => false,
 			'class' => '',
+			'setting' => '',
 			'width' => false,
 			'height' => false,
 			'size' => false,
@@ -475,6 +476,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'zoomfx' => 'shopp-zoom',
 			'property' => false
 		);
+
+		// Populate defaults from named image settings to allow specific overrides
+		if (!empty($options['setting'])) {
+			$setting = $options['setting'];
+			$ImageSettings = ImageSettings::__instance();
+			$settings = $ImageSettings->get($setting);
+			$defaults = array_merge($defaults,$settings->options());
+		}
+
 		$options = array_merge($defaults,$options);
 		extract($options);
 

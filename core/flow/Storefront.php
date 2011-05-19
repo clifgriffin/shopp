@@ -144,6 +144,9 @@ class Storefront extends FlowController {
 		if ($category.$collection.$tag.$page == ''
 			&& $posttype != Product::$posttype) return;
 
+
+		$ImageSettings = ImageSettings::__instance();
+
 		$this->request = true;
 		set_query_var('suppress_filters',true); // Override default WP_Query request
 

@@ -693,7 +693,7 @@ class Order {
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 
 		if ($this->accounts == "wordpress" && !$this->Customer->login) {
-			require_once(ABSPATH."/wp-includes/registration.php");
+			require(ABSPATH."/wp-includes/registration.php");
 
 			// Validate possible wp account names for availability
 			if(isset($_POST['loginname'])){
@@ -730,7 +730,7 @@ class Order {
 			return new ShoppError(__('You must enter a login name for your account.','Shopp'),'cart_validation');
 
 		if (isset($_POST['loginname'])) {
-			require_once(ABSPATH."/wp-includes/registration.php");
+			require(ABSPATH."/wp-includes/registration.php");
 			if (apply_filters('shopp_login_valid',(!validate_username($_POST['loginname']))))
 				return new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'cart_validation');
 

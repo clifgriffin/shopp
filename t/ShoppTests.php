@@ -20,15 +20,14 @@ require('wp-config.php');
 if (!defined('SHOPP_SQL_DATAFILE')) define('SHOPP_SQL_DATAFILE','shopptest.sql');
 system('mysql -u '.DB_USER.' --password='.DB_PASSWORD.' '.DB_NAME.' < '.SHOPP_SQL_DATAFILE);
 
-require_once(ABSPATH.'wp-settings.php');
+require(ABSPATH.'wp-settings.php');
 
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
-// require_once('PHPUnit.php');
-require_once('PHPUnit/Framework/TestCase.php');
-require_once('PHPUnit/Util/ErrorHandler.php');
-require_once('xHTMLvalidator.php');
+// require('PHPUnit.php');
+require('PHPUnit/Autoload.php');
+require('xHTMLvalidator.php');
 
 // Abstraction Layer
 class ShoppTestCase extends PHPUnit_Framework_TestCase {
@@ -438,7 +437,7 @@ function shopp_run_tests($classes, $classname='') {
 
 	#return PHPUnit::run($suite);
 	$result = new PHPUnit_Framework_TestResult;
-	require_once('PHPUnit/TextUI/ResultPrinter.php');
+	require('PHPUnit/TextUI/ResultPrinter.php');
 	$printer = new PHPUnit_TextUI_ResultPrinter(NULL,true,true);
 	$result->addListener($printer);
 	return array($suite->run($result), $printer);
@@ -511,8 +510,8 @@ if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
-$files = array(SHOPP_TESTS_DIR."/PackagingTests.php");
-foreach ($files as $file) require_once($file);
+// $files = array(SHOPP_TESTS_DIR."/PackagingTests.php");
+foreach ($files as $file) require($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);
 shopptests_print_result($printer,$result);

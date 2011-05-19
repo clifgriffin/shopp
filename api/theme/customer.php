@@ -419,7 +419,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if ($auth != "none") return true;
 
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-			require_once("Purchase.php");
+			require("Purchase.php");
 			$Purchase = new Purchase($_POST['purchaseid']);
 			if ($Purchase->email == $_POST['email']) {
 				$Shopp->Purchase = $Purchase;

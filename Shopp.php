@@ -41,9 +41,10 @@ if (SHOPP_UNSUPPORTED) return;
 require("core/functions.php");
 
 // Load core app helpers
-require_once("core/DB.php");
-require_once("core/model/Settings.php");
-require_once('core/model/Error.php');
+require("core/DB.php");
+require("core/Framework.php");
+require("core/model/Settings.php");
+require('core/model/Error.php');
 
 // Load super controllers
 require('core/flow/Flow.php');

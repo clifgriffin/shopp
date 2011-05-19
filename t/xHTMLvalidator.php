@@ -12,7 +12,7 @@
 *
 * Ussage:
 *
-* require_once('XhtmlValidator.php');
+* require('XhtmlValidator.php');
 * $XhtmlValidator = new XhtmlValidator();
 * if($XhtmlValidator->validate($xhtml) === false){
 *   echo '<h1>Ooops! There are some errors on the XHTML page</h1>';

@@ -12,8 +12,8 @@
  * @subpackage Catalog
  **/
 
-require_once("Product.php");
-require_once("Collection.php");
+require("Product.php");
+require("Collection.php");
 
 class Catalog {
 	static $table = "catalog";

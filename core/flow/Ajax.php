@@ -96,7 +96,7 @@ class AjaxFlow {
 
 	function category_menu () {
 		check_admin_referer('wp_ajax_shopp_category_menu');
-		require_once(SHOPP_FLOW_PATH."/Categorize.php");
+		require(SHOPP_FLOW_PATH."/Categorize.php");
 		$Categorize = new Categorize();
 		echo '<option value="">Select a category&hellip;</option>';
 		echo '<option value="catalog-products">All Products</option>';
@@ -108,7 +108,7 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_category_products');
 		if (!isset($_GET['category'])) return;
 		$category = $_GET['category'];
-		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
+		require(SHOPP_FLOW_PATH."/Warehouse.php");
 		$Warehouse = new Warehouse();
 		echo $Warehouse->category($category);
 		exit();
@@ -156,14 +156,14 @@ class AjaxFlow {
 	}
 
 	function upload_image () {
-		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
+		require(SHOPP_FLOW_PATH."/Warehouse.php");
 		$Warehouse = new Warehouse();
 		echo $Warehouse->images();
 		exit();
 	}
 
 	function upload_file () {
-		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
+		require(SHOPP_FLOW_PATH."/Warehouse.php");
 		$Warehouse = new Warehouse();
 		echo $Warehouse->downloads();
 		exit();
@@ -289,7 +289,8 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_rebuild_search_index');
 		global $wpdb;
 		$db = DB::get();
-		require(SHOPP_MODEL_PATH."/Search.php");
+		if (!class_exists('ContentParser'))
+			require(SHOPP_MODEL_PATH.'/Search.php');
 		new ContentParser();
 
 		$set = 10;
@@ -317,7 +318,10 @@ class AjaxFlow {
 	function rebuild_search_index_progress () {
 		check_admin_referer('wp_ajax_shopp_rebuild_search_index_progress');
 		$db = DB::get();
-		require(SHOPP_MODEL_PATH."/Search.php");
+
+		if (!class_exists('ContentIndex'))
+			require(SHOPP_MODEL_PATH.'/Search.php');
+
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 
@@ -491,7 +495,8 @@ class AjaxFlow {
 						<taxrate name="Sussex">1.4</taxrate>
 					</localtaxrates>
 				*/
-				require_once(SHOPP_MODEL_PATH."/XML.php");
+				if (!class_exists('xmlQuery'))
+					require(SHOPP_MODEL_PATH.'/XML.php');
 				$XML = new xmlQuery($data);
 				$taxrates = $XML->tag('taxrate');
 				while($rate = $taxrates->each()) {

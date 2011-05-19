@@ -37,6 +37,9 @@ class Setup extends AdminController {
 			case "checkout":
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('status-labels');
+				shopp_localize_script( 'status-labels', '$sl', array(
+					'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
+				));
 				break;
 			case "taxes":
 				wp_enqueue_script("suggest");
@@ -50,6 +53,14 @@ class Setup extends AdminController {
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('pages-settings');
 				$this->pages_ui();
+				break;
+			case "images":
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('image-settings');
+				shopp_localize_script( 'image-settings', '$is', array(
+					'confirm' => __('Are you sure you want to remove this image preset?','Shopp'),
+				));
+				$this->images_ui();
 				break;
 			case "settings":
 				shopp_enqueue_script('setup');
@@ -72,8 +83,9 @@ class Setup extends AdminController {
 			case "payments": 		$this->payments(); break;
 			case "shipping": 		$this->shipping(); break;
 			case "taxes": 			$this->taxes(); break;
-			case "presentation":	$this->presentation(); break;
 			case "pages":			$this->pages(); break;
+			case "presentation":	$this->presentation(); break;
+			case "images":			$this->images(); break;
 			case "system":			$this->system(); break;
 			case "update":			$this->update(); break;
 			default: 				$this->general();
@@ -411,6 +423,85 @@ class Setup extends AdminController {
 			'decription'=>__('Description','Shopp')
 		));
 	}
+
+	function images () {
+
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+		$Settings = ShoppSettings();
+
+		$edit = false;
+		if (isset($_GET['id'])) $edit = (int)$_GET['id'];
+
+		if (!empty($_GET['delete'])) {
+			$delete = (int)$_GET['delete'];
+			$Record = new ImageSetting($delete);
+			$Record->delete();
+			shopp_redirect($this->url);
+			exit();
+		}
+
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-images');
+
+			$ImageSetting = new ImageSetting($edit);
+			$_POST['name'] = sanitize_title_with_dashes($_POST['name']);
+			$_POST['sharpen'] = floatval(str_replace('%','',$_POST['sharpen']));
+			$ImageSetting->updates($_POST);
+			$ImageSetting->save();
+		}
+
+		$pagenum = absint( $pagenum );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1));
+
+		$ImageSetting = new ImageSetting($edit);
+		$table = $ImageSetting->_table;
+		$where = array(
+			"type='$ImageSetting->type'",
+			"context='$ImageSetting->context'"
+		);
+		$limit = "$start,$per_page";
+
+		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
+		$query = DB::select($options);
+		$settings = DB::query($query,'array',array($ImageSetting,'loader'));
+		$total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+
+		$num_pages = ceil($total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg(array("edit"=>null,'pagenum' => '%#%')),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum,
+		));
+
+		$fit_menu = $ImageSetting->fit_menu();
+		$quality_menu = $ImageSetting->quality_menu();
+
+		$json_settings = array();
+		$skip = array('created','modified','numeral','context','type','sortorder','parent');
+		foreach ($settings as &$Setting)
+			if (method_exists($Setting,'json'))
+				$json_settings[$Setting->id] = $Setting->json($skip);
+
+		include(SHOPP_ADMIN_PATH."/settings/images.php");
+	}
+
+	function images_ui () {
+		register_column_headers('shopp_page_shopp-settings-images', array(
+			'name'=>__('Name','Shopp'),
+			'dimensions'=>__('Dimensions','Shopp'),
+			'fit'=>__('Fit','Shopp'),
+			'quality'=>__('Quality','Shopp'),
+			'sharpness'=>__('Sharpness','Shopp')
+		));
+	}
+
 
 	function payments_ui () {
 		global $Shopp;

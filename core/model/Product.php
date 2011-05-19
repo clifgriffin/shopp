@@ -12,9 +12,8 @@
  * @subpackage products
  **/
 
-require_once("Asset.php");
-require_once("Price.php");
-require_once("Promotion.php");
+require("Price.php");
+require("Promotion.php");
 
 class Product extends WPShoppObject {
 	static $table = 'posts';
@@ -578,7 +577,8 @@ class Product extends WPShoppObject {
 			$Image->alt = $img['alt'];
 
 			if (!empty($img['cropping'])) {
-				require_once(SHOPP_PATH."/core/model/Image.php");
+				if (!class_exists('ImageProcessor'))
+					require(SHOPP_MODEL_PATH."/Image.php");
 
 				foreach ($img['cropping'] as $id => $cropping) {
 					if (empty($cropping)) continue;

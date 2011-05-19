@@ -12,7 +12,7 @@
 /**
  * Initialize
  **/
-require_once 'PHPUnit/Framework.php';
+require 'PHPUnit/Framework.php';
 
 class CartItemAPITests extends ShoppTestCase {
 	function CartItemAPITests () {

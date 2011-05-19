@@ -62,8 +62,9 @@ class AdminFlow extends FlowController {
 		'settings-payments'=>'shopp_settings_payments',
 		'settings-shipping'=>'shopp_settings_shipping',
 		'settings-taxes'=>'shopp_settings_taxes',
+		'settings-pages'=>'shopp_settings_presentation',
 		'settings-presentation'=>'shopp_settings_presentation',
-		'settings-pages'=>'shopp_settings',
+		'settings-images'=>'shopp_settings_presentation',
 		'settings-system'=>'shopp_settings_system'
 	);
 
@@ -102,8 +103,9 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
-		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
 		$this->addpage('settings-pages',__('Pages','Shopp'),'Setup','Page Settings',"settings");
+		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
+		$this->addpage('settings-images',__('Images','Shopp'),'Setup','Image Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// Action hook for adding custom third-party pages

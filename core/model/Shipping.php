@@ -264,8 +264,8 @@ abstract class ShippingFramework {
 		$this->units = $Shopp->Settings->get('weight_unit');
 
 		if ($this->postcode) $Shopp->Order->Cart->showpostcode = true;
-		if ($this->xml) require_once(SHOPP_MODEL_PATH."/XML.php");
-		if (!has_soap() && $this->soap) require_once(SHOPP_MODEL_PATH."/SOAP.php");
+		if ($this->xml && !class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
+		if (!has_soap() && $this->soap && !class_exists('nusoap_base')) require(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));

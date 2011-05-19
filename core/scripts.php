@@ -44,7 +44,7 @@ function get_file($path) {
 }
 
 
-require_once('functions.php');
+require('functions.php');
 
 if (!defined('ABSPATH')) {
 	$loadfile = shopp_find_wpload();
@@ -52,7 +52,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('WPINC')) define('WPINC', 'wp-includes');
-require_once('flow/Scripts.php');
+require('flow/Scripts.php');
 
 $ShoppScripts = new ShoppScripts();
 shopp_default_scripts($ShoppScripts);
