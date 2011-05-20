@@ -39,7 +39,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
 		</tfoot>
-	<?php if (count($Products) > 0): ?>
+	<?php if ($Products->total > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');

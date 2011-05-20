@@ -127,7 +127,7 @@ class ProductCollection implements Iterator {
 			if ($this->pages > 1) $this->paged = true;
 		}
 
-		$Processing->load_data($load,$this->index);
+		$Processing->load_data($load,$this->products);
 
 		// If products are missing summary data, resum them
 		if (!empty($this->resum)) {
@@ -139,22 +139,21 @@ class ProductCollection implements Iterator {
 		return (count($this->products) > 0);
 	}
 
-	function loader (&$records,$record) {
-		$Product = new Product();
-		$Product->populate($record);
-		$Product->summary($records,$record);
-		$records[] = &$Product;
-		$this->index[$Product->id] = &$Product;
-
-		// Resum the product pricing data if there is no summation data,
-		// or if the summation data hasn't yet been updated today
-		if ( empty($record->summed) || mktimestamp($record->summed) < mktime(0,0,0)) {
-			$Product->resum();
-			$this->resum[$Product->id] = &$Product;
-		}
-
-
-	}
+	// function loader (&$records,$record) {
+	// 	$Product = new Product();
+	// 	$Product->populate($record);
+	// 	$Product->summary($records,$record);
+	// 	$records[] = &$Product;
+	// 	$this->index[$Product->id] = &$Product;
+	//
+	// 	// Resum the product pricing data if there is no summation data,
+	// 	// or if the summation data hasn't yet been updated today
+	// 	if ( empty($record->summed) || mktimestamp($record->summed) < mktime(0,0,0)) {
+	// 		$Product->resum();
+	// 		$this->resum[$Product->id] = &$Product;
+	// 	}
+	//
+	// }
 
 	function pagelink ($page) {
 		$type = isset($this->tag)?'tag':'category';
@@ -168,13 +167,13 @@ class ProductCollection implements Iterator {
 	}
 
 	function workflow () {
-		return array_keys($this->index);
+		return array_keys($this->products);
 	}
 
 	/** Iterator implementation **/
 
 	function current () {
-		return $this->products[$this->_position];
+		return $this->products[ $this->_keys[$this->_position] ];
 	}
 
 	function key () {
@@ -187,10 +186,11 @@ class ProductCollection implements Iterator {
 
 	function rewind () {
 		$this->_position = 0;
+		$this->_keys = array_keys($this->products);
 	}
 
 	function valid () {
-		return isset($this->products[$this->_position]);
+		return isset($this->products[ $this->_keys[$this->_position] ]);
 	}
 
 }
