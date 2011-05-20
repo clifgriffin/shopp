@@ -176,15 +176,6 @@ class Warehouse extends AdminController {
 		if (!$workflow) {
 			if (empty($categories)) $categories = array('');
 
-			// $category_table = DatabaseObject::tablename(ProductCategory::$table);
-			// $query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
-			// $categories = $db->query($query,AS_ARRAY);
-			// $categories = sort_tree($categories);
-			// if (empty($categories)) $categories = array();
-
-			// $categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
-			// $categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
-
 			$categories_menu = wp_dropdown_categories(array(
 				'show_option_all' => __('View all categories','Shopp'),
 				'show_option_none' => __('Uncategorized','Shopp'),
@@ -234,6 +225,7 @@ class Warehouse extends AdminController {
 		$orderby = "pd.created DESC";
 
 		$having = "";
+		$joins = array();
 		$where = array();
 		if (!empty($s)) {
 			$SearchResults = new SearchResults(array('search'=>$s,'debug'=>true,'load'=>array()));
@@ -243,12 +235,19 @@ class Warehouse extends AdminController {
 		}
 		// if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
 		if (!empty($cat)) {
-			if ($cat == "-") {
-				$having = "HAVING COUNT(cat.id) = 0";
-			} else {
-				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-				$where[] = " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND taxonomy='$ct_id')";
-			}
+			// if ($cat == "-") {
+			// 	$having = "HAVING COUNT(cat.id) = 0";
+			// } else {
+				// $matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
+				// $where[] = " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND taxonomy='$ct_id')";
+
+				global $wpdb;
+
+				$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+				$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
+
+
+			// }
 		}
 		if (!empty($sl)) {
 			switch($sl) {
@@ -283,6 +282,7 @@ class Warehouse extends AdminController {
 		} else {
 			$loading = array(
 				'where' => $where,
+				'joins' => $joins,
 				'limit'=>"$start,$per_page",
 				'load' => array('categories'),
 				'published' => false
@@ -313,27 +313,6 @@ class Warehouse extends AdminController {
 			if ('inventory' == $name) {
 				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.product AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
-
-
-			//
-			//
-			// if ($name == "all") { $subquery['total'] = (int)$productcount->total; continue; }
-			// $columns = $subquery['columns'];
-			// if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
-			// $w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
-			// // $category_join = (strpos($w,"taxonomy='$ct_id'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id'":"";
-			//
-			// $grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
-			//
-			// $query = DB::select($options);
-			//
-			//
-			//
-			// $query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' $category_join WHERE $w $grouping $having";
-			// $db->query($query);
-			// $found = $db->query("SELECT FOUND_ROWS() as total");
-			//
-			// if (isset($found->total)) $subquery['total'] = number_format((int)$found->total);
 
 		}
 

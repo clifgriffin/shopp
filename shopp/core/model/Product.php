@@ -103,6 +103,8 @@ class Product extends WPShoppObject {
 			$ids = join(',',array_keys($products));
 			$this->products = &$products;
 		} else $ids = $this->id;	// @todo Undefined property Product::$id in context of the shopp_themeapi_collection_hasproducts handler (ShoppCollectionThemeAPI::load_products)
+
+
 		if ( empty($ids) ) return;
 
 		foreach ($loadcalls as $loadmethod) {
@@ -170,7 +172,7 @@ class Product extends WPShoppObject {
 			$ids = array_keys($this->products);
 		} else $ids = array($this->id);
 
-		$taxonomies = get_object_taxonomies( $this->_post_type );
+		$taxonomies = get_object_taxonomies( self::$posttype );
 		$terms = wp_get_object_terms($ids,$taxonomies,array('fields' => 'all_with_object_id'));
 
 		foreach ($terms as $term) { // Map wp taxonomy data to object meta
