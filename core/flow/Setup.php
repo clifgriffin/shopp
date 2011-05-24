@@ -449,7 +449,7 @@ class Setup extends AdminController {
 			$_POST['name'] = sanitize_title_with_dashes($_POST['name']);
 			$_POST['sharpen'] = floatval(str_replace('%','',$_POST['sharpen']));
 			$ImageSetting->updates($_POST);
-			$ImageSetting->save();
+			if (!empty($ImageSetting->name)) $ImageSetting->save();
 		}
 
 		$pagenum = absint( $pagenum );
