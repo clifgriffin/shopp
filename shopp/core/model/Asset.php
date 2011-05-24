@@ -660,10 +660,10 @@ class ImageSetting extends MetaObject {
 
 	function fit_menu () {
  		return array(	__('All','Shopp'),
+						__('Fill','Shopp'),
 						__('Crop','Shopp'),
 						__('Width','Shopp'),
-						__('Height','Shopp'),
-						__('Fill','Shopp')
+						__('Height','Shopp')
 					);
 	}
 
