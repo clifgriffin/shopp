@@ -190,7 +190,7 @@ class Shopp {
 		add_action('shopp_init', array(&$this,'pages'));
 		add_action('shopp_init', array(&$this,'collections'));
 		add_action('shopp_init', array(&$this,'taxonomies'));
-		add_action('shopp_init', array(&$this,'product'),99);
+		add_action('shopp_init', array(&$this,'products'),99);
 
 
 		// Plugin management
@@ -299,7 +299,7 @@ class Shopp {
 		ProductTaxonomy::register('ProductTag');
 	}
 
-	function product () {
+	function products () {
 		WPShoppObject::register('Product',Storefront::slug());
 	}
 
