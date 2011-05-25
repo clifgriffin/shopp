@@ -335,9 +335,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 								if (!empty($shipping->name)) $label = $shipping->name;
 								$_[] = '<merchant-calculated-shipping name="'.$label.'">';
 								$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision,'.','').'</price>';
-								$_[] = '<shipping-restrictions>';
-								$_[] = '<allowed-areas><world-area /></allowed-areas>';
-								$_[] = '</shipping-restrictions>';
+								$_[] = '<address-filters>';
+									$_[] = '<allowed-areas><world-area /></allowed-areas>';
+								$_[] = '</address-filters>';
 								$_[] = '</merchant-calculated-shipping>';
 							}
 						$_[] = '</shipping-methods>';
@@ -587,32 +587,44 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Shopping = &$Shopp->Shopping;
 		$Order = &$Shopp->Order;
 
-		// Get new address information on order
-		$shipto = $XML->tag('anonymous-address');
 
-		$Order->Shipping->city = $shipto->content('city'); //['city']['CONTENT']
-		$Order->Shipping->state = $shipto->content('region'); //['region']['CONTENT']
-		$Order->Shipping->country = $shipto->content('country-code'); //['country-code']['CONTENT']
-		$Order->Shipping->postcode = $shipto->content('postal-code'); //['postal-code']['CONTENT']
+		$options = array();
+		$google_methods = $XML->attr('method','name');
+		$addresses = $XML->tag('anonymous-address');
 
-		// Calculate shipping options
-		$Shipping = new CartShipping();
-		$Shipping->calculate();
-		$options = $Shipping->options();
-		if (empty($options)) return true; // acknowledge, but don't respond
+		// Calculate all shipping methods for every potential address google returns
+		// Really Google? You're just gonna send all the possible shipping addresses for that customer every time?
+		while ( $shipto = $addresses->each() ) {
+			$address_id = $shipto->attr(false,'id');
+			$Order->Shipping->city = $shipto->content('city');
+			$Order->Shipping->state = $shipto->content('region');
+			$Order->Shipping->country = $shipto->content('country-code');
+			$Order->Shipping->postcode = $shipto->content('postal-code');
 
-		$methods = $XML->attr('method','name');
+			// Calculate shipping options
+			$Shipping = new CartShipping();
+			$Shipping->calculate();
 
-		$address_id = $XML->attr('anonymous-address','id');
+			$options[$address_id] = array();
+			foreach ( $Shipping->options() as $option )
+				$options[$address_id][$option->name] = $option;
+		}
+
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = "<merchant-calculation-results xmlns=\"http://checkout.google.com/schema/2\">";
 		$_[] = "<results>";
-		foreach ($options as $option) {
-			if (in_array($option->name, $methods)) {
-				$_[] = '<result shipping-name="'.$option->name.'" address-id="'.$address_id.'">';
-				$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision,'.','').'</shipping-rate>';
-				$_[] = '<shippable>true</shippable>';
-				$_[] = '</result>';
+		foreach ( $options as $address_id => $methods ) {
+			foreach ( $google_methods as $methodname ) {
+				if ( isset($methods[$methodname]) ) { // new quote for this address exists
+					$_[] = '<result shipping-name="'.$option->name.'" address-id="'.$address_id.'">';
+					$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision,'.','').'</shipping-rate>';
+					$_[] = '<shippable>true</shippable>';
+					$_[] = '</result>';
+				} else { // google is expecting a result, but there is none for this address
+					$_[] = '<result shipping-name="'.$option->name.'" address-id="'.$address_id.'">';
+					$_[] = '<shippable>false</shippable>';
+					$_[] = '</result>';
+				}
 			}
 		}
 		$_[] = "</results>";
