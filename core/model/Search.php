@@ -52,7 +52,8 @@ class IndexProduct {
 	 * @return void
 	 **/
 	function index () {
-		foreach ($this->properties as $property) {
+		$properties = apply_filters('shopp_index_product_properties',$this->properties);
+		foreach ($properties as $property) {
 			switch ($property) {
 				case "prices":
 					$prices = array();
