@@ -64,6 +64,70 @@ class Setup extends AdminController {
 				break;
 			case "settings":
 				shopp_enqueue_script('setup');
+
+				$customer_service = " ".sprintf(__('Contact <a href="%s">customer service</a>.','Shopp'),SHOPP_CUSTOMERS);
+
+				$this->keystatus = array(
+					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'),
+					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'),
+					'ks_1' => __('An unkown error occurred.','Shopp'),
+					'ks0' => __('This site has been deactivated.','Shopp'),
+					'ks1' => __('This site has been activated.','Shopp'),
+					'ks_100' => __('An unknown activation error occurred.','Shopp').$customer_service,
+					'ks_101' => __('The key provided is not valid.','Shopp').$customer_service,
+					'ks_102' => __('This site is not valid to activate the key.','Shopp').$customer_service,
+					'ks_103' => __('The key provided could not be validated by shopplugin.net.','Shopp').$customer_service,
+					'ks_104' => __('The key provided is already active on another site.','Shopp').$customer_service,
+					'ks_200' => __('An unkown deactivation error occurred.','Shopp').$customer_service,
+					'ks_201' => __('The key provided is not valid.','Shopp').$customer_service,
+					'ks_202' => __('The site is not valid to be able to deactivate the key.','Shopp').$customer_service,
+					'ks_203' => __('The key provided could not be validated by shopplugin.net.','Shopp').$customer_service
+				);
+
+				$l10n = array(
+					'activate_button' => __('Activate Key','Shopp'),
+					'deactivate_button' => __('De-activate Key','Shopp'),
+					'connecting' => __('Connecting','Shopp')
+
+				);
+				$l10n = array_merge($l10n,$this->keystatus);
+				shopp_localize_script( 'setup', '$sl', $l10n);
+
+
+			/*
+					var labels = <?php echo json_encode($statusLabels); ?>,
+						labelInputs = [],
+						activated = <?php echo ($activated)?'true':'false'; ?>,
+						SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
+						SHOPP_ACTIVATE_KEY = <?php _jse('Activate Key','Shopp'); ?>,
+						SHOPP_DEACTIVATE_KEY = <?php _jse('Deactivate Key','Shopp'); ?>,
+						SHOPP_CONNECTING = <?php _jse('Connecting','Shopp'); ?>,
+						SHOPP_CUSTOMER_SERVICE = <?php printf(json_encode(__('Contact <a href="%s">customer service</a>.','Shopp')),SHOPP_CUSTOMERS); ?>,
+						keyStatus = {
+							'-000':<?php _jse('The server could not be reached because of a connection problem.','Shopp'); ?>,
+							'-1':<?php _jse('An unkown error occurred.','Shopp'); ?>,
+							'0':<?php _jse('This key has been deactivated.','Shopp'); ?>,
+							'1':<?php _jse('This key has been activated.','Shopp'); ?>,
+							'-100':<?php _jse('An unknown activation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-101':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-102':<?php _jse('This site is not valid to activate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-103':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-104':<?php _jse('The key provided is already active on another site.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-200':<?php _jse('An unkown deactivation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-201':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-202':<?php _jse('The site is not valid to be able to deactivate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
+							'-203':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE
+						},
+
+						zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
+						act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
+						deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
+
+*/
+
+
+
+
 				break;
 		}
 
@@ -101,17 +165,15 @@ class Setup extends AdminController {
 	 * @return void
 	 **/
 	function general () {
-		global $Shopp;
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$updatekey = $Shopp->Settings->get('updatekey');
-		$activated = ($updatekey[0] == "1");
-		$type = "text";
-		$key = $updatekey[1];
-		if (isset($updatekey[2]) && $updatekey[2] == "dev") {
-			$type = "password";
-			$key = preg_replace('/\w/','?',$key);
+		$Settings = ShoppSettings();
+
+		// Welcome screen handling
+		if (!empty($_POST['setup'])) {
+			$_POST['settings']['display_welcome'] = "off";
+			$this->settings_save();
 		}
 
 		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
@@ -123,11 +185,40 @@ class Setup extends AdminController {
 			$countries[$iso] = $c['name'];
 		}
 
-		if (!empty($_POST['setup'])) {
-			$_POST['settings']['display_welcome'] = "off";
-			$this->settings_save();
+		// Key activation
+		if (!empty($_POST['activation'])) {
+			check_admin_referer('shopp-settings-activation');
+			$sitekey = Shopp::keysetting();
+			$key = $_POST['updatekey'];
+			if ($key == str_repeat('0',40)) $key = $sitekey['k'];
+			Shopp::key($_POST['activation'],$key);
 		}
 
+		$sitekey = Shopp::keysetting();
+		$activated = Shopp::activated();
+		$key = $sitekey['k'];
+		$status = $sitekey['s'];
+
+		$type = "text";
+		$action = 'activate';
+		$button = __('Activate Key','Shopp');
+
+		if ($activated) {
+			$button = __('De-activate Key','Shopp');
+			$action = 'deactivate';
+			$type = "password";
+			$key = str_repeat('0',strlen($key));
+			$keystatus = $this->keystatus['ks1'];
+		} else {
+			if (str_repeat('0',40) == $key) $key = '';
+		}
+
+		$status_class = ($status < 0)?'activating':'';
+		$keystatus = '';
+		if (empty($key)) $keystatus = $this->keystatus['ks_inactive'];
+		if (!empty($_POST['activation'])) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
+
+		// Save settings
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
 			$vat_countries = Lookup::vat_countries();
@@ -148,13 +239,12 @@ class Setup extends AdminController {
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
-		$operations = $Shopp->Settings->get('base_operations');
-		if (!empty($operations['zone'])) {
-			$zones = Lookup::country_zones();
+		$operations = $Settings->get('base_operations');
+		$zones = Lookup::country_zones();
+		if (isset($zones[$operations['country']]))
 			$zones = $zones[$operations['country']];
-		}
 
-		$targets = $Shopp->Settings->get('target_markets');
+		$targets = $Settings->get('target_markets');
 		if (!$targets) $targets = array();
 
 		include(SHOPP_ADMIN_PATH."/settings/settings.php");

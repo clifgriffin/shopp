@@ -1532,8 +1532,22 @@ function shopp_find_wpload () {
 }
 
 /**
+ * Ties the key status and update key together
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return void
+ **/
+function shopp_keybind ($data) {
+	if (!isset($data[1]) || empty($data[1])) $data[1] = str_repeat('0',40);
+	return pack(Lookup::keyformat(true),$data[0],$data[1]);
+}
+
+/**
  * Generates RSS markup in XML from a set of provided data
  *
+ * @todo Move to Catalog class as helper method
  * @author Jonathan Davis
  * @since 1.0
  *
@@ -1858,5 +1872,7 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
+
+
 
 ?>

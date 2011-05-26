@@ -278,4 +278,7 @@ function &ShoppStorefront () {
 	return $Shopp->Flow->Controller;
 }
 
+add_filter('shopp_update_key','shopp_keybind');
+add_filter('shopp_update_key','base64_encode');
+
 ?>

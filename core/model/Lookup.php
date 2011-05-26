@@ -244,6 +244,7 @@ class Lookup {
 		$_['USAF']['AA'] = 'Americas';
 		$_['USAF']['AE'] = 'Europe';
 		$_['USAF']['AP'] = 'Pacific';
+
 		return apply_filters('shopp_country_zones',$_);
 	}
 
@@ -416,6 +417,20 @@ class Lookup {
 		return apply_filters('shopp_index_factors',$_);
 	}
 
+	/**
+	 * Returns the key binding format
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param boolean $m (optional) True to mask the format string
+	 * @return string The format for key binding
+	 **/
+	static function keyformat ( $m=false ) {
+		$f = array(0x69,0x73,0x2f,0x48,0x34,0x30,0x6b);
+		if (true === $m) $f = array_diff($f,array(0x73,0x2f,0x6b));
+		return join('',array_map('chr',$f));
+	}
 
 } // END class Lookup
 

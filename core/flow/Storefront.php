@@ -63,9 +63,11 @@ class Storefront extends FlowController {
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 		ShoppingObject::store('referrer',$this->referrer);
 
+		// Setup WP_Query overrides
 		add_action('parse_query', array($this, 'query'));
 		add_filter('posts_request', array($this, 'noquery'));
 		add_filter('posts_results', array($this, 'found'));
+		add_filter('the_posts', array($this, 'posts'));
 
 		add_action('wp', array($this, 'loaded'));
 		// add_action('wp', array($this, 'pageid'));
@@ -123,9 +125,14 @@ class Storefront extends FlowController {
 		return $request;
 	}
 
-	function found ($results) {
+	function found ($found_posts) {
+		if ($this->is_shopp_request()) return true;
+		return $found_posts;
+	}
+
+	function posts ($posts) {
 		if ($this->is_shopp_request()) return array(1);
-		return $results;
+		return $posts;
 	}
 
 	function query ($wp_query) {
@@ -142,13 +149,12 @@ class Storefront extends FlowController {
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
 		if ($category.$collection.$tag.$page == ''
-			&& $posttype != Product::$posttype) return;
-
+			&& $posttype == Product::$posttype) return;
 
 		$ImageSettings = ImageSettings::__instance();
 
 		$this->request = true;
-		set_query_var('suppress_filters',true); // Override default WP_Query request
+		set_query_var('suppress_filters',false); // Override default WP_Query request
 
 		if (!empty($page)) {
 			// Overrides to enforce page behavior

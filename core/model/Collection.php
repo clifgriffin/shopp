@@ -64,32 +64,34 @@ class ProductCollection implements Iterator {
 		if ($published) $where[] = "p.post_status='publish'";
 
 		// Sort Order
+		$orderby = false;
 		$defaultOrder = $Settings->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
 		$ordering = isset($Storefront->browsing['sortorder'])?
 						$Storefront->browsing['sortorder']:$defaultOrder;
 		if ($order !== false) $ordering = $order;
 		switch ($ordering) {
-			case 'bestselling': $order = "s.sold DESC,p.post_title ASC"; break;
-			case 'highprice': $order = "maxprice DESC,p.post_title ASC"; break;
-			case 'lowprice': $order = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
-			case 'newest': $order = "p.post_date DESC,p.post_title ASC"; break;
-			case 'oldest': $order = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
-			case 'random': $order = "RAND(".crc32($Shopp->Shopping->session).")"; break;
-			case 'chaos': $order = "RAND(".time().")"; break;
-			case 'title': $order = "p.post_title ASC"; /* $useindex = "name"; */ break;
+			case 'bestselling': $orderby = "s.sold DESC,p.post_title ASC"; break;
+			case 'highprice': $orderby = "maxprice DESC,p.post_title ASC"; break;
+			case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
+			case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
+			case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
+			case 'random': $orderby = "RAND(".crc32($Shopp->Shopping->session).")"; break;
+			case 'chaos': $orderby = "RAND(".time().")"; break;
+			case 'title': $orderby = "p.post_title ASC"; /* $useindex = "name"; */ break;
 			case 'recommended':
-			default:
+			// default:
 				// Need to add the catalog table for access to category-product priorities
 				// if (!isset($this->smart)) {
 				// 	$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
 				// 	$order = "c.priority ASC,p.name ASC";
 				// } else $order = "p.name ASC";
-				$order = "p.post_title ASC";
-				break;
+				// $orderby = "p.post_title ASC";
+				// break;
 		}
-		$orderby = false;
-		if (!empty($order)) $orderby = $order;
+
+		if (!$orderby && !empty($order)) $orderby = $order;
+		else $orderby = "p.post_title ASC";
 
 		// Pagination
 		if (empty($limit)) {
@@ -209,7 +211,7 @@ class ProductTaxonomy extends ProductCollection {
 
 	function __construct ($id=false,$key='id') {
 		if (!$id) return;
-		if ('slug' == $key) $this->loadby_slug($id);
+		if ('id' != $key) $this->loadby($id,$key);
 		else $this->load_term($id);
 	}
 
@@ -267,8 +269,8 @@ class ProductTaxonomy extends ProductCollection {
 	 * @param string $slug The slug name to load
 	 * @return boolean loaded successfully or not
 	 **/
-	function loadby_slug ($slug) {
-		$term = get_term_by('slug',$slug,$this->taxonomy);
+	function loadby ($id,$key='id') {
+		$term = get_term_by($key,$id,$this->taxonomy);
 		if (empty($term->term_id)) return false;
 		$this->populate($term);
 	}
@@ -2843,9 +2845,14 @@ class TagProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
-		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
-		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		$this->taxonomy = get_catalog_taxonomy_id('tag');
+		// $tagtable = DatabaseObject::tablename(CatalogTag::$table);
+		// $catalogtable = DatabaseObject::tablename(Catalog::$table);
+		// $this->taxonomy = get_catalog_taxonomy_id('tag');
+
+		$terms = get_terms(ProductTag::$taxonomy);
+		print_r($terms);
+		return;
+
 		$this->tag = urldecode($options['tag']);
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {
@@ -2856,7 +2863,17 @@ class TagProducts extends SmartCollection {
 
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
 		$this->uri = urlencode($this->tag);
-		$this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.taxonomy='$this->taxonomy' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
+
+		global $wpdb;
+		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
+		$where[] = "tt.term_id IN (".join(',',$scope).")";
+		$columns = 'COUNT(p.ID) AS score';
+		$groupby = 'p.ID';
+		$order = 'score DESC';
+		$this->loading = compact('columns','joins','where','groupby','order');
+
+		// $this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.taxonomy='$this->taxonomy' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
 
 	}
 }
@@ -2867,16 +2884,16 @@ class RelatedProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
+		$where = array();
+		$scope = array();
 
-		global $Shopp;
-		$Cart = $Shopp->Order->Cart;
-		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
-		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		$this->taxonomy = get_catalog_taxonomy_id('tag');
+		$Product = ShoppProduct();
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
 
 		// Use the current product if available
-		if (!empty($Shopp->Product->id))
-			$this->product = $Shopp->Product;
+		if (!empty($Product->id))
+			$this->product = ShoppProduct();
 
 		// Or load a product specified
 		if (isset($options['product'])) {
@@ -2886,46 +2903,42 @@ class RelatedProducts extends SmartCollection {
 				$this->product = new Product($options['product']);
 			else
 				$this->product = new Product($options['product'],'slug'); // Load by specified slug
+
 		}
 
-		if (empty($this->product->id)) return false;
-
-		// Load the product's tags if they are not available
-		if (empty($this->product->tags))
-			$this->product->load_data(array('tags'));
-
-		if (empty($this->product->tags)) return false;
-
-		$tagscope = "";
 		if (isset($options['tagged'])) {
-			$tagged = new CatalogTag($options['tagged'],'name');
-
-			if (!empty($tagged->id)) {
-				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tagged->id";
-			}
-
+			$tagged = new ProductTag($options['tagged'],'name');
+			if (!empty($tagged->id)) $scope[] = $tagged->id;
+			$name = $tagged->name;
+			$slug = $tagged->slug;
 		}
 
-		foreach ($this->product->tags as $tag)
-			if (!empty($tag->id))
-				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tag->id";
+		if (!empty($this->product->id)) {
+			$name = $this->product->name;
+			$slug = $this->product->slug;
+			$where = array("p.id != {$this->product->id}");
+			// Load the product's tags if they are not available
+			if (empty($this->product->tags))
+				$this->product->load_data(array('tags'));
 
-		if (!empty($tagscope)) $tagscope = "($tagscope) AND catalog.taxonomy='$this->taxonomy'";
+			if (!$scope) $scope = array_keys($this->product->tags);
 
-		$this->tag = "product-".$this->product->id;
-		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
-		$this->uri = urlencode($this->tag);
+		}
+		if (empty($scope)) return false;
+
+		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($name)."&quot;";
+		$this->uri = urlencode($slug);
 		$this->controls = false;
 
-		$exclude = "";
-		if (!empty($this->product->id)) $exclude = " AND p.id != {$this->product->id}";
+		global $wpdb;
+		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
+		$where[] = "tt.term_id IN (".join(',',$scope).")";
+		$columns = 'COUNT(p.ID) AS score';
+		$groupby = 'p.ID';
+		$order = 'score DESC';
+		$this->loading = compact('columns','joins','where','groupby','order');
 
-		$this->loading = array(
-			'columns'=>'count(DISTINCT catalog.id)+SUM(IF('.$tagscope.',100,0)) AS score',
-			'joins'=>"LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id LEFT JOIN $tagtable AS t ON t.id=catalog.parent AND catalog.product=p.id",
-			'where'=>"($tagscope) $exclude",
-			'orderby'=>'score DESC'
-			);
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 		if (isset($options['controls']) && value_is_true($options['controls']))
 			unset($this->controls);

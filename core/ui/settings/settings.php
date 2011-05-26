@@ -4,18 +4,26 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Settings','Shopp'); ?></h2>
 
-	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-general'); ?>
+	<form name="settings" id="general" action="<?php echo $this->url; ?>" method="post">
+		<?php wp_nonce_field('shopp-settings-activation'); ?>
 
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th>
 				<td>
-					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
-					<button type="button" id="activation-button" name="activation-button" class="button-secondary"><? echo (!$activated)?__('Activate Key','Shopp'):str_repeat('&nbsp;',25); ?></button>
-					<br /><div id="activation-status" class="activating hidden"><?php printf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'); ?></div>
+					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="54" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
+					<input type="submit" id="activation-button" name="activation-button" class="button-secondary" value="<? echo $button; ?>" />
+					<input type="hidden" name="activation" value="<?php echo $action; ?>" />
+					<div id="activation-status" class="hide-if-js<?php echo " $status_class"; ?>"><?php echo $keystatus; ?></div>
 	            </td>
 			</tr>
+		</table>
+	</form>
+
+	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
+		<?php wp_nonce_field('shopp-settings-general'); ?>
+
+		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th>
 				<td><input type="text" name="settings[merchant_email]" value="<?php echo esc_attr($this->Settings->get('merchant_email')); ?>" id="merchant_email" size="30" /><br />
@@ -27,9 +35,11 @@
 					<option value="">&nbsp;</option>
 						<?php echo menuoptions($countries,$operations['country'],true); ?>
 					</select>
+					<?php if (isset($zones)): ?>
 					<select name="settings[base_operations][zone]" id="base_operations_zone">
-						<?php if (isset($zones)) echo menuoptions($zones,$operations['zone'],true); ?>
+						<?php echo menuoptions($zones,$operations['zone'],true); ?>
 					</select>
+					<?php endif; ?>
 					<br />
 	            	<?php _e('Select your primary business location.','Shopp'); ?><br />
 					<?php if (!empty($operations['country'])): ?>
@@ -43,15 +53,23 @@
 				<td>
 					<div id="target_markets" class="multiple-select">
 						<ul>
-
-							<?php $even = true; foreach ($targets as $iso => $country): ?>
-								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
-							<?php endforeach; ?>
-							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
-							<?php foreach ($countries as $iso => $country): ?>
+							<?php
+								$even = true;
+								foreach ($targets as $iso => $country):
+									$classes = array();
+									if ($even) $classes[] = 'odd';
+							?>
+								<li<?php if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
+							<?php $even = !$even; endforeach; $classes = array(); ?>
+							<li<?php if ($even) $classes[] = 'odd'; $classes[] = 'hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
+							<?php
+								foreach ($countries as $iso => $country):
+									$classes = array();
+									if ($even) $classes[] = 'odd';
+								?>
 							<?php if (!in_array($country,$targets)): ?>
-							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
-							<?php endif; endforeach; ?>
+							<li<?php if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
+							<?php $even = !$even; endif; endforeach; ?>
 						</ul>
 					</div>
 					<br />
@@ -70,9 +88,8 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var labels = <?php echo json_encode($statusLabels); ?>,
-	labelInputs = [],
-	activated = <?php echo ($activated)?'true':'false'; ?>,
+/*
+
 	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
 	SHOPP_ACTIVATE_KEY = <?php _jse('Activate Key','Shopp'); ?>,
 	SHOPP_DEACTIVATE_KEY = <?php _jse('Deactivate Key','Shopp'); ?>,
@@ -92,10 +109,10 @@ var labels = <?php echo json_encode($statusLabels); ?>,
 		'-201':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
 		'-202':<?php _jse('The site is not valid to be able to deactivate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
 		'-203':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE
-	},
-
-	zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
-	act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
-	deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
+	}, */
+	var activated = <?php echo ($activated)?'true':'false'; ?>,
+		zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
+		act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
+		deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
 /* ]]> */
 </script>
