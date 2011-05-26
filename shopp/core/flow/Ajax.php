@@ -253,35 +253,15 @@ class AjaxFlow {
 
 	function activate_key () {
 		check_admin_referer('wp_ajax_shopp_activate_key');
-		global $Shopp;
-		$updatekey = $Shopp->Settings->get('updatekey');
-		$request = array(
-			"ShoppServerRequest" => "activate-key",
-			'key' => $_GET['key'],
-			'site' => get_bloginfo('siteurl')
-		);
-		$response = $Shopp->callhome($request);
-		$result = json_decode($response);
-		if ($result[0] == "1")
-			$Shopp->Settings->save('updatekey',$result);
-		echo $response;
+		echo Shopp::key('activate',$_GET['key']);
 		exit();
 	}
 
 	function deactivate_key () {
 		check_admin_referer('wp_ajax_shopp_deactivate_key');
-		global $Shopp;
-		$updatekey = $Shopp->Settings->get('updatekey');
-		$request = array(
-			"ShoppServerRequest" => "deactivate-key",
-			'key' => $updatekey[1],
-			'site' => get_bloginfo('siteurl')
-		);
-		$response = $Shopp->callhome($request);
-		$result = json_decode($response);
-		if ($result[0] == "0" && $updatekey[2] == "dev") $Shopp->Settings->save('updatekey',array("0"));
-		else $Shopp->Settings->save('updatekey',$result);
-		echo $response;
+		$sitekey = Shopp::keysetting();
+		$key = $sitekey['k'];
+		echo Shopp::key('deactivate',$key);
 		exit();
 	}
 

@@ -389,14 +389,6 @@ class Shopp {
 	}
 
 	/**
-	 * @deprecated {@see shoppurl()}
-	 *
-	 **/
-	function link ($target,$secure=false) {
-		return shoppurl(false,$target,$secure);
-	}
-
-	/**
 	 * Provides the JavaScript environment with Shopp settings
 	 *
 	 * @author Jonathan Davis
@@ -527,6 +519,10 @@ class Shopp {
 		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
 		$data = http_build_query($data,'','&');
 
+		// $url = SHOPP_HOME.'?'.$query;
+		// $connection = new WP_Http();
+		// $connection->request($url,)
+
 		$connection = curl_init();
 		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query);
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
@@ -559,6 +555,34 @@ class Shopp {
 		curl_close ($connection);
 
 		return $result;
+	}
+
+	function key ($action,$key) {
+		$actions = array('deactivate','activate');
+		if (!in_array($action,$actions)) $action = reset($actions);
+		$action = "$action-key";
+
+		$request = array( 'ShoppServerRequest' => $action,'key' => $key,'site' => get_bloginfo('siteurl') );
+		$response = Shopp::callhome($request);
+		$result = json_decode($response);
+
+		$result = apply_filters('shopp_update_key',$result);
+
+		$Settings = ShoppSettings();
+		$Settings->save( 'updatekey',$result );
+
+		return $response;
+	}
+
+	function keysetting () {
+		$Settings = ShoppSettings();
+		$data = base64_decode($Settings->get('updatekey'));
+		return unpack(Lookup::keyformat(),$data);
+	}
+
+	function activated () {
+		$key = self::keysetting();
+		return ('1' == $key['s']);
 	}
 
 	/**

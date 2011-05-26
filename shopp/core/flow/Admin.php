@@ -81,15 +81,15 @@ class AdminFlow extends FlowController {
 
 		$this->legacyupdate();
 		// Add Dashboard Widgets
-		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
-		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
-		add_action('admin_init', array(&$this, 'tinymce'));
-		add_action('load-plugins.php',array(&$this, 'pluginspage'));
-		add_action('switch_theme',array(&$this, 'themepath'));
-		add_filter('favorite_actions', array(&$this, 'favorites'));
-		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
-		add_action('load-update.php', array(&$this, 'admin_css'));
-		add_action('admin_footer',array(&$this,'debug'));
+		add_action('wp_dashboard_setup', array($this, 'dashboard'));
+		add_action('admin_print_styles-index.php', array($this, 'dashboard_css'));
+		add_action('admin_init', array($this, 'tinymce'));
+		add_action('load-plugins.php',array($this, 'pluginspage'));
+		add_action('switch_theme',array($this, 'themepath'));
+		add_filter('favorite_actions', array($this, 'favorites'));
+		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
+		add_action('load-update.php', array($this, 'admin_css'));
+		add_action('admin_footer',array($this,'debug'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -150,7 +150,7 @@ class AdminFlow extends FlowController {
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
-		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array(&$this, 'behaviors'),50);
+		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array($this, 'behaviors'),50);
 
 		if ($this->maintenance()) return;
 
@@ -193,8 +193,8 @@ class AdminFlow extends FlowController {
 
 		$controller = array(&$Shopp->Flow,'admin');
 		if ($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))
-			$controller = array(&$this,'welcome');
-		if ($this->maintenance()) $controller = array(&$this,'reactivate');
+			$controller = array($this,'welcome');
+		if ($this->maintenance()) $controller = array($this,'reactivate');
 
 		do_action('shopp_add_menu_'.$page->page);
 
@@ -271,7 +271,7 @@ class AdminFlow extends FlowController {
 		shopp_enqueue_script('shopp');
 		add_action('shopp_print_scripts',array(&$Shopp,'settingsjs'),100);
 
-		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
+		$settings = array_filter(array_keys($this->Pages),array($this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');
 
 	}
@@ -399,15 +399,15 @@ class AdminFlow extends FlowController {
 		$dashboard = $this->Settings->get('dashboard');
 		if (!((is_shopp_userlevel() || current_user_can('shopp_financials')) && $dashboard == "on")) return false;
 
-		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array($this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_add_dashboard_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this,'orders_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array($this,'orders_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_add_dashboard_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this,'products_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array($this,'products_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
@@ -607,8 +607,8 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function themepath () {
-		global $Shopp;
-		$Shopp->Settings->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
+		$Settings = ShoppSettings();
+		$Settings->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
 	}
 
 	/**
@@ -620,9 +620,7 @@ class AdminFlow extends FlowController {
 	 * @return boolean
 	 **/
 	function keystatus ($_=true) {
-		$Settings =& ShoppSettings();
-		$status = $Settings->get('updatekey');
-		if ($status[0] != "1") return false;
+		if (!Shopp::activated()) return false;
 		return $_;
 	}
 
@@ -681,8 +679,8 @@ class AdminFlow extends FlowController {
 				'desc' => __('Insert a product or category from Shopp...', 'Shopp')
 			));
 
-			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
-			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
+			add_filter('mce_external_plugins', array($this,'mceplugin'),5);
+			add_filter('mce_buttons', array($this,'mcebutton'),5);
 		}
 	}
 
@@ -744,7 +742,6 @@ class AdminFlow extends FlowController {
 	function pluginspage () {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
-
 
 	function debug () {
 		// return true;

@@ -4,56 +4,56 @@
  * Licensed under the GPLv3 {@see license.txt}
  */
 
-jQuery(document).ready(function () {
-	var $ = jqnc(),
-		activationButton = $('#activation-button'),
+jQuery(document).ready(function ($) {
+	var baseop = $('#base_operations'),
+		baseopZone = $('#base_operations_zone'),
 		activationStatus = $('#activation-status'),
-		baseop = $('#base_operations'),
-		baseopZone = $('#base_operations_zone');
 
-	function activation (response,success,request) {
-		var button = activationButton.attr('disabled',false).removeClass('updating'),
-			keyin = $('#update-key'),
-			code = (response instanceof Array)?response[0]:false,
-			key = (response instanceof Array)?response[1]:false;
-			type = (response instanceof Array)?response[2]:false;
+		activationButton = $('#activation-button').click(function () {
+			$(this).val($sl.connecting).attr('disabled',true).addClass('updating');
+			if ($(this).hasClass('deactivation'))
+				$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
+			else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
+		}).html(activated?$sl.deactivate_button:$sl.activate_button),
 
-		if (code === false) {
-			button.attr('disabled',true);
-			return activationStatus.html(keyStatus['-000']).addClass('activating').show();
-		}
+		activation = function (response,success,request) {
+			var button = activationButton.attr('disabled',false).removeClass('updating'),
+				keyin = $('#update-key'),
+				code = (response instanceof Array)?response[0]:false,
+				key = (response instanceof Array)?response[1]:false;
+				type = (response instanceof Array)?response[2]:false;
 
-		if (button.hasClass('deactivation')) button.html(SHOPP_DEACTIVATE_KEY);
-		else button.html(SHOPP_DEACTIVATE_KEY);
+			if (code === false) {
+				button.attr('disabled',true);
+				return activationStatus.html($sl['ks_000']).addClass('activating').show();
+			}
 
-		if (code == "1") {
-			if (type == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="40" />');
-			else keyin.attr('readonly',true);
-			button.html(SHOPP_DEACTIVATE_KEY).addClass('deactivation');
-		} else {
-			if (keyin.attr('type') == "password")
-				keyin.replaceWith('<input type="text" name="updatekey" id="update-key" value="" size="40" />');
-			keyin.attr('readonly',false);
-			button.html(SHOPP_ACTIVATE_KEY).removeClass('deactivation');
-		}
+			if (button.hasClass('deactivation')) button.html($sl.deactivate_button);
+			else button.html($sl.deactivate_button);
 
-		if (code !== false) {
-			activationStatus.html(keyStatus[code]);
-			if (code != 0 && code != 1) activationStatus.addClass('activating').show();
-			else activationStatus.removeClass('activating').show();
-		} else activationStatus.addClass('activating').show();
+			if (code == '1') {
+				if (type == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="56" />');
+				else keyin.attr('readonly',true);
+				button.val($sl.deactivate_button).addClass('deactivation');
+			} else {
+				if (keyin.attr('type') == "password")
+					keyin.replaceWith('<input type="text" name="updatekey" id="update-key" value="" size="56" />');
+				keyin.attr('readonly',false);
+				button.val($sl.activate_button).removeClass('deactivation');
+			}
 
-	}
+			if (code !== false) {
+				if (code != '0' && code != '1') activationStatus.addClass('activating');
+				else activationStatus.removeClass('activating');
+				code = 'ks'+code.toString().replace(/\-/,'_');
+				status = $('<div/>').html($sl[code]).text();
+				activationStatus.html(status).show();
+			} else activationStatus.addClass('activating').show();
+
+		};
 
 	if (activated) activation([1],'success');
 	else activationStatus.show();
-
-	activationButton.click(function () {
-		$(this).html(SHOPP_CONNECTING+"&hellip;").attr('disabled',true).addClass('updating');
-		if ($(this).hasClass('deactivation'))
-			$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
-		else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
-	}).html(activated?SHOPP_DEACTIVATE_KEY:SHOPP_ACTIVATE_KEY);
 
 	if (!baseop.val() || baseop.val() == '') baseopZone.hide();
 	if (!baseopZone.val()) baseopZone.hide();
