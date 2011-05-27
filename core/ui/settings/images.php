@@ -64,7 +64,6 @@
 
 
 			if ('new' == $edit) {
-
 				$editor = preg_replace('/\${\w+}/','',$editor);
 				echo str_replace(array_keys($template_data),$template_data,$editor);
 			}

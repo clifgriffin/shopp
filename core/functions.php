@@ -749,9 +749,9 @@ if (!function_exists('href_add_query_arg')) {
 function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {
-		$allowed = array("autocomplete","accesskey","alt","checked","class","disabled","format",
-			"minlength","maxlength","readonly","required","size","src","tabindex",
-			"title","value");
+		$allowed = array('autocomplete','accesskey','alt','checked','class','disabled','format',
+			'minlength','maxlength','readonly','required','size','src','tabindex','cols','rows',
+			'title','value');
 	}
 	$string = "";
 	$classes = "";

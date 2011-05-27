@@ -544,7 +544,14 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #shipping-rates .services div.multiple-select ul li { padding:2px;padding-left:22px; }
 #shipping-rates .services div.multiple-select ul li input { margin-left:-17px; }
 
-#payment-settings.form-table tr th,
+
+.shopp-settings td,.shopp-settings th { font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif; font-size: 11px; border-bottom: none; }
+.shopp-settings th { font-size: 13px; }
+.shopp-settings .multiple-select ul { font-size: 12px; }
+.shopp-settings td { max-width: 300px; }
+.shopp-settings div.spacer { width: 200px; }
+
+/*#payment-settings.form-table tr th,
 #payment-settings.form-table tr td { border-bottom:1px solid #dfdfdf; }
 #payment-settings.form-table tr td table th,
 #payment-settings.form-table tr td table td { border-bottom:none; }
@@ -555,7 +562,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #payment-settings table.settings div { padding-bottom:4px; }
 #payment-settings,#payment-settings td { position:relative;padding-left:0;padding-right:0;top:0; }
 #payment-settings td button.deleteRate { position:absolute;right:5px; }
-#payment-settings table th,#payment-settings table td { border:none;padding:2px; }
+#payment-settings table th,#payment-settings table td { border:none;padding:2px; }*/
 
 #page-settings label { display: inline-block; }
 

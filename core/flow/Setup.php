@@ -20,6 +20,7 @@
 class Setup extends AdminController {
 
 	var $screen = false;
+	var $url;
 
 	/**
 	 * Setup constructor
@@ -62,6 +63,15 @@ class Setup extends AdminController {
 				));
 				$this->images_ui();
 				break;
+			case "payments":
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('payments-settings');
+				shopp_localize_script( 'payments-settings', '$ps', array(
+					'confirm' => __('Are you sure you want to remove this payment system?','Shopp'),
+				));
+
+				$this->payments_ui();
+				break;
 			case "settings":
 				shopp_enqueue_script('setup');
 
@@ -92,42 +102,6 @@ class Setup extends AdminController {
 				);
 				$l10n = array_merge($l10n,$this->keystatus);
 				shopp_localize_script( 'setup', '$sl', $l10n);
-
-
-			/*
-					var labels = <?php echo json_encode($statusLabels); ?>,
-						labelInputs = [],
-						activated = <?php echo ($activated)?'true':'false'; ?>,
-						SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
-						SHOPP_ACTIVATE_KEY = <?php _jse('Activate Key','Shopp'); ?>,
-						SHOPP_DEACTIVATE_KEY = <?php _jse('Deactivate Key','Shopp'); ?>,
-						SHOPP_CONNECTING = <?php _jse('Connecting','Shopp'); ?>,
-						SHOPP_CUSTOMER_SERVICE = <?php printf(json_encode(__('Contact <a href="%s">customer service</a>.','Shopp')),SHOPP_CUSTOMERS); ?>,
-						keyStatus = {
-							'-000':<?php _jse('The server could not be reached because of a connection problem.','Shopp'); ?>,
-							'-1':<?php _jse('An unkown error occurred.','Shopp'); ?>,
-							'0':<?php _jse('This key has been deactivated.','Shopp'); ?>,
-							'1':<?php _jse('This key has been activated.','Shopp'); ?>,
-							'-100':<?php _jse('An unknown activation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-101':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-102':<?php _jse('This site is not valid to activate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-103':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-104':<?php _jse('The key provided is already active on another site.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-200':<?php _jse('An unkown deactivation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-201':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-202':<?php _jse('The site is not valid to be able to deactivate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-							'-203':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE
-						},
-
-						zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
-						act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
-						deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
-
-*/
-
-
-
-
 				break;
 		}
 
@@ -461,26 +435,67 @@ class Setup extends AdminController {
 	}
 
 	function payments () {
-		global $Shopp;
-
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_payments')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		add_action('shopp_gateway_module_settings',array(&$this,'payments_ui'));
+		global $Shopp;
+		$Gateways = $Shopp->Gateways;
+		$Settings = ShoppSettings();
+
+	 	$active_gateways = $Settings->get('active_gateways');
+		if (!$active_gateways) $gateways = array();
+		else $gateways = explode(',',$active_gateways);
+		$Gateways->settings();	// Load all installed gateways for settings UIs
+
+		if (!empty($_GET['delete'])) {
+			$delete = $_GET['delete'];
+			check_admin_referer('shopp_delete_gateway');
+			if (in_array($delete,$gateways))  {
+				$position = array_search($delete,$gateways);
+				array_splice($gateways,$position,1);
+				$Settings->save('active_gateways',join(',',$gateways));
+			}
+		}
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 			do_action('shopp_save_payment_settings');
 
+			if ( !empty($_POST['gateway']) && isset($Gateways->active[ $_POST['gateway'] ]) ) {
+				if ( !in_array($_POST['gateway'],$gateways) ) {
+					$gateways[] = $_POST['gateway'];
+					$Settings->save('active_gateways',join(',',$gateways));
+				}
+			}
+
 			$this->settings_save();
+			$Gateways->settings();	// Load all installed gateways for settings UIs
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
-	 	$active_gateways = $Shopp->Settings->get('active_gateways');
-		if (!$active_gateways) $gateways = array();
-		else $gateways = explode(",",$active_gateways);
+		$installed = array();
+		foreach($Gateways->modules as $slug => $module)
+			$installed[$slug] = $module->name;
 
+		$Gateways->ui();		// Setup setting UIs
+		if ( isset($_REQUEST['id']) && isset($Gateways->active[ $_REQUEST['id'] ]) ) {
+			$edit = $_REQUEST['id'];
+			$Gateway = $Gateways->get($edit);
+			$editor = $Gateway->ui();
+		}
+
+		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));
 		include(SHOPP_ADMIN_PATH."/settings/payments.php");
+	}
+
+	function payments_ui () {
+		register_column_headers('shopp_page_shopp-settings-payments', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'processor'=>__('Processor','Shopp'),
+			'type'=>__('Type','Shopp'),
+			'payments'=>__('Payments','Shopp')
+		));
 	}
 
 	function pages () {
@@ -597,13 +612,6 @@ class Setup extends AdminController {
 			'quality'=>__('Quality','Shopp'),
 			'sharpness'=>__('Sharpness','Shopp')
 		));
-	}
-
-
-	function payments_ui () {
-		global $Shopp;
-		$Shopp->Gateways->settings();
-		$Shopp->Gateways->ui();
 	}
 
 	function system () {

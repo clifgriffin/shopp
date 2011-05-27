@@ -233,6 +233,7 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('products-arrange', '/ui/categories/products.js', array('jquery'), '20100101');
 	$scripts->add_data('products-arrange', 'group', 1);
 
+	// @todo Remove/Replace
 	$scripts->add('settings', '/ui/behaviors/settings.js', array('jquery'), '20100101');
 	$scripts->add_data('settings', 'group', 1);
 
@@ -244,6 +245,9 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('pages-settings', '/ui/behaviors/pages-settings.js', array('jquery'), '20100101');
 	$scripts->add_data('pages-settings', 'group', 1);
+
+	$scripts->add('payments-settings', '/ui/behaviors/payments.js', array('jquery'), '20100101');
+	$scripts->add_data('payments-settings', 'group', 1);
 
 	$scripts->add('image-settings', '/ui/behaviors/image-settings.js', array('jquery'), '20110518');
 	$scripts->add_data('image-settings', 'group', 1);
