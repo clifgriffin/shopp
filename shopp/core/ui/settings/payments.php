@@ -110,48 +110,5 @@
 <script type="text/javascript">
 /* <![CDATA[ */
 var gateways = <?php echo json_encode(array_map('sanitize_title_with_dashes',array_keys($installed))); ?>;
-
-jQuery(document).ready( function($) {
-/*
-	var handlers = new CallbackRegistry();
-
-	handlers.options = {};
-	handlers.enabled = [];
-	handlers.register = function (name,object) {
-		this.callbacks[name] = function () {object['payment']();}
-		this.options[name] = object;
-	}
-
-	handlers.call = function(name,arg1,arg2,arg3) {
-
-		this.callbacks[name](arg1,arg2,arg3);
-		var module = this.options[name];
-		module.behaviors();
-	}
-
-
-	// Populate the payment options menu
-	var options = '';
-	options += '<option disabled="disabled">'+SHOPP_GATEWAY_MENU_PROMPT+'<\/option>';
-	$.each(handlers['options'],function (id,object) {
-		var disabled = '';
-		if ($.inArray(id,gateways) != -1) {
-			handlers.call(id);
-			if (!object.multi) disabled = ' disabled="disabled"';
-		}
-		options += '<option value="'+id+'"'+disabled+'>'+object.name+'<\/option>';
-	});
-	$('#payment-option-menu').html(options);
-
-	$('#add-payment-option').click(function () {
-		var module = $('#payment-option-menu').val(),
-			selected = $('#payment-option-menu :selected');
-		if (!selected.attr('disabled')) {
-			handlers.call(module);
-			if (!handlers.options[module].multi) selected.attr('disabled',true);
-		}
-	});
-	*/
-});
 /* ]]> */
 </script>
