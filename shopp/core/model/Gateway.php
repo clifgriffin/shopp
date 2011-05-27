@@ -100,22 +100,6 @@ abstract class GatewayFramework {
 	}
 
 	/**
-	 * Generate the settings UI for the module
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $module The module class name
-	 * @param string $name The formal name of the module
-	 * @return void
-	 **/
-	function setupui ($module,$name) {
-		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
-		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
-		$this->settings();
-	}
-
-	/**
 	 * Initialize a list of gateway module settings
 	 *
 	 * @author Jonathan Davis
@@ -299,6 +283,34 @@ abstract class GatewayFramework {
 		}
 	}
 
+	/**
+	 * Generate the settings UI for the module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param string $module The module class name
+	 * @param string $name The formal name of the module
+	 * @return void
+	 **/
+	function initui ($module,$name) {
+		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
+		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
+		$this->settings();
+	}
+
+	function uitemplate () {
+		$this->ui->template();
+	}
+
+	function ui () {
+		$editor = $this->ui->generate();
+		foreach ($this->settings as $name => $value)
+			$data['{$'.$name.'}'] = $value;
+
+		return str_replace(array_keys($data),$data,$editor);
+	}
+
 } // END class GatewayFramework
 
 
@@ -315,6 +327,7 @@ abstract class GatewayFramework {
 class GatewayModules extends ModuleLoader {
 
 	var $selected = false;		// The chosen gateway to process the order
+	var $installed = array();
 	var $secure = false;		// SSL-required flag
 
 	/**
@@ -373,6 +386,20 @@ class GatewayModules extends ModuleLoader {
 	}
 
 	/**
+	 * Get a specified gateway
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function &get ($gateway) {
+		if (empty($this->active)) $this->settings();
+		if (!isset($this->active[$gateway])) return false;
+		return $this->active[$gateway];
+	}
+
+	/**
 	 * Loads all the installed gateway modules for the payments settings
 	 *
 	 * @author Jonathan Davis
@@ -394,7 +421,12 @@ class GatewayModules extends ModuleLoader {
 	 **/
 	function ui () {
 		foreach ($this->active as $package => &$module)
-			$module->setupui($package,$this->modules[$package]->name);
+			$module->initui($package,$this->modules[$package]->name);
+	}
+
+	function templates () {
+		foreach ($this->active as $package => &$module)
+			$module->uitemplate($package,$this->modules[$package]->name);
 	}
 
 } // END class GatewayModules
