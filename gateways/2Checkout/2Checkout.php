@@ -210,18 +210,19 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			'content' => '<span style="width: 300px;">&nbsp;</span>'
 		));
 
-		$this->verifysecret();
+		$this->ui->behaviors( $this->verifysecret() );
 	}
 
 	function verifysecret () {
+		ob_start();
 ?>
-		_2Checkout.behaviors = function () {
-			$('#settings-_2checkout-verify').change(function () {
+			$('#_2checkout-verify').change(function () {
 				if ($(this).attr('checked')) $('#settings-_2checkout-secret').parent().show();
 				else $('#settings-_2checkout-secret').parent().hide();
 			}).change();
-		}
 <?php
+		$script = ob_get_contents(); ob_end_clean();
+		return $script;
 	}
 
 } // END class _2Checkout

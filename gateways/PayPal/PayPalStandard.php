@@ -443,10 +443,12 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			'checked' => $this->settings['testmode']
 		));
 
-		$this->verifytoken();
+		$this->ui->behaviors($this->verifytoken());
+
 	}
 
 		function verifytoken () {
+			ob_start();
 	?>
 			PayPalStandard.behaviors = function () {
 				$('#settings-paypalstandard-pdtverify').change(function () {
@@ -455,6 +457,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				}).change();
 			}
 	<?php
+			$script = ob_get_contents(); ob_end_clean();
+			return $script;
 		}
 
 
