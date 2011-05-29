@@ -708,17 +708,15 @@ class ShippingPackager implements ShippingPackagingInterface {
 			$this->packages[] = new ShippingPackage(($type == 'dims'));
 			$this->all_add($Item,$type);
 		} else { // never fit, ship separately
-			$current->limits = $defaults;
+			$current->set_limits($defaults);
 			$current->add($Item);
-			$current->full = true;
+			$current->set_full(true);
 		}
 	}
 
 } // end class ShippingPackager
 
 class ShippingPackage {
-
-	protected $boxtype = 'custom';
 
 	protected $wt = 0; //current weight
 
@@ -728,9 +726,11 @@ class ShippingPackage {
 
 	protected $l = 0;  //current length
 
+	protected $val = 0; // estimated value of package contents
+
 	protected $dims = false; // package has dimensions?
 
-	protected $val = 0; // estimated value of package contents
+	protected $boxtype = 'custom';
 
 	// limits for this package
 	protected $limits = array (
@@ -750,6 +750,14 @@ class ShippingPackage {
 
 		$this->boxtype = $boxtype;
 		$this->date = mktime();
+	}
+
+	public function set_limits ( $limits = array ( 'wtl' => -1, 'wl'  => -1, 'hl'  => -1, 'll'  => -1 ) ) {
+		$this->limits = $limits;
+	}
+
+	public function set_full ( $full ) {
+		if ( isset( $full ) ) $this->full = ($full);
 	}
 
 	/**
