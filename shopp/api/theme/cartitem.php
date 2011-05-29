@@ -87,33 +87,31 @@ class ShoppCartItemThemeAPI {
 
 	function type ($result, $options, $O) { return $O->type; }
 
-	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?$O->slug:array('s_pid'=>$O->product)); }
+	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? $O->slug : array( 's_pid'=>$O->product ) ); }
 
 	function sku ($result, $options, $O) { return $O->sku; }
 
-	function discount ($result, $options, $O) { return (float)$O->discount; }
+	function discount ($result, $options, $O) { return (float) $O->discount; }
 
 	function unitprice ($result, $options, $O) {
-		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
-		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$O->taxable,$O) > 0?true:false;
-		return (float)$O->unitprice+($taxes?$O->unittax:0);
+		$taxes = isset( $options['taxes'] ) ? value_is_true( $options['taxes'] ) : null;
+		$taxes = shopp_taxrate( $taxes, $O->taxable, $O ) > 0 ? true : false;
+		return (float) $O->unitprice + ( $taxes ? $O->unittax : 0 );
 	}
 
-	function unittax ($result, $options, $O) { return (float)$O->unittax; }
+	function unittax ($result, $options, $O) { return (float) $O->unittax; }
 
-	function discounts ($result, $options, $O) { return (float)$O->discounts; }
+	function discounts ($result, $options, $O) { return (float) $O->discounts; }
 
-	function tax ($result, $options, $O) { return (float)$O->tax; }
+	function tax ($result, $options, $O) { return (float) $O->tax; }
 
 	function total ($result, $options, $O) {
-		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
-		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$O->taxable,$O) > 0?true:false;
-		return (float)$O->total+($taxes?($O->unittax*$O->quantity):0);
+		$taxes = isset( $options['taxes'] ) ? value_is_true( $options['taxes'] ) : null;
+		$taxes = shopp_taxrate( $taxes, $O->taxable, $O ) > 0 ? true : false;
+		return (float) $O->total + ( $taxes ? ( $O->unittax * $O->quantity ) : 0 );
 	}
 
-	function taxrate ($result, $options, $O) { return percentage($O->taxrate*100,array('precision' => 1)); }
+	function taxrate ($result, $options, $O) { return percentage( $O->taxrate * 100, array( 'precision' => 1 ) ); }
 
 	function quantity ($result, $options, $O) {
 		$result = $O->quantity;
@@ -135,14 +133,14 @@ class ShoppCartItemThemeAPI {
 					else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 				} else $qtys[] = $value;
 			}
-			$result = '<select name="items['.$O->_id.']['.$property.']">';
+			$result = '<select name="items['.$O->_id.'][quantity]">';
 			foreach ($qtys as $qty)
 				$result .= '<option'.(($qty == $O->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
 			$result .= '</select>';
 		} elseif (isset($options['input']) && valid_input($options['input'])) {
 			if (!isset($options['size'])) $options['size'] = 5;
 			if (!isset($options['value'])) $options['value'] = $O->quantity;
-			$result = '<input type="'.$options['input'].'" name="items['.$O->_id.']['.$property.']" id="items-'.$O->_id.'-'.$property.'" '.inputattrs($options).'/>';
+			$result = '<input type="'.$options['input'].'" name="items['.$O->_id.'][quantity]" id="items-'.$O->_id.'-quantity" '.inputattrs($options).'/>';
 		} else $result = $O->quantity;
 		return $result;
 	}
