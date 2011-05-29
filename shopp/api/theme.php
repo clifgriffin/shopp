@@ -46,13 +46,14 @@ function shopp () {
 		$Object = $first;
 		$context = isset($Object->api) ? $Object->api : strtolower(get_class($Object));
 		$tag = strtolower($second);
-	} elseif ( false !== strpos($context,'.') ) { // Handle object.tag first argument
-		list($context,$tag) = explode('.', strtolower($context));
+	} elseif ( false !== strpos($first,'.') ) { // Handle object.tag first argument
+		list($context,$tag) = explode('.', strtolower($first));
+		if ( $num > 1 ) $options = shopp_parse_options($second);
 	} elseif ('' == $context.$tag) { // Normal tag handler
 		list($context,$tag) = array_map('strtolower',array($first,$second));
 	}
 
-	$options = shopp_parse_options($num < 3?$second:$third);
+	if ( $num > 2 ) $options = shopp_parse_options($third);
 
 	// strip hypens from tag names
 	$tag = str_replace ( '-', '', $tag );
