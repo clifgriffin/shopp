@@ -525,8 +525,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		extract($options);
 
 		$result = "";
-		foreach ((array)$errors as $error)
-			if (!$error->blank()) $result .= $before.$error->message(true).$after;
+		foreach ( (array) $errors as $error )
+			if ( is_a($error, 'ShoppError') && ! $error->blank() ) $result .= $before.$error->message(true).$after;
 		return $result;
 	}
 
