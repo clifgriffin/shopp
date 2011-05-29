@@ -44,7 +44,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'discount' => 'discount',
 		'promosavailable' => 'promos_available',
 		'promocode' => 'promocode',
-		'hasshippingmethods' => 'has_shippingmethods',
+		'hasshippingmethods' => 'has_shipping_methods',
 		'needsshipped' => 'needs_shipped',
 		'hasshipcosts' => 'has_ship_costs',
 		'needsshippingestimates' => 'needs_shipping_estimates',
