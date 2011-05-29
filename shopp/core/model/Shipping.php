@@ -244,6 +244,7 @@ abstract class ShippingFramework {
 	var $xml = false;			// Flag to load and enable XML parsing
 	var $soap = false;			// Flag to load and SOAP client helper
 	var $singular = false;		// Shipping module can only be loaded once
+	var $packager = false;		// Shipping packager object
 
 	/**
 	 * Initializes a shipping module
@@ -264,12 +265,21 @@ abstract class ShippingFramework {
 		$this->units = $Shopp->Settings->get('weight_unit');
 
 		if ($this->postcode) $Shopp->Order->Cart->showpostcode = true;
-		if ($this->xml && !class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
-		if (!has_soap() && $this->soap && !class_exists('nusoap_base')) require(SHOPP_MODEL_PATH."/SOAP.php");
+
+		if ( $this->xml && ! class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
+		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
 		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates);
+
+		// Setup default packaging for shipping module
+		$this->settings['shipping_packaging'] = $Shopp->Settings->get('shipping_packaging');
+
+		// Shipping module can override the default behavior and the global setting by specifying the local packaging property
+		if ( isset($this->packaging) && $this->packaging != $this->settings['shipping_packaging'] )
+			$this->settings['shipping_packaging'] = $this->packaging;
+		$this->packager = new ShippingPackager( array( 'type' => $this->settings['shipping_packaging'] ), $this->module );
 
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
@@ -424,9 +434,44 @@ abstract class ShippingFramework {
 } // END class ShippingFramework
 
 
+interface ShippingPackagingInterface {
+	/**
+	 * adds item to current package
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param Item $Item the Item to add to packages
+	 **/
+	public function add_item ( &$Item );
+
+	/**
+	 * packages is the packages container iterator
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return true while more packages
+	 **/
+	public function packages () ;
+
+	/**
+	 * return current package
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return Package current package, false if no packages
+	 * @param string id (Optional) - manifest id package
+	 *
+	 **/
+	public function package ( $id );
+
+}
+
 /**
 *
-* Packaging Utility Class
+* Packaging Class
 *
 * Default packaging types
 * package by weight/mass
@@ -435,65 +480,84 @@ abstract class ShippingFramework {
 * package all together
 *
 */
-class ShippingPackager {
+class ShippingPackager implements ShippingPackagingInterface {
 
-	var $types = array('mass', 'like', 'piece', 'all');
-	var $pack = 'mass'; // default packing behavior
+	/**
+	 * The shipping module's identifier
+	 *
+	 * @since 1.2
+	 * @access public
+	 * @var string
+	 */
+	public $module = '';
 
-	var $module = false;
+	/**
+	 * List of built-in packaging types.
+	 *
+	 * @since 1.2
+	 * @access protected
+	 * @var array
+	 */
+	protected $types = array( 'mass', 'like', 'piece', 'all' );
 
-	var $items = array();
-	var $packages = array();
+	/**
+	 * The default built-in packaging behavior (one of built-in types)
+	 *
+	 * @since 1.2
+	 * @access protected
+	 * @var string
+	 */
+	protected $pack = 'like'; // default packing behavior
+
+	protected $packages = array();
 
 	function __construct( $options = array(), $module = false ) {
-		if ($module !== false) $this->module = $module;
+		if ( $module !== false ) $this->module = $module;
 
-		$this->options = apply_filters('shopp_packager_options', $options, $module);
-		$this->pack = apply_filters('shopp_packager_type',
-			(isset($options['type']) && in_array($options['type'], $this->types) ? $options['type']: $this->pack),
-			$module); // set packing behavior
+		$this->options = apply_filters( 'shopp_packager_options', $options, $module );
 
-		foreach ($this->types as $pack) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'));
+		// set packing behavior
+		$this->pack = apply_filters( 'shopp_packager_type',
+			( isset( $options['type'] ) && in_array($options['type'], $this->types) ? $options['type'] : $this->pack ),
+			$module );
+
+		// register packagers
+		foreach ( $this->types as $pack ) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'));
 	}
 
 	/**
-	 * add
-	 *
-	 * have packager add item
+	 * packager add item
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 * @param Item $item the item to add to packages
 	 **/
-	function add_item (&$item = false) {
-		if ($item === false) return;
-		$this->items[] = $item;
+	public function add_item ( &$Item = false ) {
+		if ( false === $Item ) return;
 
-		if (isset($item->packaging) && $item->packaging == "on")
-			do_action_ref_array('shopp_packager_add_piece', array(&$item, &$this) );
-		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$item, &$this) );
+		if ( isset($Item->packaging) && "on" == $Item->packaging )
+			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );
+		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$Item, &$this) );
 	}
 
 
 	/**
-	 * packages
-	 *
-	 * packages is the packages container iterator
+	 * packages() is the packages container iterator
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 * @return true while more packages
 	 **/
-	function packages () {
+	public function packages () {
 		if (!$this->packages) return false;
 		if (!isset($this->_loop)) {
 			reset($this->packages);
 			$this->_loop = true;
 		} else next($this->packages);
 
-		if (current($this->packages) !== false) return true;
+		if ( false !== current($this->packages) ) return true;
 		else {
 			unset($this->_loop);
 			return false;
@@ -502,94 +566,103 @@ class ShippingPackager {
 	}
 
 	/**
-	 * package
+	 * count() returns the package count
 	 *
-	 * return current package
+	 * @author John Dillick
+	 * @since 1,2
+	 *
+	 * @return int number of packages constructed
+	 **/
+	public function count () {
+		return count($this->packages);
+	}
+
+
+	/**
+	 * Uses the packages iterator, returns current package
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 * @return Package current package, false if no packages
+	 * @param string id (Optional) - manifest id package
+	 *
 	 **/
-	function package () {
-		if (!$this->packages || !isset($this->_loop)) return false;
-		return current($this->packages);
+	public function package ( $id = false ) {
+		if ( false !== $id && isset( $this->packages[$id] ) ) return $this->packages[$id];
+		if ( ! $this->packages || ! isset($this->_loop) ) return false;
+		return current( $this->packages );
 	}
 
 	/**
-	 * mass_add
-	 *
-	 * mass_add used to add new item in package by mass
+	 * mass_add used to add new Item in package by mass
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
 	 * @param array $p packages
-	 * @param Item $item Item to add
+	 * @param Item $Item the Item to add
 	 **/
-	function mass_add (&$item) {
-		$this->all_add($item, 'mass');
+	public function mass_add ( &$Item ) {
+		$this->all_add($Item, 'mass');
 	}
 
 	/**
-	 * like_add
-	 *
-	 * like_add adds item to package if a like item
+	 * like_add adds Item to package if a like Item
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $item Item to add
+	 * @param Item $Item Item to add
 	 **/
-	function like_add (&$item) {
+	public function like_add ( &$Item ) {
 		$limits = array();
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		extract($this->options);
-		array_merge($defaults,$limits);
+		$limits = array_merge($defaults,$limits);
+		$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
 
 		// one quantity, check for existing package
-		if (!empty($this->packages) && $item->quantity == 1) {
+		if ( ! empty($this->packages) && 1 == $Item->quantity ) {
 			$package = $this->packages[count($this->packages)-1];
-			if(in_array("[{$item->product}][{$item->price}]",array_keys($package->contents)) && $package->limits($item)) {
-				$package->add($item);
+			if ( in_array( $label, array_keys( $package->contents ) ) && $package->limits($Item) ) {
+				$package->add($Item);
 				return;
 			}
 		}
 		$package = new ShippingPackage(true,$limits);
 
-		if ( $package->limits($item) ) {
-			$package->add($item);
+		if ( $package->limits($Item) ) {
+			$package->add($Item);
 			$this->packages[] = $package;
-		} else if ($item->quantity > 1) {
-			$pieces = clone $item;
-			$piece = clone $item;
+		} else if ( $Item->quantity > 1 ) {
+			$pieces = clone $Item;
+			$piece = clone $Item;
 			$pieces->quantity = $pieces->quantity - 1;
 			$piece->quantity = 1;
 
-			// break one item off and recurse
+			// break one Item off and recurse
 			$this->like_add($pieces);
 			$this->like_add($piece);
 		} else {
 			// doesn't "fit", and by itself
-			$this->piece_add($item);
+			$this->piece_add($Item);
 		}
 	}
 
 	/**
-	 * piece_add
-	 *
-	 * piece_add used to add new item in piece mail packaging
+	 * piece_add used to add new Item in piece mail packaging
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $item Item to add
+	 * @param Item $Item Item to add
 	 * @return void Description...
 	 **/
-	function piece_add (&$item) {
-		$count = $item->quantity;
+	public function piece_add ( &$Item ) {
+		$count = $Item->quantity;
 
-		$piece = clone $item;
+		$piece = clone $Item;
 		$piece->quantity = 1;
 
 		for ($i=0; $i < $count;$i++) {
@@ -600,18 +673,16 @@ class ShippingPackager {
 	}
 
 	/**
-	 * all_add
-	 *
-	 * all_add used to add all items to one package
+	 * all_add used to add all Items to one package
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $item Item to add
+	 * @param Item $Item Item to add
 	 * @param string $type expect dimensions, or just mass
 	 * @return void Description...
 	 **/
-	function all_add (&$item, $type='dims') {
+	public function all_add ( &$Item, $type='dims' ) {
 		$limits = array();
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		extract($this->options);
@@ -620,92 +691,185 @@ class ShippingPackager {
 		if (empty($this->packages)) {
 			$this->packages[] = new ShippingPackage(($type == 'dims'),$limits);
 		} else {
-			foreach($this->packages as $current) if($current->limits($item)) { $current->add($item); return;}
+			foreach($this->packages as $current) if($current->limits($Item)) { $current->add($Item); return;}
 		}
 		$current = $this->packages[count($this->packages)-1];
 
-		if($item->quantity > 1) {  //try breaking them up
-			$pieces = clone $item;
-			$piece = clone $item;
+		if($Item->quantity > 1) {  //try breaking them up
+			$pieces = clone $Item;
+			$piece = clone $Item;
 			$pieces->quantity = $pieces->quantity - 1;
 			$piece->quantity = 1;
 
-			// break one item off and recurse
+			// break one Item off and recurse
 			$this->all_add($pieces,$type);
 			$this->all_add($piece,$type);
 		} else if(!empty($current->contents)) { // full, need new package
 			$this->packages[] = new ShippingPackage(($type == 'dims'));
-			$this->all_add($item,$type);
+			$this->all_add($Item,$type);
 		} else { // never fit, ship separately
 			$current->limits = $defaults;
-			$current->add($item);
+			$current->add($Item);
 			$current->full = true;
 		}
 	}
-}
+
+} // end class ShippingPackager
 
 class ShippingPackage {
-	var $boxtype = 'custom';
-	var $wt = 0; //current weight
-	var $w = 0;  //current width
-	var $h = 0;  //current height
-	var $l = 0;  //current length
 
-	var $dims = false; // no dimensions
+	protected $boxtype = 'custom';
+
+	protected $wt = 0; //current weight
+
+	protected $w = 0;  //current width
+
+	protected $h = 0;  //current height
+
+	protected $l = 0;  //current length
+
+	protected $dims = false; // package has dimensions?
+
+	protected $val = 0; // estimated value of package contents
 
 	// limits for this package
-	var $wtl = -1; // no weight limit
-	var $wl = -1; // width limit
-	var $hl = -1; // height limit
-	var $ll = -1; // lenght limit
+	protected $limits = array (
+		'wtl' => -1, // no weight limit
+		'wl'  => -1, // width limit
+		'hl'  => -1, // height limit
+		'll'  => -1 // lenght limit
+	);
 
-	var $full = false; // accepting items
-	var $contents = array(); // Item array
+	protected $full = false; // accepting Items
 
-	function __construct( $dims = false, $limits = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1), $boxtype = 'custom' ) {
+	protected $contents = array(); // Item array
+
+	function __construct( $dims = false, $limits = array( 'wtl' => -1, 'wl' => -1, 'hl' => -1, 'll' => -1 ), $boxtype = 'custom' ) {
 		$this->dims = $dims;
-		$this->limits = $limits;
+		$this->limits = array_merge($this->limits, $limits);
+
 		$this->boxtype = $boxtype;
 		$this->date = mktime();
 	}
 
-	function add(&$item) {
-		if ($this->limits($item)) {
-			if(!empty($this->contents["[{$item->product}][{$item->price}]"])) $this->contents["[{$item->product}][{$item->price}]"]->quantity += $item->quantity;
-			else $this->contents["[{$item->product}][{$item->price}]"] = $item;
-			$this->wt += $item->weight * $item->quantity;
+	/**
+	*
+	* add() adds item to current package if it fits, otherwise it marks the package full and returns the full status
+	*
+	* @since 1.2
+	* @return bool true if the item was added to the package, else false
+	* @param Item $Item - Item object being added
+	*
+	**/
+	public function add( &$Item ) {
+		if ( $this->limits( $Item ) ) { // within limits
+			$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
+			if( ! empty( $this->contents[$label] ) )
+				$this->contents[$label]->quantity += $Item->quantity;
+			else $this->contents[$label] = $Item;
+			$this->wt += $Item->weight * $Item->quantity;
+			$this->val += $Item->unitprice * $Item->quantity;
 
-			if ($this->dims) {
-				$this->w = max($this->w,$item->width);
-				$this->l = max($this->l,$item->length);
-				$this->h = $this->h + $item->height * $item->quantity;
+			if ( $this->dims ) {
+				$this->w = max( $this->w, $Item->width );
+				$this->l = max( $this->l, $Item->length );
+				$this->h = $this->h + $Item->height * $Item->quantity;
 			}
 		} else $this->full = true;
 
-		return !$this->full;
+		return ( ! $this->full );
 	}
 
-	function limits(&$item) {
-		if($this->full) return apply_filters('shopp_package_limit',false, $item, $this);
+	/**
+	*
+	* limits() determines if an item will fit in the current package
+	*
+	* @since 1.2
+	* @return bool true if the item fits, else false
+	* @param Item $Item - Item object being added
+	*
+	**/
+	public function limits( &$Item ) {
+		if( $this->full ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits );
 
 		$underlimit = true;
+		list( $wtl, $wl, $hl, $ll ) = -1;
 		extract($this->limits);
 
-		if ($this->dims && $wl > 0 && $hl > 0 && $ll > 0) {
-			$underlimit = ($wl > max($this->w,$item->width) &&
-				$ll > max($this->l,$item->length) &&
-				$hl > ($this->h + $item->height * $item->quantity)
+		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 ) {
+			$underlimit = ( $wl > max( $this->w, $Item->width ) &&
+				$ll > max( $this->l, $Item->length ) &&
+				$hl > ( $this->h + $Item->height * $Item->quantity )
 			);
 		}
 
-		if($wtl > 0) {
-			$underlimit = $underlimit && ($wtl > ($this->wt + $item->weight * $item->quantity));
+		if( $wtl > 0 ) {
+			$underlimit = $underlimit && ( $wtl > ( $this->wt + $Item->weight * $Item->quantity ) );
 		}
 
-		return apply_filters('shopp_package_limit',$underlimit, $item, $this); // stub, always fits
+		return apply_filters( 'shopp_package_limit', $underlimit, $Item, $this->contents, $this->limits ); // stub, always fits
 	}
 
-}
+	/**
+	*
+	* weight() returns the current package weight
+	* @since 1.2
+	* @return float weight of package, in system units
+	* @param none
+	*
+	**/
+	public function weight() { return $this->wt; }
 
+	/**
+	*
+	* width() returns the current package width
+	* @since 1.2
+	* @return float width of package, in system units
+	* @param none
+	*
+	**/
+	public function width() { return $this->w; }
+
+	/**
+	*
+	* height() returns the current package height
+	* @since 1.2
+	* @return float height of package, in system units
+	* @param none
+	*
+	**/
+	public function height() { return $this->h; }
+
+	/**
+	*
+	* length() returns the current package length
+	* @since 1.2
+	* @return float length of package, in system units
+	* @param none
+	*
+	**/
+	public function length() { return $this->l; }
+
+	/**
+	*
+	* value() returns the current package value
+	* @since 1.2
+	* @return float value of package, in base currency
+	* @param none
+	*
+	**/
+	public function value() { return ceil( $this->val ); }
+
+	/**
+	*
+	* value() returns the current package contents
+	* @since 1.2
+	* @return array contents of package
+	* @param none
+	*
+	**/
+	public function contents() { return $this->contents; }
+
+} // end class ShippingPackage
 
 ?>
