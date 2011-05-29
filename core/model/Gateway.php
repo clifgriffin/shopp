@@ -89,8 +89,8 @@ abstract class GatewayFramework {
 		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
 
-		if ($this->xml && !class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
-		if (!has_soap() && $this->soap && !class_exists('nusoap_base')) require(SHOPP_MODEL_PATH."/SOAP.php");
+		if ( $this->xml && ! class_exists('xmlQuery') ) require(SHOPP_MODEL_PATH."/XML.php");
+		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$this->baseop = $Shopp->Settings->get('base_operations');
 		$this->precision = $this->baseop['currency']['format']['precision'];
