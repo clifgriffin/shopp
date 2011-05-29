@@ -625,7 +625,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 		// one quantity, check for existing package
 		if ( ! empty($this->packages) && 1 == $Item->quantity ) {
 			$package = $this->packages[count($this->packages)-1];
-			if ( in_array( $label, array_keys( $package->contents ) ) && $package->limits($Item) ) {
+			if ( in_array( $label, array_keys( $package->contents() ) ) && $package->limits($Item) ) {
 				$package->add($Item);
 				return;
 			}
@@ -668,7 +668,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 		for ($i=0; $i < $count;$i++) {
 			$this->packages[] = $package = new ShippingPackage(true); // no limits on individual add
 			$package->add($piece);
-			$package->full = true;
+			$package->set_full(true);
 		}
 	}
 
@@ -704,7 +704,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 			// break one Item off and recurse
 			$this->all_add($pieces,$type);
 			$this->all_add($piece,$type);
-		} else if(!empty($current->contents)) { // full, need new package
+		} else if ( count($current->contents()) > 0 ) { // full, need new package
 			$this->packages[] = new ShippingPackage(($type == 'dims'));
 			$this->all_add($Item,$type);
 		} else { // never fit, ship separately
