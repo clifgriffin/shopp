@@ -107,14 +107,15 @@ jQuery(document).ready(function () {
 		}
 	}).trigger('change',[true]);
 
-	$('#billing-country, #billing-state').change(function () {
+	$('#billing-country, .billing-state[disabled!="true"]').change(function () {
 		var country = $('#billing-country').val(),
-			state = $('#billing-state').val(),
-			id = country+state,options;
-		if (!localeMenu.get(0)) return;
+			state = $('.billing-state[disabled!="true"]').val(),
+			id = country+state,options,locale;
+		if (!localeMenu.get()) return;
 		localeMenu.empty().attr('disabled',true);
-		if (locales[id]) {
-			$.each(locales[id], function (index,label) {
+		if ( (locale = locales[id]) || (locale = locales[country]) ) {
+			options += '<option></option>';
+			$.each(locale, function (index,label) {
 				options += '<option value="'+label+'">'+label+'</option>';
 			});
 			$(options).appendTo(localeMenu);
@@ -130,7 +131,8 @@ jQuery(document).ready(function () {
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
-			$('#shipping-country').change(init);
+			$('#shipping-country').trigger('change',init);
+			shipFields.find('input:first').focus();
 		}
 	}).trigger('change',[true])
 		.click(function () { $(this).change(); }); // For IE compatibility
