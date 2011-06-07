@@ -224,41 +224,69 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	function billing_locale ($result, $options, $O) {
 		global $Shopp;
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
+		$output = false;
 
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $O->Billing->locale;
-		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($O->Billing->locale)) {
+		if ( "value" == $options['mode'] ) { return $O->Billing->locale; }
+
+		if ( ! isset($options['selected']) ) { $options['selected'] = $O->Billing->locale ? $O->Billing->locale : false; }
+		if ( ! empty($O->Billing->locale) ) {
 			$options['selected'] = $O->Billing->locale;
 			$options['value'] = $O->Billing->locale;
 		}
-		if (empty($options['type'])) $options['type'] = "menu";
-		$output = false;
-
 
 		$rates = $Shopp->Settings->get("taxrates");
-		foreach ($rates as $rate) if (is_array($rate['locals']))
-			$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+		foreach ( $rates as $rate ) { // @todo - what if more than one set of local rates applies to current country/zone? ie. conditions
+			if ( isset( $rate['locals'] ) ) {
+				$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+			}
+		}
 
-		add_storefrontjs('var locales = '.json_encode($locales).';',true);
+		// if there are no local tax jurisdictions in settings
+		if ( ! empty($locales) ) {
+			// Add all the locales to the javascript environment
+			add_storefrontjs('var locales = '.json_encode($locales).';',true);
 
-		$Taxes = new CartTax();
-		$rate = $Taxes->rate(false,true);
+			$Taxes = new CartTax();
 
-	    if(!isset($rate['locals']))
-	        foreach ($O->Cart->contents as $Item)
-	            if ( ( $rate = $Taxes->rate($Item,true) )
-	                && isset($rate['locals']) )
-	                break;
+			// Check for local rates applying to current country/zone
+			$setting = true; // return the whole rate setting, not just the percentage
+			$Item = false; // Item to pass to tax rate lookup
+			$rate = $Taxes->rate($Item,$setting);
 
-		if (!is_array($rate)) return;
-		$localities = array_keys($rate['locals']);
-		$label = (!empty($options['label']))?$options['label']:'';
-		$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
-	 	$output .= menuoptions($localities,$options['selected']);
-		$output .= '</select>';
+			// If the current country.state combination doesn't match any of the local jurisdictions,
+			// check for local jurisdiction rate setting that has a product-specific condition.
+			if( ! isset($rate['locals']) ) {
+				foreach ( $O->Cart->contents as $Item ) {
+					if ( ( $rate = $Taxes->rate($Item,$setting) ) && isset($rate['locals']) ) {
+						break;
+					}
+				}
+			}
+
+			// names of local tax jurisdictions that apply to current country.zone
+			$localities = array();
+			if ( isset($rate['locals']) ) {
+				$localities = array_keys($rate['locals']);
+			}
+
+			// Make this a required field
+			$options['class'] .= ( isset($options['class']) ? ", " : "" . "required" );
+
+			// disable this field automatically if no local jurisdictions apply to current country.zone
+			if ( empty($localities) ) $options['disabled'] = 'disabled';
+
+			// Start stub select menu for billing local tax jurisdiction (needed for javascript to populate)
+			$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
+
+		 	if ( ! empty($localities) ) { $output .= "<option></option>".menuoptions($localities,$options['selected']); }
+
+			// End stub select menu for billing local tax jurisdiction
+			$output .= '</select>';
+		}
+
 		return $output;
-	}
+
+	} // end function billing_locale
 
 	function billing_localities ($result, $options, $O) {
 		global $Shopp;
@@ -303,7 +331,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		if (isset($options['type']) && $options['type'] == "text")
 			return '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
 
-		$classname = isset($options['class'])?$options['class']:'';
+		$classname = ( isset($options['class']) ? $options['class'].' ' : '' ).'billing-state';
+
 		$label = (!empty($options['label']))?$options['label']:'';
 		$options['disabled'] = 'disabled';
 		$options['class'] = ($classname?"$classname ":"").'disabled hidden';
