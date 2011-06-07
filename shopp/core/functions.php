@@ -302,23 +302,27 @@ function crc16 ($data) {
  * @param int $priority
  * @return void
  **/
-function remove_class_actions ($tags = false, $class = 'stdCLass', $priority = false ) {
+function remove_class_actions ( $tags = false, $class = 'stdClass', $priority = false ) {
 	global $wp_filter;
 
-	if ($tags === false) return;
-	foreach ((array) $tags as $tag) {
-		foreach ($wp_filter[$tag] as $pri_index => $callbacks) {
-			if ($priority !== $pri_index && $priority !== false) continue;
-			foreach($callbacks as $idx => $callback) {
+	// action tags are required
+	if ( false === $tags ) { return; }
+
+	foreach ( (array) $tags as $tag) {
+		foreach ( $wp_filter[$tag] as $pri_index => $callbacks ) {
+			if ( $priority !== $pri_index && false !== $priority ) { continue; }
+			foreach( $callbacks as $idx => $callback ) {
 				if ( $tag == $idx ) continue; // idx will be the same as tag for non-object function callbacks
-				if ( is_subclass_of($callback['function'][0], $class) || is_a($callback['function'][0], $class) ) {
-					remove_filter($tag,$callback['function'],$pri_index,$callback['accepted_args']);
+
+				if ( $callback['function'][0] instanceof $class ) {
+					remove_filter($tag,$callback['function'], $pri_index, $callback['accepted_args']);
 				}
 			}
 		}
 	}
 	return;
 }
+
 
 
 /**
