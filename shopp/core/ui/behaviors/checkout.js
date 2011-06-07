@@ -131,8 +131,8 @@ jQuery(document).ready(function () {
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
-			$('#shipping-country').trigger('change',init);
-			shipFields.find('input:first').focus();
+			$('#shipping-country').trigger('change',[init]);
+			if (!init) shipFields.find('input:first').focus();
 		}
 	}).trigger('change',[true])
 		.click(function () { $(this).change(); }); // For IE compatibility
