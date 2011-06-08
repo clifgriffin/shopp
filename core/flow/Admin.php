@@ -468,8 +468,8 @@ class AdminFlow extends FlowController {
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
 
-		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.(int)$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
-		echo '<td class="amount"><a href="'.$orderscreen.'">'.(int)$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
+		echo '<tr><td class="amount"><a href="' . $orderscreen . '">' . (int)$results->wkorders . '</a></td><td>' . _n('Order', 'Orders', (int)$results->wkorders, 'Shopp') . '</td>';
+		echo '<td class="amount"><a href="' . $orderscreen . '">' . (int)$results->orders . '</a></td><td>' . _n('Order', 'Orders', (int)$results->orders, 'Shopp') . '</td></tr>';
 
 		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wksales).'</a></td><td>'.__('Sales','Shopp').'</td>';
 		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->sales).'</a></td><td>'.__('Sales','Shopp').'</td></tr>';
