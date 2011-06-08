@@ -1353,7 +1353,7 @@ class CartDiscounts {
 
 					switch ($promo->type) {
 						case "Percentage Off": $discount = ($Item->unitprice*$Item->quantity)*($promo->discount/100); break;
-						case "Amount Off": $discount = $promo->discount; break;
+						case "Amount Off": $discount = $promo->discount * $Item->quantity; break;
 						case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 						case "Buy X Get Y Free": $discount = floor(
 																$Item->quantity /
