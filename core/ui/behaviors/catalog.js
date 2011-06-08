@@ -70,10 +70,10 @@ function ProductOptionsMenus (target,settings) {
 						tax = price.tax?new Number(p*settings.taxrate):0;
 						pricetag = "  ("+asMoney(new Number(p+tax))+")";
 					}
-					optiontext = option.attr('text');
+					optiontext = option.text();
 					previoustag = optiontext.lastIndexOf("(");
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
-					option.attr('text',optiontext+pricetag);
+					option.text(optiontext+pricetag);
 					if ($.browser.msie) option.css('color','#373737');
 					if ((price.i && !price.s) || price.t == "N/A") {
 						if (option.attr('selected'))
