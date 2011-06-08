@@ -31,7 +31,6 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 	}
 
 	function calculate ($options,$Order) {
-		$rated = false;
 		foreach ($this->rates as $rate) {
 			$column = $this->ratecolumn($rate);
 			foreach ($rate['max'] as $id => $value) {
@@ -40,9 +39,8 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 					$rate['amount'] = $rate[$column][$id];
 					break;
 				}
-				if ( isset($rate['amount']) ) $rated = true;
 			}
-			if ( $rated ) $options[$rate['name']] = new ShippingOption($rate);
+			if ( isset($rate['amount']) ) $options[$rate['name']] = new ShippingOption($rate);
 		}
 		return $options;
 	}
