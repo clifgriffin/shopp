@@ -157,7 +157,7 @@ class Warehouse extends AdminController {
 		$db = DB::get();
 		$Settings = &ShoppSettings();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
+		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
@@ -384,7 +384,7 @@ class Warehouse extends AdminController {
 
 		$db = DB::get();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
+		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (empty($Shopp->Product)) {
@@ -473,7 +473,7 @@ class Warehouse extends AdminController {
 		$Settings = &ShoppSettings();
 		check_admin_referer('shopp-save-product');
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
+		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$Settings->saveform(); // Save workflow setting

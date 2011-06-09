@@ -137,9 +137,7 @@ class AdminFlow extends FlowController {
 	function menus () {
 		global $Shopp;
 
-		$access = defined('SHOPP_USERLEVEL') ?
-			SHOPP_USERLEVEL:$this->caps['main'];
-
+		$access = $this->caps['main'];
 		if ($this->maintenance()) $access = 'manage_options';
 
 		$this->topmenu('main','Shopp',$access,'orders',50);
@@ -202,7 +200,7 @@ class AdminFlow extends FlowController {
 			($page->parent)?$page->parent:$this->MainMenu,
 			$page->label,
 			$page->label,
-			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
+			$this->caps[$page->name],
 			$name,
 			$controller
 		);
@@ -397,7 +395,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function dashboard () {
 		$dashboard = $this->Settings->get('dashboard');
-		if (!((is_shopp_userlevel() || current_user_can('shopp_financials')) && $dashboard == "on")) return false;
+		if ( ! ( current_user_can('shopp_financials') && "on" == $dashboard ) ) return false;
 
 		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array($this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
