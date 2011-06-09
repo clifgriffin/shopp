@@ -138,15 +138,26 @@ jQuery(document).ready(function () {
 		.click(function () { $(this).change(); }); // For IE compatibility
 
 	$('.shopp .shipmethod').change(function () {
-		if ($(this).parents('#checkout').size()) {
-			$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
+		if ('process' == $('#checkout #shopp-checkout-function').val()) {
+			var prefix = '.shopp_cart_',
+				spans = 'span'+prefix,
+				inputs = 'input'+prefix,
+				fields = ['shipping','tax','total'],
+				selectors = [];
+
+			$.each(fields,function (i,name) { selectors.push(spans+name); });
+
+			$(selectors.join(',')).html('?');
 			$.getJSON(sjss.ajaxurl+"?action=shopp_ship_costs&method="+$(this).val(),
 				function (r) {
-					var prefix = 'span.shopp_cart_';
-					$(prefix+'shipping').html(asMoney(new Number(r.shipping)));
-					$(prefix+'tax').html(asMoney(new Number(r.tax)));
-					$(prefix+'total').html(asMoney(new Number(r.total)));
-			});
+
+					$.each(fields,function (i,name) {
+						$(spans+name).html(asMoney(new Number(r[name])));
+						$(inputs+name).val(new Number(r[name]));
+					});
+
+				}
+			);
 		} else $(this).parents('form').submit();
 	});
 
