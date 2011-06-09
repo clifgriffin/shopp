@@ -1287,7 +1287,7 @@ class Storefront extends FlowController {
 				<?php shopp('product','quantity',$quantity); ?>
 			<?php endif; ?>
 			<?php $button = empty($atts['button'])?'label='.__('Buy Now','Shopp'):$atts['button']; ?>
-			<?php shopp('product','addtocart',$button); ?></p>
+			<?php shopp('product','addtocart',$button.( isset($atts['ajax']) && 'on' == $atts['ajax'] ? '&ajax=on' : '' )); ?></p>
 		</form>
 		<?php
 		$markup = ob_get_contents();
