@@ -788,20 +788,18 @@ function is_robot() {
 }
 
 /**
- * Used to test user level for (to be deprecated) SHOPP_USERLEVEL macro
+ * Used to test user level for deprecated SHOPP_USERLEVEL macro
  *
  * Utility function for checking to see if SHOPP_USERLEVEL is defined and whether current user has
- * that level of access.
+ * that level of access. This function is deprecated, and should not be used.
  *
  * @author John Dillick
  * @since 1.1
- * @deprecated
+ * @deprecated 1.2
  *
- * @return bool SHOPP_USERLEVEL is defined and the user has privs at that level
+ * @return null
  **/
-function is_shopp_userlevel () {
-	return defined('SHOPP_USERLEVEL') && current_user_can('SHOPP_USERLEVEL');
-}
+function is_shopp_userlevel () { return; }
 
 /**
  * Determines if the requested page is a Shopp page or if it matches a given Shopp page

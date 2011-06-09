@@ -60,7 +60,7 @@ class Promote extends AdminController {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_promotions')) )
+		if ( ! current_user_can('shopp_promotions') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		require(SHOPP_PATH.'/core/model/Promotion.php');
@@ -187,7 +187,7 @@ class Promote extends AdminController {
 	function editor () {
 		global $Shopp;
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_promotions')) )
+		if ( ! current_user_can('shopp_promotions') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		require(SHOPP_PATH."/core/model/Promotion.php");

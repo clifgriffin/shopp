@@ -302,7 +302,7 @@ class Members extends AdminController {
 		global $Shopp,$ruletypes,$rulegroups;
 		$db =& DB::get();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_memberships')) )
+		if ( ! current_user_can('shopp_memberships') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if ($_GET['id'] != "new") {

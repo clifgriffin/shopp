@@ -147,7 +147,7 @@ class Categorize extends AdminController {
 		global $Shopp;
 
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
+		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
@@ -322,7 +322,7 @@ class Categorize extends AdminController {
 		global $Shopp,$CategoryImages;
 		$db = DB::get();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
+		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (empty($Shopp->Category)) $Category = new ProductCategory();
@@ -379,7 +379,7 @@ class Categorize extends AdminController {
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
+		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$Settings->saveform(); // Save workflow setting
@@ -424,7 +424,7 @@ class Categorize extends AdminController {
 			if (!isset($Category->meta[$name])) new MetaObject();
 			$Category->meta[$name]->value = stripslashes_deep($data);
 		}
-		print_r($Category);
+
 		$Category->save();
 
 		if (!empty($_POST['deleteImages'])) {
@@ -527,7 +527,7 @@ class Categorize extends AdminController {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
+		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
