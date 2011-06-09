@@ -586,7 +586,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		if (!empty($options['value'])) $value = $options['value'];
 		else $value = "process";
-		$output = '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>';
+		$output = '<div><input id="shopp-checkout-function" type="hidden" name="checkout" value="'.$value.'" /></div>';
 		if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
 		else $output = apply_filters('shopp_checkout_form',$output);
 		return $output;
