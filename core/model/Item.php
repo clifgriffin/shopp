@@ -541,13 +541,15 @@ class Item {
 	function retotal () {
 		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
 
-		$this->priced = ($this->unitprice-$this->discount);
-		$this->unittax = ($this->unitprice*$this->taxrate);
-		$this->pricedtax = ($this->priced*$this->taxrate);
-		$this->discounts = ($this->discount*$this->quantity);
-		$this->tax = (($this->priced*$this->taxrate)*$this->quantity);
-		$this->total = ($this->unitprice * $this->quantity);
-		$this->totald = ($this->priced * $this->quantity);
+		$this->priced = ($this->unitprice-$this->discount); // discounted unit price
+		$this->discounts = ($this->discount*$this->quantity); // total item discount figure
+
+		$this->unittax = ($this->unitprice*$this->taxrate); // unit tax	figure
+		$this->pricedtax = ($this->priced*$this->taxrate); // discounted unit tax
+
+		$this->tax = ($this->pricedtax*$this->quantity); // total discounted tax amount
+		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
+		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
 
 	}
 
