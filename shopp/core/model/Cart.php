@@ -1188,7 +1188,6 @@ class CartDiscounts {
 	 * @return float The total discount amount
 	 **/
 	function calculate () {
-
 		$this->applypromos();
 
 		$discount = 0;
@@ -1196,12 +1195,13 @@ class CartDiscounts {
 			if (isset($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
 					if (isset($this->Cart->contents[$id])) {
-						$this->Cart->contents[$id]->discount += $amount;
+						$this->Cart->contents[$id]->discount += $amount; // unit discount
 						$this->Cart->contents[$id]->retotal();
+						if ( $this->Cart->contents[$id]->discounts ) $Discount->applied += $this->Cart->contents[$id]->discounts; // total line item discount
 					}
 				}
 			}
-			$discount += !empty($Discount->items)?array_sum($Discount->items):$Discount->applied;
+			$discount += $Discount->applied; // Cart/Order discounts
 		}
 
 		return $discount;
@@ -1351,17 +1351,15 @@ class CartDiscounts {
 
 				if ($matches == count($promo->rules['item'])) { // all conditions must match
 
+					// These must result in the discount applied to the *unit price*!
 					switch ($promo->type) {
-						case "Percentage Off": $discount = ($Item->unitprice*$Item->quantity)*($promo->discount/100); break;
-						case "Amount Off": $discount = $promo->discount * $Item->quantity; break;
+						case "Percentage Off": $discount = $Item->unitprice*($promo->discount/100); break;
+						case "Amount Off": $discount = $promo->discount; break;
 						case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
-						case "Buy X Get Y Free": $discount = floor(
-																$Item->quantity /
-																($promo->buyqty + $promo->getqty)
-															  ) * ($Item->unitprice);
-							break;
+						// free/total ratio * unit price = unit discount
+						case "Buy X Get Y Free": $discount = $Item->unitprice*( $promo->getqty / ($promo->buyqty + $promo->getqty ));
+						break;
 					}
-					$promo->applied += $discount;
 					$promo->items[$id] = $discount;
 				}
 
