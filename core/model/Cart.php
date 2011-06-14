@@ -1223,6 +1223,7 @@ class CartDiscounts {
 		usort($this->promos,array(&$this,'_active_discounts'));
 
 		// Iterate over each promo to determine whether it applies
+		$discount = 0;
 		foreach ($this->promos as &$promo) {
 			$applypromo = false;
 			if (!is_array($promo->rules))
