@@ -107,11 +107,17 @@ jQuery(document).ready(function () {
 		}
 	}).trigger('change',[true]);
 
-	$('#billing-country, .billing-state[disabled!="true"]').change(function () {
-		var country = $('#billing-country').val(),
-			state = $('.billing-state[disabled!="true"]').val(),
-			id = country+state,options,locale;
-		if (!localeMenu.get()) return;
+	$('#billing-country, .billing-state[disabled!="true"], #shipping-country, .shipping-state[disabled!="true"]').change(function (e, init) {
+		var	sameshipping = $('#same-shipping').is(':checked'),
+			country = sameshipping ? $('#billing-country').val() : $('#shipping-country').val(),
+			state = sameshipping ? $('.billing-state[disabled!="true"]').val() : $('.shipping-state[disabled!="true"]').val(),
+			id = country+state,
+			options,
+			locale;
+		if ( 	init ||
+				! localeMenu.get() ||
+			( 	! sameshipping && ( $(this).is('#billing-country') || $(this).is('.billing-state') ) )
+			) return;
 		localeMenu.empty().attr('disabled',true);
 		if ( (locale = locales[id]) || (locale = locales[country]) ) {
 			options += '<option></option>';
@@ -125,9 +131,10 @@ jQuery(document).ready(function () {
 	});
 
 	sameship.change(function(e,init) {
-		if (sameship.attr('checked')) {
+		if (sameship.is(':checked')) {
 			billFields.removeClass('half');
 			shipFields.hide().find('.required').setDisabled(true);
+			$('#billing-country').trigger('change',[init]);
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);

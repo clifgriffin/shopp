@@ -363,7 +363,7 @@ function validate (form) {
 		if (input.hasClass('email') && !input.val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
 			error = new Array(sjss.INVALID_EMAIL,field);
 
-		if (chars = input.attr('class').match(new RegExp('min(\\d+)'))) {
+		if ( input.attr('class') && ( chars = input.attr('class').match( new RegExp('min(\\d+)') ) ) ) {
 			if (input.val() != "" && input.val().length < chars[1])
 				error = new Array(sjss.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
 		}
