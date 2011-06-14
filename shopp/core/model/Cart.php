@@ -1677,19 +1677,18 @@ class CartTax {
 		$Customer = $this->Order->Customer;
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
-		$country = false;
-		if (!empty($Shipping->country)) $country = $Shipping->country;
-		elseif (!empty($Billing->country)) $country = $Billing->country;
+		$country = $zone = $locale = $global = false;
+		if ( 	! $this->Order->Cart->shipped() ||
+				( isset($Shipping->sameshipaddress) && $Shipping->sameshipaddress ) ) { // Use billing address
+			$country = $Billing->country;
+			$zone = $Billing->state;
+			if ( isset($Billing->locale) ) $locale = $Billing->locale;
+		} else {
+			$country = $Shipping->country;
+			$zone = $Shipping->state;
+			if ( isset($Billing->locale) ) $locale = $Billing->locale; // exception for locale
+		}
 
-		$zone = false;
-		if (!empty($Shipping->state)) $zone = $Shipping->state;
-		elseif (!empty($Billing->state)) $zone = $Billing->state;
-
-		$locale = false;
-		if (!empty($Shipping->locale)) $locale = $Shipping->locale;
-		elseif (!empty($Billing->locale)) $locale = $Billing->locale;
-
-		$global = false;
 		foreach ($this->rates as $setting) {
 			$rate = false;
 

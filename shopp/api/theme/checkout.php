@@ -228,10 +228,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		if ( "value" == $options['mode'] ) { return $O->Billing->locale; }
 
-		if ( ! isset($options['selected']) ) { $options['selected'] = $O->Billing->locale ? $O->Billing->locale : false; }
-		if ( ! empty($O->Billing->locale) ) {
-			$options['selected'] = $O->Billing->locale;
-			$options['value'] = $O->Billing->locale;
+		if ( ! isset($options['selected']) ) {
+			$options['selected'] = $O->Billing->locale ? $O->Billing->locale : false;
 		}
 
 		$rates = $Shopp->Settings->get("taxrates");
@@ -278,7 +276,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			// Start stub select menu for billing local tax jurisdiction (needed for javascript to populate)
 			$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
 
-		 	if ( ! empty($localities) ) { $output .= "<option></option>".menuoptions($localities,$options['selected']); }
+		 	if ( ! empty($localities) ) { $output .= "<option></option>".menuoptions($localities, $options['selected']); }
 
 			// End stub select menu for billing local tax jurisdiction
 			$output .= '</select>';
@@ -843,10 +841,15 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	function same_shipping_address ($result, $options, $O) {
 		$label = __("Same shipping address","Shopp");
-		if (isset($options['label'])) $label = $options['label'];
+		if ( isset($options['label']) ) $label = $options['label'];
 		$checked = ' checked="checked"';
-		if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
-		$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+		if (  	( isset($this->Shipping->sameshipaddress) && ! $this->Shipping->sameshipaddress ) ||
+				( isset($options['checked']) && ! value_is_true($options['checked']) )
+			) {
+				$checked = '';
+		}
+
+		$output = '<label for="same-shipping"><input type="hidden" name="sameshipaddress" value="off" /><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
 		return $output;
 	}
 
@@ -913,6 +916,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			$country = $O->Shipping->country;
 		if (!array_key_exists($country,$countries)) $country = key($countries);
 
+		$classname = "shipping-state".(isset($options['class']) ? ' '.$options['class'] : '');
+
 		$regions = Lookup::country_zones();
 		$states = $regions[$country];
 
@@ -921,7 +926,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		if (isset($options['type']) && $options['type'] == "text")
 			return '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
 
-		$classname = isset($options['class'])?$options['class']:'';
 		$label = (!empty($options['label']))?$options['label']:'';
 		$options['disabled'] = 'disabled';
 		$options['class'] = ($classname?"$classname ":"").'disabled hidden';
