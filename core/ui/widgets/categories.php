@@ -36,7 +36,7 @@ class ShoppCategoriesWidget extends WP_Widget {
 
     function form($options) {
 		?>
-		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
+		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title','Shopp'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
 
 		<p>
@@ -44,8 +44,8 @@ class ShoppCategoriesWidget extends WP_Widget {
 		<input type="hidden" name="<?php echo $this->get_field_name('products'); ?>" value="off" /><input type="checkbox" id="<?php echo $this->get_field_id('products'); ?>" name="<?php echo $this->get_field_name('products'); ?>" value="on"<?php echo $options['products'] == "on"?' checked="checked"':''; ?> /><label for="<?php echo $this->get_field_id('products'); ?>"> <?php _e('Show product counts','Shopp'); ?></label><br />
 		<input type="hidden" name="<?php echo $this->get_field_name('hierarchy'); ?>" value="off" /><input type="checkbox" id="<?php echo $this->get_field_id('hierarchy'); ?>" name="<?php echo $this->get_field_name('hierarchy'); ?>" value="on"<?php echo $options['hierarchy'] == "on"?' checked="checked"':''; ?> /><label for="<?php echo $this->get_field_id('hierarchy'); ?>"> <?php _e('Show hierarchy','Shopp'); ?></label><br />
 		</p>
-		<p><label for="<?php echo $this->get_field_id('showsmart'); ?>">Smart Categories:
-			<select id="<?php echo $this->get_field_id('showsmart'); ?>" name="<?php echo $this->get_field_name('showsmart'); ?>" class="widefat"><option value="false">Hide</option><option value="before"<?php echo $options['showsmart'] == "before"?' selected="selected"':''; ?>><?php _e('Include before custom categories','Shopp'); ?></option><option value="after"<?php echo $options['showsmart'] == "after"?' selected="selected"':''; ?>><?php _e('Include after custom categories','Shopp'); ?></option></select></label></p>
+		<p><label for="<?php echo $this->get_field_id('showsmart'); ?>"><?php _e('Smart Categories:','Shopp'); ?>
+			<select id="<?php echo $this->get_field_id('showsmart'); ?>" name="<?php echo $this->get_field_name('showsmart'); ?>" class="widefat"><option value="false"><?php _e('Hide','Shopp'); ?></option><option value="before"<?php echo $options['showsmart'] == "before"?' selected="selected"':''; ?>><?php _e('Include before custom categories','Shopp'); ?></option><option value="after"<?php echo $options['showsmart'] == "after"?' selected="selected"':''; ?>><?php _e('Include after custom categories','Shopp'); ?></option></select></label></p>
 		<?php
     }
 
