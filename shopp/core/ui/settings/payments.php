@@ -95,10 +95,10 @@
 
 		<div class="tablenav"><div class="alignright actions">
 			<select name="id" id="payment-option-menu">
-			<option><?php _e('Select a payment system&hellip;','Shopp'); ?></option>
+			<option><?php _e('Add a payment system&hellip;','Shopp'); ?></option>
 			<?php echo menuoptions($installed,false,true); ?>
 			</select>
-			<button type="submit" name="add-payment-option" id="add-payment-option" class="button-secondary" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
+			<button type="submit" name="add-payment-option" id="add-payment-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
 			</div>
 		</div>
 
