@@ -9,7 +9,7 @@
  * @package shopp
  **/
 
-if (class_exists('WP_Widget')) {
+if ( class_exists('WP_Widget') && ! class_exists('ShoppTagCloudWidget') ) {
 
 class ShoppTagCloudWidget extends WP_Widget {
 
