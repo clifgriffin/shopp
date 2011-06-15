@@ -230,7 +230,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.saleprice = function (toggle,saleprice) {
 		var hd,ui,dis;
 		hd = $('<th><input type="hidden" name="'+fn+'[sale]" value="off" />'+
-					'<input type="checkbox" name="'+fn+'[sale]" id="sale-'+i+'" />'+
+					'<input type="checkbox" name="'+fn+'[sale]" id="sale-'+i+'" value="on" />'+
 					'<label for="sale-'+i+'"> '+SALE_PRICE_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+NOT_ON_SALE_TEXT+'</span><span class="ui">'+
 					'<input type="text" name="'+fn+'[saleprice]" id="saleprice-'+i+'" size="10" class="selectall money right" />'+
@@ -271,7 +271,7 @@ function Priceline (id,options,data,target,attachment) {
 		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,dv,nf = getCurrencyFormat();
 		nf.precision = '2';
 
-		hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
+		hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" value="on" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+FREE_SHIPPING_TEXT+'</span>'+
 					'<span class="ui"><input type="text" name="'+fn+'[weight]" id="weight-'+i+'" size="8" class="selectall right" />'+
 					'<label for="weight-'+i+'" id="weight-label-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />'+
@@ -370,7 +370,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.inventory = function (toggle,stock,sku) {
 		var hd,ui,dis;
 		hd = $('<th><input type="hidden" name="'+fn+'[inventory]" value="off" />'+
-					'<input type="checkbox" name="'+fn+'[inventory]" id="inventory-'+i+'" />'+
+					'<input type="checkbox" name="'+fn+'[inventory]" id="inventory-'+i+'" value="on" />'+
 					'<label for="inventory-'+i+'"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+NOT_TRACKED_TEXT+'</span>'+
 					'<span class="ui"><input type="text" name="'+fn+'[stock]" id="stock-'+i+'" size="8" class="selectall right" />'+
