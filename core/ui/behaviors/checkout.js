@@ -107,7 +107,7 @@ jQuery(document).ready(function () {
 		}
 	}).trigger('change',[true]);
 
-	$('#billing-country, .billing-state[disabled!="true"], #shipping-country, .shipping-state[disabled!="true"]').change(function (e, init) {
+	$('#billing-country, .billing-state, #shipping-country, .shipping-state').change(function (e, init) {
 		var	sameshipping = ! sameship.is('#same-shipping') || sameship.is(':checked'),
 			country = sameshipping ? $('#billing-country').val() : $('#shipping-country').val(),
 			state = sameshipping ? $('.billing-state[disabled!="true"]').val() : $('.shipping-state[disabled!="true"]').val(),
