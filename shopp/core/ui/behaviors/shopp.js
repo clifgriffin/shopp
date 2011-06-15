@@ -188,7 +188,7 @@ if (!Number.prototype.roundFixed) {
  **/
 function quickSelects (e) {
 	var target = jQuery(e).find('input.selectall');
-	if (target.size > 0) target = jQuery('input.selectall');
+	if (target.size() == 0) target = jQuery('input.selectall');
 	target.unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });
 }
 

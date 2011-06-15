@@ -5,16 +5,18 @@
  */
 
 jQuery(document).ready( function($) {
-	$.each(shipping,function (index,shipping) {
-		$.template(shipping+'-editor',$('#'+shipping+'-editor'));
-	});
+	if ($('#flatrates-editor').size() > 0) {
+		$.each(shipping,function (index,shipping) {
+			$.template(shipping+'-editor',$('#'+shipping+'-editor'));
+		});
 
-	$.template('flatrates-editor',$('#flatrates-editor'));
-	$.template('flatrate-row',$('#flatrate-row'));
-	$.template('tablerates-editor',$('#tablerates-editor'));
-	$.template('tablerate-row',$('#tablerate-row'));
-	$.template('tablerate-row-tier',$('#tablerate-row-tier'));
-	$.template('location-fields',$('#location-fields'));
+		$.template('flatrates-editor',$('#flatrates-editor'));
+		$.template('flatrate-row',$('#flatrate-row'));
+		$.template('tablerates-editor',$('#tablerates-editor'));
+		$.template('tablerate-row',$('#tablerate-row'));
+		$.template('tablerate-row-tier',$('#tablerate-row-tier'));
+		$.template('location-fields',$('#location-fields'));
+	}
 
 	var editing = false,
 		menu = $('#shipping-option-menu'),
