@@ -1692,11 +1692,13 @@ class CartTax {
 			$rate = false;
 
 			if (isset($setting['locals']) && is_array($setting['locals'])) {
-				if ($country == $setting['country'] &&
-					$zone == $setting['zone']) {
-						$localrate = isset($setting['locals'][$locale])?$setting['locals'][$locale]:0;
-						$rate = ($this->float($setting['rate'])+$this->float($localrate));
-					}
+				$localmatch = true;
+				if ( $country != $setting['country'] ) $localmatch = false;
+				if ( isset($setting['zone']) && $zone != $setting['zone'] ) $localmatch = false;
+				if ( $localmatch ) {
+					$localrate = isset($setting['locals'][$locale])?$setting['locals'][$locale]:0;
+					$rate = ($this->float($setting['rate'])+$this->float($localrate));
+				}
 			} elseif (isset($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
 					$rate = $this->float($setting['rate']);
