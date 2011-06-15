@@ -28,6 +28,7 @@ class Order {
 	var $data = array();			// Extra/custom order data
 	var $payoptions = array();		// List of payment method options
 	var $paycards = array();		// List of accepted PayCards
+	var $sameship = NULL;			// Flag for using the billing address for shipping
 
 	var $processor = false;			// The payment processor module name
 	var $paymethod = false;			// The selected payment method
@@ -322,7 +323,7 @@ class Order {
 
 			// Override posted shipping updates with billing address
 			if ( isset($_POST['sameshipaddress']) ) {
-				if ( $this->Shipping->sameshipaddress = ( "on" == $_POST['sameshipaddress'] ) ) {
+				if ( $this->sameship = ( "on" == $_POST['sameshipaddress'] ) ) {
 					$this->Shipping->updates($this->Billing,
 						array("_datatypes","_table","_key","_lists","id","created","modified"));
 				}
