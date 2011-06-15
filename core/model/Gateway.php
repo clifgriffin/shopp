@@ -295,7 +295,7 @@ abstract class GatewayFramework {
 	 **/
 	function initui ($module,$name) {
 		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
-		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
+		$this->ui = new GatewaySettingsUI($this,$name);
 		$this->settings();
 	}
 
@@ -430,6 +430,40 @@ class GatewayModules extends ModuleLoader {
 	}
 
 } // END class GatewayModules
+
+class GatewaySettingsUI extends ModuleSettingsUI {
+
+	function generate () {
+
+		$_ = array();
+		$_[] = '<tr><td colspan="5">';
+		$_[] = '<table class="form-table shopp-settings"><tr>';
+		$_[] = '<th scope="row" colspan="4">'.$this->name.'<input type="hidden" name="gateway" value="'.$this->module.'" /></th>';
+		$_[] = '</tr><tr>';
+		$_[] = '<td><input type="text" name="settings['.$this->module.'][label]" value="'.$this->label.'" id="'.$this->id.'-label" size="16" class="selectall" /><br />';
+		$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label></td>';
+
+		foreach ($this->markup as $markup) {
+			$_[] = '<td>';
+			if (empty($markup)) $_[] = '&nbsp;';
+			else $_[] = join("\n",$markup);
+			$_[] = '</td>';
+		}
+
+		$_[] = '</tr><tr>';
+		$_[] = '<td colspan="4">';
+		$_[] = '<a href="${cancel_href}" class="button-secondary cancel">'.__('Cancel','Shopp').'</a>';
+		$_[] = '<p class="alignright"><input type="submit" name="save" value="'.__('Save Changes','Shopp').'" class="button-primary" /></p>';
+		$_[] = '</td>';
+		$_[] = '</tr></table>';
+		$_[] = '</td></tr>';
+
+		return join("\n",$_);
+
+	}
+
+}
+
 
 /**
  * PayCard classs

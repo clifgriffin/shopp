@@ -249,6 +249,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('payments-settings', '/ui/behaviors/payments.js', array('jquery'), '20100101');
 	$scripts->add_data('payments-settings', 'group', 1);
 
+	$scripts->add('shipping-settings', '/ui/behaviors/shipping.js', array('jquery'), '20100101');
+	$scripts->add_data('shipping-settings', 'group', 1);
+
 	$scripts->add('image-settings', '/ui/behaviors/image-settings.js', array('jquery'), '20110518');
 	$scripts->add_data('image-settings', 'group', 1);
 

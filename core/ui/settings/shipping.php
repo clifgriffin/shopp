@@ -4,7 +4,9 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Shipping Settings','Shopp'); ?></h2>
 
-	<form name="settings" id="shipping" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
+	<?php $this->shipping_menu(); ?>
+
+	<form name="settings" id="shipping" action="<?php echo esc_url($this->url); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-shipping'); ?>
 
 		<table class="form-table">
@@ -66,22 +68,7 @@
 				<td><input type="text" name="settings[lowstock_level]" value="<?php echo esc_attr($lowstock); ?>" id="lowstock-level" size="5" class="selectall" /><br />
 	            <?php _e('Enter the number for low stock level warnings.','Shopp'); ?></td>
 			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="regional_rates"><?php _e('Domestic Regions','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?> /><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br />
-	            <?php _e('Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)','Shopp'); ?><br />
-				<strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must click the "Save Changes" button for changes to take effect.','Shopp'); ?></td>
-			</tr>
 		</table>
-
-		<h3><?php _e('Shipping Methods &amp; Rates','Shopp'); ?></h3>
-		<p><small><?php _e('Shipping rates based on the order amount are calculated once against the order subtotal (which does not include tax).  Shipping rates based on weight are calculated once against the total order weight.  Shipping rates based on item quantity are calculated against the total quantity of each different item ordered.','Shopp'); ?></small></p>
-		<?php $base = $this->Settings->get('base_operations'); if (!empty($base['country'])): ?>
-		<table id="shipping-rates" class="form-table"><tr><td></td></tr></table>
-		<div class="tablenav"><div class="alignright actions"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999"><?php _e('Add Shipping Method Rates','Shopp'); ?></button></div></div>
-		<?php else: ?>
-			<p class="tablenav"><small><strong>Note:</strong> <?php _e('You must select a Base of Operations location under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings['settings'][0] ?>"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can configure shipping rates.','Shopp'); ?></small></p>
-		<?php endif; ?>
 
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>

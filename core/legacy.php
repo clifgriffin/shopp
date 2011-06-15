@@ -232,7 +232,7 @@ if (!function_exists('array_replace')) {
 	 * @author Jonathan Davis
 	 * @since PHP 5.3.0
 	 *
-	 * @return void Description...
+	 * @return array
 	 **/
 	function array_replace (&$array, &$array1) {
 		$args = func_get_args();
@@ -244,6 +244,26 @@ if (!function_exists('array_replace')) {
 		}
 
 		return $array;
+	}
+}
+
+if (!function_exists('array_intersect_key')) {
+	/**
+	 * Computes the intersection of arrays using keys for comparison
+	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.1.0
+	 *
+	 * @return array
+	 **/
+	function array_intersect_key () {
+		$arrays = func_get_args();
+		$result = array_shift($arrays);
+		foreach ($arrays as $array) {
+			foreach ($result as $key => $v)
+				if (!array_key_exists($key, $array)) unset($result[$key]);
+		}
+		return $result;
 	}
 }
 

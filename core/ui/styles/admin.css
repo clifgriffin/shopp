@@ -3,6 +3,7 @@ body { position:relative; }
 
 .invisible { visibility:hidden; }
 .nodisplay { display:none; }
+th.textright { text-align: right; }
 
 .shopp .clickable,
 .shopp button { cursor:pointer; }
@@ -175,7 +176,6 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 .membership.search-select-results { width: 300px; }
 
-
 /** Pricing editor **/
 
 .shopp div.pricing-label { position:relative; }
@@ -268,7 +268,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 
 .shopp .multiple-select { position:relative;overflow-x:hidden;overflow-y:auto;height:120px;width:250px;display:inline-block;border:1px solid #dfdfdf;background:#ffffff;padding:0;margin:0; }
 .shopp .multiple-select ul { list-style-type:none;position:absolute;left:0;right:0;line-height:1;width:auto;margin:0;padding:0; }
-.shopp .multiple-select ul li { margin:0;padding:2px 2px 0 0;clear:both; }
+.shopp .multiple-select ul li { margin:0;padding:2px 2px 0 0;clear:both; text-indent: -1.9em; padding-left: 1.9em;}
 .shopp .multiple-select ul li input { margin:0 5px; }
 .shopp .multiple-select ul li.odd { background:#f9f9f9; }
 .shopp .multiple-select ul ul { padding-left:20px; }
@@ -333,7 +333,6 @@ span.indent { display: inline-block; width: 36px; }
 
 /** Category Metabox **/
 .shopp .category-menu { display: block; width: auto; }
-.shopp .category-menu.hidden { display: none; }
 .shopp .category-menu ul { position: relative; }
 .shopp .postbox .category-menu ul label { }
 .shopp ul.category-tabs { position: relative; z-index: 100; overflow: visible; margin: -1px 0 0 0; font-size: 11px; padding: 5px 0; -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; -khtml-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; -khtml-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; border: 1px solid #dfdfdf;   background-color:#f1f1f1; }
@@ -515,7 +514,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #print-button { position:absolute;right:15px; }
 
 .shopp div.inline div { display: inline; }
-.shopp div.inline div.hidden { display: none; }
 .shopp .actions .filtering { margin-left:10px; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
@@ -545,24 +543,24 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #shipping-rates .services div.multiple-select ul li input { margin-left:-17px; }
 
 
-.shopp-settings td,.shopp-settings th { font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif; font-size: 11px; border-bottom: none; }
-.shopp-settings th { font-size: 13px; }
+.shopp-settings .unit { white-space: nowrap; }
+.shopp-settings > tbody tr td,.shopp-settings > tbody tr th { font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif; font-size: 11px; border-bottom: none; }
+.shopp-settings > tbody tr th { font-size: 13px; }
 .shopp-settings .multiple-select ul { font-size: 12px; }
-.shopp-settings td { max-width: 300px; }
+.shopp-settings > td { max-width: 300px; }
 .shopp-settings div.spacer { width: 200px; }
+.shopp-settings button.addrate { margin-right: 32px; }
 
-/*#payment-settings.form-table tr th,
-#payment-settings.form-table tr td { border-bottom:1px solid #dfdfdf; }
-#payment-settings.form-table tr td table th,
-#payment-settings.form-table tr td table td { border-bottom:none; }
+/** Shipping Rate Tables **/
+.rate-table-shipping { width: 50%; margin: 0 auto;}
+.rate-table-shipping thead tr th,
+.rate-table-shipping > tbody tr th  { background: none; line-height: 1; font-size: 11px; font-weight: bold; padding: 8px 8px 3px; }
+.rate-table-shipping th, .rate-table-shipping td { border-bottom: none; }
+.rate-table-shipping .control { width: 24px; }
 
-#payment-settings table.settings { width:100%; }
-#payment-settings table.settings td { vertical-align:top; }
-#payment-settings table.settings th,#payment-settings table.settings td { border:none;padding:2px; }
-#payment-settings table.settings div { padding-bottom:4px; }
-#payment-settings,#payment-settings td { position:relative;padding-left:0;padding-right:0;top:0; }
-#payment-settings td button.deleteRate { position:absolute;right:5px; }
-#payment-settings table th,#payment-settings table td { border:none;padding:2px; }*/
+.rate-table-shipping .leftfield { padding-left: 0; }
+.rate-table-shipping .delete.control,
+.rate-table-shipping .rightfield { padding-right: 0; }
 
 #page-settings label { display: inline-block; }
 
@@ -618,3 +616,10 @@ tr.inline-edit-row td  { padding: 10px; }
 .inline-edit-row label { line-height: 20px; font-size: 11px; }
 
 .inline-edit-row span { display: inline-block; }
+
+
+/** General Overrides **/
+.shopp .hidden,
+.shopp button.hidden,
+.shopp .category-menu.hidden,
+.shopp div.inline div.hidden { display: none; }

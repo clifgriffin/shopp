@@ -61,10 +61,10 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 
 		$checked = '';
 		if ((isset($Shopp->Order->Shipping->method) &&
-			$Shopp->Order->Shipping->method == $method->name))
+			$Shopp->Order->Shipping->method == $method->slug))
 				$checked = ' checked="checked"';
 
-		$result = '<input type="radio" name="shipmethod" value="'.urlencode($method->name).'" class="shopp shipmethod" '.$checked.' />';
+		$result = '<input type="radio" name="shipmethod" value="'.esc_attr($method->slug).'" class="shopp shipmethod" '.$checked.' />';
 		return $result;
 	}
 
@@ -72,7 +72,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		global $Shopp;
 		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
-			$Shopp->Order->Shipping->method == $method->name));
+			$Shopp->Order->Shipping->method == $method->slug));
 	}
 
 	function option_cost ($result, $options, $O) {
@@ -106,9 +106,9 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		$_[] = '<select name="shipmethod" class="shopp shipmethod">';
 		foreach ($O->shipping as $method) {
 			$selected = ((isset($Shopp->Order->Shipping->method) &&
-				$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
+				$Shopp->Order->Shipping->method == $method->slug))?' selected="selected"':false;
 
-			$_[] = '<option value="'.$method->name.'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
+			$_[] = '<option value="'.esc_attr($method->slug).'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
 		}
 		$_[] = '</select>';
 		return join("",$_);

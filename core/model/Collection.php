@@ -2850,7 +2850,7 @@ class TagProducts extends SmartCollection {
 		// $this->taxonomy = get_catalog_taxonomy_id('tag');
 
 		$terms = get_terms(ProductTag::$taxonomy);
-		print_r($terms);
+		// print_r($terms);
 		return;
 
 		$this->tag = urldecode($options['tag']);

@@ -186,8 +186,10 @@ if (!Number.prototype.roundFixed) {
  * Usability behavior to add automatic select-all to a field
  * when activating the field by mouse click
  **/
-function quickSelects (target) {
-	jQuery('input.selectall').mouseup(function () { this.select(); });
+function quickSelects (e) {
+	var target = jQuery(e).find('input.selectall');
+	if (target.size > 0) target = jQuery('input.selectall');
+	target.unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });
 }
 
 /**
@@ -205,6 +207,45 @@ function debuglog (o) {
 	if (window.console != undefined) {
 		console.log(o);
 	}
+}
+
+function compress (s) { // LZW
+	var dict = {}, data = (s + "").split(""),
+		out = [], current, phrase = data[0],
+		code = 256;
+	for (var i=1; i<data.length; i++) {
+		current = data[i];
+		if (dict[phrase + current] != null) {
+			phrase += current;
+		} else {
+			out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+			dict[phrase + current] = code++;
+			phrase = current;
+		}
+	}
+	out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+	for (var i = 0; i < out.length; i++)
+		out[i] = String.fromCharCode(out[i]);
+
+	return out.join('');
+}
+
+function decompress (s) { // LZW
+	var dict = {}, data = (s + "").split(""),
+		current = data[0], lastPhrase = current,
+		out = [current], code = 256,
+		currentCode, phrase, i;
+	for (i = 1; i < data.length; i++) {
+		currentCode = data[i].charCodeAt(0);
+		if (currentCode < 256) phrase = data[i];
+		else phrase = dict[currentCode] ? dict[currentCode] : (lastPhrase + current);
+		out.push(phrase);
+		current = phrase.charAt(0);
+		dict[code] = lastPhrase + current;
+		code++;
+		lastPhrase = phrase;
+	}
+	return out.join('');
 }
 
 jQuery.fn.fadeRemove = function (duration,callback) {
@@ -236,6 +277,17 @@ jQuery.parseJSON = function (data) {
 				return false;
 			}
 	} else return eval('(' + data + ')');
+};
+
+/**
+ * Get a named query string variable value by name
+ **/
+jQuery.getQueryVar = function (name,url) {
+	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	var regex = new RegExp( "[\\?&]"+name+"=([^&#]*)" ),
+		results = regex.exec( url );
+	if (results == null) return '';
+	else return decodeURIComponent(results[1].replace(/\+/g, ' '));
 };
 
 /**
