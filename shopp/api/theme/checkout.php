@@ -843,7 +843,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$label = __("Same shipping address","Shopp");
 		if ( isset($options['label']) ) $label = $options['label'];
 		$checked = ' checked="checked"';
-		if (  	( isset($this->Shipping->sameshipaddress) && ! $this->Shipping->sameshipaddress ) ||
+		if (  	( isset($O->sameship) && ! $O->sameship ) ||
 				( isset($options['checked']) && ! value_is_true($options['checked']) )
 			) {
 				$checked = '';
