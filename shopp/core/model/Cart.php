@@ -1581,10 +1581,10 @@ class CartShipping {
 				$estimate = $option;
 		}
 
-		// Always return the selected shipping option if a method has been set
+		// Always return the selected shipping option if a valid/available method has been set
 		if (empty($this->Shipping->method)
-			&& !isset($this->options[$this->Shipping->method]))
-				$this->Shipping->method = $estimate->name;
+			|| !isset($this->options[$this->Shipping->method]))
+				$this->Shipping->method = $estimate->slug;
 
 		$amount = $this->options[$this->Shipping->method]->amount;
 		$this->Cart->freeshipping = ($amount == 0);
@@ -1790,12 +1790,14 @@ class CartTax {
  *
  * @author Jonathan Davis
  * @since 1.1
+ * @version 1.2
  * @package shopp
  * @subpackage cart
  **/
 class ShippingOption {
 
 	var $name;				// Name of the shipping option
+	var $slug;				// URL-safe name of the shipping option @since 1.2
 	var $amount;			// Amount (cost) of the shipping option
 	var $delivery;			// Estimated delivery of the shipping option
 	var $estimate;			// Include option in estimate
@@ -1814,13 +1816,15 @@ class ShippingOption {
 	 **/
 	function __construct ($rate,$estimate=true) {
 		$this->name = $rate['name'];
+		$this->slug = $rate['slug'];
 		$this->amount = $rate['amount'];
 		$this->estimate = $estimate;
 		if (!empty($rate['delivery']))
 			$this->delivery = $rate['delivery'];
 		if (!empty($rate['items']))
-			$this->delivery = $rate['items'];
+			$this->items = $rate['items'];
 	}
+
 } // END class ShippingOption
 
 ?>

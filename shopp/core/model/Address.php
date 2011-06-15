@@ -41,64 +41,29 @@ class Address extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @version 1.2
 	 *
 	 * @return string
 	 **/
-	function postarea () {
-		global $Shopp;
-		$code = $this->postcode;
-		$areas = Lookup::country_areas();
+	function postmap () {
+		if (empty($this->postcode) || empty($this->country)) return false;
 
-		// Skip if there are no areas for this country
-		if (!isset($areas[$this->country])) return false;
+		$postcode = $this->postcode;
+		$patterns = Lookup::postcode_patterns();
 
-		// If no postcode is provided, return the first regional column
-		if (empty($this->postcode)) return key($areas[$this->country]);
+		if (!isset($patterns[$this->country]) || empty($patterns[$this->country])) return false;
 
-		// Lookup US area name
-		if (preg_match("/\d{5}(\-\d{4})?/",$code)) {
-			$prefix = substr($code,0,3);
+		$pattern = $patterns[$this->country];
+		if (!preg_match("/$pattern/",$postcode)) return false;
 
-			$countries = array('US','USAF');
-
-			// Lookup the state
-			if (isset($areas['USZIP'][$prefix])) {
-				$this->state = $areas['USZIP'][$prefix];
-
-				foreach ($countries as $code) {
-					foreach ($areas[$code] as $name => $states) {
-						if (array_search($this->state,$states) !== false) {
-							$this->country = $code;
-							return $name;
-						}
-					}
-				}
-
-			}
-		}
-
-		// Lookup Canadian area name
-		if (preg_match("/\w\d\w\s*\d\w\d/",$code)) {
-
-			foreach ($areas['CA'] as $name => $provinces) {
-				foreach ($provinces as $id => $fsas) {
-					if (in_array(substr($code,0,1),$fsas)) {
-						$this->state = $id;
-						return $name;
-					}
-				}
-			}
-			return $name;
-
-		}
-
-		return false;
+		do_action_ref_array('shopp_map_'.strtolower($this->country).'_postcode',array(&$Address));
 	}
+
 } // END class Address
 
 
 /**
- * Billing class
+ * BillingAddress class
  *
  * Billing Address
  *
@@ -139,10 +104,10 @@ class BillingAddress extends Address {
 			);
 	}
 
-} // end Billing class
+} // end BillingAddress class
 
 /**
- * Shipping class
+ * ShippingAddress class
  *
  * The shipping address manager
  *
@@ -189,7 +154,7 @@ class ShippingAddress extends Address {
 			$prefix.'state' => __('Shipping State/Province','Shopp'),
 			$prefix.'country' => __('Shipping Country','Shopp'),
 			$prefix.'postcode' => __('Shipping Postal Code','Shopp'),
-			);
+		);
 	}
 
 	/**
@@ -211,8 +176,7 @@ class ShippingAddress extends Address {
 		if ($data) $this->updates($data);
 
 		// Update state if postcode changes for tax updates
-		if (isset($this->postcode))
-			$this->postarea();
+		if (isset($this->postcode))	$this->postmap();
 
 		if (empty($this->country))
 			$this->country = $base['country'];
@@ -224,6 +188,43 @@ class ShippingAddress extends Address {
 	}
 
 
-} // END class Shipping
+} // END class ShippingAddress
+
+class PostcodeMapping {
+
+	static function uszip (&$Address) {
+		PostcodeMapping::prefixcode(substr($Address->postcode,0,3),&$Address);
+	}
+
+	static function capost (&$Address) {
+		PostcodeMapping::prefixcode($Address->postcode{0},&$Address);
+	}
+
+	/**
+	 * Lookup country state/province by postal code prefix
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string $prefix The postal code prefix
+	 * @return void
+	 **/
+	static function prefixcode ($prefix,&$Address) {
+		$postcodes = Lookup::postcodes();
+		if (!isset($postcodes[$Address->country])) return;
+
+		$prefix = substr($Address->postcode,0,3);
+		$state = isset($postcodes[$prefix])?$postcodes[$prefix]:false;
+		if (!$state) return;
+
+		if (empty($this->state)) $this->state = $state;
+	}
+
+}
+
+add_action('shopp_map_us_postcode',array('PostcodeMapping','uszip'));
+add_action('shopp_map_usaf_postcode',array('PostcodeMapping','uszip'));
+add_action('shopp_map_usat_postcode',array('PostcodeMapping','uszip'));
+add_action('shopp_map_ca_postcode',array('PostcodeMapping','capost'));
 
 ?>

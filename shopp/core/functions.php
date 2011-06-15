@@ -861,6 +861,25 @@ function linkencode ($url) {
 	return str_replace($search, $replace, $url);
 }
 
+function lzw_compress ($s) {
+	$code = 256;
+	$dict = $out = array();
+	$size = strlen($s);
+	$w = $s{0};
+	for ($i = 1; $i < $size; $i++) {
+		$c = $s{$i};
+		if (isset($dict[ $w.$c ])) $w .= $c;
+		else {
+			$out[] = strlen($w) > 1 ? $dict[$w] : $w{0};
+			$dict[ $w.$c ] = $code++;
+			$w = $c;
+		}
+	}
+	$out[] = strlen($w) > 1 ? $dict[$w] : $w{0};
+	$out = array_map('chr',$out);
+	return join('',$out);
+}
+
 if (!function_exists('mkobject')) {
 	/**
 	 * Converts an associative array to a stdClass object
@@ -954,20 +973,30 @@ function mk24hour ($hour, $meridiem) {
  **/
 function menuoptions ($list,$selected=null,$values=false,$extend=false) {
 	if (!is_array($list)) return "";
-	$string = "";
+
+	$_ = array();
 	// Extend the options if the selected value doesn't exist
 	if ((!in_array($selected,$list) && !isset($list[$selected])) && $extend)
-		$string .= "<option value=\"$selected\">$selected</option>";
+		$_[] = '<option value="'.esc_attr($selected).'">'.esc_html($selected).'</option>';
 	foreach ($list as $value => $text) {
-		if ($values) {
-			if ($value == $selected) $string .= "<option value=\"$value\" selected=\"selected\">$text</option>";
-			else  $string .= "<option value=\"$value\">$text</option>";
-		} else {
-			if ($text == $selected) $string .= "<option selected=\"selected\">$text</option>";
-			else  $string .= "<option>$text</option>";
+
+		$valueattr = $selectedattr = '';
+
+		if ($values) $valueattr = ' value="'.esc_attr($value).'"';
+		if (($values && (string)$value === (string)$selected)
+			|| (!$values && (string)$text === (string)$selected))
+				$selectedattr = ' selected="selected"';
+		if (is_array($text)) {
+			$label = $value;
+			$_[] = '<optgroup label="'.esc_attr($label).'">';
+			$_[] = menuoptions($text,$selected,$values);
+			$_[] = '</optgroup>';
+			continue;
 		}
+		$_[] = "<option$valueattr$selectedattr>$text</option>";
+
 	}
-	return $string;
+	return join('',$_);
 }
 
 /**

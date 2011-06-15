@@ -245,7 +245,6 @@ class ModuleFile {
  **/
 class ModuleSettingsUI {
 
-	var $type;
 	var $module;
 	var $name;
 	var $label;
@@ -262,13 +261,13 @@ class ModuleSettingsUI {
 	 *
 	 * @return void Description...
 	 **/
-	function __construct($type,$module,$name,$label,$multi=false) {
-		$this->type = $type;
-		$this->module = $module;
-		$this->label = $label;
-		$this->id = sanitize_title_with_dashes($module);
+	function __construct ($Module,$name) {
 		$this->name = $name;
-		$multi = ($multi === false)?'false':'true';
+		$this->module = $Module->module;
+		$this->id = sanitize_title_with_dashes($this->module);
+		$this->label = isset($Module->settings['label'])?$Module->settings['label']:$name;
+
+		$multi = ($Module->multi === false)?'false':'true'; // @todo Is $muli necessary for module settings?? NOT necessary for shipping anymore, maybe gateways?
 	}
 
 	function generate () {
@@ -276,27 +275,18 @@ class ModuleSettingsUI {
 		$_ = array();
 		$_[] = '<tr><td colspan="5">';
 		$_[] = '<table class="form-table shopp-settings"><tr>';
-		$_[] = '<th scope="row" colspan="4">'.$this->name.'<input type="hidden" name="gateway" value="'.$this->module.'" /></th>';
-		$_[] = '</tr><tr>';
-		$_[] = '<td><input type="text" name="settings['.$this->module.'][label]" value="'.$this->label.'" id="'.$this->id.'-label" size="16" class="selectall" /><br />';
-		$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label></td>';
 
 		foreach ($this->markup as $markup) {
 			$_[] = '<td>';
 			if (empty($markup)) $_[] = '&nbsp;';
-			else $_[] = join("\n",$markup);
+			else $_[] = join('',$markup);
 			$_[] = '</td>';
 		}
 
-		$_[] = '</tr><tr>';
-		$_[] = '<td colspan="4">';
-		$_[] = '<a href="${cancel_href}" class="button-secondary cancel">'.__('Cancel','Shopp').'</a>';
-		$_[] = '<p class="alignright"><input type="submit" name="save" value="'.__('Save Changes','Shopp').'" class="button-primary" /></p>';
-		$_[] = '</td>';
 		$_[] = '</tr></table>';
 		$_[] = '</td></tr>';
 
-		return join("\n",$_);
+		return join('',$_);
 
 	}
 
@@ -305,8 +295,7 @@ class ModuleSettingsUI {
 		$_[] = $this->generate();
 		$_[] = '</script>';
 
-		echo join("\n",$_)."\n\n";
-
+		echo join('',$_)."\n\n";
 	}
 
 	function ui ($markup,$column=0) {
@@ -339,8 +328,8 @@ class ModuleSettingsUI {
 		$id = "{$this->id}-{$name}";
 
 		$this->ui('<div><label for="'.$id.'">',$column);
-		$this->ui('	<input type="hidden" name="settings['.$this->module.']['.$name.']" value="'.$normal.'" id="'.$id.'-default" />',$column);
-		$this->ui('	<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'" class="'.$classes.'" id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
+		$this->ui('<input type="hidden" name="settings['.$this->module.']['.$name.']" value="'.$normal.'" id="'.$id.'-default" />',$column);
+		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'" class="'.$classes.'" id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
 		if (!empty($label)) $this->ui('&nbsp;'.$label,$column);
 		$this->ui('</label></div>',$column);
 
@@ -369,16 +358,16 @@ class ModuleSettingsUI {
 		$id = "{$this->id}-{$name}";
 
 		$this->ui('<div>',$column);
-		$this->ui('	<select name="'.$name.'" '.inputattrs($attributes).'>',$column);
+		$this->ui('<select name="settings['.$this->module.']['.$name.']" '.inputattrs($attributes).'>',$column);
 		if (is_array($options)) {
 			foreach ($options as $val => $option) {
 				$value = ' value="'.$val.'"';
 				$select = ($selected == $val || $selected == $option)?' selected="selected"':'';
-				$this->ui('		<option'.$value.$select.'>'.$option.'</option>',$column);
+				$this->ui('<option'.$value.$select.'>'.$option.'</option>',$column);
 			}
 		}
-		$this->ui('	</select>',$column);
-		if (!empty($label)) $this->ui('	<br /><label for="'.$id.'">'.$label.'</label>',$column);
+		$this->ui('</select>',$column);
+		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
 
 	}
@@ -399,9 +388,9 @@ class ModuleSettingsUI {
 
 		$defaults = array(
 			'label' => '',
-			'selected' => '',
-			'classes' => '',
-			'keyed' => false
+			'options' => array(),
+			'selected' => array(),
+			'classes' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['id'] = "{$this->id}-{$attributes['name']}";
@@ -414,9 +403,13 @@ class ModuleSettingsUI {
 			$alt = false;
 			$this->ui('<li class="hide-if-no-js"><input type="checkbox" name="select-all" id="'.$id.'-select-all" class="selectall-toggle" /><label for="'.$id.'-select-all"><strong>'.__('Select All','Shopp').'</strong></label></li>',$column);
 			foreach ($options as $key => $l) {
+				$attrs = '';
 				$boxid = $id.'-'.sanitize_title_with_dashes($key);
-				if (in_array($key,$selected)) $checked = ' checked="checked"';
-				$this->ui('<li'.($alt = !$alt?' class="odd"':'').'><input type="checkbox" name="settings['.$this->module.']['.$name.'][]" value="'.$key.'" id="'.$boxid.'"'.$checked.' /><label for="'.$boxid.'">'.$l.'</label></li>',$column);
+				if (in_array($key,$selected)) $attrs .= ' checked="checked"';
+				if (in_array($key,$disabled)) $attrs .= ' disabled="disabled"';
+				if (in_array($key,$readonly)) $attrs .= ' readonly="readonly"';
+
+				$this->ui('<li'.($alt = !$alt?' class="odd"':'').'><input type="checkbox" name="settings['.$this->module.']['.$name.'][]" value="'.$key.'" id="'.$boxid.'"'.$attrs.' /><label for="'.$boxid.'">'.$l.'</label></li>',$column);
 			}
 		}
 		$this->ui('</ul></div>',$column);
@@ -468,8 +461,8 @@ class ModuleSettingsUI {
 		extract($attributes);
 
 		$this->ui('<div>',$column);
-		$this->ui('	<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" id="'.$id.'"'.inputattrs($attributes).' />',$column);
-		if (!empty($label)) $this->ui('	<br /><label for="'.$id.'">'.$label.'</label>',$column);
+		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" id="'.$id.'"'.inputattrs($attributes).' />',$column);
+		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
 
 
@@ -547,7 +540,7 @@ class ModuleSettingsUI {
 		$attributes['id'] = "{$this->id}-{$name}";
 		extract($attributes);
 
-		$this->ui('<div><textarea name="'.$name.'" '.inputattrs($attributes).'>'.$value.'</textarea>',$column);
+		$this->ui('<div><textarea name="'.$name.'" '.inputattrs($attributes).'>'.esc_html($value).'</textarea>',$column);
 		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
 	}
@@ -570,14 +563,14 @@ class ModuleSettingsUI {
 			'label' => __('Button','Shopp'),
 			'disabled' => false,
 			'value' => '',
-			'classes' => ''
+			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['id'] = "{$this->id}-{$name}";
-		$attributes['classes'] = 'button-secondary'.('' == $attributes['classes']?'':' '.$attributes['classes']);
+		$attributes['class'] = 'button-secondary'.('' == $attributes['class']?'':' '.$attributes['class']);
 		extract($attributes);
 
-		$this->ui('<div><button type="'.$type.'" name="'.$name.'" '.inputattrs($attributes).'>'.$label.'</button></div>');
+		$this->ui('<div><button type="'.$type.'" name="'.$name.'" '.inputattrs($attributes).'>'.$label.'</button></div>',$column);
 	}
 
 	/**
@@ -594,16 +587,17 @@ class ModuleSettingsUI {
 	function p ($column=0,$attributes=array()) {
 		$defaults = array(
 			'label' => '',
-			'classes' => ''
+			'content' => '',
+			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['id'] = " id=\"{$this->id}-{$name}\"";
 		extract($attributes);
 
-		if (!empty($classes)) $classes = ' class="'.$classes.'"';
+		if (!empty($class)) $class = ' class="'.$class.'"';
 
 		if (!empty($label)) $label = '<p><label><strong>'.$label.'</strong></label></p>';
-		$this->ui('<div'.$id.$classes.'>'.$label.$content.'</div>',$column);
+		$this->ui('<div'.$id.$class.'>'.$label.$content.'</div>',$column);
 	}
 
 	function behaviors ($script) {

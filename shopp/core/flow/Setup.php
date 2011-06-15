@@ -30,6 +30,7 @@ class Setup extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
+		$Settings = ShoppSettings();
 
 		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 		$pages = explode("-",$_GET['page']);
@@ -71,6 +72,20 @@ class Setup extends AdminController {
 				));
 
 				$this->payments_ui();
+				break;
+			case "shipping":
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('shipping-settings');
+				shopp_localize_script( 'shipping-settings', '$ps', array(
+					'confirm' => __('Are you sure you want to remove this shipping rate?','Shopp'),
+				));
+				$this->subscreens = array(
+					'rates' => __('Rates','Shopp'),
+					'settings' => __('Settings','Shopp')
+				);
+
+				if ('on' == $Settings->get('shipping'))
+					$this->shipping_ui();
 				break;
 			case "settings":
 				shopp_enqueue_script('setup');
@@ -345,10 +360,22 @@ class Setup extends AdminController {
 	 * @return void
 	 **/
 	function shipping () {
-		global $Shopp;
 
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_shipping')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+
+		global $Shopp;
+		$Settings = ShoppSettings();
+
+		$sub = 'settings';
+		if ('on' == $Settings->get('shipping')) $sub = 'rates';
+		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
+			$sub = $_GET['sub'];
+
+		// Handle ship rates UI
+		if ('rates' == $sub && 'on' == $Settings->get('shipping')) return $this->shiprates();
+
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-shipping');
@@ -389,13 +416,10 @@ class Setup extends AdminController {
 
 		}
 
-		$Shopp->Shipping->settings();
-
-		$methods = $Shopp->Shipping->methods;
-		$base = $Shopp->Settings->get('base_operations');
+		$base = $Settings->get('base_operations');
 		$regions = Lookup::regions();
 		$region = $regions[$base['region']];
-		$useRegions = $Shopp->Settings->get('shipping_regions');
+		$useRegions = $Settings->get('shipping_regions');
 
 		$areas = Lookup::country_areas();
 		if (is_array($areas[$base['country']]) && $useRegions == "on")
@@ -403,14 +427,205 @@ class Setup extends AdminController {
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
 
-		$rates = $Shopp->Settings->get('shipping_rates');
+		$rates = $Settings->get('shipping_rates');
 		if (!empty($rates)) ksort($rates);
 
-		$lowstock = $Shopp->Settings->get('lowstock_level');
+		$lowstock = $Settings->get('lowstock_level');
 		if (empty($lowstock)) $lowstock = 0;
 
 		include(SHOPP_ADMIN_PATH."/settings/shipping.php");
 	}
+
+	function shiprates () {
+		global $Shopp;
+		$Settings = ShoppSettings();
+		$Shipping = $Shopp->Shipping;
+		$Shipping->settings(); // Load all installed shipping modules for settings UIs
+
+		$methods = $Shopp->Shipping->methods;
+
+		$active = $Settings->get('active_shipping');
+		if (!$active) $active = array();
+
+		if (!empty($_GET['delete'])) {
+			check_admin_referer('shopp_delete_shiprate');
+			$delete = $_GET['delete'];
+			$index = false;
+			if (strpos($delete,'-') !== false)
+				list($delete,$index) = explode('-',$delete);
+
+			if (array_key_exists($delete,$active))  {
+				if (is_array($active[$delete])) {
+					if (array_key_exists($index,$active[$delete])) {
+						unset($active[$delete][$index]);
+						if (empty($active[$delete])) unset($active[$delete]);
+					}
+				} else unset($active[$delete]);
+				$updated = __('Shipping method setting removed.','Shopp');
+
+				$Settings->save('active_shipping',$active);
+			}
+		}
+
+
+		if (isset($_POST['module'])) {
+			check_admin_referer('shopp-settings-shiprate');
+
+			$setting = false;
+			$module = isset($_POST['module'])?$_POST['module']:false;
+			$id = isset($_POST['id'])?$_POST['id']:false;
+
+			if ($id == $module) {
+				if (isset($_POST['settings'])) $this->settings_save();
+				/** Save shipping service settings **/
+				$active[$module] = true;
+				$Settings->save('active_shipping',$active);
+				$updated = __('Shipping settings saved.','Shopp');
+				// Cancel editing if saving
+				if (isset($_POST['save'])) unset($_REQUEST['id']);
+
+			} else {
+				/** Save shipping calculator settings **/
+
+				$setting = $_POST['id'];
+				if (empty($setting)) { // Determine next available setting ID
+					$index = 0;
+					if (is_array($active[$module])) $index = count($active[$module]);
+					$setting = "$module-$index";
+				}
+
+				// Cancel editing if saving
+				if (isset($_POST['save'])) unset($_REQUEST['id']);
+
+				list($setting_module,$id) = explode('-',$setting);
+
+				// Prevent fishy stuff from happening
+				if ($module != $setting_module) $module = false;
+
+				// Save shipping calculator settings
+				$Shipper = $Shipping->get($module);
+				if ($Shipper && isset($_POST[$module])) {
+					$Shipper->setting($id);
+					$Settings->save($Shipper->setting,$_POST[$module]);
+					if (!array_key_exists($module,$active)) $active[$module] = array();
+					$active[$module][(int)$id] = true;
+					$Settings->save('active_shipping',$active);
+					$updated = __('Shipping settings saved.','Shopp');
+				}
+
+			}
+		}
+
+
+		$Shipping->ui(); // Setup setting UIs
+		$installed = array();
+		$shiprates = array();	// Registry for activated shipping rate modules
+		$settings = array();	// Registry of loaded settings for table-based shipping rates for JS
+
+		foreach ($Shipping->active as $name => $module) {
+			$default_name = strtolower($name);
+			$fullname = $module->methods();
+			$installed[$name] = $fullname;
+
+			if ($module->ui->tables) {
+				$defaults[$default_name] = $module->ui->settings();
+				$defaults[$default_name]['name'] = $fullname;
+				$defaults[$default_name]['label'] = __('Shipping Method','Shopp');
+			}
+
+			if (array_key_exists($name,$active)) $ModuleSetting = $active[$name];
+			else continue; // Not an activated shipping module, go to the next one
+
+			// Setup shipping service shipping rate entries and settings
+			if (!is_array($ModuleSetting)) {
+				$shiprates[$name] = $name;
+				continue;
+			}
+
+			// Setup shipping calcualtor shipping rate entires and settings
+			foreach ($ModuleSetting as $id => $m) {
+				$setting = "$name-$id";
+				$shiprates[$setting] = $name;
+
+				$settings[$setting] = $Settings->get($setting);
+				$settings[$setting]['id'] = $setting;
+				$settings[$setting] = array_merge($defaults[$default_name],$settings[$setting]);
+			}
+
+		}
+
+		if ( isset($_REQUEST['id']) ) {
+			$edit = $_REQUEST['id'];
+			$id = false;
+			if (strpos($edit,'-') !== false)
+				list($module,$id) = explode('-',$edit);
+			else $module = $edit;
+			if (isset($Shipping->active[ $module ]) ) {
+				$Shipper = $Shipping->get($module);
+				if (!$Shipper->singular) {
+					$Shipper->setting($id);
+					$Shipper->initui($Shipping->modules[$module]->name); // Re-init setting UI with loaded settings
+				}
+				$editor = $Shipper->ui();
+			}
+
+		}
+
+		asort($installed);
+
+		$countrydata = Lookup::countries();
+		$countries = $regionmap = $postcodes = array();
+		$postcodedata = Lookup::postcodes();
+		foreach ($countrydata as $code => $country) {
+			$countries[$code] = $country['name'];
+			if ( !isset($regionmap[ $country['region'] ]) ) $regionmap[ $country['region'] ] = array();
+			$regionmap[ $country['region'] ][] = $code;
+			if ( isset($postcodedata[$code])) {
+				if ( !isset($postcodes[ $code ]) ) $postcodes[ $code ] = array();
+				$postcodes[$code] = true;
+			}
+		}
+		unset($countrydata);
+		unset($postcodedata);
+
+
+		$lookup = array(
+			'regions' => array_merge(array('*' => __('Anywhere','Shopp')),Lookup::regions()),
+			'regionmap' => $regionmap,
+			'countries' => $countries,
+			'areas' => Lookup::country_areas(),
+			'zones' => Lookup::country_zones(),
+			'postcodes' => $postcodes
+		);
+
+		$ShippingTemplates = new TemplateShippingUI();
+		add_action('shopp_shipping_module_settings',array($Shipping,'templates'));
+		include(SHOPP_ADMIN_PATH."/settings/shiprates.php");
+
+	}
+
+	function shipping_menu () {
+		$Settings = ShoppSettings();
+		if ('off' == $Settings->get('shipping')) return;
+		?>
+		<ul class="subsubsub">
+			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
+				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['page'] == $page) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
+			<?php endforeach; ?>
+		</ul>
+		<br class="clear" />
+		<?php
+	}
+
+	function shipping_ui () {
+		register_column_headers('shopp_page_shopp-settings-shipping', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'type'=>__('Type','Shopp'),
+			'destinations'=>__('Destinations','Shopp')
+		));
+	}
+
 
 	function taxes () {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
@@ -427,7 +642,6 @@ class Setup extends AdminController {
 
 		$countries = array_merge(array('*' => __('All Markets','Shopp')),
 			$this->Settings->get('target_markets'));
-
 
 		$zones = Lookup::country_zones();
 
@@ -482,6 +696,7 @@ class Setup extends AdminController {
 			$edit = $_REQUEST['id'];
 			$Gateway = $Gateways->get($edit);
 			$editor = $Gateway->ui();
+
 		}
 
 		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));
