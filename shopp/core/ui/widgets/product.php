@@ -9,7 +9,7 @@
  * @package shopp
  **/
 
-if (class_exists('WP_Widget')) {
+if ( class_exists('WP_Widget') && ! class_exists('ShoppProductWidget') ) {
 
 class ShoppProductWidget extends WP_Widget {
 
