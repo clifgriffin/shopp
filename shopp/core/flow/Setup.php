@@ -373,48 +373,18 @@ class Setup extends AdminController {
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
-		// Handle ship rates UI
-		if ('rates' == $sub && 'on' == $Settings->get('shipping')) return $this->shiprates();
 
-
-		if (!empty($_POST['save'])) {
+		if (!empty($_POST['save']) && empty($_POST['module']) ) {
 			check_admin_referer('shopp-settings-shipping');
-
-			// Sterilize $values
-			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
-				$method['name'] = stripslashes($method['name']);
-				foreach ($method as $key => &$mr) {
-					if (!is_array($mr)) continue;
-					foreach ($mr as $id => &$v) {
-						if ($v == ">" || $v == "+" || $key == "services") continue;
-						$v = floatvalue($v);
-					}
-				}
-			}
 
 			$_POST['settings']['order_shipfee'] = floatvalue($_POST['settings']['order_shipfee']);
 
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
-
-			// Reload the currently active shipping modules
-			$active = $Shopp->Shipping->activated();
-			$Shopp->Shipping->settings();
-
-			$Errors = &ShoppErrors();
-			do_action('shopp_verify_shipping_services');
-
-			if ($Errors->exist()) {
-				// Get all addon related errors
-				$failures = $Errors->level(SHOPP_ADDON_ERR);
-				if (!empty($failures)) {
-					$updated = __('Shipping settings saved but there were errors: ','Shopp');
-					foreach ($failures as $error)
-						$updated .= '<p>'.$error->message(true,true).'</p>';
-				}
-			}
-
 		}
+
+		// Handle ship rates UI
+		if ('rates' == $sub && 'on' == $Settings->get('shipping')) return $this->shiprates();
 
 		$base = $Settings->get('base_operations');
 		$regions = Lookup::regions();
@@ -484,6 +454,19 @@ class Setup extends AdminController {
 				// Cancel editing if saving
 				if (isset($_POST['save'])) unset($_REQUEST['id']);
 
+				$Errors = &ShoppErrors();
+				do_action('shopp_verify_shipping_services');
+
+				if ($Errors->exist()) {
+					// Get all addon related errors
+					$failures = $Errors->level(SHOPP_ADDON_ERR);
+					if (!empty($failures)) {
+						$updated = __('Shipping settings saved but there were errors: ','Shopp');
+						foreach ($failures as $error)
+							$updated .= '<p>'.$error->message(true,true).'</p>';
+					}
+				}
+
 			} else {
 				/** Save shipping calculator settings **/
 
@@ -506,6 +489,21 @@ class Setup extends AdminController {
 				$Shipper = $Shipping->get($module);
 				if ($Shipper && isset($_POST[$module])) {
 					$Shipper->setting($id);
+
+					$_POST[$module]['label'] = stripslashes($_POST[$module]['label']);
+
+					// Sterilize $values
+					foreach ($_POST[$module]['table'] as $i => &$row) {
+
+						if (isset($row['rate'])) $row['rate'] = floatvalue($row['rate']);
+						if (!isset($row['tiers'])) continue;
+
+						foreach ($row['tiers'] as &$tier) {
+							if (isset($tier['rate'])) $tier['rate'] = floatvalue($tier['rate']);
+						}
+
+					}
+
 					$Settings->save($Shipper->setting,$_POST[$module]);
 					if (!array_key_exists($module,$active)) $active[$module] = array();
 					$active[$module][(int)$id] = true;
