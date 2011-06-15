@@ -9,7 +9,6 @@
 	<form action="<?php echo esc_url($this->url); ?>" id="shipping" method="post">
 	<div>
 		<?php wp_nonce_field('shopp-settings-shiprate'); ?>
-		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 	</div>
 
 	<br class="clear" />
