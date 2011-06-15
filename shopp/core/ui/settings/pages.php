@@ -74,7 +74,7 @@
 
 			?>
 		<tr class="<?php echo join(' ',$classes); ?>" id="page-<?php echo $name; ?>">
-			<td class="title column-title"><a class="row-title" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($title); ?>&quot;" class="edit"><?php echo esc_html($title); ?></a>
+			<td class="title column-title"><a class="row-title edit" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($title); ?>&quot;" class="edit"><?php echo esc_html($title); ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($title); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a></span>
 				</div>
