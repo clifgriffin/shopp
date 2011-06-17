@@ -1385,10 +1385,9 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @return void Description...
 	 **/
 	public function all_add ( &$Item, $type='dims' ) {
-		$limits = array();
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
-		extract($this->options);
-		array_merge($defaults,$limits);
+		$limits = array();
+		array_merge($limits, $defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
 
 		if (empty($this->packages)) {
 			$this->packages[] = new ShippingPackage(($type == 'dims'),$limits);
@@ -1407,7 +1406,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 			$this->all_add($pieces,$type);
 			$this->all_add($piece,$type);
 		} else if ( count($current->contents()) > 0 ) { // full, need new package
-			$this->packages[] = new ShippingPackage(($type == 'dims'));
+			$this->packages[] = new ShippingPackage(($type == 'dims'), $limits);
 			$this->all_add($Item,$type);
 		} else { // never fit, ship separately
 			$current->set_limits($defaults);
@@ -1479,7 +1478,6 @@ class ShippingPackage {
 			else $this->contents[$label] = $Item;
 			$this->wt += $Item->weight * $Item->quantity;
 			$this->val += $Item->unitprice * $Item->quantity;
-
 			if ( $this->dims ) {
 				$this->w = max( $this->w, $Item->width );
 				$this->l = max( $this->l, $Item->length );
