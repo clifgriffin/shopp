@@ -345,7 +345,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	function totalpromos ($result, $options, $O) { return count($O->discounts); }
 
-	function updatebutton ($result, $options, $O) {
+	function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 		if (isset($options['class'])) $options['class'] .= " update-button";
