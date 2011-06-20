@@ -883,7 +883,7 @@ class Order {
 	 **/
 	function security () {
 		global $Shopp;
-		return $Shopp->Gateways->secure;
+		return $Shopp->Gateways->secure || is_shopp_secure();
 	}
 
 	/**
