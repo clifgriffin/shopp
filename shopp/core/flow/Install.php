@@ -65,6 +65,8 @@ class ShoppInstallation extends FlowController {
 
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
+
+		$this->Settings->save('updates', false);
 	}
 
 	/**
