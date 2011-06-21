@@ -14,14 +14,14 @@
 	<?php ob_start(); ?>
 	<tr class="inline-edit-row ${classnames}" id="edit-image-setting-${id}">
 		<td>
-		<fieldset><input type="hidden" name="id" value="${id}" /><label><input type="text" name="name" value="${name}" /><br /><?php _e('Name','Shopp'); ?></label></fieldset>
+		<input type="hidden" name="id" value="${id}" /><label><input type="text" name="name" value="${name}" /><br /><?php _e('Name','Shopp'); ?></label>
 		<p class="submit">
 		<a href="<?php echo $this->url; ?>" class="button-secondary cancel"><?php _e('Cancel','Shopp'); ?></a>
 		</p>
 		</td>
 		<td class="dimensions column-dimensions">
-		<fieldset><span><label><input type="text" name="width" value="${width}" size="4" class="selectall" /> &times;<br /><?php _e('Width','Shopp'); ?></label></span>
-		<span><label><input type="text" name="height" value="${height}" size="4" class="selectall" /><br /><?php _e('Height','Shopp'); ?></label></span></fieldset>
+		<span><label><input type="text" name="width" value="${width}" size="4" class="selectall" /> &times;<br /><?php _e('Width','Shopp'); ?></label></span>
+		<span><label><input type="text" name="height" value="${height}" size="4" class="selectall" /><br /><?php _e('Height','Shopp'); ?></label></span>
 		</td>
 		<td class="fit column-fit">
 		<label>
@@ -32,14 +32,14 @@
 		</select><br /><?php _e('Fit','Shopp'); ?></label>
 		</td>
 		<td class="quality column-quality">
-		<fieldset><label><select name="quality" class="quality-menu">
+		<label><select name="quality" class="quality-menu">
 		<?php foreach ($quality_menu as $index => $option): ?>
 		<option value="<?php echo $index; ?>"${select_quality_<?php echo $index; ?>}><?php echo $option; ?></option>
 		<?php endforeach; ?>
-		</select><br /><?php _e('Quality','Shopp'); ?></label></fieldset>
+		</select><br /><?php _e('Quality','Shopp'); ?></label>
 		</td>
 		<td class="sharpen column-sharpen">
-		<fieldset><label><input type="text" name="sharpen" value="${sharpen}" size="5" class="percentage selectall" /><br /><?php _e('Sharpen','Shopp'); ?></label></fieldset>
+		<label><input type="text" name="sharpen" value="${sharpen}" size="5" class="percentage selectall" /><br /><?php _e('Sharpen','Shopp'); ?></label>
 		<p class="submit">
 		<input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" />
 		</p>
