@@ -586,6 +586,60 @@ class Lookup {
 		return join('',array_map('chr',$f));
 	}
 
+	/**
+	 * Predefined error messages for common occurrences including common PHP-generated error codes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string $type Table reference type from the error array
+	 * @param mixed $code
+	 * @return string Error message
+	 **/
+	static function errors ($type,$code) {
+		// @todo Add documentation for these error messages
+
+		$servermanager = __('Contact your web hosting provider or server administrator.','Shopp');
+
+		$_ = array();
+		$_['contact'] = array(
+			'shopp-support' => __('For help with this, contact the Shopp %ssupport team%s.','Shopp'),
+			'shopp-cs' => __('For help with this, contact Shopp %scustomer service%s.','Shopp'),
+			'server-manager' => __('For help with this, contact your web hosting provider or server administrator.','Shopp'),
+			'webmaster' => __('For help with this, contact your website developer.','Shopp')
+		);
+
+		/* PHP file upload errors */
+		$_['uploads'] = array(
+			UPLOAD_ERR_INI_SIZE => sprintf(
+				__('The uploaded file is too big for the server.%s','Shopp'),
+					sprintf(' '.__('Files must be less than %s.','Shopp')." {$_['contact']['server-manager']}",
+					ini_size('upload_max_filesize'))
+			),
+			UPLOAD_ERR_FORM_SIZE => sprintf(__('The uploaded file is too big.%s','Shopp'),
+				isset($_POST['MAX_FILE_SIZE']) ? sprintf(' '.__('Files must be less than %s. Please try again with a smaller file.','Shopp'),readableFileSize($_POST['MAX_FILE_SIZE'])) : ''
+			),
+			UPLOAD_ERR_PARTIAL => __('The file upload did not complete correctly.','Shopp'),
+			UPLOAD_ERR_NO_FILE => __('No file was uploaded.','Shopp'),
+			UPLOAD_ERR_NO_TMP_DIR => sprintf(__('The server is missing the necessary temporary folder.%s','Shopp')," {$_['contact']['server-manager']}"),
+			UPLOAD_ERR_CANT_WRITE => sprintf(__('The file could not be saved to the server.%s','Shopp')," {$_['contact']['server-manager']}"),
+			UPLOAD_ERR_EXTENSION => sprintf(__('The file upload was stopped by a server extension.','Shopp')," {$_['contact']['server-manager']}")
+		);
+
+		/* File upload security verification errors */
+		$_['uploadsecurity'] = array(
+			'is_uploaded_file' => __('The file specified is not a valid upload and is out of bounds. Nice try though!','Shopp'),
+			'is_readable' => sprintf(__('The uploaded file cannot be read by the web server and is unusable.%s','Shopp')," {$_['contact']['server-manager']}"),
+			'is_empty' => __('The uploaded file is empty.','Shopp'),
+			'filesize_mismatch' => __('The size of the uploaded file does not match the size reported by the client. Something fishy going on?','Shopp')
+
+		);
+
+		if (isset($_[$type]) && isset($_[$type][$code])) return $_[$type][$code];
+
+		return false;
+	}
+
 } // END class Lookup
 
 ?>

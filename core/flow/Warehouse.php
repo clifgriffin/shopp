@@ -703,6 +703,7 @@ class Warehouse extends AdminController {
 	function downloads () {
 		$error = false;
 		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
+		// @todo Replace $this->uploadErrors with an Lookup::errors of common PHP upload errors translated into more helpful messages
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 
 		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))

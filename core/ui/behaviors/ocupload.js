@@ -9,6 +9,8 @@
 			name: 'file',
 			enctype: 'multipart/form-data',
 			action: '',
+			accept: false,
+			maxfilesize: false,
 			autoSubmit: true,
 			onSubmit: function() {},
 			onComplete: function() {},
@@ -20,7 +22,6 @@
 	};
 
 	$.ocupload = function(element, options) {
-		/** Fix scope problems */
 		var self = this,
 
 		/** A unique id so we can find our elements later */
@@ -28,57 +29,54 @@
 
 		/** Upload Iframe */
 			iframe = $(
-			'<iframe '+
-				'id="iframe'+id+'" '+
-				'name="iframe'+id+'"'+
-			'></iframe>'
-		).css({
-			display: 'none'
-		}),
+				'<iframe id="iframe'+id+'" name="iframe'+id+'" />'
+			).css({
+				display: 'none'
+			}),
 
 		/** Form */
-		form = $(
-			'<form '+
-				'method="post" '+
-				'enctype="'+options.enctype+'" '+
-				'action="'+options.action+'" '+
-				'target="iframe'+id+'"'+
-			'></form>'
-		).css({
-			margin: 0,
-			padding: 0
-		}).submit(function (e) {
-			if (e) e.stopPropagation();
-		}),
+			form = $(
+				'<form method="post" enctype="'+options.enctype+'" action="'+options.action+'" target="iframe'+id+'" />'
+			).css({
+				margin: 0,
+				padding: 0
+			}).submit(function (e) {
+				if (e) e.stopPropagation();
+			}),
 
 		/** File Input */
 			input = $(
-			'<input '+
-				'name="'+options.name+'" '+
-				'type="file" '+
-			'/>'
-		).css({
-			position: 'relative',
-			display: 'block',
-			marginLeft: -175+'px',
-			opacity: 0
-		}),
-		container = false;
+				'<input name="'+options.name+'" type="file" />'
+			).css({
+				position: 'absolute',
+				display: 'block',
+				opacity: 0
+			}),
 
-		/** Put everything together */
-		element.wrap('<div></div>'); //container
+		/** Remember the element's parent **/
+			ep = element.parent(),
+
+		/** Wrap in a container and attach to body to get accurate dimensions **/
+			container = element.wrap('<div />').parent().appendTo($('body'));
+
+			elementHeight = element.outerHeight(true);
+			elementWidth = element.outerWidth(true);
+
+		/** Move it all back where it belongs **/
+			container.appendTo(ep);
+
+			if (options.maxfilesize)
+				$('<input type="hidden" name="MAX_FILE_SIZE" value="'+options.maxfilesize+'" />').appendTo(form);
+
+		/** Put everything together **/
 			form.append(input);
-			element.after(form);
-			element.after(iframe);
-
-		elementHeight = element.outerHeight();
-		elementWidth = element.outerWidth();
+			element.after(form).after(iframe);
 
 		/** Find the container and make it nice and snug */
 		container = element.parent().css({
 			position: 'relative',
-			height: (elementHeight+10)+'px',
-			width: (elementWidth+10)+'px',
+			height: (elementHeight)+'px',
+			width: (elementWidth)+'px',
 			overflow: 'hidden',
 			cursor: 'pointer',
 			margin: 0,
@@ -86,14 +84,12 @@
 		});
 
 		/** Put our file input in the right place */
-		input.css('marginTop', -container.height()-10+'px');
-
-		/** Move the input with the mouse to make sure it get clicked! */
-		container.mousemove(function(e){
-			input.css({
-				top: e.pageY-container.offset().top+'px',
-				left: e.pageX-container.offset().left+'px'
-			});
+		input.css({
+			width:elementWidth+'px',
+			height:elementHeight+'px',
+			marginTop:-elementHeight+'px',
+			marginLeft:'0px',
+			fontSize:'2em'	// Make sure the input is large enough (height) to cover the element
 		});
 
 		/** Watch for file selection */
@@ -129,56 +125,42 @@
 			/** get/set params */
 			params: function(params) {
 				var params = params ? params : false;
-
-				if(params) {
-					options.params = $.extend(options.params, params);
-				}
-				else {
-					return options.params;
-				}
+				if (params) options.params = $.extend(options.params, params);
+				return options.params;
 			},
 
 			/** get/set name */
 			name: function(name) {
 				var name = name ? name : false;
-
-				if(name) {
-					input.attr('name', value);
-				}
-				else {
-					return input.attr('name');
-				}
+				if (name) input.attr('name', value);
+				return input.attr('name');
 			},
 
 			/** get/set action */
 			action: function(action) {
 				var action = action ? action : false;
-
-				if(action) {
-					form.attr('action', action);
-				}
-				else {
-					return form.attr('action');
-				}
+				if (action) form.attr('action', action);
+				return form.attr('action');
 			},
 
 			/** get/set enctype */
 			enctype: function(enctype) {
 				var enctype = enctype ? enctype : false;
+				if(enctype) form.attr('enctype', enctype);
+				return form.attr('enctype');
+			},
 
-				if(enctype) {
-					form.attr('enctype', enctype);
-				}
-				else {
-					return form.attr('enctype');
-				}
+			accept: function(accept) {
+				var accept = accept ? accept : false;
+				if (accept) form.attr('accept', accept);
+				return form.attr('accept');
 			},
 
 			/** set options */
 			set: function(obj, value) {
 				var value =	value ? value : false;
 
-				function option(action, value) {
+				function option (action, value) {
 					switch(action) {
 						default:
 							throw new Error('[jQuery.ocupload.set] \''+action+'\' is an invalid option.');
@@ -210,9 +192,7 @@
 					}
 				}
 
-				if(value) {
-					option(obj, value);
-				}
+				if (value) option(obj, value);
 				else {
 					$.each(obj, function(key, value) {
 						option(key, value);

@@ -681,8 +681,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 		$_[] = '</tr><tr>';
 		$_[] = '<td colspan="4">';
-		$_[] = '<a href="${cancel_href}" class="button-secondary cancel">'.__('Cancel','Shopp').'</a>';
-		$_[] = '<p class="alignright">';
+		$_[] = '<p class="textright">';
+		$_[] = '<a href="${cancel_href}" class="button-secondary cancel alignleft">'.__('Cancel','Shopp').'</a>';
 		if (!empty($this->type))
 			$_[] = '<button type="submit" name="addrow" class="button-secondary addrate">'.__('Add Destination Rate','Shopp').'</button>';
 		$_[] = '<input type="submit" name="save" value="'.__('Save Changes','Shopp').'" class="button-primary" /></p>';

@@ -444,65 +444,11 @@ class AjaxFlow {
 	}
 
 	function upload_local_taxes () {
-		check_admin_referer('wp_ajax_shopp_upload_local_taxes');
-		if (isset($_FILES['shopp']['error'])) $error = $_FILES['shopp']['error'];
-		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
-
-		if (!is_uploaded_file($_FILES['shopp']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
-
-		if (!is_readable($_FILES['shopp']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
-
-		if ($_FILES['shopp']['size'] == 0)
-			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
-
-		$data = file_get_contents($_FILES['shopp']['tmp_name']);
-
-		$formats = array(0=>false,3=>"xml",4=>"tab",5=>"csv");
-		preg_match('/((<[^>]+>.+?<\/[^>]+>)|(.+?\t.+?\n)|(.+?,.+?\n))/',$data,$_);
-		$format = $formats[count($_)];
-		if (!$format) die(json_encode(array("error" => __('The file format could not be detected.','Shopp'))));
-
-		$_ = array();
-		switch ($format) {
-			case "xml":
-				/*
-				Example XML import file:
-					<localtaxrates>
-						<taxrate name="Kent">1</taxrate>
-						<taxrate name="New Castle">0.25</taxrate>
-						<taxrate name="Sussex">1.4</taxrate>
-					</localtaxrates>
-				*/
-				if (!class_exists('xmlQuery'))
-					require(SHOPP_MODEL_PATH.'/XML.php');
-				$XML = new xmlQuery($data);
-				$taxrates = $XML->tag('taxrate');
-				while($rate = $taxrates->each()) {
-					$name = $rate->attr(false,'name');
-					$value = $rate->content();
-					$_[$name] = $value;
-				}
-				break;
-			case "csv":
-				if (($csv = fopen($_FILES['shopp']['tmp_name'], "r")) === false) die('');
-				while (($data = fgetcsv($csv, 1000, ",")) !== false)
-					$_[$data[0]] = !empty($data[1])?$data[1]:0;
-				fclose($csv);
-				break;
-			case "tab":
-			default:
-				$lines = explode("\n",$data);
-				foreach ($lines as $line) {
-					list($key,$value) = explode("\t",$line);
-					$_[$key] = $value;
-				}
-		}
-
-		echo json_encode($_);
+		check_admin_referer('shopp-settings-taxrates');
+		if (!class_exists('Setup')) require(SHOPP_FLOW_PATH.'/Setup.php');
+		$rates = Setup::taxrate_upload();
+		echo json_encode($rates);
 		exit();
-
 	}
 
 	function feature_product () {

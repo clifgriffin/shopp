@@ -44,9 +44,21 @@ class Setup extends AdminController {
 				));
 				break;
 			case "taxes":
-				wp_enqueue_script("suggest");
+				wp_enqueue_script('suggest');
 				shopp_enqueue_script('ocupload');
-				shopp_enqueue_script('taxes');
+				shopp_enqueue_script('jquery-tmpl');
+				shopp_enqueue_script('taxrates');
+
+				$this->subscreens = array(
+					'rates' => __('Rates','Shopp'),
+					'settings' => __('Settings','Shopp')
+				);
+
+				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
+
+				if ('on' == $Settings->get('taxes'))
+					$this->taxrate_ui();
+
 				break;
 			case "system":
 				shopp_enqueue_script('colorbox');
@@ -79,6 +91,7 @@ class Setup extends AdminController {
 				shopp_localize_script( 'shipping-settings', '$ps', array(
 					'confirm' => __('Are you sure you want to remove this shipping rate?','Shopp'),
 				));
+
 				$this->subscreens = array(
 					'rates' => __('Rates','Shopp'),
 					'settings' => __('Settings','Shopp')
@@ -624,26 +637,179 @@ class Setup extends AdminController {
 		));
 	}
 
-
 	function taxes () {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$Settings = ShoppSettings();
+
+		$sub = 'settings';
+		if ('on' == $Settings->get('taxes')) $sub = 'rates';
+		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
+			$sub = $_GET['sub'];
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-taxes');
 			$this->settings_save();
-			$updated = __('Shopp taxes settings saved.','Shopp');
+			$updated = __('Tax settings saved.','Shopp');
 		}
 
-		$rates = $this->Settings->get('taxrates');
-		$base = $this->Settings->get('base_operations');
-
-		$countries = array_merge(array('*' => __('All Markets','Shopp')),
-			$this->Settings->get('target_markets'));
-
-		$zones = Lookup::country_zones();
+		// Handle ship rates UI
+		if ('rates' == $sub && 'on' == $Settings->get('taxes')) return $this->taxrates();
 
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
+	}
+
+	function taxes_menu () {
+		$Settings = ShoppSettings();
+		if ('off' == $Settings->get('taxes')) return;
+		?>
+		<ul class="subsubsub">
+			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
+				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['page'] == $page) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
+			<?php endforeach; ?>
+		</ul>
+		<br class="clear" />
+		<?php
+	}
+
+	function taxrate_ui () {
+		register_column_headers('shopp_page_shopp-settings-taxrates', array(
+			'rate'=>__('Rate','Shopp'),
+			'local'=>__('Local Rates','Shopp'),
+			'conditional'=>__('Conditional','Shopp')
+		));
+	}
+
+	function taxrates () {
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+		$Settings = ShoppSettings();
+
+		$edit = false;
+		if (isset($_REQUEST['id'])) $edit = (int)$_REQUEST['id'];
+		$localerror = false;
+
+		$rates = $Settings->get('taxrates');
+		if (!is_array($rates)) $rates = array();
+
+		// echo "<pre>"; print_r($_POST); echo "</pre>";
+		// echo "<pre>"; print_r($_FILES); echo "</pre>";
+
+		if (isset($_GET['delete'])) {
+			check_admin_referer('shopp_delete_taxrate');
+			$delete = (int)$_GET['delete'];
+			if (isset($rates[$delete]))
+				array_splice($rates,$delete,1);
+			$Settings->save('taxrates',$rates);
+		}
+
+		if (isset($_POST['editing'])) $rates[$edit] = $_POST['settings']['taxrates'][ $edit ];
+		if (isset($_POST['addrule'])) $rates[$edit]['rules'][] = array('p'=>'','v'=>'');
+		if (isset($_POST['deleterule'])) {
+			check_admin_referer('shopp-settings-taxrates');
+			list($rateid,$row) = explode(',',$_POST['deleterule']);
+			if (isset($rates[$rateid]) && isset($rates[$rateid]['rules'])) {
+				array_splice($rates[$rateid]['rules'],$row,1);
+				$Settings->save('taxrates',$rates);
+			}
+		}
+
+		if (isset($rates[$edit]['haslocals']))
+			$rates[$edit]['haslocals'] = ($rates[$edit]['haslocals'] == 'true' || $rates[$edit]['haslocals'] == '1');
+		if (isset($_POST['add-locals'])) $rates[$edit]['haslocals'] = true;
+		if (isset($_POST['remove-locals'])) {
+			$rates[$edit]['haslocals'] = false;
+			$rates[$edit]['locals'] = array();
+		}
+
+		$upload = $this->taxrate_upload();
+		if ($upload !== false) {
+			if (isset($upload['error'])) $localerror = $upload['error'];
+			else $rates[$edit]['locals'] = $upload;
+		}
+
+		if (isset($_POST['editing'])) $Settings->save('taxrates',$rates);
+		if (isset($_POST['addrate'])) $edit = count($rates);
+		if (isset($_POST['submit'])) $edit = false;
+
+		$base = $Settings->get('base_operations');
+		$countries = array_merge(array('*' => __('All Markets','Shopp')),$Settings->get('target_markets'));
+		$zones = Lookup::country_zones();
+
+		include(SHOPP_ADMIN_PATH."/settings/taxrates.php");
+	}
+
+	function taxrate_upload () {
+		if (!isset($_FILES['ratefile'])) return false;
+
+		$upload = $_FILES['ratefile'];
+		$filename = $upload['tmp_name'];
+		if (empty($filename) && empty($upload['name']) && !isset($_POST['upload'])) return false;
+
+		$error = false;
+
+		if ($upload['error'] != 0) return array('error' => Lookup::errors('uploads',$upload['error']));
+		if (!is_readable($filename)) return array('error' => Lookup::errors('uploadsecurity','is_readable'));
+		if (empty($upload['size'])) return array('error' => Lookup::errors('uploadsecurity','is_empty'));
+		if ($upload['size'] != filesize($filename)) return array('error' => Lookup::errors('uploadsecurity','filesize_mismatch'));
+		if (!is_uploaded_file($filename)) return array('error' => Lookup::errors('uploadsecurity','is_uploaded_file'));
+
+		$data = file_get_contents($upload['tmp_name']);
+
+		$formats = array(0=>false,3=>'xml',4=>'tab',5=>'csv');
+		preg_match('/((<[^>]+>.+?<\/[^>]+>)|(.+?\t.+?\n)|(.+?,.+?\n))/',$data,$_);
+		$format = $formats[count($_)];
+		if (!$format) return array('error' => __('The uploaded file is not properly formatted as an XML, CSV or tab-delimmited file.','Shopp'));
+
+		$_ = array();
+		switch ($format) {
+			case "xml":
+				/*
+				Example XML import file:
+					<localtaxrates>
+						<taxrate name="Kent">1</taxrate>
+						<taxrate name="New Castle">0.25</taxrate>
+						<taxrate name="Sussex">1.4</taxrate>
+					</localtaxrates>
+
+				Taxrate record format:
+					<taxrate name="(Name of locality)">(Percentage of the supplemental tax)</taxrate>
+
+				Tax rate percentages should be represented as percentage numbers, not decimal percentages:
+					1.25	= 1.25%	(0.0125)
+					10		= 10%	(0.1)
+				*/
+				if (!class_exists('xmlQuery'))
+					require(SHOPP_MODEL_PATH.'/XML.php');
+				$XML = new xmlQuery($data);
+				$taxrates = $XML->tag('taxrate');
+				while($rate = $taxrates->each()) {
+					$name = $rate->attr(false,'name');
+					$value = $rate->content();
+					$_[$name] = $value;
+				}
+				break;
+			case "csv":
+				if (($csv = fopen($upload['tmp_name'], 'r')) === false)
+					return array('error' => Lookup::errors('uploadsecurity','is_readable'));
+				while ( $data = fgetcsv($csv, 1000, ',') !== false )
+					$_[$data[0]] = !empty($data[1])?$data[1]:0;
+				fclose($csv);
+				break;
+			case "tab":
+			default:
+				$lines = explode("\n",$data);
+				foreach ($lines as $line) {
+					list($key,$value) = explode("\t",$line);
+					$_[$key] = $value;
+				}
+		}
+
+		if (empty($_)) array('error' => __('No useable tax rates could be found. The uploaded file may not be properly formatted.','Shopp'));
+
+		return apply_filters('shopp_local_taxrates_upload',$_);
 	}
 
 	function payments () {

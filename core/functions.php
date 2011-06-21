@@ -726,6 +726,21 @@ if (!function_exists('href_add_query_arg')) {
 }
 
 /**
+ * Returns readable php.ini data size settings
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the setting to read
+ * @return string The readable config size
+ **/
+function ini_size ($name) {
+	$setting = ini_get($name);
+	if (preg_match('/\d+\w+/',$setting) !== false) return $setting;
+	else readableFileSize($setting);
+}
+
+/**
  * Generates attribute markup for HTML inputs based on specified options
  *
  * @author Jonathan Davis
@@ -1170,7 +1185,7 @@ function readableFileSize($bytes,$precision=1) {
 	$sized = $bytes*1;
 	if ($sized == 0) return $sized;
 	$unit = 0;
-	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
+	while ($sized >= 1024 && ++$unit) $sized = $sized/1024;
 	return round($sized,$precision)." ".$units[$unit];
 }
 

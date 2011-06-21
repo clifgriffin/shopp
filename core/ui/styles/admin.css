@@ -18,6 +18,9 @@ th.textright { text-align: right; }
 .shopp table td.spectemplates { background:url('../icons/templates.png') no-repeat center center; }
 .shopp table td.facetedmenus { background:url('../icons/menus.png') no-repeat center center; }
 
+.shopp .checkbox { display: inline-block; position: relative; color: #464646; text-shadow: rgba(255,255,255,1) 0 1px 0; width: 10px; height: 10px; margin-top: 3px; border: 1px solid #a9a9a9;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; background: #fff url(data:image/gif;base64,R0lGODlhBQAGAJEAAPLy8vn5+ezs7AAAACH5BAAAAAAALAAAAAAFAAYAAAIHjA2Zwu3/CgA7) repeat-x scroll left bottom; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec')"; -moz-box-shadow: 0 1px 1px #ececec; -webkit-box-shadow: 0 2px 3px #ececec; box-shadow: 0 1px 1px #ececec; overflow: visible; }
+.shopp .checkbox .checked { margin-top: -3px; margin-left: 1px; overflow: visible; width: 11px; height: 11px; background: url('../icons/checkmark.png') no-repeat scroll left top; }
+
 /** Product Manager **/
 #products-manager button.feature { display:block;padding: 4px; border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left top; margin: 0 auto; }
 #products-manager button.feature:hover { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -20px; }
@@ -33,7 +36,8 @@ th.textright { text-align: right; }
 /** AJAX-related **/
 .shopp .updating { background-image:url('../icons/updating.gif');background-repeat:no-repeat; }
 .shopp .activating { border-width:1px;border-style:solid;padding:0 0.6em;margin-left:0px;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;background-color:#ffffe0;border-color:#e6db55; }
-.shopp input.updating { background-position:5px 1px;padding-left:25px; }
+.shopp input.updating,
+.shopp button.updating { background-position:5px 1px;padding-left:25px; }
 .shopp span.upload { float: none; display: inline; padding: 0.1em 0 0.1em 20px; margin-left: 1em; }
 .shopp span.upload.success { background: url('../icons/accept.png') no-repeat left center; }
 .shopp span.upload.failure { background: url('../icons/error.png') no-repeat left center; }
@@ -120,7 +124,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .subpanel { border-color:#dfdfdf;background-color:#f9f9f9; }
 .subpanel .label,
 .subpanel .ui { padding:6px; }
-.subpanel .label { background-color:#f1f1f1; text-shadow: #fff 0 1px 0px; margin: -1px -1px 0; }
+.subpanel .label { background-color:#f1f1f1; text-shadow: #fff 0 1px 0px; margin: -1px -1px 0; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; }
 .shopp .postbox .subpanel .label label { font-size:13px;font-weight:bold; }
 
 /** Search Select UI **/
@@ -463,38 +467,34 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
 
-#taxrates-table th,
-#taxrates-table td { position:relative;text-align:left;border:none;padding:0 5px 5px 0; }
-#taxrates-table button.deleteButton { position:relative;width:20px;height:21px;margin-left:-20px;line-height:1em;top:-1px; }
-
 /** Tax Rates **/
-#tax-rates th { text-align:right; }
-#tax-rates th input { font-size:1.1em;text-align: right; }
-#tax-rates td { position:relative;padding:10px; }
-#tax-rates td ul.conditions { padding:1em 10px;background:#fff;border:1px solid #ccc;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;margin-bottom:6px; }
+#taxrates .column-local,
+#taxrates .column-conditional { width: 100px; text-align: center; }
 
-#tax-rates div.label { position:relative; }
-#tax-rates div.label label { font-size:13px;font-weight:bold; }
-#tax-rates div.label select { position:absolute;right:6px;top:4px; }
-#tax-rates div.local-rates { border-width:1px;border-style:solid;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;border-color:#ccc;margin-bottom:6px; }
+#taxrate-editor { width: 100%; }
+#taxrate-editor th, #taxrate-editor td { border: none; overflow: visible;}
+#taxrate-editor td.conditions { width: 325px; }
+#taxrate-editor .conditions li { position: relative; margin-left: -28px; padding-left: 28px; }
 
-#tax-rates div.local-rates .ui { padding:6px; }
+#taxrate-editor .conditions button.delete { position: absolute; left: 0; }
+#taxrate-editor .no-conditions,
+#taxrate-editor .no-zones,
+#taxrate-editor .no-local-rates,
+#taxrate-editor .has-local-rates { display: none; }
+#taxrate-editor .locals-toggle { margin-right: 32px; }
+#taxrate-editor .rate { width: 64px; }
 
-#tax-rates div.local-rates { border-color:#dfdfdf;background-color:#f9f9f9; }
-#tax-rates div.label { position: relative; background:#f1f1f1; padding:6px; cursor: pointer; }
-#tax-rates button.toggle { background: url('../icons/collapsing.png') no-repeat left top; opacity:1; width: 16px; height: 14px; border: 0; padding: 0; margin: 0; position: absolute; right: 10px; top: 7px; }
-#tax-rates button.toggle.closed { background-position: -180px top; opacity:0.6;}
-#tax-rates button.toggle.hover { background-position: -180px top; opacity:1;}
+#taxrate-editor .local-rates .label { position: relative; border: 1px solid #ddd;border-bottom: none;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; font-weight: bold; }
+#taxrate-editor .local-rates h3 { font-size: 11px; }
+#taxrate-editor .local-rates .error { padding: 3px 7px; }
+#taxrate-editor .local-rates .ui { padding:6px;position:relative; }
+#taxrate-editor .local-rates .ui label { position:relative; }
+#taxrate-editor .local-rates .ui label:before { content:"+";position:absolute;top:-4px;left:4px; }
+#taxrate-editor .local-rates .ui input { text-align:right;padding-left:1em; }
+#taxrate-editor .local-rates ul { padding:0;margin:0;position:relative; }
+#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
 
-#tax-rates div.local-rates .ui { padding:6px;position:relative; }
-#tax-rates div.local-rates .ui label { position:relative; }
-#tax-rates div.local-rates .ui label:before { content:"+";position:absolute;top:-2px;left:4px; }
-#tax-rates div.local-rates .ui input { text-align:right;padding-left:1em; }
-
-#tax-rates div.local-rates ul { padding:0;margin:0;position:relative; }
-#tax-rates div.local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
-#tax-rates .controls { position:absolute;right:10px;display:none;background:#fff;padding:0 0 0 5px;margin:1px 1px 0 0; }
-#tax-rates .controls label { border-right:1px solid #ccc;padding-right:10px; }
+/** Order Manager **/
 
 #order #order-status p { margin:0;padding:0; }
 #order #order-status .inside-wrap,
