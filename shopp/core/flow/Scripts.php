@@ -233,10 +233,6 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('products-arrange', '/ui/categories/products.js', array('jquery'), '20100101');
 	$scripts->add_data('products-arrange', 'group', 1);
 
-	// @todo Remove/Replace
-	$scripts->add('settings', '/ui/behaviors/settings.js', array('jquery'), '20100101');
-	$scripts->add_data('settings', 'group', 1);
-
 	$scripts->add('taxes', '/ui/behaviors/taxes.js', array('jquery'), '20100101');
 	$scripts->add_data('taxes', 'group', 1);
 
