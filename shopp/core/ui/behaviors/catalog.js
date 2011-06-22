@@ -413,8 +413,7 @@ function validateForms () {
 /**
  * DOM-ready initializations
  **/
-jQuery(document).ready(function() {
-	var $=jqnc();
+jQuery(document).ready(function($) {
 	validateForms();
 	catalogViewHandler();
 	slideshows();
