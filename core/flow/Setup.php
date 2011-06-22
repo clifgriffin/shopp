@@ -48,6 +48,9 @@ class Setup extends AdminController {
 				shopp_enqueue_script('ocupload');
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('taxrates');
+				shopp_localize_script( 'taxrates', '$tr', array(
+					'confirm' => __('Are you sure you want to remove this tax rate?','Shopp'),
+				));
 
 				$this->subscreens = array(
 					'rates' => __('Rates','Shopp'),
@@ -70,16 +73,16 @@ class Setup extends AdminController {
 				break;
 			case "images":
 				shopp_enqueue_script('jquery-tmpl');
-				shopp_enqueue_script('image-settings');
-				shopp_localize_script( 'image-settings', '$is', array(
+				shopp_enqueue_script('imageset');
+				shopp_localize_script( 'imageset', '$is', array(
 					'confirm' => __('Are you sure you want to remove this image preset?','Shopp'),
 				));
 				$this->images_ui();
 				break;
 			case "payments":
 				shopp_enqueue_script('jquery-tmpl');
-				shopp_enqueue_script('payments-settings');
-				shopp_localize_script( 'payments-settings', '$ps', array(
+				shopp_enqueue_script('payments');
+				shopp_localize_script( 'payments', '$ps', array(
 					'confirm' => __('Are you sure you want to remove this payment system?','Shopp'),
 				));
 
@@ -87,8 +90,8 @@ class Setup extends AdminController {
 				break;
 			case "shipping":
 				shopp_enqueue_script('jquery-tmpl');
-				shopp_enqueue_script('shipping-settings');
-				shopp_localize_script( 'shipping-settings', '$ps', array(
+				shopp_enqueue_script('shiprates');
+				shopp_localize_script( 'shiprates', '$ps', array(
 					'confirm' => __('Are you sure you want to remove this shipping rate?','Shopp'),
 				));
 
@@ -630,7 +633,6 @@ class Setup extends AdminController {
 
 	function shipping_ui () {
 		register_column_headers('shopp_page_shopp-settings-shipping', array(
-			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'type'=>__('Type','Shopp'),
 			'destinations'=>__('Destinations','Shopp')
@@ -869,7 +871,6 @@ class Setup extends AdminController {
 
 	function payments_ui () {
 		register_column_headers('shopp_page_shopp-settings-payments', array(
-			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'processor'=>__('Processor','Shopp'),
 			'type'=>__('Type','Shopp'),

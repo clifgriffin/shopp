@@ -243,20 +243,20 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('setup', '/ui/behaviors/setup.js', array('jquery'), '20100101');
 	$scripts->add_data('setup', 'group', 1);
 
-	$scripts->add('pages-settings', '/ui/behaviors/pages-settings.js', array('jquery'), '20100101');
-	$scripts->add_data('pages-settings', 'group', 1);
+	$scripts->add('pageset', '/ui/behaviors/pageset.js', array('jquery'), '20100101');
+	$scripts->add_data('pageset', 'group', 1);
 
-	$scripts->add('payments-settings', '/ui/behaviors/payments.js', array('jquery'), '20100101');
-	$scripts->add_data('payments-settings', 'group', 1);
+	$scripts->add('payments', '/ui/behaviors/payments.js', array('jquery'), '20100101');
+	$scripts->add_data('payments', 'group', 1);
 
-	$scripts->add('shipping-settings', '/ui/behaviors/shipping.js', array('jquery'), '20100101');
-	$scripts->add_data('shipping-settings', 'group', 1);
+	$scripts->add('shiprates', '/ui/behaviors/shiprates.js', array('jquery'), '20100101');
+	$scripts->add_data('shiprates', 'group', 1);
 
 	$scripts->add('taxrates', '/ui/behaviors/taxrates.js', array('jquery'), '20110721');
 	$scripts->add_data('taxrates', 'group', 1);
 
-	$scripts->add('image-settings', '/ui/behaviors/image-settings.js', array('jquery'), '20110518');
-	$scripts->add_data('image-settings', 'group', 1);
+	$scripts->add('imageset', '/ui/behaviors/imageset.js', array('jquery'), '20110518');
+	$scripts->add_data('imageset', 'group', 1);
 
 	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.js', array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);
