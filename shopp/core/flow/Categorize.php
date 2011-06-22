@@ -185,8 +185,6 @@ class Categorize extends AdminController {
 		$children = _get_term_hierarchy($taxonomy);
 		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
 
-
-
 		if ($workflow) return array_keys($Categories);
 		// $children = array();
 		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
