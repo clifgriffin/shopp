@@ -97,7 +97,7 @@ class AdminFlow extends FlowController {
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
-		$this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
+		// $this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
 		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings','settings');
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
