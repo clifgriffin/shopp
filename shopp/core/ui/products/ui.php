@@ -349,4 +349,11 @@ add_meta_box(
 	'core'
 );
 
+
+/** Templates **/
+function priceline_ui () {
+
+}
+add_action('shopp_product_editor_templates','priceline_ui');
+
 ?>
