@@ -272,7 +272,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 
 .shopp .multiple-select { position:relative;overflow-x:hidden;overflow-y:auto;height:120px;width:250px;display:inline-block;border:1px solid #dfdfdf;background:#ffffff;padding:0;margin:0; }
 .shopp .multiple-select ul { list-style-type:none;position:absolute;left:0;right:0;line-height:1;width:auto;margin:0;padding:0; }
-.shopp .multiple-select ul li { margin:0;padding:2px 2px 0 0;clear:both; text-indent: -1.9em; padding-left: 1.9em;}
+.shopp .multiple-select ul li { margin:0;padding:2px 2px 0 0;clear:both; }
 .shopp .multiple-select ul li input { margin:0 5px; }
 .shopp .multiple-select ul li.odd { background:#f9f9f9; }
 .shopp .multiple-select ul ul { padding-left:20px; }
@@ -518,31 +518,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
 
-/** Shipping Settings **/
-#shipping-rates table.rate,#shipping-rates table.rate tr { background:none; }
-#shipping-rates table.rate tr.headings th { vertical-align:bottom;line-height:1; }
-#shipping-rates,#shipping-rates td { position:relative;padding-left:0;padding-right:0;top:0; }
-#shipping-rates td button.deleteRate { position:absolute;right:5px; }
-#shipping-rates table.rate th,#shipping-rates table.rate td { border:none;padding:2px; }
-#shipping-rates table.rate td { vertical-align:top; }
-#shipping-rates table.rate .units { text-align:right;white-space:nowrap; }
-#shipping-rates table.rate td span.padding { display:inline-block;height:16px;padding:3px 0;margin:1px 0; }
-#shipping-rates table.rate td.rowctrl button { display:inline-block;margin:0 10px 0 0;padding:0;border:none;background:none;width:auto;height:auto; }
-#shipping-rates table.rate td.rowctrl { vertical-align:middle;white-space:nowrap; }
-#shipping-rates select.methods { width:150px; }
-#shipping-rates table.rate select { height:auto; }
-#shipping-rates table.services { width:100%;margin-top:16px; }
-#shipping-rates button.disabled { opacity:0.3; }
-#shipping-rates button.delete { background:none;border:none;padding:0;margin:0;width:auto;height:16px; }
-#shipping-rates.form-table tr th,
-#shipping-rates.form-table tr td { border-bottom:1px solid #dfdfdf; }
-#shipping-rates.form-table tr td table th,
-#shipping-rates.form-table tr td table td { border-bottom:none; }
-#shipping-rates .services div.multiple-select { height:100px; }
-#shipping-rates .services div.multiple-select ul li { padding:2px;padding-left:22px; }
-#shipping-rates .services div.multiple-select ul li input { margin-left:-17px; }
-
-
+/* Table list settings */
 .shopp-settings .unit { white-space: nowrap; }
 .shopp-settings > tbody tr td,.shopp-settings > tbody tr th { font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif; font-size: 11px; border-bottom: none; }
 .shopp-settings > tbody tr th { font-size: 13px; }
@@ -552,6 +528,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp-settings button.addrate { margin-right: 32px; }
 
 /** Shipping Rate Tables **/
+#shiprates .multiple-select ul li { text-indent:-1.9em;padding-left:1.9em; }
+#shiprates input[disabled] { background: #eee;}
 .rate-table-shipping { width: 50%; margin: 0 auto;}
 .rate-table-shipping thead tr th,
 .rate-table-shipping > tbody tr th  { background: none; line-height: 1; font-size: 11px; font-weight: bold; padding: 8px 8px 3px; }

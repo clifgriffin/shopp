@@ -30,7 +30,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-settings-shipping',false); ?></tr>
 		</tfoot>
-		<tbody id="shipping-settings-table" class="list">
+		<tbody id="shiprates" class="list">
 		<?php
 
 			if ($edit && !isset($shiprates[$edit])) {
