@@ -3,7 +3,7 @@
 
 	<form action="<?php echo esc_url($this->url); ?>" id="taxrates" method="post" enctype="multipart/form-data" accept="text/plain,text/xml">
 	<div class="icon32"></div>
-	<h2><?php _e('Tax Rates','Shopp'); ?> <button type="submit" name="addrate" id="addrate" class="button-secondary" tabindex="9999"><?php _e('Add Tax Rate','Shopp'); ?></button></h2>
+	<h2><?php _e('Tax Rates','Shopp'); ?></h2>
 
 	<?php $this->taxes_menu(); ?>
 
@@ -12,6 +12,12 @@
 	</div>
 
 	<br class="clear" />
+
+	<div class="tablenav">
+		<div class="actions">
+		<button type="submit" name="addrate" id="addrate" class="button-secondary" tabindex="9999"><?php _e('Add Tax Rate','Shopp'); ?></button>
+		</div>
+	</div>
 
 	<script id="property-menu" type="text/x-jquery-tmpl"><?php
 		$propertymenu = array(
