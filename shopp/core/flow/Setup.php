@@ -68,7 +68,7 @@ class Setup extends AdminController {
 				break;
 			case "pages":
 				shopp_enqueue_script('jquery-tmpl');
-				shopp_enqueue_script('pages-settings');
+				shopp_enqueue_script('pageset');
 				$this->pages_ui();
 				break;
 			case "images":
