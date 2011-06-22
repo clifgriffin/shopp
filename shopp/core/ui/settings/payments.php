@@ -11,6 +11,14 @@
 </div>
 
 <br class="clear" />
+<div class="tablenav"><div class=" actions">
+	<select name="id" id="payment-option-menu">
+	<option><?php _e('Add a payment system&hellip;','Shopp'); ?></option>
+	<?php echo menuoptions($installed,false,true); ?>
+	</select>
+	<button type="submit" name="add-payment-option" id="add-payment-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
+	</div>
+</div>
 
 <table class="widefat" cellspacing="0">
 	<thead>
@@ -84,25 +92,6 @@
 
 </form>
 
-	<form name="settings" id="payments" action="<?php echo $this->url; ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-payments'); ?>
-		<div><input type="hidden" id="active-gateways" name="settings[active_gateways]" /></div>
-
-		<table id="payment-settings" class="form-table">
- 		</table>
-
-		<br class="clear" />
-
-		<div class="tablenav"><div class="alignright actions">
-			<select name="id" id="payment-option-menu">
-			<option><?php _e('Add a payment system&hellip;','Shopp'); ?></option>
-			<?php echo menuoptions($installed,false,true); ?>
-			</select>
-			<button type="submit" name="add-payment-option" id="add-payment-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
-			</div>
-		</div>
-
-	</form>
 </div>
 
 <?php do_action('shopp_gateway_module_settings'); ?>

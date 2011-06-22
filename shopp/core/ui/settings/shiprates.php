@@ -13,6 +13,16 @@
 
 	<br class="clear" />
 
+	<div class="tablenav">
+		<div class="actions">
+			<select name="id" id="shipping-option-menu">
+			<option value=""><?php _e('Add a shipping method&hellip;','Shopp'); ?></option>
+			<?php echo menuoptions($installed,false,true); ?>
+			</select>
+			<button type="submit" name="add-shipping-option" id="add-shipping-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Shipping Option','Shopp'); ?></button>
+		</div>
+	</div>
+
 	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr><?php print_column_headers('shopp_page_shopp-settings-shipping'); ?></tr>
@@ -82,25 +92,6 @@
 
 	</form>
 
-	<form name="settings" id="add-shipping" action="<?php echo $this->url; ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-shipping'); ?>
-		<div><input type="hidden" id="active-gateways" name="settings[active_gateways]" /></div>
-
-		<table id="shipping-settings" class="form-table">
- 		</table>
-
-		<br class="clear" />
-
-		<div class="tablenav"><div class="alignright actions">
-			<select name="id" id="shipping-option-menu">
-			<option value=""><?php _e('Add a shipping method&hellip;','Shopp'); ?></option>
-			<?php echo menuoptions($installed,false,true); ?>
-			</select>
-			<button type="submit" name="add-shipping-option" id="add-shipping-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Shipping Option','Shopp'); ?></button>
-			</div>
-		</div>
-
-	</form>
 </div>
 
 <?php do_action('shopp_shipping_module_settings'); ?>
