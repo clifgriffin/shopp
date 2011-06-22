@@ -63,8 +63,6 @@ class Promote extends AdminController {
 		if ( ! current_user_can('shopp_promotions') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		require(SHOPP_PATH.'/core/model/Promotion.php');
-
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -190,7 +188,6 @@ class Promote extends AdminController {
 		if ( ! current_user_can('shopp_promotions') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		require(SHOPP_PATH."/core/model/Promotion.php");
 
 		if ($_GET['id'] != "new") {
 			$Promotion = new Promotion($_GET['id']);
