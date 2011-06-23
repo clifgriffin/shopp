@@ -15,12 +15,12 @@
  * Registers a smart collection of products
  *
  * @author Jonathan Davis
- * @since 1.1
+ * @since 1.2
  *
  * @param string $name Class name of the smart collection
  * @return void
  **/
-function register_collection ($name) {
+function shopp_register_collection ($name) {
 	global $Shopp;
 	if (empty($Shopp)) return;
 	$Shopp->Collections[] = $name;
@@ -28,8 +28,21 @@ function register_collection ($name) {
 
 	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
 	add_permastruct('shopp_collection', Storefront::slug()."/%shopp_collection%", true);
-
 }
+
+
+function shopp_add_product_category ($product,$category) {}
+function shopp_rmv_product_category ($product,$category) {}
+
+function shopp_categories () {}
+function shopp_subcategories ($category) {}
+function shopp_product_categories ($product) {}
+function shopp_category_products ($category) {}
+
+function shopp_catalog_count () {}
+function shopp_category_count ($category) {}
+function shopp_subcategory_count ($category) {}
+function shopp_product_categories_count ($product) {}
 
 
 ?>
