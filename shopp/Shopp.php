@@ -70,8 +70,13 @@ require('core/model/Customer.php');
 // Load public development API
 require('api/core.php');
 require('api/theme.php');
-require('api/taxonomy.php');
+require('api/asset.php');
+require('api/cart.php');
 require('api/collection.php');
+require('api/customer.php');
+require('api/meta.php');
+require('api/order.php');
+require('api/settings.php');
 
 // Start up the core
 $Shopp = new Shopp();
@@ -282,16 +287,16 @@ class Shopp {
 	}
 
 	function collections () {
-		register_collection('CatalogProducts');
-		register_collection('NewProducts');
-		register_collection('FeaturedProducts');
-		register_collection('OnSaleProducts');
-		register_collection('BestsellerProducts');
-		register_collection('SearchResults');
-		register_collection('TagProducts');
-		register_collection('RelatedProducts');
-		register_collection('RandomProducts');
-		register_collection('PromoProducts');
+		shopp_register_collection('CatalogProducts');
+		shopp_register_collection('NewProducts');
+		shopp_register_collection('FeaturedProducts');
+		shopp_register_collection('OnSaleProducts');
+		shopp_register_collection('BestsellerProducts');
+		shopp_register_collection('SearchResults');
+		shopp_register_collection('TagProducts');
+		shopp_register_collection('RelatedProducts');
+		shopp_register_collection('RandomProducts');
+		shopp_register_collection('PromoProducts');
 	}
 
 	function taxonomies () {
