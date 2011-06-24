@@ -3,7 +3,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Promotions','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Promotion','Shopp'); ?></a></h2>
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="promotions" method="get">
+	<form action="<?php echo esc_url($url); ?>" id="promotions" method="get">
 	<div>
 		<input type="hidden" name="page" value="shopp-promotions" />
 	</div>
@@ -14,8 +14,18 @@
 	</p>
 
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="promotion" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
+		<?php if ($page_links): ?><div class='tablenav-pages'><?php echo $page_links; ?></div><?php endif; ?>
+
+
+		<div class="alignleft actions">
+			<select name="action" id="actions">
+				<option value="" selected="selected"><?php _e('Bulk Actions&hellip;','Shopp'); ?></option>
+				<option value="enable"><?php _e('Enable','Shopp'); ?></option>
+				<option value="disable"><?php _e('Disable','Shopp'); ?></option>
+				<option value="delete"><?php _e('Delete','Shopp'); ?></option>
+			</select>
+			<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action hide-if-js" />
+		</div>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -34,16 +44,16 @@
 
 			$even = false;
 			foreach ($Promotions as $Promotion):
-			$editurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>$Promotion->id)),admin_url('admin.php'));
-			$deleteurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','delete[]'=>$Promotion->id,'deleting'=>'promotion')),admin_url('admin.php'));
+			$editurl = add_query_arg(array('id'=>$Promotion->id),$url);
+			$deleteurl = add_query_arg(array('selected'=>$Promotion->id,'action'=>'delete'),$url);
 			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
+			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Promotion->id; ?>' class="selected" /></th>
 			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo esc_url($editurl); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;'><?php echo esc_html($PromotionName); ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
+					<span class='delete'><a class='delete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>
 
 			</td>
@@ -78,35 +88,39 @@
 </div>
 
 <script type="text/javascript">
-jQuery(document).ready( function() {
-	var $=jQuery.noConflict();
-
-	$('#selectall').change( function() {
-		$('#promotions th input').each( function () {
-			if (this.checked) this.checked = false;
-			else this.checked = true;
-		});
-	});
-
-	$('a.submitdelete').click(function () {
-		if (confirm("<?php _e('You are about to delete this promotion!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
-			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#promotions');
-			$('<input type="hidden" name="deleting" />').val('promotion').appendTo('#promotions');
-			$('#promotions').submit();
-			return false;
-		} else return false;
-	});
-
-	$('#delete-button').click(function() {
-		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected promotions?','Shopp')); ?>")) {
-			$('<input type="hidden" name="promotions" value="list" />').appendTo($('#promotions'));
-			return true;
-		} else return false;
-	});
+/* <![CDATA[ */
+jQuery(document).ready( function($) {
+	var m = {
+			none:<?php _jse('Select some promotions!','Shopp'); ?>,
+			enable:<?php _jse('Are you sure you want to enable the selected promotions?','Shopp'); ?>,
+			disable:<?php _jse('Are you sure you want to disable the selected promotions?','Shopp'); ?>,
+			delete:<?php _jse('Are you sure you want to delete the selected promotions?','Shopp'); ?>
+		},form = $('#promotions');
 
 	pagenow = 'shopp_page_shopp-promotions';
 	columns.init(pagenow);
 
-});
+	$('#selectall').change(function() {
+		form.find('th input').each( function () {
+			var $this = $(this),checked = $(this).attr('checked');
+			$this.attr('checked',!checked);
+		});
+	});
 
+	$('#actions').change(function () {
+		var $this = $(this),action = $this.val();
+		if (form.find('input.selected:checked').size() == 0) { alert(m.none); return $this.val(''); }
+		if (confirm(m[action])) form.submit();
+		$this.val('');
+	});
+
+	$('a.delete').click(function (e) {
+		var action = $.getQueryVar('action',$(this).attr('href'));
+		if (m[action] && confirm(m[action])) return true;
+		e.preventDefault();
+		return false;
+	});
+
+});
+/* ]]> */
 </script>

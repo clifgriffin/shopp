@@ -58,30 +58,34 @@ class Promote extends AdminController {
 	 **/
 	function promotions () {
 		global $Shopp;
-		$db = DB::get();
 
 		if ( ! current_user_can('shopp_promotions') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$table = DatabaseObject::tablename(Promotion::$table);
+
 		$defaults = array(
 			'page' => false,
-			'deleting' => false,
-			'delete' => false,
+			'action' => false,
+			'selected' => array(),
 			'pagenum' => 1,
 			'per_page' => 20,
-			's' => ''
+			's' => '',
 			);
 
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
+		if (!is_array($selected)) $selected = array($selected);
 
-		if ($page == "shopp-promotions"
-				&& !empty($deleting)
-				&& !empty($delete)
-				&& is_array($delete)) {
-			foreach($delete as $deletion) {
-				$Promotion = new Promotion($deletion);
-				$Promotion->delete();
+		$url = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions')),admin_url('admin.php'));
+		$f = array('action','selected','s');
+		$url = remove_query_arg( $f, $url );
+
+		if ('shopp-promotions' == $page && $action !== false) {
+			switch ( $action ) {
+				case 'enable': DB::query("UPDATE $table SET status='enabled' WHERE id IN (".join(',',$selected).")"); break;
+				case 'disable': DB::query("UPDATE $table SET status='disabled' WHERE id IN (".join(',',$selected).")"); break;
+				case 'delete': DB::query("DELETE FROM $table WHERE id IN (".join(',',$selected).")"); break;
 			}
 		}
 
@@ -118,24 +122,28 @@ class Promote extends AdminController {
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
-		if( !$per_page || $per_page < 0 )
-			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
 
+		$where = array();
+		if (!empty($s)) $where[] = "name LIKE '%$s%'";
 
-		$where = "";
-		if (!empty($s)) $where = "WHERE name LIKE '%$s%'";
+		$select = DB::select(array(
+			'table' => $table,
+			'columns' => 'SQL_CALC_FOUND_ROWS *',
+			'where' => $where,
+			'limit' => "$start,$per_page"
+		));
 
-		$table = DatabaseObject::tablename(Promotion::$table);
-		$promocount = $db->query("SELECT count(*) as total FROM $table $where");
-		$Promotions = $db->query("SELECT * FROM $table $where",AS_ARRAY);
+		$Promotions = DB::query($select,'array');
+
+		$count = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
 
 		$status = array(
 			'enabled' => __('Enabled','Shopp'),
 			'disabled' => __('Disabled','Shopp')
 		);
 
-		$num_pages = ceil($promocount->total / $per_page);
+		$num_pages = ceil($count / $per_page);
 		$page_links = paginate_links( array(
 			'base' => add_query_arg( 'pagenum', '%#%' ),
 			'format' => '',
