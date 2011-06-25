@@ -100,6 +100,8 @@ class Setup extends AdminController {
 					'settings' => __('Settings','Shopp')
 				);
 
+				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
+
 				if ('on' == $Settings->get('shipping'))
 					$this->shipping_ui();
 				break;
