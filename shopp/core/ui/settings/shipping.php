@@ -67,11 +67,13 @@
 				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th>
 				<td>
 					<?php
-						$options = array_reverse(array_merge(range(0,25),range(30,50,5),range(60,100,10)));
-						array_walk($options,create_function('&$val','$val = "$val%";'));
+						$values = array_reverse(array_merge(range(0,25),range(30,50,5),range(60,100,10)));
+						$labels = $values;
+						array_walk($labels,create_function('&$val','$val = "$val%";'));
+						$levels = array_combine($values,$labels);
 					?>
 					<select name="settings[lowstock_level]" id="lowstock-level">
-					<?php echo menuoptions($options,$lowstock); ?>
+					<?php echo menuoptions($levels,$lowstock,true); ?>
 					</select><br />
 	            	<?php _e('Enter the number for low stock level warnings.','Shopp'); ?>
 				</td>

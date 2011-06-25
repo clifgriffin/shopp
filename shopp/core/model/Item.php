@@ -430,6 +430,7 @@ class Item {
 				$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$Addon->id}' AND stock > 0");
 				$Addon->stock -= $this->quantity;
 				$product_addon = "$product ($Addon->label)";
+				// @todo Handle new low stock level setting to trigger appropriate notifications for addons
 				if ($Addon->stock == 0)
 					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
 				elseif ($Addon->stock <= $Settings->get('lowstock_level'))
@@ -443,6 +444,7 @@ class Item {
 
 		// Handle notifications
 		$product = "$this->name (".$this->option->label.")";
+		// @todo Handle new low stock level setting to trigger appropriate notifications for product variants
 		if ($this->option->stock == 0)
 			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
 

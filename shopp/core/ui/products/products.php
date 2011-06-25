@@ -114,7 +114,15 @@
 			</td>
 
 			<?php if ('on' == $Settings->get('inventory')): ?>
-				<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td>
+				<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>">
+					<?php // @todo Link inventory number to Inventory view while filtering for the product/variants
+					if ('on' == $Product->inventory) {
+						$stockclass = array('stock');
+						if (!empty($Product->lowstock) && 'none' != $Product->lowstock) $stockclass[] = "lowstock $Product->lowstock";
+					 	echo '<span class="'.join(' ',$stockclass).'">'.$Product->stock.'</span>';
+					}
+					?>
+				</td>
 			<?php endif; ?>
 
 			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>">

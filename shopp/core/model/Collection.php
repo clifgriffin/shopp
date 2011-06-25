@@ -19,7 +19,6 @@ class ProductCollection implements Iterator {
 	var $paged = false;
 	var $pagination = false;
 	var $products = array();
-	var $resum = array();
 	var $total = 0;
 
 	private $_keys = array();
@@ -118,7 +117,7 @@ class ProductCollection implements Iterator {
 
 		// Load core product data and product summary columns
 		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date','p.post_modified',
-						's.modified AS summed','s.sold','s.grossed','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+						's.modified AS summed','s.sold','s.grossed','s.maxprice','s.minprice','s.stock','s.lowstock','s.inventory','s.featured','s.variants','s.addons','s.sale');
 
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
@@ -164,9 +163,10 @@ class ProductCollection implements Iterator {
 		$Processing->load_data($load,$this->products);
 
 		// If products are missing summary data, resum them
-		if (!empty($this->resum)) {
-			$Processing->load_data(array('prices'),$this->resum);
-		}
+		if (isset($Processing->resum) && !empty($Processing->resum))
+			$Processing->load_data(array('prices'),$Processing->resum);
+
+		unset($Processing); // Free memory
 
 		$this->loaded = true;
 

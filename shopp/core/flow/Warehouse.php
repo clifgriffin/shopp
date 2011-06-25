@@ -139,7 +139,7 @@ class Warehouse extends AdminController {
 						$P = new Product($id); $P->delete();
 					} break;
 			}
-			delete_transient('shopp_product_subcounts');
+			wp_cache_delete('shopp_product_subcounts');
 			$redirect = add_query_arg($_GET,$adminurl);
 			$redirect = remove_query_arg( array('action','selected','delete_all'),$redirect);
 			shopp_redirect($redirect);
@@ -160,7 +160,7 @@ class Warehouse extends AdminController {
 		}
 
 		if ($save) {
-			delete_transient('shopp_product_subcounts');
+			wp_cache_delete('shopp_product_subcounts');
 			$this->save($Shopp->Product);
 			$this->Notice = sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>');
 
@@ -211,6 +211,7 @@ class Warehouse extends AdminController {
 			'is_bestselling' => false,
 			'categories_menu' => false,
 			'inventory_menu' => false,
+			'lowstock' => 0,
 			'columns' => '',
 			'where' => array(),
 			'joins' => array()
@@ -302,7 +303,7 @@ class Warehouse extends AdminController {
 			}
 		}
 
-
+		$lowstock = $Settings->get('lowstock_level');
 		$base = $Settings->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
@@ -649,10 +650,7 @@ class Warehouse extends AdminController {
 				}
 			}
 
-			$Product->maxprice = false;
-			$Product->minprice = false;
-			$Product->stock = false;
-			$Product->sold = 0;
+			$Product->resum();
 
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $priceline) {
@@ -683,8 +681,9 @@ class Warehouse extends AdminController {
 				foreach ($settings as $setting)
 					if (isset($priceline[$setting])) $priceline['settings'][$setting] = $priceline[$setting];
 
-				if ($priceline['stock'] != $priceline['stocked'])
+				if ($Price->stock != $priceline['stocked']) {
 					$priceline['stock'] = $priceline['stocked'];
+				} else unset($priceline['stocked']);
 
 				$Price->updates($priceline);
 				$Price->save();
