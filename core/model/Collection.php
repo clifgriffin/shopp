@@ -48,11 +48,13 @@ class ProductCollection implements Iterator {
 			'adjacent' => false,	//
 			'product' => false,		//
 			'load' => array(),		// Product data to load
+			'inventory' => false,	// Flag for detecting inventory-based queries
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
 		extract($loading);
 
+		// Setup pagination
 		$this->paged = false;
 		$this->pagination = $Settings->get('catalog_pagination');
 		$paged = get_query_var('paged');
@@ -60,6 +62,14 @@ class ProductCollection implements Iterator {
 
 		// Hard product limit per category to keep resources "reasonable"
 		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
+
+		// Enforce the where parameter as an array
+		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
+
+		// Check for inventory-based queries (for specialized cache support)
+		$wherescan = join('',$where);
+		if (strpos($wherescan,'s.inventory') !== false || strpos($wherescan,'s.stock') !== false)
+			$inventory = true;
 
 		if ($published) $where[] = "p.post_status='publish'";
 
@@ -90,8 +100,8 @@ class ProductCollection implements Iterator {
 				// break;
 		}
 
-		if (!$orderby && !empty($order)) $orderby = $order;
-		else $orderby = "p.post_title ASC";
+		if (empty($orderby) && !empty($order)) $orderby = $order;
+		elseif (empty($orderby)) $orderby = "p.post_title ASC";
 
 		// Pagination
 		if (empty($limit)) {
@@ -107,8 +117,8 @@ class ProductCollection implements Iterator {
 		// Core query components
 
 		// Load core product data and product summary columns
-		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date_gmt','p.post_modified',
-						's.modified AS summed','s.sold','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date','p.post_modified',
+						's.modified AS summed','s.sold','s.grossed','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
 
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
@@ -120,15 +130,37 @@ class ProductCollection implements Iterator {
 
 		if ($debug) echo $query.BR.BR;
 
-		// @todo Add support for wp_transient (caching) for faster results
-		$this->products = DB::query($query,'array',array($Processing,'loader'));
-		$this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+		// Load from cached results if available, or run the query and cache the results
+		$cachehash = md5($query);
+		$cached = wp_cache_get($cachehash,'shopp_collection');
+		if ($cached) {
+			$this->products = $cached->products;
+			$this->total = $cached->total;
+		} else {
+			$expire = apply_filters('shopp_collection_cache_expire',43200);
 
+			$cache = new stdClass();
+			$cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
+			$cache->total = $this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+
+			wp_cache_set($cachehash,$cache,'shopp_collection');
+
+			if ($inventory) { // Keep track of inventory-based query caches
+				$caches = $Settings->get('shopp_inventory_collection_caches');
+				if (!is_array($caches)) $caches = array();
+				$caches[] = $cachehash;
+				$Settings->save('shopp_inventory_collection_caches',$caches);
+			}
+
+		}
+
+		// Finish up pagination construction
 		if ($this->pagination > 0 && $this->total > $this->pagination) {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;
 		}
 
+		// Load all associated product meta from other data sources
 		$Processing->load_data($load,$this->products);
 
 		// If products are missing summary data, resum them
@@ -138,24 +170,8 @@ class ProductCollection implements Iterator {
 
 		$this->loaded = true;
 
-		return (count($this->products) > 0);
+		return ($this->size() > 0);
 	}
-
-	// function loader (&$records,$record) {
-	// 	$Product = new Product();
-	// 	$Product->populate($record);
-	// 	$Product->summary($records,$record);
-	// 	$records[] = &$Product;
-	// 	$this->index[$Product->id] = &$Product;
-	//
-	// 	// Resum the product pricing data if there is no summation data,
-	// 	// or if the summation data hasn't yet been updated today
-	// 	if ( empty($record->summed) || mktimestamp($record->summed) < mktime(0,0,0)) {
-	// 		$Product->resum();
-	// 		$this->resum[$Product->id] = &$Product;
-	// 	}
-	//
-	// }
 
 	function pagelink ($page) {
 		$type = isset($this->tag)?'tag':'category';
@@ -170,6 +186,10 @@ class ProductCollection implements Iterator {
 
 	function workflow () {
 		return array_keys($this->products);
+	}
+
+	function size () {
+		return count($this->products);
 	}
 
 	/** Iterator implementation **/
@@ -1205,9 +1225,15 @@ class BestsellerProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("Bestsellers","Shopp");
-		$this->loading = array('order'=>'bestselling');
+		$this->name = __('Bestsellers','Shopp');
+		$this->loading['order'] = 'bestselling';
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
+	}
+
+	static function threshold () {
+		// Get mean sold for bestselling threshold
+		$summary = DatabaseObject::tablename(ProductSummary::$table);
+		return DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 < sold",'auto','col','threshold');
 	}
 
 }
