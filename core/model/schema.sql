@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS <?php echo $summary; ?>;
 CREATE TABLE <?php echo $summary; ?> (							-- Summary table for product state records
 	product bigint(20) unsigned NOT NULL default '0',			-- (8) Product ID (wp_posts ID)
 	sold bigint(20) NOT NULL default '0',						-- (8) Total number sold of product
+	grossed decimal(16,6) NOT NULL default '0.00',				-- (10) Gross sales
 	maxprice decimal(16,6) NOT NULL default '0.00',				-- (10) Maximum price of all product's price records
 	minprice decimal(16,6) NOT NULL default '0.00',				-- (10) Minimum price of all product's price records
 	stock int(10) NOT NULL default '0',							-- (4) Total stock of all product variant records
@@ -31,6 +32,7 @@ CREATE TABLE <?php echo $summary; ?> (							-- Summary table for product state 
 	sale enum('off','on') NOT NULL,								-- (1) Product is on sale flag
 	modified datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Modification date
 	PRIMARY KEY product (product),
+	KEY bestselling (sold,product),								-- Catalog index by most sold
 	KEY featured (featured,product),							-- Catalog index by featured setting
 	KEY lowprice (minprice,product)								-- Catalog index by lowest price
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
@@ -54,6 +56,7 @@ CREATE TABLE <?php echo $price; ?> (							-- Price table
 	dimensions varchar(255) NOT NULL default '0',				-- (1-255) weight, width, height & length
 	shipfee decimal(12,6) NOT NULL default '0',					-- (8) Shipping fee mark-up
 	stock int(10) NOT NULL default '0',							-- (4) Number of product in inventory
+	stocked int(10) NOT NULL default '0',						-- (4) Number of product last stocked
 	inventory enum('off','on') NOT NULL,						-- (1) Flag for product with inventory tracking
 	sale enum('off','on') NOT NULL,								-- (1) Flag to activate sale price
 	shipping enum('on','off') NOT NULL,							-- (1) Flag to enable shipping for product
@@ -249,6 +252,7 @@ CREATE TABLE <?php echo $promo; ?> (							-- Promotions
 	PRIMARY KEY id (id),
 	KEY catalog (status,target)									-- Catalog lookup by status and target
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 
 -- <?php $setting = DatabaseObject::tablename('setting'); ?>
 -- DROP TABLE IF EXISTS <?php echo $setting; ?>;
