@@ -233,6 +233,54 @@ class Promotion extends DatabaseObject {
 		$db->query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'".join(',',$promos)."')");
 	}
 
+	/**
+	 * Deletes an entire set of promotions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $ids List of promotion IDs to delete
+	 * @return boolean Success/fail
+	 **/
+	static function deleteset ($ids) {
+		if (empty($ids) || !is_array($ids)) return false;
+		$table = DatabaseObject::tablename(self::$table);
+		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")");
+		return true;
+	}
+
+	/**
+	 * Enable an entire set of promotions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $ids List of promotion IDs to enable
+	 * @return boolean Success/fail
+	 **/
+	static function enableset ($ids) {
+		if (empty($ids) || !is_array($ids)) return false;
+		$table = DatabaseObject::tablename(self::$table);
+		DB::query("UPDATE $table SET status='enabled' WHERE id IN (".join(',',$ids).")");
+		return true;
+	}
+
+	/**
+	 * Disables an entire set of promotions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $ids List of promotion IDs to disable
+	 * @return boolean Success/fail
+	 **/
+	static function disableset ($ids) {
+		if (empty($ids) || !is_array($ids)) return false;
+		$table = DatabaseObject::tablename(self::$table);
+		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")");
+		return true;
+	}
+
 } // END clas Promotion
 
 ?>
