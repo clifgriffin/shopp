@@ -13,8 +13,13 @@
 			<tr>
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th>
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
-	            <?php _e('Enables calculating shipping costs. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
+	            <?php _e('Enables shipping cost calculations. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
 			</tr>
+				<tr>
+					<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Track Inventory','Shopp'); ?></label></th>
+					<td><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if ($this->Settings->get('inventory') == "on") echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+		            <?php _e('Enables inventory tracking. Disable if you are exclusively selling intangible products or not keeping track of product stock.','Shopp'); ?></td>
+				</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
 				<td>
@@ -49,29 +54,27 @@
 				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
 			</tr>
 			<tr>
-				<th scope="row" valign="top"><label for="order-processing"><?php _e('Order Processing','Shopp'); ?></label></th>
+				<th scope="row" valign="top"><label for="order-processing-min"><?php _e('Order Processing','Shopp'); ?></label></th>
 				<td>
-				<select name="settings[order_processing]" id="order-processing">
-						<?php
-							$scales = range(1,10);
-							$scales = array_combine($scales,$scales);
-							echo menuoptions($scales,$this->Settings->get('order_processing'),true);
-						?>
-				</select><select name="settings[order_processing_unit]" id="order-processing-unit">
-						<?php
-							$units = array(
-								'd' => __('days','Shopp'),
-								'w' => __('weeks','Shopp')
-							);
-							echo menuoptions($units,$this->Settings->get('order_processing_unit'),true);
-						?>
+				<select name="settings[order_processing_min]" id="order-processing">
+						<?php echo menuoptions(Lookup::timeframes_menu(),$this->Settings->get('order_processing_min'),true); ?>
+				</select> &mdash; <select name="settings[order_processing_max]" id="order-processing">
+							<?php echo menuoptions(Lookup::timeframes_menu(),$this->Settings->get('order_processing_max'),true); ?>
 				</select><br />
 				<?php _e('Set the estimated time range for processing orders for shipment.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[lowstock_level]" value="<?php echo esc_attr($lowstock); ?>" id="lowstock-level" size="5" class="selectall" /><br />
-	            <?php _e('Enter the number for low stock level warnings.','Shopp'); ?></td>
+				<td>
+					<?php
+						$options = array_reverse(array_merge(range(0,25),range(30,50,5),range(60,100,10)));
+						array_walk($options,create_function('&$val','$val = "$val%";'));
+					?>
+					<select name="settings[lowstock_level]" id="lowstock-level">
+					<?php echo menuoptions($options,$lowstock); ?>
+					</select><br />
+	            	<?php _e('Enter the number for low stock level warnings.','Shopp'); ?>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th>
