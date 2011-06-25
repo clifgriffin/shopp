@@ -527,7 +527,7 @@ class ProductCategory extends ProductTaxonomy {
 		$records = $db->query("SELECT * FROM $table WHERE parent=$this->id AND context='category' AND type='image' ORDER BY $orderby",AS_ARRAY);
 
 		foreach ($records as $r) {
-			$image = new ProductCategoryImage();
+			$image = new CategoryImage();
 			$image->copydata($r,false,array());
 			$image->value = unserialize($image->value);
 			$image->expopulate();

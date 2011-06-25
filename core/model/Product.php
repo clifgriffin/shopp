@@ -292,6 +292,7 @@ class Product extends WPShoppObject {
 
 		// do_action('shopp_init_product_pricing');
 		// foreach ($this->prices as $i => &$price) {
+
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
 			$price->shipfee = (float)$price->shipfee;
@@ -400,6 +401,7 @@ class Product extends WPShoppObject {
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
 		if ($freeshipping) $target->freeshipping = true;
+
 	}
 
 	/**
@@ -1291,7 +1293,7 @@ class Product extends WPShoppObject {
 				return $string;
 				break;
 			case "has-variations":
-				return ($this->variations == "on" && (!empty($this->options['v']) || !empty($this->options))); break;
+				return ($this->variants == "on" && (!empty($this->options['v']) || !empty($this->options))); break;
 			case "variations":
 
 				$string = "";

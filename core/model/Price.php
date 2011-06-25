@@ -34,8 +34,10 @@ class Price extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function load_download () {
+		if(SHOPP_DEBUG) new ShoppError("loading download for price ".$this->id,false,SHOPP_DEBUG_ERR);
 		if ($this->type != "Download") return false;
-		$this->download = new ProductDownload(array(
+		$this->download = new ProductDownload();
+		$this->download->load(array(
 			'parent' => $this->id,
 			'context' => 'price',
 			'type' => 'download'

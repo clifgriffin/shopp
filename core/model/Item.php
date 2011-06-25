@@ -69,7 +69,7 @@ class Item {
 		$Product->load_data(array('prices','images','categories','tags','specs'));
 
 		// If product variations are enabled, disregard the first priceline
-		if ($Product->variations == "on") array_shift($Product->prices);
+		if ($Product->variants == "on") array_shift($Product->prices);
 
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) {
@@ -95,7 +95,7 @@ class Item {
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 
-		if ($Product->variations == "on")
+		if ($Product->variants == "on")
 			$this->variations($Product->prices);
 
 		if (isset($Product->addons) && $Product->addons == "on")
@@ -118,7 +118,7 @@ class Item {
 		$this->recurrences();
 
 		// Map out the selected menu name and option
-		if ($Product->variations == "on") {
+		if ($Product->variants == "on") {
 			$selected = explode(",",$this->option->options); $s = 0;
 			$variants = isset($Product->options['v'])?$Product->options['v']:$Product->options;
 			foreach ($variants as $i => $menu) {
@@ -260,10 +260,10 @@ class Item {
 	 * @return string
 	 **/
 	function options ($selection = "") {
-		if (empty($this->variations)) return "";
+		if (empty($this->variants)) return "";
 
 		$string = "";
-		foreach($this->variations as $option) {
+		foreach($this->variants as $option) {
 			if ($option->type == "N/A") continue;
 			$currently = ($option->onsale?$option->promoprice:$option->price)+$this->addonsum;
 			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
@@ -297,7 +297,7 @@ class Item {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A" || $price->context != "variation") continue;
 			$pricing = $this->mapprice($price);
-			if ($pricing) $this->variations[] = $pricing;
+			if ($pricing) $this->variants[] = $pricing;
 		}
 	}
 
@@ -655,7 +655,7 @@ class Item {
 						$options['before'].$this->option->label.$options['after']:'';
 
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-				if (count($this->variations) > 1) {
+				if (count($this->variants) > 1) {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';

@@ -274,6 +274,33 @@ class ImageAsset extends FileAsset {
 	function extensions () {
 		array_push($this->_xcols,'filename','width','height','alt','title','settings');
 	}
+
+	/**
+	 * unique - returns true if the the filename is unique, or can be made unique reasonably
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true on success, false on fail
+	 **/
+	function unique () {
+		$Existing = new ImageAsset();
+		$Existing->uri = $this->filename;
+		$limit = 100;
+		while ( $Existing->found() ) { // Rename the filename of the image if it already exists
+			list( $name, $ext ) = explode(".", $Existing->uri);
+			$_ = explode("-", $name);
+			$last = count($_) - 1;
+			$suffix = $last > 0 ? intval($_[$last]) + 1 : 1;
+			if ( $suffix == 1 ) $_[] = $suffix;
+			else $_[$last] = $suffix;
+			$Existing->uri = join("-", $_).'.'.$ext;
+			if ( ! $limit-- ) return false;
+		}
+		if ( $Existing->uri !== $this->filename )
+			$this->filename = $Existing->uri;
+		return true;
+	}
 }
 
 /**
