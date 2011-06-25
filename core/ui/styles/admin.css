@@ -27,15 +27,21 @@ th.textright { text-align: right; }
 #products-manager button.featured { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -40px; }
 #products-manager select.filters { max-width: 150px; }
 
+.column-featured,
+.column-inventory { text-align: center; }
 .saletag { position: relative; display: inline-block; background: #608E0F; height: 11px; font-size: 7px; color: #fff; text-transform: uppercase; margin-left: 10px; line-height: 7px; text-indent: -12px; padding: 0 2px 0 2px; -moz-border-radius:2px;-khtml-border-radius:2px;-webkit-border-radius:2px;border-radius:2px;  top: -1px; }
 .saletag:before { position: relative; content: "\25C0"; color: #608E0F; background: none; left: 2px; top: 2px; font-size: 11px; text-shadow: none;  }
+
+span.stock { padding: 0px 3px 1px; }
+span.stock.lowstock { color: #fff; font-weight: bold; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:2px; }
+span.lowstock.critical { background: #900; }
+span.lowstock.warning { background: #C60; }
 
 
 /** Inventory Manager **/
 #inventory-manager td.inventory { width: 60px; }
 #inventory-manager td.inventory input { text-align: right; }
 #inventory-manager td.inventory input.updating { background-position: 3px 3px; }
-
 
 /** AJAX-related **/
 .shopp .updating { background-image:url('../icons/updating.gif');background-repeat:no-repeat; }

@@ -143,7 +143,6 @@ class Product extends WPShoppObject {
 					&& isset($this->products[$this->_last_product]) )
 				$this->products[$this->_last_product]->sumup();
 		}
-
 	}
 
 	function load_meta ($ids) {
@@ -210,8 +209,14 @@ class Product extends WPShoppObject {
 		if (!isset($DatabaseObject) || !class_exists($DatabaseObject)) return;
 		$Object = new $DatabaseObject();
 		$Object->populate($record);
+
 		// Join summary data to the object
-		$Object->summary($records,$record);
+		if (isset($record->summed))	$Object->summary($records,$record);
+		else {
+			// Keep track products that don't have summary data for resum build run
+			if (!isset($this->resum)) $this->resum = array();
+			$this->resum[$index] = $Object;
+		}
 
 		if ($collate) {
 			if (!isset($records[$index])) $records[$index] = array();
@@ -325,11 +330,11 @@ class Product extends WPShoppObject {
 				$target->sale = 'on'; $price->onsale = true;
 			}
 
-			$price->stocked = false;
+			$price->isstocked = false;
 			if ($price->inventory == 'on') {
 				$target->stock += $price->stock;
 				$target->inventory = 'on';
-				$price->stocked = true;
+				$price->isstocked = true;
 			}
 
 			if ($price->freeshipping == '0' || $price->shipping == 'on')
@@ -347,7 +352,7 @@ class Product extends WPShoppObject {
 
 			// Grab price and saleprice ranges (minimum - maximum)
 			if (!$price->price) $price->price = 0;
-			if ($price->stocked) $varranges['stock'] = 'stock';
+			if ($price->isstocked) $varranges['stock'] = 'stock';
 			// do_action_ref_array('shopp_product_stats',array(&$price));
 
 			foreach ($varranges as $name => $prop) {
@@ -495,8 +500,8 @@ class Product extends WPShoppObject {
 
 		if ('on' == $Price->inventory) {
 			$this->inventory = $Price->inventory;
-			if (!$this->stock) $this->stock = $Price->stock;
-			else $this->stock += $Price->stock;
+			$this->stock += $Price->stock;
+			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
 		} else if (!$this->inventory) $this->inventory = 'off';
 
 		if (!isset($this->_soldcount)) { // Only recalculate sold count once
@@ -509,8 +514,9 @@ class Product extends WPShoppObject {
 	}
 
 	function resum () {
+		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
-		$this->stock = $this->maxprice = $this->minprice = $this->sold = 0;
+		$this->stock = $this->stocked = $this->maxprice = $this->minprice = $this->sold = 0;
 	}
 
 	/**
@@ -530,6 +536,24 @@ class Product extends WPShoppObject {
 		$Summary->modified = $this->summed;
 		$Summary->product = $this->id;
 		$Summary->save();
+	}
+
+	function lowstock ($level=false,$stock,$stocked) {
+
+		$Settings = ShoppSettings();
+		$setting = ( $Settings->get('lowstock_level')/100 );
+
+		$levels = array('none','warning','critical','backorder');
+		$max = array_search($level,$levels);
+		$factors = array(0,1,3);
+
+		$x = 3;
+		foreach ($factors as $factor) {
+			if ($stock <= min(1,$setting*$factor) * $stocked ) break;
+			$x--;
+		}
+
+		return $levels[max($max,$x)];
 	}
 
 	/**

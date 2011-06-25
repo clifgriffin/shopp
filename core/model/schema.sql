@@ -24,7 +24,8 @@ CREATE TABLE <?php echo $summary; ?> (							-- Summary table for product state 
 	grossed decimal(16,6) NOT NULL default '0.00',				-- (10) Gross sales
 	maxprice decimal(16,6) NOT NULL default '0.00',				-- (10) Maximum price of all product's price records
 	minprice decimal(16,6) NOT NULL default '0.00',				-- (10) Minimum price of all product's price records
-	stock int(10) NOT NULL default '0',							-- (4) Total stock of all product variant records
+	lowstock enum('none','warning','critical','backorder') NOT NULL,	-- (1) Product low stock warning status
+	stock int(10) NOT NULL default '0',							-- (4) Total stock of all product price records
 	inventory enum('off','on') NOT NULL,						-- (1) Product has inventory flag
 	featured enum('off','on') NOT NULL,							-- (1) Featured product setting
 	variants enum('off','on') NOT NULL,							-- (1) Product has variants flag
