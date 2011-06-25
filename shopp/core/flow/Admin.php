@@ -568,7 +568,7 @@ class AdminFlow extends FlowController {
 		echo $widget_name;
 		echo $after_title;
 
-		$RecentBestsellers = new BestsellerProducts(array('where'=>array('UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)'),'show'=>3));
+		$RecentBestsellers = new BestsellerProducts(array('where'=>array('UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)'),'show'=>5));
 		$RecentBestsellers->load();
 
 		echo '<table><tbody><tr>';
@@ -580,7 +580,7 @@ class AdminFlow extends FlowController {
 		echo '</ul></td>';
 
 
-		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
+		$LifetimeBestsellers = new BestsellerProducts(array('show'=>5));
 		$LifetimeBestsellers->load();
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';

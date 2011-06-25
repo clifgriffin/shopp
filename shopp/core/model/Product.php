@@ -411,7 +411,7 @@ class Product extends WPShoppObject {
 	 * @return boolean
 	 **/
 	function published () {
-		return ($this->status == "publish" && time() >= $this->publish);
+		return ('publish' == $this->status && time() >= $this->publish);
 	}
 
 	/**
@@ -445,10 +445,9 @@ class Product extends WPShoppObject {
 	 * @return int
 	 **/
 	function sold () {
-		$db =& DB::get();
+		$purchase = DatabaseObject::tablename(Purchase::$table);
 		$purchased = DatabaseObject::tablename(Purchased::$table);
-		$r = $db->query("SELECT count(*) AS sold FROM $purchased WHERE product=$this->id LIMIT 1");
-		return $r->sold;
+		return DB::query("SELECT sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE product=$this->id AND o.txnstatus='CHARGED' LIMIT 1");
 	}
 
 	/**
@@ -469,9 +468,7 @@ class Product extends WPShoppObject {
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
 		}
-		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
-
-
+		if (isset($data->modified)) $this->summed = DB::mktime($data->modified);
 	}
 
 	/**
@@ -501,7 +498,9 @@ class Product extends WPShoppObject {
 		} else if (!$this->inventory) $this->inventory = 'off';
 
 		if (!isset($this->_soldcount)) { // Only recalculate sold count once
-			$this->sold = $this->_soldcount = $this->sold();
+			$sc = $this->sold();
+			$this->sold = $sc->sold;
+			$this->grossed = $sc->grossed;
 			$this->_soldcount = true;
 		}
 
@@ -523,11 +522,12 @@ class Product extends WPShoppObject {
 	 **/
 	function sumup () {
 		if (empty($this->id)) return;
+
 		$Summary = new ProductSummary();
 		$Summary->copydata($this);
 		$Summary->modified = $this->summed;
 		$Summary->product = $this->id;
-		$Summary->save( (!$Summary->modified) );
+		$Summary->save();
 	}
 
 	/**
@@ -639,34 +639,38 @@ class Product extends WPShoppObject {
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {
-		$db = DB::get();
-		$id = $this->{$this->_key};
+		$id = $this->id;
 		if (empty($id)) return false;
 
-		// Delete from categories
-		$table = DatabaseObject::tablename(Catalog::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		// Delete from categories @todo Remove from categories
+		// $table = DatabaseObject::tablename(Catalog::$table);
+		// $db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete prices
 		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete images/files
 		$table = DatabaseObject::tablename(ProductImage::$table);
 
 		// Delete images
 		$images = array();
-		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",AS_ARRAY);
+		$src = DB::query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",AS_ARRAY);
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
 
 		// Delete product meta (specs, images, downloads)
 		$table = DatabaseObject::tablename(MetaObject::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
 
 		// Delete record
-		$db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		DB::query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
+	}
+
+	function trash () {
+		$id = $this->{$this->_key};
+		DB::query("UPDATE $this->_table SET post_status='trash' WHERE ID='$id'");
 	}
 
 	function duplicate () {
@@ -743,6 +747,27 @@ class Product extends WPShoppObject {
 				else return (in_array($rule['v'],array_keys($this->categorieskey))); break;
 		}
 		return false;
+	}
+
+	static function publishset ($ids,$status) {
+		if (empty($ids) || !is_array($ids)) return false;
+		$settings = array('publish','draft','trash');
+		if (!in_array($status,$settings)) return false;
+		$table = WPShoppObject::tablename(self::$table);
+		DB::query("UPDATE $table SET post_status='$status' WHERE ID in (".join(',',$ids).")");
+		return true;
+	}
+
+	static function featureset ($ids,$setting) {
+		if (empty($ids) || !is_array($ids)) return false;
+		$settings = array('on','off');
+		if (!in_array($setting,$settings)) return false;
+		foreach ($ids as $id) {
+			$Product = new ProductSummary((int)$id);
+			$Product->featured = $setting;
+			$Product->save();
+		}
+		return true;
 	}
 
 	function __tag__ ($property,$options=array()) {

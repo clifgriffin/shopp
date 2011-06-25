@@ -5,11 +5,12 @@
 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
 
-	<form action="" method="get" id="products-manager">
-	<?php include("navigation.php"); ?>
+	<form action="<?php echo esc_url($url); ?>" method="get" id="products-manager">
+	<?php include('navigation.php'); ?>
 
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('products'); ?>" />
+		<input type="hidden" name="view" value="<?php echo $this->view; ?>" />
 	</div>
 
 	<p id="post-search" class="search-box">
@@ -19,15 +20,26 @@
 
 
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft actions filters">
-		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
-		<?php echo $categories_menu; ?>
-		<select name="sl" class="filters">
-		<?php echo $inventory_menu; ?>
+		<?php if ($page_links): ?><div class='tablenav-pages'><?php echo $page_links; ?></div><?php endif; ?>
+
+		<div class="alignleft actions">
+		<select name="action" id="actions">
+			<option value="" selected="selected"><?php _e('Bulk Actions&hellip;','Shopp'); ?></option>
+			<?php echo menuoptions($actions_menu,false,true); ?>
 		</select>
+		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
+		</div>
+
+		<div class="alignleft actions filters">
+		<?php echo $categories_menu; ?>
+		<?php echo $inventory_menu; ?>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
+		<?php if ($is_trash): ?>
+		<div class="alignleft actions">
+			<input type="submit" name="delete_all" id="delete_all" class="button-secondary apply" value="<?php _e('Empty Trash','Shopp'); ?>"  />
+		</div>
+		<?php endif; ?>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -39,29 +51,21 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
 		</tfoot>
-	<?php if ($Products->total > 0): ?>
+	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');
 
 		$even = false;
 		foreach ($Products as $key => $Product):
-		$editurl = esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>'shopp-products',
-					'id'=>$Product->id)),
-					admin_url('admin.php')));
 
-		$delurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>'shopp-products',
-					'delete[]'=>$Product->id,
-					'deleting'=>'product')),
-					admin_url('admin.php'))));
+		$editor_url = remove_query_arg(array('s','cat','sl'),$url);
 
-		$dupurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>'shopp-products',
-					'duplicate'=>$Product->id)),
-					admin_url('admin.php'))));
-
+		$editurl = esc_url( add_query_arg( array('id'=>$Product->id,'view'=>null),$editor_url ) );
+		$trashurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'trash'),$editor_url ) );
+		$dupurl = esc_url( add_query_arg( array('duplicate'=>$Product->id), $editor_url ) );
+		$restoreurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'restore'),$editor_url ) );
+		$delurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'delete'),$editor_url ) );
 
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 
@@ -71,16 +75,36 @@
 		}
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'><?php echo esc_html($ProductName); ?></a>
+			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Product->id; ?>' /></th>
+			<td class="name column-name"><strong><?php if ($is_trash): ?><?php echo esc_html($ProductName); ?><?php else: ?><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'><?php echo esc_html($ProductName); ?></a><?php endif; ?></strong>
+				<?php if ($is_trash): ?>
+					<div class="row-actions">
+						<span class='untrash'><a title="<?php _e('Restore','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $restoreurl; ?>"><?php _e('Restore','Shopp'); ?></a> | </span>
+						<span class='delete'><a title="<?php echo esc_attr(sprintf(__('Delete %s permanently','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete Permanently','Shopp'); ?></a></span>
+					</div>
+				<?php else: ?>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
-					<span class='delete'><a class="submitdelete" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
+					<span class='delete'><a class="delete" title="<?php echo esc_attr(sprintf(__('Move %s to the trash','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $trashurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Trash','Shopp'); ?></a> | </span>
 					<span class='view'><a href="<?php echo $Product->tag('url'); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
+				<?php endif; ?>
 				</td>
+			<?php if (!$is_trash && !$is_bestselling): ?>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo join(', ',$categories); ?></td>
+			<?php endif; ?>
+
+			<?php if ($is_bestselling): ?>
+			<td class="sold column-sold<?php echo in_array('sales',$hidden)?' hidden':''; ?>">
+				<?php echo $Product->sold; ?>
+			</td>
+			<td class="grossed column-grossed<?php echo in_array('sales',$hidden)?' hidden':''; ?>">
+				<?php echo money($Product->grossed); ?>
+			</td>
+			<?php endif; ?>
+
+
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; if ($Product->sale == 'on') echo " sale"?>"><?php
 				if ($Product->variations == "off") echo money($Product->minprice);
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
@@ -88,8 +112,48 @@
 				if ($Product->sale == 'on') echo '<span class="saletag">'.__('Sale','Shopp').'</span>';
 			?>
 			</td>
-			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td>
-			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>"><button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button></td>
+
+			<?php if ('on' == $Settings->get('inventory')): ?>
+				<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td>
+			<?php endif; ?>
+
+			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>">
+				<button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button>
+			</td>
+
+			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>">
+			<?php
+
+			if ( '0' == $Product->publish) {
+				$t_time = $h_time = __('Unpublished');
+				$time_diff = 0;
+			} else {
+				$t_time = get_the_time(__('Y/m/d g:i:s A'));
+				$m_time = $Product->publish;
+				$time = get_post_time('G', true, $Product->id);
+				$time_diff = time() - $time;
+
+				if ( $time_diff > 0 && $time_diff < 24*60*60 )
+					$h_time = sprintf( __('%s ago'), human_time_diff( $time ) );
+				else
+					$h_time = date(__('Y/m/d'), $m_time);
+			}
+
+				echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product, $column_name, $mode) . '</abbr>';
+			echo '<br />';
+			if ( 'publish' == $Product->status ) {
+				_e('Published');
+			} elseif ( 'future' == $Product->status ) {
+				if ( $time_diff > 0 )
+					echo '<strong class="attention">' . __('Missed schedule') . '</strong>';
+				else
+					_e('Scheduled');
+			} else {
+				_e('Last Modified');
+			}
+
+			?>
+			</td>
 
 		</tr>
 		<?php endforeach; ?>
