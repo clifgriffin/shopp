@@ -123,7 +123,7 @@ function shopp_categories_meta_box ($Product,$options) {
 	<ul id="<?php echo $taxonomy; ?>-tabs" class="category-tabs">
 		<li class="tabs"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"><?php _e('Show All'); ?></a></li>
 		<li class="hide-if-no-js"><a href="#<?php echo $taxonomy; ?>-pop" tabindex="3"><?php _e( 'Popular','Shopp' ); ?></a></li>
-		<li class="hide-if-no-js new-category"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"  class="new-category-tab"><?php _e( 'New Category' ); ?></a></li>
+		<li class="hide-if-no-js hide-if-js new-category"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"  class="new-category-tab"><?php _e( 'New Category' ); ?></a></li>
 	</ul>
 </div><?php
 }
@@ -166,9 +166,20 @@ function settings_meta_box ($Product) {
 	foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 ?>
 	<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
-	<p><input type="hidden" name="meta[packaging" value="off" /><input type="checkbox" name="meta[packaging]" value="on" id="packaging-setting" tabindex="18"  <?php if(isset($Product->meta['packaging']) && $Product->meta['packaging']->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?><?php echo $Admin->boxhelp('product-editor-variations'); ?></label></p>
 	<p><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting" tabindex="13"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> <?php _e('Add-ons','Shopp'); ?><?php echo $Admin->boxhelp('product-editor-addons'); ?></label></p>
+
+	<p><input type="hidden" name="meta[packaging]" value="off" /><input type="checkbox" name="meta[packaging]" value="on" id="packaging-setting" tabindex="18"  <?php if(isset($Product->meta['packaging']) && $Product->meta['packaging']->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
+
+	<p><input type="checkbox" name="processtime" value="on" id="process-time" tabindex="18"  <?php if($Product->minprocess+$Product->maxprocess > 0) echo 'checked="checked"'; ?> /> <label for="process-time"><?php _e('Processing Time','Shopp'); ?></label>
+
+	<div id="processing" class="hide-if-js">
+		<select name="minprocess"><?php echo menuoptions(Lookup::timeframes_menu(),$Product->minprocess,true); ?></select> &mdash;
+		<select name="maxprocess"><?php echo menuoptions(Lookup::timeframes_menu(),$Product->maxprocess,true); ?></select>
+	</div>
+
+	</p>
+
 <?php
 }
 add_meta_box(

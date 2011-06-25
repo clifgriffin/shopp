@@ -43,8 +43,8 @@ function get_file($path) {
 	return @file_get_contents($path);
 }
 
-
-require('functions.php');
+if (!function_exists('shopp_find_wpload'))
+	require('functions.php');
 
 if (!defined('ABSPATH')) {
 	$loadfile = shopp_find_wpload();

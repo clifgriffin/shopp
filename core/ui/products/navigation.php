@@ -1,8 +1,13 @@
-<ul class="subsubsub">
-	<?php foreach($subs as $nav => $sub):
-		if ($nav=="inventory" and $sub['total'] == "0") continue;
-		$filter = isset($sub['request'])?array('f'=>$sub['request']):array('f'=>null);
-	?>
-	<li><?php echo ($nav != "all")?"| ":""; ?><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,$filter),admin_url('admin.php'))); ?>"><?php echo $sub['label']; ?></a> (<?php echo $sub['total']; ?>)</li>
-	<?php endforeach; ?>
-</ul>
+<ul class="subsubsub"><?php
+	$links = array();
+	foreach($subs as $name => $sub) {
+		extract($sub);
+		if ('0' == $sub['total']) continue;
+		$suburl = remove_query_arg(array('apply','selected','pagenum','view'),$url);
+		$filter = 'all' != $name ? array('view'=>$name) : array('view'=>null);
+		$link = esc_url(add_query_arg($filter,$suburl));
+		$class = ($this->view == $name?' class="current"':false);
+		$links[] = sprintf('<li><a href="%s"%s>%s</a> <span class="count">(%d)</span>',$link,$class,$sub['label'],$sub['total']);
+	}
+	echo join(' | </li>',$links);
+?></ul>

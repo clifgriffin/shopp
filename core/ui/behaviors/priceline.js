@@ -239,9 +239,7 @@ function Priceline (id,options,data,target,attachment) {
 		dis = ui.find('span.status');
 		ui = ui.find('span.ui').hide();
 
-		_.sp = $('#saleprice-'+i);
-		_.sp.val(asMoney(new Number(saleprice)));
-
+		_.sp = $('#saleprice-'+i).val(asMoney(new Number(saleprice)));
 		_.spt = $('#sale-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.sp);
 	};
 
@@ -361,8 +359,7 @@ function Priceline (id,options,data,target,attachment) {
 			}
 
 			dh.blur(toggleDimensions);
-			weight.click(toggleDimensions);
-			weight.attr('readonly',true);
+			weight.click(toggleDimensions).attr('readonly',true);
 
 		}
 
@@ -374,7 +371,7 @@ function Priceline (id,options,data,target,attachment) {
 					'<input type="checkbox" name="'+fn+'[inventory]" id="inventory-'+i+'" value="on" />'+
 					'<label for="inventory-'+i+'"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+NOT_TRACKED_TEXT+'</span>'+
-					'<span class="ui"><input type="text" name="'+fn+'[stock]" id="stock-'+i+'" size="8" class="selectall right" />'+
+					'<span class="ui"><input type="text" name="'+fn+'[stocked]" id="stock-'+i+'" size="8" class="selectall right" />'+
 					'<label for="stock-'+i+'"> '+IN_STOCK_LABEL+'</label><br />'+
 					'<input type="text" name="'+fn+'[sku]" id="sku-'+i+'" size="8" title="'+SKU_XTRA+'" class="selectall" />'+
 					'<label for="sku-'+i+'" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label></span></td>').appendTo(inputsRow);
@@ -383,12 +380,8 @@ function Priceline (id,options,data,target,attachment) {
 		ui = ui.find('span.ui').hide();
 
 		if (!stock) stock = 0;
-		_.stock = $('#stock-'+i);
-		_.stock.val(stock).trigger('change.value',function() { var n = new Number(this.value); this.value = n; });
-
-		_.sku = $('#sku-'+i);
-		_.sku.val(sku);
-
+		_.stock = $('#stock-'+i).val(stock).trigger('change.value',function() { this.value = new Number(this.value); });
+		_.sku = $('#sku-'+i).val(sku);
 		_.it = hd.find('#inventory-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.stock);
 	};
 

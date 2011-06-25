@@ -78,6 +78,11 @@ jQuery(document).ready(function() {
 		else $('#publish-status,#schedule-toggling,#scheduling').hide();
 	}).change();
 
+	$('#process-time').change(function () {
+		var pt = $('#processing');
+		if ($(this).attr('checked')) pt.slideDown('fast');
+		else pt.hide();
+	}).change();
 
 	// Setup the slug editor
 	editslug = new SlugEditor(product,'product');

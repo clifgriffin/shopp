@@ -18,15 +18,12 @@
 	</p>
 
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+		<?php if ($page_links): ?><div class="tablenav-pages""><?php echo $page_links; ?></div><?php endif; ?>
+
 		<div class="alignleft actions filters">
-		<select name="cat" class="filters">
 		<?php echo $categories_menu; ?>
-		</select>
-		<select name="sl" class="filters">
 		<?php echo $inventory_menu; ?>
-		</select>
-		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
+		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -41,7 +38,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Products) > 0): ?>
+	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');
