@@ -175,7 +175,7 @@ class ShoppCartItemThemeAPI {
 				$options['before'].$O->option->label.$options['after']:'';
 
 		if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-		if (count($O->variations) > 1) {
+		if (count($O->variants) > 1) {
 			$result .= $options['before'];
 			$result .= '<input type="hidden" name="items['.$O->_id.'][product]" value="'.$O->product.'"/>';
 			$result .= ' <select name="items['.$O->_id.'][price]" id="items-'.$O->_id.'-price"'.$class.'>';

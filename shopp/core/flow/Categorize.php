@@ -437,7 +437,7 @@ class Categorize extends AdminController {
 			$Category->save_imageorder($_POST['images']);
 			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
 				foreach($_POST['imagedetails'] as $i => $data) {
-					$Image = new ProductCategoryImage($data['id']);
+					$Image = new CategoryImage($data['id']);
 					$Image->title = $data['title'];
 					$Image->alt = $data['alt'];
 					$Image->save();
