@@ -747,6 +747,30 @@ class Lookup {
 	}
 
 	/**
+	 * Generates a menu of order processing time frames
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return array List of options
+	 **/
+	static function timeframes_menu () {
+		$units = array(
+			'd' => array(11,__('day','Shopp'),__('days','Shopp')),
+			'w' => array(7,__('week','Shopp'),__('weeks','Shopp')),
+			'm' => array(4,__('month','Shopp'),__('months','Shopp')),
+		);
+
+		$_ = array();
+		foreach ($units as $u => $unit) {
+			for ($i = 1; $i < $unit[0]; $i++)
+				$_[$i.$u] = sprintf('%d %s',$i, ($i == 1?$unit[1]:$unit[2]) );
+		}
+
+		return apply_filters('shopp_timeframes_menu',$_);
+	}
+
+	/**
 	 * Predefined error messages for common occurrences including common PHP-generated error codes
 	 *
 	 * @author Jonathan Davis
