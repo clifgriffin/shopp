@@ -210,7 +210,6 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function upschema () {
 		require(ABSPATH.'wp-admin/includes/upgrade.php');
-
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
 		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
@@ -221,7 +220,10 @@ class ShoppInstallation extends FlowController {
 		ob_end_clean();
 
 		// Update the table schema
+		// Strip SQL comments
+		$schema = preg_replace('/--\s?(.*?)\n/',"\n",$schema);
 		$tables = preg_replace('/;\s+/',';',$schema);
+
 		ob_start(); // Suppress dbDelta errors
 		$changes = dbDelta($tables);
 		ob_end_clean();
@@ -566,8 +568,8 @@ class ShoppInstallation extends FlowController {
 				$post_type = 'shopp_product';
 
 				// Create custom post types from products, temporarily use post_parent for link to original product entry
-				DB::query("INSERT INTO $wpdb->posts (post_type,post_name,post_title,post_excerpt,post_content,post_status,post_date,post_modified,post_parent)
-							SELECT '$post_type',slug,name,summary,description,status,publish,modified,id FROM $product_table");
+				DB::query("INSERT INTO $wpdb->posts (post_type,post_name,post_title,post_excerpt,post_content,post_status,post_date,post_date_gmt,post_modified,post_modified_gmt,post_parent)
+							SELECT '$post_type',slug,name,summary,description,status,publish,publish,modified,modified,id FROM $product_table");
 
 				// Link original product data to new custom post type record
 				// DB::query("UPDATE $summary_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.product=wp.ID");
