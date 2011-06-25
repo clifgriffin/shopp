@@ -83,9 +83,9 @@ class Promote extends AdminController {
 
 		if ('shopp-promotions' == $page && $action !== false) {
 			switch ( $action ) {
-				case 'enable': DB::query("UPDATE $table SET status='enabled' WHERE id IN (".join(',',$selected).")"); break;
-				case 'disable': DB::query("UPDATE $table SET status='disabled' WHERE id IN (".join(',',$selected).")"); break;
-				case 'delete': DB::query("DELETE FROM $table WHERE id IN (".join(',',$selected).")"); break;
+				case 'enable': Promotion::enableset($selected); break;
+				case 'disable': Promotion::disableset($selected); break;
+				case 'delete': Promotion::deleteset($selected); break;
 			}
 		}
 
