@@ -260,9 +260,7 @@ class ImageServer extends DatabaseObject {
 	}
 
 	function settings () {
-		global $Shopp;
-		$Shopp->Settings = new Settings();
-		$this->Settings = &ShoppSettings();
+		ShoppSettings();
 	}
 
 } // end ImageServer class
