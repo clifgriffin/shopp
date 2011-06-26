@@ -43,16 +43,16 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$this->merchant_calc_url = esc_url(add_query_string('_txnupdate=gc',shoppurl(false,'catalog',true)));
 
 		$this->setup('id','key','apiurl');
-		$this->settings['merchant_email'] = ShoppSettings()->get('merchant_email');
+		$this->settings['merchant_email'] = shopp_setting('merchant_email');
 		$this->settings['location'] = "en_US";
-		$base = ShoppSettings()->get('base_operations');
+		$base = shopp_setting('base_operations');
 		if ($base['country'] == "GB") $this->settings['location'] = "en_UK";
 
-		$this->settings['base_operations'] = ShoppSettings()->get('base_operations');
+		$this->settings['base_operations'] = shopp_setting('base_operations');
 		$this->settings['currency'] = $this->settings['base_operations']['currency']['code'];
 		if (empty($this->settings['currency'])) $this->settings['currency'] = "USD";
 
-		$this->settings['taxes'] = ShoppSettings()->get('taxrates');
+		$this->settings['taxes'] = shopp_setting('taxrates');
 
 		if (isset($_GET['gctest'])) $this->order('');
 
@@ -317,7 +317,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped()) {
 					if ($Cart->freeshipping === true) { // handle free shipping case and ignore all shipping methods
-						$free_shipping_text = ShoppSettings()->get('free_shipping_text');
+						$free_shipping_text = shopp_setting('free_shipping_text');
 						if (empty($free_shipping_text)) $free_shipping_text = __('Free Shipping!','Shopp');
 						$_[] = '<shipping-methods>';
 						$_[] = '<flat-rate-shipping name="'.$free_shipping_text.'">';
@@ -363,7 +363,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 							$_[] = '<tax-rules>';
 							foreach ($this->settings['taxes'] as $tax) {
 								$_[] = '<default-tax-rule>';
-									$_[] = '<shipping-taxed>'.(ShoppSettings()->get('tax_shipping') == 'on' ? 'true' : 'false').'</shipping-taxed>';
+									$_[] = '<shipping-taxed>'.(shopp_setting('tax_shipping') == 'on' ? 'true' : 'false').'</shipping-taxed>';
 									$_[] = '<rate>'.number_format($tax['rate']/100,4).'</rate>';
 									$_[] = '<tax-area>';
 										if ($tax['country'] == "US" && isset($tax['zone'])) {

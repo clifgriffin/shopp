@@ -101,7 +101,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	function country ($result, $options, $O) {
 		global $Shopp;
-		$countries = ShoppSettings()->get('target_markets');
+		$countries = shopp_setting('target_markets');
 		return $countries[$O->country];
 	}
 
@@ -399,7 +399,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	function ship_country ($result, $options, $O) {
 		global $Shopp;
-		$countries = ShoppSettings()->get('target_markets');
+		$countries = shopp_setting('target_markets');
 		return $countries[$O->shipcountry];
 	}
 
@@ -425,7 +425,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	function status ($result, $options, $O) {
 		global $Shopp;
-		$labels = ShoppSettings()->get('order_status');
+		$labels = shopp_setting('order_status');
 		if (empty($labels)) $labels = array('');
 		return $labels[$O->status];
 	}

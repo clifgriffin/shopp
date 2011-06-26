@@ -151,7 +151,7 @@ class Item {
 		}
 
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->taxable = ($Price->tax == "on" && ShoppSettings()->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && shopp_setting('taxes') == "on")?true:false;
 	}
 
 	/**
@@ -432,7 +432,7 @@ class Item {
 				// @todo Handle new low stock level setting to trigger appropriate notifications for addons
 				if ($Addon->stock == 0)
 					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
-				elseif ($Addon->stock <= ShoppSettings()->get('lowstock_level'))
+				elseif ($Addon->stock <= shopp_setting('lowstock_level'))
 					return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product_addon),'lowstock_warning',SHOPP_STOCK_ERR);
 
 			}
@@ -447,7 +447,7 @@ class Item {
 		if ($this->option->stock == 0)
 			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
 
-		if ($this->option->stock <= ShoppSettings()->get('lowstock_level'))
+		if ($this->option->stock <= shopp_setting('lowstock_level'))
 			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 
 	}

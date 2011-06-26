@@ -62,7 +62,7 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 
 	function settings () {
 		$this->ui->tablerates(0,array(
-			'unit' => array(__('Weight','Shopp'),ShoppSettings()->get('weight_unit')),
+			'unit' => array(__('Weight','Shopp'),shopp_setting('weight_unit')),
 			'table' => $this->settings['table']
 		));
 

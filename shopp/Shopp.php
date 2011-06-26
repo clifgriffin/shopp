@@ -152,7 +152,7 @@ class Shopp {
 		if (!defined('SHOPP_NAMESPACE_TAXONOMIES')) define('SHOPP_NAMESPACE_TAXONOMIES',true);
 
 		// Settings & Paths
-		define('SHOPP_DEBUG',(ShoppSettings()->get('error_logging') == 2048));
+		define('SHOPP_DEBUG',(shopp_setting('error_logging') == 2048));
 		define('SHOPP_PATH',$path);
 		define('SHOPP_DIR',$directory);
 		define('SHOPP_PLUGINURI',$uri);
@@ -171,11 +171,11 @@ class Shopp {
 		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
 		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
-		define('SHOPP_TEMPLATES',(ShoppSettings()->get('theme_templates') != 'off'
+		define('SHOPP_TEMPLATES',(shopp_setting('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_stylesheet_directory().'/shopp'):
 					  SHOPP_PATH.'/templates');
-		define('SHOPP_TEMPLATES_URI',(ShoppSettings()->get('theme_templates') != 'off'
+		define('SHOPP_TEMPLATES_URI',(shopp_setting('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_bloginfo('stylesheet_directory').'/shopp'):
 					  SHOPP_PLUGINURI.'/templates');
@@ -406,7 +406,7 @@ class Shopp {
 	 * @return void
 	 **/
 	function settingsjs () {
-		$baseop = ShoppSettings()->get('base_operations');
+		$baseop = shopp_setting('base_operations');
 
 		$currency = array();
 		if (isset($baseop['currency'])
@@ -576,13 +576,13 @@ class Shopp {
 
 		$result = apply_filters('shopp_update_key',$result);
 
-		ShoppSettings()->save( 'updatekey',$result );
+		shopp_set_setting( 'updatekey',$result );
 
 		return $response;
 	}
 
 	function keysetting () {
-		$data = base64_decode(ShoppSettings()->get('updatekey'));
+		$data = base64_decode(shopp_setting('updatekey'));
 		return unpack(Lookup::keyformat(),$data);
 	}
 
@@ -633,7 +633,7 @@ class Shopp {
 		else $plugin_updates = get_transient('update_plugins');
 
 		if (isset($updates->response)) {
-			ShoppSettings()->save('updates',$updates);
+			shopp_set_setting('updates',$updates);
 
 			// Add Shopp to the WP plugin update notification count
 			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
@@ -682,8 +682,8 @@ class Shopp {
 	 * @return void
 	 **/
 	function status () {
-		$updates = ShoppSettings()->get('updates');
-		$key = ShoppSettings()->get('updatekey');
+		$updates = shopp_setting('updates');
+		$key = shopp_setting('updatekey');
 
 		$activated = isset($key[0])?($key[0] == '1'):false;
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
@@ -700,7 +700,7 @@ class Shopp {
 			if (!$activated) { // Key not active
 				$update_url = SHOPP_HOME."store/";
 				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
-				ShoppSettings()->save('updates',false);
+				shopp_set_setting('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
@@ -711,7 +711,7 @@ class Shopp {
 		if (!$activated) { // No update availableKey not active
 			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
-			ShoppSettings()->save('updates',false);
+			shopp_set_setting('updates',false);
 			return;
 		}
 
@@ -736,10 +736,10 @@ class Shopp {
 	 **/
 	function maintenance () {
 		// Settings unavailable
-		if (!ShoppSettings()->available || !ShoppSettings()->get('shopp_setup') != "completed")
+		if (!ShoppSettings()->available || !shopp_setting('shopp_setup') != "completed")
 			return false;
 
-		ShoppSettings()->save('maintenance','on');
+		shopp_set_setting('maintenance','on');
 		return true;
 	}
 

@@ -118,7 +118,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	function reset () {
 		if (!in_array($this->module,explode(',',$_POST['settings']['active_gateways'])))
-			ShoppSettings()->save('OfflinePayment',false);
+			shopp_set_setting('OfflinePayment',false);
 
 	}
 

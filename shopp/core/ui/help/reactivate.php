@@ -34,7 +34,7 @@
 
 				// @todo
 				// $_ = array();
-				// $_[] = 'From: "'.get_option('blogname').'" <'.ShoppSettings()->get('merchant_email').'>';
+				// $_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
 				// $_[] = 'To: '.$RecoveryCustomer->email;
 				// $_[] = 'Subject: '.$subject;
 				// $_[] = '';

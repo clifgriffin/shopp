@@ -199,8 +199,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	function billing_country ($result, $options, $O) {
 		global $Shopp;
 
-		$base = ShoppSettings()->get('base_operations');
-		$countries = ShoppSettings()->get('target_markets');
+		$base = shopp_setting('base_operations');
+		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
@@ -234,7 +234,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			$options['selected'] = $O->Billing->locale ? $O->Billing->locale : false;
 		}
 
-		$rates = ShoppSettings()->get("taxrates");
+		$rates = shopp_setting("taxrates");
 		foreach ( $rates as $rate ) { // @todo - what if more than one set of local rates applies to current country/zone? ie. conditions
 			if ( isset( $rate['locals'] ) ) {
 				$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
@@ -289,7 +289,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	} // end function billing_locale
 
 	function billing_localities ($result, $options, $O) {
-		$rates = ShoppSettings()->get("taxrates");
+		$rates = shopp_setting("taxrates");
 		foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 		return false;
 	}
@@ -304,8 +304,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	function billing_state ($result, $options, $O) {
 		global $Shopp;
-		$base = ShoppSettings()->get('base_operations');
-		$countries = ShoppSettings()->get('target_markets');
+		$base = shopp_setting('base_operations');
+		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
@@ -570,7 +570,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		global $Shopp;
 		if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 		$regions = Lookup::country_zones();
-		$base = ShoppSettings()->get('base_operations');
+		$base = shopp_setting('base_operations');
 
 		$js = "var regions = ".json_encode($regions).",".
 							"SHIPCALC_STATUS = '".$options['shipcalc']."',".
@@ -633,7 +633,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return $input;
 	}
 
-	function not_logged_in ($result, $options, $O) { return (!$O->Customer->login && ShoppSettings()->get('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) { return (!$O->Customer->login && shopp_setting('account_system') != "none"); }
 
 	function order_data ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
@@ -873,8 +873,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	function shipping_country ($result, $options, $O) {
-		$base = ShoppSettings()->get('base_operations');
-		$countries = ShoppSettings()->get('target_markets');
+		$base = shopp_setting('base_operations');
+		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";
@@ -899,8 +899,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	function shipping_state ($result, $options, $O) {
 		global $Shopp;
 
-		$base = ShoppSettings()->get('base_operations');
-		$countries = ShoppSettings()->get('target_markets');
+		$base = shopp_setting('base_operations');
+		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		if (!isset($options['mode'])) $options['mode'] = "input";

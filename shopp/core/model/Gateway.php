@@ -87,14 +87,14 @@ abstract class GatewayFramework {
 		$this->session = $Shopping->session;
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
-		$this->settings = ShoppSettings()->get($this->module);
+		$this->settings = shopp_setting($this->module);
 		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
 
 		if ( $this->xml && ! class_exists('xmlQuery') ) require(SHOPP_MODEL_PATH."/XML.php");
 		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
-		$this->baseop = ShoppSettings()->get('base_operations');
+		$this->baseop = shopp_setting('base_operations');
 		$this->precision = $this->baseop['currency']['format']['precision'];
 
 		$this->_loadcards();
@@ -364,7 +364,7 @@ class GatewayModules extends ModuleLoader {
 	function activated () {
 		global $Shopp;
 		$this->activated = array();
-		$gateways = explode(",",ShoppSettings()->get('active_gateways'));
+		$gateways = explode(",",shopp_setting('active_gateways'));
 		foreach ($this->modules as $gateway)
 			if (in_array($gateway->subpackage,$gateways))
 				$this->activated[] = $gateway->subpackage;

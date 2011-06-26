@@ -190,7 +190,7 @@ class Flow {
 	function save_settings () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			ShoppSettings()->save($setting,$value);
+			shopp_set_setting($setting,$value);
 		return true;
 	}
 

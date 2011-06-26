@@ -385,9 +385,9 @@ class Cart {
 	 * available shipping information set by shipzone() */
 	function taxrate () {
 		global $Shopp;
-		if (ShoppSettings()->get('taxes') == "off") return false;
+		if (shopp_setting('taxes') == "off") return false;
 
-		$taxrates = ShoppSettings()->get('taxrates');
+		$taxrates = shopp_setting('taxrates');
 		if (!is_array($taxrates)) return false;
 
 		if (!empty($this->Order->Shipping->country)) $country = $this->Order->Shipping->country;
@@ -775,8 +775,8 @@ class CartDiscounts {
 	 **/
 	function __construct () {
 		global $Shopp;
-		$this->limit = ShoppSettings()->get('promo_limit');
-		$baseop = ShoppSettings()->get('base_operations');
+		$this->limit = shopp_setting('promo_limit');
+		$baseop = shopp_setting('base_operations');
 		$this->precision = $baseop['currency']['format']['precision'];
 
 		$this->Order = &$Shopp->Order;
@@ -1122,8 +1122,8 @@ class CartShipping {
 
 		$this->showpostcode = $Shopp->Shipping->postcodes;
 
-		$this->disabled = $this->Cart->noshipping = (ShoppSettings()->get('shipping') == "off");
-		$this->handling = ShoppSettings()->get('order_shipfee');
+		$this->disabled = $this->Cart->noshipping = (shopp_setting('shipping') == "off");
+		$this->handling = shopp_setting('order_shipfee');
 
 	}
 
@@ -1258,12 +1258,12 @@ class CartTax {
 	function __construct () {
 		global $Shopp;
 		$this->Order = &ShoppOrder();
-		$base = ShoppSettings()->get('base_operations');
+		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
 		$this->vat = $base['vat'];
-		$this->enabled = (ShoppSettings()->get('taxes') == "on");
-		$this->rates = ShoppSettings()->get('taxrates');
-		$this->shipping = (ShoppSettings()->get('tax_shipping') == "on");
+		$this->enabled = (shopp_setting('taxes') == "on");
+		$this->rates = shopp_setting('taxrates');
+		$this->shipping = (shopp_setting('tax_shipping') == "on");
 	}
 
 	/**

@@ -490,8 +490,8 @@ class StorageEngines extends ModuleLoader {
 		$this->activated = array();
 
 		$systems = array();
-		$systems['image'] = ShoppSettings()->get('image_storage');
-		$systems['download'] = ShoppSettings()->get('product_storage');
+		$systems['image'] = shopp_setting('image_storage');
+		$systems['download'] = shopp_setting('product_storage');
 
 		foreach ($systems as $system => $storage) {
 			foreach ($this->modules as $engine) {
@@ -622,7 +622,7 @@ abstract class StorageModule {
 	function __construct () {
 		global $Shopp;
 		$this->module = get_class($this);
-		$this->settings = ShoppSettings()->get($this->module);
+		$this->settings = shopp_setting($this->module);
 	}
 
 	function context ($setting) {}

@@ -55,7 +55,7 @@ class ProductCollection implements Iterator {
 
 		// Setup pagination
 		$this->paged = false;
-		$this->pagination = ShoppSettings()->get('catalog_pagination');
+		$this->pagination = shopp_setting('catalog_pagination');
 		$paged = get_query_var('paged');
 		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
 
@@ -74,7 +74,7 @@ class ProductCollection implements Iterator {
 
 		// Sort Order
 		$orderby = false;
-		$defaultOrder = ShoppSettings()->get('default_product_order');
+		$defaultOrder = shopp_setting('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
 		$ordering = isset($Storefront->browsing['sortorder'])?
 						$Storefront->browsing['sortorder']:$defaultOrder;
@@ -145,10 +145,10 @@ class ProductCollection implements Iterator {
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
 			if ($inventory) { // Keep track of inventory-based query caches
-				$caches = ShoppSettings()->get('shopp_inventory_collection_caches');
+				$caches = shopp_setting('shopp_inventory_collection_caches');
 				if (!is_array($caches)) $caches = array();
 				$caches[] = $cachehash;
-				ShoppSettings()->save('shopp_inventory_collection_caches',$caches);
+				shopp_set_setting('shopp_inventory_collection_caches',$caches);
 			}
 
 		}
@@ -516,8 +516,8 @@ class ProductCategory extends ProductTaxonomy {
 	function load_images () {
 		$db = DB::get();
 
-		$ordering = ShoppSettings()->get('product_image_order');
-		$orderby = ShoppSettings()->get('product_image_orderby');
+		$ordering = shopp_setting('product_image_order');
+		$orderby = shopp_setting('product_image_orderby');
 
 		if ($ordering == "RAND()") $orderby = $ordering;
 		else $orderby .= ' '.$ordering;
@@ -557,7 +557,7 @@ class ProductCategory extends ProductTaxonomy {
 		$pricetable = DatabaseObject::tablename(Price::$table);
 
 		$this->paged = false;
-		$this->pagination = ShoppSettings()->get('catalog_pagination');
+		$this->pagination = shopp_setting('catalog_pagination');
 		$paged = get_query_var('paged');
 		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
 
@@ -598,7 +598,7 @@ class ProductCategory extends ProductTaxonomy {
 		if (!empty($this->id))
 			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND taxonomy='$this->taxonomy'";
 
-		if (!value_is_true($nostock) && ShoppSettings()->get('outofstock_catalog') == "off")
+		if (!value_is_true($nostock) && shopp_setting('outofstock_catalog') == "off")
 			$where[] = "((p.inventory='on' AND p.stock > 0) OR p.inventory='off')";
 
 		// Faceted browsing
@@ -650,7 +650,7 @@ class ProductCategory extends ProductTaxonomy {
 		if ($this->published) $where[] = "(p.status='publish' AND $now >= UNIX_TIMESTAMP(p.publish))";
 		else $where[] = "(p.status!='publish' OR $now < UNIX_TIMESTAMP(p.publish))";
 
-		$defaultOrder = ShoppSettings()->get('default_product_order');
+		$defaultOrder = shopp_setting('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
 		$ordering = isset($Storefront->browsing['orderby'])?
 						$Storefront->browsing['orderby']:$defaultOrder;
@@ -976,7 +976,7 @@ class ProductCategory extends ProductTaxonomy {
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
-	    $base = ShoppSettings()->get('base_operations');
+	    $base = shopp_setting('base_operations');
 
 		add_filter('shopp_rss_description','wptexturize');
 		add_filter('shopp_rss_description','convert_chars');

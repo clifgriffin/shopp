@@ -110,7 +110,7 @@ class Service extends AdminController {
 			}
 		}
 
-		$statusLabels = ShoppSettings()->get('order_status');
+		$statusLabels = shopp_setting('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		$txnStatusLabels = array(
 			'PENDING' => __('Pending','Shopp'),
@@ -215,11 +215,11 @@ class Service extends AdminController {
 			'iif' => __('Intuit&reg; QuickBooks.iif','Shopp')
 			);
 
-		$formatPref = ShoppSettings()->get('purchaselog_format');
+		$formatPref = shopp_setting('purchaselog_format');
 		if (!$formatPref) $formatPref = 'tab';
 
 		$columns = array_merge(Purchase::exportcolumns(),Purchased::exportcolumns());
-		$selected = ShoppSettings()->get('purchaselog_columns');
+		$selected = shopp_setting('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
@@ -316,7 +316,7 @@ class Service extends AdminController {
 
 			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
-				$labels = ShoppSettings()->get('order_status');
+				$labels = shopp_setting('order_status');
 				// Save a reference to this purchase in Shopp
 				// so the Template API works when generating the receipt
 				$Shopp->Purchase =& $Purchase;
@@ -327,8 +327,8 @@ class Service extends AdminController {
 
 				$email = array();
 				$email['from'] = '"'.get_bloginfo("name").'"';
-				if (ShoppSettings()->get('merchant_email'))
-					$email['from'] .= ' <'.ShoppSettings()->get('merchant_email').'>';
+				if (shopp_setting('merchant_email'))
+					$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
 				if($is_IIS) $email['to'] = $address;
 				else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 				$email['subject'] = __('Order Updated','Shopp');
@@ -353,9 +353,9 @@ class Service extends AdminController {
 			else $updated = __('Order status updated.','Shopp');
 		}
 
-		$targets = ShoppSettings()->get('target_markets');
+		$targets = shopp_setting('target_markets');
 		$UI->txnStatusLabels = Lookup::payment_status_labels();
-		$UI->statusLabels = ShoppSettings()->get('order_status');
+		$UI->statusLabels = shopp_setting('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 
 		include(SHOPP_ADMIN_PATH."/orders/order.php");
@@ -371,7 +371,7 @@ class Service extends AdminController {
 		$db = DB::get();
 
 		$table = DatabaseObject::tablename(Purchase::$table);
-		$labels = ShoppSettings()->get('order_status');
+		$labels = shopp_setting('order_status');
 
 		if (empty($labels)) return false;
 		$status = array();

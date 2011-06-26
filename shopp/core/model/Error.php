@@ -51,7 +51,7 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
-		$errlevel = ShoppSettings()->get('error_logging');
+		$errlevel = shopp_setting('error_logging');
 		if ( $errlevel ) $level = $errlevel;
 
 		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
@@ -79,7 +79,7 @@ class ShoppErrors {
 	}
 
 	function set_loglevel () {
-		$this->reporting = ShoppSettings()->get('error_logging');
+		$this->reporting = shopp_setting('error_logging');
 	}
 
 	/**
@@ -404,7 +404,7 @@ class ShoppErrorLogging {
 	 * @return void
 	 **/
 	function __construct ($loglevel=0) {
-		$loglevelsetting = ShoppSettings()->get('error_logging');
+		$loglevelsetting = shopp_setting('error_logging');
 		$this->loglevel = $loglevelsetting ? $loglevelsetting : $loglevel;
 
 		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : sys_get_temp_dir();
@@ -426,7 +426,7 @@ class ShoppErrorLogging {
 
 
 	function set_loglevel() {
-		$this->loglevel = ShoppSettings()->get('error_logging');
+		$this->loglevel = shopp_setting('error_logging');
 	}
 
 	/**
@@ -535,8 +535,8 @@ class ShoppErrorNotification {
 	 * @return void
 	 **/
 	function __construct ($recipients='',$types=array()) {
-		$recipients = ShoppSettings()->get('merchant_email');
-		$types = ShoppSettings()->get('error_notifications');
+		$recipients = shopp_setting('merchant_email');
+		$types = shopp_setting('error_notifications');
 
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;
@@ -552,8 +552,8 @@ class ShoppErrorNotification {
 	}
 
 	function set_notifications () {
-		$recipients = ShoppSettings()->get('merchant_email');
-		$types = ShoppSettings()->get('error_notifications');
+		$recipients = shopp_setting('merchant_email');
+		$types = shopp_setting('error_notifications');
 
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;

@@ -51,7 +51,7 @@
 			$hidden = get_hidden_columns('shopp_page_shopp-settings-shiprates');
 			$even = false;
 			foreach ($shiprates as $setting => $module):
-				$shipping = ShoppSettings()->get($setting);
+				$shipping = shopp_setting($setting);
 				$service = $Shipping->modules[$module]->name;
 
 				$label = $service;

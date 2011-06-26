@@ -113,7 +113,7 @@
 			?>
 			</td>
 
-			<?php if ('on' == ShoppSettings()->get('inventory')): ?>
+			<?php if ('on' == shopp_setting('inventory')): ?>
 				<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>">
 					<?php // @todo Link inventory number to Inventory view while filtering for the product/variants
 					if ('on' == $Product->inventory) {

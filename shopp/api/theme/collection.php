@@ -423,7 +423,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		global $Shopp;
 		if (!isset($O->_rindex) || $O->_rindex === false) $O->_rindex = 0;
 		else $O->_rindex++;
-		if (empty($options['products'])) $options['products'] = ShoppSettings()->get('row_products');
+		if (empty($options['products'])) $options['products'] = shopp_setting('row_products');
 		if (isset($O->_rindex) && $O->_rindex > 0 && $O->_rindex % $options['products'] == 0) return true;
 		else return false;
 	}

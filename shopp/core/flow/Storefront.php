@@ -53,7 +53,7 @@ class Storefront extends FlowController {
 		$Catalog = new Catalog();
 		ShoppCatalog($Catalog);
 
-		$pages = ShoppSettings()->get('pages');
+		$pages = shopp_setting('pages');
 		if (!empty($pages)) $this->pages = $pages;
 
 		ShoppingObject::store('search',$this->search);
@@ -221,7 +221,7 @@ class Storefront extends FlowController {
 
 		if (empty($page)) return $template;
 
-		$pagetitle = ShoppSettings()->get($page.'_page_title');
+		$pagetitle = shopp_setting($page.'_page_title');
 
 		add_filter('the_title',create_function('$title','return in_the_loop()?"'.$pagetitle.'":$title;'));
 		add_filter('the_content',array(&$this,$page.'_page'));
@@ -382,7 +382,7 @@ class Storefront extends FlowController {
 		if ($thankspage || $orderhistory)
 			wp_enqueue_style('shopp.printable',SHOPP_ADMIN_URI.'/styles/printable.css',array(),SHOPP_VERSION,'print');
 
-		$loading = ShoppSettings()->get('script_loading');
+		$loading = shopp_setting('script_loading');
 		if (!$loading || 'global' == $loading || !empty($page)) {
 			shopp_enqueue_script("colorbox");
 			shopp_enqueue_script("shopp");
@@ -422,7 +422,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
-			if (ShoppSettings()->get("maintenance") == "on" || !ShoppSettings()->available || $this->maintenance())
+			if (shopp_setting("maintenance") == "on" || !ShoppSettings()->available || $this->maintenance())
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 
@@ -437,7 +437,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function maintenance () {
-		$db_version = intval(ShoppSettings()->get('db_version'));
+		$db_version = intval(shopp_setting('db_version'));
 		if ($db_version != DB::$version) return true;
 		return false;
 	}
@@ -489,7 +489,7 @@ class Storefront extends FlowController {
 		if (!$post_id) return $title;
 		global $wp;
 
-		$pages = ShoppSettings()->get('pages');
+		$pages = shopp_setting('pages');
 		$process = get_query_var('s_pr');
 
 		if (!empty($process) && $post_id == $pages['checkout']['id']) {
@@ -640,7 +640,7 @@ class Storefront extends FlowController {
 	 **/
 	function catalogcss () {
 		if (!isset($row_products)) $row_products = 3;
-		$row_products = ShoppSettings()->get('row_products');
+		$row_products = shopp_setting('row_products');
 		$products_per_row = floor((100/$row_products));
 ?>
 	<!-- Shopp dynamic catalog styles -->
@@ -871,7 +871,7 @@ class Storefront extends FlowController {
 	 * @return mixed False when the Shopp catalog is set as the front page
 	 **/
 	function canonical_home ($redirect) {
-		$pages = ShoppSettings()->get('pages');
+		$pages = shopp_setting('pages');
 		if (!function_exists('home_url')) return $redirect;
 		list($url,) = explode("?",$redirect);
 		if ($url == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
@@ -914,7 +914,7 @@ class Storefront extends FlowController {
 		$classes = $Shopp->Catalog->type;
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
-			$view = ShoppSettings()->get('default_catalog_view');
+			$view = shopp_setting('default_catalog_view');
 			if ($view == "list") $classes .= " list";
 			if ($view == "grid") $classes .= " grid";
 		} else {
