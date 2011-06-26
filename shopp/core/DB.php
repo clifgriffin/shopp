@@ -671,10 +671,7 @@ abstract class DatabaseObject implements Iterator {
 			// Named collation if collate is a valid record property
 			if (isset($record->{$collate})) $target->{$property}[$record->{$collate}] = $record;
 			else $target->{$property}[] = $record;
-		} else {
-			print_r($objects);
-			$target->{$property} = $record;
-		}
+		} else $target->{$property} = $record;
 
 		if ($merge) {
 			foreach (get_object_vars($record) as $name => $value) {
