@@ -395,7 +395,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.file = $('#file-'+i);
 		_.selector = $('#file-selector-'+i).FileChooser(i,_.file);
 
-		if (d.id) {
+		if (d && d.id) {
 			if (d.mime) d.mime = d.mime.replace(/\//gi," ");
 			_.file.attr('class','file '+d.mime).html(d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
 				window.location.href = adminurl+"admin.php?src=download&shopp_download="+d.id;
