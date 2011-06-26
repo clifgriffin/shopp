@@ -1021,8 +1021,6 @@ abstract class SessionObject {
 
 
 	function __construct () {
-		if (!defined('SHOPP_SESSLOCK_TIMEOUT')) define('SHOPP_SESSLOCK_TIMEOUT',10);
-
 		if (!defined('SHOPP_SECURE_KEY'))
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 
@@ -1095,7 +1093,6 @@ abstract class SessionObject {
 		if (is_robot() || empty($this->session)) return true;
 
 		$loaded = false;
-		$this->lock();
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		if ($result = DB::query($query)) {
 			if (substr($result->data,0,1) == "!") {
@@ -1116,13 +1113,11 @@ abstract class SessionObject {
 			$this->modified = DB::mktime($result->modified);
 			$loaded = true;
 
-			$this->unlock();
 			do_action('shopp_session_loaded');
 		} else {
 			if (!empty($this->session))
 				DB::query("INSERT INTO $this->_table (session, ip, data, created, modified)
 							VALUES ('$this->session','$this->ip','',now(),now())");
-			$this->unlock();
 		}
 		do_action('shopp_session_load');
 
@@ -1164,7 +1159,6 @@ abstract class SessionObject {
 		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
 
 		$data = DB::escape(addslashes(serialize($this->data)));
-		$this->lock();
 
 		if ($this->secured() && is_shopp_secure()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
@@ -1173,7 +1167,6 @@ abstract class SessionObject {
 				$secure = DB::query("SELECT AES_ENCRYPT('$data','$key') AS data");
 				$data = "!".base64_encode($secure->data);
 			} else {
-				$this->unlock();
 				return false;
 			}
 		}
@@ -1182,7 +1175,6 @@ abstract class SessionObject {
 		if (!DB::query($query))
 			trigger_error("Could not save session updates to the database.");
 
-		$this->unlock();
 		do_action('shopp_session_saved');
 
 		// Save standard session data for compatibility
@@ -1254,43 +1246,6 @@ abstract class SessionObject {
 		else return false;
 	}
 
-	/**
-	 * Create a lock for session processing
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	function lock () {
-		if (empty($this->session)) return false;
-		$db = DB::get();
-
-		$r = new StdClass();
-		$r->locked = 0;
-		for ($attempts = 0; $attempts < 3 && $r->locked == 0; $attempts++)
-			$r = $db->query("SELECT GET_LOCK('$this->session',".SHOPP_SESSLOCK_TIMEOUT.") AS locked");
-
-		if ($r->locked == 1) return true;
-
-		new ShoppError(sprintf(__('Session lock %s failed.','Shopp'),$this->session),'shopp_session_lock',SHOPP_ERR);
-	}
-
-	/**
-	 * Unlocks a session lock
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	function unlock () {
-		$db = DB::get();
-		if (empty($this->session)) return false;
-
-		$r = $db->query("SELECT RELEASE_LOCK('$this->session') as unlocked");
-		return ($r->unlocked == 1)?true:false;
-	}
 
 } // END class SessionObject
 
