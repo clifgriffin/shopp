@@ -420,6 +420,7 @@ class ShoppErrorLogging {
 	public static function instance() {
 		if ( ! self::$instance )
 			self::$instance = new self();
+			return self::$instance;
 	}
 
 
@@ -535,6 +536,7 @@ class ShoppErrorNotification {
 	public static function instance() {
 		if ( ! self::$instance )
 			self::$instance = new self();
+			return self::$instance;
 	}
 
 	function set_notifications () {
