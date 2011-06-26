@@ -23,7 +23,6 @@ class Product extends WPShoppObject {
 	);
 	static $posttype = 'shopp_product';
 
-
 	var $prices = array();
 	var $pricekey = array();
 	var $priceid = array();
@@ -47,11 +46,11 @@ class Product extends WPShoppObject {
 		'summary' => 'post_excerpt',
 		'description' => 'post_content',
 		'status' => 'post_status',
+		'type' => 'post_type',
 		'publish' => 'post_date',
 		'modified' => 'post_modified'
 	);
 
-	var $_post_type;
 
 	/**
 	 * Product constructor
@@ -62,14 +61,14 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function __construct ($id=false,$key='ID') {
-		$this->_post_type = self::$posttype;
-		if ('slug' == $key) $key = 'post_name';
+		if (isset($this->_map[$key])) $key = $this->_map[$key];
 		$this->init(self::$table,$key);
+		$this->type = self::$posttype;
 		$this->load($id,$key);
 	}
 
 	function posttype () {
-		return $this->_post_type;
+		return self::$posttype;
 	}
 
 	/**
@@ -104,7 +103,6 @@ class Product extends WPShoppObject {
 			$this->products = &$products;
 		} else $ids = $this->id;	// @todo Undefined property Product::$id in context of the shopp_themeapi_collection_hasproducts handler (ShoppCollectionThemeAPI::load_products)
 
-
 		if ( empty($ids) ) return;
 
 		foreach ($loadcalls as $loadmethod) {
@@ -134,6 +132,15 @@ class Product extends WPShoppObject {
 		$Object = new Price();
 
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
+
+		// Load price metadata that exists
+		if (!empty($this->priceid)) {
+			$prices = join(',',array_keys($this->priceid));
+			$Object->prices = $this->priceid;
+			$ObjectMeta = new ObjectMeta();
+			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
+			print_r($this->prices);
+		}
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -399,7 +406,7 @@ class Product extends WPShoppObject {
 		$target->maxprice = $target->max['price'];
 		$target->minprice = $target->min['price'];
 
-		if ($target->sale == 'on') $target->minprice = $target->min['saleprice'];
+		if ('on' == $target->sale) $target->minprice = $target->min['saleprice'];
 
 		// $this->save_stats();
 		// do_action('shopp_product_pricing_done');
@@ -516,7 +523,8 @@ class Product extends WPShoppObject {
 	function resum () {
 		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
-		$this->stock = $this->stocked = $this->maxprice = $this->minprice = $this->sold = 0;
+		$this->stock = $this->stocked = $this->sold = 0;
+		$this->maxprice = $this->minprice = false;
 	}
 
 	/**

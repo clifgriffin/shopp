@@ -156,7 +156,7 @@ class Warehouse extends AdminController {
 			$Shopp->Product->load_data();
 		} else {
 			$Shopp->Product = new Product();
-			$Shopp->Product->status = "publish";
+			// $Shopp->Product->status = "publish";
 		}
 
 		if ($save) {
@@ -600,13 +600,19 @@ class Warehouse extends AdminController {
 
 		// Set a unique product slug
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);
-		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, $Product->_post_type, 0);
+		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, $Product->posttype(), 0);
 
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('meta','categories','prices','tags'));
 
+		// echo '<pre>';
+		// print_r($_POST);
+		// print_r($Product);
+		// echo '</pre>';
+
 		do_action('shopp_pre_product_save');
 		$Product->save();
+
 
 		// Save taxonomies
 		if ( !empty($_POST['tax_input']) ) {
@@ -819,7 +825,10 @@ class Warehouse extends AdminController {
 		$File->type = "download";
 		$File->name = $_FILES['Filedata']['name'];
 		$File->filename = $File->name;
-		$File->mime = file_mimetype($_FILES['Filedata']['tmp_name'],$File->name);
+		$filetype = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'],$File->name);
+		$File->mime = $filetype['type'];
+		if (!empty($filetype['proper_filename']))
+			$File->name = $File->filename = $filetype['proper_filename'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
 		$File->save();

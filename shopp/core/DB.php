@@ -26,7 +26,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  *
  * @author Jonathan Davis
  * @since 1.0
- * @package shopp
+ * @version 1.2
  **/
 class DB {
 	static $version = 1132;	// Database schema version
@@ -481,8 +481,8 @@ class DB {
  * Provides interfacing between database records and active data objects
  *
  * @author Jonathan Davis
- * @since 1.1
- * @package shopp
+ * @since 1.0
+ * @version 1.2
  **/
 abstract class DatabaseObject implements Iterator {
 
@@ -523,31 +523,33 @@ abstract class DatabaseObject implements Iterator {
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
-		$this->_defaults = array();		// So we know the default values for each field
+		$defaults = array();			// So we know the default values for each field
 
-		if (!empty($Settings)) {
-			$Tables = $Settings->get('data_model');
-			if (isset($Tables[$this->_table])) {
-				$this->_datatypes = $Tables[$this->_table]->_datatypes;
-				$this->_lists = $Tables[$this->_table]->_lists;
-				foreach($this->_datatypes as $var => $type) {
-					if (!empty($this->_map) && !isset($this->_map[$var])) continue;
-					$property = isset($this->_map[$var])?$this->_map[$var]:$var;
+		$map = !empty($this->_map)?array_flip($this->_map):array();
 
-					if (!isset($this->{$property}))
-						$this->{$property} = (isset($this->_defaults[$var]))?
-							$this->_defaults[$var]:'';
-					if (empty($this->{$property}) && $type == "date")
-						$this->{$property} = null;
-				}
-				return true;
+		$Tables = !empty($Settings)?$Settings->get('data_model'):array();
+		if (isset($Tables[$this->_table])) {
+			$this->_datatypes = $Tables[$this->_table]->_datatypes;
+			$this->_lists = $Tables[$this->_table]->_lists;
+			$defaults = $Tables[$this->_table]->_defaults;
+
+			foreach($this->_datatypes as $var => $type) {
+				$property = isset($map[$var])?$map[$var]:$var;
+
+				if (!isset($this->{$property}))
+					$this->{$property} = isset($defaults[$var]) ? $defaults[$var] : '';
+				if (empty($this->{$property}) && 'date' == $type)
+					$this->{$property} = null;
 			}
+			return true;
 		}
 
 		if (!$r = DB::query("SHOW COLUMNS FROM $this->_table",'array')) return false;
+
 		// Map out the table definition into our data structure
 		foreach($r as $object) {
 			$var = $object->Field;
+			if (!empty($map) && !isset($map[$var])) continue;
 			$this->_datatypes[$var] = DB::datatype($object->Type);
 			$this->_defaults[$var] = $object->Default;
 
@@ -557,11 +559,10 @@ abstract class DatabaseObject implements Iterator {
 				$this->_lists[$var] = explode(",",$values);
 			}
 
-			if (!empty($this->_map) && !isset($this->_map[$var])) continue;
-			$property = isset($this->_map[$var])?$this->_map[$var]:$var;
+			// Remap properties if a property map is available
+			$property = isset($map[$var])?$map[$var]:$var;
 			if (!isset($this->{$property}))
 				$this->{$property} = $this->_defaults[$var];
-
 		}
 
 		if (!empty($Settings)) {
@@ -652,7 +653,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param boolean $merge
 	 * @return void
 	 **/
-	function metaloader (&$records,&$record,$objects=array(),$id='id',$property='',$collate=true,$merge=false) {
+	function metaloader (&$records,&$record,$objects=array(),$id='id',$property='',$collate=false,$merge=false) {
 
 		if (is_array($objects) && isset($objects[$record->{$id}])) {
 			$target = $objects[$record->{$id}];
@@ -663,16 +664,16 @@ abstract class DatabaseObject implements Iterator {
 		// Remove record ID before attaching record (duplicates $this->id)
 		unset($record->{$id});
 
-		if (property_exists($target,$property)) {
-			if ($collate) {
-				if (!is_array($target->{$property})) $target->{$property} = array();
+		if ($collate) {
+			if (!isset($target->{$property}) || !is_array($target->{$property}))
+				$target->{$property} = array();
 
-				// Named collation if collate is a valid record property
-				if (isset($record->{$collate})) $target->{$property}[$record->{$collate}] = $record;
-				else $target->{$property}[] = $record;
-			} else {
-				$target->{$property} = $record;
-			}
+			// Named collation if collate is a valid record property
+			if (isset($record->{$collate})) $target->{$property}[$record->{$collate}] = $record;
+			else $target->{$property}[] = $record;
+		} else {
+			print_r($objects);
+			$target->{$property} = $record;
 		}
 
 		if ($merge) {
@@ -980,7 +981,8 @@ class WPShoppObject extends WPDatabaseObject {
 		}
 		if (is_array($args[0])) $p = $args[0];
 
-		if ($this->_post_type !== false) $p['post_type'] = $this->_post_type;
+		$class = get_class($this);
+		$p['post_type'] = $class::$posttype;
 
 		parent::load($p);
 	}

@@ -25,6 +25,40 @@ class Price extends DatabaseObject {
 		add_action('shopp_price_updates',array(&$this,'discounts'));
 	}
 
+	function metaloader (&$records,&$record,$id='id',$property=false,$collate=false,$merge=false) {
+
+		if (isset($this->prices) && !empty($this->prices)) $prices = &$this->prices;
+		else $prices = array();
+
+		$metamap = array(
+			'download' => 'download',
+			'settings' => 'settings'
+		);
+		$metaclass = array();
+
+		if ('metatype' == $property)
+			$property = isset($metamap[$record->type])?$metamap[$record->type]:'meta';
+
+		if (isset($metaclass[$record->type])) {
+			$ObjectClass = $metaclass[$record->type];
+			$Object = new $ObjectClass();
+			$Object->populate($record);
+			if (method_exists($Object,'expopulate'))
+				$Object->expopulate();
+			$record = $Object;
+		}
+
+		if ('download' == $record->type) {
+			$collate = false;
+			$data = unserialize($record->value);
+			foreach (get_object_vars($data) as $prop => $val) $record->{$prop} = $val;
+			$clean = array('context','type','numeral','sortorder','created','modified','value');
+			foreach ($clean as $prop) unset($record->{$prop});
+		}
+
+		parent::metaloader($records,$record,$prices,$id,$property,$collate,$merge);
+	}
+
 	/**
 	 * Loads a product download attached to the price object
 	 *
