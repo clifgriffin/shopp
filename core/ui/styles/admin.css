@@ -602,9 +602,8 @@ div.storage-settings { clear:both;margin-top:8px; }
 .ac_results .ac_over { background: #cee1ef; color: #333; }
 .ac_results .ac_match { text-decoration: none; font-weight: bold; color: #21759B; }
 
-#errorlog { font-family:monospace;font-size:1em;line-height:1em;background:white;height:300px;overflow:scroll;border:1px solid #dfdfdf;padding:1px; }
-#errorlog ol { list-style:decimal;padding-left:50px;background:#ececec;margin-left:0; }
-#errorlog ol li { background:white;margin:0;padding:5px; }
+
+#logviewer { background:white;height:300px;width:100%;overflow:auto;border:1px solid #dfdfdf;padding:1px; }
 #error_notify li { width:200px;display:inline-block; }
 
 #error-page.shopp-update { margin-top:20px;margin-bottom:20px;width:540px; }
