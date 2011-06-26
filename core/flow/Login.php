@@ -30,7 +30,7 @@ class Login {
 	function __construct () {
 		global $Shopp;
 
-		$this->accounts = ShoppSettings()->get('account_system');
+		$this->accounts = shopp_setting('account_system');
 
 		$this->Customer =& $Shopp->Order->Customer;
 		$this->Billing =& $Shopp->Order->Billing;

@@ -48,7 +48,7 @@
 
 jQuery(document).ready( function() {
 var $=jqnc(),
-	currencyFormat = <?php $base = ShoppSettings()->get('base_operations'); echo json_encode($base['currency']['format']); ?>,
+	currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_encode($base['currency']['format']); ?>,
 	rules = <?php echo json_encode($Promotion->rules); ?>,
 	ruleidx = 1,
 	itemidx = 1,

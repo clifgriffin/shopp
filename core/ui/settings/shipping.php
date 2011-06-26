@@ -12,12 +12,12 @@
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if (ShoppSettings()->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if (shopp_setting('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 	            <?php _e('Enables shipping cost calculations. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
 			</tr>
 				<tr>
 					<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Track Inventory','Shopp'); ?></label></th>
-					<td><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if (ShoppSettings()->get('inventory') == "on") echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+					<td><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if (shopp_setting('inventory') == "on") echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 		            <?php _e('Enables inventory tracking. Disable if you are exclusively selling intangible products or not keeping track of product stock.','Shopp'); ?></td>
 				</tr>
 			<tr>
@@ -27,14 +27,14 @@
 						<?php
 							if ($base['units'] == "imperial") $units = array("oz" => __("ounces (oz)","Shopp"),"lb" => __("pounds (lbs)","Shopp"));
 							else $units = array("g"=>__("gram (g)","Shopp"),"kg"=>__("kilogram (kg)","Shopp"));
-							echo menuoptions($units,ShoppSettings()->get('weight_unit'),true);
+							echo menuoptions($units,shopp_setting('weight_unit'),true);
 						?>
 				</select>
 				<select name="settings[dimension_unit]" id="dimension-unit">
 						<?php
 							if ($base['units'] == "imperial") $units = array("in" => __("inches (in)","Shopp"),"ft" => __("feet (ft)","Shopp"));
 							else $units = array("cm"=>__("centimeters (cm)","Shopp"),"m"=>__("meters (m)","Shopp"));
-							echo menuoptions($units,ShoppSettings()->get('dimension_unit'),true);
+							echo menuoptions($units,shopp_setting('dimension_unit'),true);
 						?>
 				</select><br />
 				<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
@@ -48,7 +48,7 @@
 										"all" => __("All together with dimensions","Shopp"),
 										"like" => __("Only like items together","Shopp"),
 										"piece" => __("Each piece separately","Shopp"));
-							echo menuoptions($packaging,ShoppSettings()->get('shipping_packaging'),true);
+							echo menuoptions($packaging,shopp_setting('shipping_packaging'),true);
 						?>
 				</select><br />
 				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
@@ -57,9 +57,9 @@
 				<th scope="row" valign="top"><label for="order-processing-min"><?php _e('Order Processing','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[order_processing_min]" id="order-processing">
-						<?php echo menuoptions(Lookup::timeframes_menu(),ShoppSettings()->get('order_processing_min'),true); ?>
+						<?php echo menuoptions(Lookup::timeframes_menu(),shopp_setting('order_processing_min'),true); ?>
 				</select> &mdash; <select name="settings[order_processing_max]" id="order-processing">
-							<?php echo menuoptions(Lookup::timeframes_menu(),ShoppSettings()->get('order_processing_max'),true); ?>
+							<?php echo menuoptions(Lookup::timeframes_menu(),shopp_setting('order_processing_max'),true); ?>
 				</select><br />
 				<?php _e('Set the estimated time range for processing orders for shipment.','Shopp'); ?></td>
 			</tr>
@@ -80,17 +80,17 @@
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money(ShoppSettings()->get('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall money" /><br />
+				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money(shopp_setting('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall money" /><br />
 	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo esc_attr(ShoppSettings()->get('free_shipping_text')); ?>" id="free_shipping_text" /><br />
+				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo esc_attr(shopp_setting('free_shipping_text')); ?>" id="free_shipping_text" /><br />
 	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[outofstock_text]" value="<?php echo esc_attr(ShoppSettings()->get('outofstock_text')); ?>" id="outofstock-text" /><br />
+				<td><input type="text" name="settings[outofstock_text]" value="<?php echo esc_attr(shopp_setting('outofstock_text')); ?>" id="outofstock-text" /><br />
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
 		</table>

@@ -81,9 +81,9 @@ class Resources {
 			 	array_keys(array_merge($Purchase,$Purchased));
 			$_POST['settings']['purchaselog_headers'] = "on";
 		}
-		ShoppSettings()->saveform();
+		shopp_set_settingform();
 
-		$format = ShoppSettings()->get('purchaselog_format');
+		$format = shopp_setting('purchaselog_format');
 		if (empty($format)) $format = 'tab';
 
 		switch ($format) {
@@ -115,9 +115,9 @@ class Resources {
 			$_POST['settings']['customerexport_headers'] = "on";
 		}
 
-		ShoppSettings()->saveform();
+		shopp_set_settingform();
 
-		$format = ShoppSettings()->get('customerexport_format');
+		$format = shopp_setting('customerexport_format');
 		if (empty($format)) $format = 'tab';
 
 		switch ($format) {
@@ -165,7 +165,7 @@ class Resources {
 			}
 
 			// Account restriction checks
-			if (ShoppSettings()->get('account_system') != "none"
+			if (shopp_setting('account_system') != "none"
 				&& (!$Order->Customer->login
 				|| $Order->Customer->id != $Purchase->customer)) {
 					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
@@ -173,21 +173,21 @@ class Resources {
 			}
 
 			// Download limit checking
-			if (ShoppSettings()->get('download_limit') // Has download credits available
-				&& $Purchased->downloads+1 > ShoppSettings()->get('download_limit')) {
+			if (shopp_setting('download_limit') // Has download credits available
+				&& $Purchased->downloads+1 > shopp_setting('download_limit')) {
 					new ShoppError(sprintf(__('"%s" is no longer available for download because the download limit has been reached.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
 
 			// Download expiration checking
-			if (ShoppSettings()->get('download_timelimit') // Within the timelimit
-				&& $Purchased->created+ShoppSettings()->get('download_timelimit') < mktime() ) {
+			if (shopp_setting('download_timelimit') // Within the timelimit
+				&& $Purchased->created+shopp_setting('download_timelimit') < mktime() ) {
 					new ShoppError(sprintf(__('"%s" is no longer available for download because it has expired.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
 
 			// IP restriction checks
-			if (ShoppSettings()->get('download_restriction') == "ip"
+			if (shopp_setting('download_restriction') == "ip"
 				&& !empty($Purchase->ip)
 				&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
 					new ShoppError(sprintf(__('"%s" cannot be downloaded because your computer could not be verified as the system the file was purchased from.','Shopp'),$name),'shopp_download_limit');
@@ -222,7 +222,7 @@ class Resources {
 	function help () {
 		if (!isset($_GET['id'])) return;
 
-		list($status,$key) = ShoppSettings()->get('updatekey');
+		list($status,$key) = shopp_setting('updatekey');
 		$site = get_bloginfo('siteurl');
 
 		$request = array("ShoppScreencast" => $_GET['id'],'key'=>$key,'site'=>$site);

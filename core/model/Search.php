@@ -336,7 +336,7 @@ abstract class SearchTextFilters {
 	 * @return string The current currency regex pattern
 	 **/
 	static function _currency_regex ($symbol=true) {
-		$baseop = ShoppSettings()->get('base_operations');
+		$baseop = shopp_setting('base_operations');
 		extract($baseop['currency']['format']);
 
 		$pre = ($cpos?''.preg_quote($currency).($symbol?'':'?'):'');

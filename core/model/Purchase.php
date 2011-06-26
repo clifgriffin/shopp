@@ -56,8 +56,8 @@ class Purchase extends DatabaseObject {
 		// Send the e-mail receipt
 		$email = array();
 		$email['from'] = '"'.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ).'"';
-		if (ShoppSettings()->get('merchant_email'))
-			$email['from'] .= ' <'.ShoppSettings()->get('merchant_email').'>';
+		if (shopp_setting('merchant_email'))
+			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
 		if($is_IIS) $email['to'] = $address;
 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
@@ -186,7 +186,7 @@ class Purchase extends DatabaseObject {
 				break;
 			case "postcode": return esc_html($this->postcode); break;
 			case "country":
-				$countries = ShoppSettings()->get('target_markets');
+				$countries = shopp_setting('target_markets');
 				return $countries[$this->country]; break;
 			case "shipaddress": return esc_html($this->shipaddress); break;
 			case "shipxaddress": return esc_html($this->shipxaddress); break;
@@ -199,7 +199,7 @@ class Purchase extends DatabaseObject {
 				break;
 			case "shippostcode": return esc_html($this->shippostcode); break;
 			case "shipcountry":
-				$countries = ShoppSettings()->get('target_markets');
+				$countries = shopp_setting('target_markets');
 				return $countries[$this->shipcountry]; break;
 			case "shipmethod": return esc_html($this->shipmethod); break;
 			case "totalitems": return count($this->purchased); break;
@@ -426,7 +426,7 @@ class Purchase extends DatabaseObject {
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
 			case "status":
-				$labels = ShoppSettings()->get('order_status');
+				$labels = shopp_setting('order_status');
 				if (empty($labels)) $labels = array('');
 				return $labels[$this->status];
 				break;
@@ -464,11 +464,11 @@ class PurchasesExport {
 		$this->defined = array_merge($this->purchase_cols,$this->purchased_cols);
 
 		$this->sitename = get_bloginfo('name');
-		$this->headings = (ShoppSettings()->get('purchaselog_headers') == "on");
-		$this->selected = ShoppSettings()->get('purchaselog_columns');
+		$this->headings = (shopp_setting('purchaselog_headers') == "on");
+		$this->selected = shopp_setting('purchaselog_columns');
 		$this->date_format = get_option('date_format');
 		$this->time_format = get_option('time_format');
-		ShoppSettings()->save('purchaselog_lastexport',mktime());
+		shopp_set_setting('purchaselog_lastexport',mktime());
 	}
 
 	function query ($request=array()) {
@@ -629,7 +629,7 @@ class PurchasesIIFExport extends PurchasesExport {
 		parent::PurchasesExport();
 		$this->content_type = "application/qbooks";
 		$this->extension = "iif";
-		$account = ShoppSettings()->get('purchaselog_iifaccount');
+		$account = shopp_setting('purchaselog_iifaccount');
 		if (empty($account)) $account = "Merchant Account";
 		$this->selected = array(
 			"'\nTRNS'",
@@ -669,7 +669,7 @@ class PurchasesIIFExport extends PurchasesExport {
 		global $Shopp;
 		?>
 		<div id="iif-settings" class="hidden">
-			<input type="text" id="iif-account" name="settings[purchaselog_iifaccount]" value="<?php echo ShoppSettings()->get('purchaselog_iifaccount'); ?>" size="30"/><br />
+			<input type="text" id="iif-account" name="settings[purchaselog_iifaccount]" value="<?php echo shopp_setting('purchaselog_iifaccount'); ?>" size="30"/><br />
 			<label for="iif-account"><small><?php _e('QuickBooks account name for transactions','Shopp'); ?></small></label>
 		</div>
 		<script type="text/javascript">

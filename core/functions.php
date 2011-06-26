@@ -206,8 +206,8 @@ function convert_unit ($value = 0, $unit, $from=false) {
 	if (!$from) {
 		// If no originating unit specified, use correlating system preferences
 		$defaults = array(
-			'mass' => ShoppSettings()->get('weight_unit'),
-			'dimension' => ShoppSettings()->get('dimension_unit')
+			'mass' => shopp_setting('weight_unit'),
+			'dimension' => shopp_setting('dimension_unit')
 		);
 	}
 
@@ -348,7 +348,7 @@ function remove_class_actions ( $tags = false, $class = 'stdClass', $priority = 
 function currency_format ($format=false) {
 	$default = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",","grouping"=>3);
 	if ($format !== false) return array_merge($default,$format);
-	$locale = ShoppSettings()->get('base_operations');
+	$locale = shopp_setting('base_operations');
 	if (empty($locale['currency']['format']['currency'])) return $default;
 	return array_merge($default,$locale['currency']['format']);
 }
@@ -829,7 +829,7 @@ function is_shopp_page ($page=false) {
 	if (isset($wp_query->post->post_type) &&
 		$wp_query->post->post_type != "page") return false;
 
-	$pages = ShoppSettings()->get('pages');
+	$pages = shopp_setting('pages');
 
 	// Detect if the requested page is a Shopp page
 	if (!$page) {
@@ -1744,7 +1744,7 @@ function shopp_safe_redirect($location, $status = 302) {
  * @return float The determined tax rate
  **/
 function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
-	$locale = ShoppSettings()->get('base_operations');
+	$locale = shopp_setting('base_operations');
 	$rated = false;
 	$taxrate = 0;
 	$Taxes = new CartTax();

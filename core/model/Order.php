@@ -86,8 +86,8 @@ class Order {
 	 * @return void
 	 **/
 	function listeners () {
-		$this->confirm = (ShoppSettings()->get('order_confirmation') == "always");
-		$this->accounts = ShoppSettings()->get('account_system');
+		$this->confirm = (shopp_setting('order_confirmation') == "always");
+		$this->accounts = shopp_setting('account_system');
 		$this->validated = false; // Reset the order validation flag
 
 		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
@@ -479,7 +479,7 @@ class Order {
 			$this->Shipping->save();
 		}
 
-		$base = ShoppSettings()->get('base_operations');
+		$base = shopp_setting('base_operations');
 
 		$promos = array();
 		foreach ($this->Cart->discounts as &$promo) {
@@ -616,10 +616,10 @@ class Order {
 			__('Order Receipt','Shopp')
 		);
 
-		if (ShoppSettings()->get('receipt_copy') != 1) return;
+		if (shopp_setting('receipt_copy') != 1) return;
 		$Purchase->notification(
 			'',
-			ShoppSettings()->get('merchant_email'),
+			shopp_setting('merchant_email'),
 			__('New Order','Shopp')
 		);
 	}
@@ -916,9 +916,9 @@ class Order {
 	function tag ($property,$options=array()) {
 		global $Shopp,$wp;
 
-		$pages = ShoppSettings()->get('pages');
-		$base = ShoppSettings()->get('base_operations');
-		$countries = ShoppSettings()->get('target_markets');
+		$pages = shopp_setting('pages');
+		$base = shopp_setting('base_operations');
+		$countries = shopp_setting('target_markets');
 		$process = get_query_var('s_pr');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
@@ -941,7 +941,7 @@ class Order {
 			case "function":
 				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 				$regions = Lookup::country_zones();
-				$base = ShoppSettings()->get('base_operations');
+				$base = shopp_setting('base_operations');
 
 				$js = "var regions = ".json_encode($regions).",".
 									"SHIPCALC_STATUS = '".$options['shipcalc']."',".
@@ -993,7 +993,7 @@ class Order {
 				return $content;
 				break;
 			case "loggedin": return $this->Customer->login; break;
-			case "notloggedin": return (!$this->Customer->login && ShoppSettings()->get('account_system') != "none"); break;
+			case "notloggedin": return (!$this->Customer->login && shopp_setting('account_system') != "none"); break;
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
 			case "account-login":
@@ -1412,7 +1412,7 @@ class Order {
 				break;
 			case "billing-xco": return; break; // DEPRECATED
 			case "billing-localities":
-				$rates = ShoppSettings()->get("taxrates");
+				$rates = shopp_setting("taxrates");
 				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
 				break;
@@ -1427,7 +1427,7 @@ class Order {
 				$output = false;
 
 
-				$rates = ShoppSettings()->get("taxrates");
+				$rates = shopp_setting("taxrates");
 				foreach ($rates as $rate) if (is_array($rate['locals']))
 					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
 

@@ -58,7 +58,7 @@ class Setup extends AdminController {
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
 
-				if ('on' == ShoppSettings()->get('taxes'))
+				if ('on' == shopp_setting('taxes'))
 					$this->taxrate_ui();
 
 				break;
@@ -101,7 +101,7 @@ class Setup extends AdminController {
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
 
-				if ('on' == ShoppSettings()->get('shipping'))
+				if ('on' == shopp_setting('shipping'))
 					$this->shipping_ui();
 				break;
 			case "settings":
@@ -243,12 +243,12 @@ class Setup extends AdminController {
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
-		$operations = ShoppSettings()->get('base_operations');
+		$operations = shopp_setting('base_operations');
 		$zones = Lookup::country_zones();
 		if (isset($zones[$operations['country']]))
 			$zones = $zones[$operations['country']];
 
-		$targets = ShoppSettings()->get('target_markets');
+		$targets = shopp_setting('target_markets');
 		if (!$targets) $targets = array();
 
 		include(SHOPP_ADMIN_PATH."/settings/settings.php");
@@ -322,7 +322,7 @@ class Setup extends AdminController {
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
-		$next_setting = ShoppSettings()->get('next_order_id');
+		$next_setting = shopp_setting('next_order_id');
 
 		if ($next->id > $next_setting) $next_setting = $next->id;
 
@@ -360,7 +360,7 @@ class Setup extends AdminController {
 			'31536000' => __('1 year','Shopp'),
 			);
 
-		$statusLabels = ShoppSettings()->get('order_status');
+		$statusLabels = shopp_setting('order_status');
 
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
@@ -382,7 +382,7 @@ class Setup extends AdminController {
 		global $Shopp;
 
 		$sub = 'settings';
-		if ('on' == ShoppSettings()->get('shipping')) $sub = 'rates';
+		if ('on' == shopp_setting('shipping')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
@@ -397,12 +397,12 @@ class Setup extends AdminController {
 		}
 
 		// Handle ship rates UI
-		if ('rates' == $sub && 'on' == ShoppSettings()->get('shipping')) return $this->shiprates();
+		if ('rates' == $sub && 'on' == shopp_setting('shipping')) return $this->shiprates();
 
-		$base = ShoppSettings()->get('base_operations');
+		$base = shopp_setting('base_operations');
 		$regions = Lookup::regions();
 		$region = $regions[$base['region']];
-		$useRegions = ShoppSettings()->get('shipping_regions');
+		$useRegions = shopp_setting('shipping_regions');
 
 		$areas = Lookup::country_areas();
 		if (is_array($areas[$base['country']]) && $useRegions == "on")
@@ -410,10 +410,10 @@ class Setup extends AdminController {
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
 
-		$rates = ShoppSettings()->get('shipping_rates');
+		$rates = shopp_setting('shipping_rates');
 		if (!empty($rates)) ksort($rates);
 
-		$lowstock = ShoppSettings()->get('lowstock_level');
+		$lowstock = shopp_setting('lowstock_level');
 		if (empty($lowstock)) $lowstock = 0;
 
 		include(SHOPP_ADMIN_PATH."/settings/shipping.php");
@@ -426,7 +426,7 @@ class Setup extends AdminController {
 
 		$methods = $Shopp->Shipping->methods;
 
-		$active = ShoppSettings()->get('active_shipping');
+		$active = shopp_setting('active_shipping');
 		if (!$active) $active = array();
 
 		if (!empty($_GET['delete'])) {
@@ -445,7 +445,7 @@ class Setup extends AdminController {
 				} else unset($active[$delete]);
 				$updated = __('Shipping method setting removed.','Shopp');
 
-				ShoppSettings()->save('active_shipping',$active);
+				shopp_set_setting('active_shipping',$active);
 			}
 		}
 
@@ -461,7 +461,7 @@ class Setup extends AdminController {
 				if (isset($_POST['settings'])) $this->settings_save();
 				/** Save shipping service settings **/
 				$active[$module] = true;
-				ShoppSettings()->save('active_shipping',$active);
+				shopp_set_setting('active_shipping',$active);
 				$updated = __('Shipping settings saved.','Shopp');
 				// Cancel editing if saving
 				if (isset($_POST['save'])) unset($_REQUEST['id']);
@@ -516,10 +516,10 @@ class Setup extends AdminController {
 
 					}
 
-					ShoppSettings()->save($Shipper->setting,$_POST[$module]);
+					shopp_set_setting($Shipper->setting,$_POST[$module]);
 					if (!array_key_exists($module,$active)) $active[$module] = array();
 					$active[$module][(int)$id] = true;
-					ShoppSettings()->save('active_shipping',$active);
+					shopp_set_setting('active_shipping',$active);
 					$updated = __('Shipping settings saved.','Shopp');
 				}
 
@@ -557,7 +557,7 @@ class Setup extends AdminController {
 				$setting = "$name-$id";
 				$shiprates[$setting] = $name;
 
-				$settings[$setting] = ShoppSettings()->get($setting);
+				$settings[$setting] = shopp_setting($setting);
 				$settings[$setting]['id'] = $setting;
 				$settings[$setting] = array_merge($defaults[$default_name],$settings[$setting]);
 			}
@@ -615,7 +615,7 @@ class Setup extends AdminController {
 	}
 
 	function shipping_menu () {
-		if ('off' == ShoppSettings()->get('shipping')) return;
+		if ('off' == shopp_setting('shipping')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
@@ -639,7 +639,7 @@ class Setup extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$sub = 'settings';
-		if ('on' == ShoppSettings()->get('taxes')) $sub = 'rates';
+		if ('on' == shopp_setting('taxes')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
@@ -650,13 +650,13 @@ class Setup extends AdminController {
 		}
 
 		// Handle ship rates UI
-		if ('rates' == $sub && 'on' == ShoppSettings()->get('taxes')) return $this->taxrates();
+		if ('rates' == $sub && 'on' == shopp_setting('taxes')) return $this->taxrates();
 
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
 	}
 
 	function taxes_menu () {
-		if ('off' == ShoppSettings()->get('taxes')) return;
+		if ('off' == shopp_setting('taxes')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
@@ -683,7 +683,7 @@ class Setup extends AdminController {
 		if (isset($_REQUEST['id'])) $edit = (int)$_REQUEST['id'];
 		$localerror = false;
 
-		$rates = ShoppSettings()->get('taxrates');
+		$rates = shopp_setting('taxrates');
 		if (!is_array($rates)) $rates = array();
 
 		// echo "<pre>"; print_r($_POST); echo "</pre>";
@@ -694,7 +694,7 @@ class Setup extends AdminController {
 			$delete = (int)$_GET['delete'];
 			if (isset($rates[$delete]))
 				array_splice($rates,$delete,1);
-			ShoppSettings()->save('taxrates',$rates);
+			shopp_set_setting('taxrates',$rates);
 		}
 
 		if (isset($_POST['editing'])) $rates[$edit] = $_POST['settings']['taxrates'][ $edit ];
@@ -704,7 +704,7 @@ class Setup extends AdminController {
 			list($rateid,$row) = explode(',',$_POST['deleterule']);
 			if (isset($rates[$rateid]) && isset($rates[$rateid]['rules'])) {
 				array_splice($rates[$rateid]['rules'],$row,1);
-				ShoppSettings()->save('taxrates',$rates);
+				shopp_set_setting('taxrates',$rates);
 			}
 		}
 
@@ -722,12 +722,12 @@ class Setup extends AdminController {
 			else $rates[$edit]['locals'] = $upload;
 		}
 
-		if (isset($_POST['editing'])) ShoppSettings()->save('taxrates',$rates);
+		if (isset($_POST['editing'])) shopp_set_setting('taxrates',$rates);
 		if (isset($_POST['addrate'])) $edit = count($rates);
 		if (isset($_POST['submit'])) $edit = false;
 
-		$base = ShoppSettings()->get('base_operations');
-		$countries = array_merge(array('*' => __('All Markets','Shopp')),ShoppSettings()->get('target_markets'));
+		$base = shopp_setting('base_operations');
+		$countries = array_merge(array('*' => __('All Markets','Shopp')),shopp_setting('target_markets'));
 		$zones = Lookup::country_zones();
 
 		include(SHOPP_ADMIN_PATH."/settings/taxrates.php");
@@ -811,7 +811,7 @@ class Setup extends AdminController {
 		global $Shopp;
 		$Gateways = $Shopp->Gateways;
 
-	 	$active_gateways = ShoppSettings()->get('active_gateways');
+	 	$active_gateways = shopp_setting('active_gateways');
 		if (!$active_gateways) $gateways = array();
 		else $gateways = explode(',',$active_gateways);
 		$Gateways->settings();	// Load all installed gateways for settings UIs
@@ -822,7 +822,7 @@ class Setup extends AdminController {
 			if (in_array($delete,$gateways))  {
 				$position = array_search($delete,$gateways);
 				array_splice($gateways,$position,1);
-				ShoppSettings()->save('active_gateways',join(',',$gateways));
+				shopp_set_setting('active_gateways',join(',',$gateways));
 			}
 		}
 
@@ -833,7 +833,7 @@ class Setup extends AdminController {
 			if ( !empty($_POST['gateway']) && isset($Gateways->active[ $_POST['gateway'] ]) ) {
 				if ( !in_array($_POST['gateway'],$gateways) ) {
 					$gateways[] = $_POST['gateway'];
-					ShoppSettings()->save('active_gateways',join(',',$gateways));
+					shopp_set_setting('active_gateways',join(',',$gateways));
 				}
 			}
 
@@ -1017,7 +1017,7 @@ class Setup extends AdminController {
 
 		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
 
-		$notifications = ShoppSettings()->get('error_notifications');
+		$notifications = shopp_setting('error_notifications');
 		if (empty($notifications)) $notifications = array();
 
 		$notification_errors = array(
@@ -1053,7 +1053,7 @@ class Setup extends AdminController {
 
 		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
 
-		// if (ShoppSettings()->get('error_logging') > 0)
+		// if (shopp_setting('error_logging') > 0)
 		// 	$recentlog = ShoppErrorLogging()->tail(1000);
 
 
@@ -1070,7 +1070,7 @@ class Setup extends AdminController {
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			ShoppSettings()->save($setting,$value);
+			shopp_set_setting($setting,$value);
 	}
 
 } // END class Setup

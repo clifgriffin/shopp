@@ -232,7 +232,7 @@ class Members extends AdminController {
 			'current' => $pagenum
 		));
 
-		$authentication = ShoppSettings()->get('account_system');
+		$authentication = shopp_setting('account_system');
 
 
 		include(SHOPP_ADMIN_PATH."/memberships/memberships.php");

@@ -10,7 +10,7 @@
 			<tr>
 				<th scope="row" valign="top"><label for="image-storage"><?php _e('Image Storage','Shopp'); ?></label></th>
 				<td><select name="settings[image_storage]" id="image-storage">
-					<?php echo menuoptions($storage,ShoppSettings()->get('image_storage'),true); ?>
+					<?php echo menuoptions($storage,shopp_setting('image_storage'),true); ?>
 					</select>
 					<div id="image-storage-engine" class="storage-settings"></div>
 	            </td>
@@ -18,7 +18,7 @@
 			<tr>
 				<th scope="row" valign="top"><label for="product-storage"><?php _e('Product File Storage','Shopp'); ?></label></th>
 				<td><select name="settings[product_storage]" id="product-storage">
-					<?php echo menuoptions($storage,ShoppSettings()->get('product_storage'),true); ?>
+					<?php echo menuoptions($storage,shopp_setting('product_storage'),true); ?>
 					</select>
 					<div id="product-storage-engine" class="storage-settings"></div>
 	            </td>
@@ -38,14 +38,14 @@
 
 			<tr>
 				<th scope="row" valign="top"><label for="uploader-toggle"><?php _e('Upload System','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[uploader_pref]" value="browser" /><input type="checkbox" name="settings[uploader_pref]" value="flash" id="uploader-toggle"<?php if (ShoppSettings()->get('uploader_pref') == "flash") echo ' checked="checked"'?> /><label for="uploader-toggle"> <?php _e('Enable Flash-based uploading','Shopp'); ?></label><br />
+				<td><input type="hidden" name="settings[uploader_pref]" value="browser" /><input type="checkbox" name="settings[uploader_pref]" value="flash" id="uploader-toggle"<?php if (shopp_setting('uploader_pref') == "flash") echo ' checked="checked"'?> /><label for="uploader-toggle"> <?php _e('Enable Flash-based uploading','Shopp'); ?></label><br />
 	            <?php _e('Enable to use Adobe Flash uploads for accurate upload progress. Disable this setting if you are having problems uploading.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="script-server"><?php _e('Script Loading','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[script_server]" value="script" /><input type="checkbox" name="settings[script_server]" value="plugin" id="script-server"<?php if (ShoppSettings()->get('script_server') == "plugin") echo ' checked="checked"'?> /><label for="script-server"> <?php _e('Load behavioral scripts through WordPress','Shopp'); ?></label><br />
+				<td><input type="hidden" name="settings[script_server]" value="script" /><input type="checkbox" name="settings[script_server]" value="plugin" id="script-server"<?php if (shopp_setting('script_server') == "plugin") echo ' checked="checked"'?> /><label for="script-server"> <?php _e('Load behavioral scripts through WordPress','Shopp'); ?></label><br />
 	            <?php _e('Enable this setting when experiencing problems loading scripts with the Shopp Script Server','Shopp'); ?>
-				<div><input type="hidden" name="settings[script_loading]" value="catalog" /><input type="checkbox" name="settings[script_loading]" value="global" id="script-loading"<?php if (ShoppSettings()->get('script_loading') == "global") echo ' checked="checked"'?> /><label for="script-loading"> <?php _e('Enable Shopp behavioral scripts site-wide','Shopp'); ?></label><br />
+				<div><input type="hidden" name="settings[script_loading]" value="catalog" /><input type="checkbox" name="settings[script_loading]" value="global" id="script-loading"<?php if (shopp_setting('script_loading') == "global") echo ' checked="checked"'?> /><label for="script-loading"> <?php _e('Enable Shopp behavioral scripts site-wide','Shopp'); ?></label><br />
 	            <?php _e('Enable this to make Shopp behaviors available across all of your WordPress posts and pages.','Shopp'); ?></div>
 
 	</td>
@@ -63,22 +63,21 @@
 			<tr>
 				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Logging','Shopp'); ?></label></th>
 				<td><select name="settings[error_logging]" id="error-logging">
-					<?php echo menuoptions($errorlog_levels,ShoppSettings()->get('error_logging'),true); ?>
+					<?php echo menuoptions($errorlog_levels,shopp_setting('error_logging'),true); ?>
 					</select><br />
 					<label for="error-notifications"><?php _e("Limit logging errors up to the level of the selected error type.","Shopp"); ?></label>
 	            </td>
 			</tr>
+			<?php if (count($recentlog) > 0): ?>
 			<tr>
 				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Log','Shopp'); ?></label></th>
-				<td id="errorlog">
-
-				<iframe id="logviewer" src="<?php echo wp_nonce_url(add_query_arg(array('action'=>'shopp_debuglog'),admin_url('admin-ajax.php')),'wp_ajax_shopp_debuglog'); ?>">
-				<p>Loading log file...</p>
-				</iframe>
-
+				<td><div id="errorlog"><ol><?php foreach ($recentlog as $line): ?>
+					<li><?php echo esc_html($line); ?></li>
+				<?php endforeach; ?></ol></div>
 				<p class="alignright"><button name="resetlog" id="resetlog" value="resetlog" class="button"><small><?php _e("Reset Log","Shopp"); ?></small></button></p>
 				</td>
 			</tr>
+			<?php endif; ?>
 		</table>
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>

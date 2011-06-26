@@ -121,7 +121,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$parentkey = '_'.$tree_category->parent;
 			}
 		}
-		$pages = ShoppSettings()->get('pages');
+		$pages = shopp_setting('pages');
 
 		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
@@ -397,7 +397,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$title = "";
 		$string = "";
 		$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
-		$default = ShoppSettings()->get('default_product_order');
+		$default = shopp_setting('default_product_order');
 		if (empty($default)) $default = "title";
 
 		if (isset($options['default'])) $default = $options['default'];

@@ -138,7 +138,7 @@
 <div id="end-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-var lastexport = new Date(<?php echo date("Y,(n-1),j",ShoppSettings()->get('purchaselog_lastexport')); ?>);
+var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('purchaselog_lastexport')); ?>);
 
 jQuery(document).ready( function() {
 var $=jqnc();

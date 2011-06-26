@@ -90,7 +90,7 @@ class ShoppScripts extends WP_Scripts {
 
 		if ( !empty($this->concat) ) {
 			$ver = md5("$this->concat_version");
-			if (ShoppSettings()->get('script_server') == 'plugin') {
+			if (shopp_setting('script_server') == 'plugin') {
 				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver";
 				if (is_ssl()) $src = str_replace('http://','https://',$src);
 			} else $src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";

@@ -1,7 +1,7 @@
 <?php
 global $Shopp;
 function billto_meta_box ($Purchase) {
-	$targets = ShoppSettings()->get('target_markets');
+	$targets = shopp_setting('target_markets');
 ?>
 	<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
 	<?php echo esc_html($Purchase->address); ?><br />
@@ -20,7 +20,7 @@ function billto_meta_box ($Purchase) {
 add_meta_box('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function shipto_meta_box ($Purchase) {
-	$targets = ShoppSettings()->get('target_markets');
+	$targets = shopp_setting('target_markets');
 ?>
 		<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
 		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
@@ -43,7 +43,7 @@ function contact_meta_box ($Purchase) {
 	$phone_url = 'callto:'.preg_replace('/[^\d+]/','',$Purchase->phone);
 	$phone_url = apply_filters('shopp_order_customer_phone_url',$phone_url);
 
-	$accounts = ShoppSettings()->get('account_system');
+	$accounts = shopp_setting('account_system');
 	$wp_user = false;
 	if ($accounts == "wordpress") {
 		$Customer = new Customer($Purchase->customer);

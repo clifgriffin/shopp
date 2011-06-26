@@ -176,7 +176,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
 	function needs_shipping_estimates ($result, $options, $O) {
-		$markets = ShoppSettings()->get('target_markets');
+		$markets = shopp_setting('target_markets');
 		return (!empty($O->shipped) && !$O->noshipping && ($O->showpostcode || count($markets) > 1));
 	}
 
@@ -187,8 +187,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		// Skip if no promotions exist
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
-		if (ShoppSettings()->get('promo_limit') > 0 &&
-			count($O->discounts) >= ShoppSettings()->get('promo_limit')) return false;
+		if (shopp_setting('promo_limit') > 0 &&
+			count($O->discounts) >= shopp_setting('promo_limit')) return false;
 		if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 		$result = '<ul><li>';
 		$ShoppErrors = ShoppErrors();
@@ -236,8 +236,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		global $Shopp;
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
-		if (ShoppSettings()->get('promo_limit') > 0 &&
-			count($O->discounts) >= ShoppSettings()->get('promo_limit')) return false;
+		if (shopp_setting('promo_limit') > 0 &&
+			count($O->discounts) >= shopp_setting('promo_limit')) return false;
 		return true;
 	}
 
@@ -267,7 +267,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		if (isset($options['label'])) {
 			$options['currency'] = "false";
 			if ($O->freeshipping) {
-				$result = ShoppSettings()->get('free_shipping_text');
+				$result = shopp_setting('free_shipping_text');
 				if (empty($result)) $result = __('Free Shipping!','Shopp');
 			}
 
@@ -285,8 +285,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function shipping_estimates ($result, $options, $O) {
 		global $Shopp;
 		if (empty($O->shipped)) return "";
-		$base = ShoppSettings()->get('base_operations');
-		$markets = ShoppSettings()->get('target_markets');
+		$base = shopp_setting('base_operations');
+		$markets = shopp_setting('target_markets');
 		$Shipping = &$Shopp->Order->Shipping;
 		if (empty($markets)) return "";
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
