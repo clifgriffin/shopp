@@ -139,7 +139,6 @@ class Product extends WPShoppObject {
 			$Object->prices = $this->priceid;
 			$ObjectMeta = new ObjectMeta();
 			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
-			print_r($this->prices);
 		}
 
 		if ( isset($this->products) && !empty($this->products) ) {
