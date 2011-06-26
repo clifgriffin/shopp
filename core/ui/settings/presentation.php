@@ -41,7 +41,7 @@
 						<?php
 						break;
 					default:?>
-					<input type="hidden" name="settings[theme_templates]" value="off" /><input type="checkbox" name="settings[theme_templates]" value="on" id="theme-templates"<?php if ($this->Settings->get('theme_templates') != "off") echo ' checked="checked"'?> /><label for="theme-templates"> <?php _e('Enable theme templates','Shopp'); ?></label><br />
+					<input type="hidden" name="settings[theme_templates]" value="off" /><input type="checkbox" name="settings[theme_templates]" value="on" id="theme-templates"<?php if (ShoppSettings()->get('theme_templates') != "off") echo ' checked="checked"'?> /><label for="theme-templates"> <?php _e('Enable theme templates','Shopp'); ?></label><br />
 					<?php _e('Check this to use the templates installed in your currently active WordPress theme.','Shopp'); ?>
 						<?php
 				}
@@ -50,31 +50,31 @@
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="outofstock-catalog"><?php _e('Catalog Inventory','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[outofstock_catalog]" value="off" /><input type="checkbox" name="settings[outofstock_catalog]" value="on" id="outofstock-catalog"<?php if ($this->Settings->get('outofstock_catalog') == "on") echo ' checked="checked"'?> /><label for="outofstock-catalog"> <?php _e('Show out-of-stock products in the catalog','Shopp'); ?></label>
+				<td><input type="hidden" name="settings[outofstock_catalog]" value="off" /><input type="checkbox" name="settings[outofstock_catalog]" value="on" id="outofstock-catalog"<?php if (ShoppSettings()->get('outofstock_catalog') == "on") echo ' checked="checked"'?> /><label for="outofstock-catalog"> <?php _e('Show out-of-stock products in the catalog','Shopp'); ?></label>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="default-catalog-view"><?php _e('Catalog View','Shopp'); ?></label></th>
 				<td><select name="settings[default_catalog_view]" id="default-catalog-view">
-					<?php echo menuoptions($category_views,$this->Settings->get('default_catalog_view'),true); ?>
+					<?php echo menuoptions($category_views,ShoppSettings()->get('default_catalog_view'),true); ?>
 				</select></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="row-products"><?php _e('Grid Rows','Shopp'); ?></label></th>
 				<td><select name="settings[row_products]" id="row-products">
-					<?php echo menuoptions($row_products,$this->Settings->get('row_products')); ?>
+					<?php echo menuoptions($row_products,ShoppSettings()->get('row_products')); ?>
 				</select>
 	            <label for="row-products"><?php _e('products per row','Shopp'); ?></label></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="catalog-pagination"><?php _e('Pagination','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[catalog_pagination]" id="catalog-pagination" value="<?php echo esc_attr($this->Settings->get('catalog_pagination')); ?>" size="4" class="selectall" />
+				<td><input type="text" name="settings[catalog_pagination]" id="catalog-pagination" value="<?php echo esc_attr(ShoppSettings()->get('catalog_pagination')); ?>" size="4" class="selectall" />
 	            <label for="catalog-pagination"><?php _e('products per page','Shopp'); ?></label></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="product-order"><?php _e('Product Order','Shopp'); ?></label></th>
 				<td><select name="settings[default_product_order]" id="product-order">
-					<?php echo menuoptions($productOrderOptions,$this->Settings->get('default_product_order'),true); ?>
+					<?php echo menuoptions($productOrderOptions,ShoppSettings()->get('default_product_order'),true); ?>
 				</select>
 				<br />
 	            <?php _e('Set the default display order of products shown in categories.','Shopp'); ?></td>
@@ -82,10 +82,10 @@
 			<tr>
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Image Order','Shopp'); ?></label></th>
 				<td><select name="settings[product_image_order]" id="showcase-order">
-					<?php echo menuoptions($orderOptions,$this->Settings->get('product_image_order'),true); ?>
+					<?php echo menuoptions($orderOptions,ShoppSettings()->get('product_image_order'),true); ?>
 				</select> by
 				<select name="settings[product_image_orderby]" id="showcase-orderby">
-					<?php echo menuoptions($orderBy,$this->Settings->get('product_image_orderby'),true); ?>
+					<?php echo menuoptions($orderBy,ShoppSettings()->get('product_image_orderby'),true); ?>
 				</select>
 				<br />
 	            <?php _e('Set how to organize the presentation of product images.','Shopp'); ?></td>

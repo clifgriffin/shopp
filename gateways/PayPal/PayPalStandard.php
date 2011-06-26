@@ -107,6 +107,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * Builds a hidden form to submit to PayPal when confirming the order for processing */
 	function form ($form,$options=array()) {
 		global $Shopp;
+		$Shopping = ShoppShopping();
 		$Order = $this->Order;
 
 		$_ = array();
@@ -115,7 +116,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
 		$_['invoice']				= mktime();
-		$_['custom']				= $Shopp->Shopping->session;
+		$_['custom']				= $Shopping->session;
 
 		// Options
 		if ($this->settings['pdtverify'] == "on")
@@ -334,7 +335,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
 		$this->actions();
 
-		$Shopping = &$Shopp->Shopping;
+		$Shopping = ShoppShopping();
+		$Shopping->init();
 		// Couldn't load the session data
 		if ($Shopping->session != $_POST['custom'])
 			return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);

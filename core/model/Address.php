@@ -169,7 +169,7 @@ class ShippingAddress extends Address {
 	function destination ($data=false) {
 		global $Shopp;
 
-		$base = $Shopp->Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 		$countries = Lookup::countries();
 		$regions = Lookup::regions();
 

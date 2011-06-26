@@ -59,6 +59,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function breadcrumb ($result, $options, $O) {
 		global $Shopp;
+
 		$defaults = array(
 			'separator' => '&nbsp;&raquo; ',
 			'depth'		=> 7
@@ -120,7 +121,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$parentkey = '_'.$tree_category->parent;
 			}
 		}
-		$pages = $Shopp->Settings->get('pages');
+		$pages = ShoppSettings()->get('pages');
 
 		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
@@ -385,6 +386,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function orderby_list ($result, $options, $O) {
 		global $Shopp;
+
 		if (isset($Shopp->Category->controls)) return false;
 		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
 
@@ -395,7 +397,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$title = "";
 		$string = "";
 		$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
-		$default = $Shopp->Settings->get('default_product_order');
+		$default = ShoppSettings()->get('default_product_order');
 		if (empty($default)) $default = "title";
 
 		if (isset($options['default'])) $default = $options['default'];

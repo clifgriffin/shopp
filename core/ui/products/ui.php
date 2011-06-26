@@ -42,7 +42,7 @@ function save_meta_box ($Product) {
 	</div>
 	<div id="major-publishing-actions">
 		<select name="settings[workflow]" id="workflow">
-		<?php echo menuoptions($workflows,$Shopp->Settings->get('workflow'),true); ?>
+		<?php echo menuoptions($workflows,ShoppSettings()->get('workflow'),true); ?>
 		</select>
 	<input type="submit" class="button-primary" name="save" value="<?php _e('Save Product','Shopp'); ?>" />
 	</div>

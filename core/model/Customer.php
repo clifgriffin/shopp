@@ -30,8 +30,8 @@ class Customer extends DatabaseObject {
 	function __construct ($id=false,$key=false) {
 		global $Shopp;
 
-		$this->accounts = $Shopp->Settings->get('account_system');
-		$this->merchant = $Shopp->Settings->get('merchant_email');
+		$this->accounts = ShoppSettings()->get('account_system');
+		$this->merchant = ShoppSettings()->get('merchant_email');
 
 		$this->init(self::$table);
 		$this->load($id,$key);
@@ -222,7 +222,7 @@ class Customer extends DatabaseObject {
 		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request','Shopp'),get_option('blogname')));
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
+		$_[] = 'From: "'.get_option('blogname').'" <'.ShoppSettings()->get('merchant_email').'>';
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -280,9 +280,8 @@ class Customer extends DatabaseObject {
 
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 
-		$Settings =& ShoppSettings();
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
+		$_[] = 'From: "'.get_option('blogname').'" <'.ShoppSettings()->get('merchant_email').'>';
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -305,14 +304,13 @@ class Customer extends DatabaseObject {
 
 	function notification () {
 		global $Shopp;
-		$Settings =& ShoppSettings();
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
-		$_[] = 'To: '.$Settings->get('merchant_email');
+		$_[] = 'From: "'.get_option('blogname').'" <'.ShoppSettings()->get('merchant_email').'>';
+		$_[] = 'To: '.ShoppSettings()->get('merchant_email');
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
@@ -324,7 +322,7 @@ class Customer extends DatabaseObject {
 		if (empty($this->password)) return;
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
+		$_[] = 'From: "'.get_option('blogname').'" <'.ShoppSettings()->get('merchant_email').'>';
 		$_[] = 'To: '.$this->email;
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';
@@ -487,9 +485,9 @@ class Customer extends DatabaseObject {
 				return false;
 
 			case "loggedin": return $Shopp->Order->Customer->login; break;
-			case "notloggedin": return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "notloggedin": return (!$Shopp->Order->Customer->login && ShoppSettings()->get('account_system') != "none"); break;
 			case "login-label":
-				$accounts = $Shopp->Settings->get('account_system');
+				$accounts = ShoppSettings()->get('account_system');
 				$label = __('Email Address','Shopp');
 				if ($accounts == "wordpress") $label = __('Login Name','Shopp');
 				if (isset($options['label'])) $label = $options['label'];
@@ -576,15 +574,15 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('url',$options)) return shoppurl(array('acct'=>$page->request),'account');
 				if (array_key_exists('action',$options)) return $page->request;
 				return $page->label;
-			case "accounts": return $Shopp->Settings->get('account_system'); break;
+			case "accounts": return ShoppSettings()->get('account_system'); break;
 			case "hasaccount":
-				$system = $Shopp->Settings->get('account_system');
+				$system = ShoppSettings()->get('account_system');
 				if ($system == "wordpress") return ($this->wpuser != 0);
 				elseif ($system == "shopp") return (!empty($this->password));
 				else return false;
 			case "wpuser-created": return $this->newuser;
 			case "order-lookup":
-				$auth = $Shopp->Settings->get('account_system');
+				$auth = ShoppSettings()->get('account_system');
 				if ($auth != "none") return true;
 
 				if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
@@ -761,12 +759,12 @@ class Customer extends DatabaseObject {
 				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
 			case "shipping-country":
 				if ($options['mode'] == "value") return $Order->Shipping->country;
-				$base = $Shopp->Settings->get('base_operations');
+				$base = ShoppSettings()->get('base_operations');
 				if (!empty($Order->Shipping->country))
 					$options['selected'] = $Order->Shipping->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
-				$countries = $Shopp->Settings->get('target_markets');
+				$countries = ShoppSettings()->get('target_markets');
 
 				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
@@ -849,13 +847,13 @@ class Customer extends DatabaseObject {
 				break;
 			case "billing-country":
 				if ($options['mode'] == "value") return $Order->Billing->country;
-				$base = $Shopp->Settings->get('base_operations');
+				$base = ShoppSettings()->get('base_operations');
 
 				if (!empty($Order->Billing->country))
 					$options['selected'] = $Order->Billing->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
-				$countries = $Shopp->Settings->get('target_markets');
+				$countries = ShoppSettings()->get('target_markets');
 
 				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
@@ -980,9 +978,9 @@ class CustomersExport {
 		$this->defined = array_merge($this->customer_cols,$this->billing_cols,$this->shipping_cols);
 
 		$this->sitename = get_bloginfo('name');
-		$this->headings = ($Shopp->Settings->get('customerexport_headers') == "on");
-		$this->selected = $Shopp->Settings->get('customerexport_columns');
-		$Shopp->Settings->save('customerexport_lastexport',mktime());
+		$this->headings = (ShoppSettings()->get('customerexport_headers') == "on");
+		$this->selected = ShoppSettings()->get('customerexport_columns');
+		ShoppSettings()->save('customerexport_lastexport',mktime());
 	}
 
 	function query ($request=array()) {

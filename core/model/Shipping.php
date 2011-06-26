@@ -61,10 +61,8 @@ class ShippingModules extends ModuleLoader {
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
-		$Settings = ShoppSettings();
-
 		$this->activated = array();
-		$active = $Settings->get('active_shipping');
+		$active = ShoppSettings()->get('active_shipping');
 		if (!empty($active)) $this->activated = array_keys($active);
 
 		return $this->activated;
@@ -94,8 +92,7 @@ class ShippingModules extends ModuleLoader {
 	function addmethods ($module) {
 		if (!isset($this->active[$module])) return;
 
-		$Settings = ShoppSettings();
-		$active = $Settings->get('active_shipping');
+		$active = ShoppSettings()->get('active_shipping');
 
 		$m = $active[$module];
 
@@ -108,7 +105,7 @@ class ShippingModules extends ModuleLoader {
 
 		foreach ($m as $index => $set) {
 			$setting_name = "$module-$index";
-			$setting = $Settings->get($setting_name);
+			$setting = ShoppSettings()->get($setting_name);
 			if (empty($setting)) continue;
  			$this->methods[$setting_name] = $module;
 		}
@@ -303,33 +300,32 @@ abstract class ShippingFramework {
 	 **/
 	function __construct () {
 
-		$Settings = ShoppSettings();
 		$Order = ShoppOrder();
 
 		$this->module = get_class($this);
 
-		if ($this->singular) $this->settings = $Settings->get($this->module);
+		if ($this->singular) $this->settings = ShoppSettings()->get($this->module);
 		else {
-			$active = $Settings->get('active_shipping');
+			$active = ShoppSettings()->get('active_shipping');
 			if (isset($active[$this->module]) && is_array($active[$this->module]))
 				foreach ($active[$this->module] as $index => $set)
-					$this->methods["$this->module-$index"] = $Settings->get("$this->module-$index");
+					$this->methods["$this->module-$index"] = ShoppSettings()->get("$this->module-$index");
 		}
 
-		$this->base = $Settings->get('base_operations');
-		$this->units = $Settings->get('weight_unit');
+		$this->base = ShoppSettings()->get('base_operations');
+		$this->units = ShoppSettings()->get('weight_unit');
 
 		if ($this->postcode) $Order->Cart->showpostcode = true;
 
 		if ( $this->xml && ! class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
 		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
-		// $rates = $Settings->get('shipping_rates');
+		// $rates = ShoppSettings()->get('shipping_rates');
 		// $this->rates = array_filter($rates,array(&$this,'myrates'));
 		// if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates);
 
 		// Setup default packaging for shipping module
-		$this->settings['shipping_packaging'] = $Settings->get('shipping_packaging');
+		$this->settings['shipping_packaging'] = ShoppSettings()->get('shipping_packaging');
 
 		// Shipping module can override the default behavior and the global setting by specifying the local packaging property
 		if ( isset($this->packaging) && $this->packaging != $this->settings['shipping_packaging'] )
@@ -342,8 +338,7 @@ abstract class ShippingFramework {
 	}
 
 	function setting ($id=false) {
-		$Settings = ShoppSettings();
-		$active = $Settings->get('active_shipping');
+		$active = ShoppSettings()->get('active_shipping');
 		if (!$active) $active = array();
 
 		if (!isset($active[$this->module])) $active[$this->module] = array();
@@ -355,7 +350,7 @@ abstract class ShippingFramework {
 		$this->setting = "{$this->module}-$id";
 
 		if (isset($active[$this->module][$id]))
-			$settings = $Settings->get($this->setting);
+			$settings = ShoppSettings()->get($this->setting);
 
 		if ($settings) $this->settings = $settings;
 	}

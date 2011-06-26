@@ -317,7 +317,7 @@ class CartAPITests extends ShoppTestCase {
 		$Order->Cart->totals();
 		
 		$this->assertTrue(shopp('cart','promos-available'));
-		$Shopp->Settings->registry['promo_limit'] = 1;
+		ShoppSettings()->registry['promo_limit'] = 1;
 		$this->assertTrue(shopp('cart','promos-available'));
 
 		$_REQUEST['promocode'] = '2percent';
@@ -423,7 +423,7 @@ class CartAPITests extends ShoppTestCase {
 		);
 		$this->assertTag($expected,$actual,'',true);
 
-		$Shopp->Settings->registry['target_markets'] = array('US' => 'USA');
+		ShoppSettings()->registry['target_markets'] = array('US' => 'USA');
 		ob_start();
 		shopp('cart','shipping-estimates');
 		$actual = ob_get_contents();

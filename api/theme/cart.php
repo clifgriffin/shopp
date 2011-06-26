@@ -176,25 +176,25 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
 	function needs_shipping_estimates ($result, $options, $O) {
-		global $Shopp;
-		$markets = $Shopp->Settings->get('target_markets');
+		$markets = ShoppSettings()->get('target_markets');
 		return (!empty($O->shipped) && !$O->noshipping && ($O->showpostcode || count($markets) > 1));
 	}
 
 	function promocode ($result, $options, $O) {
 		global $Shopp;
+
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		// Skip if no promotions exist
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
-		if ($Shopp->Settings->get('promo_limit') > 0 &&
-			count($O->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+		if (ShoppSettings()->get('promo_limit') > 0 &&
+			count($O->discounts) >= ShoppSettings()->get('promo_limit')) return false;
 		if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 		$result = '<ul><li>';
-
-		if ($Shopp->Errors->exist()) {
+		$ShoppErrors = ShoppErrors();
+		if ($ShoppErrors->exist()) {
 			$result .= '<p class="error">';
-			$errors = $Shopp->Errors->source('CartDiscounts');
+			$errors = $ShoppErrors->source('CartDiscounts');
 			foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message(true,false);
 			$result .= '</p>';
 		}
@@ -236,14 +236,14 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		global $Shopp;
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
-		if ($Shopp->Settings->get('promo_limit') > 0 &&
-			count($O->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+		if (ShoppSettings()->get('promo_limit') > 0 &&
+			count($O->discounts) >= ShoppSettings()->get('promo_limit')) return false;
 		return true;
 	}
 
 	function referrer ($result, $options, $O) {
-		global $Shopp;
-		$referrer = $Shopp->Shopping->data->referrer;
+		$Shopping = ShoppShopping();
+		$referrer = $Shopping->data->referrer;
 		if (!$referrer) $referrer = shopp('catalog','url','return=1');
 		return $referrer;
 	}
@@ -263,12 +263,11 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	function shipping ($result, $options, $O) {
-		global $Shopp;
 		if (empty($O->shipped)) return "";
 		if (isset($options['label'])) {
 			$options['currency'] = "false";
 			if ($O->freeshipping) {
-				$result = $Shopp->Settings->get('free_shipping_text');
+				$result = ShoppSettings()->get('free_shipping_text');
 				if (empty($result)) $result = __('Free Shipping!','Shopp');
 			}
 
@@ -286,8 +285,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function shipping_estimates ($result, $options, $O) {
 		global $Shopp;
 		if (empty($O->shipped)) return "";
-		$base = $Shopp->Settings->get('base_operations');
-		$markets = $Shopp->Settings->get('target_markets');
+		$base = ShoppSettings()->get('base_operations');
+		$markets = ShoppSettings()->get('target_markets');
 		$Shipping = &$Shopp->Order->Shipping;
 		if (empty($markets)) return "";
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;

@@ -211,14 +211,14 @@ class Account extends AdminController {
 			);
 
 
-		$formatPref = $Shopp->Settings->get('customerexport_format');
+		$formatPref = ShoppSettings()->get('customerexport_format');
 		if (!$formatPref) $formatPref = 'tab';
 
 		$columns = array_merge(Customer::exportcolumns(),BillingAddress::exportcolumns(),ShippingAddress::exportcolumns());
-		$selected = $Shopp->Settings->get('customerexport_columns');
+		$selected = ShoppSettings()->get('customerexport_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
-		$authentication = $Shopp->Settings->get('account_system');
+		$authentication = ShoppSettings()->get('account_system');
 
 		include(SHOPP_ADMIN_PATH."/customers/customers.php");
 

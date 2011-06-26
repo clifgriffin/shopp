@@ -23,7 +23,6 @@
  * @return mixed the value saved to the named setting, or false if not set.  returns null if empty name is provided
  **/
 function shopp_setting ( $name ) {
-	$Settings = ShoppSettings();
 	$setting = null;
 
 	if ( empty($name) ) {
@@ -31,7 +30,7 @@ function shopp_setting ( $name ) {
 		return false;
 	}
 
-	$setting = $Settings->get($name);
+	$setting = ShoppSettings()->get($name);
 
 	return $setting;
 }
@@ -47,14 +46,12 @@ function shopp_setting ( $name ) {
  * @return bool true on success, false on failure.
  **/
 function shopp_set_setting ( $name, $value ) {
-	$Settings = ShoppSettings();
-
 	if ( empty($name) ) {
 		if(SHOPP_DEBUG) new ShoppError("shopp_set_setting failed: Setting name parameter required.",'shopp_set_setting',SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Settings->save($name, $value);
+	ShoppSettings()->save($name, $value);
 	return true;
 }
 
@@ -68,13 +65,11 @@ function shopp_set_setting ( $name, $value ) {
  * @return bool true on success, false on failure
  **/
 function shopp_rmv_setting ($name) {
-	$Settings = ShoppSettings();
-
 	if ( empty($name) ) {
 		if(SHOPP_DEBUG) new ShoppError("shopp_rmv_setting failed: Setting name parameter required.",'shopp_rmv_setting',SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return $Settings->delete($name);
+	return ShoppSettings()->delete($name);
 }
 
 ?>

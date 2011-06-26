@@ -12,8 +12,7 @@ CREATE TABLE <?php echo $meta; ?> (								-- Meta records table
 	created datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Creation date
 	modified datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Modification date
 	PRIMARY KEY id (id),
-	KEY name (name),											-- Indexed by name
-	KEY lookup (parent,context,type)							-- Find by object record and meta type
+	KEY lookup (name,parent,context,type)						-- Find by object record and meta type
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $summary = DatabaseObject::tablename('summary'); ?>

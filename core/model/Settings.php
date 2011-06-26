@@ -14,6 +14,7 @@
  **/
 class Settings extends DatabaseObject {
 	static $table = 'meta';
+	private static $instance;
 
 	var $registry = array();	// Registry of setting objects
 	var $available = true;		// Flag when database tables don't exist
@@ -35,6 +36,12 @@ class Settings extends DatabaseObject {
 		$this->_table = $this->tablename(self::$table);
 		if (!$this->load($name))	// If no settings are loaded
 			$this->availability();	// update the Shopp tables availability status
+	}
+
+	public static function instance () {
+		if ( ! self::$instance )
+			self::$instance = new self();
+		return self::$instance;
 	}
 
 	/**
@@ -290,9 +297,8 @@ class Settings extends DatabaseObject {
  *
  * @return void Description...
  **/
-function &ShoppSettings () {
-	global $Shopp;
-	return $Shopp->Settings;
+function ShoppSettings () {
+	return Settings::instance();
 }
 
 ?>

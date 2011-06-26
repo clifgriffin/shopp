@@ -28,7 +28,7 @@ class Warehouse extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		if ('off' == $this->Settings->get('inventory'))
+		if ('off' == ShoppSettings()->get('inventory'))
 			array_splice($this->views,4,1);
 
 		if (isset($_GET['view']) && in_array($_GET['view'],$this->views))
@@ -60,7 +60,7 @@ class Warehouse extends AdminController {
 			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 
-		if ('inventory' == $this->view && 'on' == $this->Settings->get('inventory'))
+		if ('inventory' == $this->view && 'on' == ShoppSettings()->get('inventory'))
 			do_action('shopp_inventory_manager_scripts');
 
 		add_action('load-toplevel_page_shopp-products',array(&$this,'workflow'));
@@ -193,7 +193,6 @@ class Warehouse extends AdminController {
 	 **/
 	function manager ($workflow=false) {
 		global $Shopp,$Products;
-		$Settings = &ShoppSettings();
 
 		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -237,7 +236,7 @@ class Warehouse extends AdminController {
 				'taxonomy' => 'shopp_category'
 			));
 
-			if ('on' == $Settings->get('inventory')) {
+			if ('on' == ShoppSettings()->get('inventory')) {
 				$inventory_filters = array(
 					'all' => __('View all products','Shopp'),
 					'is' => __('In stock','Shopp'),
@@ -259,11 +258,11 @@ class Warehouse extends AdminController {
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status = 'trash'"))
 		);
 
-		if ('off' == $Settings->get('inventory')) unset($subs['inventory']);
+		if ('off' == ShoppSettings()->get('inventory')) unset($subs['inventory']);
 
 		switch ($view) {
 			case 'inventory':
-				if ('on' == $Settings->get('inventory')) $is_inventory = true;
+				if ('on' == ShoppSettings()->get('inventory')) $is_inventory = true;
 				break;
 			case 'trash': $is_trash = true; break;
 			case 'bestselling': $is_bestselling = true; break;
@@ -288,14 +287,14 @@ class Warehouse extends AdminController {
 			$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
 		}
 
-		if (!empty($sl) && 'on' == $Settings->get('inventory')) {
+		if (!empty($sl) && 'on' == ShoppSettings()->get('inventory')) {
 			switch($sl) {
 				case "ns": $where[] = "s.inventory='off'"; break;
 				case "oos":
 					$where[] = "(s.inventory='on' AND s.stock = 0)";
 					break;
 				case "ls":
-					$ls = $Settings->get('lowstock_level');
+					$ls = ShoppSettings()->get('lowstock_level');
 					if (empty($ls)) $ls = '0';
 					$where[] = "(s.inventory='on' AND s.stock <= $ls AND s.stock > 0)";
 					break;
@@ -303,8 +302,8 @@ class Warehouse extends AdminController {
 			}
 		}
 
-		$lowstock = $Settings->get('lowstock_level');
-		$base = $Settings->get('base_operations');
+		$lowstock = ShoppSettings()->get('lowstock_level');
+		$base = ShoppSettings()->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
@@ -400,7 +399,7 @@ class Warehouse extends AdminController {
 		$path = SHOPP_ADMIN_PATH."/products";
 		$ui = "products.php";
 		switch ($view) {
-			case 'inventory': if ('on' == $Settings->get('inventory')) $ui = "inventory.php"; break;
+			case 'inventory': if ('on' == ShoppSettings()->get('inventory')) $ui = "inventory.php"; break;
 		}
 		include("$path/$ui");
 	}
@@ -442,8 +441,7 @@ class Warehouse extends AdminController {
 
 		$columns = isset($headings[$this->view]) ? $headings[$this->view] : $headings['default'];
 
-		$Settings = ShoppSettings();
-		if ('on' != $Settings->get('inventory'))
+		if ('on' != ShoppSettings()->get('inventory'))
 			unset($columns['inventory']);
 
 		// Remove category column from the "trash" view
@@ -538,10 +536,10 @@ class Warehouse extends AdminController {
 		// 	}
 		// }
 
-		$shiprates = $this->Settings->get('shipping_rates');
+		$shiprates = ShoppSettings()->get('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
 
-		$uploader = $Shopp->Settings->get('uploader_pref');
+		$uploader = ShoppSettings()->get('uploader_pref');
 		if (!$uploader) $uploader = 'flash';
 
 		$process = (!empty($Product->id)?$Product->id:'new');
@@ -565,16 +563,15 @@ class Warehouse extends AdminController {
 	 * @return void
 	 **/
 	function save (Product $Product) {
-		$Settings = &ShoppSettings();
 		check_admin_referer('shopp-save-product');
 
 		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Settings->saveform(); // Save workflow setting
+		ShoppSettings()->saveform(); // Save workflow setting
 
 		// Get needed settings
-		$base = $Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 		$taxrate = 0;
 		if ($base['vat']) $taxrate = shopp_taxrate(null,true,$Product);
 
