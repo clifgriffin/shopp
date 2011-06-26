@@ -1053,8 +1053,9 @@ class Setup extends AdminController {
 
 		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
 
-		if (ShoppSettings()->get('error_logging') > 0)
-			$recentlog = $Shopp->ErrorLog->tail(500);
+		// if (ShoppSettings()->get('error_logging') > 0)
+		// 	$recentlog = ShoppErrorLogging()->tail(1000);
+
 
 		include(SHOPP_ADMIN_PATH."/settings/system.php");
 	}

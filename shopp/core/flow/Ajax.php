@@ -71,6 +71,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'storage_suggestions'),11);
 		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
 		add_action('wp_ajax_shopp_gateway',array(&$this,'gateway_ajax'));
+		add_action('wp_ajax_shopp_debuglog',array(&$this,'logviewer'));
 
 	}
 
@@ -279,7 +280,8 @@ class AjaxFlow {
 		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts");
 		if (empty($total->products)) die('-1');
 
-		ShoppSettings()->save('searchindex_build',mktimestamp($total->start));
+		$Settings = &ShoppSettings();
+		$Settings->save('searchindex_build',mktimestamp($total->start));
 
 		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
@@ -304,7 +306,8 @@ class AjaxFlow {
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 
-		$lastbuild = ShoppSettings()->get('searchindex_build');
+		$Settings = &ShoppSettings();
+		$lastbuild = $Settings->get('searchindex_build');
 		if (empty($lastbuild)) $lastbuild = 0;
 
 		$status = $db->query("SELECT count(DISTINCT product.id) AS products, count(DISTINCT product) AS indexed FROM $product_table AS product LEFT JOIN $index_table AS indx ON product.id=indx.product AND $lastbuild < UNIX_TIMESTAMP(indx.modified)");
@@ -526,6 +529,7 @@ class AjaxFlow {
 			}
 
 			$tmp = basename($importfile);
+			$Settings =& ShoppSettings();
 
 			$_->path = $importfile;
 			if (empty($headers)) {
@@ -564,14 +568,14 @@ class AjaxFlow {
 			if (!empty($buffer)) {
 				fwrite($incoming, $buffer);
 				$progress += strlen($buffer);
-				ShoppSettings()->save($tmp.'_import_progress',$progress);
+				$Settings->save($tmp.'_import_progress',$progress);
 			}
 		}
 		fclose($file);
 		fclose($incoming);
 
 		sleep(5);
-		ShoppSettings()->delete($tmp.'_import_progress');
+		$Settings->delete($tmp.'_import_progress');
 
 		exit();
 	}
@@ -580,7 +584,8 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_import_file_progress');
 		if (empty($_REQUEST['proc'])) die('0');
 
-		$progress = ShoppSettings()->get($_REQUEST['proc'].'_import_progress');
+		$Settings =& ShoppSettings();
+		$progress = $Settings->get($_REQUEST['proc'].'_import_progress');
 		if (empty($progress)) die('0');
 		die($progress);
 	}
@@ -589,7 +594,7 @@ class AjaxFlow {
 
 	function verify_file () {
 		check_admin_referer('wp_ajax_shopp_verify_file');
-
+		$Settings = &ShoppSettings();
 		chdir(WP_CONTENT_DIR); // relative file system path context for realpath
 		$url = $_POST['url'];
 		$request = parse_url($url);
@@ -701,6 +706,23 @@ class AjaxFlow {
 			if($purchase->gateway) do_action('shopp_gateway_ajax_'.sanitize_title_with_dashes($purchase->gateway), $_POST);
 		}
 		exit();
+	}
+
+	function logviewer () {
+		check_admin_referer('wp_ajax_shopp_debuglog'); ?>
+		<html>
+		<head>
+		<style type="text/css">
+		body { margin: 0; padding: 0; font-family:monospace;font-size:1em;line-height:1em;}
+		ol { list-style:decimal;padding-left:5em;background:#ececec;margin-left:0; margin-bottom: 1px; }
+		ol li { background:white;margin:0;padding:5px; }
+		a { color: #606060; text-decoration: none; }
+		</style>
+		</head>
+		<body>
+		<ol><?php $log = ShoppErrorLogging()->tail(1000);
+				foreach ($log as $line) echo '<li>'.$line.'</li>';
+		?></ol></body></html><?php exit();
 	}
 
 } // END class AjaxFlow
