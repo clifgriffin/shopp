@@ -36,6 +36,7 @@ define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
  * @subpackage errors
  **/
 class ShoppErrors {
+	private static $instance;
 
 	var $errors = array();				// Error message registry
 	var $notifications;					// Notification subscription registry
@@ -50,7 +51,8 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
-		ShoppingObject::store('errors',$this->errors);
+		$errlevel = ShoppSettings()->get('error_logging');
+		if ( $errlevel ) $level = $errlevel;
 
 		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
 		if ($level > $this->reporting) $this->reporting = $level;
@@ -62,6 +64,22 @@ class ShoppErrors {
 		// Handle PHP errors
 		if ($this->reporting >= SHOPP_PHP_ERR)
 			set_error_handler(array($this,'phperror'),$types);
+
+		add_action('init', array(&$this, 'init'), 20);
+	}
+
+	function init () {
+		ShoppingObject::store('errors', $this->errors);
+	}
+
+	public static function instance () {
+		if ( ! self::$instance )
+			self::$instance = new self ();
+		return self::$instance;
+	}
+
+	function set_loglevel () {
+		$this->reporting = ShoppSettings()->get('error_logging');
 	}
 
 	/**
@@ -231,7 +249,8 @@ class ShoppErrors {
 		}
 	}
 
-}
+} //end ShoppErrors
+
 
 /**
  * ShoppError class
@@ -368,6 +387,7 @@ class ShoppError {
  * @subpackage errors
  **/
 class ShoppErrorLogging {
+	private static $instance;
 	var $dir;
 	var $file = "shopp_debug.log";
 	var $logfile;
@@ -383,7 +403,9 @@ class ShoppErrorLogging {
 	 * @return void
 	 **/
 	function __construct ($loglevel=0) {
-		$this->loglevel = $loglevel;
+		$loglevelsetting = ShoppSettings()->get('error_logging');
+		$this->loglevel = $loglevelsetting ? $loglevelsetting : $loglevel;
+
 		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : sys_get_temp_dir();
 		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
 
@@ -393,6 +415,16 @@ class ShoppErrorLogging {
 
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'log');
+	}
+
+	public static function instance() {
+		if ( ! self::$instance )
+			self::$instance = new self();
+	}
+
+
+	function set_loglevel() {
+		$this->loglevel = ShoppSettings()->get('error_logging');
 	}
 
 	/**
@@ -475,7 +507,7 @@ class ShoppErrorLogging {
  * @subpackage errors
  **/
 class ShoppErrorNotification {
-
+	private static $instance;
 	var $recipients;	// Recipient addresses to send to
 	var $types=0;		// Error types to send
 
@@ -490,10 +522,30 @@ class ShoppErrorNotification {
 	 * @return void
 	 **/
 	function __construct ($recipients='',$types=array()) {
+		$recipients = ShoppSettings()->get('merchant_email');
+		$types = ShoppSettings()->get('error_notifications');
+
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;
 		foreach ((array)$types as $type) $this->types += $type;
 		$Errors = &ShoppErrors();
+		$Errors->notifications->subscribe($this,'notify');
+	}
+
+	public static function instance() {
+		if ( ! self::$instance )
+			self::$instance = new self();
+	}
+
+	function set_notifications () {
+		$recipients = ShoppSettings()->get('merchant_email');
+		$types = ShoppSettings()->get('error_notifications');
+
+		if (empty($recipients)) return;
+		$this->recipients = $recipients;
+		foreach ((array)$types as $type) $this->types += $type;
+
+		$Errors = ShoppErrors();
 		$Errors->notifications->subscribe($this,'notify');
 	}
 
@@ -552,9 +604,16 @@ class CallbackSubscription {
  *
  * @return void Description...
  **/
-function &ShoppErrors () {
-	global $Shopp;
-	return $Shopp->Errors;
+function ShoppErrors () {
+	return ShoppErrors::instance();
+}
+
+function ShoppErrorLogging () {
+	return ShoppErrorLogging::instance();
+}
+
+function ShoppErrorNotification () {
+	return ShoppErrorNotification::instance();
 }
 
 /**

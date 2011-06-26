@@ -30,7 +30,6 @@ class Setup extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		$Settings = ShoppSettings();
 
 		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 		$pages = explode("-",$_GET['page']);
@@ -59,7 +58,7 @@ class Setup extends AdminController {
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
 
-				if ('on' == $Settings->get('taxes'))
+				if ('on' == ShoppSettings()->get('taxes'))
 					$this->taxrate_ui();
 
 				break;
@@ -102,7 +101,7 @@ class Setup extends AdminController {
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
 
-				if ('on' == $Settings->get('shipping'))
+				if ('on' == ShoppSettings()->get('shipping'))
 					$this->shipping_ui();
 				break;
 			case "settings":
@@ -175,8 +174,6 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Settings = ShoppSettings();
-
 		// Welcome screen handling
 		if (!empty($_POST['setup'])) {
 			$_POST['settings']['display_welcome'] = "off";
@@ -246,12 +243,12 @@ class Setup extends AdminController {
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
-		$operations = $Settings->get('base_operations');
+		$operations = ShoppSettings()->get('base_operations');
 		$zones = Lookup::country_zones();
 		if (isset($zones[$operations['country']]))
 			$zones = $zones[$operations['country']];
 
-		$targets = $Settings->get('target_markets');
+		$targets = ShoppSettings()->get('target_markets');
 		if (!$targets) $targets = array();
 
 		include(SHOPP_ADMIN_PATH."/settings/settings.php");
@@ -319,14 +316,13 @@ class Setup extends AdminController {
 	function checkout () {
 		global $Shopp;
 
-		$Settings = ShoppSettings();
 		$db =& DB::get();
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_checkout')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
-		$next_setting = $Settings->get('next_order_id');
+		$next_setting = ShoppSettings()->get('next_order_id');
 
 		if ($next->id > $next_setting) $next_setting = $next->id;
 
@@ -364,7 +360,7 @@ class Setup extends AdminController {
 			'31536000' => __('1 year','Shopp'),
 			);
 
-		$statusLabels = $Settings->get('order_status');
+		$statusLabels = ShoppSettings()->get('order_status');
 
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
@@ -384,10 +380,9 @@ class Setup extends AdminController {
 
 
 		global $Shopp;
-		$Settings = ShoppSettings();
 
 		$sub = 'settings';
-		if ('on' == $Settings->get('shipping')) $sub = 'rates';
+		if ('on' == ShoppSettings()->get('shipping')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
@@ -402,12 +397,12 @@ class Setup extends AdminController {
 		}
 
 		// Handle ship rates UI
-		if ('rates' == $sub && 'on' == $Settings->get('shipping')) return $this->shiprates();
+		if ('rates' == $sub && 'on' == ShoppSettings()->get('shipping')) return $this->shiprates();
 
-		$base = $Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 		$regions = Lookup::regions();
 		$region = $regions[$base['region']];
-		$useRegions = $Settings->get('shipping_regions');
+		$useRegions = ShoppSettings()->get('shipping_regions');
 
 		$areas = Lookup::country_areas();
 		if (is_array($areas[$base['country']]) && $useRegions == "on")
@@ -415,10 +410,10 @@ class Setup extends AdminController {
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
 
-		$rates = $Settings->get('shipping_rates');
+		$rates = ShoppSettings()->get('shipping_rates');
 		if (!empty($rates)) ksort($rates);
 
-		$lowstock = $Settings->get('lowstock_level');
+		$lowstock = ShoppSettings()->get('lowstock_level');
 		if (empty($lowstock)) $lowstock = 0;
 
 		include(SHOPP_ADMIN_PATH."/settings/shipping.php");
@@ -426,13 +421,12 @@ class Setup extends AdminController {
 
 	function shiprates () {
 		global $Shopp;
-		$Settings = ShoppSettings();
 		$Shipping = $Shopp->Shipping;
 		$Shipping->settings(); // Load all installed shipping modules for settings UIs
 
 		$methods = $Shopp->Shipping->methods;
 
-		$active = $Settings->get('active_shipping');
+		$active = ShoppSettings()->get('active_shipping');
 		if (!$active) $active = array();
 
 		if (!empty($_GET['delete'])) {
@@ -451,7 +445,7 @@ class Setup extends AdminController {
 				} else unset($active[$delete]);
 				$updated = __('Shipping method setting removed.','Shopp');
 
-				$Settings->save('active_shipping',$active);
+				ShoppSettings()->save('active_shipping',$active);
 			}
 		}
 
@@ -467,7 +461,7 @@ class Setup extends AdminController {
 				if (isset($_POST['settings'])) $this->settings_save();
 				/** Save shipping service settings **/
 				$active[$module] = true;
-				$Settings->save('active_shipping',$active);
+				ShoppSettings()->save('active_shipping',$active);
 				$updated = __('Shipping settings saved.','Shopp');
 				// Cancel editing if saving
 				if (isset($_POST['save'])) unset($_REQUEST['id']);
@@ -522,10 +516,10 @@ class Setup extends AdminController {
 
 					}
 
-					$Settings->save($Shipper->setting,$_POST[$module]);
+					ShoppSettings()->save($Shipper->setting,$_POST[$module]);
 					if (!array_key_exists($module,$active)) $active[$module] = array();
 					$active[$module][(int)$id] = true;
-					$Settings->save('active_shipping',$active);
+					ShoppSettings()->save('active_shipping',$active);
 					$updated = __('Shipping settings saved.','Shopp');
 				}
 
@@ -563,7 +557,7 @@ class Setup extends AdminController {
 				$setting = "$name-$id";
 				$shiprates[$setting] = $name;
 
-				$settings[$setting] = $Settings->get($setting);
+				$settings[$setting] = ShoppSettings()->get($setting);
 				$settings[$setting]['id'] = $setting;
 				$settings[$setting] = array_merge($defaults[$default_name],$settings[$setting]);
 			}
@@ -621,8 +615,7 @@ class Setup extends AdminController {
 	}
 
 	function shipping_menu () {
-		$Settings = ShoppSettings();
-		if ('off' == $Settings->get('shipping')) return;
+		if ('off' == ShoppSettings()->get('shipping')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
@@ -645,10 +638,8 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Settings = ShoppSettings();
-
 		$sub = 'settings';
-		if ('on' == $Settings->get('taxes')) $sub = 'rates';
+		if ('on' == ShoppSettings()->get('taxes')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
@@ -659,14 +650,13 @@ class Setup extends AdminController {
 		}
 
 		// Handle ship rates UI
-		if ('rates' == $sub && 'on' == $Settings->get('taxes')) return $this->taxrates();
+		if ('rates' == $sub && 'on' == ShoppSettings()->get('taxes')) return $this->taxrates();
 
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
 	}
 
 	function taxes_menu () {
-		$Settings = ShoppSettings();
-		if ('off' == $Settings->get('taxes')) return;
+		if ('off' == ShoppSettings()->get('taxes')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
@@ -689,13 +679,11 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Settings = ShoppSettings();
-
 		$edit = false;
 		if (isset($_REQUEST['id'])) $edit = (int)$_REQUEST['id'];
 		$localerror = false;
 
-		$rates = $Settings->get('taxrates');
+		$rates = ShoppSettings()->get('taxrates');
 		if (!is_array($rates)) $rates = array();
 
 		// echo "<pre>"; print_r($_POST); echo "</pre>";
@@ -706,7 +694,7 @@ class Setup extends AdminController {
 			$delete = (int)$_GET['delete'];
 			if (isset($rates[$delete]))
 				array_splice($rates,$delete,1);
-			$Settings->save('taxrates',$rates);
+			ShoppSettings()->save('taxrates',$rates);
 		}
 
 		if (isset($_POST['editing'])) $rates[$edit] = $_POST['settings']['taxrates'][ $edit ];
@@ -716,7 +704,7 @@ class Setup extends AdminController {
 			list($rateid,$row) = explode(',',$_POST['deleterule']);
 			if (isset($rates[$rateid]) && isset($rates[$rateid]['rules'])) {
 				array_splice($rates[$rateid]['rules'],$row,1);
-				$Settings->save('taxrates',$rates);
+				ShoppSettings()->save('taxrates',$rates);
 			}
 		}
 
@@ -734,12 +722,12 @@ class Setup extends AdminController {
 			else $rates[$edit]['locals'] = $upload;
 		}
 
-		if (isset($_POST['editing'])) $Settings->save('taxrates',$rates);
+		if (isset($_POST['editing'])) ShoppSettings()->save('taxrates',$rates);
 		if (isset($_POST['addrate'])) $edit = count($rates);
 		if (isset($_POST['submit'])) $edit = false;
 
-		$base = $Settings->get('base_operations');
-		$countries = array_merge(array('*' => __('All Markets','Shopp')),$Settings->get('target_markets'));
+		$base = ShoppSettings()->get('base_operations');
+		$countries = array_merge(array('*' => __('All Markets','Shopp')),ShoppSettings()->get('target_markets'));
 		$zones = Lookup::country_zones();
 
 		include(SHOPP_ADMIN_PATH."/settings/taxrates.php");
@@ -822,9 +810,8 @@ class Setup extends AdminController {
 
 		global $Shopp;
 		$Gateways = $Shopp->Gateways;
-		$Settings = ShoppSettings();
 
-	 	$active_gateways = $Settings->get('active_gateways');
+	 	$active_gateways = ShoppSettings()->get('active_gateways');
 		if (!$active_gateways) $gateways = array();
 		else $gateways = explode(',',$active_gateways);
 		$Gateways->settings();	// Load all installed gateways for settings UIs
@@ -835,7 +822,7 @@ class Setup extends AdminController {
 			if (in_array($delete,$gateways))  {
 				$position = array_search($delete,$gateways);
 				array_splice($gateways,$position,1);
-				$Settings->save('active_gateways',join(',',$gateways));
+				ShoppSettings()->save('active_gateways',join(',',$gateways));
 			}
 		}
 
@@ -846,7 +833,7 @@ class Setup extends AdminController {
 			if ( !empty($_POST['gateway']) && isset($Gateways->active[ $_POST['gateway'] ]) ) {
 				if ( !in_array($_POST['gateway'],$gateways) ) {
 					$gateways[] = $_POST['gateway'];
-					$Settings->save('active_gateways',join(',',$gateways));
+					ShoppSettings()->save('active_gateways',join(',',$gateways));
 				}
 			}
 
@@ -922,8 +909,6 @@ class Setup extends AdminController {
 
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-
-		$Settings = ShoppSettings();
 
 		$edit = false;
 		if (isset($_GET['id'])) $edit = (int)$_GET['id'];
@@ -1012,10 +997,12 @@ class Setup extends AdminController {
 			$this->settings_save();
 
 			// Reinitialize Error System
-			$Shopp->Errors = new ShoppErrors($this->Settings->get('error_logging'));
-			$Shopp->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
-			$Shopp->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
-										$this->Settings->get('error_notifications'));
+			$Errors = ShoppErrors();
+			$Logging = ShoppErrorLogging();
+			$Notification = ShoppErrorNotification();
+			$Errors->set_loglevel();
+			$Logging->set_loglevel();
+			$Notifications->set_notifications();
 
 			$updated = __('Shopp system settings saved.','Shopp');
 		} elseif (!empty($_POST['rebuild'])) {
@@ -1030,7 +1017,7 @@ class Setup extends AdminController {
 
 		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
 
-		$notifications = $this->Settings->get('error_notifications');
+		$notifications = ShoppSettings()->get('error_notifications');
 		if (empty($notifications)) $notifications = array();
 
 		$notification_errors = array(
@@ -1066,7 +1053,7 @@ class Setup extends AdminController {
 
 		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
 
-		if ($this->Settings->get('error_logging') > 0)
+		if (ShoppSettings()->get('error_logging') > 0)
 			$recentlog = $Shopp->ErrorLog->tail(500);
 
 		include(SHOPP_ADMIN_PATH."/settings/system.php");
@@ -1082,7 +1069,7 @@ class Setup extends AdminController {
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			$this->Settings->save($setting,$value);
+			ShoppSettings()->save($setting,$value);
 	}
 
 } // END class Setup

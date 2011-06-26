@@ -190,7 +190,7 @@ class Flow {
 	function save_settings () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			$this->Settings->save($setting,$value);
+			ShoppSettings()->save($setting,$value);
 		return true;
 	}
 
@@ -208,8 +208,6 @@ class Flow {
  **/
 abstract class FlowController  {
 
-	var $Settings = false;
-
 	/**
 	 * FlowController constructor
 	 *
@@ -219,17 +217,15 @@ abstract class FlowController  {
 	 * @return void
 	 **/
 	function __construct () {
-		if (defined('WP_ADMIN')) {
-			add_action('admin_init',array(&$this,'settings'));
-			$this->settings();
-		} else add_action('shopp_loaded',array(&$this,'settings'));
+		// if (defined('WP_ADMIN')) {
+		// 	add_action('admin_init',array(&$this,'settings'));
+		// 	$this->settings();
+		// } else add_action('shopp_loaded',array(&$this,'settings'));
 	}
 
-	function settings () {
-		global $Shopp;
-		if (!$this->Settings && !empty($Shopp))
-			$this->Settings = &$Shopp->Settings;
-	}
+	// function settings () {
+	// 	ShoppSettings();
+	// }
 
 } // END class FlowController
 

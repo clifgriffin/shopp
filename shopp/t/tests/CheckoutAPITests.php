@@ -66,7 +66,7 @@ class CheckoutAPITests extends ShoppTestCase {
 
 	function test_checkout_notloggedin () {
 		global $Shopp;
-		$Shopp->Settings->registry['account_system'] = 'wordpress';
+		ShoppSettings()->registry['account_system'] = 'wordpress';
 		$Order =& ShoppOrder();
 		$Order->Customer = new Customer();
 		$this->assertTrue(shopp('checkout','notloggedin'));
@@ -80,7 +80,7 @@ class CheckoutAPITests extends ShoppTestCase {
 
 	function test_checkout_loggedin () {
 		global $Shopp;
-		$Shopp->Settings->registry['account_system'] = 'wordpress';
+		ShoppSettings()->registry['account_system'] = 'wordpress';
 		$Order =& ShoppOrder();
 		$Order->Customer = new Customer();
 		$this->assertFalse(shopp('checkout','loggedin'));

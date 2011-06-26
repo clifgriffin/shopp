@@ -181,7 +181,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$string = "";
 
 		if ($O->outofstock) {
-			$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
+			$string .= '<span class="outofstock">'.ShoppSettings()->get('outofstock_text').'</span>';
 			return $string;
 		}
 		if (isset($options['redirect']) && !isset($options['ajax']))
@@ -267,8 +267,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (empty($O->images)) return false;
 		$styles = '';
 		$_size = 240;
-		$_width = $Shopp->Settings->get('gallery_small_width');
-		$_height = $Shopp->Settings->get('gallery_small_height');
+		$_width = ShoppSettings()->get('gallery_small_width');
+		$_height = ShoppSettings()->get('gallery_small_height');
 
 		if (!$_width) $_width = $_size;
 		if (!$_height) $_height = $_size;
@@ -375,8 +375,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if (count($O->images) > 1) {
 			$default_size = 64;
-			$_thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
-			$_thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+			$_thumbwidth = ShoppSettings()->get('gallery_thumbnail_width');
+			$_thumbheight = ShoppSettings()->get('gallery_thumbnail_height');
 			if (!$_thumbwidth) $_thumbwidth = $default_size;
 			if (!$_thumbheight) $_thumbheight = $default_size;
 
@@ -452,8 +452,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		// Compatibility defaults
 		$_size = 96;
-		$_width = $Shopp->Settings->get('gallery_thumbnail_width');
-		$_height = $Shopp->Settings->get('gallery_thumbnail_height');
+		$_width = ShoppSettings()->get('gallery_thumbnail_width');
+		$_height = ShoppSettings()->get('gallery_thumbnail_height');
 		if (!$_width) $_width = $_size;
 		if (!$_height) $_height = $_size;
 
@@ -621,7 +621,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function out_of_stock ($result, $options, $O) {
 		global $Shopp;
 		if ($O->outofstock) {
-			$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
+			$label = isset($options['label'])?$options['label']:ShoppSettings()->get('outofstock_text');
 			$string = '<span class="outofstock">'.$label.'</span>';
 			return $string;
 		} else return false;
@@ -854,7 +854,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		else $options['taxes'] = value_is_true($options['taxes']);
 		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$O);
 
-		$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
+		$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : ShoppSettings()->get('weight_unit');
 
 		$string = '';
 		if (array_key_exists('id',$options)) $string .= $variation->id;
@@ -942,7 +942,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$menuoptions = $O->options;
 			if (!empty($O->options['v'])) $menuoptions = $O->options['v'];
 
-			$baseop = $Shopp->Settings->get('base_operations');
+			$baseop = ShoppSettings()->get('base_operations');
 			$precision = $baseop['currency']['format']['precision'];
 
 			if (!isset($options['taxes']))
@@ -1001,7 +1001,7 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 		global $Shopp;
 		if(empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
-			'unit' => $Shopp->Settings->get('weight_unit'),
+			'unit' => ShoppSettings()->get('weight_unit'),
 			'min' => $O->min['weight'],
 			'max' => $O->max['weight'],
 			'units' => true,

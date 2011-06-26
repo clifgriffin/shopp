@@ -237,7 +237,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 
 	function confirmation () {
-		$Settings =& ShoppSettings();
 		$Order = $this->Order;
 
 		if (!isset($Order->token) || !isset($Order->payerid)) return false;
@@ -287,7 +286,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (empty($Order->Shipping->state) && empty($Order->Shipping->country))
 			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
 
-		$targets = $Settings->get('target_markets');
+		$targets = ShoppSettings()->get('target_markets');
 		if (!in_array($Order->Shipping->country,array_keys($targets))) {
 			new ShoppError(__('The location you are purchasing from is outside of our market regions. This transaction cannot be processed.','Shopp'),'paypalexpress_market',SHOPP_TRXN_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));

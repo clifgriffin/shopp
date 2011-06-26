@@ -111,7 +111,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="account-login" id="'.$id.'"'.inputattrs($options).' />';
 	}
 
-	function accounts ($result, $options, $O) { return $Shopp->Settings->get('account_system'); }
+	function accounts ($result, $options, $O) { return ShoppSettings()->get('account_system'); }
 
 	function account_url ($result, $options, $O) { return shoppurl(false,'account'); }
 
@@ -139,14 +139,15 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	function billing_country ($result, $options, $O) {
 		$Order =& ShoppOrder();
+
 		if ($options['mode'] == "value") return $Order->Billing->country;
-		$base = $Shopp->Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 
 		if (!empty($Order->Billing->country))
 			$options['selected'] = $Order->Billing->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
-		$countries = $Shopp->Settings->get('target_markets');
+		$countries = ShoppSettings()->get('target_markets');
 
 		$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
 	 	$output .= menuoptions($countries,$options['selected'],true);
@@ -288,7 +289,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function has_account ($result, $options, $O) {
-		$system = $Shopp->Settings->get('account_system');
+		$system = ShoppSettings()->get('account_system');
 		if ($system == "wordpress") return ($O->wpuser != 0);
 		elseif ($system == "shopp") return (!empty($O->password));
 		else return false;
@@ -361,7 +362,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	function logged_in ($result, $options, $O) { return $Shopp->Order->Customer->login; }
 
 	function login_label ($result, $options, $O) {
-		$accounts = $Shopp->Settings->get('account_system');
+		$accounts = ShoppSettings()->get('account_system');
 		$label = __('Email Address','Shopp');
 		if ($accounts == "wordpress") $label = __('Login Name','Shopp');
 		if (isset($options['label'])) $label = $options['label'];
@@ -408,14 +409,17 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function not_logged_in ($result, $options, $O) { global $Shopp; return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) {
+		global $Shopp;
+		return (!$Shopp->Order->Customer->login && ShoppSettings()->get('account_system') != "none");
+	}
 
 	function order ($result, $options, $O) {
 		return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
 	}
 
 	function order_lookup ($result, $options, $O) {
-		$auth = $Shopp->Settings->get('account_system');
+		$auth = ShoppSettings()->get('account_system');
 		if ($auth != "none") return true;
 
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
@@ -572,12 +576,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	function shipping_country ($result, $options, $O) {
 		$Order =& ShoppOrder();
 		if ($options['mode'] == "value") return $Order->Shipping->country;
-		$base = $Shopp->Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 		if (!empty($Order->Shipping->country))
 			$options['selected'] = $Order->Shipping->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
-		$countries = $Shopp->Settings->get('target_markets');
+		$countries = ShoppSettings()->get('target_markets');
 
 		$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
 	 	$output .= menuoptions($countries,$options['selected'],true);

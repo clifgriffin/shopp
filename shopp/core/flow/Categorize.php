@@ -350,7 +350,7 @@ class Categorize extends AdminController {
 			"custom" => __('Use custom price ranges','Shopp'),
 		);
 
-		$uploader = $Shopp->Settings->get('uploader_pref');
+		$uploader = ShoppSettings()->get('uploader_pref');
 		if (!$uploader) $uploader = 'flash';
 
 		$workflows = array(
@@ -373,14 +373,13 @@ class Categorize extends AdminController {
 	 **/
 	function save ($Category) {
 		global $Shopp;
-		$Settings = &ShoppSettings();
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Settings->saveform(); // Save workflow setting
+		ShoppSettings()->saveform(); // Save workflow setting
 
 		if (empty($Category->meta))
 			$Category->load_meta();

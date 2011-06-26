@@ -190,7 +190,7 @@ class AdminFlow extends FlowController {
 		$name = $page->page;
 
 		$controller = array(&$Shopp->Flow,'admin');
-		if ($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))
+		if (ShoppSettings()->get('display_welcome') == "on" &&  empty($_POST['setup']))
 			$controller = array($this,'welcome');
 		if ($this->maintenance()) $controller = array($this,'reactivate');
 
@@ -296,8 +296,7 @@ class AdminFlow extends FlowController {
 	 * @return boolean
 	 **/
 	function maintenance () {
-		$Settings = &ShoppSettings();
-		$db_version = intval($Settings->get('db_version'));
+		$db_version = intval(ShoppSettings()->get('db_version'));
 		if ($db_version != DB::$version) return true;
 		return false;
 	}
@@ -352,7 +351,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function welcome () {
 		global $Shopp;
-		if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
+		if (ShoppSettings()->get('display_welcome') == "on" && empty($_POST['setup'])) {
 			include(SHOPP_ADMIN_PATH."/help/welcome.php");
 			return true;
 		}
@@ -394,7 +393,7 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function dashboard () {
-		$dashboard = $this->Settings->get('dashboard');
+		$dashboard = ShoppSettings()->get('dashboard');
 		if ( ! ( current_user_can('shopp_financials') && "on" == $dashboard ) ) return false;
 
 		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array($this,'stats_widget'),
@@ -502,7 +501,7 @@ class AdminFlow extends FlowController {
 		if (!$args) $args = array();
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
-		$statusLabels = $this->Settings->get('order_status');
+		$statusLabels = ShoppSettings()->get('order_status');
 
 		echo $before_widget;
 
@@ -605,8 +604,7 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function themepath () {
-		$Settings = ShoppSettings();
-		$Settings->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
+		ShoppSettings()->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
 	}
 
 	/**

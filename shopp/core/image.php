@@ -12,14 +12,14 @@
 
 chdir(dirname(__FILE__));
 
-if (!class_exists('DB')) require(realpath('DB.php'));
-if (!function_exists('shopp_find_wpload')) require(realpath('functions.php'));
-if (!class_exists('ShoppErrors')) require('model/Error.php');
-if (!class_exists('Settings')) require('model/Settings.php');
-if (!class_exists('ModuleLoader')) require("model/Modules.php");
+require(realpath('DB.php'));
+require(realpath('functions.php'));
+require('model/Error.php');
+require('model/Settings.php');
+require("model/Modules.php");
 
-if (!class_exists('MetaObject')) require("model/Meta.php");
-if (!class_exists('ImageAsset')) require("model/Asset.php");
+require("model/Meta.php");
+require("model/Asset.php");
 
 /**
  * ImageServer class
@@ -260,9 +260,7 @@ class ImageServer extends DatabaseObject {
 	}
 
 	function settings () {
-		global $Shopp;
-		$Shopp->Settings = new Settings();
-		$this->Settings = &ShoppSettings();
+		ShoppSettings();
 	}
 
 } // end ImageServer class

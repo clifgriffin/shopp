@@ -27,7 +27,6 @@ class ShoppInstallation extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function __construct () {
-		$this->Settings = new Settings();
 		add_action('shopp_activate',array(&$this,'activate'));
 		add_action('shopp_deactivate',array(&$this,'deactivate'));
 		add_action('shopp_reinstall',array(&$this,'install'));
@@ -50,23 +49,23 @@ class ShoppInstallation extends FlowController {
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if (!$this->Settings->availability()) $this->install();
+		if (!ShoppSettings()->availability()) $this->install();
 
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
 
 		do_action('shopp_setup');
 
-		if ($this->Settings->availability() && $this->Settings->get('db_version'))
-			$this->Settings->save('maintenance','off');
+		if (ShoppSettings()->availability() && ShoppSettings()->get('db_version'))
+			ShoppSettings()->save('maintenance','off');
 
 		// Update rewrite rules
 		flush_rewrite_rules();
 
-		if ($this->Settings->get('show_welcome') == "on")
-			$this->Settings->save('display_welcome','on');
+		if (ShoppSettings()->get('show_welcome') == "on")
+			ShoppSettings()->save('display_welcome','on');
 
-		$this->Settings->save('updates', false);
+		ShoppSettings()->save('updates', false);
 	}
 
 	/**
@@ -80,13 +79,13 @@ class ShoppInstallation extends FlowController {
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
 
-		//if (!isset($this->Settings)) return;
+		//if (!isset(ShoppSettings())) return;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
 		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));
 		flush_rewrite_rules();
 
-		$this->Settings->save('data_model','');
+		ShoppSettings()->save('data_model','');
 
 		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
 		else $plugin_updates = get_transient('update_plugins');
@@ -123,7 +122,7 @@ class ShoppInstallation extends FlowController {
 		$db->loaddata($schema);
 		unset($schema);
 		$this->install_pages();
-		$this->Settings->save("db_version",$db->version);
+		ShoppSettings()->save("db_version",$db->version);
 	}
 
 	/**
@@ -169,7 +168,7 @@ class ShoppInstallation extends FlowController {
 			$page['uri'] = get_page_uri($page['id']);
 		}
 
-		$this->Settings->save("pages",$pages);
+		ShoppSettings()->save("pages",$pages);
 	}
 
 
@@ -183,14 +182,14 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function upgrades () {
 		$db = DB::get();
-		$db_version = intval($this->Settings->get('db_version'));
-		if (!$db_version) $db_version = intval($this->Settings->legacy('db_version'));
+		$db_version = intval(ShoppSettings()->get('db_version'));
+		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
 		// No upgrades required
 		if ($db_version == DB::$version) return;
 
-		$this->Settings->save('shopp_setup','');
-		$this->Settings->save('maintenance','on');
+		ShoppSettings()->save('shopp_setup','');
+		ShoppSettings()->save('maintenance','on');
 
 		// Process any database schema changes
 		$this->upschema();
@@ -227,7 +226,7 @@ class ShoppInstallation extends FlowController {
 		ob_start(); // Suppress dbDelta errors
 		$changes = dbDelta($tables);
 		ob_end_clean();
-		$this->Settings->save('db_updates',$changes);
+		ShoppSettings()->save('db_updates',$changes);
 	}
 
 	/**
@@ -302,36 +301,36 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function setup () {
 
-		$this->Settings->setup('show_welcome','on');
-		$this->Settings->setup('display_welcome','on');
+		ShoppSettings()->setup('show_welcome','on');
+		ShoppSettings()->setup('display_welcome','on');
 
 		// General Settings
-		$this->Settings->setup('shipping','on');
-		$this->Settings->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));
-		$this->Settings->setup('shopp_setup','completed');
-		$this->Settings->setup('maintenance','off');
-		$this->Settings->setup('dashboard','on');
+		ShoppSettings()->setup('shipping','on');
+		ShoppSettings()->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));
+		ShoppSettings()->setup('shopp_setup','completed');
+		ShoppSettings()->setup('maintenance','off');
+		ShoppSettings()->setup('dashboard','on');
 
 		// Checkout Settings
-		$this->Settings->setup('order_confirmation','ontax');
-		$this->Settings->setup('receipt_copy','1');
-		$this->Settings->setup('account_system','none');
+		ShoppSettings()->setup('order_confirmation','ontax');
+		ShoppSettings()->setup('receipt_copy','1');
+		ShoppSettings()->setup('account_system','none');
 
 		// Presentation Settings
-		$this->Settings->setup('theme_templates','off');
-		$this->Settings->setup('row_products','3');
-		$this->Settings->setup('catalog_pagination','25');
-		$this->Settings->setup('default_product_order','title');
-		$this->Settings->setup('product_image_order','ASC');
-		$this->Settings->setup('product_image_orderby','sortorder');
+		ShoppSettings()->setup('theme_templates','off');
+		ShoppSettings()->setup('row_products','3');
+		ShoppSettings()->setup('catalog_pagination','25');
+		ShoppSettings()->setup('default_product_order','title');
+		ShoppSettings()->setup('product_image_order','ASC');
+		ShoppSettings()->setup('product_image_orderby','sortorder');
 
 		// System Settings
-		$this->Settings->setup('uploader_pref','flash');
-		$this->Settings->setup('script_loading','global');
-		$this->Settings->setup('script_server','plugin');
+		ShoppSettings()->setup('uploader_pref','flash');
+		ShoppSettings()->setup('script_loading','global');
+		ShoppSettings()->setup('script_server','plugin');
 
-		$this->Settings->save('version',SHOPP_VERSION);
-		$this->Settings->save('db_version',DB::$version);
+		ShoppSettings()->save('version',SHOPP_VERSION);
+		ShoppSettings()->save('db_version',DB::$version);
 
 	}
 
@@ -429,27 +428,27 @@ class ShoppInstallation extends FlowController {
 
 		$FSStorage = array('path' => array());
 		// Migrate Asset storage settings
-		$image_storage = $this->Settings->get('image_storage_pref');
+		$image_storage = ShoppSettings()->get('image_storage_pref');
 		if ($image_storage == "fs") {
 			$image_storage = "FSStorage";
-			$FSStorage['path']['image'] = $this->Settings->get('image_path');
+			$FSStorage['path']['image'] = ShoppSettings()->get('image_path');
 		} else $image_storage = "DBStorage";
-		$this->Settings->save('image_storage',$image_storage);
+		ShoppSettings()->save('image_storage',$image_storage);
 
-		$product_storage = $this->Settings->get('product_storage_pref');
+		$product_storage = ShoppSettings()->get('product_storage_pref');
 		if ($product_storage == "fs") {
 			$product_storage = "FSStorage";
-			$FSStorage['path']['download'] = $this->Settings->get('products_path');
+			$FSStorage['path']['download'] = ShoppSettings()->get('products_path');
 		} else $product_storage = "DBStorage";
-		$this->Settings->save('product_storage',$product_storage);
+		ShoppSettings()->save('product_storage',$product_storage);
 
-		if (!empty($FSStorage['path'])) $this->Settings->save('FSStorage',$FSStorage);
+		if (!empty($FSStorage['path'])) ShoppSettings()->save('FSStorage',$FSStorage);
 
 		// Preserve payment settings
 
 		// Determine active gateways
-		$active_gateways = array($this->Settings->get('payment_gateway'));
-		$xco_gateways = (array)$this->Settings->get('xco_gateways');
+		$active_gateways = array(ShoppSettings()->get('payment_gateway'));
+		$xco_gateways = (array)ShoppSettings()->get('xco_gateways');
 		if (!empty($xco_gateways))
 			$active_gateways = array_merge($active_gateways,$xco_gateways);
 
@@ -496,20 +495,20 @@ class ShoppInstallation extends FlowController {
 				}
 				$setting['cards'] = $accepted;
 			}
-			$this->Settings->save($_->name,$setting); // Save the gateway settings
+			ShoppSettings()->save($_->name,$setting); // Save the gateway settings
 		}
 		// Save the active gateways to populate the payment settings page
-		$this->Settings->save('active_gateways',join(',',$active_gateways));
+		ShoppSettings()->save('active_gateways',join(',',$active_gateways));
 
 		// Preserve update key
-		$oldkey = $this->Settings->get('updatekey');
+		$oldkey = ShoppSettings()->get('updatekey');
 		if (!empty($oldkey)) {
 			$newkey = array(
 				($oldkey['status'] == "activated"?1:0),
 				$oldkey['key'],
 				$oldkey['type']
 			);
-			$this->Settings->save('updatekey',$newkey);
+			ShoppSettings()->save('updatekey',$newkey);
 		}
 
 		$this->roles(); // Setup Roles and Capabilities
@@ -520,16 +519,16 @@ class ShoppInstallation extends FlowController {
 		global $wpdb;
 		$db =& DB::get();
 
-		$db_version = intval($this->Settings->get('db_version'));
-		if (!$db_version) $db_version = intval($this->Settings->legacy('db_version'));
+		$db_version = intval(ShoppSettings()->get('db_version'));
+		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
 		if ($db_version <= 1130) {
 			// Move settings to meta table
 			$meta_table = DatabaseObject::tablename('meta');
 			$setting_table = DatabaseObject::tablename('setting');
 			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
-			$this->Settings->load();
-			$db_version = intval($this->Settings->get('db_version'));
+			ShoppSettings()->load();
+			$db_version = intval(ShoppSettings()->get('db_version'));
 		}
 
 		if ($db_version <= 1121) {
@@ -734,7 +733,7 @@ class ShoppInstallation extends FlowController {
 				} // end foreach $shortcodes
 			} // end foreach $results
 
-			$this->Settings->save('storefront_pages',$pages);
+			ShoppSettings()->save('storefront_pages',$pages);
 
 			DB::query("UPDATE $wpdb->posts SET post_status='trash' where ID IN (".join(',',$trash).")");
 		}
@@ -854,8 +853,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		$this->skin->feedback('downloading_package', $package);
 
-		$Settings =& ShoppSettings();
-		$keydata = $Settings->get('updatekey');
+		$keydata = ShoppSettings()->get('updatekey');
 		$vars = array('VERSION','KEY','URL');
 		$values = array(urlencode(SHOPP_VERSION),urlencode($keydata[1]),urlencode(get_option('siteurl')));
 		$package = str_replace($vars,$values,$package);
@@ -974,11 +972,10 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 	}
 
 	function upgrade($plugin) {
-		$Settings = &ShoppSettings();
 		$this->init();
 		$this->upgrade_strings();
 
-		$current = $Settings->get('updates');
+		$current = ShoppSettings()->get('updates');
 		if ( !isset( $current->response[ $plugin ] ) ) {
 			$this->skin->set_result(false);
 			$this->skin->error('up_to_date');
@@ -994,7 +991,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		add_filter('upgrader_clear_destination', array(&$this, 'delete_old_plugin'), 10, 4);
 
 		// Turn on Shopp's maintenance mode
-		$Settings->save('maintenance','on');
+		ShoppSettings()->save('maintenance','on');
 
 		$this->run(array(
 					'package' => $r->package,
@@ -1015,15 +1012,14 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Turn off Shopp's maintenance mode
-		$Settings->save('maintenance','off');
+		ShoppSettings()->save('maintenance','off');
 
 		// Force refresh of plugin update information
-		$Settings->save('updates',false);
+		ShoppSettings()->save('updates',false);
 	}
 
 	function addons ($return,$plugin) {
-		$Settings = ShoppSettings();
-		$current = $Settings->get('updates');
+		$current = ShoppSettings()->get('updates');
 
 		if ( !isset( $current->response[ $plugin['plugin'].'/addons' ] ) ) return $return;
 		$addons = $current->response[ $plugin['plugin'].'/addons' ];
@@ -1087,18 +1083,16 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 					));
 
 		// Force refresh of plugin update information
-		$Settings = ShoppSettings();
-		$Settings->save('updates',false);
+		ShoppSettings()->save('updates',false);
 
 	}
 
 	function addon_core_updates ($addons,$working_core) {
-		$Settings = ShoppSettings();
 
 		$this->init();
 		$this->upgrade_strings();
 
-		$current = $Settings->get('updates');
+		$current = ShoppSettings()->get('updates');
 
 		add_filter('upgrader_destination_selection', array(&$this, 'destination_selector'), 10, 2);
 
@@ -1138,8 +1132,6 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 	}
 
 	function upgrade ($addon,$type) {
-		$Settings = ShoppSettings();
-
 		$this->init();
 		$this->upgrade_strings();
 
@@ -1150,7 +1142,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			default: $this->addons_dir = SHOPP_PLUGINDIR;
 		}
 
-		$current = $Settings->get('updates');
+		$current = ShoppSettings()->get('updates');
 		if ( !isset( $current->response[ SHOPP_PLUGINFILE.'/addons' ][$addon] ) ) {
 			$this->skin->set_result(false);
 			$this->skin->error('up_to_date');
@@ -1181,7 +1173,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Force refresh of plugin update information
-		$Settings->save('updates',false);
+		ShoppSettings()->save('updates',false);
 	}
 
 	function run ($options) {

@@ -86,9 +86,8 @@ class Order {
 	 * @return void
 	 **/
 	function listeners () {
-		$Settings =& ShoppSettings();
-		$this->confirm = ($Settings->get('order_confirmation') == "always");
-		$this->accounts = $Settings->get('account_system');
+		$this->confirm = (ShoppSettings()->get('order_confirmation') == "always");
+		$this->accounts = ShoppSettings()->get('account_system');
 		$this->validated = false; // Reset the order validation flag
 
 		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
@@ -253,6 +252,8 @@ class Order {
 	 **/
 	function checkout () {
 		global $Shopp;
+		$Shopping = ShoppShopping();
+
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != "process") return;
 
@@ -266,7 +267,7 @@ class Order {
 			// If the card number is provided over a secure connection
 			// Change the cart to operate in secure mode
 			if (!empty($_POST['billing']['card']) && is_shopp_secure())
-				$Shopp->Shopping->secured(true);
+				$Shopping->secured(true);
 
 			// Sanitize the card number to ensure it only contains numbers
 			if (!empty($_POST['billing']['card']))
@@ -427,6 +428,7 @@ class Order {
 	 **/
 	function purchase () {
 		global $Shopp;
+		$Shopping = ShoppShopping();
 
 		// Need a transaction ID to create a purchase
 		if (empty($this->txnid)) return false;
@@ -470,14 +472,14 @@ class Order {
 		$this->Billing->save();
 
 		// Card data is truncated, switch the cart to normal mode
-		$Shopp->Shopping->secured(false);
+		$Shopping->secured(false);
 
 		if (!empty($this->Shipping->address)) {
 			$this->Shipping->customer = $this->Customer->id;
 			$this->Shipping->save();
 		}
 
-		$base = $Shopp->Settings->get('base_operations');
+		$base = ShoppSettings()->get('base_operations');
 
 		$promos = array();
 		foreach ($this->Cart->discounts as &$promo) {
@@ -497,7 +499,7 @@ class Order {
 		$Purchase->taxing = ($base['vat'])?'inclusive':'exclusive';
 		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->shipping;
-		$Purchase->ip = $Shopp->Shopping->ip;
+		$Purchase->ip = $Shopping->ip;
 		$Purchase->save();
 		$this->unlock();
 		Promotion::used(array_keys($promos));
@@ -614,10 +616,10 @@ class Order {
 			__('Order Receipt','Shopp')
 		);
 
-		if ($Shopp->Settings->get('receipt_copy') != 1) return;
+		if (ShoppSettings()->get('receipt_copy') != 1) return;
 		$Purchase->notification(
 			'',
-			$Shopp->Settings->get('merchant_email'),
+			ShoppSettings()->get('merchant_email'),
 			__('New Order','Shopp')
 		);
 	}
@@ -797,7 +799,8 @@ class Order {
 
 	function validate () {
 		if (apply_filters('shopp_valid_order',$this->isvalid())) return true;
-
+		$Shopping = ShoppShopping();
+		$Shopping->save();
 		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 	}
 
@@ -913,9 +916,9 @@ class Order {
 	function tag ($property,$options=array()) {
 		global $Shopp,$wp;
 
-		$pages = $Shopp->Settings->get('pages');
-		$base = $Shopp->Settings->get('base_operations');
-		$countries = $Shopp->Settings->get('target_markets');
+		$pages = ShoppSettings()->get('pages');
+		$base = ShoppSettings()->get('base_operations');
+		$countries = ShoppSettings()->get('target_markets');
 		$process = get_query_var('s_pr');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
@@ -938,7 +941,7 @@ class Order {
 			case "function":
 				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 				$regions = Lookup::country_zones();
-				$base = $Shopp->Settings->get('base_operations');
+				$base = ShoppSettings()->get('base_operations');
 
 				$js = "var regions = ".json_encode($regions).",".
 									"SHIPCALC_STATUS = '".$options['shipcalc']."',".
@@ -990,7 +993,7 @@ class Order {
 				return $content;
 				break;
 			case "loggedin": return $this->Customer->login; break;
-			case "notloggedin": return (!$this->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "notloggedin": return (!$this->Customer->login && ShoppSettings()->get('account_system') != "none"); break;
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
 			case "account-login":
@@ -1409,7 +1412,7 @@ class Order {
 				break;
 			case "billing-xco": return; break; // DEPRECATED
 			case "billing-localities":
-				$rates = $Shopp->Settings->get("taxrates");
+				$rates = ShoppSettings()->get("taxrates");
 				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
 				break;
@@ -1424,7 +1427,7 @@ class Order {
 				$output = false;
 
 
-				$rates = $Shopp->Settings->get("taxrates");
+				$rates = ShoppSettings()->get("taxrates");
 				foreach ($rates as $rate) if (is_array($rate['locals']))
 					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
 

@@ -21,8 +21,8 @@ class Item {
 	var $name = false;			// The name of the source product
 	var $description = false;	// Short description from the product summary
 	var $option = false;		// The option ID of the price object
-	var $variation = array();	// The selected variation
-	var $variations = array();	// The available variation options
+	var $variant = array();		// The selected variant
+	var $variants = array();	// The available variants
 	var $addons = array();		// The addons added to the item
 	var $image = false;			// The cover image for the product
 	var $data = array();		// Custom input data
@@ -68,7 +68,7 @@ class Item {
 
 		$Product->load_data(array('prices','images','categories','tags','specs'));
 
-		// If product variations are enabled, disregard the first priceline
+		// If product variants are enabled, disregard the first priceline
 		if ($Product->variants == "on") array_shift($Product->prices);
 
 		// If option ids are passed, lookup by option key, otherwise by id
@@ -96,7 +96,7 @@ class Item {
 		$this->description = $Product->summary;
 
 		if ($Product->variants == "on")
-			$this->variations($Product->prices);
+			$this->variants($Product->prices);
 
 		if (isset($Product->addons) && $Product->addons == "on")
 			$this->addons($this->addonsum,$addons,$Product->prices);
@@ -124,7 +124,7 @@ class Item {
 			foreach ($variants as $i => $menu) {
 				foreach($menu['options'] as $option) {
 					if ($option['id'] == $selected[$s]) {
-						$this->variation[$menu['name']] = $option['name']; break;
+						$this->variant[$menu['name']] = $option['name']; break;
 					}
 				}
 				$s++;
@@ -149,16 +149,16 @@ class Item {
 					$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
 			} else $this->freeshipping = true;
 		}
-		$Settings = ShoppSettings();
+
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->taxable = ($Price->tax == "on" && $Settings->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && ShoppSettings()->get('taxes') == "on")?true:false;
 	}
 
 	/**
 	 * Validates the line item
 	 *
 	 * Ensures the product and price object exist in the catalog and that
-	 * inventory is available for the selected price variation.
+	 * inventory is available for the selected price variant.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -250,7 +250,7 @@ class Item {
 	}
 
 	/**
-	 * Generates an option menu of available price variations
+	 * Generates an option menu of available price variants
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -285,7 +285,7 @@ class Item {
 	}
 
 	/**
-	 * Populates the variations from a collection of price objects
+	 * Populates the variants from a collection of price objects
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -293,7 +293,7 @@ class Item {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	function variations ($prices) {
+	function variants ($prices) {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A" || $price->context != "variation") continue;
 			$pricing = $this->mapprice($price);
@@ -330,14 +330,14 @@ class Item {
 	 * Maps price object properties
 	 *
 	 * Populates only the necessary properties from a price object
-	 * to a variation option to cut down on line item data size
+	 * to a variant option to cut down on line item data size
 	 * for better serialization performance.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @param Object $price Price object to minimize
-	 * @return object An Item variation object
+	 * @return object An Item variant object
 	 **/
 	function mapprice ($price) {
 		$map = array(
@@ -416,7 +416,6 @@ class Item {
 	function unstock () {
 		if (!$this->inventory) return;
 		$db = DB::get();
-		$Settings =& ShoppSettings();
 
 		// Update stock in the database
 		$pricetable = DatabaseObject::tablename(Price::$table);
@@ -433,7 +432,7 @@ class Item {
 				// @todo Handle new low stock level setting to trigger appropriate notifications for addons
 				if ($Addon->stock == 0)
 					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
-				elseif ($Addon->stock <= $Settings->get('lowstock_level'))
+				elseif ($Addon->stock <= ShoppSettings()->get('lowstock_level'))
 					return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product_addon),'lowstock_warning',SHOPP_STOCK_ERR);
 
 			}
@@ -448,7 +447,7 @@ class Item {
 		if ($this->option->stock == 0)
 			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
 
-		if ($this->option->stock <= $Settings->get('lowstock_level'))
+		if ($this->option->stock <= ShoppSettings()->get('lowstock_level'))
 			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 
 	}

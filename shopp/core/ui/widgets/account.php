@@ -57,7 +57,7 @@ class ShoppAccountWidget extends WP_Widget {
 } // END class ShoppAccountWidget
 
 global $Shopp;
-if ($Shopp->Settings->get('account_system') == "none") return;
+if (ShoppSettings()->get('account_system') == "none") return;
 
 register_widget('ShoppAccountWidget');
 

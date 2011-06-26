@@ -59,6 +59,7 @@ require('core/model/Shipping.php');
 require('core/model/API.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
+
 require('core/model/Order.php');
 require('core/model/Cart.php');
 require('core/model/Meta.php');
@@ -81,8 +82,6 @@ require('api/settings.php');
 // Start up the core
 $Shopp = new Shopp();
 do_action('shopp_loaded');
-
-
 
 /**
  * Shopp class
@@ -110,7 +109,7 @@ class Shopp {
 
 	var $_debug;
 
-	function Shopp () {
+	function __construct () {
 		if (WP_DEBUG) {
 			$this->_debug = new StdClass();
 			if (function_exists('memory_get_peak_usage'))
@@ -136,9 +135,9 @@ class Shopp {
 			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
 		}
 
-		// Initialize settings & macros
-
-		$this->Settings = new Settings();
+		// Init settings and errors singletons
+		$this->Shopping = ShoppShopping(); // $this->Shopping for add-on module backward compatibility
+		$this->Settings = ShoppSettings(); // $this->Settings for add-on module backward compatibility
 
 		if (!defined('BR')) define('BR','<br />');
 
@@ -153,7 +152,7 @@ class Shopp {
 		if (!defined('SHOPP_NAMESPACE_TAXONOMIES')) define('SHOPP_NAMESPACE_TAXONOMIES',true);
 
 		// Settings & Paths
-		define('SHOPP_DEBUG',($this->Settings->get('error_logging') == 2048));
+		define('SHOPP_DEBUG',(ShoppSettings()->get('error_logging') == 2048));
 		define('SHOPP_PATH',$path);
 		define('SHOPP_DIR',$directory);
 		define('SHOPP_PLUGINURI',$uri);
@@ -172,11 +171,11 @@ class Shopp {
 		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
 		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
-		define('SHOPP_TEMPLATES',($this->Settings->get('theme_templates') != 'off'
+		define('SHOPP_TEMPLATES',(ShoppSettings()->get('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_stylesheet_directory().'/shopp'):
 					  SHOPP_PATH.'/templates');
-		define('SHOPP_TEMPLATES_URI',($this->Settings->get('theme_templates') != 'off'
+		define('SHOPP_TEMPLATES_URI',(ShoppSettings()->get('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_bloginfo('stylesheet_directory').'/shopp'):
 					  SHOPP_PLUGINURI.'/templates');
@@ -184,10 +183,15 @@ class Shopp {
 		define('SHOPP_PRETTYURLS',(get_option('permalink_structure') == '')?false:true);
 		define('SHOPP_PERMALINKS',SHOPP_PRETTYURLS); // Deprecated
 
+		// Error singletons
+		ShoppErrors();
+		ShoppErrorLogging();
+		ShoppErrorNotification();
+
+
 		// Initialize application control processing
 
 		$this->Flow = new Flow();
-		$this->Shopping = new Shopping();
 
 		add_action('init', array(&$this,'init'));
 
@@ -231,7 +235,7 @@ class Shopp {
 	 * @return void
 	 **/
 	function init () {
-		$this->Errors = new ShoppErrors($this->Settings->get('error_logging'));
+		$Shopping = ShoppShopping();
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
@@ -240,12 +244,8 @@ class Shopp {
 		$this->APIs = new ShoppAPIModules();
 		$this->Collections = array();
 
-		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
-		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
-									$this->Settings->get('error_notifications'));
-
-		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
-		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
+		if ( ! $Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
+		if (SHOPP_DEBUG && $Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 
 		global $pagenow;
@@ -365,13 +365,16 @@ class Shopp {
 	 * @return boolean True on success
 	 **/
 	function resession ($session=false) {
+		$Shopping = ShoppShopping();
+
 		// commit current session
 		session_write_close();
-		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
+		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 
 		if ($session) { // loading session
-			$this->Shopping->session = session_id($session); // session_id while session is closed
-			$this->Shopping = new Shopping();
+			$Shopping->session = session_id($session); // session_id while session is closed
+			$Shopping = ShoppShopping();
+			$Shopping->init();
 			session_start();
 			return true;
 		}
@@ -380,11 +383,11 @@ class Shopp {
 		session_regenerate_id(); // Generate new ID while session is started
 
 		// Ensure we have the newest session ID
-		$this->Shopping->session = session_id();
+		$Shopping->session = session_id();
 
 		// Commit the session and restart
 		session_write_close();
-		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
+		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		session_start();
 
 		do_action('shopp_reset_session'); // Deprecated
@@ -403,7 +406,7 @@ class Shopp {
 	 * @return void
 	 **/
 	function settingsjs () {
-		$baseop = $this->Settings->get('base_operations');
+		$baseop = ShoppSettings()->get('base_operations');
 
 		$currency = array();
 		if (isset($baseop['currency'])
@@ -573,15 +576,13 @@ class Shopp {
 
 		$result = apply_filters('shopp_update_key',$result);
 
-		$Settings = ShoppSettings();
-		$Settings->save( 'updatekey',$result );
+		ShoppSettings()->save( 'updatekey',$result );
 
 		return $response;
 	}
 
 	function keysetting () {
-		$Settings = ShoppSettings();
-		$data = base64_decode($Settings->get('updatekey'));
+		$data = base64_decode(ShoppSettings()->get('updatekey'));
 		return unpack(Lookup::keyformat(),$data);
 	}
 
@@ -632,7 +633,7 @@ class Shopp {
 		else $plugin_updates = get_transient('update_plugins');
 
 		if (isset($updates->response)) {
-			$this->Settings->save('updates',$updates);
+			ShoppSettings()->save('updates',$updates);
 
 			// Add Shopp to the WP plugin update notification count
 			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
@@ -681,8 +682,8 @@ class Shopp {
 	 * @return void
 	 **/
 	function status () {
-		$updates = $this->Settings->get('updates');
-		$key = $this->Settings->get('updatekey');
+		$updates = ShoppSettings()->get('updates');
+		$key = ShoppSettings()->get('updatekey');
 
 		$activated = isset($key[0])?($key[0] == '1'):false;
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
@@ -699,7 +700,7 @@ class Shopp {
 			if (!$activated) { // Key not active
 				$update_url = SHOPP_HOME."store/";
 				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
-				$this->Settings->save('updates',false);
+				ShoppSettings()->save('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
@@ -710,7 +711,7 @@ class Shopp {
 		if (!$activated) { // No update availableKey not active
 			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
-			$this->Settings->save('updates',false);
+			ShoppSettings()->save('updates',false);
 			return;
 		}
 
@@ -735,10 +736,10 @@ class Shopp {
 	 **/
 	function maintenance () {
 		// Settings unavailable
-		if (!$this->Settings->available || !$this->Settings->get('shopp_setup') != "completed")
+		if (!ShoppSettings()->available || !ShoppSettings()->get('shopp_setup') != "completed")
 			return false;
 
-		$this->Settings->save('maintenance','on');
+		ShoppSettings()->save('maintenance','on');
 		return true;
 	}
 

@@ -504,8 +504,8 @@ function shopptests_print_result($printer, $result) {
 global $Shopp;
 $db = DB::get();
 
-if (defined('SHOPP_IMAGES_PATH')) $Shopp->Settings->registry['image_path'] = SHOPP_IMAGES_PATH;
-if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->registry['products_path'] = SHOPP_PRODUCTS_PATH;
+if (defined('SHOPP_IMAGES_PATH')) ShoppSettings()->registry['image_path'] = SHOPP_IMAGES_PATH;
+if (defined('SHOPP_PRODUCTS_PATH')) ShoppSettings()->registry['products_path'] = SHOPP_PRODUCTS_PATH;
 if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');

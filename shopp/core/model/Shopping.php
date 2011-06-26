@@ -30,6 +30,7 @@
  * @since 1.1
  **/
 class Shopping extends SessionObject {
+	private static $instance;
 
 	/**
 	 * Shopping constructor
@@ -48,6 +49,12 @@ class Shopping extends SessionObject {
 
 		// Queue the session to start
 		add_action('init',array(&$this,'init'));
+	}
+
+	public static function instance () {
+		if ( ! self::$instance )
+			self::$instance = new self();
+		return self::$instance;
 	}
 
 	/**
@@ -113,17 +120,16 @@ class Shopping extends SessionObject {
  * @package shopp
  **/
 class ShoppingObject {
-
 	static function &__new ($class, &$ref=false) {
-		global $Shopp;
+		$Shopping = ShoppShopping();
 
 		if ($ref !== false) $ref->__destruct();
 
-		if (isset($Shopp->Shopping->data->{$class})) // Restore the object
-			$object = $Shopp->Shopping->data->{$class};
+		if (isset($Shopping->data->{$class})) // Restore the object
+			$object = $Shopping->data->{$class};
 		else {
 			$object = new $class();					// Create a new object
-			$Shopp->Shopping->data->{$class} = &$object; // Register storage
+			$Shopping->data->{$class} = &$object; // Register storage
 		}
 
 		return $object;
@@ -143,12 +149,16 @@ class ShoppingObject {
 	 * @return void
 	 **/
 	static function store ($property, &$data) {
-		global $Shopp;
-		if (isset($Shopp->Shopping->data->{$property}))	// Restore the data
-			$data = $Shopp->Shopping->data->{$property};
-		$Shopp->Shopping->data->{$property} = &$data;	// Keep a reference
+		$Shopping = ShoppShopping();
+		if (isset($Shopping->data->{$property}))	// Restore the data
+			$data = $Shopping->data->{$property};
+		$Shopping->data->{$property} = &$data;	// Keep a reference
 	}
 
+}
+
+function ShoppShopping() {
+	return Shopping::instance();
 }
 
 ?>

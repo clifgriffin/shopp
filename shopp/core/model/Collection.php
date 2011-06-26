@@ -26,7 +26,7 @@ class ProductCollection implements Iterator {
 
 	function load ($options=array()) {
 		$Storefront =& ShoppStorefront();
-		$Settings =& ShoppSettings();
+		$Shopping = ShoppShopping();
 		$Processing = new Product();
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 
@@ -55,7 +55,7 @@ class ProductCollection implements Iterator {
 
 		// Setup pagination
 		$this->paged = false;
-		$this->pagination = $Settings->get('catalog_pagination');
+		$this->pagination = ShoppSettings()->get('catalog_pagination');
 		$paged = get_query_var('paged');
 		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
 
@@ -74,7 +74,7 @@ class ProductCollection implements Iterator {
 
 		// Sort Order
 		$orderby = false;
-		$defaultOrder = $Settings->get('default_product_order');
+		$defaultOrder = ShoppSettings()->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
 		$ordering = isset($Storefront->browsing['sortorder'])?
 						$Storefront->browsing['sortorder']:$defaultOrder;
@@ -85,7 +85,7 @@ class ProductCollection implements Iterator {
 			case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
 			case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
 			case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
-			case 'random': $orderby = "RAND(".crc32($Shopp->Shopping->session).")"; break;
+			case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
 			case 'chaos': $orderby = "RAND(".time().")"; break;
 			case 'title': $orderby = "p.post_title ASC"; /* $useindex = "name"; */ break;
 			case 'recommended':
@@ -145,10 +145,10 @@ class ProductCollection implements Iterator {
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
 			if ($inventory) { // Keep track of inventory-based query caches
-				$caches = $Settings->get('shopp_inventory_collection_caches');
+				$caches = ShoppSettings()->get('shopp_inventory_collection_caches');
 				if (!is_array($caches)) $caches = array();
 				$caches[] = $cachehash;
-				$Settings->save('shopp_inventory_collection_caches',$caches);
+				ShoppSettings()->save('shopp_inventory_collection_caches',$caches);
 			}
 
 		}
@@ -515,10 +515,9 @@ class ProductCategory extends ProductTaxonomy {
 	 **/
 	function load_images () {
 		$db = DB::get();
-		$Settings =& ShoppSettings();
 
-		$ordering = $Settings->get('product_image_order');
-		$orderby = $Settings->get('product_image_orderby');
+		$ordering = ShoppSettings()->get('product_image_order');
+		$orderby = ShoppSettings()->get('product_image_orderby');
 
 		if ($ordering == "RAND()") $orderby = $ordering;
 		else $orderby .= ' '.$ordering;
@@ -551,14 +550,14 @@ class ProductCategory extends ProductTaxonomy {
 		global $Shopp;
 		$db = DB::get();
 		$Storefront =& ShoppStorefront();
-		$Settings =& ShoppSettings();
+		$Shopping = ShoppShopping();
 
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		$producttable = DatabaseObject::tablename(Product::$table);
 		$pricetable = DatabaseObject::tablename(Price::$table);
 
 		$this->paged = false;
-		$this->pagination = $Settings->get('catalog_pagination');
+		$this->pagination = ShoppSettings()->get('catalog_pagination');
 		$paged = get_query_var('paged');
 		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
 
@@ -599,7 +598,7 @@ class ProductCategory extends ProductTaxonomy {
 		if (!empty($this->id))
 			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND taxonomy='$this->taxonomy'";
 
-		if (!value_is_true($nostock) && $Settings->get('outofstock_catalog') == "off")
+		if (!value_is_true($nostock) && ShoppSettings()->get('outofstock_catalog') == "off")
 			$where[] = "((p.inventory='on' AND p.stock > 0) OR p.inventory='off')";
 
 		// Faceted browsing
@@ -651,7 +650,7 @@ class ProductCategory extends ProductTaxonomy {
 		if ($this->published) $where[] = "(p.status='publish' AND $now >= UNIX_TIMESTAMP(p.publish))";
 		else $where[] = "(p.status!='publish' OR $now < UNIX_TIMESTAMP(p.publish))";
 
-		$defaultOrder = $Settings->get('default_product_order');
+		$defaultOrder = ShoppSettings()->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
 		$ordering = isset($Storefront->browsing['orderby'])?
 						$Storefront->browsing['orderby']:$defaultOrder;
@@ -662,7 +661,7 @@ class ProductCategory extends ProductTaxonomy {
 			case 'lowprice': $order = "minprice ASC,p.name ASC"; $useindex = "lowprice"; break;
 			case 'newest': $order = "p.publish DESC,p.name ASC"; break;
 			case 'oldest': $order = "p.publish ASC,p.name ASC"; $useindex = "oldest";	break;
-			case 'random': $order = "RAND(".crc32($Shopp->Shopping->session).")"; break;
+			case 'random': $order = "RAND(".crc32($Shopping->session).")"; break;
 			case 'chaos': $order = "RAND(".time().")"; break;
 			case 'title': $order = "p.name ASC"; $useindex = "name"; break;
 			case 'recommended':
@@ -977,7 +976,7 @@ class ProductCategory extends ProductTaxonomy {
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
-	    $base = $Shopp->Settings->get('base_operations');
+	    $base = ShoppSettings()->get('base_operations');
 
 		add_filter('shopp_rss_description','wptexturize');
 		add_filter('shopp_rss_description','convert_chars');

@@ -23,8 +23,7 @@ class Catalog {
 	var $type = false; 			// @deprecated
 
 	function __construct () {
-		$Settings = ShoppSettings();
-		$this->outofstock = ($Settings->get('outofstock_catalog') == "on");
+		$this->outofstock = (ShoppSettings()->get('outofstock_catalog') == "on");
 	}
 
 	/**
