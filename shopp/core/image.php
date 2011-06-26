@@ -16,10 +16,11 @@ if (!class_exists('DB')) require(realpath('DB.php'));
 if (!function_exists('shopp_find_wpload')) require(realpath('functions.php'));
 if (!class_exists('ShoppErrors')) require('model/Error.php');
 if (!class_exists('Settings')) require('model/Settings.php');
-if (!class_exists('ModuleLoader')) require("model/Modules.php");
+if (!class_exists('ModuleLoader')) require('model/Modules.php');
 
-if (!class_exists('MetaObject')) require("model/Meta.php");
-if (!class_exists('ImageAsset')) require("model/Asset.php");
+if (!class_exists('MetaObject')) require('model/Meta.php');
+if (!class_exists('ImageAsset')) require('model/Asset.php');
+if (!function_exists('shopp_setting')) require(realpath('../api/settings.php'));
 
 /**
  * ImageServer class
