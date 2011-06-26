@@ -568,7 +568,7 @@ class Warehouse extends AdminController {
 		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		shopp_set_settingform(); // Save workflow setting
+		ShoppSettings()->saveform(); // Save workflow setting
 
 		// Get needed settings
 		$base = shopp_setting('base_operations');
