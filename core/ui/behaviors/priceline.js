@@ -385,7 +385,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.it = hd.find('#inventory-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.stock);
 	};
 
-	_.download = function (fileid,filename,filedata) {
+	_.download = function (d) {
 		var hd,ui,hd2;
 		hd = $('<th><label for="download-'+i+'">'+PRODUCT_DOWNLOAD_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td width="31%"><input type="hidden" name="'+fn+'[downloadpath]" id="download_path-'+i+'"/><input type="hidden" name="'+fn+'[downloadfile]" id="download_file-'+i+'"/><div id="file-'+i+'" class="status">'+NO_DOWNLOAD+'</div></td>').appendTo(inputsRow);
@@ -395,10 +395,10 @@ function Priceline (id,options,data,target,attachment) {
 		_.file = $('#file-'+i);
 		_.selector = $('#file-selector-'+i).FileChooser(i,_.file);
 
-		if (fileid) {
-			if (filedata.mime) filedata.mime = filedata.mime.replace(/\//gi," ");
-			_.file.attr('class','file '+filedata.mime).html(filename+'<br /><small>'+readableFileSize(filedata.size)+'</small>').click(function () {
-				window.location.href = adminurl+"admin.php?src=download&shopp_download="+fileid;
+		if (d.id) {
+			if (d.mime) d.mime = d.mime.replace(/\//gi," ");
+			_.file.attr('class','file '+d.mime).html(d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
+				window.location.href = adminurl+"admin.php?src=download&shopp_download="+d.id;
 			});
 		}
 	};
@@ -495,7 +495,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.Download = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.download(data.download,data.filename,data.filedata);
+		if (!tmp) _.download(data.download);
 	};
 
 	_.Donation = function (data) {

@@ -121,7 +121,7 @@ class ProductCollection implements Iterator {
 
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
-		$where[] = "p.post_type='$Processing->_post_type'";
+		$where[] = "p.post_type='".$Processing->posttype()."'";
 		$joins[$summary_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
 
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');

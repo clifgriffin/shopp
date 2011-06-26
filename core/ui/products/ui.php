@@ -150,7 +150,7 @@ function shopp_tags_meta_box ($Product) {
 
 // Load all Shopp product taxonomies
 global $Shopp;
-foreach ( get_object_taxonomies($Shopp->Product->_post_type) as $taxonomy_name ) {
+foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
 	if ( !is_taxonomy_hierarchical($taxonomy_name) )
