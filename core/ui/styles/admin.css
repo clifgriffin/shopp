@@ -226,18 +226,29 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 .pricing tbody th,.pricing tbody td { padding-bottom:1px;border-bottom-width:3px; }
 
-.pricing-table div.file { line-height:1.3em;background:url('../icons/page_white.png') no-repeat;padding-left:20px;cursor:pointer;font-size:11px; }
-.pricing-table div.file small { color:#606060; }
-.pricing-table div.file.image { background-image:url('../icons/image.png'); }
-.pricing-table div.file.audio { background-image:url('../icons/music.png'); }
-.pricing-table div.file.video { background-image:url('../icons/film.png'); }
-.pricing-table div.file.pdf { background-image:url('../icons/page_white_acrobat.png'); }
-.pricing-table div.file.msword { background-image:url('../icons/page_white_word.png'); }
-.pricing-table div.file.excel { background-image:url('../icons/page_white_excel.png'); }
+.shopp .file { line-height:1.3em;background:url('../icons/filetypes.png') no-repeat -8px -8px; padding-left:20px;cursor:pointer;font-size:11px; }
+.shopp .file small { color:#606060; }
 
-.pricing-table div.file.zip,
-.pricing-table div.file.stuffit,
-.pricing-table div.file.tar { background-image:url('../icons/page_white_zip.png'); }
+.shopp .file.zip,
+.shopp .file.stuffit,
+.shopp .file.tar { background-position: -8px -40px; }
+.shopp .file.audio { background-position: -8px -72px; }
+.shopp .file.code,
+.shopp .file.php,
+.shopp .file.html { background-position: -8px -104px; }
+.shopp .file.doc { background-position: -8px -136px; }
+.shopp .file.slides { background-position: -8px -168px; }
+.shopp .file.spreadsheet { background-position: -8px -200px; }
+.shopp .file.text { background-position: -8px -232px; }
+.shopp .file.video { background-position: -8px -264px; }
+.shopp .file.image { background-position: -8px -296px; }
+.shopp .file.msword { background-position: -8px -328px; }
+.shopp .file.excel { background-position: -8px -360px; }
+.shopp .file.ppt { background-position: -8px -392px; }
+.shopp .file.pdf { background-position: -8px -424px; }
+.shopp .file.flv { background-position: -8px -456px; }
+.shopp .file.psd { background-position: -8px -488px; }
+.shopp .file.ai { background-position: -8px -520px; }
 
 #variations-pricing > tr > th,#variations-pricing > tr > td { border-top:1px solid #dfdfdf; }
 .form-table.pricing { border-bottom:1px solid #dfdfdf; }
