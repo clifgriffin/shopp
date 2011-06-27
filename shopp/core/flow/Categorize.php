@@ -475,32 +475,6 @@ class Categorize extends AdminController {
 	}
 
 	/**
-	 * Renders a drop-down menu for selecting parent categories
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @param int $selection The id of the currently selected parent category
-	 * @param int $current The id of the currently edited category
-	 * @return void Description...
-	 **/
-	function menu ($selection=false,$current=false) {
-		$db = DB::get();
-		$table = DatabaseObject::tablename(ProductCategory::$table);
-		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
-		$categories = sort_tree($categories);
-
-		$options = '';
-		foreach ($categories as $category) {
-			$padding = str_repeat("&nbsp;",$category->depth*3);
-			$selected = ($category->id == $selection)?' selected="selected"':'';
-			$disabled = ($current && $category->id == $current)?' disabled="disabled"':'';
-			$options .= '<option value="'.$category->id.'"'.$selected.$disabled.'>'.$padding.esc_html($category->name).'</option>';
-		}
-
-		return $options;
-	}
-
-	/**
 	 * Registers column headings for the category list manager
 	 *
 	 * @author Jonathan Davis

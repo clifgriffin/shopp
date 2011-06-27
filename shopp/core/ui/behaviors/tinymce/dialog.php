@@ -1,130 +1,19 @@
-<?php
-
-function shopp_find_wpload () {
-	global $table_prefix;
-
-	$loadfile = 'wp-load.php';
-	$wp_abspath = false;
-
-	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
-	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
-	$rootpath = array_diff($syspath,$uripath);
-	$root = '/'.join('/',$rootpath);
-
-	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
-
-	if ( file_exists(sanitize_path($root).'/'.$loadfile))
-		$wp_abspath = $root;
-
-	if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
-		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
-		// and SHOPP_ABSPATH used on webserver site config
-		$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
-
-	} elseif ( strpos($filepath, $root) !== false ) {
-		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
-		$fullpath = explode ('/', sanitize_path($filepath) );
-		while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
-			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
-				$wp_abspath = join('/',$fullpath);
-		}
-
-	} elseif ( file_exists(sanitize_path($root).'/'.$loadfile) ) {
-		$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$loadfile) ) {
-		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
-	}
-
-	$wp_load_file = sanitize_path($wp_abspath).'/'.$loadfile;
-
-	if ( $wp_load_file !== false ) return $wp_load_file;
-	return false;
-
-}
-if(!function_exists('sanitize_path')){
-	/**
-	 * Normalizes path separators to always use forward-slashes
-	 *
-	 * PHP path functions on Windows-based systems will return paths with
-	 * backslashes as the directory separator.  This function is used to
-	 * ensure we are always working with forward-slash paths
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param string $path The path to clean up
-	 * @return string $path The forward-slash path
-	 **/
-	function sanitize_path ($path) {
-		return str_replace('\\', '/', $path);
-	}
-}
-
-$loader = shopp_find_wpload();
-if (!file_exists($loader)) return false;
-$adminpath = dirname($loader).'/wp-admin';
-require($adminpath.'/admin.php');
-if(!current_user_can('edit_posts')) die;
-do_action('admin_init');
-
-?>
+<?php $error = false; $wpadmin = ShoppTMCELoader::load(); if ($wpadmin) require($wpadmin); ShoppTMCELoader::setup(); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>{#Shopp.title}</title>
-<script language="javascript" type="text/javascript" src="<?php echo get_bloginfo('wpurl').'/'.WPINC; ?>/js/tinymce/tiny_mce_popup.js"></script>
-<script language="javascript" type="text/javascript" src="<?php echo get_bloginfo('wpurl').'/'.WPINC; ?>/js/tinymce/utils/mctabs.js"></script>
-<script language="javascript" type="text/javascript" src="<?php echo get_bloginfo('wpurl').'/'.WPINC; ?>/js/tinymce/utils/form_utils.js"></script>
-<script language="javascript" type="text/javascript" src="<?php echo get_bloginfo('wpurl').'/'.WPINC; ?>/js/tinymce/utils/form_utils.js"></script>
-<script language="javascript" type="text/javascript" src="<?php echo get_bloginfo('wpurl').'/'.WPINC; ?>/js/jquery/jquery.js"></script>
-	<script language="javascript" type="text/javascript">
-
-	var _self = tinyMCEPopup;
-	function init () {
-		updateCategories();
-		changeCategory();
-	}
-
-	function insertTag () {
-		var tag = '';
-		if (parseInt(jQuery('#category-menu').val()) > 0)
-			tag = '[category id="'+jQuery('#category-menu').val()+'"]';
-		else if (jQuery('#category-menu').val() != '') tag = '[category slug="catalog"]';
-
-		var productid = jQuery('#product-menu').val();
-		if (productid != 0) tag = '[product id="'+productid+'"]';
-
-		if(window.tinyMCE) {
-			window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tag);
-			tinyMCEPopup.editor.execCommand('mceRepaint');
-			tinyMCEPopup.close();
-		}
-
-	}
-
-	function closePopup () {
-		tinyMCEPopup.close();
-	}
-
-	function updateCategories () {
-		var menu = jQuery('#category-menu');
-		jQuery.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_menu'); ?>&action=shopp_category_menu",{},function (results) {
-			menu.empty().html(results);
-		},'string');
-	}
-
-	function changeCategory () {
-		var menu = jQuery('#category-menu');
-		var products = jQuery('#product-menu');
-		jQuery.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_products'); ?>&action=shopp_category_products",{category:menu.val()},function (results) {
-			products.empty().html(results);
-		},'string');
-	}
-
-	</script>
+	<?php if (!$error): ?>
+	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>tiny_mce_popup.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/mctabs.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/form_utils.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/form_utils.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo WPINC_URL; ?>/js/jquery/jquery.js"></script>
+	<?php endif; ?>
 
 	<style type="text/css">
+		body { font-family: Arial, Helvetica; }
+		#error { background: white; margin: 10px; }
 		table th { vertical-align: top; }
 		.panel_wrapper { border-top: 1px solid #909B9C; }
 		.panel_wrapper div.current { height:auto !important; }
@@ -132,34 +21,122 @@ do_action('admin_init');
 	</style>
 
 </head>
-<body onload="init()">
+<body>
 
 <div id="wpwrap">
-<form onsubmit="insertTag();return false;" action="#">
+<?php if (!$error): ?>
+<form action="#" id="dialog">
 	<div class="panel_wrapper">
 		<table border="0" cellpadding="4" cellspacing="0">
 		<tr>
-		<th nowrap="nowrap"><label for="category-menu"><?php _e("Category", 'Shopp'); ?></label></th>
-		<td><select id="category-menu" name="category" onchange="changeCategory()"></select></td>
+		<th nowrap="nowrap"><label for="category-menu"><?php _e('Category', 'Shopp'); ?></label></th>
+		<td><?php wp_dropdown_categories( array( 'id' => 'category-menu','taxonomy' => ProductCategory::$taxonomy, 'hide_empty' => 0, 'name' => ProductCategory::$taxonomy, 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => __('Select a category&hellip;','Shopp'), 'tab_index' => 1 ) ); ?></td>
 		</tr>
 		<tr id="product-selector">
-		<th nowrap="nowrap"><label for="product-menu"><?php _e("Product", 'Shopp'); ?></label></th>
-		<td><select id="product-menu" name="product" size="7"></select></td>
+		<th nowrap="nowrap"><label for="product-menu"><?php _e('Product', 'Shopp'); ?></label></th>
+		<td><select id="product-menu" name="product" size="7"><option value=""><?php _e('Insert entire catalog&hellip;','Shopp'); ?></option></select></td>
 		</tr>
 		</table>
 	</div>
 
 	<div class="mceActionPanel">
 		<div style="float: left">
-			<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="closePopup()"/>
+			<input type="button" id="cancel" name="cancel" value="{#cancel}" />
 		</div>
 
 		<div style="float: right">
-			<input type="button" id="insert" name="insert" value="{#insert}" onclick="insertTag()" />
+			<input type="button" id="insert" name="insert" value="{#insert}" />
 		</div>
 	</div>
 </form>
+<?php else: ?>
+<div id="error">
+	<h3>Error</h3>
+	<p><?php echo $error; ?></p>
 </div>
+<?php endif; ?>
+</div>
+
+<?php if (!$error): ?>
+<script language="javascript" type="text/javascript">
+/* <![CDATA[ */
+tinyMCEPopup.onInit.add(function(ed) {
+	jQuery.noConflict()(function($){
+		var pm = $('#product-menu'),
+
+			cm = $('#category-menu').change(function () {
+				var sc = '<option value="0"><?php _e('Insert','Shopp'); ?> "'+cm.find('option:selected').text().trim()+'" <?php _e('category','Shopp'); ?></option>';
+				$.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_products'); ?>&action=shopp_category_products",
+					{category:cm.val()},function (r) { pm.empty().html(sc+r); },'string'
+				);
+			}),
+
+			insert = $('#insert').click(function () {
+				var tag = '';
+				// Category shortcodes
+				if (parseInt(cm.val()) > 0) tag = '[category id="'+cm.val()+'"]';
+				else if (cm.val() != '') tag = '[category slug="catalog"]';
+				// Product shortcodes
+
+				if (pm.val() != 0 && pm.val() != null) tag = '[product id="'+pm.val()+'"]';
+
+				if (window.tinyMCE) {
+					window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tag);
+					tinyMCEPopup.editor.execCommand('mceRepaint');
+					tinyMCEPopup.close();
+				}
+			}),
+
+			cancel = jQuery('#cancel').click(function () {
+				tinyMCEPopup.close();
+			});
+	});
+});
+
+/* ]]> */
+</script>
+<?php endif; ?>
 
 </body>
 </html>
+<?php
+class ShoppTMCELoader {
+
+	static function path () {
+		if (!isset($_GET['p']) || empty($_GET['p'])) return 0;
+		$path = ''; $p = explode('x',$_GET['p']); $d = count($p);
+		for ($i = 0; $i < $d; $i++) $path .= empty($p[$i])?'':'%'.dechex(hexdec($p[$i])-($d-1));
+		if (empty($path)) return 1;
+		return urldecode($path);
+	}
+
+	static function load () {
+		global $error,$pagenow;
+
+		$path = self::path();
+		if (is_int($path)) return !($error = self::errors($path));
+		$wpadmin = $path.'wp-admin/admin.php';
+		if (!file_exists($wpadmin)) return !($error = self::errors(2));
+		define('WP_ADMIN',false);
+		return $wpadmin;
+	}
+
+	static function setup () {
+		define('WPINC_URL',get_bloginfo('wpurl').'/'.WPINC);
+		define('TINYMCE_URL',WPINC_URL.'/js/tinymce/');
+		if(!current_user_can('edit_posts')) !($error = self::errors(3));
+		do_action('admin_init');
+	}
+
+	static function errors ($code) {
+		$errors = array(
+			'Shopp could not locate WordPress.',
+			'Shopp could not read the path to WordPress.',
+			'Could not load the WordPress environment.',
+			'You do not have permission to edit posts.'
+		);
+		return $errors[$code];
+	}
+}
+
+?>

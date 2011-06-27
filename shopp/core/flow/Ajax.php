@@ -45,10 +45,8 @@ class AjaxFlow {
 		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
 
-		add_action('wp_ajax_shopp_category_menu',array(&$this,'category_menu'));
 		add_action('wp_ajax_shopp_category_products',array(&$this,'category_products'));
 		add_action('wp_ajax_shopp_order_receipt',array(&$this,'receipt'));
-		add_action('wp_ajax_shopp_category_menu',array(&$this,'category_menu'));
 		add_action('wp_ajax_shopp_category_children',array(&$this,'category_children'));
 		add_action('wp_ajax_shopp_category_order',array(&$this,'category_order'));
 		add_action('wp_ajax_shopp_category_products_order',array(&$this,'products_order'));
@@ -97,6 +95,8 @@ class AjaxFlow {
 
 	function category_menu () {
 		check_admin_referer('wp_ajax_shopp_category_menu');
+
+		require(SHOPP_MODEL_PATH."/Collection.php");
 		require(SHOPP_FLOW_PATH."/Categorize.php");
 		$Categorize = new Categorize();
 		echo '<option value="">Select a category&hellip;</option>';

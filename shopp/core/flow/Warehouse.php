@@ -906,21 +906,16 @@ class Warehouse extends AdminController {
 	 * @return string HTML for a drop-down menu of categories
 	 **/
 	function category ($id) {
-		$db = DB::get();
+		global $wpdb;
+		$p = "$wpdb->posts AS p";
+		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$id)";
 
-		$catalog = DatabaseObject::tablename(Catalog::$table);
-		$category = DatabaseObject::tablename(ProductCategory::$table);
-		$products = DatabaseObject::tablename(Product::$table);
+		if ('catalog-products' == $id)
+			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p ORDER BY name ASC",'array','col','name','id');
+		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins)." ORDER BY name ASC",'array','col','name','id');
 
-		if ($id == "catalog-products") {
-			$results = $db->query("SELECT p.id,p.name FROM $products AS p ORDER BY p.name ASC",AS_ARRAY);
-		} else $results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.parent AND catalog.taxonomy='$ct_id' LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
-		$products = array();
-
-		$products[0] = __("Select a product&hellip;","Shopp");
-		foreach ($results as $result) $products[$result->id] = $result->name;
 		return menuoptions($products,0,true);
-
 	}
 
 	function index ($Product) {

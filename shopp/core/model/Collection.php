@@ -127,8 +127,7 @@ class ProductCollection implements Iterator {
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
 		$query = DB::select($options);
 
-		// if ($debug)
-		echo $query.BR.BR;
+		if ($debug) echo $query.BR.BR;
 
 		// Load from cached results if available, or run the query and cache the results
 		$cachehash = md5($query);
