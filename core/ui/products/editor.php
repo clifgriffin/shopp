@@ -82,7 +82,6 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	tagsugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_suggestions"); ?>',
 	spectemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_spec_template"); ?>',
 	opttemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_options_template"); ?>',
-	catmenu_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_category_menu"); ?>',
 	addcategory_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_add_category"); ?>',
 	editslug_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',
 	fileverify_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_verify_file"); ?>',

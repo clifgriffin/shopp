@@ -661,8 +661,11 @@ class AdminFlow extends FlowController {
 	function tinymce () {
 		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
 
+		$len = strlen(ABSPATH); $p = '';
+		for($i = 0; $i < $len; $i++) $p .= 'x'.dechex(ord(substr(ABSPATH,$i,1))+$len);
+
 		// Add TinyMCE buttons when using rich editor
-		if (get_user_option('rich_editing') == 'true') {
+		if ('true' ==get_user_option('rich_editing')) {
 			global $pagenow,$plugin_page;
 			$pages = array('post.php', 'post-new.php', 'page.php', 'page-new.php');
 			$editors = array('shopp-products','shopp-categories');
@@ -671,8 +674,9 @@ class AdminFlow extends FlowController {
 
 			wp_enqueue_script('shopp-tinymce',admin_url('admin-ajax.php').'?action=shopp_tinymce',array());
 			wp_localize_script('shopp-tinymce', 'ShoppDialog', array(
-				'title' => __('Insert from Shopp...', 'Shopp'),
-				'desc' => __('Insert a product or category from Shopp...', 'Shopp')
+				'title' => __('Insert Product Category or Product', 'Shopp'),
+				'desc' => __('Insert a product or category from Shopp...', 'Shopp'),
+				'p' => $p
 			));
 
 			add_filter('mce_external_plugins', array($this,'mceplugin'),5);
@@ -691,7 +695,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function mceplugin ($plugins) {
 		// Add a changing query string to keep the TinyMCE plugin from being cached & breaking TinyMCE in Safari/Chrome
-		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/editor_plugin.js?ver='.mktime();
+		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/tinyshopp.js?ver='.mktime();
 		return $plugins;
 	}
 
