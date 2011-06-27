@@ -127,7 +127,8 @@ class ProductCollection implements Iterator {
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
 		$query = DB::select($options);
 
-		if ($debug) echo $query.BR.BR;
+		// if ($debug)
+		echo $query.BR.BR;
 
 		// Load from cached results if available, or run the query and cache the results
 		$cachehash = md5($query);
@@ -1435,6 +1436,20 @@ class RandomProducts extends SmartCollection {
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
 		}
+		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+	}
+}
+
+// @todo Document ViewedProducts
+class ViewedProducts extends SmartCollection {
+	static $_slug = "viewed";
+
+	function smart ($options=array()) {
+		$Storefront = ShoppStorefront();
+		$this->slug = $this->uri = self::$_slug;
+		$this->name = __("Recently Viewed","Shopp");
+		$this->loading = array();
+		$this->loading['where'] = array("p.id IN (".join(',',$Storefront->viewed).")");
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }

@@ -296,6 +296,7 @@ class Shopp {
 		shopp_register_collection('SearchResults');
 		shopp_register_collection('TagProducts');
 		shopp_register_collection('RelatedProducts');
+		shopp_register_collection('ViewedProducts');
 		shopp_register_collection('RandomProducts');
 		shopp_register_collection('PromoProducts');
 	}
