@@ -266,8 +266,6 @@ class ModuleSettingsUI {
 		$this->module = $Module->module;
 		$this->id = sanitize_title_with_dashes($this->module);
 		$this->label = isset($Module->settings['label'])?$Module->settings['label']:$name;
-
-		$multi = ($Module->multi === false)?'false':'true'; // @todo Is $muli necessary for module settings?? NOT necessary for shipping anymore, maybe gateways?
 	}
 
 	function generate () {

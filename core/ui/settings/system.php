@@ -68,16 +68,17 @@
 					<label for="error-notifications"><?php _e("Limit logging errors up to the level of the selected error type.","Shopp"); ?></label>
 	            </td>
 			</tr>
-			<?php if (count($recentlog) > 0): ?>
 			<tr>
 				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Log','Shopp'); ?></label></th>
-				<td><div id="errorlog"><ol><?php foreach ($recentlog as $line): ?>
-					<li><?php echo esc_html($line); ?></li>
-				<?php endforeach; ?></ol></div>
-				<p class="alignright"><button name="resetlog" id="resetlog" value="resetlog" class="button"><small><?php _e("Reset Log","Shopp"); ?></small></button></p>
+				<td id="errorlog">
+
+				<iframe id="logviewer" src="<?php echo wp_nonce_url(add_query_arg(array('action'=>'shopp_debuglog'),admin_url('admin-ajax.php')),'wp_ajax_shopp_debuglog'); ?>#bottom">
+				<p>Loading log file...</p>
+				</iframe>
+
+				<p class="alignright"><button name="resetlog" id="resetlog" value="resetlog" class="button"><small><?php _e('Reset Log','Shopp'); ?></small></button></p>
 				</td>
 			</tr>
-			<?php endif; ?>
 		</table>
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
