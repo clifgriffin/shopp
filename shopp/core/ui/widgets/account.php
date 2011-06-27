@@ -14,8 +14,9 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppAccountWidget') ) {
 class ShoppAccountWidget extends WP_Widget {
 
     function ShoppAccountWidget() {
-        parent::WP_Widget(false,
-			$name = __('Shopp Account','Shopp'),
+        parent::WP_Widget(
+			'shopp-account',
+			__('Shopp Account','Shopp'),
 			array('description' => __('Account login &amp; management','Shopp'))
 		);
     }

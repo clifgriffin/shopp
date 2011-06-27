@@ -720,8 +720,9 @@ class AjaxFlow {
 		</style>
 		</head>
 		<body>
-		<ol><?php $log = ShoppErrorLogging()->tail(1000);
-				foreach ($log as $line) echo '<li>'.$line.'</li>';
+		<ol><?php $log = ShoppErrorLogging()->tail(1000); $size = count($log);
+				foreach ($log as $n => $line)
+					echo '<li'.($n+1 == $size?' id="bottom"':'').'>'.$line.'</li>';
 		?></ol></body></html><?php exit();
 	}
 

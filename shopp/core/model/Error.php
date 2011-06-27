@@ -471,28 +471,28 @@ class ShoppErrorLogging {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @version 1.2
 	 *
 	 * @param int $lines The number of lines to get from the end of the log file
+	 * @param int $buffer Buffer size in bytes to handle each iteration
 	 * @return array List of log file lines
 	 **/
 	function tail($lines=100,$buffer=4096) {
 		if (!file_exists($this->logfile)) return;
-
 		$f = fopen($this->logfile, 'rb');
 
 		// Start at the end
 		fseek($f, -1, SEEK_END);
 
-		// Read it and adjust line number if necessary
-		// (Otherwise the result would be wrong if file doesn't end with a blank line)
-		if(fread($f, 1) != "\n") $lines--;
+		// Take into acount files that don't end with a blank line
+		if("\n" != fread($f, 1)) $lines--;
 
 		// Start reading
 		$output = $chunk = '';
 		while(ftell($f) > 0 && $lines >= 0) {
-			$seek = min(ftell($f), $buffer);				// Figure out how far back we should jump
-			fseek($f, -$seek, SEEK_CUR);					// Do the jump (backwards, relative to where we are)
-			$output = ($chunk = fread($f, $seek)).$output;	// Read a chunk and prepend it to our output
+			$seek = min(ftell($f), $buffer);				// Figure out how far to go back
+			fseek($f, -$seek, SEEK_CUR);					// Jump back from the current position
+			$output = ($chunk = fread($f, $seek)).$output;	// Read a buffer chunk and prepend it to our output
 			fseek($f, -mb_strlen($chunk, '8bit'), SEEK_CUR);// Jump back to where we started reading
 			$lines -= substr_count($chunk, "\n");			// Decrease our line counter
 		}
@@ -502,7 +502,7 @@ class ShoppErrorLogging {
 		while ($lines++ < 0)
 			$output = substr($output, strpos($output, "\n") + 1);
 
-		return explode("\n",$output);
+		return explode("\n",trim($output));
 
 	}
 

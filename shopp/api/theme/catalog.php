@@ -37,6 +37,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'product' => 'product',
 		'promoproducts' => 'promo_products',
 		'randomproducts' => 'random_products',
+		'recentshoppers' => 'recent_shoppers',
 		'relatedproducts' => 'related_products',
 		'search' => 'search',
 		'searchproducts' => 'search_products',
@@ -485,6 +486,41 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		global $Shopp;
 		$Shopp->Category = new RelatedProducts($options);
 		return self::category($result, $options, $O);
+	}
+
+	function recent_shoppers ($result, $options, $O) {
+		$defaults = array(
+			'abbr' => 'firstname',
+			'city' => true,
+			'state' => true,
+			'avatar' => true,
+			'size' => 48,
+			'show' => 5
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		$pt = DatabaseObject::tablename(Purchase::$table);
+		$shoppers = DB::query("SELECT firstname,lastname,email,city,state FROM $pt AS pt ORDER BY created DESC LIMIT 5",'array');
+
+		$_ = array();
+		$_[] = '<ul>';
+		foreach ($shoppers as $shopper) {
+			if ('lastname' == $abbr) $name = "$shopper->firstname ".$shopper->lastname{0}.".";
+			else $name = $shopper->firstname{0}.". $shopper->lastname";
+
+			$img = '';
+			if ($avatar) $img = get_avatar($shopper->email,$size,'',$name);
+
+			$loc = '';
+			if ($state || $province) $loc = $shopper->state;
+			if ($city) $loc = "$shopper->city, $loc";
+
+			$_[] = "<li><div>$img</div>$name <em>$loc</em></li>";
+		}
+		$_[] = '</ul>';
+
+		return join('',$_);
 	}
 
 	function search ($result, $options, $O) {

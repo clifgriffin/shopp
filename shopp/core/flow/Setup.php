@@ -997,25 +997,23 @@ class Setup extends AdminController {
 			$this->settings_save();
 
 			// Reinitialize Error System
-			$Errors = ShoppErrors();
-			$Logging = ShoppErrorLogging();
-			$Notification = ShoppErrorNotification();
-			$Errors->set_loglevel();
-			$Logging->set_loglevel();
-			$Notifications->set_notifications();
+			ShoppErrors()->set_loglevel();
+			ShoppErrorLogging()->set_loglevel();
+			ShoppErrorNotification()->set_notifications();
 
 			$updated = __('Shopp system settings saved.','Shopp');
 		} elseif (!empty($_POST['rebuild'])) {
-			$db =& DB::get();
-
 			$assets = DatabaseObject::tablename(ProductImage::$table);
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
-			if ($db->query($query))
+			if (DB::query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
 		}
 
 
-		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
+		if (isset($_POST['resetlog'])) {
+			check_admin_referer('shopp-settings-system');
+			ShoppErrorLogging()->reset();
+		}
 
 		$notifications = shopp_setting('error_notifications');
 		if (empty($notifications)) $notifications = array();
@@ -1052,10 +1050,6 @@ class Setup extends AdminController {
 			$storage[$module->module] = $module->name;
 
 		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
-
-		// if (shopp_setting('error_logging') > 0)
-		// 	$recentlog = ShoppErrorLogging()->tail(1000);
-
 
 		include(SHOPP_ADMIN_PATH."/settings/system.php");
 	}
