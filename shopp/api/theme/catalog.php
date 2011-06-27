@@ -46,6 +46,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'tagproducts' => 'tag_products',
 		'tagcloud' => 'tag_cloud',
 		'url' => 'url',
+		'viewedproducts' => 'viewed_products',
 		'views' => 'views',
 		'zoomoptions' => 'zoom_options'
 	);
@@ -730,6 +731,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	}
 
 	function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
+
+	function viewed_products ($result, $options, $O) {
+		global $Shopp;
+		$Shopp->Category = new ViewedProducts($options);
+		return self::category($result, $options, $O);
+	}
+
 
 	function views ($result, $options, $O) {
 		global $Shopp;

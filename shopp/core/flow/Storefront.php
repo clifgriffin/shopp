@@ -40,6 +40,7 @@ class Storefront extends FlowController {
 	var $checkout = false;		// Flags when the checkout form is being processed
 	// var $pages = array();
 	var $browsing = array();
+	var $viewed = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
 	var $request = false;
 
@@ -60,6 +61,7 @@ class Storefront extends FlowController {
 		ShoppingObject::store('browsing',$this->browsing);
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 		ShoppingObject::store('referrer',$this->referrer);
+		ShoppingObject::store('viewed',$this->viewed);
 
 		// Setup WP_Query overrides
 		add_action('parse_query', array($this, 'query'));
@@ -197,6 +199,11 @@ class Storefront extends FlowController {
 		$Product->populate($object);
 		ShoppProduct($Product);
 
+		if (!in_array($Product->id,$this->viewed)) {
+			array_unshift($this->viewed,$Product->id);
+			$this->viewed = array_slice($this->viewed,0,
+				apply_filters('shopp_recently_viewed_limit',25));
+		}
 	}
 
 	function collection ($template) {
