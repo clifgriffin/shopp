@@ -63,7 +63,7 @@ class ShoppErrors {
 		if (defined('WP_DEBUG') && WP_DEBUG) $types = E_ALL;
 		// Handle PHP errors
 		if ($this->reporting >= SHOPP_PHP_ERR)
-			set_error_handler(array($this,'phperror'),$types);
+			set_error_handler(array($this,'php'),$types);
 
 		add_action('init', array(&$this, 'init'), 20);
 	}
@@ -213,41 +213,14 @@ class ShoppErrors {
 	 * @param string $message The PHP error message
 	 * @param string $file The file the error occurred in
 	 * @param int $line The line number the error occurred at in the file
-	 * @return void
+	 * @return boolean
 	 **/
-	function phperror ($number, $message, $file, $line) {
-		if (strpos($file,SHOPP_PATH) !== false)
-			new ShoppError($message,'php_error',SHOPP_PHP_ERR,
-				array('file'=>$file,'line'=>$line,'phperror'=>$number));
+	function php ($number, $message, $file, $line) {
+		if (strpos($file,SHOPP_PATH) === false) return true;
+		new ShoppError($message,'php_error',SHOPP_PHP_ERR,
+			array('file'=>$file,'line'=>$line,'phperror'=>$number));
+		if ($number == E_USER_ERROR) return false; // Always show fatal errors
 		return true;
-	}
-
-	/**
-	 * Provides functionality for the shopp('error') tags
-	 *
-	 * Support for triggering errors through the Template API.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param string $property The error property for the tag
-	 * @param array $options Tag options
-	 * @return void
-	 **/
-	function tag ($property,$options=array()) {
-		global $Shopp;
-		if (empty($options)) return false;
-		switch ($property) {
-			case "trxn": new ShoppError(key($options),'template_error',SHOPP_TRXN_ERR); break;
-			case "auth": new ShoppError(key($options),'template_error',SHOPP_AUTH_ERR); break;
-			case "addon": new ShoppError(key($options),'template_error',SHOPP_ADDON_ERR); break;
-			case "comm": new ShoppError(key($options),'template_error',SHOPP_COMM_ERR); break;
-			case "stock": new ShoppError(key($options),'template_error',SHOPP_STOCK_ERR); break;
-			case "admin": new ShoppError(key($options),'template_error',SHOPP_ADMIN_ERR); break;
-			case "db": new ShoppError(key($options),'template_error',SHOPP_DB_ERR); break;
-			case "debug": new ShoppError(key($options),'template_error',SHOPP_DEBUG_ERR); break;
-			default: new ShoppError(key($options),'template_error',SHOPP_ERR); break;
-		}
 	}
 
 } //end ShoppErrors
@@ -295,9 +268,9 @@ class ShoppError {
 			32		=> 'CORE WARNING',
 			64		=> 'COMPILE ERROR',
 			128		=> 'COMPILE WARNING',
-			256		=> 'USER ERROR',
-			512		=> 'USER WARNING',
-			1024	=> 'USER NOTICE',
+			256		=> 'Fatal error',
+			512		=> 'Warning',
+			1024	=> 'Notice',
 			2048	=> 'STRICT NOTICE',
 			4096 	=> 'RECOVERABLE ERROR'
 		);
@@ -388,7 +361,9 @@ class ShoppError {
  * @subpackage errors
  **/
 class ShoppErrorLogging {
+
 	private static $instance;
+
 	var $dir;
 	var $file = "shopp_debug.log";
 	var $logfile;
@@ -424,7 +399,6 @@ class ShoppErrorLogging {
 		return self::$instance;
 	}
 
-
 	function set_loglevel() {
 		$this->loglevel = shopp_setting('error_logging');
 	}
@@ -449,7 +423,8 @@ class ShoppErrorLogging {
 		if (($this->log = @fopen($this->logfile,'at')) !== false) {
 			fwrite($this->log,$message);
 			fclose($this->log);
-		} else error_log($message);
+		}
+		error_log($error->message(false,true));
 	}
 
 	/**

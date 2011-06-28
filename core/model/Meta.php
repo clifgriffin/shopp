@@ -25,7 +25,6 @@ class MetaObject extends DatabaseObject {
 
 	var $context = 'product';
 	var $type = 'meta';
-	var $_xcols = array();
 
 	/**
 	 * Meta constructor
@@ -39,7 +38,8 @@ class MetaObject extends DatabaseObject {
 		if (is_array($id)) $this->load($id);
 		else $this->load(array($key=>$id,'type'=>$this->type));
 
-		if (!empty($this->id)) $this->expopulate();
+		if (!empty($this->id) && !empty($this->_xcols))
+			$this->expopulate();
 	}
 
 	/**
@@ -53,8 +53,8 @@ class MetaObject extends DatabaseObject {
 	function expopulate () {
 		if (!is_object($this->value)) return;
 		$properties = $this->value;
-		unset($this->value);
 		$this->copydata($properties);
+		unset($this->value);
 	}
 
 	/**
@@ -67,9 +67,10 @@ class MetaObject extends DatabaseObject {
 	 **/
 	function save () {
 		if (!empty($this->_xcols)) {
-			$this->value = new stdClass();
+			$value = new stdClass();
 			foreach ((array)$this->_xcols as $col)
-				$this->value->{$col} = $this->{$col};
+				$value->{$col} = $this->{$col};
+			$this->value = $value;
 		}
 		parent::save();
 	}

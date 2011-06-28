@@ -41,8 +41,8 @@ if (SHOPP_UNSUPPORTED) return;
 require("core/functions.php");
 
 // Load core app helpers
-require("core/DB.php");
 require("core/Framework.php");
+require("core/DB.php");
 require("core/model/Settings.php");
 require('core/model/Error.php');
 
@@ -60,9 +60,9 @@ require('core/model/API.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
 
+require('core/model/Meta.php');
 require('core/model/Order.php');
 require('core/model/Cart.php');
-require('core/model/Meta.php');
 require('core/model/Asset.php');
 require('core/model/Catalog.php');
 require('core/model/Purchase.php');
@@ -206,7 +206,6 @@ class Shopp {
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
         add_action('shopp_check_updates', array(&$this, 'updates'));
-		add_action('shopp_init',array(&$this, 'loaded'));
 
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));

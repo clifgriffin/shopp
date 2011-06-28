@@ -12,6 +12,7 @@
 
 chdir(dirname(__FILE__));
 
+if (!class_exists('SingletonFramework')) require(realpath('Framework.php'));
 if (!class_exists('DB')) require(realpath('DB.php'));
 if (!function_exists('shopp_find_wpload')) require(realpath('functions.php'));
 if (!class_exists('ShoppErrors')) require('model/Error.php');

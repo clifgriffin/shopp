@@ -40,4 +40,8 @@ function shopp_order_line_data ($order,$line,$name) {}
 function shopp_add_order_line_data ($order,$line,$download) {}
 function shopp_rmv_order_line_data ($order,$line,$download) {}
 
+function shopp_add_order_event ($order,$type,$message) {
+	return OrderEvent::add($order,$type,$message);
+}
+
 ?>

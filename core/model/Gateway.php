@@ -52,6 +52,7 @@ interface GatewayModule {
  *
  * @author Jonathan Davis
  * @since 1.1
+ * @version 1.2
  * @package shopp
  * @subpackage gateways
  **/
@@ -66,6 +67,8 @@ abstract class GatewayFramework {
 	var $multi = false;			// Flag to enable a multi-instance gateway
 	var $baseop = false; 		// Base of operation setting
 	var $precision = 2;			// Currency precision
+	var $decimals = '.';		// Default decimal separator
+	var $thousands = '';		// Default thousands separator
 	var $settings = array();	// List of settings for the module
 	var $xml = false;			// Flag to load and enable XML parsing
 	var $soap = false;			// Flag to load and SOAP client helper
@@ -262,6 +265,36 @@ abstract class GatewayFramework {
 			if (isset($pcs[$card])) $cards[$card] = $pcs[$card];
 		}
 		return $cards;
+	}
+
+	/**
+	 * Formats monetary amounts for handing off to the gateway
+	 *
+	 * Supports specifying an order total by name (subtotal, tax, shipping, total)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string|float|int $amount The amount (or name of the amount total) to format
+	 * @return string Formatted amount
+	 **/
+	function amount ($amount,$format=array()) {
+
+		if (is_string($amount)) {
+			$Totals = ShoppOrder()->Cart->Totals;
+			if (!isset($Totals->$name)) return false;
+			$amount = $Totals->$name;
+		} elseif ( ! ( is_int($amount) && is_float($amount) ) ) return false;
+
+		$defaults = array(
+			'precision' => $this->precision,
+			'decimals' => $this->decimals,
+			'thousands' => $this->thousands,
+		);
+		$format = array_merge($defaults,$format);
+		extract($format);
+
+		return number_format($amount,$precision,$decimals,$thousands);
 	}
 
 	/**
