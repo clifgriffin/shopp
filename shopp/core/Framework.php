@@ -10,10 +10,18 @@
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package
  * @since 1.0
- * @subpackage
+ * @subpackage framework
  **/
 
-class RegistryManager implements Iterator {
+
+/**
+ * Implements a Registry pattern with internal iteration support
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ **/
+abstract class RegistryManager implements Iterator {
 
 	private $_list = array();
 	private $_keys = array();
@@ -80,6 +88,37 @@ class RegistryManager implements Iterator {
 			array_key_exists($this->_position,$this->_keys)
 			&& array_key_exists($this->keys[$this->_position],$this->_list)
 		);
+	}
+
+}
+
+/**
+ * Implements a Singleton pattern object
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ **/
+abstract class SingletonFramework {
+
+	protected static $instance;
+
+	public static function instance () {
+		if ( ! self::$instance )
+			self::$instance = new self();
+		return self::$instance;
+	}
+
+	/**
+	 * Prevents cloning singletons
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return void
+	 **/
+	public function __clone () {
+		trigger_error('Cloning '.get_class(self::$instance).' is not allowed.', E_USER_ERROR);
 	}
 
 }
