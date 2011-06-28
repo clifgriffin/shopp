@@ -21,7 +21,7 @@
  * @since 1.2
  * @package shopp
  **/
-abstract class RegistryManager implements Iterator {
+class RegistryManager implements Iterator {
 
 	private $_list = array();
 	private $_keys = array();
@@ -99,15 +99,27 @@ abstract class RegistryManager implements Iterator {
  * @since 1.2
  * @package shopp
  **/
-abstract class SingletonFramework {
+class SingletonFramework {
 
-	protected static $instance;
+	// @todo Requires Late-Static Binding in PHP 5.3 before extending the framework for instance return method to work
 
-	public static function instance () {
-		if ( ! self::$instance )
-			self::$instance = new self();
-		return self::$instance;
-	}
+	// protected static $instance;
+
+	// public static function instance () {
+	// 	if (!self::$instance instanceof self)
+	// 		self::$instance = new self;
+	// 	return self::$instance;
+	// }
+
+	/**
+	 * Prevents constructing new instances of singletons
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return void
+	 **/
+	protected function __construct () {}
 
 	/**
 	 * Prevents cloning singletons
@@ -117,9 +129,7 @@ abstract class SingletonFramework {
 	 *
 	 * @return void
 	 **/
-	public function __clone () {
-		trigger_error('Cloning '.get_class(self::$instance).' is not allowed.', E_USER_ERROR);
-	}
+	protected function __clone () {}
 
 }
 
