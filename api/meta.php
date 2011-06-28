@@ -14,6 +14,121 @@
  **/
 
 /**
+ * shopp_product_meta - get a product meta entry by product id, type, and name
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product product id
+ * @param string $name the name of the meta data
+ * @param string $type (default: meta) the meta data type
+ * @return array of stdClass Object meta values, with parent, type, name, and value properties
+ **/
+function shopp_product_meta ( $product = false, $name = false, $type = 'meta' ) {
+	return shopp_meta( $product, 'product', $name, $type );
+}
+
+/**
+ * Full Description...
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int (required) $product the product id
+ * @param string (required) $name the name of the meta entry
+ * @param string (optional default: meta) $type the type of meta entry
+ * @return bool returns true if meta data exists on the product, false if not
+ **/
+function shopp_product_has_meta ( $product = false, $name = false, $type = 'meta' ) {
+	if ( ! $name || ! $product ) return false;
+	$meta = shopp_meta($product, 'product', $name, $type);
+
+	return ( ! empty($meta) );
+}
+
+/**
+ * shopp_product_meta_list - get an array of meta values on the product
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param type $var Description...
+ * @return array list of values keyed by name, false on failure
+ **/
+function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
+	if ( ! $product ) {
+		if(SHOPP_DEBUG) new ShoppError('shopp_product_meta_list failed: product id required', 'shopp_product_meta_list', SHOPP_DEBUG_ERR);
+		return false;
+	}
+	$metas = shopp_product_meta ( $product, false, $type );
+
+	$results = array();
+	foreach ( $metas as $id => $meta ) {
+		if ( is_object($meta) ) {
+			$results[$meta->name] = $meta->value;
+		} else if ( ! empty($meta) ) {
+			$results[$id] = $meta;
+		}
+	}
+	return $results;
+}
+
+/**
+ * shopp_product_meta_count - number of meta entries associated with a product
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int (required) $product the product id
+ * @param type (optional default: meta) $type the meta type to count
+ * @return int count of meta entries, false on failure
+ **/
+function shopp_product_meta_count ( $product = false, $type = 'meta' ) {
+	if ( ! $product ) {
+		if(SHOPP_DEBUG) new ShoppError('shopp_product_meta_count failed: product id required', 'shopp_product_meta_count', SHOPP_DEBUG_ERR);
+		return false;
+	}
+	$meta = shopp_product_meta ( $product, false, $type );
+	return count( $meta );
+}
+
+/**
+ * shopp_set_product_meta - create or update a new product meta record
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int (required on creation/update) $product product object to create/update the meta record on
+ * @param string (required on update) $name the name of the meta entry, more specific than type
+ * @param mixed (optional default: false) $value the value stored to the meta entry
+ * @param string (optional default: meta) $type the type or classification of the meta data
+ * @param string (optional) $valuetype (default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
+ * @return bool true on successful save or update, fail on failure
+ **/
+function shopp_set_product_meta ( $product = false, $name = false, $value = false, $type = 'meta', $valuetype = 'value' ) {
+	return shopp_set_meta ( $product, 'product', $name, $value, $type, $valuetype );
+}
+
+/**
+ * shopp_rmv_product_meta - remove a meta entry by product id and name
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product (required) - product id of meta entry to remove
+ * @param string $name (required with parent object context) - the meta name
+ * @param string $type  (optional default: meta) - the meta type
+ * @return bool true if the meta entry was removed, false on failure
+ **/
+function shopp_rmv_product_meta ( $product = false, $name = false, $type = 'meta') {
+	if ( ! $product && ! $name ) {
+		if(SHOPP_DEBUG) new ShoppError('shopp_rmv_product_meta failed: product and name parameters required.','shopp_rmv_product_meta',SHOPP_DEBUG_ERR);
+		return false;
+	}
+	return shopp_rmv_meta ( $product, 'product', $name, $type );
+}
+
+/**
  * shopp_meta - Returns meta data assigned to an object.
  *
  * @author John Dillick
@@ -22,16 +137,17 @@
  * @param int (optional) $id of the meta entry, or object id of the object the Shopp meta is attached to
  * @param string (optional) $context the object type that the object id refers to.
  * @param string (optional) $name the name of the meta data
- * @param string (optional) $type the data type of meta data (examples meta, spec, download, image, yourdatatype )
+ * @param string (optional default: meta) $type the data type of meta data (examples meta, spec, download, image, yourdatatype )
  * @return array of stdClass Object meta values, with parent, type, name, and value properties
  *
  * Usage Examples:
  * shopp_meta(<id>) - meta record by id
- * shopp_meta([id], [context], [type], [name]) - pick one or more, id is the id of the parent contextual object if context is specified
+ * shopp_meta([id], [context], [name], [type]) - pick one or more, id is the id of the parent contextual object if context is specified
  *
  * shopp_meta(1) loads meta record 1
- * shopp_meta(5,'product','spec','Producer') loads spec named Producer of product id 5
- * shopp_meta(false, 'product','downloads') loads all product downloads
+ * shopp_meta(5,'product','Producer','spec') loads spec named Producer of product id 5
+ * shopp_meta(false, 'product','mydownload.zip','downloads') load the meta record for mydownload.zip product download
+ * shopp_meta(5, 'product', false, 'downloads') load all product download meta records for product id 5
  * shopp_meta(false, 'price') loads all meta data associated with variants
  *
  **/
@@ -200,119 +316,5 @@ function shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 
 	return false;
 }
 
-/**
- * shopp_product_meta - get a product meta entry by product id, type, and name
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int $product product id
- * @param string $name the name of the meta data
- * @param string $type (default: meta) the meta data type
- * @return array of stdClass Object meta values, with parent, type, name, and value properties
- **/
-function shopp_product_meta ( $product = false, $name = false, $type = 'meta' ) {
-	return shopp_meta( $product, 'product', $name, $type );
-}
-
-/**
- * Full Description...
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int (required) $product the product id
- * @param string (required) $name the name of the meta entry
- * @param string (optional default: meta) $type the type of meta entry
- * @return bool returns true if meta data exists on the product, false if not
- **/
-function shopp_product_has_meta ( $product = false, $name = false, $type = 'meta' ) {
-	if ( ! $name || ! $product ) return false;
-	$meta = shopp_meta($product, 'product', $name, $type);
-
-	return ( ! empty($meta) );
-}
-
-/**
- * shopp_product_meta_list - get an array of meta values on the product
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param type $var Description...
- * @return array list of values keyed by name, false on failure
- **/
-function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
-	if ( ! $product ) {
-		if(SHOPP_DEBUG) new ShoppError('shopp_product_meta_list failed: product id required', 'shopp_product_meta_list', SHOPP_DEBUG_ERR);
-		return false;
-	}
-	$metas = shopp_product_meta ( $product, false, $type );
-
-	$results = array();
-	foreach ( $metas as $id => $meta ) {
-		if ( is_object($meta) ) {
-			$results[$meta->name] = $meta->value;
-		} else if ( ! empty($meta) ) {
-			$results[$id] = $meta;
-		}
-	}
-	return $results;
-}
-
-/**
- * shopp_product_meta_count - number of meta entries associated with a product
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int (required) $product the product id
- * @param type (optional default: meta) $type the meta type to count
- * @return int count of meta entries, false on failure
- **/
-function shopp_product_meta_count ( $product = false, $type = 'meta' ) {
-	if ( ! $product ) {
-		if(SHOPP_DEBUG) new ShoppError('shopp_product_meta_count failed: product id required', 'shopp_product_meta_count', SHOPP_DEBUG_ERR);
-		return false;
-	}
-	$meta = shopp_product_meta ( $product, false, $type );
-	return count( $meta );
-}
-
-/**
- * shopp_set_product_meta - create or update a new product meta record
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int (required on creation/update) $product product object to create/update the meta record on
- * @param string (required on update) $name the name of the meta entry, more specific than type
- * @param mixed (optional default: false) $value the value stored to the meta entry
- * @param string (optional default: meta) $type the type or classification of the meta data
- * @param string (optional) $valuetype (default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
- * @return bool true on successful save or update, fail on failure
- **/
-function shopp_set_product_meta ( $product = false, $name = false, $value = false, $type = 'meta', $valuetype = 'value' ) {
-	return shopp_set_meta ( $product, 'product', $name, $value, $type, $valuetype );
-}
-
-/**
- * shopp_rmv_product_meta - remove a meta entry by product id and name
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int $product (required) - product id of meta entry to remove
- * @param string $name (required with parent object context) - the meta name
- * @param string $type  (optional default: meta) - the meta type
- * @return bool true if the meta entry was removed, false on failure
- **/
-function shopp_rmv_product_meta ( $product = false, $name = false, $type = 'meta') {
-	if ( ! $product && ! $name ) {
-		if(SHOPP_DEBUG) new ShoppError('shopp_rmv_product_meta failed: product and name parameters required.','shopp_rmv_product_meta',SHOPP_DEBUG_ERR);
-		return false;
-	}
-	return shopp_rmv_meta ( $product, 'product', $name, $type );
-}
 
 ?>
