@@ -28,10 +28,11 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @since 1.0
  * @version 1.2
  **/
-class DB {
+class DB extends SingletonFramework {
 	static $version = 1132;	// Database schema version
 
 	private static $instance;
+
 	// Define datatypes for MySQL
 	private static $datatypes = array(
 		'int'		=> array('int', 'bit', 'bool', 'boolean'),
@@ -58,22 +59,12 @@ class DB {
 	 **/
 	protected function __construct () {
 		global $wpdb;
-		if (isset($wpdb->dbh)) {
-			$this->dbh = $wpdb->dbh;
-			$this->table_prefix = $wpdb->get_blog_prefix();
-			$this->mysql = mysql_get_server_info();
-		}
-	}
+		if (!isset($wpdb->dbh)) return;
 
-	/**
-	 * Prevents cloning the DB singleton
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @return void
-	 **/
-	function __clone () { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+		$this->dbh = $wpdb->dbh;
+		$this->table_prefix = $wpdb->get_blog_prefix();
+		$this->mysql = mysql_get_server_info();
+	}
 
 	/**
 	 * Provides a reference to the instantiated DB singleton
@@ -83,10 +74,17 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @deprecated Will be removed in 1.3
 	 *
 	 * @return DB Returns a reference to the DB object
 	 **/
-	static function &get() {
+	static function &get () {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
+	}
+
+	static function &instance () {
 		if (!self::$instance instanceof self)
 			self::$instance = new self;
 		return self::$instance;
@@ -541,6 +539,7 @@ abstract class DatabaseObject implements Iterator {
 				if (empty($this->{$property}) && 'date' == $type)
 					$this->{$property} = null;
 			}
+
 			return true;
 		}
 
@@ -786,7 +785,8 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	function populate ($data) {
 		if(empty($data)) return false;
-		foreach(get_object_vars($data) as $var => $value) {
+		$properties = get_object_vars($data);
+		foreach((array)$properties as $var => $value) {
 			$mapping = empty($this->_map)?array():array_flip($this->_map);
 			if (!empty($mapping) && !isset($mapping[$var])) continue;
 			$property = isset($mapping[$var])?$mapping[$var]:$var;
@@ -821,7 +821,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param array $data The prepared data
 	 * @return string The query fragment of column value updates
 	 **/
-	function dataset($data) {
+	function dataset ($data) {
 		$sets = array();
 		foreach($data as $property => $value)
 			$sets[] = "$property=$value";
@@ -841,7 +841,8 @@ abstract class DatabaseObject implements Iterator {
 	 * @param array $ignores (optional) A list of properties to skip updating
 	 * @return void
 	 **/
-	function updates($data,$ignores = array()) {
+	function updates ($data,$ignores = array()) {
+		if (!is_array($data)) return;
 		foreach ($data as $key => $value) {
 			if (!is_null($value)
 				&& ($ignores === false
@@ -863,13 +864,15 @@ abstract class DatabaseObject implements Iterator {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @param object $Object The source object to copy from
+	 * @param object $data The source object or array to copy from
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
 	 **/
-	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
+	function copydata ($data,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
 		if ($ignores === false) $ignored = array();
-		foreach(get_object_vars($Object) as $property => $value) {
+		if (is_object($data)) $properties = get_object_vars($data);
+		else $properties = $data;
+		foreach((array)$properties as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) &&
 				!in_array($property,$ignores))
@@ -877,6 +880,14 @@ abstract class DatabaseObject implements Iterator {
 		}
 	}
 
+	/**
+	 * Shrinks a DatabaseObject to json-friendly data size
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return array JSON-ready data set
+	 **/
 	function json ($ignores = array()) {
 		$this->_ignores = array_merge($this->_ignores,$ignores);
 		$this->_get_properties(true);

@@ -441,7 +441,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
-	function has_variations ($result, $options, $O) { return ($O->variants == "on" && (!empty($O->options['v']) || !empty($O->options))); }
+	function has_variations ($result, $options, $O) { return ('on' == $O->variants && (!empty($O->options['v']) || !empty($O->options))); }
 
 	function id ($result, $options, $O) { return $O->id; }
 
