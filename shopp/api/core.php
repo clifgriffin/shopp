@@ -27,4 +27,11 @@ function &ShoppCatalog (&$Object=false) {
 	return $Shopp->Catalog;
 }
 
+function &ShoppPurchase (&$Object=false) {
+	global $Shopp; $false = false;
+	if (empty($Shopp)) return $false;
+	if ($Object !== false) $Shopp->Purchase = $Object;
+	return $Shopp->Purchase;
+}
+
 ?>
