@@ -131,9 +131,8 @@ class Item {
 			}
 		}
 
-		$packaging_meta = new MetaObject();
-		$packaging_meta->load(array('context'=>'product','parent'=>$Product->id,'type'=>'meta','name'=>'packaging'));
-		$this->packaging = ($packaging_meta->id && $packaging_meta->value == "on" ? "on" : "off");
+		$packaging_meta = shopp_product_meta($Product->id, 'meta', 'packaging');
+		$this->packaging = ( "on" == $packaging_meta ) ? "on" : "off";
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		if ($Price->type == "Shipped") {
