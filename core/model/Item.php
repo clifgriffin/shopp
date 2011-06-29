@@ -65,7 +65,6 @@ class Item {
 	 * @return void
 	 **/
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
-
 		$Product->load_data(array('prices','images','categories','tags','specs'));
 
 		// If product variants are enabled, disregard the first priceline
@@ -480,7 +479,14 @@ class Item {
 
 		$table = DatabaseObject::tablename(Price::$table);
 		$ids = array($this->priceline);
-		if (!empty($this->addons)) foreach ($this->addons as $addon) $ids[] = $addon->id;
+
+		if ( ! empty($this->addons) ) {
+			foreach ($this->addons as $addon) {
+				if ( "on" == $addon->inventory )
+					$ids[] = $addon->id;
+			}
+		}
+
 		$result = $db->query("SELECT min(stock) AS stock FROM $table WHERE 0 < FIND_IN_SET(id,'".join(',',$ids)."')");
 		if (isset($result->stock)) return $result->stock;
 
