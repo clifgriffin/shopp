@@ -1179,64 +1179,12 @@ function raw_request_url () {
  * @return string The formatted unit size
  **/
 function readableFileSize($bytes,$precision=1) {
-	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
+	$units = array(__('bytes','Shopp'),'KB','MB','GB','TB','PB');
 	$sized = $bytes*1;
 	if ($sized == 0) return $sized;
 	$unit = 0;
 	while ($sized >= 1024 && ++$unit) $sized = $sized/1024;
 	return round($sized,$precision)." ".$units[$unit];
-}
-
-/**
- * Creates natural language amount of time from a specified timestamp to today
- *
- * The string includes the number of years, months, days, hours, minutes
- * and even seconds e.g.: 1 year, 5 months, 29 days , 23 hours and 59 minutes
- *
- * @author Timothy Hatcher
- * @since 1.0
- *
- * @param int $date The original timestamp
- * @return string The formatted time range
- **/
-function readableTime($date, $long = false) {
-
-	$secs = time() - $date;
-	if (!$secs) return false;
-	$i = 0; $j = 1;
-	$desc = array(1 => 'second',
-				  60 => 'minute',
-				  3600 => 'hour',
-				  86400 => 'day',
-
-				  604800 => 'week',
-				  2628000 => 'month',
-				  31536000 => 'year');
-
-
-	while (list($k,) = each($desc)) $breaks[] = $k;
-	sort($breaks);
-
-	while ($i < count($breaks) && $secs >= $breaks[$i]) $i++;
-	$i--;
-	$break = $breaks[$i];
-
-	$val = intval($secs / $break);
-	$retval = $val . ' ' . $desc[$break] . ($val>1?'s':'');
-
-	if ($long && $i > 0) {
-		$rest = $secs % $break;
-		$break = $breaks[--$i];
-		$rest = intval($rest/$break);
-
-		if ($rest > 0) {
-			$resttime = $rest.' '.$desc[$break].($rest > 1?'s':'');
-
-			$retval .= ", $resttime";
-		}
-	}
-
-	return $retval;
 }
 
 /**

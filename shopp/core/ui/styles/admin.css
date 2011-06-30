@@ -8,7 +8,7 @@ th.textright { text-align: right; }
 .shopp .clickable,
 .shopp button { cursor:pointer; }
 .shopp button.deleteButton { background:none;border:none;padding:0;width:16px;height:16px; }
-.shopp button.delete,.shopp button.add { display:inline-block;background:none;border:none;padding:3px;margin:1px;z-index:100; }
+.shopp button.delete,.shopp button.add { display:inline-block;background:none;border:none;padding:3px;margin:1px;z-index:100; vertical-align: top; margin-top: 2px; }
 .shopp button img { display:inline;vertical-align:middle; }
 .shopp input.right { text-align:right; }
 .shopp label .error { display:inline-block;margin-top:5px;padding:0 0.6em; }
@@ -17,6 +17,10 @@ th.textright { text-align: right; }
 .shopp table td.featured { text-align: center; }
 .shopp table td.spectemplates { background:url('../icons/templates.png') no-repeat center center; }
 .shopp table td.facetedmenus { background:url('../icons/menus.png') no-repeat center center; }
+
+
+.shopp .inline-fields { overflow: auto; }
+.shopp .inline-fields span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 
 .shopp .checkbox { display: inline-block; position: relative; color: #464646; text-shadow: rgba(255,255,255,1) 0 1px 0; width: 10px; height: 10px; margin-top: 3px; border: 1px solid #a9a9a9;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; background: #fff url(data:image/gif;base64,R0lGODlhBQAGAJEAAPLy8vn5+ezs7AAAACH5BAAAAAAALAAAAAAFAAYAAAIHjA2Zwu3/CgA7) repeat-x scroll left bottom; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec')"; -moz-box-shadow: 0 1px 1px #ececec; -webkit-box-shadow: 0 2px 3px #ececec; box-shadow: 0 1px 1px #ececec; overflow: visible; }
 .shopp .checkbox .checked { margin-top: -3px; margin-left: 1px; overflow: visible; width: 11px; height: 11px; background: url('../icons/checkmark.png') no-repeat scroll left top; }
@@ -444,13 +448,17 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .cart .remove { font-size:12px; }
 #order .cart tr.totals th,.cart tr.totals td { padding:7px 7px 5px; }
 #order .totals th { text-align:right; }
+#order .shipping .method { color: #777; }
+
+#order .button-secondary.cancel:hover,
+#order .button-secondary.refund:hover { border-color: #900; }
 
 #order #message,#order #note { width:100%; }
 #order ul.promos { list-style:square;padding-left:25px; }
 #order ul.promos li { text-indent:-5px; }
 
 #order .meta-boxes { position:relative;margin-top:20px; }
-
+#order .meta-boxes .widefat { clear: none; }
 #order .column { position:relative; }
 #order .left-column {float:left;width:260px;display:inline;overflow:visible; }
 #order .right-column { width:100%;margin-left:-340px; display: inline;}
@@ -476,14 +484,15 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes .notectrls { position:relative;display:none;padding:6px 0; }
 
 #order .meta-boxes address { white-space: normal; width: inherit; }
-#order-contact .customer { background-repeat:no-repeat;background-position:0px 5px;padding-left:24px;line-height:18px; }
+#order-contact .customer { background: url('../icons/customer.png') no-repeat -8px -5px;padding-left:24px;line-height:18px; }
 #order-contact p a { display: inline-block; }
-#order-contact .name { background-image:url('../icons/user.png'); }
-#order-contact .company { background-image:url('../icons/building.png'); }
-#order-contact .email { background-image:url('../icons/email.png'); }
-#order-contact .phone { background-image:url('../icons/phone.png'); }
-#order-contact .marketing { background-image:url('../icons/accept.png'); }
-#order-contact .nomarketing { background-image:url('../icons/delete.png'); }
+#order-contact .customer {  }
+
+#order-contact .company 	{ background-position: -8px -36px; }
+#order-contact .email 		{ background-position: -8px -68px; }
+#order-contact .phone 		{ background-position: -8px -100px; }
+#order-contact .marketing 	{ background-position: -8px -132px; }
+#order-contact .nomarketing { background-position: -8px -164px; }
 
 #order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
@@ -523,8 +532,36 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-status .inside span { float:none;display:inline-block; }
 #order #order-status label { display:inline-block;padding-top:1px;font-weight:bold; }
 
+.history .auth .name,
+.history .capture .name { color: #060; font-weight: bold; }
+.history .fail .name { color: #900; font-weight: normal; }
+.history .fail .amount { color: #777; }
+.history .detail { color: #444; }
+
+#order-manage .inside { margin: 0; padding: 0; }
 #order #card,
 #order #cvv { cursor:pointer; }
+
+#order #major-publishing-actions { height: 25px; }
+#order .minor-publishing-actions,
+#order .misc-pub-section { overflow: auto; }
+
+#order .status { font-size: 1.2em; }
+
+
+#order .shipment { width: 360px; margin: 6px auto 1.33em; }
+#order .shipment ol { list-style:none; margin-left: 0;}
+#order .shipment ol .number { margin: 6px 2px 0; position: relative;}
+#order .shipment div.delete { position: absolute; left: -2px; top: -2px; }
+#order .shipment .submit { width: 340px; padding-top: 20px; }
+
+.stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
+.stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }
+.stamp .ing { background: url('../icons/stamped.png') repeat-x; position: absolute; width: 500px; height: 50px; top: 0px; left: 0px; }
+
+.stamp.paid .type { color: #900; border-color: #900; }
+.stamp.shipped .type { color: #060; border-color: #060; }
+.stamp.void .type { color: #444; border-color: #444; text-decoration: line-through; }
 
 #order-statuslabels li { position:relative; }
 #order-statuslabels li input { width:120px;padding-right:20px;margin-right:5px; }
@@ -534,7 +571,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order-statuslabels button.delete { position:relative;left:-25px;margin-right:-18px; }
 #print-button { position:absolute;right:15px; }
 
-.shopp div.inline div { display: inline; }
+/* Is this needed? .shopp div.inline div { display: inline; }*/
 .shopp .actions .filtering { margin-left:10px; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }

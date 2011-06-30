@@ -410,6 +410,16 @@ class Setup extends AdminController {
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
 
+		$carrierdata = Lookup::shipcarriers();
+		$serviceareas = array('*',$base['country']);
+		foreach ($carrierdata as $c => $record) {
+			if (!in_array($record->areas,$serviceareas)) continue;
+			$carriers[$c] = $record->name;
+		}
+		unset($carrierdata);
+		$shipping_carriers = shopp_setting('shipping_carriers');
+		if (empty($shipping_carriers)) $shipping_carriers = array_keys($carriers);
+
 		$rates = shopp_setting('shipping_rates');
 		if (!empty($rates)) ksort($rates);
 

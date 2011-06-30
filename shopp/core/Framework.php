@@ -133,4 +133,23 @@ class SingletonFramework {
 
 }
 
+class AutoObjectFramework {
+
+	function __construct ($input) {
+		$properties = get_object_vars($this);
+		$args = func_num_args();
+		if ($args > 1) {
+			$keys = array_splice(array_keys($properties),0,$args);
+			$inputs = array_combine($keys,func_get_args());
+		}
+		else $inputs = $input;
+
+		if (!is_array($inputs)) return;
+		foreach ($inputs as $name => $value)
+			if (property_exists($this,$name))
+				$this->$name = $value;
+	}
+
+}
+
 ?>

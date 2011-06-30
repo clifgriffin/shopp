@@ -1,5 +1,145 @@
 <?php
 global $Shopp;
+
+function manage_meta_box ($Purchase) {
+	global $UI;
+?>
+<?php if ($Purchase->shipable && !$Purchase->shipped): ?>
+<script id="shipment-ui" type="text/x-jquery-tmpl">
+<?php ob_start(); ?>
+<li class="inline-fields">
+	<span class="number">${num}.</span>
+	<span><input type="text" name="shipment[${id}][tracking]" value="${tracking}" size="30" /><br />
+	<label><?php _e('Tracking Number'); ?></label>
+	</span>
+	<span>
+	<select name="shipment[${id}][carrier]">${carriermenu}</select><?php echo ShoppUI::button('delete','delete-shipment[${id}]'); ?><br />
+	<label><?php _e('Carrier'); ?></label>
+	</span>
+</li>
+<?php $shipmentui = ob_get_contents(); ob_end_clean(); ?>
+</script>
+<?php endif; ?>
+<div class="minor-publishing">
+
+	<div class="minor-publishing-actions">
+
+		<div class="misc-pub-section">
+		<div class="alignright"><input type="submit" value="<?php _e('Print Order','Shopp'); ?>" class="button" /></div>
+			<div class="status">
+			<?php
+			if (isset($Purchase->txnevent)): $UI = OrderEventRenderer::renderer($Purchase->txnevent);
+				echo $UI->name(); echo ' &mdash; '.$UI->date();
+			else: ?>
+				<p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
+				<?php
+					$output = '';
+					if (!empty($Purchase->card) && !empty($Purchase->cardtype))
+						$output = '<p><strong>'.$Purchase->txnstatus.'</strong> '.
+							__('to','Shopp').' '.
+							(!empty($Purchase->card)?sprintf("%'X16d",$Purchase->card):'').' '.
+							(!empty($Purchase->cardtype)?'('.$Purchase->cardtype.')':'').'</p>';
+
+					echo apply_filters('shopp_orderui_payment_card',$output, $Purchase);
+
+			endif; ?>
+			</div>
+		</div>
+
+		<?php
+			if (isset($_POST['cancel-shipments'])) unset($_POST['ship-notice']);
+			if (isset($_POST['ship-notice'])):
+				$default = array('tracking'=>'','carrier'=>'');
+				$shipment = isset($_POST['shipment'])?$_POST['shipment']:array($default);
+				$shipments = (int)$_POST['shipments'];
+				if (isset($_POST['delete-shipment'])) {
+					$queue = array_keys($_POST['delete-shipment']);
+					foreach ($queue as $index) array_splice($shipment,$index,1);
+				}
+				if (isset($_POST['add-shipment'])) $shipment[] = $default;
+		?>
+		<div class="misc-pub-section">
+			<div class="shipment">
+				<h4><big>Shipments</big></h4>
+				<p>An email will be sent to notify the customer.</p>
+				<input type="hidden" name="ship-notice" value="send" />
+				<ol>
+				<?php foreach ($shipment as $id => $package) {
+					extract($package);
+					$menu = menuoptions($UI->carriers,$carrier,true);
+					echo ShoppUI::template($shipmentui, array('${id}' => $id,'${num}' => ($id+1),'${tracking}'=>$tracking,'${carriermenu}'=>$menu ));
+				}
+				?>
+				<li><?php echo count($shipment)+1; ?>. <input type="submit" name="add-shipment" value="<?php _e('Add Shipment','Shopp'); ?>" class="button-secondary" /></li>
+				</ol>
+
+				<div class="submit">
+
+					<input type="submit" name="cancel-shipments" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
+					<div class="alignright">
+					<input type="submit" name="submit-shipments" value="<?php _e('Send Shipping Notice','Shopp'); ?>" class="button-primary" />
+					</div>
+				</div>
+			</div>
+			<div class="clear">&nbsp;</div>
+		</div>
+		<?php endif; ?>
+
+		<?php
+			if (isset($_POST['cancel-order']) || isset($_POST['refund-part'])):
+		?>
+			Refund stub
+		<?php endif; ?>
+
+	<?php
+
+
+
+/*
+	<div id="notification">
+		<p><label for="message"><?php _e('Message to customer:','Shopp'); ?></label>
+			<textarea name="message" id="message" cols="50" rows="10" ></textarea></p>
+		<p><span><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;<?php _e('Include a copy of the order in the message','Shopp'); ?></label></span></p>
+	</div>
+
+	<p><span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;<?php _e('Send a message to the customer','Shopp'); ?></label></span></p>
+
+	<p>
+		<span>
+	<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>: <select name="txnstatus" id="txn_status_menu">
+	<?php echo menuoptions($UI->txnStatusLabels,$Purchase->txnstatus,true,true); ?>
+	</select></label>
+	&nbsp;
+	<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>: <select name="status" id="order_status_menu">
+	<?php echo menuoptions($UI->statusLabels,$Purchase->status,true); ?>
+	</select></label></span>
+	</p>
+
+*/
+	?>
+	</div>
+</div>
+<?php if (!$Purchase->void): ?>
+	<div id="major-publishing-actions">
+		<div class="alignleft">
+			<button type="submit" name="cancel-order" value="status" class="button-secondary cancel"><?php _e('Cancel Order','Shopp'); ?></button>
+			<?php if ($Purchase->authorized && $Purchase->charged): ?>
+			<button type="submit" name="refund-part" value="status" class="button-secondary refund"><?php _e('Partial Refund','Shopp'); ?></button>
+			<?php endif; ?>
+		</div>
+		&nbsp;&nbsp;
+		<?php if ($Purchase->shipable && !$Purchase->shipped && !isset($_POST['ship-notice'])): ?>
+		<button type="submit" name="ship-notice" value="notify" class="button-primary"><?php _e('Send Shipment Notice','Shopp'); ?></button>
+		<?php endif; ?>
+		<?php if ($Purchase->authorized && !$Purchase->charged): ?>
+		<button type="submit" name="update" value="status" class="button-primary"><?php _e('Charge Order','Shopp'); ?></button>
+		<?php endif; ?>
+	</div>
+<?php endif; ?>
+<?php
+}
+add_meta_box('order-manage', __('Management','Shopp').$Admin->boxhelp('order-manager-manage'), 'manage_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
+
 function billto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
@@ -84,7 +224,13 @@ if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("
 			add_meta_box('order-data', __('Details','Shopp').$Admin->boxhelp('order-manager-details'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 		}
 
-function transaction_meta_box ($Purchase) {
+function history_meta_box ($Purchase) {
+	echo '<table class="widefat history"><tbody>';
+	foreach ($Purchase->events as $id => $Event)
+		echo apply_filters('shopp_order_manager_event',$Event);
+	echo '</tbody></table>';
+
+return;
 ?>
 <p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
 <?php
@@ -97,7 +243,8 @@ function transaction_meta_box ($Purchase) {
 
 	echo apply_filters('shopp_orderui_payment_card',$output, $Purchase);
 }
-add_meta_box('order-transaction', __('Payment Method','Shopp').$Admin->boxhelp('order-manager-transaction'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+if (!empty($Purchase->events))
+	add_meta_box('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function shipping_meta_box ($Purchase) {
 ?>
@@ -119,8 +266,8 @@ function shipping_meta_box ($Purchase) {
 ?>
 <?php
 }
-if (!empty($Shopp->Purchase->shipmethod))
-	add_meta_box('order-shipping', __('Shipping','Shopp').$Admin->boxhelp('order-manager-shipping'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+// if (!empty($Shopp->Purchase->shipmethod))
+// 	add_meta_box('order-shipping', __('Shipping','Shopp').$Admin->boxhelp('order-manager-shipping'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function downloads_meta_box ($Purchase) {
 ?>
@@ -135,36 +282,6 @@ function downloads_meta_box ($Purchase) {
 }
 if ($Shopp->Purchase->downloads !== false)
 	add_meta_box('order-downloads', __('Downloads','Shopp').$Admin->boxhelp('order-manager-downloads'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-
-function status_meta_box ($Purchase) {
-	global $UI;
-?>
-<div class="inside-wrap">
-<div id="notification">
-	<p><label for="message"><?php _e('Message to customer:','Shopp'); ?></label>
-		<textarea name="message" id="message" cols="50" rows="10" ></textarea></p>
-	<p><span><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;<?php _e('Include a copy of the order in the message','Shopp'); ?></label></span></p>
-</div>
-
-<p><span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;<?php _e('Send a message to the customer','Shopp'); ?></label></span></p>
-
-<p>
-	<span>
-<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>: <select name="txnstatus" id="txn_status_menu">
-<?php echo menuoptions($UI->txnStatusLabels,$Purchase->txnstatus,true,true); ?>
-</select></label>
-&nbsp;
-<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>: <select name="status" id="order_status_menu">
-<?php echo menuoptions($UI->statusLabels,$Purchase->status,true); ?>
-</select></label></span>
-</p>
-</div>
-<div id="major-publishing-actions">
-	<button type="submit" name="update" value="status" class="button-primary"><?php _e('Update Status','Shopp'); ?></button>
-</div>
-<?php
-}
-add_meta_box('order-status', __('Status','Shopp').$Admin->boxhelp('order-manager-status'), 'status_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
 
 function notes_meta_box ($Purchase) {
 	global $Notes;

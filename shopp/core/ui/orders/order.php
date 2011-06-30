@@ -8,12 +8,26 @@
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-updates">
+	<form action="<?php echo esc_url(add_query_arg(array('id'=>$Purchase->id),$this->url)); ?>" method="post" id="order-updates">
 	<div id="order">
 		<div class="title">
 			<div id="titlewrap">
 				<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
-				<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
+
+				<div class="alignright">
+
+					<?php if ($Purchase->shipped): ?>
+					<div class="stamp shipped<?php if ($Purchase->void) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+					<?php endif; ?>
+
+					<?php if ($Purchase->charged && !$Purchase->void): ?>
+					<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+					<?php elseif ($Purchase->void): ?>
+					<div class="stamp void"><div class="type"><?php _e('VOID','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+					<?php endif; ?>
+
+				</div>
+
 			</div>
 		</div>
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
@@ -81,7 +95,7 @@
 			<?php endif; ?>
 			<?php if ($Purchase->freight > 0): ?>
 			<tr class="totals">
-				<th scope="row" colspan="3" class="total"><?php _e('Shipping','Shopp'); ?></th>
+				<th scope="row" colspan="3" class="total shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$shipping_method); ?></span> <?php _e('Shipping','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->freight); ?></td>
 			</tr>
 			<?php endif; ?>

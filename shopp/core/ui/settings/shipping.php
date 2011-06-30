@@ -15,11 +15,44 @@
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if (shopp_setting('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 	            <?php _e('Enables shipping cost calculations. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
 			</tr>
-				<tr>
-					<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Track Inventory','Shopp'); ?></label></th>
-					<td><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if (shopp_setting('inventory') == "on") echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
-		            <?php _e('Enables inventory tracking. Disable if you are exclusively selling intangible products or not keeping track of product stock.','Shopp'); ?></td>
-				</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Track Inventory','Shopp'); ?></label></th>
+				<td><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if (shopp_setting('inventory') == "on") echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+	            <?php _e('Enables inventory tracking. Disable if you are exclusively selling intangible products or not keeping track of product stock.','Shopp'); ?></td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label><?php _e('Shipping Carriers','Shopp'); ?></label></th>
+				<td>
+				<div id="carriers" class="multiple-select">
+					<ul>
+						<li<?php $even = true;
+						$classes[] = 'odd hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall"  id="selectall" /><label for="selectall"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
+						<?php
+							foreach ($carriers as $code => $carrier):
+								$classes = array();
+								if ($even) $classes[] = 'odd';
+						?>
+							<li<?php if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; ?>><input type="checkbox" name="settings[shipping_carriers][]" value="<?php echo $code; ?>" id="carrier-<?php echo $code; ?>"<?php if (in_array($code,$shipping_carriers)) echo ' checked="checked"'; ?> /><label for="carrier-<?php echo $code; ?>" accesskey="<?php echo substr($code,0,1); ?>"><?php echo $carrier; ?></label></li>
+						<?php $even = !$even; endforeach; ?>
+					</ul>
+				</div><br />
+				<label><?php _e('Select the shipping carriers you will be using for shipment tracking.','Shopp'); ?></label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
+				<td>
+				<select name="settings[shipping_packaging]" id="packaging">
+						<?php
+							$packaging = array( "mass" => __("All together by weight","Shopp"),
+												"all" => __("All together with dimensions","Shopp"),
+												"like" => __("Only like items together","Shopp"),
+												"piece" => __("Each piece separately","Shopp"));
+							echo menuoptions($packaging,shopp_setting('shipping_packaging'),true);
+						?>
+				</select><br />
+				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
+			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
 				<td>
@@ -38,20 +71,6 @@
 						?>
 				</select><br />
 				<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
-				<td>
-				<select name="settings[shipping_packaging]" id="packaging">
-						<?php
-							$packaging = array("mass" => __("All together by weight","Shopp"),
-										"all" => __("All together with dimensions","Shopp"),
-										"like" => __("Only like items together","Shopp"),
-										"piece" => __("Each piece separately","Shopp"));
-							echo menuoptions($packaging,shopp_setting('shipping_packaging'),true);
-						?>
-				</select><br />
-				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="order-processing-min"><?php _e('Order Processing','Shopp'); ?></label></th>
@@ -75,7 +94,7 @@
 					<select name="settings[lowstock_level]" id="lowstock-level">
 					<?php echo menuoptions($levels,$lowstock,true); ?>
 					</select><br />
-	            	<?php _e('Enter the number for low stock level warnings.','Shopp'); ?>
+	            	<?php _e('Select the level for low stock warnings.','Shopp'); ?>
 				</td>
 			</tr>
 			<tr>
@@ -103,6 +122,11 @@
 /* <![CDATA[ */
 jQuery(document).ready(function($) {
 	quickSelects();
+	$('#selectall').change(function () {
+		if ($(this).attr('checked')) $('#carriers input').not(this).attr('checked',true);
+		else $('#carriers input').not(this).attr('checked',false);
+	});
+
 });
 /* ]]> */
 </script>
