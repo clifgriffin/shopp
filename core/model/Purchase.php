@@ -16,13 +16,18 @@ class Purchase extends DatabaseObject {
 	var $purchased = array();
 	var $columns = array();
 	var $downloads = false;
+	var $authorized = false;
+	var $charged = false;
+	var $void = false;
+	var $shipable = false;
+	var $shipped = false;
 
 	function Purchase ($id=false,$key=false) {
 
 		$this->init(self::$table);
 		if (!$id) return true;
-		if ($this->load($id,$key)) return true;
-		else return false;
+		$this->load($id,$key);
+		if (!empty($this->shipmethod)) $this->shipable = true;
 	}
 
 	function load_purchased () {
@@ -34,6 +39,7 @@ class Purchase extends DatabaseObject {
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		foreach ($this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
+			if ($purchase->shipping > 0) $this->shipable = true;
 			$purchase->data = unserialize($purchase->data);
 			if ($purchase->addons == "yes") {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
@@ -42,6 +48,20 @@ class Purchase extends DatabaseObject {
 		}
 
 		return true;
+	}
+
+	function load_events () {
+		$this->events = OrderEvent::instance()->events($this->id);
+		$txn = array('auth','auth-fail','capture','capture-fail','recapture','recapture-fail','refund','refund-fail','void');
+		foreach ($this->events as $Event) {
+			switch ($Event->name) {
+				case 'auth': $this->authorized = true; break;
+				case 'capture': $this->charged = true; break;
+				case 'void': $this->void = true; break;
+				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
+			}
+			if (in_array($name,$txn)) $this->txnevent = $Event;
+		}
 	}
 
 	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {

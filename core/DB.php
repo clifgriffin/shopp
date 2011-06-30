@@ -787,8 +787,9 @@ abstract class DatabaseObject implements Iterator {
 		if(empty($data)) return false;
 		$properties = get_object_vars($data);
 		foreach((array)$properties as $var => $value) {
+
 			$mapping = empty($this->_map)?array():array_flip($this->_map);
-			if (!empty($mapping) && !isset($mapping[$var])) continue;
+			if (!isset($this->_addmap) && !empty($mapping) && !isset($mapping[$var])) continue;
 			$property = isset($mapping[$var])?$mapping[$var]:$var;
 
 			if (empty($this->_datatypes[$var])) continue;

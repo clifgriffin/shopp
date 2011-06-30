@@ -969,13 +969,13 @@ class OrderEvent extends SingletonFramework {
 	private static $instance;
 	private $handlers = array();
 
-	public static function instance () {
+	static function instance () {
 		if (!self::$instance instanceof self)
 			self::$instance = new self;
 		return self::$instance;
 	}
 
-	function register ($type,$class) {
+	static function register ($type,$class) {
 		$Dispatch = self::instance();
 		$Dispatch->handlers[$type] = $class;
 	}
@@ -993,11 +993,32 @@ class OrderEvent extends SingletonFramework {
 		return false;
 	}
 
+	static function events ($order) {
+		$Dispatch = self::instance();
+		$Object = new OrderEventMessage();
+		$meta = $Object->_table;
+		$query = "SELECT *
+					FROM $meta
+					WHERE context='$Object->context'
+						AND type='$Object->type'
+						AND parent='$order'
+					ORDER BY created";
+		return DB::query($query,'array',array($Object,'loader'),'name');
+	}
+
+	static function handler ($name) {
+		$Dispatch = self::instance();
+		if (isset($Dispatch->handlers[$name]))
+			return $Dispatch->handlers[$name];
+	}
+
 }
 
 // Abstract Order Event message framework
 class OrderEventMessage extends MetaObject {
 
+	// Mapped properties should be added (not exclude standard properties)
+	var $_addmap = true;
 	var $_map = array('order' => 'parent','amount' => 'numeral');
 	var $_xcols = array();
 	var $context = 'purchase';
@@ -1006,26 +1027,13 @@ class OrderEventMessage extends MetaObject {
 	var $order = false;
 	var $amount = 0.0;
 
-
 	function __construct ($data=false) {
 		$this->init(self::$table);
 		if (!$data) return;
 
-		$message = $this->message;
-		unset($this->message);
-		if (isset($message) && !empty($message)) {
-			foreach ($message as $property => &$default) {
-				$this->$property = false;
-				$this->_xcols[] = $property;
-				$default = $this->datatype($default);
-			}
-		}
+		$this->msgprops();
 
-		if (is_int($data)) {
-			$this->load($data);
-			if (!empty($this->id))
-				$this->expopulate();
-		}
+		if (is_int($data)) $this->load($data);
 
  		$this->context = 'purchase';
 		$this->type = 'event';
@@ -1057,6 +1065,19 @@ class OrderEventMessage extends MetaObject {
 		do_action_ref_array('shopp_'.str_replace('-','_',$this->name).'_order_event',array($this));
 	}
 
+	function msgprops () {
+		$message = $this->message;
+		unset($this->message);
+		if (isset($message) && !empty($message)) {
+			foreach ($message as $property => &$default) {
+				$this->$property = false;
+				$this->_xcols[] = $property;
+				$default = $this->datatype($default);
+			}
+		}
+
+	}
+
 	function datatype ($var) {
         if (is_array($var)) return 'array';
         if (is_bool($var)) return 'boolean';
@@ -1069,6 +1090,37 @@ class OrderEventMessage extends MetaObject {
         if (is_string($var)) return 'string';
         return 'unknown type';
 	}
+
+	/**
+	 * Callback for loading concrete OrderEventMesssage objects from a record set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $records A reference to the loaded record set
+	 * @param object $record Result record data object
+	 * @return void
+	 **/
+	function loader (&$records,&$record,$type=false,$index='id',$collate=false) {
+		if ($type !== false && isset($record->$type) && class_exists(OrderEvent::handler($record->$type))) {
+			$OrderEventClass = OrderEvent::handler($record->$type);
+		} elseif (isset($this)) {
+			if ($index == 'id') $index = $this->_key;
+			$OrderEventClass = get_class($this);
+		}
+		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
+		$Object = new $OrderEventClass();
+		$Object->msgprops();
+		$Object->populate($record);
+		if (method_exists($Object,'expopulate'))
+			$Object->expopulate();
+
+		if ($collate) {
+			if (!isset($records[$index])) $records[$index] = array();
+			$records[$index][] = $Object;
+		} else $records[$index] = $Object;
+	}
+
 
 } // END class OrderEvent
 
@@ -1188,7 +1240,6 @@ class VoidOrderEvent extends OrderEventMessage {
 	var $message = array(
 		'txnorigin' => '',		// Original transaction ID (txnid of original Purchase record)
 		'txnid' => '',			// Transaction ID for the VOID event
-		'amount' => 0.0,		// Amount to void
 		'gateway' => ''			// Gateway handler name (module name from @subpackage)
 	);
 }
@@ -1214,13 +1265,8 @@ OrderEvent::register('decrypt','DecryptOrderEvent');
 class ShippedOrderEvent extends OrderEventMessage {
 	var $name = 'shipped';
 	var $message = array(
-		'packageid' => 0,		// Package ID out of the total shipment
-		'packages' => 0,		// Total number of packages for the shipment
 		'tracking' => '',		// Tracking number (you know, for tracking)
 		'carrier' => '',		// Carrier ID (name, eg. UPS, USPS, FedEx)
-		'quantity' => 0,		// total quantity of shipped items (sum of line items)
-		'lineitems' => array()	// [(int) purchased] => (int) qty
-
 	);
 }
 OrderEvent::register('shipped','ShippedOrderEvent');
