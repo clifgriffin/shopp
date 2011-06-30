@@ -50,6 +50,26 @@ class Customer extends DatabaseObject {
 	}
 
 	/**
+	 * simplify - get a simplified version of the customer object
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return stdClass returns stdClass simplified version of the customer object
+	 **/
+	function simplify () {
+		$map = array('id', 'wpuser', 'firstname', 'lastname', 'email', 'phone', 'company', 'marketing', 'type');
+		$_ = new stdClass;
+
+		foreach ( $map as $property ) {
+			if ( isset($this->{$property}) ) $_->{$property} = $this->{$property};
+		}
+
+		if ( isset($this->info) && ! empty($this->info) ) $_->info = $this->info;
+		return $_;
+	}
+
+	/**
 	 * Loads customer 'info' meta data
 	 *
 	 * @author Jonathan Davis
