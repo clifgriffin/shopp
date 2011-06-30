@@ -37,9 +37,9 @@
 	<script id="conditional" type="text/x-jquery-tmpl">
 	<?php ob_start(); ?>
 	<li>
-		<button type="submit" class="delete" name="deleterule" value="${id},${ruleid}"><img src="<?php echo SHOPP_ICONS_URI; ?>/delete.png" alt="-" width="16" height="16" /></button>
+		<?php echo ShoppUI::button('delete','deleterule'); ?>
 		<select name="settings[taxrates][${id}][rules][${ruleid}][p]" class="property">${property_menu}</select>&nbsp;<input type="text" name="settings[taxrates][${id}][rules][${ruleid}][v]" size="25" class="value" value="${rulevalue}" />
-		<button type="submit" name="addrule" class="add"><img src="<?php echo SHOPP_ICONS_URI; ?>/add.png" alt="+" width="16" height="16" /></button></li>
+		<?php echo ShoppUI::button('add','addrule'); ?></li>
 	<?php $conditional = ob_get_contents(); ob_end_clean(); echo str_replace(array("\n","\t"),'',$conditional); ?>
 	</script>
 
@@ -58,7 +58,7 @@
 			<td scope="row" valign="top" class="rate"><input type="text" name="settings[taxrates][${id}][rate]" id="tax-rate" value="${rate}" size="6" class="selectall" /><br /><label for="tax-rate"><?php _e('Tax Rate','Shopp'); ?></label></td>
 			<td scope="row" class="conditions">
 			<select name="settings[taxrates][${id}][country]" class="country">${countries}</select><select name="settings[taxrates][${id}][zone]" class="zone no-zones">${zones}</select>
-			<button type="submit" name="addrule" class="add"><img src="<?php echo SHOPP_ICONS_URI; ?>/add.png" alt="+" width="16" height="16" /></button>
+			<?php echo ShoppUI::button('add','addrule'); ?>
 			<?php
 				$options = array('any'=>__('any','Shopp'),'all'=>__('all','Shopp'));
 				$menu = '<select name="settings[taxrates][${id}][logic]" class="logic">'.menuoptions($options,false,true).'</select>';
@@ -122,7 +122,7 @@
 					'haslocals' => false
 				);
 				extract($defaults);
-				$template_data = array(
+				echo ShoppUI::template($editor,array(
 					'${id}' => $edit,
 					'${rate}' => percentage($rate,array('precision'=>1)),
 					'${countries}' => menuoptions($countries,$country,true),
@@ -132,11 +132,7 @@
 					'${localrates}' => join('',$localrates),
 					'${instructions}' => $localerror ? '<p class="error">'.$localerror.'</p>' : $instructions,
 					'${cancel_href}' => $this->url
-				);
-				$editor = str_replace(array_keys($template_data),$template_data,$editor);
-				$editor = preg_replace('/\${\w+}/','',$editor);
-
-				echo $editor;
+				));
 			}
 
 			if (count($rates) == 0 && $edit === false): ?>
@@ -193,7 +189,7 @@
 						$localrates[] = str_replace(array_keys($localrateui_data),$localrateui_data,$localrateui);
 					}
 
-					$template_data = array(
+					$data = array(
 						'${id}' => $edit,
 						'${rate}' => $rate,
 						'${countries}' => menuoptions($countries,$country,true),
@@ -204,18 +200,15 @@
 						'${errors}' => $localerror ? '<p class="error">'.$localerror.'</p>' : '',
 						'${cancel_href}' => $this->url
 					);
-					if ($conditions) $template_data['no-conditions'] = '';
-					if (!empty($zones[$country])) $template_data['no-zones'] = '';
+					if ($conditions) $data['no-conditions'] = '';
+					if (!empty($zones[$country])) $data['no-zones'] = '';
 
-					if ($haslocals) $template_data['no-local-rates'] = '';
-					else $template_data['has-local-rates'] = '';
+					if ($haslocals) $data['no-local-rates'] = '';
+					else $data['has-local-rates'] = '';
 
-					if (count($locals) > 0) $template_data['instructions'] = 'hidden';
+					if (count($locals) > 0) $data['instructions'] = 'hidden';
 
-					$editor = str_replace(array_keys($template_data),$template_data,$editor);
-					$editor = preg_replace('/\${\w+}/','',$editor);
-
-					echo $editor;
+					echo ShoppUI::template($editor,$data);
 					if ($edit === $index) continue;
 				}
 

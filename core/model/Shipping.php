@@ -1575,4 +1575,24 @@ class ShippingPackage {
 
 } // end class ShippingPackage
 
+/**
+ * ShippingCarrier class
+ *
+ * Implements structured payment card (credit card) behaviors including
+ * card number validation and extra security field requirements.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage gateways
+ **/
+class ShippingCarrier extends AutoObjectFramework {
+
+	var $name;			// Display name
+	var $weburl;		// Website URL
+	var $areas;			// Areas serviced (where shipments can be sent from, use * for worldwide or comma-separated country codes)
+	var $trackurl;		// Tracking Query URL (use %s as token for tracking number replacement)
+	var $trackpattern;	// Regular expression pattern for carrier tracking numbers
+}
+
 ?>

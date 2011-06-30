@@ -791,4 +791,24 @@ class ShoppAdminPage {
 
 } // END class ShoppAdminPage
 
+
+class ShoppUI {
+
+	static function button ($type,$name,$options=array()) {
+		$types = array(
+			'add' => array('class' => 'add','imgalt' => '+', 'imgsrc' => '/add.png'),
+			'delete' => array('class' => 'delete','imgalt' => '-','imgsrc' => '/delete.png')
+		);
+		if (isset($types[$type]))
+			$options = array_merge($types[$type],$options);
+
+		return '<button type="submit" name="'.$name.'"'.inputattrs($options).'><img src="'.SHOPP_ICONS_URI.$options['imgsrc'].'" alt="'.$options['imgalt'].'" width="16" height="16" /></button>';
+	}
+
+	static function template ($ui,$data=array()) {
+		$ui = str_replace(array_keys($data),$data,$ui);
+		return preg_replace('/\${[-\w]+}/','',$ui);
+	}
+
+} // END class ShoppUI
 ?>

@@ -88,28 +88,6 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-/*
-
-	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
-	SHOPP_ACTIVATE_KEY = <?php _jse('Activate Key','Shopp'); ?>,
-	SHOPP_DEACTIVATE_KEY = <?php _jse('Deactivate Key','Shopp'); ?>,
-	SHOPP_CONNECTING = <?php _jse('Connecting','Shopp'); ?>,
-	SHOPP_CUSTOMER_SERVICE = <?php printf(json_encode(__('Contact <a href="%s">customer service</a>.','Shopp')),SHOPP_CUSTOMERS); ?>,
-	keyStatus = {
-		'-000':<?php _jse('The server could not be reached because of a connection problem.','Shopp'); ?>,
-		'-1':<?php _jse('An unkown error occurred.','Shopp'); ?>,
-		'0':<?php _jse('This key has been deactivated.','Shopp'); ?>,
-		'1':<?php _jse('This key has been activated.','Shopp'); ?>,
-		'-100':<?php _jse('An unknown activation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-101':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-102':<?php _jse('This site is not valid to activate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-103':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-104':<?php _jse('The key provided is already active on another site.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-200':<?php _jse('An unkown deactivation error occurred.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-201':<?php _jse('The key provided is not valid.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-202':<?php _jse('The site is not valid to be able to deactivate the key.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE,
-		'-203':<?php _jse('The key provided could not be validated by shopplugin.net.','Shopp'); ?>+SHOPP_CUSTOMER_SERVICE
-	}, */
 	var activated = <?php echo ($activated)?'true':'false'; ?>,
 		zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
 		act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',

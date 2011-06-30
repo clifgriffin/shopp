@@ -502,7 +502,7 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 
 
 /**
- * PayCard classs
+ * PayCard class
  *
  * Implements structured payment card (credit card) behaviors including
  * card number validation and extra security field requirements.

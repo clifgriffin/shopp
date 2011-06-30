@@ -61,15 +61,16 @@
 	            </td>
 			</tr>
 			<tr>
-				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Logging','Shopp'); ?></label></th>
+				<th scope="row" valign="top"><label for="error-logging"><?php _e('Logging','Shopp'); ?></label></th>
 				<td><select name="settings[error_logging]" id="error-logging">
 					<?php echo menuoptions($errorlog_levels,shopp_setting('error_logging'),true); ?>
 					</select><br />
 					<label for="error-notifications"><?php _e("Limit logging errors up to the level of the selected error type.","Shopp"); ?></label>
 	            </td>
 			</tr>
+			<?php if (count(ShoppErrorLogging()->tail(2)) > 1): ?>
 			<tr>
-				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Log','Shopp'); ?></label></th>
+				<th scope="row" valign="top"></th>
 				<td id="errorlog">
 
 				<iframe id="logviewer" src="<?php echo wp_nonce_url(add_query_arg(array('action'=>'shopp_debuglog'),admin_url('admin-ajax.php')),'wp_ajax_shopp_debuglog'); ?>#bottom">
@@ -79,6 +80,7 @@
 				<p class="alignright"><button name="resetlog" id="resetlog" value="resetlog" class="button"><small><?php _e('Reset Log','Shopp'); ?></small></button></p>
 				</td>
 			</tr>
+			<?php endif; ?>
 		</table>
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>

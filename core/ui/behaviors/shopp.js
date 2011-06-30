@@ -209,45 +209,6 @@ function debuglog (o) {
 	}
 }
 
-function compress (s) { // LZW
-	var dict = {}, data = (s + "").split(""),
-		out = [], current, phrase = data[0],
-		code = 256;
-	for (var i=1; i<data.length; i++) {
-		current = data[i];
-		if (dict[phrase + current] != null) {
-			phrase += current;
-		} else {
-			out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-			dict[phrase + current] = code++;
-			phrase = current;
-		}
-	}
-	out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-	for (var i = 0; i < out.length; i++)
-		out[i] = String.fromCharCode(out[i]);
-
-	return out.join('');
-}
-
-function decompress (s) { // LZW
-	var dict = {}, data = (s + "").split(""),
-		current = data[0], lastPhrase = current,
-		out = [current], code = 256,
-		currentCode, phrase, i;
-	for (i = 1; i < data.length; i++) {
-		currentCode = data[i].charCodeAt(0);
-		if (currentCode < 256) phrase = data[i];
-		else phrase = dict[currentCode] ? dict[currentCode] : (lastPhrase + current);
-		out.push(phrase);
-		current = phrase.charAt(0);
-		dict[code] = lastPhrase + current;
-		code++;
-		lastPhrase = phrase;
-	}
-	return out.join('');
-}
-
 jQuery.fn.fadeRemove = function (duration,callback) {
 	var $this = jQuery(this);
 	$this.fadeOut(duration,function () { $this.remove(); if (callback) callback(); });
@@ -293,8 +254,7 @@ jQuery.getQueryVar = function (name,url) {
 /**
  * DOM-ready initialization
  **/
-jQuery(document).ready(function() {
-	var $=jqnc();
+jQuery(document).ready(function($) {
 
 	// Automatically reformat currency and money inputs
 	$('input.currency, input.money').change(function () {

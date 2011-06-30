@@ -649,6 +649,36 @@ class Lookup {
 		return apply_filters('shopp_payment_cards',$_);
 	}
 
+	static function shipcarriers () {
+		$_ = array();
+
+		// Postal carriers
+		$_['usps'] = new ShippingCarrier(__('US Postal Service','Shopp'),'http://usps.com/','US','http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=%s','/^(\d{20}|\d{30}|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
+		$_['auspost'] = new ShippingCarrier(__('Australia Post','Shopp'),'http://auspost.com.au/','AU','http://auspost.com.au/track/track.html?trackIds=%s','/^(Z|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
+		$_['capost'] = new ShippingCarrier(__('Canada Post','Shopp'),'http://canadapost.ca/','CA','http://www.canadapost.ca/cpotools/apps/track/personal/findByTrackNumber?trackingNumber=%s','/^(\d{16|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
+		$_['china-post'] = new ShippingCarrier(__('China Air Post','Shopp'),'http://183.com.cn/','CN');
+		$_['ems-china'] = new ShippingCarrier(__('EMS China','Shopp'),'http://www.ems.com.cn/','CN');
+		$_['hongkong-post'] = new ShippingCarrier(__('Hong Kong Post','Shopp'),'http://www.ems.com.cn/','CN');
+		$_['india-post'] = new ShippingCarrier(__('India Post','Shopp'),'http://www.indiapost.gov.in/','IN');
+		$_['japan-post'] = new ShippingCarrier(__('Japan Post','Shopp'),'http://www.indiapost.gov.in/','IN');
+		$_['parcelforce'] = new ShippingCarrier(__('Parcelforce','Shopp'),'http://parcelforce.com/','UK');
+		$_['post-danmark'] = new ShippingCarrier(__('Post Danmark','Shopp'),'http://www.postdanmark.dk/','DK');
+		$_['posten-norway'] = new ShippingCarrier(__('Posten Norway','Shopp'),'http://www.posten.no/','NO');
+		$_['posten-sweden'] = new ShippingCarrier(__('Posten Sweden','Shopp'),'http://www.posten.se/','NO');
+		$_['purolator'] = new ShippingCarrier(__('Purolator','Shopp'),'http://purolator.com/','CA','http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=%s');
+		$_['thailand-post'] = new ShippingCarrier(__('Thailand Post','Shopp'),'http://www.thailandpost.com/','NO');
+		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post','Shopp'),'http://www.nzpost.co.nz/','NZ','http://www.nzpost.co.nz/tools/tracking-new?trackid=%s','/[A-Za-z]{2}\d{9}[A-Za-z]{2}/i');
+
+		// Global carriers - don't translate global carrier brand names
+		$_['ups'] = new ShippingCarrier('UPS','http://ups.com/','*','http://forwarding.ups-scs.com/tracking/trackformaction.asp?optTYPE=SHIPNUM&PRO1=%s','/^(1Z|\d{9})/');
+		$_['fedex'] = new ShippingCarrier('FedEx','http://fedex.com/','*','http://www.fedex.com/Tracking?tracknumbers=%s','/^([A-Za-z0-9]{9}|\d{12-15}|96\d{20}|d{20}|91\d{20})/');
+		$_['aramex'] = new ShippingCarrier('Aramex','http://aramex.com/','*','http://www.aramex.com/express/track_results_multiple.aspx?ShipmentNumber=%s','/\d{10}/');
+		$_['dhl'] = new ShippingCarrier('DHL','http://www.dhl.com/','*','http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=%s','/^(\d{10}|\d{12}|JD)/');
+		$_['tnt'] = new ShippingCarrier('TNT','http://tnt.com/','*','http://webtracker.tnt.com/webtracker/tracking.do?requestType=GEN&searchType=CON&respLang=en&respCountry=US&sourceID=1&sourceCountry=ww&cons=%s','/^([A-Za-z]{2}\d{9}[A-Za-z]{2}|\d{9})$/');
+
+		return apply_filters('shopp_shipping_carriers',$_);
+	}
+
 	/**
 	 * Gets a specified payment card
 	 *

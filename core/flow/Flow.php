@@ -241,7 +241,7 @@ abstract class FlowController  {
 abstract class AdminController extends FlowController {
 
 	var $Admin = false;
-
+	var $url;
 	/**
 	 * AdminController constructor
 	 *
@@ -251,9 +251,10 @@ abstract class AdminController extends FlowController {
 	 * @return void
 	 **/
 	function __construct () {
-		parent::__construct();
+		// parent::__construct();
 		global $Shopp;
 		if (!empty($Shopp->Flow->Admin)) $this->Admin = &$Shopp->Flow->Admin;
+		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 	}
 
 }
