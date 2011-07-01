@@ -1212,6 +1212,14 @@ class RecaptureFailOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('recapture-fail','RecaptureFailOrderEvent');
 
+class RefundingOrderEvent extends OrderEventMessage {
+	var $name = 'void';
+	var $message = array(
+		'user' => 0,
+		'reason' => 0
+	);
+}
+OrderEvent::register('refunding','RefundingOrderEvent');
 
 class RefundOrderEvent extends OrderEventMessage {
 	var $name = 'refund';
@@ -1234,6 +1242,15 @@ class RefundFailOrderEvent extends OrderEventMessage {
 	);
 }
 OrderEvent::register('refund-fail','RefundFailOrderEvent');
+
+class VoidingOrderEvent extends OrderEventMessage {
+	var $name = 'void';
+	var $message = array(
+		'user' => 0,
+		'reason' => 0
+	);
+}
+OrderEvent::register('voiding','VoidingOrderEvent');
 
 class VoidOrderEvent extends OrderEventMessage {
 	var $name = 'void';
@@ -1261,7 +1278,6 @@ class DecryptOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('decrypt','DecryptOrderEvent');
 
-// @todo needs more work
 class ShippedOrderEvent extends OrderEventMessage {
 	var $name = 'shipped';
 	var $message = array(

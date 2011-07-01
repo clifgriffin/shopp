@@ -253,10 +253,6 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 		return sprintf('%s: %s',$this->carrier_name(),$this->tracklink());
 	}
 
-	function amount() {
-		return money($this->amount);
-	}
-
 	function carrier () {
 		if (isset($this->Carrier)) return;
 		$carriers = Lookup::shipcarriers();
@@ -264,9 +260,10 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 	}
 
 	function carrier_name () {
+		$this->carrier();
 		if (isset($this->Carrier->name) && !empty($this->Carrier->name))
 			return $this->Carrier->name;
-		return strtoupper($this->carrier);
+		return $this->carrier;
 	}
 
 	function trackurl () {

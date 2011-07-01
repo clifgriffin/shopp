@@ -58,20 +58,27 @@ interface GatewayModule {
  **/
 abstract class GatewayFramework {
 
-	var $session = false;		// The current shopping session ID
-	var $Order = false;			// The current customer's Order
 	var $name = false;			// The proper name of the gateway
 	var $module = false;		// The module class name of the gateway
+
+	// Supported features
 	var $cards = false;			// A list of supported payment cards
+	var $refunds = false;		// Remote refund support flag
+
+	// Config settings
+	var $xml = false;			// Flag to load and enable XML parsing
+	var $soap = false;			// Flag to load and SOAP client helper
 	var $secure = true;			// Flag for requiring encrypted checkout process
 	var $multi = false;			// Flag to enable a multi-instance gateway
+
+	// Loaded settings
+	var $session = false;		// The current shopping session ID
+	var $Order = false;			// The current customer's Order
 	var $baseop = false; 		// Base of operation setting
 	var $precision = 2;			// Currency precision
 	var $decimals = '.';		// Default decimal separator
 	var $thousands = '';		// Default thousands separator
 	var $settings = array();	// List of settings for the module
-	var $xml = false;			// Flag to load and enable XML parsing
-	var $soap = false;			// Flag to load and SOAP client helper
 
 	/**
 	 * Setup the module for runtime
@@ -156,46 +163,43 @@ abstract class GatewayFramework {
 	 * @param string $port (optional) Connect to a specific port
 	 * @return string Raw response
 	 **/
-	function send ($data,$url,$port=false, $curlopts = array()) {
-		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1);
-		curl_setopt($connection, CURLOPT_VERBOSE, 1);
-		curl_setopt($connection, CURLOPT_POST, 1);
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
-		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT);
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']);
-		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+	function send ($data, $url, $port=false, $options = array()) {
 
-		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
+		$defaults = array(
+			'method' => 'POST',
+			'timeout' => SHOPP_GATEWAY_TIMEOUT,
+			'redirection' => 7,
+			'httpversion' => '1.0',
+			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
+			'blocking' => true,
+			'headers' => array(),
+			'cookies' => array(),
+			'body' => null,
+			'compress' => false,
+			'decompress' => true,
+			'sslverify' => true
+		);
 
-		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
-	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
-	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
-			if (defined('SHOPP_PROXY_USERPWD'))
-			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
-	    }
+		$params = array_merge($defaults,$options);
 
-		// Added to handle SSL timeout issues
-		// Maybe if a timeout occurs the connection should be
-		// re-attempted with this option for better overall performance
-		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
+		$URL = $url.$post?":$post":'';
 
-		foreach ($curlopts as $key => $value)
-			curl_setopt($connection, $key, $value);
+		$connection = new WP_Http();
+		$result = $connection->request($URL,$params);
 
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection))
-			new ShoppError($this->name.": ".$error,'gateway_comm_err',SHOPP_COMM_ERR);
-		curl_close($connection);
+		if (empty($result) || !isset($result['response'])) {
+			new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		} else extract($result);
 
-		return $buffer;
+		if (200 != $reponse['code']) {
+			$error = Lookup::errors('gateway','http-'.$response['code']);
+			if (empty($error)) $error = Lookup::errors('gateway','http-unkonwn');
+			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		}
 
+		return $body;
 	}
 
 	/**

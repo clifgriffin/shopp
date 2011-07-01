@@ -32,6 +32,9 @@ class Service extends AdminController {
 		if (isset($_GET['id'])) {
 			wp_enqueue_script('postbox');
 			shopp_enqueue_script('colorbox');
+			shopp_enqueue_script('jquery-tmpl');
+			shopp_enqueue_script('orders');
+
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
 			do_action('shopp_order_management_scripts');
@@ -57,6 +60,7 @@ class Service extends AdminController {
 		if (preg_match("/\d+/",$_GET['id'])) {
 			$Shopp->Purchase = new Purchase($_GET['id']);
 			$Shopp->Purchase->load_purchased();
+			$Shopp->Purchase->load_events();
 		} else $Shopp->Purchase = new Purchase();
 	}
 
@@ -279,7 +283,6 @@ class Service extends AdminController {
 
 		$Purchase = $Shopp->Purchase;
 		$Purchase->Customer = new Customer($Purchase->customer);
-		$Purchase->load_events();
 
 		// Handle Order note processing
 		if (!empty($_POST['note'])) {
@@ -369,12 +372,18 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
+		if (isset($_POST['process-refund'])) {
+			print_r($_POST);
+		}
+
+
+
 		$base = shopp_setting('base_operations');
 		$targets = shopp_setting('target_markets');
 		$UI->txnStatusLabels = Lookup::payment_status_labels();
 		$UI->statusLabels = shopp_setting('order_status');
 
-		$UI->carriers = array();
+		$UI->carriers = $carriers_json = array();
 		$shipping_carriers = shopp_setting('shipping_carriers');
 		$shipcarriers = Lookup::shipcarriers();
 		if (empty($shipping_carriers)) {
@@ -382,10 +391,13 @@ class Service extends AdminController {
 			foreach ($shipcarriers as $code => $carrier) {
 				if (!in_array($carrier->areas,$serviceareas)) continue;
 				$UI->carriers[$code] = $carrier->name;
+				$carriers_json[$code] = array($carrier->name,$carrier->trackpattern);
 			}
 		} else {
-			foreach ($shipping_carriers as $code)
+			foreach ($shipping_carriers as $code) {
 				$UI->carriers[$code] = $shipcarriers[$code]->name;
+				$carriers_json[$code] = array($shipcarriers[$code]->name,$shipcarriers[$code]->trackpattern);
+			}
 		}
 		unset($carrierdata);
 

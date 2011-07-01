@@ -144,6 +144,8 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
+var carriers = <?php echo json_encode($carriers_json); ?>;
+
 jQuery(document).ready(function() {
 	var $=jqnc(),
 		noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
@@ -156,6 +158,8 @@ jQuery(document).ready(function() {
 		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 		return false;
 	});
+
+
 
 	$('#notification').hide();
 	$('#notify-customer').click(function () {

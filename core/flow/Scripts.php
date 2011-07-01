@@ -211,6 +211,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('ocupload', '/ui/behaviors/ocupload.js', array('jquery'), '20100101');
 	$scripts->add_data('ocupload', 'group', 1);
 
+	$scripts->add('orders', '/ui/behaviors/orders.js', array('jquery'), '20100101');
+	$scripts->add_data('orders', 'group', 1);
+
 	$scripts->add('scalecrop', '/ui/behaviors/scalecrop.js', array('jquery','jquery-ui-core','jquery-ui-draggable'), '20100101');
 	$scripts->add_data('scalecrop', 'group', 1);
 

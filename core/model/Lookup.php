@@ -653,11 +653,12 @@ class Lookup {
 		$_ = array();
 
 		// Postal carriers
-		$_['usps'] = new ShippingCarrier(__('US Postal Service','Shopp'),'http://usps.com/','US','http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=%s','/^(\d{20}|\d{30}|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
-		$_['auspost'] = new ShippingCarrier(__('Australia Post','Shopp'),'http://auspost.com.au/','AU','http://auspost.com.au/track/track.html?trackIds=%s','/^(Z|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
-		$_['capost'] = new ShippingCarrier(__('Canada Post','Shopp'),'http://canadapost.ca/','CA','http://www.canadapost.ca/cpotools/apps/track/personal/findByTrackNumber?trackingNumber=%s','/^(\d{16|[A-Za-z]{2}[A-Za-z0-9]{9}[A-Za-z]{2})/');
+		$_['usps'] = new ShippingCarrier(__('US Postal Service','Shopp'),'http://usps.com/','US','http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum=%s',
+		'/^(91\d{18}|91\d{20})$/');
+		$_['auspost'] = new ShippingCarrier(__('Australia Post','Shopp'),'http://auspost.com.au/','AU','http://auspost.com.au/track/track.html?trackIds=%s','/^(Z|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
+		$_['capost'] = new ShippingCarrier(__('Canada Post','Shopp'),'http://canadapost.ca/','CA','http://www.canadapost.ca/cpotools/apps/track/personal/findByTrackNumber?trackingNumber=%s','/^(\d{16}|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
 		$_['china-post'] = new ShippingCarrier(__('China Air Post','Shopp'),'http://183.com.cn/','CN');
-		$_['ems-china'] = new ShippingCarrier(__('EMS China','Shopp'),'http://www.ems.com.cn/','CN');
+		$_['ems-china'] = new ShippingCarrier(__('EMS China','Shopp'),'http://www.ems.com.cn/','CN'); // EEXXXXXXXXXHK??
 		$_['hongkong-post'] = new ShippingCarrier(__('Hong Kong Post','Shopp'),'http://www.ems.com.cn/','CN');
 		$_['india-post'] = new ShippingCarrier(__('India Post','Shopp'),'http://www.indiapost.gov.in/','IN');
 		$_['japan-post'] = new ShippingCarrier(__('Japan Post','Shopp'),'http://www.indiapost.gov.in/','IN');
@@ -667,14 +668,14 @@ class Lookup {
 		$_['posten-sweden'] = new ShippingCarrier(__('Posten Sweden','Shopp'),'http://www.posten.se/','NO');
 		$_['purolator'] = new ShippingCarrier(__('Purolator','Shopp'),'http://purolator.com/','CA','http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=%s');
 		$_['thailand-post'] = new ShippingCarrier(__('Thailand Post','Shopp'),'http://www.thailandpost.com/','NO');
-		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post','Shopp'),'http://www.nzpost.co.nz/','NZ','http://www.nzpost.co.nz/tools/tracking-new?trackid=%s','/[A-Za-z]{2}\d{9}[A-Za-z]{2}/i');
+		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post','Shopp'),'http://www.nzpost.co.nz/','NZ','http://www.nzpost.co.nz/tools/tracking-new?trackid=%s','/[A-Z]{2}\d{9}[A-Z]{2}/i');
 
 		// Global carriers - don't translate global carrier brand names
-		$_['ups'] = new ShippingCarrier('UPS','http://ups.com/','*','http://forwarding.ups-scs.com/tracking/trackformaction.asp?optTYPE=SHIPNUM&PRO1=%s','/^(1Z|\d{9})/');
-		$_['fedex'] = new ShippingCarrier('FedEx','http://fedex.com/','*','http://www.fedex.com/Tracking?tracknumbers=%s','/^([A-Za-z0-9]{9}|\d{12-15}|96\d{20}|d{20}|91\d{20})/');
+		$_['ups'] = new ShippingCarrier('UPS','http://ups.com/','*','http://forwarding.ups-scs.com/tracking/trackformaction.asp?optTYPE=SHIPNUM&PRO1=%s','/^(1Z[0-9A-Z]{16}|[\dT]\d{10})$/');
+		$_['fedex'] = new ShippingCarrier('FedEx','http://fedex.com/','*','http://www.fedex.com/Tracking?tracknumbers=%s','/^(\d{12}|\d{15}|96\d{20}|96\d{17}|96\d{13}|96\d{10})$/');
 		$_['aramex'] = new ShippingCarrier('Aramex','http://aramex.com/','*','http://www.aramex.com/express/track_results_multiple.aspx?ShipmentNumber=%s','/\d{10}/');
-		$_['dhl'] = new ShippingCarrier('DHL','http://www.dhl.com/','*','http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=%s','/^(\d{10}|\d{12}|JD)/');
-		$_['tnt'] = new ShippingCarrier('TNT','http://tnt.com/','*','http://webtracker.tnt.com/webtracker/tracking.do?requestType=GEN&searchType=CON&respLang=en&respCountry=US&sourceID=1&sourceCountry=ww&cons=%s','/^([A-Za-z]{2}\d{9}[A-Za-z]{2}|\d{9})$/');
+		$_['dhl'] = new ShippingCarrier('DHL','http://www.dhl.com/','*','http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=%s','/^([A-Z]{3}\d{7}|[A-Z]{5}\d{7})/');
+		$_['tnt'] = new ShippingCarrier('TNT','http://tnt.com/','*','http://webtracker.tnt.com/webtracker/tracking.do?requestType=GEN&searchType=CON&respLang=en&respCountry=US&sourceID=1&sourceCountry=ww&cons=%s','/^([A-Z]{2}\d{9}[A-Z]{2}|\d{9})$/');
 
 		return apply_filters('shopp_shipping_carriers',$_);
 	}
@@ -811,16 +812,15 @@ class Lookup {
 	 * @return string Error message
 	 **/
 	static function errors ($type,$code) {
-		// @todo Add documentation for these error messages
-
-		$servermanager = __('Contact your web hosting provider or server administrator.','Shopp');
+		// @todo Add documentation (to the doc website) for every error message
 
 		$_ = array();
 		$_['contact'] = array(
 			'shopp-support' => __('For help with this, contact the Shopp %ssupport team%s.','Shopp'),
 			'shopp-cs' => __('For help with this, contact Shopp %scustomer service%s.','Shopp'),
 			'server-manager' => __('For help with this, contact your web hosting provider or server administrator.','Shopp'),
-			'webmaster' => __('For help with this, contact your website developer.','Shopp')
+			'webmaster' => __('For help with this, contact your website developer.','Shopp'),
+			'admin' => __('For help with this, contact the website administrator.','Shopp'),
 		);
 
 		/* PHP file upload errors */
@@ -835,18 +835,34 @@ class Lookup {
 			),
 			UPLOAD_ERR_PARTIAL => __('The file upload did not complete correctly.','Shopp'),
 			UPLOAD_ERR_NO_FILE => __('No file was uploaded.','Shopp'),
-			UPLOAD_ERR_NO_TMP_DIR => sprintf(__('The server is missing the necessary temporary folder.%s','Shopp')," {$_['contact']['server-manager']}"),
-			UPLOAD_ERR_CANT_WRITE => sprintf(__('The file could not be saved to the server.%s','Shopp')," {$_['contact']['server-manager']}"),
-			UPLOAD_ERR_EXTENSION => sprintf(__('The file upload was stopped by a server extension.','Shopp')," {$_['contact']['server-manager']}")
+			UPLOAD_ERR_NO_TMP_DIR => __('The server is missing the necessary temporary folder.','Shopp')." {$_['contact']['server-manager']}",
+			UPLOAD_ERR_CANT_WRITE => __('The file could not be saved to the server.%s','Shopp')." {$_['contact']['server-manager']}",
+			UPLOAD_ERR_EXTENSION => __('The file upload was stopped by a server extension.','Shopp')." {$_['contact']['server-manager']}"
 		);
 
 		/* File upload security verification errors */
 		$_['uploadsecurity'] = array(
 			'is_uploaded_file' => __('The file specified is not a valid upload and is out of bounds. Nice try though!','Shopp'),
-			'is_readable' => sprintf(__('The uploaded file cannot be read by the web server and is unusable.%s','Shopp')," {$_['contact']['server-manager']}"),
+			'is_readable' => __('The uploaded file cannot be read by the web server and is unusable.','Shopp')." {$_['contact']['server-manager']}",
 			'is_empty' => __('The uploaded file is empty.','Shopp'),
 			'filesize_mismatch' => __('The size of the uploaded file does not match the size reported by the client. Something fishy going on?','Shopp')
 
+		);
+
+		$_['gateway'] = array(
+			'fail' => __('Could not connect to the payment server.','Shopp'),
+			'noresponse' => __('No response was sent back by the payment server.','Shopp')." {$_['contact']['admin']}",
+			'http-unknown' => __('The connection to the payment server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
+			'http-400' => $_['gateway']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $_['gateway']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $_['gateway']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-404' => __('The requested resource does not exist on the payment server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
+			'http-500' => __('The payment server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
+			'http-501' => __('The payment server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
+			'http-502' => __('The connected payment server is acting as a gateway and received an invalid response from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 502)",
+			'http-503' => __('The payment server is temporarily unavailable due to a high volume of traffic.','Shopp')." {$_['contact']['admin']} (HTTP 503)",
+			'http-504' => __('The connected payment server is acting as a gateway and received a connection timeout from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 504)",
+			'http-505' => __("The payment server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)",
 		);
 
 		if (isset($_[$type]) && isset($_[$type][$code])) return $_[$type][$code];
