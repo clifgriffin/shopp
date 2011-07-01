@@ -267,4 +267,33 @@ if (!function_exists('array_intersect_key')) {
 	}
 }
 
+if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
+	/**
+	 * Converts legacy Shopp proxy config macros to WP_HTTP_Proxy config macros
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @deprecated SHOPP_PROXY_CONNECT
+	 * @deprecated SHOPP_PROXY_SERVER
+	 * @deprecated SHOPP_PROXY_USERPWD
+	 *
+	 * @return void
+	 **/
+	function shopp_convert_proxy_config () {
+		if (!defined('SHOPP_PROXY_SERVER') || !defined('SHOPP_PROXY_USERPWD')) return;
+		$host = SHOPP_PROXY_SERVER;
+		$user = SHOPP_PROXY_USERPWD;
+
+		if (false !== strpos($host,':')) list($host,$port) = explode(':',$host);
+		if (false !== strpos($user,':')) list($user,$pwd) = explode(':',$user);
+
+		if (!defined('WP_PROXY_HOST')) define('WP_PROXY_HOST',$host);
+		if (!defined('WP_PROXY_PORT') && $port) define('WP_PROXY_PORT',$port);
+		if (!defined('WP_PROXY_USERNAME')) define('WP_PROXY_USERNAME',$user);
+		if (!defined('WP_PROXY_PASSWORD') && $pwd) define('WP_PROXY_PASSWORD',$pwd);
+	}
+	shopp_convert_proxy_config();
+}
+
 ?>

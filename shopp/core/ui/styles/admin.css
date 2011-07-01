@@ -470,6 +470,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .meta-boxes .inside ul { margin:6px 6px 8px; }
 #order .meta-boxes .inside ul { list-style:square;padding-left:20px; }
 #order .meta-boxes .inside ul li { font-size:11px; }
+#order .meta-boxes p span { float: none; display: inline; }
 
 #order #order-notes table { border-collapse:collapse;width:100%;padding:6px 6px 8px; }
 #order #order-notes th { width:120px;text-align:left;padding:6px 6px 8px; }
@@ -550,10 +551,14 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 
 #order .shipment { width: 360px; margin: 6px auto 1.33em; }
+#order .refunding { margin: 6px 10px 1.33em; }
+#order .refunding label { font-weight: bold; }
+#order .refunding div { padding-bottom: 8px; }
 #order .shipment ol { list-style:none; margin-left: 0;}
 #order .shipment ol .number { margin: 6px 2px 0; position: relative;}
 #order .shipment div.delete { position: absolute; left: -2px; top: -2px; }
-#order .shipment .submit { width: 340px; padding-top: 20px; }
+#order .shipment .submit,
+#order .refunding .submit {  float: none; }
 
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
 .stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }
@@ -571,7 +576,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order-statuslabels button.delete { position:relative;left:-25px;margin-right:-18px; }
 #print-button { position:absolute;right:15px; }
 
-/* Is this needed? .shopp div.inline div { display: inline; }*/
+.shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
@@ -657,4 +662,8 @@ tr.inline-edit-row td  { padding: 10px; }
 .shopp .hidden,
 .shopp button.hidden,
 .shopp .category-menu.hidden,
-.shopp div.inline div.hidden { display: none; }
+.shopp div.inline div.hidden,
+.shopp .hidden, 
+.shopp .js .closed .inside, 
+.shopp .js .hide-if-js, 
+.shopp .no-js .hide-if-no-js { display: none; }

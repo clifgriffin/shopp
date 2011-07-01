@@ -62,6 +62,15 @@ class Purchase extends DatabaseObject {
 			}
 			if (in_array($name,$txn)) $this->txnevent = $Event;
 		}
+
+		// Legacy support - @todo Remove in 1.3
+		if (isset($this->txnstatus) && !empty($this->txnstatus)) {
+			switch ($this->txnstatus) {
+				case 'CHARGED': $this->authorized = $this->charged = true; break;
+				case 'VOID': $this->void = true; break;
+			}
+		}
+
 	}
 
 	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {
@@ -148,7 +157,7 @@ class Purchase extends DatabaseObject {
 			$prefix.'data' => __('Order Data','Shopp'),
 			$prefix.'created' => __('Order Date','Shopp'),
 			$prefix.'modified' => __('Order Last Updated','Shopp')
-			);
+		);
 	}
 
 	// Display a sales receipt
@@ -160,302 +169,6 @@ class Purchase extends DatabaseObject {
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt',$content);
-	}
-
-	function tag ($property,$options=array()) {
-		global $Shopp;
-
-		$taxes = isset($options['taxes'])?$options['taxes']:false;
-		$taxrate = 0;
-		if ($property == "item-unitprice" || $property == "item-total")
-			$taxrate = shopp_taxrate($taxes);
-
-		// Return strings with no options
-		switch ($property) {
-			case "receipt":
-				// Skip the receipt processing when sending order notifications in admin without the receipt
-				if (defined('WP_ADMIN') && isset($_POST['receipt']) && $_POST['receipt'] == "no") return;
-				if (isset($options['template']) && is_readable(SHOPP_TEMPLATES."/".$options['template']))
-					return $this->receipt($template);
-				else return $this->receipt();
-				break;
-			case "url": return shoppurl(false,'account'); break;
-			case "id": return $this->id; break;
-			case "customer": return $this->customer; break;
-			case "date":
-				if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
-				return _d($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
-				break;
-			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
-			case "cardtype": return $this->cardtype; break;
-			case "txnid":
-			case "transactionid": return $this->txnid; break;
-			case "firstname": return esc_html($this->firstname); break;
-			case "lastname": return esc_html($this->lastname); break;
-			case "company": return esc_html($this->company); break;
-			case "email": return esc_html($this->email); break;
-			case "phone": return esc_html($this->phone); break;
-			case "address": return esc_html($this->address); break;
-			case "xaddress": return esc_html($this->xaddress); break;
-			case "city": return esc_html($this->city); break;
-			case "state":
-				if (strlen($this->state > 2)) return esc_html($this->state);
-				$regions = Lookup::country_zones();
-				$states = $regions[$this->country];
-				return $states[$this->state];
-				break;
-			case "postcode": return esc_html($this->postcode); break;
-			case "country":
-				$countries = shopp_setting('target_markets');
-				return $countries[$this->country]; break;
-			case "shipaddress": return esc_html($this->shipaddress); break;
-			case "shipxaddress": return esc_html($this->shipxaddress); break;
-			case "shipcity": return esc_html($this->shipcity); break;
-			case "shipstate":
-				if (strlen($this->shipstate > 2)) return esc_html($this->shipstate);
-				$regions = Lookup::country_zones();
-				$states = $regions[$this->country];
-				return $states[$this->shipstate];
-				break;
-			case "shippostcode": return esc_html($this->shippostcode); break;
-			case "shipcountry":
-				$countries = shopp_setting('target_markets');
-				return $countries[$this->shipcountry]; break;
-			case "shipmethod": return esc_html($this->shipmethod); break;
-			case "totalitems": return count($this->purchased); break;
-			case "has-items":
-			case "hasitems":
-				if (empty($this->purchased)) $this->load_purchased();
-				return (count($this->purchased) > 0);
-				break;
-			case "items":
-				if (!isset($this->_items_loop)) {
-					reset($this->purchased);
-					$this->_items_loop = true;
-				} else next($this->purchased);
-
-				if (current($this->purchased) !== false) return true;
-				else {
-					unset($this->_items_loop);
-					return false;
-				}
-			case "item-id":
-				$item = current($this->purchased);
-				return $item->id; break;
-			case "item-product":
-				$item = current($this->purchased);
-				return $item->product; break;
-			case "item-price":
-				$item = current($this->purchased);
-				return $item->price; break;
-			case "item-name":
-				$item = current($this->purchased);
-				return $item->name; break;
-			case "item-description":
-				$item = current($this->purchased);
-				return $item->description; break;
-			case "item-options":
-				if (!isset($options['after'])) $options['after'] = "";
-				$item = current($this->purchased);
-				return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:''; break;
-			case "item-sku":
-				$item = current($this->purchased);
-				return $item->sku; break;
-			case "item-download":
-				$item = current($this->purchased);
-				if (empty($item->download)) return "";
-				if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
-				$classes = "";
-				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
-				$request = SHOPP_PRETTYURLS?
-					"download/$item->dkey":
-					array('src'=>'download','s_dl'=>$item->dkey);
-				$url = shoppurl($request,'catalog');
-				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
-			case "item-quantity":
-				$item = current($this->purchased);
-				return $item->quantity; break;
-			case "item-unitprice":
-				$item = current($this->purchased);
-				$amount = $item->unitprice+($this->taxing == 'inclusive'?$item->unittax:0);
-				return money($amount); break;
-			case "item-total":
-				$item = current($this->purchased);
-				$amount = $item->total+($this->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
-				return money($amount); break;
-			case "item-has-inputs":
-			case "item-hasinputs":
-				$item = current($this->purchased);
-				return (count($item->data) > 0); break;
-			case "item-inputs":
-				$item = current($this->purchased);
-				if (!isset($this->_iteminputs_loop)) {
-					reset($item->data);
-					$this->_iteminputs_loop = true;
-				} else next($item->data);
-
-				if (current($item->data) !== false) return true;
-				else {
-					unset($this->_iteminputs_loop);
-					return false;
-				}
-				break;
-			case "item-input":
-				$item = current($this->purchased);
-				$data = current($item->data);
-				$name = key($item->data);
-				if (isset($options['name'])) return esc_html($name);
-				return esc_html($data);
-				break;
-			case "item-inputs-list":
-			case "item-inputslist":
-			case "item-inputs-list":
-			case "iteminputslist":
-				$item = current($this->purchased);
-				if (empty($item->data)) return false;
-				$before = ""; $after = ""; $classes = ""; $excludes = array();
-				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
-				if (!empty($options['before'])) $before = $options['before'];
-				if (!empty($options['after'])) $after = $options['after'];
-
-				$result .= $before.'<ul'.$classes.'>';
-				foreach ($item->data as $name => $data) {
-					if (in_array($name,$excludes)) continue;
-					$result .= '<li><strong>'.esc_html($name).'</strong>: '.esc_html($data).'</li>';
-				}
-				$result .= '</ul>'.$after;
-				return $result;
-				break;
-			case "item-has-addons":
-			case "item-hasaddons":
-				$item = current($this->purchased);
-				return (count($item->addons) > 0); break;
-			case "item-addons":
-				$item = current($this->purchased);
-				if (!isset($this->_itemaddons_loop)) {
-					reset($item->addons->meta);
-					$this->_itemaddons_loop = true;
-				} else next($item->addons->meta);
-
-				if (current($item->addons->meta) !== false) return true;
-				else {
-					unset($this->_itemaddons_loop);
-					return false;
-				}
-				break;
-			case "item-addons":
-				$item = current($this->purchased);
-				$addon = current($item->addons->meta);
-				if (isset($options['id'])) return esc_html($addon->id);
-				if (isset($options['name'])) return esc_html($addon->name);
-				if (isset($options['label'])) return esc_html($addon->name);
-				if (isset($options['type'])) return esc_html($addon->value->type);
-				if (isset($options['onsale'])) return $addon->value->onsale;
-				if (isset($options['inventory'])) return $addon->value->inventory;
-				if (isset($options['sku'])) return esc_html($addon->value->sku);
-				if (isset($options['unitprice'])) return money($addon->value->unitprice);
-				return money($addon->value->unitprice);
-				break;
-			case "item-addons-list":
-			case "item-addonslist":
-			case "item-addons-list":
-			case "itemaddonslist":
-				$item = current($this->purchased);
-				if (empty($item->addons)) return false;
-				$defaults = array(
-					'prices' => "on",
-					'download' => __('Download','Shopp'),
-					'before' => '',
-					'after' => '',
-					'classes' => '',
-					'excludes' => ''
-				);
-				$options = array_merge($defaults,$options);
-				extract($options);
-
-				$class = !empty($classes)?' class="'.join(' ',explode(',',$classes)).'"':'';
-				$taxrate = 0;
-				if ($item->unitprice > 0)
-					$taxrate = round($item->unittax/$item->unitprice,4);
-
-				$result = $before.'<ul'.$class.'>';
-				foreach ($item->addons->meta as $id => $addon) {
-					if (in_array($addon->name,$excludes)) continue;
-					if ($this->taxing == "inclusive")
-						$price = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
-					else $price = $addon->value->unitprice;
-
-					$link = false;
-					if (isset($addon->value->download) && isset($addon->value->dkey)) {
-						$dkey = $addon->value->dkey;
-						$request = SHOPP_PRETTYURLS?"download/$dkey":array('s_dl'=>$dkey);
-						$url = shoppurl($request,'catalog');
-						$link = '<br /><a href="'.$url.'">'.$download.'</a>';
-					}
-
-					$pricing = value_is_true($prices)?" (".money($price).")":"";
-					$result .= '<li>'.esc_html($addon->name.$pricing).$link.'</li>';
-				}
-				$result .= '</ul>'.$after;
-				return $result;
-				break;
-			case "has-data":
-			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
-			case "orderdata":
-				if (!isset($this->_data_loop)) {
-					reset($this->data);
-					$this->_data_loop = true;
-				} else next($this->data);
-
-				if (current($this->data) !== false) return true;
-				else {
-					unset($this->_data_loop);
-					return false;
-				}
-				break;
-			case "data":
-				if (!is_array($this->data)) return false;
-				$data = current($this->data);
-				$name = key($this->data);
-				if (isset($options['name'])) return esc_html($name);
-				return esc_html($data);
-				break;
-			case "promolist":
-			case "promo-list":
-				$output = "";
-				if (!empty($this->promos)) {
-					$output .= '<ul>';
-					foreach ($this->promos as $promo)
-						$output .= '<li>'.$promo.'</li>';
-					$output .= '</ul>';
-				}
-				return $output;
-			case "has-promo":
-			case "haspromo":
-				if (empty($options['name'])) return false;
-				return (in_array($options['name'],$this->promos));
-				break;
-			case "subtotal": return money($this->subtotal); break;
-			case "hasfreight": return (!empty($this->shipmethod) || $this->freight > 0);
-			case "freight": return money($this->freight); break;
-			case "hasdownloads": return ($this->downloads);
-			case "hasdiscount": return ($this->discount > 0);
-			case "discount": return money($this->discount); break;
-			case "hastax": return ($this->tax > 0)?true:false;
-			case "tax": return money($this->tax); break;
-			case "total": return money($this->total); break;
-			case "status":
-				$labels = shopp_setting('order_status');
-				if (empty($labels)) $labels = array('');
-				return $labels[$this->status];
-				break;
-			case "paid": return ($this->txnstatus == "CHARGED"); break;
-			case "notpaid": return ($this->txnstatus != "CHARGED"); break;
-			case "payment":
-				$labels = Lookup::payment_status_labels();
-				return isset($labels[$this->txnstatus])?$labels[$this->txnstatus]:$this->txnstatus; break;
-		}
 	}
 
 } // end Purchase class
@@ -712,6 +425,5 @@ class PurchasesIIFExport extends PurchasesExport {
 		<?php
 	}
 }
-
 
 ?>

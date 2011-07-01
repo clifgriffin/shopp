@@ -34,7 +34,7 @@
 				<select name="range" id="range">
 					<?php echo menuoptions($ranges,$range,true); ?>
 				</select>
-				<div id="dates">
+				<div id="dates" class="hide-if-js">
 					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
 					<small>to</small>
 					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
@@ -196,9 +196,9 @@ var range = $('#range'),
 range.change(function () {
 	if (this.selectedIndex == 0) {
 		start.val(''); end.val('');
-		$('#dates').addClass('hidden');
+		$('#dates').hide();
 		return;
-	} else $('#dates').removeClass('hidden');
+	} else $('#dates').show();
 	var today = new Date(),
 		startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
 		enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());

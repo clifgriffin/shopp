@@ -15,6 +15,8 @@
 class TestMode extends GatewayFramework {
 
 	var $secure = false;							// SSL not required
+
+	var $refunds = true;
 	var $cards = array("visa","mc","disc","amex");	// Support cards
 
 	/**
