@@ -19,8 +19,8 @@
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $variant variant id to add
- * @param int (optional default: 1) $quantity quantity of product to add
+ * @param int $variant (required) variant id to add
+ * @param int $quantity (optional default: 1) quantity of product to add
  * @return bool true on success, false on failure
  **/
 function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
@@ -41,9 +41,9 @@ function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $product product id to add
- * @param int (optional default: 1) $quantity quantity of product to add
- * @param int (optional) $variant variant id to use
+ * @param int $product (required) product id to add
+ * @param int $quantity (optional default: 1) quantity of product to add
+ * @param int $variant (optional) variant id to use
  * @return bool true on success, false on failure
  **/
 function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = false ) {
@@ -79,7 +79,7 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $item the numeric index of the item contents array to remove ( 0 indexed )
+ * @param int $item (required) the numeric index of the item contents array to remove ( 0 indexed )
  * @return bool true for success, false on failure
  **/
 function shopp_rmv_cart_item ( $item = false ) {
