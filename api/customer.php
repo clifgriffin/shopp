@@ -19,7 +19,7 @@
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $customer customer id to load
+ * @param int $customer (required) customer id to load
  * @return mixed, stdClass representation of the customer, bool false on failure
  **/
 function shopp_customer ( $customer = false ) {
@@ -71,7 +71,7 @@ function shopp_customer_marketing (  $customer = false ) {
  * @return array list of customers for marketing
  **/
 function shopp_customer_marketing_list () {
-	$table = Customer::$table;
+	$table = DatabaseObject::tablename(Customer::$table);
 	return db::query( "select firstname, lastname, email, type from $table where marketing='yes'", AS_ARRAY );
 }
 
@@ -145,9 +145,9 @@ function shopp_add_customer (  $data = array() ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $var Description...
- * @param array () $data key value pairs for address, values can be keyed 'address', 'xaddress', 'city', 'state', 'postcode', 'country', 'geocode',  and 'residential' (residential added to shipping address)
- * @param string (optional default: billing) $type billing, shipping, or both
+ * @param int $customer (required) the customer id the address is added to
+ * @param array $data (required) key value pairs for address, values can be keyed 'address', 'xaddress', 'city', 'state', 'postcode', 'country', 'geocode',  and 'residential' (residential added to shipping address)
+ * @param string $type (optional default: billing) billing, shipping, or both
  * @return mixed int id for one address creation/update, array of ids if created/updated both shipping and billing, bool false on error
  **/
 function shopp_add_customer_address (  $customer = false, $data = false, $type = 'billing' ) {
@@ -203,7 +203,7 @@ function shopp_add_customer_address (  $customer = false, $data = false, $type =
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $customer id of the customer to remove
+ * @param int $customer (required) id of the customer to remove
  * @return bool true on success, false on failure
  **/
 function shopp_rmv_customer (  $customer = false ) {
@@ -240,7 +240,7 @@ function shopp_rmv_customer (  $customer = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $address the address id to retrieve
+ * @param int $address (required) the address id to retrieve
  * @return array of address fields
  **/
 function shopp_address (  $address = false ) {
@@ -269,7 +269,7 @@ function shopp_address (  $address = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $customer the customer id
+ * @param int $customer (required) the customer id
  * @return int number of address records that exist for the customer
  **/
 function shopp_customer_address_count (  $customer = false ) {
@@ -277,7 +277,7 @@ function shopp_customer_address_count (  $customer = false ) {
 		if(SHOPP_DEBUG) new ShoppError("shopp_customer_address_count failed: customer id required.",'shopp_customer_address_count',SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$table = Address::$table;
+	$table = DatabaseObject::tablename(Address::$table);
 	$customer = db::escape($customer);
 	return db::query("select count(*) from $table where customer=$customer");
 }
@@ -288,7 +288,7 @@ function shopp_customer_address_count (  $customer = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $customer the customer id
+ * @param int $customer (required) the customer id
  * @return array list of addresses
  **/
 function shopp_customer_addresses (  $customer = false ) {
@@ -298,7 +298,7 @@ function shopp_customer_addresses (  $customer = false ) {
 	}
 
 	$customer = $db::escape($customer);
-	$table = Address::$table;
+	$table = DatabaseObject::tablename(Address::$table);
 	$addresses = db::query("select * from $table where customer=$customer", AS_ARRAY);
 
 	$_ = array();
