@@ -34,9 +34,9 @@ function shopp_product_meta ( $product = false, $name = false, $type = 'meta' ) 
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $product the product id
- * @param string (required) $name the name of the meta entry
- * @param string (optional default: meta) $type the type of meta entry
+ * @param int $product (required) the product id
+ * @param string $name (required) the name of the meta entry
+ * @param string $type (optional default: meta) the type of meta entry
  * @return bool returns true if meta data exists on the product, false if not
  **/
 function shopp_product_has_meta ( $product = false, $name = false, $type = 'meta' ) {
@@ -79,8 +79,8 @@ function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required) $product the product id
- * @param type (optional default: meta) $type the meta type to count
+ * @param int $product (required) the product id
+ * @param type $type (optional default: meta) the meta type to count
  * @return int count of meta entries, false on failure
  **/
 function shopp_product_meta_count ( $product = false, $type = 'meta' ) {
@@ -98,11 +98,11 @@ function shopp_product_meta_count ( $product = false, $type = 'meta' ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required on creation/update) $product product object to create/update the meta record on
- * @param string (required on update) $name the name of the meta entry, more specific than type
- * @param mixed (optional default: false) $value the value stored to the meta entry
- * @param string (optional default: meta) $type the type or classification of the meta data
- * @param string (optional) $valuetype (default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
+ * @param int $product (required on creation/update) product object to create/update the meta record on
+ * @param string $name (required on update) the name of the meta entry, more specific than type
+ * @param mixed $value (optional default: false) the value stored to the meta entry
+ * @param string $type (optional default: meta) the type or classification of the meta data
+ * @param string $valuetype (optional default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
  * @return bool true on successful save or update, fail on failure
  **/
 function shopp_set_product_meta ( $product = false, $name = false, $value = false, $type = 'meta', $valuetype = 'value' ) {
@@ -134,10 +134,10 @@ function shopp_rmv_product_meta ( $product = false, $name = false, $type = 'meta
  * @author John Dillick
  * @since 1.2
  *
- * @param int (optional) $id of the meta entry, or object id of the object the Shopp meta is attached to
- * @param string (optional) $context the object type that the object id refers to.
- * @param string (optional) $name the name of the meta data
- * @param string (optional default: meta) $type the data type of meta data (examples meta, spec, download, image, yourdatatype )
+ * @param int $id (optional) of the meta entry, or object id of the object the Shopp meta is attached to
+ * @param string $context (optional) the object type that the object id refers to.
+ * @param string $name (optional) the name of the meta data
+ * @param string $type (optional default: meta) the data type of meta data (examples meta, spec, download, image, yourdatatype )
  * @return array of stdClass Object meta values, with parent, type, name, and value properties
  *
  * Usage Examples:
@@ -207,7 +207,7 @@ function shopp_meta ( $id = false, $context = false, $name = false, $type = 'met
  *
  * @param string $name (optional) name of the meta entry
  * @param string $context (optional) object context of the meta entry
- * @param string $type (default: meta) (optional) type of the meta entry
+ * @param string $type (optional default: meta) type of the meta entry
  * @return bool true if one or more meta entries exist
  *
  * One or more of the parameters must be specified.
@@ -226,12 +226,12 @@ function shopp_meta_exists ( $name = false, $context = false, $type = 'meta' ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int (required on creation/update) $id id of an existing meta entry, or with context the parent object of a new meta entry
- * @param string (required on update) $context the parent object type of the meta entry (example product, price, and more)
- * @param string (required on update) $name the name of the meta entry, more specific than type
- * @param mixed (optional default: false) $value the value stored to the meta entry
- * @param string (optional default: meta) $type the type or classification of the meta data
- * @param string (optional) $valuetype (default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
+ * @param int $id (required on creation/update) id of an existing meta entry, or with context the parent object of a new meta entry
+ * @param string $context (required on update) the parent object type of the meta entry (example product, price, and more)
+ * @param string $name (required on update) the name of the meta entry, more specific than type
+ * @param mixed $value (optional default: false) the value stored to the meta entry
+ * @param string $type (optional default: meta) the type or classification of the meta data
+ * @param string $valuetype (optional default: 'value') 'numeral' or 'value', if the value is numeric, 'numeric' will store in numeric field.
  * @return bool true on successful save or update, fail on failure
  **/
 function shopp_set_meta ( $id = false, $context = false, $name = false, $value = false, $type = 'meta', $valuetype = 'value' ) {
