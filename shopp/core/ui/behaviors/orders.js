@@ -8,6 +8,7 @@ jQuery(document).ready( function($) {
 
 	$.template('shipment-ui',$('#shipment-ui'));
 	$.template('shipnotice-ui',$('#shipnotice-ui'));
+	$.template('refund-ui',$('#refund-ui'));
 
 	var manager = $('#order-manage'),
 		headline = manager.find('div.headline'),
@@ -40,7 +41,6 @@ jQuery(document).ready( function($) {
 							var tracknum = $(this).val().toUpperCase().replace(/[^A-Z0-9]/,'');
 							debuglog(tracknum);
 							$.each(carriers,function (c,r) {
-								debuglog(new RegExp(r[1].substr( 1,r[1].length-2 )));
 								if (tracknum.match( new RegExp(r[1].substr( 1,r[1].length-2 )) ) != null) {
 									debuglog(c);
 									carriermenu.val(c);
@@ -66,13 +66,33 @@ jQuery(document).ready( function($) {
 
 				cancel = ui.find('#cancel-ship').click(function (e) {
 					e.preventDefault();
-					ui.fadeRemove();
-					$this.show();
+					ui.fadeRemove('fast',function () {
+						$this.show();
+					});
 				});
 
 				ui.appendTo(headline);
 
+		}),
 
+		refundbtn = $('#cancel-order, #refund-button').click(function (e) {
+			e.preventDefault();
+
+			var $this = $(this).hide(),
+				data = ('refund-button' == $this.attr('id') ?
+						{ title:$om.ro,cancel:$om.cancel,process:$om.pr,reason: $om.rr } :
+						{ title:$om.co,cancel:$om.dnc,process:$om.co,reason: $om.rc,disable_amount: ' disabled="disabled"' }),
+				ui = $.tmpl('refund-ui',data),
+
+				cancel = ui.find('#cancel-refund').click(function (e) {
+					e.preventDefault();
+					ui.fadeRemove('fast',function () {
+						$this.show();
+					});
+
+				});
+
+			ui.appendTo(headline);
 		});
 
 });

@@ -3,8 +3,8 @@
  * Test Mode
  *
  * @author Jonathan Davis
- * @version 1.1.5
- * @copyright Ingenesis Limited, 9 April, 2008
+ * @version 1.2
+ * @copyright Ingenesis Limited, 5 July, 2011
  * @package Shopp
  * @since 1.1
  * @subpackage TestMode
@@ -17,6 +17,7 @@ class TestMode extends GatewayFramework {
 	var $secure = false;							// SSL not required
 
 	var $refunds = true;
+	var $captures = true;
 	var $cards = array("visa","mc","disc","amex");	// Support cards
 
 	/**
@@ -34,6 +35,12 @@ class TestMode extends GatewayFramework {
 		// Autoset useable payment cards
 		$this->settings['cards'] = array();
 		foreach ($this->cards as $card)	$this->settings['cards'][] = $card->symbol;
+
+		add_action('shopp_testmode_sale',array(&$this,'sale'));
+		add_action('shopp_testmode_auth',array(&$this,'auth'));
+		add_action('shopp_testmode_capture',array(&$this,'capture'));
+		add_action('shopp_testmode_refund',array(&$this,'refund'));
+		add_action('shopp_testmode_void',array(&$this,'void'));
 	}
 
 	function actions () {
@@ -57,6 +64,45 @@ class TestMode extends GatewayFramework {
 		$this->Order->transaction($this->txnid(),'CHARGED');
 		return true;
 	}
+
+	function capture (CaptureOrderEvent $Capture) {
+		$Purchase = new Purchase($Capture->txnid,'txnid');
+
+		if ('on' == $this->settings['error'])
+			return shopp_add_order_event($Purchase->id,'capture-fail',array(
+				'amount' => $Capture->amount,
+				'error' => 0,
+				'message' => __("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),
+				'gateway' => $this->module
+			));
+
+		return shopp_add_order_event($Purchase->id,'captured',array(
+			'txnid' => $Purchase->txnid,
+			'amount' => $Capture->amount,
+			'gateway' => $this->module
+		));
+
+	}
+
+	function refund (RefundOrderEvent $Refund) {
+		$Purchase = new Purchase($Refund->txnid,'txnid');
+
+		if ('on' == $this->settings['error'])
+			return shopp_add_order_event($Purchase->id,'refund-fail',array(
+				'amount' => $Refund->amount,
+				'error' => 0,
+				'message' => __("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),
+				'gateway' => $this->module
+			));
+
+		return shopp_add_order_event($Purchase->id,'refunded',array(
+			'txnid' => $Purchase->txnid,
+			'amount' => $Refund->amount,
+			'gateway' => $this->module
+		));
+
+	}
+
 
 	/**
 	 * Render the settings for this gateway

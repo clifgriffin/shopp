@@ -101,9 +101,9 @@ class Order {
 
 		add_action('shopp_process_free_order',array($this,'freebie'));
 		add_action('shopp_update_destination',array($this->Shipping,'destination'));
-		add_action('shopp_auth_order_event',array($this,'purchase'));
+		add_action('shopp_authed_order_event',array($this,'purchase'));
 
-		// add_action('shopp_create_purchase',array($this,'purchase'));
+		add_action('shopp_create_purchase',array($this,'purchase'));
 
 		add_action('shopp_order_notifications',array($this,'notify'));
 
@@ -542,13 +542,24 @@ class Order {
 			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
+			$Item->sold();
 		}
 
 		$this->purchase = $Purchase->id;
 		$Shopp->Purchase = &$Purchase;
 
 		$Auth->order = $this->purchase;
+		$Auth->created = null;
 		$Auth->save();
+
+		// Support legacy Auth+Capture transactions from 1.1 gateways
+		if ('CHARGED' == $Purchase->txnstatus) {
+			shopp_add_order_event($Purchase->id,'captured',array(
+				'txnid' => $id,								// Can be either the original transaction ID or an ID for this transaction
+				'amount' => $Purchase->total,				// Capture of entire order amount (limitation of 1.1 payment gateways)
+				'gateway' => $this->processor()				// Gateway handler name (module name from @subpackage)
+			));
+		}
 
 		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 
@@ -660,21 +671,39 @@ class Order {
 	 * @return true
 	 **/
 	function transaction ($id,$status='PENDING',$fees=0) {
+		$this->txnid = $id;
+		$this->txnstatus = $status;
+		$this->fees = $fees;
+
 		$Order = ShoppOrder();
 		if (empty($id)) return new ShoppError(sprintf('Order failure. %s did not provide a transaction ID.',$Order->processor()),'shopp_order_transaction',SHOPP_DEBUG_ERR);
+
+		$OrderTotals = $Order->Cart->Totals;
+		$paymethod = $Order->payoptions[$Order->paymethod]->label;
+		$payid = $Order->Billing->card;
 
 		$Purchase = new Purchase($id,'txnid');
 
 		$type = false;
 		switch ($status) {
-			case 'CHARGED': if (!$type) $type = 'capture';
-			case 'VOID':	if (!$type) $type = 'void';
-			case 'REFUND':	if (!$type) $type = 'refund';
+			case 'CHARGED': if (!$type) $type = 'captured';
+			case 'VOID':	if (!$type) $type = 'voided';
+			case 'REFUND':	if (!$type) $type = 'refunded';
 
-				if (empty($Purchase)) break;
+				if (empty($Purchase->id)) {
+					shopp_add_order_event(false,'authed',array(
+						'txnid' => $id,
+						'amount' => (float)$OrderTotals->total,
+						'fees' => (float)$fees,
+						'gateway' => $Order->processor(),
+						'paymethod' => $paymethod,
+						'payid' => $payid
+					));
+					$Purchase = new Purchase($id,'txnid');
+				}
+
 				shopp_add_order_event($Purchase->id,$type,array(
-					'txnorigin' => $id,							// Original Transaction ID (of the auth event)
-					'txnid' => '',								// Not available in this call
+					'txnid' => $id,								// Can be either the original transaction ID or an ID for this transaction
 					'amount' => $Purchase->total,				// Capture of entire order amount (limitation of 1.1 payment gateways)
 					'gateway' => $Order->processor()			// Gateway handler name (module name from @subpackage)
 				));
@@ -682,15 +711,38 @@ class Order {
 
 			case 'PENDING':
 			default:
-				shopp_add_order_event(false,'auth',array(
+				shopp_add_order_event(false,'authed',array(
 					'txnid' => $id,
-					'amount' => 0.0,
+					'amount' => $OrderTotals->total,
 					'fees' => $fees,
 					'gateway' => $Order->processor(),
-					'method' => $Order->payoptions[$this->paymethod]->label,
-					'payid' => empty($Order->Billing->card)?'':$Order->Billing->card
+					'paymethod' => $paymethod,
+					'payid' => $payid
 				));
 		}
+
+	}
+
+	/**
+	 * Order processing decides the type of request to make
+	 *
+	 * Decides with operation to request:
+	 * Authorization - Get authorization to charge the order amount with the payment method provided
+	 * Sale - Get authorization and immediate capture (charge) of the payment
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function process () {
+
+		// There are shipped products
+		if ($this->Cart->shipped)
+			return shopp_add_order_event(false,'auth',array());
+
+		/// Authorize & capture the payment
+		shopp_add_order_event(false,'sale',array());
 
 	}
 
@@ -960,10 +1012,14 @@ function &ShoppOrder () {
 }
 
 
-// @todo Document OrderEvent class
-
-
-// Common interface for generating OrderEvent messages
+/**
+ * Provides a unified interface for generating and accessing system order events
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
 class OrderEvent extends SingletonFramework {
 
 	private static $instance;
@@ -1014,7 +1070,14 @@ class OrderEvent extends SingletonFramework {
 
 }
 
-// Abstract Order Event message framework
+/**
+ * Defines the base message protocol for the Shopp Order Event sub-system.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
 class OrderEventMessage extends MetaObject {
 
 	// Mapped properties should be added (not exclude standard properties)
@@ -1031,7 +1094,7 @@ class OrderEventMessage extends MetaObject {
 		$this->init(self::$table);
 		if (!$data) return;
 
-		$this->msgprops();
+		$message = $this->msgprops();
 
 		if (is_int($data)) $this->load($data);
 
@@ -1061,8 +1124,16 @@ class OrderEventMessage extends MetaObject {
 			return $this->_exception = true;
 		}
 
+		$action = sanitize_title_with_dashes($this->name);
+
 		do_action_ref_array('shopp_order_event',array($this));
-		do_action_ref_array('shopp_'.str_replace('-','_',$this->name).'_order_event',array($this));
+		do_action_ref_array('shopp_'.$action.'_order_event',array($this));
+
+		if (isset($this->gateway)) {
+			$gateway = sanitize_title_with_dashes($this->gateway);
+			do_action_ref_array('shopp_'.$gateway.'_'.$action,array($this));
+		}
+
 	}
 
 	function msgprops () {
@@ -1075,7 +1146,7 @@ class OrderEventMessage extends MetaObject {
 				$default = $this->datatype($default);
 			}
 		}
-
+		return $message;
 	}
 
 	function datatype ($var) {
@@ -1125,68 +1196,164 @@ class OrderEventMessage extends MetaObject {
 } // END class OrderEvent
 
 /**
- * Authorization event message
- *
- * The AuthOrderEvent message is the key message that will trigger
- * creating a purchase record. When creating an AuthOrderEvent message
- * using the shopp_add_order_event() API call, it is necessary to use
- * boolean false as the $order argument as the purchase record is created
- * off of the AuthOrderEvent: shopp_add_order_event(false,'auth',array(...));
+ * Intermediary class to set the message as a posting CREDIT transaction
  *
  * @author Jonathan Davis
  * @since 1.2
- * @package order
+ * @package shopp
+ * @subpackage orderevent
  **/
-class AuthOrderEvent extends OrderEventMessage {
-	var $name = 'auth';
+class CreditOrderEventMessage extends OrderEventMessage {
+	var $transactional = true;	// Mark the order event as a balance adjusting event
+	var $credit = true;
+	var $debit = false;
+}
+
+/**
+ * Intermediary class to set the message as a posting DEBIT transaction
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class DebitOrderEventMessage extends OrderEventMessage {
+	var $transactional = true;	// Mark the order event as a balance adjusting event
+	var $debit = true;
+	var $credit = false;
+}
+
+/**
+ * Payment authorization message
+ *
+ * This message is the key message that begins the order creation process
+ * (generating a Purchase record). When the payment is Authed, the billing agreement
+ * is in place allowing Shopp to "Invoice" against (debit) the purchase total.
+ *
+ * In accounting terms the debit is against the merchant's account receivables and
+ * sales accounts indicating an amount owed to the merchant by a customer.
+ *
+ * When generating an AuthedOrderEvent message using shopp_add_order_event() in a
+ * payment gateway, it is necssary to pass a (boolean) false value as the first
+ * ($order) parameter since the purchase record is created against the AuthedOrderEvent
+ * message.
+ *
+ * Example: shopp_add_order_event(false,'auth',array(...));
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class AuthedOrderEvent extends DebitOrderEventMessage {
+	var $name = 'authed';
 	var $message = array(
 		'txnid' => '',			// Transaction ID
-		'amount' => 0.0,		// Amount authorized
-		'fees' => 0.0,			// Transaction fees taken by the gateway
+		'amount' => 0.0,		// Gross amount authorized
+		'fees' => 0.0,			// Transaction fees taken by the gateway net revenue = amount-fees
 		'gateway' => '',		// Gateway handler name (module name from @subpackage)
-		'method' => '',			// Payment method (check, MasterCard, etc)
+		'paymethod' => '',		// Payment method (check, MasterCard, etc)
 		'payid' => ''			// Payment ID (last 4 of card or check number)
 	);
 }
-OrderEvent::register('auth','AuthOrderEvent');
+OrderEvent::register('authed','AuthedOrderEvent');
 
-class AuthFailOrderEvent extends OrderEventMessage {
-	var $name = 'auth-fail';
+/**
+ * Recurring billing payment message
+ *
+ * The rebill message is used to adjust the running balance for an order to accommodate
+ * a new recurring payment event. It debits the order so the RecapturedOrderEvent
+ * credit can apply against it and keep the account balanced.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class RebillOrderEvent extends DebitOrderEventMessage {
+	var $name = 'rebill';
 	var $message = array(
-		'amount' => 0.0,		// Amount to be authorized
-		'error' => '',			// Error code (if provided)
-		'message' => '',		// Error message reported by the gateway
-		'gateway' => '',		// Gateway handler name (module name from @subpackage)
-		'method' => '',			// Payment method (check, MasterCard, etc)
+		'txnid' => '',			// Transaction ID
+		'gateway' => '',		// Gateway class name (module name from @subpackage)
+		'amount' => 0.0,		// Gross amount authorized
+		'fees' => 0.0,			// Transaction fees taken by the gateway net revenue = amount-fees
+		'paymethod' => '',		// Payment method (check, MasterCard, etc)
 		'payid' => ''			// Payment ID (last 4 of card or check number)
 	);
 }
-OrderEvent::register('auth-fail','AuthFailOrderEvent');
+OrderEvent::register('rebill','RebillOrderEvent');
 
+/**
+ * Merchant initiated capture command message
+ *
+ * Triggers the gateway(s) responsible for the order to initiate a capture
+ * request to capture the previously authorized amount.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
 class CaptureOrderEvent extends OrderEventMessage {
 	var $name = 'capture';
 	var $message = array(
-		'txnorigin' => '',		// Original Transaction ID (of the auth event)
+		'txnid' => '',			// Transaction ID of the prior AuthedOrderEvent
+		'gateway' => '',		// Gateway (class name) to process capture through
+		'amount' => 0.0,		// Amount to capture (charge)
+		'user' => 0				// User for user-initiated captures
+	);
+}
+OrderEvent::register('capture','CaptureOrderEvent');
+
+/**
+ * Captured funds message
+ *
+ * This message notifies the Shopp order system that funds were successfully
+ * captured by the responsible gateway. It is typically fired by the gateway
+ * after receiving the payment gateway server response from a
+ * CaptureOrderEvent initiated capture request.
+ *
+ * A CapturedOrderEvent will credit the merchant's accounts receivable cancelling the
+ * debit of an AuthedOrderEvent message.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class CapturedOrderEvent extends CreditOrderEventMessage {
+	var $name = 'captured';
+	var $message = array(
 		'txnid' => '',			// Transaction ID of the CAPTURE event
 		'amount' => 0.0,		// Amount captured
 		'gateway' => ''			// Gateway handler name (module name from @subpackage)
 	);
 }
-OrderEvent::register('capture','CaptureOrderEvent');
+OrderEvent::register('captured','CapturedOrderEvent');
 
-class CaptureFailOrderEvent extends OrderEventMessage {
-	var $name = 'capture-fail';
-	var $message = array(
-		'amount' => 0.0,		// Amount to be captured
-		'error' => '',			// Error code (if provided)
-		'message' => '',		// Error message reported by the gateway
-		'gateway' => ''			// Gateway handler name (module name from @subpackage)
-	);
-}
-OrderEvent::register('capture-fail','CaptureFailOrderEvent');
-
-class RecaptureOrderEvent extends OrderEventMessage {
-	var $name = 'recapture';
+/**
+ * Recurring payment captured message
+ *
+ * A recaptured message notifies the Shopp order system that funds were successfully
+ * captured by the responsible gateway in connection with a recurring billing agreement.
+ *
+ * A RecaptureOrderEvent is triggered by a payment gateway when it receives a
+ * remote notification message from the upstream payment gateway server that a recurring
+ * payment has been successfully processed.
+ *
+ * A RebillOrderEvent must be triggered against the Purchase record first before
+ * adding the RecapturedOrderEvent so that running balance remains accurate.
+ *
+ * Similar to the CapturedOrderEvent, the RecapturedOrderEvent is a payment received that
+ * credits the merchant's accounts receivable.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class RecapturedOrderEvent extends CreditOrderEventMessage {
+	var $name = 'recaptured';
 	var $message = array(
 		'txnorigin' => '',		// Original transaction ID (txnid of original Purchase record)
 		'txnid' => '',			// Transaction ID of the recurring payment event
@@ -1198,7 +1365,128 @@ class RecaptureOrderEvent extends OrderEventMessage {
 
 	);
 }
-OrderEvent::register('recapture','RecaptureOrderEvent');
+OrderEvent::register('recaptured','RecapturedOrderEvent');
+
+/**
+ * Merchant initiated refund command message
+ *
+ * Triggers the responsible payment gateway to initiate a refund request to the
+ * payment gateway server.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class RefundOrderEvent extends OrderEventMessage {
+	var $name = 'refund';
+	var $message = array(
+		'txnid' => '',
+		'gateway' => '',		// Gateway (class name) to process refund through
+		'amount' => 0.0,
+		'user' => 0,
+		'reason' => 0
+	);
+}
+OrderEvent::register('refund','RefundOrderEvent');
+
+/**
+ * Refunded amount message
+ *
+ * This event message indicates a successful refund that re-debits the merchant's
+ * account receivables.
+ *
+ * This message will cause Shopp's order system to automatically add a VoidedOrderEvent
+ * to apply to the order in order to keep an accurate account balance.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class RefundedOrderEvent extends DebitOrderEventMessage {
+	var $name = 'refunded';
+	var $message = array(
+		'txnid' => '',			// Transaction ID for the REFUND event
+		'amount' => 0.0,		// Amount refunded
+		'gateway' => ''			// Gateway handler name (module name from @subpackage)
+	);
+}
+OrderEvent::register('refunded','RefundedOrderEvent');
+
+/**
+ * Merchant initiated void command message
+ *
+ * Used to cancel an order prior to successful capture. This triggers the responsible gateway to
+ * initiate a void request.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class VoidOrderEvent extends OrderEventMessage {
+	var $name = 'void';
+	var $message = array(
+		'txnid' => 0,
+		'gateway' => '',		// Gateway (class name) to process capture through
+		'amount' => 0.0,
+		'user' => 0,
+		'reason' => 0
+	);
+}
+OrderEvent::register('void','VoidOrderEvent');
+
+/**
+ * Used to cancel the balance of an order from either an Authed or Refunded event
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class VoidedOrderEvent extends CreditOrderEventMessage {
+	var $name = 'voided';
+	var $message = array(
+		'txnorigin' => '',		// Original transaction ID (txnid of original Purchase record)
+		'txnid' => '',			// Transaction ID for the VOID event
+		'gateway' => ''			// Gateway handler name (module name from @subpackage)
+	);
+}
+OrderEvent::register('voided','VoidedOrderEvent');
+
+
+/**
+ * Failure messages
+ *
+ * Failure messages log transaction attempt failures which may be caused by
+ * communication errors or another problem with the request (not enough funds,
+ * security declines, etc)
+ **/
+
+class AuthFailOrderEvent extends OrderEventMessage {
+	var $name = 'auth-fail';
+	var $message = array(
+		'amount' => 0.0,		// Amount to be authorized
+		'error' => '',			// Error code (if provided)
+		'message' => '',		// Error message reported by the gateway
+		'gateway' => '',		// Gateway handler name (module name from @subpackage)
+		'paymethod' => '',		// Payment method (check, MasterCard, etc)
+		'payid' => ''			// Payment ID (last 4 of card or check number)
+	);
+}
+OrderEvent::register('auth-fail','AuthFailOrderEvent');
+
+class CaptureFailOrderEvent extends OrderEventMessage {
+	var $name = 'capture-fail';
+	var $message = array(
+		'amount' => 0.0,		// Amount to be captured
+		'error' => '',			// Error code (if provided)
+		'message' => '',		// Error message reported by the gateway
+		'gateway' => ''			// Gateway handler name (module name from @subpackage)
+	);
+}
+OrderEvent::register('capture-fail','CaptureFailOrderEvent');
 
 class RecaptureFailOrderEvent extends OrderEventMessage {
 	var $name = 'recapture-fail';
@@ -1212,26 +1500,6 @@ class RecaptureFailOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('recapture-fail','RecaptureFailOrderEvent');
 
-class RefundingOrderEvent extends OrderEventMessage {
-	var $name = 'void';
-	var $message = array(
-		'user' => 0,
-		'reason' => 0
-	);
-}
-OrderEvent::register('refunding','RefundingOrderEvent');
-
-class RefundOrderEvent extends OrderEventMessage {
-	var $name = 'refund';
-	var $message = array(
-		'txnorigin' => '',		// Original transaction ID (txnid of original Purchase record)
-		'txnid' => '',			// Transaction ID for the REFUND event
-		'amount' => 0.0,		// Amount refunded
-		'gateway' => ''			// Gateway handler name (module name from @subpackage)
-	);
-}
-OrderEvent::register('refund','RefundOrderEvent');
-
 class RefundFailOrderEvent extends OrderEventMessage {
 	var $name = 'refund-fail';
 	var $message = array(
@@ -1243,33 +1511,25 @@ class RefundFailOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('refund-fail','RefundFailOrderEvent');
 
-class VoidingOrderEvent extends OrderEventMessage {
-	var $name = 'void';
+class VoidFailOrderEvent extends OrderEventMessage {
+	var $name = 'void-fail';
 	var $message = array(
-		'user' => 0,
-		'reason' => 0
-	);
-}
-OrderEvent::register('voiding','VoidingOrderEvent');
-
-class VoidOrderEvent extends OrderEventMessage {
-	var $name = 'void';
-	var $message = array(
-		'txnorigin' => '',		// Original transaction ID (txnid of original Purchase record)
-		'txnid' => '',			// Transaction ID for the VOID event
+		'amount' => 0.0,		// Amount to be refunded
+		'error' => '',			// Error code (if provided)
+		'message' => '',		// Error message reported by the gateway
 		'gateway' => ''			// Gateway handler name (module name from @subpackage)
 	);
 }
-OrderEvent::register('void','VoidOrderEvent');
+OrderEvent::register('void-fail','VoidFailOrderEvent');
 
-class InvoiceOrderEvent extends OrderEventMessage {
-	var $name = 'invoice';
-	var $message = array(
-		'due' => 0				// Date payment for the invoice is due
-	);
-}
-OrderEvent::register('void','VoidOrderEvent');
-
+/**
+ * Logs manual processing decryption events
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
 class DecryptOrderEvent extends OrderEventMessage {
 	var $name = 'decrypt';
 	var $message = array(
@@ -1278,6 +1538,13 @@ class DecryptOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('decrypt','DecryptOrderEvent');
 
+/**
+ * Logs shipment events
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ **/
 class ShippedOrderEvent extends OrderEventMessage {
 	var $name = 'shipped';
 	var $message = array(
@@ -1287,12 +1554,20 @@ class ShippedOrderEvent extends OrderEventMessage {
 }
 OrderEvent::register('shipped','ShippedOrderEvent');
 
+/**
+ * Logs download access
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ **/
 class DownloadOrderEvent extends OrderEventMessage {
 	var $name = 'download';
 	var $message = array(
 		'purchased' => 0,		// Purchased line item ID (or add-on meta record ID)
 		'download' => 0,		// Download ID (meta record)
-		'ip' => ''				// IP address of the download
+		'ip' => '',				// IP address of the download
+		'customer' => 0			// Authenticated customer
 	);
 }
 OrderEvent::register('download','DownloadOrderEvent');

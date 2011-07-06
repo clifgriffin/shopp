@@ -584,6 +584,7 @@ class Shopp {
 
 	function keysetting () {
 		$data = base64_decode(shopp_setting('updatekey'));
+		if (empty($data)) return false;
 		return unpack(Lookup::keyformat(),$data);
 	}
 

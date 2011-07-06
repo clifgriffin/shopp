@@ -20,10 +20,10 @@
 					<div class="stamp shipped<?php if ($Purchase->void) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 					<?php endif; ?>
 
-					<?php if ($Purchase->charged && !$Purchase->void): ?>
+					<?php if ($Purchase->captured == $Purchase->total && !$Purchase->void): ?>
 					<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
-					<?php elseif ($Purchase->void): ?>
-					<div class="stamp void"><div class="type"><?php _e('VOID','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+					<?php elseif ($Purchase->voided == $Purchase->total): ?>
+					<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 					<?php endif; ?>
 
 				</div>

@@ -304,6 +304,7 @@ class Product extends WPShoppObject {
 		// do_action('shopp_init_product_pricing');
 		// foreach ($this->prices as $i => &$price) {
 
+			// Force to floats
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
 			$price->shipfee = (float)$price->shipfee;
@@ -351,9 +352,13 @@ class Product extends WPShoppObject {
 				$Price->updates($price);
 				$Price->discounts();
 				$price->promoprice = $Price->promoprice;
+				unset($Price);
 			}
 
-			if ($price->promoprice < $price->price) $target->onsale = $price->onsale = true;
+			if (!empty($price->discounts) && $price->promoprice < $price->price) {
+				$target->sale = 'on';
+				$price->onsale = true;
+			}
 
 			// Grab price and saleprice ranges (minimum - maximum)
 			if (!$price->price) $price->price = 0;
