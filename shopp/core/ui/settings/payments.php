@@ -10,7 +10,6 @@
 	<input type="hidden" name="page" value="<?php echo $page; ?>" />
 </div>
 
-<br class="clear" />
 <div class="tablenav"><div class=" actions">
 	<select name="id" id="payment-option-menu">
 	<option><?php _e('Add a payment system&hellip;','Shopp'); ?></option>

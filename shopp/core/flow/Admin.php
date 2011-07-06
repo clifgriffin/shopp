@@ -56,6 +56,7 @@ class AdminFlow extends FlowController {
 		'memberships'=>'shopp_products',
 		'products'=>'shopp_products',
 		'categories'=>'shopp_categories',
+		'tags'=>'shopp_categories',
 		'promotions'=>'shopp_promotions',
 		'settings'=>'shopp_settings',
 		'settings-checkout'=>'shopp_settings_checkout',
@@ -90,12 +91,14 @@ class AdminFlow extends FlowController {
 		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
 		add_action('load-update.php', array($this, 'admin_css'));
 		add_action('admin_footer',array($this,'debug'));
+		add_action('admin_menu',array($this,'tagsmenu'),20);
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
+		$this->addpage('tags',__('Tags','Shopp'),'Categorize','Editing a Tag','products');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
 		// $this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
 		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings','settings');
@@ -204,6 +207,7 @@ class AdminFlow extends FlowController {
 			$name,
 			$controller
 		);
+
 	}
 
 	function topmenu ($name,$label,$access,$page,$position=50) {
@@ -222,6 +226,30 @@ class AdminFlow extends FlowController {
 			SHOPP_ADMIN_URI.'/icons/clear.png',			// Icon
 			$position									// Menu position
 		);
+	}
+
+	/**
+	 * Special handler to allow the Shopp Tags menu to use the WP tags manager
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function tagsmenu () {
+		global $menu,$submenu;
+		foreach ($submenu['shopp-products'] as &$submenus) {
+			if ('shopp-tags' == $submenus[2]) {
+				$submenus[2] = 'edit-tags.php?taxonomy=shopp_tag';
+				break;
+			}
+		}
+
+		add_action('admin_print_styles-edit-tags.php',array($this,'admin_css'));
+		add_action('admin_head-edit-tags.php', create_function('','
+			global $parent_file,$taxonomy;
+			if ($taxonomy == ProductTag::$taxonomy) $parent_file = "shopp-products";
+		'));
 	}
 
 	/**

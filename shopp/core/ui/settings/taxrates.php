@@ -11,8 +11,6 @@
 		<?php wp_nonce_field('shopp-settings-taxrates'); ?>
 	</div>
 
-	<br class="clear" />
-
 	<div class="tablenav">
 		<div class="actions">
 		<button type="submit" name="addrate" id="addrate" class="button-secondary" tabindex="9999"><?php _e('Add Tax Rate','Shopp'); ?></button>
