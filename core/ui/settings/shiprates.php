@@ -11,7 +11,6 @@
 		<?php wp_nonce_field('shopp-settings-shiprate'); ?>
 	</div>
 
-	<br class="clear" />
 
 	<div class="tablenav">
 		<div class="actions">

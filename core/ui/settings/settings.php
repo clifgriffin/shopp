@@ -12,7 +12,7 @@
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th>
 				<td>
 					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="54" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
-					<input type="submit" id="activation-button" name="activation-button" class="button-secondary" value="<? echo $button; ?>" />
+					<input type="submit" id="activation-button" name="activation-button" class="button-secondary" value="<?php echo $button; ?>" />
 					<input type="hidden" name="activation" value="<?php echo $action; ?>" />
 					<div id="activation-status" class="hide-if-js<?php echo " $status_class"; ?>"><?php echo $keystatus; ?></div>
 	            </td>

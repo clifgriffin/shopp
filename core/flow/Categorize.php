@@ -22,6 +22,11 @@ class Categorize extends AdminController {
 	function __construct () {
 		parent::__construct();
 
+		if ('shopp-tags' == $_GET['page']) {
+			wp_redirect(add_query_arg(array('taxonomy'=>ProductTag::$taxonomy),admin_url('edit-tags.php')));
+			return;
+		}
+
 		if (!empty($_GET['id']) && !isset($_GET['a'])) {
 
 			wp_enqueue_script('postbox');
@@ -54,6 +59,12 @@ class Categorize extends AdminController {
 		add_action('load-catalog_page_shopp-categories',array(&$this,'workflow'));
 	}
 
+	function tagmenu ($menu) {
+		print_r($menu);
+		exit();
+		return $menu;
+	}
+
 	/**
 	 * Parses admin requests to determine which interface to display
 	 *
@@ -62,6 +73,9 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function admin () {
+		if ('shopp-tags' == $_GET['page']) {
+			return;
+		}
 		if (!empty($_GET['id']) && !isset($_GET['a'])) $this->editor();
 		elseif (!empty($_GET['id']) && isset($_GET['a']) && $_GET['a'] == "products") $this->products();
 		else $this->categories();
