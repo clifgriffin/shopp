@@ -44,7 +44,6 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function activate () {
-		global $wpdb,$wp_rewrite;
 
 		// If no settings are available,
 		// no tables exist, so this is a
@@ -58,9 +57,6 @@ class ShoppInstallation extends FlowController {
 
 		if (ShoppSettings()->availability() && shopp_setting('db_version'))
 			shopp_set_setting('maintenance','off');
-
-		// Update rewrite rules
-		flush_rewrite_rules();
 
 		if (shopp_setting('show_welcome') == "on")
 			shopp_set_setting('display_welcome','on');
@@ -77,7 +73,7 @@ class ShoppInstallation extends FlowController {
 	 * @return void Description...
 	 **/
 	function deactivate () {
-		global $Shopp,$wpdb,$wp_rewrite;
+		global $Shopp;
 
 		//if (!isset(ShoppSettings())) return;
 
