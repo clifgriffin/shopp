@@ -62,6 +62,7 @@ CREATE TABLE <?php echo $price; ?> (							-- Price table
 	shipping enum('on','off') NOT NULL,							-- (1) Flag to enable shipping for product
 	tax enum('on','off') NOT NULL,								-- (1) Flag to enable tax calculations for product
 --	donation varchar(255) NOT NULL default '', 						-- (Moved to meta 'settings' record)
+	discounts varchar(255) NOT NULL default '',					-- (1-255) Promotion IDs that apply to the price
 	sortorder int(10) unsigned NOT NULL default '0',			-- (4) Sort order for the price record
 	created datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Creation date
 	modified datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Modification date
