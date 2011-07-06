@@ -1225,8 +1225,21 @@ class BestsellerProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('Bestsellers','Shopp');
-		$this->loading['order'] = 'bestselling';
-		if (isset($options['where'])) $this->loading['where'] = $options['where'];
+
+		if (isset($options['range']) && is_array($options['range']) && 2 == count($options['range'])) {
+			$start = $options['range'][0];
+			$end = $options['range'][1];
+			$purchased = DatabaseObject::tablename(Purchased::$table);
+			$this->loading['columns'] = "COUNT(*) AS sold";
+			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
+			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()+(86400*$start) AND UNIX_TIMESTAMP(pur.created) < UNIX_TIMESTAMP()+(86400*$end)");
+			$this->loading['order'] = 'sold DESC';
+			$this->loading['groupby'] = 'pur.product';
+		} else {
+			$this->loading['order'] = 'bestselling';	// Use overall bestselling stats
+			$this->loading = array_merge($this->loading,$options);
+		}
+
 	}
 
 	static function threshold () {
