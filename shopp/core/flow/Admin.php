@@ -548,7 +548,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function products_widget ($args=null) {
 		global $Shopp;
-		$db = DB::get();
+
 		$defaults = array(
 			'before_widget' => '',
 			'before_title' => '',
@@ -567,7 +567,7 @@ class AdminFlow extends FlowController {
 		echo $widget_name;
 		echo $after_title;
 
-		$RecentBestsellers = new BestsellerProducts(array('where'=>array('UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)'),'show'=>5));
+		$RecentBestsellers = new BestsellerProducts(array('range' => array(-30,0),'show'=>5));
 		$RecentBestsellers->load();
 
 		echo '<table><tbody><tr>';
@@ -577,7 +577,6 @@ class AdminFlow extends FlowController {
 		foreach ($RecentBestsellers->products as $product)
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
-
 
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>5));
 		$LifetimeBestsellers->load();
