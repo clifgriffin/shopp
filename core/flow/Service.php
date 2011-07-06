@@ -34,6 +34,15 @@ class Service extends AdminController {
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('jquery-tmpl');
 			shopp_enqueue_script('orders');
+			shopp_localize_script( 'orders', '$om', array(
+				'co' => __('Cancel Order','Shopp'),
+				'pr' => __('Process Refund','Shopp'),
+				'dnc' => __('Do Not Cancel','Shopp'),
+				'ro' => __('Refund Order','Shopp'),
+				'cancel' => __('Cancel','Shopp'),
+				'rr' => __('Reason for refund','Shopp'),
+				'rc' => __('Reason for cancellation','Shopp')
+			));
 
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
@@ -283,25 +292,20 @@ class Service extends AdminController {
 
 		$Purchase = $Shopp->Purchase;
 		$Purchase->Customer = new Customer($Purchase->customer);
+		$Gateway = $Purchase->gateway();
+
+		// print_r($_POST);
 
 		// Handle Order note processing
-		if (!empty($_POST['note'])) {
-			$user = wp_get_current_user();
-			$Note = new MetaObject();
-			$Note->parent = $Purchase->id;
-			$Note->context = 'purchase';
-			$Note->type = 'order_note';
-			$Note->name = 'note';
-			$Note->value = new stdClass();
-			$Note->value->author = $user->ID;
-			$Note->value->message = $_POST['note'];
-			$Note->save();
-		}
+		if (!empty($_POST['note']))
+			$this->addnote($Purchase->id,$_POST['note']);
+
 		if (!empty($_POST['delete-note'])) {
 			$noteid = key($_POST['delete-note']);
 			$Note = new MetaObject($noteid);
 			$Note->delete();
 		}
+
 		if (!empty($_POST['edit-note'])) {
 			$noteid = key($_POST['note-editor']);
 			$Note = new MetaObject($noteid);
@@ -310,53 +314,53 @@ class Service extends AdminController {
 		}
 		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
 
-		if (!empty($_POST['update'])) {
-			check_admin_referer('shopp-save-order');
-
-			if ($_POST['txnstatus'] != $Purchase->txnstatus)
-				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
-
-
-			$Purchase->updates($_POST);
-
-			$mailstatus = false;
-			if ($_POST['notify'] == "yes") {
-				$labels = shopp_setting('order_status');
-				// Save a reference to this purchase in Shopp
-				// so the Template API works when generating the receipt
-				$Shopp->Purchase =& $Purchase;
-
-				// Send the e-mail notification
-				$addressee = "$Purchase->firstname $Purchase->lastname";
-				$address = "$Purchase->email";
-
-				$email = array();
-				$email['from'] = '"'.get_bloginfo("name").'"';
-				if (shopp_setting('merchant_email'))
-					$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
-				if($is_IIS) $email['to'] = $address;
-				else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
-				$email['subject'] = __('Order Updated','Shopp');
-				$email['url'] = get_bloginfo('siteurl');
-				$email['sitename'] = get_bloginfo('name');
-
-				if ($_POST['receipt'] == "yes")
-					$email['receipt'] = $Purchase->receipt();
-
-				$email['status'] = strtoupper($labels[$Purchase->status]);
-				$email['message'] = wpautop(stripslashes($_POST['message']));
-
-				if (file_exists(SHOPP_TEMPLATES."/notification.html")) $template = SHOPP_TEMPLATES."/notification.html";
-				if (file_exists(SHOPP_TEMPLATES."/notify.php")) $template = SHOPP_TEMPLATES."/notify.php";
-
-				if (shopp_email($template,$email)) $mailsent = true;
-
-			}
-
-			$Purchase->save();
-			if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
-			else $updated = __('Order status updated.','Shopp');
-		}
+		// if (!empty($_POST['update'])) {
+		// 	check_admin_referer('shopp-save-order');
+		//
+		// 	if ($_POST['txnstatus'] != $Purchase->txnstatus)
+		// 		do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
+		//
+		//
+		// 	$Purchase->updates($_POST);
+		//
+		// 	$mailstatus = false;
+		// 	if ($_POST['notify'] == "yes") {
+		// 		$labels = shopp_setting('order_status');
+		// 		// Save a reference to this purchase in Shopp
+		// 		// so the Template API works when generating the receipt
+		// 		$Shopp->Purchase =& $Purchase;
+		//
+		// 		// Send the e-mail notification
+		// 		$addressee = "$Purchase->firstname $Purchase->lastname";
+		// 		$address = "$Purchase->email";
+		//
+		// 		$email = array();
+		// 		$email['from'] = '"'.get_bloginfo("name").'"';
+		// 		if (shopp_setting('merchant_email'))
+		// 			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
+		// 		if($is_IIS) $email['to'] = $address;
+		// 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
+		// 		$email['subject'] = __('Order Updated','Shopp');
+		// 		$email['url'] = get_bloginfo('siteurl');
+		// 		$email['sitename'] = get_bloginfo('name');
+		//
+		// 		if ($_POST['receipt'] == "yes")
+		// 			$email['receipt'] = $Purchase->receipt();
+		//
+		// 		$email['status'] = strtoupper($labels[$Purchase->status]);
+		// 		$email['message'] = wpautop(stripslashes($_POST['message']));
+		//
+		// 		if (file_exists(SHOPP_TEMPLATES."/notification.html")) $template = SHOPP_TEMPLATES."/notification.html";
+		// 		if (file_exists(SHOPP_TEMPLATES."/notify.php")) $template = SHOPP_TEMPLATES."/notify.php";
+		//
+		// 		if (shopp_email($template,$email)) $mailsent = true;
+		//
+		// 	}
+		//
+		// 	$Purchase->save();
+		// 	if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
+		// 	else $updated = __('Order status updated.','Shopp');
+		// }
 
 		if (isset($_POST['submit-shipments']) && isset($_POST['shipment']) && !empty($_POST['shipment'])) {
 			$shipments = $_POST['shipment'];
@@ -373,9 +377,60 @@ class Service extends AdminController {
 		}
 
 		if (isset($_POST['process-refund'])) {
-			print_r($_POST);
+			// unset($_POST['refund-order']);
+			$user = wp_get_current_user();
+			$reason = (int)$_POST['reason'];
+			$amount = floatvalue($_POST['amount']);
+
+			// @todo add checks for shopp_refunds capability
+			shopp_add_order_event($Purchase->id,'refund',array(
+				'txnid' => $Purchase->txnid,
+				'gateway' => $Gateway->module,
+				'amount' => $amount,
+				'reason' => $reason,
+				'user' => $user->ID
+			));
+
+			if (!empty($_POST['message']))
+				$this->addnote($Purchase->id,$_POST['message']);
+
+			$Purchase->load_events();
 		}
 
+		if (isset($_POST['cancel-order'])) {
+			// unset($_POST['refund-order']);
+			$user = wp_get_current_user();
+			$reason = (int)$_POST['reason'];
+			$amount = floatvalue($_POST['amount']);
+
+			// @todo add checks for shopp_refunds capability
+			shopp_add_order_event($Purchase->id,'void',array(
+				'txnid' => $Purchase->txnid,
+				'gateway' => $Gateway->module,
+				'amount' => $amount,
+				'reason' => $reason,
+				'user' => $user->ID
+			));
+
+			if (!empty($_POST['message']))
+				$this->addnote($Purchase->id,$_POST['message']);
+
+			$Purchase->load_events();
+		}
+
+
+		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
+			$user = wp_get_current_user();
+
+			shopp_add_order_event($Purchase->id,'capture',array(
+				'txnid' => $Purchase->txnid,
+				'gateway' => $Gateway->module,
+				'amount' => $Purchase->capturable(),
+				'user' => $user->ID
+			));
+
+			$Purchase->load_events();
+		}
 
 
 		$base = shopp_setting('base_operations');
@@ -439,6 +494,19 @@ class Service extends AdminController {
 		}
 
 		return $status;
+	}
+
+	function addnote ($order,$message) {
+		$user = wp_get_current_user();
+		$Note = new MetaObject();
+		$Note->parent = $order;
+		$Note->context = 'purchase';
+		$Note->type = 'order_note';
+		$Note->name = 'note';
+		$Note->value = new stdClass();
+		$Note->value->author = $user->ID;
+		$Note->value->message = $message;
+		$Note->save();
 	}
 
 } // END class Service

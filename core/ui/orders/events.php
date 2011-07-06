@@ -114,8 +114,16 @@ class OrderEventRenderer {
 	}
 
 	function date () {
-		$today = mktime(0,0,0);
-		$date = date(get_option('date_format'),$this->date);
+		$ts = current_time('timestamp');
+		$today = mktime(0,0,0,date('m',$ts),date('d',$ts),date('Y',$ts));
+
+		$date_format = get_option('date_format');
+
+		// Remove year from the date format if it's the current year
+		if (date('Y',$this->date) == date('Y',$today))
+			$date_format = preg_replace('/([^\d\w]\s[LoYy])/','',$date_format);
+
+		$date = date($date_format,$this->date);
 		$time = date(get_option('time_format'),$this->date);
 
 		$weekdays = array(
@@ -141,20 +149,34 @@ class OrderEventRenderer {
 } // END class OrderEventDisplay
 
 class TxnOrderEventRenderer extends OrderEventRenderer {
+	function __construct (OrderEventMessage $Event) {
+		parent::__construct($Event);
+		$this->credit = $Event->credit;
+		$this->debit = $Event->debit;
+	}
 
 	function name () {
 		return sprintf(__('Transaction %s successful','Shopp'),$this->type);
 	}
 
 	function details () {
-		if ('' == $this->method.$this->payid) return '';
-		$details = $this->method;
-		if (!empty($this->payid)) $details .= " ($this->payid)";
-		return $details;
+		if ('' == $this->paymethod.$this->payid.$this->txnid) return '';
+
+		if (isset($this->paymethod) && !empty($this->paymethod)) {
+			$payment = $this->paymethod;
+			if (!empty($this->payid)) $payment .= " ($this->payid)";
+			$details[] = $payment;
+		}
+		if (!empty($this->txnid))
+			$details[] = sprintf(__('Transaction: %s','Shopp'),$this->txnid);
+
+		return join(' | ',$details);
 	}
 
 	function amount() {
-		return money($this->amount);
+		if ($this->debit) $amount = money($this->amount);
+		else $amount = '-'.money($this->amount);
+		return $amount;
 	}
 
 }
@@ -170,12 +192,14 @@ class TxnFailOrderEventRenderer extends TxnOrderEventRenderer {
 	}
 
 	function amount () {
+		if ($this->credit) return parent::amount();
 		return parent::amount();
+
 	}
 
 }
 
-class AuthOrderEventRenderer extends TxnOrderEventRenderer {
+class AuthedOrderEventRenderer extends TxnOrderEventRenderer {
 
 	function name () {
 		return __('Authorized payment','Shopp');
@@ -191,7 +215,15 @@ class AuthFailOrderEventRenderer extends TxnFailOrderEventRenderer {
 
 }
 
-class CaptureOrderEventRenderer extends TxnOrderEventRenderer {
+class CaptureOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Charge initiated','Shopp');
+	}
+
+}
+
+class CapturedOrderEventRenderer extends TxnOrderEventRenderer {
 
 	function name () {
 		return __('Payment received','Shopp');
@@ -207,14 +239,22 @@ class CaptureFailOrderEventRenderer extends TxnFailOrderEventRenderer {
 
 }
 
-class RefundOrderEventRenderer extends TxnOrderEventRenderer {
+class RefundOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
-		return __('Refund issued','Shopp');
+		return __('Refund initiated','Shopp');
+	}
+
+}
+
+class RefundedOrderEventRenderer extends TxnOrderEventRenderer {
+
+	function name () {
+		return __('Refund completed','Shopp');
 	}
 
 	function amount () {
-		return '-'.parent::amount();
+		return parent::amount();
 	}
 
 }
@@ -226,22 +266,34 @@ class RefundFailOrderEventRenderer extends TxnFailOrderEventRenderer {
 	}
 
 	function amount () {
-		return '-'.parent::amount();
+		return parent::amount();
 	}
 
 }
 
-class VoidOrderEventRenderer extends TxnOrderEventRenderer {
+class VoidOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
-		return __('Order canceled','Shopp');
+		return __('Order cancellation initiated','Shopp');
+	}
+
+}
+
+class VoidedOrderEventRenderer extends TxnOrderEventRenderer {
+
+	function name () {
+		$Purchase = new Purchase($this->Event->order);
+		if ($Purchase->total == $this->amount)
+			return __('Order cancelled','Shopp');
+		else return __('Amount cancelled','Shopp');
 	}
 
 	function amount () {
-		return '-'.parent::amount();
+		return parent::amount();
 	}
 
 }
+
 
 class ShippedOrderEventRenderer extends OrderEventRenderer {
 

@@ -3,15 +3,7 @@ global $Shopp;
 
 function manage_meta_box ($Purchase) {
 	global $Shopp,$UI;
-
-	$Gateway = false;
-	$processor = $Purchase->gateway;
-	foreach ($Shopp->Gateways->active as $gateway) {
-		if ($processor != $gateway->name) continue;
-		$Gateway = $gateway;
-		break;
-	}
-
+	$Gateway = $Purchase->gateway();
 
 ?>
 <?php if ($Purchase->shipable && !$Purchase->shipped): ?>
@@ -54,7 +46,7 @@ function manage_meta_box ($Purchase) {
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->void && $Gateway->refunds): ?>
+<?php if (!$Purchase->void && $Gateway && $Gateway->refunds): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -70,20 +62,20 @@ function manage_meta_box ($Purchase) {
 			<div class="inline-fields">
 				<span><select name="reason">
 							<option>Select a reason...</option>
-							<option>Custom reasons</option>
+							<option>Not as described</option>
 						</select><br />
-				<label><?php _e('Reason for refund','Shopp'); ?></label>
+				<label>${reason}</label>
 				</span>
 
-				<span><input type="text" name="amount" value="${amount}" ${disable-amount} /><br />
+				<span><input type="text" name="amount" value="<?php echo money($Purchase->total); ?>" ${disable_amount} /><br />
 				<label><?php _e('Amount','Shopp'); ?></label></span>
 			</div>
 		</div>
 		<div class="clear"></div>
 		<div class="submit">
-			<input type="submit" id="cancel-refund" name="cancel-refund" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
+			<input type="submit" id="cancel-refund" name="cancel-refund" value="${cancel}" class="button-secondary" />
 			<div class="alignright">
-			<input type="submit" name="process-refund" value="<?php _e('Process Refund','Shopp'); ?>" class="button-primary" />
+			<input type="submit" name="process-refund" value="${process}" class="button-primary" />
 			</div>
 		</div>
 	</div>
@@ -104,9 +96,13 @@ function manage_meta_box ($Purchase) {
 		<div class="misc-pub-section">
 			<div class="status">
 			<?php
-			if (isset($Purchase->txnevent)): $UI = OrderEventRenderer::renderer($Purchase->txnevent);
-				echo $UI->name(); echo ' &mdash; '.$UI->date();
-			else: ?>
+			if (isset($Purchase->txnevent)) {
+				$UI = OrderEventRenderer::renderer($Purchase->txnevent);
+				$event = array('<strong>'.$UI->name().'</strong>');
+				if ('' != $UI->details()) $event[] = $UI->details();
+				if ('' != $UI->date()) $event[] = $UI->date();
+				echo '<p>'.join(' &mdash; ',$event).'</p>';
+			} else { ?>
 				<p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
 				<?php
 					$output = '';
@@ -117,7 +113,7 @@ function manage_meta_box ($Purchase) {
 							(!empty($Purchase->card)?sprintf(" (&hellip;%d)",$Purchase->card):'').'</p>';
 
 					echo apply_filters('shopp_orderui_payment_card',$output, $Purchase);
-			endif;
+			}
 
 			if (isset($Purchase->shipevent)): $UI = OrderEventRenderer::renderer($Purchase->shipevent);
 				echo '<p><strong>'.$UI->name().'</strong> '.$UI->details().' &mdash; '.$UI->date().'</p>';
@@ -132,9 +128,6 @@ function manage_meta_box ($Purchase) {
 
 			if (isset($_POST['cancel-shipments']) && 'ship-notice' == $action) $action = false;
 			if (isset($_POST['cancel-refund']) && 'refund-order' == $action) $action = false;
-			if (isset($_POST['cancel-refund'])) unset($_POST['cancel-order'],$_POST['refund-order']);
-			//
-			// if (isset($_POST['cancel-order']) || isset($_POST['refund-order'])) unset($_POST['ship-notice']);
 
 			if ('ship-notice' == $action) {
 				unset($_POST['cancel-order'],$_POST['refund-order']);
@@ -156,11 +149,21 @@ function manage_meta_box ($Purchase) {
 			}
 
 			if ('refund-order' == $action) {
-				$data = array('${amount}' => money($Purchase->total),'${title}' => __('Refund Order','Shopp'));
+				$data = array(
+					'${title}' => __('Refund Order','Shopp'),
+					'${reason}' => __('Reason for refund','Shopp'),
+					'${cancel}' => __('Cancel Refund','Shopp'),
+					'${process}' => __('Process Refund','Shopp')
+				);
 
 				if (isset($_POST['cancel-order'])) {
-					$data['${disable-amount}'] = ' disabled="disabled"';
-					$data['${title}'] = __('Cancel Order','Shopp');
+					$data = array(
+						'${disable_amount}' =>  ' disabled="disabled"',
+						'${title}' => __('Cancel Order','Shopp'),
+						'${reason}' => __('Reason for cancellation','Shopp'),
+						'${cancel}' => __('Do Not Cancel','Shopp'),
+						'${process}' => __('Cancel Order','Shopp')
+					);
 				}
 
 				echo ShoppUI::template($refundui,$data);
@@ -170,22 +173,23 @@ function manage_meta_box ($Purchase) {
 </div>
 <?php if (!($Purchase->void && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->void && $Gateway->refunds): ?>
+		<?php if (!$Purchase->void && $Gateway && $Gateway->refunds): ?>
 		<div class="alignleft">
-			<?php if (!$Purchase->charged): ?>
-				<button type="submit" name="cancel-order" value="status" class="button-secondary cancel"><?php _e('Cancel Order','Shopp'); ?></button>
+			<?php if (!$Purchase->captured): ?>
+				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />
 			<?php endif; ?>
-			<?php if ($Purchase->authorized && $Purchase->charged): ?>
-				<button type="submit" name="refund-order" value="status" class="button-secondary refund"><?php _e('Refund','Shopp'); ?></button>
+			<?php
+			if ($Purchase->authorized && $Purchase->captured && $Purchase->refunded < $Purchase->total): ?>
+				<input type="submit" id="refund-button" name="refund-order" value="<?php _e('Refund','Shopp'); ?>" class="button-secondary refund" />
 			<?php endif; ?>
 		</div>
 		<?php endif; ?>
 		&nbsp;
 		<?php if ($Purchase->shipable && !$Purchase->shipped && 'ship-notice' != $action): ?>
-		<button type="submit" id="shipnote-button" name="ship-notice" value="notify" class="button-primary"><?php _e('Send Shipment Notice','Shopp'); ?></button>
+		<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
 		<?php endif; ?>
-		<?php if (!$Purchase->charged): ?>
-		<button type="submit" name="update" value="status" class="button-primary"><?php _e('Charge Order','Shopp'); ?></button>
+		<?php if (!$Purchase->captured && $Gateway && $Gateway->captures): ?>
+		<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
 		<?php endif; ?>
 	</div>
 <?php endif; ?>
@@ -278,10 +282,15 @@ if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("
 		}
 
 function history_meta_box ($Purchase) {
-	echo '<table class="widefat history"><tbody>';
+	echo '<table class="widefat history">';
+	echo '<tfoot>';
+	echo '<tr class="balance"><td colspan="3">'.__('Order Balance','Shopp').'</td><td>'.money($Purchase->balance).'</td></tr>';
+	echo '</tfoot>';
+	echo '<tbody>';
 	foreach ($Purchase->events as $id => $Event)
 		echo apply_filters('shopp_order_manager_event',$Event);
-	echo '</tbody></table>';
+	echo '</tbody>';
+	echo '</table>';
 }
 if (count($Shopp->Purchase->events) > 0)
 	add_meta_box('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');

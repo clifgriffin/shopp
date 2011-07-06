@@ -533,11 +533,14 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-status .inside span { float:none;display:inline-block; }
 #order #order-status label { display:inline-block;padding-top:1px;font-weight:bold; }
 
-.history .auth .name,
-.history .capture .name { color: #060; font-weight: bold; }
+.history .amount { white-space: nowrap;	}
+.history .authed .name,
+.history .captured .name { color: #060; font-weight: bold; }
 .history .fail .name { color: #900; font-weight: normal; }
 .history .fail .amount { color: #777; }
 .history .detail { color: #444; }
+.history .balance { background-color: #ffffe0; font-weight: bold; }
+.history .balance td:first-child { text-align: right; }
 
 #order-manage .inside { margin: 0; padding: 0; }
 #order #card,

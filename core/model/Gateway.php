@@ -63,6 +63,7 @@ abstract class GatewayFramework {
 
 	// Supported features
 	var $cards = false;			// A list of supported payment cards
+	var $captures = false;		// Supports capture separate of authorization
 	var $refunds = false;		// Remote refund support flag
 
 	// Config settings
@@ -108,7 +109,12 @@ abstract class GatewayFramework {
 		$this->precision = $this->baseop['currency']['format']['precision'];
 
 		$this->_loadcards();
+
+		// @deprecated
 		if ($this->myorder()) $this->actions();
+
+		$gateway = sanitize_title_with_dashes($this->module);
+		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
 	}
 
 	/**
@@ -160,39 +166,45 @@ abstract class GatewayFramework {
 	 *
 	 * @param string $data The encoded data to send
 	 * @param string $url The URL to connect to
-	 * @param string $port (optional) Connect to a specific port
+	 * @param string $deprecated DO NOT USE
+	 * @param array $options
 	 * @return string Raw response
 	 **/
-	function send ($data, $url, $port=false, $options = array()) {
+	function send ($data, $url, $deprecated=false, $options = array()) {
 
 		$defaults = array(
 			'method' => 'POST',
-			'timeout' => SHOPP_GATEWAY_TIMEOUT,
+			'timeout' => SHOPP_GATEWAY_TIMEOUT * 2,
 			'redirection' => 7,
 			'httpversion' => '1.0',
 			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
 			'blocking' => true,
 			'headers' => array(),
 			'cookies' => array(),
-			'body' => null,
+			'body' => $data,
 			'compress' => false,
 			'decompress' => true,
-			'sslverify' => true
+			'sslverify' => false
 		);
-
 		$params = array_merge($defaults,$options);
 
-		$URL = $url.$post?":$post":'';
+		$URL = $url.($post?":$post":'');
 
 		$connection = new WP_Http();
 		$result = $connection->request($URL,$params);
 
-		if (empty($result) || !isset($result['response'])) {
+		if (is_wp_error($result)) {
+			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
+			$errors = join(' ',$errors);
+
+			new ShoppError($this->name.": ".Lookup::errors('gateway','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		} elseif (empty($result) || !isset($result['response'])) {
 			new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
 			return false;
 		} else extract($result);
 
-		if (200 != $reponse['code']) {
+		if (200 != $response['code']) {
 			$error = Lookup::errors('gateway','http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('gateway','http-unkonwn');
 			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
@@ -299,6 +311,16 @@ abstract class GatewayFramework {
 		extract($format);
 
 		return number_format($amount,$precision,$decimals,$thousands);
+	}
+
+	function cancelorder (RefundedOrderEvent $Refunded) {
+		$order = $Refunded->order;
+		shopp_add_order_event($order,'voided',array(
+			'txnorigin' => $Refunded->txnid,
+			'txnid' => '',
+			'amount' => $Refunded->amount,
+			'gateway' => $this->module
+		));
 	}
 
 	/**
@@ -500,6 +522,24 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 
 		return join("\n",$_);
 
+	}
+
+	/**
+	 * Renders a multiple-select widget from a list of payment cards
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected payment cards
+	 * @param array $options The available payment cards in the menu
+	 *
+	 * @return void
+	 **/
+	function cardmenu ($column=0,$attributes=array(),$cards=array()) {
+		$options = array();
+		foreach ($cards as $card) $options[strtolower($card->symbol)] = $card->name;
+		$this->multimenu($column,$attributes,$options);
 	}
 
 }

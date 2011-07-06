@@ -386,7 +386,6 @@ class ModuleSettingsUI {
 
 		$defaults = array(
 			'label' => '',
-			'options' => array(),
 			'selected' => array(),
 			'classes' => ''
 		);
@@ -414,24 +413,6 @@ class ModuleSettingsUI {
 		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
 
-	}
-
-	/**
-	 * Renders a multiple-select widget from a list of payment cards
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param int $column The table column to add the element to
-	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected payment cards
-	 * @param array $options The available payment cards in the menu
-	 *
-	 * @return void
-	 **/
-	function cardmenu ($column=0,$attributes=array(),$cards=array()) {
-		$options = array();
-		foreach ($cards as $card) $options[strtolower($card->symbol)] = $card->name;
-		$this->multimenu($column,$attributes,$options);
 	}
 
 	/**

@@ -16,9 +16,15 @@ class Purchase extends DatabaseObject {
 	var $purchased = array();
 	var $columns = array();
 	var $downloads = false;
-	var $authorized = false;
-	var $charged = false;
-	var $void = false;
+
+
+	// Balances
+	var $authorized = false;	// Amount authorized
+	var $captured = false;		// Amount captured
+	var $void = false;			// Amount voided
+	var $refunded = false;		// Amount refunded
+	var $balance = 0;			// Current balance
+
 	var $shipable = false;
 	var $shipped = false;
 
@@ -31,12 +37,11 @@ class Purchase extends DatabaseObject {
 	}
 
 	function load_purchased () {
-		$db = DB::get();
 
 		$table = DatabaseObject::tablename(Purchased::$table);
 		$meta = DatabaseObject::tablename(MetaObject::$table);
 		if (empty($this->id)) return false;
-		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
+		$this->purchased = DB::query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		foreach ($this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ($purchase->shipping > 0) $this->shipable = true;
@@ -52,15 +57,19 @@ class Purchase extends DatabaseObject {
 
 	function load_events () {
 		$this->events = OrderEvent::instance()->events($this->id);
-		$txn = array('auth','auth-fail','capture','capture-fail','recapture','recapture-fail','refund','refund-fail','void');
+
 		foreach ($this->events as $Event) {
 			switch ($Event->name) {
-				case 'auth': $this->authorized = true; break;
-				case 'capture': $this->charged = true; break;
-				case 'void': $this->void = true; break;
+				case 'authed': $this->authorized += $Event->amount; break;
+				case 'captured': $this->captured = $Event->amount; break;
+				case 'refunded': $this->refunded = $Event->amount; break;
+				case 'voided': $this->voided = $Event->amount; break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
-			if (in_array($name,$txn)) $this->txnevent = $Event;
+			if ($Event->transactional) $this->txnevent = $Event;
+
+			if ($Event->credit) $this->balance -= $Event->amount;
+			elseif ($Event->debit) $this->balance += $Event->amount;
 		}
 
 		// Legacy support - @todo Remove in 1.3
@@ -71,6 +80,32 @@ class Purchase extends DatabaseObject {
 			}
 		}
 
+	}
+
+	function capturable () {
+		if (!$this->authorized) return 0.0;
+		return ($this->authorized - (float)$this->charged);
+	}
+
+	function refundable () {
+		if (!$this->charged) return 0.0;
+		return ($this->charged - (float)$this->refunded);
+	}
+
+	function gateway () {
+		global $Shopp;
+
+		$Gateway = false;
+		$processor = $this->gateway;
+		if (isset($Shopp->Gateways->active[$processor])) return $Shopp->Gateways->active[$processor];
+		else {
+			foreach ($Shopp->Gateways->active as $gateway) {
+				if ($processor != $gateway->name) continue;
+				return $gateway;
+				break;
+			}
+		}
+		return false;
 	}
 
 	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {
