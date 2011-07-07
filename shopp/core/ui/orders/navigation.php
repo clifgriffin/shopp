@@ -3,6 +3,6 @@
 	<?php
 		$counts = $this->status_counts();
 		if (!empty($counts)) foreach($counts as $id => $state): ?>
-		<li>| <a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('status'=>$id,'id'=>null)),admin_url('admin.php'))); ?>"><?php echo $state->label; ?></a> (<?php echo $state->total; ?>)</li>
+		<li>| <a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('status'=>$id,'id'=>null)),admin_url('admin.php'))); ?>"><?php echo $state->label; ?></a> <span class="count">(<?php echo $state->total; ?>)</span></li>
 	<?php endforeach; ?>
 </ul>

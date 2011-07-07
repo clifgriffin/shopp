@@ -271,8 +271,8 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('membership-editor', '/ui/memberships/editor.js', array('jquery','jquery-tmpl','search-select'), '20110401');
 	$scripts->add_data('membership-editor', 'group', 1);
 
-	$scripts->add('status-labels', '/ui/behaviors/status-labels.js', array('jquery','jquery-tmpl'), '20110508');
-	$scripts->add_data('status-labels', 'group', 1);
+	$scripts->add('labelset', '/ui/behaviors/labelset.js', array('jquery','jquery-tmpl'), '20110508');
+	$scripts->add_data('labelset', 'group', 1);
 
 }
 
