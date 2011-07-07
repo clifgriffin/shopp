@@ -12,17 +12,17 @@
 class ShoppCatalogThemeAPI implements ShoppAPI {
 	static $context = 'Catalog';
 	static $register = array(
-		'bestsellerproducts' => 'bestseller_products',
-		'bestsellersproducts' => 'bestseller_products',
-		'bestsellingproducts' => 'bestseller_products',
+		// 'bestsellerproducts' => 'bestseller_products',
+		// 'bestsellersproducts' => 'bestseller_products',
+		// 'bestsellingproducts' => 'bestseller_products',
 		'breadcrumb' => 'breadcrumb',
-		'catalogproducts' => 'catalog_products',
+		// 'catalogproducts' => 'catalog_products',
 		'categories' => 'categories',
 		'category' => 'category',
 		'categorylist' => 'category_list',
 		'display' => 'type',
 		'type' => 'type',
-		'featuredproducts' => 'featured_products',
+		// 'featuredproducts' => 'featured_products',
 		'hascategories' => 'has_categories',
 		'isaccount' => 'is_account',
 		'iscart' => 'is_cart',
@@ -31,22 +31,22 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'islanding' => 'is_catalog',
 		'iscatalog' => 'is_catalog',
 		'isproduct' => 'is_product',
-		'newproducts' => 'new_products',
-		'onsaleproducts' => 'onsale_products',
+		// 'newproducts' => 'new_products',
+		// 'onsaleproducts' => 'onsale_products',
 		'orderbylist' => 'orderby_list',
 		'product' => 'product',
-		'promoproducts' => 'promo_products',
-		'randomproducts' => 'random_products',
-		'recentshoppers' => 'recent_shoppers',
-		'relatedproducts' => 'related_products',
+		// 'promoproducts' => 'promo_products',
+		// 'randomproducts' => 'random_products',
+		// 'recentshoppers' => 'recent_shoppers',
+		// 'relatedproducts' => 'related_products',
 		'search' => 'search',
-		'searchproducts' => 'search_products',
+		// 'searchproducts' => 'search_products',
 		'searchform' => 'search_form',
 		'sideproduct' => 'side_product',
 		'tagproducts' => 'tag_products',
 		'tagcloud' => 'tag_cloud',
 		'url' => 'url',
-		'viewedproducts' => 'viewed_products',
+		// 'viewedproducts' => 'viewed_products',
 		'views' => 'views',
 		'zoomoptions' => 'zoom_options'
 	);
@@ -315,6 +315,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				// $category_uri = empty($category->id)?$category->uri:$category->id;
 				// $link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 				$link = get_term_link($category->name,$category->taxonomy);
+				if (is_wp_error($link)) $link = '';
 				$total = '';
 				if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
 
@@ -323,7 +324,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					$current = ' class="current"';
 
 				$listing = '';
-				if ($category->count > 0 || isset($category->smart) || $linkall)
+
+				if (!empty($link) && ($category->count > 0 || isset($category->smart) || $linkall))
 					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
