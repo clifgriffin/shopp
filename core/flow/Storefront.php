@@ -22,13 +22,6 @@
  **/
 class Storefront extends FlowController {
 
-	static $_pages = array(
-		'catalog'	=> array('name'=>'shop','title'=>'Shop','shortcode'=>'[catalog]'),
-		'cart'		=> array('name'=>'cart','title'=>'Cart','shortcode'=>'[cart]'),
-		'checkout'	=> array('name'=>'checkout','title'=>'Checkout','shortcode'=>'[checkout]'),
-		'account'	=> array('name'=>'account','title'=>'Your Orders','shortcode'=>'[account]')
-	);
-
 	var $Page = false;
 	var $Catalog = false;
 	var $Category = false;
@@ -38,7 +31,7 @@ class Storefront extends FlowController {
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
 	var $checkout = false;		// Flags when the checkout form is being processed
-	// var $pages = array();
+	var $pages = array();
 	var $browsing = array();
 	var $viewed = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
@@ -105,10 +98,9 @@ class Storefront extends FlowController {
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
 		add_action('shopp_storefront_init',array($this,'collections'));
-		add_action('shopp_storefront_init',array($this,'searching'));
+		// add_action('shopp_storefront_init',array($this,'searching'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
-		// Experimental
 		add_filter('archive_template',array($this,'collection'));
 		add_filter('search_template',array($this,'collection'));
 		add_filter('page_template',array($this,'pages'));
@@ -145,13 +137,20 @@ class Storefront extends FlowController {
 		$tag	 	= get_query_var(ProductTag::$taxonomy);
 		$collection = get_query_var('shopp_collection');
 		$sortorder 	= get_query_var('s_so');
+		$searching 	= get_query_var('s_cs');
+		$search 	= get_query_var('s');
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
-		if ($category.$collection.$tag.$page == ''
-			&& $posttype == Product::$posttype) return;
+		// Override the custom post type archive request to use the Shopp catalog page
+		if ($posttype == Product::$posttype && '' == $product.$page) {
+			$pages = Storefront::pages_settings();
+			$page = $pages['catalog']['slug'];
+			set_query_var('shopp_page',$page);
+		}
 
-		$ImageSettings = ImageSettings::__instance();
+		if ($category.$collection.$tag.$page.$searching == ''
+			&& $posttype == Product::$posttype) return;
 
 		$this->request = true;
 		set_query_var('suppress_filters',false); // Override default WP_Query request
@@ -174,6 +173,11 @@ class Storefront extends FlowController {
 			$Shopp->Category = new ProductTag($tag,'slug');
 		}
 
+		if ($searching) { // Catalog search
+			$collection = 'search-results';
+			$options = array('search'=>$search);
+		}
+
 		if (!empty($collection)) {
 			// Overrides to enforce archive behavior
 			$wp_query->is_archive = true;
@@ -181,11 +185,7 @@ class Storefront extends FlowController {
 			$wp_query->is_home = false;
 			$wp_query->is_page = false;
 			$wp_query->post_count = true;
-			$Shopp->Category = Catalog::load_collection($collection);
-		}
-
-		if (get_query_var('s') != '') {
-			$Shopp->Category = new SearchResults(array('search'=>get_query_var('s')));
+			$Shopp->Category = Catalog::load_collection($collection,$options);
 		}
 
 	}
@@ -715,6 +715,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function searching () {
+		global $wp,$wp_query;
 
 		$this->searching = false;
 		$catalog = get_wp_query_var('s_cs');
@@ -727,143 +728,11 @@ class Storefront extends FlowController {
 		$this->search = $search;
 		$this->searching = true;
 
-		set_wp_query_var('s',null); // Not needed any longer
+		// set_wp_query_var('s',null); // Not needed any longer
 		set_wp_query_var('pagename',$this->pages['catalog']['uri']);
 		set_wp_query_var('s_cat',SearchResults::$_slug);
 		add_action('wp_head', array(&$this, 'updatesearch'));
 
-	}
-
-	/**
-	 * Parses catalog page requests
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function __catalog__ () {
-		global $Shopp,$wp;
-
-		$options = array();
-
-		add_filter('redirect_canonical', array(&$this,'canonical_home'));
-
-		$category = get_query_var('s_cat');
-		$tag = get_query_var('s_tag');
-		$productid = get_query_var('s_pid');
-		$productname = get_query_var('s_pd');
-		$paged = get_query_var('paged');
-		$orderby = get_query_var('s_ob');
-		$filters = isset($_GET['s_cf'])?$_GET['s_cf']:false;
-
-		$type = "catalog";
-		if (!empty($category)) $type = 'category';
-		if (!empty($productid) || !empty($productname)) $type = 'product';
-
-		if (!empty($tag)) {
-			$type = "category";
-			$category = "tag";
-		}
-
-		// If a search query is stored, and this request is a product or the
-		// search results category repopulate the search box and set the
-		// category for the breadcrumb
-
-		// If a search request is being made, set the type to category
-		if ($this->searching) {
-
-			if (!empty($this->search)
-					&& ($type == "product"
-					|| ($type == "category" && $category == SearchResults::$_slug))) {
-				add_action('wp_head', array(&$this, 'updatesearch'));
-
-				if ($type != "product") $type = "category";
-				$category = SearchResults::$_slug;
-
-			} else $this->search = $this->searching = false;
-		}
-
-		// Load a category/tag
-		if (!empty($category) || !empty($tag)) {
-			if (!empty($this->search)) $options = array('search'=>$this->search);
-			if (!empty($tag)) $options = array('tag'=>$tag);
-
-			// Split for encoding multi-byte slugs
-			$slugs = explode("/",$category);
-			$category = join("/",array_map('urlencode',$slugs));
-
-			// Load the category
-			$Shopp->Category = Catalog::load_category($category,$options);
-			$this->breadcrumb = (!empty($tag)?"tag/":"").$Shopp->Category->uri;
-
-			if ($this->searching) {
-				$Shopp->Category->load(array('load'=>array('images','prices')));
-				if (count($Shopp->Category->products) == 1) {
-					reset($Shopp->Category->products);
-					$type = 'product';
-					$BestBet = current($Shopp->Category->products);
-					shopp_redirect($BestBet->tag('url',array('return'=>true)));
-				} else $type = 'category';
-			}
-		}
-
-		if (empty($category) && empty($tag) &&
-			empty($productid) && empty($productname))
-			$this->breadcrumb = "";
-
-		// Category Filters
-		if (!empty($Shopp->Category->slug)) {
-			if (empty($this->browsing[$Shopp->Category->slug]))
-				$this->browsing[$Shopp->Category->slug] = array();
-			$CategoryFilters =& $this->browsing[$Shopp->Category->slug];
-
-			// Add new filters
-			if (!empty($filters)) {
-				if (is_array($filters)) {
-					$CategoryFilters = array_filter(array_merge($CategoryFilters,$filters));
-					$CategoryFilters = stripslashes_deep($CategoryFilters);
-					if (!empty($paged)) set_query_var('paged',1); // Force back to page 1
-				} else unset($this->browsing[$Shopp->Category->slug]);
-			}
-
-		}
-
-		// Catalog sort order setting
-		if (isset($_GET['s_ob']))
-			$this->browsing['orderby'] = $_GET['s_ob'];
-
-		// Set the category context by following the breadcrumb
-		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category($this->breadcrumb,$options);
-
-		// No category context, use the CatalogProducts smart category
-		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category('catalog',$options);
-
-		// Find product by given ID
-		if (!empty($productid) && empty($Shopp->Product->id))
-			$Shopp->Product = new Product($productid);
-
-		// Find product by product slug
-		if (!empty($productname) && empty($Shopp->Product->id))
-			$Shopp->Product = new Product(urlencode($productname),"slug");
-
-		// Product must be published
-		if ((!empty($Shopp->Product->id) && !$Shopp->Product->published()) || empty($Shopp->Product->id))
-			$Shopp->Product = new Product(); // blank product displays "no product found" in storefront
-
-		// @todo Investigate if this is still necessary
-		// No product found, try to load a page instead
-		// if ($type == "product" && !$Shopp->Product)
-		// 	set_query_var('pagename',$wp->request);
-
-		$Shopp->Catalog = new Catalog($type);
-
-		if ($type == "category") $Shopp->Requested = $Shopp->Category;
-		else $Shopp->Requested = $Shopp->Product;
-
-		add_filter('wp_title', array(&$this, 'titles'),10,3);
-		add_action('wp_head', array(&$this, 'metadata'));
-		add_action('wp_head', array(&$this, 'feeds'));
 	}
 
 	/**
