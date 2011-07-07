@@ -90,37 +90,37 @@
 jQuery(document).ready(function() {
 	var $ = jqnc();
 
-	var handlers = new CallbackRegistry();
-	handlers.options = {};
-	handlers.enabled = [];
-	handlers.register = function (name,object) {
-		this.callbacks[name] = function () {object['storage']();}
-		this.options[name] = object;
-	}
-
-	handlers.call = function(id,setting,name,arg1,arg2,arg3) {
-		var module = this.options[name];
-		module.element = $(id);
-		module.setting = setting;
-		this.callbacks[name](arg1,arg2,arg3);
-		module.behaviors();
-	}
-
-	<?php do_action('shopp_storage_module_settings'); ?>
-
-	$('#image-storage').change(function () {
-		var module = $(this).val();
-		var selected = $('#image-storage :selected');
-		$('#image-storage-engine').empty();
-		handlers.call('#image-storage-engine','image',module);
-	}).change();
-
-	$('#product-storage').change(function () {
-		var module = $(this).val();
-		var selected = $('#product-storage :selected');
-		$('#product-storage-engine').empty();
-		handlers.call('#product-storage-engine','download',module);
-	}).change();
+	// var handlers = new CallbackRegistry();
+	// handlers.options = {};
+	// handlers.enabled = [];
+	// handlers.register = function (name,object) {
+	// 	this.callbacks[name] = function () {object['storage']();}
+	// 	this.options[name] = object;
+	// }
+	//
+	// handlers.call = function(id,setting,name,arg1,arg2,arg3) {
+	// 	var module = this.options[name];
+	// 	module.element = $(id);
+	// 	module.setting = setting;
+	// 	this.callbacks[name](arg1,arg2,arg3);
+	// 	module.behaviors();
+	// }
+	//
+	// <?php do_action('shopp_storage_module_settings'); ?>
+	//
+	// $('#image-storage').change(function () {
+	// 	var module = $(this).val();
+	// 	var selected = $('#image-storage :selected');
+	// 	$('#image-storage-engine').empty();
+	// 	handlers.call('#image-storage-engine','image',module);
+	// }).change();
+	//
+	// $('#product-storage').change(function () {
+	// 	var module = $(this).val();
+	// 	var selected = $('#product-storage :selected');
+	// 	$('#product-storage-engine').empty();
+	// 	handlers.call('#product-storage-engine','download',module);
+	// }).change();
 
 	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
 
