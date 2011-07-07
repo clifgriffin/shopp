@@ -61,20 +61,29 @@ class TestMode extends GatewayFramework {
 		return true;
 	}
 
-	function capture (CaptureOrderEvent $Capture) {
-		$this->handler('captured',$Capture);
+	function sale (OrderEventMessage $Event) {
+		$this->handler('authed',$Event);
+		$this->handler('captured',$Event);
 	}
 
-	function refund (RefundOrderEvent $Refund) {
-		$this->handler('refunded',$Refund);
+	function auth (OrderEventMessage $Event) {
+		$this->handler('authed',$Event);
 	}
 
-	function cancel (VoidOrderEvent $Void) {
-		$this->handler('voided',$Void);
+	function capture (OrderEventMessage $Event) {
+		$this->handler('captured',$Event);
+	}
+
+	function refund (OrderEventMessage $Event) {
+		$this->handler('refunded',$Event);
+	}
+
+	function cancel (OrderEventMessage $Event) {
+		$this->handler('voided',$Event);
 	}
 
 	function handler ($type,$Event) {
-
+		if(!isset($Event->txnid)) $Event->txnid = mktime();
 		if ('on' == $this->settings['error']) {
 			return shopp_add_order_event($Event->order,$Event->type.'-fail',array(
 				'amount' => $Event->amount,
@@ -86,6 +95,9 @@ class TestMode extends GatewayFramework {
 
 		shopp_add_order_event($Event->order,$type,array(
 			'txnid' => $Event->txnid,
+			'fees' => 0,
+			'paymethod' => '',
+			'payid' => '',
 			'amount' => $Event->amount,
 			'gateway' => $this->module
 		));
