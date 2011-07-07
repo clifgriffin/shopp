@@ -729,7 +729,7 @@ class ImageSettings extends RegistryManager {
 	private static $instance;
 
 	function __construct () {
-		$ImageSetting = new ImageSetting($edit);
+		$ImageSetting = new ImageSetting();
 		$table = $ImageSetting->_table;
 		$where = array(
 			"type='$ImageSetting->type'",

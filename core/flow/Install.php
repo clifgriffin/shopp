@@ -117,7 +117,8 @@ class ShoppInstallation extends FlowController {
 
 		$db->loaddata($schema);
 		unset($schema);
-		$this->install_pages();
+
+		// $this->install_pages();
 		shopp_set_setting("db_version",$db->version);
 	}
 
@@ -136,7 +137,7 @@ class ShoppInstallation extends FlowController {
 	function install_pages () {
 		global $wpdb;
 
-		$pages = Storefront::$_pages;
+		$pages = Storefront::default_pages();
 
 		// Locate any Shopp pages that already exist
 		$pages_installed = shopp_locate_pages();
