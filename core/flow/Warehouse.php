@@ -678,11 +678,15 @@ class Warehouse extends AdminController {
 					foreach ($priceline['dimensions'] as &$dimension)
 						$dimension = floatvalue($dimension);
 
-				$priceline['settings'] = array();
 				$settings = array('donation','recurring','membership');
 
-				foreach ($settings as $setting)
-					if (isset($priceline[$setting])) $priceline['settings'][$setting] = $priceline[$setting];
+				$priceline['settings'] = array();
+				foreach ($settings as $setting) {
+					if ( isset($priceline[$setting]) ) {
+						$priceline['settings'][$setting] = $priceline[$setting];
+					}
+				}
+				if ( ! empty($priceline['settings']) ) shopp_set_meta ( $Price->id, 'price', 'settings', $priceline['settings'] );
 
 				if ($Price->stock != $priceline['stocked']) {
 					$priceline['stock'] = $priceline['stocked'];

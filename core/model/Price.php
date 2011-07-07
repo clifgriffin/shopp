@@ -18,8 +18,10 @@ class Price extends DatabaseObject {
 
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key))
+		if ($this->load($id,$key)) {
 			$this->load_download();
+			$this->load_settings();
+		}
 
 		// Recalculate promo price from applied promotional discounts
 		add_action('shopp_price_updates',array(&$this,'discounts'));
@@ -34,7 +36,9 @@ class Price extends DatabaseObject {
 			'download' => 'download',
 			'settings' => 'settings'
 		);
-		$metaclass = array();
+		$metaclass = array(
+			'meta' => 'MetaObject'
+		);
 
 		if ('metatype' == $property)
 			$property = isset($metamap[$record->type])?$metamap[$record->type]:'meta';
@@ -54,6 +58,18 @@ class Price extends DatabaseObject {
 			foreach (get_object_vars($data) as $prop => $val) $record->{$prop} = $val;
 			$clean = array('context','type','numeral','sortorder','created','modified','value');
 			foreach ($clean as $prop) unset($record->{$prop});
+		}
+
+		if ( 'settings' == $record->name ) {
+			$data = $record->value;
+			if (is_array($prices) && isset($prices[$record->{$id}])) {
+				$target = $prices[$record->{$id}];
+			} elseif (isset($this)) {
+				$target = $this;
+			}
+			foreach ( $data as $prop => $setting ) {
+				$target->{$prop} = $setting;
+			}
 		}
 
 		parent::metaloader($records,$record,$prices,$id,$property,$collate,$merge);
@@ -79,6 +95,15 @@ class Price extends DatabaseObject {
 
 		if (empty($this->download->id)) return false;
 		return true;
+	}
+
+	function load_settings () {
+		$settings = shopp_meta ( $this->id, 'price', 'settings');
+		if ( ! is_array( $settings ) ) {
+			foreach ( $settings as $property => $setting ) {
+				$this->{$property} = $setting;
+			}
+		}
 	}
 
 	/**
