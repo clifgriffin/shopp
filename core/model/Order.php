@@ -98,11 +98,11 @@ class Order {
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
 		add_action('shopp_process_order', array($this,'validate'),7);
+		add_action('shopp_process_order', array($this,'process'),100);
 
 		add_action('shopp_process_free_order',array($this,'freebie'));
 		add_action('shopp_update_destination',array($this->Shipping,'destination'));
 		add_action('shopp_authed_order_event',array($this,'purchase'));
-
 		add_action('shopp_create_purchase',array($this,'purchase'));
 
 		add_action('shopp_order_notifications',array($this,'notify'));
@@ -133,12 +133,13 @@ class Order {
 		remove_action('shopp_order_notifications',array($this,'notify'));
 		remove_action('shopp_order_success',array($this,'success'));
 		remove_action('shopp_process_order', array($this,'validate'),7);
+		remove_action('shopp_process_order', array($this,'process'),100);
 
 		remove_class_actions(array(
 			'shopp_create_purchase',
 			'shopp_order_notifications',
 			'shopp_order_success',
-			'shopp_process_order'
+			'shopp_process_order',
 			),'GatewayFramework');
 
 	}
@@ -451,7 +452,7 @@ class Order {
 			// 	$Purchase->txnstatus = $status;
 			// 	$Purchase->save();
 			// }
-		} else do_action('shopp_create_purchase');
+		}
 
 		// Copy details from Auth message
 		$this->txnid = $Auth->txnid;
@@ -542,7 +543,6 @@ class Order {
 			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
-			$Item->sold();
 		}
 
 		$this->purchase = $Purchase->id;
@@ -608,7 +608,7 @@ class Order {
 		if (empty($this->txnid)) return false;
 
 		$locked = 0;
-		for ($attempts = 0; $attempts < 3 && $r->locked == 0; $attempts++)
+		for ($attempts = 0; $attempts < 3 && $locked == 0; $attempts++)
 			$locked = DB::query("SELECT GET_LOCK('$this->txnid',".SHOPP_TXNLOCK_TIMEOUT.") AS locked",'auto','col','locked');
 
 		if ($locked == 1) return true;
@@ -628,7 +628,7 @@ class Order {
 	function unlock () {
 		if (empty($this->txnid)) return false;
 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->txnid') as unlocked",'auto','col','unlocked');
-		return ($r->unlocked == 1)?true:false;
+		return ($unlocked == 1)?true:false;
 	}
 
 	/**
@@ -737,13 +737,14 @@ class Order {
 	 **/
 	function process () {
 
-		// There are shipped products
-		if ($this->Cart->shipped)
-			return shopp_add_order_event(false,'auth',array());
+		$process = 'sale';	// No shipped products
+		if ($this->Cart->shipped) // There are shipped products
+			$process = 'auth';
 
-		/// Authorize & capture the payment
-		shopp_add_order_event(false,'sale',array());
-
+		shopp_add_order_event(false,$process,array(
+			'gateway' => $this->processor(),
+			'amount' => $this->Cart->Totals->total
+		));
 	}
 
 	/**
@@ -1222,6 +1223,27 @@ class DebitOrderEventMessage extends OrderEventMessage {
 	var $debit = true;
 	var $credit = false;
 }
+
+/**
+ * Merchant initiated capture command message
+ *
+ * Triggers the gateway(s) responsible for the order to initiate a capture
+ * request to capture the previously authorized amount.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class AuthOrderEvent extends OrderEventMessage {
+	var $name = 'auth';
+	var $message = array(
+		'gateway' => '',		// Gateway (class name) to process capture through
+		'amount' => 0.0			// Amount to capture (charge)
+	);
+}
+OrderEvent::register('auth','AuthOrderEvent');
+
 
 /**
  * Payment authorization message
