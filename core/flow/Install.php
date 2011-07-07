@@ -541,12 +541,6 @@ class ShoppInstallation extends FlowController {
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
 
-		if ($db_version <= 1127) {
-			// Upgrade price tag to use settings column
-			$price_table = DatabaseObject::tablename('price');
-			$db->query("UPDATE $price_table SET settings=CONCAT('a:1:{s:8:\"donation\";',donation,'}') WHERE type='Donation'");
-		}
-
 		// Migrate to WP custom posts & taxonomies
 		if ($db_version <= 1131) {
 
@@ -707,6 +701,8 @@ class ShoppInstallation extends FlowController {
 						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
 
 			// Move 'donation' column to 'settings' record
+			// @todo Migrate price record 'weight', 'dimensions' into the new meta 'settings' record'
+			// @todo Fix approach to serialize 'donation','weight','dimensions' as settings hash map
 			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
 						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
 
