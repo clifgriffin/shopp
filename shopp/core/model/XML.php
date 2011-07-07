@@ -507,7 +507,7 @@ class xmlQuery {
 
 			// If this is a branch, append the branch entries as individual results
 			if (count($element) > 0 && isset($element[0]))
-				$_ = array_merge($_,&$element);
+				$_ = array_merge($_,$element);
 			else $_[] =& $element;
 		}
 
