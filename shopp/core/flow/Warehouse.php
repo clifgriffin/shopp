@@ -253,7 +253,7 @@ class Warehouse extends AdminController {
 			'published' => 	array('label' => __('Published','Shopp'),	'where'=>array("p.post_status='publish'")),
 			'onsale' => 	array('label' => __('On Sale','Shopp'),		'where'=>array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured' => 	array('label' => __('Featured','Shopp'),	'where'=>array("s.featured='on' AND p.post_status != 'trash'")),
-			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status != 'trash' AND ".BestsellerProducts::threshold()." < s.sold"),'order' => 'bestselling'),
+			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status != 'trash'"),'order' => 'bestselling'),
 			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'"),'grouping'=>'pt.id'),
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status = 'trash'"))
 		);

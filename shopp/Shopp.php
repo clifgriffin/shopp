@@ -235,6 +235,7 @@ class Shopp {
 	 **/
 	function init () {
 		$Shopping = ShoppShopping();
+
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
@@ -295,6 +296,7 @@ class Shopp {
 		shopp_register_collection('SearchResults');
 		shopp_register_collection('TagProducts');
 		shopp_register_collection('RelatedProducts');
+		shopp_register_collection('AlsoBoughtProducts');
 		shopp_register_collection('ViewedProducts');
 		shopp_register_collection('RandomProducts');
 		shopp_register_collection('PromoProducts');

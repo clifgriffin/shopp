@@ -59,12 +59,6 @@ class Categorize extends AdminController {
 		add_action('load-catalog_page_shopp-categories',array(&$this,'workflow'));
 	}
 
-	function tagmenu ($menu) {
-		print_r($menu);
-		exit();
-		return $menu;
-	}
-
 	/**
 	 * Parses admin requests to determine which interface to display
 	 *

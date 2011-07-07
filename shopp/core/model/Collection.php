@@ -70,7 +70,7 @@ class ProductCollection implements Iterator {
 		if (strpos($wherescan,'s.inventory') !== false || strpos($wherescan,'s.stock') !== false)
 			$inventory = true;
 
-		if ($published) $where[] = "p.post_status='publish'";
+		if (str_true($published)) $where[] = "p.post_status='publish'";
 
 		// Sort Order
 		$orderby = false;
@@ -598,7 +598,7 @@ class ProductCategory extends ProductTaxonomy {
 		if (!empty($this->id))
 			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND taxonomy='$this->taxonomy'";
 
-		if (!value_is_true($nostock) && shopp_setting('outofstock_catalog') == "off")
+		if ( !( str_true($nostock) && str_true(shopp_setting('outofstock_catalog')) ) )
 			$where[] = "((p.inventory='on' AND p.stock > 0) OR p.inventory='off')";
 
 		// Faceted browsing
@@ -1220,6 +1220,7 @@ class OnSaleProducts extends SmartCollection {
 // @todo Document BestsellerProducts
 class BestsellerProducts extends SmartCollection {
 	static $_slug = "bestsellers";
+	static $_altslugs = array('bestsellers','bestseller','bestselling');
 	static $_auto = true;
 
 	function smart ($options=array()) {
@@ -1236,16 +1237,16 @@ class BestsellerProducts extends SmartCollection {
 			$this->loading['order'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {
+			$this->loading['where'] = array(BestsellerProducts::threshold()." < s.sold");
 			$this->loading['order'] = 'bestselling';	// Use overall bestselling stats
 			$this->loading = array_merge($this->loading,$options);
 		}
-
 	}
 
 	static function threshold () {
 		// Get mean sold for bestselling threshold
 		$summary = DatabaseObject::tablename(ProductSummary::$table);
-		return DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 < sold",'auto','col','threshold');
+		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 < sold",'auto','col','threshold');
 	}
 
 }
@@ -1257,7 +1258,7 @@ class SearchResults extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
-
+		$this->loading['debug'] = true;
 		// Load search engine components
 		if (!class_exists('SearchParser'))
 			require(SHOPP_MODEL_PATH.'/Search.php');
@@ -1273,12 +1274,9 @@ class SearchResults extends SmartCollection {
 		if ($prices) {
 			$pricematch = false;
 			switch ($prices->op) {
-				case '>': $pricematch = "((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target))
-							OR (onsale=1 AND (minsaleprice > $prices->target OR maxsaleprice > $prices->target)))"; break;
-				case '<': $pricematch = "((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target))
-							OR (onsale=1 AND (minsaleprice < $prices->target OR maxsaleprice < $prices->target)))"; break;
-				default: $pricematch = "((onsale=0 AND (minprice >= $prices->min AND maxprice <= $prices->max))
-								OR (onsale=1 AND (minsaleprice >= $prices->min AND maxsaleprice <= $prices->max)))";
+				case '>': $pricematch = "minprice > $prices->target OR maxprice > $prices->target"; break;
+				case '<': $pricematch = "minprice < $prices->target OR maxprice < $prices->target"; break;
+				default: $pricematch = "minprice >= $prices->min AND maxprice <= $prices->max"; break;
 			}
 		}
 
@@ -1302,41 +1300,40 @@ class SearchResults extends SmartCollection {
 			$where = "($where OR terms REGEXP '[[:<:]](".str_replace(' ','|',$shortwords).")[[:>:]]')";
 		}
 
-		/*
-			@todo Fix product id associations in product index
-		*/
 		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
 			'joins'=>array($index => "INNER JOIN $index AS search ON search.product=p.ID"),
 			'columns'=> "$score AS score",
 			'where'=> array($where),
 			'groupby'=>'p.ID',
-			'orderby'=>'score DESC');
-		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
+			'order'=>'score DESC');
+		if (!empty($pricematch)) $this->loading['having'] = array($pricematch);
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 
 		// No search
 		if (empty($options['search'])) $options['search'] = __('(no search terms)','Shopp');
 		$this->name = __("Search Results for","Shopp").": {$options['search']}";
 
+		add_filter('shopp_paged_link',array($this,'pagination'));
 	}
+
+	function pagination ($link) {
+		return add_query_arg(array('s'=>get_query_var('s'),'s_cs'=>1),$link);
+	}
+
 }
 
 // @todo Document TagProducts
+// @todo Fix TagProducts
 class TagProducts extends SmartCollection {
 	static $_slug = "tag";
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
-		// $tagtable = DatabaseObject::tablename(CatalogTag::$table);
-		// $catalogtable = DatabaseObject::tablename(Catalog::$table);
-		// $this->taxonomy = get_catalog_taxonomy_id('tag');
 
 		$terms = get_terms(ProductTag::$taxonomy);
-		// print_r($terms);
-		return;
 
-		$this->tag = urldecode($options['tag']);
+		$this->tag = stripslashes(urldecode($options['tag']));
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {
 			$tags = explode(",",$options['tag']);
@@ -1344,7 +1341,7 @@ class TagProducts extends SmartCollection {
 				$tagquery .= empty($tagquery)?"tag.name='$tag'":" OR tag.name='$tag'";
 		} else $tagquery = "tag.name='{$this->tag}'";
 
-		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
+		$this->name = sprintf(__('Products tagged "%s"','Shopp'),$this->tag);
 		$this->uri = urlencode($this->tag);
 
 		global $wpdb;
@@ -1375,7 +1372,7 @@ class RelatedProducts extends SmartCollection {
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
 
-		// Use the current product if available
+		// Use the current product is available
 		if (!empty($Product->id))
 			$this->product = ShoppProduct();
 
@@ -1383,7 +1380,7 @@ class RelatedProducts extends SmartCollection {
 		if (isset($options['product'])) {
 			if ($options['product'] == "recent-cartitem") 			// Use most recently added item in the cart
 				$this->product = new Product($Cart->Added->product);
-			elseif (preg_match('/^[\d+]$/',$options['product']) !== false) 	// Load by specified id
+			elseif (preg_match('/^[\d+]$/',$options['product'])) 	// Load by specified id
 				$this->product = new Product($options['product']);
 			else
 				$this->product = new Product($options['product'],'slug'); // Load by specified slug
@@ -1424,6 +1421,67 @@ class RelatedProducts extends SmartCollection {
 		$this->loading = compact('columns','joins','where','groupby','order');
 
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
+		if (isset($options['controls']) && value_is_true($options['controls']))
+			unset($this->controls);
+	}
+
+}
+
+// @todo Document AlsoBoughtProducts
+class AlsoBoughtProducts extends SmartCollection {
+	static $_slug = "alsobought";
+	var $product = false;
+
+	function smart ($options=array()) {
+		$this->slug = self::$_slug;
+		$this->name = __('Customers also bought&hellip;','Shopp');
+		$this->uri = urlencode($slug);
+		$this->controls = false;
+
+		$where = array("true=false");
+		$scope = array();
+
+		$Product = ShoppProduct();
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
+
+		// Use the current product is available
+		if (!empty($Product->id))
+			$this->product = ShoppProduct();
+
+		// Or load a product specified
+		if (isset($options['product'])) {
+			if ($options['product'] == "recent-cartitem") { 			// Use most recently added item in the cart
+				$this->product = new Product($Cart->Added->product);
+			} elseif (preg_match('/^[\d+]$/',$options['product'])) {	// Load by specified id
+				$this->product = new Product($options['product']);
+			} else {
+				$this->product = new Product($options['product'],'slug'); // Load by specified slug
+			}
+		}
+
+		if (empty($this->product->id)) return ($this->loading = compact('where'));
+		$this->name = sprintf(__('Customers that bought "%s" also bought&hellip;','Shopp'),$this->product->name);
+
+ 		// Pearson correlation coefficient
+		// @todo Add WP_Cache support
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+		$matches = DB::query("SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
+						FROM (
+							SELECT n1.product AS p1,n2.product AS p2,SUM(n1.quantity) AS sum1,SUM(n2.quantity) AS sum2,
+								SUM(n1.quantity * n1.quantity) AS sum1sq,SUM(n2.quantity * n2.quantity) AS sum2sq,
+								SUM(n1.quantity * n2.quantity) AS psum,COUNT(*) AS n
+							FROM $purchased AS n1
+							LEFT JOIN $purchased AS n2 ON n1.purchase = n2.purchase
+							WHERE n1.product != n2.product
+							GROUP BY n1.product,n2.product
+						) AS step1
+						ORDER BY r DESC, n DESC",'array','col','p2');
+		if (empty($matches)) return ($this->loading = compact('where'));
+
+		$where = array("p.id IN (".join(',',$matches).")");
+		$this->loading = compact('columns','joins','where','groupby','order');
+
 		if (isset($options['controls']) && value_is_true($options['controls']))
 			unset($this->controls);
 	}

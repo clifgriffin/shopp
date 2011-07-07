@@ -111,7 +111,8 @@ abstract class GatewayFramework {
 		$this->_loadcards();
 
 		// @deprecated
-		if ($this->myorder()) $this->actions();
+		if ($this->myorder() && method_exists($this,'actions'))
+			$this->actions();
 
 		$gateway = sanitize_title_with_dashes($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
@@ -584,7 +585,7 @@ class PayCard {
 
 	function checksum ($number) {
 		$code = strrev($number);
-		for ($i = 0; $i < strlen($code); $i++) {
+		for ($cs = $i = 0; $i < strlen($code); $i++) {
 			$d = intval($code[$i]);
 			if ($i & 1) $d *= 2;
 			$cs += $d % 10;
