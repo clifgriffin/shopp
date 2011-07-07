@@ -45,13 +45,21 @@ function shopp_register_collection ($name) {
 }
 
 
-function shopp_add_product_category ($product,$category) {}
-function shopp_rmv_product_category ($product,$category) {}
+function shopp_add_product_category ( $category ) {}
+function shopp_rmv_product_category ( $category ) {}
 
-function shopp_categories () {}
-function shopp_subcategories ($category) {}
-function shopp_product_categories ($product) {}
-function shopp_category_products ($category) {}
+function shopp_add_product_tag ($tag) {}
+function shopp_rmv_product_tag ($tag) {}
+
+function shopp_add_product_term ( $term, $taxonomy ) {}
+function shopp_rmv_product_term ( $term, $taxonomy ) {}
+
+function shopp_product_categories () {}
+function shopp_subcategories ( $category ) {}
+
+function shopp_category_products ( $category ) {}
+function shopp_tag_products ( $tag ) {}
+function shopp_term_products ( $term, $taxonomy ) {}
 
 function shopp_catalog_count () {}
 function shopp_category_count ($category) {}
