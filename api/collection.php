@@ -23,11 +23,25 @@
 function shopp_register_collection ($name) {
 	global $Shopp;
 	if (empty($Shopp)) return;
-	$Shopp->Collections[] = $name;
 	$slug = $name::$_slug;
+	$Shopp->Collections[$slug] = $name;
 
 	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
 	add_permastruct('shopp_collection', Storefront::slug()."/%shopp_collection%", true);
+
+	$apicall = create_function ('$result, $options, $O',
+		'global $Shopp; $Shopp->Category = new '.$name.'($options);
+		return ShoppCatalogThemeAPI::category($result, $options, $O);'
+	);
+
+	if (isset($name::$_altslugs) && is_array($name::$_altslugs)) $slugs = $name::$_altslugs;
+	else $slugs = array($slug);
+
+	foreach ($slugs as $collection) {
+		// @deprecated Remove the catalog-products tag in favor of catalog-collection
+		add_filter( 'shopp_themeapi_catalog_'.$collection.'products', $apicall, 10, 3 );
+		add_filter( 'shopp_themeapi_catalog_'.$collection.'collection', $apicall, 10, 3 );
+	}
 }
 
 
