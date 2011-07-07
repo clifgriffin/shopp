@@ -59,7 +59,7 @@ class AdminFlow extends FlowController {
 		'tags'=>'shopp_categories',
 		'promotions'=>'shopp_promotions',
 		'settings'=>'shopp_settings',
-		'settings-checkout'=>'shopp_settings_checkout',
+		'settings-preferences'=>'shopp_settings',
 		'settings-payments'=>'shopp_settings_payments',
 		'settings-shipping'=>'shopp_settings_shipping',
 		'settings-taxes'=>'shopp_settings_taxes',
@@ -101,14 +101,14 @@ class AdminFlow extends FlowController {
 		$this->addpage('tags',__('Tags','Shopp'),'Categorize','Editing a Tag','products');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
 		// $this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
-		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings','settings');
+		$this->addpage('settings',__('Setup','Shopp'),'Setup','General Settings','settings');
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-pages',__('Pages','Shopp'),'Setup','Page Settings',"settings");
 		$this->addpage('settings-images',__('Images','Shopp'),'Setup','Image Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
-		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
+		$this->addpage('settings-preferences',__('Preferences','Shopp'),'Setup','Store Preferences',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// Action hook for adding custom third-party pages
@@ -117,8 +117,6 @@ class AdminFlow extends FlowController {
 		reset($this->Pages);
 		$this->MainMenu = key($this->Pages);
 
-		global $menu;
-		$menu[50] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
 		wp_enqueue_style('shopp.menu',SHOPP_ADMIN_URI.'/styles/menu.css',array(),SHOPP_VERSION,'screen');
 
 		// Set the currently requested page and menu
@@ -138,7 +136,7 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function menus () {
-		global $Shopp;
+		global $Shopp,$menu;
 
 		$access = $this->caps['main'];
 		if ($this->maintenance()) $access = 'manage_options';
@@ -147,17 +145,19 @@ class AdminFlow extends FlowController {
 		$this->topmenu('catalog',__('Catalog','Shopp'),$access,'products',50);
 		$this->topmenu('setup',__('Setup','Shopp'),$access,'settings',50);
 
+		// Add after the Shopp menus to avoid being purged by the duplicate separator check
+		$menu[49] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
+
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
-		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array($this, 'behaviors'),50);
+		add_action('admin_enqueue_scripts', array($this, 'behaviors'),50);
 
 		if ($this->maintenance()) return;
 
 		// Add contextual help menus
-		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
-
+		foreach ($this->Menus as $pagename => $item) $this->help($pagename,$item);
 	}
 
 	/**
@@ -291,7 +291,6 @@ class AdminFlow extends FlowController {
 	function behaviors () {
 		global $Shopp,$wp_version,$hook_suffix;
 		if (!in_array($hook_suffix,$this->Menus)) return;
-
 		$this->admin_css();
 
 		shopp_enqueue_script('shopp');

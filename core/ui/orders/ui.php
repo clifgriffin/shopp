@@ -60,10 +60,11 @@ function manage_meta_box ($Purchase) {
 
 		<div class="alignright">
 			<div class="inline-fields">
-				<span><select name="reason">
-							<option>Select a reason...</option>
-							<option>Not as described</option>
-						</select><br />
+				<span>
+				<select name="reason">
+					<option>&mdash; Select &mdash;</option>
+					<?php echo menuoptions(shopp_setting('cancel_reasons'),false,true); ?>
+				</select><br />
 				<label>${reason}</label>
 				</span>
 

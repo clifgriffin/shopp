@@ -2,7 +2,7 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<div class="icon32"></div>
-	<h2><?php _e('Settings','Shopp'); ?></h2>
+	<h2><?php _e('Shopp Setup','Shopp'); ?></h2>
 
 	<form name="settings" id="general" action="<?php echo $this->url; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-activation'); ?>
@@ -24,11 +24,6 @@
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 
 		<table class="form-table">
-			<tr>
-				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[merchant_email]" value="<?php echo esc_attr(shopp_setting('merchant_email')); ?>" id="merchant_email" size="30" /><br />
-	            <?php _e('Enter the email address for the owner of this shop to receive e-mail notifications.','Shopp'); ?></td>
-			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="base_operations"><?php _e('Base of Operations','Shopp'); ?></label></th>
 				<td><select name="settings[base_operations][country]" id="base_operations">
@@ -76,10 +71,21 @@
 	            <?php _e('Select the markets you are selling products to.','Shopp'); ?></td>
 			</tr>
 			<tr>
-				<th scope="row" valign="top"><label for="dashboard-toggle"><?php _e('Dashboard Widgets','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[dashboard]" value="off" /><input type="checkbox" name="settings[dashboard]" value="on" id="dashboard-toggle"<?php if (shopp_setting('dashboard') == "on") echo ' checked="checked"'?> /><label for="dashboard-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
-	            <?php _e('Check this to display store performance metrics and more on the WordPress Dashboard.','Shopp'); ?></td>
+				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th>
+				<td><input type="text" name="settings[merchant_email]" value="<?php echo esc_attr(shopp_setting('merchant_email')); ?>" id="merchant_email" size="30" /><br />
+	            <?php _e('Enter the email address for the owner of this shop to receive e-mail notifications.','Shopp'); ?></td>
 			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="business-name"><?php _e('Business Name','Shopp'); ?></label></th>
+				<td><input type="text" name="settings[business_name]" value="<?php echo esc_attr(shopp_setting('business_name')); ?>" id="business-name" size="54" /><br />
+	            <?php _e('Enter the legal name of your company or organization.','Shopp'); ?></td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="business-address"><?php _e('Business Address','Shopp'); ?></label></th>
+				<td><textarea name="settings[business_address]" id="business-address" cols="47" rows="4"><?php echo esc_attr(shopp_setting('business_address')); ?></textarea><br />
+	            <?php _e('Enter the mailing address for your business.','Shopp'); ?></td>
+			</tr>
+
 		</table>
 
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>

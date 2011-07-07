@@ -35,10 +35,10 @@ class Setup extends AdminController {
 		$pages = explode("-",$_GET['page']);
 		$this->screen = end($pages);
 		switch ($this->screen) {
-			case "checkout":
+			case "preferences":
 				shopp_enqueue_script('jquery-tmpl');
-				shopp_enqueue_script('status-labels');
-				shopp_localize_script( 'status-labels', '$sl', array(
+				shopp_enqueue_script('labelset');
+				shopp_localize_script( 'labelset', '$sl', array(
 					'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
 				));
 				break;
@@ -149,16 +149,16 @@ class Setup extends AdminController {
 		switch($this->screen) {
 			case "catalog": 		$this->catalog(); break;
 			case "cart": 			$this->cart(); break;
-			case "checkout": 		$this->checkout(); break;
 			case "payments": 		$this->payments(); break;
 			case "shipping": 		$this->shipping(); break;
 			case "taxes": 			$this->taxes(); break;
 			case "pages":			$this->pages(); break;
-			case "presentation":	$this->presentation(); break;
 			case "images":			$this->images(); break;
+			case "presentation":	$this->presentation(); break;
+			case "preferences": 	$this->preferences(); break;
 			case "system":			$this->system(); break;
 			case "update":			$this->update(); break;
-			default: 				$this->general();
+			default: 				$this->setup();
 		}
 	}
 
@@ -170,7 +170,7 @@ class Setup extends AdminController {
 	 *
 	 * @return void
 	 **/
-	function general () {
+	function setup () {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -251,7 +251,7 @@ class Setup extends AdminController {
 		$targets = shopp_setting('target_markets');
 		if (!$targets) $targets = array();
 
-		include(SHOPP_ADMIN_PATH."/settings/settings.php");
+		include(SHOPP_ADMIN_PATH."/settings/setup.php");
 	}
 
 	function presentation () {
@@ -313,7 +313,7 @@ class Setup extends AdminController {
 		include(SHOPP_ADMIN_PATH."/settings/presentation.php");
 	}
 
-	function checkout () {
+	function preferences () {
 		global $Shopp;
 
 		$db =& DB::get();
@@ -327,7 +327,7 @@ class Setup extends AdminController {
 		if ($next->id > $next_setting) $next_setting = $next->id;
 
 		if (!empty($_POST['save'])) {
-			check_admin_referer('shopp-settings-checkout');
+			check_admin_referer('shopp-settings-preferences');
 
 			$next_order_id = $_POST['settings']['next_order_id'] = intval($_POST['settings']['next_order_id']);
 
@@ -360,9 +360,36 @@ class Setup extends AdminController {
 			'31536000' => __('1 year','Shopp'),
 			);
 
+		$states = array(
+			__('Map the label to an order state:','Shopp') => array(
+				'' => '',
+				'review' => __('review','Shopp'),
+				'authed' => __('authed','Shopp'),
+				'captured' => __('captured','Shopp'),
+				'shipped' => __('shipped','Shopp'),
+				'refunded' => __('refunded','Shopp'),
+				'voided' => __('voided','Shopp'),
+				'closed' => __('closed','Shopp')
+			)
+		);
 		$statusLabels = shopp_setting('order_status');
+		$reasonLabels = shopp_setting('cancel_reasons');
 
-		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
+		if (empty($reasonLabels)) $reasonLabels = array(
+			__('Not as described or expected','Shopp'),
+			__('Wrong size','Shopp'),
+			__('Found better prices elsewhere','Shopp'),
+			__('Product is missing parts','Shopp'),
+			__('Product is defective or damaaged','Shopp'),
+			__('Took too long to deliver','Shopp'),
+			__('Item out of stock','Shopp'),
+			__('Customer request to cancel','Shopp'),
+			__('Item discontinued','Shopp'),
+			__('Other reason (describe below)','Shopp')
+		);
+
+
+		include(SHOPP_ADMIN_PATH."/settings/preferences.php");
 	}
 
 	/**

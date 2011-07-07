@@ -572,12 +572,11 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .stamp.shipped .type { color: #060; border-color: #060; }
 .stamp.void .type { color: #444; border-color: #444; text-decoration: line-through; }
 
-#order-statuslabels li { position:relative; }
-#order-statuslabels li input { width:120px;padding-right:20px;margin-right:5px; }
-
-#order-statuslabels button { display:inline-block;background:none;margin:0;border:none;padding:0;width:18px;height:22px;margin-top:-3px;vertical-align:middle; }
-#order-statuslabels button img { margin-left:-2px; }
-#order-statuslabels button.delete { position:relative;left:-25px;margin-right:-18px; }
+.labelset li { position:relative; }
+.labelset li.nonum { list-style: none; }
+.labelset li input { padding-right:20px;margin-right:5px; }
+.labelset button { display:inline-block;background:none;margin:0;border:none;padding:0;width:18px;height:22px;margin-top:-3px;vertical-align:middle; }
+.labelset button.delete { position:absolute; left: -24px; top: 0;}
 #print-button { position:absolute;right:15px; }
 
 .shopp div.inline div { display: inline; }
