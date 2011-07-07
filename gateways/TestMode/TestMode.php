@@ -43,10 +43,6 @@ class TestMode extends GatewayFramework {
 		add_action('shopp_testmode_void',array(&$this,'void'));
 	}
 
-	function actions () {
-		add_action('shopp_process_order',array(&$this,'process'));
-	}
-
 	/**
 	 * Process the order
 	 *
@@ -66,43 +62,34 @@ class TestMode extends GatewayFramework {
 	}
 
 	function capture (CaptureOrderEvent $Capture) {
-		$Purchase = new Purchase($Capture->txnid,'txnid');
-
-		if ('on' == $this->settings['error'])
-			return shopp_add_order_event($Purchase->id,'capture-fail',array(
-				'amount' => $Capture->amount,
-				'error' => 0,
-				'message' => __("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),
-				'gateway' => $this->module
-			));
-
-		return shopp_add_order_event($Purchase->id,'captured',array(
-			'txnid' => $Purchase->txnid,
-			'amount' => $Capture->amount,
-			'gateway' => $this->module
-		));
-
+		$this->handler('captured',$Capture);
 	}
 
 	function refund (RefundOrderEvent $Refund) {
-		$Purchase = new Purchase($Refund->txnid,'txnid');
+		$this->handler('refunded',$Refund);
+	}
 
-		if ('on' == $this->settings['error'])
-			return shopp_add_order_event($Purchase->id,'refund-fail',array(
-				'amount' => $Refund->amount,
+	function cancel (VoidOrderEvent $Void) {
+		$this->handler('voided',$Void);
+	}
+
+	function handler ($type,$Event) {
+
+		if ('on' == $this->settings['error']) {
+			return shopp_add_order_event($Event->order,$Event->type.'-fail',array(
+				'amount' => $Event->amount,
 				'error' => 0,
 				'message' => __("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),
 				'gateway' => $this->module
 			));
+		}
 
-		return shopp_add_order_event($Purchase->id,'refunded',array(
-			'txnid' => $Purchase->txnid,
-			'amount' => $Refund->amount,
+		shopp_add_order_event($Event->order,$type,array(
+			'txnid' => $Event->txnid,
+			'amount' => $Event->amount,
 			'gateway' => $this->module
 		));
-
 	}
-
 
 	/**
 	 * Render the settings for this gateway
