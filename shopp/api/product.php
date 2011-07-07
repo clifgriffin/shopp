@@ -25,20 +25,20 @@
 	 **/
 	function shopp_add_product ( $data = array() ) {
 		if ( empty($data) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Empty data parameter.",'shopp_add_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Empty data parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$problems = _validate_product_data ( $data );
 
 		if ( ! empty($problems) ) {
-			if(SHOPP_DEBUG) new ShoppError("Problems detected: "._object_r($problems),'shopp_add_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError("Problems detected: "._object_r($problems),__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new $Product();
 
 		// Set Product publish status
-		if ( isset($data['publish']) && isset($data['publish']['flag']) && true === $data['publish']['flag'] ) {
+		if ( isset($data['publish']) && isset($data['publish']['flag']) && $data['publish']['flag'] ) {
 			if ( isset($data['publish']['month'])
 				&& isset($data['publish']['day'])
 				&& isset($data['publish']['year'])
@@ -62,11 +62,10 @@
 		} else {
 			$Product->publish = 0;
 		}
-		unset($data['publish']);
 
 		// Set Product name
 		if ( empty($data['name']) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Missing product name.",'shopp_add_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing product name.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		}
 		$Product->name = $data['name'];
 
@@ -75,11 +74,12 @@
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($Product->name);
 		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, $Product->posttype(), 0);
 
-		$Product->updates($data, array('meta','categories','prices','tags'));
+		$Product->updates($data, array('meta','categories','prices','tags', 'publish'));
 		$Product->save();
+		Product::publishset(array($Product->id), $data['publish']['flag'] ? 'publish' : 'draft');
 
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Failure to create new Product object.",'shopp_add_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Failure to create new Product object.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -116,16 +116,20 @@
 
 		// Create Prices
 		if ( isset($data['single']) ) {
+			$table = DatabaseObject::tablename(Price::$table);
+			db::query("DELETE FROM $table WHERE product=$product AND context='product'");
+
 			$Price = new Price();
+			$Price->context = 'product';
 			$Price->product = $Product->id;
 			$Price->save();
-			$Price = shopp_product_set_variant( $Price, $data );
+
 			$Product->prices = array($Price);
 			$subjects['product'] = array($data['single']);
 
 		} else if ( isset($data['variants']) ) {  // Construct and Populate variants
 			if ( ! isset($data['variants']['menu']) || empty($data['variants']['menu']) ) {
-				if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: variants menu is empty.",'shopp_add_product',SHOPP_DEBUG_ERR);
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variants menu is empty.",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
 			}
 			$Product->prices = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'] );
@@ -135,7 +139,7 @@
 		// Create Addons
 		if ( isset($data['addons']) ) {
 			if ( ! isset($data['addons']['menu']) || empty($data['addons']['menu']) ) {
-				if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: addons menu is empty",'shopp_add_product',SHOPP_DEBUG_ERR);
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: addons menu is empty",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
 			}
 
@@ -143,14 +147,16 @@
 			$subjects['addons'] = $data['addons'];
 		}
 
+		$contexts = array( 'addons' => 'addon', 'product' => 'product', 'variants' => 'variant' );
 		foreach ( $subjects as $pricetype => $variants ) {
+
 			// apply settings for each priceline
 			foreach ( $variants as $key => $variant ) {
 				if ( ! is_numeric($key) ) continue;
 
 				// 'option' => 'array',	// array option example: Color=>Blue, Size=>Small
 				if ( ! isset($variant['option']) || empty($variant['option']) ) {
-					if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: variant $key missing variant options.",'shopp_add_product',SHOPP_DEBUG_ERR);
+					if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variant $key missing variant options.",__FUNCTION__,SHOPP_DEBUG_ERR);
 					return false;
 				}
 
@@ -168,59 +174,15 @@
 				}
 
 				if ( null === $price ) {
-					if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Variant $key not valid for this option set.",'shopp_add_product',SHOPP_DEBUG_ERR);
+					if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant $key not valid for this option set.",__FUNCTION__,SHOPP_DEBUG_ERR);
 					return false;
 				}
 
-				// 'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( Price::types() )
-				if ( ! isset($variant['type']) ) {
-					if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Required variant type missing.",'shopp_add_product',SHOPP_DEBUG_ERR);
-					return false;
-				}
+				// modify each priceline
+				$Product->prices[$index] = shopp_product_set_variant ( $Product->prices[$index], $variant, $contexts[$pricetype] );
 
-				$Product->prices[$index]->type = $variant['type'];
-
-				// 'taxed' => 'bool',		// bool - flag variant as taxable
-				if ( ! isset($variant['taxed']) ) $Product->prices[$index]->tax == "on"; // default to on
-				else $Product->prices[$index]->tax = ( true == $variant['taxed'] ? "on" : "off" );
-
-				// 'price' => 'float',		// float - Price of variant
-				if ( isset($variant['price']) ) {
-					$Product->prices[$index] = shopp_product_variant_set_price($Product->prices[$index], $variant['price']);
-				}
-
-				// 'sale' => 'sale',		// array - flag => bool, price => Sale price of variant
-				if ( isset($variant['sale']) && isset($variant['sale']['flag']) ) {
-					$Product->prices[$index] = shopp_product_variant_set_saleprice($Product->prices[$index], $variant['sale'], isset($variant['sale']['price']) ? $variant['sale']['price'] : 0.0 );
-				}
-
-				// 'shipping' => 'shipping', 	// array - flag => bool, fee, weight, height, width, length
-				if ( isset($variant['shipping']) && isset($variant['shipping']['flag']) ) {
-					$Product->prices[$index] = shopp_product_variant_set_shipping ( $Product->prices[$index], $variant['shipping']['flag'], $variant['shipping'] );
-				}
-
-				// 'inventory'=> 'inventory',	// array - flag => bool, stock, sku
-				if ( isset($variant['inventory']) && isset($variant['inventory']['flag']) ) {
-					$Product->prices[$index] = shopp_product_variant_set_inventory ( $Product->prices[$index], $variant['inventory']['flag'], $variant['inventory'] );
-				}
-
-				// 'donation'=> 'donation',	// (optional - needed only for Donation type) array of settings (variable, minumum)
-				if ( 'Donation' == $variant['type'] ) {
-					if ( ! isset($variant['donation']) ) {
-						if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Variant $key is donation type but no donation settings exist in the data.",'shopp_add_product',SHOPP_DEBUG_ERR);
-						return false;
-					}
-					$Product->prices[$index] = shopp_product_variant_set_donation ( $Product->prices[$index], $variant['donation'] );
-				}
-
-				// 'subscription'=>'subscription'	// (optional - needed only for Subscription type) array of subscription settings
-				if ( 'Subscription' == $variant['type'] ) {
-					if ( ! isset($variant['subscription']) ) {
-						if(SHOPP_DEBUG) new ShoppError("shopp_add_product failed: Variant $key is subscription type, but no subscription settings exist in data.",'shopp_add_product',SHOPP_DEBUG_ERR);
-						return false;
-					}
-					$Product->prices[$index] = shopp_product_variant_set_subscription ( $Product->prices[$index], $variant['subscription'] );
-				}
+				// save priceline settings
+				shopp_set_meta ( $Product->prices[$index]->id, 'price', 'settings', $Product->prices[$index]->settings );
 
 				// We have everything we need to complete this price line
 				$Product->prices[$index]->save();
@@ -438,13 +400,13 @@
 	 **/
 	function shopp_product ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product failed: Product id required.",'shopp_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product failed: Unable to load product $product.",'shopp_product',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data();
@@ -464,13 +426,13 @@
 	 **/
 	function shopp_product_publish ( $product = false, $flag = false, $datetime = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_publish failed: Product id required.",'shopp_product_publish',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_publish failed: Unable to load product $product.",'shopp_product_publish',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -482,8 +444,9 @@
 				$Product->status = 'future';
 			}
 		}
-
-		return $Product->save();
+		$Product->save();
+		Product::publishset(array($Product->id), $flag ? 'publish' : 'draft');
+		return true;
 
 	}
 
@@ -498,13 +461,13 @@
 	 **/
 	function shopp_product_specs ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_specs failed: Product id required.",'shopp_product_specs',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_specs failed: Unable to load product $product.",'shopp_product_specs',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data(array('specs'));
@@ -522,13 +485,13 @@
 	 **/
 	function shopp_product_variants ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variants failed: Product id required.",'shopp_product_variants',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variants failed: Unable to load product $product.",'shopp_product_variants',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data(array('prices'));
@@ -551,13 +514,13 @@
 	 **/
 	function shopp_product_addons ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_addons failed: Product id required.",'shopp_product_addons',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_addons failed: Unable to load product $product.",'shopp_product_addons',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data(array('prices'));
@@ -580,12 +543,12 @@
 	 **/
 	function shopp_product_variant ( $variant = false ) {
 		if ( false === $variant ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variant failed: Variant id required.",'shopp_product_variant',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Price = new Price($variant);
 		if ( empty($Price->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variant failed: Unable to load variant $variant.",'shopp_product_variant',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load variant $variant.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		return $Price;
@@ -616,13 +579,13 @@
 	 **/
 	function shopp_product_variant_options ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variant_options failed: Product id required.",'shopp_product_variant_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variant_options failed: Unable to load product $product.",'shopp_product_variant_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data('summary');
@@ -653,13 +616,13 @@
 	 **/
 	function shopp_product_addon_options ( $product = false ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_addon_options failed: Product id required.",'shopp_product_addon_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_addon_options failed: Unable to load product $product.",'shopp_product_addon_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data('summary');
@@ -724,16 +687,16 @@
 	 **/
 	function shopp_product_add_terms ( $product = false, $terms = array(), $taxonomy = 'shopp_category', $behavior = 'append' ) {
 		if ( false === $product ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_add_terms failed: Product id required.",'shopp_product_add_terms',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_add_terms failed: Product id $product not found.",'shopp_product_add_terms',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		if ( ! taxonomy_exists($taxonomy) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_add_terms failed: No such taxonomy, $taxonomy.",'shopp_product_add_terms',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such taxonomy, $taxonomy.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -757,7 +720,7 @@
 	 **/
 	function shopp_product_set_specs ( $product = false, $specs = array() ) {
 		if ( empty($specs) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_specs failed: No specs set.",'shopp_product_set_specs',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No specs set.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -778,16 +741,16 @@
 	 **/
 	function shopp_product_set_spec ( $product = false, $name = '', $value = '' ) {
 		if ( false === $product) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_spec failed: Product id required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		if ( empty($name) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_spec failed: Spec name required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Spec name required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_spec failed: Product id $product not found.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -796,39 +759,142 @@
 
 	function shopp_product_rmv_spec ( $product = false, $name = '' ) {
 		if ( false === $product) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_rmv_spec failed: Product id required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		if ( empty($name) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_rmv_spec failed: Spec name required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Spec name required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_rmv_spec failed: Product id $product not found.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		return shopp_rmv_product_meta ( $product, $name, 'spec' );
 	}
 
-	function shopp_product_set_variant ( $variant, $data ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_addon ( $addon, $data ) {/*
-		TODO implement
-	*/}
+	function shopp_product_set_variant ( $variant = false, $data = array(), $context = 'variant' ) {
+		$context = ( 'variant' == $context ? 'variation' : $context );
+		$save = true;
+		if ( is_object($variant) && is_a($variant, 'Price') ) {
+			$Price = $variant;
+			$save = false;
+		} else {
+			if ( false == $variant ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant id required.", __FUNCTION__, SHOPP_DEBUG_ERR);
+				return false;
+			}
+			$Price = new Price($variant);
+			if ( empty($Price->id) || $Price->context != $context ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such $context with id $variant.", __FUNCTION__, SHOPP_DEBUG_ERR);
+			}
+		}
+
+		// 'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( Price::types() )
+		if ( ! isset($data['type']) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Required variant type missing.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		$Price->type = $data['type'];
+
+		// 'taxed' => 'bool',		// bool - flag variant as taxable
+		if ( ! isset($data['taxed']) ) $Price->tax == "on"; // default to on
+		else $Price->tax = ( true == $data['taxed'] ? "on" : "off" );
+
+		// 'price' => 'float',		// float - Price of variant
+		if ( isset($data['price']) ) {
+			$Price = shopp_product_variant_set_price ($Price, $data['price'], $context);
+		}
+
+		// 'sale' => 'sale',		// array - flag => bool, price => Sale price of variant
+		if ( isset($data['sale']) && isset($data['sale']['flag']) ) {
+			$Price = shopp_product_variant_set_saleprice ($Price, $data['sale'], isset($data['sale']['price']) ? $data['sale']['price'] : 0.0, $context );
+		}
+
+		// 'shipping' => 'shipping', 	// array - flag => bool, fee, weight, height, width, length
+		if ( isset($data['shipping']) && isset($data['shipping']['flag']) ) {
+			$Price = shopp_product_variant_set_shipping ( $Price, $data['shipping']['flag'], $data['shipping'], $context );
+		}
+
+		// 'inventory'=> 'inventory',	// array - flag => bool, stock, sku
+		if ( isset($data['inventory']) && isset($data['inventory']['flag']) ) {
+			$Price = shopp_product_variant_set_inventory ( $Price, $data['inventory']['flag'], $data['inventory'], $context );
+		}
+
+		// 'donation'=> 'donation',	// (optional - needed only for Donation type) array of settings (variable, minumum)
+		if ( 'Donation' == $data['type'] ) {
+			if ( ! isset($data['donation']) ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant $key is donation type but no donation settings exist in the data.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+			$Price = shopp_product_variant_set_donation ( $Price, $data['donation'], $context );
+		}
+
+		// 'subscription'=>'subscription'	// (optional - needed only for Subscription type) array of subscription settings
+		if ( 'Subscription' == $data['type'] ) {
+			if ( ! isset($data['subscription']) ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant $key is subscription type, but no subscription settings exist in data.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+			$Price = shopp_product_variant_set_subscription ( $Price, $data['subscription'], $context );
+		}
+
+		if ( $save ) return $Price->save();
+		return $Price;
+	}
+
+
+	function shopp_product_set_addon ( $addon = false, $data = array() ) {
+		return shopp_product_set_variant ( $addon, $data, 'addon' );
+	}
 
 	// Product-wide flags
-	function shopp_product_set_featured ( $product, $flag ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_packaging ( $product, $flag ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_processing ( $product, $flag, $settings ) {/*
-		TODO implement
-	*/}
+	function shopp_product_set_featured ( $product = false, $flag = false ) {
+		if ( false === $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Product = new Product($product);
+		if ( empty($Product->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return Product::featureset ( array($product), $flag ? "on" : "off");
+	}
+
+	function shopp_product_set_packaging ( $product, $flag ) {
+		if ( false === $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Product = new Product($product);
+		if ( empty($Product->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_set_product_meta ( $product, 'packaging', $flag ? 'on' : 'off' );
+
+	}
+
+	function shopp_product_set_processing ( $product, $flag, $settings ) {
+		if ( false === $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Product = new Product($product);
+		if ( empty($Product->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		/*
+			TODO implement
+		*/
+	}
 
 	// Non-variant setters
 
@@ -849,30 +915,147 @@
 		return shopp_product_variant_set_type (  $Price->id, $type, 'product' );
 	}
 
-	function shopp_product_set_taxed ( $product, $taxed ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_price ( $product, $price ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_saleprice ( $product, $flag, $price ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_shipping ( $product, $shipped, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_inventory ( $product, $inventory, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_stock ( $product, $stock, $restock ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_donation ( $product, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_set_subscription ( $product, $settings ) {/*
-		TODO implement
-	*/}
+	function shopp_product_set_taxed ( $product = false, $taxed = true ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_taxed instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		return shopp_product_variant_set_taxed ( $Price->id, $taxed, $context = 'product' );
+	}
+
+	function shopp_product_set_price ( $product = false, $price = 0.0 ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_price instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		return shopp_product_variant_set_price ( $Price->id, $price, 'product' );
+	}
+
+	function shopp_product_set_saleprice ( $product = false, $flag = false, $price = 0.0 ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_saleprice instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_saleprice ( $Price->id, $flag, $price, 'product' );
+	}
+
+	function shopp_product_set_shipping ( $product = false, $shipped = false, $settings = array() ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_shipping instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_shipping ( $Price->id, $shipped, $settings, 'product' );
+	}
+
+	function shopp_product_set_inventory ( $product = false, $inventory = false, $settings = array() ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_inventory instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_inventory ( $Price->id, $inventory, $settings, 'product' );
+	}
+
+	function shopp_product_set_stock ( $product = false, $stock = 0, $action = 'adjust' ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_stock instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_stock ( $Price->id, $stock, $action, 'product' );
+	}
+
+	function shopp_product_set_donation ( $product = false, $settings = array() ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_donation instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_donation ( $Price->id, $settings, 'product' );
+	}
+
+	function shopp_product_set_subscription ( $product = false, $settings = array() ) {
+		if ( false == $product ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		if ( is_array(shopp_product_variant_options($product)) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product $product has variants. Set using shopp_product_variant_set_subscription instead.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Price = new Price(array('product' => $product, 'context' => 'product'));
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		return shopp_product_variant_set_subscription ( $Price->id, $settings, 'product' );
+	}
 
 	/**
 	 * shopp_product_set_variant_options - Creates a complete set of variant product options on a specified product, by letting you
@@ -892,12 +1075,12 @@
 	 **/
 	function shopp_product_set_variant_options ( $product = false, $options = array() ) {
 		if ( ! $product || empty($options) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_variant_options failed: Missing required parameters.",'shopp_product_set_variant_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing required parameters.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_variant_options failed: Product not found for product id $product.",'shopp_product_set_variant_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product not found for product id $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data( array( 'summary' ) );
@@ -992,7 +1175,7 @@
 		}
 
 		if ( ! in_array($type, $types) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_variant_set_type failed: Invalid type $type.",'shopp_product_variant_set_type',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid type $type.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -1230,14 +1413,15 @@
 			$variant_settings = array();
 		}
 
-		if ( ! isset($variant_settings['donate']) ) {
-			$variant_settings['donate'] = array();
+		if ( ! isset($variant_settings['donation']) ) {
+			$variant_settings['donation'] = array();
 		}
 
-		$variant_settings['donate']['var'] = ( isset($settings['variable']) && $settings['variable'] ? "on" : "off" );
-		$variant_settings['donate']['min'] = ( isset($settings['minimum']) && $settings['minimum'] ? "on" : "off" );
+		$variant_settings['donation']['var'] = ( isset($settings['variable']) && $settings['variable'] ? "on" : "off" );
+		$variant_settings['donation']['min'] = ( isset($settings['minimum']) && $settings['minimum'] ? "on" : "off" );
 
-		$Price->donate = $variant_settings['donate'];
+		$Price->donation = $variant_settings['donation'];
+		$Price->settings = $variant_settings;
 
 		if ( $save ) {
 			return shopp_set_meta ( $variant, 'price', 'settings', $variant_settings );
@@ -1245,33 +1429,6 @@
 		return $Price;
 	}
 
-	// [trial] => on
-	// [recurring] => Array
-	//                         (
-	//                             [trialint] => 1
-	//                             [trialperiod] => d
-	//                             [trialprice] => $10.00
-	//                             [interval] => 2
-	//                             [period] => d
-	//                             [cycles] => 3
-	//                         )
-	// variant subscription settings
-	// $_subscription = array(
-	// 	'trial' => 'trial',
-	// 	'billcycle' => 'billcycle'
-	// );
-	//
-	// // subscriptions billing cycle
-	// $_billcycle = array(
-	// 	'cycle' => 'cycle', // billing cycle
-	// 	'cycles' => 'int'	// number of cycles
-	// );
-	//
-	// // subscription trial settings
-	// $_trial = array(
-	// 	'cycle' => 'cycle',	// trial cycle
-	// 	'price' => 'float'	// price during trial
-	// );
 	function shopp_product_variant_set_subscription ( $variant = false, $settings = array(), $context = 'variant' ) {
 		$context = ( 'variant' == $context ? 'variation' : $context );
 		$save = true;
@@ -1293,15 +1450,54 @@
 			return false;
 		}
 
-		$Price->trial = ( isset($settings['trial']) && $settings['trial'] ? 'on' : 'off' );
+		$Price->trial = "off";
 
+		$variant_settings = shopp_meta( $variant, 'price', 'settings' );
+		if ( ! is_array($variant_settings) ) {
+			$variant_settings = array();
+		}
 
+		if ( isset($settings['trial']) && is_array($settings['trial']) && ! empty($settings['trial']) ) {
+			$Price->trial = "on";
+			foreach ( $settings['trial'] as $name => $setting ) {
+				if ( ! empty($setting) )
+				switch ( $name ) {
+					case "price":
+						$variant_settings['recurring']['trialprice'] = $setting;
+						break;
+					case "cycle":
+						$variant_settings['recurring']['trialint'] = $setting['interval'];
+						$variant_settings['recurring']['trialperiod'] = $setting['period'];
+						break;
+				}
+			}
+		}
 
-		/*
-			TODO implement
-		*/
+		if ( ! isset($settings['billcycle']) || empty($settings['billcycle']) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Billing cycle required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		foreach ( $settings['billcycle'] as $name => $setting ) {
+			if ( ! empty($setting) )
+			switch ( $name ) {
+				case "cycle":
+					$variant_settings['recurring']['interval'] = $setting['interval'];
+					$variant_settings['recurring']['period'] = $setting['period'];
+					break;
+				case "cycles":
+					$variant_settings['recurring']['cycles'] = $setting;
+					break;
+			}
+		}
 
-		if ( $save ) return $Price->save();
+		foreach ( $variant_settings['recurring'] as $property => $setting ) {
+			$Price->{$property} = $setting;
+		}
+		$Price->settings = $variant_settings;
+
+		if ( $save ) {
+			return shopp_set_meta ( $variant, 'price', 'settings', $variant_settings );
+		}
 		return $Price;
 	}
 
@@ -1325,13 +1521,13 @@
 	 **/
 	function shopp_product_set_addon_options ( $product = false, $options = array() ) {
 		if ( ! $product || empty($options) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_addon_options failed: Missing required parameters.",'shopp_product_set_addon_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing required parameters.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
 		$Product = new Product($product);
 		if ( empty($Product->id) ) {
-			if(SHOPP_DEBUG) new ShoppError("shopp_product_set_addon_options failed: Product not found for product id $product.",'shopp_product_set_addon_options',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product not found for product id $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 		$Product->load_data( array( 'summary' ) );
@@ -1385,29 +1581,36 @@
 		return shopp_product_variant_set_type (  $addon, $type, 'addon' );
 	}
 
-	function shopp_product_addon_set_taxed ( $addon, $taxed ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_price ( $addon, $price ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_saleprice ( $addon, $flag, $price ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_shipping ( $addon, $shipped, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_stock ( $variant, $stock, $restock ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_inventory ( $addon, $inventory, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_donation ( $addon, $settings ) {/*
-		TODO implement
-	*/}
-	function shopp_product_addon_set_subscription ( $addon, $settings ) {/*
-		TODO implement
-	*/}
+	function shopp_product_addon_set_taxed ( $addon = false, $taxed = true ) {
+		return shopp_product_variant_set_taxed ( $addon, $taxed, 'addon' );
+	}
+
+	function shopp_product_addon_set_price ( $addon = false, $price = 0.0 ) {
+		return shopp_product_variant_set_price ( $addon, $price, 'addon' );
+	}
+
+	function shopp_product_addon_set_saleprice ( $addon = false, $flag = false, $price = 0.0 ) {
+		return shopp_product_variant_set_saleprice ( $addon, $flag, $price, 'addon' );
+	}
+
+	function shopp_product_addon_set_shipping ( $addon = false, $shipped = false, $settings = array() ) {
+		return shopp_product_variant_set_shipping ( $addon, $shipped, $settings, 'addon' );
+	}
+
+	function shopp_product_addon_set_stock ( $addon = false, $stock = 0, $action = 'adjust' ) {
+		return shopp_product_variant_set_stock ( $addon, $stock, $action, 'addon' );
+	}
+
+	function shopp_product_addon_set_inventory ( $addon = false, $inventory = false, $settings = array() ) {
+		return shopp_product_variant_set_inventory ( $addon, $inventory, $settings, 'addon' );
+	}
+
+	function shopp_product_addon_set_donation ( $addon = false, $settings = array() ) {
+		return shopp_product_variant_set_donation ( $addon, $settings, 'addon' );
+	}
+
+	function shopp_product_addon_set_subscription ( $addon = false, $settings = array() ) {
+		return shopp_product_variant_set_subscription ( $addon, $settings, 'addon' );
+	}
 
 ?>
