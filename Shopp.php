@@ -78,6 +78,7 @@ require('api/customer.php');
 require('api/meta.php');
 require('api/order.php');
 require('api/settings.php');
+require('api/product.php');
 
 // Start up the core
 $Shopp = new Shopp();

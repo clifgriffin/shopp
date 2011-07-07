@@ -578,6 +578,36 @@ class Product extends WPShoppObject {
 		return $key;
 	}
 
+	function optionmap ( $variant = array(), $menus = array(), $type = 'variant', $return = 'all' ) {
+		if ( empty($variant) || empty($menus) ) return;
+
+		$selection = array();
+		$mapping = array();
+		$count = 1;
+		foreach ( $menus as $menuname => $options ) {
+			$mapping[$menuname] = array();
+			foreach ( $options as $option ) {
+				$mapping[$menuname][$option] = $count++;
+			}
+		}
+
+		if ( 'addon' == $type) {
+			$type = key($variant);
+			$option = current($variant);
+
+			$selection[] = $mapping[$type][$option];
+			return array( $this->optionkey($selection), $selection[0], $option, $mapping );
+		}
+
+		foreach ( array_keys($variant) as $menuname ) {
+			$selection[] = $mapping[ $menuname ][ $variant[ $menuname ] ];
+		}
+
+		if ( 'optionkey' == $return ) return $this->optionkey($selection);
+
+		return array($this->optionkey($selection), implode(',', $selection), implode(', ', $variant), $mapping);
+	}
+
 	/**
 	 * save_imageorder()
 	 * Updates the sortorder of image assets (source, featured and thumbnails)
