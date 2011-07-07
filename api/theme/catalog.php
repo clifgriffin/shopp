@@ -12,17 +12,12 @@
 class ShoppCatalogThemeAPI implements ShoppAPI {
 	static $context = 'Catalog';
 	static $register = array(
-		// 'bestsellerproducts' => 'bestseller_products',
-		// 'bestsellersproducts' => 'bestseller_products',
-		// 'bestsellingproducts' => 'bestseller_products',
 		'breadcrumb' => 'breadcrumb',
-		// 'catalogproducts' => 'catalog_products',
 		'categories' => 'categories',
 		'category' => 'category',
 		'categorylist' => 'category_list',
 		'display' => 'type',
 		'type' => 'type',
-		// 'featuredproducts' => 'featured_products',
 		'hascategories' => 'has_categories',
 		'isaccount' => 'is_account',
 		'iscart' => 'is_cart',
@@ -31,33 +26,19 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'islanding' => 'is_catalog',
 		'iscatalog' => 'is_catalog',
 		'isproduct' => 'is_product',
-		// 'newproducts' => 'new_products',
-		// 'onsaleproducts' => 'onsale_products',
 		'orderbylist' => 'orderby_list',
 		'product' => 'product',
-		// 'promoproducts' => 'promo_products',
-		// 'randomproducts' => 'random_products',
-		// 'recentshoppers' => 'recent_shoppers',
-		// 'relatedproducts' => 'related_products',
 		'search' => 'search',
-		// 'searchproducts' => 'search_products',
 		'searchform' => 'search_form',
 		'sideproduct' => 'side_product',
 		'tagproducts' => 'tag_products',
 		'tagcloud' => 'tag_cloud',
 		'url' => 'url',
-		// 'viewedproducts' => 'viewed_products',
 		'views' => 'views',
 		'zoomoptions' => 'zoom_options'
 	);
 
 	static function _apicontext () { return "catalog"; }
-
-	function bestseller_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new BestsellerProducts($options);
-		return self::category($result, $options, $O);
-	}
 
 	function breadcrumb ($result, $options, $O) {
 		global $Shopp;
@@ -127,12 +108,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
-	}
-
-	function catalog_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new CatalogProducts($options);
-		return self::category($result, $options, $O);
 	}
 
 	function categories ($result, $options, $O) {
@@ -353,12 +328,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function type ($result, $options, $O) { return $O->type; }
 
-	function featured_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new FeaturedProducts($options);
-		return self::category($result, $options, $O);
-	}
-
 	function has_categories ($result, $options, $O) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
 		if (empty($O->categories)) $O->load_categories(array('where'=>'true'),$showsmart);
@@ -376,17 +345,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	function is_catalog ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "catalog"); }
 
 	function is_product ($result, $options, $O) { return (is_shopp_page('catalog') && $O->type == "product"); }
-
-	function new_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new NewProducts($options);
-	}
-
-	function onsale_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new OnSaleProducts($options);
-		return self::category($result, $options, $O);
-	}
 
 	function orderby_list ($result, $options, $O) {
 		global $Shopp;
@@ -416,7 +374,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				foreach ($_GET as $key => $value)
 					if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 			}
-			$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
+			$string .= '<select name="s_so" class="shopp-orderby-menu">';
 			$string .= menuoptions($menuoptions,$default,true);
 			$string .= '</select>';
 			$string .= '</form>';
@@ -432,7 +390,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 			foreach($menuoptions as $value => $option) {
 				$label = $option;
-				$href = esc_url($link.'?'.$query.'shopp_orderby='.$value);
+				$href = esc_url(add_query_arg(array('s_so' => $value),$link));
 				$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 			}
 
@@ -471,24 +429,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$content = ob_get_contents();
 		ob_end_clean();
 		return $content;
-	}
-
-	function promo_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new PromoProducts($options);
-		return self::category($result, $options, $O);
-	}
-
-	function random_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new RandomProducts($options);
-		return self::category($result, $options, $O);
-	}
-
-	function related_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new RelatedProducts($options);
-		return self::category($result, $options, $O);
 	}
 
 	function recent_shoppers ($result, $options, $O) {
@@ -587,12 +527,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$before = (!empty($label_before))?'<label>'.$label_before:'<label>';
 		$after = (!empty($label_after))?$label_after.'</label>':'</label>';
 		return $before.$input.$after;
-	}
-
-	function search_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new SearchResults($options);
-		return self::category($result, $options, $O);
 	}
 
 	function search_form ($result, $options, $O) {
@@ -733,13 +667,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	}
 
 	function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
-
-	function viewed_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new ViewedProducts($options);
-		return self::category($result, $options, $O);
-	}
-
 
 	function views ($result, $options, $O) {
 		global $Shopp;

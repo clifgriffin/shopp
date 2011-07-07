@@ -174,7 +174,9 @@ class ProductCollection implements Iterator {
 	}
 
 	function pagelink ($page) {
-		$type = isset($this->tag)?'tag':'category';
+		$type = 'category';
+		if ($this->tag) $type = 'tag';
+		if ($this->smart) $type = 'collection';
 		$alpha = preg_match('/([a-z]|0\-9)/',$page);
 		$prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
 		if ('catalog' == $this->uri) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
@@ -1516,10 +1518,12 @@ class ViewedProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$Storefront = ShoppStorefront();
+		$viewed = array_filter($Storefront->viewed);
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("Recently Viewed","Shopp");
+		$this->name = __('Recently Viewed','Shopp');
 		$this->loading = array();
-		$this->loading['where'] = array("p.id IN (".join(',',$Storefront->viewed).")");
+		if (empty($viewed)) $this->loading['where'] = 'true=false';
+		$this->loading['where'] = array("p.id IN (".join(',',$viewed).")");
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }

@@ -165,6 +165,9 @@ class Storefront extends FlowController {
 			return;
 		}
 
+		// Save the sort order preference
+		$this->browsing['orderby'] = $sortorder;
+
 		if (is_archive() && !empty($category)) {
 			$Shopp->Category = new ProductCategory($category,'slug');
 		}
