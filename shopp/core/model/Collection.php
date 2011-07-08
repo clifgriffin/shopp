@@ -18,6 +18,8 @@ class ProductCollection implements Iterator {
 	var $loaded = false;
 	var $paged = false;
 	var $pagination = false;
+	var $tag = false;
+	var $smart = false;
 	var $products = array();
 	var $total = 0;
 
@@ -654,8 +656,8 @@ class ProductCategory extends ProductTaxonomy {
 
 		$defaultOrder = shopp_setting('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = '';
-		$ordering = isset($Storefront->browsing['orderby'])?
-						$Storefront->browsing['orderby']:$defaultOrder;
+		$ordering = isset($Storefront->browsing['sortorder'])?
+						$Storefront->browsing['sortorder']:$defaultOrder;
 		if ($order !== false) $ordering = $order;
 		switch ($ordering) {
 			case 'bestselling': $order = "sold DESC,p.name ASC"; break;
@@ -975,7 +977,7 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @return string The final RSS markup
 	 **/
-	function rss () {
+	function feed () {
 		global $Shopp;
 		$db = DB::get();
 	    $base = shopp_setting('base_operations');
@@ -987,7 +989,7 @@ class ProductCategory extends ProductTaxonomy {
 		add_filter('shopp_rss_description','convert_smilies',20);
 		add_filter('shopp_rss_description','wpautop',30);
 
-		do_action_ref_array('shopp_category_rss',array(&$this));
+		do_action_ref_array('shopp_collection_feed',array(&$this));
 
 		if (!$this->products) $this->load_products(array('limit'=>500,'load'=>array('images','prices')));
 
@@ -1136,6 +1138,7 @@ class ProductTag extends ProductTaxonomy {
 
 // @todo Document SmartCollection
 class SmartCollection extends ProductCollection {
+	static $namespace = 'collection';
 	var $smart = true;
 	var $slug = false;
 	var $uri = false;

@@ -36,6 +36,33 @@ class Promote extends AdminController {
 			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_promo_admin_scripts');
+
+		$defaults = array(
+			'page' => false,
+			'action' => false,
+			'selected' => array(),
+		);
+		$args = array_merge($defaults,$_GET);
+		extract($args,EXTR_SKIP);
+		if (!is_array($selected)) $selected = array($selected);
+
+		$url = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions')),admin_url('admin.php'));
+		$f = array('action','selected','s');
+		$url = remove_query_arg( $f, $url );
+		if ('shopp-promotions' == $page && $action !== false) {
+			switch ( $action ) {
+				case 'enable': Promotion::enableset($selected); break;
+				case 'disable': Promotion::disableset($selected); break;
+				case 'delete': Promotion::deleteset($selected); break;
+				case 'duplicate': $P = new Promotion($selected[0]); $P->duplicate(); break;
+			}
+
+			wp_redirect($url);
+			exit();
+
+		}
+
+
 	}
 
 	/**
@@ -66,8 +93,8 @@ class Promote extends AdminController {
 
 		$defaults = array(
 			'page' => false,
-			'action' => false,
-			'selected' => array(),
+			'status' => false,
+			'type' => false,
 			'pagenum' => 1,
 			'per_page' => 20,
 			's' => '',
@@ -75,19 +102,11 @@ class Promote extends AdminController {
 
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
-		if (!is_array($selected)) $selected = array($selected);
 
 		$url = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions')),admin_url('admin.php'));
 		$f = array('action','selected','s');
 		$url = remove_query_arg( $f, $url );
 
-		if ('shopp-promotions' == $page && $action !== false) {
-			switch ( $action ) {
-				case 'enable': Promotion::enableset($selected); break;
-				case 'disable': Promotion::disableset($selected); break;
-				case 'delete': Promotion::deleteset($selected); break;
-			}
-		}
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-promotion');
@@ -126,21 +145,45 @@ class Promote extends AdminController {
 
 		$where = array();
 		if (!empty($s)) $where[] = "name LIKE '%$s%'";
+		if ($status) {
+			$datesql = Promotion::activedates();
+			switch (strtolower($status)) {
+				case 'active': $where[] = "status='enabled' AND $datesql"; break;
+				case 'inactive': $where[] = "status='enabled' AND NOT $datesql"; break;
+				case 'enabled': $where[] = "status='enabled'"; break;
+				case 'disabled': $where[] = "status='disabled'"; break;
+			}
+		}
+		if ($type) {
+			switch (strtolower($type)) {
+				case 'catalog': $where[] = "target='Catalog'"; break;
+				case 'cart': $where[] = "target='Cart'"; break;
+				case 'cartitem': $where[] = "target='Cart Item'"; break;
+			}
+		}
 
 		$select = DB::select(array(
 			'table' => $table,
 			'columns' => 'SQL_CALC_FOUND_ROWS *',
 			'where' => $where,
+			'orderby' => 'created DESC',
 			'limit' => "$start,$per_page"
 		));
 
 		$Promotions = DB::query($select,'array');
-
 		$count = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
 
-		$status = array(
+		$states = array(
+			'active' => __('Active','Shopp'),
+			'inactive' => __('Not Active','Shopp'),
 			'enabled' => __('Enabled','Shopp'),
 			'disabled' => __('Disabled','Shopp')
+		);
+
+		$types = array(
+			'catalog' => __('Catalog Promotions','Shopp'),
+			'cart' => __('Cart Promotions','Shopp'),
+			'cartitem' => __('Cart Item Promotions','Shopp')
 		);
 
 		$num_pages = ceil($count / $per_page);
@@ -165,7 +208,7 @@ class Promote extends AdminController {
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'discount'=>__('Discount','Shopp'),
-			'applied'=>__('Applied To','Shopp'),
+			'applied'=>__('Type','Shopp'),
 			'eff'=>__('Status','Shopp'))
 		);
 	}

@@ -33,8 +33,8 @@ th.textright { text-align: right; }
 
 .column-featured,
 .column-inventory { text-align: center; }
-.saletag { position: relative; display: inline-block; background: #608E0F; height: 11px; font-size: 7px; color: #fff; text-transform: uppercase; margin-left: 10px; line-height: 7px; text-indent: -12px; padding: 0 2px 0 2px; -moz-border-radius:2px;-khtml-border-radius:2px;-webkit-border-radius:2px;border-radius:2px;  top: -1px; }
-.saletag:before { position: relative; content: "\25C0"; color: #608E0F; background: none; left: 2px; top: 2px; font-size: 11px; text-shadow: none;  }
+.saletag { position: relative; display: inline-block; background: #608E0F; color: #fff; height: 9px; font-family: sans-serif; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-left: 9px; line-height: 9px; text-indent: -9px; padding: 1px 2px 1px 0px; border: none;	-moz-border-radius-topright: 2px; -webkit-border-top-right-radius: 2px; -khtml-border-top-right-radius: 2px; border-top-right-radius: 2px; -moz-border-radius-bottomright: 2px; -webkit-border-bottom-right-radius: 2px; -khtml-border-bottom-right-radius: 2px; border-bottom-right-radius: 2px; top: -1px; }
+.saletag:before { position: relative; content: "\25C0"; color: #608E0F; background: none; top: 1px; font-size: 11px; text-shadow: #608E0F 1px 0 1px; vertical-align: top; }
 
 span.stock { padding: 0px 3px 1px; }
 span.stock.lowstock { color: #fff; font-weight: bold; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:2px; }

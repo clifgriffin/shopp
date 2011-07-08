@@ -248,9 +248,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	function feed_url ($result, $options, $O) {
-		$uri = 'category/'.$O->uri;
-		if ($O->slug == "tag") $uri = $O->slug.'/'.$O->tag;
-		return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('s_cat'=>urldecode($O->uri),'src'=>'category_rss'));
+		$url = self::url($result,$options,$O);
+		if (!SHOPP_PRETTYURLS) return add_query_arg(array('src'=>'category_rss'),$url);
+
+		$query = false;
+		if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
+		$url = trailingslashit($url)."feed";
+		if ($query) $url = "$url?$query";
+			return $url;
 	}
 
 	function has_categories ($result, $options, $O) {
@@ -749,7 +754,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function total ($result, $options, $O) { return $O->loaded?$O->total:false; }
 
-	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?'category/'.$O->uri:array('s_cat'=>$O->id)); }
+	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? "{$O::$namespace}/$O->slug" : array('s_cat'=>$O->id) ); }
 
 }
 

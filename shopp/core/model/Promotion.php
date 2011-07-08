@@ -233,6 +233,67 @@ class Promotion extends DatabaseObject {
 		$db->query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'".join(',',$promos)."')");
 	}
 
+	static function activedates () {
+
+		// By default the promotion editor will save a value of 1
+		// for the start and end dates if no date values are provided.
+		// We can evaluate in SQL if the dates are set by checking
+		// if they are more or less than the default. However, we
+		// wse an offset amount as a buffer to account for how
+		// MySQL's UNIX_TIMESTAMP() converts the datetime to a
+		// UTC-based timestamp from the Jan 1, 1970 00:00:00 epoch
+		// 43200 to represents 12-hours (UTC +/- 12 hours), then we
+		// add 1 to account for the default amount set in the editor
+		$offset = 43200 + 1;
+
+		return "(
+		    -- Promo is not date based
+		    (
+		        UNIX_TIMESTAMP(starts) <= $offset
+		        AND
+		        UNIX_TIMESTAMP(ends) <= $offset
+		    )
+		    OR
+		    -- Promo has start and end dates, check that we are in between
+		    (
+		        UNIX_TIMESTAMP(starts) > $offset
+		        AND
+		        UNIX_TIMESTAMP(ends) > $offset
+		        AND
+		        (".time()." BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
+		    )
+		    OR
+		    -- Promo has _only_ a start date, check that we are after it
+		    (
+		        UNIX_TIMESTAMP(starts) > $offset
+		        AND
+		        UNIX_TIMESTAMP(ends) <= $offset
+		        AND
+		        UNIX_TIMESTAMP(starts) < ".time()."
+		    )
+		    OR
+		    -- Promo has _only_ an end date, check that we are before it
+		    (
+		        UNIX_TIMESTAMP(starts) <= $offset
+		        AND
+		        UNIX_TIMESTAMP(ends) > $offset
+		        AND
+		        ".time()." < UNIX_TIMESTAMP(ends)
+			)
+	    )";
+	}
+
+	function duplicate () {
+		$Promotion = new Promotion();
+		$Promotion->copydata($this);
+		$Promotion->name = sprintf(__('%s copy','Shopp'),$Promotion->name);
+		$Promotion->status = 'disabled';
+		$Promotion->uses = 0;
+		$Promotion->created = null;
+		$Promotion->modified = null;
+		$Promotion->save();
+	}
+
 	/**
 	 * Deletes an entire set of promotions
 	 *
@@ -277,9 +338,10 @@ class Promotion extends DatabaseObject {
 	static function disableset ($ids) {
 		if (empty($ids) || !is_array($ids)) return false;
 		$table = DatabaseObject::tablename(self::$table);
-		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")");
+		DB::query("UPDATE $table SET status='disabled' WHERE id IN (".join(',',$ids).")");
 		return true;
 	}
+
 
 } // END clas Promotion
 

@@ -28,7 +28,7 @@ class Resources {
 
 		$this->request = empty($request)?$_GET:$request;
 
-		add_action('shopp_resource_category_rss',array(&$this,'category_rss'));
+		// add_action('shopp_resource_collection_feed',array(&$this,'collection_feed'));
 		add_action('shopp_resource_download',array(&$this,'download'));
 
 		// For secure, backend lookups
@@ -54,12 +54,17 @@ class Resources {
 	 *
 	 * @return void Description...
 	 **/
-	function category_rss () {
-		global $Shopp;
-		$Storefront = new Storefront();
-		header("Content-type: application/rss+xml; charset=utf-8");
-		$Storefront->catalog($this->request);
-		echo shopp_rss($Shopp->Category->rss());
+	function collection_feed () {
+		$Storefront = ShoppStorefront();
+		$Collection = ShoppCollection();
+		exit();
+		if (empty($Storefront)) $Storefront = new Storefront();
+		print_r($Storefront);
+		header("Content-type: text/plain; charset=utf-8");
+		// header("Content-type: application/rss+xml; charset=utf-8");
+
+		// $Storefront->catalog($this->request);
+		// echo shopp_rss($Collection->feed());
 		exit();
 	}
 

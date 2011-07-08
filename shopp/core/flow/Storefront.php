@@ -98,7 +98,6 @@ class Storefront extends FlowController {
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
 		add_action('shopp_storefront_init',array($this,'collections'));
-		// add_action('shopp_storefront_init',array($this,'searching'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
 		add_filter('archive_template',array($this,'collection'));
@@ -165,9 +164,6 @@ class Storefront extends FlowController {
 			return;
 		}
 
-		// Save the sort order preference
-		$this->browsing['orderby'] = $sortorder;
-
 		if (is_archive() && !empty($category)) {
 			$Shopp->Category = new ProductCategory($category,'slug');
 		}
@@ -176,6 +172,7 @@ class Storefront extends FlowController {
 			$Shopp->Category = new ProductTag($tag,'slug');
 		}
 
+		$options = array();
 		if ($searching) { // Catalog search
 			$collection = 'search-results';
 			$options = array('search'=>$search);
@@ -189,6 +186,11 @@ class Storefront extends FlowController {
 			$wp_query->is_page = false;
 			$wp_query->post_count = true;
 			$Shopp->Category = Catalog::load_collection($collection,$options);
+		}
+
+		if (!empty($Shopp->Category)) {
+			add_action('wp_head', array(&$this, 'metadata'));
+			add_action('wp_head', array(&$this, 'feeds'));
 		}
 
 	}
@@ -520,28 +522,10 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function feeds () {
-		global $Shopp;
-		return true;
-		if (empty($this->Category->name)):?>
-
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo esc_attr(shoppurl(SHOPP_PRETTYURLS?'feed':array('shopp_lookup'=>'newproducts-rss'))); ?>" />
-<?php else: ?>
-
-<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($this->Category->name); ?> RSS Feed" href="<?php esc_attr_e($this->Category->tag('feed-url')); ?>" />
-<?php
-		endif;
-	}
-
-	/**
-	 * Updates the WP search query with the Shopp search in progress
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function updatesearch () {
-		set_wp_query_var('s', esc_attr(stripslashes($this->search)) );
+		$Collection = ShoppCollection();
+		if (empty($Collection->name)) return;
+?>
+	<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($Collection->name); ?> RSS Feed" href="<?php esc_attr_e(shopp('category','get-feed-url')); ?>" /><?php
 	}
 
 	/**
@@ -701,41 +685,6 @@ class Storefront extends FlowController {
 			$script .= '});'."\n";
 		}
 		shopp_custom_script('catalog',$script);
-	}
-
-	/**
-	 * Determines when to search the Shopp catalog instead of WP content
-	 *
-	 * This has to be done before the WP::query_posts() runs which typically
-	 * is during the parse_request action. Currently this is called during the
-	 * WP 'request' filter hook which occurs just before parse_request and is
-	 * queued up in the Flow super controller.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * @version 1.2
-	 *
-	 * @return void
-	 **/
-	function searching () {
-		global $wp,$wp_query;
-
-		$this->searching = false;
-		$catalog = get_wp_query_var('s_cs');
-		$search = get_wp_query_var('s');
-
-			// No search	// No catalog flag	// Catalog search turned off
-		if (empty($search) || empty($catalog)	|| $catalog == 'false')
-			return false; // ...not searching Shopp catalog
-
-		$this->search = $search;
-		$this->searching = true;
-
-		// set_wp_query_var('s',null); // Not needed any longer
-		set_wp_query_var('pagename',$this->pages['catalog']['uri']);
-		set_wp_query_var('s_cat',SearchResults::$_slug);
-		add_action('wp_head', array(&$this, 'updatesearch'));
-
 	}
 
 	/**

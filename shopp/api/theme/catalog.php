@@ -350,7 +350,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		global $Shopp;
 
 		if (isset($Shopp->Category->controls)) return false;
-		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
+		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['sortorder'])) return false;
 
 		$menuoptions = ProductCategory::sortoptions();
 		// Don't show custom product order for smart categories
@@ -366,8 +366,9 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (isset($options['title'])) $title = $options['title'];
 
 		if (value_is_true($dropdown)) {
-			if (isset($Shopp->Flow->Controller->browsing['orderby']))
-				$default = $Shopp->Flow->Controller->browsing['orderby'];
+			$Storefront = ShoppStorefront();
+			if (isset($Storefront->browsing['sortorder']))
+				$default = $Storefront->browsing['sortorder'];
 			$string .= $title;
 			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 			if (!SHOPP_PRETTYURLS) {
