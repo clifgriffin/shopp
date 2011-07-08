@@ -182,7 +182,7 @@ class Storefront extends FlowController {
 		// Promo Collection routing
 		$promos = shopp_setting('active_catalog_promos');
 		if (isset($promos[$collection])) {
-			$options['id'] = $promos[$collection];
+			$options['id'] = $promos[$collection][0];
 			$collection = 'promo';
 		}
 
