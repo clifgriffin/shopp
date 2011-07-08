@@ -524,42 +524,53 @@ class Shopp {
 		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
 		$data = http_build_query($data,'','&');
 
-		// $url = SHOPP_HOME.'?'.$query;
-		// $connection = new WP_Http();
-		// $connection->request($url,)
+		$defaults = array(
+			'method' => 'POST',
+			'timeout' => 20,
+			'redirection' => 7,
+			'httpversion' => '1.0',
+			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
+			'blocking' => true,
+			'headers' => array(),
+			'cookies' => array(),
+			'body' => $data,
+			'compress' => false,
+			'decompress' => true,
+			'sslverify' => false
+		);
+		$params = array_merge($defaults,$options);
 
-		$connection = curl_init();
-		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query);
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
-		curl_setopt($connection, CURLOPT_HEADER, 0);
-		curl_setopt($connection, CURLOPT_POST, 1);
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
-		curl_setopt($connection, CURLOPT_TIMEOUT, 20);
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+		$URL = SHOPP_HOME."?$query";
 
-		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
+		$connection = new WP_Http();
+		$result = $connection->request($URL,$params);
 
-		// Added to handle SSL timeout issues
-		// Maybe if a timeout occurs the connection should be
-		// re-attempted with this option for better overall performance
-		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
-
-		$result = curl_exec($connection);
-		if ($error = curl_error($connection)) {
-			if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
-
-			// Attempt HTTP connection
-			curl_setopt($connection, CURLOPT_URL, str_replace('https://', 'http://', SHOPP_HOME)."?".$query);
-			$result = curl_exec($connection);
-			if ($error = curl_error($connection)) {
-				if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
-			}
+		if (200 != $response['code']) { // Fail, fallback to http instead
+			$URL = str_replace('https://', 'http://', $URL);
+			$connection = new WP_Http();
+			$result = $connection->request($URL,$params);
 		}
 
-		curl_close ($connection);
+		if (is_wp_error($result)) {
+			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
+			$errors = join(' ',$errors);
 
-		return $result;
+			new ShoppError($this->name.": ".Lookup::errors('gateway','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		} elseif (empty($result) || !isset($result['response'])) {
+			new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		} else extract($result);
+
+		if (200 != $response['code']) {
+			$error = Lookup::errors('gateway','http-'.$response['code']);
+			if (empty($error)) $error = Lookup::errors('gateway','http-unkonwn');
+			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
+			return false;
+		}
+
+		return $body;
+
 	}
 
 	function key ($action,$key) {
@@ -610,7 +621,13 @@ class Shopp {
 		$data = array(
 			'core' => SHOPP_VERSION,
 			'addons' => join("-",$addons),
-			'wp' => get_bloginfo('version')
+			'site' => get_bloginfo('url'),
+			'wp' => get_bloginfo('version').(is_multisite()?' (multisite)':''),
+			'php' => phpversion(),
+			'uploadmax' => ini_get('upload_max_filesize'),
+			'postmax' => ini_get('post_max_size'),
+			'server' => $_SERVER['SERVER_SOFTWARE'],
+			'agent' => $_SERVER['HTTP_USER_AGENT']
 		);
 
 		$response = $this->callhome($request,$data);
@@ -656,8 +673,7 @@ class Shopp {
 		if($_REQUEST["plugin"] != "shopp") return;
 
 		$request = array("ShoppServerRequest" => "changelog");
-		$data = array(
-		);
+		$data = array();
 		$response = $this->callhome($request,$data);
 
 		echo '<html><head>';
@@ -716,7 +732,7 @@ class Shopp {
         if ($addons) {
 			// Addon update messages
 			foreach ($addons as $addon) {
-				$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
+				$message = sprintf(__('There is a new version of the %1$s add-on available. <a href="%2$s">Upgrade automatically</a> to version %3$s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			}

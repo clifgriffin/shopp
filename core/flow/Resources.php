@@ -59,7 +59,7 @@ class Resources {
 		$Collection = ShoppCollection();
 		exit();
 		if (empty($Storefront)) $Storefront = new Storefront();
-		print_r($Storefront);
+
 		header("Content-type: text/plain; charset=utf-8");
 		// header("Content-type: application/rss+xml; charset=utf-8");
 

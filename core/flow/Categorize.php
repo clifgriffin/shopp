@@ -108,7 +108,6 @@ class Categorize extends AdminController {
 				&& !empty($delete)
 				&& is_array($delete)) {
 
-					print_r($delete);
 			foreach($delete as $deletion) {
 				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;

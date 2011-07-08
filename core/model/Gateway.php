@@ -175,7 +175,7 @@ abstract class GatewayFramework {
 
 		$defaults = array(
 			'method' => 'POST',
-			'timeout' => SHOPP_GATEWAY_TIMEOUT * 2,
+			'timeout' => SHOPP_GATEWAY_TIMEOUT,
 			'redirection' => 7,
 			'httpversion' => '1.0',
 			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
