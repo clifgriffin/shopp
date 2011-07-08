@@ -132,7 +132,7 @@ class ProductCollection implements Iterator {
 		if ($debug) echo $query.BR.BR;
 
 		// Load from cached results if available, or run the query and cache the results
-		$cachehash = md5($query);
+		$cachehash = 'collection_'.md5($query);
 		$cached = wp_cache_get($cachehash,'shopp_collection');
 		if ($cached) {
 			$this->products = $cached->products;
