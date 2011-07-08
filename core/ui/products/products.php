@@ -30,7 +30,7 @@
 		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
 		</div>
 
-		<div class="alignleft actions filters">
+		<div class="alignleft filters">
 		<?php echo $categories_menu; ?>
 		<?php echo $inventory_menu; ?>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />

@@ -24,9 +24,8 @@ var Pricelines = new Pricelines(),
 	template = false,
  	fileUploads = false;
 
-jQuery(document).ready(function() {
-	var $=jqnc(),
-		title = $('#title'),
+jQuery(document).ready(function($) {
+	var title = $('#title'),
 		titlePrompt = $('#title-prompt-text'),
 		publishfields = $('.publishdate');
 

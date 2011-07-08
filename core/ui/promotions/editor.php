@@ -24,6 +24,8 @@
 
 					<div id="titlediv">
 						<div id="titlewrap">
+							<label class="hide-if-no-js<?php if (!empty($Promotion->name)) echo ' hidden'; ?>" id="title-prompt-text" for="title"><?php _e('Enter promotion name','Shopp'); ?></label>
+
 							<input name="name" id="title" type="text" value="<?php echo esc_attr($Promotion->name); ?>" size="30" tabindex="1" autocomplete="off" />
 						</div>
 					</div>
@@ -46,14 +48,24 @@
 
 <script type="text/javascript">
 
-jQuery(document).ready( function() {
-var $=jqnc(),
-	currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_encode($base['currency']['format']); ?>,
+jQuery(document).ready( function($) {
+
+var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_encode($base['currency']['format']); ?>,
 	rules = <?php echo json_encode($Promotion->rules); ?>,
 	ruleidx = 1,
 	itemidx = 1,
 	promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>,
 	loading = true,
+	titlePrompt = $('#title-prompt-text'),
+
+	// Give the product name initial focus
+	title = $('#title').bind('focus keydown',function () {
+		titlePrompt.hide();
+	}).blur(function () {
+		if (title.val() == '') titlePrompt.show();
+		else titlePrompt.hide();
+	}),
+
 	SCOPEPROP_LANG = {
 		"Catalog":<?php _jse('price','Shopp'); ?>,
 		"Cart":<?php _jse('subtotal','Shopp'); ?>,

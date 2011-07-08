@@ -24,8 +24,21 @@
 				<option value="disable"><?php _e('Disable','Shopp'); ?></option>
 				<option value="delete"><?php _e('Delete','Shopp'); ?></option>
 			</select>
-			<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action hide-if-js" />
+			<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
 		</div>
+
+		<div class="alignleft actions">
+		<select name="status">
+			<option><?php _e('View All Promotions','Shopp'); ?></option>
+			<?php echo menuoptions($states,$status,true); ?>
+		</select>
+		<select name="type">
+			<option><?php _e('View All Types','Shopp'); ?></option>
+			<?php echo menuoptions($types,$type,true); ?>
+		</select>
+		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
+		</div>
+
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -46,6 +59,10 @@
 			foreach ($Promotions as $Promotion):
 			$editurl = add_query_arg(array('id'=>$Promotion->id),$url);
 			$deleteurl = add_query_arg(array('selected'=>$Promotion->id,'action'=>'delete'),$url);
+			$duplicateurl = add_query_arg(array('selected'=>$Promotion->id,'action'=>'duplicate'),$url);
+			$enableurl = add_query_arg(array('selected'=>$Promotion->id,'action'=>'enable'),$url);
+			$disableurl = add_query_arg(array('selected'=>$Promotion->id,'action'=>'disable'),$url);
+
 			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -53,7 +70,14 @@
 			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo esc_url($editurl); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;'><?php echo esc_html($PromotionName); ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='delete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
+					<span class='duplicate'><a href="<?php echo esc_url($duplicateurl); ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='delete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
+
+					<?php if ('disabled' == $Promotion->status): ?>
+<span class='enable'><a href="<?php echo esc_url($enableurl); ?>" title="<?php _e('Enable','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Enable','Shopp'); ?></a></span>
+					<?php else: ?>
+					<span class='disable'><a href="<?php echo esc_url($disableurl); ?>" title="<?php _e('Disable','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Disable','Shopp'); ?></a></span>
+					<?php endif; ?>
 				</div>
 
 			</td>
@@ -64,7 +88,7 @@
 				if ($Promotion->type == "Buy X Get Y Free") echo __('Buy','Shopp').' '.$Promotion->buyqty.' '.__('Get','Shopp').' '.$Promotion->getqty.' '.__('Free','Shopp');
 			?></td>
 			<td class="applied column-applied<?php echo in_array('applied',$hidden)?' hidden':''; ?>"><?php echo $Promotion->target; ?></td>
-			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo $status[$Promotion->status]; ?></strong><?php
+			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo $states[$Promotion->status]; ?></strong><?php
 				$starts = (mktimestamp($Promotion->starts) > 1) ?
 				                 _d(get_option('date_format'),mktimestamp($Promotion->starts)) :
 				                 _d(get_option('date_format'),mktimestamp($Promotion->created));
