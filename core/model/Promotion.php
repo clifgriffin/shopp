@@ -43,8 +43,8 @@ class Promotion extends DatabaseObject {
 
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$category_table = DatabaseObject::tablename(ProductCategory::$table);
+		// $catalog_table = DatabaseObject::tablename(Catalog::$table);
+		// $category_table = DatabaseObject::tablename(ProductCategory::$table);
 
 		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
 		$where = array();
@@ -73,12 +73,17 @@ class Promotion extends DatabaseObject {
 				switch($rule['property']) {
 					case "Name":
 						$where[] = "p.name$match";
-						$joins[$product_table] = "LEFT JOIN $product_table as p ON prc.product=p.id";
+						$joins[$product_table] = "INNER JOIN $product_table as p ON prc.product=p.id";
 						break;
 					case "Category":
-						$where[] = "cat.name$match";
-						$joins[$catalog_table] = "LEFT JOIN $catalog_table AS catalog ON catalog.product=prc.product";
-						$joins[$category_table] = "LEFT JOIN $category_table AS cat ON catalog.parent=cat.id AND catalog.type='category'";
+						$where[] = "tm.name$match";
+						global $wpdb;
+						$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (prc.product=tr.object_id)";
+						$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id)";
+						$joins[$wpdb->terms] = "INNER JOIN $wpdb->terms AS tm ON (tm.term_id=tt.term_id)";
+
+						// $joins[$catalog_table] = "LEFT JOIN $catalog_table AS catalog ON catalog.product=prc.product";
+						// $joins[$category_table] = "LEFT JOIN $category_table AS cat ON catalog.parent=cat.id AND catalog.type='category'";
 						break;
 					case "Variation": $where[] = "prc.label$match"; break;
 					case "Price": $where[] = "prc.price$match"; break;
@@ -118,22 +123,21 @@ class Promotion extends DatabaseObject {
 		$query = "UPDATE $price_table
 					SET discounts=CONCAT(discounts,IF(discounts='','$this->id',',$this->id'))
 					WHERE id IN (".join(',',$added).")";
-
-		$db->query($query);
+		if (!empty($added)) $db->query($query);
 
 		// Remove discounts from pricetags that now don't match the conditions
-		$this->uncatalog_discounts($removed);
+		if (!empty($removed)) $this->uncatalog_discounts($removed);
 
 		// Recalculate product stats for the products with pricetags that have changed
 		$Collection = new PromoProducts(array('id' => $this->id));
 		$Collection->pagination = false;
-		$Collection->load_products( array('load'=>array('prices','restat')) );
-
+		$Collection->load( array('load'=>array('prices','restat')) );
 	}
 
 	function uncatalog_discounts ($pricetags) {
 		$db =& DB::get();
 		$_table = DatabaseObject::tablename(Price::$table);
+		if (empty($pricetags)) return;
 
 		$discounted = $db->query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE id IN ('".join(',',$pricetags)."')",AS_ARRAY);
 

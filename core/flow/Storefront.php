@@ -97,6 +97,7 @@ class Storefront extends FlowController {
 		// add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
+		add_action('shopp_storefront_init',array($this,'promos'));
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
@@ -176,6 +177,13 @@ class Storefront extends FlowController {
 		if ($searching) { // Catalog search
 			$collection = 'search-results';
 			$options = array('search'=>$search);
+		}
+
+		// Promo Collection routing
+		$promos = shopp_setting('active_catalog_promos');
+		if (isset($promos[$collection])) {
+			$options['id'] = $promos[$collection];
+			$collection = 'promo';
 		}
 
 		if (!empty($collection)) {
@@ -589,6 +597,14 @@ class Storefront extends FlowController {
 		return $url;
 	}
 
+
+	function promos () {
+		if (!isset($this->promos) || empty($this->promos)) return;
+
+		print_r($this->promos);
+
+	}
+
 	/**
 	 * Registers available collections
 	 *
@@ -604,6 +620,7 @@ class Storefront extends FlowController {
 
 		do_action('shopp_register_smartcategories'); // Deprecated
 		do_action('shopp_register_collections');
+
 	}
 
 	/**

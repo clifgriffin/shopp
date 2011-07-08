@@ -1387,9 +1387,7 @@ class RelatedProducts extends SmartCollection {
 				$this->product = new Product($Cart->Added->product);
 			elseif (preg_match('/^[\d+]$/',$options['product'])) 	// Load by specified id
 				$this->product = new Product($options['product']);
-			else
-				$this->product = new Product($options['product'],'slug'); // Load by specified slug
-
+			else $this->product = new Product($options['product'],'slug'); // Load by specified slug
 		}
 
 		if (isset($options['tagged'])) {
@@ -1537,15 +1535,16 @@ class PromoProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-
 		$id = urldecode($options['id']);
 
 		$Promo = new Promotion($id);
 		$this->name = $Promo->name;
+		$this->slug = $this->uri = sanitize_title_with_dashes($this->name);
 
 		$pricetable = DatabaseObject::tablename(Price::$table);
-		$this->loading = array('where' => "p.id IN (SELECT product FROM $pricetable WHERE 0 < FIND_IN_SET($Promo->id,discounts))");
+		$this->loading = array('where' => array("p.id IN (SELECT product FROM $pricetable WHERE 0 < FIND_IN_SET($Promo->id,discounts))"));
 	}
+
 }
 
 ?>

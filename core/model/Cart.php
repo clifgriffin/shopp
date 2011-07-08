@@ -660,17 +660,30 @@ class CartPromotions {
 	 * @return void
 	 **/
 	function load () {
-		$db = &DB::get();
 
 		// Already loaded
 		if (!empty($this->promotions)) return true;
 
-		$_table = DatabaseObject::tablename(Promotion::$table);
+		$promos = DatabaseObject::tablename(Promotion::$table);
 		$datesql = Promotion::activedates();
-		$query = "SELECT * FROM $_table WHERE (target='Cart' OR target='Cart Item')
-		            AND status='enabled' -- Promo must be enabled, in all cases
-					AND $datesql ORDER BY target DESC";
-		$this->promotions = $db->query($query,AS_ARRAY);
+		$query = "SELECT * FROM $promos WHERE status='enabled' AND $datesql ORDER BY target DESC";
+
+		$loaded = DB::query($query,'array','index','target',true);
+		$cartpromos = array('Cart','Cart Item');
+		$this->promotions = array();
+
+		foreach ($cartpromos as $type)
+			if (isset($loaded[$type]))
+				$this->promotions = array_merge($this->promotions,$loaded[$type]);
+
+		if (isset($loaded['Catalog'])) {
+			$promos = array();
+			foreach ($loaded['Catalog'] as $promo)
+				$promos[ sanitize_title_with_dashes($promo->name) ] = array($promo->id,$promo->name);
+
+			shopp_set_setting('active_catalog_promos',$promos);
+		}
+
 	}
 
 	/**

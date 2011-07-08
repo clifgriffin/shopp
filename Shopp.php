@@ -92,6 +92,7 @@ do_action('shopp_loaded');
  * @since 1.0
  **/
 class Shopp {
+
 	var $Settings;			// Shopp settings registry
 	var $Flow;				// Controller routing
 	var $Catalog;			// The main catalog
@@ -202,24 +203,17 @@ class Shopp {
 		add_action('shopp_init', array(&$this,'taxonomies'));
 		add_action('shopp_init', array(&$this,'products'),99);
 
-
-		// Plugin management
-        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
-        add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
-        add_action('shopp_check_updates', array(&$this, 'updates'));
+		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
+		add_filter('query_vars', array(&$this,'queryvars'));
 
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
 
-		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
-
-		// add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
-		// add_action('generate_rewrite_rules',array(&$this,'pages_index'));
-		// add_action('save_post', array(&$this, 'pages_index'),10,2);
-		// add_action('shopp_reindex_pages', array(&$this, 'pages_index'));
-
-		add_filter('query_vars', array(&$this,'queryvars'));
+		// Plugin management
+        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
+        add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
+        add_action('shopp_check_updates', array(&$this, 'updates'));
 
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
@@ -246,8 +240,7 @@ class Shopp {
 		$this->Collections = array();
 
 		if ( ! $Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
-		if (SHOPP_DEBUG && $Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
-		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('Session started '.str_repeat('-',64),'shopp_session_debug',SHOPP_DEBUG_ERR);
 
 		global $pagenow;
 		if (defined('WP_ADMIN')
