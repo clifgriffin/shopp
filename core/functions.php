@@ -794,7 +794,8 @@ function inputattrs ($options,$allowed=array()) {
  * @return boolean Returns true if a bot user agent is detected
  **/
 function is_robot() {
-	$bots = array("Googlebot","TeomaAgent","Zyborg","Gulliver","Architext spider","FAST-WebCrawler","Slurp","Ask Jeeves","ia_archiver","Scooter","Mercator","crawler@fast","Crawler","InfoSeek sidewinder","Lycos_Spider_(T-Rex)","Fluffy the Spider","Ultraseek","MantraAgent","Moget","MuscatFerret","VoilaBot","Sleek Spider","KIT_Fireball","WebCrawler");
+	$bots = array('Googlebot','TeomaAgent','Zyborg','Gulliver','Architext spider','FAST-WebCrawler','Slurp','Ask Jeeves','ia_archiver','Scooter','Mercator','crawler@fast','Crawler','InfoSeek sidewinder','Lycos_Spider_(T-Rex)','Fluffy the Spider','Ultraseek','MantraAgent','Moget','MuscatFerret','VoilaBot','Sleek Spider','KIT_Fireball','WebCrawler');
+	if (!isset($_SERVER['HTTP_USER_AGENT'])) return true;
 	foreach($bots as $bot)
 		if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']),strtolower($bot))) return true;
 	return false;
@@ -829,6 +830,7 @@ function is_shopp_page ($page=false) {
 	if (isset($wp_query->post->post_type) &&
 		$wp_query->post->post_type != "page") return false;
 
+	// @todo replace with storefront_pages setting?
 	$pages = shopp_setting('pages');
 
 	// Detect if the requested page is a Shopp page
@@ -1849,7 +1851,5 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
-
-
 
 ?>

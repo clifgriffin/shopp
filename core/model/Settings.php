@@ -13,12 +13,15 @@
  * @subpackage settings
  **/
 class Settings extends DatabaseObject {
-	static $table = 'meta';
-	private static $instance;
 
-	var $registry = array();	// Registry of setting objects
-	var $available = true;		// Flag when database tables don't exist
-	var $_table = '';			// The table name
+	static $table = 'meta';			// Base settings table name
+
+	private static $instance;
+	private $registry = array();	// Registry of setting objects
+	private $installed = false;		// Flag when database tables don't exist
+	private $loaded = false;		// Flag when settings are successfully loaded
+
+	var $_table;					// Settings runtime table name
 
 	/**
 	 * Settings object constructor
@@ -32,10 +35,10 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function __construct ($name="") {
+	function __construct () {
 		$this->_table = $this->tablename(self::$table);
-		if (!$this->load($name))	// If no settings are loaded
-			$this->availability();	// update the Shopp tables availability status
+		if (!$this->available()) return;
+		$this->load();
 	}
 
 	public static function instance () {
@@ -52,9 +55,11 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	function availability () {
-		$this->available = $this->init('meta');
-		return $this->available;
+	function available () {
+		// @todo Replace the hastable mechanism for detecting if settings are available
+		if (!$this->installed)
+			$this->installed = DB::hastable($this->_table);
+		return $this->installed;
 	}
 
 	/**
@@ -72,15 +77,17 @@ class Settings extends DatabaseObject {
 	function load ($name='') {
 		$Setting = $this->setting();
 
+		if (!$name) error_log("loading all settings");
+
 		$where = array("context='$Setting->context'","type='$Setting->type'");
 		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
 		$where = join(' AND ',$where);
 		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where",'array',array(&$this,'register'));
 
 		if (!is_array($settings) || count($settings) == 0) return false;
-
 		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
-		return true;
+
+		return ($this->loaded = true);
 	}
 
 	function register (&$records,$record) {

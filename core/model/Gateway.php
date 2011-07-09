@@ -596,5 +596,4 @@ class PayCard {
 
 }
 
-
 ?>

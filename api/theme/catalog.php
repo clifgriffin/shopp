@@ -104,6 +104,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$parentkey = '_'.$tree_category->parent;
 			}
 		}
+		// @todo replace with storefront_pages setting?
 		$pages = shopp_setting('pages');
 
 		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;

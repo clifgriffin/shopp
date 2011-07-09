@@ -47,6 +47,7 @@ class Storefront extends FlowController {
 		$Catalog = new Catalog();
 		ShoppCatalog($Catalog);
 
+		// @todo replace with storefront_pages setting?
 		$pages = shopp_setting('pages');
 		if (!empty($pages)) $this->pages = $pages;
 
@@ -442,7 +443,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
-			if (shopp_setting("maintenance") == "on" || !ShoppSettings()->available || $this->maintenance())
+			if (shopp_setting("maintenance") == "on" || !ShoppSettings()->available() || $this->maintenance())
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 
@@ -509,6 +510,7 @@ class Storefront extends FlowController {
 		if (!$post_id) return $title;
 		global $wp;
 
+		// @todo replace with storefront_pages setting?
 		$pages = shopp_setting('pages');
 		$process = get_query_var('s_pr');
 
@@ -674,11 +676,11 @@ class Storefront extends FlowController {
 		$db = DB::get();
 		global $wpdb;
 
-		if (SHOPP_QUERY_DEBUG) {
-			echo "<!--\n\nSHOPP QUERIES\n\n";
-			print_r($db->queries);
-			echo "\n\n-->";
-		}
+		// if (SHOPP_QUERY_DEBUG) {
+		// 	echo "<!--\n\nSHOPP QUERIES\n\n";
+		// 	print_r($db->queries);
+		// 	echo "\n\n-->";
+		// }
 		if (WP_DEBUG && current_user_can('manage_options')) {
 			if (function_exists('memory_get_peak_usage'))
 				$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
@@ -716,6 +718,7 @@ class Storefront extends FlowController {
 	 * @return mixed False when the Shopp catalog is set as the front page
 	 **/
 	function canonical_home ($redirect) {
+		// @todo replace with storefront_pages setting?
 		$pages = shopp_setting('pages');
 		if (!function_exists('home_url')) return $redirect;
 		list($url,) = explode("?",$redirect);
