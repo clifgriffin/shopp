@@ -26,7 +26,7 @@ function shopp_setting ( $name ) {
 	$setting = null;
 
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_setting lookup failed: Setting name parameter required.",'shopp_setting',SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
@@ -47,7 +47,7 @@ function shopp_setting ( $name ) {
  **/
 function shopp_set_setting ( $name, $value ) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_set_setting failed: Setting name parameter required.",'shopp_set_setting',SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
@@ -66,7 +66,7 @@ function shopp_set_setting ( $name, $value ) {
  **/
 function shopp_rmv_setting ($name) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_rmv_setting failed: Setting name parameter required.",'shopp_rmv_setting',SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 	return ShoppSettings()->delete($name);
