@@ -26,24 +26,30 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.2dev');
-define('SHOPP_REVISION','$Rev$');
-define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
-define('SHOPP_HOME','https://shopplugin.net/');
-define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
-define('SHOPP_DOCS','http://docs.shopplugin.net/');
+if (!defined('SHOPP_VERSION'))
+	define('SHOPP_VERSION','1.2dev');
+if (!defined('SHOPP_REVISION'))
+	define('SHOPP_REVISION','$Rev$');
+if (!defined('SHOPP_GATEWAY_USERAGENT'))
+	define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
+if (!defined('SHOPP_HOME'))
+	define('SHOPP_HOME','https://shopplugin.net/');
+if (!defined('SHOPP_CUSTOMERS'))
+	define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
+if (!defined('SHOPP_DOCS'))
+	define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
-require("core/legacy.php");
+require('core/legacy.php');
 
 // Don't load Shopp if unsupported
 if (SHOPP_UNSUPPORTED) return;
 
-require("core/functions.php");
+require('core/functions.php');
 
 // Load core app helpers
-require("core/Framework.php");
-require("core/DB.php");
-require("core/model/Settings.php");
+require('core/Framework.php');
+require('core/DB.php');
+require('core/model/Settings.php');
 require('core/model/Error.php');
 
 // Load super controllers
@@ -137,10 +143,6 @@ class Shopp {
 			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
 		}
 
-		// Init settings and errors singletons
-		$this->Shopping = ShoppShopping(); // $this->Shopping for add-on module backward compatibility
-		$this->Settings = ShoppSettings(); // $this->Settings for add-on module backward compatibility
-
 		if (!defined('BR')) define('BR','<br />');
 
 		// Overrideable config macros
@@ -190,10 +192,12 @@ class Shopp {
 		ShoppErrorLogging();
 		ShoppErrorNotification();
 
-
 		// Initialize application control processing
-
 		$this->Flow = new Flow();
+
+		// Init old properties for legacy add-on module compatibility
+		$this->Shopping = ShoppShopping();
+		$this->Settings = ShoppSettings();
 
 		add_action('init', array(&$this,'init'));
 
@@ -244,7 +248,8 @@ class Shopp {
 
 		global $pagenow;
 		if (defined('WP_ADMIN')
-			&& $pagenow == "plugins.php"
+			&& 'plugins.php' == $pagenow
+			&& isset($_GET['action'])
 			&& $_GET['action'] != 'deactivate') $this->updates();
 
 		new Login();
@@ -623,6 +628,7 @@ class Shopp {
 			'addons' => join("-",$addons),
 			'site' => get_bloginfo('url'),
 			'wp' => get_bloginfo('version').(is_multisite()?' (multisite)':''),
+			'mysql' => mysql_get_server_info(),
 			'php' => phpversion(),
 			'uploadmax' => ini_get('upload_max_filesize'),
 			'postmax' => ini_get('post_max_size'),
@@ -750,7 +756,7 @@ class Shopp {
 	 **/
 	function maintenance () {
 		// Settings unavailable
-		if (!ShoppSettings()->available || !shopp_setting('shopp_setup') != "completed")
+		if (!ShoppSettings()->available() || !shopp_setting('shopp_setup') != "completed")
 			return false;
 
 		shopp_set_setting('maintenance','on');

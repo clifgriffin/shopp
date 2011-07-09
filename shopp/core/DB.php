@@ -29,9 +29,9 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1133;	// Database schema version
+	static $version = 1135;	// Database schema version
 
-	private static $instance;
+	protected static $instance;
 
 	// Define datatypes for MySQL
 	private static $datatypes = array(
@@ -59,11 +59,11 @@ class DB extends SingletonFramework {
 	 **/
 	protected function __construct () {
 		global $wpdb;
-		if (!isset($wpdb->dbh)) return;
-
-		$this->dbh = $wpdb->dbh;
-		$this->table_prefix = $wpdb->get_blog_prefix();
-		$this->mysql = mysql_get_server_info();
+		if (isset($wpdb->dbh)) {
+			$this->dbh = $wpdb->dbh;
+			$this->table_prefix = $wpdb->get_blog_prefix();
+			$this->mysql = mysql_get_server_info();
+		}
 	}
 
 	/**
@@ -74,14 +74,12 @@ class DB extends SingletonFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated Will be removed in 1.3
+	 * @deprecated Will be removed in 1.3, use DB::instance() instead
 	 *
 	 * @return DB Returns a reference to the DB object
 	 **/
 	static function &get () {
-		if (!self::$instance instanceof self)
-			self::$instance = new self;
-		return self::$instance;
+		return self::instance();
 	}
 
 	static function &instance () {
@@ -142,6 +140,13 @@ class DB extends SingletonFramework {
 			trigger_error("Could not select the '$database' database.");
 	}
 
+	function hastable ($table) {
+		$db = self::instance();
+		$table = DB::escape($table);
+		$result = DB::query("SHOW TABLES FROM ".DB_NAME." LIKE '$table'",'auto','col');
+		return !empty($result);
+	}
+
 	/**
 	 * Generates a timestamp from a MySQL datetime format
 	 *
@@ -180,7 +185,7 @@ class DB extends SingletonFramework {
 	 * @param string|array|object $data Data to be escaped
 	 * @return string Database-safe data
 	 **/
-	function escape($data) {
+	function escape ($data) {
 		// Prevent double escaping by stripping any existing escapes out
 		if (is_array($data)) array_map(array('DB','escape'), $data);
 		elseif (is_object($data)) {
@@ -228,17 +233,18 @@ class DB extends SingletonFramework {
 	 * @return array|object The query results as an object or array of result rows
 	 **/
 	function query ($query, $format='auto', $callback=false) {
-		$db = DB::get();
+		$db = DB::instance();
 		$args = func_get_args();
 		$args = (count($args) > 3)?array_slice($args,3):array();
 
-		// Supports deprecated AS_ARRAY argument
+		// @deprecated Supports deprecated AS_ARRAY argument
 		if ($format === AS_ARRAY) $format = 'array';
 
-		// if (SHOPP_QUERY_DEBUG) $db->queries[] = array($query,$db->caller());
-		if (SHOPP_QUERY_DEBUG) $db->queries[] = $query;
+		if (SHOPP_QUERY_DEBUG) $timer = microtime(true);
+
 		$result = @mysql_query($query, $db->dbh);
-		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
+
+		if (SHOPP_QUERY_DEBUG) $db->queries[] = array($query, microtime(true)-$timer, DB::caller());
 
 		// Error handling
 		if ($db->dbh && $error = mysql_error($db->dbh)) {
@@ -459,9 +465,9 @@ class DB extends SingletonFramework {
 		} else $records[$col] = $record;
 	}
 
-	private function col (&$records,&$record,$column,$index=false,$collate=false) {
+	private function col (&$records,&$record,$column=false,$index=false,$collate=false) {
 		if (isset($record->$column)) $col = $record->$column;
-		else $col = null;
+		else $col = reset(get_object_vars($record)); // No column specified, get first column
 		if ($index) {
 			if (isset($record->$index)) $id = $record->$index;
 			else $id = null;
@@ -525,7 +531,7 @@ abstract class DatabaseObject implements Iterator {
 
 		$map = !empty($this->_map)?array_flip($this->_map):array();
 
-		$Tables = !empty($Settings)?$Settings->get('data_model'):array();
+		$Tables = !$Settings->available()?$Settings->get('data_model'):array();
 		if (isset($Tables[$this->_table])) {
 			$this->_datatypes = $Tables[$this->_table]->_datatypes;
 			$this->_lists = $Tables[$this->_table]->_lists;
@@ -691,8 +697,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @return string The full, prefixed table name
 	 **/
 	function tablename ($table) {
-		$db = DB::get();
-		return $db->table_prefix.SHOPP_DBPREFIX.$table;
+		return  DB::instance()->table_prefix.SHOPP_DBPREFIX.$table;
 	}
 
 	/**

@@ -90,7 +90,7 @@ class AdminFlow extends FlowController {
 		add_filter('favorite_actions', array($this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
 		add_action('load-update.php', array($this, 'admin_css'));
-		add_action('admin_footer',array($this,'debug'));
+		// add_action('admin_footer',array($this,'debug'));
 		add_action('admin_menu',array($this,'tagsmenu'),20);
 
 		// Add the default Shopp pages
@@ -238,6 +238,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function tagsmenu () {
 		global $menu,$submenu;
+		if (!is_array($submenu)) return;
 		foreach ($submenu['shopp-products'] as &$submenus) {
 			if ('shopp-tags' == $submenus[2]) {
 				$submenus[2] = 'edit-tags.php?taxonomy=shopp_tag';
@@ -769,24 +770,24 @@ class AdminFlow extends FlowController {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
 
-	function debug () {
-		// return true;
-		$db = DB::get();
-		global $wpdb;
-		return;
-		if (SAVEQUERIES) {
-			echo "<pre>\nWP QUERIES\n\n";
-			print_r($wpdb->queries);
-			echo "\n\n</pre>";
-		}
-
-		if (SHOPP_QUERY_DEBUG) {
-			echo "<pre>\n\nSHOPP QUERIES\n\n";
-			print_r($db->queries);
-			echo "\n\n</pre>";
-		}
-
-	}
+	// function debug () {
+	// 	// return true;
+	// 	$db = DB::get();
+	// 	global $wpdb;
+	// 	return;
+	// 	if (SAVEQUERIES) {
+	// 		echo "<pre>\nWP QUERIES\n\n";
+	// 		print_r($wpdb->queries);
+	// 		echo "\n\n</pre>";
+	// 	}
+	//
+	// 	if (SHOPP_QUERY_DEBUG) {
+	// 		echo "<pre>\n\nSHOPP QUERIES\n\n";
+	// 		print_r($db->queries);
+	// 		echo "\n\n</pre>";
+	// 	}
+	//
+	// }
 
 
 } // END class AdminFlow

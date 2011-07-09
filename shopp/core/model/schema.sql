@@ -52,8 +52,8 @@ CREATE TABLE <?php echo $price; ?> (							-- Price table
 	saleprice decimal(16,6) NOT NULL default '0.00',			-- (10) Sale price
 	promoprice decimal(16,6) NOT NULL default '0.00',			-- (10) Promo price (calculated promotion price)
 	cost decimal(16,6) NOT NULL default '0.00',					-- (10) Actual cost/value of the priced product
-	weight decimal(12,6) NOT NULL default '0',					-- (8) Weight of the product
-	dimensions varchar(255) NOT NULL default '0',				-- (1-255) weight, width, height & length
+--	weight decimal(12,6) NOT NULL default '0',					-- (Moved to meta 'settings' record)
+--	dimensions varchar(255) NOT NULL default '0',				-- (Moved to meta 'settings' record)
 	shipfee decimal(12,6) NOT NULL default '0',					-- (8) Shipping fee mark-up
 	stock int(10) NOT NULL default '0',							-- (4) Number of product in inventory
 	stocked int(10) NOT NULL default '0',						-- (4) Number of product last stocked

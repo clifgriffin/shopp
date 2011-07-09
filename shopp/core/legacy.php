@@ -10,90 +10,6 @@
  * @package shopp
  **/
 
-// Check for Shopp requisite technologies for activation
-shopp_prereqs();
-
-/**
- * Checks for prerequisite technologies needed for Shopp
- *
- * @author Jonathan Davis
- * @since 1.0
- * @version 1.2
- *
- * @return void
- **/
-function shopp_prereqs () {
-	$activation = false;
-	if ( isset($_GET['action']) && isset($_GET['plugin']) ) {
-		$activation = ('activate' == $_GET['action']);
-		if ($activation) {
-			$plugin = $_GET['plugin'];
-			if (function_exists('check_admin_referer'))
-				check_admin_referer('activate-plugin_' . $plugin);
-		}
-	}
-
-	$errors = array();
-
-	// Check PHP version
-	if (version_compare(PHP_VERSION, '5.0','<')) array_push($errors,'phpversion','php5');
-	if (version_compare(PHP_VERSION, '5.1.3','==')) array_push($errors,'phpversion','php513');
-
-	// Check WordPress version
-	if (version_compare(get_bloginfo('version'),'3.0','<'))
-		$errors = array_push($errors,'wpversion','wp3');
-
-	// Check for cURL
-	$curl_func = array('curl_init','curl_setopt','curl_exec','curl_close');
-	$curl_support = array_filter($curl_func,'function_exists');
-	if (count($curl_func) != count($curl_support)) $errors[] = 'curl';
-
-	// Check for GD
-	if (!function_exists("gd_info")) $errors[] = 'gd';
-	else if (!array_keys(gd_info(),array('JPG Support','JPEG Support'))) $errors[] = 'jpgsupport';
-
-	if (empty($errors)) return define('SHOPP_UNSUPPORTED',false);
-
-	$plugin_path = dirname(dirname(__FILE__));
-	// Manually load text domain for translated activation errors
-	$languages_path = str_replace('\\', '/', $plugin_path.'/lang');
-	load_plugin_textdomain('Shopp',false,$languages_path);
-
-	// Define translated messages
-	$_ = array(
-		'header' => __('Shopp Activation Error','Shopp'),
-		'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
-		'phpversion' => sprintf(__('Your server is running PHP %s!','Shopp'),PHP_VERSION),
-		'php5' => __('Shopp requires PHP 5.0+.','Shopp'),
-		'php513' => __('Shopp will not work with PHP 5.1.3 because of a critical bug in that version.','Shopp'),
-		'wpversion' => sprintf(__('This site is running WordPress %s!','Shopp'),get_bloginfo('version')),
-		'wp3' => __('Shopp requires WordPress 3.0+.','Shopp'),
-		'curl' => __('Your server does not have cURL support available! Shopp requires the cURL library for server-to-server communication.','Shopp'),
-		'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.','Shopp'),
-		'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.','Shopp'),
-		'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'Requirements">','</a>'),
-		'continue' => __('Return to Plugins page')
-	);
-
-	if ($activation) {
-		$string = '<h1>'.$_['header'].'</h1><p>'.$_['intro'].'</h1></p><ul>';
-		foreach ($errors as $error) if (isset($_[$error])) $string .= "<li>{$_[$error]}</li>";
-		$string .= '</ul><p>'.$_['nextstep'].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$_['continue'].'</a></p>';
-		wp_die($string);
-	}
-
-	if (!function_exists('deactivate_plugins'))
-		require( ABSPATH . 'wp-admin/includes/plugin.php' );
-
-	$plugin = basename($plugin_path)."/Shopp.php";
-	deactivate_plugins($plugin,true);
-
-	$phperror = '';
-	foreach ($errors as $error) if (isset($_[$error])) $phperror .= $_[$error].' ';
-	trigger_error($phperror,E_USER_WARNING);
-	define('SHOPP_UNSUPPORTED',true);
-}
-
 if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures
@@ -295,5 +211,90 @@ if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	}
 	shopp_convert_proxy_config();
 }
+
+/**
+ * Checks for prerequisite technologies needed for Shopp
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @version 1.2
+ *
+ * @return void
+ **/
+if (!function_exists('shopp_prereqs')) {
+	function shopp_prereqs () {
+		$activation = false;
+		if ( isset($_GET['action']) && isset($_GET['plugin']) ) {
+			$activation = ('activate' == $_GET['action']);
+			if ($activation) {
+				$plugin = $_GET['plugin'];
+				if (function_exists('check_admin_referer'))
+					check_admin_referer('activate-plugin_' . $plugin);
+			}
+		}
+
+		$errors = array();
+
+		// Check PHP version
+		if (version_compare(PHP_VERSION, '5.0','<')) array_push($errors,'phpversion','php5');
+		if (version_compare(PHP_VERSION, '5.1.3','==')) array_push($errors,'phpversion','php513');
+
+		// Check WordPress version
+		if (version_compare(get_bloginfo('version'),'3.0','<'))
+			$errors = array_push($errors,'wpversion','wp3');
+
+		// Check for cURL
+		$curl_func = array('curl_init','curl_setopt','curl_exec','curl_close');
+		$curl_support = array_filter($curl_func,'function_exists');
+		if (count($curl_func) != count($curl_support)) $errors[] = 'curl';
+
+		// Check for GD
+		if (!function_exists("gd_info")) $errors[] = 'gd';
+		else if (!array_keys(gd_info(),array('JPG Support','JPEG Support'))) $errors[] = 'jpgsupport';
+
+		if (empty($errors)) return (!defined('SHOPP_UNSUPPORTED')?define('SHOPP_UNSUPPORTED',false):true);
+
+		$plugin_path = dirname(dirname(__FILE__));
+		// Manually load text domain for translated activation errors
+		$languages_path = str_replace('\\', '/', $plugin_path.'/lang');
+		load_plugin_textdomain('Shopp',false,$languages_path);
+
+		// Define translated messages
+		$_ = array(
+			'header' => __('Shopp Activation Error','Shopp'),
+			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
+			'phpversion' => sprintf(__('Your server is running PHP %s!','Shopp'),PHP_VERSION),
+			'php5' => __('Shopp requires PHP 5.0+.','Shopp'),
+			'php513' => __('Shopp will not work with PHP 5.1.3 because of a critical bug in that version.','Shopp'),
+			'wpversion' => sprintf(__('This site is running WordPress %s!','Shopp'),get_bloginfo('version')),
+			'wp3' => __('Shopp requires WordPress 3.0+.','Shopp'),
+			'curl' => __('Your server does not have cURL support available! Shopp requires the cURL library for server-to-server communication.','Shopp'),
+			'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.','Shopp'),
+			'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.','Shopp'),
+			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'Requirements">','</a>'),
+			'continue' => __('Return to Plugins page')
+		);
+
+		if ($activation) {
+			$string = '<h1>'.$_['header'].'</h1><p>'.$_['intro'].'</h1></p><ul>';
+			foreach ($errors as $error) if (isset($_[$error])) $string .= "<li>{$_[$error]}</li>";
+			$string .= '</ul><p>'.$_['nextstep'].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$_['continue'].'</a></p>';
+			wp_die($string);
+		}
+
+		if (!function_exists('deactivate_plugins'))
+			require( ABSPATH . 'wp-admin/includes/plugin.php' );
+
+		$plugin = basename($plugin_path)."/Shopp.php";
+		deactivate_plugins($plugin,true);
+
+		$phperror = '';
+		foreach ($errors as $error) if (isset($_[$error])) $phperror .= $_[$error].' ';
+		trigger_error($phperror,E_USER_WARNING);
+		if (!defined('SHOPP_UNSUPPORTED'))
+			define('SHOPP_UNSUPPORTED',true);
+	}
+}
+shopp_prereqs(); // Check for Shopp requisite technologies for activation
 
 ?>

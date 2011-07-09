@@ -48,14 +48,14 @@ class ShoppInstallation extends FlowController {
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if (!ShoppSettings()->availability()) $this->install();
+		if (!ShoppSettings()->available()) $this->install();
 
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
 
 		do_action('shopp_setup');
 
-		if (ShoppSettings()->availability() && shopp_setting('db_version'))
+		if (ShoppSettings()->available() && shopp_setting('db_version'))
 			shopp_set_setting('maintenance','off');
 
 		if (shopp_setting('show_welcome') == "on")
@@ -459,7 +459,6 @@ class ShoppInstallation extends FlowController {
 		$where = "name like '%".join("%' OR name like '%",$gateways)."%'";
 		$query = "SELECT name,value FROM $setting_table WHERE $where";
 		$result = $db->query($query,AS_ARRAY);
-		require(SHOPP_MODEL_PATH.'/Lookup.php');
 		$paycards = Lookup::paycards();
 
 		// Convert settings to 1.1-compatible settings
@@ -691,23 +690,6 @@ class ShoppInstallation extends FlowController {
 
 		} // END if ($db_version <= 1131)
 
-		// Move needed price table columns to price meta records
-		if ($db_version <= 1132) {
-			$meta_table = DatabaseObject::tablename('meta');
-			$price_table = DatabaseObject::tablename('price');
-
-			// Move 'options' to meta 'options' record
-			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
-						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
-
-			// Move 'donation' column to 'settings' record
-			// @todo Migrate price record 'weight', 'dimensions' into the new meta 'settings' record'
-			// @todo Fix approach to serialize 'donation','weight','dimensions' as settings hash map
-			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
-						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
-
-		} // END if ($db_version <= 1132)
-
 		if ($db_version <= 1133) {
 
 			// Ditch old WP pages for pseudorific new ones
@@ -730,6 +712,30 @@ class ShoppInstallation extends FlowController {
 
 			DB::query("UPDATE $wpdb->posts SET post_status='trash' where ID IN (".join(',',$trash).")");
 		}
+
+		// Move needed price table columns to price meta records
+		if ($db_version <= 1135) {
+			$meta_table = DatabaseObject::tablename('meta');
+			$price_table = DatabaseObject::tablename('price');
+
+			// Move 'options' to meta 'options' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
+
+			// Merge 'weight','dimensions' and 'donation' columns to a price 'settings' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+							SELECT id,'price','meta','settings',
+							CONCAT('a:2:{s:10:\"dimensions\";',
+								IF(dimensions = '0','a:0:{}',
+									CONCAT(
+										SUBSTRING_INDEX(dimensions,';',1),
+										';s:',CHAR_LENGTH(weight),':\"',	weight,'\";',
+										SUBSTRING(dimensions,CHAR_LENGTH(SUBSTRING_INDEX(dimensions,';',2))+2)
+									)
+								),'s:8:\"donation\";',donation,'}'
+							),created,modified FROM $price_table");
+
+		} // END if ($db_version <= 1135)
 
 		$this->roles(); // Setup Roles and Capabilities
 
