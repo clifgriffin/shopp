@@ -191,7 +191,6 @@ class Price extends DatabaseObject {
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
 			array('value'=>'Subscription','label'=>__('Subscription','Shopp')),
-			array('value'=>'Membership','label'=>__('Membership','Shopp')),
 			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
 		);
 	}

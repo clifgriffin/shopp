@@ -260,6 +260,7 @@ class Settings extends DatabaseObject {
 	 * @return object
 	 **/
 	function setting () {
+		$setting = new stdClass();
 		$setting->_datatypes = array(   'context' => 'string', 'type' => 'string',
 										'name' => 'string', 'value' => 'string',
 										'created' => 'date', 'modified' => 'date');

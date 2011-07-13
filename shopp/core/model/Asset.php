@@ -649,7 +649,7 @@ abstract class StorageModule {
 		echo $data;
 	}
 
-	function meta () {
+	function meta ($arg1=false,$arg2=false) {
 		return false;
 	}
 

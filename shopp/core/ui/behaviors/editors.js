@@ -658,16 +658,6 @@ function readableFileSize (size) {
 	return sized.toFixed(2)+" "+units[unit];
 }
 
-function unsavedChanges () {
-	var mce = typeof(tinyMCE) != 'undefined' ? tinyMCE.activeEditor : false;
-
-	if ( mce && !mce.isHidden() ) {
-		if ( mce.isDirty() )
-			return sjss.UNSAVED_CHANGES_WARNING;
-	}
-	if (changes && !saving) return sjss.UNSAVED_CHANGES_WARNING;
-}
-
 /**
  * Add a product spec/detail
  **/

@@ -206,7 +206,8 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .shopp div.priceline .pricing-ui { padding:6px;position:relative; }
 
 .shopp .priceline div.inline { display:inline-block; }
-.shopp .priceline .dimensions { position:absolute;padding:6px;border-width:1px;border-style:solid;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;border-color:#ccc;margin-bottom:6px;border-color:#dfdfdf;background-color:#f1f1f1;-webkit-box-shadow:0px 2px 10px #aaa;-moz-box-shadow:0px 2px 10px #aaa;top:53px;margin-left:1px;z-index:1000; }
+.shopp .priceline .dimui { position: absolute; width: 400px; }
+.shopp .priceline .dimensions {  position:absolute;padding:6px;border-width:1px;border-style:solid;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;border-color:#ccc;margin-bottom:6px;border-color:#dfdfdf;background-color:#f1f1f1;-webkit-box-shadow:0px 2px 10px #aaa;-moz-box-shadow:0px 2px 10px #aaa; margin-left:1px;z-index:1000; }
 .shopp .priceline .extoggle { background-color:#f1f1f1;color:#777;cursor:pointer; }
 
 .priceline select.period { width: 66px; }
