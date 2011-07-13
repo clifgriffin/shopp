@@ -313,6 +313,7 @@ class Warehouse extends AdminController {
 		$ps = DatabaseObject::tablename(ProductSummary::$table);
 
 		$where = array_merge($where,$subs[$this->view]['where']);
+		$order = false;
 		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
 
 		if (in_array($this->view,array('onsale','featured','inventory')))
@@ -568,8 +569,6 @@ class Warehouse extends AdminController {
 
 		ShoppSettings()->saveform(); // Save workflow setting
 
-		print_r($_POST);
-
 		// Get needed settings
 		$base = shopp_setting('base_operations');
 		$taxrate = 0;
@@ -609,7 +608,6 @@ class Warehouse extends AdminController {
 
 		do_action('shopp_pre_product_save');
 		$Product->save();
-
 
 		// Save taxonomies
 		if ( !empty($_POST['tax_input']) ) {
@@ -673,6 +671,14 @@ class Warehouse extends AdminController {
 				if (isset($priceline['recurring']['trialprice']))
 					$priceline['recurring']['trialprice'] = floatvalue($priceline['recurring']['trialprice']);
 
+				if ($Price->stock != $priceline['stocked']) {
+					$priceline['stock'] = $priceline['stocked'];
+				} else unset($priceline['stocked']);
+
+				$Price->updates($priceline);
+				$Price->save();
+
+				// Save 'price' meta records after saving the price record
 				if (isset($pricelines['dimensions']) && is_array($pricelines['dimensions']))
 					array_map('floatvalue',$priceline['dimensions']);
 
@@ -684,17 +690,10 @@ class Warehouse extends AdminController {
 						$priceline['settings'][$setting] = $priceline[$setting];
 					}
 				}
+
 				if ( ! empty($priceline['settings']) ) shopp_set_meta ( $Price->id, 'price', 'settings', $priceline['settings'] );
 
 				if ( ! empty($priceline['options']) ) shopp_set_meta ( $Price->id, 'price', 'options', $priceline['options'] );
-
-
-				if ($Price->stock != $priceline['stocked']) {
-					$priceline['stock'] = $priceline['stocked'];
-				} else unset($priceline['stocked']);
-
-				$Price->updates($priceline);
-				$Price->save();
 
 				$Product->sumprice($Price);
 
