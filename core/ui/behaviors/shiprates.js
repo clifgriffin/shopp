@@ -222,17 +222,25 @@ jQuery(document).ready( function($) {
 					tierset.row = rowid;
 					tierset.tier = tiers.length;
 					tierset.unitabbr = '';
+					tierset.threshold_class = settings.threshold_class;
+					tierset.rate_class = settings.rate_class;
 					if (settings.unit && settings.unit[1]) tierset.unitabbr = settings.unit[1];
 
 					var tier = $.tmpl('tablerate-row-tier',tierset),
-						rate = tier.find('input.money').change(function () {
-							this.value = asMoney(this.value);
-						}).change().mouseup(function () { $(this).select(); }),
+						rate = tier.find('input').mouseup(function () { $(this).select(); }),
 						addctrl = tier.find('button.add').click(row.addtier),
 						delctrl = tier.find('button.delete').click(function (e) {
 							e.preventDefault();
 							tier.fadeRemove();
 						});
+
+					tier.find('input.money').change(function () {
+						this.value = asMoney(this.value);
+					}).change();
+					tier.find('input.percentage').change(function () {
+						this.value = asPercent(this.value);
+					}).change();
+
 
 					tiers.push(tier);
 

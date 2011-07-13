@@ -640,10 +640,11 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	}
 
 	function settings () {
-		$properties = array('module','type','unit','norates');
+		$properties = array('module','type','unit','norates','threshold_class','rate_class');
 		$settings = array();
 		foreach ($properties as $prop)
 			$settings[$prop] = $this->{$prop};
+
 		return $settings;
 	}
 
@@ -777,6 +778,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$defaults = array(
 			'class' => '',
 			'threshold_class' => '',
+			'rate_class' => '',
 			'unit' => array(),
 			'table' => array()
 		);
@@ -787,6 +789,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$this->type = 'tablerates';
 		$this->tables = true;
 		if (!empty($unit)) $this->unit = $unit;
+		if (!empty($threshold_class)) $this->threshold_class = $threshold_class;
+		if (!empty($rate_class)) $this->rate_class  = $rate_class;
 
 		if (isset($_POST['addrow'])) {
 			$row = (int)$_POST['addrow']+1;
@@ -908,8 +912,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 	function tablerate_row_tier ($row=0,$tier=0,$attrs,$setting=array()) {
 		$unit = isset($attrs['unit'][1])?$attrs['unit'][1]:false;
-		$threshold_class = $attrs['threshold_class'];
-		$rate_class = $attrs['rate_class'];
+		$threshold_class = !empty($attrs['threshold_class'])?$attrs['threshold_class']:'';
+		$rate_class = !empty($attrs['rate_class'])?$attrs['rate_class']:'money';
 		$defaults = array('threshold' => 0,'rate' => '1.00');
 		$setting = array_merge($defaults,$setting);
 
@@ -919,13 +923,15 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 			$unit = '${unitabbr}';
 			$setting['rate'] = '${rate}';
 			$setting['threshold'] = '${threshold}';
+			$rate_class = '${rate_class}';
+			$threshold_class = '${threshold_class}';
 		}
 
 		$_ = array();
 		$_[] = '<tr>';
 			$_[] = '<td class="control"><button type="submit" name="deletetier" class="delete'.($tier == 0?' hidden':'').'" value="'.("$row,$tier").'"><img src="'.SHOPP_ICONS_URI.'/delete.png" width="16" height="16" /></button></td>';
-			$_[] = '<td class="unit leftfield"><label><input type="text" name="'.$this->module.'[table]['.$row.'][tiers]['.$tier.'][threshold]" size="7" value="'.$setting['threshold'].'" class="selectall '.$threshold_class.'" /> '.$unit.' '.__('and above','Shopp').'</label></td>';
-			$_[] = '<td class="rate rightfield"><input type="text" name="'.$this->module.'[table]['.$row.'][tiers]['.$tier.'][rate]" size="7" class="money selectall'." $rate_class".'" value="'.$setting['rate'].'" /></td>';
+			$_[] = '<td class="unit leftfield"><label><input type="text" name="'.$this->module.'[table]['.$row.'][tiers]['.$tier.'][threshold]" size="7" value="'.$setting['threshold'].'" class="threshold selectall '.$threshold_class.'" /> '.$unit.' '.__('and above','Shopp').'</label></td>';
+			$_[] = '<td class="rate rightfield"><input type="text" name="'.$this->module.'[table]['.$row.'][tiers]['.$tier.'][rate]" size="7" class="rate selectall '.$rate_class.'" value="'.$setting['rate'].'" /></td>';
 			$_[] = '<td class="control"><button type="submit" name="addtier" value="'."$row,$tier".'" class="add"><img src="'.SHOPP_ICONS_URI.'/add.png" width="16" height="16" /></button></td>';
 		$_[] = '</tr>';
 

@@ -244,9 +244,9 @@ class Setup extends AdminController {
 		}
 
 		$operations = shopp_setting('base_operations');
-		$zones = Lookup::country_zones();
-		if (isset($zones[$operations['country']]))
-			$zones = $zones[$operations['country']];
+		$country_zones = Lookup::country_zones();
+		if (isset($country_zones[ $operations['country'] ]))
+			$zones = $country_zones[ $operations['country'] ];
 
 		$targets = shopp_setting('target_markets');
 		if (!$targets) $targets = array();
