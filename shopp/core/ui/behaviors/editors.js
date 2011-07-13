@@ -122,9 +122,11 @@ function loadVariations (options,prices) {
 		if (option && option.id) addVariationOptionsMenu(option);
 	});
 
-	$.each(prices,function (key,price) {
-		if (this.context == "variation")
-			Pricelines.add(this.options.split(","),this,'#variations-pricing');
+	$.each(prices,function (k,p) {
+		if (p.context == "variation") {
+			Pricelines.add(p.options.split(','),p,'#variations-pricing');
+		}
+
 	});
 	Pricelines.updateVariationsUI();
 

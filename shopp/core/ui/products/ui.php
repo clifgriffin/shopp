@@ -25,6 +25,7 @@ function save_meta_box ($Product) {
 			<div id="scheduling">
 				<div id="schedule-calendar" class="calendar-wrap">
 					<?php
+						$previous = false;
 						$dateorder = date_format_order(true);
 						foreach ($dateorder as $type => $format):
 							if ($previous == "s" && $type[0] == "s") continue;

@@ -34,6 +34,7 @@ class Price extends DatabaseObject {
 
 		$metamap = array(
 			'download' => 'download',
+			'options' => 'options',
 			'settings' => 'settings'
 		);
 		$metaclass = array(
@@ -43,34 +44,38 @@ class Price extends DatabaseObject {
 		if ('metatype' == $property)
 			$property = isset($metamap[$record->type])?$metamap[$record->type]:'meta';
 
-		if (isset($metaclass[$record->type])) {
-			$ObjectClass = $metaclass[$record->type];
-			$Object = new $ObjectClass();
-			$Object->populate($record);
-			if (method_exists($Object,'expopulate'))
-				$Object->expopulate();
-			$record = $Object;
-		}
-
 		if ('download' == $record->type) {
 			$collate = false;
 			$data = unserialize($record->value);
 			foreach (get_object_vars($data) as $prop => $val) $record->{$prop} = $val;
 			$clean = array('context','type','numeral','sortorder','created','modified','value');
 			foreach ($clean as $prop) unset($record->{$prop});
+			return;
 		}
 
-		if ( 'settings' == $record->name ) {
-			$data = $record->value;
-			if (is_array($prices) && isset($prices[$record->{$id}])) {
-				$target = $prices[$record->{$id}];
-			} elseif (isset($this)) {
+		if (isset($metaclass[$record->type])) {
+			$ObjectClass = $metaclass[$record->type];
+			$Object = new $ObjectClass();
+			$Object->populate($record);
+			if (method_exists($Object,'expopulate'))
+				$Object->expopulate();
+
+			if (is_array($prices) && isset($prices[$Object->{$id}]))
+				$target = $prices[$Object->{$id}];
+			elseif (isset($this))
 				$target = $this;
+
+			if (!empty($target)) {
+				if (is_array($Object->value))
+					foreach ( $Object->value as $prop => $setting )
+						$target->{$prop} = $setting;
+				else $target->{$Object->name} = $Object->value;
 			}
-			foreach ( $data as $prop => $setting ) {
-				$target->{$prop} = $setting;
-			}
+
+			return;
+
 		}
+
 
 		parent::metaloader($records,$record,$prices,$id,$property,$collate,$merge);
 	}
