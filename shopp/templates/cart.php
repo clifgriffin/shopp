@@ -1,8 +1,8 @@
 <?php
-/** 
+/**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -44,7 +44,7 @@
 	<?php while(shopp('cart','promos')): ?>
 		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?><strong><?php shopp('cart','promo-discount',array('before' => '&nbsp;&mdash;&nbsp;')); ?></strong></td></tr>
 	<?php endwhile; ?>
-	
+
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
 			<?php if (shopp('cart','needs-shipping-estimates')): ?>
@@ -64,7 +64,7 @@
 	<?php endif; ?>
 	<?php if (shopp('cart','needs-shipped')): ?>
 	<tr class="totals">
-		<th scope="row"><?php shopp('cart','shipping','label='.__('Shipping','Shopp')); ?></th>
+		<th scope="row"><?php shopp('cart','shipping','label='.__('Estimated Shipping','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
 	<?php endif; ?>
