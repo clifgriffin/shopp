@@ -147,14 +147,14 @@ function templates_meta_box ($Category) {
 			<ul class="multipane">
 				<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 					<div class="controls">
-						<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+						<button type="button" id="addVariationMenu" class="button-secondary"><?php _e('Add Option Menu','Shopp'); ?></button>
 					</div>
 				</li>
 
 				<li>
 					<div id="variations-list" class="multiple-select options"></div>
 					<div class="controls">
-					<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+					<button type="button" id="addVariationOption" class="button-secondary"><?php _e('Add Option','Shopp'); ?></button>
 					</div>
 				</li>
 			</ul>

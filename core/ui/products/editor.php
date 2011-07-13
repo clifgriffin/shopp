@@ -5,7 +5,7 @@
 	<h2><?php _e('Product Editor','Shopp'); ?></h2>
 
 	<div id="ajax-response"></div>
-	<form name="product" id="product" action="<?php echo admin_url('admin.php'); ?>" method="post">
+	<form name="product" id="product" action="<?php echo esc_url($this->url); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-product'); ?>
 		<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false ); ?>
 		<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false ); ?>
@@ -129,7 +129,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	WIDTH_LABEL = <?php _jse('Width','Shopp'); ?>,
 	HEIGHT_LABEL = <?php _jse('Height','Shopp'); ?>,
 	DIMENSIONAL_WEIGHT_LABEL = <?php _jse('3D Weight','Shopp'); ?>,
-	SHIPFEE_LABEL = <?php _jse('Handling Fee','Shopp'); ?>,
+	SHIPFEE_LABEL = <?php _jse('Extra Fee','Shopp'); ?>,
 	SHIPFEE_XTRA = <?php _jse('Amount added to shipping costs for each unit ordered (for handling costs, etc)','Shopp'); ?>,
 	INVENTORY_LABEL = <?php _jse('Inventory','Shopp'); ?>,
 	BILLCYCLE_LABEL = <?php _jse('Billing Cycle','Shopp'); ?>,

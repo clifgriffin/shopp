@@ -722,7 +722,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function mceplugin ($plugins) {
 		// Add a changing query string to keep the TinyMCE plugin from being cached & breaking TinyMCE in Safari/Chrome
-		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/tinyshopp.js?ver='.mktime();
+		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/tinyshopp.js?ver='.time();
 		return $plugins;
 	}
 

@@ -127,7 +127,7 @@ class ContentIndex extends DatabaseObject {
 	 * @param string $type Type of product property indexed
 	 * @return void
 	 **/
-	function load ($product,$type) {
+	function load ($product=false,$type=false) {
 		$this->product = $product;
 		$this->type = $type;
 		if (empty($product) || empty($type)) return false; // Nothing to load

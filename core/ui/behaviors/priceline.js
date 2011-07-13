@@ -271,14 +271,15 @@ function Priceline (id,options,data,target,attachment) {
 
 		hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" value="on" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+FREE_SHIPPING_TEXT+'</span>'+
-					'<span class="ui"><input type="text" name="'+fn+'[weight]" id="weight-'+i+'" size="8" class="selectall right" />'+
-					'<label for="weight-'+i+'" id="weight-label-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />'+
+					'<span class="ui"><input type="text" name="'+fn+'[dimensions][weight]" id="weight-'+i+'" size="8" class="selectall right" />'+
+					'<label for="weight-'+i+'" id="weight-label-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br /><span class="dimui"></span>'+
 					'<input type="text" name="'+fn+'[shipfee]" id="shipfee-'+i+'" size="8" class="selectall money right" />'+
 					'<label for="shipfee-'+i+'" title="'+SHIPFEE_XTRA+'"> '+SHIPFEE_LABEL+'</label><br />'+
 					'</span></td>').appendTo(inputsRow);
 
 		dis = ui.find('span.status');
 		inf = ui.find('span.ui').hide();
+		dui = ui.find('.dimui');
 
 		if (!weight) weight = 0;
 		_.w = $('#weight-'+i).val(formatNumber(new Number(weight),nf,true)).bind('change.value',function () {
@@ -318,7 +319,7 @@ function Priceline (id,options,data,target,attachment) {
 				'<label>'+dimensionUnit+'</label><br />'+
 				'<label for="dimensions-height-'+i+'" title="'+HEIGHT_LABEL+'"> '+HEIGHT_LABEL+'</label>'+
 				'</div>'+
-				'</div>').hide().appendTo(ui);
+				'</div>').hide().appendTo(dui);
 
 			if (!(dimensions instanceof Object))
 				dimensions = {'weight':0,'length':0,'width':0,'height':0};
@@ -357,6 +358,10 @@ function Priceline (id,options,data,target,attachment) {
 				});
 				if (!isNaN(d/w)) weight.val((d/w)).trigger('change.value');
 			}
+
+			_.st.change(function () { // Make sure to hide the dimensions panel if shipping is disabled
+				if (!$(this).attr('checked')) dc.hide();
+			});
 
 			dh.blur(toggleDimensions);
 			weight.click(toggleDimensions).attr('readonly',true);

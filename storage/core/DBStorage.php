@@ -73,9 +73,10 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 * @param string $filename (optional) File name of the asset
 	 * @return array A named list of the stored file size and mimetype
 	 **/
-	function meta ($uri,$filename=false) {
+	function meta ($uri=false,$filename=false) {
 		$db = &DB::get();
 		$_ = array();
+		if (empty($uri)) return $_;
 		$file = $db->query("SELECT LENGTH(data) AS size FROM $this->_table WHERE $this->_key='$uri' LIMIT 1");
 		if ($file && isset($file->size)) $_['size'] = $file->size;
 		if ($filename !== false) $_['mime'] = file_mimetype(false,$filename);

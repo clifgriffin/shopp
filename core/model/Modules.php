@@ -75,7 +75,7 @@ abstract class ModuleLoader {
 			// Module isn't available, skip it
 			if (!isset($this->modules[$module])) continue;
 			// Load the file
-			$this->active[$module] = &$this->modules[$module]->load();
+			$this->active[$module] = $this->modules[$module]->load();
 			if (function_exists('do_action_ref_array')) do_action_ref_array('shopp_module_loaded',array($module));
 		}
 		if (function_exists('do_action')) do_action('shopp_'.strtolower(get_class($this)).'_loaded');

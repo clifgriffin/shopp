@@ -31,7 +31,6 @@ class Setup extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 		$pages = explode("-",$_GET['page']);
 		$this->screen = end($pages);
 		switch ($this->screen) {

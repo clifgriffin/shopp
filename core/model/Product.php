@@ -36,6 +36,9 @@ class Product extends WPShoppObject {
 	var $onsale = false;
 	var $freeshipping = false;
 	var $outofstock = false;
+	var $variants = 'off';
+	var $addons = 'off';
+	var $inventory = false;
 	var $stock = 0;
 	var $options = 0;
 
@@ -83,14 +86,14 @@ class Product extends WPShoppObject {
 	 **/
 	function load_data ($options=array('prices','specs','images','categories','tags','meta','summary'),&$products=array()) {
 		$loaders = array(
-		//  'name'     'callback_method'
-			'prices' 	=> 'load_prices',
-			'images' 	=> 'load_meta',
-			'specs' 	=> 'load_meta',
-			'meta' 		=> 'load_meta',
+		//  'name'      'callback_method'
+			'prices' 	 => 'load_prices',
+			'images' 	 => 'load_meta',
+			'specs' 	 => 'load_meta',
+			'meta' 		 => 'load_meta',
 			'categories' => 'load_taxonomies',
-			'tags' 		=> 'load_taxonomies',
-			'summary' 	=> 'load_summary'
+			'tags' 		 => 'load_taxonomies',
+			'summary' 	 => 'load_summary'
 
 		);
 
@@ -397,10 +400,12 @@ class Product extends WPShoppObject {
 			}
 
 			// Determine weight ranges
-			if($price->weight && $price->weight > 0) {
-				if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->weight;
-				$target->min['weight'] = min($target->min['weight'],$price->weight);
-				$target->max['weight'] = max($target->max['weight'],$price->weight);
+			if (isset($price->dimensions)) {
+				if($price->dimensions->weight && $price->dimensions->weight > 0) {
+					if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->dimensions->weight;
+					$target->min['weight'] = min($target->min['weight'],$price->dimensions->weight);
+					$target->max['weight'] = max($target->max['weight'],$price->dimensions->weight);
+				}
 			}
 
 		// } // end foreach($price)

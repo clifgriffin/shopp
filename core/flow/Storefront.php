@@ -1139,7 +1139,7 @@ class Storefront extends FlowController {
 		return $markup;
 	}
 
-	function default_pages () {
+	static function default_pages () {
 		return array(
 			'catalog' => 	array('title' => __('Shop','Shopp'), 'slug' => 'shop', 'description'=>__('The page title and base slug for products, categories &amp; collections.','Shopp') ),
 			'account' => 	array('title' => __('Account','Shopp'), 'slug' => 'account', 'description'=>__('Used to display customer account dashboard &amp; profile pages.','Shopp') ),
@@ -1150,7 +1150,7 @@ class Storefront extends FlowController {
 		);
 	}
 
-	function pages_settings ($updates=false) {
+	static function pages_settings ($updates=false) {
 		$pages = self::default_pages();
 
 		$ShoppSettings = ShoppSettings();
@@ -1168,13 +1168,13 @@ class Storefront extends FlowController {
 		return $pages;
 	}
 
-	function slug ($page='catalog') {
+	static function slug ($page='catalog') {
 		$pages = self::pages_settings();
 		if (!isset($pages[$page])) $page = 'catalog';
 		return $pages[$page]['slug'];
 	}
 
-	function slugpage ($slug) {
+	static function slugpage ($slug) {
 		$pages = self::pages_settings();
 		foreach ($pages as $name => $page)
 			if ($slug == $page['slug']) return $name;

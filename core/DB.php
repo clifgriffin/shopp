@@ -156,7 +156,7 @@ class DB extends SingletonFramework {
 	 * @param string $datetime A MySQL date time string
 	 * @return int A timestamp number usable by PHP date functions
 	 **/
-	function mktime ($datetime) {
+	static function mktime ($datetime) {
 		$h = $mn = $s = 0;
 		list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,"%d-%d-%d %d:%d:%d");
 		if (max($Y, $M, $D, $h, $mn, $s) == 0) return 0;
@@ -172,7 +172,7 @@ class DB extends SingletonFramework {
 	 * @param int $timestamp A timestamp number
 	 * @return string An SQL datetime formatted string
 	 **/
-	function mkdatetime ($timestamp) {
+	static function mkdatetime ($timestamp) {
 		return date("Y-m-d H:i:s",$timestamp);
 	}
 
@@ -185,7 +185,7 @@ class DB extends SingletonFramework {
 	 * @param string|array|object $data Data to be escaped
 	 * @return string Database-safe data
 	 **/
-	function escape ($data) {
+	static function escape ($data) {
 		// Prevent double escaping by stripping any existing escapes out
 		if (is_array($data)) array_map(array('DB','escape'), $data);
 		elseif (is_object($data)) {
@@ -203,13 +203,13 @@ class DB extends SingletonFramework {
 	 * @param string|array|object $data Data to be sanitized
 	 * @return string Cleaned up data
 	 **/
-	function clean ($data) {
+	static function clean ($data) {
 		if (is_array($data)) array_map(array('DB','clean'), $data);
 		if (is_string($data)) $data = rtrim($data);
 		return $data;
 	}
 
-	function caller () {
+	static function caller () {
 		$backtrace  = debug_backtrace();
 		$stack = array();
 
@@ -232,7 +232,7 @@ class DB extends SingletonFramework {
 	 * @param boolean $output (optional) Return results as an object (default) or as an array of result rows
 	 * @return array|object The query results as an object or array of result rows
 	 **/
-	function query ($query, $format='auto', $callback=false) {
+	static function query ($query, $format='auto', $callback=false) {
 		$db = DB::instance();
 		$args = func_get_args();
 		$args = (count($args) > 3)?array_slice($args,3):array();
@@ -290,7 +290,7 @@ class DB extends SingletonFramework {
 		}
 	}
 
-	function select ($options=array()) {
+	static function select ($options=array()) {
 		$defaults = array(
 			'columns' => '*',
 			'useindex' => '',
@@ -329,7 +329,7 @@ class DB extends SingletonFramework {
 	 * @param string $type The SQL data type
 	 * @return string|boolean The primitive datatype or false if not found
 	 **/
-	function datatype ($type) {
+	static function datatype ($type) {
 		foreach((array)DB::$datatypes as $datatype => $patterns) {
 			foreach((array)$patterns as $pattern) {
 				if (strpos($type,$pattern) !== false) return $datatype;
@@ -352,7 +352,7 @@ class DB extends SingletonFramework {
 	 * @param DatabaseObject $Object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
-	function prepare ($Object,$mapping = array()) {
+	static function prepare ($Object,$mapping = array()) {
 		$data = array();
 
 		// Go through each data property of the object
@@ -424,7 +424,7 @@ class DB extends SingletonFramework {
 	 * @param string $column The column name to inspect
 	 * @return array List of values
 	 **/
-	function column_options($table = null, $column = null) {
+	static function column_options($table = null, $column = null) {
 		if ( ! ($table && $column)) return array();
 		$r = DB::query("SHOW COLUMNS FROM $table LIKE '$column'");
 		if ( strpos($r[0]->Type,"enum('") )
@@ -452,11 +452,11 @@ class DB extends SingletonFramework {
 	}
 
 
-	private function auto (&$records,&$record) {
+	private static function auto (&$records,&$record) {
 		$records[] = $record;
 	}
 
-	private function index (&$records,&$record,$column,$collate=false) {
+	private static function index (&$records,&$record,$column,$collate=false) {
 		if (isset($record->$column)) $col = $record->$column;
 		else $col = null;
 		if ($collate) {
@@ -465,7 +465,7 @@ class DB extends SingletonFramework {
 		} else $records[$col] = $record;
 	}
 
-	private function col (&$records,&$record,$column=false,$index=false,$collate=false) {
+	private static function col (&$records,&$record,$column=false,$index=false,$collate=false) {
 		if (isset($record->$column)) $col = $record->$column;
 		else $col = reset(get_object_vars($record)); // No column specified, get first column
 		if ($index) {
@@ -593,7 +593,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param $id - A string containing the object's id value
 	 * @param $key - A string of the name of the db object's primary key
 	 **/
-	function load () {
+	function load ($arg1=false,$arg2=false) {
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 
@@ -696,7 +696,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param string $table The base table name
 	 * @return string The full, prefixed table name
 	 **/
-	function tablename ($table) {
+	static function tablename ($table) {
 		return  DB::instance()->table_prefix.SHOPP_DBPREFIX.$table;
 	}
 
@@ -974,7 +974,7 @@ class WPDatabaseObject extends DatabaseObject {
 	 * @param string $table The base table name
 	 * @return string The full, prefixed table name
 	 **/
-	function tablename ($table) {
+	static function tablename ($table) {
 		global $table_prefix;
 		return $table_prefix.$table;
 	}
@@ -1001,7 +1001,7 @@ class WPShoppObject extends WPDatabaseObject {
 		parent::load($p);
 	}
 
-	function register ($class,$slug) {
+	static function register ($class,$slug) {
 		register_post_type( $class::$posttype,array(
 				'labels' => array(
 					'name' => __('Products','Shopp'),

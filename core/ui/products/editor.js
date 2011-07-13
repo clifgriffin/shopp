@@ -122,8 +122,6 @@ jQuery(document).ready(function($) {
 	quickSelects();
 	updateWorkflow();
 
-	// window.onbeforeunload = unsavedChanges;
-
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
 		e.stopPropagation();
 		var url = $('#product').attr('action').split('?'),
@@ -178,7 +176,8 @@ function categories () {
 			setting = taxonomy+'_tab',
 			addui = $this.find('div.new-category').hide(),
 			tabui = $this.find('ul.category-tabs'),
-			tabs = tabui.find('li a').click(function () {
+			tabs = tabui.find('li a').click(function (e) {
+				e.preventDefault();
 				var $this = $(this),
 					href = $this.attr('href');
 				$this.parent().addClass('tabs').siblings('li').removeClass('tabs');

@@ -475,8 +475,6 @@ class Warehouse extends AdminController {
 	function editor () {
 		global $Shopp;
 
-		$db = DB::get();
-
 		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -569,6 +567,8 @@ class Warehouse extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		ShoppSettings()->saveform(); // Save workflow setting
+
+		print_r($_POST);
 
 		// Get needed settings
 		$base = shopp_setting('base_operations');
@@ -673,12 +673,10 @@ class Warehouse extends AdminController {
 				if (isset($priceline['recurring']['trialprice']))
 					$priceline['recurring']['trialprice'] = floatvalue($priceline['recurring']['trialprice']);
 
-				$priceline['weight'] = floatvalue($priceline['weight']);
 				if (isset($pricelines['dimensions']) && is_array($pricelines['dimensions']))
-					foreach ($priceline['dimensions'] as &$dimension)
-						$dimension = floatvalue($dimension);
+					array_map('floatvalue',$priceline['dimensions']);
 
-				$settings = array('donation','recurring','membership');
+				$settings = array('donation','recurring','membership','dimensions');
 
 				$priceline['settings'] = array();
 				foreach ($settings as $setting) {
@@ -687,6 +685,9 @@ class Warehouse extends AdminController {
 					}
 				}
 				if ( ! empty($priceline['settings']) ) shopp_set_meta ( $Price->id, 'price', 'settings', $priceline['settings'] );
+
+				if ( ! empty($priceline['options']) ) shopp_set_meta ( $Price->id, 'price', 'options', $priceline['options'] );
+
 
 				if ($Price->stock != $priceline['stocked']) {
 					$priceline['stock'] = $priceline['stocked'];

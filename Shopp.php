@@ -594,13 +594,13 @@ class Shopp {
 		return $response;
 	}
 
-	function keysetting () {
+	static function keysetting () {
 		$data = base64_decode(shopp_setting('updatekey'));
 		if (empty($data)) return false;
 		return unpack(Lookup::keyformat(),$data);
 	}
 
-	function activated () {
+	static function activated () {
 		$key = self::keysetting();
 		return ('1' == $key['s']);
 	}
