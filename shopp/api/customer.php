@@ -48,6 +48,24 @@ function shopp_customer ( $customer = false ) {
 }
 
 /**
+ * shopp_customer_exists - find out if the customer exists
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $customer (required) customer id to check
+ * @return bool true if the customer exists, else false
+ **/
+function shopp_customer_exists ( $customer = false ) {
+	if ( ! $customer ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+	$Customer = new Customer( $customer );
+	return ( ! empty( $Customer->id ) );
+}
+
+/**
  * shopp_customer_marketing - whether or not a customer accepts your marketing
  *
  * @author John Dillick
