@@ -259,8 +259,18 @@ class Product extends WPShoppObject {
 			$Object->populate($record);
 			if (method_exists($Object,'expopulate'))
 				$Object->expopulate();
-			$record = $Object;
+
+			if (is_array($products) && isset($products[$Object->{$id}]))
+				$target = $products[$Object->{$id}];
+			elseif (isset($this))
+				$target = $this;
+
+			if ($target) $target->{$Object->name} = $Object->value;
+
+			return;
+
 		}
+
 		if ('images' == $property) $collate = 'id';
 
 		parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);

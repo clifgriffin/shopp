@@ -250,7 +250,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function found ($result, $options, $O) {
 		if (empty($O->id)) return false;
-		$load = array('prices','images','specs','tags','categories');
+		$load = array('prices','images','specs','tags','categories','summary');
 		if (isset($options['load'])) $load = explode(",",$options['load']);
 		$O->load_data($load);
 		return true;
@@ -441,7 +441,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
-	function has_variations ($result, $options, $O) { return ('on' == $O->variants && (!empty($O->options['v']) || !empty($O->options))); }
+	function has_variations ($result, $options, $O) {
+		return ('on' == $O->variants && (!empty($O->options['v']) || !empty($O->options)));
+	}
 
 	function id ($result, $options, $O) { return $O->id; }
 
