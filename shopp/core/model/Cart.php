@@ -1386,6 +1386,18 @@ class ShippingOption {
 	 * Builds a shipping option from a configured/calculated
 	 * shipping rate array
 	 *
+	 * Example:
+	 * new ShippingOption(array(
+	 * 		'name' => 'Name of Shipping Rate Method',
+	 * 		'slug' => 'rate-method-slug',
+	 * 		'amount' => 0.99,
+	 * 		'delivery' => '1d-2d',
+	 * 		'items' => array(
+	 * 			0 => 0.99,
+	 * 			1 => 0.50
+	 * 		)
+	 * ));
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
@@ -1394,6 +1406,10 @@ class ShippingOption {
 	 * @return void
 	 **/
 	function __construct ($rate,$estimate=true) {
+
+		if (!isset($rate['slug'])) // Fire off an error if the slug is not provided
+			return ( ! new ShoppError('A slug (string) property is required in the rate parameter when constructing a new ShippingOption','shopp_dev_err',SHOPP_DEBUG_ERR) );
+
 		$this->name = $rate['name'];
 		$this->slug = $rate['slug'];
 		$this->amount = $rate['amount'];
