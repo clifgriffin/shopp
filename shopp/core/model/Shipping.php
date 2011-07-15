@@ -109,14 +109,6 @@ class ShippingModules extends ModuleLoader {
 			if (empty($setting)) continue;
  			$this->methods[$setting_name] = $module;
 		}
-
-		// $methods = array();
-		// foreach ($m as $method => $name) {
-		// 	if (is_int($method)) $method = "$module";
-		// 	else $method = "$module::$method";
-		// 	$methods[$method] = $name;
-		// }
-		// $this->methods = array_merge($this->methods,$methods);
 	}
 
 	/**
@@ -284,7 +276,6 @@ abstract class ShippingFramework {
 	 * @return void
 	 **/
 	function __construct () {
-
 		$Order = ShoppOrder();
 
 		$this->module = get_class($this);
@@ -304,10 +295,6 @@ abstract class ShippingFramework {
 
 		if ( $this->xml && ! class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
 		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
-
-		// $rates = shopp_setting('shipping_rates');
-		// $this->rates = array_filter($rates,array(&$this,'myrates'));
-		// if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates);
 
 		// Setup default packaging for shipping module
 		$this->settings['shipping_packaging'] = shopp_setting('shipping_packaging');
@@ -379,44 +366,47 @@ abstract class ShippingFramework {
 	 *
 	 * @param string $data The encoded data to send, false for GET queries
 	 * @param string $url The URL to connect to
-	 * @param string $port (optional) Connect to a specific port
 	 * @return string Raw response
 	 **/
-	function send ($data=false,$url,$port=false) {
-		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1);
-		curl_setopt($connection, CURLOPT_VERBOSE, 1);
-		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT);
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']);
-		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+	function send ($data=false,$url,$options=array()) {
 
-		if ($data !== false) {
-			curl_setopt($connection, CURLOPT_POST, 1);
-			curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		$defaults = array(
+			'method' => 'POST',
+			'timeout' => SHOPP_SHIPPING_TIMEOUT,
+			'redirection' => 7,
+			'httpversion' => '1.0',
+			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
+			'blocking' => true,
+			'headers' => array(),
+			'cookies' => array(),
+			'body' => $data,
+			'compress' => false,
+			'decompress' => true,
+			'sslverify' => false
+		);
+		$params = array_merge($defaults,$options);
+
+		$connection = new WP_Http();
+		$result = $connection->request($url,$params);
+
+		if (is_wp_error($result)) {
+			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
+			$errors = join(' ',$errors);
+			new ShoppError(Lookup::errors('shipping','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'shipping_comm_error',SHOPP_COMM_ERR);
+			return false;
+		} elseif (empty($result) || !isset($result['response'])) {
+			new ShoppError(Lookup::errors('shipping','noresponse'),'shipping_comm_error',SHOPP_COMM_ERR);
+			return false;
+		} else extract($result);
+
+		if (200 != $response['code']) {
+			$error = Lookup::errors('shipping','http-'.$response['code']);
+			if (empty($error)) $error = Lookup::errors('shipping','http-unkonwn');
+			new ShoppError($error,'shipping_comm_error',SHOPP_COMM_ERR);
+			return false;
 		}
 
-		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
-
-		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
-	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
-	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
-			if (defined('SHOPP_PROXY_USERPWD'))
-			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
-	    }
-
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection))
-			new ShoppError($error,'shipping_comm_err',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		return $buffer;
-
+		return $body;
 	}
 
 	/**
@@ -1053,7 +1043,6 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	}
 
 }
-
 
 class TemplateShippingUI extends ShippingSettingsUI {
 

@@ -869,6 +869,22 @@ class Lookup {
 			'http-505' => __("The payment server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)",
 		);
 
+		$_['shipping'] = array(
+			'fail' => __('Could not connect to the shipping rates server.','Shopp'),
+			'noresponse' => __('No response was sent back by the shipping rates server.','Shopp')." {$_['contact']['admin']}",
+			'http-unknown' => __('The connection to the shipping rates server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
+			'http-400' => $_['shipping']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $_['shipping']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $_['shipping']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-404' => __('The requested resource does not exist on the shipping rates server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
+			'http-500' => __('The shipping rates server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
+			'http-501' => __('The shipping rates server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
+			'http-502' => __('The connected shipping rates server is acting as a gateway and received an invalid response from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 502)",
+			'http-503' => __('The shipping rates server is temporarily unavailable due to a high volume of traffic.','Shopp')." {$_['contact']['admin']} (HTTP 503)",
+			'http-504' => __('The connected shipping rates server is acting as a gateway and received a connection timeout from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 504)",
+			'http-505' => __("The shipping rates server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)",
+		);
+
 		if (isset($_[$type]) && isset($_[$type][$code])) return $_[$type][$code];
 
 		return false;
