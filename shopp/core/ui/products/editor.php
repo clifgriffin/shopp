@@ -69,7 +69,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>,
 	prices = <?php echo json_encode($Product->prices) ?>,
 	specs = <?php echo json_encode($Product->specs) ?>,
-	options = <?php echo json_encode($Product->meta['options']->value) ?>,
+	options = <?php echo json_encode($Product->options) ?>,
 	priceTypes = <?php echo json_encode($priceTypes) ?>,
 	billPeriods = <?php echo json_encode($billPeriods) ?>,
 	shiprates = <?php echo json_encode($shiprates); ?>,

@@ -77,4 +77,43 @@ function &ShoppPurchase ( &$Object = false ) {
 	return $Shopp->Purchase;
 }
 
+
+/**
+ * Determines if the requested page is a Shopp page or if it matches a given Shopp page
+ * Also checks to see if the current loaded query is a Shopp product or product taxonomy.
+ *
+ * @author Jonathan Davis, John Dillick
+ * @since 1.0
+ *
+ * @param string $page (optional) Page name to look for in Shopp's page registry
+ * @return boolean
+ **/
+function is_shopp_page ($page=false) {
+	$product_tax = false;
+	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+	foreach ( $taxonomies as $taxonomy ) {
+		if ( is_tax($taxonomy) ) $product_tax = true;
+	}
+	if ( is_singular(Product::$posttype) || $product_tax ) return true;
+
+	if ( ! is_page() ) return false;
+
+	// @todo replace with storefront_pages setting?
+	$pages = shopp_setting('pages');
+
+	// Detect if the requested page is a Shopp page
+	if ( ! $page ) {
+		foreach ($pages as $page)
+			if ( is_page($page['id']) ) return true;
+		return false;
+	}
+
+	// Determine if the visitor's requested page matches the provided page
+	if (!isset($pages[strtolower($page)])) return false;
+	$page = $pages[strtolower($page)];
+	if ( is_page($page['id']) ) return true;
+	return false;
+
+}
+
 ?>
