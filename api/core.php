@@ -89,12 +89,15 @@ function &ShoppPurchase ( &$Object = false ) {
  * @return boolean
  **/
 function is_shopp_page ($page=false) {
-	$product_tax = false;
-	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
-	foreach ( $taxonomies as $taxonomy ) {
-		if ( is_tax($taxonomy) ) $product_tax = true;
+	// Check for loading single shopp_product or shopp_product taxonomy on catalog checks and ordinary checks
+	if ( 'catalog' == $page || ! $page ) {
+		$product_tax = false;
+		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( is_tax($taxonomy) ) $product_tax = true;
+		}
+		if ( is_singular(Product::$posttype) || $product_tax ) return true;
 	}
-	if ( is_singular(Product::$posttype) || $product_tax ) return true;
 
 	if ( ! is_page() ) return false;
 
