@@ -189,10 +189,8 @@ abstract class GatewayFramework {
 		);
 		$params = array_merge($defaults,$options);
 
-		$URL = $url.($post?":$post":'');
-
 		$connection = new WP_Http();
-		$result = $connection->request($URL,$params);
+		$result = $connection->request($url,$params);
 
 		if (is_wp_error($result)) {
 			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);

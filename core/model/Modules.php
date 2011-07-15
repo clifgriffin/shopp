@@ -168,10 +168,9 @@ class ModuleFile {
 	 * @return void
 	 **/
 	function load () {
-		if ($this->addon) {
-			include_once($this->file);
-			return new $this->subpackage();
-		}
+		if (!$this->addon) return;
+		include($this->file);
+		return new $this->subpackage();
 	}
 
 	/**
