@@ -404,8 +404,7 @@ function validate (form) {
  * Auto-initialize form validation forms with a 'validate' class
  **/
 function validateForms () {
-	var $=jqnc(),forms = $('form.validate');
-	forms.bind('submit.validate',function (e) {
+	jQuery.bind('submit.validate',function (e) {
 		return validate(this);
 	});
 }

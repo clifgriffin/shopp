@@ -144,21 +144,6 @@ class ShippingModules extends ModuleLoader {
 	// 		$module->ui();
 	// }
 
-
-	/**
-	 * Get a specified shipping module
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void Description...
-	 **/
-	function &get ($module) {
-		if (empty($this->active)) $this->settings();
-		if (!isset($this->active[$module])) return false;
-		return $this->active[$module];
-	}
-
 	/**
 	 * Initializes the settings UI for each loaded module
 	 *

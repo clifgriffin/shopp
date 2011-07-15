@@ -141,11 +141,11 @@
 			<span><?php shopp('checkout','billing-xcsc','input=issue&size=7&minlength=3&maxlength=4&title='.__('Card\'s issue number','Shopp')); ?><label for="billing-xcsc-issue"><?php _e('Issue #','Shopp'); ?></label></span>
 		</li>
 		<?php endif; ?>
-		
+
 		<?php endif; ?>
 		<li></li>
 		<li>
-		<div class="inline"><label for="marketing"><?php shopp('checkout','marketing','title='.__('','Shopp')); ?> <?php _e('Yes, I would like to receive e-mail updates and special offers!','Shopp'); ?></label></div>
+		<div class="inline"><label for="marketing"><?php shopp('checkout','marketing'); ?> <?php _e('Yes, I would like to receive e-mail updates and special offers!','Shopp'); ?></label></div>
 		</li>
 	</ul>
 	<p class="submit"><?php shopp('checkout','submit','value='.__('Submit Order','Shopp')); ?></p>

@@ -757,6 +757,7 @@ function inputattrs ($options,$allowed=array()) {
 	}
 	$string = "";
 	$classes = "";
+
 	if (isset($options['label']) && !isset($options['value'])) $options['value'] = $options['label'];
 	foreach ($options as $key => $value) {
 		if (!in_array($key,$allowed)) continue;

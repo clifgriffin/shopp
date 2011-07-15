@@ -26,7 +26,7 @@ if (!defined('WP_CONTENT_DIR')) define('WP_CONTENT_DIR', ABSPATH . 'wp-content')
  * @package shopp
  **/
 class FSStorage extends StorageModule implements StorageEngine {
-	
+
 	var $path = "";
 	/**
 	 * FSStorage constructor
@@ -39,12 +39,12 @@ class FSStorage extends StorageModule implements StorageEngine {
 		parent::__construct();
 		$this->name = __('File system','Shopp');
 	}
-	
+
 	function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
  		add_filter('shopp_verify_stored_file',array(&$this,'verify'));
 	}
-	
+
 	function context ($context) {
 		chdir(WP_CONTENT_DIR);
 		$this->context = $context;
@@ -53,12 +53,12 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 
 	function save ($asset,$data,$type='binary') {
-		
+
 		if ($type == "upload") { // $data is an uploaded temp file path, just move the file
 			error_reporting(E_ALL);
 			ini_set( 'display_errors', 1 );
 			ini_set( 'log_errors', 1 );
-			
+
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
 			if (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the uploaded file to the storage repository.");
@@ -67,27 +67,27 @@ class FSStorage extends StorageModule implements StorageEngine {
 			if (rename($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the file to the storage repository.");
 		}
-		
+
 		if (file_put_contents(sanitize_path($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
 		else return false;
 	}
-	
+
 	function exists ($uri) {
 		$filepath = sanitize_path($this->path."/".$uri);
 		return (file_exists($filepath) && is_readable($filepath));
 	}
-	
+
 	function load ($uri) {
 		return file_get_contents(sanitize_path($this->path.'/'.$uri));
 	}
-	
+
 	function meta ($uri) {
 		$_ = array();
 		$_['size'] = filesize(sanitize_path($this->path.'/'.$uri));
 		$_['mime'] = file_mimetype(sanitize_path($this->path.'/'.$uri));
 		return $_;
 	}
-	
+
 	function output ($uri,$etag=false) {
 		$filepath = sanitize_path($this->path.'/'.$uri);
 
@@ -98,7 +98,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 			}
 
 			$size = @filesize($filepath);
-			
+
 			$range = '';
 			// Handle resumable downloads
 			if (isset($_SERVER['HTTP_RANGE'])) {
@@ -108,10 +108,10 @@ class FSStorage extends StorageModule implements StorageEngine {
 					list($range, $extra) = explode(',', $reqrange, 2);
 				}
 			}
-			
+
 			// Determine download chunk to grab
 		    list($start, $end) = explode('-', $range, 2);
-			
+
 		    // Set start and end based on range (if set), or set defaults
 		    // also check for invalid ranges.
 		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),($size - 1));
@@ -140,13 +140,9 @@ class FSStorage extends StorageModule implements StorageEngine {
 			fclose($file);
 		} else readfile($filepath);
 	}
-	
-	function settings () {
+
+	function settings ($context) {
 		$error = false;
-
-		$default = __('The file system path to your storage directory.','Shopp');
-		$label = array('image' => $default,'download'=>$default);
-
 		chdir(WP_CONTENT_DIR);
 
 		if (!is_array($this->settings))
@@ -165,28 +161,28 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 			if ($error !== false)
 				$label[$method] = '<span class="error">'.$error.'</span>';
-			
+
 		}
-		
-		$this->ui->text(0,array(
+
+		$this->ui[$context]->text(0,array(
 			'name' => 'path',
-			'value' => $this->settings['path'],
+			'value' => $this->settings['path'][$context],
 			'size' => 40,
-			'label' => $label
+			'label' => __('The file system path to your storage directory.','Shopp')
 		));
-		
+
 	}
-	
+
 	function suggestions () {
 		if (!$this->handles('download')) return;
 		check_admin_referer('wp_ajax_shopp_storage_suggestions');
 		if (empty($_GET['q']) || strlen($_GET['q']) < 3) return;
 		if ($_GET['t'] == "image") $this->context('image');
 		else $this->context('download');
-		
+
 		global $Shopp;
 		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
-		
+
 		$directory = false;	// The directory to search
 		$search = false;	// The file name to search for
 		$relpath = false;	// The related path
@@ -195,7 +191,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		$url = parse_url($_GET['q']);
 		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']))
 			return;
-		
+
 		$query = sanitize_path($url['path']);
 		$search = basename($query);
 		if (strlen($search) < 3) return;
@@ -224,13 +220,13 @@ class FSStorage extends StorageModule implements StorageEngine {
 		echo join("\n",$results);
 		exit();
 	}
-	
+
 	function verify ($uri) {
 		if (!$this->handles('download')) return $uri;
 
 		$this->context('download');
 		$path = trailingslashit(sanitize_path($this->path));
-		
+
 		$url = $path.$uri;
 		if (!file_exists($url)) die('NULL');
 		if (is_dir($url)) die('ISDIR');
@@ -238,7 +234,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		die('OK');
 	}
-	
+
 } // END class FSStorage
 
 ?>
