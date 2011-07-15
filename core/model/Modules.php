@@ -323,7 +323,7 @@ class ModuleSettingsUI {
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['checked'] = (value_is_true($attributes['checked'])?true:false);
 		extract($attributes);
-		$id = "{$this->id}-{$name}";
+		$id = "{$this->id}-".sanitize_title_with_dashes($name);
 
 		$this->ui('<div><label for="'.$id.'">',$column);
 		$this->ui('<input type="hidden" name="settings['.$this->module.']['.$name.']" value="'.$normal.'" id="'.$id.'-default" />',$column);
@@ -353,7 +353,7 @@ class ModuleSettingsUI {
 		);
 		$attributes = array_merge($defaults,$attributes);
 		extract($attributes);
-		$id = "{$this->id}-{$name}";
+		$id = "{$this->id}-".sanitize_title_with_dashes($name);
 
 		$this->ui('<div>',$column);
 		$this->ui('<select name="settings['.$this->module.']['.$name.']" '.inputattrs($attributes).'>',$column);
@@ -435,16 +435,14 @@ class ModuleSettingsUI {
 			'size' => 20,
 			'classes' => ''
 		);
-		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}-{$attributes['name']}";
+		$attributes = array_merge($defaults,array_filter($attributes));
+		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($attributes['name']);
 		extract($attributes);
 
 		$this->ui('<div>',$column);
 		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" id="'.$id.'"'.inputattrs($attributes).' />',$column);
 		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
-
-
 	}
 
 	/**
@@ -516,7 +514,7 @@ class ModuleSettingsUI {
 			'classes' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}-{$name}";
+		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($name);
 		extract($attributes);
 
 		$this->ui('<div><textarea name="'.$name.'" '.inputattrs($attributes).'>'.esc_html($value).'</textarea>',$column);
@@ -545,7 +543,7 @@ class ModuleSettingsUI {
 			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}-{$name}";
+		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($name);
 		$attributes['class'] = 'button-secondary'.('' == $attributes['class']?'':' '.$attributes['class']);
 		extract($attributes);
 
@@ -570,7 +568,7 @@ class ModuleSettingsUI {
 			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = " id=\"{$this->id}-{$name}\"";
+		$attributes['id'] = " id=\"{$this->id}-".sanitize_title_with_dashes($name)."\"";
 		extract($attributes);
 
 		if (!empty($class)) $class = ' class="'.$class.'"';

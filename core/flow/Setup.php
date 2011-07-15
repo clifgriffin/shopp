@@ -31,17 +31,17 @@ class Setup extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		$pages = explode("-",$_GET['page']);
+		$pages = explode('-',$_GET['page']);
 		$this->screen = end($pages);
 		switch ($this->screen) {
-			case "preferences":
+			case 'preferences':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('labelset');
 				shopp_localize_script( 'labelset', '$sl', array(
 					'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
 				));
 				break;
-			case "taxes":
+			case 'taxes':
 				wp_enqueue_script('suggest');
 				shopp_enqueue_script('ocupload');
 				shopp_enqueue_script('jquery-tmpl');
@@ -61,15 +61,16 @@ class Setup extends AdminController {
 					$this->taxrate_ui();
 
 				break;
-			case "system":
+			case 'system':
+				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('colorbox');
 				break;
-			case "pages":
+			case 'pages':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('pageset');
 				$this->pages_ui();
 				break;
-			case "images":
+			case 'images':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('imageset');
 				shopp_localize_script( 'imageset', '$is', array(
@@ -77,7 +78,7 @@ class Setup extends AdminController {
 				));
 				$this->images_ui();
 				break;
-			case "payments":
+			case 'payments':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('payments');
 				shopp_localize_script( 'payments', '$ps', array(
@@ -86,7 +87,7 @@ class Setup extends AdminController {
 
 				$this->payments_ui();
 				break;
-			case "shipping":
+			case 'shipping':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('shiprates');
 				shopp_localize_script( 'shiprates', '$ps', array(
@@ -103,10 +104,10 @@ class Setup extends AdminController {
 				if ('on' == shopp_setting('shipping'))
 					$this->shipping_ui();
 				break;
-			case "settings":
+			case 'settings':
 				shopp_enqueue_script('setup');
 
-				$customer_service = " ".sprintf(__('Contact <a href="%s">customer service</a>.','Shopp'),SHOPP_CUSTOMERS);
+				$customer_service = ' '.sprintf(__('Contact <a href="%s">customer service</a>.','Shopp'),SHOPP_CUSTOMERS);
 
 				$this->keystatus = array(
 					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'),
@@ -146,17 +147,17 @@ class Setup extends AdminController {
 	 **/
 	function admin () {
 		switch($this->screen) {
-			case "catalog": 		$this->catalog(); break;
-			case "cart": 			$this->cart(); break;
-			case "payments": 		$this->payments(); break;
-			case "shipping": 		$this->shipping(); break;
-			case "taxes": 			$this->taxes(); break;
-			case "pages":			$this->pages(); break;
-			case "images":			$this->images(); break;
-			case "presentation":	$this->presentation(); break;
-			case "preferences": 	$this->preferences(); break;
-			case "system":			$this->system(); break;
-			case "update":			$this->update(); break;
+			case 'catalog': 		$this->catalog(); break;
+			case 'cart': 			$this->cart(); break;
+			case 'payments': 		$this->payments(); break;
+			case 'shipping': 		$this->shipping(); break;
+			case 'taxes': 			$this->taxes(); break;
+			case 'pages':			$this->pages(); break;
+			case 'images':			$this->images(); break;
+			case 'presentation':	$this->presentation(); break;
+			case 'preferences': 	$this->preferences(); break;
+			case 'system':			$this->system(); break;
+			case 'update':			$this->update(); break;
 			default: 				$this->setup();
 		}
 	}
@@ -175,7 +176,7 @@ class Setup extends AdminController {
 
 		// Welcome screen handling
 		if (!empty($_POST['setup'])) {
-			$_POST['settings']['display_welcome'] = "off";
+			$_POST['settings']['display_welcome'] = 'off';
 			$this->settings_save();
 		}
 
@@ -202,14 +203,14 @@ class Setup extends AdminController {
 		$key = $sitekey['k'];
 		$status = $sitekey['s'];
 
-		$type = "text";
+		$type = 'text';
 		$action = 'activate';
 		$button = __('Activate Key','Shopp');
 
 		if ($activated) {
 			$button = __('De-activate Key','Shopp');
 			$action = 'deactivate';
-			$type = "password";
+			$type = 'password';
 			$key = str_repeat('0',strlen($key));
 			$keystatus = $this->keystatus['ks1'];
 		} else {
@@ -250,7 +251,7 @@ class Setup extends AdminController {
 		$targets = shopp_setting('target_markets');
 		if (!$targets) $targets = array();
 
-		include(SHOPP_ADMIN_PATH."/settings/setup.php");
+		include(SHOPP_ADMIN_PATH.'/settings/setup.php');
 	}
 
 	function presentation () {
@@ -265,9 +266,9 @@ class Setup extends AdminController {
 			$updated = __('Shopp presentation settings saved.','Shopp');
 
 			if (isset($_POST['settings']['theme_templates'])
-				&& $_POST['settings']['theme_templates'] == "on"
+				&& $_POST['settings']['theme_templates'] == 'on'
 				&& !is_dir($theme_path)) {
-					$_POST['settings']['theme_templates'] = "off";
+					$_POST['settings']['theme_templates'] = 'off';
 					$updated = __('Shopp theme templates can\'t be used because they don\'t exist.','Shopp');
 			}
 
@@ -283,33 +284,33 @@ class Setup extends AdminController {
 			copy_shopp_templates($builtin_path,$theme_path);
 		}
 
-		$status = "available";
-		if (!is_dir($theme_path)) $status = "directory";
+		$status = 'available';
+		if (!is_dir($theme_path)) $status = 'directory';
 		else {
-			if (!is_writable($theme_path)) $status = "permissions";
+			if (!is_writable($theme_path)) $status = 'permissions';
 			else {
-				$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
-				$theme = array_filter(scandir($theme_path),"filter_dotfiles");
-				if (empty($theme)) $status = "ready";
-				else if (array_diff($builtin,$theme)) $status = "incomplete";
+				$builtin = array_filter(scandir($builtin_path),'filter_dotfiles');
+				$theme = array_filter(scandir($theme_path),'filter_dotfiles');
+				if (empty($theme)) $status = 'ready';
+				else if (array_diff($builtin,$theme)) $status = 'incomplete';
 			}
 		}
 
-		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
+		$category_views = array('grid' => __('Grid','Shopp'),'list' => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
 		$productOrderOptions = ProductCategory::sortoptions();
 		$productOrderOptions['custom'] = __('Custom','Shopp');
 
-		$orderOptions = array("ASC" => __('Order','Shopp'),
-							  "DESC" => __('Reverse Order','Shopp'),
-							  "RAND" => __('Shuffle','Shopp'));
+		$orderOptions = array('ASC' => __('Order','Shopp'),
+							  'DESC' => __('Reverse Order','Shopp'),
+							  'RAND' => __('Shuffle','Shopp'));
 
-		$orderBy = array("sortorder" => __('Custom arrangement','Shopp'),
-						 "name" => __('File name','Shopp'),
-						 "created" => __('Upload date','Shopp'));
+		$orderBy = array('sortorder' => __('Custom arrangement','Shopp'),
+						 'name' => __('File name','Shopp'),
+						 'created' => __('Upload date','Shopp'));
 
 
-		include(SHOPP_ADMIN_PATH."/settings/presentation.php");
+		include(SHOPP_ADMIN_PATH.'/settings/presentation.php');
 	}
 
 	function preferences () {
@@ -340,8 +341,8 @@ class Setup extends AdminController {
 			$updated = __('Shopp checkout settings saved.','Shopp');
 		}
 
-		$downloads = array("1","2","3","5","10","15","25","100");
-		$promolimit = array("1","2","3","4","5","6","7","8","9","10","15","20","25");
+		$downloads = array('1','2','3','5','10','15','25','100');
+		$promolimit = array('1','2','3','4','5','6','7','8','9','10','15','20','25');
 		$time = array(
 			'1800' => __('30 minutes','Shopp'),
 			'3600' => __('1 hour','Shopp'),
@@ -388,7 +389,7 @@ class Setup extends AdminController {
 		);
 
 
-		include(SHOPP_ADMIN_PATH."/settings/preferences.php");
+		include(SHOPP_ADMIN_PATH.'/settings/preferences.php');
 	}
 
 	/**
@@ -431,7 +432,7 @@ class Setup extends AdminController {
 		$useRegions = shopp_setting('shipping_regions');
 
 		$areas = Lookup::country_areas();
-		if (is_array($areas[$base['country']]) && $useRegions == "on")
+		if (is_array($areas[$base['country']]) && $useRegions == 'on')
 			$areas = array_keys($areas[$base['country']]);
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
@@ -452,7 +453,7 @@ class Setup extends AdminController {
 		$lowstock = shopp_setting('lowstock_level');
 		if (empty($lowstock)) $lowstock = 0;
 
-		include(SHOPP_ADMIN_PATH."/settings/shipping.php");
+		include(SHOPP_ADMIN_PATH.'/settings/shipping.php');
 	}
 
 	function shiprates () {
@@ -646,7 +647,7 @@ class Setup extends AdminController {
 
 		$ShippingTemplates = new TemplateShippingUI();
 		add_action('shopp_shipping_module_settings',array($Shipping,'templates'));
-		include(SHOPP_ADMIN_PATH."/settings/shiprates.php");
+		include(SHOPP_ADMIN_PATH.'/settings/shiprates.php');
 
 	}
 
@@ -688,7 +689,7 @@ class Setup extends AdminController {
 		// Handle ship rates UI
 		if ('rates' == $sub && 'on' == shopp_setting('taxes')) return $this->taxrates();
 
-		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
+		include(SHOPP_ADMIN_PATH.'/settings/taxes.php');
 	}
 
 	function taxes_menu () {
@@ -766,7 +767,7 @@ class Setup extends AdminController {
 		$countries = array_merge(array('*' => __('All Markets','Shopp')),shopp_setting('target_markets'));
 		$zones = Lookup::country_zones();
 
-		include(SHOPP_ADMIN_PATH."/settings/taxrates.php");
+		include(SHOPP_ADMIN_PATH.'/settings/taxrates.php');
 	}
 
 	function taxrate_upload () {
@@ -793,7 +794,7 @@ class Setup extends AdminController {
 
 		$_ = array();
 		switch ($format) {
-			case "xml":
+			case 'xml':
 				/*
 				Example XML import file:
 					<localtaxrates>
@@ -819,14 +820,14 @@ class Setup extends AdminController {
 					$_[$name] = $value;
 				}
 				break;
-			case "csv":
+			case 'csv':
 				if (($csv = fopen($upload['tmp_name'], 'r')) === false)
 					return array('error' => Lookup::errors('uploadsecurity','is_readable'));
 				while ( $data = fgetcsv($csv, 1000, ',') !== false )
 					$_[$data[0]] = !empty($data[1])?$data[1]:0;
 				fclose($csv);
 				break;
-			case "tab":
+			case 'tab':
 			default:
 				$lines = explode("\n",$data);
 				foreach ($lines as $line) {
@@ -891,7 +892,7 @@ class Setup extends AdminController {
 		}
 
 		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));
-		include(SHOPP_ADMIN_PATH."/settings/payments.php");
+		include(SHOPP_ADMIN_PATH.'/settings/payments.php');
 	}
 
 	function payments_ui () {
@@ -929,7 +930,7 @@ class Setup extends AdminController {
 		}
 
 		$pages = Storefront::pages_settings();
-		include(SHOPP_ADMIN_PATH."/settings/pages.php");
+		include(SHOPP_ADMIN_PATH.'/settings/pages.php');
 
 	}
 
@@ -989,7 +990,7 @@ class Setup extends AdminController {
 
 		$num_pages = ceil($total / $per_page);
 		$page_links = paginate_links( array(
-			'base' => add_query_arg(array("edit"=>null,'pagenum' => '%#%')),
+			'base' => add_query_arg(array('edit'=>null,'pagenum' => '%#%')),
 			'format' => '',
 			'total' => $num_pages,
 			'current' => $pagenum,
@@ -1004,7 +1005,7 @@ class Setup extends AdminController {
 			if (method_exists($Setting,'json'))
 				$json_settings[$Setting->id] = $Setting->json($skip);
 
-		include(SHOPP_ADMIN_PATH."/settings/images.php");
+		include(SHOPP_ADMIN_PATH.'/settings/images.php');
 	}
 
 	function images_ui () {
@@ -1018,11 +1019,12 @@ class Setup extends AdminController {
 	}
 
 	function system () {
-		global $Shopp;
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		add_action('shopp_storage_module_settings',array(&$this,'storage_ui'));
+		global $Shopp;
+		$Storage = $Shopp->Storage;
+		$Storage->settings();	// Load all installed storage engines for settings UIs
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');
@@ -1037,14 +1039,22 @@ class Setup extends AdminController {
 			ShoppErrorLogging()->set_loglevel();
 			ShoppErrorNotification()->set_notifications();
 
+			// Re-initialize Storage Engines with new settings
+			$Storage->settings();
+
 			$updated = __('Shopp system settings saved.','Shopp');
 		} elseif (!empty($_POST['rebuild'])) {
 			$assets = DatabaseObject::tablename(ProductImage::$table);
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
 			if (DB::query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
-		}
+		} elseif (isset($_POST['image-settings']) || isset($_POST['download-settings'])) {
+			check_admin_referer('shopp-settings-system');
 
+			$this->settings_save();
+			$Storage->settings();
+
+		}
 
 		if (isset($_POST['resetlog'])) {
 			check_admin_referer('shopp-settings-system');
@@ -1055,39 +1065,52 @@ class Setup extends AdminController {
 		if (empty($notifications)) $notifications = array();
 
 		$notification_errors = array(
-			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
-			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
-			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
-			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
-			SHOPP_STOCK_ERR => __("Inventory Warnings","Shopp")
+			SHOPP_TRXN_ERR => __('Transaction Errors','Shopp'),
+			SHOPP_AUTH_ERR => __('Login Errors','Shopp'),
+			SHOPP_ADDON_ERR => __('Add-on Errors','Shopp'),
+			SHOPP_COMM_ERR => __('Communication Errors','Shopp'),
+			SHOPP_STOCK_ERR => __('Inventory Warnings','Shopp')
 			);
 
 		$errorlog_levels = array(
-			0 => __("Disabled","Shopp"),
-			SHOPP_ERR => __("General Shopp Errors","Shopp"),
-			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
-			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
-			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
-			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
-			SHOPP_STOCK_ERR => __("Inventory Warnings","Shopp"),
-			SHOPP_ADMIN_ERR => __("Admin Errors","Shopp"),
-			SHOPP_DB_ERR => __("Database Errors","Shopp"),
-			SHOPP_PHP_ERR => __("PHP Errors","Shopp"),
-			SHOPP_ALL_ERR => __("All Errors","Shopp"),
-			SHOPP_DEBUG_ERR => __("Debugging Messages","Shopp")
+			0 => __('Disabled','Shopp'),
+			SHOPP_ERR => __('General Shopp Errors','Shopp'),
+			SHOPP_TRXN_ERR => __('Transaction Errors','Shopp'),
+			SHOPP_AUTH_ERR => __('Login Errors','Shopp'),
+			SHOPP_ADDON_ERR => __('Add-on Errors','Shopp'),
+			SHOPP_COMM_ERR => __('Communication Errors','Shopp'),
+			SHOPP_STOCK_ERR => __('Inventory Warnings','Shopp'),
+			SHOPP_ADMIN_ERR => __('Admin Errors','Shopp'),
+			SHOPP_DB_ERR => __('Database Errors','Shopp'),
+			SHOPP_PHP_ERR => __('PHP Errors','Shopp'),
+			SHOPP_ALL_ERR => __('All Errors','Shopp'),
+			SHOPP_DEBUG_ERR => __('Debugging Messages','Shopp')
 			);
 
-		// Load Storage settings
-		$Shopp->Storage->settings();
+		$loading = array('shopp' => __('Load on Shopp-pages only','Shopp'),'all' => __('Load on entire site','Shopp'));
+
 
 		// Build the storage options menu
-		$storage = array();
-		foreach ($Shopp->Storage->active as $module)
+		$storage = $engines = $storageset = array();
+		foreach ($Storage->active as $module) {
 			$storage[$module->module] = $module->name;
+			$engines[$module->module] = sanitize_title_with_dashes($module->module);
+			$storageset[$module->module] = $Storage->get($module->module)->settings;
+		}
 
-		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
+		$Storage->ui();		// Setup setting UIs
 
-		include(SHOPP_ADMIN_PATH."/settings/system.php");
+		$ImageStorage = false;
+		$DownloadStorage = false;
+		if (isset($_POST['image-settings']))
+			$ImageStorage = $Storage->get(shopp_setting('image_storage'));
+
+		if (isset($_POST['download-settings']))
+			$DownloadStorage = $Storage->get(shopp_setting('product_storage'));
+
+		add_action('shopp_storage_engine_settings',array($Storage,'templates'));
+
+		include(SHOPP_ADMIN_PATH.'/settings/system.php');
 	}
 
 	function storage_ui () {

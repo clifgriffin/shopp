@@ -456,6 +456,7 @@ class ProductDownload extends DownloadAsset {
 class StorageEngines extends ModuleLoader {
 
 	var $engines = array();
+	var $contexts = array('image','download');
 	var $activate = false;
 
 	/**
@@ -507,6 +508,21 @@ class StorageEngines extends ModuleLoader {
 	}
 
 	/**
+	 * Get a specified shipping module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function &get ($module) {
+		if (empty($this->active)) $this->settings();
+		if (!isset($this->active[$module])) return false;
+		return $this->active[$module];
+	}
+
+
+	/**
 	 * Loads all the installed storage engine modules for the settings page
 	 *
 	 * @author Jonathan Davis
@@ -519,17 +535,27 @@ class StorageEngines extends ModuleLoader {
 	}
 
 	/**
-	 * Sets up the storage engine settings interfaces
+	 * Initializes the settings UI for each loaded module
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void
+	 * @return void Description...
 	 **/
 	function ui () {
-		foreach ($this->active as $package => &$module)
-			$module->setupui($package,$this->modules[$package]->name);
+		foreach ($this->contexts as $context) {
+			foreach ($this->active as $package => &$module) {
+				$module->context($context);
+				$module->initui($package,$context);
+			}
+		}
 	}
+
+	function templates () {
+		foreach ($this->active as $package => &$module)
+			$module->uitemplate($package,$this->modules[$package]->name);
+	}
+
 
 	function actions ($module) {
 		if (!isset($this->active[$module])) return;
@@ -638,10 +664,10 @@ abstract class StorageModule {
 	 * @param string $name The formal name of the module
 	 * @return void
 	 **/
-	function setupui ($module,$name) {
-		$this->ui = new ModuleSettingsUI('storage',$module,$name,false,false);
-		$this->settings();
-	}
+	// function setupui ($module,$name) {
+	// 	$this->ui = new StorageSettingsUI('storage',$module,$name,false,false);
+	// 	$this->settings();
+	// }
 
 	function output ($uri) {
 		$data = $this->load($uri);
@@ -657,7 +683,174 @@ abstract class StorageModule {
 		return in_array($context,$this->contexts);
 	}
 
+	/**
+	 * Generate the settings UI for the module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param string $module The module class name
+	 * @param string $name The formal name of the module
+	 * @return void
+	 **/
+	function initui ($name,$context) {
+		$label = isset($this->settings['label'])?$this->settings['label']:$name;
+		if (!isset($this->ui) || !is_array($this->ui)) $this->ui = array();
+		$this->ui[$context] = new StorageSettingsUI($this,$name);
+		$this->settings($context);
+	}
+
+	function uitemplate () {
+		$this->ui['image']->template();
+	}
+
+	function ui ($context) {
+		$editor = $this->ui[$context]->generate();
+
+		$data = array('${context}' => $context);
+		foreach ($this->settings as $name => $value)
+			$data['${'.$name.'}'] = $value[$context];
+
+		return str_replace(array_keys($data),$data,$editor);
+	}
+
+
 }
+
+class StorageSettingsUI extends ModuleSettingsUI {
+
+	function generate () {
+
+		$_ = array();
+		$_[] = '<div id="'.$this->id.'-settings">';
+		foreach ($this->markup as $markup) {
+			if (empty($markup)) continue;
+			else $_[] = join("\n",$markup);
+		}
+
+		$_[] = '</div>';
+
+		return join("\n",$_);
+
+	}
+
+	/**
+	 * Renders a checkbox input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; use 'checked' to set whether the element is toggled on or not
+	 *
+	 * @return void
+	 **/
+	function checkbox ($column=0,$attributes=array()) {
+ 		if (isset($attributes['name']))
+			$attributes['name'] .= '][${context}';
+		parent::checkbox($column,$attributes,$options);
+	}
+
+	/**
+	 * Renders a drop-down menu element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; use 'selected' to set the selected option
+	 * @param array $options The available options in the menu
+	 *
+	 * @return void
+	 **/
+	function menu ($column=0,$attributes=array(),$options=array()) {
+ 		if (isset($attributes['name']))
+			$attributes['name'] .= '][${context}';
+		parent::menu($column,$attributes,$options);
+	}
+
+	/**
+	 * Renders a multiple-select widget
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected options
+	 * @param array $options The available options in the menu
+	 *
+	 * @return void
+	 **/
+	function multimenu ($column=0,$attributes=array(),$options=array()) {
+ 		if (isset($attributes['name']))
+			$attributes['name'] .= '][${context}';
+		parent::multimenu($column,$attributes,$options);
+	}
+
+	/**
+	 * Renders a text input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 *
+	 * @return void
+	 **/
+	function input ($column=0,$attributes=array()) {
+ 		if (isset($attributes['name'])) {
+			$name = $attributes['name'];
+			$attributes['value'] = '${'.$name.'}';
+			$attributes['name'] .= '][${context}';
+		}
+		parent::input($column,$attributes);
+	}
+
+
+	/**
+	 * Renders a text input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 *
+	 * @return void
+	 **/
+	function textarea ($column=0,$attributes=array()) {
+		if (isset($attributes['name'])) {
+			$name = $attributes['name'];
+			$attributes['value'] = '${'.$name.'}';
+			$attributes['name'] .= '][${context}';
+		}
+ 		parent:textarea($column,$attributes);
+	}
+
+
+	/**
+	 * Renders a styled button element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 *
+	 * @return void
+	 **/
+	function button ($column=0,$attributes=array()) {
+ 		if (isset($attributes['name'])) {
+			$name = $attributes['name'];
+			$attributes['value'] = '${'.$name.'}';
+			$attributes['name'] .= '][${context}';
+		}
+		parent::button($column,$attributes);
+	}
+
+}
+
 
 // Prevent loading image setting classes when run in image server script context
 if ( !class_exists('RegistryFramework') ) return;
