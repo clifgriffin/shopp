@@ -169,7 +169,7 @@ class ModuleFile {
 	 **/
 	function load () {
 		if (!$this->addon) return;
-		include($this->file);
+		if (!class_exists($this->subpackage)) include($this->file);
 		return new $this->subpackage();
 	}
 
