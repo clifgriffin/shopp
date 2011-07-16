@@ -118,8 +118,7 @@ class Product extends WPShoppObject {
 	function load_summary ($ids) {
 		if ( empty($ids) ) return;
 		$Object = new ProductSummary();
-
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'summary'));
+		DB::query("SELECT *,modified AS summed FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'summary'));
 	}
 
 	/**
@@ -260,14 +259,15 @@ class Product extends WPShoppObject {
 			if (method_exists($Object,'expopulate'))
 				$Object->expopulate();
 
+			$target = false;
 			if (is_array($products) && isset($products[$Object->{$id}]))
 				$target = $products[$Object->{$id}];
 			elseif (isset($this))
 				$target = $this;
 
-			if ($target) $target->{$Object->name} = $Object->value;
+			if ($target) $target->{$Object->name} =& $Object->value;
 
-			return;
+			$record = $Object;
 
 		}
 
@@ -500,7 +500,7 @@ class Product extends WPShoppObject {
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
 		}
-		if (isset($data->modified)) $this->summed = DB::mktime($data->modified);
+		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
 	}
 
 	/**
