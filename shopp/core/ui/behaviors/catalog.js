@@ -404,7 +404,7 @@ function validate (form) {
  * Auto-initialize form validation forms with a 'validate' class
  **/
 function validateForms () {
-	jQuery.bind('submit.validate',function (e) {
+	jQuery('form.validate').bind('submit.validate',function (e) {
 		return validate(this);
 	});
 }
