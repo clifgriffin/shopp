@@ -71,6 +71,7 @@ class Storefront extends FlowController {
 		add_action('wp', array($this, 'behaviors'));
 
 		add_filter('the_title', array($this,'pagetitle'), 10, 2);
+		add_filter('wp_get_nav_menu_items', array($this,'navmenus'), 10, 2);
 
 		// Shopp product text filters
 		add_filter('shopp_product_name','convert_chars');
@@ -521,6 +522,14 @@ class Storefront extends FlowController {
 			}
 		}
 		return $title;
+	}
+
+	function navmenus ($items) {
+		foreach ($items as &$item) {
+			if ('shopp_page' != $item->type) continue;
+			$item->url = shoppurl(false,$item->object);
+		}
+		return $items;
 	}
 
 	/**

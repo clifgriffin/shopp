@@ -92,6 +92,7 @@ class AdminFlow extends FlowController {
 		add_action('load-update.php', array($this, 'admin_css'));
 		// add_action('admin_footer',array($this,'debug'));
 		add_action('admin_menu',array($this,'tagsmenu'),20);
+		add_action('load-nav-menus.php',array($this,'navmenus'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -770,25 +771,86 @@ class AdminFlow extends FlowController {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
 
-	// function debug () {
-	// 	// return true;
-	// 	$db = DB::get();
-	// 	global $wpdb;
-	// 	return;
-	// 	if (SAVEQUERIES) {
-	// 		echo "<pre>\nWP QUERIES\n\n";
-	// 		print_r($wpdb->queries);
-	// 		echo "\n\n</pre>";
-	// 	}
-	//
-	// 	if (SHOPP_QUERY_DEBUG) {
-	// 		echo "<pre>\n\nSHOPP QUERIES\n\n";
-	// 		print_r($db->queries);
-	// 		echo "\n\n</pre>";
-	// 	}
-	//
-	// }
+	function navmenus () {
 
+		if (isset($_REQUEST['add-shopp-menu-item']) && isset($_REQUEST['menu-item'])) {
+			$pages = Storefront::pages_settings();
+
+
+			$nav_menu_selected_id = isset( $_REQUEST['menu'] ) ? (int) $_REQUEST['menu'] : 0;
+
+			foreach ((array)$_REQUEST['menu-item'] as $key => $item) {
+				if (!isset($item['menu-item-shopp-page'])) continue;
+
+				$requested = $item['menu-item-shopp-page'];
+
+				$menuitem = &$_REQUEST['menu-item'][$key];
+				$menuitem['menu-item-db-id'] = 0;
+				$menuitem['menu-item-object-id'] = $requested;
+				$menuitem['menu-item-object'] = $requested;
+				$menuitem['menu-item-type'] = 'shopp_page';
+				$menuitem['menu-item-title'] = $pages[$requested]['title'];
+			}
+
+
+		}
+
+		add_meta_box( 'add-shopp-pages', __('Catalog Pages'), array($this,'shoppage_meta_box'), 'nav-menus', 'side', 'low' );
+	}
+
+	function shoppage_meta_box () {
+		global $_nav_menu_placeholder, $nav_menu_selected_id;
+
+		$removed_args = array(
+			'action',
+			'customlink-tab',
+			'edit-menu-item',
+			'menu-item',
+			'page-tab',
+			'_wpnonce',
+		);
+
+		?>
+		<br />
+		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
+			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
+
+				<ul class="categorychecklist form-no-clear">
+
+				<?php
+					$pages = Storefront::pages_settings();
+					foreach ($pages as $pagetype => $page):
+						$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
+				?>
+					<li>
+						<label class="menu-item-title">
+						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $pagetype; ?>" class="menu-item-checkbox" /> <?php
+							echo esc_html( $page['title'] );
+						?></label>
+						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
+						<input type="hidden" class="menu-item-object-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object-id]" value="<?php echo $pagetype; ?>" />
+						<input type="hidden" class="menu-item-object" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object]" value="<?php echo $pagetype; ?>" />
+						<input type="hidden" class="menu-item-parent-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-parent-id]" value="0">
+						<input type="hidden" class="menu-item-type" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" value="shopp_page" />
+						<input type="hidden" class="menu-item-title" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]" value="<?php echo $page['title']; ?>" />
+
+					</li>
+				<?php endforeach; ?>
+				</ul>
+
+			</div>
+
+			<p class="button-controls">
+				<span class="add-to-menu">
+					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
+				</span>
+			</p>
+
+		</div><!-- /.customlinkdiv -->
+		<?php
+
+	}
 
 } // END class AdminFlow
 

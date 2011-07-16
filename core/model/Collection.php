@@ -252,20 +252,20 @@ class ProductTaxonomy extends ProductCollection {
 
 	static function labels () {
 		return array(
-			'name' => __('Groups','Shopp'),
-			'singular_name' => __('Group','Shopp'),
-			'search_items' => __('Search Group','Shopp'),
+			'name' => __('Catalog Groups','Shopp'),
+			'singular_name' => __('Catalog Group','Shopp'),
+			'search_items' => __('Search Catalog Group','Shopp'),
 			'popular_items' => __('Popular','Shopp'),
 			'all_items' => __('Show All','Shopp'),
-			'parent_item' => __('Parent Group','Shopp'),
-			'parent_item_colon' => __('Parent Group:','Shopp'),
-			'edit_item' => __('Edit Group','Shopp'),
-			'update_item' => __('Update Group','Shopp'),
-			'add_new_item' => __('New Group','Shopp'),
-			'new_item_name' => __('New Group Name','Shopp'),
-			'separate_items_with_commas' => __('Separate groups with commas','Shopp'),
-			'add_or_remove_items' => __('Add or remove groups','Shopp'),
-			'choose_from_most_used' => __('Choose from the most used groups','Shopp')
+			'parent_item' => __('Parent Catalog Group','Shopp'),
+			'parent_item_colon' => __('Parent Catalog Group:','Shopp'),
+			'edit_item' => __('Edit Catalog Group','Shopp'),
+			'update_item' => __('Update Catalog Group','Shopp'),
+			'add_new_item' => __('New Catalog Group','Shopp'),
+			'new_item_name' => __('New Catalog Group Name','Shopp'),
+			'separate_items_with_commas' => __('Separate catalog groups with commas','Shopp'),
+			'add_or_remove_items' => __('Add or remove catalog groups','Shopp'),
+			'choose_from_most_used' => __('Choose from the most used catalog groups','Shopp')
 		);
 	}
 
@@ -432,7 +432,7 @@ class ProductCategory extends ProductTaxonomy {
 
 	static function labels ($class) {
 		return array(
-			'name' => __('Categories','Shopp'),
+			'name' => __('Catalog Categories','Shopp'),
 			'singular_name' => __('Category','Shopp'),
 			'search_items' => __('Search Categories','Shopp'),
 			'popular_items' => __('Popular','Shopp'),
@@ -1119,7 +1119,7 @@ class ProductTag extends ProductTaxonomy {
 
 	static function labels ($class) {
 		return array(
-			'name' => __('Tags','Shopp'),
+			'name' => __('Catalog Tags','Shopp'),
 			'singular_name' => __('Tag','Shopp'),
 			'search_items' => __('Search Tag','Shopp'),
 			'popular_items' => __('Popular','Shopp'),
