@@ -35,6 +35,7 @@ class MetaObject extends DatabaseObject {
 	 **/
 	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
+		if (!$id) return;
 		if (is_array($id)) $this->load($id);
 		else $this->load(array($key=>$id,'type'=>$this->type));
 

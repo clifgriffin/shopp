@@ -531,7 +531,7 @@ abstract class DatabaseObject implements Iterator {
 
 		$map = !empty($this->_map)?array_flip($this->_map):array();
 
-		$Tables = !$Settings->available()?$Settings->get('data_model'):array();
+		$Tables = $Settings->available()?$Settings->get('data_model'):array();
 		if (isset($Tables[$this->_table])) {
 			$this->_datatypes = $Tables[$this->_table]->_datatypes;
 			$this->_lists = $Tables[$this->_table]->_lists;

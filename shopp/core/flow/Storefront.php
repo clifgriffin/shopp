@@ -196,6 +196,7 @@ class Storefront extends FlowController {
 			$wp_query->is_page = false;
 			$wp_query->post_count = true;
 			$Shopp->Category = Catalog::load_collection($collection,$options);
+			$Shopp->Category->load();
 		}
 
 		if (!empty($Shopp->Category)) {

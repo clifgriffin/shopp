@@ -348,7 +348,7 @@ class Shopp {
 		$vars[] = 's_pd';		// Product slug
 		$vars[] = 's_dl';		// Download key
 		$vars[] = 's_so';		// Product sort order (product collections)
-		$vars[] = 's_cf';		// Category filters
+		$vars[] = 's_ff';		// Category filters
 
 		$vars[] = 'shopp_page'; // Shopp pages
 
