@@ -13,7 +13,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppFacetedMenuWidget') ) {
 
 class ShoppFacetedMenuWidget extends WP_Widget {
 
-    function ShoppFacetedMenuWidget() {
+    function __construct () {
         parent::WP_Widget(false,
 			$name = __('Shopp Faceted Menu','Shopp'),
 			array('description' => __('Category products drill-down search menu','Shopp'))
@@ -22,13 +22,14 @@ class ShoppFacetedMenuWidget extends WP_Widget {
 
     function widget($args, $options) {
 		global $Shopp;
+
 		if (!empty($args)) extract($args);
 
 		if (empty($options['title'])) $options['title'] = __('Product Filters','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 
-		if (!empty($Shopp->Category->id) && $Shopp->Category->facetedmenus == "on") {
-			$menu = $Shopp->Category->tag('faceted-menu',$options);
+		if (shopp('category','get-id') != '' && shopp('category','has-faceted-menu')) {
+			$menu = shopp('category','get-faceted-menu',$options);
 			echo $before_widget.$title.$menu.$after_widget;
 		}
     }

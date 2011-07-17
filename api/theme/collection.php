@@ -108,35 +108,44 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		global $Shopp;
 		if ($O->facetedmenus == "off") return;
 		$output = "";
-		$CategoryFilters =& $Shopp->Flow->Controller->browsing[$O->slug];
-		$link = $_SERVER['REQUEST_URI'];
+
+		$Storefront = ShoppStorefront();
+		if (!$Storefront) return;
+		$CategoryFilters =& $Storefront->browsing[$O->slug];
+
+		$link = self::url('', array('echo'=>false), $O);
+
+		$link = add_query_arg('s_ff','on',$link);
+
 		if (!isset($options['cancel'])) $options['cancel'] = "X";
-		if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
-			list($link,$query) = explode("?",$_SERVER['REQUEST_URI']);
-		$query = $_GET;
-		$query = http_build_query($query);
-		$link = esc_url($link).'?'.$query;
+		// if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
+		// 	list($link,$query) = explode("?",$_SERVER['REQUEST_URI']);
+		// $query = $_GET;
+		// $query = http_build_query($query);
+		// $link = esc_url($link).'?'.$query;
 
 		$list = "";
 		if (is_array($CategoryFilters)) {
 			foreach($CategoryFilters AS $facet => $filter) {
-				$href = add_query_arg('shopp_catfilters['.urlencode($facet).']','',$link);
+				$facetname = $O->facets[$facet];
+				$href = add_query_arg($facet,'',$link);
 				if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
 					$label = $matches[1].' &mdash; '.$matches[3];
 					if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
 					if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
 				} else $label = $filter;
-				if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.stripslashes($label).' <a href="'.$href.'=" class="cancel">'.$options['cancel'].'</a></li>';
+				if (!empty($filter)) $list .= '<li><strong>'.$facetname.'</strong>: '.stripslashes($label).' <a href="'.$href.'=" class="cancel">'.$options['cancel'].'</a></li>';
 			}
 			$output .= '<ul class="filters enabled">'.$list.'</ul>';
 		}
 
-		if ($O->pricerange == "auto" && empty($CategoryFilters['Price'])) {
-			// if (!$O->loaded) $O->load_products();
+		if ($O->pricerange == "auto" && empty($CategoryFilters['price'])) {
+			if (!$O->loaded) $O->load();
 			$list = "";
-			$O->priceranges = auto_ranges($O->pricing['average'],$O->pricing['max'],$O->pricing['min']);
+			$O->priceranges = auto_ranges($O->pricing->average,$O->pricing->max,$O->pricing->min);
+
 			foreach ($O->priceranges as $range) {
-				$href = add_query_arg('shopp_catfilters[Price]',urlencode(money($range['min']).'-'.money($range['max'])),$link);
+				$href = add_query_arg('price',urlencode(money($range['min']).'-'.money($range['max'])),$link);
 				$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 				if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
 				elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
@@ -146,99 +155,103 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$output .= '<ul>'.$list.'</ul>';
 		}
 
-		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		$producttable = DatabaseObject::tablename(Product::$table);
+		global $wpdb;
+		$tr = $wpdb->term_relationships;
+		$tt = $wpdb->term_taxonomy;
 		$spectable = DatabaseObject::tablename(Spec::$table);
 
 		$query = "SELECT spec.name,spec.value,
 			IF(spec.numeral > 0,spec.name,spec.value) AS merge,
 			count(*) AS total,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
-			FROM $catalogtable AS cat
-			LEFT JOIN $producttable AS p ON cat.product=p.id
-			LEFT JOIN $spectable AS spec ON p.id=spec.parent AND spec.context='product' AND spec.type='spec'
-			WHERE cat.parent=$O->id AND cat.taxonomy='$O->taxonomy' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
+			FROM $spectable AS spec
+			INNER JOIN $tr AS tr ON tr.object_id=spec.parent AND spec.context='product' AND spec.type='spec'
+			INNER JOIN $tt AS tt ON tt.term_taxonomy_id=tr.term_taxonomy_id
+			WHERE tt.term_id='$O->id' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
 
-		$results = $db::query($query,AS_ARRAY);
+		$specdata = DB::query($query,'array','index','name',true);
 
-		$specdata = array();
-		foreach ($results as $data) {
-			if (isset($specdata[$data->name])) {
-				if (!is_array($specdata[$data->name]))
-					$specdata[$data->name] = array($specdata[$data->name]);
-				$specdata[$data->name][] = $data;
-			} else $specdata[$data->name] = $data;
-		}
+		// print_r($specdata);
+		// $specdata = array();
+		// foreach ($results as $data) {
+		// 	if (isset($specdata[$data->name])) {
+		// 		if (!is_array($specdata[$data->name]))
+		// 			$specdata[$data->name] = array($specdata[$data->name]);
+		// 		$specdata[$data->name][] = $data;
+		// 	} else $specdata[$data->name] = $data;
+		// }
 
-		if (is_array($O->specs)) {
-			foreach ($O->specs as $spec) {
-				$list = "";
-				if (!empty($CategoryFilters[$spec['name']])) continue;
+		if (!is_array($O->specs)) return $output;
 
-				// For custom menu presets
-				if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
-					foreach ($spec['options'] as $option) {
-						$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option['name']),$link);
-						$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
+		foreach ($O->specs as $spec) {
+			$slug = sanitize_title_with_dashes($spec['name']);
+			if (!empty($CategoryFilters[$slug])) continue;
+			$list = "";
+
+			// For custom menu presets
+			if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
+				foreach ($spec['options'] as $option) {
+					$href = add_query_arg($slug,urlencode($option['name']),$link);
+					$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
+				}
+				$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+
+			// For preset ranges
+			} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
+				foreach ($spec['options'] as $i => $option) {
+					$matches = array();
+					$format = '%s-%s';
+					$next = 0;
+					if (isset($spec['options'][$i+1])) {
+						if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
+							$next = $matches[0];
 					}
-					$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-
-				// For preset ranges
-				} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
-					foreach ($spec['options'] as $i => $option) {
-						$matches = array();
-						$format = '%s-%s';
-						$next = 0;
-						if (isset($spec['options'][$i+1])) {
-							if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
-								$next = $matches[0];
-						}
-						$matches = array();
-						$range = array("min" => 0,"max" => 0);
-						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
-							$base = $matches[2];
-							$format = $matches[1].'%s'.$matches[3];
-							if (!isset($spec['options'][$i+1])) $range['min'] = $base;
-							else $range = array("min" => $base, "max" => ($next-1));
-						}
-						if ($i == 1) {
-							$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,'0',$range['min'])),$link);
-							$label = __('Under ','Shopp').sprintf($format,$range['min']);
-							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
-						}
-
-						$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,$range['min'],$range['max'])), $link);
-						$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-						if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+					$matches = array();
+					$range = array("min" => 0,"max" => 0);
+					if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
+						$base = $matches[2];
+						$format = $matches[1].'%s'.$matches[3];
+						if (!isset($spec['options'][$i+1])) $range['min'] = $base;
+						else $range = array("min" => $base, "max" => ($next-1));
+					}
+					if ($i == 1) {
+						$href = add_query_arg($slug, urlencode(sprintf($format,'0',$range['min'])),$link);
+						$label = __('Under ','Shopp').sprintf($format,$range['min']);
 						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 					}
-					$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
 
-				// For automatically building the menu options
-				} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
+					$href = add_query_arg($slug, urlencode(sprintf($format,$range['min'],$range['max'])), $link);
+					$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+					if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+					$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+				}
+				$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
 
-					if (is_array($specdata[$spec['name']])) { // Generate from text values
-						foreach ($specdata[$spec['name']] as $option) {
-							$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option->value),$link);
-							$list .= '<li><a href="'.$href.'">'.$option->value.'</a></li>';
-						}
-						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-					} else { // Generate number ranges
-						$format = '%s';
-						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$specdata[$spec['name']]->content,$matches))
-							$format = $matches[1].'%s'.$matches[3];
+			// For automatically building the menu options
+			} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
 
-						$ranges = auto_ranges($specdata[$spec['name']]->avg,$specdata[$spec['name']]->max,$specdata[$spec['name']]->min);
-						foreach ($ranges as $range) {
-							$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode($range['min'].'-'.$range['max']), $link);
-							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-							if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
-							elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
-							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
-						}
-						if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
-						$output .= '<ul>'.$list.'</ul>';
-
+				if (count($specdata[$spec['name']]) > 1) { // Generate from text values
+					foreach ($specdata[$spec['name']] as $option) {
+						$href = add_query_arg($slug,urlencode($option->value),$link);
+						$list .= '<li><a href="'.$href.'">'.$option->value.'</a></li>';
 					}
+					$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+				} else { // Generate number ranges
+					$specd = $specdata[$spec['name']][0];
+					$format = '%s';
+					if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$specd->content,$matches))
+						$format = $matches[1].'%s'.$matches[3];
+
+					$ranges = auto_ranges($specd->avg,$specd->max,$specd->min);
+					foreach ($ranges as $range) {
+						$href = add_query_arg($slug, urlencode($range['min'].'-'.$range['max']), $link);
+						$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+						if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
+						elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+					}
+					if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
+					$output .= '<ul>'.$list.'</ul>';
+
 				}
 			}
 		}
@@ -263,7 +276,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return (!empty($O->children));
 	}
 
-	function has_faceted_menu ($result, $options, $O) { return ($O->facetedmenus == "on"); }
+	function has_faceted_menu ($result, $options, $O) { if (empty($O->meta)) $O->load_meta(); return ('on' == $O->facetedmenus); }
 
 	function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_images();
