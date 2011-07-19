@@ -386,7 +386,7 @@ class Categorize extends AdminController {
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		shopp_set_settingform(); // Save workflow setting
+		shopp_set_formsettings(); // Save workflow setting
 
 		if (empty($Category->meta))
 			$Category->load_meta();

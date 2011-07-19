@@ -86,7 +86,7 @@ class Resources {
 			 	array_keys(array_merge($Purchase,$Purchased));
 			$_POST['settings']['purchaselog_headers'] = "on";
 		}
-		shopp_set_settingform();
+		shopp_set_formsettings(); // Save workflow setting
 
 		$format = shopp_setting('purchaselog_format');
 		if (empty($format)) $format = 'tab';
@@ -120,7 +120,7 @@ class Resources {
 			$_POST['settings']['customerexport_headers'] = "on";
 		}
 
-		shopp_set_settingform();
+		shopp_set_formsettings(); // Save workflow setting
 
 		$format = shopp_setting('customerexport_format');
 		if (empty($format)) $format = 'tab';
