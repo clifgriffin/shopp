@@ -981,41 +981,6 @@ class WPDatabaseObject extends DatabaseObject {
 
 }
 
-class WPShoppObject extends WPDatabaseObject {
-	static $posttype = 'shopp_post';
-
-	function load () {
-		$args = func_get_args();
-		if (empty($args[0])) return false;
-
-		if (count($args) == 2) {
-			list($id,$key) = $args;
-			if (empty($key)) $key = $this->_key;
-			$p = array($key => $id);
-		}
-		if (is_array($args[0])) $p = $args[0];
-
-		$class = get_class($this);
-		$p['post_type'] = $class::$posttype;
-
-		parent::load($p);
-	}
-
-	static function register ($class,$slug) {
-		register_post_type( $class::$posttype,array(
-				'labels' => array(
-					'name' => __('Products','Shopp'),
-					'singular_name' => __('Product','Shopp')
-				),
-			'rewrite' => array( 'slug' => $slug ),
-			'public' => true,
-			'has_archive' => true,
-			'show_ui' => false,
-			'_edit_link' => 'admin.php?page=shopp-products&id=%d'
-		));
-	}
-}
-
 /**
  * Provides integration between the database and session handling
  *

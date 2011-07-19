@@ -28,7 +28,8 @@ function shopp_register_collection ( $name = '' ) {
 
 	global $Shopp;
 	if (empty($Shopp)) return;
-	$slug = $name::$_slug;
+	$Collection = new $name;
+	$slug = $Collection->_slug;
 	$Shopp->Collections[$slug] = $name;
 
 	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
@@ -39,7 +40,7 @@ function shopp_register_collection ( $name = '' ) {
 		return ShoppCatalogThemeAPI::category($result, $options, $O);'
 	);
 
-	if (isset($name::$_altslugs) && is_array($name::$_altslugs)) $slugs = $name::$_altslugs;
+	if (isset($Collection->_altslugs) && is_array($Collection->_altslugs)) $slugs = $Collection->_altslugs;
 	else $slugs = array($slug);
 
 	foreach ($slugs as $collection) {

@@ -13,8 +13,8 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppSearchWidget') ) {
 
 class ShoppSearchWidget extends WP_Widget {
 
-    function ShoppSearchWidget() {
-        parent::WP_Widget(
+    function __construct () {
+        parent::__construct(
 		'shopp-search',
 		__('Shopp Search','Shopp'),
 		array('description' => __('A search form for your store','Shopp')));

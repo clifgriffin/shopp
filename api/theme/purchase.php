@@ -87,7 +87,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'xaddress' => 'xaddress'
 	);
 
-	static function _apicontext () { return "purchase"; }
+	function _apicontext () { return "purchase"; }
 
 	function address ($result, $options, $O) { return esc_html($O->address); }
 

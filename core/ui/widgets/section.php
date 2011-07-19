@@ -13,8 +13,8 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppCategorySectionWidget') )
 
 class ShoppCategorySectionWidget extends WP_Widget {
 
-    function ShoppCategorySectionWidget() {
-        parent::WP_Widget(false,
+    function __construct () {
+        parent::__construct(false,
 			$name = __('Shopp Category Section','Shopp'),
 			array('description' => __('A list or dropdown of store categories'))
 		);

@@ -78,7 +78,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	);
 
 
-	static function _apicontext () { return "customer"; }
+	function _apicontext () { return "customer"; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('customer') call

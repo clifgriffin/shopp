@@ -46,7 +46,7 @@ class ShoppCartItemThemeAPI {
 		'thumbnail' => 'coverimage'
 	);
 
-	static function _apicontext () { return "cartitem"; }
+	function _apicontext () { return "cartitem"; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('cartitem) call

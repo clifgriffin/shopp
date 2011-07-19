@@ -13,8 +13,8 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppShoppersWidget') ) {
 
 class ShoppShoppersWidget extends WP_Widget {
 
-    function ShoppShoppersWidget () {
-        parent::WP_Widget(
+    function __construct () {
+        parent::__construct(
 			'shopp-recent-shoppers',
 			__('Shopp Recent Shoppers','Shopp'),
 			array('description' => __('Lists recent shoppers on your store','Shopp'))

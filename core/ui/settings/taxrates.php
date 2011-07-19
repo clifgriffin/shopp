@@ -5,6 +5,8 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Tax Rates','Shopp'); ?></h2>
 
+	<?php if (empty($countries)) echo '<div class="error"><p>'; _e('No target markets have been selected in your store setup.','Shopp'); echo '</p></div>'; ?>
+
 	<?php $this->taxes_menu(); ?>
 
 	<div>
@@ -13,7 +15,7 @@
 
 	<div class="tablenav">
 		<div class="actions">
-		<button type="submit" name="addrate" id="addrate" class="button-secondary" tabindex="9999"><?php _e('Add Tax Rate','Shopp'); ?></button>
+		<button type="submit" name="addrate" id="addrate" class="button-secondary" tabindex="9999" <?php if (empty($countries)) echo 'disabled="disabled"'; ?>><?php _e('Add Tax Rate','Shopp'); ?></button>
 		</div>
 	</div>
 

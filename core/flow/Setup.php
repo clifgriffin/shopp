@@ -851,6 +851,7 @@ class Setup extends AdminController {
 	 	$active_gateways = shopp_setting('active_gateways');
 		if (!$active_gateways) $gateways = array();
 		else $gateways = explode(',',$active_gateways);
+
 		$Gateways->settings();	// Load all installed gateways for settings UIs
 
 		if (!empty($_GET['delete'])) {

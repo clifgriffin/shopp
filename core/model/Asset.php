@@ -825,7 +825,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 			$attributes['value'] = '${'.$name.'}';
 			$attributes['name'] .= '][${context}';
 		}
- 		parent:textarea($column,$attributes);
+ 		parent::textarea($column,$attributes);
 	}
 
 

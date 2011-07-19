@@ -63,7 +63,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $name;
 	}
 
-	static function _apicontext () { return "category"; }
+	function _apicontext () { return "category"; }
 
 	function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
@@ -767,7 +767,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function total ($result, $options, $O) { return $O->loaded?$O->total:false; }
 
-	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? "{$O::$namespace}/$O->slug" : array('s_cat'=>$O->id) ); }
+	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? "{$O->namespace}/$O->slug" : array('s_cat'=>$O->id) ); }
 
 }
 
