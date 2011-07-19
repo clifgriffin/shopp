@@ -72,4 +72,23 @@ function shopp_rmv_setting ($name) {
 	return ShoppSettings()->delete($name);
 }
 
+/**
+ * shopp_set_formsettings - saves a name value pair as a Shopp setting
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the setting that is to be stored.
+ * @param mixed $value The value saved to the named setting.
+ * @return bool true on success, false on failure.
+ **/
+function shopp_set_formsettings () {
+	if (empty($_POST['settings']) || !is_array($_POST['settings'])) {
+		if (SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+	ShoppSettings()->saveform();
+	return true;
+}
+
 ?>
