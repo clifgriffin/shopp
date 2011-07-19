@@ -124,17 +124,18 @@ class ShippingModules extends ModuleLoader {
 	}
 
 	/**
-	 * Renders the settings interface for all activated shipping modules
+	 * Get a specified gateway
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @since 1.2
 	 *
 	 * @return void Description...
 	 **/
-	// function ui () {
-	// 	foreach ($this->active as $module)
-	// 		$module->ui();
-	// }
+	function &get ($module) {
+		if (empty($this->active)) $this->settings();
+		if (!isset($this->active[$module])) return false;
+		return $this->active[$module];
+	}
 
 	/**
 	 * Initializes the settings UI for each loaded module
