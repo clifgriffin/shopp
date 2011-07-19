@@ -14,14 +14,13 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppFacetedMenuWidget') ) {
 class ShoppFacetedMenuWidget extends WP_Widget {
 
     function __construct () {
-        parent::WP_Widget(false,
+        parent::__construct(false,
 			$name = __('Shopp Faceted Menu','Shopp'),
 			array('description' => __('Category products drill-down search menu','Shopp'))
 		);
     }
 
     function widget($args, $options) {
-		global $Shopp;
 
 		if (!empty($args)) extract($args);
 

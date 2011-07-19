@@ -68,7 +68,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'weight' => 'weight'
 	);
 
-	static function _apicontext () { return "product"; }
+	function _apicontext () { return "product"; }
 
 	function addons ($result, $options, $O) {
 		global $Shopp;

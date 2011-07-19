@@ -36,7 +36,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	'methoddelivery' => 'option_delivery'
 	);
 
-	static function _apicontext () { return "shipping"; }
+	function _apicontext () { return "shipping"; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('cart') call

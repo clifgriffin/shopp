@@ -56,7 +56,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'total' => 'total'
 	);
 
-	static function _apicontext () { return "cart"; }
+	function _apicontext () { return "cart"; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('cart') call

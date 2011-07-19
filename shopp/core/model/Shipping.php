@@ -1142,7 +1142,7 @@ interface ShippingPackagingInterface {
 	 * @param string id (Optional) - manifest id package
 	 *
 	 **/
-	public function package ( $id );
+	public function package ();
 
 }
 
@@ -1210,8 +1210,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $item the item to add to packages
 	 **/
-	public function add_item ( &$Item = false ) {
-		if ( false === $Item ) return;
+	public function add_item ( &$Item ) {
 
 		if ( isset($Item->packaging) && "on" == $Item->packaging )
 			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );

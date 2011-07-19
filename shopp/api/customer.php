@@ -315,9 +315,9 @@ function shopp_customer_addresses (  $customer = false ) {
 		return false;
 	}
 
-	$customer = $db::escape($customer);
+	$customer = DB::escape($customer);
 	$table = DatabaseObject::tablename(Address::$table);
-	$addresses = db::query("select * from $table where customer=$customer", AS_ARRAY);
+	$addresses = DB::query("select * from $table where customer=$customer", AS_ARRAY);
 
 	$_ = array();
 	$map = array('id', 'address' , 'xaddress', 'city', 'state', 'country', 'postcode', 'geocode', 'residential');
