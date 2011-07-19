@@ -308,7 +308,7 @@ class Warehouse extends AdminController {
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
-		$pd = WPShoppObject::tablename(Product::$table);
+		$pd = WPDatabaseObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
 		$ps = DatabaseObject::tablename(ProductSummary::$table);
 

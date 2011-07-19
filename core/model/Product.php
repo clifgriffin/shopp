@@ -864,7 +864,7 @@ class Product extends WPDatabaseObject {
 		if (empty($ids) || !is_array($ids)) return false;
 		$settings = array('publish','draft','trash');
 		if (!in_array($status,$settings)) return false;
-		$table = WPShoppObject::tablename(self::$table);
+		$table = WPDatabaseObject::tablename(self::$table);
 		DB::query("UPDATE $table SET post_status='$status' WHERE ID in (".join(',',$ids).")");
 		return true;
 	}
