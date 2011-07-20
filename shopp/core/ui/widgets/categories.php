@@ -14,19 +14,18 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppCategoriesWidget') ) {
 class ShoppCategoriesWidget extends WP_Widget {
 
     function __construct () {
-        parent::__construct (false,
+        parent::__construct(false,
 			$name = __('Shopp Categories','Shopp'),
 			array('description' => __('A list or dropdown of store categories','Shopp'))
 		);
     }
 
     function widget($args, $options) {
-		global $Shopp;
 		extract($args);
 
 		$title = $before_title.$options['title'].$after_title;
 		unset($options['title']);
-		$menu = $Shopp->Catalog->tag('category-list',$options);
+		$menu = shopp('catalog','get-category-list',$options);
 		echo $before_widget.$title.$menu.$after_widget;
     }
 

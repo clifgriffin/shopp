@@ -27,7 +27,7 @@ class ShoppSearchWidget extends WP_Widget {
 		if (empty($options['title'])) $options['title'] = __('Shop Search','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 
-		$content = $Shopp->Catalog->tag('searchform');
+		$content = shopp('catalog','get-searchform');
 		echo $before_widget.$title.$content.$after_widget;
     }
 

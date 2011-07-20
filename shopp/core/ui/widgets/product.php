@@ -13,8 +13,8 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppProductWidget') ) {
 
 class ShoppProductWidget extends WP_Widget {
 
-    function __construct () {
-        parent::__construct (false,
+    function __construct() {
+        parent::__construct(false,
 			$name = __('Shopp Product','Shopp'),
 			array('description' => __('Highlight specific store products','Shopp'))
 		);
@@ -27,7 +27,7 @@ class ShoppProductWidget extends WP_Widget {
 		$title = $before_title.$options['title'].$after_title;
 		unset($options['title']);
 
-		$content = $Shopp->Catalog->tag('sideproduct',$options);
+		$content = shopp('catalog','get-sideproduct',$options);
 		echo $before_widget.$title.$content.$after_widget;
     }
 
