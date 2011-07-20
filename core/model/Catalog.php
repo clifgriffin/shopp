@@ -162,8 +162,8 @@ class Catalog {
 	function collections ($method="after") {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
-			// @todo Find a workaround for determining auto Collections and non-auto
-			// if (!isset($Collection::$_auto)) continue;
+			$auto = get_class_property($Collection,'_auto');
+			if ($auto) continue;
 			$category = new $Collection(array("noload" => true));
 			switch($method) {
 				case "before": array_unshift($this->categories,$category); break;

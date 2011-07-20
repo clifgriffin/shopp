@@ -1121,7 +1121,7 @@ interface ShippingPackagingInterface {
 	 *
 	 * @param Item $Item the Item to add to packages
 	 **/
-	public function add_item ( &$Item );
+	public function add_item ( Item &$Item );
 
 	/**
 	 * packages is the packages container iterator
@@ -1131,7 +1131,7 @@ interface ShippingPackagingInterface {
 	 *
 	 * @return true while more packages
 	 **/
-	public function packages () ;
+	public function packages ();
 
 	/**
 	 * return current package
@@ -1140,8 +1140,6 @@ interface ShippingPackagingInterface {
 	 * @since 1.2
 	 *
 	 * @return Package current package, false if no packages
-	 * @param string id (Optional) - manifest id package
-	 *
 	 **/
 	public function package ();
 
@@ -1211,7 +1209,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $item the item to add to packages
 	 **/
-	public function add_item ( &$Item ) {
+	public function add_item ( Item &$Item ) {
 
 		if ( isset($Item->packaging) && "on" == $Item->packaging )
 			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );

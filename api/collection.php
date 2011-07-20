@@ -28,8 +28,7 @@ function shopp_register_collection ( $name = '' ) {
 
 	global $Shopp;
 	if (empty($Shopp)) return;
-	$Collection = new $name;
-	$slug = $Collection->_slug;
+	$slug = get_class_property($name,'_slug');
 	$Shopp->Collections[$slug] = $name;
 
 	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
@@ -40,8 +39,9 @@ function shopp_register_collection ( $name = '' ) {
 		return ShoppCatalogThemeAPI::category($result, $options, $O);'
 	);
 
-	if (isset($Collection->_altslugs) && is_array($Collection->_altslugs)) $slugs = $Collection->_altslugs;
-	else $slugs = array($slug);
+	$slugs = array($slug);
+	$altslugs = get_class_property($name,'_altslugs');
+	if (is_array($altslugs)) $slugs = $altslugs;
 
 	foreach ($slugs as $collection) {
 		// @deprecated Remove the catalog-products tag in favor of catalog-collection

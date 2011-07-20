@@ -345,11 +345,13 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	static function register ($class) {
-		$Object = new $class;
-		$slug = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$Object->namespace : $Object->namespace;
-		register_taxonomy($Object->taxonomy,array(Product::$posttype), array(
-			'hierarchical' => $Object->hierarchical,
-			'labels' => $Object->labels($class),
+		$namespace = get_class_property($class,'namespace');
+		$taxonomy = get_class_property($class,'taxonomy');
+		$hierarchical = get_class_property($class,'hierarchical');
+		$slug = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$namespace : $namespace;
+		register_taxonomy($taxonomy,array(Product::$posttype), array(
+			'hierarchical' => $hierarchical,
+			'labels' => call_user_func(array($class,'labels'),$class),
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug ),

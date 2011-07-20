@@ -212,6 +212,27 @@ if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	shopp_convert_proxy_config();
 }
 
+if (!function_exists('get_class_property')) {
+	/**
+	 * Provides dynamic access to a specified class property
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string $Class Name of the class to lookup a property from
+	 * @param string $property The name of the property to retrieve
+	 * @return mixed The value of the requested property
+	 **/
+	function get_class_property ($Class,$property) {
+	  if(!class_exists($Class)) return null;
+	  if(!property_exists($Class, $property)) return null;
+
+	  $vars = get_class_vars($Class);
+	  return $vars[$property];
+	}
+}
+
+
 /**
  * Checks for prerequisite technologies needed for Shopp
  *
