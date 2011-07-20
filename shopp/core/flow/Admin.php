@@ -90,7 +90,6 @@ class AdminFlow extends FlowController {
 		add_filter('favorite_actions', array($this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
 		add_action('load-update.php', array($this, 'admin_css'));
-		// add_action('admin_footer',array($this,'debug'));
 		add_action('admin_menu',array($this,'tagsmenu'),20);
 		add_action('load-nav-menus.php',array($this,'navmenus'));
 
@@ -772,10 +771,8 @@ class AdminFlow extends FlowController {
 	}
 
 	function navmenus () {
-
 		if (isset($_REQUEST['add-shopp-menu-item']) && isset($_REQUEST['menu-item'])) {
 			$pages = Storefront::pages_settings();
-
 
 			$nav_menu_selected_id = isset( $_REQUEST['menu'] ) ? (int) $_REQUEST['menu'] : 0;
 
@@ -794,7 +791,6 @@ class AdminFlow extends FlowController {
 
 
 		}
-
 		add_meta_box( 'add-shopp-pages', __('Catalog Pages'), array($this,'shoppage_meta_box'), 'nav-menus', 'side', 'low' );
 	}
 
