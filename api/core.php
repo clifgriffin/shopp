@@ -119,4 +119,32 @@ function is_shopp_page ($page=false) {
 
 }
 
+/**
+ * is_shopp_taxonomy - Is the current WordPress query, a query for a Shopp product taxonomy?
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current WordPress query is for a shopp product taxonomy, else false
+ **/
+function is_shopp_taxonomy () {
+	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+	foreach ( $taxonomies as $taxonomy ) {
+		if ( is_tax($taxonomy) ) return true;
+	}
+	return false;
+}
+
+/**
+ * is_shopp_product - Is the current WordPress query, a query for a Shopp product?
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current WordPress query is for a shopp product, else false
+ **/
+function is_shopp_product () {
+	return is_singular(Product::$posttype);
+}
+
 ?>
