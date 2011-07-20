@@ -27,7 +27,7 @@ class ShoppTagCloudWidget extends WP_Widget {
 		if (empty($options['title'])) $options['title'] = "Product Tags";
 		$title = $before_title.$options['title'].$after_title;
 
-		$tagcloud = $Shopp->Catalog->tag('tagcloud',$options);
+		$tagcloud = shopp('catalog','get-tagcloud',$options);
 		echo $before_widget.$title.$tagcloud.$after_widget;
     }
 
