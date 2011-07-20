@@ -484,7 +484,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$setting = $options['setting'];
 			$ImageSettings = ImageSettings::__instance();
 			$settings = $ImageSettings->get($setting);
-			$defaults = array_merge($defaults,$settings->options());
+			if ($settings) $defaults = array_merge($defaults,$settings->options());
 		}
 
 		$options = array_merge($defaults,$options);
