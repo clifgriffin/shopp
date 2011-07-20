@@ -87,7 +87,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'xcobuttons' => 'xco_buttons'
 	);
 
-	function _apicontext () { return "checkout"; }
+	static function _apicontext () { return 'checkout'; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('checkout) call

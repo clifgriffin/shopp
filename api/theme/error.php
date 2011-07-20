@@ -30,7 +30,7 @@ class ShoppErrorThemeAPI implements ShoppAPI {
 		'debug' => 'debug'
 	);
 
-	function _apicontext () { return "error"; }
+	static function _apicontext () { return 'error'; }
 
 
 	/**

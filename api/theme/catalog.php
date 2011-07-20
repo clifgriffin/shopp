@@ -38,7 +38,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'zoomoptions' => 'zoom_options'
 	);
 
-	function _apicontext () { return "catalog"; }
+	static function _apicontext () { return 'catalog'; }
 
 	function breadcrumb ($result, $options, $O) {
 		global $Shopp;
