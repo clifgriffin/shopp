@@ -131,6 +131,7 @@ class Storefront extends FlowController {
 
 	function query ($wp_query) {
 		global $Shopp;
+		// print_r($wp_query);
 
 		$page	 	= get_query_var('shopp_page');
 		$posttype 	= get_query_var('post_type');
@@ -145,14 +146,14 @@ class Storefront extends FlowController {
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
 		// Override the custom post type archive request to use the Shopp catalog page
-		if ($posttype == Product::$posttype && '' == $product.$page) {
-			$pages = Storefront::pages_settings();
-			$page = $pages['catalog']['slug'];
-			set_query_var('shopp_page',$page);
-		}
+		if ($posttype == Product::$posttype && '' == $product.$page)
+			set_query_var('shopp_page',Storefront::slug('catalog'));
 
-		if ($category.$collection.$tag.$page.$searching == ''
-			&& $posttype == Product::$posttype) return;
+		if ($posttype == Product::$posttype) return;
+
+		// @todo Add support for checking custom Shopp taxonomies
+		if (($category.$collection.$tag.$page.$searching == ''
+			&& $posttype != Product::$posttype)) return;
 
 		$this->request = true;
 		set_query_var('suppress_filters',false); // Override default WP_Query request
@@ -230,7 +231,7 @@ class Storefront extends FlowController {
 		if (empty($Shopp->Category) && get_query_var('post_type') != Product::$posttype) return $template;
 
 		/* @todo Handle category/collection title */
-		// add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return "Store";'));
+		add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return shopp("category","get-name");'));
 		add_filter('the_content',array(&$this,'category_template'));
 
 		$templates = array('shopp-category.php', 'shopp.php', 'page.php');
@@ -277,6 +278,7 @@ class Storefront extends FlowController {
 
 	function category_template ($content) {
 		global $Shopp,$wp_query;
+
 		// Short-circuit the loop for the archive/category requests
 		$wp_query->current_post = $wp_query->post_count;
 		ob_start();
