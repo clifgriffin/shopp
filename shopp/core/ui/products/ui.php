@@ -154,10 +154,10 @@ global $Shopp;
 foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
-	if ( !is_taxonomy_hierarchical($taxonomy_name) )
-		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else
+	if ( is_taxonomy_hierarchical($taxonomy_name) )
 		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+
 }
 
 function settings_meta_box ($Product) {

@@ -15,7 +15,7 @@
 require("Price.php");
 require("Promotion.php");
 
-class Product extends WPDatabaseObject {
+class Product extends WPShoppObject {
 	static $table = 'posts';
 	static $_taxonomies = array(
 		'shopp_category' => 'categories',
@@ -54,6 +54,7 @@ class Product extends WPDatabaseObject {
 		'modified' => 'post_modified'
 	);
 
+
 	/**
 	 * Product constructor
 	 *
@@ -73,38 +74,12 @@ class Product extends WPDatabaseObject {
 		return self::$posttype;
 	}
 
-	function load () {
-		$args = func_get_args();
-		if (empty($args[0])) return false;
-
-		if (count($args) == 2) {
-			list($id,$key) = $args;
-			if (empty($key)) $key = $this->_key;
-			$p = array($key => $id);
-		}
-		if (is_array($args[0])) $p = $args[0];
-
-		$class = get_class($this);
-		$p['post_type'] = self::$posttype;
-
-		parent::load($p);
+	static function labels () {
+		return array(
+			'name' => __('Products','Shopp'),
+			'singular_name' => __('Product','Shopp')
+		);
 	}
-
-	static function register ($class,$slug) {
-		register_post_type( self::$posttype,array(
-				'labels' => array(
-					'name' => __('Products','Shopp'),
-					'singular_name' => __('Product','Shopp')
-				),
-			'rewrite' => array( 'slug' => $slug ),
-			'public' => true,
-			'has_archive' => true,
-			'show_ui' => false,
-			'_edit_link' => 'admin.php?page=shopp-products&id=%d'
-		));
-	}
-
-
 	/**
 	 * Loads relational data into the Product object
 	 *
@@ -864,7 +839,7 @@ class Product extends WPDatabaseObject {
 		if (empty($ids) || !is_array($ids)) return false;
 		$settings = array('publish','draft','trash');
 		if (!in_array($status,$settings)) return false;
-		$table = WPDatabaseObject::tablename(self::$table);
+		$table = WPShoppObject::tablename(self::$table);
 		DB::query("UPDATE $table SET post_status='$status' WHERE ID in (".join(',',$ids).")");
 		return true;
 	}

@@ -39,7 +39,8 @@ function shopp () {
 	}
 
 	// Grab the arguments (up to 3)
-	$args = array_combine(array_slice($parameters,0,$num),func_get_args());
+	$fargs = func_get_args();
+	$args = array_combine(array_slice($parameters,0,$num),$fargs);
 	extract($args);
 
 	if ( is_object($first) ) { // Handle Object instances as first argument
