@@ -32,7 +32,7 @@
 				<a href="<?php shopp('product','url'); ?>"><?php shopp('product','coverimage'); ?></a>
 					<div class="details">
 					<h4 class="name"><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h4>
-					<p class="price"><?php shopp('product','saleprice','starting=from'); ?> </p>
+					<p class="price"><?php shopp('product','saleprice','starting='.__('from','Shopp')); ?> </p>
 					<?php if (shopp('product','has-savings')): ?>
 						<p class="savings"><?php _e('Save ','Shopp'); ?><?php shopp('product','savings','show=percent'); ?></p>
 					<?php endif; ?>
