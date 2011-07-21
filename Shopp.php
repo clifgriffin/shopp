@@ -321,7 +321,7 @@ class Shopp {
 	 **/
 	function rewrites ($wp_rewrite_rules) {
 		$path = array(PLUGINDIR,SHOPP_DIR,'core');
-		add_rewrite_rule('.*'.Storefront::slug().'/images/(\d+)/?\??(.*)$',join('/',$path).'/image.php?siid=$1&$2');
+		add_rewrite_rule('.*'.Storefront::slug().'/images/(\d+)/?\??(.*)$',urlencode(join('/',$path)).'/image.php?siid=$1&$2');
 		return $wp_rewrite_rules;
 	}
 
