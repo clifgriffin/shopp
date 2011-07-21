@@ -111,13 +111,18 @@
 				<td><select name="settings[download_timelimit]" id="download-timelimit">
 					<option value=""><?php _e('No Limit','Shopp'); ?></option>
 					<?php echo menuoptions($time,shopp_setting('download_timelimit'),true); ?>
-						</select>
+					</select>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="download-restriction"><?php _e('IP Restriction','Shopp'); ?></label></th>
 				<td><input type="hidden" name="settings[download_restriction]" value="off" />
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo (shopp_setting('download_restriction') == "ip")?'checked="checked" ':'';?> /> <?php _e('Restrict to the computer the product is purchased from','Shopp'); ?></label></td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="download-quantity"><?php _e('Download Quantity','Shopp'); ?></label></th>
+				<td><input type="hidden" name="settings[download_quantity]" value="off" />
+					<label for="download-quantity"><input type="checkbox" name="settings[download_quantity]" id="download-quantity" value="on" <?php echo (shopp_setting('download_quantity') == "on")?'checked="checked" ':'';?> /> <?php _e('Enable quantity selection for download products','Shopp'); ?></label></td>
 			</tr>
 		</table>
 

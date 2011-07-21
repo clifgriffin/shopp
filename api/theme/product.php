@@ -686,6 +686,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if (!isset($O->_prices_loop)) reset($O->prices);
 		$variation = current($O->prices);
+		if ('Download' == $variation->type && str_true(shopp_setting('download_quantity'))) return '';
 		$_ = array();
 
 		if ("before" == $labelpos) $_[] = $labeling;
