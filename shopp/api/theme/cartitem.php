@@ -39,6 +39,7 @@ class ShoppCartItemThemeAPI {
 		'options' => 'options',
 		'addonslist' => 'addons_list',
 		'hasinputs' => 'has_inputs',
+		'incategory' => 'in_category',
 		'inputs' => 'inputs',
 		'input' => 'input',
 		'inputslist' => 'inputs_list',
@@ -219,6 +220,19 @@ class ShoppCartItemThemeAPI {
 	}
 
 	function has_inputs ($result, $options, $O) { return (count($O->data) > 0); }
+
+	function in_category ($result, $options, $O) {
+		if (empty($O->categories)) return false;
+		if (isset($options['id'])) $field = "id";
+		if (isset($options['name'])) $field = "name";
+		foreach ($O->categories as $id => $name) {
+			switch (strtolower($field)) {
+				case 'id': if ($options['id'] == $id) return true;
+				case 'name': if ($options['name'] == $name) return true;
+			}
+		}
+		return false;
+	}
 
 	function inputs ($result, $options, $O) {
 		if (!isset($O->_data_loop)) {
