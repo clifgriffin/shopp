@@ -461,7 +461,6 @@ class Cart {
 			// Item does not have free shipping,
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $this->freeshipping = false;
-
 		}
 
 		// Calculate Shipping
@@ -478,8 +477,6 @@ class Cart {
 
 		// Calculate discounts
 		$Totals->discount = $Discounts->calculate();
-
-		//$this->promotions();
 		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
 		// Calculate taxes
