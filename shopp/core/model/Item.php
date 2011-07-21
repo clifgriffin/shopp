@@ -221,9 +221,10 @@ class Item {
 			$qty = 1;
 		}
 
-		if ($this->type == 'Subscription' || $this->type == 'Membership') {
-			$this->quantity = 1;
-			return;
+		if ('Subscription' == $this->type ||
+			'Membership' == $this->type ||
+			( 'Download' == $this->type && str_true(shopp_setting('download_quantity')) )) {
+			return ($this->quantity = 1);
 		}
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
