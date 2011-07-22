@@ -243,7 +243,7 @@ class AdminFlow extends FlowController {
 	}
 
 	/**
-	 * Special handler to allow the Shopp Tags menu to use the WP tags manager
+	 * Provide admin support for custom Shopp taxonomies
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
@@ -254,19 +254,43 @@ class AdminFlow extends FlowController {
 		global $menu,$submenu;
 		if (!is_array($submenu)) return;
 
-		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+		$columns = function ($cols) {
+			$_ = array(
+				'cb' => '<input type="checkbox" />',
+				'name' => __('Name'),
+				'description' => __('Description'),
+				'slug' => __('Slug'),
+				'products' => __('Products','Shopp')
+			);
+			return $_;
+		};
+
+
+		$menuparent = function () {
+			global $parent_file,$taxonomy;
+			$taxonomies = get_object_taxonomies(Product::$posttype);
+			if (in_array($taxonomy,$taxonomies)) $parent_file = 'shopp-products';
+		};
+
+		$taxonomies = get_object_taxonomies(Product::$posttype);
 		foreach ($submenu['shopp-products'] as &$submenus) {
 			$taxonomy_name = str_replace('-','_',$submenus[2]);
 			if (!in_array($taxonomy_name,$taxonomies)) continue;
 			$submenus[2] = 'edit-tags.php?taxonomy='.$taxonomy_name;
+			add_filter('manage_edit-'.$taxonomy_name.'_columns', $columns);
+
+			$productcolumn = function ($markup, $name, $term_id) {
+				global $taxonomy;
+				if ('products' != $name) return;
+				$term = get_term($term_id,$taxonomy);
+				return '<a href="admin.php?page=shopp-products&'.$taxonomy.'='.$term->slug.'">'.$term->count.'</a>';
+			};
+
+			add_filter('manage_'.$taxonomy_name.'_custom_column', $productcolumn, 10, 3);
 		}
 
 		add_action('admin_print_styles-edit-tags.php',array($this,'admin_css'));
-		add_action('admin_head-edit-tags.php', create_function('','
-			global $parent_file,$taxonomy;
-			$taxonomies = get_object_taxonomies(Product::$posttype, "names");
-			if (in_array($taxonomy,$taxonomies)) $parent_file = "shopp-products";
-		'));
+		add_action('admin_head-edit-tags.php', $menuparent);
 	}
 
 	/**
@@ -327,6 +351,13 @@ class AdminFlow extends FlowController {
 	 * @return void Description...
 	 **/
 	function admin_css () {
+
+		global $taxonomy;
+		if (isset($taxonomy)) { // Prevent loading styles if not on Shopp taxonomy editor
+			$taxonomies = get_object_taxonomies(Product::$posttype);
+			if (!in_array($taxonomy,$taxonomies)) return;
+		}
+
 		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.admin',SHOPP_ADMIN_URI.'/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
