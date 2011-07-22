@@ -909,7 +909,7 @@ class ProductCategory extends ProductTaxonomy {
 		$prettyurl = $categoryurl.($page > 1 || $alpha?"page/$page":"");
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		$url = SHOPP_PRETTYURLS?$prettyurl:add_query_args($queryvars,$categoryurl);
+		$url = SHOPP_PRETTYURLS?$prettyurl:add_query_arg($queryvars,$categoryurl);
 
 		return apply_filters('shopp_paged_link',$url);
 	}

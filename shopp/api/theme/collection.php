@@ -770,7 +770,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	function url ($result, $options, $O) {
 		$class = get_class($O);
 		$namespace = get_class_property($class,'namespace');
-		return shoppurl( SHOPP_PRETTYURLS ? "$namespace/$O->slug" : array('s_cat'=>$O->id) );
+
+		return shoppurl( SHOPP_PRETTYURLS ? "$namespace/$O->slug" : array($O->taxonomy=>$O->slug) );
 	}
 
 }
