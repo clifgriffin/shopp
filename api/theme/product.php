@@ -847,7 +847,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$O); }
 
-	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?$O->slug:array('s_pid'=>$O->id)); }
+	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS?$O->slug:array(Product::$posttype=>$O->slug) ); }
 
 	function variation ($result, $options, $O) {
 		global $Shopp;

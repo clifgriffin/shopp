@@ -1709,7 +1709,9 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	if ($secure === false) $scheme = 'http'; // Contextually forced off
 	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
 
-	$url = home_url(join('/',$path),$scheme);
+	$url = home_url(false,$scheme);
+
+	if (SHOPP_PRETTYURLS) $url = home_url(join('/',$path),$scheme);
 	if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
 
 	if (!empty($query)) {
