@@ -56,7 +56,6 @@ class AdminFlow extends FlowController {
 		'memberships'=>'shopp_products',
 		'products'=>'shopp_products',
 		'categories'=>'shopp_categories',
-		'tags'=>'shopp_categories',
 		'promotions'=>'shopp_promotions',
 		'settings'=>'shopp_settings',
 		'settings-preferences'=>'shopp_settings',
@@ -90,7 +89,7 @@ class AdminFlow extends FlowController {
 		add_filter('favorite_actions', array($this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
 		add_action('load-update.php', array($this, 'admin_css'));
-		add_action('admin_menu',array($this,'tagsmenu'),20);
+		add_action('admin_menu',array($this,'taxonomies'),20);
 		add_action('load-nav-menus.php',array($this,'navmenus'));
 
 		// Add the default Shopp pages
@@ -98,9 +97,17 @@ class AdminFlow extends FlowController {
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
-		$this->addpage('tags',__('Tags','Shopp'),'Categorize','Editing a Tag','products');
+
+		// $this->addpage('tags',__('Tags','Shopp'),'Categorize','Editing a Tag','products');
+		$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
+		foreach ( $taxonomies as $t ) {
+			if ($t->name == 'shopp_category') continue;
+			$pagehook = ltrim($t->name,'shopp_');
+			$this->addpage($pagehook,$t->labels->menu_name,'Categorize','Editing Taxonomies','products');
+		}
+
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
-		// $this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
+		// Not yet... $this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
 		$this->addpage('settings',__('Setup','Shopp'),'Setup','General Settings','settings');
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
@@ -199,11 +206,18 @@ class AdminFlow extends FlowController {
 
 		do_action('shopp_add_menu_'.$page->page);
 
+		$capability = "none";
+		if (isset($this->caps[$page->name]))
+			$capability = $this->caps[$page->name];
+
+		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+		if (in_array('shopp_'.$page->name,$taxonomies)) $capability = 'shopp_categories';
+
 		$this->Menus[$page->page] = add_submenu_page(
 			($page->parent)?$page->parent:$this->MainMenu,
 			$page->label,
 			$page->label,
-			$this->caps[$page->name],
+			$capability,
 			$name,
 			$controller
 		);
@@ -236,20 +250,22 @@ class AdminFlow extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function tagsmenu () {
+	function taxonomies () {
 		global $menu,$submenu;
 		if (!is_array($submenu)) return;
+
+		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
 		foreach ($submenu['shopp-products'] as &$submenus) {
-			if ('shopp-tags' == $submenus[2]) {
-				$submenus[2] = 'edit-tags.php?taxonomy=shopp_tag';
-				break;
-			}
+			$taxonomy_name = str_replace('-','_',$submenus[2]);
+			if (!in_array($taxonomy_name,$taxonomies)) continue;
+			$submenus[2] = 'edit-tags.php?taxonomy='.$taxonomy_name;
 		}
 
 		add_action('admin_print_styles-edit-tags.php',array($this,'admin_css'));
 		add_action('admin_head-edit-tags.php', create_function('','
 			global $parent_file,$taxonomy;
-			if ($taxonomy == ProductTag::$taxonomy) $parent_file = "shopp-products";
+			$taxonomies = get_object_taxonomies(Product::$posttype, "names");
+			if (in_array($taxonomy,$taxonomies)) $parent_file = "shopp-products";
 		'));
 	}
 

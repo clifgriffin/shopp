@@ -522,8 +522,8 @@ class ProductCategory extends ProductTaxonomy {
 	var $facets = false;
 	var $filters = false;
 
-	function __construct ($id,$key='id') {
-		$this->taxonomy = self::$taxonomy;
+	function __construct ($id,$key='id',$taxonomy=false) {
+		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
 		parent::__construct($id,$key);
 		$this->filters();
 	}
@@ -560,7 +560,8 @@ class ProductCategory extends ProductTaxonomy {
 			'edit_item' => __('Edit Category','Shopp'),
 			'update_item' => __('Update Category','Shopp'),
 			'add_new_item' => __('New Category','Shopp'),
-			'new_item_name' => __('New Category Name','Shopp')
+			'new_item_name' => __('New Category Name','Shopp'),
+			'menu_name' => __('Categories','Shopp')
 		);
 	}
 
@@ -642,9 +643,7 @@ class ProductCategory extends ProductTaxonomy {
 													GROUP BY parent	HAVING ".count($filters)."=SUM(".join(' OR ',$filters)."))";
 			// $options['debug'] = true;
 		}
-
 		return parent::load($options);
-
 	}
 
 	/**
@@ -926,8 +925,8 @@ class ProductTag extends ProductTaxonomy {
 
 	protected $context = 'tag';
 
-	function __construct ($id,$key='id') {
-		$this->taxonomy = self::$taxonomy;
+	function __construct ($id,$key='id',$taxonomy=false) {
+		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
 		parent::__construct($id,$key);
 	}
 
@@ -944,7 +943,8 @@ class ProductTag extends ProductTaxonomy {
 			'new_item_name' => __('New Tag Name','Shopp'),
 			'separate_items_with_commas' => __('Separate tags with commas','Shopp'),
 			'add_or_remove_items' => sprintf(__('Type a tag name and press tab %s to add it.','Shopp'),'<abbr title="'.__('tab key','Shopp').'">&#8677;</abbr>'),
-			'choose_from_most_used' => __('Type to search, or wait for popular tags&hellip;','Shopp')
+			'choose_from_most_used' => __('Type to search, or wait for popular tags&hellip;','Shopp'),
+			'menu_name' => __('Tags','Shopp')
 		);
 	}
 

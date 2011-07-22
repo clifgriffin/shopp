@@ -169,8 +169,8 @@ class Storefront extends FlowController {
 			foreach ( $taxonomies as $t ) {
 				if (get_query_var($t->query_var) == '') continue;
 				$taxonomy = get_query_var($t->query_var);
-				if ($t->hierarchical) ShoppCollection( new ProductCategory($taxonomy,'slug') );
-				else ShoppCollection( new ProductTag($taxonomy,'slug') );
+				if ($t->hierarchical) ShoppCollection( new ProductCategory($taxonomy,'slug',$t->name) );
+				else ShoppCollection( new ProductTag($taxonomy,'slug',$t->name) );
 			}
 		}
 
@@ -611,9 +611,6 @@ class Storefront extends FlowController {
 
 	function promos () {
 		if (!isset($this->promos) || empty($this->promos)) return;
-
-		print_r($this->promos);
-
 	}
 
 	/**
