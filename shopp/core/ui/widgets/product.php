@@ -62,7 +62,7 @@ class ShoppProductWidget extends WP_Widget {
 						"lowprice" => __('Lowest Price','Shopp'),
 						"newest" => __('Newest','Shopp'),
 						"oldest" => __('Oldest','Shopp'),
-						"random" => __('Random','Shopp')
+						"chaos" => __('Random','Shopp')
 					);
 					echo menuoptions($sortoptions,$options['order'],true);
 				?>

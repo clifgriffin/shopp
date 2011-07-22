@@ -585,8 +585,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if ($Shopp->Category) $Requested = $Shopp->Category;
 			if ($Shopp->Product) $RequestedProduct = $Shopp->Product;
 			if (empty($options['category'])) return false;
-			$Shopp->Category = Catalog::load_category($options['category']);
-			$Shopp->Category->load_products($options);
+			$Shopp->Category = new ProductCategory($options['category'],'name');
+			$Shopp->Category->load($options);
 			if (isset($options['load'])) return true;
 			foreach ($Shopp->Category->products as $product) {
 				$Shopp->Product = $product;
