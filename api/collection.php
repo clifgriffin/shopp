@@ -51,6 +51,24 @@ function shopp_register_collection ( $name = '' ) {
 }
 
 /**
+ * Register a Shopp product taxonomy
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $taxonomy The taxonomy name
+ * @return void
+ **/
+function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
+	$rewrite_slug = $taxonomy;
+	$taxonomy = "shopp_$taxonomy";
+	if (isset($args['rewrite']) && isset($args['rewrite']['slug'])) $rewrite_slug = $args['rewrite']['slug'];
+	if (!isset($args['rewrite'])) $args['rewrite'] = array();
+	$args['rewrite']['slug'] = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$rewrite_slug : $rewrite_slug;
+	register_taxonomy($taxonomy,Product::$posttype,$args);
+}
+
+/**
  * shopp_add_product_category - Add a product category
  *
  * @author John Dillick
