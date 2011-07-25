@@ -1697,9 +1697,9 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		$path[] = 'images';
 		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
 	} else {
+		$page_slug = Storefront::slug($page);
 		if ($page != 'catalog') {
 			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
-			$page_slug = Storefront::slug($page);
 			if (!empty($page_slug)) $path[] = $page_slug;
 		}
 	}
@@ -1725,7 +1725,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		}
 	}
 
-	if (!SHOPP_PRETTYURLS) $url = isset($pageid)?add_query_arg('page_id',$pageid,$url):$url;
+	if (!SHOPP_PRETTYURLS) $url = isset($page_slug)?add_query_arg('shopp_page',$page_slug,$url):$url;
 
 	// No extra request, return the complete URL
 	if (!$request) return user_trailingslashit($url);
