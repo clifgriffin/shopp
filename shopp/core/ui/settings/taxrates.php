@@ -5,7 +5,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Tax Rates','Shopp'); ?></h2>
 
-	<?php if (empty($countries)) echo '<div class="error"><p>'; _e('No target markets have been selected in your store setup.','Shopp'); echo '</p></div>'; ?>
+	<?php if (count(shopp_setting('target_markets')) == 0) echo '<div class="error"><p>'.__('No target markets have been selected in your store setup.','Shopp').'</p></div>'; ?>
 
 	<?php $this->taxes_menu(); ?>
 
