@@ -91,6 +91,7 @@ class AdminFlow extends FlowController {
 		add_action('load-update.php', array($this, 'admin_css'));
 		add_action('admin_menu',array($this,'taxonomies'),20);
 		add_action('load-nav-menus.php',array($this,'navmenus'));
+		add_action('wp_setup_nav_menu_item',array($this,'navmenu_setup'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -838,6 +839,13 @@ class AdminFlow extends FlowController {
 		add_meta_box( 'add-shopp-pages', __('Catalog Pages'), array($this,'shoppage_meta_box'), 'nav-menus', 'side', 'low' );
 	}
 
+	function navmenu_setup ($menuitem) {
+		if ('shopp_page' == $menuitem->type) {
+			$menuitem->type_label = 'Shopp';
+		}
+		return $menuitem;
+	}
+
 	function shoppage_meta_box () {
 		global $_nav_menu_placeholder, $nav_menu_selected_id;
 
@@ -881,6 +889,18 @@ class AdminFlow extends FlowController {
 			</div>
 
 			<p class="button-controls">
+				<span class="list-controls">
+					<a href="<?php
+						echo esc_url(add_query_arg(
+							array(
+								'shopp-pages-menu-item' => 'all',
+								'selectall' => 1,
+							),
+							remove_query_arg($removed_args)
+						));
+					?>#shopp-pages-menu-item" class="select-all"><?php _e('Select All'); ?></a>
+				</span>
+
 				<span class="add-to-menu">
 					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
 					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
