@@ -55,13 +55,12 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-settings-images',false); ?></tr>
 		</tfoot>
-	<?php if (count($settings) > 0): ?>
+	<?php if (count($settings) > 0 || 'new' == $edit): ?>
 		<tbody id="image-setting-table" class="list">
 		<?php
 			$hidden = get_hidden_columns('shopp_page_shopp-settings-pages');
 
 			$even = false;
-
 
 			if ('new' == $edit) {
 				$editor = preg_replace('/\${\w+}/','',$editor);
@@ -108,7 +107,7 @@
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="6"><?php _e('No predefined image settings available, yet.','Shopp'); ?></td></tr></tbody>
+		<tbody id="image-setting-table" class="list"><tr><td colspan="6"><?php _e('No predefined image settings available, yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 

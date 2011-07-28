@@ -6,6 +6,7 @@
 
 jQuery(document).ready( function($) {
 	$.template('editor',$('#editor'));
+
 	var editing = false;
 
 	$('#images a.edit, a.add-new').click(function (e) {
@@ -32,7 +33,7 @@ jQuery(document).ready( function($) {
 		if (editing) editing.cancel(false);
 
 		if (row.size() > 0) ui.insertAfter(row);
-		else ui.prependTo('#image-setting-table');
+		else $('#image-setting-table').empty().append(ui);
 
 		editing = $this;
 	});
