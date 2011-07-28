@@ -949,7 +949,10 @@ class Setup extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$edit = false;
-		if (isset($_GET['id'])) $edit = (int)$_GET['id'];
+		if (isset($_GET['id']))  {
+			$edit = (int)$_GET['id'];
+			if ('new' == $_GET['id']) $edit = 'new';
+		}
 
 		if (!empty($_GET['delete'])) {
 			$delete = (int)$_GET['delete'];
