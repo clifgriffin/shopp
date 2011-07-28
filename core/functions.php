@@ -1744,7 +1744,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		$url = add_query_arg($request,$url);
 	}
 
-	return $url;
+	return apply_filters('shopp_url',$url);
 }
 
 /**

@@ -30,46 +30,52 @@ class AjaxFlow {
 	 **/
 	function __construct () {
 
+		if ('add-menu-item' == $_POST['action']) {
+			// Boot the Admin controller to handle AJAX added WP nav menu items
+			if (!class_exists('AdminFlow')) require(SHOPP_FLOW_PATH."/Admin.php");
+			new AdminFlow();
+		}
+
 		// Flash uploads require unprivileged access
-		add_action('wp_ajax_nopriv_shopp_upload_image',array(&$this,'upload_image'));
-		add_action('wp_ajax_nopriv_shopp_upload_file',array(&$this,'upload_file'));
-		add_action('wp_ajax_shopp_upload_image',array(&$this,'upload_image'));
-		add_action('wp_ajax_shopp_upload_file',array(&$this,'upload_file'));
+		add_action('wp_ajax_nopriv_shopp_upload_image',array($this,'upload_image'));
+		add_action('wp_ajax_nopriv_shopp_upload_file',array($this,'upload_file'));
+		add_action('wp_ajax_shopp_upload_image',array($this,'upload_image'));
+		add_action('wp_ajax_shopp_upload_file',array($this,'upload_file'));
 
 		// Actions that can happen on front end whether or not logged in
-		add_action('wp_ajax_nopriv_shopp_ship_costs',array(&$this,'shipping_costs'));
-		add_action('wp_ajax_shopp_ship_costs',array(&$this,'shipping_costs'));
-		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
-		add_action('wp_ajax_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
+		add_action('wp_ajax_nopriv_shopp_ship_costs',array($this,'shipping_costs'));
+		add_action('wp_ajax_shopp_ship_costs',array($this,'shipping_costs'));
+		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array($this, 'checkout_button'));
+		add_action('wp_ajax_shopp_checkout_submit_button', array($this, 'checkout_button'));
 
 		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
 
-		add_action('wp_ajax_shopp_category_products',array(&$this,'category_products'));
-		add_action('wp_ajax_shopp_order_receipt',array(&$this,'receipt'));
-		add_action('wp_ajax_shopp_category_children',array(&$this,'category_children'));
-		add_action('wp_ajax_shopp_category_order',array(&$this,'category_order'));
-		add_action('wp_ajax_shopp_category_products_order',array(&$this,'products_order'));
-		add_action('wp_ajax_shopp_country_zones',array(&$this,'country_zones'));
-		add_action('wp_ajax_shopp_spec_template',array(&$this,'load_spec_template'));
-		add_action('wp_ajax_shopp_options_template',array(&$this,'load_options_template'));
-		add_action('wp_ajax_shopp_add_category',array(&$this,'add_category'));
-		add_action('wp_ajax_shopp_edit_slug',array(&$this,'edit_slug'));
-		add_action('wp_ajax_shopp_order_note_message',array(&$this,'order_note_message'));
-		add_action('wp_ajax_shopp_activate_key',array(&$this,'activate_key'));
-		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
-		add_action('wp_ajax_shopp_rebuild_search_index',array(&$this,'rebuild_search_index'));
-		add_action('wp_ajax_shopp_rebuild_search_index_progress',array(&$this,'rebuild_search_index_progress'));
-		add_action('wp_ajax_shopp_suggestions',array(&$this,'suggestions'));
-		add_action('wp_ajax_shopp_upload_local_taxes',array(&$this,'upload_local_taxes'));
-		add_action('wp_ajax_shopp_feature_product',array(&$this,'feature_product'));
-		add_action('wp_ajax_shopp_update_inventory',array(&$this,'update_inventory'));
-		add_action('wp_ajax_shopp_import_file',array(&$this,'import_file'));
-		add_action('wp_ajax_shopp_import_file_progress',array(&$this,'import_file_progress'));
-		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'storage_suggestions'),11);
-		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
-		add_action('wp_ajax_shopp_gateway',array(&$this,'gateway_ajax'));
-		add_action('wp_ajax_shopp_debuglog',array(&$this,'logviewer'));
+		add_action('wp_ajax_shopp_category_products',array($this,'category_products'));
+		add_action('wp_ajax_shopp_order_receipt',array($this,'receipt'));
+		add_action('wp_ajax_shopp_category_children',array($this,'category_children'));
+		add_action('wp_ajax_shopp_category_order',array($this,'category_order'));
+		add_action('wp_ajax_shopp_category_products_order',array($this,'products_order'));
+		add_action('wp_ajax_shopp_country_zones',array($this,'country_zones'));
+		add_action('wp_ajax_shopp_spec_template',array($this,'load_spec_template'));
+		add_action('wp_ajax_shopp_options_template',array($this,'load_options_template'));
+		add_action('wp_ajax_shopp_add_category',array($this,'add_category'));
+		add_action('wp_ajax_shopp_edit_slug',array($this,'edit_slug'));
+		add_action('wp_ajax_shopp_order_note_message',array($this,'order_note_message'));
+		add_action('wp_ajax_shopp_activate_key',array($this,'activate_key'));
+		add_action('wp_ajax_shopp_deactivate_key',array($this,'deactivate_key'));
+		add_action('wp_ajax_shopp_rebuild_search_index',array($this,'rebuild_search_index'));
+		add_action('wp_ajax_shopp_rebuild_search_index_progress',array($this,'rebuild_search_index_progress'));
+		add_action('wp_ajax_shopp_suggestions',array($this,'suggestions'));
+		add_action('wp_ajax_shopp_upload_local_taxes',array($this,'upload_local_taxes'));
+		add_action('wp_ajax_shopp_feature_product',array($this,'feature_product'));
+		add_action('wp_ajax_shopp_update_inventory',array($this,'update_inventory'));
+		add_action('wp_ajax_shopp_import_file',array($this,'import_file'));
+		add_action('wp_ajax_shopp_import_file_progress',array($this,'import_file_progress'));
+		add_action('wp_ajax_shopp_storage_suggestions',array($this,'storage_suggestions'),11);
+		add_action('wp_ajax_shopp_verify_file',array($this,'verify_file'));
+		add_action('wp_ajax_shopp_gateway',array($this,'gateway_ajax'));
+		add_action('wp_ajax_shopp_debuglog',array($this,'logviewer'));
 
 	}
 

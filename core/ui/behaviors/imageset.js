@@ -7,7 +7,8 @@
 jQuery(document).ready( function($) {
 	$.template('editor',$('#editor'));
 
-	var editing = false;
+	var editing = false,
+		table = $('#image-setting-table');
 
 	$('#images a.edit, a.add-new').click(function (e) {
 		e.preventDefault();
@@ -16,6 +17,7 @@ jQuery(document).ready( function($) {
 			id = row.size() > 0?row.attr('id').substr(14):false,
 			data = images[id]?images[id]:{name:''},
 			ui = $.tmpl('editor',data),
+			emptylabel = table.find('tr:first'),
 			sm = ui.find('select.scaling-menu').val(data.scaling),
 			qm = ui.find('select.quality-menu').val(data.quality),
 			percentage = function () { $(this).val( asPercent( $(this).val() ) ); },
@@ -25,6 +27,7 @@ jQuery(document).ready( function($) {
 		$this.cancel = function (e) {
 			if (e) e.preventDefault();
 			editing = false;
+			if (emptylabel.size() == 1) emptylabel.show();
 			ui.remove();
 			row.fadeIn('fast');
 		};
@@ -33,7 +36,10 @@ jQuery(document).ready( function($) {
 		if (editing) editing.cancel(false);
 
 		if (row.size() > 0) ui.insertAfter(row);
-		else $('#image-setting-table').empty().append(ui);
+		else {
+			if (table.find('tr').size() == 1) emptylabel.hide();
+			table.prepend(ui);
+		}
 
 		editing = $this;
 	});

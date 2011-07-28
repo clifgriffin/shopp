@@ -958,8 +958,6 @@ class Setup extends AdminController {
 			$delete = (int)$_GET['delete'];
 			$Record = new ImageSetting($delete);
 			$Record->delete();
-			shopp_redirect($this->url);
-			exit();
 		}
 
 		if (!empty($_POST['save'])) {
