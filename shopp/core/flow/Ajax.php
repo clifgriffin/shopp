@@ -30,7 +30,7 @@ class AjaxFlow {
 	 **/
 	function __construct () {
 
-		if ('add-menu-item' == $_POST['action']) {
+		if (isset($_POST['action']) && 'add-menu-item' == $_POST['action']) {
 			// Boot the Admin controller to handle AJAX added WP nav menu items
 			if (!class_exists('AdminFlow')) require(SHOPP_FLOW_PATH."/Admin.php");
 			new AdminFlow();
