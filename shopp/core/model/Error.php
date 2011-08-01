@@ -51,10 +51,8 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
-		if (ShoppSettings()->available()) {
-			$error_logging = shopp_setting('error_logging');
-			if ( $error_logging ) $level = $error_logging;
-		}
+		$error_logging = shopp_setting('error_logging');
+		if ( $error_logging ) $level = $error_logging;
 
 		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
 		if ($level > $this->reporting) $this->reporting = $level;

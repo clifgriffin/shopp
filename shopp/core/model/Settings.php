@@ -37,13 +37,13 @@ class Settings extends DatabaseObject {
 	 **/
 	function __construct () {
 		$this->_table = $this->tablename(self::$table);
-		if (!$this->available()) return;
+		error_log('Settings __construct()');
 		$this->load();
 	}
 
-	public static function instance () {
-		if ( ! self::$instance )
-			self::$instance = new self();
+	static function &instance () {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
 		return self::$instance;
 	}
 
@@ -56,10 +56,7 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function available () {
-		// @todo Replace the hastable mechanism for detecting if settings are available
-		if (!$this->installed)
-			$this->installed = DB::hastable($this->_table);
-		return $this->installed;
+		return (!empty($this->registry));
 	}
 
 	/**
@@ -79,12 +76,18 @@ class Settings extends DatabaseObject {
 
 		$where = array("context='$Setting->context'","type='$Setting->type'");
 		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		else {
+			if (defined('SHOPP_SETTINGS_BOOTLOADER')) return;
+			define('SHOPP_SETTINGS_BOOTLOADER',true);
+		}
+
 		$where = join(' AND ',$where);
 		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where",'array',array(&$this,'register'));
 
 		if (!is_array($settings) || count($settings) == 0) return false;
 		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
 
+		$this->bootup = false;
 		return ($this->loaded = true);
 	}
 
@@ -217,6 +220,9 @@ class Settings extends DatabaseObject {
 	 * @return mixed The value of the setting
 	 **/
 	function &get ($name) {
+
+		if (empty($this->registry) && defined('SHOPP_SETTINGS_BOOTLOADER')) return null;
+
 		if (isset($this->registry[$name])) return $this->registry[$name];
 		else $this->load($name);
 
@@ -303,7 +309,7 @@ class Settings extends DatabaseObject {
  *
  * @return void Description...
  **/
-function ShoppSettings () {
+function &ShoppSettings () {
 	return Settings::instance();
 }
 
