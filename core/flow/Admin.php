@@ -737,7 +737,7 @@ class AdminFlow extends FlowController {
 		for($i = 0; $i < $len; $i++) $p .= 'x'.dechex(ord(substr(ABSPATH,$i,1))+$len);
 
 		// Add TinyMCE buttons when using rich editor
-		if ('true' ==get_user_option('rich_editing')) {
+		if ('true' == get_user_option('rich_editing')) {
 			global $pagenow,$plugin_page;
 			$pages = array('post.php', 'post-new.php', 'page.php', 'page-new.php');
 			$editors = array('shopp-products','shopp-categories');
