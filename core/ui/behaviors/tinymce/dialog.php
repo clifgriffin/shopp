@@ -7,7 +7,6 @@
 	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>tiny_mce_popup.js"></script>
 	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/mctabs.js"></script>
 	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/form_utils.js"></script>
-	<script language="javascript" type="text/javascript" src="<?php echo TINYMCE_URL; ?>utils/form_utils.js"></script>
 	<script language="javascript" type="text/javascript" src="<?php echo WPINC_URL; ?>/js/jquery/jquery.js"></script>
 	<?php endif; ?>
 
