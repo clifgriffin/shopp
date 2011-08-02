@@ -13,6 +13,20 @@
  * @subpackage shopp
  **/
 
+/**
+ * shopp_orders - get a list of purchases
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
+ * @param mixed $to (optional) mktime or SQL datetime, get purchased before this date/time.
+ * @param bool $items (optional default:true) load purchased items into the records, slightly slower operation
+ * @param array $customers (optional) list of int customer ids to limit the purchases to.  All customers by default.
+ * @param int $limit (optional default:false) maximimum number of results to get, false for no limit
+ * @param string $order (optional default:DESC) DESC or ASC, for sorting in ascending or descending order.
+ * @return array of orders
+ **/
 function shopp_orders ( $from = false, $to = false, $items = true, $customers = array(), $limit = false, $order = 'DESC' ) {
 	$pt = DatabaseObject::tablename(Purchase::$table);
 	$pd = DatabaseObject::tablename(Purchased::$table);
@@ -49,11 +63,24 @@ function shopp_orders ( $from = false, $to = false, $items = true, $customers = 
 	return $orders;
 }
 
-
+/**
+ * _shopp_order_purchase - helper function for shopp_orders
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ **/
 function _shopp_order_purchase ( &$records, &$record ) {
 	$records[$record->id] = $record;
 }
 
+/**
+ * _shopp_order_purchased - helper function for shopp_orders
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ **/
 function _shopp_order_purchased ( &$records, &$record, $objects ) {
 	if ( ! isset($records[$record->purchase]) && isset($objects[$record->purchase]) ) {
 		if ( ! isset($objects[$record->purchase]->purchased) ) $objects[$record->purchase]->purchased = array();
@@ -67,10 +94,30 @@ function _shopp_order_purchased ( &$records, &$record, $objects ) {
 	}
 }
 
+/**
+ * shopp_order_count - get an order count, total or during or a time period
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return int number of orders found
+ **/
 function shopp_order_count ($from = false, $to = false) {
 	return count( shopp_orders( $from, $to, false ) );
 }
 
+/**
+ * shopp_customer_orders - get a list of orders for a particular customer
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $customer (required) the customer id to load the orders for
+ * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
+ * @param mixed $to (optional) mktime or SQL datetime, get purchased before this date/time.
+ * @param bool $items (optional default:true) load purchased items into the records, slightly slower operation
+ * @return array of orders
+ **/
 function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",false,SHOPP_DEBUG_ERR);
@@ -85,6 +132,16 @@ function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
 	return shopp_orders( $from, $to, $items, array($customer) );
 }
 
+/**
+ * shopp_recent_orders - load orders for a specified time range in the past
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $time number of time units (period) to go back
+ * @param string $period the time period, can be days, weeks, months, years.
+ * @return array of orders
+ **/
 function shopp_recent_orders ($time = 1, $period = 'day') {
 	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
 
@@ -100,6 +157,17 @@ function shopp_recent_orders ($time = 1, $period = 'day') {
 	return shopp_orders($from);
 }
 
+/**
+ * shopp_recent_orders - load orders for a specified time range in the past for a particular customer
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $customer (required) the customer id to load the orders for
+ * @param int $time number of time units (period) to go back
+ * @param string $period the time period, can be days, weeks, months, years.
+ * @return array of orders
+ **/
 function shopp_recent_customer_orders ($customer = false, $time = 1, $period = 'day') {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",false,SHOPP_DEBUG_ERR);
@@ -120,6 +188,14 @@ function shopp_recent_customer_orders ($customer = false, $time = 1, $period = '
 	return shopp_customer_orders ( $customer, $from );
 }
 
+/**
+ * shopp_last_order - get the most recent order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return order or false on failure
+ **/
 function shopp_last_order () {
 	$orders = shopp_orders ( false, false, true, array(), 1);
 
@@ -127,6 +203,15 @@ function shopp_last_order () {
 	return false;
 }
 
+/**
+ * shopp_last_customer_order - load the most recent order for a particular customer
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $customer (required) the customer id to load the order for
+ * @return order or false on failure
+ **/
 function shopp_last_customer_order ( $customer = false ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -138,6 +223,15 @@ function shopp_last_customer_order ( $customer = false ) {
 	return false;
 }
 
+/**
+ * shopp_order - load a specified order by id
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id
+ * @return order or false on failure
+ **/
 function shopp_order ( $id = false ) {
 	if ( ! $id || ! shopp_order_exists($id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -149,16 +243,35 @@ function shopp_order ( $id = false ) {
 	return $Purchase;
 }
 
+/**
+ * shopp_order_exists - determine if an order exists with the specified id, or transaction id.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id, or the transaction id
+ * @return bool true if the order exists, else false
+ **/
 function shopp_order_exists ( $id = false ) {
-	if ( ! $id || ! is_int($id) ) {
-		return false;
-	}
+	$Purchase = new Purchase();
+	if ( is_int($id) )
+		$Purchase = new Purchase($id);
+	else if ( ! is_string($id) )
+		$Purchase = new Purchase($id,'txnid');
 
-	$Purchase = new Purchase($id);
 	return ( ! empty($Purchase->id) );
 
 }
 
+/**
+ * shopp_add_order - build an order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param array $data parameters (see $order_field for allowed purchase parameters, and see shopp_add_order_line for line item parameters)
+ * @return bool/Purchase false on failure, new order on success
+ **/
 function shopp_add_order ( $data = array() ) {
 	$order_fields = array('customer', 'shipping', 'billing', 'currency', 'ip', 'firstname', 'lastname', 'email', 'phone', 'company', 'card', 'cardtype', 'cardexpires', 'cardholder', 'address', 'xaddress', 'city', 'state', 'country', 'postcode', 'shipaddress', 'shipxaddress', 'shipcity', 'shipstate', 'shipcountry', 'shippostcode', 'geocode', 'promos', 'subtotal', 'freight', 'tax', 'total', 'discount', 'fees', 'taxing', 'txnid', 'txnstatus', 'gateway', 'carrier', 'shipmethod', 'shiptrack', 'status', 'data');
 
@@ -167,6 +280,10 @@ function shopp_add_order ( $data = array() ) {
 		if ( ! in_array($key, $order_fields) ) continue;
 		$Purchase->{$key} = $value;
 	}
+
+	$Purchase->save();
+
+	if ( empty($Purchase->id) ) return false;
 
 	if ( isset($data[$items]) && is_array($data[$items]) ) {
 		$Purchase->purchased = array();
@@ -180,6 +297,15 @@ function shopp_add_order ( $data = array() ) {
 
 }
 
+/**
+ * shopp_rmv_order - remove an order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param init $id id of order to remove
+ * @return bool true on success, false on failure
+ **/
 function shopp_rmv_order ($id) {
 	if ( shopp_order_exists($id) ) {
 		$Purchase = new Purchase($id);
@@ -193,8 +319,35 @@ function shopp_rmv_order ($id) {
 	return true;
 }
 
-function shopp_add_order_line ($order = false, $data = array() ) {
-	$item_fields = array('purchase', 'product', 'price', 'download', 'dkey', 'name', 'description', 'optionlabel', 'sku', 'quantity', 'downloads', 'unitprice', 'unittax', 'shipping', 'total', 'addons', 'variation', 'data');
+/**
+ * shopp_add_order_line - add a line item to an order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order (required) the order id to add the line item to
+ * @param array $data data to create the item from (see $item_fields for allowed data)
+ * @return bool/Purchased item - false on failure, new order line item on success.
+ **/
+function shopp_add_order_line ( $order = false, $data = array() ) {
+	$item_fields = array(
+		'product', // product id of line item
+		'price', // variant id of line item
+		'download', // download asset id for line item
+		'dkey', // unique download key to assign to download item
+		'name', // name of item
+		'description', // description of item
+		'optionlabel', // string label of variant combination of this item
+		'sku', // sku of item
+		'quantity', // quantity of items on this line
+		'unitprice', // unit price
+		'unittax', // unit tax
+		'shipping', // line item shipping cost
+		'total', // line item total cost
+		'addons', // array of addons
+		'variation', // array of key => value (optionmenu => option) pairs for the variant combination
+		'data' // associative array of item "data" key value pairs
+		);
 
 	if ( ! shopp_order_exists($order) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -213,6 +366,16 @@ function shopp_add_order_line ($order = false, $data = array() ) {
 	return ( ! empty($Purchased->id) ? $Purchased : false );
 }
 
+/**
+ * shopp_rmv_order_line - remove an order line by index
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order (required) the order id to remove the line from
+ * @param int $line (optional default:0) the index of the line to remove
+ * @return bool true on success, false on failure
+ **/
 function shopp_rmv_order_line ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) ) return false;
@@ -220,18 +383,47 @@ function shopp_rmv_order_line ( $order = false, $line = 0 ) {
 	return true;
 }
 
+/**
+ * shopp_order_lines - get a list of the items associated with an order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order (required) the order id
+ * @return bool/array false on failure, array of purchased line items on success
+ **/
 function shopp_order_lines ( $order = false ) {
 	$Order = shopp_order( $order );
 	if ( $Order ) return $Order->purchased;
 	return false;
 }
 
+/**
+ * shopp_order_line_count - get the number of line items in a specified order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id
+ * @return int the number of line items
+ **/
 function shopp_order_line_count ( $order = false ) {
 	$lines = shopp_order_lines($order);
 	if ( $lines ) return count($lines);
 	return 0;
 }
 
+/**
+ * shopp_add_order_line_download - attach a download asset to a order line
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id to add the download asset to
+ * @param int $line the order line item to add the download asset to
+ * @param int $download the download asset id
+ * @return bool true on success, false on failure
+ **/
 function shopp_add_order_line_download ( $order = false, $line = 0, $download = false ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -248,6 +440,16 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
 	return true;
 }
 
+/**
+ * shopp_rmv_order_line_download - remove a download asset from a line item
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id to remove the download asset from
+ * @param int $line the order line item to remove the download asset from
+ * @return bool true on success, false on failure
+ **/
 function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -258,6 +460,16 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	return true;
 }
 
+/**
+ * shopp_order_line_data_count - return the count of the line item data array
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id
+ * @param int $line the order line item
+ * @return int/bool count number of entries in the line item data array for a given line item, false if line item doesn't exist
+ **/
 function shopp_order_line_data_count ($order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -267,6 +479,16 @@ function shopp_order_line_data_count ($order = false, $line = 0 ) {
 	return 0;
 }
 
+/**
+ * shopp_order_line_data - return the line item data array
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id
+ * @param int $line the order line item
+ * @return array/bool entries in the line item data array for a given line item, false if line item doesn't exist
+ **/
 function shopp_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -279,6 +501,17 @@ function shopp_order_line_data ($order = false, $line = 0, $name = false) {
 	return false;
 }
 
+/**
+ * shopp_add_order_line_data - add one or more key=>value pair to the line item data array.  The specified data is merged with existing data.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id
+ * @param int $line the order line item
+ * @param array $data new key=>value pairs to add to the line item
+ * @return bool true on success, false on failure
+ **/
 function shopp_add_order_line_data ( $order = false, $line = 0, $data = array() ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -288,8 +521,20 @@ function shopp_add_order_line_data ( $order = false, $line = 0, $data = array() 
 
 	$Lines[$line]->data = array_merge($Lines[$line]->data, $data);
 	$Lines[$line]->save();
+	return true;
 }
 
+/**
+ * shopp_rmv_order_line_data - remove all or one data key=>value pair from the order line data array
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order (required) the order id
+ * @param int $line (required) the order line item
+ * @param string $name (optional default:false) the key to remove, removes all data when false
+ * @return bool true on success, false on failure
+ **/
 function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
@@ -301,6 +546,17 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines[$line]->save();
 }
 
+/**
+ * shopp_add_order_event - log an order event
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order (required) the order id for the event
+ * @param string $type (required) the order event type
+ * @param string $message (optional default:'') the log message for the event
+ * @return bool true on success, false on error
+ **/
 function shopp_add_order_event ($order = false, $type = false, $message = '') {
 	if ( ! $order || ! shopp_order_exists($order) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing or invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
