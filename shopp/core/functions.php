@@ -1797,6 +1797,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
  * @return boolean The boolean value of the provided text
  **/
 function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on') ) {
+	if (is_array($string)) return false;
 	if (is_bool($string)) return $string;
 	return in_array(strtolower($string),$istrue);
 }
