@@ -386,6 +386,8 @@ class ModuleSettingsUI {
 		$defaults = array(
 			'label' => '',
 			'selected' => array(),
+			'disabled' => array(),
+			'readonly' => array(),
 			'classes' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
