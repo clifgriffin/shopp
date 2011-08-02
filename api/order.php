@@ -2,7 +2,7 @@
 /**
  * Order API
  *
- * Description…
+ * Set of api calls for retrieving, storing, modifying orders, and sending order events.
  *
  * @author Jonathan Davis
  * @version 1.0
