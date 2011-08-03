@@ -227,7 +227,9 @@ class Resources {
 	function help () {
 		if (!isset($_GET['id'])) return;
 
-		list($status,$key) = shopp_setting('updatekey');
+		$keysetting = Shopp::keysetting();
+		$key = $keysetting['k'];
+
 		$site = get_bloginfo('siteurl');
 
 		$request = array("ShoppScreencast" => $_GET['id'],'key'=>$key,'site'=>$site);
