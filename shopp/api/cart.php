@@ -123,8 +123,8 @@ function shopp_cart_items () {
  * @return void Description...
  **/
 function shopp_cart_items_count () {
-	global $Shopp;
-	return count( $Shopp->Cart->contents );
+	$Order = ShoppOrder();
+	return count( $Order->Cart->contents );
 }
 
 /**
