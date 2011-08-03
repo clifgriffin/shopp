@@ -17,8 +17,6 @@
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions">
 			<button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
-			&nbsp;
-			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>'arrange')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Arrange','Shopp'); ?></a>
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -52,7 +50,6 @@
 					admin_url('admin.php')));
 
 		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
-		$Category->load_meta();
 
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -61,16 +58,16 @@
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;' href="<?php echo $deleteurl; ?>" rel="<?php echo $Category->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?"category/$Category->uri":array('s_cat'=>$Category->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?"category/$Category->slug":array('s_cat'=>$Category->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 			</td>
 			<td class="slug column-slug<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->slug; ?></td>
 			<td width="5%" class="num products column-products<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->count; ?></td>
 			<td width="5%" class="num templates column-templates<?php echo in_array('templates',$hidden)?' hidden':''; ?>">
-				<div class="checkbox"><?php if ('on' == $Category->spectemplates): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+				<div class="checkbox"><?php if (isset($Category->spectemplates) && 'on' == $Category->spectemplates): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
 			</td>
 			<td width="5%" class="num menus column-menus<?php echo in_array('menus',$hidden)?' hidden':''; ?>">
-				<div class="checkbox"><?php if ('on' == $Category->facetedmenus): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+				<div class="checkbox"><?php if (isset($Category->facetedmenus) && 'on' == $Category->facetedmenus): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
 			</td>
 		</tr>
 		<?php endforeach; ?>

@@ -32,9 +32,9 @@ function settings_meta_box ($Category) {
 	<p><?php wp_dropdown_categories( array( 'taxonomy' => $Category->taxonomy, 'selected'=> $Category->parent,'hide_empty' => 0, 'name' => 'parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => $tax->labels->parent_item.'&hellip;', 'tab_index' => 3 ) );?><br />
 <?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></p>
 
-	<p><input type="hidden" name="spectemplate" value="off" /><input type="checkbox" name="spectemplate" value="on" id="spectemplates-setting" tabindex="11" <?php if ($Category->spectemplate == "on") echo ' checked="checked"'?> /><label for="spectemplates-setting"> <?php _e('Product Details Template','Shopp'); ?></label><br /><?php _e('Predefined details for products created in this category','Shopp'); ?></p>
-	<p id="facetedmenus-setting"><input type="hidden" name="facetedmenus" value="off" /><input type="checkbox" name="facetedmenus" value="on" id="faceted-setting" tabindex="12" <?php if ($Category->facetedmenus == "on") echo ' checked="checked"'?> /><label for="faceted-setting"> <?php _e('Faceted Menus','Shopp'); ?></label><br /><?php _e('Build drill-down filter menus based on the details template of this category','Shopp'); ?></p>
-	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Category->variants == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
+	<p><input type="hidden" name="spectemplate" value="off" /><input type="checkbox" name="spectemplate" value="on" id="spectemplates-setting" tabindex="11" <?php if (isset($Category->spectemplate) && $Category->spectemplate == "on") echo ' checked="checked"'?> /><label for="spectemplates-setting"> <?php _e('Product Details Template','Shopp'); ?></label><br /><?php _e('Predefined details for products created in this category','Shopp'); ?></p>
+	<p id="facetedmenus-setting"><input type="hidden" name="facetedmenus" value="off" /><input type="checkbox" name="facetedmenus" value="on" id="faceted-setting" tabindex="12" <?php if (isset($Category->facetedmenus) && $Category->facetedmenus == "on") echo ' checked="checked"'?> /><label for="faceted-setting"> <?php _e('Faceted Menus','Shopp'); ?></label><br /><?php _e('Build drill-down filter menus based on the details template of this category','Shopp'); ?></p>
+	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if (isset($Category->variants) && $Category->variants == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
 	<p><a href="<?php echo add_query_arg(array('page'=>'shopp-categories','id'=>$Category->id,'a'=>'products'),admin_url('admin.php')); ?>" class="button-secondary"><?php _e('Arrange Products','Shopp'); ?></a></p>
 
 	<?php
@@ -44,7 +44,8 @@ add_meta_box('category-settings', __('Settings','Shopp').$Admin->boxhelp('catego
 function images_meta_box ($Category) {
 ?>
 	<ul id="lightbox">
-		<?php foreach ($Category->images as $i => $Image): ?>
+		<?php if (isset($Category->images) && !empty($Category->images)): ?>
+		<?php foreach ((array)$Category->images as $i => $Image): ?>
 			<li id="image-<?php echo $Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
 			<div id="image-<?php echo $Image->id; ?>-details">
 				<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
@@ -60,7 +61,7 @@ function images_meta_box ($Category) {
 				<?php endforeach; endif;?>
 			</div>
 				<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete category image&hellip;" class="deleteButton"><input type="hidden" name="ieisstupid" value="<?php echo $Image->id; ?>" /><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
-		<?php endforeach; ?>
+		<?php endforeach; endif; ?>
 	</ul>
 	<div class="clear"></div>
 	<input type="hidden" name="category" value="<?php echo $_GET['id']; ?>" id="image-category-id" />
@@ -100,7 +101,7 @@ function templates_meta_box ($Category) {
 				<ul></ul>
 			</div>
 			<div class="controls">
-			<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
+			<button type="button" id="addDetail" class="button-secondary"><small><?php _e('Add Detail','Shopp'); ?></small></button>
 			</div>
 		</li>
 		<li id="details-facetedmenu">
@@ -108,13 +109,15 @@ function templates_meta_box ($Category) {
 				<ul></ul>
 			</div>
 			<div class="controls">
-			<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+			<button type="button" id="addDetailOption" class="button-secondary"><small><?php _e('Add Option','Shopp'); ?></small></button>
 			</div>
 		</li>
 	</ul>
-	<div class="clear"></div>
+
 	</div>
+	<div class="clear"></div>
 </div>
+<div class="clear"></div>
 
 <div id="price-ranges" class="panel">
 	<div class="pricing-label">
@@ -127,14 +130,17 @@ function templates_meta_box ($Category) {
 	<ul class="details multipane">
 		<li><div id="pricerange-menu" class="multiple-select options"><ul class=""></ul></div>
 			<div class="controls">
-			<button type="button" id="addPriceLevel" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Price Range','Shopp'); ?></small></button>
+			<button type="button" id="addPriceLevel" class="button-secondary"><small><?php _e('Add Price Range','Shopp'); ?></small></button>
 			</div>
 		</li>
 	</ul>
+	<div class="clear"></div>
+
+	<p><?php _e('Configure how you want price range options in this category to appear.','Shopp'); ?></p>
+
 </div>
 <div class="clear"></div>
 <div id="pricerange"></div>
-<p><?php _e('Configure how you want price range options in this category to appear.','Shopp'); ?></p>
 </div>
 
 <div id="variations-template">

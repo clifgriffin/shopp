@@ -153,7 +153,6 @@ class Categorize extends AdminController {
 	function categories ($workflow=false) {
 		global $Shopp;
 
-
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -182,7 +181,7 @@ class Categorize extends AdminController {
 		$taxonomy = 'shopp_category';
 
 		$filters = array('hide_empty' => 0,'fields'=>'id=>parent');
-		add_filter('get_shopp_category',array(&$this,'load_category'));
+		add_filter('get_shopp_category',array(&$this,'load_category'),10,2);
 
 		// $filters['limit'] = "$start,$per_page";
 		if (!empty($s)) $filters['search'] = $s;
@@ -191,8 +190,13 @@ class Categorize extends AdminController {
 		$terms = get_terms( $taxonomy, $filters );
 		$children = _get_term_hierarchy($taxonomy);
 		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
+		$this->categories = $Categories;
 
-		if ($workflow) return array_keys($Categories);
+		$ids = array_keys($Categories);
+		$meta = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
+
+		if ($workflow) return $ids;
 		// $children = array();
 		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
 		// foreach ( $childterms as $term_id => $parent ) {
@@ -267,8 +271,23 @@ class Categorize extends AdminController {
 		// 	return;
 		// }
 
-
 		include(SHOPP_ADMIN_PATH."/categories/categories.php");
+	}
+
+	function metaloader (&$records,&$record) {
+		if (empty($this->categories)) return;
+		if (empty($record->name)) return;
+
+		if (is_array($this->categories) && isset($this->categories[ $record->parent ])) {
+			$target = $this->categories[ $record->parent ];
+		} else return;
+
+		$Meta = new MetaObject();
+		$Meta->populate($record);
+		$target->meta[$record->name] = $Meta;
+		if (!isset($this->{$record->name}))
+			$target->{$record->name} = &$Meta->value;
+
 	}
 
 	/**
@@ -333,7 +352,6 @@ class Categorize extends AdminController {
 		if (empty($Shopp->Category)) $Category = new ProductCategory();
 		else $Category = $Shopp->Category;
 		$Category->load_meta();
-
 		$Category->load_images();
 
 		$Price = new Price();
@@ -348,8 +366,6 @@ class Categorize extends AdminController {
 		// Build permalink for slug editor
 		$permalink = trailingslashit(shoppurl())."category/";
 		$Category->slug = apply_filters('editable_slug',$Category->slug);
-		if (!empty($Category->slug))
-			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
 
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),

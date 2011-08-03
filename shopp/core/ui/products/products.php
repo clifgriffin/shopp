@@ -147,7 +147,7 @@
 					$h_time = date(__('Y/m/d'), $m_time);
 			}
 
-				echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product, $column_name, $mode) . '</abbr>';
+				echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr>';
 			echo '<br />';
 			if ( 'publish' == $Product->status ) {
 				_e('Published');
