@@ -463,9 +463,10 @@ class AjaxFlow {
 
 		if (empty($_GET['feature'])) die('0');
 		$Product = new ProductSummary((int)$_GET['feature']);
-		if ($Product->featured == "on") $Product->featured = "off";
-		else $Product->featured = "on";
+		if (empty($Product->product)) die('0');
+		$Product->featured = ('on' == $Product->featured)?'off':'on';
 		$Product->save();
+		echo $Product->featured;
 		exit();
 	}
 
