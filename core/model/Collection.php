@@ -321,7 +321,7 @@ class ProductCollection implements Iterator {
 	}
 
 	function valid () {
-		return isset($this->products[ $this->_keys[$this->_position] ]);
+		return isset($this->_keys[$this->_position]) && isset($this->products[ $this->_keys[$this->_position] ]);
 	}
 
 }
@@ -421,12 +421,13 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	function load_meta () {
-		$meta = DatabaseObject::tablename(MetaObject::$table);
 		if (empty($this->id)) return;
+		$meta = DatabaseObject::tablename(MetaObject::$table);
 		DB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'",'array',array($this,'metaloader'));
 	}
 
 	function metaloader (&$records,&$record) {
+		if (empty($record->name)) return;
 		$Meta = new MetaObject();
 		$Meta->populate($record);
 		$this->meta[$record->name] = $Meta;
@@ -444,10 +445,12 @@ class ProductTaxonomy extends ProductCollection {
 		if (!$this->id) return false;
 
 		// If the term successfully saves, save all meta data too
- 		foreach ($this->meta as $Meta) {
-			$Meta->parent = $this->id;
-			$Meta->context = 'category';
-			$Meta->save();
+		foreach ($this->meta as $Meta) {
+			$MetaObject = new MetaObject();
+			$MetaObject->populate($Meta);
+			$MetaObject->parent = $this->id;
+			$MetaObject->context = 'category';
+			$MetaObject->save();
 		}
 	}
 
@@ -522,7 +525,7 @@ class ProductCategory extends ProductTaxonomy {
 	var $facets = false;
 	var $filters = false;
 
-	function __construct ($id,$key='id',$taxonomy=false) {
+	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
 		parent::__construct($id,$key);
 		$this->filters();
@@ -575,13 +578,12 @@ class ProductCategory extends ProductTaxonomy {
 	 **/
 	function filters () {
 		$Storefront = ShoppStorefront();
-		if (!(str_true(get_query_var('s_ff')) || isset($Storefront->browsing[$this->slug]))) return;
+		if (!(str_true(get_query_var('s_ff')) || ( isset($this->slug) && isset($Storefront->browsing[$this->slug]) ) )) return;
 
 		$this->load_meta();
 		$this->facets = array();
 		if (isset($Storefront->browsing[$this->slug]))
 			$this->filters = $Storefront->browsing[$this->slug];
-
 
 		if ('disabled' != $this->pricerange) {
 			array_push($this->specs,array('name' => __('Price'),'facetedmenu' => $this->pricerange));
@@ -925,7 +927,7 @@ class ProductTag extends ProductTaxonomy {
 
 	protected $context = 'tag';
 
-	function __construct ($id,$key='id',$taxonomy=false) {
+	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
 		parent::__construct($id,$key);
 	}
