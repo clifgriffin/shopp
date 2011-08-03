@@ -567,16 +567,22 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
 
 				// Update product links for prices and meta
-				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts wp ON price.product=wp.post_parent AND wp.post_type='$post_type' SET price.product=wp.ID");
+				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts AS wp ON price.product=wp.post_parent AND wp.post_type='$post_type' SET price.product=wp.ID");
 				DB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
 
 				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
 
+				// Preliminary summary data
+				DB::query("INSERT INTO $summary_table (product,featured,variants,addons)
+						   SELECT wp.ID, p.featured, p.variations, p.addons
+						   FROM $product_table AS p
+						   JOIN $wpdb->posts as wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
+
 				// Move product options column to meta setting
 				DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
-							SELECT wp.ID,'product','meta','options',options
-							FROM $product_table AS p
-							JOIN $wpdb->posts wp ON p.product=wp.post_parent AND wp.post_type='$post_type'");
+						SELECT wp.ID,'product','meta','options',options
+						FROM $product_table AS p
+						JOIN $wpdb->posts AS wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
 
 			// Migrate Shopp categories and tags to WP taxonomies
 
