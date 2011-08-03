@@ -21,13 +21,14 @@ class ShoppCartWidget extends WP_Widget {
     }
 
     function widget($args, $options) {
-		global $Shopp;
 		if (!empty($args)) extract($args);
 
-		if (empty($options['title'])) $options['title'] = "Your Cart";
+		if (empty($options['title'])) $options['title'] = __('Your Cart','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 
-		$sidecart = shopp('catalog','get-sidecart',$options);
+		if ('on' == $options['hide-empty'] && shopp_cart_items_count() == 0) return;
+
+		$sidecart = shopp('cart','get-sidecart',$options);
 		echo $before_widget.$title.$sidecart.$after_widget;
     }
 
@@ -39,6 +40,9 @@ class ShoppCartWidget extends WP_Widget {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
+
+		<p>
+		<input type="hidden" name="<?php echo $this->get_field_name('hide-empty'); ?>" value="off" /><input type="checkbox" id="<?php echo $this->get_field_id('hide-empty'); ?>" name="<?php echo $this->get_field_name('hide-empty'); ?>" value="on"<?php echo $options['hide-empty'] == "on"?' checked="checked"':''; ?> /><label for="<?php echo $this->get_field_id('hide-empty'); ?>"> <?php _e('Hide when cart is empty','Shopp'); ?></label></p>
 		<?php
     }
 
