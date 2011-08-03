@@ -357,8 +357,11 @@ class AdminFlow extends FlowController {
 			if (!in_array($taxonomy,$taxonomies)) return;
 		}
 
-		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.admin',SHOPP_ADMIN_URI.'/styles/admin.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),'20110801','screen');
+		wp_enqueue_style('shopp.admin',SHOPP_ADMIN_URI.'/styles/admin.css',array(),'20110801','screen');
+		if ( 'rtl' == get_bloginfo('text_direction') )
+			wp_enqueue_style('shopp.admin-rtl',SHOPP_ADMIN_URI.'/styles/rtl.css',array(),'20110801','all');
+
 	}
 
 	/**
