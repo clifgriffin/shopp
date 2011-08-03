@@ -43,6 +43,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'image' => 'image',
 		'thumbnail' => 'image',
 		'images' => 'images',
+		'incart' => 'in_cart',
 		'incategory' => 'in_category',
 		'input' => 'input',
 		'isfeatured' => 'is_featured',
@@ -566,6 +567,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			unset($O->_images_loop);
 			return false;
 		}
+	}
+
+	// @todo Add Theme API documentation for shopp('product','in-cart')
+	function in_cart ($result, $options, $O) {
+		$Order = ShoppOrder();
+		$cartitems = $Order->Cart->contents;
+		if (empty($cartitems)) return false;
+		foreach ((array)$cartitems as $Item)
+			if ($Item->product == $O->id) return true;
 	}
 
 	function in_category ($result, $options, $O) {
