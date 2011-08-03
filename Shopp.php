@@ -703,9 +703,10 @@ class Shopp {
 	 **/
 	function status () {
 		$updates = shopp_setting('updates');
-		$key = shopp_setting('updatekey');
+		$keysetting = Shopp::keysetting();
+		$key = $keysetting['k'];
 
-		$activated = isset($key[0])?($key[0] == '1'):false;
+		$activated = ('1' == $keysetting['s']);
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
 		$addons = isset($updates->response[SHOPP_PLUGINFILE.'/addons'])?$updates->response[SHOPP_PLUGINFILE.'/addons']:false;
 
