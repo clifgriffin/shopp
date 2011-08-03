@@ -22,7 +22,7 @@ class ImageProcessorTests extends ShoppTestCase {
 
 	function __construct () {
 		parent::__construct();
-		require(SHOPP_MODEL_PATH."/Image.php");
+		if ( ! class_exists('ImageProcessor') ) require(SHOPP_MODEL_PATH."/Image.php");
 	}
 
 	public function test_small_source () {

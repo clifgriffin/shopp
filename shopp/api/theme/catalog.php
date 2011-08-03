@@ -132,12 +132,12 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	function category ($result, $options, $O) {
 		global $Shopp;
 
-		if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
-		else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
-		else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
+		if (isset($options['name'])) $Shopp->Category = new ProductCategory($options['name'],'name');
+		else if (isset($options['slug'])) $Shopp->Category = new ProductCategory($options['slug'],'slug');
+		else if (isset($options['id'])) $Shopp->Category = new ProductCategory($options['id']);
 
 		if (isset($options['reset']))
-			return (get_class($Shopp->Requested) == "Category"?($Shopp->Category = $Shopp->Requested):false);
+			return (get_class($Shopp->Requested) == "ProductCategory"?($Shopp->Category = $Shopp->Requested):false);
 		if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 		if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];

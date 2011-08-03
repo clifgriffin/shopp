@@ -62,7 +62,7 @@ class CartTotalsTests extends ShoppTestCase {
 	}
 
 	function test_cart_tax_shipping () {
-		ShoppSettings()->registry['tax_shipping'] = 'on';
+		shopp_set_setting('tax_shipping', 'on');
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
@@ -99,14 +99,14 @@ class CartTotalsTests extends ShoppTestCase {
 		$expected = '$72.24';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
-		ShoppSettings()->registry['tax_shipping'] = 'off';
+		shopp_set_setting('tax_shipping', 'off');
 
 	}
 
 	function test_cart_item_percent_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 		$Order =& ShoppOrder();
 
@@ -152,7 +152,7 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_order_percent_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 		$Order =& ShoppOrder();
 
@@ -198,7 +198,7 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_shipping_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 		$Order =& ShoppOrder();
 
@@ -245,10 +245,11 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_vat_base_case () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 
-		ShoppSettings()->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}');
+		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
@@ -292,11 +293,11 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_vat_taxed_shipping () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 
-		ShoppSettings()->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}');
-		ShoppSettings()->registry['tax_shipping'] = 'on';
+		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+		shopp_set_setting('tax_shipping', 'on');
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
@@ -334,17 +335,17 @@ class CartTotalsTests extends ShoppTestCase {
 		$expected = '£71.79';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
-		ShoppSettings()->registry['tax_shipping'] = 'off';
+		shopp_set_setting('tax_shipping', 'off');
 
 	}
 
 	function test_cart_vat_item_percent_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 
-		ShoppSettings()->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}');
+		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
@@ -610,10 +611,10 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_vat_order_percent_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 
-		ShoppSettings()->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}');
+		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
@@ -660,10 +661,10 @@ class CartTotalsTests extends ShoppTestCase {
 	function test_cart_vat_shipping_discount () {
 		global $Shopp;
 		$Shopping = ShoppShopping();
-		
+
 		@$Shopping->reset();
 
-		ShoppSettings()->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}');
+		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
 
 		$Order =& ShoppOrder();
 		$Order->Cart->clear();
