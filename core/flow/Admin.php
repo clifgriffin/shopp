@@ -228,8 +228,6 @@ class AdminFlow extends FlowController {
 	function topmenu ($name,$label,$access,$page,$position=50) {
 		global $Shopp,$menu;
 
-		do_action('shopp_add_topmenu_'.$page);
-
 		while (isset($menu[$position])) $position++;
 
 		$this->Menus[$page] = add_menu_page(
@@ -241,6 +239,9 @@ class AdminFlow extends FlowController {
 			SHOPP_ADMIN_URI.'/icons/clear.png',			// Icon
 			$position									// Menu position
 		);
+
+		do_action_ref_array('shopp_add_topmenu_'.$page,array($this->Menus[$page]));
+
 	}
 
 	/**
