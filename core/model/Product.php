@@ -752,6 +752,8 @@ class Product extends WPShoppObject {
 		// Delete record
 		DB::query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
+		do_action_ref_array('shopp_product_deleted',array($this));
+
 	}
 
 	function trash () {
