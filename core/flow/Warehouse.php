@@ -277,7 +277,7 @@ class Warehouse extends AdminController {
 		if (!empty($s)) {
 			$SearchResults = new SearchResults(array('search'=>$s,'debug'=>true,'load'=>array()));
 			$SearchResults->load();
-			$ids = array_keys($SearchResults->index);
+			$ids = array_keys($SearchResults->products);
 			$where[] = "p.ID IN (".join(',',$ids).")";
 		}
 
