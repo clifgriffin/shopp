@@ -48,7 +48,9 @@ class ShoppInstallation extends FlowController {
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if (!ShoppSettings()->available()) $this->install();
+		$db_version = intval(shopp_setting('db_version'));
+		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+		if (!$db_version) $this->install();
 
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
@@ -533,10 +535,10 @@ class ShoppInstallation extends FlowController {
 			$shipping_table = DatabaseObject::tablename('shipping');
 
 			// Move billing address data to the address table
-			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
+			DB::query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
 						SELECT customer,'billing',address,xaddress,city,state,country,postcode,created,modified FROM $billing_table");
 
-			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
+			DB::query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
 
@@ -563,7 +565,7 @@ class ShoppInstallation extends FlowController {
 				// Link original product data to new custom post type record
 				// DB::query("UPDATE $summary_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.product=wp.ID");
 
-				// @todo Update purchased table product column with new Post ID so sold counts can be updated
+				// Update purchased table product column with new Post ID so sold counts can be updated
 				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
 
 				// Update product links for prices and meta
