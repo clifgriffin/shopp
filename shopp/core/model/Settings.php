@@ -220,8 +220,8 @@ class Settings extends DatabaseObject {
 	 * @return mixed The value of the setting
 	 **/
 	function &get ($name) {
-
-		if (empty($this->registry) && defined('SHOPP_SETTINGS_BOOTLOADER')) return null;
+		$null = null;
+		if (empty($this->registry) && defined('SHOPP_SETTINGS_BOOTLOADER')) return $null;
 
 		if (isset($this->registry[$name])) return $this->registry[$name];
 		else $this->load($name);
