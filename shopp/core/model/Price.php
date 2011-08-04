@@ -28,7 +28,6 @@ class Price extends DatabaseObject {
 	}
 
 	function metaloader (&$records,&$record,$id='id',$property=false,$collate=false,$merge=false) {
-
 		if (isset($this->prices) && !empty($this->prices)) $prices = &$this->prices;
 		else $prices = array();
 
@@ -50,7 +49,6 @@ class Price extends DatabaseObject {
 			foreach (get_object_vars($data) as $prop => $val) $record->{$prop} = $val;
 			$clean = array('context','type','numeral','sortorder','created','modified','value');
 			foreach ($clean as $prop) unset($record->{$prop});
-			return;
 		}
 
 		if (isset($metaclass[$record->type])) {
