@@ -175,7 +175,6 @@ class Flow {
 	}
 
 	function installation () {
-		error_log('installation');
 		if (!defined('WP_ADMIN')) return;
 		if ($this->Installer !== false) return;
 
