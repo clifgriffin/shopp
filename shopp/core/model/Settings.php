@@ -20,6 +20,7 @@ class Settings extends DatabaseObject {
 	private $registry = array();	// Registry of setting objects
 	private $installed = false;		// Flag when database tables don't exist
 	private $loaded = false;		// Flag when settings are successfully loaded
+	private $bootup = false;		// Load process in progress
 
 	var $_table;					// Settings runtime table name
 
@@ -37,8 +38,6 @@ class Settings extends DatabaseObject {
 	 **/
 	function __construct () {
 		$this->_table = $this->tablename(self::$table);
-		error_log('Settings __construct()');
-		$this->load();
 	}
 
 	static function &instance () {
@@ -56,7 +55,7 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function available () {
-		return (!empty($this->registry));
+		return ($this->loaded && !empty($this->registry));
 	}
 
 	/**
@@ -77,8 +76,8 @@ class Settings extends DatabaseObject {
 		$where = array("context='$Setting->context'","type='$Setting->type'");
 		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
 		else {
-			if (defined('SHOPP_SETTINGS_BOOTLOADER')) return;
-			define('SHOPP_SETTINGS_BOOTLOADER',true);
+			if ($this->bootup) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
+			$this->bootup = true;
 		}
 
 		$where = join(' AND ',$where);
@@ -220,8 +219,9 @@ class Settings extends DatabaseObject {
 	 * @return mixed The value of the setting
 	 **/
 	function &get ($name) {
-		$null = null;
-		if (empty($this->registry) && defined('SHOPP_SETTINGS_BOOTLOADER')) return $null;
+		$null = null; if ($this->bootup) return $null; // Prevent infinite loop of DOOM!
+
+		if (!$this->available()) $this->load();
 
 		if (isset($this->registry[$name])) return $this->registry[$name];
 		else $this->load($name);
