@@ -60,7 +60,7 @@ class Order {
 
 		$this->Shipping->destination();
 
-		$this->created = mktime();
+		$this->created = time();
 
 		$this->listeners();
 	}
