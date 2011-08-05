@@ -595,7 +595,15 @@ class Shopp {
 	}
 
 	static function keysetting () {
-		$data = base64_decode(shopp_setting('updatekey'));
+		$updatekey = shopp_setting('updatekey');
+
+		// @legacy
+		if (is_array($updatekey)) {
+			$keys = array('s','k','t');
+			return array_combine(array_slice($keys,0,count($updatekey)),$updatekey);
+		}
+
+		$data = base64_decode($updatekey);
 		if (empty($data)) return false;
 		return unpack(Lookup::keyformat(),$data);
 	}
