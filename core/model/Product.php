@@ -224,9 +224,10 @@ class Product extends WPShoppObject {
 		$Object = new $DatabaseObject();
 		$Object->populate($record);
 
-		// Join summary data to the object
-		if (isset($record->summed))	$Object->summary($records,$record);
-		else {
+		if (isset($record->summed) && DB::mktime($record->summed) > 0 && $record->summed != '0000-00-00 00:00:01') {
+			$Object->summary($records,$record);
+		} else {
+			if ($record->summed == '0000-00-00 00:00:01') $Object->summary($records,$record);
 			// Keep track products that don't have summary data for resum build run
 			if (!isset($this->resum)) $this->resum = array();
 			$this->resum[$index] = $Object;
@@ -313,127 +314,119 @@ class Product extends WPShoppObject {
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 
-
 		$variations = ((isset($target->variants) && $target->variants == 'on')
 							|| ($price->type != 'N/A' && $price->context == 'variation'));
 
 		$freeshipping = true;
 		if (!isset($price->freeshipping)) $price->freeshipping = false; // @todo Can be set from promotions applied to priceline, still needed?
 
-		// do_action('shopp_init_product_pricing');
-		// foreach ($this->prices as $i => &$price) {
+		// Force to floats
+		$price->price = (float)$price->price;
+		$price->saleprice = (float)$price->saleprice;
+		$price->shipfee = (float)$price->shipfee;
+		$price->promoprice = (float)$price->promoprice;
 
-			// Force to floats
-			$price->price = (float)$price->price;
-			$price->saleprice = (float)$price->saleprice;
-			$price->shipfee = (float)$price->shipfee;
-			$price->promoprice = (float)$price->promoprice;
+		// Build secondary lookup table using the price id as the key
+		$target->priceid[$price->id] = $price;
 
-			// Build secondary lookup table using the price id as the key
-			$target->priceid[$price->id] = $price;
+		if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
+		if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") {
+			$base = shopp_setting('base_operations');
+			if ($base['vat']) {
+				$Taxes = new CartTax();
+				$taxrate = $Taxes->rate($target);
+				$price->price += $price->price*$taxrate;
+				$price->saleprice += $price->saleprice*$taxrate;
+			}
+		}
 
-			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") {
-				$base = shopp_setting('base_operations');
-				if ($base['vat']) {
-					$Taxes = new CartTax();
-					$taxrate = $Taxes->rate($target);
-					$price->price += $price->price*$taxrate;
-					$price->saleprice += $price->saleprice*$taxrate;
-				}
+		if ($price->type == "N/A" || $price->context == "addon" || (count($target->prices) > 1 && !$variations)) return;
+
+		// Build third lookup table using the combined optionkey
+		$target->pricekey[$price->optionkey] = $price;
+
+		// Boolean flag for custom product sales
+		$price->onsale = false;
+		$target->sale = 'off';
+		if ($price->sale == 'on') {
+			$target->sale = 'on'; $price->onsale = true;
+			$price->promoprice = $price->saleprice;
+		}
+
+		$price->isstocked = false;
+		if ($price->inventory == 'on') {
+			$target->stock += $price->stock;
+			$target->inventory = 'on';
+			$price->isstocked = true;
+		}
+
+		if ($price->freeshipping == '0' || $price->shipping == 'on')
+			$freeshipping = false;
+
+		// Calculate catalog discounts if not already calculated
+		if (empty($price->promoprice)) {
+			$Price = new Price();
+			$Price->updates($price);
+			$Price->discounts();
+			$price->promoprice = $Price->promoprice;
+			unset($Price);
+		}
+
+		if (!empty($price->discounts) && $price->promoprice < $price->price) {
+			$target->sale = 'on';
+			$price->onsale = true;
+		}
+
+		// Grab price and saleprice ranges (minimum - maximum)
+		if (!$price->price) $price->price = 0;
+		if ($price->isstocked) $varranges['stock'] = 'stock';
+		// do_action_ref_array('shopp_product_stats',array(&$price));
+
+		foreach ($varranges as $name => $prop) {
+			if (!isset($price->$prop)) continue;
+
+			if (!isset($target->min[$name])) $target->min[$name] = $price->$prop;
+			else $target->min[$name] = min($target->min[$name],$price->$prop);
+			if ($target->min[$name] == $price->$prop) $target->min[$name.'_tax'] = ($price->tax == "on");
+
+			if (!isset($target->max[$name])) $target->max[$name] = $price->$prop;
+			else $target->max[$name] = max($target->max[$name],$price->$prop);
+			if ($target->max[$name] == $price->$prop) $target->max[$name.'_tax'] = ($price->tax == "on");
+		}
+
+		// Determine savings ranges
+		if ($price->onsale && isset($target->min['price']) && isset($target->min['saleprice'])) {
+
+			if (!isset($target->min['saved'])) {
+				$target->min['saved'] = $price->price;
+				$target->min['savings'] = 100;
+				$target->max['saved'] = $target->max['savings'] = 0;
 			}
 
-			if ($price->type == "N/A" || $price->context == "addon" || (count($target->prices) > 1 && !$variations)) return;
+			$target->min['saved'] = min($target->min['saved'],($price->price-$price->promoprice));
+			$target->max['saved'] = max($target->max['saved'],($price->price-$price->promoprice));
 
-			// Build third lookup table using the combined optionkey
-			$target->pricekey[$price->optionkey] = $price;
+			// Find lowest savings percentage
+			if ($target->min['saved'] == ($price->price-$price->promoprice))
+				$target->min['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
+			if ($target->max['saved'] == ($price->price-$price->promoprice))
+				$target->max['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
+		}
 
-			// Boolean flag for custom product sales
-			$price->onsale = false;
-			$target->sale = 'off';
-			if ($price->sale == 'on') {
-				$target->sale = 'on'; $price->onsale = true;
+		// Determine weight ranges
+		if (isset($price->dimensions)) {
+			if(isset($price->dimensions->weight) && $price->dimensions->weight > 0) {
+				if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->dimensions->weight;
+				$target->min['weight'] = min($target->min['weight'],$price->dimensions->weight);
+				$target->max['weight'] = max($target->max['weight'],$price->dimensions->weight);
 			}
-
-			$price->isstocked = false;
-			if ($price->inventory == 'on') {
-				$target->stock += $price->stock;
-				$target->inventory = 'on';
-				$price->isstocked = true;
-			}
-
-			if ($price->freeshipping == '0' || $price->shipping == 'on')
-				$freeshipping = false;
-
-			// Calculate catalog discounts if not already calculated
-			if (empty($price->promoprice)) {
-				$Price = new Price();
-				$Price->updates($price);
-				$Price->discounts();
-				$price->promoprice = $Price->promoprice;
-				unset($Price);
-			}
-
-			if (!empty($price->discounts) && $price->promoprice < $price->price) {
-				$target->sale = 'on';
-				$price->onsale = true;
-			}
-
-			// Grab price and saleprice ranges (minimum - maximum)
-			if (!$price->price) $price->price = 0;
-			if ($price->isstocked) $varranges['stock'] = 'stock';
-			// do_action_ref_array('shopp_product_stats',array(&$price));
-
-			foreach ($varranges as $name => $prop) {
-				if (!isset($price->$prop)) continue;
-
-				if (!isset($target->min[$name])) $target->min[$name] = $price->$prop;
-				else $target->min[$name] = min($target->min[$name],$price->$prop);
-				if ($target->min[$name] == $price->$prop) $target->min[$name.'_tax'] = ($price->tax == "on");
-
-				if (!isset($target->max[$name])) $target->max[$name] = $price->$prop;
-				else $target->max[$name] = max($target->max[$name],$price->$prop);
-				if ($target->max[$name] == $price->$prop) $target->max[$name.'_tax'] = ($price->tax == "on");
-			}
-
-			// Determine savings ranges
-			if ($price->onsale && isset($target->min['price']) && isset($target->min['saleprice'])) {
-
-				if (!isset($target->min['saved'])) {
-					$target->min['saved'] = $price->price;
-					$target->min['savings'] = 100;
-					$target->max['saved'] = $target->max['savings'] = 0;
-				}
-
-				$target->min['saved'] = min($target->min['saved'],($price->price-$price->promoprice));
-				$target->max['saved'] = max($target->max['saved'],($price->price-$price->promoprice));
-
-				// Find lowest savings percentage
-				if ($target->min['saved'] == ($price->price-$price->promoprice))
-					$target->min['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
-				if ($target->max['saved'] == ($price->price-$price->promoprice))
-					$target->max['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
-			}
-
-			// Determine weight ranges
-			if (isset($price->dimensions)) {
-				if($price->dimensions->weight && $price->dimensions->weight > 0) {
-					if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->dimensions->weight;
-					$target->min['weight'] = min($target->min['weight'],$price->dimensions->weight);
-					$target->max['weight'] = max($target->max['weight'],$price->dimensions->weight);
-				}
-			}
-
-		// } // end foreach($price)
+		}
 
 		// Update stats
 		$target->maxprice = $target->max['price'];
 		$target->minprice = $target->min['price'];
 
 		if ('on' == $target->sale) $target->minprice = $target->min['saleprice'];
-
-		// $this->save_stats();
-		// do_action('shopp_product_pricing_done');
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
 		if ($freeshipping) $target->freeshipping = true;
@@ -506,7 +499,11 @@ class Product extends WPShoppObject {
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
 		}
-		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
+
+		if (isset($data->summed)) {
+			$this->summed = DB::mktime($data->summed);
+		}
+
 	}
 
 	/**
@@ -565,7 +562,8 @@ class Product extends WPShoppObject {
 
 		$Summary = new ProductSummary();
 		$Summary->copydata($this);
-		$Summary->modified = $this->summed;
+		if (isset($this->summed))
+			$Summary->modified = $this->summed;
 		$Summary->product = $this->id;
 		$Summary->save();
 	}
