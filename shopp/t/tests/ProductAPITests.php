@@ -14,9 +14,10 @@ class ProductAPITests extends ShoppTestCase {
 		parent::setUp();
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:3:"USA";s:8:"currency";a:2:{s:4:"code";s:3:"USD";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:1:"$";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:8:"imperial";s:6:"region";i:0;s:7:"country";s:2:"US";s:4:"zone";s:2:"OH";s:3:"vat";b:0;}'));
 		$Shopp->Flow->Controller = new Storefront();
-		$Shopp->Catalog = new Catalog();
-		shopp('catalog','product','id=81&load=1');
-		shopp('product','found');
+		ShoppCatalog(new Catalog());
+
+		$Product = shopp_product(94);
+		ShoppProduct($Product);
 	}
 
 	function test_product_id () {
@@ -24,7 +25,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("81",$output);
+		$this->assertEquals("94",$output);
 	}
 
 	function test_product_name () {
@@ -57,7 +58,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','description');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("a2b247e75ba9fed7afead41f74de4691",md5($output));
+		$this->assertEquals("6926c1177e6a3019cabd3525dea0921c",md5($output));
 	}
 
 	function test_product_summary () {
@@ -198,33 +199,33 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($output);
 	}
 
-	function test_product_quantity () {
-		ob_start();
-		shopp('product','quantity','input=text');
-		$output = ob_get_contents();
-		ob_end_clean();
-		$this->assertValidMarkup($output);
-
-		ob_start();
-		shopp('product','quantity','input=menu&options=1-3,5,10-15');
-		$output = ob_get_contents();
-		ob_end_clean();
-
-		$expected = array(
-			'tag' => 'select',
-			'attributes' => array(
-				'name' => 'products[81][quantity]',
-				'id' => 'quantity-81'
-			),
-			'children' => array(
-					'count' => 10,
-					'only' => array('tag' => 'option')
-			)
-		);
-
-		$this->assertTag($expected,$output,"++ $output",true);
-		$this->assertValidMarkup($output);
-	}
+	// function test_product_quantity () {
+	// 	ob_start();
+	// 	shopp('product','quantity','input=text');
+	// 	$output = ob_get_contents();
+	// 	ob_end_clean();
+	// 	$this->assertValidMarkup($output);
+	//
+	// 	ob_start();
+	// 	shopp('product','quantity','input=menu&options=1-3,5,10-15');
+	// 	$output = ob_get_contents();
+	// 	ob_end_clean();
+	//
+	// 	$expected = array(
+	// 		'tag' => 'select',
+	// 		'attributes' => array(
+	// 			'name' => 'products[81][quantity]',
+	// 			'id' => 'quantity-81'
+	// 		),
+	// 		'children' => array(
+	// 				'count' => 10,
+	// 				'only' => array('tag' => 'option')
+	// 		)
+	// 	);
+	//
+	// 	$this->assertTag($expected,$output,"++ $output",true);
+	// 	$this->assertValidMarkup($output);
+	// }
 
 	function test_product_freeshipping () {
 		$this->assertFalse(shopp('product','freeshipping'));
@@ -234,7 +235,7 @@ class ProductAPITests extends ShoppTestCase {
 		global $Shopp;
 		$this->assertTrue(shopp('product','hasimages'));
 		$this->assertTrue(shopp('product','has-images'));
-		$this->assertEquals(2,count($Shopp->Product->images));
+		$this->assertEquals(1,count($Shopp->Product->images));
 	}
 
 	function test_product_hascategories () {
@@ -252,7 +253,7 @@ class ProductAPITests extends ShoppTestCase {
 	}
 
 	function test_product_incategory_byid () {
-		$this->assertTrue(shopp('product','in-category','id=24'));
+		$this->assertTrue(shopp('product','in-category','id=49'));
 	}
 
 	function test_product_category_tags () {
@@ -261,7 +262,7 @@ class ProductAPITests extends ShoppTestCase {
 			while(shopp('product','categories')) shopp('product','category');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('EntertainmentMovies & TVBlu-Ray',$output);
+		$this->assertEquals('Blu-RayEntertainmentMovies & TV',$output);
 	}
 
 	function test_product_image_tags () {
@@ -271,7 +272,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('<img src="http://shopptest/store/images/652/UlitimateMatrixBRCollections.jpg?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"  /><img src="http://shopptest/store/images/690/zz6fac9e2b.jpg?96,96,1325025925" alt="original" width="96" height="67"  />',$output);
+		$this->assertEquals('<img src="http://shopptest/store/images/652/UlitimateMatrixBRCollections.jpg?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"  />',$output);
 	}
 
 	function test_product_hastags () {
@@ -288,7 +289,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('matrixtrilogybluraymoviewarnerwachowski',$output);
+		$this->assertEquals('bluraymatrixmovietrilogywachowskiwarner',$output);
 	}
 
 	function test_product_tagged_byname () {
@@ -296,7 +297,7 @@ class ProductAPITests extends ShoppTestCase {
 	}
 
 	function test_product_tagged_byid () {
-		$this->assertTrue(shopp('product','tagged','id=28'));
+		$this->assertTrue(shopp('product','tagged','id=57'));
 	}
 
 
@@ -314,7 +315,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('Rating: R RatedStudio: Warner Home VideoRun Time (in minutes): 415Format: Blu-Ray, DVDLanguage: EnglishScreen Format: WidescreenDirector: The Wachowski Brothers',$output);
+		$this->assertEquals('Rating: R RatedStudio: Warner Home VideoRun Time (in minutes): 415Format: DVDLanguage: EnglishScreen Format: WidescreenDirector: The Wachowski Brothers',$output);
 	}
 
 	function test_product_spec_tags_byname () {
@@ -335,7 +336,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('R RatedWarner Home Video415Blu-Ray, DVDEnglishWidescreenThe Wachowski Brothers',$output);
+		$this->assertEquals('R RatedWarner Home Video415DVDEnglishWidescreenThe Wachowski Brothers',$output);
 	}
 
 	function test_product_outofstock () {
@@ -367,24 +368,24 @@ class ProductAPITests extends ShoppTestCase {
 		ob_start();
 		if (shopp('product','has-variations')) {
 			while(shopp('product','variations')) {
-				shopp('product','variation','id');
-				shopp('product','variation','label');
-				shopp('product','variation','type');
-				shopp('product','variation','sku');
-				shopp('product','variation','price');
-				shopp('product','variation','saleprice');
-				shopp('product','variation','stock');
-				shopp('product','variation','weight');
-				shopp('product','variation','shipfee');
-				shopp('product','variation','sale');
-				shopp('product','variation','shipping');
-				shopp('product','variation','tax');
-				shopp('product','variation','inventory');
+				echo shopp('product','get-variation','id')."|";
+				echo shopp('product','get-variation','label')."|";
+				echo shopp('product','get-variation','type')."|";
+				echo shopp('product','get-variation','sku')."|";
+				echo shopp('product','get-variation','price')."|";
+				echo shopp('product','get-variation','saleprice')."|";
+				echo shopp('product','get-variation','stock')."|";
+				echo shopp('product','get-variation','weight')."|";
+				echo shopp('product','get-variation','shipfee')."|";
+				echo shopp('product','get-variation','sale')."|";
+				echo shopp('product','get-variation','shipping')."|";
+				echo shopp('product','get-variation','tax')."|";
+				echo shopp('product','get-variation','inventory')."|";
 			}
 		}
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('228Blu-RayShippedBR-81$129.95$63.86251.151 lb$0.00256DVDShipped$34.86$15.060.2 lb$0.00',$output);
+		$this->assertEquals('228|Blu-Ray|Shipped|BR-81|$129.95|$63.86|25|1.15 lb|$0.00|1|1|1|1|256|DVD|Shipped||$34.86|$15.06|0|0.2 lb|$0.00|1|1|1||',$output);
 
 	}
 
@@ -398,8 +399,8 @@ class ProductAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array(
 				'type' => 'text',
-				'name' => 'products[81][data][Testing]',
-				'id' => 'data-Testing-81'
+				'name' => 'products[94][data][Testing]',
+				'id' => 'data-Testing-94'
 			)
 		);
 		$this->assertTag($markup,$output,'',true);
@@ -424,7 +425,7 @@ class ProductAPITests extends ShoppTestCase {
 
 		$markup = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'hidden','name' => 'products[81][product]','value' => '81')
+			'attributes' => array('type' => 'hidden','name' => 'products[94][product]','value' => '94')
 		);
 		$this->assertTag($markup,$output,'',true);
 

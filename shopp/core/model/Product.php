@@ -425,7 +425,10 @@ class Product extends WPShoppObject {
 		}
 
 		// Determine weight ranges
-		if (isset($price->dimensions)) {
+		if ( ! isset($target->min['weight']) ) $target->min['weight'] = 0;
+		if ( ! isset($target->max['weight']) ) $target->max['weight'] = 0;
+
+		if ( isset($price->dimensions) ) {
 			if(isset($price->dimensions->weight) && $price->dimensions->weight > 0) {
 				if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->dimensions->weight;
 				$target->min['weight'] = min($target->min['weight'],$price->dimensions->weight);
