@@ -560,10 +560,7 @@ class ShoppInstallation extends FlowController {
 
 				// Create custom post types from products, temporarily use post_parent for link to original product entry
 				DB::query("INSERT INTO $wpdb->posts (post_type,post_name,post_title,post_excerpt,post_content,post_status,post_date,post_date_gmt,post_modified,post_modified_gmt,post_parent)
-							SELECT '$post_type',slug,name,summary,description,status,publish,publish,modified,modified,id FROM $product_table");
-
-				// Link original product data to new custom post type record
-				// DB::query("UPDATE $summary_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.product=wp.ID");
+							SELECT '$post_type',slug,name,summary,description,status,created,created,modified,modified,id FROM $product_table");
 
 				// Update purchased table product column with new Post ID so sold counts can be updated
 				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
@@ -574,8 +571,8 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
 
 				// Preliminary summary data
-				DB::query("INSERT INTO $summary_table (product,featured,variants,addons)
-						   SELECT wp.ID, p.featured, p.variations, p.addons
+				DB::query("INSERT INTO $summary_table (product,featured,variants,addons,modified)
+						   SELECT wp.ID, p.featured, p.variations, p.addons, '0000-00-00 00:00:01'
 						   FROM $product_table AS p
 						   JOIN $wpdb->posts as wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
 
