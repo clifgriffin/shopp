@@ -253,7 +253,7 @@ class ShoppError {
 	 * @return void Description...
 	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
-		$Errors = &ShoppErrors();
+		$Errors = ShoppErrors();
 
 		if (!is_a($Errors,'ShoppErrors')) return;
 		if ($level > $Errors->reporting) return;
@@ -295,7 +295,7 @@ class ShoppError {
 		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
 			$this->source = "PHP ".$php[$this->data['phperror']];
 
-		$Errors = &ShoppErrors();
+		$Errors = ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
 	}
 
@@ -341,7 +341,7 @@ class ShoppError {
 			!empty($this->source) && $source) $string .= "$this->source: ";
 		$string .= join($delimiter,$this->messages);
 		if ($remove) {
-			$Errors = &ShoppErrors();
+			$Errors = ShoppErrors();
 			if (!empty($Errors->errors)) $Errors->remove($this);
 		}
 		return $string;
@@ -419,7 +419,7 @@ class ShoppErrorLogging {
 			$debug = sprintf("[%s, line %d]", basename($error->debug['file']),$error->debug['line']);
 			$debug = " ".apply_filters('shopp_error_message_debugdata',$debug,$error->debug);
 		}
-		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message(false,true)."$debug\n";
+		$message = date("Y-m-d H:i:s",time())." - ".$error->message(false,true)."$debug\n";
 		if (($this->log = @fopen($this->logfile,'at')) !== false) {
 			fwrite($this->log,$message);
 			fclose($this->log);
