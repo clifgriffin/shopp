@@ -326,6 +326,8 @@ class ProductCollection implements Iterator {
 
 }
 
+$ShoppTaxonomies = array();
+
 // @todo Document ProductTaxonomy
 class ProductTaxonomy extends ProductCollection {
 	static $taxonomy = 'shopp_group';
@@ -345,6 +347,8 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	static function register ($class) {
+		global $ShoppTaxonomies;
+
 		$namespace = get_class_property($class,'namespace');
 		$taxonomy = get_class_property($class,'taxonomy');
 		$hierarchical = get_class_property($class,'hierarchical');
@@ -356,6 +360,8 @@ class ProductTaxonomy extends ProductCollection {
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug ),
 		));
+
+		$ShoppTaxonomies[$taxonomy] = $class;
 	}
 
 	static function labels () {

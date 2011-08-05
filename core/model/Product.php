@@ -178,6 +178,8 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function load_taxonomies ($ids) {
+		global $ShoppTaxonomies;
+
 		if ( empty($ids) ) return;
 
 		if (isset($this->products) && !empty($this->products)) {
@@ -188,18 +190,27 @@ class Product extends WPShoppObject {
 		$taxonomies = get_object_taxonomies( self::$posttype );
 		$terms = wp_get_object_terms($ids,$taxonomies,array('fields' => 'all_with_object_id'));
 
-		foreach ($terms as $term) { // Map wp taxonomy data to object meta
-			if (!isset($term->term_id) || empty($term->term_id)) continue; 		// Skip invalid entries
-			if (!isset($term->object_id) || empty($term->object_id)) continue;	// Skip invalid entries
-			if (!isset(Product::$_taxonomies[$term->taxonomy])) continue;
-			$property = Product::$_taxonomies[$term->taxonomy];
+		foreach ( $terms as $term ) { // Map wp taxonomy data to object meta
+			if ( ! isset($term->term_id) || empty($term->term_id) ) continue; 		// Skip invalid entries
+			if ( ! isset($term->object_id) || empty($term->object_id) ) continue;	// Skip invalid entries
+			if ( isset(Product::$_taxonomies[$term->taxonomy]) ) {
+				$property = Product::$_taxonomies[$term->taxonomy];
+			} else {
+				$property = $term->taxonomy.'s';
+			}
 
-			if (isset($products[$term->object_id]))
+			if ( isset($products[$term->object_id]) )
 				$target = $products[$term->object_id];
 			else $target = $this;
 
-			if (is_array($target->$property)) // Map term to object
-				$target->{$property}[ $term->term_id ] = $term;
+			if ( ! isset($target->$property) ) $target->$property = array();
+
+			if ( in_array( $term->taxonomy, array_keys($ShoppTaxonomies) ) ) { // Shopp ProductTaxonomy class type
+				$target->{$property}[ $term->term_id ] = new $ShoppTaxonomies[$term->taxonomy];
+				$target->{$property}[ $term->term_id ]->populate($term);
+				continue;
+			}
+			$target->{$property}[ $term->term_id ] = $term;
 
 		} // END foreach ($terms)
 	}
