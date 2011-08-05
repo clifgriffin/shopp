@@ -53,7 +53,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'onsale' => 'on_sale',
 		'outofstock' => 'out_of_stock',
 		'price' => 'price',
-		'saleprice' => 'price',
+		'saleprice' => 'saleprice',
 		'relevance' => 'relevance',
 		'savings' => 'savings',
 		'slug' => 'slug',
@@ -427,7 +427,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return (!empty($O->images));
 	}
 
-	function has_savings ($result, $options, $O) { return ($O->onsale && $O->min['saved'] > 0); }
+	function has_savings ($result, $options, $O) { return (str_true($O->sale) && $O->min['saved'] > 0); }
 
 	function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
@@ -625,9 +625,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function name ($result, $options, $O) { return apply_filters('shopp_product_name',$O->name); }
 
 	function on_sale ($result, $options, $O) {
-		if (empty($O->prices)) $O->load_data(array('prices'));
+		if (empty($O->prices)) $O->load_data(array('prices','summary'));
 		if (empty($O->prices)) return false;
-		return $O->onsale;
+		return str_true($O->sale);
 	}
 
 	function out_of_stock ($result, $options, $O) {
@@ -645,6 +645,42 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'taxes' => null,
 			'starting' => '',
 			'property' => 'price'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (!is_null($taxes)) $taxes = value_is_true($taxes);
+
+		$min = $O->min[$property];
+		$mintax = $O->min[$property.'_tax'];
+
+		$max = $O->max[$property];
+		$maxtax = $O->max[$property.'_tax'];
+
+		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$O);
+
+		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
+		else $pricetag = $O->prices[0]->price;
+
+		if (count($O->prices) > 0) {
+			$taxrate = shopp_taxrate($taxes,true,$O);
+			$mintax = $mintax?$min*$taxrate:0;
+			$maxtax = $maxtax?$max*$taxrate:0;
+
+			if ($min == $max) return money($min+$mintax);
+			else {
+				if (!empty($starting)) return "$starting ".money($min+$mintax);
+				return money($min+$mintax)." &mdash; ".money($max+$maxtax);
+			}
+		} else return money($pricetag+($pricetag*$taxrate));
+	}
+
+	function saleprice ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
+		$defaults = array(
+			'taxes' => null,
+			'starting' => '',
+			'property' => 'saleprice'
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
@@ -967,8 +1003,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$filter = array('');
 				$_ = new StdClass();
 				if ($pricing->type != "Donation")
-					$_->p = ((isset($pricing->onsale)
-								&& $pricing->onsale == "on")?
+					$_->p = ((isset($pricing->sale)
+								&& str_true($pricing->onsale) )?
 									(float)$pricing->promoprice:
 									(float)$pricing->price);
 				$_->i = ($pricing->inventory == "on");
