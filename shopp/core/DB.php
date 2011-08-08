@@ -731,7 +731,7 @@ abstract class DatabaseObject implements Iterator {
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
 			$this->id = DB::query("INSERT $this->_table SET $dataset");
-			do_action_ref_array('shopp_save_'.$this->table, array(&$this));
+			do_action_ref_array('shopp_save_'.$this::$table, array(&$this));
 			return $this->id;
 		}
 
