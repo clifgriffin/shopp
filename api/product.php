@@ -35,7 +35,8 @@ function shopp_add_product ( $data = array() ) {
 		return false;
 	}
 
-	$Product = new $Product();
+	$Product = new Product();
+	$Product->ID = '';
 
 	// Set Product publish status
 	if ( isset($data['publish']) && isset($data['publish']['flag']) && $data['publish']['flag'] ) {
@@ -43,7 +44,7 @@ function shopp_add_product ( $data = array() ) {
 			&& isset($data['publish']['day'])
 			&& isset($data['publish']['year'])
 			&& isset($data['publish']['hour'])
-			&& isset($data['publish']['min'])
+			&& isset($data['publish']['minute'])
 			&& isset($data['publish']['meridian']) ) {
 
 			if ($data['publish']['meridiem'] == "PM" && $data['publish']['hour'] < 12)
@@ -76,6 +77,7 @@ function shopp_add_product ( $data = array() ) {
 
 	$Product->updates($data, array('meta','categories','prices','tags', 'publish'));
 	$Product->save();
+
 	Product::publishset(array($Product->id), $data['publish']['flag'] ? 'publish' : 'draft');
 
 	if ( empty($Product->id) ) {
@@ -91,7 +93,7 @@ function shopp_add_product ( $data = array() ) {
 	// Save Taxonomies
 	// Categories
 	if ( isset($data['categories']) && isset($data['categories']['terms']) ) {
-		shopp_product_add_categories ( $Product->id, $data['tags']['terms'] );
+		shopp_product_add_categories ( $Product->id, $data['categories']['terms'] );
 	}
 
 
@@ -164,8 +166,7 @@ function shopp_add_product ( $data = array() ) {
 			if ( 'product' == $pricetype ) {
 				$price = 0;
 			} else {
-				$optionkey = optionmap ( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
-
+				$optionkey = $Product->optionmap ( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
 				// Find the correct Price
 				foreach ( $Product->prices as $index => $Price ) {
 					if ( $Price->context != ('variants' == $pricetype ? 'variation' : 'addon') ) continue;
@@ -179,13 +180,14 @@ function shopp_add_product ( $data = array() ) {
 			}
 
 			// modify each priceline
-			$Product->prices[$index] = shopp_product_set_variant ( $Product->prices[$index], $variant, $contexts[$pricetype] );
+			$Product->prices[$price] = shopp_product_set_variant ( $Product->prices[$price], $variant, $contexts[$pricetype] );
 
 			// save priceline settings
-			shopp_set_meta ( $Product->prices[$index]->id, 'price', 'settings', $Product->prices[$index]->settings );
+			if ( isset($Product->prices[$price]->settings) )
+				shopp_set_meta ( $Product->prices[$price]->id, 'price', 'settings', $Product->prices[$price]->settings );
 
 			// We have everything we need to complete this price line
-			$Product->prices[$index]->save();
+			$Product->prices[$price]->save();
 
 		} //end variants foreach
 	} // end subjects foreach
@@ -656,7 +658,7 @@ function shopp_product_addon_options ( $product = false ) {
  * @return bool true for success, false otherwise
  **/
 function shopp_product_add_categories ( $product = false, $categories = array() ) {
-	return shopp_product_add_term( $product, $categories, ProductCategory::$taxonomy );
+	return shopp_product_add_terms( $product, $categories, ProductCategory::$taxonomy );
 }
 
 /**
@@ -670,7 +672,7 @@ function shopp_product_add_categories ( $product = false, $categories = array() 
  * @return bool true for success, false otherwise
  **/
 function shopp_product_add_tags ( $product = false, $tags = array() ) {
-	return shopp_product_add_term( $product, $tags, ProductTag::$taxonomy );
+	return shopp_product_add_terms( $product, $tags, ProductTag::$taxonomy );
 }
 
 /**
@@ -1468,6 +1470,10 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		$Price->shipping = "on";
 		if ( isset($settings['weight']) && $settings['weight'] > 0 ) {
 			$Price->weight = $settings['weight'];
+			$Price->dimensions = array('weight' => $settings['weight'], 'height' => 0, 'width' => 0, 'length' => 0);
+
+			if ( ! isset($Price->settings) ) $Price->settings = array();
+			$Price->settings['dimensions'] = $Price->dimensions;
 		} else {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Weight required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
@@ -1480,6 +1486,9 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 			}
 
 			$Price->dimensions = array('weight' => $settings['weight'], 'height' => $settings['height'], 'width' => $settings['width'], 'length' => $settings['length']);
+
+			if ( ! isset($Price->settings) ) $Price->settings = array();
+			$Price->settings['dimensions'] = $Price->dimensions;
 		} else if ( $Shopp->Shipping->dimensions ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Height, width, and length are required for one or more installed shipping module.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
