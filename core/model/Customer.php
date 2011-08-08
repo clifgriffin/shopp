@@ -375,7 +375,7 @@ class Customer extends DatabaseObject {
 			LEFT JOIN $asset AS ao ON a.parent=p.id AND ao.type='addon' AND ao.context='purchased'
 			LEFT JOIN $orders AS o ON o.id=p.purchase
 			LEFT JOIN $asset AS f on f.id=a.value
-			WHERE o.customer=9 AND f.context='price' AND f.type='download') ORDER BY created DESC";
+			WHERE o.customer=$this->id AND f.context='price' AND f.type='download') ORDER BY created DESC";
 		$this->downloads = $db->query($query,AS_ARRAY);
 		foreach ($this->downloads as &$download) {
 			$download->filedata = unserialize($download->filedata);
