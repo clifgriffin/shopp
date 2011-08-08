@@ -119,7 +119,7 @@ jQuery(document).ready(function () {
 			( 	! sameshipping && ( $(this).is('#billing-country') || $(this).is('.billing-state') ) )
 			) return;
 		localeMenu.empty().attr('disabled',true);
-		if ( (locale = locales[id]) || (locale = locales[country]) ) {
+		if ( locales && (locale = locales[id]) || (locale = locales[country]) ) {
 			options += '<option></option>';
 			$.each(locale, function (index,label) {
 				options += '<option value="'+label+'">'+label+'</option>';
@@ -233,3 +233,5 @@ jQuery(document).ready(function () {
 	}
 
 });
+
+if (!locales) var locales = false;
