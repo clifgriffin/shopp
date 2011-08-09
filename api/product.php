@@ -86,9 +86,11 @@ function shopp_add_product ( $data = array() ) {
 	}
 
 	// Product-wide settings
+	$Product->featured = ( isset($data['featured']) && true === $data['featured'] ? "on" : "off" );
 	$Product->variants = ( isset($data['variants']) ? "on" : "off" );
 	$Product->addons = ( isset($data['addons']) ? "on" : "off" );
-	$Product->sumup();
+
+	if ( isset($data['packaging']) ) shopp_product_set_packaging($Product->id, $data['packaging']);
 
 	// Save Taxonomies
 	// Categories
@@ -115,6 +117,7 @@ function shopp_add_product ( $data = array() ) {
 	}
 
 	$subjects = array();
+	$Product->prices = $prices = array();
 
 	// Create Prices
 	if ( isset($data['single']) ) {
@@ -126,7 +129,7 @@ function shopp_add_product ( $data = array() ) {
 		$Price->product = $Product->id;
 		$Price->save();
 
-		$Product->prices = array($Price);
+		$prices = array($Price);
 		$subjects['product'] = array($data['single']);
 
 	} else if ( isset($data['variants']) ) {  // Construct and Populate variants
@@ -134,7 +137,7 @@ function shopp_add_product ( $data = array() ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variants menu is empty.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
-		$Product->prices = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'] );
+		$prices = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'], false );
 		$subjects['variants'] = $data['variants'];
 	}
 
@@ -145,7 +148,7 @@ function shopp_add_product ( $data = array() ) {
 			return false;
 		}
 
-		array_merge($Product->prices, shopp_product_set_addons_options ( $Product->id, $data['addons']['menu'] ));
+		$prices = array_merge($prices, shopp_product_set_addon_options ( $Product->id, $data['addons']['menu'], false ));
 		$subjects['addons'] = $data['addons'];
 	}
 
@@ -166,9 +169,10 @@ function shopp_add_product ( $data = array() ) {
 			if ( 'product' == $pricetype ) {
 				$price = 0;
 			} else {
-				$optionkey = $Product->optionmap ( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
+				$optionkey = $Product->optionmap( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
+
 				// Find the correct Price
-				foreach ( $Product->prices as $index => $Price ) {
+				foreach ( $prices as $index => $Price ) {
 					if ( $Price->context != ('variants' == $pricetype ? 'variation' : 'addon') ) continue;
 					if ( $Price->optionkey == $optionkey ) $price = $index;
 				}
@@ -180,19 +184,31 @@ function shopp_add_product ( $data = array() ) {
 			}
 
 			// modify each priceline
-			$Product->prices[$price] = shopp_product_set_variant ( $Product->prices[$price], $variant, $contexts[$pricetype] );
+			$prices[$price] = shopp_product_set_variant ( $prices[$price], $variant, $contexts[$pricetype] );
 
 			// save priceline settings
-			if ( isset($Product->prices[$price]->settings) )
-				shopp_set_meta ( $Product->prices[$price]->id, 'price', 'settings', $Product->prices[$price]->settings );
+			if ( isset($prices[$price]->settings) )
+				shopp_set_meta ( $prices[$price]->id, 'price', 'settings', $prices[$price]->settings );
 
 			// We have everything we need to complete this price line
-			$Product->prices[$price]->save();
+			$prices[$price]->save();
 
 		} //end variants foreach
 	} // end subjects foreach
 
-	$Product->load_data();
+	// Gather rollup figures for prices.
+	if ( ! empty($prices) ) {
+		$records = null;
+		foreach ( $prices as $Price ) {
+			$Product->pricing($records,$Price);
+		}
+		foreach ( $prices as $Price ) {
+			$Product->sumprice($Price);
+		}
+	}
+
+	$Product->sumup();
+
 	return $Product;
 } // end function shopp_add_product
 
@@ -285,8 +301,8 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 	// order processing estimate
 	$_processing = array(
 		'flag'=>'bool',			// bool - processing time setting on/off
-		'min'=>'int',			// int - minimum number of processing days
-		'max'=>'int'			// int - maximum number of processing days
+		'min'=>'cycle',			// array('interval'=># of time units, 'period'=> one of d, w, m, y)
+		'max'=>'cycle'			// array('interval'=># of time units, 'period'=> one of d, w, m, y)
 	);
 
 	// variant types
@@ -1194,7 +1210,7 @@ function shopp_product_set_subscription ( $product = false, $settings = array() 
  * @return array variant Price objects that have been created on the product.
  *
  **/
-function shopp_product_set_variant_options ( $product = false, $options = array() ) {
+function shopp_product_set_variant_options ( $product = false, $options = array(), $summary = 'save' ) {
 	if ( ! $product || empty($options) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing required parameters.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
@@ -1216,6 +1232,7 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 	$mapping = array();
 	foreach ( $combos as $combo ) {
 		$Price = new Price();
+		$Price->type = 'Shipped';
 		$Price->product = $product;
 		$Price->context = 'variation';
 		list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($combo, $options);
@@ -1242,7 +1259,7 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 	shopp_set_product_meta ( $product, 'options', $metaopts);
 
 	$Product->variants = "on";
-	$Product->sumup();
+	if ( 'save' == $summary ) $Product->sumup();
 
 	return $prices;
 }
@@ -1530,6 +1547,7 @@ function shopp_product_variant_set_inventory ( $variant = false, $flag = false, 
 
 	$Price->inventory = "off";
 	if ( $flag ) {
+		$Price->inventory = "on";
 		if ( isset($settings['stock']) ) {
 			$Price = shopp_product_variant_set_stock( $Price, $settings['stock'], 'restock', $context );
 		}
@@ -1746,7 +1764,7 @@ function shopp_product_variant_set_subscription ( $variant = false, $settings = 
  * @return array addon Price objects that have been created on the product.
  *
  **/
-function shopp_product_set_addon_options ( $product = false, $options = array() ) {
+function shopp_product_set_addon_options ( $product = false, $options = array(), $summary = 'save' ) {
 	if ( ! $product || empty($options) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing required parameters.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
@@ -1772,6 +1790,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array() 
 			$addon = array($type => $option );
 
 			$Price = new Price();
+			$Price->type = 'Shipped';
 			$Price->product = $product;
 			$Price->context = 'addon';
 			list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($addon, $options, 'addon');
@@ -1799,7 +1818,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array() 
 	shopp_set_product_meta ( $product, 'options', $metaopts);
 
 	$Product->addons = "on";
-	$Product->sumup();
+	if ( 'save' == $summary ) $Product->sumup();
 
 	return $prices;
 }
