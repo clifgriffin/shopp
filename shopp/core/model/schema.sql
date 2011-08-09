@@ -213,6 +213,7 @@ CREATE TABLE <?php echo $purchased; ?> (						-- Line items purchased in an orde
 	name varchar(255) NOT NULL default '',						-- Purchased item name
 	description text NOT NULL,									-- Purchased item description
 	optionlabel varchar(255) NOT NULL default '',				-- Purchased option label
+	type varchar(100) NOT NULL default '',						-- Purchased item type
 	sku varchar(100) NOT NULL default '',						-- Purchased item SKU
 	quantity int(10) unsigned NOT NULL default '0',				-- Quantity purchased
 	downloads int(10) unsigned NOT NULL default '0',			-- Number of downloads against this purchased item

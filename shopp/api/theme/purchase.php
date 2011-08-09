@@ -58,6 +58,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'itemsku' => 'item_sku',
 		'itemtotal' => 'item_total',
 		'itemunitprice' => 'item_unitprice',
+		'itemtype' => 'item_type',
 		'items' => 'items',
 		'lastname' => 'last_name',
 		'notpaid' => 'not_paid',
@@ -220,6 +221,11 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	function item_description ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->description;
+	}
+
+	function item_type ($result, $options, $O) {
+		$item = current($O->purchased);
+		return $item->type;
 	}
 
 	function item_download ($result, $options, $O) {
