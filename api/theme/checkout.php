@@ -28,6 +28,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'billingcvv' => 'billing_cvv',
 		'billinglocale' => 'billing_locale',
 		'billinglocalities' => 'billing_localities',
+		'billingname' => 'billing_name',
 		'billingpostcode' => 'billing_postcode',
 		'billingprovince' => 'billing_state',
 		'billingstate' => 'billing_state',
@@ -76,6 +77,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'shippingaddress' => 'shipping_address',
 		'shippingcity' => 'shipping_city',
 		'shippingcountry' => 'shipping_country',
+		'shippingname' => 'shipping_name',
 		'shippingpostcode' => 'shipping_postcode',
 		'shippingprovince' => 'shipping_state',
 		'shippingstate' => 'shipping_state',
@@ -106,6 +108,14 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		if (!empty($_POST['account-login']))
 			$options['value'] = $_POST['account-login'];
 		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
+	}
+
+	function billing_name ($result, $options, $O) {
+		if (!isset($options['mode'])) $options['mode'] = "input";
+		if ($options['mode'] == "value") return $O->Billing->name;
+		if (!empty($O->Billing->name))
+			$options['value'] = $O->Billing->name;
+		return '<input type="text" name="billing[name]" id="billing-name" '.inputattrs($options).' />';
 	}
 
 	function billing_address ($result, $options, $O) {
@@ -855,6 +865,14 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	function shipping ($result, $options, $O) { return (!empty($O->shipped)); }
+
+	function shipping_name ($result, $options, $O) {
+		if (!isset($options['mode'])) $options['mode'] = "input";
+		if ($options['mode'] == "value") return $O->Shipping->name;
+		if (!empty($O->Shipping->name))
+			$options['value'] = $O->Shipping->name;
+		return '<input type="text" name="shipping[name]" id="shipping-name" '.inputattrs($options).' />';
+	}
 
 	function shipping_address ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
