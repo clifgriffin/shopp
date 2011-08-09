@@ -212,7 +212,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$string .= $title;
 			$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
-			foreach ($this->categories as &$category) {
+			foreach ($O->categories as &$category) {
 				// If the parent of this category was excluded, add this to the excludes and skip
 				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
 					$exclude[] = $category->id;
