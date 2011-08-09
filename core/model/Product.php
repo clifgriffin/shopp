@@ -543,6 +543,7 @@ class Product extends WPShoppObject {
 		if ('on' == $Price->inventory) {
 			$this->inventory = $Price->inventory;
 			$this->stock += $Price->stock;
+			if ( ! isset($this->lowstock) ) $this->lowstock = 'none';
 			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
 		} else if (!$this->inventory) $this->inventory = 'off';
 
@@ -583,6 +584,8 @@ class Product extends WPShoppObject {
 	}
 
 	function lowstock ($level=false,$stock,$stocked) {
+		$lowstock_level = shopp_setting('lowstock_level');
+		if ( false === $lowstock_level ) $lowstock_level = 5;
 		$setting = ( shopp_setting('lowstock_level')/100 );
 
 		$levels = array('none','warning','critical','backorder');
@@ -629,6 +632,8 @@ class Product extends WPShoppObject {
 			$option = current($variant);
 
 			$selection[] = $mapping[$type][$option];
+			if ( 'optionkey' == $return ) return $this->optionkey($selection);
+
 			return array( $this->optionkey($selection), $selection[0], $option, $mapping );
 		}
 
@@ -883,7 +888,9 @@ class ProductSummary extends DatabaseObject {
 	}
 
 	function save () {
-		$save = (!$this->modified) ? 'insert' : 'update';
+		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $this->modified) )
+			$this->modified = DB::mktime($this->modified);
+		$save = ( ! $this->modified ) ? 'insert' : 'update';
 		parent::save( $save );
 	}
 
