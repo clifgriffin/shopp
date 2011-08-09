@@ -487,33 +487,33 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$searching = is_search(); // Flag when searching (the blog or shopp)
 		$shopsearch = ($Storefront !== false && $Storefront->searching); // Flag when searching shopp
 
-		$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
-			"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
+		$allowed = array('accesskey','alt','checked','class','disabled','format', 'id',
+			'minlength','maxlength','readonly','required','size','src','tabindex','title','value');
 
-		$options['value'] = ($option == "shopp");
+		$options['value'] = ($option == 'shopp');
 
 		// Reset the checked option
 		unset($options['checked']);
 
 		// If searching the blog, check the non-store search option
-		if ($searching && !$shopsearch && $option != "shopp") $options['checked'] = "checked";
+		if ($searching && !$shopsearch && $option != 'shopp') $options['checked'] = 'checked';
 
 		// If searching the storefront, mark the store search option
-		if ($shopsearch && $option == "shopp") $options['checked'] = "checked";
+		if ($shopsearch && $option == 'shopp') $options['checked'] = 'checked';
 
 		// Override any other settings with the supplied default 'checked' option
 		if (!$searching && $checked) $options['checked'] = $checked;
 
 		switch ($type) {
-			case "checkbox":
+			case 'checkbox':
 				$input =  '<input type="checkbox" name="s_cs"'.inputattrs($options,$allowed).' />';
 				break;
-			case "radio":
+			case 'radio':
 				$input =  '<input type="radio" name="s_cs"'.inputattrs($options,$allowed).' />';
 				break;
-			case "menu":
-				$allowed = array("accesskey","alt","class","disabled","format", "id",
-					"readonly","required","size","tabindex","title");
+			case 'menu':
+				$allowed = array('accesskey','alt','class','disabled','format', 'id',
+					'readonly','required','size','tabindex','title');
 
 				$input = '<select name="s_cs"'.inputattrs($options,$allowed).'>';
 				$input .= '<option value="">'.$blog_option.'</option>';
@@ -521,7 +521,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$input .= '</select>';
 				break;
 			default:
-				$allowed = array("alt","class","disabled","format","id","readonly","title","value");
+				$allowed = array('alt','class','disabled','format','id','readonly','title','value');
 				$input =  '<input type="hidden" name="s_cs"'.inputattrs($options,$allowed).' />';
 				break;
 		}
@@ -554,10 +554,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		global $Shopp;
 		$content = false;
 		$source = isset($options['source'])?$options['source']:'product';
-		if ($source == "product" && isset($options['product'])) {
+		if ($source == 'product' && isset($options['product'])) {
 			 // Save original requested product
 			if ($Shopp->Product) $Requested = $Shopp->Product;
-			$products = explode(",",$options['product']);
+			$products = explode(',',$options['product']);
 			if (!is_array($products)) $products = array($products);
 			foreach ($products as $product) {
 				$product = trim($product);
@@ -580,7 +580,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			else $Shopp->Product = false;
 		}
 
-		if ($source == "category" && isset($options['category'])) {
+		if ($source == 'category' && isset($options['category'])) {
 			 // Save original requested category
 			if ($Shopp->Category) $Requested = $Shopp->Category;
 			if ($Shopp->Product) $RequestedProduct = $Shopp->Product;

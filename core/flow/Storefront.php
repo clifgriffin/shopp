@@ -67,7 +67,7 @@ class Storefront extends FlowController {
 		// add_action('wp', array($this, 'pageid'));
 		// add_action('wp', array($this, 'security'));
 		add_action('wp', array($this, 'cart'));
-		// add_action('wp', array($this, 'shortcodes'));
+		add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
 
 		add_filter('the_title', array($this,'pagetitle'), 10, 2);
@@ -432,16 +432,16 @@ class Storefront extends FlowController {
 	function shortcodes () {
 
 		$this->shortcodes = array();
-		// Gateway page shortcodes
-		// $this->shortcodes['catalog'] = array(&$this,'catalog_page');
-		// $this->shortcodes['cart'] = array(&$this,'cart_page');
-		// $this->shortcodes['checkout'] = array(&$this,'checkout_page');
-		// $this->shortcodes['account'] = array(&$this,'account_page');
 
 		// Additional shortcode functionality
 		$this->shortcodes['catalog-product'] = array(&$this,'product_shortcode');
-		$this->shortcodes['product-buynow'] = array(&$this,'buynow_shortcode');
-		$this->shortcodes['catalog-category'] = array(&$this,'category_shortcode');
+		$this->shortcodes['catalog-buynow'] = array(&$this,'buynow_shortcode');
+		$this->shortcodes['catalog-collection'] = array(&$this,'collection_shortcode');
+
+		// @deprecated shortcodes
+		$this->shortcodes['product'] = array(&$this,'product_shortcode');
+		$this->shortcodes['buynow'] = array(&$this,'product_shortcode');
+		$this->shortcodes['category'] = array(&$this,'collection_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
 			if (shopp_setting('maintenance') == 'on' || !ShoppSettings()->available() || $this->maintenance())
@@ -941,44 +941,6 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Renders the order confirmation template
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return string The processed confirm.php template file
-	 **/
-	// function order_confirmation () {
-	// 	global $Shopp;
-	// 	$Cart = $Shopp->Order->Cart;
-	//
-	// 	ob_start();
-	// 	include(SHOPP_TEMPLATES."/confirm.php");
-	// 	$content = ob_get_contents();
-	// 	ob_end_clean();
-	// 	return apply_filters('shopp_order_confirmation',$content);
-	// }
-
-	/**
-	 * Renders the thanks template
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return string The processed thanks.php template file
-	 **/
-	// function thanks ($template="thanks.php") {
-	// 	global $Shopp;
-	// 	$Purchase = $Shopp->Purchase;
-	//
-	// 	ob_start();
-	// 	include(SHOPP_TEMPLATES."/$template");
-	// 	$content = ob_get_contents();
-	// 	ob_end_clean();
-	// 	return apply_filters('shopp_thanks',$content);
-	// }
-
-	/**
 	 * Renders the errors template
 	 *
 	 * @author Jonathan Davis
@@ -1021,7 +983,7 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Handles rendering the [category] shortcode
+	 * Handles rendering the [catalog-collection] shortcode
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -1029,31 +991,35 @@ class Storefront extends FlowController {
 	 * @param array $attrs The parsed shortcode attributes
 	 * @return string The processed content
 	 **/
-	function category_shortcode ($atts) {
+	function collection_shortcode ($atts) {
 		global $Shopp;
-
+		$Collection = ShoppCollection();
 		$tag = 'category';
 		if (isset($atts['name'])) {
-			$Shopp->Category = new ProductCategory($atts['name'],'name');
+			$Collection = new ProductCategory($atts['name'],'name');
 			unset($atts['name']);
 		} elseif (isset($atts['slug'])) {
-			foreach ($Shopp->Collections as $Collection) {
-				$Collection_slug = get_class_property($Collection,'_slug');
+			foreach ($Shopp->Collections as $SmartCollection) {
+				$Collection_slug = get_class_property($SmartCollection,'_slug');
 				if ($atts['slug'] == $Collection_slug) {
 					$tag = "$Collection_slug-products";
-					if ($tag == "search-results-products") $tag = "search-products";
 					unset($atts['slug']);
+					break;
 				}
 			}
+
 		} elseif (isset($atts['id'])) {
-			$Shopp->Category = new ProductCategory($atts['id']);
+			$Collection = new ProductCategory($atts['id']);
 			unset($atts['id']);
 		} else return "";
 
-		return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
+		$markup = shopp('catalog',"get-$tag",$atts);
 
+		// @deprecated in favor of the shopp_collection_shortcode
+		apply_filters('shopp_category_shortcode',$markup);
+
+		return apply_filters('shopp_collection_shortcode',$markup);
 	}
-
 
 	/**
 	 * Handles rendering the maintenance message in place of all shortcodes
@@ -1076,7 +1042,7 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Handles rendering the [buynow] shortcode
+	 * Handles rendering the [product-buynow] shortcode
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
