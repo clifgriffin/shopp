@@ -35,7 +35,7 @@ function shopp_register_collection ( $name = '' ) {
 	add_permastruct('shopp_collection', Storefront::slug()."/%shopp_collection%", true);
 
 	$apicall = create_function ('$result, $options, $O',
-		'global $Shopp; $Shopp->Category = new '.$name.'($options);
+		'ShoppCollection( new '.$name.'($options) );
 		return ShoppCatalogThemeAPI::category($result, $options, $O);'
 	);
 
@@ -44,6 +44,7 @@ function shopp_register_collection ( $name = '' ) {
 	if (is_array($altslugs)) $slugs = $altslugs;
 
 	foreach ($slugs as $collection) {
+		$collection = str_replace(array('-','_'),'',$collection); // Sanitize slugs
 		// @deprecated Remove the catalog-products tag in favor of catalog-collection
 		add_filter( 'shopp_themeapi_catalog_'.$collection.'products', $apicall, 10, 3 );
 		add_filter( 'shopp_themeapi_catalog_'.$collection.'collection', $apicall, 10, 3 );
