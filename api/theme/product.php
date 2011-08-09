@@ -60,10 +60,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'spec' => 'spec',
 		'specs' => 'specs',
 		'summary' => 'summary',
+		'stock' => 'stock',
 		'tag' => 'tag',
 		'tagged' => 'tagged',
 		'tags' => 'tags',
 		'taxrate' => 'taxrate',
+		'type' => 'type',
 		'variation' => 'variation',
 		'variations' => 'variations',
 		'weight' => 'weight'
@@ -859,6 +861,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
+	function stock ($result, $options, $O) { return (int)$O->stock; }
+
 	function summary ($result, $options, $O) { return apply_filters('shopp_product_summary',$O->summary); }
 
 	function tag ($result, $options, $O) {
@@ -892,6 +896,19 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$O); }
+
+	function type ($result, $options, $O) {
+		if (empty($O->prices)) $O->load_data(array('prices'));
+
+		if (1 == count($O->prices))
+			return $O->prices[0]->type;
+
+		$types = array();
+		foreach ($O->prices as $price)
+			if ('N/A' != $price->type) $types[$price->type] = $price->type;
+
+		return join(',',$types);
+	}
 
 	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS?$O->slug:array(Product::$posttype=>$O->slug) ); }
 
