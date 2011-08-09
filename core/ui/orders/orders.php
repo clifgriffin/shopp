@@ -95,7 +95,10 @@
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?><?php if (!empty($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> <?php _e('orders, yet.','Shopp'); ?></td></tr></tbody>
+		<tbody><tr><td colspan="7"><?php
+		printf(__('No %s orders yet.','Shopp'),(
+			isset($_GET['status'],$statusLabels[$_GET['status']]) ? strtolower($statusLabels[$_GET['status']]) : ''
+		)); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 

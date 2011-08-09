@@ -72,7 +72,7 @@
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?> <?php _e('customers, yet.','Shopp'); ?></td></tr></tbody>
+		<tbody><tr><td colspan="7"><?php _e('No customers yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 
