@@ -92,12 +92,34 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(1, $counts['addon']);
 		$this->AssertEquals(0, $counts['product']);
 
-		/*
-			TODO test addon and variant values
-		*/
-		print_r($Addon);
-		print_r($Variant);
+		// Variant assertions
+		$this->AssertEquals('1,11',$Variant->options);
+		$this->AssertEquals('medium, Navy Baby Solid', $Variant->label);
+		$this->AssertEquals('Shipped', $Variant->type);
+		$this->AssertEquals('variation', $Variant->context);
+		$this->AssertEquals('on', $Variant->sale);
+		$this->AssertEquals(40.00, $Variant->price);
+		$this->AssertEquals(19.99, $Variant->promoprice);
+		$this->AssertEquals(19.99, $Variant->saleprice);
+		$this->AssertEquals('on', $Variant->tax);
+		$this->AssertEquals('on', $Variant->shipping);
+		$this->AssertEquals('a:4:{s:6:"weight";d:1.1000000000000001;s:6:"height";d:2;s:5:"width";d:10;s:6:"length";d:10;}',serialize($Variant->dimensions));
+		$this->AssertEquals(1.5, $Variant->shipfee);
+		$this->AssertEquals('on', $Variant->inventory);
+		$this->AssertEquals(10, $Variant->stock);
+		$this->AssertEquals(10, $Variant->stocked);
+		$this->AssertEquals('WINDBREAKER1', $Variant->sku);
 
+		$this->AssertEquals('1',$Addon->options);
+		$this->AssertEquals('Embroidered', $Addon->label);
+		$this->AssertEquals('Shipped', $Addon->type);
+		$this->AssertEquals('addon', $Addon->context);
+		$this->AssertEquals('off', $Addon->sale);
+		$this->AssertEquals(10, $Addon->price);
+		$this->AssertEquals('on', $Addon->tax);
+		$this->AssertEquals('on', $Addon->shipping);
+		$this->AssertEquals(0, $Addon->shipfee);
+		$this->AssertEquals('off', $Addon->inventory);
 	}
 
 }

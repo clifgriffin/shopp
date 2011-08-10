@@ -1510,6 +1510,7 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Height, width, and length are required for one or more installed shipping module.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
+		if ( isset($settings['fee']) ) $Price->shipfee = $settings['fee'];
 	}
 
 	if ( $save ) return $Price->save();
