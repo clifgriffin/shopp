@@ -54,13 +54,24 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function _context_name ( $name ) {
 		switch ( $name ) {
-			case "collection":
-			case "category":
-			case "subcategory":
-			return "category";
+			case 'collection':
+			case 'category':
+			case 'subcategory':
+			return 'category';
 			break;
 		}
 		return $name;
+	}
+
+	static function _setobject ($Object, $context) {
+		switch ( $context ) {
+			case 'collection':
+			case 'category':
+			case 'subcategory':
+				return ShoppCollection();
+				break;
+		}
+		return $Object;
 	}
 
 	static function _apicontext () { return "category"; }
@@ -575,7 +586,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function slideshow ($result, $options, $O) {
 		$options['load'] = array('images');
-		if (!$O->loaded) $O->load_products($options);
+		if (!$O->loaded) $O->load($options);
 		if (count($O->products) == 0) return false;
 
 		$defaults = array(

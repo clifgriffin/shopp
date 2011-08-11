@@ -15,6 +15,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'breadcrumb' => 'breadcrumb',
 		'categories' => 'categories',
 		'category' => 'category',
+		'collection' => 'category',
 		'categorylist' => 'category_list',
 		'display' => 'type',
 		'type' => 'type',
