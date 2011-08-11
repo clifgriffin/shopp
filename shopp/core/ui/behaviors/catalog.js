@@ -192,7 +192,7 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 	_.slide = 0;
 	_.shuffling = new Array();
 	_.startTransition = function () {
-		var index,selected,prev = $(self.slides).find('.active').removeClass('active');
+		var index,selected,prev = $(_.slides[_.slide-1]).removeClass('active');
 		$(_.slides[_.slide]).css(_.effect[0]).appendTo(_.element).animate(
 				_.effect[1],
 				_.duration,
