@@ -86,7 +86,7 @@ class ShoppAPIFile extends ModuleFile {
 		$apicontext = call_user_func(array($api,'_apicontext'));
 
 		if (strtolower($context) != strtolower($apicontext)) return $Object; // do nothing
-		if (is_object($Object) && $apicontext == get_class($Object)) return $Object;  // still do nothing
+		if (is_object($Object) && $apicontext == strtolower(get_class($Object))) return $Object;  // still do nothing
 
 		global $Shopp;
 		$property = ucfirst($apicontext);
