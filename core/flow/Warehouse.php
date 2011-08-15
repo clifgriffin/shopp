@@ -584,6 +584,7 @@ class Warehouse extends AdminController {
 					$publish['hour'] += 12;
 				$publish = mktime($publish['hour'],$publish['minute'],0,$publish['month'],$publish['date'],$publish['year']);
 				$Product->status = 'future';
+				unset($_POST['status']);
 			} else {
 				unset($_POST['publish']);
 				// Auto set the publish date if not set (or more accurately, if set to an irrelevant timestamp)

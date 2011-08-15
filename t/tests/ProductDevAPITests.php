@@ -5,10 +5,10 @@
 class ProductDevAPITests extends ShoppTestCase
 {
 
-	function test_add_product () {
+	function test_shopp_add_product () {
 		$data = array(
 			'name' => "St. John's Bay® Color Block Windbreaker",
-			'publish' => array( 'flag' => false,
+			'publish' => array( 'flag' => true,
 								'publishtime' => array('month' => 12,
 								'day' => 25,
 								'year' => 2011,
@@ -120,6 +120,32 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals('on', $Addon->shipping);
 		$this->AssertEquals(0, $Addon->shipfee);
 		$this->AssertEquals('off', $Addon->inventory);
+
+	}
+
+	function test_shopp_product () {
+		$Product = shopp_product( 107 );
+		$this->AssertEquals(107, $Product->id);
+		$this->AssertEquals(
+			'a:1:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"190";s:7:"product";s:3:"107";s:7:"options";s:0:"";s:9:"optionkey";s:1:"0";s:5:"label";s:16:"Price & Delivery";s:7:"context";s:7:"product";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:49;s:9:"saleprice";d:44;s:6:"weight";s:8:"0.500000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"1";s:7:"created";s:19:"2009-10-13 15:05:56";s:8:"modified";s:19:"2009-10-13 15:05:56";s:10:"dimensions";a:0:{}s:10:"promoprice";d:44;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}}',
+			serialize($Product->prices)
+		);
+	}
+
+	function test_shopp_product_publish () {
+		shopp_product_publish ( 107, false );
+		$Product = shopp_product( 107 );
+		$this->AssertEquals('draft', $Product->status);
+
+		shopp_product_publish ( 107, true, mktime( 12, 0, 0, 12, 1, 2011) );
+		$Product = shopp_product( 107 );
+		$this->AssertEquals('future', $Product->status);
+		$this->AssertEquals($Product->publish, mktime( 12, 0, 0, 12, 1, 2011));
+
+		shopp_product_publish ( 107, true );
+		$Product = shopp_product( 107 );
+		$this->AssertEquals('publish', $Product->status);
+		$this->assertTrue(time() >= $Product->publish);
 	}
 
 }
