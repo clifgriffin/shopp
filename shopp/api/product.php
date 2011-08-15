@@ -36,25 +36,25 @@ function shopp_add_product ( $data = array() ) {
 	}
 
 	$Product = new Product();
-	$Product->ID = '';
 
 	// Set Product publish status
 	if ( isset($data['publish']) && isset($data['publish']['flag']) && $data['publish']['flag'] ) {
-		if ( isset($data['publish']['month'])
-			&& isset($data['publish']['day'])
-			&& isset($data['publish']['year'])
-			&& isset($data['publish']['hour'])
-			&& isset($data['publish']['minute'])
-			&& isset($data['publish']['meridian']) ) {
+		if ( isset($data['publish']['publishtime']['month'])
+			&& isset($data['publish']['publishtime']['day'])
+			&& isset($data['publish']['publishtime']['year'])
+			&& isset($data['publish']['publishtime']['hour'])
+			&& isset($data['publish']['publishtime']['minute'])
+			&& isset($data['publish']['publishtime']['meridian']) ) {
 
-			if ($data['publish']['meridiem'] == "PM" && $data['publish']['hour'] < 12)
-				$data['publish']['hour'] += 12;
-			$Product->publish = mktime( $data['publish']['hour'],
-								$data['publish']['minute'],
+			if ($data['publish']['publishtime']['meridian'] == "PM" && $data['publish']['publishtime']['hour'] < 12)
+				$data['publish']['publishtime']['hour'] += 12;
+
+			$Product->publish = mktime( $data['publish']['publishtime']['hour'],
+								$data['publish']['publishtime']['minute'],
 								0,
-								$data['publish']['month'],
-								$data['publish']['date'],
-								$data['publish']['year'] );
+								$data['publish']['publishtime']['month'],
+								$data['publish']['publishtime']['day'],
+								$data['publish']['publishtime']['year'] );
 			$Product->status = 'future';
 		} else {
 			// Auto set the publish date if not set (or more accurately, if set to an irrelevant timestamp)
@@ -408,7 +408,7 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 // Product-wide getters
 
 /**
- * shopp_product
+ * shopp_product - retrieve a Shopp product by id
  *
  * @author John Dillick
  * @since 1.2
@@ -454,16 +454,20 @@ function shopp_product_publish ( $product = false, $flag = false, $datetime = fa
 		return false;
 	}
 
-	if ( ! $flag ) $Product->publish = 0;
-	else {
+	$Product->status = 'draft';
+	$Product->publish = 0;
+
+	if ( $flag ) {
+		$Product->status = 'publish';
 		$Product->publish = time();
+
 		if ( $datetime && $datetime > $Product->publish ) {
 			$Product->publish = $datetime;
 			$Product->status = 'future';
 		}
 	}
 	$Product->save();
-	Product::publishset(array($Product->id), $flag ? 'publish' : 'draft');
+
 	return true;
 
 }

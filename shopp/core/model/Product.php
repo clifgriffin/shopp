@@ -70,6 +70,11 @@ class Product extends WPShoppObject {
 		$this->load($id,$key);
 	}
 
+	function save () {
+		if ( ! isset($this->ID) ) $this->ID = $this->id ? $this->id : null;
+		parent::save();
+	}
+
 	function posttype () {
 		return self::$posttype;
 	}
