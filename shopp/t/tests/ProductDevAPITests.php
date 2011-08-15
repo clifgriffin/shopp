@@ -148,5 +148,19 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->assertTrue(time() >= $Product->publish);
 	}
 
+	function test_shopp_product_specs () {
+		$specs = shopp_product_specs( 121 );
+		$this->assertTrue(in_array('Model No.', array_keys($specs)));
+		$this->assertTrue(in_array('Gender', array_keys($specs)));
+		$this->AssertEquals(116, $specs['Model No.']->value);
+		$this->AssertEquals('Women', $specs['Gender']->value);
+	}
+
+	function test_shopp_product_variants () {
+		$variations = shopp_product_variants(70);
+		$expected = 'a:2:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"119";s:7:"product";s:2:"70";s:7:"options";s:2:"11";s:9:"optionkey";s:5:"77011";s:5:"label";s:10:"Widescreen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"2";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}i:1;O:8:"stdClass":29:{s:2:"id";s:3:"120";s:7:"product";s:2:"70";s:7:"options";s:2:"12";s:9:"optionkey";s:5:"84012";s:5:"label";s:11:"Full-Screen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"3";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}}';
+		$actual = serialize($variations);
+		$this->AssertEquals($expected,$actual);
+	}
 }
 ?>
