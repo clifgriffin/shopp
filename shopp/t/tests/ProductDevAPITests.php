@@ -162,5 +162,40 @@ class ProductDevAPITests extends ShoppTestCase
 		$actual = serialize($variations);
 		$this->AssertEquals($expected,$actual);
 	}
+
+	function test_shopp_product_addons () {
+		$addons = shopp_product_addons(130);
+		$testing = array (
+		'id' => 302,
+        'product' => 130,
+        'options' => 1,
+        'optionkey' => 7001,
+        'label' => 'Embroidered',
+        'context' => 'addon',
+        'type' => 'Shipped',
+        'price' => 10
+		);
+		foreach ( $testing as $key => $value ) {
+			$this->AssertEquals($addons[0]->$key, $value);
+		}
+	}
+
+	function test_shopp_product_variant () {
+		$Price = shopp_product_variant(array( 'product' => 130, 'option' => array('Size'=>'medium', 'Color'=>'Navy Baby Solid')), 'variant');
+		$this->AssertEquals(79754, $Price->optionkey);
+		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
+		$this->AssertEquals('variation', $Price->context);
+
+		$Price = shopp_product_variant(array( 'product' => 130, 'option' => array('Special' => 'Embroidered') ), 'addon' );
+		$this->AssertEquals(7001, $Price->optionkey);
+		$this->AssertEquals('Embroidered', $Price->label);
+		$this->AssertEquals('addon', $Price->context);
+
+		$Price = shopp_product_variant(array( 'product' => 31), 'product');
+		$this->AssertEquals(42, $Price->id);
+		$this->AssertEquals('Price & Delivery', $Price->label);
+		$this->AssertEquals('product', $Price->context);
+	}
+
 }
 ?>
