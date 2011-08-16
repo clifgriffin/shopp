@@ -135,6 +135,7 @@ class PurchaseAPITests extends ShoppTestCase {
 		shopp('purchase','postcode');
 		$actual = ob_get_contents();
 		ob_end_clean();
+
 		$this->assertEquals('95131',$actual);
 	}
 
@@ -225,7 +226,7 @@ class PurchaseAPITests extends ShoppTestCase {
 		shopp('purchase','item-product');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('11',$actual);
+		$this->assertEquals('24',$actual);
 	}
 
 	function test_purchase_item_price () {
