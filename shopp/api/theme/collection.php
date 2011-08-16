@@ -67,8 +67,11 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		switch ( $context ) {
 			case 'collection':
 			case 'category':
-			case 'subcategory':
 				return ShoppCollection();
+				break;
+			case 'subcategory':
+				if (isset(ShoppCollection()->child))
+					return ShoppCollection()->child;
 				break;
 		}
 		return $Object;
