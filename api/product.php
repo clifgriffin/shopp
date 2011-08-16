@@ -560,21 +560,97 @@ function shopp_product_addons ( $product = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $variant the id of the variant
+ * @param mixed $variant the id of the variant, or array('product'=>int, 'option' => array('menu1name'=>'option', 'menu2name'=>'option') ) to specify variant by product id and option
+ * @param string $pricetype (optional default:variant) product, variant, or addon
  * @return Price Price object or false on error
  **/
-function shopp_product_variant ( $variant = false ) {
+function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 	if ( false === $variant ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Price = new Price($variant);
-	if ( empty($Price->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load variant $variant.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	if ( is_int($variant) ) {
+		$Price = new Price($variant);
+		if ( empty($Price->id) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load variant $variant.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+	} else if ( is_array($variant) ) {  // specifying variant by product id and option
+		$Product = new stdClass;
+		if ( isset($variant['product']) && is_int($variant['product']) ) {
+			$Product = new Product($variant['product']);
+			$Product->load_data();
+		}
+
+		if ( empty($Product->id) || empty($Product->prices) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load variant.  Invalid Product.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		$pricetype = ($pricetype == 'variant' ? 'variation' : $pricetype);
+		$pricetypes = array('product', 'variation', 'addon');
+		if ( ! in_array($pricetype, $pricetypes) ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid pricetype.  Can be product, variant, or addon.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		if ( 'product' == $pricetype ) {
+			// No product context for product with variants
+			if ( 'on' == $Product->variants ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid pricetype for this product.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+
+			foreach ( $Product->prices as $price ) {
+				if ( 'product' == $price->context ) {
+					$Price = $price;
+					break;
+				}
+			}
+		} else { // addon or variant
+			if ( ! isset($variant['option']) || ! is_array($variant['option']) || empty($variant['option']) ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing option array.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+
+			$menukey = substr($pricetype, 0, 1);
+			$flag = $pricetype == 'variant' ? 'variants' : 'addons';
+			if ( ! isset($Product->options[$menukey]) || $Product->$flag == 'off' ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No product variant options of type $pricetype.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+
+			// build simple option menu array
+			$menu = array();
+			foreach ( $Product->options[$menukey] as $optionmenu ) {
+				$key = $optionmenu['name'];
+				$menu[$key] = array();
+				foreach ( $optionmenu['options'] as $option ) {
+					$menu[$key][] = $option['name'];
+				}
+			}
+			$optionkey = $Product->optionmap( $variant['option'], $menu , $pricetype, 'optionkey' );
+			if ( ! $optionkey ) {
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid option.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				return false;
+			}
+
+			// Find the option
+			foreach ( $Product->prices as $price ) {
+				if ( $price->context == $pricetype && $price->optionkey == $optionkey ) {
+					$Price = $price;
+					break;
+				}
+			}
+		} // end if producttype
+	}
+	if ( ! isset($Price) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product, Variant, or Addon Price object could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
+
 	return $Price;
-}
+} // end shopp_product_variant
 
 /**
  * shopp_product_addon - get a specific addon Price object.  The function is just an alias for shopp_product_variant, so it is up the programmer to know
@@ -583,11 +659,11 @@ function shopp_product_variant ( $variant = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $addon the id of the addon
+ * @param mixed $variant the id of the variant, or array('product'=>int, 'option' => array('addonmenu'=>'optionname') ) to specify addon by product id and option
  * @return Price Price object of the addon or false on error
  **/
 function shopp_product_addon ( $addon = false ) {
-	return shopp_product_variant($addon);
+	return shopp_product_variant( $addon, 'addon' );
 }
 
 /**
