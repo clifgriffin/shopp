@@ -77,9 +77,9 @@ class ShippingAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'radio','name' => 'shipmethod','value' => 'Standard','class' => 'shipmethod')
+			'attributes' => array('type' => 'radio','name' => 'shipmethod','value' => 'OrderRates-0','class' => 'shopp shipmethod')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 	}
 
 	function test_shipping_methoddelivery () {
@@ -95,7 +95,8 @@ class ShippingAPITests extends ShoppTestCase {
 		shopp('shipping','method-delivery');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertTrue(!empty($actual));
+
+		$this->assertTrue(!empty($actual),'Shipping method delivery timeframe should not be empty.');
 	}
 
 
