@@ -18,7 +18,7 @@ class CategoryAPITests extends ShoppTestCase {
 
 		if (!$Shopp->Catalog) $Shopp->Catalog = new Catalog();
 
-		shopp('catalog','category','id=1&load=true');
+		shopp('catalog','category','id=3&load=true');
 	}
 
 	function test_category_url () {
@@ -34,7 +34,7 @@ class CategoryAPITests extends ShoppTestCase {
 		shopp('category','id');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('1',$actual);
+		$this->assertEquals('3',$actual);
 	}
 
 	function test_category_name () {
@@ -68,7 +68,7 @@ class CategoryAPITests extends ShoppTestCase {
 			while(shopp('category','products')) shopp('product','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('116179325628235255',$output);
+		$this->assertEquals('129302245694136656849595212812733',$output);
 	}
 
 	function test_category_total () {
@@ -95,7 +95,7 @@ class CategoryAPITests extends ShoppTestCase {
 			while(shopp('category','subcategories')) shopp('subcategory','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('27853141196',$output);
+		$this->assertEquals('357',$output);
 	}
 
 	function test_category_subcategorylist () {
@@ -137,6 +137,7 @@ class CategoryAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 
+/*
 	function test_category_coverimage () {
 		shopp('catalog','category','id=17&load=1');
 
@@ -148,6 +149,7 @@ class CategoryAPITests extends ShoppTestCase {
 		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/691/idIconGaming.gif?96,96,3901571377" title="Games" alt="Controller Icon" width="96" height="95"/>',$actual,$actual);
 		$this->assertValidMarkup($actual);
 	}
+*/
 
 	function test_category_image_tags () {
 		ob_start();
@@ -156,10 +158,6 @@ class CategoryAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 	}
-
-
-
-
 
 } // end CategoryAPITests class
 

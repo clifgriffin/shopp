@@ -540,8 +540,8 @@ class ProductCategory extends ProductTaxonomy {
 	// static $table = "category";
 	// var $loaded = false;
 	// var $paged = false;
-	// var $children = array();
-	// var $child = false;
+	var $children = array();
+	var $child = false;
 	// var $parent = 0;
 	// var $total = 0;
 	// var $description = "";
@@ -665,14 +665,19 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return boolean successfully loaded or not
 	 **/
 	function load_children($loading=array()) {
-		if (isset($this->smart)
-			|| empty($this->id)
-			|| empty($this->uri)) return false;
+		if ((isset($this->smart) && $this->smart)
+			|| empty($this->id)) return false;
 
-		$db = DB::get();
-		$catalog_table = DatabaseObject::tablename(Catalog::$table);
+		$args = array_merge($loading,array('child_of'=>$this->id,'hide_empty' => 0,'fields'=>'id=>parent'));
+		$terms = get_terms( self::$taxonomy, $args );
 
-		// @todo Refactor to use WP taxonomy lookups
+		$this->children = array();
+		foreach ( (array)$terms as $term )
+			$this->children[$term] = new ProductCategory($term);
+		return (!empty($this->children));
+
+		// DISABLED
+
 		$defaults = array(
 			'columns' => 'cat.*,count(sc.product) as total',
 			'joins' => array("LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.taxonomy='$this->taxonomy'"),
