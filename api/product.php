@@ -722,7 +722,7 @@ function shopp_product_addon_options ( $product = false ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Product->load_data('summary');
+	$Product->load_data(array('summary'));
 
 	if ( "off" == $Product->addons ) return false;
 
@@ -762,7 +762,7 @@ function shopp_product_add_categories ( $product = false, $categories = array() 
  * @author John Dillick
  * @since 1.2
  *
- * @param int $product (required) Product id to add the product teags to.
+ * @param int $product (required) Product id to add the product tags to.
  * @param array $tags array of tags/(tag ids) to add to the product
  * @return bool true for success, false otherwise
  **/

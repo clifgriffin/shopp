@@ -44,7 +44,8 @@ function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
  * @param int $product (required) product id to add
  * @param int $quantity (optional default: 1) quantity of product to add
  * @param int $variant (optional) variant id to use
- * @return bool true on success, false on failure
+ * @return bool true on success,
+ * false on failure
  **/
 function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = false ) {
 	global $Shopp;
@@ -61,6 +62,7 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
 		return false;
 	}
 
+
 	if ( false !== $variant ) {
 		$Price = new Price( $variant );
 		if ( empty($Price->id) || $Price->product != $product) {
@@ -69,7 +71,7 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
 		}
 	}
 
-	return $Shopp->Cart->add($quantity, $Product, $price);
+	return $Shopp->Cart->add($quantity, $Product, $variant);
 }
 
 
