@@ -24,13 +24,14 @@ class CatalogAPITests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/store/',$actual);
 	}
 
-	function test_catalog_type () {
-		ob_start();
-		shopp('catalog','type');
-		$actual = ob_get_contents();
-		ob_end_clean();
-		$this->assertEquals('catalog',$actual);
-	}
+	// @deprecated
+	// function test_catalog_type () {
+	// 	ob_start();
+	// 	shopp('catalog','type');
+	// 	$actual = ob_get_contents();
+	// 	ob_end_clean();
+	// 	$this->assertEquals('catalog',$actual);
+	// }
 
 	// Can't get this to work yet, need better http environment emulator
 	// function test_catalog_iscatalog () {
@@ -188,7 +189,7 @@ class CatalogAPITests extends ShoppTestCase {
 
 	function test_catalog_category () {
 		ob_start();
-		shopp('catalog','category','show=3&id=1');
+		shopp('catalog','category','show=3&id=3');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);

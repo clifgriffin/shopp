@@ -184,22 +184,20 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$string = "";
 
 		if ($O->outofstock) {
-			$string .= '<span class="outofstock">'.shopp_setting('outofstock_text').'</span>';
+			$string .= '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
 			return $string;
 		}
 		if (isset($options['redirect']) && !isset($options['ajax']))
-			$string .= '<input type="hidden" name="redirect" value="'.$options['redirect'].'" />';
+			$string .= '<input type="hidden" name="redirect" value="'.esc_attr($options['redirect']).'" />';
 
 		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
 		if (!empty($O->prices[0]) && $O->prices[0]->type != "N/A")
 			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$O->prices[0]->id.'" />';
 
-		if (!empty($Shopp->Category)) {
-			if (SHOPP_PRETTYURLS)
-				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.$Shopp->Category->slug.'" />';
-			else
-				$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';
+		$collection = isset(ShoppCollection()->slug)?shopp('collection','get-slug'):false;
+		if (!empty($collection)) {
+			$string .= '<input type="hidden" name="products['.$O->id.'][category]" value="'.esc_attr($collection).'" />';
 		}
 
 		$string .= '<input type="hidden" name="cart" value="add" />';
@@ -739,7 +737,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if ("before" == $labelpos) $_[] = $labeling;
 		if ("menu" == $input) {
-			if ($O->inventory && $O->max['stock'] == 0) return "";
+			if (str_true($O->inventory) && isset($O->max['stock']) && $O->max['stock'] == 0) return "";
 
 			if (strpos($options,",") !== false) $options = explode(",",$options);
 			else $options = array($options);
@@ -761,7 +759,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					$amount = money($amount);
 					$selection = $variation->price;
 				} else {
-					if ($O->inventory && $amount > $O->max['stock']) continue;
+					if (str_true($O->inventory) && $amount > $O->max['stock']) continue;
 				}
 				$selected = ($qty==$selection)?' selected="selected"':'';
 				$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
