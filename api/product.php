@@ -487,13 +487,13 @@ function shopp_product_specs ( $product = false ) {
 		return false;
 	}
 
-	$Product = new Product($product);
-	if ( empty($Product->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
-		return false;
+	$Specs = shopp_product_meta ( $product, false, 'spec' );
+	foreach ( $Specs as $id => $spec) {
+		$Specs[$spec->name] = $spec;
+		unset($Specs[$id]);
 	}
-	$Product->load_data(array('specs'));
-	return $Product->specs;
+
+	return ! empty($Specs) ? $Specs : array();
 }
 
 /**

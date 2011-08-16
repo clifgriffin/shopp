@@ -249,7 +249,25 @@ class ProductDevAPITests extends ShoppTestCase
 		$Product = shopp_product(130);
 		$this->AssertEquals('Waterproof', $Product->tags[$tag]->name);
 		$this->AssertEquals('Fashionable', $Product->tags[$tag2]->name);
+	}
 
+	function test_shopp_product_set_specs () {
+		shopp_product_rmv_spec(130, 'pockets');
+		shopp_product_rmv_spec(130, 'drawstring');
+		shopp_product_rmv_spec(130, 'washable');
+
+		$Product = shopp_product(130);
+
+		$this->assertTrue(! isset($Product->specs) || empty($Product->specs));
+
+		$specs = array('pockets'=>2, 'drawstring'=>'yes','washable'=>'yes');
+		shopp_product_set_specs ( 130, $specs);
+
+		$Specs = shopp_product_specs(130);
+
+		$this->AssertEquals(2, $Specs['pockets']->value);
+		$this->AssertEquals('yes', $Specs['drawstring']->value);
+		$this->AssertEquals('yes', $Specs['washable']->value);
 	}
 }
 ?>
