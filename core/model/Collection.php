@@ -442,11 +442,11 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	function save () {
-		$properties = array('slug','description','parent');
+		$properties = array('slug'=>null,'description'=>null,'parent'=>null);
 		$updates = array_intersect_key(get_object_vars($this),$properties);
 
 		if ($this->id) wp_update_term($this->name,$this->taxonomy,$updates);
-		else wp_insert_term($this->name,$this->taxonomy,$updates);
+		else list($this->id, $this->term_taxonomy_id) = array_values(wp_insert_term($this->name, $this->taxonomy, $updates));
 
 		if (!$this->id) return false;
 
