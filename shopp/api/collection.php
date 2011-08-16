@@ -88,6 +88,8 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 
 	$Category = new ProductCategory();
 	$Category->name = $name;
+	$Category->slug = sanitize_title_with_dashes($Category->name);
+	$Category->meta = array();
 
 	if ( $parent ) {
 		if ( ! term_exists($parent, ProductCategory::$taxonomy) ) {
@@ -98,8 +100,8 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 	}
 
 	if ( $description ) $Category->description = $description;
-
 	$Category->save();
+
 	return $Category->id;
 }
 
@@ -140,6 +142,7 @@ function shopp_add_product_tag ( $tag = '' ) {
 		return false;
 	}
 	$Tag = new ProductTag( array('name'=>$tag) );
+	$Tag->name = $tag;
 
 	if ( empty($Tag->id) ) $Tag->save();
 

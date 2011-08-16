@@ -222,5 +222,34 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals('a:2:{s:4:"Size";a:9:{i:0;s:6:"medium";i:1;s:5:"large";i:2;s:7:"x-large";i:3;s:5:"small";i:4;s:8:"xx-large";i:5;s:10:"large-tall";i:6;s:12:"x-large tall";i:7;s:13:"2x-large tall";i:8;s:8:"2x-large";}s:5:"Color";a:5:{i:0;s:18:"Black/Grey Colorbi";i:1;s:15:"Navy Baby Solid";i:2;s:18:"Red/Iron Colorbloc";i:3;s:10:"Iron Solid";i:4;s:17:"Dark Avocado Soil";}}',
 		serialize($options));
 	}
+
+	function test_shopp_product_addon_options () {
+		$addon_options = shopp_product_addon_options ( 130 );
+		$this->AssertEquals('a:1:{s:7:"Special";a:1:{i:0;s:11:"Embroidered";}}', serialize($addon_options));
+	}
+
+	function test_shopp_product_add_categories () {
+		$category = shopp_add_product_category ( 'Jackets', "Men's Jackets", 5 );
+		$this->assertTrue(shopp_product_add_categories(130, array($category)));
+		$this->AssertEquals(62, $category);
+
+		$Product = shopp_product(130);
+
+		$this->assertTrue(isset($Product->categories[62]));
+		$this->AssertEquals('jackets', $Product->categories[62]->slug);
+		$this->AssertEquals('Jackets', $Product->categories[62]->name);
+		$this->AssertEquals("Men's Jackets", $Product->categories[62]->description);
+	}
+
+	function test_shopp_product_add_tags () {
+		$tag = shopp_add_product_tag ( 'Waterproof' );
+		$tag2 = shopp_add_product_tag ( 'Fashionable' );
+		$this->AssertTrue( shopp_product_add_tags(130, array($tag, 'Fashionable')) );
+
+		$Product = shopp_product(130);
+		$this->AssertEquals('Waterproof', $Product->tags[$tag]->name);
+		$this->AssertEquals('Fashionable', $Product->tags[$tag2]->name);
+
+	}
 }
 ?>
