@@ -1163,9 +1163,10 @@ class TagProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
 
-		$terms = get_terms(ProductTag::$taxonomy);
-
 		$this->tag = stripslashes(urldecode($options['tag']));
+
+		$term = get_term_by('name',$this->tag,ProductTag::$taxonomy);
+
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {
 			$tags = explode(",",$options['tag']);
@@ -1177,9 +1178,10 @@ class TagProducts extends SmartCollection {
 		$this->uri = urlencode($this->tag);
 
 		global $wpdb;
+		$joins = array();
 		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
-		$where[] = "tt.term_id IN (".join(',',$scope).")";
+		$where = array("tt.term_id='$term->term_id'");
 		$columns = 'COUNT(p.ID) AS score';
 		$groupby = 'p.ID';
 		$order = 'score DESC';

@@ -1318,11 +1318,15 @@ function get_wp_query_var ($key) {
  * @since 1.1
  *
  * @param string $string The content markup to be wrapped
+ * @param array $classes CSS classes to add to the container
  * @return string The wrapped markup
  **/
-function shoppdiv ($string) {
-	if (strpos($string,'<div id="shopp">') === false)
-		return '<div id="shopp">'.$string.'</div>';
+function shoppdiv ($string,$classes=array()) {
+	if (!is_array($classes)) $classes = array();
+	$classes = esc_attr(join(' ',$classes));
+
+	if (strpos($string,'<div id="shopp"') === false)
+		return '<div id="shopp"'.(!empty($classes)?' class="'.$classes.'"':'').'>'.$string.'</div>';
 	return $string;
 }
 

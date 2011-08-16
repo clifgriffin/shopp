@@ -278,6 +278,15 @@ class Storefront extends FlowController {
 		global $wp_query;
 		$Collection = ShoppCollection();
 
+		$view = 'grid';
+		$views = array('list','grid');
+		$classes = array('collection');
+
+		// Handle catalog view style cookie preference
+		if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
+		else $view = shopp_setting('default_catalog_view');
+		if (in_array($view,$views)) $classes[] = $view;
+
 		// Short-circuit the loop for the archive/category requests
 		$wp_query->current_post = $wp_query->post_count;
 		ob_start();
@@ -294,7 +303,7 @@ class Storefront extends FlowController {
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return shoppdiv($content);
+		return shoppdiv($content,$classes);
 	}
 
 
@@ -720,48 +729,48 @@ class Storefront extends FlowController {
 	// 	return $redirect;
 	// }
 
-	function catalog_page () {
-		global $Shopp,$wp;
-		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
-
-		$referrer = get_bloginfo('url')."/".$wp->request;
-		if (!empty($wp->query_vars)) $referrer = add_query_arg($wp->query_vars,$referrer);
-		$this->referrer = $referrer;
-
-		ob_start();
-		switch ($Shopp->Catalog->type) {
-			case "product":
-				if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
-					include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
-				else include(SHOPP_TEMPLATES."/product.php"); break;
-
-			case "category":
-				if (isset($Shopp->Category->slug) &&
-					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
-					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-				elseif (isset($Shopp->Category->id) &&
-					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
-					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
-				else include(SHOPP_TEMPLATES."/category.php"); break;
-
-			default: include(SHOPP_TEMPLATES."/catalog.php"); break;
-		}
-		$content = ob_get_contents();
-		ob_end_clean();
-
-		$classes = $Shopp->Catalog->type;
-		if (!isset($_COOKIE['shopp_catalog_view'])) {
-			// No cookie preference exists, use shopp default setting
-			$view = shopp_setting('default_catalog_view');
-			if ($view == "list") $classes .= " list";
-			if ($view == "grid") $classes .= " grid";
-		} else {
-			if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
-			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
-		}
-
-		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'</div>');
-	}
+	// function catalog_page () {
+	// 	global $Shopp,$wp;
+	// 	if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
+	//
+	// 	$referrer = get_bloginfo('url')."/".$wp->request;
+	// 	if (!empty($wp->query_vars)) $referrer = add_query_arg($wp->query_vars,$referrer);
+	// 	$this->referrer = $referrer;
+	//
+	// 	ob_start();
+	// 	switch ($Shopp->Catalog->type) {
+	// 		case "product":
+	// 			if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
+	// 				include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
+	// 			else include(SHOPP_TEMPLATES."/product.php"); break;
+	//
+	// 		case "category":
+	// 			if (isset($Shopp->Category->slug) &&
+	// 				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+	// 				include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
+	// 			elseif (isset($Shopp->Category->id) &&
+	// 				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+	// 				include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
+	// 			else include(SHOPP_TEMPLATES."/category.php"); break;
+	//
+	// 		default: include(SHOPP_TEMPLATES."/catalog.php"); break;
+	// 	}
+	// 	$content = ob_get_contents();
+	// 	ob_end_clean();
+	//
+	// 	$classes = $Shopp->Catalog->type;
+	// 	if (!isset($_COOKIE['shopp_catalog_view'])) {
+	// 		// No cookie preference exists, use shopp default setting
+	// 		$view = shopp_setting('default_catalog_view');
+	// 		if ($view == "list") $classes .= " list";
+	// 		if ($view == "grid") $classes .= " grid";
+	// 	} else {
+	// 		if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
+	// 		if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
+	// 	}
+	//
+	// 	return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'</div>');
+	// }
 
 	/**
 	 * Handles shopping cart requests

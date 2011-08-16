@@ -39,28 +39,39 @@ class Catalog {
 	 * @return boolean|object True when categories are loaded and processed, object of results when $results is set
 	 **/
 	function load_categories ($loading=array(),$showsmart=false,$results=false) {
-		// $db = DB::get();
-		// $category_table = DatabaseObject::tablename(ProductCategory::$table);
-		// $product_table = DatabaseObject::tablename(Product::$table);
-		// $price_table = DatabaseObject::tablename(Price::$table);
-		// $ct_id = get_catalog_taxonomy_id('category');
-		//
-		// $defaults = array(
-		// 	'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pd.inventory='off',1,0) OR pd.inventory IS NULL)>0,'off','on') AS inventory, SUM(pd.stock) AS stock",
-		// 	'where' => array(),
-		// 	'joins' => array(
-		// 		"LEFT OUTER JOIN $this->_table AS sc FORCE INDEX(assignment) ON sc.parent=cat.id AND sc.taxonomy='$ct_id'",
-		// 		"LEFT OUTER JOIN $product_table AS pd ON sc.product=pd.id"
-		// 	),
-		// 	'limit' => false,
-		// 	'orderby' => 'name',
-		// 	'order' => 'ASC',
-		// 	'parent' => false,
-		// 	'ancestry' => false,
-		// 	'outofstock' => $this->outofstock,
-		// );
-		// $options = array_merge($defaults,$loading);
-		// extract($options);
+
+		$terms = get_terms(ProductCategory::$taxonomy);
+		foreach ($terms as $term)
+			$this->categories[] = new ProductCategory($term);
+
+		if ($showsmart == "before" || $showsmart == "after")
+			$this->collections($showsmart);
+
+		return;
+
+		/* @deprecated
+		$db = DB::get();
+		$category_table = DatabaseObject::tablename(ProductCategory::$table);
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$price_table = DatabaseObject::tablename(Price::$table);
+		$ct_id = get_catalog_taxonomy_id('category');
+
+		$defaults = array(
+			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pd.inventory='off',1,0) OR pd.inventory IS NULL)>0,'off','on') AS inventory, SUM(pd.stock) AS stock",
+			'where' => array(),
+			'joins' => array(
+				"LEFT OUTER JOIN $this->_table AS sc FORCE INDEX(assignment) ON sc.parent=cat.id AND sc.taxonomy='$ct_id'",
+				"LEFT OUTER JOIN $product_table AS pd ON sc.product=pd.id"
+			),
+			'limit' => false,
+			'orderby' => 'name',
+			'order' => 'ASC',
+			'parent' => false,
+			'ancestry' => false,
+			'outofstock' => $this->outofstock,
+		);
+		$options = array_merge($defaults,$loading);
+		extract($options);
 
 		if (!is_array($where)) $where = array($where);
 
@@ -145,6 +156,7 @@ class Catalog {
 			$this->collections($showsmart);
 
 		return true;
+		*/
 	}
 
 	/**

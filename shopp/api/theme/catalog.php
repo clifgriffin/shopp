@@ -609,8 +609,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	}
 
 	function tag_products ($result, $options, $O) {
-		global $Shopp;
-		$Shopp->Category = new TagProducts($options);
+		ShoppCollection( new TagProducts($options) );
 		return self::category($result, $options, $O);
 	}
 
