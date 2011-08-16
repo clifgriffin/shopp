@@ -167,13 +167,13 @@ class ProductDevAPITests extends ShoppTestCase
 		$addons = shopp_product_addons(130);
 		$testing = array (
 		'id' => 302,
-        'product' => 130,
-        'options' => 1,
-        'optionkey' => 7001,
-        'label' => 'Embroidered',
-        'context' => 'addon',
-        'type' => 'Shipped',
-        'price' => 10
+	        'product' => 130,
+	        'options' => 1,
+	        'optionkey' => 7001,
+	        'label' => 'Embroidered',
+	        'context' => 'addon',
+	        'type' => 'Shipped',
+	        'price' => 10
 		);
 		foreach ( $testing as $key => $value ) {
 			$this->AssertEquals($addons[0]->$key, $value);
@@ -268,6 +268,25 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(2, $Specs['pockets']->value);
 		$this->AssertEquals('yes', $Specs['drawstring']->value);
 		$this->AssertEquals('yes', $Specs['washable']->value);
+	}
+
+	function test_shopp_product_add_terms () {
+		shopp_register_taxonomy('brand', array(
+	        'hierarchical' => true
+	    ));
+
+		$term = shopp_add_product_term("Domestic Brands", 'shopp_brand');
+		$term1 = shopp_add_product_term("St. John's Bay", 'shopp_brand', $term);
+
+		shopp_product_add_terms(130, array($term,$term1), 'shopp_brand');
+		$Product = shopp_product(130);
+
+		$this->AssertEquals("Domestic Brands", $Product->shopp_brands[$term]->name);
+		$this->AssertEquals("domestic-brands", $Product->shopp_brands[$term]->slug);
+
+		$this->AssertEquals("St. John's Bay", $Product->shopp_brands[$term1]->name);
+		$this->AssertEquals("st-johns-bay", $Product->shopp_brands[$term1]->slug);
+		$this->AssertEquals($term, $Product->shopp_brands[$term1]->parent);
 	}
 }
 ?>

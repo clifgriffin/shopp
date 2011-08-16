@@ -176,16 +176,17 @@ function shopp_rmv_product_tag ( $tag = '' ) {
 }
 
 /**
- * shopp_add_product_term - Add a taxonomical term to a product.
+ * shopp_add_product_term - create a new taxonimical term.
  *
  * @author John Dillick
  * @since 1.2
  *
- * @param string $term (required) The term name to be added to the product.
+ * @param string $term (required) the new term name.
  * @param string $taxonomy (optional default:shopp_category) The taxonomy name.  The taxonomy specified must be of the Shopp product object type.
+ * @param int $parent (option default:0) the parent term id.
  * @return int|bool term id on success, false on failure
  **/
-function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category' ) {
+function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category', $parent = false ) {
 	if ( ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $taxonomy not a shopp product taxonomy.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
@@ -195,8 +196,12 @@ function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category' ) {
 		return false;
 	}
 
-	$term = wp_create_term( $term, $taxonomy );
-	return ( is_array($term) && $term['term_id'] ? $term['term_id'] : false );
+	$term_obj = term_exists( $term, $taxonomy, $parent ? $parent : 0 );
+	if ( ! $term_obj ) {
+		$term_obj = wp_insert_term( $term, $taxonomy, ($parent ? array('parent' => $parent) : array()) );
+	}
+
+	return ( is_array($term_obj) && $term_obj['term_id'] ? $term_obj['term_id'] : false );
 }
 
 /**
