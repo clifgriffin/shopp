@@ -483,10 +483,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			'title' => '',
 			'type' => 'hidden',
 			'value' => '',
-			'cols' => '30',
-			'rows' => '3',
 			'options' => ''
 		);
+		if ('textarea' == $defaults['type']) {
+			$defaults['cols'] = '30';
+			$defaults['rows'] = '3';
+		}
 		$op = array_merge($defaults,$options);
 		extract($op);
 
@@ -654,10 +656,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			'title' => '',
 			'type' => 'hidden',
 			'value' => '',
-			'cols' => '30',
-			'rows' => '3',
 			'options' => ''
 		);
+		if ('textarea' == $defaults['type']) {
+			$defaults['cols'] = '30';
+			$defaults['rows'] = '3';
+		}
 		$op = array_merge($defaults,$options);
 		extract($op);
 
