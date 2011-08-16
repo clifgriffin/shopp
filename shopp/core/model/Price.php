@@ -87,7 +87,6 @@ class Price extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function load_download () {
-		if(SHOPP_DEBUG) new ShoppError("loading download for price ".$this->id,false,SHOPP_DEBUG_ERR);
 		if ($this->type != "Download") return false;
 		$this->download = new ProductDownload();
 		$this->download->load(array(
@@ -102,7 +101,7 @@ class Price extends DatabaseObject {
 
 	function load_settings () {
 		$settings = shopp_meta ( $this->id, 'price', 'settings');
-		if ( ! is_array( $settings ) ) {
+		if ( is_array( $settings ) ) {
 			foreach ( $settings as $property => $setting ) {
 				$this->{$property} = $setting;
 			}
