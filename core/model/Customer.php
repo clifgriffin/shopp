@@ -387,20 +387,16 @@ class Customer extends DatabaseObject {
 
 	function load_orders ($filters=array()) {
 		if (empty($this->id)) return false;
-		global $Shopp;
-		$db =& DB::get();
 
 		$where = '';
 		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$query = "SELECT o.* FROM $orders AS o WHERE o.customer=$this->id $where ORDER BY created DESC";
-		$Shopp->purchases = $db->query($query,AS_ARRAY);
-		foreach($Shopp->purchases as &$p) {
-			$Purchase = new Purchase();
-			$Purchase->updates($p);
-			$p = $Purchase;
-		}
+
+		$PurchaseLoader = new Purchase();
+		global $Shopp;
+		$Shopp->purchases = DB::query($query,'array',array($PurchaseLoader,'loader'));
 	}
 
 	function create_wpuser () {

@@ -874,10 +874,11 @@ abstract class DatabaseObject implements Iterator {
 	 *
 	 * @param object $data The source object or array to copy from
 	 * @param string $prefix (optional) A property prefix
+	 * @param array $ignores (optional) List of property names to ignore copying from
 	 * @return void
 	 **/
 	function copydata ($data,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
-		if ($ignores === false) $ignored = array();
+		if (!is_array($ignores)) $ignores = array();
 		if (is_object($data)) $properties = get_object_vars($data);
 		else $properties = $data;
 		foreach((array)$properties as $property => $value) {

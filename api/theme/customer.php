@@ -318,6 +318,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$filters = array();
 		if (isset($options['daysago']))
 			$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
+
+		global $Shopp;
 		if (empty($Shopp->purchases)) $O->load_orders($filters);
 		return (!empty($Shopp->purchases));
 	}
@@ -359,7 +361,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />';
 	}
 
-	function logged_in ($result, $options, $O) { return $Shopp->Order->Customer->login; }
+	function logged_in ($result, $options, $O) { return ShoppOrder()->Customer->login; }
 
 	function login_label ($result, $options, $O) {
 		$accounts = shopp_setting('account_system');
@@ -415,6 +417,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function order ($result, $options, $O) {
+		global $Shopp;
 		return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
 	}
 
@@ -489,6 +492,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function purchases ($result, $options, $O) {
+		global $Shopp;
 		if (!isset($O->_purchaseloop)) {
 			reset($Shopp->purchases);
 			$Shopp->Purchase = current($Shopp->purchases);
