@@ -653,8 +653,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 } // end shopp_product_variant
 
 /**
- * shopp_product_addon - get a specific addon Price object.  The function is just an alias for shopp_product_variant, so it is up the programmer to know
- * if the id specified is actually an product, variant, or addon priceline.  You can check the context property after it is returned.
+ * shopp_product_addon - get a specific addon Price object.
  *
  * @author John Dillick
  * @since 1.2
@@ -686,7 +685,7 @@ function shopp_product_variant_options ( $product = false ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Product->load_data('summary');
+	$Product->load_data(array('summary'));
 
 	if ( "off" == $Product->variants ) return false;
 

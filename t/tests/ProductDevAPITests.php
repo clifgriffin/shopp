@@ -195,7 +195,32 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(42, $Price->id);
 		$this->AssertEquals('Price & Delivery', $Price->label);
 		$this->AssertEquals('product', $Price->context);
+
+		$Price = shopp_product_variant(258);
+		$this->AssertEquals(79754, $Price->optionkey);
+		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
+		$this->AssertEquals('variation', $Price->context);
+
 	}
 
+	function test_shopp_product_addon () {
+		$Price = shopp_product_addon(array( 'product' => 130, 'option' => array('Special' => 'Embroidered') ) );
+		$this->AssertEquals(7001, $Price->optionkey);
+		$this->AssertEquals('Embroidered', $Price->label);
+		$this->AssertEquals('addon', $Price->context);
+
+		unset($Price);
+		$Price = shopp_product_addon(302);
+		$this->AssertEquals(7001, $Price->optionkey);
+		$this->AssertEquals('Embroidered', $Price->label);
+		$this->AssertEquals('addon', $Price->context);
+
+	}
+
+	function test_shopp_product_variant_options () {
+		$options = shopp_product_variant_options(130);
+		$this->AssertEquals('a:2:{s:4:"Size";a:9:{i:0;s:6:"medium";i:1;s:5:"large";i:2;s:7:"x-large";i:3;s:5:"small";i:4;s:8:"xx-large";i:5;s:10:"large-tall";i:6;s:12:"x-large tall";i:7;s:13:"2x-large tall";i:8;s:8:"2x-large";}s:5:"Color";a:5:{i:0;s:18:"Black/Grey Colorbi";i:1;s:15:"Navy Baby Solid";i:2;s:18:"Red/Iron Colorbloc";i:3;s:10:"Iron Solid";i:4;s:17:"Dark Avocado Soil";}}',
+		serialize($options));
+	}
 }
 ?>
