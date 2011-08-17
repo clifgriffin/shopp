@@ -232,7 +232,7 @@ class Storefront extends FlowController {
 		add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return shopp("category","get-name");'));
 		add_filter('the_content',array(&$this,'category_template'),11);
 
-		$templates = array('shopp-category.php', 'shopp.php', 'page.php');
+		$templates = array('shopp-collection.php', 'shopp-category.php', 'shopp.php', 'page.php');
 		return locate_template($templates);
 	}
 
@@ -264,13 +264,15 @@ class Storefront extends FlowController {
 
 	function product_template ($content) {
 		$Product = ShoppProduct();
+
+		$templates = array('product.php');
+		if (isset($Product->id) && !empty($Product->id))
+			array_unshift($templates,'product-'.$Product->id.'.php');
+
 		ob_start();
-		if (file_exists(SHOPP_TEMPLATES."/product-{$Product->id}.php"))
-			include(SHOPP_TEMPLATES."/product-{$Product->id}.php");
-		else include(SHOPP_TEMPLATES."/product.php");
+		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
-
 		return shoppdiv($content);
 	}
 
@@ -290,15 +292,15 @@ class Storefront extends FlowController {
 		// Short-circuit the loop for the archive/category requests
 		$wp_query->current_post = $wp_query->post_count;
 		ob_start();
-		if (empty($Collection)) include(SHOPP_TEMPLATES."/catalog.php");
+		if (empty($Collection)) locate_shopp_template(array('catalog.php'));
 		else {
-			if (isset($Collection->slug) &&
-				file_exists(SHOPP_TEMPLATES."/category-{$Collection->slug}.php"))
-				include(SHOPP_TEMPLATES."/category-{$Collection->slug}.php");
-			elseif (isset($Collection->id) &&
-				file_exists(SHOPP_TEMPLATES."/category-{$Collection->id}.php"))
-				include(SHOPP_TEMPLATES."/category-{$Collection->id}.php");
-			else include(SHOPP_TEMPLATES."/category.php");
+			$templates = array('category.php','collection.php');
+			$ids = array('slug','id');
+			foreach ($ids as $property) {
+				if (isset($Collection->$property)) $id = $Collection->$property;
+				array_unshift($templates,'category-'.$id.'.php','collection-'.$id.'.php');
+			}
+			locate_shopp_template($templates,true);
 		}
 		$content = ob_get_contents();
 		ob_end_clean();

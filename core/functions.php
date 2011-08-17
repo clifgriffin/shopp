@@ -845,6 +845,48 @@ function linkencode ($url) {
 	return str_replace($search, $replace, $url);
 }
 
+/**
+ * Locates Shopp-supported template files
+ *
+ * Uses WP locate_template() to add child-theme aware template support toggled
+ * by the theme template setting.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param array $template_names Array of template files to search for in priority order.
+ * @param bool $load (optional) If true the template file will be loaded if it is found.
+ * @param bool $require_once (optional) Whether to require_once or require. Default true. Has no effect if $load is false.
+ * @return string The full template file path, if one is located
+ **/
+function locate_shopp_template ($template_names, $load = false, $require_once = true ) {
+	if ( !is_array($template_names) ) return '';
+
+	$located = '';
+
+	if ('off' != shopp_setting('theme_templates')) {
+		$templates = array_map('shopp_template_prefix',$template_names);
+		$located = locate_template($templates,false);
+	}
+
+	if ('' == $located) {
+		foreach ( $template_names as $template_name ) {
+			if ( !$template_name ) continue;
+
+			if ( file_exists(SHOPP_PATH . '/templates' . '/' . $template_name)) {
+				$located = SHOPP_PATH . '/templates' . '/' . $template_name;
+				break;
+			}
+
+		}
+	}
+
+	if ( $load && '' != $located )
+		load_template( $located, $require_once );
+
+	return $located;
+}
+
 function lzw_compress ($s) {
 	$code = 256;
 	$dict = $out = array();
@@ -1678,6 +1720,19 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 
 	if ($rated) $taxrate = $Taxes->rate($Item);
 	return $taxrate;
+}
+
+/**
+ * Helper to prefix theme template file names
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the template file
+ * @return string Prefixed template file
+ **/
+function shopp_template_prefix ($name) {
+	return "shopp/$name";
 }
 
 /**
