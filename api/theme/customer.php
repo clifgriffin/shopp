@@ -270,7 +270,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/errors.php");
+		locate_shopp_template(array('errors.php'),true);
 		$errors = ob_get_contents();
 		ob_end_clean();
 		return $errors;
@@ -432,7 +432,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
-				include(SHOPP_TEMPLATES."/receipt.php");
+				locate_shopp_template(array('receipt.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 				return apply_filters('shopp_order_lookup',$content);
@@ -523,7 +523,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$Errors =& ShoppErrors();
 		if (!$Errors->exist(SHOPP_ERR)) return false;
 		ob_start();
-		include(SHOPP_TEMPLATES.'/errors.php');
+		locate_shopp_template(array('errors.php'),true);
 		$markup = ob_get_contents();
 		ob_end_clean();
 		return $markup;

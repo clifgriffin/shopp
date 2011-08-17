@@ -421,7 +421,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	function cart_summary ($result, $options, $O) {
 		ob_start();
-		include(SHOPP_TEMPLATES."/summary.php");
+		locate_shopp_template(array('summary.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 

@@ -153,13 +153,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		}
 
 		ob_start();
-		if (isset($Shopp->Category->slug) &&
-				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
-			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-		elseif (isset($Shopp->Category->id) &&
-			file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
-			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
-		else include(SHOPP_TEMPLATES."/category.php");
+		$templates = array('category.php','collection.php');
+		$ids = array('slug','id');
+		foreach ($ids as $property) {
+			if (isset($Shopp->Category->$property)) $id = $Shopp->Category->$property;
+			array_unshift($templates,'category-'.$id.'.php','collection-'.$id.'.php');
+		}
+		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -403,9 +403,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function product ($result, $options, $O) {
 		global $Shopp;
-		if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
-		else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
-		else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
+		$Product = ShoppProduct();
+		if (isset($options['name'])) $Product = new Product($options['name'],'name');
+		else if (isset($options['slug'])) $Product = new Product($options['slug'],'slug');
+		else if (isset($options['id'])) $Product = new Product($options['id']);
 
 		if (isset($options['reset']))
 			return (get_class($Shopp->Requested) == "Product"?($Shopp->Product = $Shopp->Requested):false);
@@ -414,23 +415,27 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$Category = clone($Shopp->Category);
 
 			if (isset($options['load'])) {
-				if ($options['load'] == "next") $Shopp->Product = $Category->adjacent_product(1);
-				elseif ($options['load'] == "previous") $Shopp->Product = $Category->adjacent_product(-1);
+				if ($options['load'] == "next") $Product = $Category->adjacent_product(1);
+				elseif ($options['load'] == "previous") $Product = $Category->adjacent_product(-1);
 			} else {
 				if (isset($options['next']) && value_is_true($options['next']))
-					$Shopp->Product = $Category->adjacent_product(1);
+					$Product = $Category->adjacent_product(1);
 				elseif (isset($options['previous']) && value_is_true($options['previous']))
-					$Shopp->Product = $Category->adjacent_product(-1);
+					$Product = $Category->adjacent_product(-1);
 			}
 		}
 
 		if (isset($options['load'])) return true;
+
+		$templates = array('product.php');
+		if (isset($Product->id) && !empty($Product->id))
+			array_unshift($templates,'product-'.$Product->id.'.php');
+
 		ob_start();
-		if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
-			include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
-		else include(SHOPP_TEMPLATES."/product.php");
+		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
+
 		return $content;
 	}
 
@@ -570,9 +575,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				if (empty($Shopp->Product->id)) continue;
 				if (isset($options['load'])) return true;
 				ob_start();
-				if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
-					include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
-				else include(SHOPP_TEMPLATES."/sideproduct.php");
+				locate_shopp_template(array('sideproduct-'.$Shopp->Product->id.'.php','sideproduct.php'),true);
 				$content .= ob_get_contents();
 				ob_end_clean();
 			}
@@ -591,10 +594,12 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if (isset($options['load'])) return true;
 			foreach ($Shopp->Category->products as $product) {
 				$Shopp->Product = $product;
+				$templates = array('product.php');
+				if (isset($Shopp->Product->id) && !empty($Shopp->Product->id))
+					array_unshift($templates,'product-'.$Shopp->Product->id.'.php');
+
 				ob_start();
-				if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
-					include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
-				else include(SHOPP_TEMPLATES."/sideproduct.php");
+				locate_shopp_template($templates,true);
 				$content .= ob_get_contents();
 				ob_end_clean();
 			}

@@ -174,7 +174,7 @@ class Customer extends DatabaseObject {
 				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
-				include(SHOPP_TEMPLATES."/receipt.php");
+				locate_shopp_template(array('receipt.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 				return apply_filters('shopp_account_vieworder',$content);
@@ -187,7 +187,7 @@ class Customer extends DatabaseObject {
 				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
-				include(SHOPP_TEMPLATES."/receipt.php");
+				locate_shopp_template(array('receipt.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 			} else {
