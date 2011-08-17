@@ -614,7 +614,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 			}
 
 			$menukey = substr($pricetype, 0, 1);
-			$flag = $pricetype == 'variant' ? 'variants' : 'addons';
+			$flag = $pricetype == 'variation' ? 'variants' : 'addons';
 			if ( ! isset($Product->options[$menukey]) || $Product->$flag == 'off' ) {
 				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No product variant options of type $pricetype.",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
@@ -834,7 +834,10 @@ function shopp_product_set_specs ( $product = false, $specs = array() ) {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true on succes, false on failure
+ * @param int $product (required) the product id to set the spec on.
+ * @param string $name (required) the name of the spec
+ * @param string $value the value of the spec
+ * @return bool true on success, false on failure
  **/
 function shopp_product_set_spec ( $product = false, $name = '', $value = '' ) {
 	if ( false === $product) {
@@ -854,6 +857,16 @@ function shopp_product_set_spec ( $product = false, $name = '', $value = '' ) {
 	return shopp_set_product_meta ( $product, $name, $value, 'spec' );
 }
 
+/**
+ * shopp_product_rmv_spec - remove a spec/detail from a product
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product (required) the product id.
+ * @param string $name (required) the name of the spec to remove.
+ * @return bool true on success, false on failure
+ **/
 function shopp_product_rmv_spec ( $product = false, $name = '' ) {
 	if ( false === $product) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",shopp_product_set_spec,SHOPP_DEBUG_ERR);
@@ -872,6 +885,17 @@ function shopp_product_rmv_spec ( $product = false, $name = '' ) {
 	return shopp_rmv_product_meta ( $product, $name, 'spec' );
 }
 
+/**
+ * shopp_product_set_variant - used to configure a variant
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int|Price $variant (required) Either the id of the variant/addon/product price line, or the Price object. If passed a Price object, the modified object is returned, but not saved.
+ * @param array $data (required) the data array used to configure the variant. See example below.
+ * @param string $context (optional default:variant) set product, addon, or variant context
+ * @return bool|Price false on failure, resulting Price object on success.
+ **/
 function shopp_product_set_variant ( $variant = false, $data = array(), $context = 'variant' ) {
 	$context = ( 'variant' == $context ? 'variation' : $context );
 	$save = true;
@@ -943,12 +967,31 @@ function shopp_product_set_variant ( $variant = false, $data = array(), $context
 	return $Price;
 }
 
-
+/**
+ * shopp_product_set_addon - configure a addon priceline.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int|Price $addon (required) addon id or Price object of addon
+ * @param array $data (required) configuration data array for addon priceline
+ * @return bool|Price false on failure, resulting Price object on success.
+ **/
 function shopp_product_set_addon ( $addon = false, $data = array() ) {
 	return shopp_product_set_variant ( $addon, $data, 'addon' );
 }
 
 // Product-wide flags
+/**
+ * shopp_product_set_featured - set or unset the product as featured.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product (required) the product id to set
+ * @param bool $flag (optional default:false) true to set as featured, false to unset featured
+ * @return bool true on success, false on failure
+ **/
 function shopp_product_set_featured ( $product = false, $flag = false ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -963,7 +1006,19 @@ function shopp_product_set_featured ( $product = false, $flag = false ) {
 	return Product::featureset ( array($product), $flag ? "on" : "off");
 }
 
-function shopp_product_set_packaging ( $product, $flag ) {
+/**
+ * shopp_product_set_packaging - set or unset packaging override product setting. When enabled, packaging for the product is handled separately.
+ * In other words, the product will always ship in a package by itself when enabled.  This setting only matters for on-line shipping add-on modules,
+ * and only if they use the packaging module.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product (required) the product id
+ * @param bool $flag (optional default:false) true to set separate packaging on the product, false to let default packaging take place
+ * @return bool true on success, false on failure
+ **/
+function shopp_product_set_packaging ( $product = false, $flag = false ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
@@ -978,6 +1033,14 @@ function shopp_product_set_packaging ( $product, $flag ) {
 
 }
 
+/**
+ * shopp_product_set_processing - @todo complete after processing implementation
+ *
+ * @author John Dillick
+ * @since
+ *
+ * @return void this function does nothing currently... just a stub
+ **/
 function shopp_product_set_processing ( $product, $flag, $settings ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
