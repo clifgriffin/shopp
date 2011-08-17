@@ -394,9 +394,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	function receipt ($result, $options, $O) {
 		// Skip the receipt processing when sending order notifications in admin without the receipt
 		if (defined('WP_ADMIN') && isset($_POST['receipt']) && $_POST['receipt'] == "no") return;
-		if (isset($options['template']) && is_readable(SHOPP_TEMPLATES."/".$options['template']))
-			return $O->receipt($template);
-		else return $O->receipt();
+
+		if (isset($options['template']))
+			$template = locate_shopp_template($options['template']);
+
+		if ('' != $template) return $O->receipt($template);
+
+		return $O->receipt();
 	}
 
 	function ship_address ($result, $options, $O) { return esc_html($O->shipaddress); }

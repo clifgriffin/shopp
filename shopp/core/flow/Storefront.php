@@ -292,7 +292,7 @@ class Storefront extends FlowController {
 		// Short-circuit the loop for the archive/category requests
 		$wp_query->current_post = $wp_query->post_count;
 		ob_start();
-		if (empty($Collection)) locate_shopp_template(array('catalog.php'));
+		if (empty($Collection)) locate_shopp_template(array('catalog.php'),true);
 		else {
 			$templates = array('category.php','collection.php');
 			$ids = array('slug','id');
@@ -828,7 +828,7 @@ class Storefront extends FlowController {
 		$Cart = $Order->Cart;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/cart.php");
+		locate_shopp_template(array('cart.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -861,7 +861,7 @@ class Storefront extends FlowController {
 				$errors = "";
 				if ($Errors->exist(SHOPP_STOCK_ERR)) {
 					ob_start();
-					include(SHOPP_TEMPLATES."/errors.php");
+					locate_shopp_template(array('errors.php'),true);
 					$errors = ob_get_contents();
 					ob_end_clean();
 				}
@@ -873,9 +873,9 @@ class Storefront extends FlowController {
 				break;
 			default:
 				ob_start();
-				if ($Errors->exist(SHOPP_COMM_ERR)) include(SHOPP_TEMPLATES."/errors.php");
+				if ($Errors->exist(SHOPP_COMM_ERR)) locate_shopp_template(array('errors.php'),true);
 				$this->checkout = true;
-				include(SHOPP_TEMPLATES."/checkout.php");
+				locate_shopp_template(array('checkout.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 		}
@@ -894,13 +894,13 @@ class Storefront extends FlowController {
 		$errors = '';
 		if ($Errors->exist(SHOPP_STOCK_ERR)) {
 			ob_start();
-			include(SHOPP_TEMPLATES.'/errors.php');
+			locate_shopp_template(array('errors.php'),true);
 			$errors = ob_get_contents();
 			ob_end_clean();
 		}
 
 		ob_start();
-		include(SHOPP_TEMPLATES.'/confirm.php');
+		locate_shopp_template(array('confirm.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_order_confirmation',$errors.$content);
@@ -914,7 +914,7 @@ class Storefront extends FlowController {
 		$Purchase = $Shopp->Purchase;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/thanks.php");
+		locate_shopp_template(array('thanks.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_thanks',$content);
@@ -941,9 +941,9 @@ class Storefront extends FlowController {
 		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
 
 		ob_start();
-		if (!empty($download_request)) include(SHOPP_TEMPLATES."/errors.php");
-		elseif ($Customer->login) include(SHOPP_TEMPLATES."/account.php");
-		else include(SHOPP_TEMPLATES."/login.php");
+		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
+		elseif ($Customer->login) locate_shopp_template(array('account.php'),true);
+		else locate_shopp_template(array('login.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -959,12 +959,12 @@ class Storefront extends FlowController {
 	 *
 	 * @return string The processed errors.php template file
 	 **/
-	function error_page ($template="errors.php") {
+	function error_page ($template='errors.php') {
 		global $Shopp;
-		$Cart = $Shopp->Cart;
+		$Cart = $Shopp->Orders->Cart;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/$template");
+		locate_shopp_template(array($template),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_errors_page',$content);
@@ -1042,9 +1042,9 @@ class Storefront extends FlowController {
 	 * @return string The processed content
 	 **/
 	function maintenance_shortcode ($atts) {
-		if (file_exists(SHOPP_TEMPLATES."/maintenance.php")) {
+		if ( '' != locate_shopp_template(array('maintenance.php')) ) {
 			ob_start();
-			include(SHOPP_TEMPLATES."/maintenance.php");
+			locate_shopp_template(array('maintenance.php'),true);
 			$content = ob_get_contents();
 			ob_end_clean();
 		} else $content = '<div id="shopp" class="update"><p>'.__("The store is currently down for maintenance.  We'll be back soon!","Shopp").'</p><div class="clear"></div></div>';

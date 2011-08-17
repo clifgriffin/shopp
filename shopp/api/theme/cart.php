@@ -129,7 +129,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		if (!$Errors->exist(SHOPP_STOCK_ERR)) return $result;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/errors.php");
+		locate_shopp_template(array('errors.php'),true);
 		$errors = ob_get_contents();
 		ob_end_clean();
 		return $result.$errors;
@@ -318,7 +318,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	function sidecart ($result, $options, $O) {
 		ob_start();
-		include(SHOPP_TEMPLATES."/sidecart.php");
+		locate_shopp_template(array('sidecart.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 		return $content;
