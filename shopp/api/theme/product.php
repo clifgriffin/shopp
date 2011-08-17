@@ -177,16 +177,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function add_to_cart ($result, $options, $O) {
-		global $Shopp;
 		if (!isset($options['class'])) $options['class'] = "addtocart";
 		else $options['class'] .= " addtocart";
 		if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
 		$string = "";
 
-		if ($O->outofstock) {
-			$string .= '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
-			return $string;
-		}
+		if ($O->outofstock)
+			return '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
+
 		if (isset($options['redirect']) && !isset($options['ajax']))
 			$string .= '<input type="hidden" name="redirect" value="'.esc_attr($options['redirect']).'" />';
 

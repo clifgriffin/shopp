@@ -230,7 +230,7 @@ class Storefront extends FlowController {
 		if (empty($Collection) && get_query_var('post_type') != Product::$posttype) return $template;
 
 		add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return shopp("category","get-name");'));
-		add_filter('the_content',array(&$this,'category_template'));
+		add_filter('the_content',array(&$this,'category_template'),11);
 
 		$templates = array('shopp-category.php', 'shopp.php', 'page.php');
 		return locate_template($templates);
@@ -246,7 +246,7 @@ class Storefront extends FlowController {
 		$pagetitle = shopp_setting($page.'_page_title');
 
 		add_filter('the_title',create_function('$title','return in_the_loop()?"'.$pagetitle.'":$title;'));
-		add_filter('the_content',array(&$this,$page.'_page'));
+		add_filter('the_content',array(&$this,$page.'_page'),11);
 
 		$templates = array("$page.php", 'shopp.php', 'page.php');
 		return locate_template($templates);
@@ -256,7 +256,7 @@ class Storefront extends FlowController {
 		$post_type = get_query_var('post_type');
 
 		if ($post_type != Product::$posttype) return $template;
-		add_filter('the_content',array(&$this,'product_template'));
+		add_filter('the_content',array(&$this,'product_template'),11);
 
 		$templates = array('single-' . $post_type . '.php', 'shopp.php', 'page.php');
 		return locate_template($templates);
