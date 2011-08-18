@@ -358,7 +358,7 @@ span.indent { display: inline-block; width: 36px; }
 #poststuff #save-promotion .inside,
 #poststuff #save-membership .inside,
 #poststuff #order-status .inside { margin:0; }
-.shopp #major-publishing-actions { text-align:right; clear: none; }
+.shopp #major-publishing-actions { text-align:right; clear: none; margin: 0 -10px; }
 
 .postbox #summary { width:100%; }
 

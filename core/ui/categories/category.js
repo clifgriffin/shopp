@@ -63,7 +63,7 @@ jQuery(document).ready(function () {
 	}).click(function() {
 		$(this).trigger('toggleui');
 	}).trigger('toggleui');
-	loadVariations((!options.v && !options.a)?options:options.v,prices);
+	loadVariations( !(options.v && options.a) ? options : options.v, prices );
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 
 	$('#pricerange-facetedmenu').change(function () {

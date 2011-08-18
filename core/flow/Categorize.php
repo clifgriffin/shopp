@@ -121,6 +121,10 @@ class Categorize extends AdminController {
 			$Shopp->Category = new ProductCategory($id);
 		else $Shopp->Category = new ProductCategory();
 
+		$meta = array('specs','priceranges','options','prices');
+		foreach ($meta as $prop)
+			if (!isset($Shopp->Category->$prop)) $Shopp->Category->$prop = array();
+
 		if ($save) {
 			$this->save($Shopp->Category);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
@@ -141,6 +145,7 @@ class Categorize extends AdminController {
 	function load_category ($term,$taxonomy) {
 		$Category = new ProductCategory();
 		$Category->populate($term);
+
 		return $Category;
 	}
 	/**
@@ -197,6 +202,7 @@ class Categorize extends AdminController {
 		DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
 		if ($workflow) return $ids;
+
 		// $children = array();
 		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
 		// foreach ( $childterms as $term_id => $parent ) {
