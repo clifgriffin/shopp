@@ -288,5 +288,155 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals("st-johns-bay", $Product->shopp_brands[$term1]->slug);
 		$this->AssertEquals($term, $Product->shopp_brands[$term1]->parent);
 	}
+
+	function test_shopp_product_set_variant () {
+		// Create new product for subscription
+		$data = array(
+			'name' => "Site Subscription",
+			'publish' => array( 'flag' => true ),
+			'description' =>
+				"Subscription to our site.\n".
+				"Off monthly and annual.",
+			'summary' => "Subscription to our site.",
+			'featured' => true,
+			'variants'=>array(
+				'menu' => array(
+					'Access' => array('Standard','Premium','Donate'),
+					'Billing' => array('One-Time','Monthly', 'Annual')
+				)
+			)
+		);
+
+		$Product = shopp_add_product($data);
+		$pid = $Product->id;
+
+		$StandardMonthly = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Standard', 'Billing'=>'Monthly')), 'variant');
+		$standard_monthly = array(
+			'type' => 'Subscription',
+			'price' => 15.99,
+			'sale' => array('flag'=>true, 'price'=>9.99),
+			'subscription' => array(
+				'trial' => array(
+					'price' => 4.99,
+					'cycle' => array(
+						'interval' => 30,
+						'period' => 'd'
+					)
+				),
+				'billcycle' => array(
+					'cycles' => 12,
+					'cycle' => array(
+						'interval' => 1,
+						'period' => 'm'
+					)
+				)
+			)
+		);
+		$this->AssertTrue(shopp_product_set_variant($StandardMonthly->id, $standard_monthly));
+
+		$StandardAnnual = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Standard', 'Billing'=>'Annual')), 'variant');
+		$standard_annual = array(
+			'type' => 'Subscription',
+			'price' => 149.99,
+			'sale' => array('flag'=>true, 'price'=>99.99),
+			'subscription' => array(
+				'billcycle' => array(
+					'cycles' => 12,
+					'cycle' => array(
+						'interval' => 0,
+						'period' => 'y'
+					)
+				)
+			)
+		);
+		$this->AssertTrue(shopp_product_set_variant($StandardAnnual->id, $standard_annual));
+
+
+		$PremiumMonthly = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Premium', 'Billing'=>'Monthly')), 'variant');
+		$premium_monthly = array(
+			'type' => 'Subscription',
+			'price' => 25.99,
+			'sale' => array('flag'=>true, 'price'=>19.99),
+			'subscription' => array(
+				'trial' => array(
+					'price' => 14.99,
+					'cycle' => array(
+						'interval' => 30,
+						'period' => 'd'
+					)
+				),
+				'billcycle' => array(
+					'cycles' => 12,
+					'cycle' => array(
+						'interval' => 1,
+						'period' => 'm'
+					)
+				)
+			)
+		);
+		$this->AssertTrue(shopp_product_set_variant($PremiumMonthly->id, $premium_monthly));
+
+		$PremiumAnnual = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Premium', 'Billing'=>'Annual')), 'variant');
+		$premium_annual = array(
+			'type' => 'Subscription',
+			'price' => 269.99,
+			'sale' => array('flag'=>true, 'price'=>219.99),
+			'subscription' => array(
+				'billcycle' => array(
+					'cycles' => 12,
+					'cycle' => array(
+						'interval' => 0,
+						'period' => 'y'
+					)
+				)
+			)
+		);
+		$this->AssertTrue(shopp_product_set_variant($PremiumAnnual->id, $premium_annual));
+
+		$StandardMonthly = shopp_product_variant($StandardMonthly->id);
+		$PremiumMonthly = shopp_product_variant($PremiumMonthly->id);
+		$StandardAnnual = shopp_product_variant($StandardAnnual->id);
+		$PremiumAnnual = shopp_product_variant($PremiumAnnual->id);
+
+		$this->AssertEquals("on", $StandardMonthly->recurring['trial']);
+		$this->AssertEquals(4.99, $StandardMonthly->recurring['trialprice']);
+		$this->AssertEquals(30, $StandardMonthly->recurring['trialint']);
+		$this->AssertEquals('d', $StandardMonthly->recurring['trialperiod']);
+		$this->AssertEquals(12, $StandardMonthly->recurring['cycles']);
+		$this->AssertEquals(1, $StandardMonthly->recurring['interval']);
+		$this->AssertEquals('m', $StandardMonthly->recurring['period']);
+
+		$this->AssertEquals("on", $PremiumMonthly->recurring['trial']);
+		$this->AssertEquals(14.99, $PremiumMonthly->recurring['trialprice']);
+		$this->AssertEquals(30, $PremiumMonthly->recurring['trialint']);
+		$this->AssertEquals('d', $PremiumMonthly->recurring['trialperiod']);
+		$this->AssertEquals(12, $PremiumMonthly->recurring['cycles']);
+		$this->AssertEquals(1, $PremiumMonthly->recurring['interval']);
+		$this->AssertEquals('m', $PremiumMonthly->recurring['period']);
+
+		$this->AssertEquals(12, $StandardAnnual->recurring['cycles']);
+		$this->AssertEquals(0, $StandardAnnual->recurring['interval']);
+		$this->AssertEquals('y', $StandardAnnual->recurring['period']);
+
+		$this->AssertEquals(12, $PremiumAnnual->recurring['cycles']);
+		$this->AssertEquals(0, $PremiumAnnual->recurring['interval']);
+		$this->AssertEquals('y', $PremiumAnnual->recurring['period']);
+
+		$DonateOnetime = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Donate', 'Billing'=>'One-Time')), 'variant');
+		$donate_onetime = array(
+			'type' => 'Donation',
+			'price' => 10.00,
+			'donation' => array(
+				'variable'=> true,
+				'minimum' => true
+			)
+		);
+
+		$this->AssertTrue(shopp_product_set_variant($DonateOnetime->id, $donate_onetime));
+		$DonateOnetime = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Donate', 'Billing'=>'One-Time')), 'variant');
+
+		$this->AssertEquals('on', $DonateOnetime->donation['var']);
+		$this->AssertEquals('on', $DonateOnetime->donation['min']);
+	}
 }
 ?>
