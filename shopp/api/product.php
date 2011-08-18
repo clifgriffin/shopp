@@ -569,7 +569,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	if ( is_int($variant) ) {
+	if ( is_numeric($variant) ) {
 		$Price = new Price($variant);
 		if ( empty($Price->id) ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load variant $variant.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -577,7 +577,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 		}
 	} else if ( is_array($variant) ) {  // specifying variant by product id and option
 		$Product = new stdClass;
-		if ( isset($variant['product']) && is_int($variant['product']) ) {
+		if ( isset($variant['product']) && is_numeric($variant['product']) ) {
 			$Product = new Product($variant['product']);
 			$Product->load_data();
 		}
@@ -963,7 +963,9 @@ function shopp_product_set_variant ( $variant = false, $data = array(), $context
 		$Price = shopp_product_variant_set_subscription ( $Price, $data['subscription'], $context );
 	}
 
-	if ( $save ) return $Price->save();
+	if ( $save ) {
+		return $Price->save() && shopp_set_meta ( $Price->id, 'price', 'settings', $Price->settings );
+	}
 	return $Price;
 }
 
@@ -1379,6 +1381,7 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 		$Price->context = 'variation';
 		list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($combo, $options);
 		$Price->save();
+		shopp_set_meta ( $Price->id, 'price', 'options', $Price->options );
 		$prices[] = $Price;
 	}
 
@@ -1556,7 +1559,7 @@ function shopp_product_variant_set_price ( $variant = false, $price = 0.0, $cont
  * @param int/Price $variant (required) The priceline id to set the sale price on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param bool $flag (optional default:false) true for on, false for off. Turns on or off the sale flag on the variant.  If false, price is ignored.
  * @param float $price the price to be set
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_saleprice ( $variant = false, $flag = false, $price = 0.0, $context = 'variant' ) {
@@ -1774,7 +1777,7 @@ function shopp_product_variant_set_donation ( $variant = false, $settings = arra
 		return false;
 	}
 
-	$variant_settings = shopp_meta( $variant, 'price', 'settings' );
+	$variant_settings = shopp_meta( $Price->id, 'price', 'settings' );
 	if ( ! is_array($variant_settings) ) {
 		$variant_settings = array();
 	}
@@ -1790,7 +1793,7 @@ function shopp_product_variant_set_donation ( $variant = false, $settings = arra
 	$Price->settings = $variant_settings;
 
 	if ( $save ) {
-		return shopp_set_meta ( $variant, 'price', 'settings', $variant_settings );
+		return shopp_set_meta ( $Price->id, 'price', 'settings', $variant_settings );
 	}
 	return $Price;
 }
@@ -1840,13 +1843,14 @@ function shopp_product_variant_set_subscription ( $variant = false, $settings = 
 
 	$Price->trial = "off";
 
-	$variant_settings = shopp_meta( $variant, 'price', 'settings' );
+	if ( ! empty($Price->id) ) $variant_settings = shopp_meta( $Price->id, 'price', 'settings' );
 	if ( ! is_array($variant_settings) ) {
 		$variant_settings = array();
 	}
 
 	if ( isset($settings['trial']) && is_array($settings['trial']) && ! empty($settings['trial']) ) {
 		$Price->trial = "on";
+		$variant_settings['recurring']['trial'] = "on";
 		foreach ( $settings['trial'] as $name => $setting ) {
 			if ( ! empty($setting) )
 			switch ( $name ) {
@@ -1884,7 +1888,7 @@ function shopp_product_variant_set_subscription ( $variant = false, $settings = 
 	$Price->settings = $variant_settings;
 
 	if ( $save ) {
-		return shopp_set_meta ( $variant, 'price', 'settings', $variant_settings );
+		return shopp_set_meta ( $Price->id, 'price', 'settings', $Price->settings );
 	}
 	return $Price;
 }
