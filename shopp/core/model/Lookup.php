@@ -409,13 +409,13 @@ class Lookup {
 		$_['CA']['BC'] = 'British Columbia';
 		$_['CA']['MB'] = 'Manitoba';
 		$_['CA']['NB'] = 'New Brunswick';
-		$_['CA']['NF'] = 'Newfoundland';
+		$_['CA']['NL'] = 'Newfoundland';
 		$_['CA']['NT'] = 'Northwest Territories';
 		$_['CA']['NS'] = 'Nova Scotia';
 		$_['CA']['NU'] = 'Nunavut';
 		$_['CA']['ON'] = 'Ontario';
 		$_['CA']['PE'] = 'Prince Edward Island';
-		$_['CA']['PQ'] = 'Quebec';
+		$_['CA']['QC'] = 'Quebec';
 		$_['CA']['SK'] = 'Saskatchewan';
 		$_['CA']['YT'] = 'Yukon Territory';
 
