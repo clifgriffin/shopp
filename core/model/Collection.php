@@ -442,18 +442,19 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	function save () {
-		$properties = array('slug'=>null,'description'=>null,'parent'=>null);
+		$properties = array('name'=>null,'slug'=>null,'description'=>null,'parent'=>null);
 		$updates = array_intersect_key(get_object_vars($this),$properties);
 
-		if ($this->id) wp_update_term($this->name,$this->taxonomy,$updates);
+		if ($this->id) wp_update_term($this->id,$this->taxonomy,$updates);
 		else list($this->id, $this->term_taxonomy_id) = array_values(wp_insert_term($this->name, $this->taxonomy, $updates));
 
 		if (!$this->id) return false;
 
 		// If the term successfully saves, save all meta data too
-		foreach ($this->meta as $Meta) {
+		foreach ($this->meta as $name => $Meta) {
 			$MetaObject = new MetaObject();
 			$MetaObject->populate($Meta);
+			$MetaObject->name = $name;
 			$MetaObject->parent = $this->id;
 			$MetaObject->context = 'category';
 			$MetaObject->save();
