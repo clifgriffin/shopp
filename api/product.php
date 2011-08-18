@@ -1439,7 +1439,7 @@ function _optioncombinations ($combos=array(), $options, $menu = false, &$result
  *
  * @param int/Price $variant (required) The priceline id to set the type on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param string $type (optional default:N/A) The product price type, ex Shipped, Download, Virtual, Subscription.  N/A is a disabled priceline.
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_type ( $variant = false, $type = 'N/A', $context = 'variant' ) {
@@ -1482,7 +1482,7 @@ function shopp_product_variant_set_type ( $variant = false, $type = 'N/A', $cont
  *
  * @param int/Price $variant (required) The priceline id to set the tax setting on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param bool $taxed true to tax variant, false to not tax
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_taxed ( $variant = false, $taxed = true, $context = 'variant' ) {
@@ -1516,7 +1516,7 @@ function shopp_product_variant_set_taxed ( $variant = false, $taxed = true, $con
  *
  * @param int/Price $variant (required) The priceline id to set the price on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param float $price the price to be set
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_price ( $variant = false, $price = 0.0, $context = 'variant' ) {
@@ -1606,7 +1606,7 @@ function shopp_product_variant_set_saleprice ( $variant = false, $flag = false, 
  * @param int/Price $variant (required) The priceline id to turn setup the shipping settings on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param bool $flag (optional default:false) true for on, false for off. Turns on or off the shipping charges on the variant.  If false, settings are ignored.
  * @param array $settings array of shipping dimensions (weight => float, height => float, length => float, width => float)
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $settings = array(), $context = 'variant' ) {
@@ -1671,7 +1671,7 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
  * @param int/Price $variant (required) The priceline id to setup the inventory tracking on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param bool $flag (optional default:false) true for on, false for off. Turns on or off the inventory tracking on the variant.  If false, settings are ignored.
  * @param array $settings array of inventory settings (stock => int, sku => sting)
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_inventory ( $variant = false, $flag = false, $settings = array(), $context = 'variant' ) {
@@ -1715,7 +1715,7 @@ function shopp_product_variant_set_inventory ( $variant = false, $flag = false, 
  * @param int/Price $variant (required) The priceline id to set stock/stock level on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param int $stock (optional default=0) The stock number to adjust/set the level to.
  * @param string $action (optional default=adjust) 'adjust' to set the variant stock without setting the stock level, 'restock' to set both the variant stock and stock level
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_stock ( $variant = false, $stock = 0, $action = 'adjust', $context = 'variant' ) {
@@ -1753,7 +1753,7 @@ function shopp_product_variant_set_stock ( $variant = false, $stock = 0, $action
  *
  * @param int/Price $variant (required) The priceline id to set donation settings on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param array $settings (required) The array of settings (minimum => bool, variable => bool), to set price as minimum donation flag and variable donation amounts flag.
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_donation ( $variant = false, $settings = array(), $context = 'variant' ) {
@@ -1817,7 +1817,7 @@ function shopp_product_variant_set_donation ( $variant = false, $settings = arra
  * 															 )
  * 										)
  * 				)
- * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:variant) enforces the priceline is a 'product','variant', or 'addon'
  * @return bool/Price false on failure, true if Price saved, else the modified Price object.
  **/
 function shopp_product_variant_set_subscription ( $variant = false, $settings = array(), $context = 'variant' ) {
@@ -1979,7 +1979,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array(),
  *
  * @param int/Price $addon (required) The priceline id to set the type on, or the Price object to change.  If Price object is specified, the object will be returned, but not saved to the database.
  * @param string $type (optional default:N/A) The product price type, ex Shipped, Download, Virtual, Subscription.  N/A is a disabled priceline.
- * @param string $context (optional default:addon) enforces the priceline is a 'product','variant', or 'product'
+ * @param string $context (optional default:addon) enforces the priceline is a 'product','variant', or 'addon'
  **/
 function shopp_product_addon_set_type ( $addon = false, $type = 'N/A' ) {
 	return shopp_product_variant_set_type (  $addon, $type, 'addon' );
