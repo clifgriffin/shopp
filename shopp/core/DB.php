@@ -46,6 +46,7 @@ class DB extends SingletonFramework {
 	var $queries = array();
 	var $dbh = false;
 	var $table_prefix = '';
+	var $found = false;
 
 	/**
 	 * Initializes the DB object
@@ -264,7 +265,10 @@ class DB extends SingletonFramework {
 
 			if ($db->affected > 0) return $db->affected;
 			else return true;
+		} elseif ( preg_match("/ SQL_CALC_FOUND_ROWS /i",$query) ) {
+			$rows = @mysql_fetch_object(@mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh));
 		}
+
 
 		// Default data processing
 		if (is_bool($result)) return (boolean)$result;
@@ -282,6 +286,8 @@ class DB extends SingletonFramework {
 		}
 
 		@mysql_free_result($result);
+
+		if (isset($rows->found)) $db->found = $rows->found;
 
 		switch (strtolower($format)) {
 			case 'object': return reset($records); break;
@@ -318,6 +324,13 @@ class DB extends SingletonFramework {
 		$limit 		= empty($limit)?'':"\n\tLIMIT $limit";
 
 		return "SELECT $columns\n\tFROM $table $useindex $joins $where $groupby $having $orderby $limit";
+	}
+
+	static function found () {
+		$db = DB::instance();
+		$found = $db->found;
+		$db->found = false;
+		return $found;
 	}
 
 	/**

@@ -931,7 +931,7 @@ class ImageSettings extends RegistryManager {
 		$options = compact('table','where');
 		$query = DB::select($options);
 		$this->populate(DB::query($query,'array',array($ImageSetting,'loader'),false,'name'));
-		$this->found = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+		$this->found = DB::found();
 	}
 
 	/**

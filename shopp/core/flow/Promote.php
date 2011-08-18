@@ -171,7 +171,7 @@ class Promote extends AdminController {
 		));
 
 		$Promotions = DB::query($select,'array');
-		$count = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+		$count = DB::found();
 
 		$states = array(
 			'active' => __('Active','Shopp'),
