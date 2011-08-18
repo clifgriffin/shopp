@@ -1363,8 +1363,16 @@ function get_wp_query_var ($key) {
  * @param array $classes CSS classes to add to the container
  * @return string The wrapped markup
  **/
-function shoppdiv ($string,$classes=array()) {
-	if (!is_array($classes)) $classes = array();
+function shoppdiv ($string) {
+
+	$view = 'grid';
+	$views = array('list','grid');
+	$classes = array();
+
+	// Handle catalog view style cookie preference
+	if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
+	else $view = shopp_setting('default_catalog_view');
+	if (in_array($view,$views)) $classes[] = $view;
 	$classes = esc_attr(join(' ',$classes));
 
 	if (strpos($string,'<div id="shopp"') === false)

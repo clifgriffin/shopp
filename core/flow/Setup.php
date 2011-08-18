@@ -988,7 +988,7 @@ class Setup extends AdminController {
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
 		$query = DB::select($options);
 		$settings = DB::query($query,'array',array($ImageSetting,'loader'));
-		$total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+		$total = DB::found();
 
 		$num_pages = ceil($total / $per_page);
 		$page_links = paginate_links( array(

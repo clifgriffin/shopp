@@ -143,7 +143,7 @@ class ProductCollection implements Iterator {
 
 			$cache = new stdClass();
 			$cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
-			$cache->total = $this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
+			$cache->total = $this->total = DB::found();
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
