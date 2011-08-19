@@ -28,7 +28,6 @@ class Resources {
 
 		$this->request = empty($request)?$_GET:$request;
 
-		// add_action('shopp_resource_collection_feed',array(&$this,'collection_feed'));
 		add_action('shopp_resource_download',array(&$this,'download'));
 
 		// For secure, backend lookups
@@ -44,28 +43,6 @@ class Resources {
 			do_action( 'shopp_resource_' . $this->request['src'] );
 
 		die('-1');
-	}
-
-	/**
-	 * Handles RSS-feed requests
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void Description...
-	 **/
-	function collection_feed () {
-		$Storefront = ShoppStorefront();
-		$Collection = ShoppCollection();
-		exit();
-		if (empty($Storefront)) $Storefront = new Storefront();
-
-		header("Content-type: text/plain; charset=utf-8");
-		// header("Content-type: application/rss+xml; charset=utf-8");
-
-		// $Storefront->catalog($this->request);
-		// echo shopp_rss($Collection->feed());
-		exit();
 	}
 
 	/**

@@ -216,10 +216,10 @@ class ProductCollection implements Iterator {
 
 		do_action_ref_array('shopp_collection_feed',array(&$this));
 
-		if (!$this->products) $this->load_products(array('limit'=>500,'load'=>array('images','prices')));
+		if (!$this->products) $this->load(array('limit'=>500,'load'=>array('images','prices')));
 
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
-			 			'link' => $this->tag('feed-url'),
+			 			'link' => shopp($this,'get-feed-url'),
 					 	'description' => $this->description,
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
 						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
@@ -238,18 +238,20 @@ class ProductCollection implements Iterator {
 		    }
 
 			$item = array();
-			$item['guid'] = $product->tag('url','return=1');
+			$item['guid'] = shopp($product,'get-url');
 			$item['title'] = $product->name;
-			$item['link'] =  $product->tag('url','return=1');
+			$item['link'] =  shopp($product,'get-url');
+			$item['pubDate'] = date('D, d M Y H:i O',$product->publish);
 
 			// Item Description
 			$item['description'] = '';
 
+			$item['description'] .= '<table><tr>';
 			$Image = current($product->images);
 			if (!empty($Image)) {
-				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
-				$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(96,96,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
-				$item['description'] .= '</a>';
+				$item['description'] .= '<td><a href="'.$item['link'].'" title="'.$product->name.'">';
+				$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(75,75,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="75" height="75" />';
+				$item['description'] .= '</a></td>';
 			}
 
 			$pricing = "";
@@ -268,13 +270,15 @@ class ProductCollection implements Iterator {
 					$pricing .= __("from ",'Shopp');
 				$pricing .= money($product->min['price']);
 			}
-			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
+			$item['description'] .= "<td><p><big>$pricing</big></p>";
 
-			$item['description'] .= $product->description;
+			$item['description'] .= apply_filters('shopp_rss_description',($product->summary),$product).'</td></tr></table>';
 			$item['description'] =
-			 	'<![CDATA['.apply_filters('shopp_rss_description',($item['description']),$product).']]>';
+			 	'<![CDATA['.$item['description'].']]>';
 
 			// Google Base Namespace
+
+			$item['g:id'] = $product->id;
 			if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 			$item['g:condition'] = "new";
 
