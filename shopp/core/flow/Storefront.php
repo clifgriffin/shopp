@@ -105,6 +105,7 @@ class Storefront extends FlowController {
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
+		add_filter('default_feed',array($this,'feed'));
 		add_filter('archive_template',array($this,'collection'));
 		add_filter('search_template',array($this,'collection'));
 		add_filter('page_template',array($this,'pages'));
@@ -206,7 +207,7 @@ class Storefront extends FlowController {
 		$Collection = ShoppCollection();
 		if (!empty($Collection)) {
 			add_action('wp_head', array(&$this, 'metadata'));
-			add_action('wp_head', array(&$this, 'feeds'));
+			add_action('wp_head', array(&$this, 'feedlinks'));
 		}
 
 	}
@@ -304,6 +305,26 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_category_template',$content);
 	}
 
+	/**
+	 * Handles RSS-feed requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function feed () {
+		if ('' == get_query_var('feed')) return;
+
+		$Collection = ShoppCollection();
+
+		// header("Content-type: text/plain; charset=utf-8");
+		header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
+
+		// $Storefront->catalog($this->request);
+		echo shopp_rss($Collection->feed());
+		exit();
+	}
 
 	/**
 	 * Identifies the currently loaded Shopp storefront page
@@ -547,7 +568,7 @@ class Storefront extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function feeds () {
+	function feedlinks () {
 		$Collection = ShoppCollection();
 		if (empty($Collection->name)) return;
 ?>
