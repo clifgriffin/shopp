@@ -66,7 +66,7 @@ tinyMCEPopup.onInit.add(function(ed) {
 			cm = $('#category-menu').change(function () {
 				var sc = '<option value="0"><?php _e('Insert','Shopp'); ?> "'+cm.find('option:selected').text().trim()+'" <?php _e('category','Shopp'); ?></option>';
 				$.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_products'); ?>&action=shopp_category_products",
-					{category:cm.val()},function (r) { pm.empty().html(sc+r); },'string'
+					{category:cm.val()},function (r) { pm.empty().html(sc+r); },'html'
 				);
 			}),
 
