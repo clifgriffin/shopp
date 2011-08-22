@@ -182,7 +182,7 @@ class Settings extends DatabaseObject {
 	 * @return void
 	 **/
 	function setup ($name,$value,$autoload=true) {
-		if ($this->get($name) === false) $this->add($name,$value,$autoload);
+		if ($this->get($name) === null) $this->add($name,$value,$autoload);
 	}
 
 	/**

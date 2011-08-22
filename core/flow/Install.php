@@ -104,7 +104,6 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function install () {
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
-		$db = DB::get();
 
 		// Install tables
 		if (!file_exists(SHOPP_DBSCHEMA)) {
@@ -117,59 +116,11 @@ class ShoppInstallation extends FlowController {
 		$schema = ob_get_contents();
 		ob_end_clean();
 
+		$db = DB::get();
 		$db->loaddata($schema);
 		unset($schema);
 
-		// $this->install_pages();
-		shopp_set_setting("db_version",$db->version);
 	}
-
-	/**
-	 * Installs Shopp content gateway pages or reinstalls missing pages
-	 *
-	 * The key to Shopp displaying content is through placeholder pages
-	 * that contain a specific Shopp shortcode.  The shortcode is replaced
-	 * at runtime with Shopp-specific markup & content.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function install_pages () {
-		global $wpdb;
-
-		$pages = Storefront::default_pages();
-
-		// Locate any Shopp pages that already exist
-		$pages_installed = shopp_locate_pages();
-
-		$parent = 0;
-		foreach ($pages as $key => &$page) {
-			if (!empty($pages['catalog']['id'])) $parent = $pages['catalog']['id'];
-			if (!empty($pages_installed[$key]['id'])) { // Skip installing pages that already exist
-				$page = $pages_installed[$key];
-				continue;
-			}
-			$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
-						post_name='{$page['name']}',
-						post_content='{$page['shortcode']}',
-						post_parent='$parent',
-						post_author='1', post_status='publish', post_type='page',
-						post_date=now(), post_date_gmt=utc_timestamp(), post_modified=now(),
-						post_modified_gmt=utc_timestamp(), comment_status='closed', ping_status='closed',
-						post_excerpt='', to_ping='', pinged='', post_content_filtered='', menu_order=0";
-			$wpdb->query($query);
-			$page['id'] = $wpdb->insert_id;
-			$permalink = get_permalink($page['id']);
-			if ($key == "checkout") $permalink = str_replace("http://","https://",$permalink);
-			$wpdb->query("UPDATE $wpdb->posts SET guid='{$permalink}' WHERE ID={$page['id']}");
-			$page['uri'] = get_page_uri($page['id']);
-		}
-
-		shopp_set_setting("pages",$pages);
-	}
-
 
 	/**
 	 * Performs database upgrades when required
@@ -180,7 +131,6 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function upgrades () {
-		$db = DB::get();
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
@@ -328,8 +278,8 @@ class ShoppInstallation extends FlowController {
 		ShoppSettings()->setup('script_loading','global');
 		ShoppSettings()->setup('script_server','plugin');
 
-		shopp_set_setting('version',SHOPP_VERSION);
-		shopp_set_setting('db_version',DB::$version);
+		ShoppSettings()->setup('version',SHOPP_VERSION);
+		ShoppSettings()->setup('db_version',DB::$version);
 
 	}
 
@@ -384,7 +334,7 @@ class ShoppInstallation extends FlowController {
 			$value->filename = $name;
 			if (isset($p['mimetype'])) $value->mime = $p['mimetype'];
 			$value->size = $size;
-			error_log(serialize($value));
+
 			if ($datasize > 0) {
 				$value->storage = "DBStorage";
 				$value->uri = $src;
