@@ -76,7 +76,14 @@
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Product->id; ?>' /></th>
-			<td class="name column-name"><strong><?php if ($is_trash): ?><?php echo esc_html($ProductName); ?><?php else: ?><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'><?php echo esc_html($ProductName); ?></a><?php endif; ?></strong>
+			<td class="name column-name">
+			<strong><?php if ($is_trash): ?><?php echo esc_html($ProductName); ?><?php else: ?><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'>
+
+			<?php $Image = reset($Product->images); if (!empty($Image)): ?>
+			<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(38,0,1); ?>" width="38" height="38" class="alignleft" />
+			<?php endif; ?>
+
+			<?php echo esc_html($ProductName); ?></a><?php endif; ?></strong>
 				<?php if ($is_trash): ?>
 					<div class="row-actions">
 						<span class='untrash'><a title="<?php _e('Restore','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $restoreurl; ?>"><?php _e('Restore','Shopp'); ?></a> | </span>

@@ -323,7 +323,7 @@ class Warehouse extends AdminController {
 			'where' => $where,
 			'joins' => $joins,
 			'limit'=>"$start,$per_page",
-			'load' => array('categories'),
+			'load' => array('categories','images'),
 			'published' => false,
 			'order' => $order
 		);
