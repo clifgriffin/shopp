@@ -318,13 +318,28 @@ class Storefront extends FlowController {
 
 		$Collection = ShoppCollection();
 
-		// header("Content-type: text/plain; charset=utf-8");
-		header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
+		header("Content-type: text/plain; charset=utf-8");
+		// header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
 
 		// $Storefront->catalog($this->request);
 		echo shopp_rss($Collection->feed());
 		exit();
 	}
+	/**
+	 * Renders RSS feed link tags for category product feeds
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function feedlinks () {
+		$Collection = ShoppCollection();
+		if (empty($Collection->name)) return;
+?>
+	<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($Collection->name); ?> RSS Feed" href="<?php esc_attr_e(shopp('category','get-feed-url')); ?>" /><?php
+	}
+
 
 	/**
 	 * Identifies the currently loaded Shopp storefront page
@@ -558,21 +573,6 @@ class Storefront extends FlowController {
 			$item->url = shoppurl(false,$item->object);
 		}
 		return $items;
-	}
-
-	/**
-	 * Renders RSS feed link tags for category product feeds
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function feedlinks () {
-		$Collection = ShoppCollection();
-		if (empty($Collection->name)) return;
-?>
-	<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($Collection->name); ?> RSS Feed" href="<?php esc_attr_e(shopp('category','get-feed-url')); ?>" /><?php
 	}
 
 	/**
