@@ -61,14 +61,13 @@
 <div id="publish-calendar" class="calendar"></div>
 
 <?php do_action('shopp_product_editor_templates'); ?>
-
 <script type="text/javascript">
 /* <![CDATA[ */
 jQuery('.hide-if-no-js').removeClass('hide-if-no-js');
 var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>,
 	product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>,
 	prices = <?php echo json_encode($Product->prices) ?>,
-	specs = <?php echo json_encode($Product->specs) ?>,
+	specs = <?php $specs = array(); foreach ($Product->specs as $Spec) $specs[] = $Spec->json(array('context','type','numeral','sortorder','created','modified')); echo json_encode($specs); ?>,
 	options = <?php echo json_encode($Product->options) ?>,
 	priceTypes = <?php echo json_encode($priceTypes) ?>,
 	billPeriods = <?php echo json_encode($billPeriods) ?>,
@@ -90,7 +89,6 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	imageul_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>',
 	adminpage = '<?php echo $this->Admin->pagename('products'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
-	worklist = <?php echo json_encode($this->manager(true)); ?>,
 	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
 	weightUnit = '<?php echo shopp_setting('weight_unit'); ?>',
 	dimensionUnit = '<?php echo shopp_setting('dimension_unit'); ?>',

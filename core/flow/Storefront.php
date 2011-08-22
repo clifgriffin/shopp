@@ -47,10 +47,6 @@ class Storefront extends FlowController {
 		$Catalog = new Catalog();
 		ShoppCatalog($Catalog);
 
-		// @todo replace with storefront_pages setting?
-		// $pages = shopp_setting('pages');
-		// if (!empty($pages)) $this->pages = $pages;
-
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);

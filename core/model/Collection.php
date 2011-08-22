@@ -333,9 +333,10 @@ class ProductCollection implements Iterator {
 		return $rss;
 	}
 
-
 	function workflow () {
-		return array_keys($this->products);
+		$list = array_keys($this->products);
+		unset($this->products); // free memory
+		return $list;
 	}
 
 	function size () {
