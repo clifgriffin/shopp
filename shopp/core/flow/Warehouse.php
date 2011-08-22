@@ -15,6 +15,7 @@ class Warehouse extends AdminController {
 
 	var $views = array('featured','published','onsale','bestselling','inventory','trash');
 	var $view = 'all';
+	var $worklist = array();
 
 	/**
 	 * Store constructor
@@ -27,6 +28,8 @@ class Warehouse extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
+
+		ShoppingObject::store('worklist',$this->worklist);
 
 		if ('off' == shopp_setting('inventory'))
 			array_splice($this->views,4,1);
@@ -84,7 +87,16 @@ class Warehouse extends AdminController {
 	 **/
 	function admin () {
 		if (!empty($_GET['id'])) $this->editor();
-		else $this->manager();
+		else {
+			$this->manager();
+
+			global $Products;
+			if ($Products->total == 0) return;
+
+			// Save workflow list
+			$this->worklist = $this->manager(true);
+			$this->worklist['query'] = $_GET;
+		}
 	}
 
 	/**
@@ -164,19 +176,36 @@ class Warehouse extends AdminController {
 			$this->save($Shopp->Product);
 			$this->Notice = sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>');
 
-			if ($next) {
-				if ($next == "new") {
-					$Shopp->Product = new Product();
-					$Shopp->Product->status = "publish";
-				} else {
-					$Shopp->Product = new Product($next);
-					$Shopp->Product->load_data();
+			// Workflow handler
+			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
+				$workflow = $_REQUEST['settings']['workflow'];
+				$worklist = $this->worklist;
+				$working = array_search($id,$this->worklist);
+
+				switch($workflow) {
+					case 'close': $next = 'close'; break;
+					case 'new': $next = 'new'; break;
+					case 'next': $key = $working+1; break;
+					case 'previous': $key = $working-1; break;
 				}
-			} else {
-				if (empty($id)) $id = $Shopp->Product->id;
-				$Shopp->Product = new Product($id);
-				$Shopp->Product->load_data();
+
+				if (isset($key)) $next = isset($worklist[$key]) ? $worklist[$key] : 'close';
+
 			}
+
+			if ($next) {
+				if (isset($this->worklist['query'])) $query = array_merge($_GET,$this->worklist['query']);
+				$redirect = add_query_arg($query,$adminurl);
+				$cleanup = array('action','selected','delete_all');
+				if ('close' == $next) { $cleanup[] = 'id'; $next = false; }
+				$redirect = remove_query_arg($cleanup, $redirect);
+				if ($next) $redirect = add_query_arg('id',$next,$redirect);
+				shopp_redirect($redirect);
+			}
+
+			if (empty($id)) $id = $Shopp->Product->id;
+			$Shopp->Product = new Product($id);
+			$Shopp->Product->load_data();
 		}
 
 	}
@@ -340,9 +369,13 @@ class Warehouse extends AdminController {
 			);
 		}
 
+		// Override loading product meta and limiting by pagination in the workflow list
+		if ($workflow) unset($loading['load'],$loading['limit']);
+
 		$Products = new ProductCollection();
 		$Products->load($loading);
 
+		// Return a list of product keys for workflow list requests
 		if ($workflow) return $Products->workflow();
 
 		// Get sub-screen counts

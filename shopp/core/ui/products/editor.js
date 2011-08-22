@@ -120,7 +120,6 @@ jQuery(document).ready(function($) {
 	categories();
 	tags();
 	quickSelects();
-	updateWorkflow();
 
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
 		e.stopPropagation();
@@ -133,40 +132,6 @@ jQuery(document).ready(function($) {
 
 	$('#prices-loading').remove();
 });
-
-function updateWorkflow () {
-	var $=jqnc();
-	$('#workflow').change(function () {
-		setting = $(this).val();
-		request.page = adminpage;
-		request.id = product;
-		if (!request.id) request.id = "new";
-		if (setting == "new") {
-			request.id = "new";
-			request.next = setting;
-		}
-		if (setting == "close") delete request.id;
-
-		// Find previous product
-		if (setting == "previous") {
-			$.each(worklist,function (i,entry) {
-				if (entry.id != product) return;
-				if (worklist[i-1]) request.next = worklist[i-1].id;
-				else delete request.id;
-			});
-		}
-
-		// Find next product
-		if (setting == "next") {
-			$.each(worklist,function (i,entry) {
-				if (entry.id != product) return;
-				if (worklist[i+1]) request.next = worklist[i+1].id;
-				else delete request.id;
-			});
-		}
-
-	}).change();
-}
 
 function categories () {
 	jQuery('#product .category-metabox').each(function () {
