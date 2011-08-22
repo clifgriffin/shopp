@@ -44,6 +44,8 @@ class ProductCollection implements Iterator {
 			'order' => false,		// ORDER BY columns or named methods (string)
 									// 'bestselling','highprice','lowprice','newest','oldest','random','chaos','title'
 
+			'page' => false,		// Current page number to load
+			'paged' => false,		// Entries per page to load
 			'nostock' => true,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
 			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
 			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
@@ -58,9 +60,9 @@ class ProductCollection implements Iterator {
 
 		// Setup pagination
 		$this->paged = false;
-		$this->pagination = shopp_setting('catalog_pagination');
-		$paged = get_query_var('paged');
-		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
+		$this->pagination = (false === $paged)?shopp_setting('catalog_pagination'):$paged;
+		$page = (false === $page)?get_query_var('paged'):$page;
+		$this->page = ((int)$page > 0 || !is_numeric($page))?$page:1;
 
 		// Hard product limit per category to keep resources "reasonable"
 		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
@@ -203,8 +205,6 @@ class ProductCollection implements Iterator {
 	 * @return string The final RSS markup
 	 **/
 	function feed () {
-		global $Shopp;
-		$db = DB::get();
 	    $base = shopp_setting('base_operations');
 
 		add_filter('shopp_rss_description','wptexturize');
@@ -215,8 +215,6 @@ class ProductCollection implements Iterator {
 		add_filter('shopp_rss_description','wpautop',30);
 
 		do_action_ref_array('shopp_collection_feed',array(&$this));
-
-		if (!$this->products) $this->load(array('limit'=>500,'load'=>array('images','prices')));
 
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
 			 			'link' => shopp($this,'get-feed-url'),
@@ -230,66 +228,105 @@ class ProductCollection implements Iterator {
 		$rss = apply_filters('shopp_rss_meta',$rss);
 
 		$items = array();
-		foreach ($this->products as $product) {
-		    if ($base['vat']) {
-				$Product = new Product($product->id);
-				$Item = new Item($Product);
-		        $taxrate = shopp_taxrate(null, true, $Item);
-		    }
+		$paged = 100; // Buffer 100 products at a time.
+		if (!$this->products) $this->load( array('load'=>array('prices','specs'), 'paged'=>$paged) );
 
-			$item = array();
-			$item['guid'] = shopp($product,'get-url');
-			$item['title'] = $product->name;
-			$item['link'] =  shopp($product,'get-url');
-			$item['pubDate'] = date('D, d M Y H:i O',$product->publish);
-
-			// Item Description
-			$item['description'] = '';
-
-			$item['description'] .= '<table><tr>';
-			$Image = current($product->images);
-			if (!empty($Image)) {
-				$item['description'] .= '<td><a href="'.$item['link'].'" title="'.$product->name.'">';
-				$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(75,75,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="75" height="75" />';
-				$item['description'] .= '</a></td>';
+		for ($page = 1; $page < $this->pages+1; $page++) {
+			if ($this->page != $page) {
+				$this->load( array('load'=>array('prices','specs'),'paged'=>$paged, 'page' => $page) );
 			}
 
-			$pricing = "";
-			if ($product->onsale) {
-				if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
-				if ($product->min['saleprice'] != $product->max['saleprice'])
-					$pricing .= __("from ",'Shopp');
-				$pricing .= money($product->min['saleprice']);
-			} else {
-				if ($taxrate) {
-					$product->min['price'] += $product->min['price'] * $taxrate;
-					$product->max['price'] += $product->max['price'] * $taxrate;
+			foreach ($this->products as $product) {
+			    if ($base['vat']) {
+					$Product = new Product($product->id);
+					$Item = new Item($Product);
+			        $taxrate = shopp_taxrate(null, true, $Item);
+			    }
+
+				$item = array();
+				$item['guid'] = shopp($product,'get-url');
+				$item['title'] = $product->name;
+				$item['link'] =  shopp($product,'get-url');
+				$item['pubDate'] = date('D, d M Y H:i O',$product->publish);
+
+				// Item Description
+				$item['description'] = '';
+
+				$item['description'] .= '<table><tr>';
+				$Image = current($product->images);
+				if (!empty($Image)) {
+					$item['description'] .= '<td><a href="'.$item['link'].'" title="'.$product->name.'">';
+					$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(75,75,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="75" height="75" />';
+					$item['description'] .= '</a></td>';
 				}
 
-				if ($product->min['price'] != $product->max['price'])
-					$pricing .= __("from ",'Shopp');
-				$pricing .= money($product->min['price']);
+				$pricing = "";
+				if ($product->onsale) {
+					if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
+					if ($product->min['saleprice'] != $product->max['saleprice'])
+						$pricing .= __("from ",'Shopp');
+					$pricing .= money($product->min['saleprice']);
+				} else {
+					if ($taxrate) {
+						$product->min['price'] += $product->min['price'] * $taxrate;
+						$product->max['price'] += $product->max['price'] * $taxrate;
+					}
+
+					if ($product->min['price'] != $product->max['price'])
+						$pricing .= __("from ",'Shopp');
+					$pricing .= money($product->min['price']);
+				}
+				$item['description'] .= "<td><p><big>$pricing</big></p>";
+
+				$item['description'] .= apply_filters('shopp_rss_description',($product->summary),$product).'</td></tr></table>';
+				$item['description'] =
+				 	'<![CDATA['.$item['description'].']]>';
+
+				// Google Base Namespace
+				// http://www.google.com/support/merchants/bin/answer.py?hl=en&answer=188494
+
+				$item['g:id'] = $product->id;
+				if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
+				$item['g:condition'] = "new";
+
+				$price = floatvalue($product->onsale?$product->min['saleprice']:$product->min['price']);
+				if (!empty($price))	{
+					$item['g:price'] = $price;
+					$item['g:price_type'] = "starting";
+				}
+
+				$brand = shopp($product,'get-spec','name=Brand');
+				if (!empty($brand)) $item['g:brand'] = $brand;
+
+				$gtins = array('UPC','EAN','JAN','ISBN-13','ISBN-10','ISBN');
+				foreach ($gtins as $id) {
+					$gtin = shopp($product,'get-spec','name='.$id);
+					if (!empty($gtin)) {
+						$item['g:gtin'] = $gtin; break;
+					}
+				}
+				$mpn = shopp($product,'get-spec','name=MPN');
+				if (!empty($mpn)) $item['g:mpn'] = $mpn;
+
+				// Check the product specs for matching Google Base information
+				$g_props = array(
+					'MPN' => 'mpn',
+					'Color' => 'color',
+					'Material' => 'material',
+					'Pattern' => 'pattern',
+					'Size' => 'size',
+					'Gender' => 'gender',
+					'Age Group' => 'age_group'
+				);
+				foreach ($g_props as $name => $key) {
+					$value = shopp($product,'get-spec','name='.$name);
+					if (!empty($value)) $item["g:$key"] = $value;
+				}
+
+				$item = apply_filters('shopp_rss_item',$item,$product);
+				$items[] = $item;
 			}
-			$item['description'] .= "<td><p><big>$pricing</big></p>";
-
-			$item['description'] .= apply_filters('shopp_rss_description',($product->summary),$product).'</td></tr></table>';
-			$item['description'] =
-			 	'<![CDATA['.$item['description'].']]>';
-
-			// Google Base Namespace
-
-			$item['g:id'] = $product->id;
-			if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
-			$item['g:condition'] = "new";
-
-			$price = floatvalue($product->onsale?$product->min['saleprice']:$product->min['price']);
-			if (!empty($price))	{
-				$item['g:price'] = $price;
-				$item['g:price_type'] = "starting";
-			}
-
-			$item = apply_filters('shopp_rss_item',$item,$product);
-			$items[] = $item;
+			unset($this->products); // Free memory
 		}
 		$rss['items'] = $items;
 

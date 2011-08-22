@@ -809,38 +809,43 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function slug ($result, $options, $O) { return $O->slug; }
 
 	function spec ($result, $options, $O) {
-		$string = "";
-		$separator = ": ";
-		$delimiter = ", ";
-		if (isset($options['separator'])) $separator = $options['separator'];
-		if (isset($options['delimiter'])) $separator = $options['delimiter'];
+		$defaults = array(
+			'separator' => ': ',
+			'delimiter' => ', ',
+			'name' => false,
+			'index' => false,
+			'content' => false,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
 
+		$string = '';
+
+		if ($name && isset($O->specs[$name])) {
+			$spec = $O->specs[$name];
+			if (is_array($spec)) {
+				if ($index) {
+					foreach ($spec as $id => $item)
+						if (($id+1) == $index) $content = $item->value;
+				} else {
+					$values = array();
+					foreach ($spec as $item) $values[] = $item->value;
+					$content = join($delimiter,$values);
+				}
+			} else $content = $spec->value;
+
+			return apply_filters('shopp_product_spec',$content);
+		}
+
+		// Spec loop handling
 		$spec = current($O->specs);
 		if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
 
-		if (isset($options['name'])
-			&& !empty($options['name'])
-			&& isset($O->specskey[$options['name']])) {
-				$spec = $O->specskey[$options['name']];
-				if (is_array($spec)) {
-					if (isset($options['index'])) {
-						foreach ($spec as $index => $entry)
-							if ($index+1 == $options['index'])
-								$content = $entry->value;
-					} else {
-						foreach ($spec as $entry) $contents[] = $entry->value;
-						$content = join($delimiter,$contents);
-					}
-				} else $content = $spec->value;
-			$string = apply_filters('shopp_product_spec',$content);
-			return $string;
-		}
-
-		if (isset($options['name']) && isset($options['content']))
-			$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
-		elseif (isset($options['name'])) $string = $spec->name;
-		elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->value);
-		else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
+		if ($name && $content)
+			$string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
+		elseif ($name) $string = $spec->name;
+		elseif ($content) $string = apply_filters('shopp_product_spec',$spec->value);
+		else $string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
 		return $string;
 	}
 

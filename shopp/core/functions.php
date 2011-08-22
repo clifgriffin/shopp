@@ -1574,7 +1574,7 @@ function shopp_rss ($data) {
 	$xml .= "<title>".esc_html($data['title'])."</title>\n";
 	$xml .= "<description>".esc_html($data['description'])."</description>\n";
 	$xml .= "<link>".esc_html($data['link'])."</link>\n";
-	$xml .= "<language>en-us</language>\n";
+	$xml .= "<language>".get_option('rss_language')."</language>\n";
 	$xml .= "<copyright>".esc_html("Copyright ".date('Y').", ".$data['sitename'])."</copyright>\n";
 
 	if (is_array($data['items'])) {
