@@ -65,7 +65,7 @@ class Item {
 	 * @return void
 	 **/
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
-		$Product->load_data(array('prices','images','categories','tags','specs'));
+		$Product->load_data(array('prices','images','categories','tags','specs','summary'));
 
 		// If product variants are enabled, disregard the first priceline
 		if ($Product->variants == 'on') array_shift($Product->prices);
@@ -324,10 +324,9 @@ class Item {
 			$pricing = $this->mapprice($p);
 			if (empty($pricing) || !in_array($pricing->options,$addons)) continue;
 			if ($property == 'pricing') {
-				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
+				$pricing->unitprice = (str_true($p->sale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
 				$sum += $pricing->unitprice;
-
 			} else {
 				if (isset($pricing->$property)) $sum += $pricing->$property;
 			}
@@ -349,7 +348,7 @@ class Item {
 	 **/
 	function mapprice ($price) {
 		$map = array(
-			'id','type','label','onsale','promoprice','price',
+			'id','type','label','sale','promoprice','price',
 			'inventory','stock','sku','options','dimensions',
 			'shipfee','download','recurring'
 		);
