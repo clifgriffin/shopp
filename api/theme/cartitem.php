@@ -26,6 +26,7 @@ class ShoppCartItemThemeAPI {
 		'link' => 'url',
 		'url' => 'url',
 		'sku' => 'sku',
+		'description' => 'description',
 		'discount' => 'discount',
 		'unitprice' => 'unitprice',
 		'unittax' => 'unittax',
@@ -91,6 +92,8 @@ class ShoppCartItemThemeAPI {
 	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? $O->slug : array( 's_pid'=>$O->product ) ); }
 
 	function sku ($result, $options, $O) { return $O->sku; }
+
+	function description ($result, $options, $O) { return $O->description; }
 
 	function discount ($result, $options, $O) { return (float) $O->discount; }
 
