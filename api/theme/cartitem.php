@@ -38,6 +38,9 @@ class ShoppCartItemThemeAPI {
 		'remove' => 'remove',
 		'optionlabel' => 'option_label',
 		'options' => 'options',
+		'hasaddons' => 'has_addons',
+		'addons' => 'addons',
+		'addon' => 'addon',
 		'addonslist' => 'addons_list',
 		'hasinputs' => 'has_inputs',
 		'incategory' => 'in_category',
@@ -191,6 +194,59 @@ class ShoppCartItemThemeAPI {
 		return $result;
 	}
 
+	function has_addons ($result, $options, $O) { return (count($O->addons) > 0); }
+
+	function addons ($result, $options, $O) {
+		if (!isset($O->_addons_loop)) {
+			reset($O->addons);
+			$O->_addons_loop = true;
+		} else next($O->addons);
+
+		if (current($O->addons) !== false) return true;
+
+		unset($O->_addons_loop);
+		reset($O->addons);
+		return false;
+	}
+
+	function addon ($result, $options, $O) {
+		if (empty($O->addons)) return false;
+		$addon = current($O->addons);
+		$defaults = array(
+			'separator' => ' '
+		);
+		$options = array_merge($defaults,$options);
+
+		$fields = array('id','type','label','sale','saleprice','price',
+						'inventory','stock','sku','weight','shipfee','unitprice');
+
+		$fieldset = array_intersect($fields,array_keys($options));
+		if (empty($fieldset)) $fieldset = array('label');
+
+		$_ = array();
+		foreach ($fieldset as $field) {
+			switch ($field) {
+				case 'weight': $_[] = $addon->dimensions['weight'];
+				case 'saleprice':
+				case 'price':
+				case 'shipfee':
+				case 'unitprice':
+					if ('saleprice' == $field) $field = 'promoprice';
+					if (isset($addon->$field)) {
+						$_[] = (isset($options['currency']) && str_true($options['currency'])) ?
+							 money($addon->$field) : $addon->$field;
+					}
+					break;
+				default:
+					if (isset($addon->$field))
+						$_[] = $addon->$field;
+			}
+
+
+		}
+		return join($options['separator'],$_);
+	}
+
 	function addons_list ($result, $options, $O) {
 		if (empty($O->addons)) return false;
 		$defaults = array(
@@ -211,11 +267,10 @@ class ShoppCartItemThemeAPI {
 		$result .= $before.'<ul'.$classes.'>';
 		foreach ($O->addons as $id => $addon) {
 			if (in_array($addon->label,$excludes)) continue;
-
-			$price = ($addon->onsale?$addon->promoprice:$addon->price);
+			$price = (str_true($addon->sale)?$addon->promoprice:$addon->price);
 			if ($O->taxrate > 0) $price = $price+($price*$O->taxrate);
 
-			if ($prices) $pricing = " (".($addon->unitprice < 0?'-':'+').money($price).")";
+			if ($prices) $pricing = " (".($addon->price < 0?'-':'+').money($price).")";
 			$result .= '<li>'.$addon->label.$pricing.'</li>';
 		}
 		$result .= '</ul>'.$after;
