@@ -792,16 +792,18 @@ class Lookup {
 	 * @return array List of options
 	 **/
 	static function timeframes_menu () {
-		$units = array(
-			'd' => array(11,__('day','Shopp'),__('days','Shopp')),
-			'w' => array(7,__('week','Shopp'),__('weeks','Shopp')),
-			'm' => array(4,__('month','Shopp'),__('months','Shopp')),
-		);
-
+		$units = array( 'd' => 11, 'w' => 7, 'm' => 4 );
 		$_ = array();
-		foreach ($units as $u => $unit) {
-			for ($i = 1; $i < $unit[0]; $i++)
-				$_[$i.$u] = sprintf('%d %s',$i, ($i == 1?$unit[1]:$unit[2]) );
+
+		foreach ( $units as $u => $count ) {
+			for ( $i = 1; $i < $count; $i++ ) {
+				switch ($u) {
+					case 'd': $_[$i.$u] = sprintf(_n('%d day','%d days',$i,'Shopp'), $i); break;
+					case 'w': $_[$i.$u] = sprintf(_n('%d week','%d weeks',$i,'Shopp'), $i); break;
+					case 'm': $_[$i.$u] = sprintf(_n('%d month','%d months',$i,'Shopp'), $i); break;
+					break;
+				}
+			}
 		}
 
 		return apply_filters('shopp_timeframes_menu',$_);
