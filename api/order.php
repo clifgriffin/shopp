@@ -552,14 +552,14 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $order (required) the order id for the event
+ * @param int $order (conditionally required default:false) Will be false for sale and auth events, but needs the order id otherwise.
  * @param string $type (required) the order event type
  * @param string $message (optional default:'') the log message for the event
  * @return bool true on success, false on error
  **/
 function shopp_add_order_event ($order = false, $type = false, $message = '') {
-	if ( ! $order || ! shopp_order_exists($order) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing or invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	if ( false !== $order && ! shopp_order_exists($order) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
