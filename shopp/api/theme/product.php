@@ -114,7 +114,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 		if ($options['mode'] == "single") {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options').': </label> '."\n";
+			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options','Shopp').': </label> '."\n";
 
 			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
@@ -982,7 +982,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if ($options['mode'] == "single") {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options').': </label> '."\n";
+			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options', 'Shopp').': </label> '."\n";
 
 			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
