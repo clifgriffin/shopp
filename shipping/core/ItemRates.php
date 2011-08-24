@@ -40,7 +40,7 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 			$rate = array(
 				'slug' => $slug,
 				'name' => $method['label'],
-				'amount' => array_sum($method['items']),
+				'amount' => $amount,
 				'delivery' => false,
 				'items' => $method['items']
 			);
