@@ -1410,21 +1410,13 @@ function shopp_default_timezone () {
  **/
 function shopp_email ($template,$data=array()) {
 
-	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
-	elseif (strpos($template,"\n") !== false) $f = explode("\n",$template);
-	else {
-		if (strpos($template,".php") !== false) {
-			// Parse a PHP template
-			ob_start();
-			include($template);
-			$content = ob_get_contents();
-			ob_end_clean();
-			if (strpos($content,"\r\n") !== false) $f = explode("\r\n",$content);
-			elseif (strpos($content,"\n") !== false) $f = explode("\n",$content);
-		} elseif (file_exists($template)) $f = file($template);	// Load an HTML/text template
-		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));
-	}
-
+	$debug = false;
+	$in_body = false;
+	$headers = '';
+	$message = '';
+	$to = '';
+	$subject = '';
+	$protected = array('from','to','subject','cc','bcc');
 	$replacements = array(
 		"$" => "\\\$",		// Treat $ signs as literals
 		"€" => "&euro;",	// Fix euro symbols
@@ -1433,13 +1425,25 @@ function shopp_email ($template,$data=array()) {
 		"¤" => "&curren;"	// Fix generic currency symbols
 	);
 
-	$debug = false;
-	$in_body = false;
-	$headers = "";
-	$message = "";
-	$to = "";
-	$subject = "";
-	$protected = array("from","to","subject","cc","bcc");
+	if (false == strpos($template,"\n") && file_exists($template)) {
+		$templatefile = $template;
+		// Parse the template file
+		ob_start();
+		include($templatefile);
+		$template = ob_get_contents();
+		ob_end_clean();
+
+		if (empty($template)) {
+			new ShoppError(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
+		}
+
+	}
+
+	// Sanitize line endings
+	$template = str_replace(array("\r\n","\r"),"\n",$template);
+
+	$f = explode("\n",$template);
+
 	while ( list($linenum,$line) = each($f) ) {
 		$line = rtrim($line);
 		// Data parse
@@ -1460,7 +1464,7 @@ function shopp_email ($template,$data=array()) {
 			$header = $found[1];
 			$string = $found[2];
 			if (in_array(strtolower($header),$protected)) // Protect against header injection
-				$string = str_replace(array("\r","\n"),"",urldecode($string));
+				$string = str_replace("\n","",urldecode($string));
 			if ( strtolower($header) == "to" ) $to = $string;
 			else if ( strtolower($header) == "subject" ) $subject = $string;
 			else $headers .= $line."\n";
@@ -1478,16 +1482,15 @@ function shopp_email ($template,$data=array()) {
 	}
 
 	if (!$debug) return wp_mail($to,$subject,$message,$headers);
-	else {
-		echo "<pre>";
-		echo "To: $to\n";
-		echo "Subject: $subject\n\n";
-		echo "Message:\n$message\n";
-		echo "Headers:\n";
-		print_r($headers);
-		echo "<pre>";
-		exit();
-	}
+
+	echo "<pre>";
+	echo "To: ".htmlspecialchars($to)."\n";
+	echo "Subject: $subject\n\n";
+	echo "Message:\n$message\n";
+	echo "Headers:\n";
+	print_r($headers);
+	echo "<pre>";
+	exit();
 }
 
 function shopp_find_wpload () {
