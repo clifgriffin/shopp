@@ -352,7 +352,7 @@ function validate (form) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
 
-		if (input.attr('disabled') == true) return;
+		if (input.attr('disabled') == 'disabled') return;
 
 		if (input.hasClass(required) && input.val() == "")
 			error = new Array(sjss.REQUIRED_FIELD.replace(/%s/,input.attr(title)),field);
