@@ -259,7 +259,7 @@ class Customer extends DatabaseObject {
 		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
 		$message = apply_filters('shopp_recover_password_message',$_);
 
-		if (!shopp_email(join("\r\n",$message))) {
+		if (!shopp_email(join("\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
 		} else {
@@ -314,7 +314,7 @@ class Customer extends DatabaseObject {
 		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
 		$message = apply_filters('shopp_reset_password_message',$_);
 
-		if (!shopp_email(join("\r\n",$message))) {
+		if (!shopp_email(join("\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
 		} else new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
@@ -336,7 +336,7 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
 		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
 
-		if (!shopp_email(join("\r\n",$_)))
+		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
 		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the merchant.','new_account_email',SHOPP_DEBUG_ERR);
 		if (empty($this->password)) return;
@@ -352,7 +352,7 @@ class Customer extends DatabaseObject {
 		$_[] = '';
 		$_[] = shoppurl(false,'account',$Shopp->Gateways->secure);
 
-		if (!shopp_email(join("\r\n",$_)))
+		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
 		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the customer.','new_account_email',SHOPP_DEBUG_ERR);
 	}
