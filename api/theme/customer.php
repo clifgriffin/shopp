@@ -88,10 +88,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
+		if ( is_object($Object) && is_a($Object, 'Customer') ) return $Object;
+
 		if ( strtolower($object) != 'customer' ) return $Object; // not mine, do nothing
 		else {
-			if (is_object($Object) && 'Customer' == get_class($Object)) return $Object;
-
 			$Order =& ShoppOrder();
 			if(isset($Order->Customer)) return $Order->Customer;
 		}

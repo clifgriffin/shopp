@@ -73,6 +73,22 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	static function _apicontext () { return 'product'; }
 
+	/**
+	 * _setobject - returns the global context object used in the shopp('product') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _setobject ($Object, $object) {
+		if ( is_object($Object) && is_a($Object, 'Product') ) return $Object;
+
+		if ( strtolower($object) != 'product' ) return $Object; // not mine, do nothing
+		else {
+			return ShoppProduct();
+		}
+	}
+
 	function addons ($result, $options, $O) {
 		global $Shopp;
 		$string = "";

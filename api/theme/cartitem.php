@@ -61,10 +61,10 @@ class ShoppCartItemThemeAPI {
 	 *
 	 **/
 	static function _setobject ( $Object, $object ) {
+		if ( is_object($Object) && is_a($Object, 'Item') ) return $Object;
+
 		if (strtolower($object) != 'cartitem') return $Object; // not mine, do nothing
 		else {
-			if (is_object($Object) && 'Item' == get_class($Object)) return $Object;
-
 			$Order =& ShoppOrder();
 			$Cart =& $Order->Cart;
 			$Item = false;

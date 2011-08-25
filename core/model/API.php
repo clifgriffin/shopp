@@ -82,11 +82,12 @@ class ShoppAPIFile extends ModuleFile {
 	}
 
 	function setobject ($Object,$context) {
+		if ( is_object($Object) ) return $Object;  // always use if first argument is an object
+
 		$api = $this->subpackage;
 		$apicontext = call_user_func(array($api,'_apicontext'));
 
 		if (strtolower($context) != strtolower($apicontext)) return $Object; // do nothing
-		if (is_object($Object) && $apicontext == strtolower(get_class($Object))) return $Object;  // still do nothing
 
 		global $Shopp;
 		$property = ucfirst($apicontext);
