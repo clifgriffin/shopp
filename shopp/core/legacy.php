@@ -261,8 +261,8 @@ if (!function_exists('shopp_prereqs')) {
 		if (version_compare(PHP_VERSION, '5.1.3','==')) array_push($errors,'phpversion','php513');
 
 		// Check WordPress version
-		if (version_compare(get_bloginfo('version'),'3.0','<'))
-			$errors = array_push($errors,'wpversion','wp3');
+		if (version_compare(get_bloginfo('version'),'3.1','<'))
+			$errors = array_push($errors,'wpversion','wp31');
 
 		// Check for cURL
 		$curl_func = array('curl_init','curl_setopt','curl_exec','curl_close');
@@ -288,7 +288,7 @@ if (!function_exists('shopp_prereqs')) {
 			'php5' => __('Shopp requires PHP 5.0+.','Shopp'),
 			'php513' => __('Shopp will not work with PHP 5.1.3 because of a critical bug in that version.','Shopp'),
 			'wpversion' => sprintf(__('This site is running WordPress %s!','Shopp'),get_bloginfo('version')),
-			'wp3' => __('Shopp requires WordPress 3.0+.','Shopp'),
+			'wp31' => __('Shopp requires WordPress 3.1+.','Shopp'),
 			'curl' => __('Your server does not have cURL support available! Shopp requires the cURL library for server-to-server communication.','Shopp'),
 			'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.','Shopp'),
 			'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.','Shopp'),
