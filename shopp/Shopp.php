@@ -320,8 +320,8 @@ class Shopp {
 	 * @return array Rewrite rules
 	 **/
 	function rewrites ($wp_rewrite_rules) {
-		$path = array(PLUGINDIR,SHOPP_DIR,'core');
-		add_rewrite_rule('.*'.Storefront::slug().'/images/(\d+)/?\??(.*)$',urlencode(join('/',$path)).'/image.php?siid=$1&$2');
+		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
+		add_rewrite_rule(Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
 		return $wp_rewrite_rules;
 	}
 
