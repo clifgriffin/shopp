@@ -857,31 +857,13 @@ class Storefront extends FlowController {
 		$process = get_query_var('s_pr');
 
 		do_action('shopp_init_checkout');
-		switch ($process) {
-			case "confirm-order":
-				do_action('shopp_init_confirmation');
-				$Order->validated = $Order->isvalid();
-				$errors = "";
-				if ($Errors->exist(SHOPP_COMM_ERR)) {
-					ob_start();
-					locate_shopp_template(array('errors.php'),true);
-					$errors = ob_get_contents();
-					ob_end_clean();
-				}
-				$content = $errors.$this->order_confirmation();
-				break;
-			case "thanks":
-			case "receipt":
-				$content = $this->thanks();
-				break;
-			default:
-				ob_start();
-				if ($Errors->exist(SHOPP_COMM_ERR)) locate_shopp_template(array('errors.php'),true);
-				$this->checkout = true;
-				locate_shopp_template(array('checkout.php'),true);
-				$content = ob_get_contents();
-				ob_end_clean();
-		}
+
+		ob_start();
+		if ($Errors->exist(SHOPP_COMM_ERR)) locate_shopp_template(array('errors.php'),true);
+		$this->checkout = true;
+		locate_shopp_template(array('checkout.php'),true);
+		$content = ob_get_contents();
+		ob_end_clean();
 
 		return apply_filters('shopp_checkout_page',$content);
 	}
