@@ -329,8 +329,7 @@ class Order {
 			// Override posted shipping updates with billing address
 			if ( isset($_POST['sameshipaddress']) ) {
 				if ( $this->sameship = ( 'on' == $_POST['sameshipaddress'] ) ) {
-					$this->Shipping->updates($this->Billing,
-						array('_datatypes','_table','_key','_lists','id','created','modified'));
+					$this->Shipping->updates($_POST['billing']);
 				}
 			}
 		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
@@ -680,6 +679,7 @@ class Order {
 
 		$OrderTotals = $Order->Cart->Totals;
 		$paymethod = $Order->payoptions[$Order->paymethod]->label;
+		$paytype = $Order->Billing->cardtype;
 		$payid = $Order->Billing->card;
 
 		$Purchase = new Purchase($id,'txnid');
@@ -697,6 +697,7 @@ class Order {
 						'fees' => (float)$fees,
 						'gateway' => $Order->processor(),
 						'paymethod' => $paymethod,
+						'paytype' => $paytype,
 						'payid' => $payid
 					));
 					$Purchase = new Purchase($id,'txnid');
@@ -717,6 +718,7 @@ class Order {
 					'fees' => $fees,
 					'gateway' => $Order->processor(),
 					'paymethod' => $paymethod,
+					'paytype' => $paytype,
 					'payid' => $payid
 				));
 		}
@@ -1072,7 +1074,7 @@ class OrderEvent extends SingletonFramework {
 }
 
 /**
- * Defines the base message protocol for the Shopp Order Event sub-system.
+ * Defines the base message protocol for the Shopp Order Event subsystem.
  *
  * @author Jonathan Davis
  * @since 1.2
@@ -1105,6 +1107,7 @@ class OrderEventMessage extends MetaObject {
 		if (!is_array($data)) return;
 
 		/* Creating a new event */
+		$data = $this->filter($data);
 
 		// Ensure the data is provided
 		$missing = array_diff($this->_xcols,array_keys($data));
@@ -1193,6 +1196,10 @@ class OrderEventMessage extends MetaObject {
 		} else $records[$index] = $Object;
 	}
 
+	function filter ($msg) {
+		return $msg;
+	}
+
 
 } // END class OrderEvent
 
@@ -1256,7 +1263,7 @@ OrderEvent::register('auth','AuthOrderEvent');
  * sales accounts indicating an amount owed to the merchant by a customer.
  *
  * When generating an AuthedOrderEvent message using shopp_add_order_event() in a
- * payment gateway, it is necssary to pass a (boolean) false value as the first
+ * payment gateway, it is necessary to pass a (boolean) false value as the first
  * ($order) parameter since the purchase record is created against the AuthedOrderEvent
  * message.
  *
@@ -1274,9 +1281,21 @@ class AuthedOrderEvent extends DebitOrderEventMessage {
 		'amount' => 0.0,		// Gross amount authorized
 		'fees' => 0.0,			// Transaction fees taken by the gateway net revenue = amount-fees
 		'gateway' => '',		// Gateway handler name (module name from @subpackage)
-		'paymethod' => '',		// Payment method (check, MasterCard, etc)
+		'paymethod' => '',		// Payment method (payment method label from payment settings)
+		'paytype' => '',		// Type of payment (check, MasterCard, etc)
 		'payid' => ''			// Payment ID (last 4 of card or check number)
 	);
+
+	function filter ($msg) {
+		if (empty($msg['payid'])) return $msg;
+		$paycards = Lookup::paycards();
+		foreach ($paycards as $card) { // If it looks like a payment card number, truncate it
+			if (!empty($msg['payid']) && $card->match($msg['payid']) && $msg['paytype'] == $card->name);
+				$msg['payid'] = substr($msg['payid'],-4);
+		}
+
+		return $msg;
+	}
 }
 OrderEvent::register('authed','AuthedOrderEvent');
 
