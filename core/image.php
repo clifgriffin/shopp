@@ -10,6 +10,9 @@
  * @subpackage image
  **/
 
+// Reduce image display issues by hiding warnings/notices
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
 chdir(dirname(__FILE__));
 
 if (!class_exists('SingletonFramework')) require(realpath('Framework.php'));
@@ -30,7 +33,7 @@ if (!function_exists('shopp_setting')) require(realpath('../api/settings.php'));
  * @since 1.1
  * @package image
  **/
-class ImageServer extends DatabaseObject {
+class ImageServer {
 
 	var $request = false;
 	var $caching = true;
@@ -62,6 +65,7 @@ class ImageServer extends DatabaseObject {
 		if ($this->load())
 			$this->render();
 		else $this->error();
+
 	}
 
 	/**
@@ -79,7 +83,6 @@ class ImageServer extends DatabaseObject {
 			define('SHORTINIT',true);
 			global $table_prefix;
 			require($loadfile);
-			$db = DB::get();
 			return true;
 		}
 
@@ -208,6 +211,7 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function render () {
+
 		$found = $this->Image->found();
 		if (!$found) return $this->error();
 
