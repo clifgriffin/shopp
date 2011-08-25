@@ -90,6 +90,22 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function _apicontext () { return 'purchase'; }
 
+	/**
+	 * _setobject - returns the global context object used in the shopp('purchase') call
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 **/
+	static function _setobject ($Object, $object) {
+		if ( is_object($Object) && is_a($Object, 'Purchase') ) return $Object;
+
+		if ( strtolower($object) != 'purchase' ) return $Object; // not mine, do nothing
+		else {
+			return ShoppPurchase();
+		}
+	}
+
 	function address ($result, $options, $O) { return esc_html($O->address); }
 
 	function card ($result, $options, $O) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }

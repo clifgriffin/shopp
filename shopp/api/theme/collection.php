@@ -64,6 +64,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	static function _setobject ($Object, $context) {
+		if( is_object($Object) && is_a($Object, 'ProductCollection') ) return $Object;
+
 		switch ( $context ) {
 			case 'collection':
 			case 'category':

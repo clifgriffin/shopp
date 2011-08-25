@@ -41,6 +41,8 @@ class ShoppErrorThemeAPI implements ShoppAPI {
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
+		if ( is_object($Object) && is_a($Object, 'ShoppErrors') ) return $Object;
+
 		if ( strtolower($object) != 'error' ) return $Object; // not mine
 		return ShoppErrors();
 	}
