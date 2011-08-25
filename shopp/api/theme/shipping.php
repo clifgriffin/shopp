@@ -46,13 +46,12 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
-		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Cart) ) return $Object->Cart;
-
-		if ( strtolower($object) != 'shipping' ) return $Object; // not mine, do nothing
-		else {
-			$Order =& ShoppOrder();
-			return $Order->Cart;
-		}
+		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Cart) && 'shipping' == strtolower($object) ) 
+			return $Object->Cart;
+		else if ( strtolower($object) != 'shipping' ) return $Object; // not mine, do nothing
+		
+		$Order =& ShoppOrder();
+		return $Order->Cart;
 	}
 
 	function has_estimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
