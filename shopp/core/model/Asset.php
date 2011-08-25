@@ -179,9 +179,11 @@ class ImageAsset extends FileAsset {
 	var $type = 'image';
 
 	function output ($headers=true) {
+
 		if ($headers) {
 			$Engine = $this->_engine();
 			$data = $this->retrieve($this->uri);
+
 			$etag = md5($data);
 			$offset = 31536000;
 
@@ -199,12 +201,15 @@ class ImageAsset extends FileAsset {
 			header('Last-Modified: '.date('D, d M Y H:i:s', $this->modified).' GMT');
 			if (!empty($etag)) header('ETag: '.$etag);
 
-			header("Content-type: {$this->mime}");
+			header("Content-type: $this->mime");
 			if (!empty($this->filename))
 				header("Content-Disposition: inline; filename=".$this->filename);
 			else header("Content-Disposition: inline; filename=image-".$this->id.".jpg");
+
 			header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->storage})");
+
 		}
+
 		if (!empty($data)) echo $data;
 		else $Engine->output($this->uri);
 		ob_flush(); flush();

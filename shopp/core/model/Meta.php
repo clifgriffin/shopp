@@ -66,7 +66,7 @@ class MetaObject extends DatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function save () {
+	function save ($op='update') {
 		if (!empty($this->_xcols)) {
 			$value = new stdClass();
 			foreach ((array)$this->_xcols as $col)
@@ -105,14 +105,14 @@ abstract class MetasetObject extends DatabaseObject {
 		$this->load($id,$key);
 	}
 
-	function init () {
+	function init ($table,$key='id') {
 		$this->_table = DatabaseObject::tablename(MetasetObject::$table);
 		$this->_type = get_class($this);
 		$properties = array_keys(get_object_vars($this));
 		$this->_properties = array_filter($properties,array('MetasetObject','_ignore_'));
 	}
 
-	function load () {
+	function load ($arg1=false,$arg2=false) {
 		$db = &DB::get();
 
 		$args = func_get_args();
@@ -150,7 +150,7 @@ abstract class MetasetObject extends DatabaseObject {
 	 *
 	 * @return void Description...
 	 **/
-	function save () {
+	function save ($op='update') {
 		$db = &DB::get();
 
 		if (empty($this->id)) {

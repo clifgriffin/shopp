@@ -70,7 +70,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	function load ($name='') {
+	function load ($name='',$arg2=false) {
 		$Setting = $this->setting();
 
 		$where = array("context='$Setting->context'","type='$Setting->type'");
@@ -163,7 +163,8 @@ class Settings extends DatabaseObject {
 	 * @param boolean $autoload (optional) The autoload setting - true by default
 	 * @return void
 	 **/
-	function save ($name,$value) {
+	function save ($name=false,$value=false) {
+		if (empty($name)) return false;
 		// Update or Insert as needed
 		if ($this->get($name) === false) $this->add($name,$value);
 		else $this->update($name,$value);
@@ -194,7 +195,7 @@ class Settings extends DatabaseObject {
 	 * @param string $name Name of the setting to remove
 	 * @return boolean
 	 **/
-	function delete ($name) {
+	function delete ($name=false) {
 		if (empty($name)) return false;
 		$Setting = $this->setting();
 
