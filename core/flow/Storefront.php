@@ -862,7 +862,7 @@ class Storefront extends FlowController {
 				do_action('shopp_init_confirmation');
 				$Order->validated = $Order->isvalid();
 				$errors = "";
-				if ($Errors->exist(SHOPP_STOCK_ERR)) {
+				if ($Errors->exist(SHOPP_COMM_ERR)) {
 					ob_start();
 					locate_shopp_template(array('errors.php'),true);
 					$errors = ob_get_contents();
@@ -895,7 +895,7 @@ class Storefront extends FlowController {
 		$Order->validated = $Order->isvalid();
 
 		$errors = '';
-		if ($Errors->exist(SHOPP_STOCK_ERR)) {
+		if ($Errors->exist(SHOPP_COMM_ERR)) {
 			ob_start();
 			locate_shopp_template(array('errors.php'),true);
 			$errors = ob_get_contents();
