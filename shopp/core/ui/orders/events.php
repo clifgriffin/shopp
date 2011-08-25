@@ -164,7 +164,7 @@ class TxnOrderEventRenderer extends OrderEventRenderer {
 
 		if (isset($this->paymethod) && !empty($this->paymethod)) {
 			$payment = $this->paymethod;
-			if (!empty($this->payid)) $payment .= " ($this->payid)";
+			if (!empty($this->payid)) $payment .= " ($this->paytype $this->payid)";
 			$details[] = $payment;
 		}
 		if (!empty($this->txnid))
