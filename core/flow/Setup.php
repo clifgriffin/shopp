@@ -853,6 +853,7 @@ class Setup extends AdminController {
 		else $gateways = explode(',',$active_gateways);
 
 		$Gateways->settings();	// Load all installed gateways for settings UIs
+		do_action('shopp_setup_payments_init');
 
 		if (!empty($_GET['delete'])) {
 			$delete = $_GET['delete'];

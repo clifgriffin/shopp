@@ -496,7 +496,7 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 	function generate () {
 
 		$_ = array();
-		$_[] = '<tr><td colspan="5">';
+		$_[] = '<tr class="${editing_class}"><td colspan="5">';
 		$_[] = '<table class="form-table shopp-settings"><tr>';
 		$_[] = '<th scope="row" colspan="4">'.$this->name.'<input type="hidden" name="gateway" value="'.$this->module.'" /></th>';
 		$_[] = '</tr><tr>';

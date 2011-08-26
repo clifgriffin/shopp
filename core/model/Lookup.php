@@ -854,7 +854,6 @@ class Lookup {
 			'is_readable' => __('The uploaded file cannot be read by the web server and is unusable.','Shopp')." {$_['contact']['server-manager']}",
 			'is_empty' => __('The uploaded file is empty.','Shopp'),
 			'filesize_mismatch' => __('The size of the uploaded file does not match the size reported by the client. Something fishy going on?','Shopp')
-
 		);
 
 		$_['gateway'] = array(

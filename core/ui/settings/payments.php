@@ -45,14 +45,17 @@
 		endif;
 
 		$hidden = get_hidden_columns('shopp_page_shopp-settings-payments');
+		$event = false;
 		$even = false;
 		foreach ($gateways as $gateway):
 			$Gateway = $Gateways->active[$gateway];
 			$payment = $Gateway->settings;
 			$cards = array();
-			foreach ($payment['cards'] as $symbol) {
-				$Paycard = Lookup::paycard($symbol);
-				$cards[] = $Paycard->name;
+			if (isset($payment['cards'])) {
+				foreach ((array)$payment['cards'] as $symbol) {
+					$Paycard = Lookup::paycard($symbol);
+					$cards[] = $Paycard->name;
+				}
 			}
 
 			$editurl = add_query_arg(array('id'=>$gateway),$this->url);
@@ -62,7 +65,10 @@
 			if (!$even) $classes[] = 'alternate'; $even = !$even;
 
 			if ($edit && $edit == $gateway &&in_array($edit,$gateways)) {
+				$event = strtolower($edit);
+
 				$template_data = array(
+					'${editing_class}' => "$event-editing",
 					'${cancel_href}' => $this->url
 				);
 				$editor = str_replace(array_keys($template_data),$template_data,$editor);
@@ -97,5 +103,7 @@
 <script type="text/javascript">
 /* <![CDATA[ */
 var gateways = <?php echo json_encode(array_map('sanitize_title_with_dashes',array_keys($installed))); ?>;
+<?php if ($event): ?>jQuery(document).ready(function($) { $(document).trigger('<?php echo $event; ?>Settings',[$('#payments-settings-table tr.<?php echo $event; ?>-editing')]); });<?php endif; ?>
+
 /* ]]> */
 </script>

@@ -313,8 +313,12 @@ class Order {
 
 			$this->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
 			if (!empty($_POST['billing']['xcsc'])) {
-				foreach ($_POST['billing']['xcsc'] as $field => $value)
+				$this->Billing->xcsc = array();
+				foreach ($_POST['billing']['xcsc'] as $field => $value) {
+					$this->Billing->xcsc[] = $field;
 					$this->Billing->{$field} = $value;
+				}
+
 			}
 		}
 

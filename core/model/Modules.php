@@ -326,7 +326,7 @@ class ModuleSettingsUI {
 
 		$this->ui('<div><label for="'.$id.'">',$column);
 		$this->ui('<input type="hidden" name="settings['.$this->module.']['.$name.']" value="'.$normal.'" id="'.$id.'-default" />',$column);
-		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'" class="'.$classes.'" id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
+		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'" class="'.esc_attr($class).'" id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
 		if (!empty($label)) $this->ui('&nbsp;'.$label,$column);
 		$this->ui('</label></div>',$column);
 
@@ -388,13 +388,15 @@ class ModuleSettingsUI {
 			'selected' => array(),
 			'disabled' => array(),
 			'readonly' => array(),
-			'classes' => ''
+			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['id'] = "{$this->id}-{$attributes['name']}";
 		extract($attributes);
 
-		$this->ui('<div><div class="multiple-select">',$column);
+		$classes = empty($class)?'':' class="'.$class.'"';
+
+		$this->ui('<div'.$classes.'><div class="multiple-select">',$column);
 		$this->ui('<ul '.inputattrs($attributes).'>',$column);
 		if (is_array($options)) {
 			$checked = '';
@@ -434,7 +436,7 @@ class ModuleSettingsUI {
 			'readonly' => false,
 			'value' => '',
 			'size' => 20,
-			'classes' => ''
+			'class' => ''
 		);
 		$attributes = array_merge($defaults,array_filter($attributes));
 		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($attributes['name']);
@@ -512,7 +514,7 @@ class ModuleSettingsUI {
 			'value' => '',
 			'cols' => 30,
 			'rows' => 3,
-			'classes' => ''
+			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($name);
