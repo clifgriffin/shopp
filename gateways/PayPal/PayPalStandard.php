@@ -419,6 +419,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	function settings () {
+
 		$this->ui->text(0,array(
 			'name' => 'account',
 			'value' => $this->settings['account'],
@@ -445,25 +446,20 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			'checked' => $this->settings['testmode']
 		));
 
-		$this->ui->behaviors($this->verifytoken());
+		$this->ui->behaviors($this->tokenjs());
 
 	}
 
-		function verifytoken () {
-			ob_start();
-	?>
-			PayPalStandard.behaviors = function () {
-				$('#settings-paypalstandard-pdtverify').change(function () {
-					if ($(this).attr('checked')) $('#settings-paypalstandard-pdttoken').parent().show();
-					else $('#settings-paypalstandard-pdttoken').parent().hide();
-				}).change();
-			}
-	<?php
-			$script = ob_get_contents(); ob_end_clean();
-			return $script;
-		}
-
-
+	function tokenjs () {
+		ob_start(); ?>
+jQuery(document).bind('paypalstandardSettings',function() {
+	var $ = jqnc(),p = '#paypalstandard-pdt',v = $(p+'verify'),t = $(p+'token');
+	v.change(function () { v.attr('checked')? t.parent().fadeIn('fast') : t.parent().hide(); }).change();
+});
+<?php
+		$script = ob_get_contents(); ob_end_clean();
+		return $script;
+	}
 
 } // END class PayPalStandard
 

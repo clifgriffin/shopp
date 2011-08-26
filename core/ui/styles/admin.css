@@ -590,9 +590,12 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp-settings > tbody tr td,.shopp-settings > tbody tr th { font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif; font-size: 11px; border-bottom: none; }
 .shopp-settings > tbody tr th { font-size: 13px; }
 .shopp-settings .multiple-select ul { font-size: 12px; }
-.shopp-settings > td { max-width: 300px; }
 .shopp-settings div.spacer { width: 200px; }
 .shopp-settings button.addrate { margin-right: 32px; }
+
+
+/** Payment Setting Tables **/
+#payments .shopp-settings td { max-width: 300px; }
 
 /** Shipping Rate Tables **/
 #shiprates .multiple-select ul li { text-indent:-1.9em;padding-left:1.9em; }

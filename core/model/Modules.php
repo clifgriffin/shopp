@@ -546,7 +546,7 @@ class ModuleSettingsUI {
 			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($name);
+		$attributes['id'] = "{$this->id}";
 		$attributes['class'] = 'button-secondary'.('' == $attributes['class']?'':' '.$attributes['class']);
 		extract($attributes);
 
@@ -566,12 +566,14 @@ class ModuleSettingsUI {
 	 **/
 	function p ($column=0,$attributes=array()) {
 		$defaults = array(
+			'id' => '',
 			'label' => '',
 			'content' => '',
 			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = " id=\"{$this->id}-".sanitize_title_with_dashes($name)."\"";
+		if (!empty($attributes['id']))
+			$attributes['id'] = " id=\"{$this->id}-".sanitize_title_with_dashes($attributes['id'])."\"";
 		extract($attributes);
 
 		if (!empty($class)) $class = ' class="'.$class.'"';
@@ -581,7 +583,7 @@ class ModuleSettingsUI {
 	}
 
 	function behaviors ($script) {
-		$this->script = $script;
+		shopp_custom_script('payments',$script);
 	}
 
 } // END class ModuleSettingsUI
