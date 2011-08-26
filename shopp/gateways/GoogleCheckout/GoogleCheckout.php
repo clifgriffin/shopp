@@ -42,7 +42,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		$this->merchant_calc_url = esc_url(add_query_string('_txnupdate=gc',shoppurl(false,'catalog',true)));
 
-		$this->setup('id','key','apiurl');
+		$this->setup('id','key','apiurl','use_google_taxes','use_google_shipping');
 		$this->settings['merchant_email'] = shopp_setting('merchant_email');
 		$this->settings['location'] = "en_US";
 		$base = shopp_setting('base_operations');
