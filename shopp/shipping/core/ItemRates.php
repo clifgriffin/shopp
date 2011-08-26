@@ -20,15 +20,11 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 	}
 
 	function init () {
-		$rate['items'] = array();
+		$this->items = 0;
 	}
 
 	function calcitem ($id,$Item) {
-		foreach ($this->methods as $slug => &$method) {
-			$amount = $this->tablerate($method['table']);
-			if ($amount === false) continue; // Skip methods that don't match at all
-			$method['items'] = $Item->quantity * $amount;
-		}
+		if (!$Item->freeshipping) $this->items += $Item->quantity;
 	}
 
 	function calculate ($options,$Order) {
@@ -40,9 +36,9 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 			$rate = array(
 				'slug' => $slug,
 				'name' => $method['label'],
-				'amount' => $amount,
+				'amount' => ($this->items*$amount),
 				'delivery' => false,
-				'items' => $method['items']
+				'items' => $this->items
 			);
 
 			$options[$slug] = new ShippingOption($rate);
@@ -53,11 +49,9 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 	}
 
 	function settings () {
-
 		$this->ui->flatrates(0,array(
 			'table' => $this->settings['table']
 		));
-
 	}
 
 } // END class OrderRates
