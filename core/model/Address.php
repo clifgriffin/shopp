@@ -56,7 +56,7 @@ class Address extends DatabaseObject {
 		$pattern = $patterns[$this->country];
 		if (!preg_match("/$pattern/",$postcode)) return false;
 
-		do_action_ref_array('shopp_map_'.strtolower($this->country).'_postcode',array(&$Address));
+		do_action_ref_array('shopp_map_'.strtolower($this->country).'_postcode',array(&$this));
 	}
 
 } // END class Address
