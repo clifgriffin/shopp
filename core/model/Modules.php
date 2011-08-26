@@ -317,16 +317,18 @@ class ModuleSettingsUI {
 			'type' => 'checkbox',
 			'normal' => 'off',
 			'value' => 'on',
-			'checked' => false
+			'checked' => false,
+			'class' => '',
 		);
 		$attributes = array_merge($defaults,$attributes);
 		$attributes['checked'] = (value_is_true($attributes['checked'])?true:false);
 		extract($attributes);
 		$id = "{$this->id}-".sanitize_title_with_dashes($name);
+		if (!empty($class)) $class = ' class="'.esc_attr($class).'"';
 
 		$this->ui('<div><label for="'.$id.'">',$column);
 		$this->ui('<input type="hidden" name="settings['.$this->module.']['.$name.']" value="'.$normal.'" id="'.$id.'-default" />',$column);
-		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'" class="'.esc_attr($class).'" id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
+		$this->ui('<input type="'.$type.'" name="settings['.$this->module.']['.$name.']" value="'.$value.'"'.$class.' id="'.$id.'"'.($checked?' checked="checked"':'').' />',$column);
 		if (!empty($label)) $this->ui('&nbsp;'.$label,$column);
 		$this->ui('</label></div>',$column);
 
@@ -514,10 +516,12 @@ class ModuleSettingsUI {
 			'value' => '',
 			'cols' => 30,
 			'rows' => 3,
-			'class' => ''
+			'class' => '',
+			'id' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($name);
+		if (!empty($attributes['id']))
+			$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($attributes['id']);
 		extract($attributes);
 
 		$this->ui('<div><textarea name="'.$name.'" '.inputattrs($attributes).'>'.esc_html($value).'</textarea>',$column);

@@ -7,7 +7,6 @@
 <form action="<?php echo $this->url; ?>" id="payments" method="post">
 <div>
 	<?php wp_nonce_field('shopp-settings-payments'); ?>
-	<input type="hidden" name="page" value="<?php echo $page; ?>" />
 </div>
 
 <div class="tablenav"><div class=" actions">
@@ -54,7 +53,7 @@
 			if (isset($payment['cards'])) {
 				foreach ((array)$payment['cards'] as $symbol) {
 					$Paycard = Lookup::paycard($symbol);
-					$cards[] = $Paycard->name;
+					if ($Paycard) $cards[] = $Paycard->name;
 				}
 			}
 

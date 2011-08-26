@@ -25,7 +25,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	function __construct () {
 		parent::__construct();
 
-		$this->setup('sid','verify','secret','returnurl','testmode');
+		$this->setup('sid','verify','secret','returnurl','testmode','singlepage');
 
 		global $Shopp;
 		$this->settings['returnurl'] = add_query_arg('rmtpay','process',shoppurl(false,'thanks',false));

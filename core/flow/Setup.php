@@ -885,6 +885,7 @@ class Setup extends AdminController {
 		foreach($Gateways->modules as $slug => $module)
 			$installed[$slug] = $module->name;
 
+		$edit = false;
 		$Gateways->ui();		// Setup setting UIs
 		if ( isset($_REQUEST['id']) && isset($Gateways->active[ $_REQUEST['id'] ]) ) {
 			$edit = $_REQUEST['id'];
