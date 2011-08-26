@@ -332,5 +332,23 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 
 }
 
+class DecryptOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Payment details accessed','Shopp');
+	}
+
+	function details () {
+		$user = get_user_by('id',$this->user);
+
+		return sprintf('by <a href="%s">%s</a> (<a href="%s">%s</a>)',
+			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
+			"$user->user_firstname $user->user_lastname",
+			add_query_arg(array('user_id'=>$this->user),
+			admin_url('user-edit.php')),$user->user_login
+		);
+	}
+
+}
 
 ?>
