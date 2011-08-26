@@ -710,7 +710,7 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_gateway');
 		if (isset($_POST['pid'])) {
 			$purchase = new Purchase($_POST['pid']);
-			if($purchase->gateway) do_action('shopp_gateway_ajax_'.sanitize_title_with_dashes($purchase->gateway), $_POST);
+			if ($purchase->gateway) do_action('shopp_gateway_ajax_'.sanitize_title_with_dashes($purchase->gateway), $_POST);
 		}
 		exit();
 	}
