@@ -146,6 +146,8 @@ class ShoppInstallation extends FlowController {
 		if ($db_version < 1100) $this->upgrade_110();
 		if ($db_version < 1200) $this->upgrade_120();
 
+		ShoppSettings()->save('db_version', DB::$version);
+
 	}
 
 	/**
