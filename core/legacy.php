@@ -310,8 +310,13 @@ if (!function_exists('shopp_prereqs')) {
 		deactivate_plugins($plugin,true);
 
 		$phperror = '';
-		foreach ($errors as $error) if (isset($_[$error])) $phperror .= $_[$error].' ';
-		trigger_error($phperror,E_USER_WARNING);
+		if ( is_array($errors) && ! empty($errors) ) {
+			foreach ( $errors as $error ) {
+				if ( isset($_[$error]) )
+					$phperror .= $_[$error].' ';
+				trigger_error($phperror,E_USER_WARNING);
+			}
+		}
 		if (!defined('SHOPP_UNSUPPORTED'))
 			define('SHOPP_UNSUPPORTED',true);
 	}
