@@ -802,7 +802,10 @@ function shopp_product_add_terms ( $product = false, $terms = array(), $taxonomy
 	if ( is_array($terms) ) $terms = array_filter($terms);
 
 	$behavior = ( 'append' == $behavior ? true : false ); // append or override
-	return ( null === wp_set_post_terms( $Product->id, $terms, $taxonomy, $behavior ) );
+	$result = wp_set_post_terms( $Product->id, $terms, $taxonomy, $behavior );
+
+	// false and WP_Error object indicates failure
+	return ( false !== $result && ! ( is_object($result) && is_a($result, 'WP_Error') ) );
 }
 
 /**
