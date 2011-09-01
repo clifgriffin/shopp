@@ -25,7 +25,7 @@
  * @param array $customers (optional) list of int customer ids to limit the purchases to.  All customers by default.
  * @param int $limit (optional default:false) maximimum number of results to get, false for no limit
  * @param string $order (optional default:DESC) DESC or ASC, for sorting in ascending or descending order.
- * @return array of orders
+ * @return array of Purchase objects
  **/
 function shopp_orders ( $from = false, $to = false, $items = true, $customers = array(), $limit = false, $order = 'DESC' ) {
 	$pt = DatabaseObject::tablename(Purchase::$table);
@@ -56,7 +56,7 @@ function shopp_orders ( $from = false, $to = false, $items = true, $customers = 
 	if ( $limit && is_int($limit) ) $limit = " LIMIT $limit";
 
 	$query = "SELECT * FROM $pt WHERE 1 $where ORDER BY id ".('DESC' == $order ? "DESC" : "ASC").$limit;
-	echo $query.BR;
+
 	$orders = DB::query($query, false, '_shopp_order_purchase');
 	if ( $items ) $orders = DB::query("SELECT * FROM $pd AS pd WHERE 0 < FIND_IN_SET(pd.purchase,'".implode(",", array_keys($orders))."')", false, '_shopp_order_purchased', $orders);
 
@@ -71,7 +71,8 @@ function shopp_orders ( $from = false, $to = false, $items = true, $customers = 
  *
  **/
 function _shopp_order_purchase ( &$records, &$record ) {
-	$records[$record->id] = $record;
+	$records[$record->id] = new Purchase();
+	$records[$record->id]->populate($record);
 }
 
 /**
@@ -89,7 +90,8 @@ function _shopp_order_purchased ( &$records, &$record, $objects ) {
 			$record->addons = new ObjectMeta($record->id, 'purchased', 'addon');
 		}
 
-		$objects[$record->purchase]->purchased[] = $record;
+		$objects[$record->purchase]->purchased[$record->id] = new Purchased();
+		$objects[$record->purchase]->purchased[$record->id]->populate($record);
 		$records[$record->purchase] = $objects[$record->purchase];
 	}
 }
