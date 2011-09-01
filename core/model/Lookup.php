@@ -655,6 +655,23 @@ class Lookup {
 		return apply_filters('shopp_payment_cards',$_);
 	}
 
+	/**
+	 * Provides a list of supported shipping packaging methods
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return array List of packaging methods
+	 **/
+	static function packaging_types() {
+		$_ = array( "mass" => __("All together by weight","Shopp"),
+					"all" => __("All together with dimensions","Shopp"),
+					"like" => __("Only like items together","Shopp"),
+					"piece" => __("Each piece separately","Shopp")
+					);
+		return apply_filters('shopp_packaging_types', $_);
+	}
+
 	static function shipcarriers () {
 		$_ = array();
 
