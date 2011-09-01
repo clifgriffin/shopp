@@ -43,13 +43,7 @@
 				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[shipping_packaging]" id="packaging">
-						<?php
-							$packaging = array( "mass" => __("All together by weight","Shopp"),
-												"all" => __("All together with dimensions","Shopp"),
-												"like" => __("Only like items together","Shopp"),
-												"piece" => __("Each piece separately","Shopp"));
-							echo menuoptions($packaging,shopp_setting('shipping_packaging'),true);
-						?>
+						<?php echo menuoptions(Lookup::packaging_types(), shopp_setting('shipping_packaging'),true); ?>
 				</select><br />
 				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
 			</tr>
