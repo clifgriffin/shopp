@@ -303,7 +303,7 @@ abstract class ShippingFramework {
 		// Shipping module can override the default behavior and the global setting by specifying the local packaging property
 		if ( isset($this->packaging) && $this->packaging != $this->settings['shipping_packaging'] )
 			$this->settings['shipping_packaging'] = $this->packaging;
-		$this->packager = new ShippingPackager( array( 'type' => $this->settings['shipping_packaging'] ), $this->module );
+		$this->packager = apply_filters('shopp_'.strtolower($this->module).'_packager', new ShippingPackager( array( 'type' => $this->settings['shipping_packaging'] ), $this->module ));
 
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
