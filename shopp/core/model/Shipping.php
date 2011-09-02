@@ -1392,7 +1392,70 @@ class ShippingPackager implements ShippingPackagingInterface {
 
 } // end class ShippingPackager
 
-class ShippingPackage {
+interface ShippingPackageInterface {
+	/**
+	 * the package weight
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns the total weight of the package
+	 **/
+	public function weight();
+
+	/**
+	 * the package width
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns the width of the package
+	 **/
+	public function width();
+
+	/**
+	 * the package height
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns the height of the package
+	 **/
+	public function height();
+
+	/**
+	 * the package length
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns the length of the package
+	 **/
+	public function length();
+
+	/**
+	 * the package monetary value
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns the value of the package
+	 **/
+	public function value();
+
+	/**
+	 * the package contents
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @returns array of Items in the package
+	 **/
+	public function contents();
+
+}
+
+class ShippingPackage implements ShippingPackageInterface {
 
 	protected $wt = 0; //current weight
 
