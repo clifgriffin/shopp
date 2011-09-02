@@ -1174,7 +1174,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @access protected
 	 * @var array
 	 */
-	protected $types = array( 'mass', 'like', 'piece', 'all' );
+	protected $types;
 
 	/**
 	 * The default built-in packaging behavior (one of built-in types)
@@ -1188,6 +1188,8 @@ class ShippingPackager implements ShippingPackagingInterface {
 	protected $packages = array();
 
 	function __construct( $options = array(), $module = false ) {
+		$this->types = array_keys( Lookup::packaging_types() );
+
 		if ( $module !== false ) $this->module = $module;
 
 		$this->options = apply_filters( 'shopp_packager_options', $options, $module );
