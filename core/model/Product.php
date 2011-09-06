@@ -39,6 +39,7 @@ class Product extends WPShoppObject {
 	var $variants = 'off';
 	var $addons = 'off';
 	var $inventory = false;
+	var $checksum = false;
 	var $stock = 0;
 	var $options = 0;
 
@@ -162,6 +163,7 @@ class Product extends WPShoppObject {
 					&& isset($this->products[$this->_last_product]) )
 				$this->products[$this->_last_product]->sumup();
 		}
+
 	}
 
 	function load_meta ($ids) {
@@ -327,9 +329,6 @@ class Product extends WPShoppObject {
 
 		$target->prices[] = $price;
 
-		// Variation range index/properties
-		$varranges = array('price' => 'price','saleprice'=>'promoprice');
-
 		$variations = ((isset($target->variants) && $target->variants == 'on')
 							|| ($price->type != 'N/A' && $price->context == 'variation'));
 
@@ -361,14 +360,6 @@ class Product extends WPShoppObject {
 		// Build third lookup table using the combined optionkey
 		$target->pricekey[$price->optionkey] = $price;
 
-		// Boolean flag for custom product sales
-		$price->onsale = false;
-		$target->sale = 'off';
-		if ($price->sale == 'on') {
-			$target->sale = 'on'; $price->onsale = true;
-			$price->promoprice = $price->saleprice;
-		}
-
 		$price->isstocked = false;
 		if ($price->inventory == 'on') {
 			$target->stock += $price->stock;
@@ -379,12 +370,20 @@ class Product extends WPShoppObject {
 		if ($price->freeshipping == '0' || $price->shipping == 'on')
 			$freeshipping = false;
 
+		// Boolean flag for custom product sales
+		$price->onsale = false;
+		$target->sale = 'off';
+		if ($price->sale == 'on') {
+			$target->sale = 'on'; $price->onsale = true;
+			$price->promoprice = $price->saleprice;
+		}
+
 		// Calculate catalog discounts if not already calculated
 		if (empty($price->promoprice)) {
 			$Price = new Price();
 			$Price->updates($price);
-			$Price->discounts();
-			$price->promoprice = $Price->promoprice;
+			if ($Price->discounts()) $price->promoprice = $Price->promoprice;
+			else $price->promoprice = $price->price;
 			unset($Price);
 		}
 
@@ -395,8 +394,10 @@ class Product extends WPShoppObject {
 
 		// Grab price and saleprice ranges (minimum - maximum)
 		if (!$price->price) $price->price = 0;
+
+		// Variation range index/properties
+		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 		if ($price->isstocked) $varranges['stock'] = 'stock';
-		// do_action_ref_array('shopp_product_stats',array(&$price));
 
 		foreach ($varranges as $name => $prop) {
 			if (!isset($price->$prop)) continue;
@@ -442,10 +443,10 @@ class Product extends WPShoppObject {
 		}
 
 		// Update stats
-		$target->maxprice = $target->max['price'];
-		$target->minprice = $target->min['price'];
+		$target->maxprice = (float)$target->max['price'];
+		$target->minprice = (float)$target->min['price'];
 
-		if ('on' == $target->sale) $target->minprice = $target->min['saleprice'];
+		if ('on' == $target->sale) $target->minprice = (float)$target->min['saleprice'];
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
 		if ($freeshipping) $target->freeshipping = true;
@@ -511,13 +512,17 @@ class Product extends WPShoppObject {
 	function summary (&$records,&$data) {
 
 		$Summary = new ProductSummary();
-
 		$properties = array_keys($Summary->_datatypes);
 		$ignore = array('product','modified');
+
 		foreach ($properties as $property) {
+			if ($property{0} == '_') continue;
 			if (in_array($property,$ignore)) continue;
 			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
+			if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
+			else $this->checksum .= $this->$property;
 		}
+		$this->checksum = md5($this->checksum);
 
 		if (isset($data->summed)) {
 			$this->summed = DB::mktime($data->summed);
@@ -581,6 +586,20 @@ class Product extends WPShoppObject {
 		if (empty($this->id)) return;
 
 		$Summary = new ProductSummary();
+		$properties = array_keys($Summary->_datatypes);
+		$ignore = array('product','modified');
+
+		$checksum = false;
+		foreach ($properties as $property) {
+			if ($property{0} == '_') continue;
+			if (in_array($property,$ignore)) continue;
+
+			if ('float' == $Summary->_datatypes[$property]) $checksum .= (float)$this->$property;
+			else $checksum .= $this->$property;
+		}
+		$checksum = md5($checksum);
+		if ($checksum == $this->checksum) return;
+
 		$Summary->copydata($this);
 		if (isset($this->summed))
 			$Summary->modified = $this->summed;
