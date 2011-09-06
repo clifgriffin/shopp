@@ -51,7 +51,7 @@ class ProductCollection implements Iterator {
 			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
 			'adjacent' => false,	//
 			'product' => false,		//
-			'load' => array(),		// Product data to load
+			'load' => array('prices','images'),		// Product data to load
 			'inventory' => false,	// Flag for detecting inventory-based queries
 			'debug' => false		// Output the query for debugging
 		);

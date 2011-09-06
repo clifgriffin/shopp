@@ -149,19 +149,18 @@ class Price extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void
+	 * @return boolean True if a discount applies
 	 **/
 	function discounts () {
 
 		if ('on' == $this->sale) $this->promoprice = floatvalue($this->saleprice);
 		else $this->promoprice = floatvalue($this->price);
-		if (empty($this->discounts)) return;
+		if (empty($this->discounts)) return false;
 
-		$db =& DB::get();
 		$promo_table = DatabaseObject::tablename(Promotion::$table);
 		$query = "SELECT type,SUM(discount) AS amount FROM $promo_table WHERE 0 < FIND_IN_SET(id,'$this->discounts') AND discount > 0 AND status='enabled' GROUP BY type ORDER BY type DESC";
-		$discounts = $db->query($query,AS_ARRAY);
-		if (empty($discounts)) return;
+		$discounts = DB::query($query,AS_ARRAY);
+		if (empty($discounts)) return false;
 
 		// Apply discounts
 		$a = $p = 0;
@@ -174,6 +173,8 @@ class Price extends DatabaseObject {
 
 		if ($a > 0) $this->promoprice -= $a; // Take amounts off first (to reduce merchant percentage discount burden)
 		if ($p > 0)	$this->promoprice -= ($this->promoprice * ($p/100));
+
+		return true;
 	}
 
 	/**
