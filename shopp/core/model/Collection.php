@@ -318,7 +318,7 @@ class ProductCollection implements Iterator {
 					'Gender' => 'gender',
 					'Age Group' => 'age_group'
 				);
-				foreach ($g_props as $name => $key) {
+				foreach ( apply_filters('shopp_googlebase_spec_map', $g_props) as $name => $key ) {
 					$value = shopp($product,'get-spec','name='.$name);
 					if (!empty($value)) $item["g:$key"] = $value;
 				}
