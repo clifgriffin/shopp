@@ -583,11 +583,12 @@ abstract class DatabaseObject implements Iterator {
 				$this->{$property} = $this->_defaults[$var];
 		}
 
-		if (!empty($Settings)) {
+		if (!empty($Tables) && $Settings->available()) {
 			$Tables[$this->_table] = new StdClass();
 			$Tables[$this->_table]->_datatypes =& $this->_datatypes;
 			$Tables[$this->_table]->_lists =& $this->_lists;
 			$Tables[$this->_table]->_defaults =& $this->_defaults;
+
 			$Settings->save('data_model',$Tables);
 		}
 		return true;
