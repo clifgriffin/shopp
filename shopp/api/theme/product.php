@@ -690,39 +690,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function saleprice ($result, $options, $O) {
-		if (empty($O->prices)) $O->load_data(array('prices'));
-		$defaults = array(
-			'taxes' => null,
-			'starting' => '',
-			'property' => 'saleprice'
-		);
-		$options = array_merge($defaults,$options);
-		extract($options);
-
-		if (!is_null($taxes)) $taxes = value_is_true($taxes);
-
-		$min = $O->min[$property];
-		$mintax = $O->min[$property.'_tax'];
-
-		$max = $O->max[$property];
-		$maxtax = $O->max[$property.'_tax'];
-
-		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$O);
-
-		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
-		else $pricetag = $O->prices[0]->price;
-
-		if (count($O->prices) > 0) {
-			$taxrate = shopp_taxrate($taxes,true,$O);
-			$mintax = $mintax?$min*$taxrate:0;
-			$maxtax = $maxtax?$max*$taxrate:0;
-
-			if ($min == $max) return money($min+$mintax);
-			else {
-				if (!empty($starting)) return "$starting ".money($min+$mintax);
-				return money($min+$mintax)." &mdash; ".money($max+$maxtax);
-			}
-		} else return money($pricetag+($pricetag*$taxrate));
+		$options['property'] = 'saleprice';
+		return self::price($result, $options, $O);
 	}
 
 	function quantity ($result, $options, $O) {
