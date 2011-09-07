@@ -100,9 +100,10 @@ class Product extends WPShoppObject {
 		$loaders = array(
 		//  'name'      'callback_method'
 			'prices' 	 => 'load_prices',
-			'images' 	 => 'load_meta',
 			'specs' 	 => 'load_meta',
 			'meta' 		 => 'load_meta',
+			'images' 	 => 'load_meta',
+			'coverimages'=> 'load_coverimages',
 			'categories' => 'load_taxonomies',
 			'tags' 		 => 'load_taxonomies',
 			'summary' 	 => 'load_summary'
@@ -171,6 +172,13 @@ class Product extends WPShoppObject {
 		$Object = new ObjectMeta();
 
 		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+	}
+
+	function load_coverimages ($ids) {
+		if ( empty($ids) ) return;
+		$Object = new ObjectMeta();
+
+		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND sortorder=0 AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	/**
