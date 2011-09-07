@@ -332,8 +332,7 @@ class Warehouse extends AdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		$base = shopp_setting('base_operations');
-		if ($base['vat']) $taxrate = shopp_taxrate();
+		if (str_true(shopp_setting('tax_inclusive'))) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
@@ -603,9 +602,8 @@ class Warehouse extends AdminController {
 		ShoppSettings()->saveform(); // Save workflow setting
 
 		// Get needed settings
-		$base = shopp_setting('base_operations');
 		$taxrate = 0;
-		if ($base['vat']) $taxrate = shopp_taxrate(null,true,$Product);
+		if (str_true(shopp_setting('tax_inclusive'))) $taxrate = shopp_taxrate(null,true,$Product);
 
 		// Set publish date
 		if ('publish' == $_POST['status']) {
@@ -697,7 +695,7 @@ class Warehouse extends AdminController {
 				$priceline['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 
 				// Remove VAT amount to save in DB
-				if ($base['vat'] && isset($priceline['tax']) && $priceline['tax'] == "on") {
+				if (str_true(shopp_setting('tax_inclusive')) && isset($priceline['tax']) && $priceline['tax'] == "on") {
 					$priceline['price'] = (floatvalue($priceline['price'])/(1+$taxrate));
 					$priceline['saleprice'] = (floatvalue($priceline['saleprice'])/(1+$taxrate));
 				}

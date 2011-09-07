@@ -227,6 +227,8 @@ class ProductCollection implements Iterator {
 						);
 		$rss = apply_filters('shopp_rss_meta',$rss);
 
+		$tax_inclusive = str_true(shopp_setting('tax_inclusive'));
+
 		$items = array();
 		$paged = 100; // Buffer 100 products at a time.
 		if (!$this->products) $this->load( array('load'=>array('prices','specs'), 'paged'=>$paged) );
@@ -237,7 +239,7 @@ class ProductCollection implements Iterator {
 			}
 
 			foreach ($this->products as $product) {
-			    if ($base['vat']) {
+			    if ($tax_inclusive) {
 					$Product = new Product($product->id);
 					$Item = new Item($Product);
 			        $taxrate = shopp_taxrate(null, true, $Item);

@@ -525,7 +525,7 @@ class Order {
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->billing = $this->Billing->id;
 		$Purchase->shipping = $this->Shipping->id;
-		$Purchase->taxing = ($base['vat'])?'inclusive':'exclusive';
+		$Purchase->taxing = str_true(shopp_setting('tax_inclusive'))?'inclusive':'exclusive';
 		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->shipping;
 		$Purchase->ip = $Shopping->ip;

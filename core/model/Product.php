@@ -354,8 +354,7 @@ class Product extends WPShoppObject {
 
 		if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
 		if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") {
-			$base = shopp_setting('base_operations');
-			if ($base['vat']) {
+			if (str_true(shopp_setting('tax_inclusive'))) {
 				$Taxes = new CartTax();
 				$taxrate = $Taxes->rate($target);
 				$price->price += $price->price*$taxrate;
