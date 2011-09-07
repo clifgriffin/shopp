@@ -69,7 +69,7 @@ function shopp () {
 	$Object = apply_filters('shopp_themeapi_object', $Object, $context);
 	$Object = apply_filters('shopp_tag_domain', $Object, $context); // @deprecated
 
-	if ('has-context' == $tag) return ($Object);
+	if ('hascontext' == $tag) return ($Object);
 
 	if (!$Object) new ShoppError( sprintf( __('The shopp(\'%s\') tag cannot be used in this context because the object responsible for handling it doesn\'t exist.', 'Shopp'), $context ),'shopp_tag_error',SHOPP_ADMIN_ERR);
 
