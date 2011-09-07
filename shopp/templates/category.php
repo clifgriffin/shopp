@@ -10,7 +10,7 @@
  **
  **/
 ?>
-<?php if(shopp('category','hasproducts','load=prices,images')): ?>
+<?php if(shopp('category','hasproducts','load=prices,coverimages')): ?>
 	<div class="category">
 	<?php shopp('catalog','breadcrumb'); ?>
 
