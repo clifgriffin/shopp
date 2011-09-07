@@ -408,7 +408,7 @@ function Priceline (id,options,data,target,attachment) {
 		}
 	};
 
-	_.recurring = function (period,cycles,trial) {
+	_.recurring = function (r) {
 		var hd,ui,hd2,ui2,ints,n,cycs = '<option value="0">&infin;</option>',pp,ps;
 
 		for(n = 1; n < 31; n++) {
@@ -419,8 +419,8 @@ function Priceline (id,options,data,target,attachment) {
 		$(billPeriods[0]).each(function (n,option) { pp += '<option value="'+option.value+'">'+option.label+'</option>'; });
 		$(billPeriods[1]).each(function (n,option) { ps += '<option value="'+option.value+'">'+option.label+'</option>'; });
 
-		hd2 = $('<th><input type="hidden" name="'+fn+'[trial]" value="off" />'+
-					'<input type="checkbox" name="'+fn+'[trial]" id="trial-'+i+'" />'+
+		hd2 = $('<th><input type="hidden" name="'+fn+'[recurring][trial]" value="off" />'+
+					'<input type="checkbox" name="'+fn+'[recurring][trial]" id="trial-'+i+'" />'+
 					'<label for="trial-'+i+'"> '+TRIAL_LABEL+'</label></th>').appendTo(headingsRow);
 
 		ui2 = $('<td><span class="status">'+NOTRIAL_TEXT+'</span>'+
@@ -440,23 +440,25 @@ function Priceline (id,options,data,target,attachment) {
 		dis = ui2.find('span.status');
 		ui = ui2.find('span.ui').hide();
 
-		_.period = $('#period-'+i);
-		_.interval = $('#interval-'+i).change(function () {
+		_.period = $('#period-'+i).val(r.period);
+		_.interval = $('#interval-'+i).val(r.interval).change(function () {
 			var $this=$(this),s = _.period.val();
 			if ($this.val() == 1) _.period.html(ps);
 			else _.period.html(pp);
 			_.period.val(s);
 		}).change();
+		_.cycles = $('#cycles-'+i).val(r.cycles);
 
-		_.trialperiod = $('#trialperiod-'+i);
-		_.trialint = $('#trialint-'+i).change(function () {
+		_.trialperiod = $('#trialperiod-'+i).val(r.trialperiod);
+		_.trialint = $('#trialint-'+i).val(r.trialint).change(function () {
 			var $this=$(this),s = _.trialperiod.val();
 			if ($this.val() == 1) _.trialperiod.html(ps);
 			else _.trialperiod.html(pp);
 			_.trialperiod.val(s);
 		}).change();
+		_.trialprice = $('#trialprice-'+i).val(asMoney(new Number(r.trialprice)));
 
-		_.trial = hd2.find('#trial-'+i).attr('checked',(trial == "on"?true:false)).toggler(dis,ui,_.trialint);
+		_.trial = hd2.find('#trial-'+i).attr('checked',(r.trial == "on"?true:false)).toggler(dis,ui,_.trialint);
 
 	};
 
@@ -510,7 +512,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.Subscription = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.recurring(data.inventory,data.stock,data.sku);
+		if (!tmp) _.recurring(data.recurring);
 	};
 
 	_.Membership = function (data) {
