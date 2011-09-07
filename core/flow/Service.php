@@ -275,6 +275,7 @@ class Service extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/orders/events.php");
 		include(SHOPP_ADMIN_PATH."/orders/ui.php");
+		do_action('shopp_order_manager_layout');
 	}
 
 	/**
