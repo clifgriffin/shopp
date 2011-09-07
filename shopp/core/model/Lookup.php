@@ -624,13 +624,16 @@ class Lookup {
 	 *
 	 * @return array List of country codes
 	 **/
-	static function vat_countries () {
-		return apply_filters('shopp_vat_countries',array(
+	static function tax_inclusive_countries () {
+		$_ = array(
 			'AU','AT','BE','BG','CZ','DK','DE','EE','GB',
 			'GR','ES','FR','IE','IT','CY','LV','LT','LU',
 			'HU','MT','NL','PL','PT','RO','SI','SK','FI',
 			'SE'
-		));
+		);
+		// @deprecated shopp_vat_countries
+		$_ = apply_filters('shopp_vat_countries',$_);
+		return apply_filters('shopp_tax_inclusive_countries',$_);
 	}
 
 	/**

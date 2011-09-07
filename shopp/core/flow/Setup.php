@@ -225,16 +225,20 @@ class Setup extends AdminController {
 		// Save settings
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
-			$vat_countries = Lookup::vat_countries();
+
+			$taxin_countries = Lookup::tax_inclusive_countries();
+
 			$zone = $_POST['settings']['base_operations']['zone'];
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
 			$_POST['settings']['base_operations']['zone'] = $zone;
 			$_POST['settings']['base_operations']['currency']['format'] =
 				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
-			if (in_array($_POST['settings']['base_operations']['country'],$vat_countries))
-				$_POST['settings']['base_operations']['vat'] = true;
-			else $_POST['settings']['base_operations']['vat'] = false;
+
+			shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
+				(in_array($_POST['settings']['base_operations']['country'],$taxin_countries) ?
+					'on' : 'off')
+			);
 
 			if (!isset($_POST['settings']['target_markets']))
 				asort($_POST['settings']['target_markets']);

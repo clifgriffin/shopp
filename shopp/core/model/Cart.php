@@ -1230,10 +1230,10 @@ class CartTax {
 		$this->Order = &ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
-		$this->vat = $base['vat'];
-		$this->enabled = (shopp_setting('taxes') == "on");
+		$this->inclusive = str_true(shopp_setting('tax_inclusive'));
+		$this->enabled = str_true(shopp_setting('taxes'));
 		$this->rates = shopp_setting('taxrates');
-		$this->shipping = (shopp_setting('tax_shipping') == "on");
+		$this->shipping = str_true(shopp_setting('tax_shipping'));
 	}
 
 	/**
@@ -1349,7 +1349,7 @@ class CartTax {
 		}
 
 		if ($this->shipping) {
-			if ($this->vat) // Remove the taxes from the shipping amount for inclusive-tax calculations
+			if ($this->inclusive) // Remove the taxes from the shipping amount for inclusive-tax calculations
 				$Totals->shipping = (floatvalue($Totals->shipping)/(1+$Totals->taxrate));
 			$taxes += roundprice($Totals->shipping*$Totals->taxrate);
 		}

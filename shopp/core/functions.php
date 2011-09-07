@@ -1720,12 +1720,12 @@ function shopp_safe_redirect($location, $status = 302) {
  * @return float The determined tax rate
  **/
 function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
-	$locale = shopp_setting('base_operations');
+	$inclusive = (str_true(shopp_setting('tax_inclusive')));
 	$rated = false;
 	$taxrate = 0;
 	$Taxes = new CartTax();
 
-	if ($locale['vat']) $rated = true;
+	if ($inclusive) $rated = true;
 	if (!is_null($override)) $rated = $override;
 	if (!value_is_true($taxprice)) $rated = false;
 
