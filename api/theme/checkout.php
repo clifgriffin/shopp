@@ -581,15 +581,18 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	function checkout_function ($result, $options, $O) {
-		global $Shopp;
-		if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
+		$defaults = array(
+			'updating' => '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
 		$regions = Lookup::country_zones();
 		$base = shopp_setting('base_operations');
 
 		$js = "var regions = ".json_encode($regions).",".
-							"SHIPCALC_STATUS = '".$options['shipcalc']."',".
-							"d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
-							"pm_cards = {};";
+				  "c_upd = '".$updating."',".
+				  "d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
+				  "pm_cards = {};";
 
 		foreach ($O->payoptions as $handle => $option) {
 			if (empty($option->cards)) continue;

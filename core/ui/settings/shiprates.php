@@ -52,6 +52,21 @@
 			foreach ($shiprates as $setting => $module):
 				$shipping = shopp_setting($setting);
 				$service = $Shipping->modules[$module]->name;
+				$destinations = array();
+
+				$min = $max = false;
+				if (isset($shipping['table']) && is_array($shipping['table']))
+				foreach ($shipping['table'] as $tablerate) {
+
+					$destination = false;
+					$d = ShippingSettingsUI::parse_location($tablerate['destination']);
+					if (!empty($d['zone'])) $destinations[] = $d['zone'].' ('.$d['countrycode'].')';
+					elseif (!empty($d['area'])) $destinations[] = $d['area'];
+					elseif (!empty($d['country'])) $destinations[] = $d['country'];
+					elseif (!empty($d['region'])) $destinations[] = $d['region'];
+					// if (false !== $destination) $destinations[] = $destination;
+				}
+				if (empty($destinations)) $destinations[] = '<big>&#9100;</big>';
 
 				$label = $service;
 				if (isset($shipping['label'])) $label = $shipping['label'];
@@ -81,7 +96,7 @@
 				</div>
 			</td>
 			<td class="type column-type"><?php echo esc_html($service); ?></td>
-			<td class="supported column-supported"></td>
+			<td class="supported column-supported"><?php echo join(', ',$destinations); ?></td>
 
 		</tr>
 		<?php endforeach; ?>
