@@ -598,8 +598,16 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		add_storefrontjs($js,true);
 
 		if (!empty($options['value'])) $value = $options['value'];
-		else $value = "process";
-		$output = '<div><input id="shopp-checkout-function" type="hidden" name="checkout" value="'.$value.'" /></div>';
+		else $value = 'process';
+		$output = '
+<script type="text/javascript">
+//<![CDATA[
+	document.body.className += \' js-enabled\'.trim();
+//]]>
+</script>
+<div><input id="shopp-checkout-function" type="hidden" name="checkout" value="'.$value.'" /></div>
+		';
+
 		if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
 		else $output = apply_filters('shopp_checkout_form',$output);
 		return $output;
