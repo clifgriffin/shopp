@@ -99,8 +99,7 @@ function ShoppCartAjaxHandler (cart,response) {
 /**
  * DOM-ready initialization
  **/
-jQuery(document).ready(function() {
-	var $=jqnc();
+jQuery(document).ready(function($) {
 	// Adds behaviors to shopping cart controls
 	$('#cart #shipping-country').change(function () {
 		this.form.submit();
