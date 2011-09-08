@@ -27,8 +27,9 @@ class OrderRates extends ShippingFramework implements ShippingModule {
 
 		foreach ($this->methods as $slug => $method) {
 
-			$amount = floatvalue($this->tablerate($method['table']));
+			$amount = $this->tablerate($method['table']);
 			if ($amount === false) continue; // Skip methods that don't match at all
+
 			$rate = array(
 				'slug' => $slug,
 				'name' => $method['label'],
