@@ -602,7 +602,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$output = '
 <script type="text/javascript">
 //<![CDATA[
-	document.body.className += \' js-enabled\'.trim();
+	document.body.className += \' js-on\'.trim();
 //]]>
 </script>
 <div><input id="shopp-checkout-function" type="hidden" name="checkout" value="'.$value.'" /></div>

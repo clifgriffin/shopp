@@ -62,7 +62,7 @@
 #shopp form ul li.half.right { display: inline; float: right; }
 #shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 
-.js-enabled .hide-if-js { display: none; }
+.js-on .hide-if-js { display: none; }
 
 /* Workaround for IE to hide the cart's 'default button' but keep it active */
 #hidden-update { position: absolute; left: -999em; }
