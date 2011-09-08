@@ -914,6 +914,53 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return join('',$_);
 	}
 
+	function parse_location ($destination) {
+		$selected = array(
+			'region' => '*',
+			'country' => '',
+			'area' => '',
+			'zone' => ''
+		);
+		$selection = array();
+
+		if (strpos($destination,',') !== false)
+			$selection = explode(',',$destination);
+		else $selection = array($destination);
+
+		if (!is_array($selection)) $selection = array($selection);
+		$keys = array_slice(array_keys($selected),0,count($selection));
+		$selected = array_merge( $selected,array_combine($keys,$selection) );
+		extract($selected);
+
+		foreach ($selected as $name => &$value) {
+			if ($value == '') continue;
+
+			switch ($name) {
+				case 'region':
+					if ('*' == $value) $value = __('Worldwide','Shopp');
+					else {
+						$regions = Lookup::regions();
+						if (isset($regions[ $value ])) $value = $regions[ $value ];
+					}
+					break;
+				case 'country':
+					$countries = Lookup::countries();
+					$selected['countrycode'] = $value;
+					if (isset($countries[ $value ])) $value = $countries[ $value ]['name'];
+					break;
+				case 'zone':
+					$zones = Lookup::country_zones();
+					if (isset($zones[ $country ])) $zones = $zones[ $country ];
+					if (isset($zones[ $value ])) $value = $zones[ $value ];
+					break;
+			}
+
+		}
+
+
+		return $selected;
+	}
+
 	function location_menu ($destination = false,$module=false) {
 		if (!$module) $this->module;
 		$menuarrow = ' &#x25be;';
