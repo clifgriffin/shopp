@@ -153,8 +153,8 @@ jQuery(document).ready(function () {
 				selectors = [];
 
 			$.each(fields,function (i,name) { selectors.push(spans+name); });
-
-			$(selectors.join(',')).html('?');
+			if (!c_upd) c_upd = '?';
+			$(selectors.join(',')).html(c_upd);
 			$.getJSON(sjss.ajaxurl+"?action=shopp_ship_costs&method="+$(this).val(),
 				function (r) {
 
