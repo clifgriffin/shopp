@@ -236,7 +236,7 @@ class Order {
 	 *
 	 * @return boolean
 	 **/
-	function ccpayment () {
+	function paycard () {
 		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
 		foreach ($ccdata as $field)
 			if (isset($_POST['billing'][$field])) return true;
@@ -263,7 +263,7 @@ class Order {
 
 		$_POST = stripslashes_deep($_POST);
 
-		$cc = $this->ccpayment();
+		$cc = $this->paycard();
 
 		if ($cc) {
 			$_POST['billing']['cardexpires'] = sprintf('%02d%02d',$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
@@ -343,6 +343,10 @@ class Order {
 
 		$this->Cart->changed(true);
 		$this->Cart->totals();
+
+		// Stop here if this is a shipping method update
+		if (isset($_POST['update-shipping'])) return;
+
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
@@ -862,7 +866,7 @@ class Order {
 
 		// Skip validating payment details for purchases not requiring a
 		// payment (credit) card including free orders, remote checkout systems, etc
-		if (!$this->ccpayment()) return apply_filters('shopp_validate_checkout',true);
+		if (!$this->paycard()) return apply_filters('shopp_validate_checkout',true);
 
 		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');

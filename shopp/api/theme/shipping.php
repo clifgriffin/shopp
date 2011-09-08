@@ -33,7 +33,8 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	'methodcost' => 'option_cost',
 	'methodselector' => 'method_selector',
 	'optiondelivery' => 'option_delivery',
-	'methoddelivery' => 'option_delivery'
+	'methoddelivery' => 'option_delivery',
+	'updatebutton' => 'update_button'
 	);
 
 	static function _apicontext () { return 'shipping'; }
@@ -46,10 +47,10 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
-		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Cart) && 'shipping' == strtolower($object) ) 
+		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Cart) && 'shipping' == strtolower($object) )
 			return $Object->Cart;
 		else if ( strtolower($object) != 'shipping' ) return $Object; // not mine, do nothing
-		
+
 		$Order =& ShoppOrder();
 		return $Order->Cart;
 	}
@@ -136,6 +137,26 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	}
 
 	function url ($result, $options, $O) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
+
+	/**
+	 * Displays an update button for shipping method form if JavaScript is disabled
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function update_button ($result, $options, $O) {
+		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
+		$stdclasses = "update-button hide-if-js";
+		$defaults = array(
+			'value' => __('Update Shipping','Shopp'),
+			'class' => ''
+		);
+		$options = array_merge($defaults,$options);
+		$options['class'] .= " $stdclasses";
+		return '<input type="submit" name="update-shipping"'.inputattrs($options,$submit_attrs).' />';
+	}
 
 }
 

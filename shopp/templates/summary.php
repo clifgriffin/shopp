@@ -1,8 +1,8 @@
 <?php
-/** 
+/**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -33,18 +33,18 @@
 			<td class="money"><?php shopp('cartitem','total'); ?></td>
 		</tr>
 	<?php endwhile; ?>
-	
+
 	<?php while(shopp('cart','promos')): ?>
 		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?><strong><?php shopp('cart','promo-discount',array('before' => '&nbsp;&mdash;&nbsp;')); ?></strong></td></tr>
 	<?php endwhile; ?>
-	
+
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
 			<?php if ((shopp('cart','has-shipping-methods'))): ?>
 			<small><?php _e('Select a shipping method:','Shopp'); ?></small>
-			
+
 			<form action="<?php shopp('shipping','url') ?>" method="post">
-			
+
 			<ul id="shipping-methods">
 			<?php while(shopp('shipping','methods')): ?>
 				<li><span><label><?php shopp('shipping','method-selector'); ?>
@@ -54,8 +54,9 @@
 				</li>
 			<?php endwhile; ?>
 			</ul>
+			<?php shopp('shipping','update-button'); ?>
 			</form>
-			
+
 			<?php endif; ?>
 		</td>
 		<th scope="row"><?php _e('Subtotal','Shopp'); ?></th>
