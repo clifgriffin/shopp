@@ -207,6 +207,13 @@ function shopp_add_product ( $data = array() ) {
 		}
 	}
 
+	$Summary = new ProductSummary();
+	$sum_props = array_keys($Summary->_datatypes);
+	// init default summary items
+	foreach ( $sum_props as $prop ) {
+		if ( ! isset($Product->$prop) ) $Product->$prop = NULL;
+	}
+
 	$Product->sumup();
 
 	return $Product;
@@ -579,7 +586,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 		$Product = new stdClass;
 		if ( isset($variant['product']) && is_numeric($variant['product']) ) {
 			$Product = new Product($variant['product']);
-			$Product->load_data();
+			$Product->load_data(array('prices','meta','summary'));
 		}
 
 		if ( empty($Product->id) || empty($Product->prices) ) {
@@ -603,7 +610,9 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 
 			foreach ( $Product->prices as $price ) {
 				if ( 'product' == $price->context ) {
-					$Price = $price;
+					$Price = new Price();
+					$Price->populate($price);
+					$Price->load_settings();
 					break;
 				}
 			}
@@ -638,7 +647,9 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 			// Find the option
 			foreach ( $Product->prices as $price ) {
 				if ( $price->context == $pricetype && $price->optionkey == $optionkey ) {
-					$Price = $price;
+					$Price = new Price();
+					$Price->populate($price);
+					$Price->load_settings();
 					break;
 				}
 			}
@@ -1852,7 +1863,8 @@ function shopp_product_variant_set_subscription ( $variant = false, $settings = 
 		$Price->trial = "on";
 		$variant_settings['recurring']['trial'] = "on";
 		foreach ( $settings['trial'] as $name => $setting ) {
-			if ( ! empty($setting) )
+			if ( is_array($setting) && empty($setting) ) continue;
+
 			switch ( $name ) {
 				case "price":
 					$variant_settings['recurring']['trialprice'] = $setting;
@@ -1870,7 +1882,8 @@ function shopp_product_variant_set_subscription ( $variant = false, $settings = 
 		return false;
 	}
 	foreach ( $settings['billcycle'] as $name => $setting ) {
-		if ( ! empty($setting) )
+		if ( is_array($setting) && empty($setting) ) continue;
+
 		switch ( $name ) {
 			case "cycle":
 				$variant_settings['recurring']['interval'] = $setting['interval'];

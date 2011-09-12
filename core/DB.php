@@ -826,7 +826,7 @@ abstract class DatabaseObject implements Iterator {
 				case "int": $this->{$property} = (int)$value; break;
 				case "string":
 					// If string has been serialized, unserialize it
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value))
+					if ( is_string($value) && preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value) )
 						$value = unserialize($value);
 				default:
 					// Anything not needing processing
