@@ -380,46 +380,6 @@ class Cart {
 	}
 
 	/**
-	 * taxrate()
-	 * Determines the taxrate based on the currently
-	 * available shipping information set by shipzone() */
-	function taxrate () {
-		global $Shopp;
-		if (shopp_setting('taxes') == "off") return false;
-
-		$taxrates = shopp_setting('taxrates');
-		if (!is_array($taxrates)) return false;
-
-		if (!empty($this->Order->Shipping->country)) $country = $this->Order->Shipping->country;
-		elseif (!empty($this->Order->Billing->country)) $country = $this->Order->Billing->country;
-		else return false;
-
-		if (!empty($this->Order->Shipping->state)) $zone = $this->Order->Shipping->state;
-		elseif (!empty($this->Order->Billing->state)) $zone = $this->Order->Billing->state;
-		else return false;
-
-		$global = false;
-		foreach ($taxrates as $setting) {
-			// Grab the global setting if found
-			if ($setting['country'] == "*") {
-				$global = $setting;
-				continue;
-			}
-
-			if (isset($setting['zone'])) {
-				if ($country == $setting['country'] &&
-					$zone == $setting['zone'])
-						return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
-			} elseif ($country == $setting['country']) {
-				return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
-			}
-		}
-
-		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
-
-	}
-
-	/**
 	 * Calculates aggregated total amounts
 	 *
 	 * Iterates over the cart items in the contents of the cart
