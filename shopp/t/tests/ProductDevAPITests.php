@@ -125,9 +125,10 @@ class ProductDevAPITests extends ShoppTestCase
 
 	function test_shopp_product () {
 		$Product = shopp_product( 107 );
+
 		$this->AssertEquals(107, $Product->id);
 		$this->AssertEquals(
-			'a:1:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"190";s:7:"product";s:3:"107";s:7:"options";s:0:"";s:9:"optionkey";s:1:"0";s:5:"label";s:16:"Price & Delivery";s:7:"context";s:7:"product";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:49;s:9:"saleprice";d:44;s:6:"weight";s:8:"0.500000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"1";s:7:"created";s:19:"2009-10-13 15:05:56";s:8:"modified";s:19:"2009-10-13 15:05:56";s:10:"dimensions";a:0:{}s:10:"promoprice";d:44;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}}',
+			'a:1:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"190";s:7:"product";s:3:"107";s:7:"options";s:0:"";s:9:"optionkey";s:1:"0";s:5:"label";s:16:"Price & Delivery";s:7:"context";s:7:"product";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:49;s:9:"saleprice";d:44;s:6:"weight";s:8:"0.500000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"1";s:7:"created";s:19:"2009-10-13 15:05:56";s:8:"modified";s:19:"2009-10-13 15:05:56";s:10:"dimensions";a:0:{}s:10:"promoprice";d:44;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}}',
 			serialize($Product->prices)
 		);
 	}
@@ -158,7 +159,8 @@ class ProductDevAPITests extends ShoppTestCase
 
 	function test_shopp_product_variants () {
 		$variations = shopp_product_variants(70);
-		$expected = 'a:2:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"119";s:7:"product";s:2:"70";s:7:"options";s:2:"11";s:9:"optionkey";s:5:"77011";s:5:"label";s:10:"Widescreen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"2";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}i:1;O:8:"stdClass":29:{s:2:"id";s:3:"120";s:7:"product";s:2:"70";s:7:"options";s:2:"12";s:9:"optionkey";s:5:"84012";s:5:"label";s:11:"Full-Screen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"3";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:6:"onsale";b:1;s:9:"isstocked";b:0;}}';
+		$expected = 'a:2:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"119";s:7:"product";s:2:"70";s:7:"options";s:2:"11";s:9:"optionkey";s:5:"77011";s:5:"label";s:10:"Widescreen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"2";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}i:1;O:8:"stdClass":29:{s:2:"id";s:3:"120";s:7:"product";s:2:"70";s:7:"options";s:2:"12";s:9:"optionkey";s:5:"84012";s:5:"label";s:11:"Full-Screen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"3";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}}';
+
 		$actual = serialize($variations);
 		$this->AssertEquals($expected,$actual);
 	}
@@ -290,6 +292,7 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_set_variant () {
+		global $lastpid;
 		// Create new product for subscription
 		$data = array(
 			'name' => "Site Subscription",
@@ -437,6 +440,43 @@ class ProductDevAPITests extends ShoppTestCase
 
 		$this->AssertEquals('on', $DonateOnetime->donation['var']);
 		$this->AssertEquals('on', $DonateOnetime->donation['min']);
+		$lastpid = $pid;
+	}
+
+	function test_shopp_product_variant_set_subscription () {
+		global $lastpid;
+		$pid = $lastpid;
+		$PremiumAnnual = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Premium', 'Billing'=>'Annual')), 'variant');
+		$settings =
+		array(
+			// free 7 day trial
+			'trial' => array(
+				'price' => 0.00,
+				'cycle' => array(
+					'interval' => 7,
+					'period' => 'd'
+				)
+				),
+			'billcycle' =>
+			array(
+				'cycles' => 0,		// 0 for forever, int number of cycles to repeat the billing
+				'cycle' =>
+				array (
+					'interval' => 12, // how many units of the period before the next billing cycle (day,week,month,year)
+					'period' => 'm'  // d for days, w for weeks, m for months, y for years
+				)
+			)
+		);
+		shopp_product_variant_set_subscription ( $PremiumAnnual->id, $settings );
+		$test = shopp_product_variant(array('product' => $pid, 'option' => array('Access'=>'Premium', 'Billing'=>'Annual')), 'variant');
+		$this->AssertEquals('on', $test->recurring['trial']);
+		$this->AssertEquals(0, $test->recurring['trialprice']);
+		$this->AssertEquals(7, $test->recurring['trialint']);
+		$this->AssertEquals('d', $test->recurring['trialperiod']);
+		$this->AssertEquals(0, $test->recurring['cycles']);
+		$this->AssertEquals(12, $test->recurring['interval']);
+		$this->AssertEquals('m', $test->recurring['period']);
+
 	}
 }
 ?>
