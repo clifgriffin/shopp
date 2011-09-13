@@ -478,5 +478,53 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals('m', $test->recurring['period']);
 
 	}
+
+	function test_shopp_product_set_addon_options () {
+		$data = array(
+			'name' => "Motorcycle",
+			'publish' => array( 'flag' => true ),
+			'description' =>
+				"Testing shopp_product_set_addon_options"
+		);
+
+		$Product = shopp_add_product($data);
+
+		$options = array(
+			'Accessories' => array('Helmet', 'Decals', 'Plate Mount'),
+			'Apparel' => array('T-Shirt', 'Chaps')
+		);
+
+		shopp_product_set_addon_options ( $Product->id, $options, 'save' );
+
+		$Helmet = shopp_product_variant(array('product'=>$Product->id, 'option'=>array('Accessories'=>'Helmet')), 'addon');
+		$this->AssertEquals('Helmet', $Helmet->label);
+		$this->AssertEquals(1, $Helmet->options);
+		$this->AssertEquals(7001, $Helmet->optionkey);
+		$this->AssertEquals('addon', $Helmet->context);
+
+		$Decals = shopp_product_variant(array('product'=>$Product->id, 'option'=>array('Accessories'=>'Decals')), 'addon');
+		$this->AssertEquals('Decals', $Decals->label);
+		$this->AssertEquals(2, $Decals->options);
+		$this->AssertEquals(14002, $Decals->optionkey);
+		$this->AssertEquals('addon', $Decals->context);
+
+		$PlateMount = shopp_product_variant(array('product'=>$Product->id, 'option'=>array('Accessories'=>'Plate Mount')), 'addon');
+		$this->AssertEquals('Plate Mount', $PlateMount->label);
+		$this->AssertEquals(3, $PlateMount->options);
+		$this->AssertEquals(21003, $PlateMount->optionkey);
+		$this->AssertEquals('addon', $PlateMount->context);
+
+		$TShirt = shopp_product_variant(array('product'=>$Product->id, 'option'=>array('Apparel'=>'T-Shirt')), 'addon');
+		$this->AssertEquals('T-Shirt', $TShirt->label);
+		$this->AssertEquals(4, $TShirt->options);
+		$this->AssertEquals(28004, $TShirt->optionkey);
+		$this->AssertEquals('addon', $TShirt->context);
+
+		$Chaps = shopp_product_variant(array('product'=>$Product->id, 'option'=>array('Apparel'=>'Chaps')), 'addon');
+		$this->AssertEquals('Chaps', $Chaps->label);
+		$this->AssertEquals(5, $Chaps->options);
+		$this->AssertEquals(35005, $Chaps->optionkey);
+		$this->AssertEquals('addon', $Chaps->context);
+	}
 }
 ?>
