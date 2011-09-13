@@ -503,6 +503,7 @@ class ProductTaxonomy extends ProductCollection {
 			$MetaObject->context = 'category';
 			$MetaObject->save();
 		}
+		return true;
 	}
 
 	function delete () {
