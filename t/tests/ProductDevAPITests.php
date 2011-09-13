@@ -526,5 +526,52 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(35005, $Chaps->optionkey);
 		$this->AssertEquals('addon', $Chaps->context);
 	}
+
+	function test_shopp_product_variant_set_type() {
+		$data = array(
+			'name' => "Mixed Type Product",
+			'single' => array(),
+			'publish' => array( 'flag' => true ),
+			'description' =>
+				"Testing shopp_product_variant_set_type"
+		);
+
+		$Product = shopp_add_product($data);
+
+		$Pricetag = shopp_product_variant( array( 'product'=>$Product->id ), 'product' );
+
+		// set the product type to Download
+		shopp_product_variant_set_type($Pricetag->id, 'Download', 'product');
+
+		$options = array(
+			'Bonus' => array('Call from Artist', 'Magazine Subscription')
+		);
+
+		shopp_product_set_addon_options ( $Product->id, $options, 'save' );
+		$Call = shopp_product_variant(array('product'=>$Product->id, 'option' => array('Bonus'=>'Call from Artist')), 'addon');
+		shopp_product_variant_set_type($Call->id, 'Virtual', 'addon');
+		$Mag = shopp_product_variant(array('product'=>$Product->id, 'option' => array('Bonus'=>'Magazine Subscription')), 'addon');
+		shopp_product_variant_set_type($Mag->id, 'Subscription', 'addon');
+
+		$Product = shopp_product($Product->id);
+		foreach ( $Product->prices as $Price ) {
+			switch ( $Price->optionkey ) {
+				case 0:
+					$this->AssertEquals('product', $Price->context);
+					$this->AssertEquals('Download', $Price->type);
+					break;
+				case 7001:
+					$this->AssertEquals('addon', $Price->context);
+					$this->AssertEquals('Virtual', $Price->type);
+					break;
+				case 14002:
+					$this->AssertEquals('addon', $Price->context);
+					$this->AssertEquals('Subscription', $Price->type);
+					break;
+				default:
+					$this->AssertTrue(false);
+			}
+		}
+	}
 }
 ?>
