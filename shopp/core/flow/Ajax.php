@@ -222,7 +222,6 @@ class AjaxFlow {
 				$Category = new ProductCategory($_REQUEST['id']);
 				if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 				$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-				$Category->update_slug();
 				if ($Category->save()) echo apply_filters('editable_slug',$Category->slug);
 				else echo '-1';
 				break;
