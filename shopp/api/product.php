@@ -122,7 +122,7 @@ function shopp_add_product ( $data = array() ) {
 	// Create Prices
 	if ( isset($data['single']) ) {
 		$table = DatabaseObject::tablename(Price::$table);
-		db::query("DELETE FROM $table WHERE product=$product AND context='product'");
+		db::query("DELETE FROM $table WHERE product={$Product->id} AND context='product'");
 
 		$Price = new Price();
 		$Price->context = 'product';
@@ -130,7 +130,7 @@ function shopp_add_product ( $data = array() ) {
 		$Price->save();
 
 		$prices = array($Price);
-		$subjects['product'] = array($data['single']);
+		if ( ! empty($data['single']) ) $subjects['product'] = array($data['single']);
 
 	} else if ( isset($data['variants']) ) {  // Construct and Populate variants
 		if ( ! isset($data['variants']['menu']) || empty($data['variants']['menu']) ) {
@@ -1319,7 +1319,7 @@ function shopp_product_set_donation ( $product = false, $settings = array() ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $product (required) The Product id to set donation settings on.
+ * @param int $product (required) The Product id to set subscription settings on.
  * @param array $settings (required) The array of settings. Specify any trial period pricing, and the define the billing cycle.
  * Example array( 	'trial' => array(	'price' => 0.00,	// the trial price
  * 										'cycle' => array (	'interval' => 30, // how many units of the period the trial lasts (day,week,month,year)
