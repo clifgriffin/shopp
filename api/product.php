@@ -90,7 +90,9 @@ function shopp_add_product ( $data = array() ) {
 	$Product->variants = ( isset($data['variants']) ? "on" : "off" );
 	$Product->addons = ( isset($data['addons']) ? "on" : "off" );
 
-	if ( isset($data['packaging']) ) shopp_product_set_packaging($Product->id, $data['packaging']);
+	if ( isset($data['packaging']) ) {
+		shopp_product_set_packaging($Product->id, $data['packaging']);
+	}
 
 	// Save Taxonomies
 	// Categories
@@ -121,17 +123,7 @@ function shopp_add_product ( $data = array() ) {
 
 	// Create Prices
 	if ( isset($data['single']) ) {
-		$table = DatabaseObject::tablename(Price::$table);
-		db::query("DELETE FROM $table WHERE product={$Product->id} AND context='product'");
-
-		$Price = new Price();
-		$Price->context = 'product';
-		$Price->product = $Product->id;
-		$Price->save();
-
-		$prices = array($Price);
 		if ( ! empty($data['single']) ) $subjects['product'] = array($data['single']);
-
 	} else if ( isset($data['variants']) ) {  // Construct and Populate variants
 		if ( ! isset($data['variants']['menu']) || empty($data['variants']['menu']) ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variants menu is empty.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -140,6 +132,15 @@ function shopp_add_product ( $data = array() ) {
 		$prices = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'], false );
 		$subjects['variants'] = $data['variants'];
 	}
+
+	// Create the "product" Price
+	$Price = new Price();
+	$Price->label = __('Price & Delivery', 'Shopp');
+	$Price->context = 'product';
+	$Price->product = $Product->id;
+	if ( isset($subjects['variants']) ) $Price->type = 'N/A'; // disabled
+	$Price->save();
+	$prices = array($Price);
 
 	// Create Addons
 	if ( isset($data['addons']) ) {
@@ -159,16 +160,16 @@ function shopp_add_product ( $data = array() ) {
 		foreach ( $variants as $key => $variant ) {
 			if ( ! is_numeric($key) ) continue;
 
-			// 'option' => 'array',	// array option example: Color=>Blue, Size=>Small
-			if ( ! isset($variant['option']) || empty($variant['option']) ) {
-				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variant $key missing variant options.",__FUNCTION__,SHOPP_DEBUG_ERR);
-				return false;
-			}
-
 			$price = null;
 			if ( 'product' == $pricetype ) {
 				$price = 0;
 			} else {
+				// 'option' => 'array',	// array option example: Color=>Blue, Size=>Small
+				if ( ! isset($variant['option']) || empty($variant['option']) ) {
+					if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variant $key missing variant options.",__FUNCTION__,SHOPP_DEBUG_ERR);
+					return false;
+				}
+
 				$optionkey = $Product->optionmap( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
 
 				// Find the correct Price
@@ -216,7 +217,7 @@ function shopp_add_product ( $data = array() ) {
 
 	$Product->sumup();
 
-	return $Product;
+	return shopp_product($Product->id);
 } // end function shopp_add_product
 
 /**
