@@ -131,7 +131,7 @@ class Item {
 			}
 		}
 
-		$packaging_meta = shopp_product_meta($Product->id, 'meta', 'packaging');
+		$packaging_meta = shopp_product_meta($Product->id, 'packaging');
 		$this->packaging = ( 'on' == $packaging_meta ) ? 'on' : 'off';
 
 		if (!empty($Price->download)) $this->download = $Price->download;
