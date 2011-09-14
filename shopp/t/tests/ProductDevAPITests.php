@@ -573,5 +573,9 @@ class ProductDevAPITests extends ShoppTestCase
 			}
 		}
 	}
+
+	function test_shopp_product_variant_set_taxed() {
+
+	}
 }
 ?>
