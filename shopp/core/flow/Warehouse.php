@@ -5,8 +5,8 @@
  * Flow controller for product management interfaces
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, January 6, 2010
+ * @version 1.2
+ * @copyright Ingenesis Limited, September 15, 2011
  * @package shopp
  * @subpackage products
  **/
@@ -166,10 +166,7 @@ class Warehouse extends AdminController {
 		if (isset($id) && $id != "new") {
 			$Shopp->Product = new Product($id);
 			$Shopp->Product->load_data();
-		} else {
-			$Shopp->Product = new Product();
-			// $Shopp->Product->status = "publish";
-		}
+		} else $Shopp->Product = new Product();
 
 		if ($save) {
 			wp_cache_delete('shopp_product_subcounts');
@@ -190,7 +187,6 @@ class Warehouse extends AdminController {
 				}
 
 				if (isset($key)) $next = isset($worklist[$key]) ? $worklist[$key] : 'close';
-
 			}
 
 			if ($next) {

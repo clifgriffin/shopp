@@ -5,13 +5,15 @@
  * Flow controller for category management interfaces
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, January 6, 2010
+ * @version 1.2
+ * @copyright Ingenesis Limited, September 15, 2011
  * @package shopp
  * @subpackage categories
  **/
 
 class Categorize extends AdminController {
+
+	var $worklist = array();
 
 	/**
 	 * Categorize constructor
@@ -21,6 +23,8 @@ class Categorize extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
+
+		ShoppingObject::store('worklist',$this->worklist);
 
 		if ('shopp-tags' == $_GET['page']) {
 			wp_redirect(add_query_arg(array('taxonomy'=>ProductTag::$taxonomy),admin_url('edit-tags.php')));
@@ -67,12 +71,17 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function admin () {
-		if ('shopp-tags' == $_GET['page']) {
-			return;
-		}
+		if ('shopp-tags' == $_GET['page']) return;
+
 		if (!empty($_GET['id']) && !isset($_GET['a'])) $this->editor();
 		elseif (!empty($_GET['id']) && isset($_GET['a']) && $_GET['a'] == "products") $this->products();
-		else $this->categories();
+		else {
+			$this->categories();
+
+			// Save workflow list
+			$this->worklist = $this->categories(true);
+			$this->worklist['query'] = $_GET;
+		}
 	}
 
 	/**
@@ -84,7 +93,7 @@ class Categorize extends AdminController {
 	 **/
 	function workflow () {
 		global $Shopp;
-		$db =& DB::get();
+
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -128,6 +137,23 @@ class Categorize extends AdminController {
 		if ($save) {
 			$this->save($Shopp->Category);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
+
+			// Workflow handler
+			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
+				$workflow = $_REQUEST['settings']['workflow'];
+				$worklist = $this->worklist;
+				$working = array_search($id,$this->worklist);
+
+				switch($workflow) {
+					case 'close': $next = 'close'; break;
+					case 'new': $next = 'new'; break;
+					case 'next': $key = $working+1; break;
+					case 'previous': $key = $working-1; break;
+				}
+
+				if (isset($key)) $next = isset($worklist[$key]) ? $worklist[$key] : 'close';
+
+			}
 
 			if ($next) {
 				if ($next != "new")
@@ -198,10 +224,11 @@ class Categorize extends AdminController {
 		$this->categories = $Categories;
 
 		$ids = array_keys($Categories);
+		if ($workflow) return $ids;
+
 		$meta = DatabaseObject::tablename(MetaObject::$table);
 		DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
-		if ($workflow) return $ids;
 
 		// $children = array();
 		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
