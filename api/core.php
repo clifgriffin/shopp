@@ -80,68 +80,78 @@ function &ShoppPurchase ( &$Object = false ) {
 
 /**
  * Determines if the requested page is a Shopp page or if it matches a given Shopp page
+ *
  * Also checks to see if the current loaded query is a Shopp product or product taxonomy.
  *
  * @author Jonathan Davis, John Dillick
  * @since 1.0
  *
- * @param string $page (optional) Page name to look for in Shopp's page registry
+ * @param string $page (optional) System page name ID for the correct Storefront page @see Storefront::default_pages()
  * @return boolean
  **/
 function is_shopp_page ($page=false) {
-	// Check for loading single shopp_product or shopp_product taxonomy on catalog checks and ordinary checks
-	if ( 'catalog' == $page || ! $page ) {
-		$product_tax = false;
-		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( is_tax($taxonomy) ) $product_tax = true;
-		}
-		if ( is_singular(Product::$posttype) || $product_tax ) return true;
-	}
+	// Check for Shopp custom posttype/taxonomy requests
+	if ( 'catalog' == $page ||  ! $page )
+		if ( is_shopp_taxonomy() || is_shopp_product() || is_shopp_collection() ) return true;
 
-	if ( ! is_page() ) return false;
+	$pages = Storefront::pages_settings();
 
-	// @todo replace with storefront_pages setting?
-	$pages = shopp_setting('pages');
+	echo Storefront::slugpage(get_query_var('shopp_page'));
 
-	// Detect if the requested page is a Shopp page
-	if ( ! $page ) {
-		foreach ($pages as $page)
-			if ( is_page($page['id']) ) return true;
-		return false;
-	}
+	// Detect if the requested page is a Storefront page
+	if ( ! $page ) $page = Storefront::slugpage(get_query_var('shopp_page'));
 
-	// Determine if the visitor's requested page matches the provided page
-	if (!isset($pages[strtolower($page)])) return false;
-	$page = $pages[strtolower($page)];
-	if ( is_page($page['id']) ) return true;
-	return false;
-
+	return isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == get_query_var('shopp_page');
 }
 
 /**
- * is_shopp_taxonomy - Is the current WordPress query, a query for a Shopp product taxonomy?
+ * Determines if the current request is for a registered dynamic Shopp collection
+ *
+ * NOTE: This function will not identify PHP loaded collections, it only
+ * compares the page request, meaning using is_shopp_collection on the catalog landing
+ * page, even when the landing page (catalog.php) template loads the CatalogProducts collection
+ * will return false, because CatalogProducts is loaded in the template and not directly
+ * from the request.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return boolean
+ **/
+function is_shopp_collection () {
+	$slug = get_query_var('shopp_collection');
+	if (empty($slug)) return false;
+
+	global $Shopp;
+	foreach ($Shopp->Collections as $Collection) {
+		$Collection_slug = get_class_property($Collection,'_slug');
+		if ($slug == $Collection_slug) return true;
+	}
+	return false;
+}
+
+/**
+ * Determines if the current request is for a Shopp product taxonomy
  *
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current WordPress query is for a shopp product taxonomy, else false
+ * @return boolean
  **/
 function is_shopp_taxonomy () {
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
-	foreach ( $taxonomies as $taxonomy ) {
+	foreach ( $taxonomies as $taxonomy )
 		if ( is_tax($taxonomy) ) return true;
-	}
 	return false;
 }
 
 /**
- * is_shopp_product - Is the current WordPress query, a query for a Shopp product?
+ * Determines if the current request is for a Shopp product custom post type
  *
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current WordPress query is for a shopp product, else false
+ * @return boolean
  **/
 function is_shopp_product () {
 	return is_singular(Product::$posttype);
