@@ -1410,8 +1410,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 **/
 	public function all_add ( &$Item, $type='dims' ) {
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
-		$limits = array();
-		array_merge($limits, $defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
+		$limits = array_merge($defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
 
 		if (empty($this->packages)) {
 			$this->packages[] = new ShippingPackage(($type == 'dims'),$limits);
@@ -1592,14 +1591,14 @@ class ShippingPackage implements ShippingPackageInterface {
 		extract($this->limits);
 
 		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 ) {
-			$underlimit = ( $wl > max( $this->w, $Item->width ) &&
-				$ll > max( $this->l, $Item->length ) &&
-				$hl > ( $this->h + $Item->height * $Item->quantity )
+			$underlimit = ( $wl >= max( $this->w, $Item->width ) &&
+				$ll >= max( $this->l, $Item->length ) &&
+				$hl >= ( $this->h + $Item->height * $Item->quantity )
 			);
 		}
 
 		if( $wtl > 0 ) {
-			$underlimit = $underlimit && ( $wtl > ( $this->wt + $Item->weight * $Item->quantity ) );
+			$underlimit = $underlimit && ( $wtl >= ( $this->wt + $Item->weight * $Item->quantity ) );
 		}
 
 		return apply_filters( 'shopp_package_limit', $underlimit, $Item, $this->contents, $this->limits ); // stub, always fits
