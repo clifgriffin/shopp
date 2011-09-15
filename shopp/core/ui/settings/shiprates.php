@@ -64,7 +64,6 @@
 					elseif (!empty($d['area'])) $destinations[] = $d['area'];
 					elseif (!empty($d['country'])) $destinations[] = $d['country'];
 					elseif (!empty($d['region'])) $destinations[] = $d['region'];
-					// if (false !== $destination) $destinations[] = $destination;
 				}
 				if (empty($destinations)) $destinations[] = '<big>&#9100;</big>';
 

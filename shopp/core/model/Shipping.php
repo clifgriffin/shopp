@@ -94,7 +94,7 @@ class ShippingModules extends ModuleLoader {
 
 		$active = shopp_setting('active_shipping');
 
-		$m = $active[$module];
+		$m = isset($active[$module])?$active[$module]:false;
 
 		if (empty($m)) return;
 
@@ -678,6 +678,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 	function flatrates ($column=0,$attributes=array()) {
 		$defaults = array(
+			'name' => '',
 			'classes' => '',
 			'norates' => false,
 			'table' => array()
@@ -1065,11 +1066,12 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 	}
 
-	function location_fields ($row,$setting=array()) {
+	function location_fields ($row=0,$setting=array()) {
 
 		$menuarrow = ' &#x25be;';
+		$destination = isset($setting['destination'])?$setting['destination']:'';
 
-		$menu = $this->location_menu($setting['destination']);
+		$menu = $this->location_menu($destination);
 		extract($menu);
 		if ($this->template) {
 			$row = '${row}';
@@ -1147,12 +1149,12 @@ class TemplateShippingUI extends ShippingSettingsUI {
 	}
 
 	function tablerate_row () {
-		$markup = parent::tablerate_row();
+		$markup = parent::tablerate_row(0,array(),array());
 		$this->widget('tablerate-row',$markup);
 	}
 
 	function tablerate_row_tier () {
-		$markup = parent::tablerate_row_tier();
+		$markup = parent::tablerate_row_tier(0,array(),array());
 		$this->widget('tablerate-row-tier',$markup);
 	}
 
