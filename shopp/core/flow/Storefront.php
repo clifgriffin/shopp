@@ -1120,12 +1120,29 @@ class Storefront extends FlowController {
 		return $pages;
 	}
 
+	/**
+	 * Provides the Storefront page slug by its named system ID
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 * @see Storefront::default_pages()
+	 *
+	 * @return string Named ID of the page
+	 **/
 	static function slug ($page='catalog') {
 		$pages = self::pages_settings();
 		if (!isset($pages[$page])) $page = 'catalog';
 		return $pages[$page]['slug'];
 	}
 
+	/**
+	 * Provides the system named ID from a Storefront page slug
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string The page slug
+	 **/
 	static function slugpage ($slug) {
 		$pages = self::pages_settings();
 		foreach ($pages as $name => $page)
