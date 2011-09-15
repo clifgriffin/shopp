@@ -396,6 +396,7 @@ class ModuleSettingsUI {
 		$attributes['id'] = "{$this->id}-{$attributes['name']}";
 		extract($attributes);
 
+
 		$classes = empty($class)?'':' class="'.$class.'"';
 
 		$this->ui('<div'.$classes.'><div class="multiple-select">',$column);
@@ -407,9 +408,10 @@ class ModuleSettingsUI {
 			foreach ($options as $key => $l) {
 				$attrs = '';
 				$boxid = $id.'-'.sanitize_title_with_dashes($key);
-				if (in_array($key,$selected)) $attrs .= ' checked="checked"';
-				if (in_array($key,$disabled)) $attrs .= ' disabled="disabled"';
-				if (in_array($key,$readonly)) $attrs .= ' readonly="readonly"';
+
+				if (in_array($key,(array)$selected)) $attrs .= ' checked="checked"';
+				if (in_array($key,(array)$disabled)) $attrs .= ' disabled="disabled"';
+				if (in_array($key,(array)$readonly)) $attrs .= ' readonly="readonly"';
 
 				$this->ui('<li'.($alt = !$alt?' class="odd"':'').'><input type="checkbox" name="settings['.$this->module.']['.$name.'][]" value="'.$key.'" id="'.$boxid.'"'.$attrs.' /><label for="'.$boxid.'">'.$l.'</label></li>',$column);
 			}
