@@ -828,16 +828,16 @@ class PackagingTests extends ShoppTestCase {
 		// set 150 lbs limit, and box size limited to (w x l x h) 40 x 40 x 40
 		$packager = new ShippingPackager(array('type'=>'like', 'limits'=>array('wtl' => 150, 'wl' => 40, 'll' => 40, 'hl' => 40)));
 
-		echo "\n====================================== Items ============================================\n";
+		// echo "\n====================================== Items ============================================\n";
 		foreach ( $items as $item ) {
-			echo sprintf(
-				"'%s' QTY(%d) - dims (%d W x %d L x %d H) \tWght: %d\tVal: \$ %d\n",
-				$item->name, $item->quantity, $item->width, $item->length, $item->height, $item->weight, $item->unitprice
-				);
+			// echo sprintf(
+			// 	"'%s' QTY(%d) - dims (%d W x %d L x %d H) \tWght: %d\tVal: \$ %d\n",
+			// 	$item->name, $item->quantity, $item->width, $item->length, $item->height, $item->weight, $item->unitprice
+			// 	);
 
 			$packager->add_item($item);
 		}
-		echo "\n=========================================================================================\n";
+		// echo "\n=========================================================================================\n";
 
 		$this->AssertEquals(11, $packager->count());
 
@@ -846,17 +846,17 @@ class PackagingTests extends ShoppTestCase {
 			$pkgs[] = $p = $packager->package();
 
 			// Debugging code
-			echo "Package ".count($pkgs). sprintf(
-				"- dims (%d W x %d L x %d H)\tWght: %d\tVal: \$ %d\n\n",
-				$p->width(), $p->length(), $p->height(), $p->weight(), $p->value());
-			echo "--Contents--\n";
-			foreach ( $p->contents() as $item ) {
-					echo sprintf(
-						"'%s' QTY(%d) - dims (%d W x %d L x %d H) \tWght: %d\tVal: \$ %d\n",
-						$item->name, $item->quantity, $item->width, $item->length, $item->height, $item->weight, $item->unitprice
-						);
-			}
-			echo "\n---------------------------------------------------------\n\n";
+			// echo "Package ".count($pkgs). sprintf(
+			// 	"- dims (%d W x %d L x %d H)\tWght: %d\tVal: \$ %d\n\n",
+			// 	$p->width(), $p->length(), $p->height(), $p->weight(), $p->value());
+			// echo "--Contents--\n";
+			// foreach ( $p->contents() as $item ) {
+			// 		echo sprintf(
+			// 			"'%s' QTY(%d) - dims (%d W x %d L x %d H) \tWght: %d\tVal: \$ %d\n",
+			// 			$item->name, $item->quantity, $item->width, $item->length, $item->height, $item->weight, $item->unitprice
+			// 			);
+			// }
+			// echo "\n---------------------------------------------------------\n\n";
 
 			$pc = count($pkgs);
 			switch ( $pc ) {
