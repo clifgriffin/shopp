@@ -566,6 +566,8 @@ class Item {
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
 		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
 
+		do_action('shopp_cart_item_retotal',$this);
+
 	}
 
 } // END class Item
