@@ -540,7 +540,7 @@ abstract class ShippingFramework {
 			// Handle special case for postcode wildcard matching
 			if (!empty($d['postcode']) && strpos($rule['postcode'],'*') !== false) {
 				$pattern = str_replace('*','\d+?',$rule['postcode']);
-				if (preg_match("/$pattern/",$match['postcode'])) unset($d['postcode']); // Clear exception for match
+				if (preg_match("/$pattern/i",$match['postcode'])) unset($d['postcode']); // Clear exception for match
 			}
 
 			// If exceptions were cleared, return the matching rate
