@@ -1243,6 +1243,17 @@ class ShippingPackager implements ShippingPackagingInterface {
 
 		$this->options = apply_filters( 'shopp_packager_options', $options, $module );
 
+		// Set weight limit
+		$weight_limit = shopp_setting('shipping_package_weight_limit');
+		$defaults = array(
+			'wtl'=> ( $weight_limit ? $weight_limit : 50 ),
+			'wl'=>-1,
+			'hl'=>-1,
+			'll'=>-1
+		);
+		if ( ! isset($this->options['limits']) ) $this->options['limits'] = array();
+		$this->options['limits'] = array_merge($defaults, $this->options['limits']);
+
 		// set packing behavior
 		$this->pack = apply_filters( 'shopp_packager_type',
 			( isset( $options['type'] ) && in_array($options['type'], $this->types) ? $options['type'] : $this->pack ),

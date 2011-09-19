@@ -90,7 +90,7 @@ class PackagingTests extends ShoppTestCase {
 			$items[$i]->quantity( $i + 1 );
 		}
 
-		$packager = new ShippingPackager(array('type'=>'mass'));
+		$packager = new ShippingPackager(array('type'=>'mass', 'limits'=>array('wtl'=>-1,'ll'=>-1,'wl'=>-1,'hl'=>-1)));
 
 		foreach ($items as $Item) {
 			$packager->add_item($Item);
@@ -195,7 +195,7 @@ class PackagingTests extends ShoppTestCase {
 			}
 		}
 
-		$packager = new ShippingPackager(array('type'=>'like'));
+		$packager = new ShippingPackager(array('type'=>'like','limits'=>array('wtl'=>-1,'ll'=>-1,'wl'=>-1,'hl'=>-1)));
 		// echo "\nItems\n";
 		foreach ( $items as $item ) {
 			// echo "item $item->name - QTY: $item->quantity Each wt: $item->weight h: $item->height w: $item->width l: $item->length val: $item->unitprice\n";
@@ -267,7 +267,7 @@ class PackagingTests extends ShoppTestCase {
 			}
 		}
 
-		$packager = new ShippingPackager(array('type'=>'all'));
+		$packager = new ShippingPackager(array('type'=>'all','limits'=>array('wtl'=>-1,'ll'=>-1,'wl'=>-1,'hl'=>-1)));
 		// echo "\nItems\n";
 		foreach ( $items as $item ) {
 			// echo "item $item->name - QTY: $item->quantity Each wt: $item->weight h: $item->height w: $item->width l: $item->length val: $item->unitprice\n";
@@ -322,7 +322,7 @@ class PackagingTests extends ShoppTestCase {
 				$items[$i]->quantity( max( 1, (6 - $i) % 4 ) );
 		}
 
-		$packager = new ShippingPackager(array('type'=>'piece'));
+		$packager = new ShippingPackager(array('type'=>'piece','limits'=>array('wtl'=>-1,'ll'=>-1,'wl'=>-1,'hl'=>-1)));
 		// echo "\nItems\n";
 		foreach ( $items as $item ) {
 			// echo "item $item->name - QTY: $item->quantity Each wt: $item->weight h: $item->height w: $item->width l: $item->length val: $item->unitprice\n";
