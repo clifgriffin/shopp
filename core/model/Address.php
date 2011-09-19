@@ -197,7 +197,7 @@ class PostcodeMapping {
 	}
 
 	static function capost (&$Address) {
-		PostcodeMapping::prefixcode($Address->postcode{0},&$Address);
+		PostcodeMapping::prefixcode(strtoupper($Address->postcode{0}),&$Address);
 	}
 
 	/**
