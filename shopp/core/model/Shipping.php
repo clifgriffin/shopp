@@ -495,7 +495,7 @@ abstract class ShippingFramework {
 				}
 				rsort($target['area']);
 				if (empty($target['area'])) $target['area'] = false;
-			}
+			} else $target['area'] = $target['zone'];
 
 		}
 
