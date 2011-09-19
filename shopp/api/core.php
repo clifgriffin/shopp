@@ -96,8 +96,6 @@ function is_shopp_page ($page=false) {
 
 	$pages = Storefront::pages_settings();
 
-	echo Storefront::slugpage(get_query_var('shopp_page'));
-
 	// Detect if the requested page is a Storefront page
 	if ( ! $page ) $page = Storefront::slugpage(get_query_var('shopp_page'));
 
