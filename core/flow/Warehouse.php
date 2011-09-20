@@ -365,7 +365,10 @@ class Warehouse extends AdminController {
 		}
 
 		// Override loading product meta and limiting by pagination in the workflow list
-		if ($workflow) unset($loading['load'],$loading['limit']);
+		if ($workflow) {
+			unset($loading['limit']);
+			$loading['load'] = array();
+		};
 
 		$Products = new ProductCollection();
 		$Products->load($loading);
