@@ -34,7 +34,7 @@ class OrderRates extends ShippingFramework implements ShippingModule {
 				'slug' => $slug,
 				'name' => $method['label'],
 				'amount' => $amount,
-				'delivery' => false,
+				'delivery' => $this->delivery($method),
 				'items' => false
 			);
 

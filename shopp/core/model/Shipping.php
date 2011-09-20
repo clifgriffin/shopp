@@ -553,6 +553,21 @@ abstract class ShippingFramework {
 		return false;
 	}
 
+	/**
+	 * Calculates estimated delivery timeframes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string Delivery estimate string
+	 **/
+	function delivery ($data) {
+		$min = shopp_setting('order_processing_min');
+ 		$max = shopp_setting('order_processing_max');
+
+		return shopp_daytimes($min,$data['mindelivery']).'-'.shopp_daytimes($max,$data['maxdelivery']);
+	}
+
 	static function _sorttable ($a, $b) {
 		$c = array($a,$b);
 
@@ -639,8 +654,17 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 		if (!$logo) {
 			$_[] = '<td>';
-			$_[] = '<input type="text" name="'.$this->module.'[label]" value="'.$this->label.'" id="'.$this->id.'-label" size="16" class="selectall" /><br />';
-			$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label>';
+			$_[] = '<p><input type="text" name="'.$this->module.'[label]" value="'.$this->label.'" id="'.$this->id.'-label" size="30" class="selectall" /><br />';
+			$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label></input>';
+
+
+			$_[] = '<p><select id="'.$this->id.'-delivery" name="'.$this->module.'[mindelivery]" class="mindelivery">${mindelivery_menu}</select> &mdash;';
+			$_[] = '<select name="'.$this->module.'[maxdelivery]" class="maxdelivery">${maxdelivery_menu}</select><br />';
+			$_[] = '<label for="'.$this->id.'-delivery">'.__('Estimated Delivery','Shopp').'</label></p>';
+
+
+			// $_[] = '<p><input type="hidden" name="'.$this->module.'[fallback]"><input id="'.$this->id.'-backup" type="checkbox" name="live-backup" /><label for="'.$this->id.'-backup">&nbsp;'.__('Use as fallback for live rate lookup failures','Shopp').'</label></p>';
+
 			$_[] = '</td>';
 		}
 

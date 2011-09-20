@@ -1202,7 +1202,6 @@ class SearchResults extends SmartCollection {
 }
 
 // @todo Document TagProducts
-// @todo Fix TagProducts
 class TagProducts extends SmartCollection {
 	static $_slug = "tag";
 
@@ -1232,8 +1231,6 @@ class TagProducts extends SmartCollection {
 		$groupby = 'p.ID';
 		$order = 'score DESC';
 		$this->loading = compact('columns','joins','where','groupby','order');
-
-		// $this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.taxonomy='$this->taxonomy' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
 
 	}
 }
