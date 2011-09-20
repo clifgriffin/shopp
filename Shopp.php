@@ -560,16 +560,16 @@ class Shopp {
 			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
 			$errors = join(' ',$errors);
 
-			new ShoppError($this->name.": ".Lookup::errors('gateway','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'gateway_comm_err',SHOPP_COMM_ERR);
+			new ShoppError($this->name.": ".Lookup::errors('callhome','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'gateway_comm_err',SHOPP_COMM_ERR);
 			return false;
 		} elseif (empty($result) || !isset($result['response'])) {
-			new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
+			new ShoppError($this->name.": ".Lookup::errors('callhome','noresponse'),'callhome_comm_err',SHOPP_COMM_ERR);
 			return false;
 		} else extract($result);
 
 		if (200 != $response['code']) {
-			$error = Lookup::errors('gateway','http-'.$response['code']);
-			if (empty($error)) $error = Lookup::errors('gateway','http-unkonwn');
+			$error = Lookup::errors('callhome','http-'.$response['code']);
+			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
 			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
 			return false;
 		}

@@ -876,6 +876,22 @@ class Lookup {
 			'filesize_mismatch' => __('The size of the uploaded file does not match the size reported by the client. Something fishy going on?','Shopp')
 		);
 
+		$_['callhome'] = array(
+			'fail' => __('Could not connect to the shopplugin.net server.','Shopp'),
+			'noresponse' => __('No response was sent back by the shopplugin.net server.','Shopp')." {$_['contact']['admin']}",
+			'http-unknown' => __('The connection to the shopplugin.net server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
+			'http-400' => $_['callhome']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $_['callhome']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $_['callhome']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-404' => __('The requested resource does not exist on the shopplugin.net server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
+			'http-500' => __('The shopplugin.net server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
+			'http-501' => __('The shopplugin.net server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
+			'http-502' => __('The shopplugin.net server is acting as a gateway and received an invalid response from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 502)",
+			'http-503' => __('The shopplugin.net server is temporarily unavailable due to a high volume of traffic.','Shopp')." {$_['contact']['admin']} (HTTP 503)",
+			'http-504' => __('The connected shopplugin.net server is acting as a gateway and received a connection timeout from the upstream server.','Shopp')." {$_['contact']['admin']} (HTTP 504)",
+			'http-505' => __("The shopplugin.net server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)"
+		);
+
 		$_['gateway'] = array(
 			'fail' => __('Could not connect to the payment server.','Shopp'),
 			'noresponse' => __('No response was sent back by the payment server.','Shopp')." {$_['contact']['admin']}",
