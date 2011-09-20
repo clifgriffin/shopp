@@ -37,7 +37,7 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 				'slug' => $slug,
 				'name' => $method['label'],
 				'amount' => ($this->items*$amount),
-				'delivery' => false,
+				'delivery' => $this->delivery($method),
 				'items' => $this->items
 			);
 

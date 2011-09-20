@@ -1380,6 +1380,18 @@ function shoppdiv ($string) {
 	return $string;
 }
 
+function shopp_daytimes () {
+	$args = func_get_args();
+	$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+
+	$total = 0;
+	foreach ($args as $timeframe) {
+		list($i,$p) = sscanf($timeframe,'%d%s');
+		$total += $i*$periods[$p];
+	}
+	return ceil($total/$periods['d']).'d';
+}
+
 /**
  * Sets the default timezone based on the WordPress option (if available)
  *

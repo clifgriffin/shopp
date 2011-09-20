@@ -4,6 +4,11 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Shipping Rates','Shopp'); ?></h2>
 
+	<script id="delivery-menu" type="text/x-jquery-tmpl"><?php
+		$deliverymenu = Lookup::timeframes_menu();
+		echo menuoptions($deliverymenu,false,true);
+	?></script>
+
 	<?php $this->shipping_menu(); ?>
 
 	<form action="<?php echo esc_url($this->url); ?>" id="shipping" method="post">
@@ -34,6 +39,8 @@
 
 			if ($edit && !isset($shiprates[$edit])) {
 				$template_data = array(
+					'${mindelivery_menu}' => menuoptions($deliverymenu,false,true),
+					'${maxdelivery_menu}' => menuoptions($deliverymenu,false,true),
 					'${cancel_href}' => $this->url
 				);
 				$editor = str_replace(array_keys($template_data),$template_data,$editor);
@@ -78,6 +85,8 @@
 
 				if ($edit && $edit == $setting) {
 					$template_data = array(
+						'${mindelivery_menu}' => menuoptions($deliverymenu,$shipping['mindelivery'],true),
+						'${maxdelivery_menu}' => menuoptions($deliverymenu,$shipping['maxdelivery'],true),
 						'${cancel_href}' => $this->url
 					);
 					$editor = str_replace(array_keys($template_data),$template_data,$editor);

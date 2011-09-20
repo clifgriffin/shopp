@@ -10,6 +10,7 @@ jQuery(document).ready( function($) {
 			$.template(shipping+'-editor',$('#'+shipping+'-editor'));
 		});
 
+		$.template('delivery-menu',$('#delivery-menu'));
 		$.template('flatrates-editor',$('#flatrates-editor'));
 		$.template('flatrate-row',$('#flatrate-row'));
 		$.template('tablerates-editor',$('#tablerates-editor'));
@@ -131,6 +132,7 @@ jQuery(document).ready( function($) {
 			if (settings.module) module = settings.module;
 			if (settings.norates) ui.find('th.rate').remove();
 
+
 			ui.row = function (e,data) {
 				if (e) e.preventDefault();
 				if (!data) data = {};
@@ -146,6 +148,7 @@ jQuery(document).ready( function($) {
 						row.fadeRemove();
 					});
 				if (settings.norates) row.find('td.rate').remove();
+
 
 				rows.push(row);
 
@@ -202,7 +205,6 @@ jQuery(document).ready( function($) {
 						e.preventDefault();
 						row.fadeRemove();
 					});
-
 					loc.insertBefore(row.find('td:first'));
 
 				rows.push(row);
@@ -295,6 +297,14 @@ jQuery(document).ready( function($) {
 				id = data.type ? data.type : (rowid?rowid:selected),
 				ui = $.tmpl(id+'-editor',data),
 				cancel = ui.find('a.cancel'),
+				maxd = ui.find('select.maxdelivery').html($.tmpl('delivery-menu')).val(data.maxdelivery),
+				mind = ui.find('select.mindelivery').html($.tmpl('delivery-menu')).val(data.mindelivery).change(function () {
+					var $this = $(this),selection = $this.attr('selectedIndex'),maxselected = maxd.attr('selectedIndex');
+					maxd.find('option').attr('disabled',false).each(function (i,option) {
+						if (i < selection) $(option).attr('disabled','disabled');
+					});
+					if (maxselected < selection) maxd.attr('selectedIndex',selection);
+				}),
 				selectall = ui.find('input.selectall-toggle').change(function (e) {
 					var $this = $(this),
 						options = $this.parents('ul').find('input');
