@@ -252,7 +252,7 @@ class Setup extends AdminController {
 		if (isset($country_zones[ $operations['country'] ]))
 			$zones = $country_zones[ $operations['country'] ];
 
-		$targets = shopp_setting('target_markets');
+		$targets = array_map('stripslashes',shopp_setting('target_markets'));
 		if (!$targets) $targets = array();
 
 		include(SHOPP_ADMIN_PATH.'/settings/setup.php');
