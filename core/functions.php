@@ -203,13 +203,10 @@ function auto_ranges ($avg,$max,$min) {
 function convert_unit ($value = 0, $unit, $from=false) {
 	if ($unit == $from || $value == 0) return $value;
 
-	if (!$from) {
-		// If no originating unit specified, use correlating system preferences
-		$defaults = array(
-			'mass' => shopp_setting('weight_unit'),
-			'dimension' => shopp_setting('dimension_unit')
-		);
-	}
+	$defaults = array(
+		'mass' => shopp_setting('weight_unit'),
+		'dimension' => shopp_setting('dimension_unit')
+	);
 
 	// Conversion table to International System of Units (SI)
 	$table = array(
@@ -220,6 +217,9 @@ function convert_unit ($value = 0, $unit, $from=false) {
 			'ft' => 0.3048, 'in' => 0.0254, 'mm' => 0.001, 'cm' => 0.01, 'm' => 1
 		)
 	);
+
+	if ( $from && in_array( $from, array_keys($table['mass']) ) ) $defaults['mass'] = $from;
+	if ( $from && in_array( $from, array_keys($table['dimension']) ) ) $defaults['dimension'] = $from;
 
 	$table = apply_filters('shopp_unit_conversion_table',$table);
 
