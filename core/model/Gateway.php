@@ -312,6 +312,10 @@ abstract class GatewayFramework {
 		return number_format($amount,$precision,$decimals,$thousands);
 	}
 
+	function ascii_filter ($string) {
+		return preg_replace('/[^\x20-\x7F]/','',$string);
+	}
+
 	function cancelorder (RefundedOrderEvent $Refunded) {
 		$order = $Refunded->order;
 		shopp_add_order_event($order,'voided',array(
