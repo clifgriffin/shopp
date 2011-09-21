@@ -652,7 +652,7 @@ class Order {
 		// notification(addressee name, email, subject, email template, receipt template)
 		ShoppPurchase()->notification(
 			ShoppPurchase()->firstname." ".ShoppPurchase()->lastname,
-			$Purchase->email,
+			ShoppPurchase()->email,
 			__('Order Receipt','Shopp')
 		);
 
