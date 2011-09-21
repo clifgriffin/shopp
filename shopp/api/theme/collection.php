@@ -302,8 +302,18 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function id ($result, $options, $O) { return $O->id; }
 
+	/**
+	 * Renders a custom category image
+	 *
+	 * @see the image() method from theme/catalog.php
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string
+	 **/
 	function image ($result, $options, $O) {
-		// @todo Implement collection 'image' ThemeAPI tag
+		if (!self::has_images($result, $options, $O)) return '';
+		return ShoppCatalogThemeAPI::image($result, $options, $O);
 	}
 
 	function images ($result, $options, $O) {
