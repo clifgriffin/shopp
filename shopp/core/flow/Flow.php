@@ -41,17 +41,18 @@ class Flow {
 	 * @return void
 	 **/
 	function __construct () {
-		register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
-		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
-		if (defined('DOING_AJAX')) add_action('admin_init',array(&$this,'ajax'));
+		register_deactivation_hook(SHOPP_PLUGINFILE, array($this, 'deactivate'));
+		register_activation_hook(SHOPP_PLUGINFILE, array($this, 'activate'));
+		if (defined('DOING_AJAX')) add_action('admin_init',array($this,'ajax'));
 
-		add_action('admin_menu',array(&$this,'menu'));
+		add_action( 'admin_menu', array($this,'menu') );
+		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
 		// Handle automatic updates
-		add_action('update-custom_shopp',array(&$this,'update'));
+		add_action('update-custom_shopp',array($this,'update'));
 
-		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
-		else add_action('parse_request',array(&$this,'parse'));
+		if (defined('WP_ADMIN')) add_action('admin_init',array($this,'parse'));
+		else add_action('parse_request',array($this,'parse'));
 	}
 
 	/**
@@ -194,6 +195,27 @@ class Flow {
 		return true;
 	}
 
+	// Admin Bar
+	function adminbar ( $wp_admin_bar ) {
+		$posttype = get_post_type_object(Product::posttype());
+		if (empty( $posttype ) || !current_user_can( $posttype->cap->edit_post )) return;
+		$wp_admin_bar->add_menu( array(
+			'parent' => 'new-content',
+			'id' => 'new-'.Product::posttype(),
+			'title' => $posttype->labels->singular_name,
+			'href' => admin_url( sprintf($posttype->_edit_link,'new') )
+		) );
+
+		$object = get_queried_object();
+		if (!empty($object)) {
+			$wp_admin_bar->add_menu( array(
+				'id' => 'edit',
+				'title' => $posttype->labels->edit_item,
+				'href' => get_edit_post_link( $object->ID )
+			) );
+		}
+
+	}
 
 } // End class Flow
 
