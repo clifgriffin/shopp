@@ -297,6 +297,7 @@ jQuery(document).ready( function($) {
 				id = data.type ? data.type : (rowid?rowid:selected),
 				ui = $.tmpl(id+'-editor',data),
 				cancel = ui.find('a.cancel'),
+				fb = ui.find('input.fallback').attr('checked','on' == data.fallback?'checked':false),
 				maxd = ui.find('select.maxdelivery').html($.tmpl('delivery-menu')).val(data.maxdelivery),
 				mind = ui.find('select.mindelivery').html($.tmpl('delivery-menu')).val(data.mindelivery).change(function () {
 					var $this = $(this),selection = $this.attr('selectedIndex'),maxselected = maxd.attr('selectedIndex');

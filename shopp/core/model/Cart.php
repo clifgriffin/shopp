@@ -1054,6 +1054,7 @@ class CartShipping {
 
 		$this->disabled = $this->Cart->noshipping = (shopp_setting('shipping') == "off");
 		$this->handling = shopp_setting('order_shipfee');
+		$this->realtime = $Shopp->Shipping->realtime;
 
 	}
 
@@ -1098,8 +1099,14 @@ class CartShipping {
 		// Run shipping module aggregate shipping calculations
 		do_action_ref_array('shopp_calculate_shipping',array(&$this->options,$Shopp->Order));
 
-		// No shipping options were generated, bail
-		if (empty($this->options)) return false;
+		// No shipping options were generated, try fallback calculators for realtime rate failures
+		if (empty($this->options)) {
+			if ($this->realtime) {
+				do_action('shopp_calculate_fallback_shipping_init');
+				do_action_ref_array('shopp_calculate_fallback_shipping',array(&$this->options,$Shopp->Order));
+			}
+			if (empty($this->options)) return false; // Still no rates, bail
+		}
 
 		// Determine the lowest cost estimate
 		$estimate = false;
