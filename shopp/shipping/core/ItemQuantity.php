@@ -63,7 +63,9 @@ class ItemQuantity extends ShippingFramework implements ShippingModule {
 	function settings () {
 		$this->ui->tablerates(0,array(
 			'unit' => array(__('Item Quantity','Shopp'),__('items','Shopp')),
-			'table' => $this->settings['table']
+			'table' => $this->settings['table'],
+			'rate_class' => 'money'
+
 		));
 	}
 

@@ -58,7 +58,8 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 		$this->ui->tablerates(0,array(
 			'unit' => array(__('Order Amount','Shopp')),
 			'table' => $this->settings['table'],
-			'threshold_class' => 'money'
+			'threshold_class' => 'money',
+			'rate_class' => 'money'
 		));
 
 	}
