@@ -15,11 +15,13 @@
 			<div id="side-info-column" class="inner-sidebar">
 			<?php
 			do_action('submitpage_box');
-			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-products', 'side', $Product);
+			do_meta_boxes('shopp_page_shopp-products', 'side', $Product);
+			do_meta_boxes($post_type, 'side', $Product);
+
 			?>
 			</div>
 
-			<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
+			<div id="post-body" class="has-sidebar">
 			<div id="post-body-content" class="has-sidebar-content">
 
 				<div id="titlediv">
@@ -49,6 +51,9 @@
 			<?php
 			do_meta_boxes('shopp_page_shopp-products', 'normal', $Product);
 			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Product);
+
+			do_meta_boxes($post_type, 'normal', $Product);
+			do_meta_boxes($post_type, 'advanced', $Product);
 			?>
 
 			</div>
