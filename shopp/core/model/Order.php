@@ -655,12 +655,13 @@ class Order {
 			ShoppPurchase()->email,
 			__('Order Receipt','Shopp')
 		);
-
 		if (1 != shopp_setting('receipt_copy')) return;
+
 		ShoppPurchase()->notification(
 			'',
 			shopp_setting('merchant_email'),
-			__('New Order','Shopp')
+			__('New Order','Shopp'),
+			'order-merchant.php'		// Use a custom merchant order notification template (if available)
 		);
 	}
 

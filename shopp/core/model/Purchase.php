@@ -112,7 +112,7 @@ class Purchase extends DatabaseObject {
 		global $Shopp;
 		global $is_IIS;
 
-		$template = locate_shopp_template(array($template,'order.html'));
+		$template = locate_shopp_template(array($template,'order.php','order.html'));
 
 		if (!file_exists($template))
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
@@ -198,10 +198,12 @@ class Purchase extends DatabaseObject {
 	// Display a sales receipt
 	function receipt ($template="receipt.php") {
 		if (empty($this->purchased)) $this->load_purchased();
+
 		ob_start();
-		locate_shopp_template(array($template),true);
+		locate_shopp_template(array($template),true,false);
 		$content = ob_get_contents();
 		ob_end_clean();
+
 		return apply_filters('shopp_order_receipt',$content);
 	}
 
