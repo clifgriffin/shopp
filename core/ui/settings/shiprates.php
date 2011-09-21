@@ -87,6 +87,7 @@
 					$template_data = array(
 						'${mindelivery_menu}' => menuoptions($deliverymenu,$shipping['mindelivery'],true),
 						'${maxdelivery_menu}' => menuoptions($deliverymenu,$shipping['maxdelivery'],true),
+						'${fallbackon}' => ('on' == $shipping['fallback'])?'checked="checked"':'',
 						'${cancel_href}' => $this->url
 					);
 					$editor = str_replace(array_keys($template_data),$template_data,$editor);

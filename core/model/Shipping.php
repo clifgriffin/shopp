@@ -28,6 +28,7 @@ class ShippingModules extends ModuleLoader {
 
 	var $dimensions = false;	// Flags when a module requires product dimensions
 	var $postcodes = false;		// Flags when a module requires a post code for shipping estimates
+	var $realtime = false;		// Flags when a module provides realtime rates
 	var $methods = array();		// Registry of shipping method handles
 
 	/**
@@ -100,6 +101,7 @@ class ShippingModules extends ModuleLoader {
 
 		if ($this->active[$module]->postcode) $this->postcodes = true;
 		if ($this->active[$module]->dimensions) $this->dimensions = true;
+		if ($this->active[$module]->realtime) $this->realtime = true;
 
 		if (!is_array($m)) return $this->methods[$module] = $module;
 
@@ -260,7 +262,8 @@ abstract class ShippingFramework {
 	var $dimensions = false;	// Uses dimensions in calculating estimates
 	var $xml = false;			// Flag to load and enable XML parsing
 	var $soap = false;			// Flag to load and SOAP client helper
-	var $singular = false;		// Shipping module can only be loaded once
+	var $singular = false;		// Provides realtime rate lookups
+	var $realtime = false;		// Shipping module can only be loaded once
 	var $packager = false;		// Shipping packager object
 	var $setting = '';			// Setting name for the shipping module setting record
 	var $settings = array();	// Settings for the shipping module
@@ -284,9 +287,14 @@ abstract class ShippingFramework {
 		if ($this->singular) $this->settings = shopp_setting($this->module);
 		else {
 			$active = shopp_setting('active_shipping');
-			if (isset($active[$this->module]) && is_array($active[$this->module]))
-				foreach ($active[$this->module] as $index => $set)
-					$this->methods["$this->module-$index"] = shopp_setting("$this->module-$index");
+			if (isset($active[$this->module]) && is_array($active[$this->module])) {
+				$this->methods = $this->fallbacks = array();
+				foreach ($active[$this->module] as $index => $set) {
+					$setting = shopp_setting("$this->module-$index");
+					if ('on' == $setting['fallback']) $this->fallbacks["$this->module-$index"] = &$setting;
+					else $this->methods["$this->module-$index"] = &$setting;
+				}
+			}
 		}
 
 		$this->base = shopp_setting('base_operations');
@@ -306,8 +314,24 @@ abstract class ShippingFramework {
 		$this->packager = apply_filters('shopp_'.strtolower($this->module).'_packager', new ShippingPackager( array( 'type' => $this->settings['shipping_packaging'] ), $this->module ));
 
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
-		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
 		add_action('shopp_calculate_item_shipping',array(&$this,'calcitem'),10,2);
+		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
+
+		if (isset($this->fallbacks) && !empty($this->fallbacks)) {
+			add_action('shopp_calculate_fallback_shipping_init',array(&$this,'fallbacks'));
+			add_action('shopp_calculate_fallback_shipping',array(&$this,'calculate'));
+			add_action('shopp_calculate_fallback_shipping',array(&$this,'reset'),20);
+		}
+
+	}
+
+	function fallbacks () {
+		$this->_methods = $this->methods;
+		$this->methods = $this->fallbacks;
+	}
+
+	function reset () {
+		$this->methods = $this->_methods;
 	}
 
 	function setting ($id=false) {
@@ -657,13 +681,11 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 			$_[] = '<p><input type="text" name="'.$this->module.'[label]" value="'.$this->label.'" id="'.$this->id.'-label" size="30" class="selectall" /><br />';
 			$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label></input>';
 
-
 			$_[] = '<p><select id="'.$this->id.'-delivery" name="'.$this->module.'[mindelivery]" class="mindelivery">${mindelivery_menu}</select> &mdash;';
 			$_[] = '<select name="'.$this->module.'[maxdelivery]" class="maxdelivery">${maxdelivery_menu}</select><br />';
 			$_[] = '<label for="'.$this->id.'-delivery">'.__('Estimated Delivery','Shopp').'</label></p>';
 
-
-			// $_[] = '<p><input type="hidden" name="'.$this->module.'[fallback]"><input id="'.$this->id.'-backup" type="checkbox" name="live-backup" /><label for="'.$this->id.'-backup">&nbsp;'.__('Use as fallback for live rate lookup failures','Shopp').'</label></p>';
+			$_[] = '<p><label for="'.$this->id.'-fallback" title="'.__('Enable this setting to offer it only when all real-time online rates fail.').'"><input type="hidden" name="'.$this->module.'[fallback]" value="off"><input id="'.$this->id.'-fallback" type="checkbox" name="'.$this->module.'[fallback]" value="on" ${fallbackon} class="fallback" />&nbsp;'.__('Real-time rates fallback','Shopp').'</label></p>';
 
 			$_[] = '</td>';
 		}
