@@ -1031,6 +1031,7 @@ class WPShoppObject extends WPDatabaseObject {
 		$posttype = get_class_property($class,'posttype');
 		register_post_type( $posttype, array(
 			'labels' => call_user_func(array($class,'labels')),
+			'capabilities' => call_user_func(array($class, 'capabilities')),
 			'rewrite' => array( 'slug' => $slug ),
 			'public' => true,
 			'has_archive' => true,

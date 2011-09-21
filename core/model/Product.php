@@ -81,11 +81,21 @@ class Product extends WPShoppObject {
 	}
 
 	static function labels () {
-		return array(
+		return apply_filters( 'shopp_product_labels', array(
 			'name' => __('Products','Shopp'),
-			'singular_name' => __('Product','Shopp')
-		);
+			'singular_name' => __('Product','Shopp'),
+			'edit_item' => __('Edit Product','Shopp'),
+			'new_item' => __('New Product','Shopp')
+		));
 	}
+
+	static function capabilities () {
+		return apply_filters( 'shopp_product_capabilities', array(
+			'edit_post' => 'shopp_products',
+			'delete_post' => 'shopp_products'
+		) );
+	}
+
 	/**
 	 * Loads relational data into the Product object
 	 *
