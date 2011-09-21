@@ -1306,7 +1306,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 			$module );
 
 		// register packagers
-		foreach ( $this->types as $pack ) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'));
+		foreach ( $this->types as $pack ) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'), 10, 2);
 	}
 
 	/**
@@ -1318,7 +1318,6 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param Item $item the item to add to packages
 	 **/
 	public function add_item ( Item &$Item ) {
-
 		if ( isset($Item->packaging) && "on" == $Item->packaging )
 			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );
 		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$Item, &$this) );
@@ -1386,8 +1385,10 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param array $p packages
 	 * @param Item $Item the Item to add
 	 **/
-	public function mass_add ( &$Item ) {
-		$this->all_add($Item, 'mass');
+	public function mass_add ( &$Item, $pkgr ) {
+		if ( $pkgr->module != $this->module ) return; // not mine
+
+		$this->all_add($Item, $this, 'mass');
 	}
 
 	/**
@@ -1398,7 +1399,9 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $Item Item to add
 	 **/
-	public function like_add ( &$Item ) {
+	public function like_add ( &$Item, $pkgr ) {
+		if ( $pkgr->module != $this->module ) return; // not mine
+
 		$limits = array();
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		extract($this->options);
@@ -1442,7 +1445,9 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param Item $Item Item to add
 	 * @return void Description...
 	 **/
-	public function piece_add ( &$Item ) {
+	public function piece_add ( &$Item, $pkgr ) {
+		if ( $pkgr->module != $this->module ) return; // not mine
+
 		$count = $Item->quantity;
 
 		$piece = clone $Item;
@@ -1465,7 +1470,9 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param string $type expect dimensions, or just mass
 	 * @return void Description...
 	 **/
-	public function all_add ( &$Item, $type='dims' ) {
+	public function all_add ( &$Item, $pkgr, $type='dims' ) {
+		if ( $pkgr->module != $this->module ) return; // not mine
+
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		$limits = array_merge($defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
 
@@ -1483,11 +1490,11 @@ class ShippingPackager implements ShippingPackagingInterface {
 			$piece->quantity = 1;
 
 			// break one Item off and recurse
-			$this->all_add($pieces,$type);
-			$this->all_add($piece,$type);
+			$this->all_add($pieces, $this, $type);
+			$this->all_add($piece, $this, $type);
 		} else if ( count($current->contents()) > 0 ) { // full, need new package
 			$this->packages[] = new ShippingPackage(($type == 'dims'), $limits);
-			$this->all_add($Item,$type);
+			$this->all_add($Item, $this, $type);
 		} else { // never fit, ship separately
 			$current->set_limits($defaults);
 			$current->add($Item);
