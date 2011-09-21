@@ -1428,11 +1428,11 @@ class ShippingPackager implements ShippingPackagingInterface {
 			$piece->quantity = 1;
 
 			// break one Item off and recurse
-			$this->like_add($pieces);
-			$this->like_add($piece);
+			$this->like_add($pieces, $this);
+			$this->like_add($piece, $this);
 		} else {
 			// doesn't "fit", and by itself
-			$this->piece_add($Item);
+			$this->piece_add($Item, $this);
 		}
 	}
 
