@@ -67,9 +67,6 @@ class Item {
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
 		$Product->load_data(array('prices','images','categories','tags','specs','summary'));
 
-		// If product variants are enabled, disregard the first priceline
-		if ($Product->variants == 'on') array_shift($Product->prices);
-
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) {
 			$Price = $Product->pricekey[$Product->optionkey($pricing)];
