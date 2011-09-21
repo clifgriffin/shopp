@@ -574,6 +574,7 @@ class Warehouse extends AdminController {
 
 		$process = (!empty($Product->id)?$Product->id:'new');
 		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
+		$post_type = Product::posttype();
 
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 
