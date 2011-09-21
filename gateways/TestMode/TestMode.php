@@ -93,11 +93,14 @@ class TestMode extends GatewayFramework {
 			));
 		}
 
+
 		shopp_add_order_event($Event->order,$type,array(
 			'txnid' => $Event->txnid,
 			'fees' => 0,
 			'paymethod' => '',
 			'payid' => '',
+			'paytype' => '',
+			'payid' => '1111',
 			'amount' => $Event->amount,
 			'gateway' => $this->module
 		));
