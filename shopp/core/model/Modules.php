@@ -526,7 +526,7 @@ class ModuleSettingsUI {
 			$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($attributes['id']);
 		extract($attributes);
 
-		$this->ui('<div><textarea name="'.$name.'" '.inputattrs($attributes).'>'.esc_html($value).'</textarea>',$column);
+		$this->ui('<div><textarea name="settings['.$this->module.']['.$name.']" '.inputattrs($attributes).'>'.esc_html($value).'</textarea>',$column);
 		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
 		$this->ui('</div>',$column);
 	}
