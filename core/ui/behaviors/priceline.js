@@ -284,7 +284,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		if (!dimensions.weight) dimensions.weight = 0;
 		_.w = $('#weight-'+i).val(formatNumber(new Number(dimensions.weight),nf,true)).bind('change.value',function () {
-			this.value = formatNumber(this.value,nf,true);
+			this.value = formatNumber(isNaN(this.value)?0:this.value,nf,true);
 		});
 
 		_.fee = $('#shipfee-'+i);
@@ -325,22 +325,22 @@ function Priceline (id,options,data,target,attachment) {
 			if (!(dimensions instanceof Object))
 				dimensions = {'weight':0,'length':0,'width':0,'height':0};
 
-			dw = $('#dimensions-weight-'+i)
+			_.dw = $('#dimensions-weight-'+i)
 				.val(dimensions.weight)
 				.bind('change.value',dv)
 				.trigger('change.value',true);
 
-			dl = $('#dimensions-length-'+i)
+			_.dl = $('#dimensions-length-'+i)
 				.val(dimensions.length)
 				.bind('change.value',dv)
 				.trigger('change.value',true);
 
-			dwd = $('#dimensions-width-'+i)
+			_.dwd = $('#dimensions-width-'+i)
 				.val(dimensions.width)
 				.bind('change.value',dv)
 				.trigger('change.value',true);
 
-			dh = $('#dimensions-height-'+i)
+			_.dh = $('#dimensions-height-'+i)
 				.val(dimensions.height)
 				.bind('change.value',dv)
 				.trigger('change.value',true);
@@ -348,7 +348,7 @@ function Priceline (id,options,data,target,attachment) {
 			weight = _.w;
 			function toggleDimensions () {
 				weight.toggleClass('extoggle');
-				dc.toggle(); dw.focus();
+				dc.toggle(); _.dw.focus();
 				var d = 0, w = 0;
 				dc.find('input').each(function (id,dims) {
 					if ($(dims).hasClass('weight')) { w = asNumber(dims.value); }
@@ -364,7 +364,7 @@ function Priceline (id,options,data,target,attachment) {
 				if (!$(this).attr('checked')) dc.hide();
 			});
 
-			dh.blur(toggleDimensions);
+			_.dh.blur(toggleDimensions);
 			weight.click(toggleDimensions).attr('readonly',true);
 
 		}
@@ -522,7 +522,7 @@ function Priceline (id,options,data,target,attachment) {
 		if (!tmp) _.recurring();
 		if (!tmp) _.memberlevel();
 	};
-	debuglog(data);
+
 	// Alter the interface depending on the type of price line
 	type.bind('change.value',function () {
 		headingsRow.empty();
@@ -637,7 +637,8 @@ function Priceline (id,options,data,target,attachment) {
 	if (type.val() != "N/A")
 		_.inputs = new Array(
 			type,_.p,_.t,_.spt,_.sp,_.dv,_.dm,
-			_.st,_.w,_.fee,_.it,_.stock,_.sku);
+			_.st,_.w,_.dw,_.dl,_.dwd,_.dh,_.fee,
+			_.it,_.stock,_.sku);
 
 	_.updateKey();
 	_.updateLabel();
