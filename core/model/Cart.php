@@ -879,6 +879,7 @@ class CartDiscounts {
 
 			// See if an item rule matches
 			foreach ($this->Cart->contents as $id => &$Item) {
+				if ('Donation' == $Item->type) continue;
 				$matches = 0;
 				foreach ($promo->rules['item'] as $rule) {
 					if (!in_array($rule['property'],$this->cartitemprops)) continue;
