@@ -479,7 +479,7 @@ class Storefront extends FlowController {
 
 		// @deprecated shortcodes
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
-		$this->shortcodes['buynow'] = array(&$this,'product_shortcode');
+		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
 		$this->shortcodes['category'] = array(&$this,'collection_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
@@ -965,17 +965,18 @@ class Storefront extends FlowController {
 	 * @return string The processed content
 	 **/
 	function product_shortcode ($atts) {
-		global $Shopp;
 
-		if (isset($atts['name'])) {
-			$Shopp->Product = new Product($atts['name'],'name');
-		} elseif (isset($atts['slug'])) {
-			$Shopp->Product = new Product($atts['slug'],'slug');
-		} elseif (isset($atts['id'])) {
-			$Shopp->Product = new Product($atts['id']);
-		} else return "";
+		$properties = array('name','slug','id');
+		foreach ($properties as $prop) {
+			if (!isset($atts[$prop])) continue;
+			$Product = new Product($atts[ $prop ],$prop);
+		}
 
-		return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
+		if (empty($Product->id)) return "";
+
+		ShoppProduct($Product);
+
+		return apply_filters('shopp_product_shortcode',shopp('catalog','get-product',$atts));
 	}
 
 	/**
@@ -1047,18 +1048,16 @@ class Storefront extends FlowController {
 	 * @return string The processed content
 	 **/
 	function buynow_shortcode ($atts) {
-		global $Shopp;
 
-		if (empty($Shopp->Product->id)) {
-			if (isset($atts['name'])) {
-				$Shopp->Product = new Product($atts['name'],'name');
-			} elseif (isset($atts['slug'])) {
-				$Shopp->Product = new Product($atts['slug'],'slug');
-			} elseif (isset($atts['id'])) {
-				$Shopp->Product = new Product($atts['id']);
-			} else return "";
+		$properties = array('name','slug','id');
+		foreach ($properties as $prop) {
+			if (!isset($atts[$prop])) continue;
+			$Product = new Product($atts[ $prop ],$prop);
 		}
-		if (empty($Shopp->Product->id)) return "";
+
+		if (empty($Product->id)) return "";
+
+		ShoppProduct($Product);
 
 		ob_start();
 		?>
