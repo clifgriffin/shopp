@@ -186,7 +186,8 @@ function Priceline (id,options,data,target,attachment) {
 
 	if (!data.id) data.id = '';
 	if (!data.product) data.product = product;
-	if (!data.donation) data.donation = {'var':false,'min':false};
+	if (!data.donation) data.donation = {'var':false,min:false};
+	if (!data.dimensions) data.dimensions = {weight:0,height:0,width:0,length:0};
 
 	$('<input type="hidden" name="'+fn+'[id]" id="priceid-'+i+'" value="'+data.id+'" />'+
 		'<input type="hidden" name="'+fn+'[product]" id="product-'+i+'" value="'+data.product+'" />'+
@@ -521,7 +522,7 @@ function Priceline (id,options,data,target,attachment) {
 		if (!tmp) _.recurring();
 		if (!tmp) _.memberlevel();
 	};
-
+	debuglog(data);
 	// Alter the interface depending on the type of price line
 	type.bind('change.value',function () {
 		headingsRow.empty();
