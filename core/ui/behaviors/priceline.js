@@ -265,7 +265,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.dm = $('#donation-min-'+i).attr('checked',minimum == "on"?true:false);
 	};
 
-	_.shipping = function (toggle,weight,fee,dimensions) {
+	_.shipping = function (toggle,dimensions,fee) {
 		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,dv,nf = getCurrencyFormat();
 		nf.precision = '2';
 
@@ -281,8 +281,8 @@ function Priceline (id,options,data,target,attachment) {
 		inf = ui.find('span.ui').hide();
 		dui = ui.find('.dimui');
 
-		if (!weight) weight = 0;
-		_.w = $('#weight-'+i).val(formatNumber(new Number(weight),nf,true)).bind('change.value',function () {
+		if (!dimensions.weight) dimensions.weight = 0;
+		_.w = $('#weight-'+i).val(formatNumber(new Number(dimensions.weight),nf,true)).bind('change.value',function () {
 			this.value = formatNumber(this.value,nf,true);
 		});
 
@@ -489,7 +489,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.Shipped = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		_.shipping(data.shipping,data.weight,data.shipfee,data.dimensions);
+		_.shipping(data.shipping,data.dimensions,data.shipfee);
 		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
 	};
 

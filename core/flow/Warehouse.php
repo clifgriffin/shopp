@@ -718,9 +718,8 @@ class Warehouse extends AdminController {
 
 				$priceline['settings'] = array();
 				foreach ($settings as $setting) {
-					if ( isset($priceline[$setting]) ) {
-						$priceline['settings'][$setting] = $priceline[$setting];
-					}
+					if (! isset($priceline[$setting]) ) continue;
+					$priceline['settings'][$setting] = $priceline[$setting];
 				}
 
 				if ( ! empty($priceline['settings']) ) shopp_set_meta ( $Price->id, 'price', 'settings', $priceline['settings'] );
