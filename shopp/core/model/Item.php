@@ -132,30 +132,35 @@ class Item {
 		$this->packaging = ( 'on' == $packaging_meta ) ? 'on' : 'off';
 
 		if (!empty($Price->download)) $this->download = $Price->download;
-		if ($Price->type == 'Shipped') {
-			$this->shipped = true;
-			if ($Price->shipping == 'on') {
-				$dimensions = array(
-					'weight' => 0,
-					'length' => 0,
-					'width' => 0,
-					'height' => 0
-				);
+
+		if ('Shipped' == $Price->type) $this->shipped = true;
+
+		if ($this->shipped) {
+			$dimensions = array(
+				'weight' => 0,
+				'length' => 0,
+				'width' => 0,
+				'height' => 0
+			);
+
+			if ('on' == $Price->shipping) {
+				$this->shipfee = $Price->shipfee;
 				if (isset($Price->dimensions))
 					$dimensions = array_merge($dimensions,$Price->dimensions);
-
-				foreach ($dimensions as $dimension => $value)
-					$this->$dimension = $value;
-
-				$this->shipfee = $Price->shipfee;
-				if (isset($Product->addons) && $Product->addons == 'on')
-					$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
 			} else $this->freeshipping = true;
+
+			if (isset($Product->addons) && $Product->addons == 'on') {
+				$this->addons($dimensions,$addons,$Product->prices,'dimensions');
+				$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
+			}
+
+			foreach ($dimensions as $dimension => $value)
+				$this->$dimension = $value;
+
 		}
 
 		$this->inventory = ($Price->inventory == 'on')?true:false;
 		$this->taxable = ($Price->tax == 'on' && shopp_setting('taxes') == 'on')?true:false;
-
 	}
 
 	/**
@@ -320,10 +325,18 @@ class Item {
 			if ('N/A' == $p->type || 'addon' != $p->context) continue;
 			$pricing = $this->mapprice($p);
 			if (empty($pricing) || !in_array($pricing->options,$addons)) continue;
+			if ('Shipped' == $p->type) $this->shipped = true;
 			if ($property == 'pricing') {
 				$pricing->unitprice = (str_true($p->sale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
 				$sum += $pricing->unitprice;
+			} elseif ('dimensions' == $property) {
+				if ('on' != $p->shipping || 'Shipped' != $p->type) continue;
+				foreach ($p->dimensions as $dimension => $value)
+					$sum[$dimension] += $value;
+			} elseif ('shipfee' == $property) {
+				if ('on' != $p->shipping) continue;
+				$sum += $pricing->shipfee;
 			} else {
 				if (isset($pricing->$property)) $sum += $pricing->$property;
 			}
