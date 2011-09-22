@@ -115,7 +115,7 @@ jQuery(document).ready(function () {
 			options,
 			locale;
 		if ( 	init ||
-				! localeMenu.get() ||
+				! localeMenu.get(0) ||
 			( 	! sameshipping && ( $(this).is('#billing-country') || $(this).is('.billing-state') ) )
 			) return;
 		localeMenu.empty().attr('disabled',true);
