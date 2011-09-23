@@ -106,6 +106,7 @@ class Storefront extends FlowController {
 		add_filter('search_template',array($this,'collection'));
 		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
+		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
 	}
 
@@ -718,6 +719,49 @@ class Storefront extends FlowController {
 			$script .= '});'."\n";
 		}
 		shopp_custom_script('catalog',$script);
+	}
+
+	function menus ($menuitems) {
+
+		$is_shopp_page = is_shopp_page();
+		$keymap = array();
+		foreach ($menuitems as $key => $item) {
+
+			// Remove the faulty wp_page_menu (deprecated) class for Shopp pages
+			if ($is_shopp_page && in_array('current_page_parent',$item->classes))
+				unset($item->classes[ array_search('current_page_parent',$item->classes) ]);
+
+			// Otherwise, skip dealing with any non-Shopp page
+			if ('shopp_page' != $item->type) continue;
+
+			// Determine the queried Shopp page object name
+			$page = Storefront::slugpage( get_query_var('shopp_page') );
+
+			// Set the catalog as current page parent
+			if ('catalog' == $item->object && $is_shopp_page) $item->classes[] = 'current-page-parent';
+
+			$keymap[$item->db_id] = $key;
+			if ($page == $item->object) {
+				$item->classes[] = 'current-page-item';
+				$item->classes[] = 'current-menu-item';
+				$parents[] = $item->menu_item_parent;
+			}
+		}
+
+		foreach ($parents as $parentid) {
+			$parent = $menuitems[ $keymap[$parentid] ];
+			$parent->classes[] = 'current-menu-parent';
+			$parent->classes[] = 'current-page-parent';
+
+			$ancestor = $parent;
+			while($ancestor->menu_item_parent != 0) {
+				$ancestor = $menuitems[ $keymap[ $ancestor->menu_item_parent ] ];
+				$ancestor->classes[] = 'current-menu-ancestor';
+				$ancestor->classes[] = 'current-page-ancestor';
+			}
+		}
+
+		return $menuitems;
 	}
 
 	/**
