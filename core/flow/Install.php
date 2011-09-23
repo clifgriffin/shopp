@@ -682,11 +682,11 @@ class ShoppInstallation extends FlowController {
 			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
 							SELECT id,'price','meta','settings',
 							CONCAT('a:2:{s:10:\"dimensions\";',
-								IF(dimensions = '0','a:0:{}',
-									CONCAT(
-										SUBSTRING_INDEX(dimensions,';',1),
-										';s:',CHAR_LENGTH(weight),':\"',	weight,'\";',
-										SUBSTRING(dimensions,CHAR_LENGTH(SUBSTRING_INDEX(dimensions,';',2))+2)
+								IF(weight = 0 AND dimensions = '0','a:0:{}',
+									IF(dimensions = '0',
+										CONCAT(
+											'a:1:{s:6:\"weight\";s:',CHAR_LENGTH(weight),':\"', weight, '\";}'
+										), dimensions
 									)
 								),'s:8:\"donation\";',donation,'}'
 							),created,modified FROM $price_table");
