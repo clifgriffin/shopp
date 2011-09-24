@@ -125,7 +125,9 @@ class Storefront extends FlowController {
 	}
 
 	function posts ($posts) {
-		if ($this->is_shopp_request()) return array(1);
+		$stub = new WPDatabaseObject();
+		$stub->init('posts');
+		if ($this->is_shopp_request()) return array($stub);
 		return $posts;
 	}
 
@@ -198,7 +200,7 @@ class Storefront extends FlowController {
 			$wp_query->is_page = false;
 			$wp_query->post_count = true;
 			ShoppCollection( Catalog::load_collection($collection,$options) );
-			ShoppCollection()->load();
+			ShoppCollection()->load(array('load'=>array('coverimages')));
 		}
 
 		$Collection = ShoppCollection();
@@ -242,11 +244,12 @@ class Storefront extends FlowController {
 	function pages ($template) {
 		global $wp_query;
 
-		$page = Storefront::slugpage( get_query_var('shopp_page') );
+		$page = self::slugpage( get_query_var('shopp_page') );
 
 		if (empty($page)) return $template;
 
-		$pagetitle = shopp_setting($page.'_page_title');
+		$pages = self::pages_settings();
+		$pagetitle = apply_filters($page.'_page_title',$pages[$page]['title']);
 
 		add_filter('the_title',create_function('$title','return in_the_loop()?"'.$pagetitle.'":$title;'));
 		add_filter('the_content',array(&$this,$page.'_page'),11);
