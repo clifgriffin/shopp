@@ -698,10 +698,11 @@ class Setup extends AdminController {
 
 	function taxes_menu () {
 		if ('off' == shopp_setting('taxes')) return;
+		if (!isset($_GET['sub'])) $_GET['sub'] = 'rates';
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
-				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['page'] == $page) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
+				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['sub'] == $screen) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
 			<?php endforeach; ?>
 		</ul>
 		<br class="clear" />
