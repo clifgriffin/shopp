@@ -47,6 +47,7 @@
 		$event = false;
 		$even = false;
 		foreach ($gateways as $gateway):
+			if (!isset($Gateways->active[$gateway])) continue;
 			$Gateway = $Gateways->active[$gateway];
 			$payment = $Gateway->settings;
 			$cards = array();
