@@ -262,10 +262,19 @@ class ShoppInstallation extends FlowController {
 		ShoppSettings()->setup('maintenance','off');
 		ShoppSettings()->setup('dashboard','on');
 
-		// Checkout Settings
+		// Preferences
 		ShoppSettings()->setup('order_confirmation','ontax');
 		ShoppSettings()->setup('receipt_copy','1');
 		ShoppSettings()->setup('account_system','none');
+
+		// Shipping
+		ShoppSettings()->setup('active_shipping','');
+
+		// Taxes
+		ShoppSettings()->setup('tax_inclusive','');
+		ShoppSettings()->setup('taxes','');
+		ShoppSettings()->setup('taxrates','');
+		ShoppSettings()->setup('tax_shipping','');
 
 		// Presentation Settings
 		ShoppSettings()->setup('theme_templates','off');
