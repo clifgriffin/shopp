@@ -931,6 +931,7 @@ sjss.opdef = true;
 <?php if (!empty($options['required'])): ?>
 sjss.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
+if ( ! pricetags ) var pricetags = new Array();
 pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
 new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
 <?php
