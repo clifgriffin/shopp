@@ -100,17 +100,17 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		// Select image by database id
 		if ($id !== false) {
-			for ($i = 0; $i < count($O->images); $i++) {
-				if ($img->id == $id) {
-					$img = $O->images[$i]; //break;
-				}
-			}
-			if (!$img) return "";
+			if (isset($O->images[$id])) $img = $O->images[$id];
+			else return '';
 		}
 
 		// Select image by index position in the list
-		if ($index !== false && isset($O->images[$index]))
-			$img = $O->images[$index];
+		if ($index !== false){
+			$keys = array_keys($O->images);
+			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
+				$img = $O->images[$keys[$index]];
+			else return '';
+		}
 
 		// Use the current image pointer by default
 		if (!$img) $img = current($O->images);
