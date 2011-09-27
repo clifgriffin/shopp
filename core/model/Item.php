@@ -54,6 +54,9 @@ class Item {
 	/**
 	 * Constructs a line item from a Product object and identified price object
 	 *
+	 *
+	 * @todo Move load/processing to a new method (outside constructor)
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
@@ -102,7 +105,7 @@ class Item {
 
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
-		$this->sale = $Price->onsale;
+		$this->sale = str_true($Price->sale);
 		$this->freeshipping = $Price->freeshipping;
 		// $this->saved = ($Price->price - $Price->promoprice);
 		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
@@ -275,7 +278,7 @@ class Item {
 		$string = '';
 		foreach($this->variants as $option) {
 			if ($option->type == 'N/A') continue;
-			$currently = ($option->onsale?$option->promoprice:$option->price)+$this->addonsum;
+			$currently = (str_true($option->sale)?$option->promoprice:$option->price)+$this->addonsum;
 			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
 
 			$price = '';

@@ -265,8 +265,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function found ($result, $options, $O) {
 		if (empty($O->id)) return false;
-		$load = array('prices','images','specs','tags','categories','summary');
-		if (isset($options['load'])) $load = explode(",",$options['load']);
+		$loadable = array('prices','coverimages','images','specs','tags','categories','summary');
+		if (isset($options['load'])) $options['load'] = explode(',',$options['load']);
+		$load = array_intersect($loadable,$options['load']);
+		if (empty($load)) $load = array('summary','prices','images','specs','tags','categories');
 		$O->load_data($load);
 		return true;
 	}
@@ -561,7 +563,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function price ($result, $options, $O) {
-		if (empty($O->prices)) $O->load_data(array('prices'));
+		// if (empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'taxes' => null,
 			'starting' => '',
@@ -572,18 +574,19 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if (!is_null($taxes)) $taxes = value_is_true($taxes);
 
+		if (!str_true($O->sale)) $property = 'price';
 		$min = $O->min[$property];
 		$mintax = $O->min[$property.'_tax'];
 
 		$max = $O->max[$property];
 		$maxtax = $O->max[$property.'_tax'];
 
-		$taxrate = shopp_taxrate($taxes,$O->prices[0]->tax,$O);
+		$taxrate = shopp_taxrate($taxes,$mintax,$O);
 
-		if ('saleprice' == $property) $pricetag = $O->prices[0]->promoprice;
-		else $pricetag = $O->prices[0]->price;
+		if ('saleprice' == $property) $pricetag = $O->min['saleprice'];
+		else $pricetag = $O->min['price'];
 
-		if (count($O->prices) > 0) {
+		if ($min != $max) {
 			$taxrate = shopp_taxrate($taxes,true,$O);
 			$mintax = $mintax?$min*$taxrate:0;
 			$maxtax = $maxtax?$max*$taxrate:0;

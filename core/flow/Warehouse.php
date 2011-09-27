@@ -296,7 +296,6 @@ class Warehouse extends AdminController {
 		if ($is_inventory) $per_page = 50;
 
 		$pagenum = absint( $pagenum );
-		if ( empty($pagenum) ) $pagenum = 1;
 		$start = ($per_page * ($pagenum-1));
 
 		if (!empty($s)) {
@@ -347,7 +346,7 @@ class Warehouse extends AdminController {
 			'where' => $where,
 			'joins' => $joins,
 			'limit'=>"$start,$per_page",
-			'load' => array('categories','images'),
+			'load' => array('categories','coverimages'),
 			'published' => false,
 			'order' => $order
 		);
@@ -367,6 +366,7 @@ class Warehouse extends AdminController {
 		// Override loading product meta and limiting by pagination in the workflow list
 		if ($workflow) {
 			unset($loading['limit']);
+			$loading['ids'] = true;
 			$loading['load'] = array();
 		};
 

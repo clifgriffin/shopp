@@ -977,11 +977,11 @@ class Setup extends AdminController {
 			if (!empty($ImageSetting->name)) $ImageSetting->save();
 		}
 
+		$pagenum = isset($_GET['page'])?$_GET['page']:1;
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
-		if( !$per_page || $per_page < 0 )
-			$per_page = 20;
+		$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
 
 		$ImageSetting = new ImageSetting($edit);

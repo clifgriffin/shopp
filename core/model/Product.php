@@ -34,11 +34,11 @@ class Product extends WPShoppObject {
 	var $max = array();
 	var $min = array();
 	var $onsale = false;
-	var $freeshipping = false;
 	var $outofstock = false;
 	var $variants = 'off';
 	var $addons = 'off';
-	var $inventory = false;
+	var $freeship = 'off';
+	var $inventory = 'off';
 	var $checksum = false;
 	var $stock = 0;
 	var $options = 0;
@@ -107,16 +107,18 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function load_data ($options=array('prices','specs','images','categories','tags','meta','summary'),&$products=array()) {
+
+		// Load summary before prices to ensure summary can be overridden by fresh pricing aggregation
 		$loaders = array(
 		//  'name'      'callback_method'
+			'summary' 	 => 'load_summary',
 			'prices' 	 => 'load_prices',
 			'specs' 	 => 'load_meta',
 			'meta' 		 => 'load_meta',
 			'images' 	 => 'load_meta',
 			'coverimages'=> 'load_coverimages',
 			'categories' => 'load_taxonomies',
-			'tags' 		 => 'load_taxonomies',
-			'summary' 	 => 'load_summary'
+			'tags' 		 => 'load_taxonomies'
 
 		);
 
@@ -154,14 +156,16 @@ class Product extends WPShoppObject {
 	 **/
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
-		$Object = new Price();
 
+		if (count($ids) == 1) $this->resum();
+		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
 		// Load price metadata that exists
 		if (!empty($this->priceid)) {
 			$prices = join(',',array_keys($this->priceid));
 			$Object->prices = $this->priceid;
+			$Object->products = ( isset($this->products) && !empty($this->products) )?$this->products:$this;
 			$ObjectMeta = new ObjectMeta();
 			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
@@ -170,10 +174,9 @@ class Product extends WPShoppObject {
 			if (!isset($this->_last_product)) $this->_last_product = false;
 
 			if ( $this->_last_product != false
-					// && $this->_last_product != $price->product
 					&& isset($this->products[$this->_last_product]) )
 				$this->products[$this->_last_product]->sumup();
-		}
+		} else $this->sumup();
 
 	}
 
@@ -188,7 +191,7 @@ class Product extends WPShoppObject {
 		if ( empty($ids) ) return;
 		$Object = new ObjectMeta();
 
-		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND sortorder=0 AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND sortorder=0 AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	/**
@@ -215,7 +218,7 @@ class Product extends WPShoppObject {
 		$taxonomies = get_object_taxonomies( self::$posttype );
 		$terms = wp_get_object_terms($ids,$taxonomies,array('fields' => 'all_with_object_id'));
 
-		foreach ( $terms as $term ) { // Map wp taxonomy data to object meta
+		foreach ( $terms as $term ) { // Map WP taxonomy data to object meta
 			if ( ! isset($term->term_id) || empty($term->term_id) ) continue; 		// Skip invalid entries
 			if ( ! isset($term->object_id) || empty($term->object_id) ) continue;	// Skip invalid entries
 			if ( isset(Product::$_taxonomies[$term->taxonomy]) ) {
@@ -337,8 +340,12 @@ class Product extends WPShoppObject {
 
 			if ( $this->_last_product != false
 					&& $this->_last_product != $price->product
-					&& isset($this->products[$this->_last_product]) )
+					&& isset($this->products[$this->_last_product]) ) {
 				$this->products[$this->_last_product]->sumup();
+			}
+
+			if ($this->_last_product != $price->product)
+				$this->products[$price->product]->resum();
 
 			$target = &$this->products[$price->product];
 
@@ -351,7 +358,6 @@ class Product extends WPShoppObject {
 							|| ($price->type != 'N/A' && $price->context == 'variation'));
 
 		$freeshipping = true;
-		if (!isset($price->freeshipping)) $price->freeshipping = false; // @todo Can be set from promotions applied to priceline, still needed?
 
 		// Force to floats
 		$price->price = (float)$price->price;
@@ -377,36 +383,25 @@ class Product extends WPShoppObject {
 		// Build third lookup table using the combined optionkey
 		$target->pricekey[$price->optionkey] = $price;
 
-		$price->isstocked = false;
-		if ($price->inventory == 'on') {
+		if (str_true($price->inventory)) {
 			$target->stock += $price->stock;
-			$target->inventory = 'on';
-			$price->isstocked = true;
+			$target->inventory = $price->inventory;
 		}
 
-		if ($price->freeshipping == '0' || $price->shipping == 'on')
+		if (!isset($price->freeshipping) || !$price->freeshipping || str_true($price->shipping))
 			$freeshipping = false;
 
 		// Boolean flag for custom product sales
-		$price->onsale = false;
-		$target->sale = 'off';
-		if ($price->sale == 'on') {
-			$target->sale = 'on'; $price->onsale = true;
+		if (str_true($price->sale)) {
+			$target->sale = $price->sale;
 			$price->promoprice = $price->saleprice;
 		}
 
 		// Calculate catalog discounts if not already calculated
-		if (empty($price->promoprice)) {
-			$Price = new Price();
-			$Price->updates($price);
-			if ($Price->discounts()) $price->promoprice = $Price->promoprice;
-			else $price->promoprice = $price->price;
-			unset($Price);
-		}
-
-		if (!empty($price->discounts) && $price->promoprice < $price->price) {
-			$target->sale = 'on';
-			$price->onsale = true;
+		if (empty($price->promoprice) && !empty($price->discounts)) {
+			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
+			$price->promoprice = Promotion::pricing($pricetag,$price->discounts);
+			if ($price->promoprice < $price->price) $target->sale = 'on';
 		}
 
 		// Grab price and saleprice ranges (minimum - maximum)
@@ -414,12 +409,12 @@ class Product extends WPShoppObject {
 
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
-		if ($price->isstocked) $varranges['stock'] = 'stock';
+		if (str_true($price->inventory)) $varranges['stock'] = 'stock';
 
 		foreach ($varranges as $name => $prop) {
 			if (!isset($price->$prop)) continue;
 
-			if (!isset($target->min[$name])) $target->min[$name] = $price->$prop;
+			if (!isset($target->min[$name]) || $target->min[$name] == 0) $target->min[$name] = $price->$prop;
 			else $target->min[$name] = min($target->min[$name],$price->$prop);
 			if ($target->min[$name] == $price->$prop) $target->min[$name.'_tax'] = ($price->tax == "on");
 
@@ -429,7 +424,7 @@ class Product extends WPShoppObject {
 		}
 
 		// Determine savings ranges
-		if ($price->onsale && isset($target->min['price']) && isset($target->min['saleprice'])) {
+		if (str_true($price->sale)) {
 
 			if (!isset($target->min['saved'])) {
 				$target->min['saved'] = $price->price;
@@ -441,32 +436,14 @@ class Product extends WPShoppObject {
 			$target->max['saved'] = max($target->max['saved'],($price->price-$price->promoprice));
 
 			// Find lowest savings percentage
-			if ($target->min['saved'] == ($price->price-$price->promoprice))
-				$target->min['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
-			if ($target->max['saved'] == ($price->price-$price->promoprice))
-				$target->max['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
+			$delta = $price->price - $price->promoprice;
+			$savings = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
+			if ($target->min['saved'] == $delta) $target->min['savings'] = $savings;
+			if ($target->max['saved'] == $delta) $target->max['savings'] = $savings;
 		}
-
-		// Determine weight ranges
-		if ( ! isset($target->min['weight']) ) $target->min['weight'] = 0;
-		if ( ! isset($target->max['weight']) ) $target->max['weight'] = 0;
-
-		if ( isset($price->dimensions) ) {
-			if(isset($price->dimensions->weight) && $price->dimensions->weight > 0) {
-				if(!isset($target->min['weight'])) $target->min['weight'] = $target->max['weight'] = $price->dimensions->weight;
-				$target->min['weight'] = min($target->min['weight'],$price->dimensions->weight);
-				$target->max['weight'] = max($target->max['weight'],$price->dimensions->weight);
-			}
-		}
-
-		// Update stats
-		$target->maxprice = (float)$target->max['price'];
-		$target->minprice = (float)$target->min['price'];
-
-		if ('on' == $target->sale) $target->minprice = (float)$target->min['saleprice'];
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
-		if ($freeshipping) $target->freeshipping = true;
+		$target->freeship = $freeshipping?'on':'off';
 
 	}
 
@@ -535,12 +512,32 @@ class Product extends WPShoppObject {
 		foreach ($properties as $property) {
 			if ($property{0} == '_') continue;
 			if (in_array($property,$ignore)) continue;
-			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
+
+			switch ($property) {
+				case 'ranges':
+					$ranges = explode(',',$data->{$property});
+					$minmax = array('min','max'); $i = 0;
+					foreach ($minmax as $m) {
+						$range = &$this->$m;
+						foreach (ProductSummary::$_ranges as $prop)
+							$range[$prop] = (float)$ranges[$i++];
+					}
+					break;
+				case 'taxed':
+					$taxed = explode(',',$data->{$property});
+					foreach ($taxed as $pricetag) {
+						list($m,$name) = explode(' ',$pricetag);
+						if (empty($m)) continue;
+						$range = &$this->$m;
+						$range[$name.'_tax'] = true;
+					}
+					break;
+				default: $this->{$property} = isset($data->{$property})?($data->{$property}):false;
+			}
 			if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
 			else $this->checksum .= $this->$property;
 		}
 		$this->checksum = md5($this->checksum);
-
 		if (isset($data->summed)) {
 			$this->summed = DB::mktime($data->summed);
 		}
@@ -588,6 +585,7 @@ class Product extends WPShoppObject {
 		$this->sale = $this->inventory = 'off';
 		$this->stock = $this->stocked = $this->sold = 0;
 		$this->maxprice = $this->minprice = false;
+		$this->min = $this->max = array();
 	}
 
 	/**
@@ -604,12 +602,36 @@ class Product extends WPShoppObject {
 
 		$Summary = new ProductSummary();
 		$properties = array_keys($Summary->_datatypes);
+		$minmax = array('min','max');
 		$ignore = array('product','modified');
 
 		$checksum = false;
 		foreach ($properties as $property) {
 			if ($property{0} == '_') continue;
 			if (in_array($property,$ignore)) continue;
+			switch ($property) {
+				case 'minprice': $this->minprice = (float)(str_true($this->sale)?$this->min['saleprice']:$this->min['price']); break;
+				case 'maxprice': $this->maxprice = (float)$this->max['price']; break;
+				case 'ranges':
+					$ranges = array();
+					foreach ($minmax as $m) {
+						$attr = $this->$m;
+						foreach (ProductSummary::$_ranges as $name)
+							$ranges[] = (float)$attr[$name];
+					}
+					break;
+				case 'taxed':
+					$taxable = array('price','saleprice');
+					$taxed = array();
+					foreach ($minmax as $m) {
+						$attr = $this->$m;
+						foreach ($taxable as $name)
+							if ($attr[$name.'_tax']) $taxed[] = "$m $name";
+					}
+					break;
+				default:
+
+			}
 
 			if ('float' == $Summary->_datatypes[$property]) $checksum .= (float)$this->$property;
 			else $checksum .= $this->$property;
@@ -621,6 +643,8 @@ class Product extends WPShoppObject {
 		if (isset($this->summed))
 			$Summary->modified = $this->summed;
 		$Summary->product = $this->id;
+		$Summary->ranges = join(',',$ranges);
+		$Summary->taxed = join(',',$taxed);
 		$Summary->save();
 	}
 
@@ -921,6 +945,7 @@ class Product extends WPShoppObject {
 // @todo Document ProductSummary class
 class ProductSummary extends DatabaseObject {
 	static $table = 'summary';
+	static $_ranges = array('price','saleprice','saved','savings','weight');
 
 	function __construct ($id=false,$key='product') {
 		$this->init(self::$table);

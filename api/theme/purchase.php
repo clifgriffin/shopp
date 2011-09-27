@@ -186,7 +186,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		// if (isset($options['name'])) return esc_html($addon->name);
 		// if (isset($options['label'])) return esc_html($addon->name);
 		// if (isset($options['type'])) return esc_html($addon->value->type);
-		// if (isset($options['onsale'])) return $addon->value->onsale;
+		// if (isset($options['onsale'])) return $addon->value->sale;
 		// if (isset($options['inventory'])) return $addon->value->inventory;
 		// if (isset($options['sku'])) return esc_html($addon->value->sku);
 		// if (isset($options['unitprice'])) return money($addon->value->unitprice);

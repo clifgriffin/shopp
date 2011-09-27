@@ -5,7 +5,6 @@
 	<form action="<?php echo $this->url; ?>" id="pages" method="post">
 	<div>
 		<?php wp_nonce_field('shopp-settings-pages'); ?>
-		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 	</div>
 
 	<br class="clear" />
@@ -45,7 +44,7 @@
 			$hidden = get_hidden_columns('shopp_page_shopp-settings-pages');
 
 			$edit = false;
-			if (isset($pages[$_GET['edit']])) $edit = $_GET['edit'];
+			if (isset($_GET['edit']) && isset($pages[$_GET['edit']])) $edit = $_GET['edit'];
 
 			$even = false;
 			foreach ($pages as $name => $page):

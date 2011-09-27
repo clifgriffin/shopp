@@ -5,7 +5,6 @@
 	<form action="<?php echo esc_url($this->url); ?>" id="images" method="post">
 	<div>
 		<?php wp_nonce_field('shopp-settings-images'); ?>
-		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 	</div>
 
 	<br class="clear" />
