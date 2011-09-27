@@ -121,7 +121,6 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function load_data ($options=array('prices','specs','images','categories','tags','meta','summary'),&$products=array()) {
-
 		// Load summary before prices to ensure summary can be overridden by fresh pricing aggregation
 		$loaders = array(
 		//  'name'      'callback_method'
@@ -540,7 +539,9 @@ class Product extends WPShoppObject {
 				case 'taxed':
 					$taxed = explode(',',$data->{$property});
 					foreach ($taxed as $pricetag) {
+						if ( ! $pricetag ) continue;
 						list($m,$name) = explode(' ',$pricetag);
+
 						if (empty($m)) continue;
 						$range = &$this->$m;
 						$range[$name.'_tax'] = true;
@@ -548,8 +549,10 @@ class Product extends WPShoppObject {
 					break;
 				default: $this->{$property} = isset($data->{$property})?($data->{$property}):false;
 			}
-			if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
-			else $this->checksum .= $this->$property;
+			if ( isset($this->$property) ) {
+				if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
+				else $this->checksum .= $this->$property;
+			}
 		}
 		$this->checksum = md5($this->checksum);
 		if (isset($data->summed)) {
@@ -600,6 +603,10 @@ class Product extends WPShoppObject {
 		$this->stock = $this->stocked = $this->sold = 0;
 		$this->maxprice = $this->minprice = false;
 		$this->min = $this->max = array();
+		foreach ( ProductSummary::$_ranges as $index ) {
+			$this->min[$index] = false;
+			$this->max[$index] = false;
+		}
 	}
 
 	/**
@@ -640,15 +647,17 @@ class Product extends WPShoppObject {
 					foreach ($minmax as $m) {
 						$attr = $this->$m;
 						foreach ($taxable as $name)
-							if ($attr[$name.'_tax']) $taxed[] = "$m $name";
+							if (isset($attr[$name.'_tax']) && $attr[$name.'_tax']) $taxed[] = "$m $name";
 					}
 					break;
 				default:
 
 			}
 
-			if ('float' == $Summary->_datatypes[$property]) $checksum .= (float)$this->$property;
-			else $checksum .= $this->$property;
+			if ( isset($this->$property) ) {
+				if ('float' == $Summary->_datatypes[$property]) $checksum .= (float)$this->$property;
+				else $checksum .= $this->$property;
+			}
 		}
 		$checksum = md5($checksum);
 		if ($checksum == $this->checksum) return;

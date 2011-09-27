@@ -200,6 +200,17 @@ function shopp_add_product_download ( $product, $file, $variant = false ) {
 		return false;
 	}
 
+	if ( $variant ) {
+		$Price = false;
+		foreach ( $Product->prices as $Price ) {
+			if ( $variant == $Price->id ) break;
+		}
+		if ( false === $Price ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed for file $file: You must specify a valid variant id parameter for product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+	}
+
 	// Save the uploaded file
 	$File = new ProductDownload();
 	$File->load(array('type'=>'download', 'parent'=> $Price->id));
