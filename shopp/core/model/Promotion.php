@@ -104,16 +104,13 @@ class Promotion extends DatabaseObject {
 
 		// Find all the pricetags the promotion is *currently assigned* to
 		$query = "SELECT id FROM $price_table WHERE 0 < FIND_IN_SET($this->id,discounts)";
-		$results = $db->query($query,AS_ARRAY);
-		$current = array_map(create_function('$o', 'return $o->id;'), $results);
+		$current = DB::query($query,'array','col','id');
 
 		// Find all the pricetags the promotion is *going to apply* to
 		$query = "SELECT prc.id,prc.product,prc.discounts FROM $price_table AS prc
 					$joins
 					$where";
-
-		$results = $db->query($query,AS_ARRAY);
-		$updates = array_map(create_function('$o', 'return $o->id;'), $results);
+		$updates = DB::query($query,'array','col','id');
 
 		// Determine which records need promo added to and removed from
 		$added = array_diff($updates,$current);
@@ -123,7 +120,7 @@ class Promotion extends DatabaseObject {
 		$query = "UPDATE $price_table
 					SET discounts=CONCAT(discounts,IF(discounts='','$this->id',',$this->id'))
 					WHERE id IN (".join(',',$added).")";
-		if (!empty($added)) $db->query($query);
+		if (!empty($added)) DB::query($query);
 
 		// Remove discounts from pricetags that now don't match the conditions
 		if (!empty($removed)) $this->uncatalog_discounts($removed);
@@ -131,7 +128,7 @@ class Promotion extends DatabaseObject {
 		// Recalculate product stats for the products with pricetags that have changed
 		$Collection = new PromoProducts(array('id' => $this->id));
 		$Collection->pagination = false;
-		$Collection->load( array('load'=>array('prices','restat')) );
+		$Collection->load( array('load'=>array('prices')) );
 	}
 
 	function uncatalog_discounts ($pricetags) {
@@ -296,6 +293,38 @@ class Promotion extends DatabaseObject {
 		$Promotion->created = null;
 		$Promotion->modified = null;
 		$Promotion->save();
+	}
+
+	/**
+	 * Lookup group discounts by id
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function pricing ($pricetag,$ids) {
+
+		if (empty($pricetag) || empty($ids)) return $pricetag;
+
+		$table = DatabaseObject::tablename(self::$table);
+		$query = "SELECT type,SUM(discount) AS amount FROM $table WHERE 0 < FIND_IN_SET(id,'$ids') AND discount > 0 AND status='enabled' GROUP BY type ORDER BY type DESC";
+		$discounts = DB::query($query,'array');
+		if (empty($discounts)) return $pricetag;
+
+		// Apply discounts
+		$a = $p = 0;
+		foreach ($discounts as $discount) {
+			switch ($discount->type) {
+				case 'Amount Off': $a += $discount->amount; break;
+				case 'Percentage Off': $p += $discount->amount; break;
+			}
+		}
+
+		if ($a > 0) $pricetag -= $a; // Take amounts off first (to reduce merchant percentage discount burden)
+		if ($p > 0)	$pricetag -= ($pricetag * ($p/100));
+
+		return $pricetag;
 	}
 
 	/**

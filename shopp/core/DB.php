@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1136;	// Database schema version
+	static $version = 1138;	// Database schema version
 
 	protected static $instance;
 
@@ -545,6 +545,7 @@ abstract class DatabaseObject implements Iterator {
 		$map = !empty($this->_map)?array_flip($this->_map):array();
 
 		$Tables = $Settings->available()?$Settings->get('data_model'):array();
+
 		if (isset($Tables[$this->_table])) {
 			$this->_datatypes = $Tables[$this->_table]->_datatypes;
 			$this->_lists = $Tables[$this->_table]->_lists;
@@ -581,9 +582,11 @@ abstract class DatabaseObject implements Iterator {
 			$property = isset($map[$var])?$map[$var]:$var;
 			if (!isset($this->{$property}))
 				$this->{$property} = $this->_defaults[$var];
+
 		}
 
-		if (!empty($Tables) && $Settings->available()) {
+		if ($Settings->available()) {
+
 			$Tables[$this->_table] = new StdClass();
 			$Tables[$this->_table]->_datatypes =& $this->_datatypes;
 			$Tables[$this->_table]->_lists =& $this->_lists;
@@ -753,7 +756,6 @@ abstract class DatabaseObject implements Iterator {
 		if (isset($data['modified'])) $data['modified'] = "now()";
 		$dataset = $this->dataset($data);
 		DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
-
 
 		do_action_ref_array('shopp_save_'.strtolower(get_class($this)), array(&$this));
 		return true;

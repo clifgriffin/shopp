@@ -21,10 +21,11 @@ class Price extends DatabaseObject {
 		if ($this->load($id,$key)) {
 			$this->load_download();
 			$this->load_settings();
+
+			// Recalculate promo price from applied promotional discounts
+			add_action('shopp_price_updates',array(&$this,'discounts'));
 		}
 
-		// Recalculate promo price from applied promotional discounts
-		add_action('shopp_price_updates',array(&$this,'discounts'));
 	}
 
 	function metaloader (&$records,&$record,$id='id',$property=false,$collate=false,$merge=false) {
@@ -65,8 +66,19 @@ class Price extends DatabaseObject {
 
 			if (!empty($target)) {
 				if (is_array($Object->value))
-					foreach ( $Object->value as $prop => $setting )
+					foreach ( $Object->value as $prop => $setting ) {
 						$target->{$prop} = $setting;
+
+						// Determine weight ranges from loaded price settings meta
+ 						if ('dimensions' == $prop && isset($setting['weight'])) {
+							$product = is_array($this->products)?$this->products[$target->product]:$this->products;
+							if(!isset($product->min['weight']) || $product->min['weight'] == 0) $product->min['weight'] = $product->max['weight'] = $setting['weight'];
+							$product->min['weight'] = min($product->min['weight'],$setting['weight']);
+							$product->max['weight'] = max($product->max['weight'],$setting['weight']);
+						}
+
+					}
+
 				else $target->{$Object->name} = $Object->value;
 			}
 
@@ -152,28 +164,9 @@ class Price extends DatabaseObject {
 	 * @return boolean True if a discount applies
 	 **/
 	function discounts () {
-
-		if ('on' == $this->sale) $this->promoprice = floatvalue($this->saleprice);
-		else $this->promoprice = floatvalue($this->price);
 		if (empty($this->discounts)) return false;
-
-		$promo_table = DatabaseObject::tablename(Promotion::$table);
-		$query = "SELECT type,SUM(discount) AS amount FROM $promo_table WHERE 0 < FIND_IN_SET(id,'$this->discounts') AND discount > 0 AND status='enabled' GROUP BY type ORDER BY type DESC";
-		$discounts = DB::query($query,AS_ARRAY);
-		if (empty($discounts)) return false;
-
-		// Apply discounts
-		$a = $p = 0;
-		foreach ($discounts as $discount) {
-			switch ($discount->type) {
-				case 'Amount Off': $a += $discount->amount; break;
-				case 'Percentage Off': $p += $discount->amount; break;
-			}
-		}
-
-		if ($a > 0) $this->promoprice -= $a; // Take amounts off first (to reduce merchant percentage discount burden)
-		if ($p > 0)	$this->promoprice -= ($this->promoprice * ($p/100));
-
+		$pricetag = str_true($this->sale)?$this->saleprice:$this->price;
+		$this->promoprice = Promotion::pricing($pricetag,$this->discounts);
 		return true;
 	}
 

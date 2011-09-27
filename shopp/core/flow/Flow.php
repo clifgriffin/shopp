@@ -207,7 +207,8 @@ class Flow {
 		) );
 
 		$object = get_queried_object();
-		if (!empty($object) && $object->post_type == $posttype->name) {
+		if (!empty($object) && isset($object->post_type)
+				&& $object->post_type == $posttype->name) {
 			$wp_admin_bar->add_menu( array(
 				'id' => 'edit',
 				'title' => $posttype->labels->edit_item,

@@ -289,6 +289,9 @@ class ShoppInstallation extends FlowController {
 		ShoppSettings()->setup('script_loading','global');
 		ShoppSettings()->setup('script_server','plugin');
 
+		// Pre-inits
+		ShoppSettings()->setup('active_catalog_promos','');
+
 		ShoppSettings()->setup('version',SHOPP_VERSION);
 		ShoppSettings()->setup('db_version',DB::$version);
 
@@ -480,6 +483,11 @@ class ShoppInstallation extends FlowController {
 
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+
+		if ($db_version <= 1137) {
+			$summary_table = DatabaseObject::tablename('summary');
+			DB::query("DELETE FROM $summary_table");
+		}
 
 		if ($db_version <= 1130) {
 			// Move settings to meta table

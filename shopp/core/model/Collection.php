@@ -49,9 +49,10 @@ class ProductCollection implements Iterator {
 			'nostock' => true,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
 			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
 			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
+			'ids' => false,			// Flag for loading product IDs only
 			'adjacent' => false,	//
 			'product' => false,		//
-			'load' => array('prices','coverimages'),		// Product data to load
+			'load' => array(),		// Product data to load
 			'inventory' => false,	// Flag for detecting inventory-based queries
 			'debug' => false		// Output the query for debugging
 		);
@@ -122,7 +123,10 @@ class ProductCollection implements Iterator {
 
 		// Load core product data and product summary columns
 		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date','p.post_modified',
-						's.modified AS summed','s.sold','s.grossed','s.maxprice','s.minprice','s.stock','s.lowstock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+						's.modified AS summed','s.sold','s.grossed','s.maxprice','s.minprice','s.ranges','s.taxed',
+						's.stock','s.lowstock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+
+		if ($ids) $cols = array('p.ID');
 
 		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
@@ -144,7 +148,9 @@ class ProductCollection implements Iterator {
 			$expire = apply_filters('shopp_collection_cache_expire',43200);
 
 			$cache = new stdClass();
-			$cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
+
+			if ($ids) $cache->products = $this->products = DB::query($query,'array','col','ID');
+			else $cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
 			$cache->total = $this->total = DB::found();
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
@@ -158,13 +164,15 @@ class ProductCollection implements Iterator {
 
 		}
 
+		if ($ids) return ($this->size() > 0);
+
 		// Finish up pagination construction
 		if ($this->pagination > 0 && $this->total > $this->pagination) {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;
 		}
 
-		// Load all associated product meta from other data sources
+		// Load all requested product meta from other data sources
 		$Processing->load_data($load,$this->products);
 
 		// If products are missing summary data, resum them
@@ -263,7 +271,7 @@ class ProductCollection implements Iterator {
 				}
 
 				$pricing = "";
-				if ($product->onsale) {
+				if (str_true($product->sale)) {
 					if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
 					if ($product->min['saleprice'] != $product->max['saleprice'])
 						$pricing .= __("from ",'Shopp');
@@ -291,7 +299,7 @@ class ProductCollection implements Iterator {
 				if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 				$item['g:condition'] = "new";
 
-				$price = floatvalue($product->onsale?$product->min['saleprice']:$product->min['price']);
+				$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 				if (!empty($price))	{
 					$item['g:price'] = $price;
 					$item['g:price_type'] = "starting";
@@ -336,9 +344,7 @@ class ProductCollection implements Iterator {
 	}
 
 	function workflow () {
-		$list = array_keys($this->products);
-		unset($this->products); // free memory
-		return $list;
+		return $this->products;
 	}
 
 	function size () {
@@ -1025,7 +1031,8 @@ class SmartCollection extends ProductCollection {
 		$this->smart($options);
 	}
 
-	function load () {
+	function load ($options=array()) {
+		$this->loading = array_merge($this->loading,$options);
 		parent::load($this->loading);
 	}
 
