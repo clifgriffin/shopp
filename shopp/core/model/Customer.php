@@ -45,8 +45,8 @@ class Customer extends DatabaseObject {
 	}
 
 	function listeners () {
-		add_action('parse_request',array(&$this,'menus'));
-		add_action('shopp_account_management',array(&$this,'management'));
+		add_action('parse_request',array($this,'menus'));
+		add_action('shopp_account_management',array($this,'management'));
 	}
 
 	/**
@@ -400,7 +400,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function create_wpuser () {
-		require(ABSPATH."/wp-includes/registration.php");
+		require(ABSPATH.'/wp-includes/registration.php');
 		if (empty($this->loginname)) return false;
 		if (!validate_username($this->loginname)) {
 			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
@@ -427,14 +427,20 @@ class Customer extends DatabaseObject {
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
 
-		// Send email notification of the new account
-		wp_new_user_notification( $wpuser, $this->password );
+		if (apply_filters('shopp_notify_new_wpuser',true)) {
+			// Send email notification of the new account
+			wp_new_user_notification( $wpuser, $this->password );
+		}
+
 		$this->password = "";
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
 
 		$this->newuser = true;
 
 		return true;
+	}
+
+	function wpuser_notify ($user,$password) {
 	}
 
 	function taxrule ($rule) {
