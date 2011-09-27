@@ -37,5 +37,32 @@ class MetaAPITests extends ShoppTestCase
 		$this->AssertEquals('hello world', $meta);
 	}
 
+	function test_shopp_meta () {
+		$data = array(
+			'name' => "Download Product Test",
+			'single' => array(),
+			'publish' => array( 'flag' => true ),
+			'description' =>
+				"Testing Download"
+		);
+		$data['single'] = array(
+			'type' => 'Download',
+			'price' => 41.00,
+		);
+
+		$Product = shopp_add_product($data);
+
+		file_put_contents ( 'testdownload.txt' , 'my test download file' );
+		shopp_add_product_download ( $Product->id, realpath('testdownload.txt') );
+		$ProductVariant = shopp_product_variant(array('product'=>$Product->id), 'product');
+
+		$download = shopp_meta ( $ProductVariant->id, 'price', 'testdownload.txt', 'download' );
+
+		$this->AssertTrue(is_object($download));
+		$this->AssertEquals('text/plain', $download->mime);
+		$this->AssertEquals('21', $download->size);
+		$this->AssertEquals('testdownload.txt', $download->uri);
+	}
+
 }
 ?>

@@ -106,7 +106,7 @@ class Item {
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = str_true($Price->sale);
-		$this->freeshipping = $Price->freeshipping;
+		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
 		// $this->saved = ($Price->price - $Price->promoprice);
 		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->unitprice = ($this->sale?$Price->promoprice:$Price->price)+$this->addonsum;

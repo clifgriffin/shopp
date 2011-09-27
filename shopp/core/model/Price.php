@@ -52,7 +52,7 @@ class Price extends DatabaseObject {
 			foreach ($clean as $prop) unset($record->{$prop});
 		}
 
-		if (isset($metaclass[$record->type])) {
+		if ( isset($record->type) && isset($metaclass[$record->type]) ) {
 			$ObjectClass = $metaclass[$record->type];
 			$Object = new $ObjectClass();
 			$Object->populate($record);

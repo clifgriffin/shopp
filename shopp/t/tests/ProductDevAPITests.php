@@ -6,6 +6,8 @@ class ProductDevAPITests extends ShoppTestCase
 {
 
 	function test_shopp_add_product () {
+		global $StJohnBayProduct;
+
 		$data = array(
 			'name' => "St. John's Bay® Color Block Windbreaker",
 			'publish' => array( 'flag' => true,
@@ -63,22 +65,20 @@ class ProductDevAPITests extends ShoppTestCase
 		);
 
 		$Product = shopp_add_product($data);
+		$StJohnBayProduct = $Product->id;
 
-		// Load fresh for testing
-		$Product = new Product(130);
-		$Product->load_data();
-
-		$this->AssertEquals(130, $Product->id);
 		$this->AssertEquals('St. John\'s Bay® Color Block Windbreaker',$Product->name);
 		$this->AssertEquals('This water-repellent windbreaker offers lightweight protection on those gusty days.',$Product->summary);
+		$this->AssertEquals('on', $Product->variants);
+		$this->AssertEquals('on', $Product->addons);
 		$this->AssertEquals('on', $Product->featured);
 		$this->AssertEquals('on', $Product->sale);
 		$this->AssertEquals(40.0, $Product->maxprice);
-		$this->AssertEquals(0.0, $Product->minprice);
+		$this->AssertEquals(19.99, $Product->minprice);
 		$this->AssertEquals('on', $Product->packaging);
 		$this->AssertEquals('a:2:{s:1:"v";a:2:{i:1;a:3:{s:2:"id";i:1;s:4:"name";s:4:"Size";s:7:"options";a:9:{i:1;a:3:{s:2:"id";i:1;s:4:"name";s:6:"medium";s:6:"linked";s:3:"off";}i:2;a:3:{s:2:"id";i:2;s:4:"name";s:5:"large";s:6:"linked";s:3:"off";}i:3;a:3:{s:2:"id";i:3;s:4:"name";s:7:"x-large";s:6:"linked";s:3:"off";}i:4;a:3:{s:2:"id";i:4;s:4:"name";s:5:"small";s:6:"linked";s:3:"off";}i:5;a:3:{s:2:"id";i:5;s:4:"name";s:8:"xx-large";s:6:"linked";s:3:"off";}i:6;a:3:{s:2:"id";i:6;s:4:"name";s:10:"large-tall";s:6:"linked";s:3:"off";}i:7;a:3:{s:2:"id";i:7;s:4:"name";s:12:"x-large tall";s:6:"linked";s:3:"off";}i:8;a:3:{s:2:"id";i:8;s:4:"name";s:13:"2x-large tall";s:6:"linked";s:3:"off";}i:9;a:3:{s:2:"id";i:9;s:4:"name";s:8:"2x-large";s:6:"linked";s:3:"off";}}}i:2;a:3:{s:2:"id";i:2;s:4:"name";s:5:"Color";s:7:"options";a:5:{i:10;a:3:{s:2:"id";i:10;s:4:"name";s:18:"Black/Grey Colorbi";s:6:"linked";s:3:"off";}i:11;a:3:{s:2:"id";i:11;s:4:"name";s:15:"Navy Baby Solid";s:6:"linked";s:3:"off";}i:12;a:3:{s:2:"id";i:12;s:4:"name";s:18:"Red/Iron Colorbloc";s:6:"linked";s:3:"off";}i:13;a:3:{s:2:"id";i:13;s:4:"name";s:10:"Iron Solid";s:6:"linked";s:3:"off";}i:14;a:3:{s:2:"id";i:14;s:4:"name";s:17:"Dark Avocado Soil";s:6:"linked";s:3:"off";}}}}s:1:"a";a:1:{i:1;a:3:{s:2:"id";i:1;s:4:"name";s:7:"Special";s:7:"options";a:1:{i:1;a:3:{s:2:"id";i:1;s:4:"name";s:11:"Embroidered";s:6:"linked";s:3:"off";}}}}}',
 							serialize($Product->options));
-		$this->AssertEquals(46, count($Product->prices));
+		$this->AssertEquals(47, count($Product->prices));
 
 		$counts = array('product'=>0,'addon'=>0,'variation'=>0);
 		$Variant = $Addon = false;
@@ -90,7 +90,7 @@ class ProductDevAPITests extends ShoppTestCase
 
 		$this->AssertEquals(45, $counts['variation']);
 		$this->AssertEquals(1, $counts['addon']);
-		$this->AssertEquals(0, $counts['product']);
+		$this->AssertEquals(1, $counts['product']);
 
 		// Variant assertions
 		$this->AssertEquals('1,11',$Variant->options);
@@ -121,16 +121,23 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(0, $Addon->shipfee);
 		$this->AssertEquals('off', $Addon->inventory);
 
+
 	}
 
 	function test_shopp_product () {
 		$Product = shopp_product( 107 );
-
-		$this->AssertEquals(107, $Product->id);
-		$this->AssertEquals(
-			'a:1:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"190";s:7:"product";s:3:"107";s:7:"options";s:0:"";s:9:"optionkey";s:1:"0";s:5:"label";s:16:"Price & Delivery";s:7:"context";s:7:"product";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:49;s:9:"saleprice";d:44;s:6:"weight";s:8:"0.500000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"1";s:7:"created";s:19:"2009-10-13 15:05:56";s:8:"modified";s:19:"2009-10-13 15:05:56";s:10:"dimensions";a:0:{}s:10:"promoprice";d:44;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}}',
-			serialize($Product->prices)
-		);
+		$this->AssertEquals(1, count($Product->prices));
+		$Price = reset($Product->prices);
+		$this->AssertEquals('product', $Price->context);
+		$this->AssertEquals('Shipped', $Price->type);
+		$this->AssertEquals(49, $Price->price);
+		$this->AssertEquals(44, $Price->saleprice);
+		$this->AssertEquals(44, $Price->promoprice);
+		$this->AssertEquals(0.5, $Price->weight);
+		$this->AssertEquals('on', $Price->tax);
+		$this->AssertEquals('on', $Price->shipping);
+		$this->AssertEquals('on', $Price->sale);
+		$this->AssertEquals('off', $Price->inventory);
 	}
 
 	function test_shopp_product_publish () {
@@ -159,10 +166,22 @@ class ProductDevAPITests extends ShoppTestCase
 
 	function test_shopp_product_variants () {
 		$variations = shopp_product_variants(70);
-		$expected = 'a:2:{i:0;O:8:"stdClass":29:{s:2:"id";s:3:"119";s:7:"product";s:2:"70";s:7:"options";s:2:"11";s:9:"optionkey";s:5:"77011";s:5:"label";s:10:"Widescreen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"2";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}i:1;O:8:"stdClass":29:{s:2:"id";s:3:"120";s:7:"product";s:2:"70";s:7:"options";s:2:"12";s:9:"optionkey";s:5:"84012";s:5:"label";s:11:"Full-Screen";s:7:"context";s:9:"variation";s:4:"type";s:7:"Shipped";s:3:"sku";s:0:"";s:5:"price";d:59.979999999999997;s:9:"saleprice";d:34.860000999999997;s:6:"weight";s:8:"1.000000";s:7:"shipfee";d:0;s:5:"stock";s:1:"0";s:9:"inventory";s:3:"off";s:4:"sale";s:2:"on";s:8:"shipping";s:2:"on";s:3:"tax";s:2:"on";s:8:"donation";a:2:{s:3:"var";s:3:"off";s:3:"min";s:3:"off";}s:9:"sortorder";s:1:"3";s:7:"created";s:19:"2009-10-13 14:05:04";s:8:"modified";s:19:"2009-10-13 14:12:03";s:10:"dimensions";a:0:{}s:10:"promoprice";d:34.860000999999997;s:4:"cost";s:8:"0.000000";s:7:"stocked";s:1:"0";s:9:"discounts";s:0:"";s:12:"freeshipping";b:0;s:9:"isstocked";b:0;s:6:"onsale";b:1;}}';
 
-		$actual = serialize($variations);
-		$this->AssertEquals($expected,$actual);
+		$this->assertEquals(2, count($variations));
+		$Price = reset($variations);
+		$this->assertEquals('Widescreen', $Price->label);
+		$this->assertEquals(77011, $Price->optionkey);
+		$this->assertEquals(59.98, $Price->price);
+		$this->assertEquals(34.860001, $Price->saleprice);
+		$this->assertEquals(34.860001, $Price->promoprice);
+
+		$Price = next($variations);
+		$this->assertEquals('Full-Screen', $Price->label);
+		$this->assertEquals(84012, $Price->optionkey);
+		$this->assertEquals(59.98, $Price->price);
+		$this->assertEquals(34.860001, $Price->saleprice);
+		$this->assertEquals(34.860001, $Price->promoprice);
+
 	}
 
 	function test_shopp_product_addons () {
@@ -183,12 +202,14 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variant () {
-		$Price = shopp_product_variant(array( 'product' => 130, 'option' => array('Size'=>'medium', 'Color'=>'Navy Baby Solid')), 'variant');
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+		$Price = shopp_product_variant(array( 'product' => $product, 'option' => array('Size'=>'medium', 'Color'=>'Navy Baby Solid')), 'variant');
 		$this->AssertEquals(79754, $Price->optionkey);
 		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
 		$this->AssertEquals('variation', $Price->context);
 
-		$Price = shopp_product_variant(array( 'product' => 130, 'option' => array('Special' => 'Embroidered') ), 'addon' );
+		$Price = shopp_product_variant(array( 'product' => $product, 'option' => array('Special' => 'Embroidered') ), 'addon' );
 		$this->AssertEquals(7001, $Price->optionkey);
 		$this->AssertEquals('Embroidered', $Price->label);
 		$this->AssertEquals('addon', $Price->context);
@@ -206,7 +227,9 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_addon () {
-		$Price = shopp_product_addon(array( 'product' => 130, 'option' => array('Special' => 'Embroidered') ) );
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+		$Price = shopp_product_addon(array( 'product' => $product, 'option' => array('Special' => 'Embroidered') ) );
 		$this->AssertEquals(7001, $Price->optionkey);
 		$this->AssertEquals('Embroidered', $Price->label);
 		$this->AssertEquals('addon', $Price->context);
@@ -220,22 +243,31 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variant_options () {
-		$options = shopp_product_variant_options(130);
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+
+		$options = shopp_product_variant_options($product);
 		$this->AssertEquals('a:2:{s:4:"Size";a:9:{i:0;s:6:"medium";i:1;s:5:"large";i:2;s:7:"x-large";i:3;s:5:"small";i:4;s:8:"xx-large";i:5;s:10:"large-tall";i:6;s:12:"x-large tall";i:7;s:13:"2x-large tall";i:8;s:8:"2x-large";}s:5:"Color";a:5:{i:0;s:18:"Black/Grey Colorbi";i:1;s:15:"Navy Baby Solid";i:2;s:18:"Red/Iron Colorbloc";i:3;s:10:"Iron Solid";i:4;s:17:"Dark Avocado Soil";}}',
 		serialize($options));
 	}
 
 	function test_shopp_product_addon_options () {
-		$addon_options = shopp_product_addon_options ( 130 );
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+
+		$addon_options = shopp_product_addon_options ( $product );
 		$this->AssertEquals('a:1:{s:7:"Special";a:1:{i:0;s:11:"Embroidered";}}', serialize($addon_options));
 	}
 
 	function test_shopp_product_add_categories () {
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+
 		$category = shopp_add_product_category ( 'Jackets', "Men's Jackets", 5 );
-		$this->assertTrue(shopp_product_add_categories(130, array($category)));
+		$this->assertTrue(shopp_product_add_categories($product, array($category)));
 		$this->AssertEquals(62, $category);
 
-		$Product = shopp_product(130);
+		$Product = shopp_product($product);
 
 		$this->assertTrue(isset($Product->categories[62]));
 		$this->AssertEquals('jackets', $Product->categories[62]->slug);
@@ -244,28 +276,34 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_add_tags () {
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+
 		$tag = shopp_add_product_tag ( 'Waterproof' );
 		$tag2 = shopp_add_product_tag ( 'Fashionable' );
-		$this->AssertTrue( shopp_product_add_tags(130, array($tag, 'Fashionable')) );
+		$this->AssertTrue( shopp_product_add_tags($product, array($tag, 'Fashionable')) );
 
-		$Product = shopp_product(130);
+		$Product = shopp_product($product);
 		$this->AssertEquals('Waterproof', $Product->tags[$tag]->name);
 		$this->AssertEquals('Fashionable', $Product->tags[$tag2]->name);
 	}
 
 	function test_shopp_product_set_specs () {
-		shopp_product_rmv_spec(130, 'pockets');
-		shopp_product_rmv_spec(130, 'drawstring');
-		shopp_product_rmv_spec(130, 'washable');
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
 
-		$Product = shopp_product(130);
+		shopp_product_rmv_spec($product, 'pockets');
+		shopp_product_rmv_spec($product, 'drawstring');
+		shopp_product_rmv_spec($product, 'washable');
+
+		$Product = shopp_product($product);
 
 		$this->assertTrue(! isset($Product->specs) || empty($Product->specs));
 
 		$specs = array('pockets'=>2, 'drawstring'=>'yes','washable'=>'yes');
-		shopp_product_set_specs ( 130, $specs);
+		shopp_product_set_specs ( $product, $specs);
 
-		$Specs = shopp_product_specs(130);
+		$Specs = shopp_product_specs($product);
 
 		$this->AssertEquals(2, $Specs['pockets']->value);
 		$this->AssertEquals('yes', $Specs['drawstring']->value);
@@ -273,6 +311,9 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_add_terms () {
+		global $StJohnBayProduct;
+		$product = $StJohnBayProduct;
+
 		shopp_register_taxonomy('brand', array(
 	        'hierarchical' => true
 	    ));
@@ -280,8 +321,8 @@ class ProductDevAPITests extends ShoppTestCase
 		$term = shopp_add_product_term("Domestic Brands", 'shopp_brand');
 		$term1 = shopp_add_product_term("St. John's Bay", 'shopp_brand', $term);
 
-		shopp_product_add_terms(130, array($term,$term1), 'shopp_brand');
-		$Product = shopp_product(130);
+		shopp_product_add_terms($product, array($term,$term1), 'shopp_brand');
+		$Product = shopp_product($product);
 
 		$this->AssertEquals("Domestic Brands", $Product->shopp_brands[$term]->name);
 		$this->AssertEquals("domestic-brands", $Product->shopp_brands[$term]->slug);

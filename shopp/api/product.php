@@ -140,7 +140,7 @@ function shopp_add_product ( $data = array() ) {
 	$Price->product = $Product->id;
 	if ( isset($subjects['variants']) ) $Price->type = 'N/A'; // disabled
 	$Price->save();
-	$prices = array($Price);
+	$prices[] = $Price;
 
 	// Create Addons
 	if ( isset($data['addons']) ) {
@@ -154,6 +154,7 @@ function shopp_add_product ( $data = array() ) {
 	}
 
 	$contexts = array( 'addons' => 'addon', 'product' => 'product', 'variants' => 'variant' );
+
 	foreach ( $subjects as $pricetype => $variants ) {
 
 		// apply settings for each priceline
@@ -198,16 +199,13 @@ function shopp_add_product ( $data = array() ) {
 	} // end subjects foreach
 
 	// Gather rollup figures for prices.
-	if ( ! empty($prices) ) {
-		$records = null;
-		foreach ( $prices as $Price ) {
-			$Product->pricing($records,$Price);
-		}
-		foreach ( $prices as $Price ) {
-			$Product->sumprice($Price);
-		}
+	$Product->resum();
+
+	foreach ( $prices as $Price ) {
+		$Product->sumprice($Price);
 	}
 
+	// Skeleton summary
 	$Summary = new ProductSummary();
 	$sum_props = array_keys($Summary->_datatypes);
 	// init default summary items
@@ -215,7 +213,22 @@ function shopp_add_product ( $data = array() ) {
 		if ( ! isset($Product->$prop) ) $Product->$prop = NULL;
 	}
 
+
+	//
+	// if ( ! empty($prices) ) {
+
+	$records = null;
+	foreach ( $prices as $Price ) {
+		$Product->pricing($records,$Price);
+	}
+
+	// 	foreach ( $prices as $Price ) {
+	// 		$Product->sumprice($Price);
+	// 	}
+	// }
+	//
 	$Product->sumup();
+	// $Product->load_data(array('pricing','summary'));
 
 	return shopp_product($Product->id);
 } // end function shopp_add_product
@@ -625,6 +638,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 
 			$menukey = substr($pricetype, 0, 1);
 			$flag = $pricetype == 'variation' ? 'variants' : 'addons';
+
 			if ( ! isset($Product->options[$menukey]) || $Product->$flag == 'off' ) {
 				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No product variant options of type $pricetype.",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
