@@ -69,11 +69,25 @@ class Product extends WPShoppObject {
 		$this->init(self::$table,$key);
 		$this->type = self::$posttype;
 		$this->load($id,$key);
+		add_action('shopp_save_product',array($this,'savepost'));
 	}
 
 	function save () {
 		if ( ! isset($this->ID) ) $this->ID = $this->id ? $this->id : null;
 		parent::save();
+	}
+
+	/**
+	 * Provides compatibility with other plugins that handle custom post types
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function savepost () {
+		if ( empty($this->id)) return;
+		do_action('save_post', $this->id, get_post($this->id));
 	}
 
 	function posttype () {

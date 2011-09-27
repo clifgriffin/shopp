@@ -109,7 +109,7 @@ class Warehouse extends AdminController {
 	 * @return void
 	 **/
 	function workflow () {
-		global $Shopp;
+		global $Shopp,$post;
 
 		$defaults = array(
 			'page' => false,
@@ -203,6 +203,10 @@ class Warehouse extends AdminController {
 			$Shopp->Product = new Product($id);
 			$Shopp->Product->load_data();
 		}
+
+		// WP post type editing support for other plugins
+		if (!empty($Shopp->Product->id))
+			$post = get_post($Shopp->Product->id);
 
 	}
 
@@ -607,8 +611,9 @@ class Warehouse extends AdminController {
 
 		// Set publish date
 		if ('publish' == $_POST['status']) {
-			$publishfields = array('month' => '','date' => '','year' => '','hour'=>'','minute'=>'','meridiem'=>'');
-			$publishdate = join('',array_merge($publishfields,$_POST['publish']));
+			$publishing = isset($_POST['publish'])?$_POST['publish']:array();
+			$fields = array('month' => '','date' => '','year' => '','hour'=>'','minute'=>'','meridiem'=>'');
+			$publishdate = join('',array_merge($fields,$publishing));
 			if (!empty($publishdate)) {
 				$publish =& $_POST['publish'];
 				if ($publish['meridiem'] == "PM" && $publish['hour'] < 12)
@@ -788,7 +793,11 @@ class Warehouse extends AdminController {
 
 			// Delete specs queued for removal
 			$ids = array();
+			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
+				if (strpos($_POST['deleteImages'],",") !== false) $deletes = explode(',',$_POST['deleteImages']);
+				else $deletes = array($_POST['deletedSpecs']);
+
 				$ids = db::escape($_POST['deletedSpecs']);
 				$Spec = new Spec();
 				db::query("DELETE FROM $Spec->_table WHERE id IN ($ids)");
