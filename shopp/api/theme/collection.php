@@ -24,7 +24,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static $context = 'Category'; // TODO transition to Collection
 	static $register = array(
 		'carousel' => 'carousel',
-		'coverimage' => 'cover_image',
+		'coverimage' => 'coverimage',
 		'description' => 'description',
 		'facetedmenu' => 'faceted_menu',
 		'feedurl' => 'feed_url',
@@ -111,7 +111,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function cover_image ($result, $options, $O) {
+	function coverimage ($result, $options, $O) {
 		// Force select the first loaded image
 		unset($options['id']);
 		$options['index'] = 0;
