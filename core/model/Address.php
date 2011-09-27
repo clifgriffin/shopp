@@ -214,7 +214,7 @@ class PostcodeMapping {
 		if (!isset($postcodes[$Address->country])) return;
 
 		$prefix = substr($Address->postcode,0,3);
-		$state = isset($postcodes[$prefix])?$postcodes[$prefix]:false;
+		$state = isset($postcodes[strtoupper($prefix)])?$postcodes[$prefix]:false;
 		if (!$state) return;
 
 		if (empty($this->state)) $this->state = $state;
