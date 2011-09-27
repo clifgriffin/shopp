@@ -101,7 +101,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		// Select image by database id
 		if ($id !== false) {
 			if (isset($O->images[$id])) $img = $O->images[$id];
-			else return '';
+			else {
+				new ShoppError(sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				return '';
+			}
 		}
 
 		// Select image by index position in the list
@@ -109,7 +112,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$keys = array_keys($O->images);
 			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
 				$img = $O->images[$keys[$index]];
-			else return '';
+			else {
+				new ShoppError(sprintf('No %s image exists at the specified index position %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				return '';
+			}
 		}
 
 		// Use the current image pointer by default
