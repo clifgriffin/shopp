@@ -25,7 +25,7 @@ class Login {
 	var $Billing = false;
 	var $Shipping = false;
 
-	var $accounts = "none";		// Account system setting
+	var $accounts = 'none';		// Account system setting
 
 	function __construct () {
 		global $Shopp;
@@ -38,7 +38,7 @@ class Login {
 
 		add_action('shopp_logout',array(&$this,'logout'));
 
-		if ($this->accounts == "wordpress") {
+		if ('wordpress' == $this->accounts) {
 			add_action('set_logged_in_cookie',array(&$this,'wplogin'),10,4);
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_logout',1);
@@ -61,6 +61,7 @@ class Login {
 	 **/
 	function process () {
 		global $Shopp;
+		echo "Login::process()";
 
 		if (isset($_GET['acct']) && $_GET['acct'] == "logout") {
 			// Redirect to remove the logout request
@@ -128,6 +129,7 @@ class Login {
 	 **/
 	function auth ($id,$password,$type='email') {
 		global $Shopp;
+		echo "Login::auth()";
 
 		$db = DB::get();
 		switch($this->accounts) {
@@ -191,6 +193,7 @@ class Login {
 	 * @return void
 	 **/
 	function wplogin ($cookie,$expire,$expiration,$user_id) {
+		echo "Login::wplogin()";
 		if ($Account = new Customer($user_id,'wpuser')) {
 			$this->login($Account);
 			add_action('wp_logout',array(&$this,'logout'));
@@ -206,6 +209,7 @@ class Login {
 	 * @return void
 	 **/
 	function login ($Account) {
+		echo "Login::login()";
 		global $Shopp;
 		$this->Customer->copydata($Account,"",array());
 		$this->Customer->login = true;
@@ -230,13 +234,11 @@ class Login {
 	 * @return void
 	 **/
 	function logout () {
-		$this->Customer->login = false;
-		$this->Customer->wpuser = false;
-		$this->Customer->id = false;
-		$this->Billing->id = false;
-		$this->Billing->customer = false;
-		$this->Shipping->id = false;
-		$this->Shipping->customer = false;
+		$this->Customer = new Customer();
+		$this->Billing = new BillingAddress();
+		$this->Shipping = new ShippingAddress();
+		$this->Shipping->destination();
+
 		session_commit();
 		do_action_ref_array('shopp_logged_out',array(&$this->Customer));
 	}
