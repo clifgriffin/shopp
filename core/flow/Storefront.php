@@ -1110,10 +1110,10 @@ class Storefront extends FlowController {
 		?>
 		<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 			<input type="hidden" name="redirect" value="checkout" />
-			<?php if (isset($atts['variations'])): $variations = empty($atts['variations'])?'mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>':$atts['variations']; ?>
+			<?php if (isset($atts['variations'])): ?>
 				<?php if(shopp('product','has-variations')): ?>
 				<ul class="variations">
-					<?php shopp('product','variations',$variations); ?>
+					<?php shopp('product','variations','mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 				</ul>
 				<?php endif; ?>
 			<?php endif; ?>
