@@ -187,6 +187,69 @@ function categories () {
 
 	});
 
+	// Handles toggling a category on/off when the category is pre-existing
+	jQuery('.category-metabox input[type=checkbox]').change(function () {
+		if (!this.checked) return true;
+		var $=jqnc(),id,details = new Array();
+
+		// Build current list of spec labels
+		$('#details-menu').children().children().find('input.label').each(function(id,item) {
+			details.push($(item).val());
+		});
+
+		id = $(this).val();
+		// Load category spec templates
+		$.getJSON(spectemp_url+'&action=shopp_spec_template&category='+id,function (speclist) {
+			if (!speclist) return true;
+			for (id in speclist) {
+				speclist[id].add = true;
+				if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
+			}
+		});
+
+		// Load category variation option templates
+		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (t) {
+			if (!(t && t.options)) return true;
+
+			var variations_setting = $('#variations-setting'),
+				options = !t.options.v?t.options:t.options.v,
+				added = false;
+
+			if (!variations_setting.attr('checked'))
+				variations_setting.attr('checked',true).trigger('toggleui');
+
+			if (optionMenus.length > 0) {
+				$.each(options,function (tid,tm) {
+					if (!(tm && tm.name && tm.options)) return;
+					if (menu = optionMenuExists(tm.name)) {
+						added = false;
+						$.each(tm.options,function (i,o) {
+							if (!(o && o.name)) return;
+							if (!optionMenuItemExists(menu,o.name)) {
+								menu.addOption(o);
+								added = true;
+							}
+						});
+						if (added) addVariationPrices();
+					} else {
+						// Initialize as new menu items
+						delete tm.id;
+						$.each(tm.options,function (i,o) {
+							if (!(o && o.name)) return;
+							// Remove the option ID so the option will be built into the
+							// the variations permutations
+							delete o.id;
+						});
+						addVariationOptionsMenu(tm);
+					}
+
+				});
+			} else loadVariations(options,t.prices);
+
+		});
+	});
+
+
 }
 
 function tags () {
