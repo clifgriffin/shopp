@@ -144,7 +144,7 @@ function shopp_tags_meta_box ($Product) {
 </div>
 <div class="nojs-tags hide-if-js">
 <p><?php echo $tax->labels->add_or_remove_items; ?></p>
-<textarea name="<?php echo "taxonomy[$taxonomy]"; ?>" rows="3" cols="20" class="tags" id="tax-input-<?php echo $taxonomy; ?>" <?php echo $disabled; ?>><?php echo esc_attr(get_terms_to_edit( $Product->id, $taxonomy )); ?></textarea></div>
+<textarea name="<?php echo "tax_input[$taxonomy]"; ?>" rows="3" cols="20" class="tags" id="tax-input-<?php echo $taxonomy; ?>" <?php echo $disabled; ?>><?php echo esc_attr(get_terms_to_edit( $Product->id, $taxonomy )); ?></textarea></div>
 </div>
 <?php
 }
