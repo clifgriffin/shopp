@@ -28,13 +28,12 @@ class Login {
 	var $accounts = 'none';		// Account system setting
 
 	function __construct () {
-		global $Shopp;
 
 		$this->accounts = shopp_setting('account_system');
 
-		$this->Customer =& $Shopp->Order->Customer;
-		$this->Billing =& $Shopp->Order->Billing;
-		$this->Shipping =& $Shopp->Order->Shipping;
+		$this->Customer =& ShoppOrder()->Customer;
+		$this->Billing =& ShoppOrder()->Billing;
+		$this->Shipping =& ShoppOrder()->Shipping;
 
 		add_action('shopp_logout',array(&$this,'logout'));
 
@@ -60,8 +59,6 @@ class Login {
 	 * @return void
 	 **/
 	function process () {
-		global $Shopp;
-		echo "Login::process()";
 
 		if (isset($_GET['acct']) && $_GET['acct'] == "logout") {
 			// Redirect to remove the logout request
@@ -128,8 +125,6 @@ class Login {
 	 * @return void
 	 **/
 	function auth ($id,$password,$type='email') {
-		global $Shopp;
-		echo "Login::auth()";
 
 		$db = DB::get();
 		switch($this->accounts) {
@@ -209,8 +204,6 @@ class Login {
 	 * @return void
 	 **/
 	function login ($Account) {
-		echo "Login::login()";
-		global $Shopp;
 		$this->Customer->copydata($Account,"",array());
 		$this->Customer->login = true;
 		unset($this->Customer->password);

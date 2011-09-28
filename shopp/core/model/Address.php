@@ -164,11 +164,9 @@ class ShippingAddress extends Address {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function destination ($data=false) {
-		global $Shopp;
-
 		$base = shopp_setting('base_operations');
 		$countries = Lookup::countries();
 		$regions = Lookup::regions();
