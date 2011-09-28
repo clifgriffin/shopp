@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1138;	// Database schema version
+	static $version = 1139;	// Database schema version
 
 	protected static $instance;
 
