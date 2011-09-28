@@ -257,7 +257,8 @@ function tags () {
 		var $=jqnc(),
 			$this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
-			tags = $this.find('.tags').val().split(','),
+			textarea = $this.find('.tags'),
+			tags = textarea.val().split(','),
 			selector = new SearchSelector({
 				source:'shopp_tags',
 				parent:$this,
@@ -269,6 +270,7 @@ function tags () {
 				autosuggest:'shopp_popular_tags'
 			});
 
+		textarea.val('');
 		$.each(tags,function (id,tag) {
 			if (tag.length == 0) return;
 			selector.ui.prepend(selector.newItem('',tag));

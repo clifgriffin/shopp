@@ -638,23 +638,21 @@ class Warehouse extends AdminController {
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('meta','categories','prices','tags'));
 
-		// echo '<pre>';
-		// print_r($_POST);
-		// print_r($Product);
-		// echo '</pre>';
-
 		do_action('shopp_pre_product_save');
 		$Product->save();
 
-		// Save taxonomies
-		if ( !empty($_POST['tax_input']) ) {
-			foreach ( (array) $_POST['tax_input'] as $taxonomy => $tags ) {
-				$taxonomy_obj = get_taxonomy($taxonomy);
+		foreach ( Product::$_taxonomies as $taxonomy => $type) {
+			$tags = '';
+			$taxonomy_obj = get_taxonomy($taxonomy);
+
+			if ( isset($_POST['tax_input']) && isset($_POST['tax_input'][$taxonomy]) ) {
+				$tags = $_POST['tax_input'][$taxonomy];
 				if ( is_array($tags) ) // array = hierarchical, string = non-hierarchical.
 					$tags = array_filter($tags);
-				if ( current_user_can($taxonomy_obj->cap->assign_terms) )
-					wp_set_post_terms( $Product->id, $tags, $taxonomy );
 			}
+
+			if ( current_user_can($taxonomy_obj->cap->assign_terms) )
+				wp_set_post_terms( $Product->id, $tags, $taxonomy );
 		}
 
 		// Remove deleted images
