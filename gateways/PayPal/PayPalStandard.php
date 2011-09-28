@@ -148,7 +148,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['state']					= $Order->{$AddressType}->state;
 		$_['zip']					= $Order->{$AddressType}->postcode;
 		$_['country']				= $Order->{$AddressType}->country;
-		$_['night_phone_a']			= $Order->Customer->phone;
+		$_['email']					= $Order->Customer->email;
+
+		$phone = parse_phone($Order->Customer->phone);
+		if ( in_array($Order->Billing->country,array('US','CA')) ) {
+			$_['night_phone_a']			= $phone['area'];
+			$_['night_phone_b']			= $phone['prefix'];
+			$_['night_phone_c']			= $phone['exchange'];
+		} else $_['night_phone_b']		= $phone['raw'];
 
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['pagestyle'] = $_GET['pagestyle'];
