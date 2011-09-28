@@ -48,15 +48,12 @@ CREATE TABLE <?php echo $price; ?> (							-- Price table
 	context enum('product','variation','addon') NOT NULL,		-- (1) Contextual usage of the price record
 	type enum('Shipped','Virtual','Download','Donation','Subscription','Membership','N/A') NOT NULL,  -- (1) Variant/Add-on product type
 	optionkey bigint(20) unsigned NOT NULL default '0',			-- (8) Variant option key (sort order agnostic key)
---	options text NOT NULL,											-- (Moved to meta)
 	label varchar(255) NOT NULL default '',						-- (1-256) Price record label
 	sku varchar(100) NOT NULL default '',						-- (1-101) Assigned SKU (Stock Keeping Unit) code
 	price decimal(16,6) NOT NULL default '0.00',				-- (10) Regular price
 	saleprice decimal(16,6) NOT NULL default '0.00',			-- (10) Sale price
 	promoprice decimal(16,6) NOT NULL default '0.00',			-- (10) Promo price (calculated promotion price)
 	cost decimal(16,6) NOT NULL default '0.00',					-- (10) Actual cost/value of the priced product
---	weight decimal(12,6) NOT NULL default '0',					-- (Moved to meta 'settings' record)
---	dimensions varchar(255) NOT NULL default '0',				-- (Moved to meta 'settings' record)
 	shipfee decimal(12,6) NOT NULL default '0',					-- (8) Shipping fee mark-up
 	stock int(10) NOT NULL default '0',							-- (4) Number of product in inventory
 	stocked int(10) NOT NULL default '0',						-- (4) Number of product last stocked
@@ -64,7 +61,6 @@ CREATE TABLE <?php echo $price; ?> (							-- Price table
 	sale enum('off','on') NOT NULL,								-- (1) Flag to activate sale price
 	shipping enum('on','off') NOT NULL,							-- (1) Flag to enable shipping for product
 	tax enum('on','off') NOT NULL,								-- (1) Flag to enable tax calculations for product
---	donation varchar(255) NOT NULL default '', 						-- (Moved to meta 'settings' record)
 	discounts varchar(255) NOT NULL default '',					-- (1-256) Promotion IDs that apply to the price
 	sortorder int(10) unsigned NOT NULL default '0',			-- (4) Sort order for the price record
 	created datetime NOT NULL default '0000-00-00 00:00:00',	-- (8) Creation date
