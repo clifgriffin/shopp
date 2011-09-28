@@ -1096,6 +1096,27 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
 }
 
 /**
+ * Parse a US or Canadian telephone number
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param int $num The number to format
+ * @return array A list of phone number components
+ **/
+
+function parse_phone ($num) {
+	if (empty($num)) return '';
+	$raw = preg_replace('/[^\d]/','',$num);
+
+	if (strlen($raw) == 7) sscanf($raw, "%3s%4s", $prefix, $exchange);
+	if (strlen($raw) == 10) sscanf($raw, "%3s%3s%4s", $area, $prefix, $exchange);
+	if (strlen($raw) == 11) sscanf($raw, "%1s%3s%3s%4s",$country, $area, $prefix, $exchange);
+
+	return compact('country','area','prefix','exchange','raw');
+}
+
+/**
  * Formats a number to telephone number style
  *
  * @author Jonathan Davis
@@ -1105,13 +1126,9 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
  * @return string The formatted telephone number
  **/
 function phone ($num) {
-	if (empty($num)) return "";
-	$num = preg_replace("/[A-Za-z\-\s\(\)]/","",$num);
-
-	if (strlen($num) == 7) sscanf($num, "%3s%4s", $prefix, $exchange);
-	if (strlen($num) == 10) sscanf($num, "%3s%3s%4s", $area, $prefix, $exchange);
-	if (strlen($num) == 11) sscanf($num, "%1s%3s%3s%4s",$country, $area, $prefix, $exchange);
-	//if (strlen($num) > 11) sscanf($num, "%3s%3s%4s%s", $area, $prefix, $exchange, $ext);
+	if (empty($num)) return '';
+	$parsed = parse_phone($num);
+	extract($parsed);
 
 	$string = "";
 	$string .= (isset($country))?"$country ":"";
@@ -1120,7 +1137,6 @@ function phone ($num) {
 	$string .= (isset($exchange))?"-$exchange":"";
 	$string .= (isset($ext))?" x$ext":"";
 	return $string;
-
 }
 
 /**
