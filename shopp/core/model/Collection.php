@@ -163,6 +163,7 @@ class ProductCollection implements Iterator {
 			}
 
 		}
+		if (false === $this->products) $this->products = array();
 
 		if ($ids) return ($this->size() > 0);
 
