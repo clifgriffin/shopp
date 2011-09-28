@@ -232,6 +232,33 @@ if (!function_exists('get_class_property')) {
 	}
 }
 
+if (!function_exists('shopp_suhosin_warning')) {
+	/**
+	 * Detect Suhosin enabled with problematic settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function shopp_suhosin_warning () {
+
+		return ( // Is Suhosin loaded or available?
+				(extension_loaded('Suhosin') || (defined('SUHOSIN_PATCH') && SUHOSIN_PATCH))
+				&& // Are the known problem settings defined?
+				(
+					@ini_get('suhosin.max_array_index_length') > 0 && @ini_get('suhosin.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_array_index_length') > 0 && @ini_get('suhosin.post.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_totalname_length') > 0 && @ini_get('suhosin.post.max_totalname_length') < 65535
+					&& @ini_get('suhosin.post.max_vars') > 0 && @ini_get('suhosin.post.max_vars') < 1024
+					&& @ini_get('suhosin.request.max_array_index_length') > 0 && @ini_get('suhosin.request.max_array_index_length') < 256
+					&& @ini_get('suhosin.request.max_totalname_length') > 0 && @ini_get('suhosin.request.max_totalname_length') < 65535
+					&& @ini_get('suhosin.request.max_vars') > 0 && @ini_get('suhosin.request.max_vars') < 1024
+				)
+		);
+	}
+}
+
 
 /**
  * Checks for prerequisite technologies needed for Shopp

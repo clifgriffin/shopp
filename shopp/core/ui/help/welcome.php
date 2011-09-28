@@ -1,7 +1,11 @@
 <div id="welcome" class="wrap">
-	<h2><img src="<?php echo SHOPP_ADMIN_URI; ?>/icons/shopp32.png" alt="Shopp logo" width="32" height="32"/> <?php _e('Welcome to Shopp','Shopp'); ?></h2>
+	<h2><img src="<?php echo SHOPP_ICONS_URI; ?>/shopp32.png" alt="Shopp logo" width="32" height="32"/> <?php _e('Welcome to Shopp','Shopp'); ?></h2>
 
 	<h3><?php _e('Congratulations on choosing Shopp and WordPress for your e-commerce solution!','Shopp'); ?></h3>
+
+	<?php if(shopp_suhosin_warning()): ?>
+		<div class="error"><p><strong><?php _e('Warning!','Shopp'); ?></strong> <?php printf(__('You have the PHP Extension Suhosin Installed. You might need to change some configuration to work with Shopp. For more information, see %s"Suhosin PHP Extension Issues"%s.','Shopp'),'<a href="'.SHOPP_DOCS.'Suhosin_PHP_Extension_Issues">','</a>'); ?></p></div>
+	<?php endif; ?>
 
 	<p><?php _e('Before you dive in to setup, here are a few things to keep in mind:','Shopp'); ?></p>
 
@@ -20,7 +24,8 @@
 		<li><strong><?php _e('Show It Off','Shopp')?></strong><br /><?php printf(__('Once you\'re up and running, drop by the Shopp website and %ssubmit your site%s to be included in the showcase of Shopp-powered websites.','Shopp'),'<a href="http://shopplugin.net/showcase">','</a>'); ?></li>
 	</ul>
 	<br />
-	<form action="admin.php?page=shopp-settings" method="post">
+
+	<form action="<?php echo admin_url(array('page'=>'shopp-settings'),'admin.php'); ?>" method="post">
 	<div class="alignright"><input type="submit" name="setup" value="<?php _e('Continue to Shopp Setup','Shopp'); ?>&hellip;" class="button-primary" /></div>
 
 	<p><input type="hidden" name="settings[show_welcome]" value="off" /><input type="checkbox" name="settings[show_welcome]" id="welcome-toggle" value="on" <?php echo (shopp_setting('show_welcome') == "on")?' checked="checked"':''; ?> /><label for="welcome-toggle"> <small><?php _e('Show this screen every time after activating Shopp','Shopp'); ?></small></label></p>
