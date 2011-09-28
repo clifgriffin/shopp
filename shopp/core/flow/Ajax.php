@@ -132,32 +132,24 @@ class AjaxFlow {
 
 	function load_spec_template () {
 		check_admin_referer('wp_ajax_shopp_spec_template');
-		$db = DB::get();
-		$table = DatabaseObject::tablename(ProductCategory::$table);
-		$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['category']}' AND spectemplate='on'");
-		echo json_encode(unserialize($result->specs));
+		
+		$Category = new ProductCategory($_GET['category']);
+		$Category->load_meta();
+		
+		echo json_encode($Category->specs);
 		exit();
 	}
 
 	function load_options_template() {
 		check_admin_referer('wp_ajax_shopp_options_template');
-		$db = DB::get();
-		$table = DatabaseObject::tablename(ProductCategory::$table);
-		$result = $db->query("SELECT options,prices FROM $table WHERE id='{$_GET['category']}' AND variations='on'");
-		if (empty($result)) exit();
-		$result->options = unserialize($result->options);
-		$result->prices = unserialize($result->prices);
-		$options = isset($result->options['v'])?$result->options['v']:$result->options;
-		foreach ($options as &$menu) {
-			foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
-		}
-		foreach ($result->prices as &$price) {
-			$optionids = explode(",",$price['options']);
-			foreach ($optionids as &$id) $id += $_GET['cat'];
-			$price['options'] = join(",",$optionids);
-			$price['optionkey'] = "";
-		}
-
+		
+		$Category = new ProductCategory($_GET['category']);
+		$Category->load_meta();
+		
+		$result = new stdClass();
+		$result->options = $Category->options;
+		$result->prices = $Category->prices;
+		
 		echo json_encode($result);
 		exit();
 	}

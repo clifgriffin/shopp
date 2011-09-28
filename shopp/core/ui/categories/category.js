@@ -63,7 +63,7 @@ jQuery(document).ready(function () {
 	}).click(function() {
 		$(this).trigger('toggleui');
 	}).trigger('toggleui');
-	loadVariations( !(options.v && options.a) ? options : options.v, prices );
+	if (options) loadVariations( !(options.v) ? options : options.v, prices );
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 
 	$('#pricerange-facetedmenu').change(function () {
@@ -72,7 +72,6 @@ jQuery(document).ready(function () {
 	}).change();
 
 	if (priceranges) for (key in priceranges) addPriceLevel(priceranges[key]);
-	// if (options) loadVariations(options,prices);
 
 	if (!category) $('#title').focus();
 

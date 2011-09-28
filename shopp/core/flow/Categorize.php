@@ -445,6 +445,7 @@ class Categorize extends AdminController {
 		$Category->name = $_POST['name'];
 		$Category->description = $_POST['description'];
 		$Category->parent = $_POST['parent'];
+		$Category->prices = array();
 
 		// Variation price templates
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
@@ -453,7 +454,9 @@ class Categorize extends AdminController {
 				$pricing['saleprice'] = floatvalue($pricing['saleprice'],false);
 				$pricing['shipfee'] = floatvalue($pricing['shipfee'],false);
 			}
-		} else $Category->prices = array();
+		}
+
+		$_POST['prices'] = isset($_POST['price'])?$_POST['price']:array();
 
 		if (empty($_POST['specs'])) $Category->specs = array();
 
@@ -463,15 +466,13 @@ class Categorize extends AdminController {
 			$_POST['options'] = $_POST['meta']['options'];
 		}
 
-		if (empty($_POST['options'])
-			|| (count($_POST['options']['v'])) == 1 && !isset($_POST['options']['v'][1]['options'])) {
+		if (empty($_POST['meta']['options'])
+			|| (count($_POST['meta']['options']['v'])) == 1 && !isset($_POST['meta']['options']['v'][1]['options'])) {
 				$_POST['options'] = $Category->options = array();
 				$_POST['prices'] = $Category->prices = array();
 		}
 
-		$meta = array(
-			'spectemplate','facetedmenus','variations','pricerange','priceranges','specs','options','prices'
-		);
+		$meta = array('spectemplate','facetedmenus','variations','pricerange','priceranges','specs','options','prices');
 		$metadata = array_filter_keys($_POST,$meta);
 		foreach ($metadata as $name => $data) {
 			if (!isset($Category->meta[$name])) new MetaObject();

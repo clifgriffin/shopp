@@ -487,7 +487,7 @@ class ProductTaxonomy extends ProductCollection {
 		$Meta = new MetaObject();
 		$Meta->populate($record);
 		$this->meta[$record->name] = $Meta;
-		if (!isset($this->{$record->name}))
+		if ( !isset($this->{$record->name}) || empty($this->{$record->name}) )
 			$this->{$record->name} = &$Meta->value;
 	}
 
@@ -502,8 +502,14 @@ class ProductTaxonomy extends ProductCollection {
 
 		// If the term successfully saves, save all meta data too
 		foreach ($this->meta as $name => $Meta) {
-			$MetaObject = new MetaObject();
-			$MetaObject->populate($Meta);
+
+			if (is_a($Meta,'MetaObject')) {
+				$MetaObject = $meta;
+			} else {
+				$MetaObject = new MetaObject();
+				$MetaObject->populate($Meta);
+			}
+
 			$MetaObject->name = $name;
 			$MetaObject->parent = $this->id;
 			$MetaObject->context = 'category';
@@ -608,6 +614,7 @@ class ProductCategory extends ProductTaxonomy {
 	// var $published = true;
 	// var $taxonomy = false;
 	// var $depth = false;
+
 
 	static function labels ($class) {
 		return array(
