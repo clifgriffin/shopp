@@ -251,9 +251,9 @@ class BooleanParser extends SearchTextFilters {
 		add_filter('shopp_boolean_search',array('BooleanParser','CurrencyFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','AccentFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','LowercaseFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','KeywordFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','NormalizeFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','StemFilter'));
+		add_filter('shopp_boolean_search',array('BooleanParser','KeywordFilter'));
 	}
 
 }
