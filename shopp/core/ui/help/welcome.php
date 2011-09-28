@@ -25,7 +25,7 @@
 	</ul>
 	<br />
 
-	<form action="<?php echo admin_url(array('page'=>'shopp-settings'),'admin.php'); ?>" method="post">
+	<form action="<?php echo add_query_arg(array('page'=>'shopp-settings'),admin_url('admin.php')); ?>" method="post">
 	<div class="alignright"><input type="submit" name="setup" value="<?php _e('Continue to Shopp Setup','Shopp'); ?>&hellip;" class="button-primary" /></div>
 
 	<p><input type="hidden" name="settings[show_welcome]" value="off" /><input type="checkbox" name="settings[show_welcome]" id="welcome-toggle" value="on" <?php echo (shopp_setting('show_welcome') == "on")?' checked="checked"':''; ?> /><label for="welcome-toggle"> <small><?php _e('Show this screen every time after activating Shopp','Shopp'); ?></small></label></p>
