@@ -180,12 +180,11 @@ class Setup extends AdminController {
 			$this->settings_save();
 		}
 
-		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
+		$country = (isset($_POST['settings']) && isset($_POST['settings']['base_operations']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
-			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso)
-				$base_region = $c['region'];
+			if ($country == $iso) $base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
 
@@ -223,22 +222,22 @@ class Setup extends AdminController {
 		if (!empty($_POST['activation'])) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
 
 		// Save settings
-		if (!empty($_POST['save'])) {
+		if (!empty($_POST['save']) && isset($_POST['settings'])) {
 			check_admin_referer('shopp-settings-general');
 
-			$taxin_countries = Lookup::tax_inclusive_countries();
+			if (isset($_POST['settings']['base_operations'])) {
+				$baseop = &$_POST['settings']['base_operations'];
 
-			$zone = $_POST['settings']['base_operations']['zone'];
-			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
-			$_POST['settings']['base_operations']['country'] = $country;
-			$_POST['settings']['base_operations']['zone'] = $zone;
-			$_POST['settings']['base_operations']['currency']['format'] =
-				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
+				$zone = isset($baseop['zone']) ? $baseop['zone']:false;
+				if (isset($countrydata[$country])) $baseop = $countrydata[$country];
+				$baseop['country'] = $country;
+				$baseop['zone'] = $zone;
+				$baseop['currency']['format'] = scan_money_format($baseop['currency']['format']);
 
-			shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
-				(in_array($_POST['settings']['base_operations']['country'],$taxin_countries) ?
-					'on' : 'off')
-			);
+				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
+					(in_array($country,Lookup::tax_inclusive_countries()) ? 'on' : 'off')
+				);
+			}
 
 			if (!isset($_POST['settings']['target_markets']))
 				asort($_POST['settings']['target_markets']);
