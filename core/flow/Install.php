@@ -486,7 +486,7 @@ class ShoppInstallation extends FlowController {
 
 		if ($db_version <= 1137) {
 			$summary_table = DatabaseObject::tablename('summary');
-			DB::query("DELETE FROM $summary_table");
+			DB::query("UPDATE $summary_table SET modified=0");
 		}
 
 		if ($db_version <= 1130) {
