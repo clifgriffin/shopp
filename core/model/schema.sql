@@ -24,7 +24,7 @@ CREATE TABLE <?php echo $summary; ?> (							-- Summary table for product state 
 	maxprice decimal(16,6) NOT NULL default '0.00',				-- (10) Maximum price of all product's price records
 	minprice decimal(16,6) NOT NULL default '0.00',				-- (10) Minimum price of all product's price records
 	ranges char(200),											-- (200) Set of minimum and maximum values
-	taxed set('max price','min price','max saleprice','min saleprice') -- (2) Which pricetags are taxed
+	taxed set('max price','min price','max saleprice','min saleprice'), -- (2) Which pricetags are taxed
 	lowstock enum('none','warning','critical','backorder') NOT NULL,	-- (1) Product low stock warning status
 	stock int(10) NOT NULL default '0',							-- (4) Total stock of all product price records
 	inventory enum('off','on') NOT NULL,						-- (1) Product has inventory flag
