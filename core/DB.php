@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1139;	// Database schema version
+	static $version = 1140;	// Database schema version
 
 	protected static $instance;
 
@@ -959,7 +959,7 @@ abstract class DatabaseObject implements Iterator {
 	}
 
 	function valid () {
-		return isset($this->{$this->_properties[$this->_position]});
+		return (isset($this->_properties[$this->_position]) && isset($this->{$this->_properties[$this->_position]}));
 	}
 
 	private function _get_properties ($compact=false) {
