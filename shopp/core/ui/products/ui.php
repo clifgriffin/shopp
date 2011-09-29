@@ -163,8 +163,7 @@ foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 function settings_meta_box ($Product) {
 	global $Shopp;
 	$Admin =& $Shopp->Flow->Admin;
-	$taglist = array();
-	foreach ($Product->tags as $tag) $taglist[] = $tag->name;
+
 ?>
 	<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
 	<p><input type="hidden" name="variants" value="off" /><input type="checkbox" name="variants" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variants == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variants','Shopp'); ?><?php echo $Admin->boxhelp('product-editor-variations'); ?></label></p>
@@ -172,11 +171,11 @@ function settings_meta_box ($Product) {
 
 	<p><input type="hidden" name="meta[packaging]" value="off" /><input type="checkbox" name="meta[packaging]" value="on" id="packaging-setting" tabindex="18"  <?php if(isset($Product->meta['packaging']) && $Product->meta['packaging']->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
 
-	<p><input type="checkbox" name="processtime" value="on" id="process-time" tabindex="18"  <?php if($Product->minprocess+$Product->maxprocess > 0) echo 'checked="checked"'; ?> /> <label for="process-time"><?php _e('Processing Time','Shopp'); ?></label>
+	<p><input type="hidden" name="meta[processing]" value="off" /><input type="checkbox" name="meta[processing]" value="on" id="process-time" tabindex="18"  <?php if(isset($Product->meta['processing']) && str_true($Product->meta['processing']->value)) echo 'checked="checked"'; ?> /> <label for="process-time"><?php _e('Processing Time','Shopp'); ?></label>
 
 	<div id="processing" class="hide-if-js">
-		<select name="minprocess"><?php echo menuoptions(Lookup::timeframes_menu(),$Product->minprocess,true); ?></select> &mdash;
-		<select name="maxprocess"><?php echo menuoptions(Lookup::timeframes_menu(),$Product->maxprocess,true); ?></select>
+		<select name="meta[minprocess]"><?php echo menuoptions(Lookup::timeframes_menu(),isset($Product->meta['minprocess'])?$Product->meta['minprocess']->value:false,true); ?></select> &mdash;
+		<select name="meta[maxprocess]"><?php echo menuoptions(Lookup::timeframes_menu(),isset($Product->meta['maxprocess'])?$Product->meta['maxprocess']->value:false,true); ?></select>
 	</div>
 
 	</p>
