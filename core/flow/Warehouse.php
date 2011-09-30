@@ -378,7 +378,7 @@ class Warehouse extends AdminController {
 		$Products->load($loading);
 
 		// Return a list of product keys for workflow list requests
-		if ($workflow) return $Products->workflow();
+		if ($workflow) return $Products->worklist();
 
 		// Get sub-screen counts
 		$subcounts = wp_cache_get('shopp_product_subcounts','shopp_admin');

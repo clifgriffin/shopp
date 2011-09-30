@@ -134,11 +134,6 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$link = add_query_arg('s_ff','on',$link);
 
 		if (!isset($options['cancel'])) $options['cancel'] = "X";
-		// if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
-		// 	list($link,$query) = explode("?",$_SERVER['REQUEST_URI']);
-		// $query = $_GET;
-		// $query = http_build_query($query);
-		// $link = esc_url($link).'?'.$query;
 
 		$list = "";
 		if (is_array($CategoryFilters)) {
@@ -155,46 +150,47 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$output .= '<ul class="filters enabled">'.$list.'</ul>';
 		}
 
+		$Filtered = new ProductCategory($O->id);
+		$filtering = array_merge($Filtered->facetsql(),array('ids'=>true,'limit'=>1000));
+		$Filtered->load($filtering);
+		$ids = join(',',$Filtered->worklist());
+
 		if ($O->pricerange == "auto" && empty($CategoryFilters['price'])) {
 			if (!$O->loaded) $O->load();
 			$list = "";
 			$O->priceranges = auto_ranges($O->pricing->average,$O->pricing->max,$O->pricing->min);
+			$pricing = $O->pricing;
 
-			foreach ($O->priceranges as $range) {
+			$casewhen = '';
+			foreach ($O->priceranges as $index => $r)
+				$casewhen .= " WHEN (minprice >= {$r['min']} AND minprice <= {$r['max']}) THEN $index";
+
+			$sumtable = DatabaseObject::tablename(ProductSummary::$table);
+			$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+				FROM $sumtable
+				WHERE product IN ($ids) GROUP BY rangeid";
+			$pricecounts = DB::query($query,'array','col','total','rangeid');
+
+			foreach ($O->priceranges as $id => $range) {
+				if ($pricecounts[$id] < 1) continue;
 				$href = add_query_arg('price',urlencode(money($range['min']).'-'.money($range['max'])),$link);
 				$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 				if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
 				elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
-				$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+				$list .= '<li><a href="'.$href.'">'.$label.'</a> ('.$pricecounts[$id].')</li>';
 			}
 			if (!empty($O->priceranges)) $output .= '<h4>'.__('Price Range','Shopp').'</h4>';
 			$output .= '<ul>'.$list.'</ul>';
 		}
 
-		global $wpdb;
-		$tr = $wpdb->term_relationships;
-		$tt = $wpdb->term_taxonomy;
 		$spectable = DatabaseObject::tablename(Spec::$table);
-
 		$query = "SELECT spec.name,spec.value,
 			IF(spec.numeral > 0,spec.name,spec.value) AS merge,
 			count(*) AS total,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
-			INNER JOIN $tr AS tr ON tr.object_id=spec.parent AND spec.context='product' AND spec.type='spec'
-			INNER JOIN $tt AS tt ON tt.term_taxonomy_id=tr.term_taxonomy_id
-			WHERE tt.term_id='$O->id' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
+			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
 
 		$specdata = DB::query($query,'array','index','name',true);
-
-		// print_r($specdata);
-		// $specdata = array();
-		// foreach ($results as $data) {
-		// 	if (isset($specdata[$data->name])) {
-		// 		if (!is_array($specdata[$data->name]))
-		// 			$specdata[$data->name] = array($specdata[$data->name]);
-		// 		$specdata[$data->name][] = $data;
-		// 	} else $specdata[$data->name] = $data;
-		// }
 
 		if (!is_array($O->specs)) return $output;
 
@@ -205,9 +201,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 			// For custom menu presets
 			if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
+				$data = $specdata[ $spec['name'] ];
+				$totals = array();
+				foreach ($data as $d) $totals[$d->value] = $d->total;
+
 				foreach ($spec['options'] as $option) {
+					if ($totals[ $option['name'] ] < 1) continue;
 					$href = add_query_arg($slug,urlencode($option['name']),$link);
-					$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
+					$list .= '<li><a href="'.$href.'">'.$option['name'].'</a> ('.$totals[$option['name']].')</li>';
 				}
 				$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
 
@@ -248,7 +249,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				if (count($specdata[$spec['name']]) > 1) { // Generate from text values
 					foreach ($specdata[$spec['name']] as $option) {
 						$href = add_query_arg($slug,urlencode($option->value),$link);
-						$list .= '<li><a href="'.$href.'">'.$option->value.'</a></li>';
+						$list .= '<li><a href="'.$href.'">'.$option->value.'</a> ('.$option->total.')</li>';
 					}
 					$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
 				} else { // Generate number ranges
@@ -258,12 +259,23 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 						$format = $matches[1].'%s'.$matches[3];
 
 					$ranges = auto_ranges($specd->avg,$specd->max,$specd->min);
-					foreach ($ranges as $range) {
+
+					$casewhen = '';
+					foreach ($ranges as $index => $r)
+						$casewhen .= " WHEN (spec.numeral >= {$r['min']} AND spec.numeral <= {$r['max']}) THEN $index";
+
+					$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+						FROM $spectable AS spec
+						WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
+					$count = DB::query($query,'array','col','total','rangeid');
+
+					foreach ($ranges as $id => $range) {
+						if ($count[$id] < 1) continue;
 						$href = add_query_arg($slug, urlencode($range['min'].'-'.$range['max']), $link);
 						$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 						if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
 						elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
-						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+						$list .= '<li><a href="'.$href.'">'.$label.'</a> ('.$count[$id].')</li>';
 					}
 					if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
 					$output .= '<ul>'.$list.'</ul>';
