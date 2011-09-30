@@ -801,7 +801,7 @@ class Order {
 		if(apply_filters('shopp_email_valid',!preg_match("!^$rfc822email$!", $_POST['email'])))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 
-		if ($this->accounts == "wordpress" && !$this->Customer->login) {
+		if ($this->accounts == "wordpress" && !$this->Customer->logged_in()) {
 			require(ABSPATH."/wp-includes/registration.php");
 
 			// Validate possible wp account names for availability
@@ -828,7 +828,7 @@ class Order {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
-		} elseif ($this->accounts == "shopp"  && !$this->Customer->login) {
+		} elseif ($this->accounts == "shopp"  && !$this->Customer->logged_in()) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id)))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');

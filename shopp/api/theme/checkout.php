@@ -634,7 +634,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 **/
 	function local_payment ($result, $options, $O) { return true; }
 
-	function logged_in ($result, $options, $O) { return $O->Customer->login; }
+	function logged_in ($result, $options, $O) { return $O->Customer->logged_in(); }
 
 	function login_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
@@ -658,7 +658,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return $input;
 	}
 
-	function not_logged_in ($result, $options, $O) { return (!$O->Customer->login && shopp_setting('account_system') != "none"); }
+	function not_logged_in ($result, $options, $O) { return (!$O->Customer->logged_in() && shopp_setting('account_system') != "none"); }
 
 	function order_data ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
