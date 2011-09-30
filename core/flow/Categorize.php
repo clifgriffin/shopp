@@ -227,7 +227,7 @@ class Categorize extends AdminController {
 		if ($workflow) return $ids;
 
 		$meta = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
+		if ( ! empty($ids) ) DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
 
 		// $children = array();
