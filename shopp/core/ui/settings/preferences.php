@@ -135,8 +135,13 @@
 /* <![CDATA[ */
 jQuery(document).ready(function ($) {
 	var labels = <?php echo json_encode($statusLabels); ?>,
+		states = <?php echo json_encode($statesLabels); ?>,
 		reasons = <?php echo json_encode($reasonLabels); ?>;
-	$('#order-statuslabels').labelset(labels,'#statusLabel');
+	$('#order-statuslabels').labelset(labels,'#statusLabel'); 
+	jQuery("#order-statuslabels select").each(function(i){
+		if(states[i] != undefined)
+			jQuery(this).find("option[value="+states[i]+"]").attr("selected", "selected");
+	});
 	$('#order-cancelreasons').labelset(reasons,'#reasonLabel');
 });
 /* ]]> */

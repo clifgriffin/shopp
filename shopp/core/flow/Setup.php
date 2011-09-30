@@ -377,6 +377,7 @@ class Setup extends AdminController {
 			)
 		);
 		$statusLabels = shopp_setting('order_status');
+		$statesLabels = shopp_setting('order_states');
 		$reasonLabels = shopp_setting('cancel_reasons');
 
 		if (empty($reasonLabels)) $reasonLabels = array(
