@@ -505,7 +505,7 @@ class ProductTaxonomy extends ProductCollection {
 		foreach ($this->meta as $name => $Meta) {
 
 			if (is_a($Meta,'MetaObject')) {
-				$MetaObject = $meta;
+				$MetaObject = $Meta;
 			} else {
 				$MetaObject = new MetaObject();
 				$MetaObject->populate($Meta);
