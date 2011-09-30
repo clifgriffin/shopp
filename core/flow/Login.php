@@ -72,7 +72,7 @@ class Login {
 			$user = wp_get_current_user();
 
 			// Wordpress user logged in, but Shopp customer isn't
-			if (!empty($user->ID) && !$this->Customer->login) {
+			if (!empty($user->ID) && !$this->Customer->logged_in()) {
 				if ($Account = new Customer($user->ID,'wpuser')) {
 					$this->login($Account);
 					$this->Customer->wpuser = $user->ID;
@@ -188,7 +188,6 @@ class Login {
 	 * @return void
 	 **/
 	function wplogin ($cookie,$expire,$expiration,$user_id) {
-		echo "Login::wplogin()";
 		if ($Account = new Customer($user_id,'wpuser')) {
 			$this->login($Account);
 			add_action('wp_logout',array(&$this,'logout'));

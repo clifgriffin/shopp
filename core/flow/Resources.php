@@ -148,7 +148,7 @@ class Resources {
 
 			// Account restriction checks
 			if (shopp_setting('account_system') != "none"
-				&& (!$Order->Customer->login
+				&& (!$Order->Customer->logged_in()
 				|| $Order->Customer->id != $Purchase->customer)) {
 					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
 					shopp_redirect(shoppurl(false,'account'));

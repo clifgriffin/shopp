@@ -47,6 +47,7 @@ class Customer extends DatabaseObject {
 	function listeners () {
 		add_action('parse_request',array($this,'menus'));
 		add_action('shopp_account_management',array($this,'management'));
+		add_action('shopp_logged_out', array($this, 'logout'));
 	}
 
 	/**
@@ -164,6 +165,27 @@ class Customer extends DatabaseObject {
 
 	}
 
+	/**
+	 * Determines if the customer is logged in, and checks for wordpress login if necessary
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true if logged in, false if not logged in
+	 **/
+	function logged_in () {
+		if ( 'wordpress' == $this->accounts ) {
+			$user = wp_get_current_user();
+			return apply_filters('shopp_customer_login_check', $user->ID == $this->wpuser && $this->login );
+		}
+
+		return apply_filters('shopp_customer_login_check', $this->login);
+	}
+
+	function logout () {
+		$this->login = false;
+	}
+
 	function order () {
 		global $Shopp;
 
@@ -181,7 +203,7 @@ class Customer extends DatabaseObject {
 			}
 		}
 
-		if (!empty($_GET['acct']) && !empty($_GET['id']) && $this->login) {
+		if (!empty($_GET['acct']) && !empty($_GET['id']) && $this->logged_in()) {
 			$Purchase = new Purchase($_GET['id']);
 			if ($Purchase->customer == $this->id) {
 				$Shopp->Purchase = $Purchase;

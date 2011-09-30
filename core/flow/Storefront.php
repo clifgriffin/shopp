@@ -970,11 +970,11 @@ class Storefront extends FlowController {
 		$Customer =& $Order->Customer;
 
 		$download_request = get_query_var('s_dl');
-		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
+		if ($Customer->logged_in()) do_action('shopp_account_management');
 
 		ob_start();
 		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
-		elseif ($Customer->login) locate_shopp_template(array('account.php'),true);
+		elseif ($Customer->logged_in()) locate_shopp_template(array('account.php'),true);
 		else locate_shopp_template(array('login.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
