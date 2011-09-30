@@ -344,7 +344,7 @@ class ProductCollection implements Iterator {
 		return $rss;
 	}
 
-	function workflow () {
+	function worklist () {
 		return $this->products;
 	}
 
@@ -443,7 +443,7 @@ class ProductTaxonomy extends ProductCollection {
 
 		$loaded =  parent::load($options);
 
-		$query = "SELECT (AVG(maxprice)+AVG(minprice)/2) AS average,MAX(maxprice) AS max,MIN(IF(minprice>0,minprice,NULL)) AS min FROM $summary_table ".str_replace('p.ID','product',join(' ',$options['joins']));
+		$query = "SELECT (AVG(maxprice)+AVG(minprice))/2 AS average,MAX(maxprice) AS max,MIN(IF(minprice>0,minprice,NULL)) AS min FROM $summary_table ".str_replace('p.ID','product',join(' ',$options['joins']));
 		$this->pricing = DB::query($query);
 
 		return $loaded;
@@ -673,45 +673,60 @@ class ProductCategory extends ProductTaxonomy {
 
 	function load ($options = array()) {
 
+		// $options['debug'] = true;
 		if ($this->filters) {
-			$spectable = DatabaseObject::tablename(Spec::$table);
+			if (!isset($options['where'])) $options['where'] = array();
+			$options['where'] = array_merge($options['where'],$this->facetsql());
 
-			$f = 1;
-			$facets = array();
-			foreach ($this->filters as $facet => $value) {
-				if (empty($value)) continue;
-				$name = $this->facets[$facet];
+			// parent::load();
+			// $this->loadoptions = array_merge($options,array('ids'=>true,'limit'=>1000));
+		}
 
-				if (!is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
-					if ('price' == strtolower($facet)) { // Prices require complex matching on price line entries
-						list(,$min,$max) = array_map('floatvalue',$matches);
-						if ($min > 0) $options['where'][] = "(s.minprice >= $min OR s.maxprice >= $min)";
-						if ($max > 0) $options['where'][] = "((s.minprice > 0 AND s.minprice <= $max) OR s.maxprice <= $max)";
+		return parent::load($options);
+	}
 
-					} else { // Spec-based numbers are somewhat more straightforward
-						list(,$min,$max) = $matches;
-						$ranges = array();
-						if ($min > 0) $ranges[] = "numeral >= $min";
-						if ($max > 0) $ranges[] = "numeral <= $max";
-						$filters[] = "(".join(' AND ',$ranges).")";
-						$facets[] = sprintf("name='%s'",DB::escape($name));
+	function facetsql () {
+		if (!$this->filters) return array();
 
-					}
+		$spectable = DatabaseObject::tablename(Spec::$table);
 
-				} else {
-					$filters[] = "IF(value='".DB::escape($value)."',1,0)"; // No range, direct value match
-					$facets[] = sprintf("name='%s' AND value='%s'",DB::escape($name),DB::escape($value));
+		$f = 1;
+		$where = array();
+		$filters = array();
+		$facets = array();
+		foreach ($this->filters as $facet => $value) {
+			if (empty($value)) continue;
+			$name = $this->facets[$facet];
+
+			if (!is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
+				if ('price' == strtolower($facet)) { // Prices require complex matching on price line entries
+					list(,$min,$max) = array_map('floatvalue',$matches);
+					if ($min > 0) $where[] = "(s.minprice >= $min OR s.maxprice >= $min)";
+					if ($max > 0) $where[] = "((s.minprice > 0 AND s.minprice <= $max) OR s.maxprice <= $max)";
+
+				} else { // Spec-based numbers are somewhat more straightforward
+					list(,$min,$max) = $matches;
+					$ranges = array();
+					if ($min > 0) $ranges[] = "numeral >= $min";
+					if ($max > 0) $ranges[] = "numeral <= $max";
+					$filters[] = "(".join(' AND ',$ranges).")";
+					$facets[] = sprintf("name='%s'",DB::escape($name));
+
 				}
 
+			} else {
+				$filters[] = "IF(value='".DB::escape($value)."',1,0)"; // No range, direct value match
+				$facets[] = sprintf("name='%s' AND value='%s'",DB::escape($name),DB::escape($value));
 			}
 
-			if ('price' != strtolower($facet)) // Prices require complex matching on price line entries
-				$options['where'][] = "p.id IN (SELECT parent FROM $spectable
-													WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
-													GROUP BY parent	HAVING ".count($filters)."=SUM(".join(' OR ',$filters)."))";
-			// $options['debug'] = true;
 		}
-		return parent::load($options);
+
+		if (!empty($facets) && !empty($filters)) // Prices require complex matching on price line entries
+			$where[] = "p.id IN (SELECT parent FROM $spectable
+												WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
+												GROUP BY parent	HAVING ".count($filters)."=SUM(".join(' OR ',$filters)."))";
+
+		return $where;
 	}
 
 	/**
