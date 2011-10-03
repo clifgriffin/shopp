@@ -147,7 +147,7 @@ class Product extends WPShoppObject {
 		if ( empty($ids) ) return;
 
 		foreach ($loadcalls as $loadmethod) {
-			if (method_exists($this,$loadmethod))
+			if ( method_exists($this, $loadmethod) )
 				call_user_func_array(array($this,$loadmethod),array($ids));
 		}
 
@@ -532,8 +532,9 @@ class Product extends WPShoppObject {
 					$minmax = array('min','max'); $i = 0;
 					foreach ($minmax as $m) {
 						$range = &$this->$m;
-						foreach (ProductSummary::$_ranges as $prop)
-							$range[$prop] = (float)$ranges[$i++];
+						foreach (ProductSummary::$_ranges as $prop) {
+							if (isset($ranges[$i])) $range[$prop] = (float)$ranges[$i++];
+						}
 					}
 					break;
 				case 'taxed':
