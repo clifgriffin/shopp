@@ -26,10 +26,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		'carousel' => 'carousel',
 		'coverimage' => 'coverimage',
 		'description' => 'description',
-		'facetedmenu' => 'faceted_menu',
 		'feedurl' => 'feed_url',
 		'hascategories' => 'has_categories',
-		'hasfacetedmenu' => 'has_faceted_menu',
 		'hasimages' => 'has_images',
 		'hasproducts' => 'load_products',
 		'loadproducts' => 'load_products',
@@ -49,7 +47,26 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		'subcategories' => 'subcategories',
 		'subcategorylist' => 'subcategory_list',
 		'total' => 'total',
-		'url' => 'url'
+		'url' => 'url',
+
+		// Faceted menu tags
+		'hasfacetedmenu' => 'has_faceted_menu',
+		'facetedmenu' => 'faceted_menu',
+		'isfacetfiltered' => 'is_facet_filtered',
+		'facetfilters' => 'facet_filters',
+		'facetfilter' => 'facet_filter',
+		'facetfiltered' => 'facet_filtered',
+		'facetmenus' => 'facet_menus',
+		'facetname' => 'facet_name',
+		'facetslug' => 'facet_slug',
+		'facetlink' => 'facet_link',
+		'facetmenuhasoptions' => 'facet_menu_has_options',
+		'facetoptions' => 'facet_options',
+		'facetoptionlink' => 'facet_option_link',
+		'facetoptionlabel' => 'facet_option_label',
+		'facetoptioninput' => 'facet_option_input',
+		'facetoptionvalue' => 'facet_option_value',
+		'facetoptioncount' => 'facet_option_count'
 	);
 
 	static function _context_name ( $name ) {
@@ -120,14 +137,192 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function description ($result, $options, $O) { return wpautop($O->description);  }
 
+
+	function is_facet_filtered ($result, $options, $O) {
+		return (count($O->filters) > 0);
+	}
+
+	function facet_filters ($result, $options, $O) {
+		if (!isset($O->_filters_loop)) {
+			reset($O->filters);
+			$O->_filters_loop = true;
+		} else next($O->filters);
+
+		$slug = key($O->filters);
+		if (isset($O->facets[ $slug ]))
+			$O->facet = $O->facets[ $slug ];
+
+		if (current($O->filters) !== false) return true;
+		else {
+			unset($O->_filters_loop,$O->facet);
+			return false;
+		}
+
+	}
+
+	function facet_filter ($result, $options, $O) {
+		if (!isset($O->_filters_loop)) return false;
+		return $O->facet->selected;
+	}
+
+	function facet_menus ($result, $options, $O) {
+		if (!isset($O->_facets_loop)) {
+			reset($O->facets);
+			$O->_facets_loop = true;
+		} else next($O->facets);
+
+		if (current($O->facets) !== false) return true;
+		else {
+			unset($O->_facets_loop);
+			return false;
+		}
+	}
+
+	function facet_name ($result, $options, $O) {
+		if (isset($O->_filters_loop)) $facet = $O->facet;
+		else $facet = current($O->facets);
+		return $facet->name;
+	}
+
+	function facet_slug ($result, $options, $O) {
+		$facet = current($O->facets);
+		return $facet->slug;
+	}
+
+	function facet_link ($result, $options, $O) {
+		if (isset($O->_filters_loop)) $facet = $O->facet;
+		else $facet = current($O->facets);
+		return $facet->link;
+	}
+
+	function facet_filtered ($result, $options, $O) {
+		if (isset($O->_filters_loop)) $facet = $O->facet;
+		else $facet = current($O->facets);
+		return !empty($facet->selected);
+	}
+
+	function facet_menu_has_options ($result, $options, $O) {
+		$facet = current($O->facets);
+		return (count($facet->filters) > 0);
+	}
+
+	function facet_options   ($result, $options, $O) {
+		$facet = current($O->facets);
+
+		if (!isset($O->_facetoptions_loop)) {
+			reset($facet->filters);
+			$O->_facetoptions_loop = true;
+		} else next($facet->filters);
+
+		if (current($facet->filters) !== false) return true;
+		else {
+			unset($O->_facetoptions_loop);
+			return false;
+		}
+
+	}
+
+	function facet_option_link  ($result, $options, $O) {
+		$facet = current($O->facets);
+		$option = current($facet->filters);
+		return add_query_arg($facet->slug,$option->param,$facet->link);
+	}
+
+	function facet_option_label  ($result, $options, $O) {
+		$facet = current($O->facets);
+		$option = current($facet->filters);
+		return $option->label;
+	}
+
+	function facet_option_value  ($result, $options, $O) {
+		$facet = current($O->facets);
+		$option = current($facet->filters);
+		return $option->param;
+	}
+
+	function facet_option_count  ($result, $options, $O) {
+		$facet = current($O->facets);
+		$option = current($facet->filters);
+		return $option->count;
+	}
+
+	function facet_option_input  ($result, $options, $O) {
+		$facet = current($O->facets);
+		$option = current($facet->filters);
+
+		$defaults = array(
+			'type' => 'checkbox',
+			'label' => $option->label,
+			'value' => $option->param,
+			'class' => 'click-submit'
+		);
+		if (isset($options['class'])) $options['class'] = trim($defaults['class'].' '.$options['class']);
+		$options = array_merge($defaults,$options);
+		extract($options);
+		if ($option->param == $facet->selected) $options['checked'] = 'checked';
+
+		$_ = array();
+		$_[] = '<form action="'.self::url(false,false,$O).'" method="get"><input type="hidden" name="s_ff" value="on" /><input type="hidden" name="'.$facet->slug.'" value="" />';
+		$_[] = '<label><input type="'.$type.'" name="'.$facet->slug.'" value="'.$value.'"'.inputattrs($options).' />'.(!empty($label)?'&nbsp;'.$label:'').'</label>';
+		$_[] = '</form>';
+		return join('',$_);
+	}
+
 	function faceted_menu ($result, $options, $O) {
+		$_ = array();
+
+		// Use a template if available
+		$template = locate_shopp_template(array('facetedmenu-'.$O->slug.'.php','facetedmenu.php'));
+		if ($template) {
+			ob_start();
+			include($template);
+			$content = ob_get_contents();
+			ob_end_clean();
+			return $content;
+		}
+
+		if (self::is_facet_filtered('',false,$O)) {
+			$_[] = '<ul>';
+			while(self::facet_filters(false,false,$O)) {
+				$_[] = '<li>';
+				$_[] = '<strong>'.self::facet_name(false,false,$O).':</strong> ';
+				$_[] = self::facet_filter(false,false,$O);
+				$_[] = sprintf(' <a href="%s" class="cancel">%s</a>',self::facet_link(false,false,$O),'X');
+				$_[] = '</li>';
+			}
+			$_[] = '</ul>';
+		}
+
+		$_[] = '<ul class="faceted-menu">';
+		while(self::facet_menus(false,false,$O)) {
+			if (self::facet_filtered(false,false,$O)) continue;
+			if (!self::facet_menu_has_options(false,false,$O)) continue;
+			$_[] = '<li>';
+			$_[] = '<h4>'.self::facet_name(false,false,$O).'</h4>';
+			$_[] = '<ul class="facet-option '.self::facet_slug(false,false,$O).'">';
+			while(self::facet_options(false,false,$O)) {
+				$_[] = '<li>';
+				$_[] = sprintf('<a href="%s">%s</a>',self::facet_option_link(false,false,$O),self::facet_option_label(false,false,$O));
+				$_[] = ' <span class="count">'.self::facet_option_count(false,false,$O).'</span>';
+				$_[] = '</li>';
+			}
+			$_[] = '</ul>';
+
+			$_[] = '</li>';
+
+		}
+		$_[] = '</ul>';
+
+		return join('',$_);
+/*
 		global $Shopp;
-		if ($O->facetedmenus == "off") return;
+		if ('off' == $O->facetedmenus) return;
 		$output = "";
 
 		$Storefront = ShoppStorefront();
 		if (!$Storefront) return;
 		$CategoryFilters =& $Storefront->browsing[$O->slug];
+
 
 		$link = self::url('', array('echo'=>false), $O);
 
@@ -286,6 +481,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 
 		return $output;
+		*/
 	}
 
 	function feed_url ($result, $options, $O) {
@@ -304,7 +500,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return (!empty($O->children));
 	}
 
-	function has_faceted_menu ($result, $options, $O) { if (empty($O->meta)) $O->load_meta(); return ('on' == $O->facetedmenus); }
+	function has_faceted_menu ($result, $options, $O) {
+		if (empty($O->meta)) $O->load_meta();
+		if ('on' == $O->facetedmenus) {
+			$O->load_facets();
+			return true;
+		}
+		return false;
+	}
 
 	function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_images();
