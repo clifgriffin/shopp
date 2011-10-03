@@ -98,12 +98,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				reset($O->prices);
 				$O->priceloop = true;
 			} else next($O->prices);
-			$Oprice = current($O->prices);
+			$O->price = current($O->prices);
 
-			if ($Oprice && $Oprice->type == "N/A")
+			if ($O->price && $O->price->type == "N/A")
 				next($O->prices);
 
-			if ($Oprice && $Oprice->context != "addon")
+			if ($O->price && $O->price->context != "addon")
 				next($O->prices);
 
 			if (current($O->prices) !== false) return true;

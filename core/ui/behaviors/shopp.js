@@ -225,6 +225,14 @@ jQuery.fn.hoverClass = function () {
 	return this;
 };
 
+jQuery.fn.clickSubmit = function () {
+	var $this = jQuery(this);
+	$this.click(function () {
+		jQuery(this).closest('form').submit();
+	});
+	return this;
+};
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()
@@ -259,6 +267,8 @@ jQuery(document).ready(function($) {
 	// Automatically reformat currency and money inputs
 	$('input.currency, input.money').change(function () {
 		this.value = asMoney(this.value); }).change();
+
+	$('.click-submit').clickSubmit();
 
 	quickSelects();
 

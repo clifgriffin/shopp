@@ -782,7 +782,7 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.esc_attr($value).'"';
 		}
 	}
-	if (!empty($classes)) $string .= ' class="'.trim($classes).'"';
+	if (!empty($classes)) $string .= ' class="'.esc_attr(trim($classes)).'"';
  	return $string;
 }
 

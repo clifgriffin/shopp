@@ -43,7 +43,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 					$this->methods[$entry] = $this->settings['instructions'][$i];
 		}
 
-		add_filter('shopp_tag_checkout_offline-instructions',array(&$this,'tag_instructions'),10,2);
+		add_filter('shopp_themeapi_checkout_offlineinstructions',array(&$this,'tag_instructions'),10,2);
 		add_filter('shopp_payment_methods',array(&$this,'methods'));
 	}
 
@@ -94,25 +94,14 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	}
 
 	function tag_instructions ($result,$options) {
-		global $Shopp;
-		$methods = array_map('sanitize_title_with_dashes',$this->settings['label']);
-
-		$module = $Shopp->Order->processor;
-		$method = $Shopp->Order->paymethod;
-
-		if (empty($method) || !in_array($method,$methods) || $module != $this->module) return;
-
 		add_filter('shopp_offline_payment_instructions', 'stripslashes');
 		add_filter('shopp_offline_payment_instructions', 'wptexturize');
 		add_filter('shopp_offline_payment_instructions', 'convert_chars');
 		add_filter('shopp_offline_payment_instructions', 'wpautop');
-
-		$index = 0;
-		foreach ($methods as $index => $label) {
-			if ($method == $label)
-				return apply_filters('shopp_offline_payment_instructions',
-									$this->settings['instructions'][$index]);
-		}
+		
+		if(!empty($this->settings["instructions"]))
+			return apply_filters('shopp_offline_payment_instructions', $this->settings["instructions"]);
+			
 		return false;
 	}
 

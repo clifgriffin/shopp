@@ -587,14 +587,8 @@ class ProductCategory extends ProductTaxonomy {
 
 	protected $context = 'category';
 	var $api = 'category';
-	var $facets = false;
-	var $filters = false;
-
-	function __construct ($id=false,$key='id',$taxonomy=false) {
-		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
-		parent::__construct($id,$key);
-		$this->filters();
-	}
+	var $facets = array();
+	var $filters = array();
 
 	// static $table = "category";
 	// var $loaded = false;
@@ -616,6 +610,13 @@ class ProductCategory extends ProductTaxonomy {
 	// var $taxonomy = false;
 	// var $depth = false;
 
+	function __construct ($id=false,$key='id',$taxonomy=false) {
+		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
+		parent::__construct($id,$key);
+		if (!empty($this->id)) $this->load_meta();
+		if (isset($this->facetedmenus) && str_true($this->facetedmenus))
+			$this->filters();
+	}
 
 	static function labels ($class) {
 		return array(
@@ -634,6 +635,17 @@ class ProductCategory extends ProductTaxonomy {
 		);
 	}
 
+	function load ($options = array()) {
+
+		// $options['debug'] = true;
+		if ($this->filters) {
+			if (!isset($options['where'])) $options['where'] = array();
+			$options['where'] = array_merge($options['where'],$this->facetsql());
+		}
+
+		return parent::load($options);
+	}
+
 	/**
 	 * Parses parametric search filters from the requests query string
 	 *
@@ -643,46 +655,41 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return void Description...
 	 **/
 	function filters () {
+		if ('off' == $this->facetedmenus) return;
 		$Storefront = ShoppStorefront();
-		if (!(str_true(get_query_var('s_ff')) || ( isset($this->slug) && isset($Storefront->browsing[$this->slug]) ) )) return;
+		if (!$Storefront) return;
 
-		$this->load_meta();
+		if (!empty($this->facets)) return;
+
 		$this->facets = array();
 		if (isset($Storefront->browsing[$this->slug]))
 			$this->filters = $Storefront->browsing[$this->slug];
 
 		if ('disabled' != $this->pricerange) {
-			array_push($this->specs,array('name' => __('Price'),'facetedmenu' => $this->pricerange));
+			$specs = $this->specs;
+			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'facetedmenu' => $this->pricerange));
 		}
 
-		foreach ($this->specs as $spec) {
+		foreach ($specs as $spec) {
 			if (!isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu']) continue;
-			$slug = sanitize_title_with_dashes($spec['name']);
-			$this->facets[ $slug ] = $spec['name'];
 
-			if (isset($_GET[$slug])) {
-				if (false === $this->filters) $this->filters = array();
-				$this->filters[$slug] = $_GET[$slug];
-			}
+			$slug = sanitize_title_with_dashes($spec['name']);
+			if ('price-filter' == $slug) $slug = 'price';
+			$selected = isset($_GET[$slug]) && str_true(get_query_var('s_ff')) ? $_GET[$slug] : false;
+
+			$Facet = new ProductCategoryFacet();
+			$Facet->name = $spec['name'];
+			$Facet->slug = $slug;
+			$Facet->type = $spec['facetedmenu'];
+			if (false !== $selected) {
+				$Facet->selected = $selected;
+				$this->filters[$slug] = $selected;
+			} elseif (isset($this->filters[$slug])) $Facet->selected = $this->filters[$slug];
+			$this->facets[$slug] = $Facet;
 		}
 
 		$this->filters = array_filter($this->filters);
 		$Storefront->browsing[$this->slug] = $this->filters; // Save currently applied filters
-
-	}
-
-	function load ($options = array()) {
-
-		// $options['debug'] = true;
-		if ($this->filters) {
-			if (!isset($options['where'])) $options['where'] = array();
-			$options['where'] = array_merge($options['where'],$this->facetsql());
-
-			// parent::load();
-			// $this->loadoptions = array_merge($options,array('ids'=>true,'limit'=>1000));
-		}
-
-		return parent::load($options);
 	}
 
 	function facetsql () {
@@ -694,12 +701,14 @@ class ProductCategory extends ProductTaxonomy {
 		$where = array();
 		$filters = array();
 		$facets = array();
-		foreach ($this->filters as $facet => $value) {
+		foreach ($this->filters as $filtered => $value) {
+			$Facet = $this->facets[ $filtered ];
 			if (empty($value)) continue;
-			$name = $this->facets[$facet];
+			$name = $Facet->name;
+			$value = urldecode($value);
 
 			if (!is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
-				if ('price' == strtolower($facet)) { // Prices require complex matching on price line entries
+				if ('price' == $Facet->slug) { // Prices require complex matching on price line entries
 					list(,$min,$max) = array_map('floatvalue',$matches);
 					if ($min > 0) $where[] = "(s.minprice >= $min OR s.maxprice >= $min)";
 					if ($max > 0) $where[] = "((s.minprice > 0 AND s.minprice <= $max) OR s.maxprice <= $max)";
@@ -728,6 +737,168 @@ class ProductCategory extends ProductTaxonomy {
 
 		return $where;
 	}
+
+	function load_facets () {
+		if ('off' == $this->facetedmenus) return;
+		$output = '';
+		$this->filters();
+
+		$Storefront = ShoppStorefront();
+		if (!$Storefront) return;
+		$CategoryFilters =& $Storefront->browsing[$O->slug];
+
+		$Filtered = new ProductCategory($this->id);
+		$filtering = array_merge($Filtered->facetsql(),array('ids'=>true,'limit'=>1000));
+		$Filtered->load($filtering);
+		$ids = join(',',$Filtered->worklist());
+
+		// Load price facet filters first
+		if ('disabled' != $this->pricerange && isset($this->facets['price'])) {
+			$Facet = $this->facets['price'];
+			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+
+			if (!$this->loaded) $this->load();
+			if ('auto' == $this->pricerange) $ranges = auto_ranges($this->pricing->average,$this->pricing->max,$this->pricing->min);
+			else $ranges = $this->priceranges;
+
+			$casewhen = '';
+			foreach ($ranges as $index => $r)
+				$casewhen .= " WHEN (minprice >= {$r['min']} AND minprice <= {$r['max']}) THEN $index";
+
+			$sumtable = DatabaseObject::tablename(ProductSummary::$table);
+			$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+				FROM $sumtable
+				WHERE product IN ($ids) GROUP BY rangeid";
+			$counts = DB::query($query,'array','col','total','rangeid');
+
+			foreach ($ranges as $id => $range) {
+				if ($counts[$id] < 1) continue;
+				$label = money($range['min']).' &mdash; '.money($range['max']);
+				if ($range['min'] == 0) $label = sprintf(__('Under %s','Shopp'),money($range['max']));
+				if ($range['max'] == 0) $label = sprintf(__('%s and up','Shopp'),money($range['min']));
+
+				$FacetFilter = new ProductCategoryFacetFilter();
+				$FacetFilter->label = $label;
+				$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
+				$FacetFilter->count = $counts[$id];
+				$Facet->filters[$FacetFilter->param] = $FacetFilter;
+			}
+
+		}
+
+		// Load spec aggregation data
+		$spectable = DatabaseObject::tablename(Spec::$table);
+		$query = "SELECT spec.name,spec.value,
+			IF(spec.numeral > 0,spec.name,spec.value) AS merge,
+			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
+			FROM $spectable AS spec
+			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
+
+		$specdata = DB::query($query,'array','index','name',true);
+
+		foreach ($this->specs as $spec) {
+			if ('disabled' == $spec['facetedmenu']) continue;
+			$slug = sanitize_title_with_dashes($spec['name']);
+			if (!isset($this->facets[ $slug ])) continue;
+			$Facet = &$this->facets[ $slug ];
+			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+
+			// For custom menu presets
+
+			switch ($spec['facetedmenu']) {
+				case 'custom':
+					$data = $specdata[ $Facet->name ];
+					$counts = array();
+					foreach ($data as $d) $counts[ $d->value ] = $d->count;
+					foreach ($spec['options'] as $option) {
+						if (!isset($counts[ $option['name'] ]) || $counts[ $option['name'] ] < 1) continue;
+						$FacetFilter = new ProductCategoryFacetFilter();
+						$FacetFilter->label = $option['name'];
+						$FacetFilter->param = urlencode($option['name']);
+						$FacetFilter->count = $counts[ $FacetFilter->label ];
+						$Facet->filters[$FacetFilter->param] = $FacetFilter;
+					}
+					break;
+				case 'ranges':
+					foreach ($spec['options'] as $i => $option) {
+						$matches = array();
+						$format = '%s-%s';
+						$next = 0;
+						if (isset($spec['options'][$i+1])) {
+							if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
+								$next = $matches[0];
+						}
+						$matches = array();
+						$range = array("min" => 0,"max" => 0);
+						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
+							$base = $matches[2];
+							$format = $matches[1].'%s'.$matches[3];
+							if (!isset($spec['options'][$i+1])) $range['min'] = $base;
+							else $range = array("min" => $base, "max" => ($next-1));
+						}
+						if ($i == 1) {
+							$href = add_query_arg($slug, urlencode(sprintf($format,'0',$range['min'])),$link);
+							$label = __('Under ','Shopp').sprintf($format,$range['min']);
+							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+						}
+
+						$href = add_query_arg($slug, urlencode(sprintf($format,$range['min'],$range['max'])), $link);
+						$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+						if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+					}
+					break;
+				default:
+					if (!isset($specdata[ $Facet->name  ])) break;
+					$data = $specdata[ $Facet->name ];
+
+					if ($data['min']+$data['max']+$data['avg'] == 0) { // Generate facet filters from text values
+						foreach ($data as $option) {
+							$FacetFilter = new ProductCategoryFacetFilter();
+							$FacetFilter->label = $option->value;
+							$FacetFilter->param = urlencode($option->value);
+							$FacetFilter->count = $option->count;
+							$Facet->filters[$FacetFilter->param] = $FacetFilter;
+						}
+					} else {
+						$data = reset($data);
+
+						$format = '%s';
+						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$data->content,$matches))
+							$format = $matches[1].'%s'.$matches[3];
+
+						$ranges = auto_ranges($data->avg,$data->max,$data->min);
+						$casewhen = '';
+						foreach ($ranges as $index => $r)
+							$casewhen .= " WHEN (spec.numeral >= {$r['min']} AND spec.numeral <= {$r['max']}) THEN $index";
+
+						$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+							FROM $spectable AS spec
+							WHERE spec.parent IN ($ids) AND spec.name='$Facet->name' AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
+						$counts = DB::query($query,'array','col','total','rangeid');
+
+						foreach ($ranges as $id => $range) {
+
+							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+							if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
+							elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+
+							$FacetFilter = new ProductCategoryFacetFilter();
+							$FacetFilter->label = $label;
+							$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
+							$FacetFilter->count = $counts[$id];
+							$Facet->filters[$FacetFilter->param] = $FacetFilter;
+
+						}
+
+
+					}
+
+			} // END switch
+
+		}
+	}
+
 
 	/**
 	 * Load sub-categories
@@ -1003,6 +1174,38 @@ class ProductCategory extends ProductTaxonomy {
 	}
 
 } // END class ProductCategory
+
+class ProductCategoryFacet {
+
+	var $name;	// Display name
+	var $slug;	// Sanitized name
+	var $type;
+	var $link;	// Link to remove facet
+	// var $min;	// Min numeral val
+	// var $max;	// Max numeral val
+	// var $avg;	// Avg numeral val
+
+	var $filters = array();
+
+	static function range_labels ($range) {
+
+		if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
+			$label = $matches[1].' &mdash; '.$matches[3];
+			if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
+			if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
+		}
+
+	}
+
+}
+
+class ProductCategoryFacetFilter {
+
+	var $label; // Display name
+	var $param;	// Santized name
+	var $count = 0;	// Product count
+
+}
 
 
 // @todo Document ProductTag
