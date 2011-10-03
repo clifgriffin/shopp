@@ -172,15 +172,15 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->assertEquals('Widescreen', $Price->label);
 		$this->assertEquals(77011, $Price->optionkey);
 		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.860001, $Price->saleprice);
-		$this->assertEquals(34.860001, $Price->promoprice);
+		$this->assertEquals(34.86, $Price->saleprice);
+		$this->assertEquals(34.86, $Price->promoprice);
 
 		$Price = next($variations);
 		$this->assertEquals('Full-Screen', $Price->label);
 		$this->assertEquals(84012, $Price->optionkey);
 		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.860001, $Price->saleprice);
-		$this->assertEquals(34.860001, $Price->promoprice);
+		$this->assertEquals(34.86, $Price->saleprice);
+		$this->assertEquals(34.86, $Price->promoprice);
 
 	}
 

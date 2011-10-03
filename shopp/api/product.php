@@ -434,16 +434,17 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
  * @author John Dillick
  * @since 1.2
  *
- * @param int $product (required) the product id to load
+ * @param mixed $product (required) the product id to load.  Also possible to specify the name or slug.  See the $load_by parameter.
+ * @param string $load_by (optional default=id) id for loading the product by id, name for loading by name, and slug for loading by slug
  * @return Product a product object, false on failure
  **/
-function shopp_product ( $product = false ) {
+function shopp_product ( $product = false, $load_by = 'id' ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Product = new Product($product);
+	$Product = new Product($product, $load_by);
 	if ( empty($Product->id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
