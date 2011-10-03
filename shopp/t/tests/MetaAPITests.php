@@ -64,5 +64,41 @@ class MetaAPITests extends ShoppTestCase
 		$this->AssertEquals('testdownload.txt', $download->uri);
 	}
 
+	function test_shopp_product_meta () {
+		$Product = new Product('Smart & Sexy - Ruffle Mesh Bustier and Thong Panty Set', 'name');
+
+		$this->AssertTrue(shopp_product_has_meta($Product->id, 'options'));
+
+		$meta = shopp_product_meta ( $Product->id, 'options');
+		$this->AssertTrue(is_array($meta) && ! empty($meta));
+	}
+
+	function test_shopp_product_meta_list () {
+		$Product = new Product("Men's Black Stainless Steel & CZ Engraved Band", 'name');
+		$specs = shopp_product_meta_list($Product->id,'spec');
+		$this->AssertTrue(is_array($specs));
+		$this->AssertEquals('9GW107', $specs['Model No.']);
+		$this->AssertEquals('Men', $specs['Gender']);
+	}
+
+	function test_shopp_rmv_meta() {
+		$Product = new Product("Men's Black Stainless Steel & CZ Engraved Band", 'name');
+		shopp_set_product_meta($Product->id, 'Manliness Factor', 'High', 'spec');
+		$this->AssertEquals('High', shopp_product_meta($Product->id, 'Manliness Factor', 'spec'));
+		shopp_rmv_product_meta($Product->id, 'Manliness Factor', 'spec');
+		$this->AssertEquals(false, (bool) shopp_product_meta($Product->id, 'Manliness Factor', 'spec') );
+	}
+
+	function test_shopp_meta_exists () {
+		shopp_set_meta ( 11, 'testcontext', 'testname', 'testvalue', 'testtype' );
+
+		// shopp_meta_exists ( $name = false, $context = false, $type = 'meta' )
+		$this->AssertTrue(shopp_meta_exists('testname', 'testcontext', 'testtype'));
+
+		// shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 'meta' )
+		$this->AssertTrue( shopp_rmv_meta( 11, 'testcontext', 'testname', 'testtype' ) );
+		$this->AssertFalse( shopp_meta_exists('testname', 'testcontext', 'testtype') );
+	}
+
 }
 ?>
