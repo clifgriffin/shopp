@@ -410,6 +410,7 @@ class ProductTaxonomy extends ProductCollection {
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug ),
+			'update_count_callback' => '_update_post_term_count'
 		));
 
 		$ShoppTaxonomies[$taxonomy] = $class;
