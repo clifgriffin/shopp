@@ -1204,7 +1204,7 @@ function shopp_product_set_saleprice ( $product = false, $flag = false, $price =
 }
 
 /**
- * shopp_product_addon_set_shipping - turn on/off shipping charges on a addon and set shipping settings (weight and dimensions).
+ * shopp_product_set_shipping - turn on/off shipping charges on product with no variations
  * Use shopp_product_variant_set_shipping() for products with variants.
  *
  * @uses shopp_product_variant_set_shipping()

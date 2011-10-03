@@ -29,7 +29,7 @@ function shopp_product_meta ( $product = false, $name = false, $type = 'meta' ) 
 }
 
 /**
- * Full Description...
+ * shopp_product_has_meta - check for named meta data for a product.
  *
  * @author John Dillick
  * @since 1.2
@@ -63,7 +63,7 @@ function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
 	$metas = shopp_product_meta ( $product, false, $type );
 
 	$results = array();
-	foreach ( $metas as $id => $meta ) {
+	foreach ( (array) $metas as $id => $meta ) {
 		if ( is_object($meta) ) {
 			$results[$meta->name] = $meta->value;
 		} else if ( ! empty($meta) ) {
@@ -181,7 +181,7 @@ function shopp_meta ( $id = false, $context = false, $name = false, $type = 'met
 	$Meta = new ObjectMeta();
 	$Meta->load( $loading );
 
-	if ( empty($Meta->meta) ) return;
+	if ( empty($Meta->meta) ) return array();
 
 	foreach ( $Meta->meta as $meta ) {
 		if( ! isset($values[$meta->id]) ) $values[$meta->id] = new stdClass;
@@ -216,8 +216,7 @@ function shopp_meta ( $id = false, $context = false, $name = false, $type = 'met
 function shopp_meta_exists ( $name = false, $context = false, $type = 'meta' ) {
 	if ( ! ( $name || $context ) ) return false;
 	$meta = shopp_meta(false, $context, $name, $type);
-
-	return ( ! empty($meta) );
+	return (bool)( $meta );
 }
 
 /**
@@ -296,20 +295,16 @@ function shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 
 	if ( $id && ! $context ) {
 		$meta = new MetaObject();
 		$meta->load($id);
-		if ( ! empty($meta->id) ) {
-			$meta->delete();
-			return true;
-		} else {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No metadata with id $id.",__FUNCTION__,SHOPP_DEBUG_ERR);
-			return false;
-		}
+		if ( $meta->id ) $meta->delete();
+		return true;
 	}
 
 	// fully spec'd meta entry
 	if ( $id && $context && $type && $name ) {
 		$meta = new MetaObject();
 		$meta->load( array( 'parent'=>$id, 'context'=>$context, 'type' => $type, 'name' => $name ) );
-		$meta->delete();
+
+		if ( $meta->id ) $meta->delete();
 		return true;
 	}
 
