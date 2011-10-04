@@ -801,6 +801,9 @@ class Order {
 		if(apply_filters('shopp_email_valid',!preg_match("!^$rfc822email$!", $_POST['email'])))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 
+		if (apply_filters(' shopp_clickwrap_required',isset($_POST['data']['clickwrap']) && 'agreed' !== $_POST['data']['clickwrap']) )
+			return new ShoppError(__('You must agree to the terms of sale.','Shopp'),'checkout_validation');
+
 		if ($this->accounts == "wordpress" && !$this->Customer->logged_in()) {
 			require(ABSPATH."/wp-includes/registration.php");
 
