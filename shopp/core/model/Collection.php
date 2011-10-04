@@ -197,7 +197,7 @@ class ProductCollection implements Iterator {
 		$queryvars = array("shopp_$type"=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		return apply_filters('shopp_paged_link',shoppurl(SHOPP_PRETTYURLS?$prettyurl:$queryvars));
+		return apply_filters('shopp_paged_link',shoppurl(SHOPP_PRETTYURLS?user_trailingslashit($prettyurl):$queryvars));
 	}
 
 	/**
@@ -1169,7 +1169,7 @@ class ProductCategory extends ProductTaxonomy {
 		$prettyurl = $categoryurl.($page > 1 || $alpha?"page/$page":"");
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		$url = SHOPP_PRETTYURLS?$prettyurl:add_query_arg($queryvars,$categoryurl);
+		$url = SHOPP_PRETTYURLS?user_trailingslashit($prettyurl):add_query_arg($queryvars,$categoryurl);
 
 		return apply_filters('shopp_paged_link',$url);
 	}
