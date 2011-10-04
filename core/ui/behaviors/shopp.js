@@ -36,7 +36,7 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if (sjss && sjss.d)
+	if (sjss && sjss.d !== 'undefined')
 		return {	// from base of operations
 			"cpos":sjss.cp,
 			"currency":sjss.c,

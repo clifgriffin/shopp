@@ -414,7 +414,6 @@ class Shopp {
 		if (isset($baseop['currency'])
 			&& isset($baseop['currency']['format'])
 			&& isset($baseop['currency']['format']['decimals'])
-			&& !empty($baseop['currency']['format']['decimals'])
 		) {
 			$settings = &$baseop['currency']['format'];
 			$currency = array(
