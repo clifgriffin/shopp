@@ -390,6 +390,7 @@ class ProductTaxonomy extends ProductCollection {
 	var $api = 'taxonomy';
 	var $id = false;
 	var $meta = array();
+	var $images = array();
 
 	function __construct ($id=false,$key='id') {
 		if (!$id) return;
@@ -481,16 +482,41 @@ class ProductTaxonomy extends ProductCollection {
 	function load_meta () {
 		if (empty($this->id)) return;
 		$meta = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'",'array',array($this,'metaloader'));
+		DB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'",'array',array($this,'metaloader'),'type');
 	}
 
-	function metaloader (&$records,&$record) {
+	function metaloader (&$records,&$record,$property=false) {
 		if (empty($record->name)) return;
-		$Meta = new MetaObject();
-		$Meta->populate($record);
-		$this->meta[$record->name] = $Meta;
-		if ( !isset($this->{$record->name}) || empty($this->{$record->name}) )
-			$this->{$record->name} = &$Meta->value;
+
+		$metamap = array(
+			'image' => 'images',
+			'meta' => 'meta'
+		);
+
+		$metaclass = array(
+			'image' => 'CategoryImage',
+			'meta' => 'MetaObject'
+		);
+
+		if ('type' == $property)
+			$property = isset($metamap[$record->type])?$metamap[$record->type]:'meta';
+
+		if (!isset($metaclass[$record->type])) $type = 'meta';
+
+		$ObjectClass = $metaclass[$record->type];
+		$Object = new $ObjectClass();
+		$Object->populate($record);
+		if (method_exists($Object,'expopulate'))
+			$Object->expopulate();
+
+		$this->{$property}[$Object->id] = &$Object;
+
+		if ('meta' == $property) {
+			if ( !isset($this->{$Object->name}) || empty($this->{$Object->name}) )
+				$this->{$Object->name} = &$Object->value;
+		}
+
+		$record = $Object;
 	}
 
 	function save () {
@@ -974,29 +1000,22 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @version 1.1
+	 * @version 1.2
 	 *
 	 * @return boolean Successful load or not
 	 **/
 	function load_images () {
-		$db = DB::get();
 
 		$ordering = shopp_setting('product_image_order');
 		$orderby = shopp_setting('product_image_orderby');
 
-		if ($ordering == "RAND()") $orderby = $ordering;
+		if ('RAND' == $ordering) $orderby = 'RAND()';
 		else $orderby .= ' '.$ordering;
+
 		$table = DatabaseObject::tablename(CategoryImage::$table);
 		if (empty($this->id)) return false;
-		$records = $db->query("SELECT * FROM $table WHERE parent=$this->id AND context='category' AND type='image' ORDER BY $orderby",AS_ARRAY);
-
-		foreach ($records as $r) {
-			$image = new CategoryImage();
-			$image->copydata($r,false,array());
-			$image->value = unserialize($image->value);
-			$image->expopulate();
-			$this->images[] = $image;
-		}
+		$query = "SELECT * FROM $table WHERE parent=$this->id AND context='category' AND type='image' ORDER BY $orderby";
+		$records = DB::query($query,'array',array($this,'metaloader'),'type');
 
 		return true;
 	}
