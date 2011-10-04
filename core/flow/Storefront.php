@@ -155,6 +155,8 @@ class Storefront extends FlowController {
 
 		}
 
+		// Shopp request, remove noindex
+		remove_action( 'wp_head', 'noindex', 1 );
 		$this->request = true;
 		set_query_var('suppress_filters',false); // Override default WP_Query request
 
@@ -433,7 +435,7 @@ class Storefront extends FlowController {
 		// Replace the WordPress canonical link
 		remove_action('wp_head','rel_canonical');
 
-		// add_action('wp_head', array(&$this, 'header'));
+		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),20110511,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),20110511,'screen');
@@ -620,19 +622,17 @@ class Storefront extends FlowController {
 	 * @return string The canonical url
 	 **/
 	function canonurls ($url) {
-		global $Shopp;
-
-		// Catalog landing as site landing, use site home URL
-		if (is_front_page() && isset($Shopp->Catalog) && $Shopp->Catalog->tag('is-landing','return=1'))
-			return user_trailingslashit(get_bloginfo('home'));
-
-		// Catalog landing page URL
-		if (is_shopp_page('catalog') && $Shopp->Catalog->tag('is-landing','return=1'))
-			return $Shopp->Catalog->tag('url','echo=0');
+		// Product catalog archive (landing) page URL
+		if (is_post_type_archive() && is_shopp_page('catalog'))
+			return shopp('catalog','get-url');
 
 		// Specific product/category URLs
-		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
-		if (!!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
+		if (!empty($Shopp->Product->slug)) return shopp('product','get-url');
+		if (!empty($Shopp->Category->slug)) {
+			$paged = (int)get_query_var('paged');
+			$url = shopp('category','get-url');
+			if ($paged > 1) $url = shopp('category','get-url',"page=$paged");
+		}
 		return $url;
 	}
 
@@ -650,11 +650,11 @@ class Storefront extends FlowController {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function collections () {
 
-		do_action('shopp_register_smartcategories'); // Deprecated
+		do_action('shopp_register_smartcategories'); // @deprecated
 		do_action('shopp_register_collections');
 
 	}
@@ -668,10 +668,14 @@ class Storefront extends FlowController {
 	 * @return void Description...
 	 **/
 	function header () {
-		global $wp;
 		$canonurl = $this->canonurls(false);
-		if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
-		endif;
+		// Add canonical URLs
+		if (is_shopp_page('catalog') && !empty($canonurl))
+			echo '<link rel="canonical" href="'.apply_filters('shopp_canonical_link',$canonurl).'" />';
+
+		// Add noindex for cart, checkout, account pages
+		if (is_shopp_page('cart') || is_shopp_page('checkout') || is_shopp_page('account'))
+			noindex();
 	}
 
 	/**
