@@ -17,8 +17,8 @@ function addtocart (form) {
 		});
 
 		if (!selections) {
-			if (!sjss.opreq) sjss.opreq = "You must select the options for this item before you can add it to your shopping cart.";
-			alert(sjss.opreq);
+			if (!$s.opreq) $s.opreq = "You must select the options for this item before you can add it to your shopping cart.";
+			alert($s.opreq);
 			return false;
 		}
 	}

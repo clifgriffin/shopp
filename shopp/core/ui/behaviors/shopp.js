@@ -36,22 +36,22 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if (sjss && sjss.d !== 'undefined')
+	if ($s && $s.d !== 'undefined')
 		return {	// from base of operations
-			"cpos":sjss.cp,
-			"currency":sjss.c,
-			"precision":parseInt(sjss.p,10),
-			"decimals":sjss.d,
-			"thousands":sjss.t,
-			"grouping":sjss.g
+			'cpos':$s.cp,
+			'currency':$s.c,
+			'precision':parseInt($s.p,10),
+			'decimals':$s.d,
+			'thousands':$s.t,
+			'grouping':$s.g
 		};
 	return {		// Default currency format
-		"cpos":true,
-		"currency":"$",
-		"precision":2,
-		"decimals":".",
-		"thousands":",",
-		"grouping":[3]
+		'cpos':true,
+		'currency':'$',
+		'precision':2,
+		'decimals':'.',
+		'thousands':',',
+		'grouping':[3]
 	};
 }
 
@@ -77,7 +77,7 @@ function asPercent (n,f,p,pr) {
 	f = getCurrencyFormat(f);
 
 	f.precision = p?p:1;
-	return formatNumber(n,f,pr)+"%";
+	return formatNumber(n,f,pr)+'%';
 }
 
 /**
@@ -95,7 +95,7 @@ function formatNumber (n,f,pr) {
 		divide = false,
 		sequence = '',
 		ng = [],
-		d = n.toFixed(f.precision).toString().split("."),
+		d = n.toFixed(f.precision).toString().split('.'),
 		grouping = f.grouping?f.grouping:[3];
 
 	n = "";
