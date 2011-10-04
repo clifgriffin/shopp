@@ -18,7 +18,7 @@ jQuery(document).ready( function($) {
 			data = images[id]?images[id]:{name:''},
 			ui = $.tmpl('editor',data),
 			emptylabel = table.find('tr:first'),
-			sm = ui.find('select.scaling-menu').val(data.scaling),
+			sm = ui.find('select.fit-menu').val(data.fit),
 			qm = ui.find('select.quality-menu').val(data.quality),
 			percentage = function () { $(this).val( asPercent( $(this).val() ) ); },
 			ps = ui.find('.percentage').each(percentage).change(percentage),
