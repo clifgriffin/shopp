@@ -705,6 +705,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function slug ($result, $options, $O) { return $O->slug; }
 
 	function spec ($result, $options, $O) {
+		$showname = false;
+		$showcontent = false;
 		$defaults = array(
 			'separator' => ': ',
 			'delimiter' => ', ',
@@ -712,6 +714,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'index' => false,
 			'content' => false,
 		);
+		if (isset($options['name'])) $showname = true;
+		if (isset($options['content'])) $showcontent = true;
 		$options = array_merge($defaults,$options);
 		extract($options);
 
@@ -736,11 +740,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		// Spec loop handling
 		$spec = current($O->specs);
 		if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
-
-		if ($name && $content)
+		if ($showname && $showcontent)
 			$string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
-		elseif ($name) $string = $spec->name;
-		elseif ($content) $string = apply_filters('shopp_product_spec',$spec->value);
+		elseif ($showname) $string = $spec->name;
+		elseif ($showcontent) $string = apply_filters('shopp_product_spec',$spec->value);
 		else $string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
 		return $string;
 	}
