@@ -355,23 +355,23 @@ function validate (form) {
 		if (input.attr('disabled') == 'disabled') return;
 
 		if (input.hasClass(required) && input.val() == "")
-			error = new Array(sjss.REQUIRED_FIELD.replace(/%s/,input.attr(title)),field);
+			error = new Array($cv.field.replace(/%s/,input.attr(title)),field);
 
 		if (input.hasClass(required) && input.attr('type') == "checkbox" && !input.attr('checked'))
-			error = new Array(sjss.REQUIRED_CHECKBOX.replace(/%s/,input.attr(title)),field);
+			error = new Array($cv.chkbox.replace(/%s/,input.attr(title)),field);
 
 		if (input.hasClass('email') && !input.val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
-			error = new Array(sjss.INVALID_EMAIL,field);
+			error = new Array($cv.email,field);
 
 		if ( input.attr('class') && ( chars = input.attr('class').match( new RegExp('min(\\d+)') ) ) ) {
 			if (input.val() != "" && input.val().length < chars[1])
-				error = new Array(sjss.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
+				error = new Array($cv.minlen.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
 		}
 
 		if (input.hasClass('passwords')) {
 			passwords.push(field);
 			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
-				error = new Array(sjss.PASSWORD_MISMATCH,passwords[1]);
+				error = new Array($cv.pwdmm,passwords[1]);
 		}
 
 		if (error[1] && error[1].id == input.attr('id')) {
@@ -427,5 +427,5 @@ jQuery(document).ready(function($) {
 	}
 	$('select.shopp-orderby-menu').change(function () { this.form.submit(); });
 	$('select.shopp-categories-menu').change(function () { document.location.href = $(this).val(); });
-	if (sjss.nocache) $(window).unload(function () { return; });
+	if ($s.nocache) $(window).unload(function () { return; });
 });

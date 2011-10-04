@@ -191,7 +191,7 @@ jQuery(document).ready( function($) {
 
 				if (settings.unit) {
 					data.unit = settings.unit[0]?settings.unit[0]:'?';
-					data.unitabbr = settings.unit[1]?settings.unit[1]:sjss.c;
+					data.unitabbr = settings.unit[1]?settings.unit[1]:$s.c;
 				} else {
 					data.unit = '?';
 					data.unitabbr = '?';

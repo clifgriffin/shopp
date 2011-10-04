@@ -29,13 +29,10 @@ jQuery.fn.PopupCalendar = function (settings) {
 		settings = $.extend(defaults,settings),
 		DAYS_IN_MONTH = new Array(new Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
 								  new Array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)),
-		MONTH_NAMES = new Array('',sjss.month_jan, sjss.month_feb, sjss.month_mar,
-									sjss.month_apr, sjss.month_may, sjss.month_jun,
-									sjss.month_jul, sjss.month_aug, sjss.month_sep,
-									sjss.month_oct, sjss.month_nov, sjss.month_dec),
-		WEEK_DAYS = new Array(sjss.weekday_sun, sjss.weekday_mon,sjss.weekday_tue,
-								sjss.weekday_wed, sjss.weekday_thu, sjss.weekday_fri,
-								sjss.weekday_sat),
+		MONTH_NAMES = new Array('',$cal.jan, $cal.feb, $cal.mar, $cal.apr, $cal.may, $cal.jun,
+									$cal.jul, $cal.aug, $cal.sep, $cal.oct, $cal.nov, $cal.dec),
+		WEEK_DAYS = new Array($cal.sun, $cal.mon,$cal.tue, $cal.wed, $cal.thu, $cal.fri, $cal.sat),
+
 		/* Date Constants */
 		K_FirstMissingDays = 639787, /* 3 Sep 1752 */
 		K_MissingDays = 11, /* 11 day correction */
@@ -133,7 +130,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 		if (settings.scheduleAfter.selection) scheduleAfter = settings.scheduleAfter.selection;
 		if (settings.scheduleAfter === false) scheduleAfter = today;
 
-		backarrow = $('<span class="back">&laquo;</span>').appendTo($this);
+		backarrow = $('<span class="back">&#9664;</span>').appendTo($this);
 		previousMonth = new Date(year,month-1,0);
 
 		if (!_.scheduling || (_.scheduling && previousMonth.getTime() >= scheduleAfter.getTime())) {
@@ -144,7 +141,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 				_.change();
 			});
 		}
-		nextarrow = $('<span class="next">&raquo;</span>').click(function () {
+		nextarrow = $('<span class="next">&#9654;</span>').click(function () {
 			_.scope = scopeMonth;
 			_.selection = new Date(year,month);
 			_.render(_.selection.getMonth()+1,_.selection.getFullYear());

@@ -62,13 +62,13 @@ jQuery(document).ready(function () {
 	checkoutForm.unbind('submit').submit(function () {
 		if (login) {
 			if (accountLogin.val() == "") {
-				alert(sjss.LOGIN_NAME_REQUIRED);
+				alert($co.loginname);
 				accountLogin.focus();
 				login=false;
 				return false;
 			}
 			if (passwordLogin.val() == "") {
-				alert(sjss.LOGIN_PASSWORD_REQUIRED);
+				alert($co.loginpwd);
 				passwordLogin.focus();
 				login=false;
 				return false;
@@ -155,7 +155,7 @@ jQuery(document).ready(function () {
 			$.each(fields,function (i,name) { selectors.push(spans+name); });
 			if (!c_upd) c_upd = '?';
 			$(selectors.join(',')).html(c_upd);
-			$.getJSON(sjss.ajaxurl+"?action=shopp_ship_costs&method="+$(this).val(),
+			$.getJSON($co.ajaxurl+"?action=shopp_ship_costs&method="+$(this).val(),
 				function (r) {
 
 					$.each(fields,function (i,name) {

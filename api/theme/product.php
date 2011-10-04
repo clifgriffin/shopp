@@ -930,10 +930,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
-sjss.opdef = true;
+$s.opdef = true;
 <?php endif; ?>
 <?php if (!empty($options['required'])): ?>
-sjss.opreq = "<?php echo $options['required']; ?>";
+$s.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
 if ( ! pricetags ) var pricetags = new Array();
 pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
