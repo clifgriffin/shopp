@@ -60,7 +60,8 @@ class Categorize extends AdminController {
 			add_action('admin_print_scripts',array(&$this,'products_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_category_admin_scripts');
-		add_action('load-catalog_page_shopp-categories',array(&$this,'workflow'));
+
+		add_action('load-'.$this->Admin->Page->hook().'_page_shopp-categories',array(&$this,'workflow'));
 	}
 
 	/**
