@@ -30,6 +30,23 @@ function &ShoppProduct ( &$Object = false ) {
 }
 
 /**
+ * ShoppCustomer - get and set the global Customer object
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param Customer $Object (optional) the specified Customer object
+ * @return Customer the current global customer object
+ **/
+function &ShoppCustomer ( &$Object = false ) {
+	$Order = &ShoppOrder();
+	if ( $Object && is_a($Object, 'Customer') ) {
+		$Order->Customer = $Object;
+	}
+	return $Order->Customer;
+}
+
+/**
  * ShoppCollection - get and set the global Collection object (ie. ProductCategory, SmartCollection)
  *
  * @author John Dillick
