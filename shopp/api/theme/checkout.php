@@ -39,6 +39,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'billingxcsc' => 'billing_xcsc',
 		'billingxcscrequired' => 'billing_xcsc_required',
 		'cartsummary' => 'cart_summary',
+		'clickwrap' => 'clickwrap',
 		'completed' => 'completed',
 		'confirmbutton' => 'confirm_button',
 		'confirmpassword' => 'confirm_password',
@@ -653,10 +654,45 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$attrs = array("accesskey","alt","checked","class","disabled","format",
 			"minlength","maxlength","readonly","size","src","tabindex",
 			"title");
+		if (str_true($options['value'])) $options['checked'] = 'checked';
 		$input = '<input type="hidden" name="marketing" value="no" />';
 		$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
 		return $input;
 	}
+
+	function clickwrap ($result, $options, $O) {
+		$modes = array('input','value');
+		$name = 'clickwrap';
+		$value = isset($O->data[$name]) ? $O->data[$name] : false;
+		$defaults = array(
+			'mode' => 'input',
+			'terms' => false,
+			'termsclass' => false,
+			'class' => 'required',
+			'value' => $value
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+		$frame = false;
+
+		if (!in_array($mode,$modes)) $mode = $modes[0];
+
+		if ('value' == $mode) return $value;
+
+		$attrs = array('accesskey','alt','checked','class','disabled','format',
+			'minlength','maxlength','readonly','size','src','tabindex',
+			'title');
+
+		if ('agreed' == $value) $options['checked'] = 'checked';
+
+		if (false !== $agreement) {
+			$page = get_page_by_path($agreement);
+			$frame = '<div class="scrollable clickwrap clickwrap-terms'.( $termsclass ? " $termsclass" : "" ).'">'.apply_filters('shopp_checkout_clickwrap_terms',$page->post_content).'</div>';
+		}
+		$input = '<input type="hidden" name="data[clickwrap]" value="no" /><input type="checkbox" name="data[clickwrap]" id="clickwrap" value="agreed" '.inputattrs($options,$attrs).' />';
+		return $frame.$input;
+	}
+
 
 	function not_logged_in ($result, $options, $O) { return (!$O->Customer->logged_in() && shopp_setting('account_system') != "none"); }
 
