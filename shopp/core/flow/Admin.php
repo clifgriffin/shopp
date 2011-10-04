@@ -942,6 +942,12 @@ class ShoppAdminPage {
 		$this->parent = $parent;
 	}
 
+	function hook () {
+		global $admin_page_hooks;
+		if (isset($admin_page_hooks[$this->parent])) return $admin_page_hooks[$this->parent];
+		return 'shopp';
+	}
+
 } // END class ShoppAdminPage
 
 
