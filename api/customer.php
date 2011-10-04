@@ -19,31 +19,38 @@
  * @author John Dillick
  * @since 1.2
  *
- * @param int $customer (required) customer id to load
+ * @param int $customer (optional) customer id, WordPress user associated customer, email address associated with customer, or false to load the current global customer object
+ * @param string $key (optional default:customer) customer for lookup by customer id, wpuser to lookup by WordPress user, or email to lookup by email address
  * @return mixed, stdClass representation of the customer, bool false on failure
  **/
-function shopp_customer ( $customer = false ) {
+function shopp_customer ( $customer = false, $key = 'customer' ) {
+	$Customer = false;
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
-		return false;
+		$Customer = &ShoppCustomer();
+		return $Customer;
 	}
-	$Customer = new Customer( $customer );
-	if ( empty($Customer->id) ) {
+
+	if ( 'wpuser' == $key ) {
+		if ( 'wordpress' != shopp_setting('account_system') ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer $customer could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Customer = new Customer($customer, 'wpuser');
+	} else if ( 'email' == $key ) {
+		$Customer = new Customer($customer, 'email');
+	} else {
+		$Customer = new Customer($customer);
+	}
+
+	if ( ! $Customer->id ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer $customer could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Customer = $Customer->simplify();
+	$Customer->Billing = new BillingAddress($Customer->id);
+	$Customer->Shipping = new ShippingAddress($Customer->id);
+	if ( ! $Customer->id ) $Customer->Shipping->copydata($Customer->Billing);
 
-	$addresses = shopp_customer_addresses($customer);
-	foreach ( $addresses as $type => $address ) {
-		$Address = new stdClass;
-		$Address->type = $type;
-		foreach ($address as $property => $value) {
-			$Address->{$property} = $value;
-		}
-		$Customer->{$type} = $Address;
-	}
 	return $Customer;
 }
 
@@ -253,32 +260,38 @@ function shopp_rmv_customer (  $customer = false ) {
 }
 
 /**
- * shopp_address - return an address record by id
+ * shopp_address - return an address record by customer id
  *
  * @author John Dillick
  * @since 1.2
  *
- * @param int $address (required) the address id to retrieve
- * @return array of address fields
+ * @param int $id (required) the address id to retrieve, or customer id
+ * @param string $type (optional default:billing) 'billing' to lookup billing address by customer id, 'shipping' to lookup shipping adress by customer id, or 'id' to lookup by address id
+ * @return Address object
  **/
-function shopp_address (  $address = false ) {
-	if ( ! $address ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing address id parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
+function shopp_address (  $id = false, $type = 'billing' ) {
+	if ( ! $id ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing id parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Address = new Address($address);
+
+	if ( 'billing' == $type ) {
+		// use customer id to find billing address
+		$Address = new BillingAddress($id, 'customer');
+	} else if ( 'shipping' == $type ) {
+		// use customer id to find shipping address
+		$Address = new ShippingAddress($id, 'customer');
+	} else {
+		// lookup by address id
+		$Address = new Address($id, 'id');
+	}
 
 	if ( empty($Address->id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such address with id $address.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$_ = array();
-	$map = array('type', 'address' , 'xaddress', 'city', 'state', 'country', 'postcode', 'geocode', 'residential');
-	foreach ( $map as $property ) {
-		if ( isset($Address->{$property}) ) $_[$property] = $Address->{$property};
-	}
-	return $_;
+	return $Address;
 }
 
 /**
@@ -297,7 +310,7 @@ function shopp_customer_address_count (  $customer = false ) {
 	}
 	$table = DatabaseObject::tablename(Address::$table);
 	$customer = db::escape($customer);
-	return db::query("select count(*) from $table where customer=$customer");
+	return db::query("SELECT COUNT(*) FROM $table WHERE customer=$customer");
 }
 
 /**
@@ -315,19 +328,10 @@ function shopp_customer_addresses (  $customer = false ) {
 		return false;
 	}
 
-	$customer = DB::escape($customer);
-	$table = DatabaseObject::tablename(Address::$table);
-	$addresses = DB::query("select * from $table where customer=$customer", AS_ARRAY);
+	$Billing = shopp_address($customer, 'billing');
+	$Shipping = shopp_address($customer, 'shipping');
 
-	$_ = array();
-	$map = array('id', 'address' , 'xaddress', 'city', 'state', 'country', 'postcode', 'geocode', 'residential');
-	foreach ( $addresses as $address ) {
-		$_[$address[$type]] = array();
-		foreach ( $map as $property ) {
-			if ( isset($Address->{$property}) ) $_[$address[$type]][$property] = $address[$property];
-		}
-	}
-	return $_;
+	return array( 'billing' => $Billing, 'shipping' => $Shipping );
 }
 
 /**
