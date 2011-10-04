@@ -92,8 +92,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if ( strtolower($object) != 'customer' ) return $Object; // not mine, do nothing
 		else {
-			$Order =& ShoppOrder();
-			if(isset($Order->Customer)) return $Order->Customer;
+			return ShoppCustomer();
 		}
 		return false;
 	}
@@ -361,7 +360,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />';
 	}
 
-	function logged_in ($result, $options, $O) { return ShoppOrder()->Customer->logged_in(); }
+	function logged_in ($result, $options, $O) { return ShoppCustomer()->logged_in(); }
 
 	function login_label ($result, $options, $O) {
 		$accounts = shopp_setting('account_system');
@@ -412,8 +411,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function not_logged_in ($result, $options, $O) {
-		global $Shopp;
-		return (!$Shopp->Order->Customer->logged_in() && shopp_setting('account_system') != "none");
+		return (! $ShoppCustomer()->logged_in() && shopp_setting('account_system') != "none");
 	}
 
 	function order ($result, $options, $O) {
