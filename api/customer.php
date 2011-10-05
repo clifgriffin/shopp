@@ -60,30 +60,40 @@ function shopp_customer ( $customer = false, $key = 'customer' ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $customer (required) customer id to check
+ * @param int $customer (required) customer id, WordPress user associated customer, or email address associated with customer.
+ * @param string $key (optional default:customer) customer for lookup by customer id, wpuser to lookup by WordPress user, or email to lookup by email address
  * @return bool true if the customer exists, else false
  **/
-function shopp_customer_exists ( $customer = false ) {
+function shopp_customer_exists ( $customer = false, $key = 'customer' ) {
 	if ( ! $customer ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Customer = new Customer( $customer );
-	return ( ! empty( $Customer->id ) );
+	$Customer = shopp_customer($customer, $key);
+	return ( false != $Customer );
 }
 
 /**
- * shopp_customer_marketing - whether or not a customer accepts your marketing
+ * shopp_customer_marketing - set or get the marketing status for a customer.
  *
  * @author John Dillick
  * @since 1.2
  *
- * @param int $customer customer id to check
+ * @param int $customer customer id to check or set
+ * @param mixed $flag (optional default:null) null to return the marketing status, true to turn on marketing for a customer, false to turn off marketing for a customer
  * @return bool true if marketing accepted, false on failure and if marketing is not accepted.
  **/
-function shopp_customer_marketing (  $customer = false ) {
-	$customer = shopp_customer($customer);
-	if ( $customer && isset($customer->marketing) && "yes" == $customer->marketing ) return true;
+function shopp_customer_marketing (  $customer = false, $flag = null ) {
+	$Customer = shopp_customer($customer);
+
+	if ( $Customer ) {
+		if ( null === $flag ) return (isset($Customer->marketing) && "yes" == $Customer->marketing);
+
+		$Customer->marketing = ( $flag ? "yes" : "no" );
+		$Customer->save();
+		return "yes" == $Customer->marketing;
+	}
+
 	return false;
 }
 
@@ -93,11 +103,20 @@ function shopp_customer_marketing (  $customer = false ) {
  * @author John Dillick
  * @since 1.2
  *
+ * @param bool $exclude true to exclude customers that do not allow marketing, false to include all customers
  * @return array list of customers for marketing
  **/
-function shopp_customer_marketing_list () {
+function shopp_customer_marketing_list ( $exclude = false ) {
 	$table = DatabaseObject::tablename(Customer::$table);
-	return db::query( "select firstname, lastname, email, type from $table where marketing='yes'", AS_ARRAY );
+	$where = ( $exclude ? "WHERE marketing='yes'" : "");
+	$results = db::query( "SELECT id, firstname, lastname, email, marketing, type FROM $table $where", AS_ARRAY );
+
+	$marketing = array();
+	foreach ( $results as $c ) {
+		if ( ! isset($c->id) ) continue;
+		$marketing[$c->id] = $c;
+	}
+	return $marketing;
 }
 
 function shopp_add_customer (  $data = array() ) {
@@ -112,11 +131,11 @@ function shopp_add_customer (  $data = array() ) {
 	// handle duplicate or missing wpuser
 	if ( isset($data['wpuser']) ) {
 		$c = new Customer($data['wpuser'], 'wpuser');
-		if ( ! empty($c->id) ) {
+		if ( $c->id ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer with WordPress user id {$data['wpuser']} already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
-	} else if (shopp_setting('account_system') == "wordpress") {
+	} else if ( "wordpress" == shopp_setting('account_system') ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Wordpress account id must by specified in data array with key wpuser.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
@@ -124,7 +143,7 @@ function shopp_add_customer (  $data = array() ) {
 	// handle duplicate or missing email address
 	if ( isset($data['email']) ) {
 		$c = new Customer($data['email'], 'email');
-		if ( ! empty($c->id) ) {
+		if ( $c->id ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer with email {$data['email']} already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
@@ -149,15 +168,15 @@ function shopp_add_customer (  $data = array() ) {
 			new ShoppError("shopp_add_customer notice: Invalid customer data $key",__FUNCTION__,SHOPP_DEBUG_ERR);
 		if ( in_array( $key, array_keys($address_map) ) ) {
 			$type = ( 's' == substr($key, 0, 1) ? 'shipping' : 'billing' );
-			$$type[$address_map[$key]] = $value;
+			${$type}[$address_map[$key]] = $value;
 		}
 	}
 
 	$Customer->save();
-	if ( empty($Customer->id) ) {
+	if ( ! $Customer->id ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Could not create customer.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
 	}
-
 	if ( ! empty($shipping) ) shopp_add_customer_address( $Customer->id, $shipping, 'shipping' );
 	if ( ! empty($billing) ) shopp_add_customer_address( $Customer->id, $billing, 'billing' );
 
@@ -191,18 +210,34 @@ function shopp_add_customer_address (  $customer = false, $data = false, $type =
 
 	foreach ( $map as $property ) {
 		if ( isset($data[$property]) ) $address[$property] = $data[$property];
-		if ( 'residential' == $property ) $address[$propery] = value_is_true($data[$property]) ? "on" : "off";
+		if ( isset($data[$property]) && 'residential' == $property ) $address[$property] = value_is_true($data[$property]) ? "on" : "off";
 	}
 
-	$Billing = new BillingAddress( $customer, 'customer' );
-	$Shipping = new ShippingAddress ( $customer, 'customer');
-	if ( $type == 'billing' ) {
+	if ( in_array($type, array('billing','both')) ) {
+		$Billing = new BillingAddress($customer);
+		if ( $Billing->id ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: billing address for customer $customer already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Billing->customer = $customer;
+	}
+
+	if ( in_array($type, array('shipping','both')) ) {
+		$Shipping = new ShippingAddress($customer);
+		if ( $Shipping->id ) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: shipping address for customer $customer already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+		$Shipping->customer = $customer;
+	}
+
+	if ( 'billing' == $type ) {
 		$Billing->updates($address);
 		if ( apply_filters('shopp_validate_address', true, $Billing) ) {
 			$Billing->save();
 			return $Billing->id;
 		}
-	} else if ($type = 'shipping') {
+	} else if ( 'shipping' == $type ) {
 		$Shipping->updates($address);
 		if ( apply_filters('shopp_validate_address', true, $Shipping) ) {
 			$Shipping->save();
@@ -310,7 +345,8 @@ function shopp_customer_address_count (  $customer = false ) {
 	}
 	$table = DatabaseObject::tablename(Address::$table);
 	$customer = db::escape($customer);
-	return db::query("SELECT COUNT(*) FROM $table WHERE customer=$customer");
+	$results = db::query("SELECT COUNT(*) as addresses FROM $table WHERE customer=$customer");
+	return ( is_object($results) && $results->addresses ? $results->addresses : 0 );
 }
 
 /**
