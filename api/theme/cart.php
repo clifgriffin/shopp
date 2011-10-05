@@ -75,8 +75,10 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	function _cart ($result, $options, $property, $O) {
+		$moneys = array('subtotal','shipping','tax','total');
+
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		if (is_numeric($result)) {
+		if (in_array($property,$moneys) && is_numeric($result)) {
 			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
 			return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
 		}
@@ -339,7 +341,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	function total ($result, $options, $O) { return $O->Totals->total; }
 
-	function totalitems ($result, $options, $O) {
+	function total_items ($result, $options, $O) {
 	 	return $O->Totals->quantity;
 	}
 
