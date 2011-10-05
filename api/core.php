@@ -94,6 +94,78 @@ function &ShoppPurchase ( &$Object = false ) {
 	return $Shopp->Purchase;
 }
 
+/**
+ * Determines if the requested page is the catalog landing page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the catalog landing page, else false.
+ **/
+function is_catalog_page () {
+	return is_shopp_page('catalog');
+}
+
+/**
+ * Determines if the requested page is the account page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the account page, else false.
+ **/
+function is_account_page () {
+	return is_shopp_page('account');
+}
+
+/**
+ * Determines if the requested page is the cart page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the cart page, else false.
+ **/
+function is_cart_page () {
+	return is_shopp_page('cart');
+}
+
+/**
+ * Determines if the requested page is the checkout page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the checkout page, else false.
+ **/
+function is_checkout_page () {
+	return is_shopp_page('checkout');
+}
+
+/**
+ * Determines if the requested page is the confirm order page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the confirm order page, else false.
+ **/
+function is_confirm_page () {
+	return is_shopp_page('confirm');
+}
+
+/**
+ * Determines if the requested page is the thanks page.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the thanks page, else false.
+ **/
+function is_thanks_page () {
+	return is_shopp_page('thanks');
+}
+
 
 /**
  * Determines if the requested page is a Shopp page or if it matches a given Shopp page
