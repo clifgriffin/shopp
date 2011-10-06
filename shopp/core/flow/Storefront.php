@@ -134,6 +134,17 @@ class Storefront extends FlowController {
 		$stub = new WPDatabaseObject();
 		$stub->init('posts');
 		if ($this->is_shopp_request()) return array($stub);
+
+		if (count($posts) == 1) { // @deprecated Legacy support to redirect old shortcode pages
+			$shortcodes = join('|', array_keys( self::pages_settings() ) );
+			if (preg_match("/\[($shortcodes)\]/",$posts[0]->post_content,$matches)) {
+				$shortcode = next($matches);
+				if ('catalog' == $shortcode) $shortcode = '';
+				shopp_redirect( shoppurl($shortcode) );
+				exit();
+			}
+		}
+
 		return $posts;
 	}
 
