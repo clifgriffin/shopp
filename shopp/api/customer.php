@@ -224,19 +224,11 @@ function shopp_add_customer_address (  $customer = false, $data = false, $type =
 
 	if ( in_array($type, array('billing','both')) ) {
 		$Billing = new BillingAddress($customer);
-		if ( $Billing->id ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: billing address for customer $customer already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
-			return false;
-		}
 		$Billing->customer = $customer;
 	}
 
 	if ( in_array($type, array('shipping','both')) ) {
 		$Shipping = new ShippingAddress($customer);
-		if ( $Shipping->id ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: shipping address for customer $customer already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
-			return false;
-		}
 		$Shipping->customer = $customer;
 	}
 
