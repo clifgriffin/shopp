@@ -48,8 +48,8 @@
 			?>
 				<tr<?php if ($even) echo ' class="alternate"'; $even = !$even; ?>>
 					<td>
-						<?php echo $Item->name; ?>
-						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
+						<a href="<?php echo add_query_arg(array('page' => 'shopp-products','id' => $Item->product),admin_url('admin.php')); ?>"><?php echo $Item->name; ?>
+						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?></a>
 						<?php if (is_array($Item->data) || !empty($Item->sku) || !empty($Item->addons)): ?>
 						<ul>
 						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
