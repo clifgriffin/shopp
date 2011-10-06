@@ -119,6 +119,15 @@ function shopp_customer_marketing_list ( $exclude = false ) {
 	return $marketing;
 }
 
+/**
+ * shopp_add_customer - create a new customer record
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param array $data data to create the new customer record from, including: wpuser, firstname, lastname, email, phone, company, marketing, type, saddress, sxaddress, scity, sstate, scountry, spostcode, sgeocode, residential, baddress, bxaddress, bcity, bstate, bcountry, bpostcode, bgeocode
+ * @return bool|int returns false on failure, and the new customer id on success
+ **/
 function shopp_add_customer (  $data = array() ) {
 	if ( empty($data) ) {
 		if(SHOPP_DEBUG) new ShoppError("shopp_add_customer - no customer data supplied.",__FUNCTION__,SHOPP_DEBUG_ERR);
