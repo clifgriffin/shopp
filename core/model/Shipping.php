@@ -292,7 +292,8 @@ abstract class ShippingFramework {
 				$this->fallbacks = array();
 				foreach ($active[$this->module] as $index => $set) {
 					$setting = shopp_setting("$this->module-$index");
-					if ('on' == $setting['fallback']) $this->fallbacks["$this->module-$index"] = $setting;
+					if ( isset($setting['fallback']) && 'on' == $setting['fallback'] )
+						$this->fallbacks["$this->module-$index"] = $setting;
 					else $this->methods["$this->module-$index"] = $setting;
 				}
 			}
