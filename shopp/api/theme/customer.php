@@ -411,7 +411,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function not_logged_in ($result, $options, $O) {
-		return (! $ShoppCustomer()->logged_in() && shopp_setting('account_system') != "none");
+		return (! ShoppCustomer()->logged_in() && shopp_setting('account_system') != "none");
 	}
 
 	function order ($result, $options, $O) {
