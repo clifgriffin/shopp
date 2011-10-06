@@ -17,6 +17,7 @@ class ProductCollection implements Iterator {
 	var $api = "collection";
 	var $loaded = false;
 	var $paged = false;
+	var $pages = 1;
 	var $pagination = false;
 	var $tag = false;
 	var $smart = false;
