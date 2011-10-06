@@ -158,6 +158,18 @@ class Customer extends DatabaseObject {
 			} else {
 				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 			}
+			if ( ! empty($_POST['billing']) ) {
+				$this->Billing = new BillingAddress($this->id);
+				$this->Billing->updates($_POST['billing']);
+				$this->Billing->save();
+			}
+
+			if ( ! empty($_POST['shipping']) ) {
+				$this->Shipping = new ShippingAddress($this->id);
+				$this->Shipping->updates($_POST['shipping']);
+				$this->Shipping->save();
+			}
+
 			$this->save();
 			$this->load_info();
 			$this->_saved = true;

@@ -121,29 +121,26 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function billing_address ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->address;
-		if (!empty($Order->Billing->address))
-			$options['value'] = $Order->Billing->address;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->address;
+		if (!empty($O->Billing->address))
+			$options['value'] = $O->Billing->address;
 		return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 	}
 
 	function billing_city ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->city;
-		if (!empty($Order->Billing->city))
-			$options['value'] = $Order->Billing->city;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->city;
+		if (!empty($O->Billing->city))
+			$options['value'] = $O->Billing->city;
 		return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 	}
 
 	function billing_country ($result, $options, $O) {
-		$Order =& ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->country;
-		if (!empty($Order->Billing->country))
-			$options['selected'] = $Order->Billing->country;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->country;
+		if (!empty($O->Billing->country))
+			$options['selected'] = $O->Billing->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
 		$countries = shopp_setting('target_markets');
@@ -155,31 +152,29 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function billing_postcode ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->postcode;
-		if (!empty($Order->Billing->postcode))
-			$options['value'] = $Order->Billing->postcode;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->postcode;
+		if (!empty($O->Billing->postcode))
+			$options['value'] = $O->Billing->postcode;
 		return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 	}
 
 	function billing_state ($result, $options, $O) {
-		$Order =& ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
-		
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->state;
+
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($Order->Billing->state)) {
-			$options['selected'] = $Order->Billing->state;
-			$options['value'] = $Order->Billing->state;
+		if (!empty($O->Billing->state)) {
+			$options['selected'] = $O->Billing->state;
+			$options['value'] = $O->Billing->state;
 		}
 		if (empty($options['type'])) $options['type'] = "menu";
 		$countries = Lookup::countries();
 
 		$output = false;
 		$country = $base['country'];
-		if (!empty($Order->Billing->country))
-			$country = $Order->Billing->country;
+		if (!empty($O->Billing->country))
+			$country = $O->Billing->country;
 		if (!array_key_exists($country,$countries)) $country = key($countries);
 
 		$regions = Lookup::country_zones();
@@ -200,10 +195,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function billing_xaddress ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Billing->xaddress;
-		if (!empty($Order->Billing->xaddress))
-			$options['value'] = $Order->Billing->xaddress;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Billing->xaddress;
+		if (!empty($O->Billing->xaddress))
+			$options['value'] = $O->Billing->xaddress;
 		return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 	}
 
@@ -560,32 +554,31 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function shipping ($result, $options, $O) { $Order =& ShoppOrder(); return $Order->Shipping; }
+	function shipping ($result, $options, $O) {
+		return $O->Shipping;
+	}
 
 	function shipping_address ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->address;
-		if (!empty($Order->Shipping->address))
-			$options['value'] = $Order->Shipping->address;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->address;
+		if (!empty($O->Shipping->address))
+			$options['value'] = $O->Shipping->address;
 		return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 	}
 
 	function shipping_city ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->city;
-		if (!empty($Order->Shipping->city))
-			$options['value'] = $Order->Shipping->city;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->city;
+		if (!empty($O->Shipping->city))
+			$options['value'] = $O->Shipping->city;
 		return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 	}
 
 	function shipping_country ($result, $options, $O) {
-		$Order =& ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->country;
-		if (!empty($Order->Shipping->country))
-			$options['selected'] = $Order->Shipping->country;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->country;
+		if (!empty($O->Shipping->country))
+			$options['selected'] = $O->Shipping->country;
 		else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
 		$countries = shopp_setting('target_markets');
@@ -597,29 +590,27 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function shipping_postcode ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->postcode;
-		if (!empty($Order->Shipping->postcode))
-			$options['value'] = $Order->Shipping->postcode;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->postcode;
+		if (!empty($O->Shipping->postcode))
+			$options['value'] = $O->Shipping->postcode;
 		return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />';
 	}
 
 	function shipping_state ($result, $options, $O) {
-		$Order =& ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->state;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->state;
 		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($Order->Shipping->state)) {
-			$options['selected'] = $Order->Shipping->state;
-			$options['value'] = $Order->Shipping->state;
+		if (!empty($O->Shipping->state)) {
+			$options['selected'] = $O->Shipping->state;
+			$options['value'] = $O->Shipping->state;
 		}
 		$countries = Lookup::countries();
 		$output = false;
 		$country = $base['country'];
-		if (!empty($Order->Shipping->country))
-			$country = $Order->Shipping->country;
+		if (!empty($O->Shipping->country))
+			$country = $O->Shipping->country;
 		if (!array_key_exists($country,$countries)) $country = key($countries);
 
 		if (empty($options['type'])) $options['type'] = "menu";
@@ -641,10 +632,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function shipping_xaddress ($result, $options, $O) {
-		$Order =& ShoppOrder();
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return $Order->Shipping->xaddress;
-		if (!empty($Order->Shipping->xaddress))
-			$options['value'] = $Order->Shipping->xaddress;
+		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->Shipping->xaddress;
+		if (!empty($O->Shipping->xaddress))
+			$options['value'] = $O->Shipping->xaddress;
 		return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 	}
 

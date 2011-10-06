@@ -31,8 +31,8 @@
 	<?php if(shopp('customer','profile-saved')): ?>
 	<div class="notice"><?php _e('Your account has been updated.','Shopp'); ?></div>
 	<?php endif; ?>
-	
-	
+
+
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<ul>
 		<li>
@@ -64,14 +64,68 @@
 			<span><?php shopp('customer','password','size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
 			<span><?php shopp('customer','confirm-password','&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
+		<li id="billing-address-fields">
+		<label for="billing-address"><?php _e('Billing Address','Shopp'); ?></label>
+		<div>
+			<?php shopp('customer','billing-address','required=true&title='.__('Billing street address','Shopp')); ?>
+			<label for="billing-address"><?php _e('Street Address','Shopp'); ?></label>
+		</div>
+		<div>
+			<?php shopp('customer','billing-xaddress','title='.__('Billing address line 2','Shopp')); ?>
+			<label for="billing-xaddress"><?php _e('Address Line 2','Shopp'); ?></label>
+		</div>
+		<div class="left">
+			<?php shopp('customer','billing-city','required=true&title='.__('City billing address','Shopp')); ?>
+			<label for="billing-city"><?php _e('City','Shopp'); ?></label>
+		</div>
+		<div class="right">
+			<?php shopp('customer','billing-state','required=true&title='.__('State/Provice/Region billing address','Shopp')); ?>
+			<label for="billing-state"><?php _e('State / Province','Shopp'); ?></label>
+		</div>
+		<div class="left">
+			<?php shopp('customer','billing-postcode','required=true&title='.__('Postal/Zip Code billing address','Shopp')); ?>
+			<label for="billing-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label>
+		</div>
+		<div class="right">
+			<?php shopp('customer','billing-country','required=true&title='.__('Country billing address','Shopp')); ?>
+			<label for="billing-country"><?php _e('Country','Shopp'); ?></label>
+		</div>
+		</li>
+		<li id="shipping-address-fields">
+			<label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label>
+			<div>
+				<?php shopp('customer','shipping-address','required=true&title='.__('Shipping street address','Shopp')); ?>
+				<label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label>
+			</div>
+			<div>
+				<?php shopp('customer','shipping-xaddress','title='.__('Shipping address line 2','Shopp')); ?>
+				<label for="shipping-xaddress"><?php _e('Address Line 2','Shopp'); ?></label>
+			</div>
+			<div class="left">
+				<?php shopp('customer','shipping-city','required=true&title='.__('City shipping address','Shopp')); ?>
+				<label for="shipping-city"><?php _e('City','Shopp'); ?></label>
+			</div>
+			<div class="right">
+				<?php shopp('customer','shipping-state','required=true&title='.__('State/Provice/Region shipping address','Shopp')); ?>
+				<label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label>
+			</div>
+			<div class="left">
+				<?php shopp('customer','shipping-postcode','required=true&title='.__('Postal/Zip Code shipping address','Shopp')); ?>
+				<label for="shipping-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label>
+			</div>
+			<div class="right">
+				<?php shopp('customer','shipping-country','required=true&title='.__('Country shipping address','Shopp')); ?>
+				<label for="shipping-country"><?php _e('Country','Shopp'); ?></label>
+			</div>
+		</li>
 	</ul>
 	<p><?php shopp('customer','save-button','label='.__('Save','Shopp')); ?></p>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
-	
+
 <?php endif; // end account ?>
 
 <?php if ("downloads" == shopp('customer','process','return=true')): ?>
-	
+
 	<h3><?php _e('Downloads','Shopp'); ?></h3>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<?php if (shopp('customer','has-downloads')): ?>
@@ -125,16 +179,18 @@
 		</table>
 		<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<?php else: ?>
+	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<p><?php _e('You have no orders, yet.','Shopp'); ?></p>
+	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<?php endif; // end 'has-purchases' ?>
-	
+
 <?php endif; // end history ?>
 
 <?php if ("order" == shopp('customer','process','return=true')): ?>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 
 	<?php shopp('purchase','receipt'); ?>
-	
+
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 <?php endif; ?>
 
