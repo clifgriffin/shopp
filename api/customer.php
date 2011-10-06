@@ -192,6 +192,11 @@ function shopp_add_customer (  $data = array() ) {
 	return $Customer->id;
 } // end shopp_add_customer
 
+// alias for shopp_add_customer_address
+function shopp_set_customer_address ( $customer = false, $data = false, $type = 'billing' ) {
+	return shopp_add_customer_address ( $customer, $data, $type );
+}
+
 /**
  * shopp_add_customer_address - add or update an address for a customer
  *
