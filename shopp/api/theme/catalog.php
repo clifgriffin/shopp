@@ -687,6 +687,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function side_product ($result, $options, $O) {
 		global $Shopp;
+
 		$content = false;
 		$source = isset($options['source'])?$options['source']:'product';
 		if ($source == 'product' && isset($options['product'])) {
@@ -718,20 +719,24 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if ($Shopp->Category) $Requested = $Shopp->Category;
 			if ($Shopp->Product) $RequestedProduct = $Shopp->Product;
 			if (empty($options['category'])) return false;
-			$Shopp->Category = new ProductCategory($options['category'],'name');
-			$Shopp->Category->load($options);
-			if (isset($options['load'])) return true;
-			foreach ($Shopp->Category->products as $product) {
-				$Shopp->Product = $product;
-				$templates = array('product.php');
-				if (isset($Shopp->Product->id) && !empty($Shopp->Product->id))
-					array_unshift($templates,'product-'.$Shopp->Product->id.'.php');
 
-				ob_start();
-				locate_shopp_template($templates,true);
-				$content .= ob_get_contents();
-				ob_end_clean();
+			if (in_array($options['category'],array_keys($Shopp->Collections)))
+				ShoppCollection( Catalog::load_collection($options['category'],$options) );
+			else ShoppCollection( new ProductCategory($options['category'],'name') );
+
+			if (isset($options['load'])) return true;
+
+			ShoppCollection()->load($options);
+
+			$template = locate_shopp_template(array('sideproduct-'.$Shopp->Category->slug.'.php','sideproduct.php'));
+			ob_start();
+			foreach ($Shopp->Category->products as &$product) {
+				ShoppProduct($product);
+				load_template($template,false);
 			}
+			$content = ob_get_contents();
+			ob_end_clean();
+
 			 // Restore original requested category
 			if (!empty($Requested)) $Shopp->Category = $Requested;
 			else $Shopp->Category = false;
