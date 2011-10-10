@@ -94,8 +94,9 @@ class ProductCollection implements Iterator {
 			case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
 			case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
 			case 'chaos': $orderby = "RAND(".time().")"; break;
-			case 'title': $orderby = "p.post_title ASC"; /* $useindex = "name"; */ break;
-			case 'recommended':
+			case 'title':
+			default: $orderby = "p.post_title ASC";
+			// case 'recommended':
 			// default:
 				// Need to add the catalog table for access to category-product priorities
 				// if (!isset($this->smart)) {
@@ -202,7 +203,7 @@ class ProductCollection implements Iterator {
 	}
 
 	/**
-	 * Generates an RSS feed of products in the collection
+	 * Iterates loaded products in buffered batches and generates a feed-friendly item record
 	 *
 	 * NOTE: To modify the output of the RSS generator, use
 	 * the filter hooks provided in a separate plugin or
@@ -212,137 +213,131 @@ class ProductCollection implements Iterator {
 	 * @since 1.0
 	 * @version 1.1
 	 *
-	 * @return string The final RSS markup
+	 * @return string A feed item record
 	 **/
 	function feed () {
-	    $base = shopp_setting('base_operations');
-
-		add_filter('shopp_rss_description','wptexturize');
-		add_filter('shopp_rss_description','convert_chars');
-		add_filter('shopp_rss_description','make_clickable',9);
-		add_filter('shopp_rss_description','force_balance_tags', 25);
-		add_filter('shopp_rss_description','convert_smilies',20);
-		add_filter('shopp_rss_description','wpautop',30);
-
-		do_action_ref_array('shopp_collection_feed',array(&$this));
-
-		$rss = array('title' => get_bloginfo('name')." ".$this->name,
-			 			'link' => shopp($this,'get-feed-url'),
-					 	'description' => $this->description,
-						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
-						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
-							'g'=>'http://base.google.com/ns/1.0',
-							'atom'=>'http://www.w3.org/2005/Atom',
-							'content'=>'http://purl.org/rss/1.0/modules/content/')
-						);
-		$rss = apply_filters('shopp_rss_meta',$rss);
-
-		$tax_inclusive = str_true(shopp_setting('tax_inclusive'));
-
-		$items = array();
 		$paged = 100; // Buffer 100 products at a time.
-		if (!$this->products) $this->load( array('load'=>array('prices','specs'), 'paged'=>$paged) );
+		$loop = false;
 
-		for ($page = 1; $page < $this->pages+1; $page++) {
-			if ($this->page != $page) {
-				$this->load( array('load'=>array('prices','specs'),'paged'=>$paged, 'page' => $page) );
-			}
-
-			foreach ($this->products as $product) {
-			    if ($tax_inclusive) {
-					$Product = new Product($product->id);
-					$Item = new Item($Product);
-			        $taxrate = shopp_taxrate(null, true, $Item);
-			    }
-
-				$item = array();
-				$item['guid'] = shopp($product,'get-url');
-				$item['title'] = $product->name;
-				$item['link'] =  shopp($product,'get-url');
-				$item['pubDate'] = date('D, d M Y H:i O',$product->publish);
-
-				// Item Description
-				$item['description'] = '';
-
-				$item['description'] .= '<table><tr>';
-				$Image = current($product->images);
-				if (!empty($Image)) {
-					$item['description'] .= '<td><a href="'.$item['link'].'" title="'.$product->name.'">';
-					$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(75,75,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="75" height="75" />';
-					$item['description'] .= '</a></td>';
-				}
-
-				$pricing = "";
-				if (str_true($product->sale)) {
-					if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
-					if ($product->min['saleprice'] != $product->max['saleprice'])
-						$pricing .= __("from ",'Shopp');
-					$pricing .= money($product->min['saleprice']);
-				} else {
-					if ($taxrate) {
-						$product->min['price'] += $product->min['price'] * $taxrate;
-						$product->max['price'] += $product->max['price'] * $taxrate;
-					}
-
-					if ($product->min['price'] != $product->max['price'])
-						$pricing .= __("from ",'Shopp');
-					$pricing .= money($product->min['price']);
-				}
-				$item['description'] .= "<td><p><big>$pricing</big></p>";
-
-				$item['description'] .= apply_filters('shopp_rss_description',($product->summary),$product).'</td></tr></table>';
-				$item['description'] =
-				 	'<![CDATA['.$item['description'].']]>';
-
-				// Google Base Namespace
-				// http://www.google.com/support/merchants/bin/answer.py?hl=en&answer=188494
-
-				$item['g:id'] = $product->id;
-				if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
-				$item['g:condition'] = "new";
-
-				$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
-				if (!empty($price))	{
-					$item['g:price'] = $price;
-					$item['g:price_type'] = "starting";
-				}
-
-				$brand = shopp($product,'get-spec','name=Brand');
-				if (!empty($brand)) $item['g:brand'] = $brand;
-
-				$gtins = array('UPC','EAN','JAN','ISBN-13','ISBN-10','ISBN');
-				foreach ($gtins as $id) {
-					$gtin = shopp($product,'get-spec','name='.$id);
-					if (!empty($gtin)) {
-						$item['g:gtin'] = $gtin; break;
-					}
-				}
-				$mpn = shopp($product,'get-spec','name=MPN');
-				if (!empty($mpn)) $item['g:mpn'] = $mpn;
-
-				// Check the product specs for matching Google Base information
-				$g_props = array(
-					'MPN' => 'mpn',
-					'Color' => 'color',
-					'Material' => 'material',
-					'Pattern' => 'pattern',
-					'Size' => 'size',
-					'Gender' => 'gender',
-					'Age Group' => 'age_group'
-				);
-				foreach ( apply_filters('shopp_googlebase_spec_map', $g_props) as $name => $key ) {
-					$value = shopp($product,'get-spec','name='.$name);
-					if (!empty($value)) $item["g:$key"] = $value;
-				}
-
-				$item = apply_filters('shopp_rss_item',$item,$product);
-				$items[] = $item;
-			}
-			unset($this->products); // Free memory
+		$product = ShoppProduct();
+		if ($product) {
+			$loop = shopp($this,'products');
+			$product = ShoppProduct();
 		}
-		$rss['items'] = $items;
 
-		return $rss;
+		if (! ($product || $loop)) {
+			if (!$this->products) $page = 1;
+			else $page = $this->page + 1;
+			if ($this->pages > 0 && $page > $this->pages) return false;
+			$this->load( array('load'=>array('prices','specs'), 'paged'=>$paged, 'page' => $page) );
+			$loop = shopp($this,'products');
+			$product = ShoppProduct();
+		}
+
+	    if ($tax_inclusive) {
+			$Product = new Product($product->id);
+			$Item = new Item($Product);
+	        $taxrate = shopp_taxrate(null, true, $Item);
+	    }
+
+		$item = array();
+		$item['guid'] = shopp($product,'get-url');
+		$item['title'] = $product->name;
+		$item['link'] =  shopp($product,'get-url');
+		$item['pubDate'] = date('D, d M Y H:i O',$product->publish);
+
+		// Item Description
+		$item['description'] = '';
+
+		$item['description'] .= '<table><tr>';
+		$Image = current($product->images);
+		if (!empty($Image)) {
+			$item['description'] .= '<td><a href="'.$item['link'].'" title="'.$product->name.'">';
+			$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(75,75,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="75" height="75" />';
+			$item['description'] .= '</a></td>';
+		}
+
+		$pricing = "";
+		if (str_true($product->sale)) {
+			if ($taxrate) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
+			if ($product->min['saleprice'] != $product->max['saleprice'])
+				$pricing .= __("from ",'Shopp');
+			$pricing .= money($product->min['saleprice']);
+		} else {
+			if ($taxrate) {
+				$product->min['price'] += $product->min['price'] * $taxrate;
+				$product->max['price'] += $product->max['price'] * $taxrate;
+			}
+
+			if ($product->min['price'] != $product->max['price'])
+				$pricing .= __("from ",'Shopp');
+			$pricing .= money($product->min['price']);
+		}
+		$item['description'] .= "<td><p><big>$pricing</big></p>";
+
+		$item['description'] .= apply_filters('shopp_rss_description',($product->summary),$product).'</td></tr></table>';
+		$item['description'] =
+		 	'<![CDATA['.$item['description'].']]>';
+
+		// Google Base Namespace
+		// http://www.google.com/support/merchants/bin/answer.py?hl=en&answer=188494
+
+		$item['g:id'] = $product->id;
+		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
+		$item['g:condition'] = "new";
+
+		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
+		if (!empty($price))	{
+			$item['g:price'] = $price;
+			$item['g:price_type'] = "starting";
+		}
+
+		$brand = shopp($product,'get-spec','name=Brand');
+		if (!empty($brand)) $item['g:brand'] = $brand;
+
+		$gtins = array('UPC','EAN','JAN','ISBN-13','ISBN-10','ISBN');
+		foreach ($gtins as $id) {
+			$gtin = shopp($product,'get-spec','name='.$id);
+			if (!empty($gtin)) {
+				$item['g:gtin'] = $gtin; break;
+			}
+		}
+		$mpn = shopp($product,'get-spec','name=MPN');
+		if (!empty($mpn)) $item['g:mpn'] = $mpn;
+
+		// Check the product specs for matching Google Base information
+		$g_props = array(
+			'MPN' => 'mpn',
+			'Color' => 'color',
+			'Material' => 'material',
+			'Pattern' => 'pattern',
+			'Size' => 'size',
+			'Gender' => 'gender',
+			'Age Group' => 'age_group'
+		);
+		foreach ( apply_filters('shopp_googlebase_spec_map', $g_props) as $name => $key ) {
+			$value = shopp($product,'get-spec','name='.$name);
+			if (!empty($value)) $item["g:$key"] = $value;
+		}
+
+		return apply_filters('shopp_rss_item',$item,$product);
+	}
+
+	function feeditem ($item) {
+		foreach ($item as $key => $value) {
+			$attrs = '';
+			if (is_array($value)) {
+				$rss = $value;
+				$value = '';
+				foreach ($rss as $name => $content) {
+					if (empty($name)) $value = $content;
+					else $attrs .= ' '.$name.'="'.esc_attr($content).'"';
+				}
+			}
+			if (strpos($value,'<![CDATA[') === false) $value = esc_html($value);
+			if (!empty($value)) echo "\t\t<$key$attrs>$value</$key>\n";
+			else echo "\t\t<$key$attrs />\n";
+		}
 	}
 
 	function worklist () {
