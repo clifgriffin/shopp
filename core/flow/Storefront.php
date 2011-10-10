@@ -218,8 +218,10 @@ class Storefront extends FlowController {
 			$wp_query->is_home = false;
 			$wp_query->is_page = false;
 			$wp_query->post_count = true;
+
 			ShoppCollection( Catalog::load_collection($collection,$options) );
-			ShoppCollection()->load(array('load'=>array('coverimages')));
+			if ('' == get_query_var('feed'))
+				ShoppCollection()->load(array('load'=>array('coverimages')));
 		}
 
 		$Collection = ShoppCollection();
@@ -334,16 +336,41 @@ class Storefront extends FlowController {
 	 **/
 	function feed () {
 		if ('' == get_query_var('feed')) return;
-
 		$Collection = ShoppCollection();
 
-		header("Content-type: text/plain; charset=utf-8");
-		// header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
+	    $base = shopp_setting('base_operations');
 
-		// $Storefront->catalog($this->request);
-		echo shopp_rss($Collection->feed());
+		add_filter('shopp_rss_description','wptexturize');
+		add_filter('shopp_rss_description','convert_chars');
+		add_filter('shopp_rss_description','make_clickable',9);
+		add_filter('shopp_rss_description','force_balance_tags', 25);
+		add_filter('shopp_rss_description','convert_smilies',20);
+		add_filter('shopp_rss_description','wpautop',30);
+		add_filter('shopp_rss_description','ent2ncr');
+
+		do_action_ref_array('shopp_collection_feed',array(&$Collection));
+
+		$rss = array('title' => trim(get_bloginfo('name')." ".$this->name),
+			 			'link' => shopp($Collection,'get-feed-url'),
+					 	'description' => $Collection->description,
+						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
+						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
+							'g'=>'http://base.google.com/ns/1.0',
+							'atom'=>'http://www.w3.org/2005/Atom',
+							'content'=>'http://purl.org/rss/1.0/modules/content/')
+						);
+		$rss = apply_filters('shopp_rss_meta',$rss);
+
+		$tax_inclusive = str_true(shopp_setting('tax_inclusive'));
+
+		// $template = locate_shopp_template(array('feed-'.$Collection->slug.'.php','feed.php'));
+		if (!$template) $template = SHOPP_ADMIN_PATH.'/categories/feed.php';
+
+		header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
+		require($template);
 		exit();
 	}
+
 	/**
 	 * Renders RSS feed link tags for category product feeds
 	 *
@@ -821,23 +848,6 @@ class Storefront extends FlowController {
 		// $this->referrer = $referrer;
 
 		ob_start();
-		// switch ($Shopp->Catalog->type) {
-		// 	case "product":
-		// 		if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
-		// 			include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
-		// 		else include(SHOPP_TEMPLATES."/product.php"); break;
-		//
-		// 	case "category":
-		// 		if (isset($Shopp->Category->slug) &&
-		// 			file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
-		// 			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-		// 		elseif (isset($Shopp->Category->id) &&
-		// 			file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
-		// 			include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
-		// 		else include(SHOPP_TEMPLATES."/category.php"); break;
-		//
-		// 	default: include(SHOPP_TEMPLATES."/catalog.php"); break;
-		// }
 		locate_shopp_template(array('catalog.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
