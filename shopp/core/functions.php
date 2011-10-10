@@ -1580,9 +1580,9 @@ function shopp_keybind ($data) {
 /**
  * Generates RSS markup in XML from a set of provided data
  *
- * @todo Move to Catalog class as helper method
  * @author Jonathan Davis
  * @since 1.0
+ * @deprecated Functionality moved to the Storefront
  *
  * @param array $data The data to populate the RSS feed with
  * @return string The RSS markup
