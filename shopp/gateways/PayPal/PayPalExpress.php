@@ -117,15 +117,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		global $Shopp;
 		$_ = array();
 
-		// Transaction
-		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($this->Order->Cart->Totals->total,$this->precision);
-		$_['ITEMAMT']				= number_format($this->Order->Cart->Totals->subtotal -
-													$this->Order->Cart->Totals->discount,$this->precision);
-		$_['SHIPPINGAMT']			= number_format($this->Order->Cart->Totals->shipping,$this->precision);
-		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,$this->precision);
-
-
 		$_['EMAIL']					= $this->Order->Customer->email;
 		$_['PHONENUM']				= $this->Order->Customer->phone;
 
@@ -144,13 +135,24 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (empty($this->Order->Cart->shipped) &&
 			!in_array($this->settings['locale'],$this->shiprequired)) $_['NOSHIPPING'] = 1;
 
+		// Transaction
+		$_['CURRENCYCODE']			= $this->settings['currency_code'];
+		$_['AMT']					= number_format($this->Order->Cart->Totals->total,$this->precision);
+		$_['ITEMAMT']				= number_format(round($this->Order->Cart->Totals->subtotal,$this->precision) -
+													round($this->Order->Cart->Totals->discount,$this->precision),$this->precision);
+		$_['SHIPPINGAMT']			= number_format($this->Order->Cart->Totals->shipping,$this->precision);
+		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,$this->precision);
+
+		if (isset($this->Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($this->Order->data['paypal-custom']);
+
 		// Line Items
 		foreach($this->Order->Cart->contents as $i => $Item) {
-			$_['L_NUMBER'.$i]		= $i;
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
+			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,$this->precision);
+			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,$this->precision);
+			// $_['L_TAXAMT'.$i]		= number_format($Item->tax,$this->precision);
 		}
 
 		if ($this->Order->Cart->Totals->discount != 0) {
@@ -160,7 +162,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 			$i++;
 			$_['L_NUMBER'.$i]		= $i;
-			$_['L_NAME'.$i]			= join(", ",$discounts);
+			$_['L_NAME'.$i]			= htmlentities(join(", ",$discounts));
 			$_['L_AMT'.$i]			= number_format($this->Order->Cart->Totals->discount*-1,$this->precision);
 			$_['L_QTY'.$i]			= 1;
 			$_['L_TAXAMT'.$i]		= number_format(0,$this->precision);
