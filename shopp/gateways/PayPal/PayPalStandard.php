@@ -131,6 +131,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['first_name']			= $Order->Customer->firstname;
 		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->baseop['country'];
+		$_['charset']				= 'utf-8';
 		$_['bn']					= 'shopplugin.net[WPS]';
 
 		$AddressType = "Shipping";
