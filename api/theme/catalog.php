@@ -265,7 +265,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		else if (isset($options['id'])) $Shopp->Category = new ProductCategory($options['id']);
 
 		if (isset($options['reset']))
-			return (get_class($Shopp->Requested) == "ProductCategory"?($Shopp->Category = $Shopp->Requested):false);
+			return ( is_a($Shopp->Requested, 'ProductCollection') ? ($Shopp->Category = $Shopp->Requested) : false );
 		if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 		if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
