@@ -411,9 +411,10 @@ class Product extends WPShoppObject {
 		}
 
 		// Calculate catalog discounts if not already calculated
-		if (empty($price->promoprice) && !empty($price->discounts)) {
+		if (empty($price->promoprice)) {
 			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
-			$price->promoprice = Promotion::pricing($pricetag,$price->discounts);
+			if (!empty($price->discounts)) $price->promoprice = Promotion::pricing($pricetag,$price->discounts);
+			else $price->promoprice = $pricetag;
 			if ($price->promoprice < $price->price) $target->sale = 'on';
 		}
 
@@ -457,7 +458,6 @@ class Product extends WPShoppObject {
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
 		$target->freeship = $freeshipping?'on':'off';
-
 	}
 
 	/**
