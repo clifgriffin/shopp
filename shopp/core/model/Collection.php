@@ -768,7 +768,7 @@ class ProductCategory extends ProductTaxonomy {
 
 		$Storefront = ShoppStorefront();
 		if (!$Storefront) return;
-		$CategoryFilters =& $Storefront->browsing[$O->slug];
+		$CategoryFilters =& $Storefront->browsing[$this->slug];
 
 		$Filtered = new ProductCategory($this->id);
 		$filtering = array_merge($Filtered->facetsql(),array('ids'=>true,'limit'=>1000));
@@ -795,7 +795,7 @@ class ProductCategory extends ProductTaxonomy {
 			$counts = DB::query($query,'array','col','total','rangeid');
 
 			foreach ($ranges as $id => $range) {
-				if ($counts[$id] < 1) continue;
+				if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
 				$label = money($range['min']).' &mdash; '.money($range['max']);
 				if ($range['min'] == 0) $label = sprintf(__('Under %s','Shopp'),money($range['max']));
 				if ($range['max'] == 0) $label = sprintf(__('%s and up','Shopp'),money($range['min']));
@@ -874,8 +874,8 @@ class ProductCategory extends ProductTaxonomy {
 				default:
 					if (!isset($specdata[ $Facet->name  ])) break;
 					$data = $specdata[ $Facet->name ];
-
-					if ($data['min']+$data['max']+$data['avg'] == 0) { // Generate facet filters from text values
+					if ( ! is_array($data) ) $data = array($data);
+					if ( $data[0]->min + $data[0]->max + $data[0]->avg == 0 ) { // Generate facet filters from text values
 						foreach ($data as $option) {
 							$FacetFilter = new ProductCategoryFacetFilter();
 							$FacetFilter->label = $option->value;
@@ -887,7 +887,7 @@ class ProductCategory extends ProductTaxonomy {
 						$data = reset($data);
 
 						$format = '%s';
-						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$data->content,$matches))
+						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$data->value,$matches))
 							$format = $matches[1].'%s'.$matches[3];
 
 						$ranges = auto_ranges($data->avg,$data->max,$data->min);
@@ -901,6 +901,7 @@ class ProductCategory extends ProductTaxonomy {
 						$counts = DB::query($query,'array','col','total','rangeid');
 
 						foreach ($ranges as $id => $range) {
+							if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
 
 							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 							if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
@@ -913,8 +914,6 @@ class ProductCategory extends ProductTaxonomy {
 							$Facet->filters[$FacetFilter->param] = $FacetFilter;
 
 						}
-
-
 					}
 
 			} // END switch
