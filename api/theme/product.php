@@ -60,6 +60,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'spec' => 'spec',
 		'specs' => 'specs',
 		'summary' => 'summary',
+		'sku' => 'sku',
 		'stock' => 'stock',
 		'tag' => 'tag',
 		'tagged' => 'tagged',
@@ -746,6 +747,20 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		elseif ($showcontent) $string = apply_filters('shopp_product_spec',$spec->value);
 		else $string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
 		return $string;
+	}
+
+	function sku ( $result, $options, $O ) {
+		if ( empty($O->prices) ) $O->load_data(array('prices'));
+
+		if ( 1 == count($O->prices) && $O->prices[0]->sku )
+			return $O->prices[0]->sku;
+
+		$skus = array();
+		foreach ($O->prices as $price)
+			if ( 'N/A' != $price->type && $price->sku ) $skus[$price->sku] = $price->sku;
+
+		if ( ! empty($skus) ) return join(',', $skus);
+		return '';
 	}
 
 	function specs ($result, $options, $O) {
