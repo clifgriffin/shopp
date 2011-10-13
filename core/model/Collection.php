@@ -546,11 +546,11 @@ class ProductTaxonomy extends ProductCollection {
 		if (!$this->id) return false;
 
 		// Remove WP taxonomy term
-		$result = wp_delete_term($this->id,$this->taxonomy);
+		$status = wp_delete_term($this->id,$this->taxonomy);
 
 		// Remove meta data & images
-		$meta = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("DELETE FROM $meta WHERE parent='$this->id' AND context='category'");
+		$status = $status && shopp_rmv_meta ( $this->id, 'category' );
+		return $status;
 
 	}
 
