@@ -266,7 +266,7 @@ class DB extends SingletonFramework {
 			if ($db->affected > 0) return $db->affected;
 			else return true;
 		} elseif ( preg_match("/ SQL_CALC_FOUND_ROWS /i",$query) ) {
-			$rows = (int)@mysql_fetch_object(@mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh));
+			$rows = @mysql_fetch_object(@mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh));
 		}
 
 
@@ -287,7 +287,7 @@ class DB extends SingletonFramework {
 
 		@mysql_free_result($result);
 
-		if (isset($rows->found)) $db->found = $rows->found;
+		if (isset($rows->found)) $db->found = (int) $rows->found;
 
 		switch (strtolower($format)) {
 			case 'object': return reset($records); break;

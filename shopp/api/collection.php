@@ -58,6 +58,7 @@ function shopp_register_collection ( $name = '' ) {
  * @since 1.2
  *
  * @param string $taxonomy The taxonomy name
+ * @param array $args register_taxonomy arguments
  * @return void
  **/
 function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
@@ -86,23 +87,48 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 		return false;
 	}
 
-	$Category = new ProductCategory();
-	$Category->name = $name;
-	$Category->slug = sanitize_title_with_dashes($Category->name);
-	$Category->meta = array();
+	$args = array();
+	$args['description'] = ( $description ? $description : '');
+	$args['parent'] = ( $parent ? $parent : 0 );
 
-	if ( $parent ) {
-		if ( ! term_exists($parent, ProductCategory::$taxonomy) ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Non-existent parent $parent.",__FUNCTION__,SHOPP_DEBUG_ERR);
-			return false;
+	$term = wp_insert_term($name, ProductCategory::$taxonomy, $args);
+
+	if ( $term && isset($term['term_id']) ) {
+		$hierarchy = _get_term_hierarchy(ProductCategory::$taxonomy);
+		if ( $parent && (! in_array($parent, array_keys($hierarchy)) || ! in_array($term['term_id'], $hierarchy[$parent]) ) ) {
+			// update hierarchy if necessary
+			if ( ! isset($hierarchy[$parent])) $hierarchy[$parent] = array();
+			$hierarchy[$parent][] = $term['term_id'];
+			update_option(ProductCategory::$taxonomy."_children", $hierarchy);
 		}
-		$Category->parent = $parent;
+
+		return $term['term_id'];
+	}
+	return false;
+}
+
+/**
+ * shopp_product_category - returns a ProductCategory object
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $cat the category id
+ * @param array $options (optional) loading options
+ * @return bool|ProductCategory returns false on error, ProductCategory on success
+ **/
+function shopp_product_category ( $cat = false, $options = array() ) {
+	if ( ! $cat ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Category id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
 	}
 
-	if ( $description ) $Category->description = $description;
-	$Category->save();
+	$Cat = new ProductCategory( (int) $cat );
+	if ( ! $Cat->id ) return false;
 
-	return $Category->id;
+	$Cat->load($options);
+
+	return $Cat;
 }
 
 /**
@@ -120,10 +146,8 @@ function shopp_rmv_product_category ( $id = false ) {
 		return false;
 	}
 	$Category = new ProductCategory($id);
-
 	if ( empty($Category->id) ) return false;
 
-	shopp_rmv_meta ( $id, 'category' );
 	return $Category->delete();
 }
 
@@ -196,12 +220,22 @@ function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category', $par
 		return false;
 	}
 
-	$term_obj = term_exists( $term, $taxonomy, $parent ? $parent : 0 );
-	if ( ! $term_obj ) {
-		$term_obj = wp_insert_term( $term, $taxonomy, ($parent ? array('parent' => $parent) : array()) );
-	}
+	$term_array = term_exists( $term, $taxonomy, $parent ? $parent : 0 );
+	if ( ! $term_array )
+		$term_array = wp_insert_term( $term, $taxonomy, ($parent ? array('parent' => $parent) : array()) );
 
-	return ( is_array($term_obj) && $term_obj['term_id'] ? $term_obj['term_id'] : false );
+	if ( is_array($term_array) && $term_array['term_id'] ) {
+		$hierarchy = _get_term_hierarchy($taxonomy);
+		if ( $parent && (! in_array($parent, array_keys($hierarchy)) || ! in_array($term_array['term_id'], $hierarchy[$parent]) ) ) {
+			// update hierarchy if necessary
+			if ( ! isset($hierarchy[$parent])) $hierarchy[$parent] = array();
+			$hierarchy[$parent][] = $term_array['term_id'];
+			update_option("{$taxonomy}_children", $hierarchy);
+		}
+
+		return $term_array['term_id'];
+	}
+	return false;
 }
 
 /**
@@ -317,8 +351,8 @@ function shopp_category_products ( $category = 0, $options = array() ) {
 		return false;
 	}
 
-	$Category = new ProductCategory( $category );
-	$Category->load($options);
+	$Category = shopp_category( $category, $options );
+
 	return ! empty($Category->products) ? $Category->products : array();
 }
 
