@@ -908,8 +908,11 @@ class Setup extends AdminController {
 		register_column_headers('shopp_page_shopp-settings-payments', array(
 			'name'=>__('Name','Shopp'),
 			'processor'=>__('Processor','Shopp'),
-			'type'=>__('Type','Shopp'),
-			'payments'=>__('Payments','Shopp')
+			'payments'=>__('Payments','Shopp'),
+			'ssl'=>__('SSL','Shopp'),
+			'captures'=>__('Captures','Shopp'),
+			'recurring'=>__('Recurring','Shopp'),
+			'refunds'=>__('Refunds','Shopp')
 		));
 	}
 

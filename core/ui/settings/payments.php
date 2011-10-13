@@ -86,9 +86,19 @@
 			</div>
 		</td>
 		<td class="processor column-processor"><?php echo esc_html($Gateway->name); ?></td>
-		<td class="type column-type"><?php  ?></td>
 		<td class="supported column-supported"><?php echo join(', ',$cards); ?></td>
-
+		<td class="ssl column-ssl">
+			<div class="checkbox"><?php if ($Gateway->secure): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+		</td>
+		<td class="captures column-captures">
+			<div class="checkbox"><?php if ($Gateway->captures): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+		</td>
+		<td class="recurring column-recurring">
+			<div class="checkbox"><?php if ($Gateway->recurring): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+		</td>
+		<td class="refunds column-refunds">
+			<div class="checkbox"><?php if ($Gateway->refunds): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+		</td>
 	</tr>
 	<?php endforeach; ?>
 	</tbody>
