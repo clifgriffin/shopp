@@ -90,7 +90,7 @@ class AjaxFlow {
 			\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
 		<html><head><title>".get_bloginfo('name').' &mdash; '.__('Order','Shopp').' #'.$Shopp->Purchase->id."</title>";
 			echo '<style type="text/css">body { padding: 20px; font-family: Arial,Helvetica,sans-serif; }</style>';
-			echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
+			echo "<link rel='stylesheet' href='".shopp_template_url('shopp.css')."' type='text/css' />";
 		echo "</head><body>";
 		echo apply_filters('shopp_admin_order_receipt',$Shopp->Purchase->receipt('receipt-admin.php'));
 		if (isset($_GET['print']) && $_GET['print'] == 'auto')
@@ -132,24 +132,24 @@ class AjaxFlow {
 
 	function load_spec_template () {
 		check_admin_referer('wp_ajax_shopp_spec_template');
-		
+
 		$Category = new ProductCategory($_GET['category']);
 		$Category->load_meta();
-		
+
 		echo json_encode($Category->specs);
 		exit();
 	}
 
 	function load_options_template() {
 		check_admin_referer('wp_ajax_shopp_options_template');
-		
+
 		$Category = new ProductCategory($_GET['category']);
 		$Category->load_meta();
-		
+
 		$result = new stdClass();
 		$result->options = $Category->options;
 		$result->prices = $Category->prices;
-		
+
 		echo json_encode($result);
 		exit();
 	}
