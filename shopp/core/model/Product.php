@@ -90,7 +90,7 @@ class Product extends WPShoppObject {
 		do_action('save_post', $this->id, get_post($this->id));
 	}
 
-	function posttype () {
+	static function posttype () {
 		return self::$posttype;
 	}
 

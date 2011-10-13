@@ -146,7 +146,7 @@ class Warehouse extends AdminController {
 					} break;
 				case 'emptytrash':
 					$Template = new Product();
-					$trash = DB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".$Template->posttype()."'",'array','col','ID');
+					$trash = DB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".Product::posttype()."'",'array','col','ID');
 					foreach ($trash as $id) {
 						$P = new Product($id); $P->delete();
 					} break;
@@ -633,7 +633,7 @@ class Warehouse extends AdminController {
 
 		// Set a unique product slug
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);
-		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, $Product->posttype(), 0);
+		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, Product::posttype(), 0);
 
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('meta','categories','prices','tags'));
