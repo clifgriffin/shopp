@@ -81,7 +81,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		return file_get_contents(sanitize_path($this->path.'/'.$uri));
 	}
 
-	function meta ($uri) {
+	function meta ($uri=false,$null=false) {
 		$_ = array();
 		$_['size'] = filesize(sanitize_path($this->path.'/'.$uri));
 		$_['mime'] = file_mimetype(sanitize_path($this->path.'/'.$uri));
