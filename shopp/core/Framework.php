@@ -140,7 +140,8 @@ class AutoObjectFramework {
 		$args = func_num_args();
 		if ($args > 1) {
 			$params = func_get_args();
-			$keys = array_splice(array_keys($properties),0,$args);
+			$propkeys = array_keys($properties);
+			$keys = array_splice($propkeys,0,$args);
 			$inputs = array_combine($keys,$params);
 		}
 		else $inputs = $input;
