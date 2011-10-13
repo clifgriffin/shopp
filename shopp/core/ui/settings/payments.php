@@ -85,6 +85,7 @@
 				<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($payment['label']); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($payment['label']); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
 			</div>
 		</td>
+		<?php // @todo Add title hover labels for accessibility/instructions ?>
 		<td class="processor column-processor"><?php echo esc_html($Gateway->name); ?></td>
 		<td class="supported column-supported"><?php echo join(', ',$cards); ?></td>
 		<td class="ssl column-ssl">
