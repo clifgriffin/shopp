@@ -1402,6 +1402,7 @@ function shopp_daytimes () {
 
 	$total = 0;
 	foreach ($args as $timeframe) {
+		if (empty($timeframe)) continue;
 		list($i,$p) = sscanf($timeframe,'%d%s');
 		$total += $i*$periods[$p];
 	}
@@ -1771,7 +1772,32 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
  * @return string Prefixed template file
  **/
 function shopp_template_prefix ($name) {
-	return "shopp/$name";
+	return apply_filters('shopp_template_directory','shopp').'/'.$name;
+}
+
+/**
+ * Returns the URI for a template file
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the template file
+ * @return string The URL for the template file
+ **/
+function shopp_template_url ($name) {
+	$themepath = get_stylesheet_directory();
+	$themeuri = get_stylesheet_directory_uri();
+	$builtin = SHOPP_PLUGINURI.'/templates';
+	$template = shopp_template_prefix('');
+
+	$path = "$themepath/$template";
+
+	if ('off' != shopp_setting('theme_templates')
+			&& is_dir(sanitize_path( $path )) )
+		$url = "$themeuri/$template/$name";
+	else $url = "$builtin/$name";
+
+	return sanitize_path($url);
 }
 
 /**

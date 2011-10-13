@@ -175,11 +175,6 @@ class Shopp {
 		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
 		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
-		define('SHOPP_TEMPLATES_URI',(shopp_setting('theme_templates') != 'off'
-			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
-					  sanitize_path(get_bloginfo('stylesheet_directory').'/shopp'):
-					  SHOPP_PLUGINURI.'/templates');
-
 		define('SHOPP_PRETTYURLS',(get_option('permalink_structure') == '')?false:true);
 		define('SHOPP_PERMALINKS',SHOPP_PRETTYURLS); // Deprecated
 
