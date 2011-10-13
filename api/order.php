@@ -256,13 +256,13 @@ function shopp_order ( $id = false ) {
  **/
 function shopp_order_exists ( $id = false ) {
 	$Purchase = new Purchase();
+
 	if ( is_int($id) )
-		$Purchase = new Purchase($id);
+		$Purchase->load($id);
 	else if ( ! is_string($id) )
-		$Purchase = new Purchase($id,'txnid');
+		$Purchase->load($id,'txnid');
 
 	return ( ! empty($Purchase->id) );
-
 }
 
 /**
