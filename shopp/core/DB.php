@@ -260,13 +260,13 @@ class DB extends SingletonFramework {
 			$db->affected = mysql_affected_rows();
 			if ( preg_match("/^\\s*(insert|replace) /i",$query) ) {
 				$insert = @mysql_fetch_object(@mysql_query("SELECT LAST_INSERT_ID() AS id", $db->dbh));
-				return $insert->id;
+				return (int)$insert->id;
 			}
 
 			if ($db->affected > 0) return $db->affected;
 			else return true;
 		} elseif ( preg_match("/ SQL_CALC_FOUND_ROWS /i",$query) ) {
-			$rows = @mysql_fetch_object(@mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh));
+			$rows = (int)@mysql_fetch_object(@mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh));
 		}
 
 
