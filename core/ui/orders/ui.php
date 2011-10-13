@@ -2,7 +2,7 @@
 global $Shopp;
 
 function manage_meta_box ($Purchase) {
-	global $Shopp,$UI;
+	global $Shopp;
 	$Gateway = $Purchase->gateway();
 
 ?>
@@ -141,9 +141,10 @@ function manage_meta_box ($Purchase) {
 				}
 				if (isset($_POST['add-shipment'])) $shipment[] = $default;
 
+				global $carriers_menu;
 				foreach ($shipment as $id => $package) {
 					extract($package);
-					$menu = menuoptions($UI->carriers,$carrier,true);
+					$menu = menuoptions($carriers_menu,$carrier,true);
 					$shipmentuis = ShoppUI::template($shipmentui, array('${id}' => $id,'${num}' => ($id+1),'${tracking}'=>$tracking,'${carriermenu}'=>$menu ));
 				}
 				echo ShoppUI::template($shipnotice_ui,array('${shipments}'=>$shipmentuis,'${shipmentnum}'=>count($shipment)+1));
