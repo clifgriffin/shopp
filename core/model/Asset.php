@@ -657,7 +657,7 @@ abstract class StorageModule {
 	}
 
 	function context ($setting) {}
-	function settings () {}
+	function settings ($context) {}
 
 	/**
 	 * Generate the settings UI for the module
