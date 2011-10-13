@@ -285,7 +285,7 @@ class Service extends AdminController {
 	 * @return void
 	 **/
 	function manager () {
-		global $Shopp,$UI,$Notes;
+		global $Shopp,$Notes;
 		global $is_IIS;
 
 		if ( ! current_user_can('shopp_orders') )
@@ -419,7 +419,6 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
-
 		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
 			$user = wp_get_current_user();
 
@@ -433,25 +432,25 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
-
 		$base = shopp_setting('base_operations');
 		$targets = shopp_setting('target_markets');
-		$UI->txnStatusLabels = Lookup::payment_status_labels();
-		$UI->statusLabels = shopp_setting('order_status');
+		// $UI->txnStatusLabels = Lookup::payment_status_labels();
+		// $UI->statusLabels = shopp_setting('order_status');
 
-		$UI->carriers = $carriers_json = array();
+		$carriers_menu = $carriers_json = array();
 		$shipping_carriers = shopp_setting('shipping_carriers');
 		$shipcarriers = Lookup::shipcarriers();
+
 		if (empty($shipping_carriers)) {
 			$serviceareas = array('*',$base['country']);
 			foreach ($shipcarriers as $code => $carrier) {
 				if (!in_array($carrier->areas,$serviceareas)) continue;
-				$UI->carriers[$code] = $carrier->name;
+				$carriers_menu[$code] = $carrier->name;
 				$carriers_json[$code] = array($carrier->name,$carrier->trackpattern);
 			}
 		} else {
 			foreach ($shipping_carriers as $code) {
-				$UI->carriers[$code] = $shipcarriers[$code]->name;
+				$carriers_menu[$code] = $shipcarriers[$code]->name;
 				$carriers_json[$code] = array($shipcarriers[$code]->name,$shipcarriers[$code]->trackpattern);
 			}
 		}

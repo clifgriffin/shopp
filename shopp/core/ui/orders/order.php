@@ -121,11 +121,11 @@
 		<div class="meta-boxes">
 
 			<div id="column-one" class="column left-column">
-				<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase, $UI); ?>
+				<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
 			</div>
 			<div id="main-column">
 				<div id="column-two" class="column right-column">
-					<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase, $UI); ?>
+					<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
 				</div>
 			</div>
 			<br class="clear" />
