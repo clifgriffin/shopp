@@ -105,6 +105,7 @@ class Order {
 		add_action('shopp_authed_order_event',array($this,'purchase'));
 		add_action('shopp_create_purchase',array($this,'purchase'));
 
+		add_action('shopp_order_event',array($this,'event'));
 		add_action('shopp_order_notifications',array($this,'notify'));
 
 		add_action('shopp_order_txnstatus_update',array($this,'salestats'),10,2);
@@ -129,6 +130,7 @@ class Order {
 	}
 
 	function unhook () {
+		remove_action('shopp_authed_order_event',array($this,'purchase'));
 		remove_action('shopp_create_purchase',array($this,'purchase'));
 		remove_action('shopp_order_notifications',array($this,'notify'));
 		remove_action('shopp_order_success',array($this,'success'));
@@ -136,6 +138,7 @@ class Order {
 		remove_action('shopp_process_order', array($this,'process'),100);
 
 		remove_class_actions(array(
+			'shopp_authed_order_event',
 			'shopp_create_purchase',
 			'shopp_order_notifications',
 			'shopp_order_success',
@@ -226,6 +229,21 @@ class Order {
 		}
 
 		return $this->processor;
+	}
+
+	/**
+	 * Provides the current payment method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return object Payment method object
+	 **/
+	function paymethod () {
+		if (!isset($this->paymethod)) return false;
+		if (!isset($this->payoptions[$this->paymethod])) return false;
+
+		return $this->payoptions[$this->paymethod];
 	}
 
 	/**
@@ -463,6 +481,7 @@ class Order {
 
 		// Copy details from Auth message
 		$this->txnid = $Auth->txnid;
+		$this->txnstatus = $Auth->name;
 		$this->gateway = $Auth->gateway;
 		$this->fees = $this->fees;
 
@@ -559,12 +578,13 @@ class Order {
 		$Auth->created = null;
 		$Auth->save();
 
-		// Support legacy Auth+Capture transactions from 1.1 gateways
-		if ('CHARGED' == $Purchase->txnstatus) {
+		// Support legacy Auth+Capture transactions for 1.1 Gateways
+		if ($Auth->capture || 'CHARGED' == $Purchase->txnstatus) {
 			shopp_add_order_event($Purchase->id,'captured',array(
-				'txnid' => $id,								// Can be either the original transaction ID or an ID for this transaction
-				'amount' => $Purchase->total,				// Capture of entire order amount (limitation of 1.1 payment gateways)
-				'gateway' => $this->processor()				// Gateway handler name (module name from @subpackage)
+				'txnid' => $Purchase->txnid,				// Can be either the original transaction ID or an ID for this transaction
+				'amount' => $Auth->amount,					// Capture of entire order amount
+				'fees' => $Purchase->fees,					// Transaction fees taken by the gateway net revenue = amount-fees
+				'gateway' => $Auth->gateway					// Gateway handler name (module name from @subpackage)
 			));
 		}
 
@@ -1011,6 +1031,17 @@ class Order {
 		$this->confirmed = false;		// Confirmed by the shopper for processing
 	}
 
+	function event ($Event) {
+		$updates = array('captured','refunded','voided');
+		if (!in_array($Event->name,$updates)) return;
+
+		$Purchase = new Purchase($Event->order);
+		$Purchase->txnstatus = $Event->name;
+		// if (isset())
+		// $Purchase->status =
+		$Purchase->save();
+	}
+
 } // END class Order
 
 /**
@@ -1150,6 +1181,8 @@ class OrderEventMessage extends MetaObject {
 			do_action_ref_array('shopp_'.$gateway.'_'.$action,array($this));
 		}
 
+		new ShoppError(sprintf('%s dispatched.',get_class($this)),false,SHOPP_DEBUG_ERR);
+
 	}
 
 	function msgprops () {
@@ -1244,10 +1277,10 @@ class DebitOrderEventMessage extends OrderEventMessage {
 }
 
 /**
- * Merchant initiated capture command message
+ * Shopper initiated authorization command message
  *
- * Triggers the gateway(s) responsible for the order to initiate a capture
- * request to capture the previously authorized amount.
+ * Triggers the gateway(s) responsible for the order to initiate a payment
+ * authorization request
  *
  * @author Jonathan Davis
  * @since 1.2
@@ -1257,12 +1290,11 @@ class DebitOrderEventMessage extends OrderEventMessage {
 class AuthOrderEvent extends OrderEventMessage {
 	var $name = 'auth';
 	var $message = array(
-		'gateway' => '',		// Gateway (class name) to process capture through
+		'gateway' => '',		// Gateway (class name) to process authorization through
 		'amount' => 0.0			// Amount to capture (charge)
 	);
 }
 OrderEvent::register('auth','AuthOrderEvent');
-
 
 /**
  * Payment authorization message
@@ -1288,10 +1320,10 @@ OrderEvent::register('auth','AuthOrderEvent');
  **/
 class AuthedOrderEvent extends DebitOrderEventMessage {
 	var $name = 'authed';
+	var $capture = false;
 	var $message = array(
 		'txnid' => '',			// Transaction ID
 		'amount' => 0.0,		// Gross amount authorized
-		'fees' => 0.0,			// Transaction fees taken by the gateway net revenue = amount-fees
 		'gateway' => '',		// Gateway handler name (module name from @subpackage)
 		'paymethod' => '',		// Payment method (payment method label from payment settings)
 		'paytype' => '',		// Type of payment (check, MasterCard, etc)
@@ -1299,6 +1331,9 @@ class AuthedOrderEvent extends DebitOrderEventMessage {
 	);
 
 	function filter ($msg) {
+		if (isset($msg['capture']) && true === $msg['capture'])
+			$this->capture = true;
+
 		if (empty($msg['payid'])) return $msg;
 		$paycards = Lookup::paycards();
 		foreach ($paycards as $card) { // If it looks like a payment card number, truncate it
@@ -1310,6 +1345,26 @@ class AuthedOrderEvent extends DebitOrderEventMessage {
 	}
 }
 OrderEvent::register('authed','AuthedOrderEvent');
+
+/**
+ * Shopper initiated authorization and capture command message
+ *
+ * Triggers the gateway(s) responsible for the order to initiate a payment
+ * authorization request with capture
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class SaleOrderEvent extends OrderEventMessage {
+	var $name = 'sale';
+	var $message = array(
+		'gateway' => '',		// Gateway (class name) to process authorization through
+		'amount' => 0.0			// Amount to capture (charge)
+	);
+}
+OrderEvent::register('sale','SaleOrderEvent');
 
 /**
  * Recurring billing payment message
@@ -1379,6 +1434,7 @@ class CapturedOrderEvent extends CreditOrderEventMessage {
 	var $message = array(
 		'txnid' => '',			// Transaction ID of the CAPTURE event
 		'amount' => 0.0,		// Amount captured
+		'fees' => 0.0,			// Transaction fees taken by the gateway net revenue = amount-fees
 		'gateway' => ''			// Gateway handler name (module name from @subpackage)
 	);
 }
@@ -1415,7 +1471,6 @@ class RecapturedOrderEvent extends CreditOrderEventMessage {
 		'balance' => 0.0,		// Balance of the billing agreement
 		'nextdate' => 0,		// Timestamp of the next scheduled payment
 		'status' => ''			// Status of the billing agreement
-
 	);
 }
 OrderEvent::register('recaptured','RecapturedOrderEvent');
@@ -1440,6 +1495,13 @@ class RefundOrderEvent extends OrderEventMessage {
 		'user' => 0,
 		'reason' => 0
 	);
+
+	function filter ($msg) {
+		$reasons = shopp_setting('cancel_reasons');
+		$msg['reason'] = $reasons[ $msg['reason'] ];
+		return $msg;
+	}
+
 }
 OrderEvent::register('refund','RefundOrderEvent');
 
@@ -1481,12 +1543,18 @@ OrderEvent::register('refunded','RefundedOrderEvent');
 class VoidOrderEvent extends OrderEventMessage {
 	var $name = 'void';
 	var $message = array(
-		'txnid' => 0,
+		'txnid' => 0,			// Transaction ID for the authorization
 		'gateway' => '',		// Gateway (class name) to process capture through
-		'amount' => 0.0,
-		'user' => 0,
-		'reason' => 0
+		'user' => 0,			// The WP user ID processing the void
+		'reason' => 0			// The reason code
 	);
+
+	function filter ($msg) {
+		$reasons = shopp_setting('cancel_reasons');
+		$msg['reason'] = $reasons[ $msg['reason'] ];
+		return $msg;
+	}
+
 }
 OrderEvent::register('void','VoidOrderEvent');
 
@@ -1567,7 +1635,6 @@ OrderEvent::register('refund-fail','RefundFailOrderEvent');
 class VoidFailOrderEvent extends OrderEventMessage {
 	var $name = 'void-fail';
 	var $message = array(
-		'amount' => 0.0,		// Amount to be refunded
 		'error' => '',			// Error code (if provided)
 		'message' => '',		// Error message reported by the gateway
 		'gateway' => ''			// Gateway handler name (module name from @subpackage)

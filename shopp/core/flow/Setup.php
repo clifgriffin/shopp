@@ -365,16 +365,7 @@ class Setup extends AdminController {
 			);
 
 		$states = array(
-			__('Map the label to an order state:','Shopp') => array(
-				'' => '',
-				'review' => __('review','Shopp'),
-				'authed' => __('authed','Shopp'),
-				'captured' => __('captured','Shopp'),
-				'shipped' => __('shipped','Shopp'),
-				'refunded' => __('refunded','Shopp'),
-				'voided' => __('voided','Shopp'),
-				'closed' => __('closed','Shopp')
-			)
+			__('Map the label to an order state:','Shopp') => array_merge(array('' => ''),Lookup::txnstatus_labels())
 		);
 		$statusLabels = shopp_setting('order_status');
 		$statesLabels = shopp_setting('order_states');
@@ -390,7 +381,7 @@ class Setup extends AdminController {
 			__('Item out of stock','Shopp'),
 			__('Customer request to cancel','Shopp'),
 			__('Item discontinued','Shopp'),
-			__('Other reason (describe below)','Shopp')
+			__('Other reason','Shopp')
 		);
 
 

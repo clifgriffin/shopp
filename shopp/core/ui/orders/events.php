@@ -149,10 +149,17 @@ class OrderEventRenderer {
 } // END class OrderEventDisplay
 
 class TxnOrderEventRenderer extends OrderEventRenderer {
+
+	var $credit = false;
+	var $debit = false;
+
 	function __construct (OrderEventMessage $Event) {
 		parent::__construct($Event);
-		$this->credit = $Event->credit;
-		$this->debit = $Event->debit;
+
+		if (isset($Event->transactional)) {
+			$this->credit = $Event->credit;
+			$this->debit = $Event->debit;
+		}
 	}
 
 	function name () {
@@ -177,6 +184,14 @@ class TxnOrderEventRenderer extends OrderEventRenderer {
 		if ($this->debit) $amount = money($this->amount);
 		else $amount = '-'.money($this->amount);
 		return $amount;
+	}
+
+}
+
+class FailureOrderEventRender extends OrderEventRenderer {
+
+	function details () {
+		return $this->message;
 	}
 
 }
@@ -207,10 +222,10 @@ class AuthedOrderEventRenderer extends TxnOrderEventRenderer {
 
 }
 
-class AuthFailOrderEventRenderer extends TxnFailOrderEventRenderer {
+class AuthFailOrderEventRenderer extends FailureOrderEventRender {
 
 	function name () {
-		return __('Authorized failed','Shopp');
+		return __('Authorization failed','Shopp');
 	}
 
 }
@@ -220,6 +235,18 @@ class CaptureOrderEventRenderer extends OrderEventRenderer {
 	function name () {
 		return __('Charge initiated','Shopp');
 	}
+
+	function details () {
+		$user = get_user_by('id',$this->user);
+
+		return sprintf('by <a href="%s">%s</a> (<a href="%s">%s</a>)',
+			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
+			"$user->user_firstname $user->user_lastname",
+			add_query_arg(array('user_id'=>$this->user),
+			admin_url('user-edit.php')),$user->user_login
+		);
+	}
+
 
 }
 
@@ -231,7 +258,7 @@ class CapturedOrderEventRenderer extends TxnOrderEventRenderer {
 
 }
 
-class CaptureFailOrderEventRenderer extends TxnFailOrderEventRenderer {
+class CaptureFailOrderEventRenderer extends FailureOrderEventRender {
 
 	function name () {
 		return __('Payment failed','Shopp');
@@ -244,6 +271,18 @@ class RefundOrderEventRenderer extends OrderEventRenderer {
 	function name () {
 		return __('Refund initiated','Shopp');
 	}
+
+	function details () {
+		$user = get_user_by('id',$this->user);
+
+		return sprintf('by <a href="%s">%s</a> (<a href="%s">%s</a>)',
+			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
+			"$user->user_firstname $user->user_lastname",
+			add_query_arg(array('user_id'=>$this->user),
+			admin_url('user-edit.php')),$user->user_login
+		);
+	}
+
 
 }
 
@@ -259,7 +298,7 @@ class RefundedOrderEventRenderer extends TxnOrderEventRenderer {
 
 }
 
-class RefundFailOrderEventRenderer extends TxnFailOrderEventRenderer {
+class RefundFailOrderEventRenderer extends FailureOrderEventRender {
 
 	function name () {
 		return __('Refund failed','Shopp');
@@ -277,20 +316,33 @@ class VoidOrderEventRenderer extends OrderEventRenderer {
 		return __('Order cancellation initiated','Shopp');
 	}
 
+	function details () {
+		$user = get_user_by('id',$this->user);
+
+		return sprintf('by <a href="%s">%s</a> (<a href="%s">%s</a>)',
+			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
+			"$user->user_firstname $user->user_lastname",
+			add_query_arg(array('user_id'=>$this->user),
+			admin_url('user-edit.php')),$user->user_login
+		);
+	}
+
 }
 
-class VoidedOrderEventRenderer extends TxnOrderEventRenderer {
+class VoidedOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
-		$Purchase = new Purchase($this->Event->order);
-		if ($Purchase->total == $this->amount)
-			return __('Order cancelled','Shopp');
-		else return __('Amount cancelled','Shopp');
+		return __('Order cancelled','Shopp');
 	}
 
-	function amount () {
-		return parent::amount();
+}
+
+class VoidFailOrderEventRenderer extends FailureOrderEventRender {
+
+	function name () {
+		return __('Order cancellation failed','Shopp');
 	}
+
 
 }
 
