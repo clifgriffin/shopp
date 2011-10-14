@@ -16,6 +16,7 @@ class Warehouse extends AdminController {
 	var $views = array('featured','published','onsale','bestselling','inventory','trash');
 	var $view = 'all';
 	var $worklist = array();
+	var $screen = 'toplevel_page_shopp-products';
 
 	/**
 	 * Store constructor
@@ -66,7 +67,7 @@ class Warehouse extends AdminController {
 		if ('inventory' == $this->view && 'on' == shopp_setting('inventory'))
 			do_action('shopp_inventory_manager_scripts');
 
-		add_action('load-toplevel_page_shopp-products',array(&$this,'workflow'));
+		add_action('load-'.$this->screen,array(&$this,'workflow'));
 		do_action('shopp_product_admin_scripts');
 
 		// Load the search model for indexing
@@ -228,7 +229,7 @@ class Warehouse extends AdminController {
 
 		$defaults = array(
 			'cat' => false,
-			'pagenum' => 1,
+			'paged' => 1,
 			'per_page' => 20,
 			's' => '',
 			'sl' => '',
@@ -241,6 +242,8 @@ class Warehouse extends AdminController {
 			'inventory_menu' => false,
 			'lowstock' => 0,
 			'columns' => '',
+			'orderby' => '',
+			'order' => '',
 			'where' => array(),
 			'joins' => array()
 		);
@@ -299,7 +302,7 @@ class Warehouse extends AdminController {
 
 		if ($is_inventory) $per_page = 50;
 
-		$pagenum = absint( $pagenum );
+		$pagenum = absint( $paged );
 		$start = ($per_page * ($pagenum-1));
 
 		if (!empty($s)) {
@@ -340,7 +343,16 @@ class Warehouse extends AdminController {
 		$ps = DatabaseObject::tablename(ProductSummary::$table);
 
 		$where = array_merge($where,$subs[$this->view]['where']);
-		$order = false;
+
+		$orderdirs = array('asc','desc');
+		if (in_array($order,$orderdirs)) $orderd = strtolower($order);
+		else $orderd = 'asc';
+		switch ($orderby) {
+			case 'name': $order = 'title'; if ('desc' == $orderd) $order = 'reverse'; break;
+			case 'price': $order = 'lowprice'; if ('desc' == $orderd) $order = 'highprice'; break;
+			case 'date': $order = 'newest'; if ('desc' == $orderd) $order = 'oldest'; break;
+		}
+
 		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
 
 		if (in_array($this->view,array('onsale','featured','inventory')))
@@ -425,18 +437,15 @@ class Warehouse extends AdminController {
 		}
 
 		$num_pages = ceil($Products->total / $per_page);
-		$page_links = paginate_links( array(
-			'base' => add_query_arg(array("edit"=>null,'pagenum' => '%#%')),
-			'format' => '',
-			'total' => $num_pages,
-			'current' => $pagenum,
-		));
+
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Products->total, $num_pages, $per_page );
 
 		$path = SHOPP_ADMIN_PATH."/products";
 		$ui = "products.php";
 		switch ($view) {
 			case 'inventory': if ('on' == shopp_setting('inventory')) $ui = "inventory.php"; break;
 		}
+
 		include("$path/$ui");
 	}
 
@@ -467,7 +476,7 @@ class Warehouse extends AdminController {
 				'cb'=>'<input type="checkbox" />',
 				'name'=>__('Name','Shopp'),
 				'sold'=>__('Sold','Shopp'),
-				'gross'=>__('Gross Sales','Shopp'),
+				'gross'=>__('Sales','Shopp'),
 				'price'=>__('Price','Shopp'),
 				'inventory'=>__('Inventory','Shopp'),
 				'featured'=>__('Featured','Shopp'),
@@ -483,7 +492,7 @@ class Warehouse extends AdminController {
 		// Remove category column from the "trash" view
 		if ('trash' == $this->view) unset($columns['category']);
 
-		register_column_headers('shopp_page_shopp-products', $columns);
+		ShoppUI::register_column_headers('toplevel_page_shopp-products', $columns);
 	}
 
 	/**
@@ -497,8 +506,7 @@ class Warehouse extends AdminController {
 	 * @return
 	 **/
 	function layout () {
-		global $Shopp;
-		$Admin =& $Shopp->Flow->Admin;
+		$Admin = $this->Admin;
 		include(SHOPP_ADMIN_PATH."/products/ui.php");
 	}
 

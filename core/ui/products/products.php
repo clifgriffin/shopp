@@ -19,8 +19,7 @@
 	</p>
 
 
-	<div class="tablenav">
-		<?php if ($page_links): ?><div class='tablenav-pages'><?php echo $page_links; ?></div><?php endif; ?>
+	<div class="tablenav top">
 
 		<div class="alignleft actions">
 		<select name="action" id="actions">
@@ -28,9 +27,7 @@
 			<?php echo menuoptions($actions_menu,false,true); ?>
 		</select>
 		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
-		</div>
-
-		<div class="alignleft filters">
+		&nbsp;
 		<?php echo $categories_menu; ?>
 		<?php echo $inventory_menu; ?>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
@@ -40,21 +37,24 @@
 			<input type="submit" name="delete_all" id="delete_all" class="button-secondary apply" value="<?php _e('Empty Trash','Shopp'); ?>"  />
 		</div>
 		<?php endif; ?>
-		<div class="clear"></div>
+
+		<?php $ListTable->pagination('top'); ?>
+
+		<br class="clear" />
 	</div>
 	<div class="clear"></div>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-products'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products'); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products',false); ?></tr>
 		</tfoot>
 	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
-		$hidden = get_hidden_columns('shopp_page_shopp-products');
+		$hidden = get_hidden_columns('toplevel_page_shopp-products');
 
 		$even = false;
 		foreach ($Products as $key => $Product):
@@ -178,9 +178,9 @@
 	<?php endif; ?>
 	</table>
 	</form>
-	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="clear"></div>
+	<div class="tablenav bottom">
+		<?php $ListTable->pagination( 'bottom' ); ?>
+		<br class="clear" />
 	</div>
 </div>
 

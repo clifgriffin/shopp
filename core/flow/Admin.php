@@ -969,5 +969,111 @@ class ShoppUI {
 		return preg_replace('/\${[-\w]+}/','',$ui);
 	}
 
+
+	/**
+	 * Register column headers for a particular screen.
+	 *
+	 * Compatibility function for Shopp list table views
+	 *
+	 * @since 1.2
+	 *
+	 * @param string $screen The handle for the screen to add help to. This is usually the hook name returned by the add_*_page() functions.
+	 * @param array $columns An array of columns with column IDs as the keys and translated column names as the values
+	 * @see get_column_headers(), print_column_headers(), get_hidden_columns()
+	 */
+	static function register_column_headers($screen, $columns) {
+		$wp_list_table = new ShoppAdminListTable($screen, $columns);
+	}
+
+	/**
+	 * Prints column headers for a particular screen.
+	 *
+	 * @since 1.2
+	 */
+	static function print_column_headers($screen, $id = true) {
+		$wp_list_table = new ShoppAdminListTable($screen);
+
+		$wp_list_table->print_column_headers($id);
+	}
+
+	static function table_set_pagination ($screen, $total_items, $total_pages, $per_page ) {
+		$wp_list_table = new ShoppAdminListTable($screen);
+
+		$wp_list_table->set_pagination_args( array(
+			'total_items' => $total_items,
+			'total_pages' => $total_pages,
+			'per_page' => $per_page
+		) );
+
+		return $wp_list_table;
+	}
+
+
 } // END class ShoppUI
+
+
+class ShoppAdminListTable extends WP_List_Table {
+	var $_screen;
+	var $_columns;
+	var $_sortable;
+
+	function __construct ( $screen, $columns = array()) {
+		if ( is_string( $screen ) )
+			$screen = convert_to_screen( $screen );
+
+		$this->_screen = $screen;
+
+		if ( !empty( $columns ) ) {
+			$this->_columns = $columns;
+			add_filter( 'manage_' . $screen->id . '_columns', array( &$this, 'get_columns' ), 0 );
+		}
+
+	}
+
+	function get_column_info() {
+		$columns = get_column_headers( $this->_screen );
+		$hidden = get_hidden_columns( $this->_screen );
+		$screen = get_current_screen();
+
+		$_sortable = apply_filters( "manage_{$screen->id}_sortable_columns", $this->get_sortable_columns() );
+
+		$sortable = array();
+		foreach ( $_sortable as $id => $data ) {
+			if ( empty( $data ) )
+				continue;
+
+			$data = (array) $data;
+			if ( !isset( $data[1] ) )
+				$data[1] = false;
+
+			$sortable[$id] = $data;
+		}
+
+
+		return array( $columns, $hidden, $sortable );
+	}
+
+	function get_columns() {
+		return $this->_columns;
+	}
+
+	function get_sortable_columns () {
+		$screen = get_current_screen();
+		$sortables = array(
+			'toplevel_page_shopp-products' => array(
+				'name'=>'name',
+				'price'=>'price',
+				'sold'=>'sold',
+				'gross'=>'gross',
+				'inventory'=>'inventory',
+				'sku'=>'sku',
+				'date'=>array('date',true)
+			)
+		);
+		if (isset($sortables[ $screen->id ])) return $sortables[ $screen->id ];
+
+		return array();
+	}
+
+}
 ?>
