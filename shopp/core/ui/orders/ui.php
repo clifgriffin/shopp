@@ -46,7 +46,7 @@ function manage_meta_box ($Purchase) {
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->void && $Gateway && $Gateway->refunds): ?>
+<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -90,7 +90,7 @@ function manage_meta_box ($Purchase) {
 	<div class="minor-publishing-actions headline">
 	<div class="misc-pub-section">
 	<?php
-		$controls = '<div class="alignright"><input type="submit" value="'.__('Print Order','Shopp').'" class="button" /></div>';
+		$controls = '<div class="alignright"><input type="submit" value="'.__('Print Order','Shopp').'" class="button hide-if-no-js" /></div>';
 		echo apply_filters('shopp_order_management_controls',$controls);
 	?>
 	</div>
