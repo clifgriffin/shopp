@@ -41,5 +41,94 @@ class CollectionDevAPITests extends ShoppTestCase
 			$this->AssertFalse( shopp_product_category($destroy) );
 		}
 	}
+
+	function test_shopp_product_categories() {
+		$cats = shopp_product_categories();
+		foreach ( $cats as $index => $Cat ) {
+			$this->AssertTrue( is_a($Cat, 'ProductCategory'));
+			$this->AssertEquals( $Cat->id, $index );
+		}
+
+		$cats = shopp_product_categories(array('index'=>'slug'));
+		foreach ( $cats as $index => $Cat ) {
+			$this->AssertTrue( is_a($Cat, 'ProductCategory'));
+			$this->AssertEquals( $Cat->slug, $index );
+		}
+
+		$cats = shopp_product_categories(array('index'=>'name'));
+		foreach ( $cats as $index => $Cat ) {
+			$this->AssertTrue( is_a($Cat, 'ProductCategory'));
+			$this->AssertEquals( $Cat->name, $index );
+		}
+
+		$cats = shopp_product_categories(array('load'=>array(), 'hide_empty'=>true));
+		foreach ( $cats as $index => $Cat ) {
+			$this->AssertTrue( is_a($Cat, 'ProductCategory'));
+			if ( $Cat->count ) $this->AssertTrue( ! empty($Cat->products) );
+			else $this->AssertTrue( empty($Cat->products) );
+		}
+
+	}
+
+	function test_shopp_product_tag() {
+		$Tag = shopp_product_tag('action');
+		$this->AssertEquals($Tag->name, 'action');
+		$this->AssertEquals($Tag->slug, 'action');
+		$this->AssertTrue( ! empty($Tag->products) );
+
+		$id = $Tag->id;
+		$Tag = shopp_product_tag($id);
+
+		$this->AssertEquals($Tag->name, 'action');
+		$this->AssertEquals($Tag->slug, 'action');
+		$this->AssertTrue( ! empty($Tag->products) );
+	}
+
+	function test_shopp_product_term () {
+		$Tag = shopp_product_tag('action');
+		$Term = shopp_product_term($Tag->id, ProductTag::$taxonomy);
+		$this->AssertEquals($Term->name, 'action');
+		$this->AssertEquals($Term->slug, 'action');
+		$this->AssertTrue( ! empty($Term->products) );
+
+		shopp_register_taxonomy('product_term_test');
+
+		$Product = shopp_add_product(array('name'=>'shopp_product_term_test', 'publish'=>array('flag'=>true)));
+		$term = shopp_add_product_term('shopp_product_term_test1', 'shopp_product_term_test');
+		shopp_product_add_terms ( $Product->id, $terms = array($term), 'shopp_product_term_test' );
+
+		$Term = shopp_product_term($term, 'shopp_product_term_test');
+		$this->AssertTrue(is_a($Term, 'ProductTaxonomy'));
+		$this->AssertEquals('shopp_product_term_test', $Term->taxonomy);
+		$this->AssertEquals(1, count($Term->products));
+		$this->AssertEquals('shopp_product_term_test', reset($Term->products)->name);
+	}
+
+	function test_shopp_product_tags() {
+		$tags = shopp_product_tags();
+		foreach ( $tags as $index => $ProductTag ) {
+			$this->AssertTrue( is_a($ProductTag, 'ProductTag'));
+			$this->AssertEquals( $ProductTag->id, $index );
+		}
+
+		$tags = shopp_product_tags(array('index'=>'slug'));
+		foreach ( $tags as $index => $ProductTag ) {
+			$this->AssertTrue( is_a($ProductTag, 'ProductTag'));
+			$this->AssertEquals( $ProductTag->slug, $index );
+		}
+
+		$tags = shopp_product_tags(array('index'=>'name'));
+		foreach ( $tags as $index => $ProductTag ) {
+			$this->AssertTrue( is_a($ProductTag, 'ProductTag'));
+			$this->AssertEquals( $ProductTag->name, $index );
+		}
+
+		$tags = shopp_product_tags(array('load'=>array(), 'hide_empty'=>true));
+		foreach ( $tags as $index => $ProductTag ) {
+			$this->AssertTrue( is_a($ProductTag, 'ProductTag'));
+			$this->AssertTrue( ! empty($ProductTag->products) );
+		}
+
+	}
 }
 ?>
