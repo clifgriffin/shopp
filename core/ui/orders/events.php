@@ -167,14 +167,14 @@ class TxnOrderEventRenderer extends OrderEventRenderer {
 	}
 
 	function details () {
-		if ('' == $this->paymethod.$this->payid.$this->txnid) return '';
+		$details = array();
 
 		if (isset($this->paymethod) && !empty($this->paymethod)) {
 			$payment = $this->paymethod;
 			if (!empty($this->payid)) $payment .= " ($this->paytype $this->payid)";
 			$details[] = $payment;
 		}
-		if (!empty($this->txnid))
+		if (isset($this->txnid) && !empty($this->txnid))
 			$details[] = sprintf(__('Transaction: %s','Shopp'),$this->txnid);
 
 		return join(' | ',$details);
