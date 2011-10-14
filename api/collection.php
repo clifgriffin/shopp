@@ -108,7 +108,7 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 }
 
 /**
- * shopp_product_category - returns a ProductCategory object
+ * shopp_product_category - get a ProductCategory object
  *
  * @author John Dillick
  * @since 1.2
@@ -150,6 +150,32 @@ function shopp_rmv_product_category ( $id = false ) {
 
 	return $Category->delete();
 }
+
+/**
+ * shopp_product_tag - get a ProductTag object
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param mixed $tag tag id or tag name
+ * @param array $options (optional) loading options
+ * @return bool|ProductTag returns false on error, ProductTag object on success
+ **/
+function shopp_product_tag ( $tag = false, $options = array() ) {
+	if ( ! $tag ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Tag id or string required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+
+	$tag = is_numeric($tag) ? (int) $tag : $tag;
+	$Tag = new ProductTag( $tag, is_string($tag) ? 'name' : 'id' );
+
+	if ( ! $Tag->id ) return false;
+
+	$Tag->load($options);
+	return $Tag;
+}
+
 
 /**
  * shopp_add_product_tag - add a product tag term.  If the tag already exists, will return the id of that tag.
@@ -239,6 +265,43 @@ function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category', $par
 }
 
 /**
+ * shopp_product_term - get a ProductTaxonomy object.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $term the term id
+ * @param string $taxonomy (optional default:shopp_category) the taxonomy name
+ * @param array $options (optional) loading options
+ * @return bool|ProductTaxonomy returns false on error, ProductTaxonomy object on success
+ **/
+function shopp_product_term ( $term = false, $taxonomy = 'shopp_category', $options = array() ) {
+	global $ShoppTaxonomies;
+
+	if ( ! $term ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Term id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+
+
+	if ( in_array( $taxonomy, array_keys($ShoppTaxonomies) ) ) { // Shopp ProductTaxonomy class type
+		$Term = new $ShoppTaxonomies[$taxonomy]($term);
+	} else {
+		$term = term_exists( $term, $taxonomy );
+		if ( ! is_array($term) ) return false;
+
+		$Term = new ProductTaxonomy;
+		$Term->taxonomy = $taxonomy;
+		$Term->load_term($term['term_id']);
+	}
+
+	if ( ! $Term->id ) return false;
+
+	$Term->load($options);
+	return $Term;
+}
+
+/**
  * shopp_rmv_product_term - remove a taxonomical term
  *
  * @author John Dillick
@@ -276,12 +339,29 @@ function shopp_product_categories ( $args = array() ) {
 	$args = wp_parse_args ( $args, $defaults );
 	$args['fields'] = 'ids';
 
+	// load options for ProductTag object
+	if ( isset($args['load']) ) {
+		if ( is_array($args['load']) ) $load = $args['load'];
+		unset($args['load']);
+	}
+
+	// index options
+	$index_options = array('id','name','slug');
+	$index = 'id';
+	if ( isset($args['index']) && in_array($args['index'], $index_options)) {
+		$index = $args['index'];
+		unset($args['index']);
+	}
+
+
 	$terms = get_terms( ProductCategory::$taxonomy, $args );
 	if ( ! is_array($terms) ) return false;
 
 	$categories = array();
 	foreach ( $terms as $term ) {
-		$categories[$term] = new ProductCategory($term);
+		$Cat = new ProductCategory($term);
+		$categories[$Cat->{$index}] = $Cat;
+		if ( isset($load) ) $categories[$Cat->{$index}]->load($load);
 	}
 	return $categories;
 }
@@ -301,12 +381,28 @@ function shopp_product_tags ( $args = array() ) {
 	$args = wp_parse_args ( $args, $defaults );
 	$args['fields'] = 'ids';
 
+	// load options for ProductTag object
+	if ( isset($args['load']) ) {
+		if ( is_array($args['load']) ) $load = $args['load'];
+		unset($args['load']);
+	}
+
+	// index options
+	$index_options = array('id','name','slug');
+	$index = 'id';
+	if ( isset($args['index']) && in_array($args['index'], $index_options)) {
+		$index = $args['index'];
+		unset($args['index']);
+	}
+
 	$terms = get_terms( ProductTag::$taxonomy, $args );
 	if ( ! is_array($terms) ) return false;
 
 	$tags = array();
 	foreach ( $terms as $term ) {
-		$tags[$term] = new ProductTag($term);
+		$Tag = new ProductTag($term);
+		$tags[$Tag->{$index}] = $Tag;
+		if ( isset($load) ) $tags[$Tag->{$index}]->load($load);
 	}
 
 	return $tags;
