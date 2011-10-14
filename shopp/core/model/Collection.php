@@ -40,6 +40,7 @@ class ProductCollection implements Iterator {
 			'joins' => array(),		// JOIN tables array('INNER JOIN table AS t ON p.id=t.column')
 			'where' => array(),		// WHERE query conditions array('x=y OR x=z','a!=b'…) (array elements are joined by AND
 			'groupby' => false,		// GROUP BY column (string) 'column'
+			'orderby' => false,		// ORDER BY columns ASC|DESC (string)
 			'having' => array(),	// HAVING filters
 			'limit' => false,		// Limit
 			'order' => false,		// ORDER BY columns or named methods (string)
@@ -80,35 +81,36 @@ class ProductCollection implements Iterator {
 		if (str_true($published)) $where[] = "p.post_status='publish'";
 
 		// Sort Order
-		$orderby = false;
-		$defaultOrder = shopp_setting('default_product_order');
-		if (empty($defaultOrder)) $defaultOrder = '';
-		$ordering = isset($Storefront->browsing['sortorder'])?
-						$Storefront->browsing['sortorder']:$defaultOrder;
-		if ($order !== false) $ordering = $order;
-		switch ($ordering) {
-			case 'bestselling': $orderby = "s.sold DESC,p.post_title ASC"; break;
-			case 'highprice': $orderby = "maxprice DESC,p.post_title ASC"; break;
-			case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
-			case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
-			case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
-			case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
-			case 'chaos': $orderby = "RAND(".time().")"; break;
-			case 'title':
-			default: $orderby = "p.post_title ASC";
-			// case 'recommended':
-			// default:
-				// Need to add the catalog table for access to category-product priorities
-				// if (!isset($this->smart)) {
-				// 	$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
-				// 	$order = "c.priority ASC,p.name ASC";
-				// } else $order = "p.name ASC";
-				// $orderby = "p.post_title ASC";
-				// break;
+		if (!$orderby) {
+			$defaultOrder = shopp_setting('default_product_order');
+			if (empty($defaultOrder)) $defaultOrder = '';
+			$ordering = isset($Storefront->browsing['sortorder'])?
+							$Storefront->browsing['sortorder']:$defaultOrder;
+			if ($order !== false) $ordering = $order;
+			switch ($ordering) {
+				case 'bestselling': $orderby = "s.sold DESC,p.post_title ASC"; break;
+				case 'highprice': $orderby = "maxprice DESC,p.post_title ASC"; break;
+				case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
+				case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
+				case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
+				case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
+				case 'chaos': $orderby = "RAND(".time().")"; break;
+				case 'reverse': $orderby = "p.post_title DESC";
+				case 'title':
+				default: $orderby = "p.post_title ASC";
+				// case 'recommended':
+				// default:
+					// Need to add the catalog table for access to category-product priorities
+					// if (!isset($this->smart)) {
+					// 	$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
+					// 	$order = "c.priority ASC,p.name ASC";
+					// } else $order = "p.name ASC";
+					// $orderby = "p.post_title ASC";
+					// break;
+			}
 		}
 
-		if (empty($orderby) && !empty($order)) $orderby = $order;
-		elseif (empty($orderby)) $orderby = "p.post_title ASC";
+		if (empty($orderby)) $orderby = 'p.post_title ASC';
 
 		// Pagination
 		if (empty($limit)) {
