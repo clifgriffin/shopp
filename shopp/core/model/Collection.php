@@ -95,7 +95,7 @@ class ProductCollection implements Iterator {
 				case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
 				case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
 				case 'chaos': $orderby = "RAND(".time().")"; break;
-				case 'reverse': $orderby = "p.post_title DESC";
+				case 'reverse': $orderby = "p.post_title DESC"; break;
 				case 'title':
 				default: $orderby = "p.post_title ASC";
 				// case 'recommended':
