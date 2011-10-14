@@ -17,6 +17,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	// Settings
 	var $secure = false;
+	var $recurring = true;
 
 	// URLs
 	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
@@ -422,8 +423,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 	}
 
-	function send ($message) {
-		return parent::send($message,$this->url());
+	function send ($data, $url=false, $deprecated=false, $options = array()) {
+		return parent::send($data,$this->url());
 	}
 
 	function settings () {
