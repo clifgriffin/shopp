@@ -484,9 +484,10 @@ class ShoppInstallation extends FlowController {
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
-		if ($db_version <= 1137) {
+		if ($db_version <= 1140) {
 			$summary_table = DatabaseObject::tablename('summary');
-			DB::query("UPDATE $summary_table SET modified=0");
+			// Force summaries to rebuild
+			DB::query("UPDATE $summary_table SET modified='0000-00-00 00:00:01'");
 		}
 
 		if ($db_version <= 1130) {
