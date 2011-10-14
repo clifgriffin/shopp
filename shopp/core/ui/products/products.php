@@ -190,6 +190,8 @@ jQuery(document).ready( function() {
 	var $=jqnc(),
 		featureurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_feature_product'); ?>';
 
+	$('input.current-page').unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });
+
 	$('#selectall').change( function() {
 		$('#products th input').each( function () {
 			if (this.checked) this.checked = false;
@@ -220,7 +222,7 @@ jQuery(document).ready( function() {
 		});
 	});
 
-	pagenow = 'shopp_page_shopp-products';
+	pagenow = 'toplevel_page_shopp-products';
 	columns.init(pagenow);
 
 });
