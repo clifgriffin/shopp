@@ -64,6 +64,7 @@ abstract class GatewayFramework {
 	// Supported features
 	var $cards = false;			// A list of supported payment cards
 	var $captures = false;		// Supports capture separate of authorization
+	var $recurring = false;		// Supports recurring billing
 	var $refunds = false;		// Remote refund support flag
 
 	// Config settings
@@ -159,6 +160,15 @@ abstract class GatewayFramework {
 		return mktime();
 	}
 
+	function captured ($Order) {
+		shopp_add_order_event($Order->id,'captured',array(
+			'txnid' => $Order->txnid,				// Can be either the original transaction ID or an ID for this transaction
+			'amount' => $Order->total,				// Capture of entire order amount
+			'fees' => $Order->fees,					// Order Fees
+			'gateway' => $Order->gateway			// Gateway handler name (module name from @subpackage)
+		));
+	}
+
 	/**
 	 * Generic connection manager for sending data
 	 *
@@ -171,7 +181,7 @@ abstract class GatewayFramework {
 	 * @param array $options
 	 * @return string Raw response
 	 **/
-	function send ($data, $url, $deprecated=false, $options = array()) {
+	function send ($data, $url = false, $deprecated = false, $options = array()) {
 
 		$defaults = array(
 			'method' => 'POST',
@@ -223,20 +233,8 @@ abstract class GatewayFramework {
 	 * @return string
 	 **/
 	function encode ($data) {
-		$query = "";
 		$data = stripslashes_deep($data);
-		foreach($data as $key => $value) {
-			if (is_array($value)) {
-				foreach($value as $item) {
-					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode($item);
-				}
-			} else {
-				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode($value);
-			}
-		}
-		return $query;
+		return http_build_query($data);
 	}
 
 	/**
@@ -318,10 +316,13 @@ abstract class GatewayFramework {
 
 	function cancelorder (RefundedOrderEvent $Refunded) {
 		$order = $Refunded->order;
+		$Purchase = new Purchase($order);
+		if ($Refunded->amount != $Purchase->total) return;
+
+		// If not a partial refund, cancel the remaining balance
 		shopp_add_order_event($order,'voided',array(
 			'txnorigin' => $Refunded->txnid,
 			'txnid' => '',
-			'amount' => $Refunded->amount,
 			'gateway' => $this->module
 		));
 	}

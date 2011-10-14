@@ -59,14 +59,18 @@
 		<?php
 			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
 
+			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
+
 			$even = false; foreach ($Orders as $Order):
 
 			$classes = array();
 
-			$txnstatus = $Order->txnstatus;
-			if (array_key_exists($Order->txnstatus,$txnStatusLabels)) $txnstatus = $txnStatusLabels[$Order->txnstatus];
-			if (empty($txnstatus)) $txnstatus = "UNKNOWN";
-			$classes[] = strtolower(preg_replace('/[^\w]/','_',$txnstatus));
+			$viewurl = add_query_arg('id',$Order->id,$url);
+			$customer = '' == trim($Order->firstname.$Order->lastname) ? "(".__('no contact name','Shopp').")" : "{$Order->firstname} {$Order->lastname}";
+			$customerurl = add_query_arg('customer',$Order->customer,$url);
+
+			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
+			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
 
 			if (!$even) $classes[] = "alternate";
 			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
@@ -74,8 +78,8 @@
 			?>
 		<tr class="<?php echo join(' ',$classes); ?>">
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
-			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='<?php echo esc_url(add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),admin_url('admin.php'))); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo esc_html(empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
+			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php printf(__('View Order #%d','Shopp'),$Order->id); ?>'><?php printf(__('Order #%d','Shopp'),$Order->id); ?></a></td>
+			<td class="name column-name"><a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
 			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php
 				$location = '';
 				$location = $Order->shipcity;
@@ -87,7 +91,7 @@
 				echo esc_html($location);
 				if (isset($Order->downloads)) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
 				?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>
+			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <span class="status"><?php echo $txnstatus; ?></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
 				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
 			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>

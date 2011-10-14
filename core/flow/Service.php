@@ -125,12 +125,7 @@ class Service extends AdminController {
 
 		$statusLabels = shopp_setting('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
-		$txnStatusLabels = array(
-			'PENDING' => __('Pending','Shopp'),
-			'CHARGED' => __('Charged','Shopp'),
-			'REFUNDED' => __('Refunded','Shopp'),
-			'VOID' => __('Void','Shopp')
-			);
+		$txnstatus_labels = Lookup::txnstatus_labels();
 
 		if ($update == "order"
 						&& !empty($selected)
@@ -377,7 +372,7 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
-		if (isset($_POST['process-refund'])) {
+		if (isset($_POST['order-action']) && 'refund' == $_POST['order-action']) {
 			// unset($_POST['refund-order']);
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
@@ -398,17 +393,15 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
-		if (isset($_POST['cancel-order'])) {
+		if (isset($_POST['order-action']) && 'cancel' == $_POST['order-action']) {
 			// unset($_POST['refund-order']);
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
-			$amount = floatvalue($_POST['amount']);
 
 			// @todo add checks for shopp_refunds capability
 			shopp_add_order_event($Purchase->id,'void',array(
 				'txnid' => $Purchase->txnid,
 				'gateway' => $Gateway->module,
-				'amount' => $amount,
 				'reason' => $reason,
 				'user' => $user->ID
 			));

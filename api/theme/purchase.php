@@ -370,7 +370,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	function last_name ($result, $options, $O) { return esc_html($O->lastname); }
 
-	function not_paid ($result, $options, $O) { return ($O->txnstatus != "CHARGED"); }
+	function not_paid ($result, $options, $O) { return ('captured' != $O->txnstatus); }
 
 	function order_data ($result, $options, $O) {
 		if (!isset($O->_data_loop)) {
@@ -385,10 +385,10 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function paid ($result, $options, $O) { return ($O->txnstatus == "CHARGED"); }
+	function paid ($result, $options, $O) { return ('captured' == $O->txnstatus); }
 
 	function payment ($result, $options, $O) {
-		$labels = Lookup::payment_status_labels();
+		$labels = Lookup::txnstatus_labels();
 		return isset($labels[$O->txnstatus])?$labels[$O->txnstatus]:$O->txnstatus;
 	}
 

@@ -738,6 +738,19 @@ class Lookup {
 		return apply_filters('shopp_payment_status_labels',$_);
 	}
 
+	static function txnstatus_labels () {
+		$_ = array(
+			'review' => __('Review','Shopp'),
+			'authed' => __('Authorized','Shopp'),
+			'captured' => __('Paid','Shopp'),
+			'shipped' => __('Shipped','Shopp'),
+			'refunded' => __('Refunded','Shopp'),
+			'voided' => __('Void','Shopp'),
+			'closed' => __('Closed','Shopp')
+		);
+		return apply_filters('shopp_txnstatus_labels',$_);
+	}
+
 	/**
 	 * A list of stop words to be excluded from search indexes
 	 *

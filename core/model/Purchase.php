@@ -17,12 +17,11 @@ class Purchase extends DatabaseObject {
 	var $columns = array();
 	var $downloads = false;
 
-
 	// Balances
 	var $authorized = false;	// Amount authorized
 	var $captured = false;		// Amount captured
-	var $void = false;			// Amount voided
 	var $refunded = false;		// Amount refunded
+	var $voided = false;		// Order cancelled prior to capture
 	var $balance = 0;			// Current balance
 
 	var $shipable = false;
@@ -61,15 +60,18 @@ class Purchase extends DatabaseObject {
 		foreach ($this->events as $Event) {
 			switch ($Event->name) {
 				case 'authed': $this->authorized += $Event->amount; break;
-				case 'captured': $this->captured = $Event->amount; break;
-				case 'refunded': $this->refunded = $Event->amount; break;
-				case 'voided': $this->voided = $Event->amount; break;
+				case 'captured': $this->captured += $Event->amount; break;
+				case 'refunded': $this->refunded += $Event->amount; break;
+				case 'voided': $this->voided = true; $Event->amount = $this->balance; $Event->credit = true;  break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
-			if ($Event->transactional) $this->txnevent = $Event;
+			if (isset($Event->transactional)) {
+				$this->txnevent = $Event;
 
-			if ($Event->credit) $this->balance -= $Event->amount;
-			elseif ($Event->debit) $this->balance += $Event->amount;
+				if ($Event->credit) $this->balance -= $Event->amount;
+				elseif ($Event->debit) $this->balance += $Event->amount;
+			}
+
 		}
 
 		// Legacy support - @todo Remove in 1.3

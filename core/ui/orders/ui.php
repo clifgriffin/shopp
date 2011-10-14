@@ -53,7 +53,7 @@ function manage_meta_box ($Purchase) {
 	<div class="refunding">
 		<h4><big>${title}</big></h4>
 		An email will be sent to notify the customer.
-		<input type="hidden" name="refund-order" value="send" />
+		<input type="hidden" name="order-action" value="${action}" />
 
 		<div><label for="message"><?php _e('Message to the customer','Shopp'); ?></label>
 			<textarea name="message" id="message" cols="50" rows="7" ></textarea></div>
@@ -152,6 +152,7 @@ function manage_meta_box ($Purchase) {
 
 			if ('refund-order' == $action) {
 				$data = array(
+					'${action}' => 'refund',
 					'${title}' => __('Refund Order','Shopp'),
 					'${reason}' => __('Reason for refund','Shopp'),
 					'${cancel}' => __('Cancel Refund','Shopp'),
@@ -160,6 +161,7 @@ function manage_meta_box ($Purchase) {
 
 				if (isset($_POST['cancel-order'])) {
 					$data = array(
+						'${action}' => 'cancel',
 						'${disable_amount}' =>  ' disabled="disabled"',
 						'${title}' => __('Cancel Order','Shopp'),
 						'${reason}' => __('Reason for cancellation','Shopp'),
@@ -173,9 +175,9 @@ function manage_meta_box ($Purchase) {
 		?>
 	</div>
 </div>
-<?php if (!($Purchase->void && $Purchase->refunded)): ?>
+<?php if (!($Purchase->voided && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->void && $Gateway && $Gateway->refunds): ?>
+		<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
 		<div class="alignleft">
 			<?php if (!$Purchase->captured): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />
@@ -262,7 +264,7 @@ function contact_meta_box ($Purchase) {
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
-add_meta_box('order-contact', __('Customer Contact','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+add_meta_box('order-contact', __('Customer','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
 	$_[] = '<ul>';
