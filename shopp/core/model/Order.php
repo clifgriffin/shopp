@@ -97,6 +97,7 @@ class Order {
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
+
 		add_action('shopp_process_order', array($this,'validate'),7);
 		add_action('shopp_process_order', array($this,'process'),100);
 
@@ -764,7 +765,7 @@ class Order {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function process () {
 
@@ -776,6 +777,7 @@ class Order {
 			'gateway' => $this->processor(),
 			'amount' => $this->Cart->Totals->total
 		));
+
 	}
 
 	/**
