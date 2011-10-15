@@ -48,6 +48,7 @@ jQuery(document).ready( function($) {
 				country_zones = zones[$this.val()] ? zones[$this.val()] : false;
 
 			if (country_zones != false) {
+				options += '<option value=""></option>';
 				$.each(country_zones,function(value,label) {
 					options += '<option value="'+value+'">'+label+'</option>';
 				});
