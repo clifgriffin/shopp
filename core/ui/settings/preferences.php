@@ -8,10 +8,10 @@
 	<?php ob_start(); ?>
 	<li id="status-${id}">
 		<span>
-		<input type="text" name="settings[order_status][${id}]" id="label-${id}" size="14" value="${label}" /><button type="button" class="delete">
+		<input type="text" name="settings[order_status][${id}]" id="status-${id}" size="14" value="${label}" /><button type="button" class="delete">
 			<img src="<?php echo SHOPP_ICONS_URI; ?>/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />
 		</button>
-		<select name="settings[order_states][${id}]">
+		<select name="settings[order_states][${id}]" id="state-${id}">
 		<?php echo menuoptions($states,'',true); ?>
 		</select>
 		<button type="button" class="add">
@@ -25,7 +25,7 @@
 	<script id="reasonLabel" type="text/x-jquery-tmpl">
 	<li id="status-${id}">
 		<span>
-		<input type="text" name="settings[cancel_reasons][${id}]" id="label-${id}" size="40" value="${label}" /><button type="button" class="delete">
+		<input type="text" name="settings[cancel_reasons][${id}]" id="reason-${id}" size="40" value="${label}" /><button type="button" class="delete">
 			<img src="<?php echo SHOPP_ICONS_URI; ?>/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />
 		</button><button type="button" class="add">
 			<img src="<?php echo SHOPP_ICONS_URI; ?>/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />
@@ -137,10 +137,13 @@ jQuery(document).ready(function ($) {
 	var labels = <?php echo json_encode($statusLabels); ?>,
 		states = <?php echo json_encode($statesLabels); ?>,
 		reasons = <?php echo json_encode($reasonLabels); ?>;
-	$('#order-statuslabels').labelset(labels,'#statusLabel'); 
-	jQuery("#order-statuslabels select").each(function(i){
-		if(states[i] != undefined)
-			jQuery(this).find("option[value="+states[i]+"]").attr("selected", "selected");
+	$('#order-statuslabels').labelset(labels,'#statusLabel');
+	$("#order-statuslabels select").each(function(i,menu){
+		var menuid = $(menu).attr('id'),
+			id = menuid.substr(menuid.indexOf('-')+1);
+
+		if(states[id] != undefined)
+			$(this).find("option[value="+states[id]+"]").attr("selected", "selected");
 	});
 	$('#order-cancelreasons').labelset(reasons,'#reasonLabel');
 });

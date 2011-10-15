@@ -11,7 +11,8 @@ jQuery.fn.labelset = function (labels,template) {
 				if (confirm($sl.prompt)) ui.fadeOut('fast',function () { ui.remove(); });
 			}),
 			addButton = ui.find('button.add').click(function () {
-				$this.addLabel(null,'#'+ui.attr('id')).slideDown();
+				var id = $this.find('li').size();
+				$this.addLabel(id,'#'+ui.attr('id')).slideDown();
 			}),
 			wrap = ui.hover(function() {
 				if (id == 0) return;
