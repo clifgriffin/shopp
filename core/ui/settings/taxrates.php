@@ -193,7 +193,7 @@
 						'${id}' => $edit,
 						'${rate}' => $rate,
 						'${countries}' => menuoptions($countries,$country,true),
-						'${zones}' => !empty($zones[$country])?menuoptions($zones[$country],$zone,true):'',
+						'${zones}' => !empty($zones[$country])?menuoptions(array_merge(array(''=>''),$zones[$country]),$zone,true):'',
 						'${conditions}' => join('',$conditions),
 						'${haslocals}' => $haslocals,
 						'${localrates}' => join('',$localrates),
