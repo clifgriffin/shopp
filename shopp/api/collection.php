@@ -213,15 +213,13 @@ function shopp_rmv_product_tag ( $tag = '' ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Tag name or id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	if ( is_numeric($tag) ) $id = $tag;
-	else $name = $tag;
 
-	if ($name) $Tag = new ProductTag( array('name'=>$name ) );
-	else $Tag = new ProductTag($id);
+	$tag = is_numeric($tag) ? (int) $tag : $tag;
+	$Tag = new ProductTag( $tag, is_string($tag) ? 'name' : 'id' );
 
 	if ( empty($Tag->id) ) return false;
 
-	$success = shopp_rmv_meta ( $id, 'tag' );
+	$success = shopp_rmv_meta ( $Tag->id, 'tag' );
 	return $success && $Tag->delete();
 }
 
