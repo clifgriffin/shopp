@@ -20,8 +20,11 @@ jQuery(document).ready( function($) {
 			var $this = $(this),
 				row = $this.parents('tr').hide(),
 				selected = menu.val().toLowerCase(),
-				id = row.size() > 0?row.attr('id').substr(16):selected,
-				ui = $.tmpl(id+'-editor'),
+				id = $this.attr('href')?$this.attr('href').split('&')[1].split('=')[1].toLowerCase().split('-'):false,
+				gateway = id[0]?id[0]:selected,
+				instance = id[1]?id[1]:false,
+				data = $ps[gateway] && $ps[gateway][instance]? $.extend($ps[gateway][instance],{instance:instance}):{},
+				ui = $.tmpl(gateway+'-editor',data),
 				cancel = ui.find('a.cancel'),
 				selectall = ui.find('input.selectall-toggle').change(function (e) {
 					var $this = $(this),

@@ -158,21 +158,34 @@ class Order {
 	 **/
 	function payoptions () {
 		global $Shopp;
+		$Gateways = $Shopp->Gateways;
 		$accepted = array();
-
 		$options = array();
-		foreach ($Shopp->Gateways->active as $gateway) {
-			$labels = is_array($gateway->settings['label'])?$gateway->settings['label']:array($gateway->settings['label']);
-			$accepted = array_merge($accepted,$gateway->cards());
-			foreach ($labels as $method) {
-				$_ = new StdClass();
-				$_->label = $method;
-				$_->processor = $gateway->module;
-				$_->cards = array_keys($gateway->cards());
-				$handle = sanitize_title_with_dashes($method);
-				$options[$handle] = $_;
-			}
+
+		$gateways = explode(",",shopp_setting('active_gateways'));
+
+		foreach ($gateways as $gateway) {
+			$id  = false;
+			if (false !== strpos($gateway,'-')) list($module,$id) = explode('-',$gateway);
+			else $module = $gateway;
+			if (!isset($Gateways->active[ $module ])) continue;
+			$Gateway = $Gateways->active[ $module ];
+			$settings = $Gateway->settings;
+
+			if ( false !== $id && isset($Gateway->settings[$id]) )
+				$settings = $Gateway->settings[$id];
+
+			$accepted = array_merge($accepted,$Gateway->cards());
+
+			$_ = new StdClass();
+			$_->label = $settings['label'];
+			$_->processor = $Gateway->module;
+			$_->setting = $gateway;
+			$_->cards = array_keys($Gateway->cards());
+			$handle = sanitize_title_with_dashes($_->label);
+			$options[$handle] = $_;
 		}
+
 		$this->paycards = $accepted;
 		$this->payoptions = $options;
 	}
@@ -349,6 +362,9 @@ class Order {
 			if (!empty($_POST['shipmethod'])) $this->Shipping->method = $_POST['shipmethod'];
 			else $this->Shipping->method = key($this->Cart->shipping);
 
+			if (isset($this->Cart->shipping[$this->Shipping->method]))
+				$this->Shipping->option = $this->Cart->shipping[$this->Shipping->method]->name;
+
 			// Override posted shipping updates with billing address
 			if ( isset($_POST['sameshipaddress']) ) {
 				if ( $this->sameship = ( 'on' == $_POST['sameshipaddress'] ) ) {
@@ -409,6 +425,9 @@ class Order {
 				$this->Shipping = new ShippingAddress();
 
 		if ($_POST['shipmethod'] == $this->Shipping->method) return;
+
+		// Verify shipping method exists first
+		if ( !isset($this->Cart->shipping[ $_POST['shipmethod'] ]) ) return;
 
 		$this->Shipping->method = $_POST['shipmethod'];
 		$this->Cart->retotal = true;
@@ -484,7 +503,6 @@ class Order {
 		$this->txnid = $Auth->txnid;
 		$this->txnstatus = $Auth->name;
 		$this->gateway = $Auth->gateway;
-		$this->fees = $this->fees;
 
 		// Lock for concurrency protection
 		$this->lock();
@@ -865,8 +883,11 @@ class Order {
 
 		if (isset($_POST['loginname'])) {
 			require(ABSPATH."/wp-includes/registration.php");
-			if (apply_filters('shopp_login_valid',(!validate_username($_POST['loginname']))))
-				return new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'cart_validation');
+			if (apply_filters('shopp_login_valid',(!validate_username($_POST['loginname'])))) {
+				$sanitized = sanitize_user( $_POST['loginname'], true );
+				$illegal = array_diff(str_split($_POST['loginname']),str_split($sanitized));
+				return new ShoppError(sprintf(__('The login name provided includes invalid characters: %s','Shopp'),esc_html(join(' ',$illegal))),'cart_validation');
+			}
 
 			if (apply_filters('shopp_login_exists',username_exists($_POST['loginname'])))
 				return new ShoppError(__('The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');

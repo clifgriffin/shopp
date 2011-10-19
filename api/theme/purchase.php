@@ -65,9 +65,11 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'orderdata' => 'order_data',
 		'paid' => 'paid',
 		'payment' => 'payment',
+		'paymethod' => 'paymethod',
 		'phone' => 'phone',
 		'postcode' => 'postcode',
 		'promolist' => 'promo_list',
+		'gateway' => 'gateway',
 		'receipt' => 'receipt',
 		'shipaddress' => 'ship_address',
 		'shipcity' => 'ship_city',
@@ -144,6 +146,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	function first_name ($result, $options, $O) { return esc_html($O->firstname); }
 
 	function freight ($result, $options, $O) { return money($O->freight); }
+
+	function gateway ($result, $options, $O) { return $O->gateway; }
 
 	function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
@@ -391,6 +395,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$labels = Lookup::txnstatus_labels();
 		return isset($labels[$O->txnstatus])?$labels[$O->txnstatus]:$O->txnstatus;
 	}
+
+	function paymethod ($result, $options, $O) { return $O->paymethod; }
 
 	function phone ($result, $options, $O) { return esc_html($O->phone); }
 

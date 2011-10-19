@@ -100,6 +100,7 @@ abstract class GatewayFramework {
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
 		$this->settings = shopp_setting($this->module);
+
 		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
 
@@ -368,9 +369,13 @@ abstract class GatewayFramework {
 		$this->ui->template();
 	}
 
-	function ui () {
-		$editor = $this->ui->generate();
-		foreach ($this->settings as $name => $value)
+	function ui ($id=false) {
+		$editor = $this->ui->generate($id);
+		$settings = $this->settings;
+		if (false !== $id && isset($this->settings[$id]))
+			$settings = $this->settings[$id];
+
+		foreach ((array)$settings as $name => $value)
 			$data['{$'.$name.'}'] = $value;
 
 		return str_replace(array_keys($data),$data,$editor);
@@ -428,10 +433,12 @@ class GatewayModules extends ModuleLoader {
 		global $Shopp;
 		$this->activated = array();
 		$gateways = explode(",",shopp_setting('active_gateways'));
-		foreach ($this->modules as $gateway)
-			if (in_array($gateway->subpackage,$gateways))
-				$this->activated[] = $gateway->subpackage;
-
+		$modules = array_keys($this->modules);
+		foreach ($gateways as $gateway) {
+			if (false !== strpos($gateway,'-')) list($gateway,$id) = explode('-',$gateway);
+			if (in_array($gateway,$modules) && !in_array($gateway,$this->activated))
+				$this->activated[] = $this->modules[$gateway]->subpackage;
+		}
 		return $this->activated;
 	}
 
@@ -498,14 +505,31 @@ class GatewayModules extends ModuleLoader {
 
 class GatewaySettingsUI extends ModuleSettingsUI {
 
-	function generate () {
+	var $multi = false;
+	var $instance = false;
+
+	function __construct ($Module,$name) {
+		parent::__construct($Module,$name);
+		if ($Module->multi) {
+			$this->multi = true;
+			shopp_custom_script('payments', '$ps[\''.strtolower($Module->module).'\'] = '.json_encode($Module->settings).";\n");
+		}
+	}
+
+	function generate ($id=false) {
+		$instance = false;
+		$label = $this->label;
+		if ($this->multi) {
+			$instance = '[${instance}]';
+			$label = '${label}';
+		}
 
 		$_ = array();
-		$_[] = '<tr class="${editing_class}"><td colspan="5">';
+		$_[] = '<tr class="${editing_class}"><td colspan="7">';
 		$_[] = '<table class="form-table shopp-settings"><tr>';
-		$_[] = '<th scope="row" colspan="4">'.$this->name.'<input type="hidden" name="gateway" value="'.$this->module.'" /></th>';
+		$_[] = '<th scope="row" colspan="4">'.$this->name.'<input type="hidden" name="gateway" value="'.$this->module.$instance.'" /></th>';
 		$_[] = '</tr><tr>';
-		$_[] = '<td><input type="text" name="settings['.$this->module.'][label]" value="'.$this->label.'" id="'.$this->id.'-label" size="16" class="selectall" /><br />';
+		$_[] = '<td><input type="text" name="settings['.$this->module.']'.$instance.'[label]" value="'.$label.'" id="'.$this->id.'-label" size="16" class="selectall" /><br />';
 		$_[] = '<label for="'.$this->id.'-label">'.__('Option Name','Shopp').'</label></td>';
 
 		foreach ($this->markup as $markup) {
@@ -544,6 +568,24 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 		$options = array();
 		foreach ($cards as $card) $options[strtolower($card->symbol)] = $card->name;
 		$this->multimenu($column,$attributes,$options);
+	}
+
+	function input ($column=0,$attributes=array()) {
+		$this->multifield($attributes);
+		parent::input($column,$attributes);
+	}
+
+	function textarea ($column=0,$attributes=array()) {
+		$this->multifield($attributes);
+		parent::textarea($column,$attributes);
+	}
+
+	function multifield (&$attributes) {
+		if ($this->multi) {
+			$attributes['value'] = '${'.$attributes['name'].'}';
+			$attributes['name'] = '${instance}]['.$attributes['name'];
+		}
+		return $attributes;
 	}
 
 }

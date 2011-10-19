@@ -299,29 +299,6 @@ function history_meta_box ($Purchase) {
 if (count($Shopp->Purchase->events) > 0)
 	add_meta_box('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
-function shipping_meta_box ($Purchase) {
-?>
-<?php
-	if (!empty($Purchase->carrier)) {
-		echo '<p><strong>';
-		_e('Ship via','Shopp');
-		echo '</strong> '.$Purchase->carrier;
-		echo "($Purchase->shipmethod)</p>";
-?>
-	<p><span><input type="text" id="shiptrack" name="shiptrack" size="30" value="<?php echo $Purchase->shiptrack; ?>" /><br /><label for="shiptrack"><?php _e('Tracking ID','Shopp')?></label></span></p>
-
-<?php
-	} else {
-		echo '<p><strong>';
-		_e('Shipping Method','Shopp');
-		echo ':</strong> '.$Purchase->shipmethod.'</p>';
-	}
-?>
-<?php
-}
-// if (!empty($Shopp->Purchase->shipmethod))
-// 	add_meta_box('order-shipping', __('Shipping','Shopp').$Admin->boxhelp('order-manager-shipping'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-
 function downloads_meta_box ($Purchase) {
 ?>
 	<ul>

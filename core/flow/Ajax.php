@@ -706,6 +706,7 @@ class AjaxFlow {
 		exit();
 	}
 
+	// @todo Investigate if it is possible to inject a formatted error log message as an XSS vector
 	function logviewer () {
 		check_admin_referer('wp_ajax_shopp_debuglog'); ?>
 		<html>

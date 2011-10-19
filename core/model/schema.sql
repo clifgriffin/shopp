@@ -188,9 +188,9 @@ CREATE TABLE <?php echo $purchase; ?> (							-- Purchase log
 	txnid varchar(64) NOT NULL default '',						-- Transaction ID
 	txnstatus varchar(64) NOT NULL default '',					-- Transaction Status
 	gateway varchar(64) NOT NULL default '',					-- Payment gateway used
-	carrier varchar(100) NOT NULL default '',					-- Shipping carrier used
+	paymethod varchar(100) NOT NULL default '',					-- Payment option selected
 	shipmethod varchar(100) NOT NULL default '',				-- Shipping method selected
-	shiptrack varchar(100) NOT NULL default '',					-- Shipment tracking ID
+	shipoption varchar(100) NOT NULL default '',				-- Shipping method label
 	status tinyint(3) unsigned NOT NULL default '0',			-- Order fulfillment status
 	data longtext NOT NULL,										-- Order data blob
 	secured text NOT NULL,										-- Secured data blob

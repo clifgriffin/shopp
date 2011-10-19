@@ -28,7 +28,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	 **/
 	function __construct () {
 		parent::__construct();
-		$this->setup('instructions');
+		// $this->setup('instructions');
 
 		// Reset the index count to shift setting indices so we don't break the JS environment
 		if (isset($this->settings['label']) && is_array($this->settings['label']))
@@ -44,12 +44,11 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		}
 
 		add_filter('shopp_themeapi_checkout_offlineinstructions',array(&$this,'tag_instructions'),10,2);
-		add_filter('shopp_payment_methods',array(&$this,'methods'));
 	}
 
 	function actions () {
 		add_action('shopp_process_order',array(&$this,'process'));
-		add_action('shopp_save_payment_settings',array(&$this,'reset'));
+		// add_action('shopp_save_payment_settings',array(&$this,'reset'));
 	}
 
 	/**
@@ -98,10 +97,21 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_offline_payment_instructions', 'wptexturize');
 		add_filter('shopp_offline_payment_instructions', 'convert_chars');
 		add_filter('shopp_offline_payment_instructions', 'wpautop');
-		
-		if(!empty($this->settings["instructions"]))
-			return apply_filters('shopp_offline_payment_instructions', $this->settings["instructions"]);
-			
+
+		$paymethod = shopp('purchase','get-paymethod');
+		$Order = ShoppOrder();
+		if ( ! isset($Order->payoptions[ $paymethod ]) ) return;
+
+		$method = $Order->payoptions[ $paymethod ]->setting;
+		list($module,$id) = explode('-',$method);
+
+		if ( ! isset($this->settings[$id]) ) return;
+
+		$settings = $this->settings[$id];
+
+		if(!empty($settings['instructions']))
+			return apply_filters('shopp_offline_payment_instructions', $settings['instructions']);
+
 		return false;
 	}
 

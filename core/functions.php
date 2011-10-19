@@ -440,6 +440,19 @@ function date_format_order ($fields=false) {
 	return $_;
 }
 
+function debug_caller () {
+	$backtrace  = debug_backtrace();
+	$stack = array();
+
+	foreach ( $backtrace as $caller )
+		$stack[] = isset( $caller['class'] ) ?
+			"{$caller['class']}->{$caller['function']}"
+			: $caller['function'];
+
+	return join( ', ', $stack );
+
+}
+
 /**
  * Returns the duration (in days) between two timestamps
  *
