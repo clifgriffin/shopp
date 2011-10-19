@@ -230,6 +230,8 @@ class Service extends AdminController {
 		$selected = shopp_setting('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
+		$Gateways = $Shopp->Gateways->modules;
+
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}
 
@@ -449,8 +451,7 @@ class Service extends AdminController {
 		}
 		unset($carrierdata);
 
-		$shipping_method = $Purchase->shipmethod;
-		if (!empty($Purchase->carrier)) $shipping_method = "$Purchase->shipmethod - $Purchase->carrier";
+		$shipping_method = $Purchase->shipoption;
 
 		if (empty($statusLabels)) $statusLabels = array('');
 
