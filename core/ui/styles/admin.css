@@ -431,6 +431,11 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .scalecrop .slideball { background:url('../icons/ball.png') no-repeat;width:16px;height:16px;top:-4px; }
 
 /** Order Management **/
+
+.orders.list .status { font-weight: bold; }
+.orders.list .voided .order,
+.orders.list .voided .total { text-decoration: line-through; }
+
 #order { position:relative; }
 #order .title { margin: 1em 0; line-height: 140%; }
 #order address { font-style:normal; }
@@ -504,35 +509,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
 
-/** Tax Rates **/
-#taxrates .column-local,
-#taxrates .column-conditional { text-align: center; width: 100px; }
-
-#taxrate-editor { width: 100%; }
-#taxrate-editor th, #taxrate-editor td { border: none; overflow: visible;}
-#taxrate-editor td.conditions { width: 325px; }
-#taxrate-editor .conditions li { position: relative; margin-left: -28px; padding-left: 28px; }
-
-#taxrate-editor .conditions button.delete { position: absolute; left: 0; }
-#taxrate-editor .no-conditions,
-#taxrate-editor .no-zones,
-#taxrate-editor .no-local-rates,
-#taxrate-editor .has-local-rates { display: none; }
-#taxrate-editor .locals-toggle { margin-right: 32px; }
-#taxrate-editor .rate { width: 64px; }
-
-#taxrate-editor .local-rates .label { position: relative; border: 1px solid #ddd;border-bottom: none;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; font-weight: bold; }
-#taxrate-editor .local-rates h3 { font-size: 11px; }
-#taxrate-editor .local-rates .error { padding: 3px 7px; }
-#taxrate-editor .local-rates .ui { padding:6px;position:relative; }
-#taxrate-editor .local-rates .ui label { position:relative; }
-#taxrate-editor .local-rates .ui label:before { content:"+";position:absolute;top:-4px;left:4px; }
-#taxrate-editor .local-rates .ui input { text-align:right;padding-left:1em; }
-#taxrate-editor .local-rates ul { padding:0;margin:0;position:relative; }
-#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
-
-/** Order Manager **/
-
 #order #order-status p { margin:0;padding:0; }
 #order #order-status .inside-wrap,
 #order #order-status .inside-wrap p { padding:6px 6px 8px; }
@@ -557,7 +533,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .misc-pub-section { overflow: auto; }
 
 #order .status { font-size: 1.2em; }
-
 
 #order .shipment { width: 450px; margin: 6px auto 1.33em; }
 #order .refunding { margin: 6px 10px 1.33em; }
@@ -597,6 +572,32 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp-settings div.spacer { width: 200px; }
 .shopp-settings button.addrate { margin-right: 32px; }
 
+/** Tax Rates **/
+#taxrates .column-local,
+#taxrates .column-conditional { text-align: center; width: 100px; }
+
+#taxrate-editor { width: 100%; }
+#taxrate-editor th, #taxrate-editor td { border: none; overflow: visible;}
+#taxrate-editor td.conditions { width: 325px; }
+#taxrate-editor .conditions li { position: relative; margin-left: -28px; padding-left: 28px; }
+
+#taxrate-editor .conditions button.delete { position: absolute; left: 0; }
+#taxrate-editor .no-conditions,
+#taxrate-editor .no-zones,
+#taxrate-editor .no-local-rates,
+#taxrate-editor .has-local-rates { display: none; }
+#taxrate-editor .locals-toggle { margin-right: 32px; }
+#taxrate-editor .rate { width: 64px; }
+
+#taxrate-editor .local-rates .label { position: relative; border: 1px solid #ddd;border-bottom: none;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; font-weight: bold; }
+#taxrate-editor .local-rates h3 { font-size: 11px; }
+#taxrate-editor .local-rates .error { padding: 3px 7px; }
+#taxrate-editor .local-rates .ui { padding:6px;position:relative; }
+#taxrate-editor .local-rates .ui label { position:relative; }
+#taxrate-editor .local-rates .ui label:before { content:"+";position:absolute;top:-4px;left:4px; }
+#taxrate-editor .local-rates .ui input { text-align:right;padding-left:1em; }
+#taxrate-editor .local-rates ul { padding:0;margin:0;position:relative; }
+#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
 
 /** Payment Setting Tables **/
 #payments .shopp-settings td { max-width: 300px; }

@@ -71,6 +71,7 @@
 
 			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
+			$gateway = $Gateways[$Order->gateway]->name;
 
 			if (!$even) $classes[] = "alternate";
 			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
@@ -91,10 +92,10 @@
 				echo esc_html($location);
 				if (isset($Order->downloads)) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
 				?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <span class="status"><?php echo $txnstatus; ?></td>
+			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
 				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>
+			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?><br /><span class="status"><?php echo $txnstatus; ?></span></td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
