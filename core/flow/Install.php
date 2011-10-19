@@ -484,6 +484,10 @@ class ShoppInstallation extends FlowController {
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
+		// Clear the shopping session table
+		$shopping_table = DatabaseObject::tablename('shopping');
+		DB::query("DELETE FROM $shopping_table");
+
 		if ($db_version <= 1140) {
 			$summary_table = DatabaseObject::tablename('summary');
 			// Force summaries to rebuild
