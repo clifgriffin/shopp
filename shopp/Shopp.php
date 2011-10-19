@@ -527,7 +527,7 @@ class Shopp {
 		$connection = new WP_Http();
 		$result = $connection->request($URL,$params);
 
-		if (200 != $response['code']) { // Fail, fallback to http instead
+		if (isset($result['code']) && 200 != $result['code']) { // Fail, fallback to http instead
 			$URL = str_replace('https://', 'http://', $URL);
 			$connection = new WP_Http();
 			$result = $connection->request($URL,$params);
@@ -544,8 +544,8 @@ class Shopp {
 			return false;
 		} else extract($result);
 
-		if (200 != $response['code']) {
-			$error = Lookup::errors('callhome','http-'.$response['code']);
+		if (isset($result['code']) && 200 != $result['code']) {
+			$error = Lookup::errors('callhome','http-'.$result['code']);
 			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
 			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
 			return false;
