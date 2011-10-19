@@ -56,6 +56,8 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	}
 
+	function actions () { /* Not Implemented */ }
+
 	/**
 	 * Process the order
 	 *
@@ -155,12 +157,6 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 			return apply_filters('shopp_offline_payment_instructions', $settings['instructions']);
 
 		return false;
-	}
-
-	function reset () {
-		if (!in_array($this->module,explode(',',$_POST['settings']['active_gateways'])))
-			shopp_set_setting('OfflinePayment',false);
-
 	}
 
 	function methods ($methods) {
