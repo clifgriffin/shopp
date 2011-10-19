@@ -866,10 +866,25 @@ class Setup extends AdminController {
 			check_admin_referer('shopp-settings-payments');
 			do_action('shopp_save_payment_settings');
 
-			if ( !empty($_POST['gateway']) && isset($Gateways->active[ $_POST['gateway'] ]) ) {
-				if ( !in_array($_POST['gateway'],$gateways) ) {
-					$gateways[] = $_POST['gateway'];
-					shopp_set_setting('active_gateways',join(',',$gateways));
+			if (isset($_POST['gateway'])) {
+				$gateway = $_POST['gateway'];
+
+				// Handle Multi-instance payment systems
+				$indexed = false;
+				if (preg_match('/\[(\d+)\]/',$gateway,$matched)) {
+					$indexed = '-'.$matched[1];
+					$gateway = str_replace($matched[0],'',$gateway);
+					if (isset($Gateways->active[ $gateway ])) {
+						$Gateway = $Gateways->active[ $gateway ];
+						$_POST['settings'][$gateway] = $_POST['settings'][$gateway]+$Gateway->settings;
+					}
+				}
+
+				if ( !empty($gateway) && isset($Gateways->active[ $gateway ]) ) {
+					if ( !in_array($gateway.$indexed,$gateways) ) {
+						$gateways[] =  $gateway.$indexed;
+						shopp_set_setting('active_gateways',join(',',$gateways));
+					}
 				}
 			}
 
@@ -884,11 +899,20 @@ class Setup extends AdminController {
 
 		$edit = false;
 		$Gateways->ui();		// Setup setting UIs
-		if ( isset($_REQUEST['id']) && isset($Gateways->active[ $_REQUEST['id'] ]) ) {
-			$edit = $_REQUEST['id'];
-			$Gateway = $Gateways->get($edit);
-			$editor = $Gateway->ui();
 
+		if ( isset($_REQUEST['id']) ) {
+			$edit = $_REQUEST['id'];
+			$gateway = $edit;
+			$id = false;		// Instance ID for multi-instance gateways
+			if (false !== strpos($edit,'-')) list($gateway,$id) = explode('-',$gateway);
+			if (isset($Gateways->active[ $gateway ]) ) {
+				$Gateway = $Gateways->get($gateway);
+				if ($Gateway->multi && false === $id) {
+					unset($Gateway->settings['cards'],$Gateway->settings['label']);
+					$id = count($Gateway->settings);
+				}
+				$editor = $Gateway->ui($id);
+			}
 		}
 
 		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));

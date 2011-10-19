@@ -30,7 +30,8 @@
 
 		if ($edit && !in_array($edit,$gateways)) {
 			$template_data = array(
-				'${cancel_href}' => $this->url
+				'${cancel_href}' => $this->url,
+				'${instance}' => $id
 			);
 			$editor = str_replace(array_keys($template_data),$template_data,$editor);
 			$editor = preg_replace('/\${\w+}/','',$editor);
@@ -47,9 +48,15 @@
 		$event = false;
 		$even = false;
 		foreach ($gateways as $gateway):
+			$id = false;
+			if (false !== strpos($gateway,'-')) list($gateway,$id) = explode('-',$gateway);
 			if (!isset($Gateways->active[$gateway])) continue;
 			$Gateway = $Gateways->active[$gateway];
 			$payment = $Gateway->settings;
+
+			if (false !== $id) $payment = $Gateway->settings[$id];
+			$slug = join('-',array($gateway,$id));
+
 			$cards = array();
 			if (isset($payment['cards'])) {
 				foreach ((array)$payment['cards'] as $symbol) {
@@ -58,31 +65,37 @@
 				}
 			}
 
-			$editurl = add_query_arg(array('id'=>$gateway),$this->url);
-			$deleteurl = wp_nonce_url(add_query_arg(array('delete'=>$gateway),$this->url),'shopp_delete_gateway');
+			$editurl = add_query_arg(array('id'=>$slug),$this->url);
+			$deleteurl = wp_nonce_url(add_query_arg(array('delete'=>$slug),$this->url),'shopp_delete_gateway');
 
 			$classes = array();
 			if (!$even) $classes[] = 'alternate'; $even = !$even;
 
-			if ($edit && $edit == $gateway &&in_array($edit,$gateways)) {
+			if ($edit && $edit == $slug && in_array($edit,$gateways)) {
 				$event = strtolower($edit);
 
 				$template_data = array(
 					'${editing_class}' => "$event-editing",
-					'${cancel_href}' => $this->url
+					'${cancel_href}' => $this->url,
+					'${instance}' => $id
 				);
+				// Handle payment data value substitution for multi-instance payment systems
+				foreach ($payment as $name => $value)
+					$template_data['${'.$name.'}'] = $value;
 				$editor = str_replace(array_keys($template_data),$template_data,$editor);
 				$editor = preg_replace('/\${\w+}/','',$editor);
 
 				echo $editor;
-				if ($edit == $gateway) continue;
+				if ( $edit == $slug ) continue;
 			}
+
+			$label = empty($payment['label'])?__('(no label)','Shopp'):$payment['label'];
 
 		?>
 	<tr class="<?php echo join(' ',$classes); ?>" id="payment-setting-<?php echo sanitize_title_with_dashes($gateway); ?>">
-		<td class="name column-name"><a class="row-title" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($payment['label']); ?>&quot;" class="edit"><?php echo esc_html($payment['label']); ?></a>
+		<td class="name column-name"><a class="row-title" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="edit"><?php echo esc_html($label); ?></a>
 			<div class="row-actions">
-				<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($payment['label']); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($payment['label']); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
+				<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
 			</div>
 		</td>
 		<?php // @todo Add title hover labels for accessibility/instructions ?>
