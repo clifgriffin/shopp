@@ -16,6 +16,9 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	var $secure = false;	// SSL not required
 	var $multi = true;		// Support multiple methods
+	var $captures = true;	// Supports Auth-only
+	var $refunds = true;	// Supports refunds
+
 	var $methods = array(); // List of active OfflinePayment payment methods
 
 	/**
@@ -44,11 +47,13 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		}
 
 		add_filter('shopp_themeapi_checkout_offlineinstructions',array(&$this,'tag_instructions'),10,2);
-	}
 
-	function actions () {
-		add_action('shopp_process_order',array(&$this,'process'));
-		// add_action('shopp_save_payment_settings',array(&$this,'reset'));
+		add_action('shopp_offlinepayment_sale',array(&$this,'auth')); // Process sales as auth-only
+		add_action('shopp_offlinepayment_auth',array(&$this,'auth'));
+		add_action('shopp_offlinepayment_capture',array(&$this,'capture'));
+		add_action('shopp_offlinepayment_refund',array(&$this,'refund'));
+		add_action('shopp_offlinepayment_void',array(&$this,'void'));
+
 	}
 
 	/**
@@ -61,9 +66,46 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return void
 	 **/
-	function process () {
-		$this->Order->transaction($this->txnid());
-		return true;
+	function auth () {
+		$Order = $this->Order;
+		$OrderTotals = $Order->Cart->Totals;
+		$Billing = $Order->Billing;
+		$Paymethod = $Order->paymethod();
+
+		shopp_add_order_event(false,'authed',array(
+			'txnid' => time(),
+			'amount' => $OrderTotals->total,
+			'fees' => 0,
+			'gateway' => $Paymethod->processor,
+			'paymethod' => $Paymethod->label,
+			'paytype' => $Billing->cardtype,
+			'payid' => $Billing->card
+		));
+	}
+
+	function capture ($Event) {
+		shopp_add_order_event($Event->order,'captured',array(
+			'txnid' => time(),			// Transaction ID of the CAPTURE event
+			'amount' => $Event->amount,	// Amount captured
+			'fees' => 0,
+			'gateway' => $this->module	// Gateway handler name (module name from @subpackage)
+		));
+	}
+
+	function refund ($Event) {
+		shopp_add_order_event($Event->order,'refunded',array(
+			'txnid' => time(),			// Transaction ID for the REFUND event
+			'amount' => $Event->amount,	// Amount refunded
+			'gateway' => $this->module	// Gateway handler name (module name from @subpackage)
+		));
+	}
+
+	function void ($Event) {
+		shopp_add_order_event($Event->order,'voided',array(
+			'txnorigin' => $Event->txnid,	// Original transaction ID (txnid of original Purchase record)
+			'txnid' => time(),				// Transaction ID for the VOID event
+			'gateway' => $this->module		// Gateway handler name (module name from @subpackage)
+		));
 	}
 
 	/**
