@@ -234,12 +234,8 @@ class Order {
 			$this->gateway = $Gateway->name;
 
 			// Set the paymethod if not set already, or if it has changed
-			$gateway_label = is_array($Gateway->settings['label'])?
-				$Gateway->settings['label']:array($Gateway->settings['label']);
-
 			if (!$this->paymethod)
-				$this->paymethod = sanitize_title_with_dashes($gateway_label[0]);
-
+				$this->paymethod = sanitize_title_with_dashes($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
 		}
 
 		return $this->processor;
