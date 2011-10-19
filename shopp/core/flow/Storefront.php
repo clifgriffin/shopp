@@ -133,6 +133,8 @@ class Storefront extends FlowController {
 	function posts ($posts) {
 		$stub = new WPDatabaseObject();
 		$stub->init('posts');
+		$stub->ID = -1; // Force to an unusable post ID
+		$stub->comment_status = 'closed'; // Force comments closed
 		if ($this->is_shopp_request()) return array($stub);
 
 		if (count($posts) == 1) { // @deprecated Legacy support to redirect old shortcode pages
