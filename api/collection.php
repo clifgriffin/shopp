@@ -440,12 +440,12 @@ function shopp_category_products ( $category = 0, $options = array() ) {
 
 	$options = wp_parse_args($options, $defaults);
 
-	if ( ! term_exists( $category, ProductCategory::$taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION,SHOPP_DEBUG_ERR);
+	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Category = shopp_category( $category, $options );
+	$Category = shopp_product_category( $category, $options );
 
 	return ! empty($Category->products) ? $Category->products : array();
 }
@@ -469,7 +469,7 @@ function shopp_tag_products ( $tag = false, $options = array() ) {
 	$options = wp_parse_args($options, $defaults);
 
 	if ( ! $term = term_exists( $tag, ProductTag::$taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $tag not a valid Shopp product tag.",__FUNCTION,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $tag not a valid Shopp product tag.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
@@ -480,7 +480,7 @@ function shopp_tag_products ( $tag = false, $options = array() ) {
 }
 
 /**
- * shopp_tag_products - get a list of product objects for the given term and taxonomy
+ * shopp_term_products - get a list of product objects for the given term and taxonomy
  *
  * @author John Dillick
  * @since 1.2
@@ -504,7 +504,7 @@ function shopp_term_products ( $term = false, $taxonomy = 'shopp_category', $opt
 	}
 
 	if ( ! $term = term_exists( $term, $taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $term not a valid Shopp $taxonomy term.",__FUNCTION,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $term not a valid Shopp $taxonomy term.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
@@ -552,7 +552,7 @@ function shopp_catalog_count ( $status = 'publish' ) {
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
 	if ( ! term_exists( $category, ProductCategory::$taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
@@ -582,7 +582,7 @@ function shopp_category_count (	$category = 0, $children = false ) {
  **/
 function shopp_subcategory_count ( $category = 0 ) {
 	if ( ! term_exists( $category, ProductCategory::$taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 

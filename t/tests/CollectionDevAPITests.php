@@ -84,6 +84,14 @@ class CollectionDevAPITests extends ShoppTestCase
 		$this->AssertTrue( ! empty($Tag->products) );
 	}
 
+	function test_shopp_add_product_tag() {
+		$tagid = shopp_add_product_tag('unit test');
+		$Tag = shopp_product_tag('unit test');
+		$this->AssertEquals($Tag->name, 'unit test');
+		$this->AssertEquals($Tag->slug, 'unit-test');
+		$this->AssertTrue(shopp_rmv_product_tag('unit test'));
+	}
+
 	function test_shopp_product_term () {
 		$Tag = shopp_product_tag('action');
 		$Term = shopp_product_term($Tag->id, ProductTag::$taxonomy);
@@ -102,6 +110,12 @@ class CollectionDevAPITests extends ShoppTestCase
 		$this->AssertEquals('shopp_product_term_test', $Term->taxonomy);
 		$this->AssertEquals(1, count($Term->products));
 		$this->AssertEquals('shopp_product_term_test', reset($Term->products)->name);
+	}
+
+	function test_shopp_term_products() {
+		$Products = shopp_term_products('shopp_product_term_test1', 'shopp_product_term_test');
+		$this->AssertEquals(1, count($Products));
+		$this->AssertEquals('shopp_product_term_test', reset($Products)->name);
 	}
 
 	function test_shopp_product_tags() {
@@ -129,6 +143,20 @@ class CollectionDevAPITests extends ShoppTestCase
 			$this->AssertTrue( ! empty($ProductTag->products) );
 		}
 
+	}
+
+	function test_shopp_category_products () {
+		global $wpdb;
+		$Cat = new ProductCategory("Men's", "name");
+		$count = $Cat->count;
+		$Products = shopp_category_products ( (int) $Cat->id );
+
+		$this->AssertTrue(! empty($Products) );
+	}
+
+	function test_shopp_tag_products() {
+		$Products = shopp_tag_products( 'wachowski' );
+		$this->AssertTrue( ! empty( $Products ) );
 	}
 }
 ?>
