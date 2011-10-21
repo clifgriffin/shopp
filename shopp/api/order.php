@@ -118,7 +118,7 @@ function shopp_order_count ($from = false, $to = false) {
  * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
  * @param mixed $to (optional) mktime or SQL datetime, get purchased before this date/time.
  * @param bool $items (optional default:true) load purchased items into the records, slightly slower operation
- * @return array of orders
+ * @return array of Purchase objects
  **/
 function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
@@ -142,7 +142,7 @@ function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
  *
  * @param int $time number of time units (period) to go back
  * @param string $period the time period, can be days, weeks, months, years.
- * @return array of orders
+ * @return array of Purchase objects
  **/
 function shopp_recent_orders ($time = 1, $period = 'day') {
 	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
@@ -168,7 +168,7 @@ function shopp_recent_orders ($time = 1, $period = 'day') {
  * @param int $customer (required) the customer id to load the orders for
  * @param int $time number of time units (period) to go back
  * @param string $period the time period, can be days, weeks, months, years.
- * @return array of orders
+ * @return array of Purchase objects
  **/
 function shopp_recent_customer_orders ($customer = false, $time = 1, $period = 'day') {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
@@ -196,7 +196,7 @@ function shopp_recent_customer_orders ($customer = false, $time = 1, $period = '
  * @author John Dillick
  * @since 1.2
  *
- * @return order or false on failure
+ * @return Purchase object or false on failure
  **/
 function shopp_last_order () {
 	$orders = shopp_orders ( false, false, true, array(), 1);
@@ -212,7 +212,7 @@ function shopp_last_order () {
  * @since 1.2
  *
  * @param int $customer (required) the customer id to load the order for
- * @return order or false on failure
+ * @return Purchase object or false on failure
  **/
 function shopp_last_customer_order ( $customer = false ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
@@ -231,16 +231,16 @@ function shopp_last_customer_order ( $customer = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $id the order id
- * @return order or false on failure
+ * @param int $id the order id, or the transaction id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return Purchase or false on failure
  **/
-function shopp_order ( $id = false ) {
-	if ( ! $id || ! shopp_order_exists($id) ) {
+function shopp_order ( $id = false, $by = 'id' ) {
+	if ( ! $id || ! $Purchase = shopp_order_exists($id, $by) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Purchase = new Purchase($id);
 	$Purchase->load_purchased();
 	return $Purchase;
 }
@@ -252,17 +252,20 @@ function shopp_order ( $id = false ) {
  * @since 1.2
  *
  * @param int $id the order id, or the transaction id
- * @return bool true if the order exists, else false
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return Purchase|bool Purchase object returned if the order exists, else returns false
  **/
-function shopp_order_exists ( $id = false ) {
+function shopp_order_exists ( $id = false, $by = 'id' ) {
 	$Purchase = new Purchase();
 
-	if ( is_int($id) )
-		$Purchase->load($id);
-	else if ( ! is_string($id) )
+	if ( $by == 'trans' ) {
 		$Purchase->load($id,'txnid');
+	} else {
+		$Purchase->load($id);
+	}
 
-	return ( ! empty($Purchase->id) );
+	if ( ! $Purchase->id ) return false;
+	return $Purchase;
 }
 
 /**
@@ -272,7 +275,7 @@ function shopp_order_exists ( $id = false ) {
  * @since 1.2
  *
  * @param array $data parameters (see $order_field for allowed purchase parameters, and see shopp_add_order_line for line item parameters)
- * @return bool/Purchase false on failure, new order on success
+ * @return bool|Purchase false on failure, Purchase object of recently created order on success
  **/
 function shopp_add_order ( $data = array() ) {
 	$order_fields = array('customer', 'shipping', 'billing', 'currency', 'ip', 'firstname', 'lastname', 'email', 'phone', 'company', 'card', 'cardtype', 'cardexpires', 'cardholder', 'address', 'xaddress', 'city', 'state', 'country', 'postcode', 'shipaddress', 'shipxaddress', 'shipcity', 'shipstate', 'shipcountry', 'shippostcode', 'geocode', 'promos', 'subtotal', 'freight', 'tax', 'total', 'discount', 'fees', 'taxing', 'txnid', 'txnstatus', 'gateway', 'carrier', 'shipmethod', 'shiptrack', 'status', 'data');
@@ -309,8 +312,7 @@ function shopp_add_order ( $data = array() ) {
  * @return bool true on success, false on failure
  **/
 function shopp_rmv_order ($id) {
-	if ( shopp_order_exists($id) ) {
-		$Purchase = new Purchase($id);
+	if ( $Purchase = shopp_order_exists($id) ) {
 		$Purchase->load_purchased();
 		foreach ( $Purchase->purchased as $Purchased ) {
 			$Purchased->delete();
@@ -329,7 +331,7 @@ function shopp_rmv_order ($id) {
  *
  * @param int $order (required) the order id to add the line item to
  * @param array $data data to create the item from (see $item_fields for allowed data)
- * @return bool/Purchased item - false on failure, new order line item on success.
+ * @return bool|Purchased item object - false on failure, new order line item on success.
  **/
 function shopp_add_order_line ( $order = false, $data = array() ) {
 	$item_fields = array(
@@ -351,12 +353,11 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 		'data' // associative array of item "data" key value pairs
 		);
 
-	if ( ! shopp_order_exists($order) ) {
+	if ( ! $Purchase = shopp_order_exists($order) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Purchased = new Purchased();
 	foreach ( $data as $key => $value ) {
 		if ( ! in_array($key, $item_fields) ) continue;
 		$Purchased->{$key} = $value;
@@ -392,7 +393,7 @@ function shopp_rmv_order_line ( $order = false, $line = 0 ) {
  * @since 1.2
  *
  * @param int $order (required) the order id
- * @return bool/array false on failure, array of purchased line items on success
+ * @return bool|array false on failure, array of Purchased line item objects on success
  **/
 function shopp_order_lines ( $order = false ) {
 	$Order = shopp_order( $order );
@@ -462,6 +463,18 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	return true;
 }
 
+function shopp_order_data ( $order = false, $name = false ) {
+
+}
+
+function shopp_set_order_data ( $order = false, $name = false, $value = false ) {
+
+}
+
+function shopp_rmv_order_data ( $order = false, $name = false ) {
+
+}
+
 /**
  * shopp_order_line_data_count - return the count of the line item data array
  *
@@ -470,7 +483,7 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
  *
  * @param int $order the order id
  * @param int $line the order line item
- * @return int/bool count number of entries in the line item data array for a given line item, false if line item doesn't exist
+ * @return int|bool count number of entries in the line item data array for a given line item, false if line item doesn't exist
  **/
 function shopp_order_line_data_count ($order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
@@ -489,7 +502,7 @@ function shopp_order_line_data_count ($order = false, $line = 0 ) {
  *
  * @param int $order the order id
  * @param int $line the order line item
- * @return array/bool entries in the line item data array for a given line item, false if line item doesn't exist
+ * @return array|bool entries in the line item data array for a given line item, false if line item doesn't exist
  **/
 function shopp_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines = shopp_order_lines($order);
