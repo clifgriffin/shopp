@@ -587,7 +587,10 @@ abstract class ShippingFramework {
 	 *
 	 * @return string Delivery estimate string
 	 **/
-	function delivery ($data) {
+	function delivery ($data = array()) {
+		$defaults = array( 'mindelivery' => '1w', 'maxdelivery' => '2w' );
+		$data = array_merge( $defaults, $data );
+
 		$min = shopp_setting('order_processing_min');
  		$max = shopp_setting('order_processing_max');
 
