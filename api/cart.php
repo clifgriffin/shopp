@@ -48,7 +48,7 @@ function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
  * false on failure
  **/
 function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = false ) {
-	global $Shopp;
+	$Order = ShoppOrder();
 	if ( (int) $quantity < 1 ) $quantity = 1;
 
 	if ( false === $product ) {
@@ -71,7 +71,10 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
 		}
 	}
 
-	return $Shopp->Cart->add($quantity, $Product, $variant);
+	$added = $Order->Cart->add($quantity, $Product, $variant);
+	$Order->Cart->changed(true);
+	$Order->Cart->totals();
+	return $added;
 }
 
 
@@ -85,18 +88,18 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
  * @return bool true for success, false on failure
  **/
 function shopp_rmv_cart_item ( $item = false ) {
-	global $Shopp;
+	$Order = ShoppOrder();
 	if ( false === $item ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing item parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	if ( 0 == $count = count($Shopp->Cart->contents) ) return true;
+	if ( 0 == $count = count($Order->Cart->contents) ) return true;
 	if ( $item < 0 || $item >= $count ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such item $item",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return $Shopp->Cart->remove($item);
+	return $Order->Cart->remove($item);
 
 }
 /**
@@ -139,28 +142,22 @@ function shopp_cart_items_count () {
  * @return stdClass object with quantity, product id, variant id, and list of addons of the item.
  **/
 function shopp_cart_item ( $item = false ) {
-	global $Shopp;
+	$Order = ShoppOrder();
+
 	if ( false === $item ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing item parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	}
-	if ( $item < 0 || shopp_cart_items_count() ) {
+	if ( $item < 0 || $item > shopp_cart_items_count() ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such item $item",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Item = $Shopp->Cart->contents[$item];
+	return $Order->Cart->contents[$item];
 
-	$Newitem = new StdClass();
-	$Newitem->quantity = $Item->quantity;
-	$Newitem->product = $Item->product;
-	$Newitem->variant = $Item->priceline;
-	$Newitem->addons = $Item->addons;
-
-	return $Newitem;
 }
 
 // todo: implement shopp_add_cart_item_addon in plugin api
 function shopp_add_cart_item_addon ( $item = false, $addon = false ) {
-	// global $Shopp;
+	// $Order = ShoppOrder();
 	// if ( false === $item || false === $addon ) {
 	// 	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: item and addon parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	// 	return false;
@@ -173,7 +170,7 @@ function shopp_add_cart_item_addon ( $item = false, $addon = false ) {
 
 // todo: implement shopp_rmv_cart_item_addon in plugin api
 function shopp_rmv_cart_item_addon ( $item = false, $addon = false ) {
-	// global $Shopp;
+	// $Order = ShoppOrder();
 	// if ( false === $item || false === $addon ) {
 	// 	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: item and addon parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	// 	return false;
@@ -182,7 +179,7 @@ function shopp_rmv_cart_item_addon ( $item = false, $addon = false ) {
 	// 	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such item $item",__FUNCTION__,SHOPP_DEBUG_ERR);
 	// 	return false;
 	// }
-	// $Item = $Shopp->Cart->contents[$item];
+	// $Item = $Order->Cart->contents[$item];
 	// if ( $addon < 0 || $addon >= count( $Item->addons ) ) {
 	// 	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such addon $addon on this item.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	// 	return false;
