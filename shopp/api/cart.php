@@ -99,9 +99,12 @@ function shopp_rmv_cart_item ( $item = false ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such item $item",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return $Order->Cart->remove($item);
-
+	$remove = $Order->Cart->remove($item);
+	$Order->Cart->changed(true);
+	$Order->Cart->totals();
+	return $remove;
 }
+
 /**
  * shopp_cart_items - get a list of the items in the cart
  *
