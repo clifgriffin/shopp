@@ -208,6 +208,7 @@ jQuery(document).ready(function () {
 			paymethod = paymethods.filter(':checked').val()?paymethods.filter(':checked').val():paymethods.val(),
 			card = false;
 		if (!paymethod) paymethod = d_pm;
+		if (billCard.val().match(/(X)+\d{4}/)) return true; // If card is masked, skip validation
 		if (!pm_cards[paymethod]) return true; // The selected payment method does not have cards
 		$.each(pm_cards[paymethod], function (a,s) {
 			var pc = paycards[s],pattern = new RegExp(pc.pattern.substr(1,pc.pattern.length-2));

@@ -131,12 +131,10 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	function billing_card ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value")
-			return str_repeat('X',strlen($O->Billing->card)-4)
-				.substr($O->Billing->card,-4);
+		if (!empty($O->Billing->card) && strlen($O->Billing->card) > 4)
+			$options['value'] = str_repeat('X',strlen($O->Billing->card)-4).substr($O->Billing->card,-4);
+		if ($options['mode'] == "value") return $options['value'];
 		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
-		if (!empty($O->Billing->card))
-			$options['value'] = $O->Billing->card;
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 	}
