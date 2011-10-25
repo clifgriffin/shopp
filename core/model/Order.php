@@ -98,21 +98,28 @@ class Order {
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
 
+
+		// Order processing
 		add_action('shopp_process_order', array($this,'validate'),7);
-		add_action('shopp_process_order', array($this,'process'),100);
+		add_action('shopp_process_order', array($this,'submit'),100);
+		// add_action('shopp_process_order', array($this,'process'),100);
 
-		add_action('shopp_process_free_order',array($this,'freebie'));
+		// add_action('shopp_process_free_order',array($this,'freebie'));
 		add_action('shopp_update_destination',array($this->Shipping,'destination'));
-		add_action('shopp_authed_order_event',array($this,'purchase'));
-		add_action('shopp_create_purchase',array($this,'purchase'));
 
-		add_action('shopp_order_event',array($this,'event'));
-		add_action('shopp_order_notifications',array($this,'notify'));
+		add_action('shopp_purchase_order_event',array($this,'purchase'));
+		add_action('shopp_purchase_order_created',array($this,'invoice'));
+		add_action('shopp_purchase_order_created',array($this,'process'));
 
+		// Status updates
 		add_action('shopp_order_txnstatus_update',array($this,'salestats'),10,2);
+		add_action('shopp_order_event',array($this,'updates'));
+
+		// Ensure payment card PAN is truncated after successful processing
+		add_action('shopp_authed_order_event',array($this,'securecard'));
 
 		// Schedule for the absolute last action to be run
-		add_action('shopp_order_success',array($this,'success'),100);
+		// add_action('shopp_order_success',array($this,'success'),100);
 
 		add_action('shopp_resession',array($this->Cart,'clear'));
 		add_action('shopp_resession',array($this,'clear'));
@@ -133,18 +140,24 @@ class Order {
 	function unhook () {
 		remove_action('shopp_authed_order_event',array($this,'purchase'));
 		remove_action('shopp_create_purchase',array($this,'purchase'));
-		remove_action('shopp_order_notifications',array($this,'notify'));
-		remove_action('shopp_order_success',array($this,'success'));
-		remove_action('shopp_process_order', array($this,'validate'),7);
-		remove_action('shopp_process_order', array($this,'process'),100);
+		remove_action('shopp_purchase_order_event',array($this,'purchase'));
+		remove_action('shopp_purchase_order_created',array($this,'invoice'));
+		remove_action('shopp_purchase_order_created',array($this,'process'));
+		remove_action('shopp_order_event',array($this,'updates'));
 
-		remove_class_actions(array(
-			'shopp_authed_order_event',
-			'shopp_create_purchase',
-			'shopp_order_notifications',
-			'shopp_order_success',
-			'shopp_process_order',
-			),'GatewayFramework');
+		// remove_action('shopp_order_notifications',array($this,'notify'));
+		// remove_action('shopp_order_success',array($this,'success'));
+		remove_action('shopp_process_order', array($this,'validate'),7);
+		remove_action('shopp_process_order', array($this,'submit'),100);
+
+		// remove_class_actions(array(
+		// 	'shopp_process_order',
+		// 	'shopp_create_purchase',
+		// 	'shopp_authed_order_event',
+		// 	'shopp_captured_order_event',
+		// 	'shopp_order_notifications',
+		// 	'shopp_order_success',
+		// 	),'GatewayFramework');
 
 	}
 
@@ -242,6 +255,21 @@ class Order {
 	}
 
 	/**
+	 * Determine if payment card data has been submitted
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return boolean
+	 **/
+	function paycard () {
+		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
+		foreach ($ccdata as $field)
+			if (isset($_POST['billing'][$field])) return true;
+		return false;
+	}
+
+	/**
 	 * Provides the current payment method
 	 *
 	 * @author Jonathan Davis
@@ -257,18 +285,29 @@ class Order {
 	}
 
 	/**
-	 * Determine if payment card data has been submitted
+	 * Processes changes to the shipping method
+	 *
+	 * Handles changes to the shipping method outside of other
+	 * checkout processes
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return boolean
+	 * @return void Description...
 	 **/
-	function paycard () {
-		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
-		foreach ($ccdata as $field)
-			if (isset($_POST['billing'][$field])) return true;
-		return false;
+	function shipmethod () {
+		if (empty($this->Cart->shipped)) return;
+		if (empty($this->Shipping))
+				$this->Shipping = new ShippingAddress();
+
+		if ($_POST['shipmethod'] == $this->Shipping->method) return;
+
+		// Verify shipping method exists first
+		if ( !isset($this->Cart->shipping[ $_POST['shipmethod'] ]) ) return;
+
+		$this->Shipping->method = $_POST['shipmethod'];
+		$this->Cart->retotal = true;
+		$this->Cart->totals();
 	}
 
 	/**
@@ -326,7 +365,10 @@ class Order {
 			$this->Billing = new BillingAddress();
 		// Default the cardtype to the payment method label selected
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
-		$this->Billing->updates($_POST['billing']);
+		$ignore = array();
+		if ($_POST['billing']['card'] == substr($this->Billing->card,-4))
+			$ignore[] = 'card';
+		$this->Billing->updates($_POST['billing'],$ignore);
 
 		// Special case for updating/tracking billing locale
 		if (!empty($_POST['billing']['locale']))
@@ -405,32 +447,6 @@ class Order {
 	}
 
 	/**
-	 * Processes changes to the shipping method
-	 *
-	 * Handles changes to the shipping method outside of other
-	 * checkout processes
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void Description...
-	 **/
-	function shipmethod () {
-		if (empty($this->Cart->shipped)) return;
-		if (empty($this->Shipping))
-				$this->Shipping = new ShippingAddress();
-
-		if ($_POST['shipmethod'] == $this->Shipping->method) return;
-
-		// Verify shipping method exists first
-		if ( !isset($this->Cart->shipping[ $_POST['shipmethod'] ]) ) return;
-
-		$this->Shipping->method = $_POST['shipmethod'];
-		$this->Cart->retotal = true;
-		$this->Cart->totals();
-	}
-
-	/**
 	 * Confirms the order and starts order processing
 	 *
 	 * @author Jonathan Davis
@@ -439,12 +455,106 @@ class Order {
 	 * @return void
 	 **/
 	function confirmed () {
-
 		if ($_POST['checkout'] == 'confirmed') {
 			$this->confirmed = true;
 			do_action('shopp_process_order');
 		}
+	}
 
+	/**
+	 * Submits the order to create a Purchase record
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function submit () {
+		shopp_add_order_event(false,'purchase',array(
+			'gateway' => $this->processor(),
+		));
+	}
+
+	/**
+	 * Creates an invoice transaction event to setup the payment balance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function invoice ($Purchase) {
+		shopp_add_order_event($Purchase->id,'invoiced',array(
+			'gateway' => $Purchase->gateway,			// Gateway handler name (module name from @subpackage)
+			'amount' => $Purchase->total				// Capture of entire order amount
+		));
+	}
+
+	/**
+	 * Marks an order as captured
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function captured ($Event) {
+		shopp_add_order_event($Event->order,'captured',array(
+			'txnid' => $Purchase->txnid,				// Can be either the original transaction ID or an ID for this transaction
+			'amount' => $Event->amount,					// Capture of entire order amount
+			'fees' => $Event->fees,					// Transaction fees taken by the gateway net revenue = amount-fees
+			'gateway' => $Event->gateway					// Gateway handler name (module name from @subpackage)
+		));
+	}
+
+	/**
+	 * Order processing decides the type of request to make
+	 *
+	 * Decides with operation to request:
+	 * Authorization - Get authorization to charge the order amount with the payment method provided
+	 * Sale - Get authorization and immediate capture (charge) of the payment
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function process ($Purchase) {
+
+		if (apply_filters('shopp_authonly_shipped_orders',$this->Cart->shipped))
+			$this->auth($Purchase);	// There are shipped products, auth only
+		else $this->sale($Purchase);	// No shipped products, auth+capture (sale event)
+
+	}
+
+	function auth ($Purchase) {
+
+		add_action('shopp_authed_order_event',array($this,'notify'));
+		add_action('shopp_authed_order_event',array($this,'accounts'));
+		add_action('shopp_authed_order_event',array($this,'success'));
+
+		shopp_add_order_event($Purchase->id,'auth',array(
+			'gateway' => $Purchase->gateway,
+			'amount' => $Purchase->total
+		));
+
+		echo "shopp_add_order_event($Purchase->id,'auth',array(
+			'gateway' => $Purchase->gateway,
+			'amount' => $Purchase->total
+		));";
+	}
+
+	function sale ($Purchase) {
+
+		add_action('shopp_authed_order_event',array($this,'captured'));
+		add_action('shopp_captured_order_event',array($this,'notify'));
+		add_action('shopp_captured_order_event',array($this,'accounts'));
+		add_action('shopp_captured_order_event',array($this,'success'));
+
+		shopp_add_order_event($Purchase->id,'sale',array(
+			'gateway' => $Purchase->gateway,
+			'amount' => $Purchase->total
+		));
 	}
 
 	/**
@@ -464,55 +574,164 @@ class Order {
 	}
 
 	/**
-	 * Generates a Purchase record from the order
+	 * Converts a shopping session order to a Purchase record
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
 	 **/
-	function purchase ($Auth) {
-		global $Shopp;
+	function purchase (PurchaseOrderEvent $Event) {
 		$Shopping = ShoppShopping();
 
 		// No auth message, bail
-		if (empty($Auth))
-			return (!$error = new ShoppError('Order failure: An empty Authorization message was received by the order processor.','shopp_order_failure',SHOPP_DEBUG_ERR));
+		if (empty($Event))
+			return (!$error = new ShoppError('Order failure: An empty order event message was received by the order processor.','shopp_order_failure',SHOPP_DEBUG_ERR));
 
 		// No transaction ID... dude, really?
-		if (empty($Auth->txnid))
-			return (!$error = new ShoppError('Order failure: An Authorization message was received by the order processor with an empty transaction ID.','shopp_order_failure',SHOPP_DEBUG_ERR));
+		// if (empty($Event->txnid))
+		// 	return (!$error = new ShoppError('Order failure: An Authorization message was received by the order processor with an empty transaction ID.','shopp_order_failure',SHOPP_DEBUG_ERR));
 
-		$Purchase = new Purchase($Auth->txnid,'txnid');
-		if (!empty($Purchase->id)) {
-			$Auth->order = $Purchase->id;
-			$Auth->save();
+		// $Purchase = new Purchase($Event->txnid,'txnid');
+		// if (!empty($Purchase->id)) {
+		// 	$Event->order = $Purchase->id;
+		// 	$Event->save();
 			// // @todo handle new $status (old $status was set in Order::transaction() method)
 			// if($status != $Purchase->txnstatus) {
 			// 	do_action_ref_array('shopp_order_txnstatus_update',array(&$status,&$Purchase));
 			// 	$Purchase->txnstatus = $status;
 			// 	$Purchase->save();
 			// }
-		}
+		// }
 
 		// Copy details from Auth message
-		$this->txnid = $Auth->txnid;
-		$this->txnstatus = $Auth->name;
-		$this->gateway = $Auth->gateway;
+		// $this->txnid = $Event->txnid;
+		$this->txnstatus = $Event->name;
+		$this->gateway = $Event->gateway;
 
 		// Lock for concurrency protection
 		$this->lock();
 
-		$Purchase = new Purchase($this->txnid,'txnid');
-		if (!empty($Purchase->id)) {
-			$this->unlock();
-			$Shopp->resession();
+		// $Purchase = new Purchase($this->txnid,'txnid');
+		// if (!empty($Purchase->id)) {
+		// 	$this->unlock();
+		// 	$Shopping->resession();
+		//
+		// 	$this->purchase = $Purchase->id;
+		// 	if ($this->purchase !== false)
+		// 		shopp_redirect(shoppurl(false,'thanks'));
+		//
+		// }
 
-			$this->purchase = $Purchase->id;
-			if ($this->purchase !== false)
-				shopp_redirect(shoppurl(false,'thanks'));
+		$this->Billing->customer = false;
+		$paycard = Lookup::paycard($this->Billing->cardtype);
+		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
+		$this->Billing->save();
 
+		// Card data is truncated, switch the cart to normal mode
+		// $Shopping->secured(false);
+
+		if (!empty($this->Shipping->address)) {
+			$this->Shipping->customer = $this->Customer->id;
+			$this->Shipping->save();
 		}
+
+		$base = shopp_setting('base_operations');
+
+		$promos = array();
+		foreach ($this->Cart->discounts as &$promo) {
+			$promos[$promo->id] = $promo->name;
+			$promo->uses++;
+		}
+
+		if (empty($this->purchase)) $Purchase = new Purchase();	// Create a new order
+		else { // Handle updates to an existing order from checkout reprocessing
+			$updates = true;
+			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
+			else $Purchase = new Purchase($this->purchase);
+		}
+
+		$Purchase->copydata($this);
+		$Purchase->copydata($this->Customer);
+		$Purchase->copydata($this->Billing);
+		$Purchase->copydata($this->Shipping,'ship');
+		$Purchase->copydata($this->Cart->Totals);
+		$Purchase->customer = $this->Customer->id;
+		$Purchase->billing = $this->Billing->id;
+		$Purchase->shipping = $this->Shipping->id;
+		$Purchase->taxing = str_true(shopp_setting('tax_inclusive'))?'inclusive':'exclusive';
+		$Purchase->promos = $promos;
+		$Purchase->freight = $this->Cart->Totals->shipping;
+		$Purchase->ip = $Shopping->ip;
+		$Purchase->save();
+		$this->unlock();
+		Promotion::used(array_keys($promos));
+
+		// Process the order events if updating an existing order
+		if (!empty($this->purchase)) {
+			ShoppPurchase($Purchase);
+			return $this->process($Purchase);
+		}
+
+		if (empty($Purchase->id)) {
+			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
+			return;
+		}
+
+		foreach($this->Cart->contents as $Item) {
+			$Purchased = new Purchased();
+			$Purchased->copydata($Item);
+			$Purchased->price = $Item->option->id;
+			$Purchased->purchase = $Purchase->id;
+			if (!empty($Purchased->download)) $Purchased->keygen();
+			$Purchased->save();
+			if ($Item->inventory) $Item->unstock();
+		}
+
+		$this->purchase = $Purchase->id;
+		ShoppPurchase( $Purchase );
+
+		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
+
+		do_action('shopp_purchase_order_created',$Purchase);
+
+	}
+
+	/**
+	 * Updates a purchase order with transaction information from order events
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param OrderEvent $Event The order event passed by the action hook
+	 * @return void
+	 **/
+	function updates ($Event) {
+		$updates = array('authed','captured','refunded','voided');
+		if (!in_array($Event->name,$updates)) return;
+		$Purchase = new Purchase($Event->order);
+
+		if (empty($Purchase->id)) return;
+		if ($Purchase->txnstatus == $Event->name) return;
+
+		$Purchase->txnstatus = $Event->name;
+		$labels = shopp_setting('order_status');
+		$events = shopp_setting('order_states');
+
+		$key = array_search($Event->name,$events);
+
+		if (isset($labels[$key])) {
+			$status = $labels[$key];
+			$Purchase->status = $status;
+		}
+
+		if (isset($Event->txnid)) $Purchase->txnid = $Event->txnid;
+		$Purchase->save();
+	}
+
+	function accounts ($Event) {
+
+		// @todo guest checkout
 
 		// WordPress account integration used, customer has no wp user
 		if ('wordpress' == $this->accounts && empty($this->Customer->wpuser)) {
@@ -531,83 +750,18 @@ class Order {
 
 		$this->Customer->save();
 
-		$this->Billing->customer = $this->Customer->id;
-		$this->Billing->card = substr($this->Billing->card,-4);
-		$paycard = Lookup::paycard($this->Billing->cardtype);
-		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
-		$this->Billing->cvv = false;
-		$this->Billing->save();
+		// Update Purchase with link to created customer record
+		if ( ! empty($this->Customer->id) ) {
+			$Purchase = ShoppPurchase();
 
-		// Card data is truncated, switch the cart to normal mode
-		$Shopping->secured(false);
+			if ($Purchase->id != $Event->order)
+				$Purchase = new Purchase($Event->order);
 
-		if (!empty($this->Shipping->address)) {
-			$this->Shipping->customer = $this->Customer->id;
-			$this->Shipping->save();
+			$Purchase->customer = $this->Customer->id;
+			$Purchase->save();
+
 		}
 
-		$base = shopp_setting('base_operations');
-
-		$promos = array();
-		foreach ($this->Cart->discounts as &$promo) {
-			$promos[$promo->id] = $promo->name;
-			$promo->uses++;
-		}
-
-		$Purchase = new Purchase();
-		$Purchase->copydata($this);
-		$Purchase->copydata($this->Customer);
-		$Purchase->copydata($this->Billing);
-		$Purchase->copydata($this->Shipping,'ship');
-		$Purchase->copydata($this->Cart->Totals);
-		$Purchase->customer = $this->Customer->id;
-		$Purchase->billing = $this->Billing->id;
-		$Purchase->shipping = $this->Shipping->id;
-		$Purchase->taxing = str_true(shopp_setting('tax_inclusive'))?'inclusive':'exclusive';
-		$Purchase->promos = $promos;
-		$Purchase->freight = $this->Cart->Totals->shipping;
-		$Purchase->ip = $Shopping->ip;
-		$Purchase->save();
-		$this->unlock();
-		Promotion::used(array_keys($promos));
-
-		if (empty($Purchase->id)) {
-			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
-			return;
-		}
-
-		foreach($this->Cart->contents as $Item) {
-			$Purchased = new Purchased();
-			$Purchased->copydata($Item);
-			$Purchased->price = $Item->option->id;
-			$Purchased->purchase = $Purchase->id;
-			if (!empty($Purchased->download)) $Purchased->keygen();
-			$Purchased->save();
-			if ($Item->inventory) $Item->unstock();
-		}
-
-		$this->purchase = $Purchase->id;
-		$Shopp->Purchase = &$Purchase;
-
-		$Auth->order = $this->purchase;
-		$Auth->created = null;
-		$Auth->save();
-
-		// Support legacy Auth+Capture transactions for 1.1 Gateways
-		if ($Auth->capture || 'CHARGED' == $Purchase->txnstatus) {
-			shopp_add_order_event($Purchase->id,'captured',array(
-				'txnid' => $Purchase->txnid,				// Can be either the original transaction ID or an ID for this transaction
-				'amount' => $Auth->amount,					// Capture of entire order amount
-				'fees' => $Purchase->fees,					// Transaction fees taken by the gateway net revenue = amount-fees
-				'gateway' => $Auth->gateway					// Gateway handler name (module name from @subpackage)
-			));
-		}
-
-		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
-
-		do_action('shopp_order_notifications');
-
-		do_action_ref_array('shopp_order_success',array(&$Shopp->Purchase));
 	}
 
 	/**
@@ -681,23 +835,30 @@ class Order {
 	 *
 	 * @return void
 	 **/
-	function notify () {
+	function notify ($Event) {
+		do_action('shopp_order_notifications');
+
+		$Purchase = ShoppPurchase();
+		if ( empty($Purchase) || empty($Purchase->id) ) {
+			$Purchase = new Purchase($Event->order);
+		}
 
 		// Send email notifications
 		// notification(addressee name, email, subject, email template, receipt template)
-		ShoppPurchase()->notification(
-			ShoppPurchase()->firstname." ".ShoppPurchase()->lastname,
-			ShoppPurchase()->email,
+		$Purchase->notification(
+			$Purchase->firstname." ".$Purchase->lastname,
+			$Purchase->email,
 			__('Order Receipt','Shopp')
 		);
 		if (1 != shopp_setting('receipt_copy')) return;
 
-		ShoppPurchase()->notification(
+		$Purchase->notification(
 			'',
 			shopp_setting('merchant_email'),
 			__('New Order','Shopp'),
 			'order-merchant.php'		// Use a custom merchant order notification template (if available)
 		);
+
 	}
 
 	/**
@@ -770,31 +931,6 @@ class Order {
 	}
 
 	/**
-	 * Order processing decides the type of request to make
-	 *
-	 * Decides with operation to request:
-	 * Authorization - Get authorization to charge the order amount with the payment method provided
-	 * Sale - Get authorization and immediate capture (charge) of the payment
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	function process () {
-
-		$process = 'sale';	// No shipped products
-		if ($this->Cart->shipped) // There are shipped products
-			$process = 'auth';
-
-		shopp_add_order_event(false,$process,array(
-			'gateway' => $this->processor(),
-			'amount' => $this->Cart->Totals->total
-		));
-
-	}
-
-	/**
 	 * Resets the session and redirects to the thank you page
 	 *
 	 * @author Jonathan Davis
@@ -803,9 +939,9 @@ class Order {
 	 * @return void
 	 **/
 	function success () {
-		global $Shopp;
+		do_action('shopp_order_success');
 
-		$Shopp->resession();
+		Shopping::resession();
 
 		if ($this->purchase !== false)
 			shopp_redirect(shoppurl(false,'thanks'));
@@ -1035,6 +1171,23 @@ class Order {
 	}
 
 	/**
+	 * Secures the payment card by truncating it to the last four digits
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function securecard () {
+		if (!empty($this->Billing->card) && strlen($this->Billing->card) > 4) {
+			$this->Billing->card = substr($this->Billing->card,-4);
+
+			// Card data is truncated, switch the cart to normal mode
+			ShoppShopping()->secured(false);
+		}
+	}
+
+	/**
 	 * Clear order-specific information to prepare for a new order
 	 *
 	 * @author Jonathan Davis
@@ -1048,17 +1201,6 @@ class Order {
 		$this->gateway = false;			// Proper name of the gateway used to process the order
 		$this->txnstatus = "PENDING";	// Status of the payment
 		$this->confirmed = false;		// Confirmed by the shopper for processing
-	}
-
-	function event ($Event) {
-		$updates = array('captured','refunded','voided');
-		if (!in_array($Event->name,$updates)) return;
-
-		$Purchase = new Purchase($Event->order);
-		$Purchase->txnstatus = $Event->name;
-		// if (isset())
-		// $Purchase->status =
-		$Purchase->save();
 	}
 
 } // END class Order
@@ -1296,6 +1438,59 @@ class DebitOrderEventMessage extends OrderEventMessage {
 }
 
 /**
+ * Shopper initiated purchase (sales order) command message
+ *
+ * This message is the key message that starts the entire ordering process. As the first
+ * step, this event triggers the creation of a new order in the system. In accounting terms
+ * this document acts as the Sales Order, and is stored in Shopp as a Purchase record.
+ *
+ * In most cases, after record creation an InvoicedOrderEvent sets up the transactional
+ * debit against the purchase total prior to an AuthOrderEvent
+ *
+ * When generating an PurchaseOrderEvent message using shopp_add_order_event() in a
+ * payment gateway, it is necessary to pass a (boolean) false value as the first
+ * ($order) parameter since the purchase record is created against the AuthedOrderEvent
+ * message.
+ *
+ * Example: shopp_add_order_event(false,'purchase',array(...));
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class PurchaseOrderEvent extends OrderEventMessage {
+	var $name = 'purchase';
+	var $message = array(
+		'gateway' => '',		// Gateway (class name) to process authorization through
+	);
+}
+OrderEvent::register('purchase','PurchaseOrderEvent');
+
+/**
+ * Invoiced transaction message
+ *
+ * Represents the merchant's agreement to the sales order allowing the transaction to
+ * take place. Shopp then debits against the purchase total.
+ *
+ * In accounting terms the debit is against the merchant's account receivables, and
+ * implicitly credits sales accounts indicating an amount owed to the merchant by a customer.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class InvoicedOrderEvent extends DebitOrderEventMessage {
+	var $name = 'invoiced';
+	var $message = array(
+		'gateway' => '',		// Gateway (class name) to process authorization through
+		'amount' => 0.0			// Amount invoiced for the order
+	);
+}
+OrderEvent::register('invoiced','InvoicedOrderEvent');
+
+/**
  * Shopper initiated authorization command message
  *
  * Triggers the gateway(s) responsible for the order to initiate a payment
@@ -1318,26 +1513,12 @@ OrderEvent::register('auth','AuthOrderEvent');
 /**
  * Payment authorization message
  *
- * This message is the key message that begins the order creation process
- * (generating a Purchase record). When the payment is Authed, the billing agreement
- * is in place allowing Shopp to "Invoice" against (debit) the purchase total.
- *
- * In accounting terms the debit is against the merchant's account receivables and
- * sales accounts indicating an amount owed to the merchant by a customer.
- *
- * When generating an AuthedOrderEvent message using shopp_add_order_event() in a
- * payment gateway, it is necessary to pass a (boolean) false value as the first
- * ($order) parameter since the purchase record is created against the AuthedOrderEvent
- * message.
- *
- * Example: shopp_add_order_event(false,'auth',array(...));
- *
  * @author Jonathan Davis
  * @since 1.2
  * @package shopp
  * @subpackage orderevent
  **/
-class AuthedOrderEvent extends DebitOrderEventMessage {
+class AuthedOrderEvent extends OrderEventMessage {
 	var $name = 'authed';
 	var $capture = false;
 	var $message = array(
@@ -1595,6 +1776,39 @@ class VoidedOrderEvent extends CreditOrderEventMessage {
 }
 OrderEvent::register('voided','VoidedOrderEvent');
 
+/**
+ * Used to cancel the balance of an order from either an Authed or Refunded event
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class NoticeOrderEvent extends OrderEventMessage {
+	var $name = 'notice';
+	var $message = array(
+		'note' => ''			// The message to log for the order
+	);
+}
+OrderEvent::register('notice','NoticeOrderEvent');
+
+/**
+ * Used to cancel the balance of an order from either an Authed or Refunded event
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class ReviewOrderEvent extends OrderEventMessage {
+	var $name = 'review';
+	var $message = array(
+		'type' => '',			// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+		'note' => ''			// The message to log for the order
+	);
+
+}
+OrderEvent::register('review','ReviewOrderEvent');
 
 /**
  * Failure messages
@@ -1611,8 +1825,6 @@ class AuthFailOrderEvent extends OrderEventMessage {
 		'error' => '',			// Error code (if provided)
 		'message' => '',		// Error message reported by the gateway
 		'gateway' => '',		// Gateway handler name (module name from @subpackage)
-		'paymethod' => '',		// Payment method (check, MasterCard, etc)
-		'payid' => ''			// Payment ID (last 4 of card or check number)
 	);
 }
 OrderEvent::register('auth-fail','AuthFailOrderEvent');

@@ -18,6 +18,7 @@ class Purchase extends DatabaseObject {
 	var $downloads = false;
 
 	// Balances
+	var $invoiced = false;		// Amount invoiced
 	var $authorized = false;	// Amount authorized
 	var $captured = false;		// Amount captured
 	var $refunded = false;		// Amount refunded
@@ -56,9 +57,16 @@ class Purchase extends DatabaseObject {
 
 	function load_events () {
 		$this->events = OrderEvent::instance()->events($this->id);
+		$this->invoiced = false;
+		$this->authorized = false;
+		$this->captured = false;
+		$this->refunded = false;
+		$this->voided = false;
+		$this->balance = 0;
 
 		foreach ($this->events as $Event) {
 			switch ($Event->name) {
+				case 'invoiced': $this->invoiced += $Event->amount; break;
 				case 'authed': $this->authorized += $Event->amount; break;
 				case 'captured': $this->captured += $Event->amount; break;
 				case 'refunded': $this->refunded += $Event->amount; break;
@@ -77,7 +85,7 @@ class Purchase extends DatabaseObject {
 		// Legacy support - @todo Remove in 1.3
 		if (isset($this->txnstatus) && !empty($this->txnstatus)) {
 			switch ($this->txnstatus) {
-				case 'CHARGED': $this->authorized = $this->charged = true; break;
+				case 'CHARGED': $this->authorized = $this->captured = true; break;
 				case 'VOID': $this->void = true; break;
 			}
 		}
@@ -86,12 +94,12 @@ class Purchase extends DatabaseObject {
 
 	function capturable () {
 		if (!$this->authorized) return 0.0;
-		return ($this->authorized - (float)$this->charged);
+		return ($this->authorized - (float)$this->captured);
 	}
 
 	function refundable () {
-		if (!$this->charged) return 0.0;
-		return ($this->charged - (float)$this->refunded);
+		if (!$this->captured) return 0.0;
+		return ($this->captured - (float)$this->refunded);
 	}
 
 	function gateway () {
@@ -207,6 +215,12 @@ class Purchase extends DatabaseObject {
 		ob_end_clean();
 
 		return apply_filters('shopp_order_receipt',$content);
+	}
+
+	function save () {
+		if (!empty($this->card) && strlen($this->card) > 4)
+			$this->card = substr($this->card,-4);
+		parent::save();
 	}
 
 } // end Purchase class
