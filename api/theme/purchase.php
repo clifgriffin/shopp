@@ -435,7 +435,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $countries[$O->shipcountry];
 	}
 
-	function ship_method ($result, $options, $O) { return esc_html($O->shipmethod); }
+	function ship_method ($result, $options, $O) { return esc_html($O->shipoption); }
 
 	function ship_postcode ($result, $options, $O) { return esc_html($O->shippostcode); }
 
