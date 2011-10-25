@@ -105,13 +105,13 @@ class Purchase extends DatabaseObject {
 	function gateway () {
 		global $Shopp;
 
-		$Gateway = false;
 		$processor = $this->gateway;
+		if ('FreeOrder' == $processor) return $Shopp->Gateways->freeorder;
 		if (isset($Shopp->Gateways->active[$processor])) return $Shopp->Gateways->active[$processor];
 		else {
-			foreach ($Shopp->Gateways->active as $gateway) {
-				if ($processor != $gateway->name) continue;
-				return $gateway;
+			foreach ($Shopp->Gateways->active as $Gateway) {
+				if ($processor != $Gateway->name) continue;
+				return $Gateway;
 				break;
 			}
 		}

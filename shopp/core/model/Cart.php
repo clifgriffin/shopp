@@ -712,6 +712,7 @@ class CartDiscounts {
 		$this->Order = &$Shopp->Order;
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
+
 	}
 
 	/**
@@ -724,22 +725,24 @@ class CartDiscounts {
 	 **/
 	function calculate () {
 		$this->applypromos();
-
-		$discountsum = array();
+		// print_r($this->Cart->discounts);
+		$sum = array();
 		foreach ($this->Cart->discounts as $Discount) {
-			if (isset($Discount->items)) {
+			if (isset($Discount->items) && !empty($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
 					if (isset($this->Cart->contents[$id])) {
 						$this->Cart->contents[$id]->discount += $amount; // unit discount
 						$this->Cart->contents[$id]->retotal();
 						if ( $this->Cart->contents[$id]->discounts ) $Discount->applied += $this->Cart->contents[$id]->discounts; // total line item discount
 					}
-					$discountsum[$id] = $this->Cart->contents[$id]->discount;
+					$sum[$id] = $this->Cart->contents[$id]->discount;
 				}
+			} else {
+				$sum[] = $Discount->applied;
 			}
 		}
 
-		$discount = array_sum($discountsum);
+		$discount = array_sum($sum);
 		return $discount;
 	}
 
