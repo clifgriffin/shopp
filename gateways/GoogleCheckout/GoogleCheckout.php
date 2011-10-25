@@ -143,7 +143,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$redirect = $Response->content('redirect-url');
 
 			if ($redirect) {
-				$Shopp->resession();
+				Shopping::resession();
 				shopp_redirect($redirect);
 			}
 		}
@@ -413,7 +413,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$order_summary = $XML->tag('order-summary');
 
 		$Shopp->Order->unhook();
-		$Shopp->resession($sessionid);
+		Shopping::resession($sessionid);
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
 		$Shopp->Order->listeners();
 
@@ -582,7 +582,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if ($XML->content('shipping') == 'false') return true;  // ack
 
 		$sessionid = $XML->content('shopping-session');
-		$Shopp->resession($sessionid);
+		Shopping::resession($sessionid);
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
 		$Shopp->Order->listeners();
 		$Shopping = ShoppShopping();
