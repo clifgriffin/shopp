@@ -357,6 +357,7 @@ class Shopp {
 	 *
 	 * @return boolean True on success
 	 **/
+ /*
 	function resession ($session=false) {
 		$Shopping = ShoppShopping();
 
@@ -366,13 +367,11 @@ class Shopp {
 
 		if ($session) { // loading session
 			$Shopping->session = session_id($session); // session_id while session is closed
-			$Shopping = ShoppShopping();
 			$Shopping->init();
-			session_start();
 			return true;
 		}
 
-		session_start();
+		$Shopping->init();
 		session_regenerate_id(); // Generate new ID while session is started
 
 		// Ensure we have the newest session ID
@@ -381,13 +380,13 @@ class Shopp {
 		// Commit the session and restart
 		session_write_close();
 		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
-		session_start();
+		$Shopping->init();
 
 		do_action('shopp_reset_session'); // Deprecated
 		do_action('shopp_resession');
 		return true;
-
 	}
+*/
 
 	/**
 	 * Provides the JavaScript environment with Shopp settings

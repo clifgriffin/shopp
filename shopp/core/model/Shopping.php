@@ -90,6 +90,46 @@ class Shopping extends SessionObject {
 		return true;
 	}
 
+	/**
+	 * Reset the shopping session
+	 *
+	 * Controls the cart to allocate a new session ID and transparently
+	 * move existing session data to the new session ID.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return boolean True on success
+	 **/
+	static function resession ($session=false) {
+		$Shopping = ShoppShopping();
+
+		// commit current session
+		session_write_close();
+		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
+
+		if ($session) { // loading session
+			$Shopping->session = session_id($session); // session_id while session is closed
+			$Shopping->init();
+			return true;
+		}
+
+		$Shopping->init();
+		session_regenerate_id(); // Generate new ID while session is started
+
+		// Ensure we have the newest session ID
+		$Shopping->session = session_id();
+
+		// Commit the session and restart
+		session_write_close();
+		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
+		$Shopping->init();
+
+		do_action('shopp_reset_session'); // Deprecated
+		do_action('shopp_resession');
+		return true;
+	}
+
 } // END class Shopping
 
 /**
@@ -120,6 +160,7 @@ class Shopping extends SessionObject {
  * @package shopp
  **/
 class ShoppingObject {
+
 	static function &__new ($class, &$ref=false) {
 		$Shopping = ShoppShopping();
 
