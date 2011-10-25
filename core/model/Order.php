@@ -104,7 +104,7 @@ class Order {
 		add_action('shopp_process_order', array($this,'submit'),100);
 		// add_action('shopp_process_order', array($this,'process'),100);
 
-		// add_action('shopp_process_free_order',array($this,'freebie'));
+		add_action('shopp_process_free_order',array($this,'freebie'));
 		add_action('shopp_update_destination',array($this->Shipping,'destination'));
 
 		add_action('shopp_purchase_order_event',array($this,'purchase'));
@@ -230,6 +230,11 @@ class Order {
 			if (!$processor) new ShoppError(__('The payment method you selected is no longer available. Please choose another.','Shopp'));
 		}
 
+		if ('FreeOrder' == $this->processor) {
+			$processor = 'FreeOrder';
+			$Shopp->Gateways->activated = array($processor);
+		}
+
 		if (count($Shopp->Gateways->activated) == 1 // base case
 			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) {
 			// Automatically select the first active gateway
@@ -240,6 +245,14 @@ class Order {
 		} elseif (!empty($processor)) { // Change the current processor
 			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated))
 				$this->processor = $processor;
+		}
+
+		// Setup Free Order processor
+		if ('FreeOrder' == $processor) {
+			$this->processor = 'FreeOrder';
+			if (!isset($Shopp->Gateways->active[ $processor ]))
+				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
+			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->settings['label']);
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
@@ -364,6 +377,7 @@ class Order {
 		if (empty($this->Billing))
 			$this->Billing = new BillingAddress();
 		// Default the cardtype to the payment method label selected
+
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
 		$ignore = array();
 		if ($_POST['billing']['card'] == substr($this->Billing->card,-4))
@@ -425,8 +439,6 @@ class Order {
 
 		do_action('shopp_checkout_processed');
 
-		if (apply_filters('shopp_process_free_order',$this->Cart->orderisfree())) return;
-
 		// Catch originally free orders that get extra (shipping) costs added to them
 		if ($freebie && $this->Cart->Totals->total > 0) {
 
@@ -434,15 +446,16 @@ class Order {
 					&& ( isset($this->payoptions[$this->paymethod]->cards) // Remote checkout
 						&& empty( $this->payoptions[$this->paymethod]->cards ) ) )
 				) {
-				new ShoppError(__('Payment information for this order is missing.','Shopp'),'checkout_no_paymethod',SHOPP_ERR);
+				new ShoppError(__('Payment information for this order is missing.','Shopp'),'checkout_no_paymethod');
 				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 			}
-		}
+		} elseif ($freebie) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
+
 
 	}
 
@@ -521,9 +534,10 @@ class Order {
 	 **/
 	function process ($Purchase) {
 
-		if (apply_filters('shopp_authonly_shipped_orders',$this->Cart->shipped))
-			$this->auth($Purchase);	// There are shipped products, auth only
-		else $this->sale($Purchase);	// No shipped products, auth+capture (sale event)
+		if ( ! $this->Cart->orderisfree()
+			&& apply_filters('shopp_authonly_shipped_orders',$this->Cart->shipped)) {
+				$this->auth($Purchase);	// There are shipped products, auth only
+		} else $this->sale($Purchase);	// No shipped products, auth+capture (sale event)
 
 	}
 
@@ -538,10 +552,6 @@ class Order {
 			'amount' => $Purchase->total
 		));
 
-		echo "shopp_add_order_event($Purchase->id,'auth',array(
-			'gateway' => $Purchase->gateway,
-			'amount' => $Purchase->total
-		));";
 	}
 
 	function sale ($Purchase) {
@@ -566,10 +576,14 @@ class Order {
 	 * @return void
 	 **/
 	function freebie ($free) {
-		if (!$free) return $free;
+		// if (!$free) return $free;
 
-		$this->gateway = $this->Billing->cardtype = __('Free Order','Shopp');
-		$this->transaction(crc32($this->Customer->email.mktime()),'CHARGED');
+		$this->gateway = 'FreeOrder';
+		$this->processor($this->gateway);
+		$this->Billing->cardtype = __('Free Order','Shopp');
+
+		// $this->gateway = $this->Billing->cardtype = __('Free Order','Shopp');
+		// $this->transaction(crc32($this->Customer->email.mktime()),'CHARGED');
 		return true;
 	}
 
@@ -605,7 +619,6 @@ class Order {
 		// }
 
 		// Copy details from Auth message
-		// $this->txnid = $Event->txnid;
 		$this->txnstatus = $Event->name;
 		$this->gateway = $Event->gateway;
 
@@ -627,9 +640,6 @@ class Order {
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
 		$this->Billing->save();
-
-		// Card data is truncated, switch the cart to normal mode
-		// $Shopping->secured(false);
 
 		if (!empty($this->Shipping->address)) {
 			$this->Shipping->customer = $this->Customer->id;
