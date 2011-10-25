@@ -65,12 +65,11 @@ class Service extends AdminController {
 	}
 
 	function workflow () {
-		global $Shopp;
 		if (preg_match("/\d+/",$_GET['id'])) {
-			$Shopp->Purchase = new Purchase($_GET['id']);
-			$Shopp->Purchase->load_purchased();
-			$Shopp->Purchase->load_events();
-		} else $Shopp->Purchase = new Purchase();
+			ShoppPurchase( new Purchase($_GET['id']) );
+			ShoppPurchase()->load_purchased();
+			ShoppPurchase()->load_events();
+		} else ShoppPurchase( new Purchase() );
 	}
 
 	/**
@@ -288,7 +287,7 @@ class Service extends AdminController {
 		if ( ! current_user_can('shopp_orders') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		$Purchase = $Shopp->Purchase;
+		$Purchase = ShoppPurchase();
 		$Purchase->Customer = new Customer($Purchase->customer);
 		$Gateway = $Purchase->gateway();
 
@@ -419,7 +418,7 @@ class Service extends AdminController {
 
 			shopp_add_order_event($Purchase->id,'capture',array(
 				'txnid' => $Purchase->txnid,
-				'gateway' => $Gateway->module,
+				'gateway' => $Purchase->gateway,
 				'amount' => $Purchase->capturable(),
 				'user' => $user->ID
 			));
@@ -429,8 +428,6 @@ class Service extends AdminController {
 
 		$base = shopp_setting('base_operations');
 		$targets = shopp_setting('target_markets');
-		// $UI->txnStatusLabels = Lookup::payment_status_labels();
-		// $UI->statusLabels = shopp_setting('order_status');
 
 		$carriers_menu = $carriers_json = array();
 		$shipping_carriers = shopp_setting('shipping_carriers');

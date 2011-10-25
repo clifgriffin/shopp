@@ -214,10 +214,40 @@ class TxnFailOrderEventRenderer extends TxnOrderEventRenderer {
 
 }
 
-class AuthedOrderEventRenderer extends TxnOrderEventRenderer {
+class InvoicedOrderEventRenderer extends TxnOrderEventRenderer {
 
 	function name () {
-		return __('Authorized payment','Shopp');
+		return __('Order invoiced','Shopp');
+	}
+
+}
+
+class AuthOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Payment authorization','Shopp');
+	}
+
+}
+
+class AuthedOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Payment authorized','Shopp');
+	}
+
+	function details () {
+		$details = array();
+
+		if (isset($this->paymethod) && !empty($this->paymethod)) {
+			$payment = $this->paymethod;
+			if (!empty($this->payid)) $payment .= " ($this->paytype $this->payid)";
+			$details[] = $payment;
+		}
+		if (isset($this->txnid) && !empty($this->txnid))
+			$details[] = sprintf(__('Transaction: %s','Shopp'),$this->txnid);
+
+		return join(' | ',$details);
 	}
 
 }
