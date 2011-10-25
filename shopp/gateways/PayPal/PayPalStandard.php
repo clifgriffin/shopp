@@ -252,7 +252,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Customer returned from PayPal
 		// but no transaction processed yet
 		// reset the session to preserve original order
-		$Shopp->resession();
+		Shopping::resession();
 
 	}
 
@@ -282,7 +282,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$Purchase = new Purchase($txnid,'txnid');
 			if (!empty($Purchase->id)) {
 				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
-				$Shopp->resession();
+				Shopping::resession();
 				$Shopp->Purchase = $Purchase;
 				$Shopp->Order->purchase = $Purchase->id;
 				shopp_redirect(shoppurl(false,'thanks',false));
@@ -340,7 +340,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		$Shopp->Order->unhook();
-		$Shopp->resession($_POST['custom']);
+		Shopping::resession($_POST['custom']);
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
 		$this->actions();
 
