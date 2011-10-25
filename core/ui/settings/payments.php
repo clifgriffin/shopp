@@ -55,7 +55,7 @@
 			$payment = $Gateway->settings;
 
 			if (false !== $id) $payment = $Gateway->settings[$id];
-			$slug = join('-',array($gateway,$id));
+			$slug = join('-',array_filter(array($gateway,$id)));
 
 			$cards = array();
 			if (isset($payment['cards'])) {
