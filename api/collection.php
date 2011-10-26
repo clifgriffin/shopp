@@ -62,6 +62,7 @@ function shopp_register_collection ( $name = '' ) {
  * @return void
  **/
 function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
+	$taxonomy = sanitize_key($taxonomy);
 	$rewrite_slug = $taxonomy;
 	$taxonomy = "shopp_$taxonomy";
 	if (isset($args['rewrite']) && isset($args['rewrite']['slug'])) $rewrite_slug = $args['rewrite']['slug'];
