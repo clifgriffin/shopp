@@ -267,8 +267,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function found ($result, $options, $O) {
 		if (empty($O->id)) return false;
 		$loadable = array('prices','coverimages','images','specs','tags','categories','summary');
-		if (isset($options['load'])) $options['load'] = explode(',',$options['load']);
-		$load = array_intersect($loadable,$options['load']);
+		$defaults = array(
+			'load' => false
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (false !== strpos($load,',')) $load = explode(',',$load);
+		$load = array_intersect($loadable,(array)$load);
 		if (empty($load)) $load = array('summary','prices','images','specs','tags','categories');
 		$O->load_data($load);
 		return true;

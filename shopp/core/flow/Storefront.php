@@ -778,6 +778,7 @@ class Storefront extends FlowController {
 
 		$is_shopp_page = is_shopp_page();
 		$keymap = array();
+		$parents = array();
 		foreach ($menuitems as $key => $item) {
 
 			// Remove the faulty wp_page_menu (deprecated) class for Shopp pages
@@ -801,7 +802,7 @@ class Storefront extends FlowController {
 			}
 		}
 
-		foreach ($parents as $parentid) {
+		foreach ((array)$parents as $parentid) {
 			$parent = $menuitems[ $keymap[$parentid] ];
 			$parent->classes[] = 'current-menu-parent';
 			$parent->classes[] = 'current-page-parent';
