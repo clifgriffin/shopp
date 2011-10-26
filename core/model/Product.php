@@ -30,6 +30,7 @@ class Product extends WPShoppObject {
 	var $tags = array();
 	var $images = array();
 	var $specs = array();
+	var $specnames = array();
 	var $meta = array();
 	var $max = array();
 	var $min = array();
@@ -331,6 +332,13 @@ class Product extends WPShoppObject {
 		}
 
 		if ('images' == $property) $collate = 'id';
+		if ('specs' == $property) {
+			$property = 'specnames';
+			parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);
+
+			$property = 'specs';
+			$collate = 'id';
+		}
 
 		parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);
 	}
@@ -470,28 +478,6 @@ class Product extends WPShoppObject {
 	 **/
 	function published () {
 		return ('publish' == $this->status && time() >= $this->publish);
-	}
-
-	/**
-	 * Merges specs with identical names into an array of values
-	 *
-	 * @todo Determine if merge_specs is necessary with new collation capabilities of the DB query loader
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function merge_specs () {
-		$merged = array();
-		foreach ($this->specs as $key => $spec) {
-			if (!isset($merged[$spec->name])) $merged[$spec->name] = $spec;
-			else {
-				if (!is_array($merged[$spec->name]->value))
-					$merged[$spec->name]->value = array($merged[$spec->name]->value);
-				$merged[$spec->name]->value[] = $spec->value;
-			}
-		}
-		$this->specs = $merged;
 	}
 
 	/**

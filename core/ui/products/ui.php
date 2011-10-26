@@ -221,8 +221,6 @@ function details_meta_box ($Product) {
 	<button type="button" id="addDetail" class="button-secondary" tabindex="8"><small><?php _e('Add Product Detail','Shopp'); ?></small></button>
 	<p><?php _e('Build a list of detailed information such as dimensions or features of the product.','Shopp'); ?></p>
 	</div>
-
-	<p></p>
 <?php
 }
 add_meta_box(
