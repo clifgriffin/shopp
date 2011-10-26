@@ -589,7 +589,6 @@ class Warehouse extends AdminController {
 		$post_type = Product::posttype();
 
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
-
 	}
 
 	/**

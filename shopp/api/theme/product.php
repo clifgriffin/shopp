@@ -454,10 +454,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
-		if (count($O->specs) > 0) {
-			$O->merge_specs();
-			return true;
-		} else return false;
+		if (count($O->specs) > 0) return true;
+		else return false;
 	}
 
 	function has_tags ($result, $options, $O) {
@@ -728,8 +726,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string = '';
 
-		if ($name && isset($O->specs[$name])) {
-			$spec = $O->specs[$name];
+		if ($name && isset($O->specnames[$name])) {
+			$spec = $O->specnames[$name];
 			if (is_array($spec)) {
 				if ($index) {
 					foreach ($spec as $id => $item)
@@ -745,13 +743,25 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 
 		// Spec loop handling
-		$spec = current($O->specs);
-		if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
+		$spec = current($O->specnames);
+
+		if (is_array($spec)) {
+			$values = array();
+			foreach ($spec as $id => $entry) {
+				$specname = $entry->name;
+				$values[] = $entry->value;
+			}
+			$specvalue = join($delimiter,$values);
+		} else {
+			$specname = $spec->name;
+			$specvalue = $spec->value;
+		}
+
 		if ($showname && $showcontent)
-			$string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
-		elseif ($showname) $string = $spec->name;
-		elseif ($showcontent) $string = apply_filters('shopp_product_spec',$spec->value);
-		else $string = $spec->name.$separator.apply_filters('shopp_product_spec',$spec->value);
+			$string = $spec->name.$separator.apply_filters('shopp_product_spec',$specvalue);
+		elseif ($showname) $string = $specname;
+		elseif ($showcontent) $string = apply_filters('shopp_product_spec',$specvalue);
+		else $string = $specname.$separator.apply_filters('shopp_product_spec',$specvalue);
 		return $string;
 	}
 
@@ -771,11 +781,11 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function specs ($result, $options, $O) {
 		if (!isset($O->_specs_loop)) {
-			reset($O->specs);
+			reset($O->specnames);
 			$O->_specs_loop = true;
-		} else next($O->specs);
+		} else next($O->specnames);
 
-		if (current($O->specs) !== false) return true;
+		if (current($O->specnames) !== false) return true;
 		else {
 			unset($O->_specs_loop);
 			return false;
