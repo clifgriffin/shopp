@@ -103,7 +103,7 @@ class AdminFlow extends FlowController {
 		$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
 		foreach ( $taxonomies as $t ) {
 			if ($t->name == 'shopp_category') continue;
-			$pagehook = ltrim($t->name,'shopp_');
+			$pagehook = str_replace('shopp_','',$t->name);
 			$this->addpage($pagehook,$t->labels->menu_name,'Categorize','Editing Taxonomies','products');
 		}
 
