@@ -1797,6 +1797,7 @@ OrderEvent::register('voided','VoidedOrderEvent');
 class NoticeOrderEvent extends OrderEventMessage {
 	var $name = 'notice';
 	var $message = array(
+		'user' => 0,			// The WP user ID processing the void
 		'note' => ''			// The message to log for the order
 	);
 }
