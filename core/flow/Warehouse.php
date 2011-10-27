@@ -648,7 +648,7 @@ class Warehouse extends AdminController {
 		do_action('shopp_pre_product_save');
 		$Product->save();
 
-		foreach ( Product::$_taxonomies as $taxonomy => $type) {
+		foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy ) {
 			$tags = '';
 			$taxonomy_obj = get_taxonomy($taxonomy);
 
