@@ -451,7 +451,7 @@ class Customer extends DatabaseObject {
 			'user_login' => $this->loginname,
 			'user_pass' => $this->password,
 			'user_email' => $this->email,
-			'display_name' => $this->firstname.' '.$this->Customer->lastname,
+			'display_name' => $this->firstname.' '.$this->lastname,
 			'nickname' => $handle,
 			'first_name' => $this->firstname,
 			'last_name' => $this->lastname
