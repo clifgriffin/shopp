@@ -552,7 +552,7 @@ function shopp_catalog_count ( $status = 'publish' ) {
  * @return int number of products in the category
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
-	if ( ! term_exists( $category, ProductCategory::$taxonomy ) ) {
+	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
