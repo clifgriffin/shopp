@@ -441,7 +441,7 @@ class ProductTaxonomy extends ProductCollection {
 		$options['joins'][$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 		$options['joins'][$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$this->id)";
 
-		$loaded =  parent::load($options);
+		$loaded =  parent::load(apply_filters('shopp_taxonomy_load_options',$options));
 
 		$query = "SELECT (AVG(maxprice)+AVG(minprice))/2 AS average,MAX(maxprice) AS max,MIN(IF(minprice>0,minprice,NULL)) AS min FROM $summary_table ".str_replace('p.ID','product',join(' ',$options['joins']));
 		$this->pricing = DB::query($query);
@@ -663,10 +663,7 @@ class ProductCategory extends ProductTaxonomy {
 	function load ($options = array()) {
 
 		// $options['debug'] = true;
-		if ($this->filters) {
-			if (!isset($options['where'])) $options['where'] = array();
-			$options['where'] = array_merge($options['where'],$this->facetsql());
-		}
+		if ($this->filters) add_filter('shopp_taxonomy_load_options',array($this,'facetsql'));
 
 		return parent::load($options);
 	}
@@ -717,10 +714,12 @@ class ProductCategory extends ProductTaxonomy {
 		$Storefront->browsing[$this->slug] = $this->filters; // Save currently applied filters
 	}
 
-	function facetsql () {
+	function facetsql ($options) {
 		if (!$this->filters) return array();
 
-		$spectable = DatabaseObject::tablename(Spec::$table);
+		$joins = $options['joins'];
+
+		if (!isset($options['where'])) $options['where'] = array();
 
 		$f = 1;
 		$where = array();
@@ -733,34 +732,54 @@ class ProductCategory extends ProductTaxonomy {
 			$value = urldecode($value);
 
 			if (!is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
-				if ('price' == $Facet->slug) { // Prices require complex matching on price line entries
+				if ('price' == $Facet->slug) { // Prices require complex matching on summary prices in the main collection query
 					list(,$min,$max) = array_map('floatvalue',$matches);
-					if ($min > 0) $where[] = "(s.minprice >= $min OR s.maxprice >= $min)";
-					if ($max > 0) $where[] = "((s.minprice > 0 AND s.minprice <= $max) OR s.maxprice <= $max)";
+					if ($min > 0) $options['where'][] = "(s.minprice >= $min)";
+					if ($max > 0) $options['where'][] = "(s.minprice > 0 AND s.minprice <= $max)";
 
 				} else { // Spec-based numbers are somewhat more straightforward
 					list(,$min,$max) = $matches;
 					$ranges = array();
 					if ($min > 0) $ranges[] = "numeral >= $min";
 					if ($max > 0) $ranges[] = "numeral <= $max";
-					$filters[] = "(".join(' AND ',$ranges).")";
-					$facets[] = sprintf("name='%s'",DB::escape($name));
+					// $filters[] = "(".join(' AND ',$ranges).")";
+					$facets[] = sprintf("name='%s' AND %s",DB::escape($name),join(' AND ',$ranges));
+					$filters[] = sprintf("FIND_IN_SET('%s',facets)",DB::escape($name));
 
 				}
 
-			} else {
-				$filters[] = "IF(value='".DB::escape($value)."',1,0)"; // No range, direct value match
+			} else { // No range, direct value match
+				$filters[] = sprintf("FIND_IN_SET('%s=%s',facets)",DB::escape($name),DB::escape($value));
 				$facets[] = sprintf("name='%s' AND value='%s'",DB::escape($name),DB::escape($value));
 			}
 
 		}
 
-		if (!empty($facets) && !empty($filters)) // Prices require complex matching on price line entries
-			$where[] = "p.id IN (SELECT parent FROM $spectable
-												WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
-												GROUP BY parent	HAVING ".count($filters)."=SUM(".join(' OR ',$filters)."))";
+		$spectable = DatabaseObject::tablename(Spec::$table);
+		$jointables = str_replace('p.ID','m.parent',join(' ',$joins)); // Rewrite the joins to use the spec table reference
+		$having = "HAVING ".join(' AND ',$filters);
 
-		return $where;
+		$query = "SELECT m.parent,GROUP_CONCAT(m.name,IF(m.numeral>0,'','='),IF(m.numeral>0,'',m.value)) AS facets
+					FROM $spectable AS m $jointables
+					WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
+					GROUP BY m.parent
+					$having";
+
+		// Support cache accelleration
+		$cachehash = 'collection_facet_'.md5($query);
+		$cached = wp_cache_get($cachehash,'shopp_collection_facet');
+		if ($cached) $set = $cached;
+		else {
+			$set = DB::query($query,'array','col','parent');
+			wp_cache_set($cachehash,$set,'shopp_collection_facet');
+		}
+
+		if (!empty($set)) {
+			$options['where'][] = "p.id IN (".join(',',$set).")";
+			unset($options['joins']);
+		}
+
+		return $options;
 	}
 
 	function load_facets () {
@@ -787,8 +806,10 @@ class ProductCategory extends ProductTaxonomy {
 			else $ranges = $this->priceranges;
 
 			$casewhen = '';
-			foreach ($ranges as $index => $r)
-				$casewhen .= " WHEN (minprice >= {$r['min']} AND minprice <= {$r['max']}) THEN $index";
+			foreach ($ranges as $index => $r) {
+				$minprice = $r['max'] > 0?" AND minprice <= {$r['max']}":"";
+				$casewhen .= " WHEN (minprice >= {$r['min']}$minprice) THEN $index";
+			}
 
 			$sumtable = DatabaseObject::tablename(ProductSummary::$table);
 			$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
