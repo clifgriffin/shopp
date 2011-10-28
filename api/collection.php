@@ -582,7 +582,7 @@ function shopp_category_count (	$category = 0, $children = false ) {
  * @return int count of subcategories
  **/
 function shopp_subcategory_count ( $category = 0 ) {
-	if ( ! term_exists( $category, ProductCategory::$taxonomy ) ) {
+	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
