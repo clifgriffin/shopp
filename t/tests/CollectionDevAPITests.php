@@ -89,7 +89,12 @@ class CollectionDevAPITests extends ShoppTestCase
 		$Tag = shopp_product_tag('unit test');
 		$this->AssertEquals($Tag->name, 'unit test');
 		$this->AssertEquals($Tag->slug, 'unit-test');
+	}
+
+	function test_shopp_rmv_product_tag () {
 		$this->AssertTrue(shopp_rmv_product_tag('unit test'));
+		$Tag = shopp_product_tag('unit test');
+		$this->AssertFalse($Tag);
 	}
 
 	function test_shopp_product_term () {
@@ -116,6 +121,11 @@ class CollectionDevAPITests extends ShoppTestCase
 		$Products = shopp_term_products('shopp_product_term_test1', 'shopp_product_term_test');
 		$this->AssertEquals(1, count($Products));
 		$this->AssertEquals('shopp_product_term_test', reset($Products)->name);
+	}
+
+	function test_shopp_rmv_product_term () {
+		$Term = term_exists('shopp_product_term_test1', 'shopp_product_term_test');
+		$this->AssertTrue(shopp_rmv_product_term($Term['term_id'], 'shopp_product_term_test'));
 	}
 
 	function test_shopp_product_tags() {
@@ -158,5 +168,39 @@ class CollectionDevAPITests extends ShoppTestCase
 		$Products = shopp_tag_products( 'wachowski' );
 		$this->AssertTrue( ! empty( $Products ) );
 	}
+
+	function test_shopp_catalog_count () {
+		$count = shopp_catalog_count();
+		$this->AssertEquals(125, $count);
+	}
+
+	function test_shopp_category_count () {
+		$counts = array(3=>15, 29=>0, 49=>5, 27=>29, 55=>2, 51=>3, 23=>0, 9=>64, 47=>5, 45=>6, 53=>1, 35=>14, 19=>6, 62=>1, 15=>3, 37=>32, 5=>10, 21=>21, 25=>0, 43=>13, 41=>9, 17=>1, 33=>0, 13=>0, 11=>5, 31=>14, 39=>11, 7=>6);
+		foreach(shopp_product_categories() as $Category) {
+			$count = shopp_category_count($Category->id);
+			$this->AssertEquals($counts[$Category->id], $count);
+		}
+	}
+
+	function test_shopp_product_categories_count () {
+		$Product = shopp_product('1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name');
+		$count = shopp_product_categories_count($Product->id);
+		$this->AssertEquals(2, $count);
+	}
+
+	function test_shopp_product_category () {
+		$cat = shopp_product_category(3);
+		$this->AssertEquals(15, count($cat->products));
+		$this->AssertEquals('Apparel', $cat->name);
+	}
+
+	function test_shopp_subcategories () {
+		$this->AssertEquals(15, count(shopp_category_products ( 3 )));
+	}
+
+	function test_shopp_subcategory_count () {
+		$this->AssertEquals(10, shopp_subcategory_count(3));
+	}
+
 }
 ?>
