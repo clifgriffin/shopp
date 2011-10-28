@@ -114,12 +114,7 @@ function shopp_rmv_cart_item ( $item = false ) {
  * @return array list of items in the cart
  **/
 function shopp_cart_items () {
-	$items = array();
-	$count = shopp_cart_items_count();
-	for ( $i = 0 ; $i < $count ; $i++ ) {
-		$items[$i] = shopp_cart_item($i);
-	}
-	return $items;
+	return ShoppOrder()->Cart->contents;
 }
 
 /**
@@ -131,8 +126,7 @@ function shopp_cart_items () {
  * @return void Description...
  **/
 function shopp_cart_items_count () {
-	$Order = ShoppOrder();
-	return count( $Order->Cart->contents );
+	return count( ShoppOrder()->Cart->contents );
 }
 
 /**
@@ -141,20 +135,24 @@ function shopp_cart_items_count () {
  * @author John Dillick
  * @since 1.2
  *
- * @param int $item the index of the item in the cart
+ * @param int|string $item the integer index of the item in the cart, string 'recent-cartitem' for last added cart item
  * @return stdClass object with quantity, product id, variant id, and list of addons of the item.
  **/
 function shopp_cart_item ( $item = false ) {
 	$Order = ShoppOrder();
-
 	if ( false === $item ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing item parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	}
-	if ( $item < 0 || $item > shopp_cart_items_count() ) {
+
+	if ( 'recent-cartitem' === $item && $Order->Cart->Added ) return $Order->Cart->Added;
+
+	$items = shopp_cart_items();
+
+	if ( $item < 0 || $item >= count($items) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such item $item",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return $Order->Cart->contents[$item];
+	return $items[$item];
 
 }
 
