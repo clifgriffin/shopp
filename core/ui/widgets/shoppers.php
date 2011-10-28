@@ -27,6 +27,9 @@ class ShoppShoppersWidget extends WP_Widget {
 		if (empty($options['title'])) $options['title'] = __('Recent Shoppers','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 		$content = shopp('catalog','get-recent-shoppers',$options);
+
+		if (empty($content)) return false; // No recent shoppers, hide it
+
 		echo $before_widget.$title.$content.$after_widget;
     }
 

@@ -31,6 +31,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'isproduct' => 'is_product',
 		'orderbylist' => 'orderby_list',
 		'product' => 'product',
+		'recentshoppers' => 'recent_shoppers',
 		'search' => 'search',
 		'searchform' => 'search_form',
 		'sideproduct' => 'side_product',
@@ -581,7 +582,9 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		extract($options);
 
 		$pt = DatabaseObject::tablename(Purchase::$table);
-		$shoppers = DB::query("SELECT firstname,lastname,email,city,state FROM $pt AS pt ORDER BY created DESC LIMIT 5",'array');
+		$shoppers = DB::query("SELECT firstname,lastname,email,city,state FROM $pt AS pt GROUP BY customer ORDER BY created DESC LIMIT $show",'array');
+
+		if (empty($shoppers)) return '';
 
 		$_ = array();
 		$_[] = '<ul>';
