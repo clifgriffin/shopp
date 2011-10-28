@@ -677,7 +677,7 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	function metaloader (&$records,&$record,$objects=array(),$id='id',$property='',$collate=false,$merge=false) {
 
-		if (is_array($objects) && isset($objects[$record->{$id}])) {
+		if (is_array($objects) && isset($record->{$id}) && isset($objects[$record->{$id}])) {
 			$target = $objects[$record->{$id}];
 		} elseif (isset($this)) {
 			$target = $this;
