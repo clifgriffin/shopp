@@ -693,16 +693,17 @@ abstract class DatabaseObject implements Iterator {
 			// Named collation if collate is a valid record property
 			if (isset($record->{$collate})) {
 
+				// If multiple entries line up on the same key, build a list inside that key
 				if (isset($target->{$property}[$record->{$collate}])) {
 					if (!is_array($target->{$property}[$record->{$collate}]))
 						$target->{$property}[$record->{$collate}] = array($target->{$property}[$record->{$collate}]->id => $target->{$property}[$record->{$collate}]);
 					$target->{$property}[$record->{$collate}][$record->id] = $record;
 
-				} else $target->{$property}[$record->{$collate}] = $record;
+				} else $target->{$property}[$record->{$collate}] = $record; // or index directly on the key
 
-			} else $target->{$property}[] = $record;
+			} else $target->{$property}[] = $record; // Build a non-indexed list
 
-		} else $target->{$property} = $record;
+		} else $target->{$property} = $record; // Map a single property
 
 		if ($merge) {
 			foreach (get_object_vars($record) as $name => $value) {
@@ -1007,6 +1008,19 @@ class WPDatabaseObject extends DatabaseObject {
 	static function tablename ($table) {
 		global $table_prefix;
 		return $table_prefix.$table;
+	}
+
+	/**
+	 * Adds the save_post event to Shopp custom post saves
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function save ($op='update') {
+		parent::save($op);
+		do_action('save_post',$this->id,get_post($this->id));
 	}
 
 }

@@ -167,6 +167,11 @@ class Warehouse extends AdminController {
 		if (isset($id) && $id != "new") {
 			$Shopp->Product = new Product($id);
 			$Shopp->Product->load_data();
+
+			// Adds CPT compatibility support for third-party plugins/themes
+			global $post;
+			if( is_null($post) ) $post = get_post($Shopp->Product->id);
+
 		} else $Shopp->Product = new Product();
 
 		if ($save) {
