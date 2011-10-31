@@ -47,15 +47,16 @@
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 				<?php the_editor($Product->description,'content','Description', false); ?>
 				</div>
-
 			<?php
 			do_meta_boxes('shopp_page_shopp-products', 'normal', $Product);
 			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Product);
 
 			do_meta_boxes($post_type, 'normal', $Product);
 			do_meta_boxes($post_type, 'advanced', $Product);
-			?>
 
+			// @deprecated For CPT compatibility; deprecated in WP 2.5 remove later
+			do_action('dbx_post_sidebar');
+			?>
 			</div>
 			</div>
 
