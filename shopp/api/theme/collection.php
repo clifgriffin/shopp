@@ -723,7 +723,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$string = "";
 		$depthlimit = $depth;
 		$depth = 0;
-		$wraplist = value_is_true($wraplist);
+		$wraplist = str_true($wraplist);
+		$hierarchy = str_true($hierarchy);
 		$exclude = explode(",",$exclude);
 		$section = array();
 
@@ -748,25 +749,24 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			if (!$in && isset($c->id) && $c->id == $root->id) $in = true;
 		}
 
-		if (value_is_true($dropdown)) {
+		if (str_true($dropdown)) {
 			$string .= $title;
 			$string .= '<select name="shopp_cats" id="shopp-'.$O->slug.'-subcategories-menu" class="shopp-categories-menu">';
 			$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 			foreach ($section as &$category) {
-				if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
+				if ($hierarchy && $depthlimit && $category->depth >= $depthlimit) continue;
 				if (in_array($category->id,$exclude)) continue; // Skip excluded categories
 				if ($category->products == 0) continue; // Only show categories with products
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+				if ($hierarchy && $category->depth > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 				}
 				$padding = str_repeat("&nbsp;",$category->depth*3);
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+				$link = self::url('',false,$category);
 
 				$total = '';
-				if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->total.')';
+				if (str_true($products)) $total = '&nbsp;&nbsp;('.$category->total.')';
 
 				$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$total.'</option>';
 				$previous = &$category;
@@ -780,25 +780,23 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			if ($wraplist) $string .= '<ul'.$classes.'>';
 			foreach ($section as &$category) {
 				if (in_array($category->id,$exclude)) continue; // Skip excluded categories
-				if (value_is_true($hierarchy) && $depthlimit &&
+				if ($hierarchy && $depthlimit &&
 					$category->depth >= $depthlimit) continue;
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+				if ($hierarchy && $category->depth > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path) && isset($parent->slug)) $parent->path = $parent->slug;
 					$string = substr($string,0,-5);
 					$string .= '<ul class="children">';
 				}
-				if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
+				if ($hierarchy && $category->depth < $depth) $string .= '</ul></li>';
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
-
-				if (value_is_true($products)) $total = ' <span>('.$category->total.')</span>';
+				$link = self::url('',false,$category);
+				if (str_true($products)) $total = ' <span>('.$category->total.')</span>';
 
 				if ($category->total > 0 || isset($category->smart) || $linkall) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.$total.'</a>';
 				else $listing = $category->name;
 
-				if (value_is_true($showall) ||
+				if (str_true($showall) ||
 					$category->total > 0 ||
 					$category->children)
 					$string .= '<li>'.$listing.'</li>';
@@ -806,7 +804,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				$previous = &$category;
 				$depth = $category->depth;
 			}
-			if (value_is_true($hierarchy) && $depth > 0)
+			if ($hierarchy && $depth > 0)
 				for ($i = $depth; $i > 0; $i--) $string .= '</ul></li>';
 
 			if ($wraplist) $string .= '</ul>';
@@ -869,7 +867,6 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	function subcategory_list ($result, $options, $O) {
-		return true; // @todo Handle sub-category listing in ShoppCategory
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 
@@ -905,28 +902,28 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$depth = 0;
 		$exclude = explode(",",$exclude);
 		$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
-		$wraplist = value_is_true($wraplist);
+		$wraplist = str_true($wraplist);
+		$hierarchy = str_true($hierarchy);
 
-		if (value_is_true($dropdown)) {
+		if (str_true($dropdown)) {
 			$count = 0;
 			$string .= $title;
 			$string .= '<select name="shopp_cats" id="shopp-'.$O->slug.'-subcategories-menu" class="shopp-categories-menu">';
 			$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 			foreach ($O->children as &$category) {
 				if (!empty($show) && $count+1 > $show) break;
-				if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
+				if ($hierarchy && $depthlimit && $category->depth >= $depthlimit) continue;
 				if ($category->products == 0) continue; // Only show categories with products
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+				if ($hierarchy && $category->depth > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 				}
 				$padding = str_repeat("&nbsp;",$category->depth*3);
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+				$link = self::url('',false,$category);
 
 				$total = '';
-				if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
+				if (str_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
 
 				$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$total.'</option>';
 				$previous = &$category;
@@ -936,14 +933,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$string .= '</select>';
 		} else {
 			if (!empty($class)) $classes = ' class="'.$class.'"';
-			$string .= $title.'<ul'.$classes.'>';
+			if ($wraplist) $string .= $title.'<ul'.$classes.'>';
 			$count = 0;
 			foreach ($O->children as &$category) {
 				if (!isset($category->total)) $category->total = 0;
 				if (!isset($category->depth)) $category->depth = 0;
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 				if ($depthlimit && $category->depth >= $depthlimit) continue;
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+				if ($hierarchy && $category->depth > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
 					$string = substr($string,0,-5); // Remove the previous </li>
@@ -958,7 +955,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 					$string .= $subcategories;
 				}
 
-				if (value_is_true($hierarchy) && $category->depth < $depth) {
+				if ($hierarchy && $category->depth < $depth) {
 					for ($i = $depth; $i > $category->depth; $i--) {
 						if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 							// If the child menu is empty, remove the <ul> to avoid breaking standards
@@ -967,13 +964,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 					}
 				}
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?
-					shoppurl("category/$category->uri"):
-					shoppurl(array('s_cat'=>$category_uri));
+				$link = self::url('',false,$category);
 
 				$total = '';
-				if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
+				if (str_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
 
 				$current = '';
 				if (isset($Shopp->Category) && $Shopp->Category->slug == $category->slug)
@@ -984,7 +978,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
-				if (value_is_true($showall) ||
+				if (str_true($showall) ||
 					$category->total > 0 ||
 					isset($category->smart) ||
 					$category->children)
@@ -994,7 +988,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				$depth = $category->depth;
 				$count++;
 			}
-			if (value_is_true($hierarchy) && $depth > 0)
+			if ($hierarchy && $depth > 0)
 				for ($i = $depth; $i > 0; $i--) {
 					if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 						// If the child menu is empty, remove the <ul> to avoid breaking standards
