@@ -496,7 +496,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	function has_categories ($result, $options, $O) {
-		if (empty($O->children)) $O->load_children();
+		if (empty($O->children) && method_exists($O, 'load_children')) $O->load_children();
 		return (!empty($O->children));
 	}
 
@@ -894,7 +894,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		if (!$O->children) $O->load_children(array('orderby'=>$orderby,'order'=>$order));
+		if (empty($O->children) && method_exists($O, 'load_children')) $O->load_children(array('orderby'=>$orderby,'order'=>$order));
 		if (empty($O->children)) return false;
 
 		$string = "";
