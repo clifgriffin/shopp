@@ -13,6 +13,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static $context = 'Catalog';
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',
+		'businessname' => 'business_name',
+		'businessaddress' => 'business_address',
 		'categories' => 'categories',
 		'category' => 'category',
 		'collection' => 'category',
@@ -239,6 +241,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 		return '<ul class="breadcrumb">'.$trail.'</ul>';
 	}
+
+	function business_name ($result, $options, $O) { return esc_html(shopp_setting('business_name')); }
+
+	function business_address ($result, $options, $O) { return esc_html(shopp_setting('business_address')); }
 
 	function categories ($result, $options, $O) {
 		global $Shopp;

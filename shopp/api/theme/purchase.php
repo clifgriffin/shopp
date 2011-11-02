@@ -30,6 +30,10 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'date' => 'date',
 		'discount' => 'discount',
 		'email' => 'email',
+		'emailfrom' => 'email_from',
+		'emailto' => 'email_to',
+		'emailsubject' => 'email_subject',
+		'emailnote' => 'email_note',
 		'firstname' => 'first_name',
 		'freight' => 'freight',
 		'hasdata' => 'has_data',
@@ -142,6 +146,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	function discount ($result, $options, $O) { return money($O->discount); }
 
 	function email ($result, $options, $O) { return esc_html($O->email); }
+
+	// email_* tags are for email headers. The trailing PHP_EOL is to account for PHP ticket #21891
+	// where trailing newlines are removed, despite the  PHP docs saying they will be included
+
+	function email_from ($result, $options, $O) { return ($O->message['from'].PHP_EOL); }
+
+	function email_to ($result, $options, $O) { return ($O->message['to'].PHP_EOL); }
+
+	function email_subject ($result, $options, $O) { return ($O->message['subject'].PHP_EOL); }
+
+	function email_note ($result, $options, $O) { return esc_html($O->message['note']); }
 
 	function first_name ($result, $options, $O) { return esc_html($O->firstname); }
 

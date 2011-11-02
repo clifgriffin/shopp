@@ -252,7 +252,7 @@ class Order {
 			$this->processor = 'FreeOrder';
 			if (!isset($Shopp->Gateways->active[ $processor ]))
 				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
-			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->settings['label']);
+			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
@@ -509,7 +509,7 @@ class Order {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function captured ($Event) {
 		shopp_add_order_event($Event->order,'captured',array(
@@ -602,39 +602,12 @@ class Order {
 		if (empty($Event))
 			return (!$error = new ShoppError('Order failure: An empty order event message was received by the order processor.','shopp_order_failure',SHOPP_DEBUG_ERR));
 
-		// No transaction ID... dude, really?
-		// if (empty($Event->txnid))
-		// 	return (!$error = new ShoppError('Order failure: An Authorization message was received by the order processor with an empty transaction ID.','shopp_order_failure',SHOPP_DEBUG_ERR));
-
-		// $Purchase = new Purchase($Event->txnid,'txnid');
-		// if (!empty($Purchase->id)) {
-		// 	$Event->order = $Purchase->id;
-		// 	$Event->save();
-			// // @todo handle new $status (old $status was set in Order::transaction() method)
-			// if($status != $Purchase->txnstatus) {
-			// 	do_action_ref_array('shopp_order_txnstatus_update',array(&$status,&$Purchase));
-			// 	$Purchase->txnstatus = $status;
-			// 	$Purchase->save();
-			// }
-		// }
-
 		// Copy details from Auth message
 		$this->txnstatus = $Event->name;
 		$this->gateway = $Event->gateway;
 
 		// Lock for concurrency protection
 		$this->lock();
-
-		// $Purchase = new Purchase($this->txnid,'txnid');
-		// if (!empty($Purchase->id)) {
-		// 	$this->unlock();
-		// 	$Shopping->resession();
-		//
-		// 	$this->purchase = $Purchase->id;
-		// 	if ($this->purchase !== false)
-		// 		shopp_redirect(shoppurl(false,'thanks'));
-		//
-		// }
 
 		$this->Billing->customer = false;
 		$paycard = Lookup::paycard($this->Billing->cardtype);
@@ -843,41 +816,10 @@ class Order {
 	}
 
 	/**
-	 * Send out new order notifications
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function notify ($Event) {
-		do_action('shopp_order_notifications');
-
-		$Purchase = ShoppPurchase();
-		if ( empty($Purchase) || empty($Purchase->id) ) {
-			$Purchase = new Purchase($Event->order);
-		}
-
-		// Send email notifications
-		// notification(addressee name, email, subject, email template, receipt template)
-		$Purchase->notification(
-			$Purchase->firstname." ".$Purchase->lastname,
-			$Purchase->email,
-			__('Order Receipt','Shopp')
-		);
-		if (1 != shopp_setting('receipt_copy')) return;
-
-		$Purchase->notification(
-			'',
-			shopp_setting('merchant_email'),
-			__('New Order','Shopp'),
-			'order-merchant.php'		// Use a custom merchant order notification template (if available)
-		);
-
-	}
-
-	/**
 	 * Sets transaction information to create the purchase record
+	 *
+	 * This method still exists for backward-compatibility but should **NOT** be used
+	 * in development. Please use calls from the Developer API instead (such as shopp_add_order_event())
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -943,6 +885,22 @@ class Order {
 				));
 		}
 
+	}
+
+	/**
+	 * Send out new order notifications
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function notify ($Event) {
+		$Purchase = ShoppPurchase();
+		if ( empty($Purchase) || empty($Purchase->id) )
+			$Purchase = new Purchase($Event->order); // Load the order if not already loaded
+
+		do_action('shopp_order_notifications',$Purchase);
 	}
 
 	/**
@@ -1306,11 +1264,13 @@ class OrderEventMessage extends MetaObject {
 	var $_addmap = true;
 	var $_map = array('order' => 'parent','amount' => 'numeral');
 	var $_xcols = array();
+	var $_emails = array();		// Registry to track emails messages are dispatched to
 	var $context = 'purchase';
 	var $type = 'event';
 
 	var $order = false;
 	var $amount = 0.0;
+	var $txnid = false;
 
 	function __construct ($data=false) {
 		$this->init(self::$table);
@@ -1421,6 +1381,25 @@ class OrderEventMessage extends MetaObject {
 		return $msg;
 	}
 
+	/**
+	 * Report the event state label from system preferences
+	 *
+	 * @author Marc Neuhaus
+	 * @since 1.2
+	 *
+	 * @return string The label of the event
+	 **/
+	function label () {
+		if ( '' == $this->name ) return '';
+
+		$states = shopp_setting('order_states');
+		$labels = shopp_setting('order_status');
+
+		$index = array_search($this->name, $states);
+
+		if( $index > 0 && isset($labels[$index]) )
+			return $labels[$index];
+	}
 
 } // END class OrderEvent
 
@@ -1477,8 +1456,7 @@ class DebitOrderEventMessage extends OrderEventMessage {
 class PurchaseOrderEvent extends OrderEventMessage {
 	var $name = 'purchase';
 	var $message = array(
-		'gateway' => '',		// Gateway (class name) to process authorization through
-		'txnid' => '',			// Transaction ID
+		'gateway' => ''		// Gateway (class name) to process authorization through
 	);
 }
 OrderEvent::register('purchase','PurchaseOrderEvent');
@@ -1762,7 +1740,8 @@ class VoidOrderEvent extends OrderEventMessage {
 		'txnid' => 0,			// Transaction ID for the authorization
 		'gateway' => '',		// Gateway (class name) to process capture through
 		'user' => 0,			// The WP user ID processing the void
-		'reason' => 0			// The reason code
+		'reason' => 0,			// The reason code
+		'note' => 0			// The reason code
 	);
 
 	function filter ($msg) {

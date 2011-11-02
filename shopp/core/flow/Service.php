@@ -50,7 +50,6 @@ class Service extends AdminController {
 
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_order_admin_scripts');
-
 	}
 
 	/**
@@ -291,7 +290,15 @@ class Service extends AdminController {
 		$Purchase->Customer = new Customer($Purchase->customer);
 		$Gateway = $Purchase->gateway();
 
-		// print_r($_POST);
+		if (!empty($_POST["send-note"])){
+			$user = wp_get_current_user();
+			shopp_add_order_event($Purchase->id,'notice',array(
+				'note' => $_POST['note'],
+				'user' => $user->ID
+			));
+
+			$Purchase->load_events();
+		}
 
 		// Handle Order note processing
 		if (!empty($_POST['note']))
@@ -310,54 +317,6 @@ class Service extends AdminController {
 			$Note->save();
 		}
 		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
-
-		// if (!empty($_POST['update'])) {
-		// 	check_admin_referer('shopp-save-order');
-		//
-		// 	if ($_POST['txnstatus'] != $Purchase->txnstatus)
-		// 		do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
-		//
-		//
-		// 	$Purchase->updates($_POST);
-		//
-		// 	$mailstatus = false;
-		// 	if ($_POST['notify'] == "yes") {
-		// 		$labels = shopp_setting('order_status');
-		// 		// Save a reference to this purchase in Shopp
-		// 		// so the Template API works when generating the receipt
-		// 		$Shopp->Purchase =& $Purchase;
-		//
-		// 		// Send the e-mail notification
-		// 		$addressee = "$Purchase->firstname $Purchase->lastname";
-		// 		$address = "$Purchase->email";
-		//
-		// 		$email = array();
-		// 		$email['from'] = '"'.get_bloginfo("name").'"';
-		// 		if (shopp_setting('merchant_email'))
-		// 			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
-		// 		if($is_IIS) $email['to'] = $address;
-		// 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
-		// 		$email['subject'] = __('Order Updated','Shopp');
-		// 		$email['url'] = get_bloginfo('siteurl');
-		// 		$email['sitename'] = get_bloginfo('name');
-		//
-		// 		if ($_POST['receipt'] == "yes")
-		// 			$email['receipt'] = $Purchase->receipt();
-		//
-		// 		$email['status'] = strtoupper($labels[$Purchase->status]);
-		// 		$email['message'] = wpautop(stripslashes($_POST['message']));
-		//
-		// 		if (file_exists(SHOPP_TEMPLATES."/notification.html")) $template = SHOPP_TEMPLATES."/notification.html";
-		// 		if (file_exists(SHOPP_TEMPLATES."/notify.php")) $template = SHOPP_TEMPLATES."/notify.php";
-		//
-		// 		if (shopp_email($template,$email)) $mailsent = true;
-		//
-		// 	}
-		//
-		// 	$Purchase->save();
-		// 	if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
-		// 	else $updated = __('Order status updated.','Shopp');
-		// }
 
 		if (isset($_POST['submit-shipments']) && isset($_POST['shipment']) && !empty($_POST['shipment'])) {
 			$shipments = $_POST['shipment'];
@@ -399,12 +358,19 @@ class Service extends AdminController {
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 
+
+			if (!empty($_POST['message']))
+				$message = $_POST['message'];
+			else
+				$message = 0;
+
 			// @todo add checks for shopp_refunds capability
 			shopp_add_order_event($Purchase->id,'void',array(
 				'txnid' => $Purchase->txnid,
 				'gateway' => $Gateway->module,
 				'reason' => $reason,
-				'user' => $user->ID
+				'user' => $user->ID,
+				'note' => $message
 			));
 
 			if (!empty($_POST['message']))
@@ -487,7 +453,7 @@ class Service extends AdminController {
 		return $status;
 	}
 
-	function addnote ($order,$message) {
+	function addnote ($order, $message, $sent = false) {
 		$user = wp_get_current_user();
 		$Note = new MetaObject();
 		$Note->parent = $order;
@@ -497,6 +463,7 @@ class Service extends AdminController {
 		$Note->value = new stdClass();
 		$Note->value->author = $user->ID;
 		$Note->value->message = $message;
+		$Note->value->sent = $sent;
 		$Note->save();
 	}
 

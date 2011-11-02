@@ -467,6 +467,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #message,#order #note { width:100%; }
 #order ul.promos { list-style:square;padding-left:25px; }
 #order ul.promos li { text-indent:-5px; }
+#notation .options{ margin-top:14px;margin-right:20px; }
 
 #order .meta-boxes { position:relative;margin-top:20px; }
 #order .meta-boxes .widefat { clear: none; }
@@ -494,6 +495,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes .notemeta { position:relative;height:24px; }
 #order #order-notes textarea { width:100%; }
 #order #order-notes .notectrls { position:relative;display:none;padding:6px 0; }
+#order #order-notes .notesent { color:#999; float:left; margin-top:0; }
 
 #order .meta-boxes address { white-space: normal; width: inherit; }
 #order-contact .customer { background: url('../icons/customer.png') no-repeat -8px -5px;padding-left:24px;line-height:18px; }

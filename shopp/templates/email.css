@@ -1,9 +1,3 @@
-Content-type: text/html; charset=utf-8
-From: [from]
-To: [to]
-Subject: [subject]
-
-<style type="text/css">
 html { font: 13px "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; padding: 20px; position: relative; text-align: center; background: #efefef; }
 
 #header, #body { width: 600px; margin: 0 auto; text-align: left; }
@@ -33,23 +27,3 @@ p { margin-bottom: 24px; }
 .order .buttons td { text-align: right; }
 .order .remove { font-size: 12px; }
 .order tr.totals th,.order tr.totals td { padding: 10px 0 0 0; }
-</style>
-<html>
-
-<div id="header">
-<h1><?php bloginfo('name'); ?></h1>
-<h2><?php _e('Order','Shopp'); ?> <?php shopp('purchase','id'); ?></h2>
-</div>
-<div id="body">
-	
-<?php shopp('purchase','receipt'); ?>
-
-<?php if (shopp('purchase','notpaid')): ?>
-    <?php if (shopp('checkout','offline-instructions','return=1')): ?>
-    <p><?php shopp('checkout','offline-instructions'); ?></p>
-    <?php endif; ?>
-<?php endif; ?>
-
-</div>
-
-</html>
