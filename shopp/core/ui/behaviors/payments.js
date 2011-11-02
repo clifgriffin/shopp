@@ -21,9 +21,10 @@ jQuery(document).ready( function($) {
 				row = $this.parents('tr').hide(),
 				selected = menu.val().toLowerCase(),
 				id = $this.attr('href')?$this.attr('href').split('&')[1].split('=')[1].toLowerCase().split('-'):false,
-				gateway = id[0]?id[0]:selected,
-				instance = id[1]?id[1]:false,
-				data = $ps[gateway] && $ps[gateway][instance]? $.extend($ps[gateway][instance],{instance:instance}):{},
+				gateway = id?id[0]:selected,
+				instance = id?id[1]:0,
+				settings = !id?$.each($ps[gateway],function (i,d) { if (!isNaN(i)) instance++; }):false,
+				data = $ps[gateway] && $ps[gateway][instance]? $.extend($ps[gateway][instance],{instance:instance}):$.extend($ps[gateway],{instance:instance}),
 				ui = $.tmpl(gateway+'-editor',data),
 				cancel = ui.find('a.cancel'),
 				selectall = ui.find('input.selectall-toggle').change(function (e) {
@@ -31,6 +32,11 @@ jQuery(document).ready( function($) {
 						options = $this.parents('ul').find('input');
 					options.attr('checked',$this.attr('checked'));
 				});
+
+				debuglog(id);
+				debuglog(instance);
+				debuglog(gateway);
+				debuglog($ps[gateway][instance]);
 
 			if (row.size() == 0) row = $('#payment-setting-'+id).hide();
 			menu.get(0).selectedIndex = 0;
