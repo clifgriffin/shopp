@@ -175,11 +175,11 @@ function manage_meta_box ($Purchase) {
 		?>
 	</div>
 </div>
-<?php if ( ! ($Purchase->voided && $Purchase->refunded) ): ?>
+<?php if (!($Purchase->voided && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if ( ! $Purchase->voided && $Gateway && $Gateway->refunds ): ?>
+		<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
 		<div class="alignleft">
-			<?php if ( ! $Purchase->captured || $Purchase->refunded == $Purchase->total ): ?>
+			<?php if (!$Purchase->captured): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />
 			<?php endif; ?>
 			<?php
