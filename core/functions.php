@@ -1483,7 +1483,6 @@ function shopp_email ($template,$data=array()) {
 
 	// Sanitize line endings
 	$template = str_replace(array("\r\n","\r"),"\n",$template);
-
 	$f = explode("\n",$template);
 
 	while ( list($linenum,$line) = each($f) ) {
@@ -1523,6 +1522,21 @@ function shopp_email ($template,$data=array()) {
 		$to = trim(rtrim($email,'>'));
 	}
 
+	// This converts the external CSS to inline CSS for maximum E-Mail client compatability
+	// $theme_css = get_theme_root() . "/shopp/mail/mail.css";
+	// $shopp_css = SHOPP_PATH . "/templates/mail/mail.css";
+	// if(file_exists($theme_css))
+	// 	$css = file_get_contents($theme_css);
+	// else
+	// 	$css = file_get_contents($shopp_css);
+	//
+	// $emogifier = new Emogrifier($message, $css);
+	// $message = $emogifier->emogrify();
+	// $message = str_replace("\'", "'", $message);
+
+	$headers = apply_filters('shopp_email_headers',$headers);
+	$message = apply_filters('shopp_email_message',$message);
+
 	if (!$debug) return wp_mail($to,$subject,$message,$headers);
 
 	echo "<pre>";
@@ -1532,7 +1546,22 @@ function shopp_email ($template,$data=array()) {
 	echo "Headers:\n";
 	print_r($headers);
 	echo "<pre>";
+
 	exit();
+}
+
+function shopp_email_styles ($message) {
+
+	if ( false === strpos($message,'<html>') ) return $message;
+
+	ob_start();
+	locate_shopp_template(array('email.css'),true,false);
+	$stylesheet = ob_get_contents();
+	ob_end_clean();
+
+	if (!empty($stylesheet)) $message = '<style type="text/css">'.$stylesheet.'</style>'.$message;
+	return $message;
+
 }
 
 function shopp_find_wpload () {
@@ -1960,5 +1989,8 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
+
+/** Default Filters **/
+add_filter('shopp_email_message','shopp_email_styles');
 
 ?>

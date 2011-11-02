@@ -13,8 +13,10 @@ require("Purchased.php");
 
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
+
 	var $purchased = array();
 	var $columns = array();
+	var $message = array();
 	var $downloads = false;
 
 	// Balances
@@ -34,6 +36,12 @@ class Purchase extends DatabaseObject {
 		if (!$id) return true;
 		$this->load($id,$key);
 		if (!empty($this->shipmethod)) $this->shipable = true;
+		if (!empty($this->id)) {
+			// Attach the notification system to order events
+			add_action( 'shopp_order_event', array($this, 'notifications') );
+			add_action( 'shopp_order_notifications', array($this, 'success') );
+		}
+
 	}
 
 	function load_purchased () {
@@ -79,7 +87,6 @@ class Purchase extends DatabaseObject {
 				if ($Event->credit) $this->balance -= $Event->amount;
 				elseif ($Event->debit) $this->balance += $Event->amount;
 			}
-
 		}
 
 		// Legacy support - @todo Remove in 1.3
@@ -118,21 +125,149 @@ class Purchase extends DatabaseObject {
 		return false;
 	}
 
-	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {
-		global $Shopp;
-		global $is_IIS;
+	/**
+	 * Send email notifications on order events
+	 *
+	 * @author Marc Neuhaus, Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param OrderEvent $event The OrderEvent object passed by the hook
+	 * @return void
+	 **/
+	function notifications ($Event) {
+		if ($Event->order != $this->id) return; // Only handle notifications for events relating to this order
 
-		$template = locate_shopp_template(array($template,'order.php','order.html'));
+		$this->message['note'] = $Event->note;
+
+		// Generic filter hook for specifying global email messages
+		$messages = apply_filters('shopp_order_event_emails',array(
+			'customer' => array(
+				"$this->firstname $this->lastname",		// Recipient name
+				$this->email,							// Recipient email address
+				sprintf(__('Your order status changed: %s', 'Shopp'), $Event->label()), // Subject
+				"email-$Event->name.php"),				// Template
+			'merchant' => array(
+				'',										// Recipient name
+				shopp_setting('merchant_email'),		// Recipient email address
+				sprintf(__('Order #%s: %s', 'Shopp'), $this->id, $Event->label()), // Subject
+				"email-$Event->name-merchant.php")		// Template
+		));
+
+		// Event-specific hook for event specific email messages
+		$messages = apply_filters('shopp_'.$Event->name.'_order_event_emails',$messages);
+
+		foreach ($messages as $name => $message) {
+			list($addressee,$email,$subject,$template) = $message;
+			$file = locate_shopp_template(array($template));
+
+			// Send email if the specific template is available
+			// and if an email has not already been sent to the recipient
+			if ( $template == basename($file) && ! in_array($email,$Event->_emails) ) {
+
+				if ( $this->email($addressee,$email,$subject,array('email'=>$template)) ) {
+					$Event->_emails[] = $email;
+				}
+
+			}
+		}
+
+	}
+
+	/**
+	 * Separate class of order notifications for "successful" orders
+	 *
+	 * A successful order is conditionally based on the type of order being processed. An order
+	 * is successful on the "authed" order event for shipped orders (any order that has any shipped
+	 * items including mixed-type orders) or, it will fire on the "captured" order event
+	 * for non-tangible orders (downloads, donation, virtual, etc)
+	 *
+	 * Keeping this behavior behind the success markers (authed/captured) prevents email
+	 * servers from getting overloaded if the server is getting hit with bot-triggered order
+	 * attempts.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function success ($Purchase) {
+		if ($Purchase->id != $this->id) return; // Only handle notifications for events relating to this order
+
+		// Set the global purchase object to enable the Theme API
+		ShoppPurchase($Purchase);
+
+		$templates = array('email-order.php','order.php','order.html');
+
+		// Generic filter hook for specifying global email messages
+		$messages = apply_filters('shopp_order_success_emails',array(
+			'customer' => array(
+				"$this->firstname $this->lastname",										// Recipient name
+				$this->email,															// Recipient email address
+				sprintf(__('Your order with %s', 'Shopp'), shopp_setting('business_name')), // Subject
+				array('email-order.php','order.php','order.html')),						// Templates
+			'merchant' => array(
+				shopp_setting('business_name')	,										// Recipient name
+				shopp_setting('merchant_email'),										// Recipient email address
+				sprintf(__('New Order - %s', 'Shopp'), $this->id),					 	// Subject
+				array_merge(array('email-order-merchant.php'),$templates))				// Templates
+		));
+
+		foreach ($messages as $name => $message) {
+			list($addressee,$email,$subject,$templates) = $message;
+
+			// Send email if the specific template is available
+			// and if an email has not already been sent to the recipient
+			$this->email($addressee,$email,$subject,array(
+					'email'		=> $templates,
+					'receipt'	=> array('email-receipt.php','receipt.php'))
+			);
+		}
+
+	}
+
+	/**
+	 * Deprecated
+	 *
+	 * @deprecated
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function notification ($addressee,$address,$subject,$template='order.php',$receipt='receipt.php') {
+		$this->email($addressee,$address,$subject,array('email' => $template,'receipt'=>$receipt));
+	}
+
+	function email ($addressee,$address,$subject,$templates=array('email' => false,'receipt' => false)) {
+		global $Shopp,$is_IIS;
+
+		new ShoppError("Purchase::email(): $addressee,$address,$subject,"._object_r($templates),false,SHOPP_DEBUG_ERR);
+
+		$defaults = array(
+			'emails' => array('email.php','order.php','order.html'),
+			'receipts' => array('email-receipt.php','receipt.php')
+		);
+		extract($defaults);
+
+		if (is_array($templates['email'])) $emails = array_merge($templates['email'],$emails);
+		else array_unshift($emails,$templates['email']);
+
+		if (is_array($templates['receipt'])) $receipts = array_merge($templates['receipt'],$receipts);
+		else array_unshift($receipts,$templates['receipt']);
+
+		$template = locate_shopp_template($emails);
+		$receipt = locate_shopp_template($receipts);
 
 		if (!file_exists($template))
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 
-		// Send the e-mail receipt
+		// Build the e-mail message data
 		$email = array();
-		$email['from'] = '"'.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ).'"';
+
+		$email['from'] = '"'.wp_specialchars_decode( shopp_setting('business_name'), ENT_QUOTES ).'"';
 		if (shopp_setting('merchant_email'))
 			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
-		if($is_IIS) $email['to'] = $address;
+		if ($is_IIS) $email['to'] = $address;
 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
 		$email['receipt'] = $this->receipt($receipt);
@@ -141,13 +276,16 @@ class Purchase extends DatabaseObject {
 		$email['orderid'] = $this->id;
 
 		$email = apply_filters('shopp_email_receipt_data',$email);
+		$email = apply_filters('shopp_purchase_email_message',$email);
+		$this->message = array_merge($this->message,$email);
 
-		if (shopp_email($template,$email)) {
-			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
+		// Send the email
+		if (shopp_email($template,$this->message)) {
+			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
 			return true;
 		}
 
-		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
 		return false;
 	}
 

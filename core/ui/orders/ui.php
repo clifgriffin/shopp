@@ -335,6 +335,9 @@ function notes_meta_box ($Purchase) {
 			<span><?php echo _d(get_option('time_format'), $Note->created); ?></span></th>
 		<td>
 			<div id="note-<?php echo $Note->id; ?>">
+			<?php if($Note->value->sent == 1): ?>
+				<p class="notesent"><?php _e('Sent to the Customer:','Shopp'); ?> </p>
+			<?php endif; ?>
 			<?php echo apply_filters('shopp_order_note',$Note->value->message); ?>
 			</div>
 			<p class="notemeta">
@@ -357,7 +360,11 @@ function notes_meta_box ($Purchase) {
 		<p class="alignright">
 			<button type="button" name="cancel-note" value="cancel" id="cancel-note-button" class="button-secondary"><?php _e('Cancel','Shopp'); ?></button>
 			<button type="submit" name="save-note" value="save" class="button-primary"><?php _e('Save Note','Shopp'); ?></button>
-			</p>
+		</p>
+		<div class="alignright options">
+			<input type="checkbox" name="send-note" id="send-note" value="1">
+			<label for="send-note"><?php _e('Send to customer','Shopp'); ?></label>
+		</div>
 </div>
 <p class="alignright" id="add-note">
 	<button type="button" name="add-note" value="add" id="add-note-button" class="button-secondary"><?php _e('Add Note','Shopp'); ?></button></p>
