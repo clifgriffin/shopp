@@ -110,6 +110,8 @@ class Shopping extends SessionObject {
 
 		if ($session) { // loading session
 			$Shopping->session = session_id($session); // session_id while session is closed
+			// second call makes the load work for some reason
+			$Shopping->session = session_id($session);
 			$Shopping->init();
 			return true;
 		}
@@ -164,7 +166,7 @@ class ShoppingObject {
 	static function &__new ($class, &$ref=false) {
 		$Shopping = ShoppShopping();
 
-		if ($ref !== false) $ref->__destruct();
+		if ( is_object($ref) && method_exists($ref, '__destruct') ) $ref->__destruct();
 
 		if (isset($Shopping->data->{$class})) // Restore the object
 			$object = $Shopping->data->{$class};
