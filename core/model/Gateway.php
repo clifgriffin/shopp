@@ -419,8 +419,8 @@ class GatewayModules extends ModuleLoader {
 		$this->installed();
 		$this->activated();
 
-		add_action('shopp_init',array(&$this,'load'));
-		$this->freeorder = new FreeOrder();
+		add_action('shopp_init',array($this,'load'));
+		add_action('shopp_init',array($this,'freeorder'));
 	}
 
 	/**
@@ -442,6 +442,10 @@ class GatewayModules extends ModuleLoader {
 				$this->activated[] = $this->modules[$gateway]->subpackage;
 		}
 		return $this->activated;
+	}
+
+	function freeorder () {
+		$this->freeorder = new FreeOrder();
 	}
 
 	/**
@@ -617,7 +621,6 @@ class FreeOrder extends GatewayFramework {
 	function __construct () {
 		parent::__construct();
 		$this->name = __('Free Order','Shopp');
-		$this->settings['label'] = $this->name;
 
 		add_action('shopp_freeorder_sale',array(&$this,'capture'));
 		add_action('shopp_freeorder_auth',array(&$this,'capture'));
