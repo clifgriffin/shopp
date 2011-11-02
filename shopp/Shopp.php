@@ -357,6 +357,15 @@ class Shopp {
 	 *
 	 * @return boolean True on success
 	 **/
+	function resession ( $session = false ) {
+		if ( ! $session ) return false;
+
+		$Order = ShoppOrder();
+		$Order->unhook();
+		Shopping::resession($session);
+		$Order = ShoppOrder( ShoppingObject::__new('Order',$Shopp->Order) );
+		$Order->listeners();
+	}
  /*
 	function resession ($session=false) {
 		$Shopping = ShoppShopping();
