@@ -15,7 +15,11 @@
 
 class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
-	var $secure = false;
+	// Gateway parameters
+	var $secure = true; // SSL required
+	var $refunds = true; // refunds supported
+	var $captures = true; // merchant initiated capture supported
+
 	var $xml = true;
 
 	function __construct () {
@@ -54,14 +58,16 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		$this->settings['taxes'] = shopp_setting('taxrates');
 
-		if (isset($_GET['gctest'])) $this->order('');
-
 		add_action('shopp_txn_update',array(&$this,'notifications'));
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		add_action('get_header',array(&$this,'analytics'));
 		add_filter('shopp_tag_cart_google',array($this,'cartcheckout'));
 		add_action('parse_request',array(&$this,'intercept_cartcheckout'));
 
+		add_action('shopp_googlecheckout_authed', array($this, 'charge'));
+		add_action('shopp_googlecheckout_capture', array($this, 'charge'));
+		add_action('shopp_googlecheckout_refund', array($this, 'refund'));
+		add_action('shopp_googlecheckout_void', array($this, 'cancel'));
 	}
 
 	function analytics() {  do_action('shopp_google_checkout_analytics'); }
@@ -161,6 +167,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			// Handle notifications
 			$XML = new xmlQuery($data);
 			$type = $XML->context();
+			if(SHOPP_DEBUG) new ShoppError("google checkout notification type $type",false,SHOPP_DEBUG_ERR);
 			if ( $type === false ) {
 				if(SHOPP_DEBUG) new ShoppError('Unable to determine context of request.','google_checkout_unknown_notification',SHOPP_DEBUG_ERR);
 				return;
@@ -174,10 +181,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				case "order-state-change-notification": $this->state($XML); break;
 				case "merchant-calculation-callback": $ack = $this->merchant_calc($XML); break;
 				case "charge-amount-notification":	break;		// Not implemented
-				case "refund-amount-notification":	$this->refund($XML); break;
+				case "refund-amount-notification":	$this->refunded($XML); break;
 				case "chargeback-amount-notification":		break;	// Not implemented
 				case "authorization-amount-notification":	break;	// Not implemented
-					break;
 			}
 			// Send acknowledgement
 			if($ack) $this->acknowledge($serial);
@@ -412,14 +418,14 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$sessionid = $XML->content('shopping-session:first');
 		$order_summary = $XML->tag('order-summary');
 
-		$Shopp->Order->unhook();
-		Shopping::resession($sessionid);
-		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
-		$Shopp->Order->listeners();
+		$Shopp->resession($sessionid);
 
 		$Shopping = ShoppShopping();
-		$Shopping->init();
-		$Order = &$Shopp->Order;
+		$Order = ShoppOrder();
+
+		// unhook default Order actions and set invoice action
+		$Order->unhook();
+		add_action('shopp_purchase_order_created',array($this,'invoice'));
 
 		// Couldn't load the session data
 		if ($Shopping->session != $sessionid) {
@@ -469,7 +475,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		$Shopp->Order->gateway = $this->name;
 
-
  		$txnid = $order_summary->content('google-order-number');
 
 		// Google Adjustments
@@ -481,8 +486,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		// New total from order summary
 		$Order->Cart->Totals->total = $order_summary->content('order-total');
 
-		$Shopp->Order->transaction($txnid);
-
+		shopp_add_order_event(false, 'purchase', array(
+			'gateway' => $this->module,
+			'txnid' => $txnid
+		));
 	}
 
 	function risk ($XML) {
@@ -506,31 +513,78 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 
 	function state ($XML) {
-		global $Shopp;
 		$summary = $XML->tag('order-summary');
- 		$id = $summary->content('google-order-number');
+ 		$id = $summary->content('google-order-number:first');
+
+		// get fee if present
+		$charge = $XML->tag('latest-charge-fee');
+		if ( is_a($charge, 'xmlQuery') ) $fee = $charge->content('total');
+
 		if (empty($id)) {
 			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",'google_state_notification_error',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
 		$state = $XML->content('new-financial-order-state');
+		$card = $XML->content('partial-cc-number');
 
-		$Purchase = new Purchase($id,'txnid');
+		$Purchase = shopp_order($id, 'trans');
 		if ( empty($Purchase->id) ) {
 			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			return;
 		}
 
-		$Purchase->card = $XML->content('partial-cc-number');
-		$Purchase->save();
-		$Shopp->Order->transaction($id, $state); // new transaction state
+		switch ( $state ) {
+			case 'CHARGEABLE':
+				shopp_add_order_event($Purchase->id, 'authed', array(
+					'txnid' => $id,						// Transaction ID
+					'amount' => $Purchase->total,		// Gross amount authorized
+					'gateway' => $this->name,			// Gateway handler name (module name from @subpackage)
+					'paymethod' => '',		// Payment method (payment method label from payment settings)
+					'paytype' => '',		// Type of payment (check, MasterCard, etc)
+					'payid' => $card			// Payment ID (last 4 of card or check number)
+				));
+				break;
+			case 'CHARGED':
+				shopp_add_order_event($Purchase->id, 'captured', array(
+					'txnid' => $id,					// Transaction ID of the CAPTURE event
+					'amount' => $Purchase->total,	// Amount captured
+					'fees' => $fee ? $fee : 0.0,	// Transaction fees taken by the gateway net revenue = amount-fees
+					'gateway' => $this->name		// Gateway handler name (module name from @subpackage)
+				));
+				break;
+			case 'PAYMENT_DECLINED':
+				shopp_add_order_event($Purchase->id, 'auth-fail', array(
+					'amount' => $Purchase->total,	// Amount to be authorized
+					'gateway' => $this->name,		// Gateway handler name (module name from @subpackage)
+				));
+				break;
+			case 'CANCELLED':
+			case 'CANCELLED_BY_GOOGLE':
+				shopp_add_order_event($Purchase->id, 'voided', array(
+					'txnid' => $id,						// Transaction ID
+					'txnorigin' => $id,					// Original Transaction ID
+					'gateway' => '$this->name'			// Gateway handler name (module name from @subpackage)
+				));
+				break;
 
-		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
+			// do nothing...
+			case 'REVIEWING':
+			case 'CHARGING':
+				break;
+		}
+	}
+
+	function charge ( $Event ) {
+		if ( "authed" == $Event->name && $this->settings['autocharge'] == "on" || "capture" == $Event->name ) {
+			$id = $Event->txnid;
+			$amount = $Event->amount;
+
 			$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 			$_[] = '<charge-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$id.'">';
-			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Purchase->total,$this->precision,'.','').'</amount>';
+			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($amount, $this->precision,'.','').'</amount>';
 			$_[] = '</charge-order>';
+
 			$Response = $this->send(join("\n",$_), $this->urls['order']);
 			if ($Response->tag('error')) {
 				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TRXN_ERR);
@@ -542,6 +596,31 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	/**
 	 * refund
 	 *
+	 * Handles the refund order event
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param OrderEventMessage $Event the refund event
+	 * @return void
+	 **/
+	function refund ( $Event ) {
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
+		$_[] = '<refund-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$Event->txnid.'">';
+		$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Event->amount, $this->precision,'.','').'</amount>';
+		$_[] = '<reason>'.$Event->reason.'</reason>';
+		$_[] = '</refund-order>';
+
+		$Response = $this->send(join("\n",$_), $this->urls['order']);
+		if ($Response->tag('error')) {
+			new ShoppError($Response->content('error-message'),'google_refund_error',SHOPP_TRXN_ERR);
+			return;
+		}
+	}
+
+	/**
+	 * refunded
+	 *
 	 * Currently only sets the transaction status to refunded
 	 *
 	 * @author John Dillick
@@ -550,7 +629,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * @param string $XML The XML request from google
 	 * @return void
 	 **/
-	function refund($XML) {
+	function refunded($XML) {
 		$summary = $XML->tag('order-summary');
  		$id = $summary->content('google-order-number');
 		$refund = $summary->content('total-refund-amount');
@@ -559,14 +638,42 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			new ShoppError("No transaction ID was provided with an order refund notification sent by Google Checkout",'google_refund_notification_error',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
-		$Purchase = new Purchase($id,'txnid');
+
+		$Purchase = shopp_order($id, 'trans');
 		if ( empty($Purchase->id) ) {
 			new ShoppError('Transaction refund on non-existing order.','google_refund_missing_order',SHOPP_DEBUG_ERR);
 			return;
 		}
 
-		$Purchase->txnstatus = "REFUNDED";
-		$Purchase->save();
+		shopp_add_order_event($Purchase->id, 'refunded', array(
+			'txnid' => $id,				// Transaction ID for the REFUND event
+			'amount' => $refund,		// Amount refunded
+			'gateway' => $this->name	// Gateway handler name (module name from @subpackage)
+		));
+	}
+
+	/**
+	 * cancel
+	 *
+	 * cancel an order
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param OrderEventMessage $Event the order event
+	 * @return void
+	 **/
+	function cancel ( $Event ) {
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
+		$_[] = '<cancel-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$Event->txnid.'">';
+		$_[] = '<reason>'.$Event->reason.'</reason>';
+		$_[] = '</cancel-order>';
+
+		$Response = $this->send(join("\n",$_), $this->urls['order']);
+		if ($Response->tag('error')) {
+			new ShoppError($Response->content('error-message'),'google_refund_error',SHOPP_TRXN_ERR);
+			return;
+		}
 	}
 
 
