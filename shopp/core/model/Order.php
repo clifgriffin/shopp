@@ -654,8 +654,12 @@ class Order {
 			$promo->uses++;
 		}
 
-		if (empty($this->purchase)) $Purchase = new Purchase();	// Create a new order
-		else { // Handle updates to an existing order from checkout reprocessing
+		if (empty($this->purchase)) {
+			$Purchase = new Purchase();	// Create a new order
+			if ( isset($Event->txnid) ) {
+				$Purchase->txnid = $this->txnid = $Event->txnid;
+			}
+		} else { // Handle updates to an existing order from checkout reprocessing
 			$updates = true;
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
 			else $Purchase = new Purchase($this->purchase);
@@ -674,6 +678,7 @@ class Order {
 		$Purchase->freight = $this->Cart->Totals->shipping;
 		$Purchase->ip = $Shopping->ip;
 		$Purchase->save();
+
 		$this->unlock();
 		Promotion::used(array_keys($promos));
 
@@ -1473,6 +1478,7 @@ class PurchaseOrderEvent extends OrderEventMessage {
 	var $name = 'purchase';
 	var $message = array(
 		'gateway' => '',		// Gateway (class name) to process authorization through
+		'txnid' => '',			// Transaction ID
 	);
 }
 OrderEvent::register('purchase','PurchaseOrderEvent');
