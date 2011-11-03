@@ -302,7 +302,7 @@ class Service extends AdminController {
 
 		// Handle Order note processing
 		if (!empty($_POST['note']))
-			$this->addnote($Purchase->id,$_POST['note']);
+			$this->addnote($Purchase->id, $_POST['note'], !empty($_POST['send-note']));
 
 		if (!empty($_POST['delete-note'])) {
 			$noteid = key($_POST['delete-note']);
