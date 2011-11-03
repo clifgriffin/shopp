@@ -109,9 +109,8 @@ class Shopping extends SessionObject {
 		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 
 		if ($session) { // loading session
-			$Shopping->session = session_id($session); // session_id while session is closed
-			// second call makes the load work for some reason
-			$Shopping->session = session_id($session);
+			session_id($session); // session_id while session is closed
+			$Shopping->session = session_id(); // Get the new session assignment
 			$Shopping->init();
 			return true;
 		}
@@ -168,9 +167,9 @@ class ShoppingObject {
 
 		if ( is_object($ref) && method_exists($ref, '__destruct') ) $ref->__destruct();
 
-		if (isset($Shopping->data->{$class})) // Restore the object
+		if (isset($Shopping->data->{$class})) { // Restore the object
 			$object = $Shopping->data->{$class};
-		else {
+		} else {
 			$object = new $class();					// Create a new object
 			$Shopping->data->{$class} = &$object; // Register storage
 		}
