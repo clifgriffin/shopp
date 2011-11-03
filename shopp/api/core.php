@@ -95,6 +95,22 @@ function &ShoppPurchase ( &$Object = false ) {
 }
 
 /**
+ * Get and set the Order object
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ *
+ * @return Order
+ **/
+function &ShoppOrder ( &$Object = false ) {
+	global $Shopp; $false = false;
+	if (empty($Shopp)) return $false;
+	if ($Object !== false) $Shopp->Order = $Object;
+	return $Shopp->Order;
+}
+
+
+/**
  * Determines if the requested page is the catalog landing page.
  *
  * @author John Dillick
