@@ -1179,20 +1179,6 @@ class Order {
 } // END class Order
 
 /**
- * Helper to access the Shopping Order
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @return Order
- **/
-function &ShoppOrder () {
-	global $Shopp;
-	return $Shopp->Order;
-}
-
-
-/**
  * Provides a unified interface for generating and accessing system order events
  *
  * @author Jonathan Davis
