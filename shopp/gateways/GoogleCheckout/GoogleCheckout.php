@@ -19,8 +19,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	var $secure = true; // SSL required
 	var $refunds = true; // refunds supported
 	var $captures = true; // merchant initiated capture supported
+	var $recurring = true; // recurring payments supported
 
 	var $xml = true;
+
+	var $debug = false;
 
 	function __construct () {
 		parent::__construct();
@@ -64,10 +67,21 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_tag_cart_google',array($this,'cartcheckout'));
 		add_action('parse_request',array(&$this,'intercept_cartcheckout'));
 
-		add_action('shopp_googlecheckout_authed', array($this, 'charge'));
+		// add charge method as capture event as well as authed event handler
 		add_action('shopp_googlecheckout_capture', array($this, 'charge'));
+		add_action('shopp_googlecheckout_authed', array($this, 'charge'));
+
+		// These callbacks are usually established by the Order::auth() or Order::sale() methods, as determined by Order::process()
+		// Instead, in Google Checkout, order Order::process() is disabled because synchronous auth/sale action is not possible.
+		// Capture is always deferred (at least) until we have received an asynchronous authed notification.
+		add_action('shopp_googlecheckout_authed',array(ShoppOrder(),'accounts')); // account creation
+		add_action('shopp_googlecheckout_authed',array(ShoppOrder(),'notify')); // order email notification
+
+		// add refund event handler
 		add_action('shopp_googlecheckout_refund', array($this, 'refund'));
-		add_action('shopp_googlecheckout_void', array($this, 'cancel'));
+
+		// add void event handler
+		add_action('shopp_googlecheckout_void', array($this, 'cancelorder'));
 	}
 
 	function analytics() {  do_action('shopp_google_checkout_analytics'); }
@@ -78,7 +92,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		add_action('shopp_save_payment_settings',array(&$this,'apiurl'));
 		add_action('shopp_process_order',array(&$this, 'process'));
 		add_filter('shopp_ordering_no_shipping_costs',array(&$this, 'hasshipping_filter'));
-
 	}
 
 	function init () {
@@ -126,6 +139,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 
 	function process () {
+		if ( $this->debug ) return;
+
 		global $Shopp;
 
 		$stock = true;
@@ -158,6 +173,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 
 	function notifications () {
+		// not a GC notification, fail silently
+		if ( 'gc' != $_REQUEST['_txnupdate'] ) return;
+
 		if ($this->authentication()) {
 
 			// Read incoming request data
@@ -180,10 +198,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				case "risk-information-notification": $this->risk($XML); break;
 				case "order-state-change-notification": $this->state($XML); break;
 				case "merchant-calculation-callback": $ack = $this->merchant_calc($XML); break;
-				case "charge-amount-notification":	break;		// Not implemented
+				case "charge-amount-notification":	$this->charged($XML); break;
 				case "refund-amount-notification":	$this->refunded($XML); break;
-				case "chargeback-amount-notification":		break;	// Not implemented
-				case "authorization-amount-notification":	break;	// Not implemented
+				case "chargeback-amount-notification":	$this->chargebacked($XML);	break;
+				case "authorization-amount-notification":	$this->authed($XML); break;
 			}
 			// Send acknowledgement
 			if($ack) $this->acknowledge($serial);
@@ -210,7 +228,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		header('HTTP/1.1 401 Unauthorized');
 		die("<h1>401 Unauthorized Access</h1>");
-		exit();
+		return false;
 	}
 
 	/**
@@ -246,7 +264,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$_[] = '<shopping-cart>';
 				$_[] = '<items>';
 				foreach($Cart->contents as $i => $Item) {
-					// if(SHOPP_DEBUG) new ShoppError("Item $i: "._object_r($Item),'google_checkout_item_'.$i,SHOPP_DEBUG_ERR);
 					$_[] = '<item>';
 					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->option->label))?' ('.$Item->option->label.')':'').'</item-name>';
 					$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
@@ -255,9 +272,71 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						'</description>'.
 						apply_filters('shopp_googlecheckout_download_delivery_markup', '<email-delivery>true</email-delivery>').
 						'</digital-content>';
+
 					// Shipped Item
-					$_[] = '<item-weight unit="LB" value="'.($Item->weight > 0 ? number_format(convert_unit($Item->weight,'lb'),2,'.','') : 0).'" />';
-					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
+					if ( 'Shipped' == $Item->type ) $_[] = '<item-weight unit="LB" value="'.($Item->weight > 0 ? number_format(convert_unit($Item->weight,'lb'),2,'.','') : 0).'" />';
+
+					if ( 'Subscription' == $Item->type ) {
+						if(SHOPP_DEBUG) new ShoppError("Item $i: "._object_r($Item),'google_checkout_item_'.$i,SHOPP_DEBUG_ERR);
+						$trial_item = array();
+						$recurring = $Item->option->recurring;
+
+						// set the closest period
+						$period = $this->map_sub_period( $recurring['interval'], $recurring['period'] );
+						$period = ' period="'.$period.'"';
+
+						// determine subscription start date
+						$sub_start_date = '';
+						if ( "on" == $recurring['trial'] ) {
+							$start = $this->calc_sub_date($recurring['trialint'], $recurring['trialperiod']);
+							if ( $start ) $sub_start_date = ' start-date="'.$start.'"';
+							$from = $this->calc_sub_date($recurring['trialint'], $recurring['trialperiod'], false);
+						}
+
+						$no_charge_after = '';
+						if ( $recurring['cycles'] ) {
+							$end = $this->calc_sub_date((int) $recurring['cycles'] * $recurring['interval'], $recurring['period'], true, $from);
+							$no_charge_after = ' no-charge-after="'.$end.'"';
+						}
+
+						$_[] = '<subscription type="google"'.$period.$sub_start_date.$no_charge_after.' >';
+							$_[] = '<payments>';
+								$cycles = '';
+								if ( $recurring['cycles'] ) $cycles = ' times="'.$recurring['cycles'].'"';
+								$_[] = '<subscription-payment'.$cycles.'>';
+									$_[] = '<maximum-charge currency="'.$this->settings['currency'].'">'.number_format($Item->total, $this->precision,'.','').'</maximum-charge>';
+								$_[] = '</subscription-payment>';
+							$_[] = '</payments>';
+							if ( "on" == $recurring['trial'] ) {
+								$trial_labels = array(
+									'd'=> sprintf(_n("Trial for %d day.","Trial for %d days.", $recurring['trialint'], 'Shopp'), $recurring['trialint']),
+									'w'=> sprintf(_n("Trial for %d week.","Trial for %d weeks.", $recurring['trialint'], 'Shopp'), $recurring['trialint']),
+									'm'=> sprintf(_n("Trial for %d month.","Trial for %d months.", $recurring['trialint'], 'Shopp'), $recurring['trialint']),
+									'y'=> sprintf(_n("Trial for %d year.","Trial for %d years.", $recurring['trialint'], 'Shopp'), $recurring['trialint'])
+								);
+
+								// create a trial item for immediate charge
+								$trial_item[] = '<item>';
+								$trial_item[] = '<item-name>'.htmlspecialchars($Item->name.' ('.$trial_labels[$recurring['trialperiod']].')').htmlspecialchars((!empty($Item->option->label))?' ('.$Item->option->label.')':'').'</item-name>';
+								$trial_item[] = '<item-description>'.htmlspecialchars($Item->description.' '.$trial_labels[$recurring['trialperiod']]).'</item-description>';
+								$trial_item[] = '<unit-price currency="'.$this->settings['currency'].'">'.($recurring['trialprice'] ? number_format($recurring['trialprice'],$this->precision,'.','') : 0).'</unit-price>';
+								$trial_item[] = '<quantity>'.$Item->quantity.'</quantity>';
+								$trial_item[] = '</item>';
+							}
+
+							$_[] = '<recurrent-item>';
+							$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->option->label))?' ('.$Item->option->label.')':'').'</item-name>';
+							$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
+							$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
+							$_[] = '<quantity>'.$Item->quantity.'</quantity>';
+							$_[] = '</recurrent-item>';
+						$_[] = '</subscription>';
+					}
+					if ( 'Subscription' == $Item->type && $sub_start_date )
+						$_[] = '<unit-price currency="'.$this->settings['currency'].'">0</unit-price>';
+					else
+						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
+
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '<merchant-private-item-data>';
@@ -280,6 +359,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					}
 
 					$_[] = '</item>';
+					if ( isset($trial_item) && ! empty($trial_item) ) $_ = array_merge($_, $trial_item);
 				}
 
 				// Include any discounts
@@ -407,10 +487,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	/**
 	 * order()
 	 * Handles new order notifications from Google */
-	function order ($XML) {
+	function order ( $XML ) {
 		global $Shopp;
 
-		if (empty($XML)) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
 			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
@@ -418,14 +498,22 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$sessionid = $XML->content('shopping-session:first');
 		$order_summary = $XML->tag('order-summary');
 
-		$Shopp->resession($sessionid);
+		// load the desired session, which leaves the previous/defunct Order object intact
+		Shopping::resession($sessionid);
+
+		// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
+		// also assign the restored Order object as the global Order object
+		ShoppOrder( ShoppingObject::__new('Order', ShoppOrder()) );
 
 		$Shopping = ShoppShopping();
-		$Order = ShoppOrder();
+		$Order = $this->Order = ShoppOrder();
 
-		// unhook default Order actions and set invoice action
-		$Order->unhook();
-		add_action('shopp_purchase_order_created',array($this,'invoice'));
+		// remove undesired Order object events
+		remove_action('shopp_purchase_order_created',array(ShoppOrder(),'invoice'));
+		remove_action('shopp_purchase_order_created',array(ShoppOrder(),'process'));
+
+		// give our order number to google after purchase creation
+		add_action('shopp_purchase_order_created', array($this, 'add_order'));
 
 		// Couldn't load the session data
 		if ($Shopping->session != $sessionid) {
@@ -492,33 +580,85 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		));
 	}
 
-	function risk ($XML) {
-		$summary = $XML->tag('order-summary');
- 		$id = $summary->content('google-order-number');
+	function add_order ( $Purchase ) {
+		if ( ! isset($Purchase->txnid) || $this->debug ) return;
 
-		if (empty($id)) {
-			new ShoppError("No transaction ID was provided with a risk information message sent by Google Checkout",false,SHOPP_DEBUG_ERR);
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
+		$_[] = '<add-merchant-order-number xmlns="http://checkout.google.com/schema/2" google-order-number="'.$Purchase->txnid.'">';
+		$_[] = '<merchant-order-number>'.$Purchase->id.'</merchant-order-number>';
+		$_[] = '</add-merchant-order-number>';
+
+		$Response = $this->send(join("\n",$_), $this->urls['order']);
+		if ($Response->tag('error')) {
+			new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TRXN_ERR);
+			return;
+		}
+	}
+
+	function risk ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
-		$Purchase = new Purchase($id,'txnid');
-		if ( empty($Purchase->id) ) {
+		$risk = $XML->tag('risk-information:first');
+		$avs = $risk->content('avs-response');
+		$cvn = $risk->content('cvn-response');
+		$eligible = $risk->content('eligible-for-protection');
+
+		$summary = $XML->tag('order-summary');
+		$txnid = $summary->content('google-order-number');
+		$order = $summary->content('merchant-order-number');
+
+		if ( ! $order && ! $txnid ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$Purchase = new Purchase($order);
+		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
+		if ( ! $Purchase->id ) {
 			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
-			return;
+			$this->error();
 		}
 
 		$Purchase->ip = $XML->content('ip-address');
-		$Purchase->card = $XML->content('partial-cc-number');
 		$Purchase->save();
+
+		shopp_add_order_event($Purchase->id, 'review', array(
+			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'note' => ('Y' == $avs ? __('Address verification service approved.', 'Shopp') : __('Address verification service denied.', 'Shopp'))
+		));
+
+		shopp_add_order_event($Purchase->id, 'review', array(
+			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'note' => ('M' == $avs ? __('Credit verification match.', 'Shopp') : __('Credit verification failed.', 'Shopp'))
+		));
+
+		shopp_add_order_event($Purchase->id, 'review', array(
+			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'note' => ('true' == $eligible ? __('Eligible for Google protection.', 'Shopp') : __('Not eligible for Google protection.', 'Shopp'))
+		));
 	}
 
-	function state ($XML) {
-		$summary = $XML->tag('order-summary');
- 		$id = $summary->content('google-order-number:first');
+	/**
+	 * state
+	 *
+	 * Handle all Google Checkout
+	 *
+	 * @author John Dillick, Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void Description...
+	 **/
+	function state ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
 
-		// get fee if present
-		$charge = $XML->tag('latest-charge-fee');
-		if ( is_a($charge, 'xmlQuery') ) $fee = $charge->content('total');
+		$summary = $XML->tag('order-summary');
+ 		$id = $summary->content('google-order-number');
 
 		if (empty($id)) {
 			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",'google_state_notification_error',SHOPP_DEBUG_ERR);
@@ -526,37 +666,18 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 
 		$state = $XML->content('new-financial-order-state');
-		$card = $XML->content('partial-cc-number');
 
-		$Purchase = shopp_order($id, 'trans');
+		$Purchase = new Purchase($id, 'txnid');
 		if ( empty($Purchase->id) ) {
 			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			return;
 		}
 
 		switch ( $state ) {
-			case 'CHARGEABLE':
-				shopp_add_order_event($Purchase->id, 'authed', array(
-					'txnid' => $id,						// Transaction ID
-					'amount' => $Purchase->total,		// Gross amount authorized
-					'gateway' => $this->name,			// Gateway handler name (module name from @subpackage)
-					'paymethod' => '',		// Payment method (payment method label from payment settings)
-					'paytype' => '',		// Type of payment (check, MasterCard, etc)
-					'payid' => $card			// Payment ID (last 4 of card or check number)
-				));
-				break;
-			case 'CHARGED':
-				shopp_add_order_event($Purchase->id, 'captured', array(
-					'txnid' => $id,					// Transaction ID of the CAPTURE event
-					'amount' => $Purchase->total,	// Amount captured
-					'fees' => $fee ? $fee : 0.0,	// Transaction fees taken by the gateway net revenue = amount-fees
-					'gateway' => $this->name		// Gateway handler name (module name from @subpackage)
-				));
-				break;
 			case 'PAYMENT_DECLINED':
 				shopp_add_order_event($Purchase->id, 'auth-fail', array(
 					'amount' => $Purchase->total,	// Amount to be authorized
-					'gateway' => $this->name,		// Gateway handler name (module name from @subpackage)
+					'gateway' => $this->module,		// Gateway handler name (module name from @subpackage)
 				));
 				break;
 			case 'CANCELLED':
@@ -564,19 +685,81 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				shopp_add_order_event($Purchase->id, 'voided', array(
 					'txnid' => $id,						// Transaction ID
 					'txnorigin' => $id,					// Original Transaction ID
-					'gateway' => '$this->name'			// Gateway handler name (module name from @subpackage)
+					'gateway' => $this->module			// Gateway handler name (module name from @subpackage)
 				));
 				break;
 
 			// do nothing...
+			case 'CHARGEABLE': // moved to authed()
+			case 'CHARGED': // moved to charged()
 			case 'REVIEWING':
 			case 'CHARGING':
 				break;
 		}
 	}
 
-	function charge ( $Event ) {
-		if ( "authed" == $Event->name && $this->settings['autocharge'] == "on" || "capture" == $Event->name ) {
+	function authed ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$amount = $XML->content('authorization-amount:first');
+		$card = $XML->content('partial-cc-number');
+
+		$summary = $XML->tag('order-summary');
+		$txnid = $summary->content('google-order-number');
+		$order = $summary->content('merchant-order-number');
+
+		if ( ! $order && ! $txnid ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$Purchase = new Purchase($order);
+		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
+		if ( ! $Purchase->id ) {
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$total = $summary->content('order-total');
+		shopp_add_order_event($Purchase->id, 'authed', array(
+			'txnid' => $txnid,				// Transaction ID
+			'amount' => $amount,			// Gross amount authorized
+			'gateway' => $this->module,		// Gateway handler name (module name from @subpackage)
+			'paymethod' => '',				// Payment method (payment method label from payment settings)
+			'paytype' => '',				// Type of payment (check, MasterCard, etc)
+			'payid' => $card				// Payment ID (last 4 of card or check number)
+		));
+	}
+
+	/**
+	 * charge
+	 *
+	 * charge order event handler
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param OrderEventMessage $Event the CaptureOrderEvent event triggering the charge order event, or auto charge on the AuthedOrderEvent event.
+	 * @return void Description...
+	 **/
+	function charge ( OrderEventMessage $Event ) {
+		// Invoice on the authed event
+		if ( is_a($Event, 'AuthedOrderEvent') ) {
+			$id = $Event->txnid;
+			$Purchase = new Purchase($id, 'txnid');
+
+			shopp_add_order_event($Purchase->id, 'invoiced', array(
+				'gateway' => $this->module,		// Gateway handler name (module name from @subpackage)
+				'amount' => $Event->amount	// Capture of entire order amount
+			));
+		}
+
+		if ( is_a($Event, 'AuthedOrderEvent')  && $this->settings['autocharge'] == "on" || is_a($Event, 'CaptureOrderEvent')  ) {
+			if ( $this->debug ) return;
+
 			$id = $Event->txnid;
 			$amount = $Event->amount;
 
@@ -593,6 +776,40 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 	}
 
+	function charged ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$charge_fee = $XML->tag('latest-charge-fee');
+		$amount = $XML->content('latest-charge-amount:first');
+		$fee = $charge_fee->content('total');
+
+		$summary = $XML->tag('order-summary');
+		$txnid = $summary->content('google-order-number');
+		$order = $summary->content('merchant-order-number');
+
+		if ( ! $order && ! $txnid ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$Purchase = new Purchase($order);
+		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
+		if ( ! $Purchase->id ) {
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		shopp_add_order_event($Purchase->id, 'captured', array(
+			'txnid' => $txnid,				// Transaction ID of the CAPTURE event
+			'amount' => $amount,			// Amount captured
+			'fees' => $fee ? $fee : 0.0,	// Transaction fees taken by the gateway net revenue = amount-fees
+			'gateway' => $this->module		// Gateway handler name (module name from @subpackage)
+		));
+	}
+
 	/**
 	 * refund
 	 *
@@ -601,10 +818,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param OrderEventMessage $Event the refund event
+	 * @param RefundOrderEvent $Event the refund order event
 	 * @return void
 	 **/
-	function refund ( $Event ) {
+	function refund ( RefundOrderEvent $Event ) {
+		if ( $this->debug ) return;
+
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 		$_[] = '<refund-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$Event->txnid.'">';
 		$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Event->amount, $this->precision,'.','').'</amount>';
@@ -621,7 +840,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	/**
 	 * refunded
 	 *
-	 * Currently only sets the transaction status to refunded
+	 * handle the refunded order notification from Google Checkout
 	 *
 	 * @author John Dillick
 	 * @since 1.1
@@ -629,51 +848,111 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * @param string $XML The XML request from google
 	 * @return void
 	 **/
-	function refunded($XML) {
-		$summary = $XML->tag('order-summary');
- 		$id = $summary->content('google-order-number');
-		$refund = $summary->content('total-refund-amount');
-
-		if (empty($id)) {
-			new ShoppError("No transaction ID was provided with an order refund notification sent by Google Checkout",'google_refund_notification_error',SHOPP_DEBUG_ERR);
+	function refunded ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
-		$Purchase = shopp_order($id, 'trans');
-		if ( empty($Purchase->id) ) {
-			new ShoppError('Transaction refund on non-existing order.','google_refund_missing_order',SHOPP_DEBUG_ERR);
-			return;
+
+		$summary = $XML->tag('order-summary');
+		$txnid = $summary->content('google-order-number');
+		$order = $summary->content('merchant-order-number');
+		$refund = $summary->content('total-refund-amount');
+
+		if ( ! $order && ! $txnid ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
 		}
 
+		$Purchase = new Purchase($order);
+		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
+		if ( ! $Purchase->id ) {
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		// Initiate shopp refunded event
 		shopp_add_order_event($Purchase->id, 'refunded', array(
-			'txnid' => $id,				// Transaction ID for the REFUND event
+			'txnid' => $txnid,				// Transaction ID for the REFUND event
 			'amount' => $refund,		// Amount refunded
-			'gateway' => $this->name	// Gateway handler name (module name from @subpackage)
+			'gateway' => $this->module	// Gateway handler name (module name from @subpackage)
 		));
 	}
 
 	/**
-	 * cancel
+	 * cancelorder
 	 *
-	 * cancel an order
+	 * cancel an order, overrides the GatewayFramework cancelorder() method, which the framework fires on refunded order.
+	 * the method is also called on the void order event.
 	 *
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param OrderEventMessage $Event the order event
+	 * @param OrderEventMessage handles both a VoidOrderEvent|RefundedOrderEvent $Event the order event
 	 * @return void
 	 **/
-	function cancel ( $Event ) {
+	function cancelorder ( OrderEventMessage $Event ) {
+		if ( $this->debug ) return;
+
+		$Purchase = new Purchase($Event->order);
+
+		// do not cancel order unless completely refunded
+		if ( is_a($Event, 'RefundedOrderEvent') && $Event->amount != $Purchase->total ) return;
+
+		// void order not allowed if the order has been captured
+		if ( is_a($Event, 'VoidOrderEvent') && $Purchase->captured ) {
+			new ShoppError(__('Unable to cancel an order that has been charged.','Shopp'),'google_void_error',SHOPP_TRXN_ERR);
+			return;
+		}
+
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 		$_[] = '<cancel-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$Event->txnid.'">';
-		$_[] = '<reason>'.$Event->reason.'</reason>';
+		$_[] = '<reason>'.(isset($Event->reason) && $Event->reason ? $Event->reason : __('Order canceled', 'Shopp')).'</reason>';
 		$_[] = '</cancel-order>';
 
 		$Response = $this->send(join("\n",$_), $this->urls['order']);
 		if ($Response->tag('error')) {
-			new ShoppError($Response->content('error-message'),'google_refund_error',SHOPP_TRXN_ERR);
-			return;
+			new ShoppError($Response->content('error-message'),'google_void_error',SHOPP_TRXN_ERR);
 		}
+	}
+
+
+	function chargebacked ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+
+		$summary = $XML->tag('order-summary');
+		$txnid = $summary->content('google-order-number');
+		$order = $summary->content('merchant-order-number');
+		$refund = $summary->content('total-chargeback-amount');
+
+		if ( ! $order && ! $txnid ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		$Purchase = new Purchase($order);
+		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
+		if ( ! $Purchase->id ) {
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
+		// Initiate shopp refunded event
+		shopp_add_order_event($Purchase->id, 'refunded', array(
+			'txnid' => $id,				// Transaction ID for the REFUND event
+			'amount' => $refund,		// Amount refunded
+			'gateway' => $this->module	// Gateway handler name (module name from @subpackage)
+		));
+
+		shopp_add_order_event($Purchase->id, 'review', array(
+			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'note' => __('Google Checkout issued a chargeback on this order.', 'Shopp')
+		));
 	}
 
 
@@ -683,7 +962,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	* taxes calculations unimplemented
 	* returns false when it responds, as acknowledgement of merchant calculations is unnecessary
 	* */
-	function merchant_calc ($XML) {
+	function merchant_calc ( $XML ) {
+		if ( ! $XML || ! is_a($XML, 'xmlQuery') ) {
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
 		global $Shopp;
 
 		if ($XML->content('shipping') == 'false') return true;  // ack
@@ -836,6 +1120,62 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				),shoppurl(false,'checkout',true));
 			$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
 		}
+	}
+
+	/**
+	 * map_sub_period
+	 *
+	 * map the recurrence/subscription period to an nearest smaller period acceptable to Google Checkout
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param int $interval the items interval
+	 * @param string $period one of d, w, m, y
+	 * @return string the Google Checkout compatible period
+	 **/
+	function map_sub_period ( $interval, $period ) {
+		/*
+			TODO document Google Checkout recurrence limitations
+		*/
+		$periods = array('1d'=>'DAILY', '1w'=>'WEEKLY', '2w'=>'SEMI_MONTHLY', '1m'=>'MONTHLY', '2m'=>'EVERY_TWO_MONTHS', '3m'=>'QUARTERLY', '1y'=>'YEARLY');
+
+		$ranges = array(
+			'd' => array(1 => '1d', 7 => '1w', 14 => '2w', 30 => '1m', 60 => '2m', 90 => '3m', 365 => '1y'),
+			'w' => array(1 => '1w', 2 => '2w', 4 => '1m', 8 => '2m', 12 => '3m', 52 => '1y'),
+			'm' => array(1 => '1m', 2 => '2m', 3 => '3m', 12 => '1y'),
+			'y' => array(1 => '1y'),
+		);
+
+		$map = $periods['1d'];
+		foreach ( $ranges[$period] as $limit => $p ) {
+			if ( $interval >= $limit ) $map = $periods[$p];
+		}
+
+		return $map;
+	}
+
+	/**
+	 * calc_sub_date
+	 *
+	 * get the ISO 8601 date of the start of the subscription
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param int $interval the trial interval
+	 * @param string $period one of d, w, m, y
+	 * @param bool $iso true for iso 8601 format, false for mktime
+	 * @return string|int ISO 8601 formatted date string, or mktime int
+	 **/
+	function calc_sub_date ( $interval, $period, $iso = true, $from = false ) {
+		$names = array('d'=>'days', 'w'=>'weeks', 'm'=>'months', 'y'=>'years');
+
+		$date = strtotime( "+$interval {$names[$period]}", $from ? $from : time() );
+
+		if ( $iso)
+			return date('c', $date);
+		return $date;
 	}
 
 } // END class GoogleCheckout
