@@ -661,36 +661,48 @@ class Shopp {
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
 		$addons = isset($updates->response[SHOPP_PLUGINFILE.'/addons'])?$updates->response[SHOPP_PLUGINFILE.'/addons']:false;
 
+		$plugin_name = 'Shopp';
+		$store_url = SHOPP_HOME.'store/';
+		$account_url = SHOPP_HOME.'store/account/';
+
+
 		if (!empty($core)	// Core update available
 				&& isset($core->new_version)	// New version info available
 				&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
 			) {
-			$plugin_name = 'Shopp';
-			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
+			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . esc_url($core->slug) . '&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
 			if (!$activated) { // Key not active
-				$update_url = SHOPP_HOME."store/";
-				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+				$update_url = $store_url;
+				$message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.','Shopp'),
+							$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
+
 				shopp_set_setting('updates',false);
-			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+			} else $message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.'),
+								$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			return;
 		}
 
-		if (!$activated) { // No update availableKey not active
-			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
+		if (!$activated) { // No update available, key not active
+			$message = sprintf(__('Please activate a valid %1$s access key for automatic updates and official support services. %2$s Find your %1$s access key %4$s or %3$s purchase a new key at the Shopp Store. %4$s','Shopp'), $plugin_name, '<a href="'.$account_url.'" target="_blank">', '<a href="'.$store_url.'" target="_blank">','</a>');
+
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			shopp_set_setting('updates',false);
+
 			return;
 		}
 
         if ($addons) {
 			// Addon update messages
 			foreach ($addons as $addon) {
-				$message = sprintf(__('There is a new version of the %1$s add-on available. <a href="%2$s">Upgrade automatically</a> to version %3$s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
+				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
+				$message = sprintf(__('There is a new version of the %1$s add-on available. %3$s Upgrade automatically to version %2$s. %4$s','Shopp'),
+								esc_html($addon->name),esc_html($addon->new_version),'<a href="'.esc_url($update_url).'">','</a>');
+
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			}
