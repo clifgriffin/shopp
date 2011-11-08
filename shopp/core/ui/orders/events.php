@@ -340,6 +340,16 @@ class RefundFailOrderEventRenderer extends FailureOrderEventRender {
 
 }
 
+class ReviewOrderEventRenderer extends OrderEventRenderer {
+	function name () {
+		return __('Review information','Shopp');
+	}
+
+	function details () {
+		return esc_html($this->note);
+	}
+}
+
 class VoidOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
