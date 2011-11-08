@@ -249,7 +249,7 @@ class DB extends SingletonFramework {
 
 		// Error handling
 		if ($db->dbh && $error = mysql_error($db->dbh)) {
-			if (class_exists('ShoppError')) new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
+			if (class_exists('ShoppError')) new ShoppError(sprintf('Query failed: %s - DB Query: %s',$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 			return false;
 		}
 

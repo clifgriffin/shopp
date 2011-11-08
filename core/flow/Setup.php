@@ -107,10 +107,10 @@ class Setup extends AdminController {
 			case 'settings':
 				shopp_enqueue_script('setup');
 
-				$customer_service = ' '.sprintf(__('Contact <a href="%s">customer service</a>.','Shopp'),SHOPP_CUSTOMERS);
+				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
 
 				$this->keystatus = array(
-					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'),
+					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="'.SHOPP_HOME.'store/'.'">','</a>'),
 					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'),
 					'ks_1' => __('An unkown error occurred.','Shopp'),
 					'ks0' => __('This site has been deactivated.','Shopp'),
