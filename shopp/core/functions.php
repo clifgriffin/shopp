@@ -1454,7 +1454,7 @@ function shopp_email ($template,$data=array()) {
 
 	$debug = false;
 	$in_body = false;
-	$headers = '';
+	$headers = array();
 	$message = '';
 	$to = '';
 	$subject = '';
@@ -1469,15 +1469,14 @@ function shopp_email ($template,$data=array()) {
 
 	if (false == strpos($template,"\n") && file_exists($template)) {
 		$templatefile = $template;
-		// Parse the template file
+		// Include to parse the PHP and Theme API tags
 		ob_start();
 		include($templatefile);
 		$template = ob_get_contents();
 		ob_end_clean();
 
-		if (empty($template)) {
-			new ShoppError(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
-		}
+		if (empty($template))
+			return new ShoppError(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
 
 	}
 
@@ -1487,7 +1486,7 @@ function shopp_email ($template,$data=array()) {
 
 	while ( list($linenum,$line) = each($f) ) {
 		$line = rtrim($line);
-		// Data parse
+		// Data replacement
 		if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
 			while ( list($i,$label) = each($labels) ) {
 				$code = $label[1];
@@ -1501,18 +1500,21 @@ function shopp_email ($template,$data=array()) {
 		}
 
 		// Header parse
-		if ( preg_match("/^(.+?):\s(.+)$/",$line,$found) && !$in_body ) {
-			$header = $found[1];
-			$string = $found[2];
-			if (in_array(strtolower($header),$protected)) // Protect against header injection
-				$string = str_replace("\n","",urldecode($string));
-			if ( strtolower($header) == "to" ) $to = $string;
-			else if ( strtolower($header) == "subject" ) $subject = $string;
-			else $headers .= $line."\n";
+		if (!$in_body && false !== strpos($line,':')) {
+			list($header,$value) = explode(':',$line);
+
+			// Protect against header injection
+			if (in_array(strtolower($header),$protected))
+				$value = str_replace("\n","",urldecode($value));
+
+			if ( 'to' == strtolower($header) ) $to = $value;
+			elseif ( 'subject' == strtolower($header) ) $subject = $value;
+			else $headers[$header] = $value;
 		}
 
+
 		// Catches the first blank line to begin capturing message body
-		if ( empty($line) ) $in_body = true;
+		if ( !$in_body && empty($line) ) $in_body = true;
 		if ( $in_body ) $message .= $line."\n";
 	}
 
@@ -1522,46 +1524,26 @@ function shopp_email ($template,$data=array()) {
 		$to = trim(rtrim($email,'>'));
 	}
 
-	// This converts the external CSS to inline CSS for maximum E-Mail client compatability
-	// $theme_css = get_theme_root() . "/shopp/mail/mail.css";
-	// $shopp_css = SHOPP_PATH . "/templates/mail/mail.css";
-	// if(file_exists($theme_css))
-	// 	$css = file_get_contents($theme_css);
-	// else
-	// 	$css = file_get_contents($shopp_css);
-	//
-	// $emogifier = new Emogrifier($message, $css);
-	// $message = $emogifier->emogrify();
-	// $message = str_replace("\'", "'", $message);
+	// If not already in place, setup default system email filters
+	if (!class_exists('ShoppEmailDefaultFilters')) {
+		require(SHOPP_MODEL_PATH.'/Email.php');
+		new ShoppEmailDefaultFilters();
+	}
 
-	$headers = apply_filters('shopp_email_headers',$headers);
-	$message = apply_filters('shopp_email_message',$message);
+	// Message filters first
+	$headers = apply_filters('shopp_email_headers',$headers,$message);
+	$message = apply_filters('shopp_email_message',$message,$headers);
 
 	if (!$debug) return wp_mail($to,$subject,$message,$headers);
 
-	echo "<pre>";
+	header('Content-type: text/plain');
 	echo "To: ".htmlspecialchars($to)."\n";
 	echo "Subject: $subject\n\n";
-	echo "Message:\n$message\n";
 	echo "Headers:\n";
 	print_r($headers);
-	echo "<pre>";
 
+	echo "\nMessage:\n$message\n";
 	exit();
-}
-
-function shopp_email_styles ($message) {
-
-	if ( false === strpos($message,'<html>') ) return $message;
-
-	ob_start();
-	locate_shopp_template(array('email.css'),true,false);
-	$stylesheet = ob_get_contents();
-	ob_end_clean();
-
-	if (!empty($stylesheet)) $message = '<style type="text/css">'.$stylesheet.'</style>'.$message;
-	return $message;
-
 }
 
 function shopp_find_wpload () {
@@ -1989,8 +1971,5 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
-
-/** Default Filters **/
-add_filter('shopp_email_message','shopp_email_styles');
 
 ?>

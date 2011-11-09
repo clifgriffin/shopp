@@ -11,7 +11,7 @@ Subject: <?php shopp('purchase','email-subject'); ?>
 </div>
 <div id="body">
 
-[message]
+<?php shopp('purchase','email-note'); ?>
 
 <p class="status"><?php _e('Your order is','Shopp'); ?>: <strong><?php shopp('purchase','status'); ?></strong></p>
 
