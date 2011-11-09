@@ -408,6 +408,9 @@ class DB extends SingletonFramework {
 					// Sanitize without rounding to protect precision
 					$value = floatvalue($value,false);
 
+					// Normalize for MySQL float representations (@see bug #853)
+					$value = rtrim(number_format($value,6,'.',','),'.0');
+
 					$data[$property] = "'$value'";
 
 					if (empty($value)) $data[$property] = "'0'";
