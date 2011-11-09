@@ -78,7 +78,7 @@ class Purchase extends DatabaseObject {
 				case 'authed': $this->authorized += $Event->amount; break;
 				case 'captured': $this->captured += $Event->amount; break;
 				case 'refunded': $this->refunded += $Event->amount; break;
-				case 'voided': $this->voided = true; $Event->amount = $this->balance; $Event->credit = true;  break;
+				case 'voided': $this->voided = true; $Event->amount = $this->balance; $Event->credit = true; break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
 			if (isset($Event->transactional)) {
@@ -93,7 +93,7 @@ class Purchase extends DatabaseObject {
 		if (isset($this->txnstatus) && !empty($this->txnstatus)) {
 			switch ($this->txnstatus) {
 				case 'CHARGED': $this->authorized = $this->captured = true; break;
-				case 'VOID': $this->void = true; break;
+				case 'VOID': $this->voided = true; $this->balance = 0; break;
 			}
 		}
 
@@ -137,7 +137,8 @@ class Purchase extends DatabaseObject {
 	function notifications ($Event) {
 		if ($Event->order != $this->id) return; // Only handle notifications for events relating to this order
 
-		$this->message['note'] = $Event->note;
+		$this->message['event'] = $Event;
+		$this->message['note'] = &$Event->note;
 
 		// Generic filter hook for specifying global email messages
 		$messages = apply_filters('shopp_order_event_emails',array(
@@ -164,9 +165,8 @@ class Purchase extends DatabaseObject {
 			// and if an email has not already been sent to the recipient
 			if ( $template == basename($file) && ! in_array($email,$Event->_emails) ) {
 
-				if ( $this->email($addressee,$email,$subject,array('email'=>$template)) ) {
+				if ( $this->email($addressee,$email,$subject,array($template)) )
 					$Event->_emails[] = $email;
-				}
 
 			}
 		}
@@ -217,10 +217,7 @@ class Purchase extends DatabaseObject {
 
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
-			$this->email($addressee,$email,$subject,array(
-					'email'		=> $templates,
-					'receipt'	=> array('email-receipt.php','receipt.php'))
-			);
+			$this->email($addressee,$email,$subject,$templates);
 		}
 
 	}
@@ -235,42 +232,31 @@ class Purchase extends DatabaseObject {
 	 * @return void
 	 **/
 	function notification ($addressee,$address,$subject,$template='order.php',$receipt='receipt.php') {
-		$this->email($addressee,$address,$subject,array('email' => $template,'receipt'=>$receipt));
+		$this->email($addressee,$address,$subject,array($template));
 	}
 
-	function email ($addressee,$address,$subject,$templates=array('email' => false,'receipt' => false)) {
+	function email ($addressee,$address,$subject,$templates=array()) {
 		global $Shopp,$is_IIS;
 
 		new ShoppError("Purchase::email(): $addressee,$address,$subject,"._object_r($templates),false,SHOPP_DEBUG_ERR);
 
-		$defaults = array(
-			'emails' => array('email.php','order.php','order.html'),
-			'receipts' => array('email-receipt.php','receipt.php')
-		);
-		extract($defaults);
-
-		if (is_array($templates['email'])) $emails = array_merge($templates['email'],$emails);
-		else array_unshift($emails,$templates['email']);
-
-		if (is_array($templates['receipt'])) $receipts = array_merge($templates['receipt'],$receipts);
-		else array_unshift($receipts,$templates['receipt']);
+		$defaults = array('email.php','order.php','order.html');
+		$emails = array_merge((array)$templates,$defaults);
 
 		$template = locate_shopp_template($emails);
-		$receipt = locate_shopp_template($receipts);
 
 		if (!file_exists($template))
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 
 		// Build the e-mail message data
-		$email = array();
-
+		$_ = array();
 		$email['from'] = '"'.wp_specialchars_decode( shopp_setting('business_name'), ENT_QUOTES ).'"';
 		if (shopp_setting('merchant_email'))
 			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
 		if ($is_IIS) $email['to'] = $address;
-		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
+		else $email['to'] = '"'.wp_specialchars_decode( $addressee, ENT_QUOTES ).'" <'.$address.'>';
 		$email['subject'] = $subject;
-		$email['receipt'] = $this->receipt($receipt);
+		$email['receipt'] = $this->receipt();
 		$email['url'] = get_bloginfo('siteurl');
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;

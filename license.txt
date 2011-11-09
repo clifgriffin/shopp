@@ -3,14 +3,17 @@ Table of Contents
 Section I   : Credits and Copyrights
 Section II  : GNU General Public License
 Section III : BSD License (see Credits)
+Section IV	: THE EMOGRIFIER LICENSE
 
 Section I   : Credits
 =====================================================================
 Code contributors include (but not limited to):
 Jonathan Davis - Ingenesis Limited
 John Dillick - Ingenesis Limited
+Marc Neuhaus
 Timothy Hatcher
 Tom Wu (see BSD License in Section III for license to this author's work)
+Pelago, pelagodesign.com (see THE EMOGRIFIER LICENSE, Section IV)
 
 Copyrights:
 All works distributed with the Shopp Plugin for WordPress are
@@ -733,4 +736,39 @@ Address all questions regarding this license to:
 
 =====================================================================
 End of Section III : BSD License
+=====================================================================
+
+Section IV : THE EMOGRIFIER LICENSE (see Credits)
+=====================================================================
+
+Emogrifier is provided under the terms of the MIT license:
+1: http://www.opensource.org/licenses/mit-license.php
+2: http://en.wikipedia.org/wiki/MIT_License
+
+=====================================================================
+
+THE EMOGRIFIER LICENSE
+
+Copyright (c) 2008-2011 Pelago (http://www.pelagodesign.com/)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+=====================================================================
+END of Section IV  : THE EMOGRIFIER LICENSE
 =====================================================================
