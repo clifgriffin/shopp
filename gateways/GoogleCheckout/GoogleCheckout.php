@@ -511,11 +511,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$cart = $XML->tag('shopping-cart');
-		$orderdata = $cart->tag('merchant-private-data');
-
 		$order_summary = $XML->tag('order-summary');
 		$txnid = $order_summary->content('google-order-number');
+		
+		$cart = $order_summary->tag('shopping-cart');
+		$orderdata = $cart->tag('merchant-private-data');
 
 		// no merchant private data on a new order notification means the order didn't originate from a Shopp session, might be Google generated recurring
 		if ( ! $orderdata ) {
