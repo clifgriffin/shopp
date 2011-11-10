@@ -513,7 +513,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		$order_summary = $XML->tag('order-summary');
 		$txnid = $order_summary->content('google-order-number');
-		
+
 		$cart = $order_summary->tag('shopping-cart');
 		$orderdata = $cart->tag('merchant-private-data');
 
@@ -717,6 +717,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$txnid = $summary->content('google-order-number');
 		$order = $summary->content('merchant-order-number');
 
+		if(SHOPP_DEBUG) new ShoppError("avs-response on order $order: $avs",false,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError("cvn-response on order $order: $cvn",false,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError("eligible-for-protection on order $order: $eligible",false,SHOPP_DEBUG_ERR);
+
 		if ( ! $order && ! $txnid ) {
 			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
 			$this->error();
@@ -730,8 +734,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$Purchase->ip = $XML->content('ip-address');
-		$Purchase->save();
+		if ( ! $Purchase->ip ) {
+			$Purchase->ip = $XML->content('ip-address');
+			if ( $Purchase->ip ) $Purchase->save();
+		}
 
 		shopp_add_order_event($Purchase->id, 'review', array(
 			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
