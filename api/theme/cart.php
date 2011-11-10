@@ -233,7 +233,23 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $discount->name;
 	}
 
-	function promos ($result, $options, $O) {}
+	function promos ($result, $options, $O) {
+		if (!isset($O->_promo_looping)) {
+			reset($O->discounts);
+			$O->_promo_looping = true;
+		} else next($O->discounts);
+
+		$discount = current($O->discounts);
+		while ($discount && empty($discount->applied) && !$discount->freeshipping)
+			$discount = next($O->discounts);
+
+		if (current($O->discounts)) return true;
+		else {
+			unset($O->_promo_looping);
+			reset($O->discounts);
+			return false;
+		}
+	}
 
 	function promos_available ($result, $options, $O) {
 		global $Shopp;
