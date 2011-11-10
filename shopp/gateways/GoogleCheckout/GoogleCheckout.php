@@ -709,9 +709,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 
 		$risk = $XML->tag('risk-information:first');
-		$avs = $risk->content('avs-response');
-		$cvn = $risk->content('cvn-response');
-		$eligible = $risk->content('eligible-for-protection');
+		$avs = $risk->content('avs-response:first');
+		$cvn = $risk->content('cvn-response:first');
+		$eligible = $risk->content('eligible-for-protection:first');
 
 		$summary = $XML->tag('order-summary');
 		$txnid = $summary->content('google-order-number');
