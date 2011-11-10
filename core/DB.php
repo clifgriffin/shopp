@@ -409,10 +409,11 @@ class DB extends SingletonFramework {
 					$value = floatvalue($value,false);
 
 					// Normalize for MySQL float representations (@see bug #853)
-					$value = rtrim(number_format($value,6,'.',','),'.0');
+					// Force formating with full stop (.) decimals
+					// Trim excess 0's followed by trimming (.) when there is no fractional value
+					$value = rtrim(rtrim(number_format($value,6,'.',','),'0'),'.');
 
 					$data[$property] = "'$value'";
-
 					if (empty($value)) $data[$property] = "'0'";
 
 					// Special exception for id fields
@@ -889,7 +890,7 @@ abstract class DatabaseObject implements Iterator {
 							&& !in_array($key,$ignores)
 						)
 					) && property_exists($this, $key) ) {
-				$this->{$key} = DB::clean($value);
+				$this->$key = DB::clean($value);
 			}
 		}
 	}
