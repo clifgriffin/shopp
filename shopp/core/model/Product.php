@@ -753,9 +753,10 @@ class Product extends WPShoppObject {
 		if (!is_array($images)) return false;
 
 		foreach ($images as $img) {
+
 			$Image = new ProductImage($img['id']);
-			$Image->title = $img['title'];
-			$Image->alt = $img['alt'];
+			$Image->title = stripslashes($img['title']);
+			$Image->alt = stripslashes($img['alt']);
 
 			if (!empty($img['cropping'])) {
 				if (!class_exists('ImageProcessor'))

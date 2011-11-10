@@ -664,7 +664,7 @@ class Warehouse extends AdminController {
 			}
 
 			if ( current_user_can($taxonomy_obj->cap->assign_terms) )
-				wp_set_object_terms( $Product->id, $tags, $taxonomy );
+				wp_set_post_terms( $Product->id, $tags, $taxonomy );
 		}
 
 		// Remove deleted images
