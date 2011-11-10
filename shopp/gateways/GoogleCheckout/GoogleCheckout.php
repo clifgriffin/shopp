@@ -745,7 +745,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		shopp_add_order_event($Purchase->id, 'review', array(
 			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
-			'note' => ('M' == $avs ? __('Credit verification match.', 'Shopp') : __('Credit verification failed.', 'Shopp'))
+			'note' => ('M' == $cvn ? __('Credit verification match.', 'Shopp') : __('Credit verification failed.', 'Shopp'))
 		));
 
 		shopp_add_order_event($Purchase->id, 'review', array(
