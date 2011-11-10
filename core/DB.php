@@ -381,7 +381,7 @@ class DB extends SingletonFramework {
 			switch ($Object->_datatypes[$property]) {
 				case "string":
 					// Escape characters in strings as needed
-					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize(DB::escape($value)))."'";
+					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize($value))."'";
 					else $data[$property] = "'".DB::escape($value)."'";
 					break;
 				case "list":
