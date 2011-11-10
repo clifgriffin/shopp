@@ -708,14 +708,13 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$risk = $XML->tag('risk-information:first');
-		$avs = $risk->content('avs-response:first');
-		$cvn = $risk->content('cvn-response:first');
-		$eligible = $risk->content('eligible-for-protection:first');
-
 		$summary = $XML->tag('order-summary');
 		$txnid = $summary->content('google-order-number');
 		$order = $summary->content('merchant-order-number');
+		$risk = $summary->tag('risk-information');
+		$avs = $risk->content('avs-response');
+		$cvn = $risk->content('cvn-response');
+		$eligible = $risk->content('eligible-for-protection');
 
 		if(SHOPP_DEBUG) new ShoppError("avs-response on order $order: $avs",false,SHOPP_DEBUG_ERR);
 		if(SHOPP_DEBUG) new ShoppError("cvn-response on order $order: $cvn",false,SHOPP_DEBUG_ERR);
