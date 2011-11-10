@@ -329,6 +329,22 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 							$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
 							$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
 							$_[] = '<quantity>'.$Item->quantity.'</quantity>';
+
+							// Build recurrent item, so we can track our subscription
+							$_[] = '<merchant-private-item-data>';
+								$_[] = '<shopp-product-id>'.$Item->product.'</shopp-product-id>';
+								$_[] = '<shopp-price-id>'.$Item->option->id.'</shopp-price-id>';
+								if (is_array($Item->data) && count($Item->data) > 0) {
+									$_[] = '<shopp-item-data-list>';
+									foreach ($Item->data AS $name => $data) {
+										$_[] = '<shopp-item-data name="'.esc_attr($name).'">'.esc_attr($data).'</shopp-item-data>';
+									}
+									$_[] = '</shopp-item-data-list>';
+								}
+								$_[] = '<shopping-session>'.$this->session.'</shopping-session>';
+								$_[] = '<shopping-cart-agent>'.SHOPP_GATEWAY_USERAGENT.'</shopping-cart-agent>';
+								$_[] = '<customer-ip>'.$_SERVER['REMOTE_ADDR'].'</customer-ip>';
+							$_[] = '</merchant-private-item-data>';
 							$_[] = '</recurrent-item>';
 						$_[] = '</subscription>';
 					}
@@ -495,89 +511,180 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$sessionid = $XML->content('shopping-session:first');
+		$cart = $XML->tag('shopping-cart');
+		$orderdata = $cart->tag('merchant-private-data');
+
 		$order_summary = $XML->tag('order-summary');
+		$txnid = $order_summary->content('google-order-number');
 
-		// load the desired session, which leaves the previous/defunct Order object intact
-		Shopping::resession($sessionid);
+		// no merchant private data on a new order notification means the order didn't originate from a Shopp session, might be Google generated recurring
+		if ( ! $orderdata ) {
+			// check for item data, for signs of recurring payment
+			$items = $cart->tag('items');
+			$price = false;
+			$sessionid = false;
+			while ( $item = $items->each() ) {
+				$itemdata = $item->tag('merchant-private-item-data');
+				if ( ! $itemdata ) continue;
+				$price = $itemdata->content('shopp-price-id');
+				$sessionid = $itemdata->content('shopping-session');
+				break;
+			}
+			if ( ! ( $price && $sessionid ) ) {
+				new ShoppError("Insufficient transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+				$this->error();
+			}
 
-		// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
-		// also assign the restored Order object as the global Order object
-		ShoppOrder( ShoppingObject::__new('Order', ShoppOrder()) );
-
-		$Shopping = ShoppShopping();
-		$Order = $this->Order = ShoppOrder();
-
-		// remove undesired Order object events
-		remove_action('shopp_purchase_order_created',array(ShoppOrder(),'invoice'));
-		remove_action('shopp_purchase_order_created',array(ShoppOrder(),'process'));
-
-		// give our order number to google after purchase creation
-		add_action('shopp_purchase_order_created', array($this, 'add_order'));
-
-		// Couldn't load the session data
-		if ($Shopping->session != $sessionid) {
-			new ShoppError("Session could not be loaded: $sessionid",'google_session_load_failure',SHOPP_DEBUG_ERR);
-			$this->error();
-		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",'google_session_load_success',SHOPP_DEBUG_ERR);
-
-		// // Check if this is a Shopp order or not
-		// $origin = $order_summary->content('shopping-cart-agent');
-		// if (empty($origin) ||
-		// 	substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT)
-		// 		return true;
-
-		$buyer = $XML->tag('buyer-billing-address'); // buyer billing address not in order summary
-		$name = $buyer->tag('structured-name');
-
-		$Order->Customer->firstname = $name->content('first-name');
-		$Order->Customer->lastname = $name->content('last-name');
-		if (empty($name)) {
-			$name = $buyer->content('contact-name');
-			$names = explode(" ",$name);
-			$Order->Customer->firstname = $names[0];
-			$Order->Customer->lastname = $names[count($names)-1];
+			// if for a non-Shopp originating order, we find session id and subscription item in the private item data, look up the original order number by metadata
+			$Price = new Price($price);
+			if ( 'Subscription' == $Price->type ) $recur = $this->is_recurring( $sessionid );
 		}
 
-		$email = $buyer->content('email');
-		$Order->Customer->email = !empty($email) ? $email : '';
-		$phone = $buyer->content('phone');
-		$Order->Customer->phone = !empty($phone) ? $phone : '';
+		// ordinary session lookup possible
+		if ( ! isset($recur) ) {
+			// get session id
+			$sessionid = $orderdata->content('shopping-session');
 
-		$Order->Customer->marketing = $order_summary->content('buyer-marketing-preferences > email-allowed') != 'false' ? 'yes' : 'no';
-		$Order->Billing->address = $buyer->content('address1');
-		$Order->Billing->xaddress = $buyer->content('address2');
-		$Order->Billing->city = $buyer->content('city');
-		$Order->Billing->state = $buyer->content('region');
-		$Order->Billing->country = $buyer->content('country-code');
-		$Order->Billing->postcode = $buyer->content('postal-code');
-		$Order->Billing->cardtype = "GoogleCheckout";
+			// load the desired session, which leaves the previous/defunct Order object intact
+			Shopping::resession($sessionid);
 
-		$shipto = $order_summary->tag('buyer-shipping-address');
-		$Order->Shipping->address = $shipto->content('address1');
-		$Order->Shipping->xaddress = $shipto->content('address2');
-		$Order->Shipping->city = $shipto->content('city');
-		$Order->Shipping->state = $shipto->content('region');
-		$Order->Shipping->country = $shipto->content('country-code');
-		$Order->Shipping->postcode = $shipto->content('postal-code');
+			// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
+			// also assign the restored Order object as the global Order object
+			ShoppOrder( ShoppingObject::__new('Order', ShoppOrder()) );
 
-		$Shopp->Order->gateway = $this->name;
+			$Shopping = ShoppShopping();
+			$Order = $this->Order = ShoppOrder();
 
- 		$txnid = $order_summary->content('google-order-number');
+			// remove undesired Order object events
+			remove_action('shopp_purchase_order_created',array(ShoppOrder(),'invoice'));
+			remove_action('shopp_purchase_order_created',array(ShoppOrder(),'process'));
 
-		// Google Adjustments
-		$order_adjustment = $order_summary->tag('order-adjustment');
-		$Order->Shipping->method = $order_adjustment->content('shipping-name') ? $order_adjustment->content('shipping-name') : $Order->Shipping->method;
-		$Order->Cart->Totals->shipping = $order_adjustment->content('shipping-cost');
-		$Order->Cart->Totals->tax = $order_adjustment->content('total-tax');
+			// give our order number to google after purchase creation
+			add_action('shopp_purchase_order_created', array($this, 'add_order'));
 
-		// New total from order summary
-		$Order->Cart->Totals->total = $order_summary->content('order-total');
+			// Couldn't load the session data
+			if ($Shopping->session != $sessionid) {
+				new ShoppError("Session could not be loaded: $sessionid",'google_session_load_failure',SHOPP_DEBUG_ERR);
+				$this->error();
+			} else new ShoppError("Google Checkout successfully loaded session: $sessionid",'google_session_load_success',SHOPP_DEBUG_ERR);
 
-		shopp_add_order_event(false, 'purchase', array(
-			'gateway' => $this->module,
-			'txnid' => $txnid
-		));
+			// // Check if this is a Shopp order or not
+			// $origin = $order_summary->content('shopping-cart-agent');
+			// if (empty($origin) ||
+			// 	substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT)
+			// 		return true;
+
+			$buyer = $XML->tag('buyer-billing-address'); // buyer billing address not in order summary
+			$name = $buyer->tag('structured-name');
+
+			$Order->Customer->firstname = $name->content('first-name');
+			$Order->Customer->lastname = $name->content('last-name');
+			if (empty($name)) {
+				$name = $buyer->content('contact-name');
+				$names = explode(" ",$name);
+				$Order->Customer->firstname = $names[0];
+				$Order->Customer->lastname = $names[count($names)-1];
+			}
+
+			$email = $buyer->content('email');
+			$Order->Customer->email = !empty($email) ? $email : '';
+			$phone = $buyer->content('phone');
+			$Order->Customer->phone = !empty($phone) ? $phone : '';
+
+			$Order->Customer->marketing = $order_summary->content('buyer-marketing-preferences > email-allowed') != 'false' ? 'yes' : 'no';
+			$Order->Billing->address = $buyer->content('address1');
+			$Order->Billing->xaddress = $buyer->content('address2');
+			$Order->Billing->city = $buyer->content('city');
+			$Order->Billing->state = $buyer->content('region');
+			$Order->Billing->country = $buyer->content('country-code');
+			$Order->Billing->postcode = $buyer->content('postal-code');
+			$Order->Billing->cardtype = "GoogleCheckout";
+
+			$shipto = $order_summary->tag('buyer-shipping-address');
+			$Order->Shipping->address = $shipto->content('address1');
+			$Order->Shipping->xaddress = $shipto->content('address2');
+			$Order->Shipping->city = $shipto->content('city');
+			$Order->Shipping->state = $shipto->content('region');
+			$Order->Shipping->country = $shipto->content('country-code');
+			$Order->Shipping->postcode = $shipto->content('postal-code');
+
+			$Shopp->Order->gateway = $this->name;
+
+			// Google Adjustments
+			$order_adjustment = $order_summary->tag('order-adjustment');
+			$Order->Shipping->method = $order_adjustment->content('shipping-name') ? $order_adjustment->content('shipping-name') : $Order->Shipping->method;
+			$Order->Cart->Totals->shipping = $order_adjustment->content('shipping-cost');
+			$Order->Cart->Totals->tax = $order_adjustment->content('total-tax');
+
+			// New total from order summary
+			$Order->Cart->Totals->total = $order_summary->content('order-total');
+
+			shopp_add_order_event(false, 'purchase', array(
+				'gateway' => $this->module,
+				'txnid' => $txnid
+			));
+
+			// load the newly created purchase
+			$Purchase = new Purchase($txnid, 'txnid');
+			if ( ! $Purchase->id ) {
+				new ShoppError("Unable to attach sessionid meta data to new order.",'google_session_load_failure',SHOPP_DEBUG_ERR);
+				return;
+			}
+
+			// Attach a meta record to the new order, so we can look up recurring payments by meta data
+			shopp_set_meta ( $Purchase->id, 'purchase', 'sessionid', $sessionid, 'sessionid');
+			return;
+
+		} // end of ordinary new order handling
+
+		// handle recurring payment
+		if ( isset($recur) && $recur ) {
+
+			// get the original order
+			$Purchase = new Purchase($recur);
+			$Purchase->txnid = $txnid; // not committing this id to the original purchase record
+			$this->add_order($Purchase); // tell Google to associate this recurring payment with original order number
+
+			shopp_add_order_event($Purchase->id, 'review', array(
+				'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+				'note' => sprintf(__('New recurring payment received with id %s.','Shopp'), $txnid)
+			));
+
+			return;
+		}
+
+		// something slipped through the cracks here
+		new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+		$this->error();
+	}
+
+	/**
+	 * is_recurring
+	 *
+	 * returns the original Shopp order id associated with the shopping session id
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param string $sessionid the sessionid from the original shopping session
+	 * @return int|bool false if no purchase meta record exists associated with the session id, purchase id on successful recurring lookup
+	 **/
+	function is_recurring ( $sessionid ) {
+		if(SHOPP_DEBUG) new ShoppError("Possible recurring payment for $sessionid"._object_r($XML) ,false,SHOPP_DEBUG_ERR);
+
+		// try to find order number for original order
+		$Meta = new ObjectMeta();
+		$loading = array( 'context' => 'purchase', 'type' => 'sessionid', 'name' => 'sessionid', 'value' => $sessionid );
+		$Meta->load( $loading );
+
+		if ( ! $Meta->id || ! $Meta->parent ) {
+			new ShoppError("Unable to lookup recurring order id from $sessionid",'google_missing_txn_data',SHOPP_DEBUG_ERR);
+			return false;
+		}
+
+		// load the parent purchase
+		$Purchase = new Purchase( $Meta->parent );
+		return ( isset($Purchase->id) && $Purchase->id ? $Purchase->id : false );
 	}
 
 	function add_order ( $Purchase ) {
@@ -615,10 +722,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
+		// always try the attached order id first, as the txnid may not be associated with the original order
 		$Purchase = new Purchase($order);
 		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
 		if ( ! $Purchase->id ) {
-			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			new ShoppError("Transaction update on non existing order $order or non-associated transaction id $txnid.",'google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
@@ -716,10 +824,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
+		// always try the attached order id first, as the txnid may not be associated with the original order
 		$Purchase = new Purchase($order);
 		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
 		if ( ! $Purchase->id ) {
-			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			new ShoppError("Transaction update on non existing order $order or non-associated transaction id $txnid.",'google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
@@ -795,10 +904,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
+		// always try the attached order id first, as the txnid may not be associated with the original order
 		$Purchase = new Purchase($order);
 		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
 		if ( ! $Purchase->id ) {
-			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			new ShoppError("Transaction update on non existing order $order or non-associated transaction id $txnid.",'google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
@@ -865,10 +975,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
+		// always try the attached order id first, as the txnid may not be associated with the original order
 		$Purchase = new Purchase($order);
 		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
 		if ( ! $Purchase->id ) {
-			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			new ShoppError("Transaction update on non existing order $order or non-associated transaction id $txnid.",'google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
@@ -935,10 +1046,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
+		// always try the attached order id first, as the txnid may not be associated with the original order
 		$Purchase = new Purchase($order);
 		if ( ! $Purchase->id ) $Purchase = new Purchase($txnid, 'txnid');
 		if ( ! $Purchase->id ) {
-			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			new ShoppError("Transaction update on non existing order $order or non-associated transaction id $txnid.",'google_order_state_missing_order',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
