@@ -325,7 +325,8 @@ class Product extends WPShoppObject {
 			elseif (isset($this))
 				$target = $this;
 
-			if ($target) $target->{$Object->name} =& $Object->value;
+			if (!empty($Object->name) && $target)
+				$target->{$Object->name} =& $Object->value;
 
 			$record = $Object;
 
@@ -854,24 +855,14 @@ class Product extends WPShoppObject {
 	}
 
 	function duplicate () {
-		$db =& DB::get();
 
-		$this->load_data(array('prices','specs','categories','tags','images','taxes'=>'false'));
+		$original = $this->id;
+
+		$this->load_data(); // Load everything
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
-		$this->slug = sanitize_title_with_dashes($this->name);
-
-		// Check for an existing product slug
-		$existing = $db->query("SELECT slug FROM $this->_table WHERE slug='$this->slug' LIMIT 1");
-		if ($existing) {
-			$suffix = 2;
-			while($existing) {
-				$altslug = substr($this->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
-				$existing = $db->query("SELECT slug FROM $this->_table WHERE slug='$altslug' LIMIT 1");
-				$suffix++;
-			}
-			$this->slug = $altslug;
-		}
+		$slug = sanitize_title_with_dashes($this->name);
+		$this->slug = wp_unique_post_slug($slug, $this->id, $this->status, Product::posttype(), 0);
 		$this->created = '';
 		$this->modified = '';
 
@@ -880,39 +871,38 @@ class Product extends WPShoppObject {
 		// Copy prices
 		foreach ($this->prices as $price) {
 			$Price = new Price();
-			$Price->updates($price,array('id','product','created','modified'));
+			$Price->copydata($price);
 			$Price->product = $this->id;
 			$Price->save();
 		}
 
-		// Copy sepcs
-		foreach ($this->specs as $spec) {
-			$Spec = new Spec();
-			$Spec->updates($spec,array('id','parent','created','modified'));
-			$Spec->parent = $this->id;
-			$Spec->save();
+		// Copy taxonomy assignments
+		$terms = array();
+		$taxonomies = get_object_taxonomies( self::$posttype );
+		$assignments = wp_get_object_terms($original,$taxonomies,array('fields' => 'all_with_object_id'));
+		foreach ( $assignments as $term ) { // Map WP taxonomy data to object meta
+			if ( ! isset($term->term_id) || empty($term->term_id) ) continue; 		// Skip invalid entries
+			if ( ! isset($term->taxonomy) || empty($term->taxonomy) ) continue; 	// Skip invalid entries
+
+			if (!isset($terms[$term->taxonomy])) $terms[$term->taxonomy] = array();
+			$terms[$term->taxonomy][] = (int)$term->term_id;
+		}
+		foreach ($terms as $taxonomy => $termlist)
+			wp_set_object_terms( $this->id, $termlist, $taxonomy );
+
+		$metadata = array('specs','images','settings','meta');
+		foreach ($metadata as $metaset) {
+			foreach ($this->$metaset as $meta) {
+				$ObjectClass = get_class($meta);
+				$Meta = new $ObjectClass();
+				$Meta->copydata($meta);
+				$Meta->parent = $this->id;
+				$Meta->save();
+			}
 		}
 
-		// Copy categories
-		$categories = array();
-		foreach ($this->categories as $category) $categories[] = $category->id;
-		$this->categories = array();
-		$this->save_categories($categories);
-
-		// Copy tags
-		$taglist = array();
-		foreach ($this->tags as $tag) $taglist[] = $tag->name;
-		$this->tags = array();
-		$this->save_tags($taglist);
-
-		// Copy product images
-		foreach ($this->images as $ProductImage) {
-			$Image = new ProductImage();
-			$Image->updates($ProductImage,array('id','parent','created','modified'));
-			$Image->parent = $this->id;
-			$Image->save();
-		}
-
+		// Re-summarize product pricing
+		$this->load_data(array('prices','summary'));
 	}
 
 	function taxrule ($rule) {
