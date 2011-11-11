@@ -377,7 +377,7 @@ class PurchasesExport {
 		$this->selected = shopp_setting('purchaselog_columns');
 		$this->date_format = get_option('date_format');
 		$this->time_format = get_option('time_format');
-		shopp_set_setting('purchaselog_lastexport',mktime());
+		shopp_set_setting('purchaselog_lastexport',time());
 	}
 
 	function query ($request=array()) {

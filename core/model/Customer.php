@@ -527,7 +527,7 @@ class CustomersExport {
 		$this->sitename = get_bloginfo('name');
 		$this->headings = (shopp_setting('customerexport_headers') == "on");
 		$this->selected = shopp_setting('customerexport_columns');
-		shopp_set_setting('customerexport_lastexport',mktime());
+		shopp_set_setting('customerexport_lastexport',time());
 	}
 
 	function query ($request=array()) {

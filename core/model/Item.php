@@ -362,7 +362,7 @@ class Item {
 	function mapprice ($price) {
 		$map = array(
 			'id','type','label','sale','promoprice','price',
-			'inventory','stock','sku','options','dimensions',
+			'tax','inventory','stock','sku','options','dimensions',
 			'shipfee','download','recurring'
 		);
 		$_ = new stdClass();

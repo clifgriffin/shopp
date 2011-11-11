@@ -160,7 +160,7 @@ abstract class GatewayFramework {
 	 * @return string
 	 **/
 	function txnid () {
-		return mktime();
+		return time();
 	}
 
 	function captured ($Order) {
@@ -633,7 +633,7 @@ class FreeOrder extends GatewayFramework {
 
 	function capture (OrderEventMessage $Event) {
 		shopp_add_order_event($Event->order,'captured',array(
-			'txnid' => mktime(),
+			'txnid' => time(),
 			'fees' => 0,
 			'paymethod' => __('Free Order','Shopp'),
 			'paytype' => '',
@@ -647,7 +647,7 @@ class FreeOrder extends GatewayFramework {
 		$Purchase = new Purchase($Event->order);
 		shopp_add_order_event($Purchase->id,'voided',array(
 			'txnorigin' =>  $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
-			'txnid' => mktime(),				// Transaction ID for the VOID event
+			'txnid' => time(),					// Transaction ID for the VOID event
 			'gateway' => $Event->gateway		// Gateway handler name (module name from @subpackage)
 		));
 

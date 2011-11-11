@@ -116,7 +116,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['cmd'] 					= "_cart";
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
-		$_['invoice']				= mktime();
+		$_['invoice']				= time();
 		$_['custom']				= $Shopping->session;
 
 		// Options

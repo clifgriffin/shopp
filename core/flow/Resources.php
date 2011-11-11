@@ -163,7 +163,7 @@ class Resources {
 
 			// Download expiration checking
 			if (shopp_setting('download_timelimit') // Within the timelimit
-				&& $Purchased->created+shopp_setting('download_timelimit') < mktime() ) {
+				&& $Purchased->created+shopp_setting('download_timelimit') < time() ) {
 					new ShoppError(sprintf(__('"%s" is no longer available for download because it has expired.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
