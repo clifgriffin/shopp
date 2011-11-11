@@ -99,10 +99,12 @@ abstract class GatewayFramework {
 		$this->session = $Shopping->session;
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
-		$this->settings = shopp_setting($this->module);
+
+		if ('FreeOrder' != $this->module) // There are no settings for FreeOrder
+			$this->settings = shopp_setting($this->module);
 
 		if (!isset($this->settings['label']) && $this->cards)
-			$this->settings['label'] = __("Credit Card","Shopp");
+			$this->settings['label'] = __('Credit Card','Shopp');
 
 		if ( $this->xml && ! class_exists('xmlQuery') ) require_once(SHOPP_MODEL_PATH."/XML.php");
 		if ( $this->soap && ! class_exists('nusoap_base') ) require_once(SHOPP_MODEL_PATH."/SOAP.php");
