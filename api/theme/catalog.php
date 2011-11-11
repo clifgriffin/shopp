@@ -165,7 +165,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
 
-		if (value_is_true($zoom))
+		if (str_true($zoom))
 			return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$O->id.'"'.$titleattr.'>'.$imgtag.'</a>';
 
 		return $imgtag;

@@ -110,7 +110,7 @@ class ImageServer {
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg)
-			if ($arg !== false) $this->{$this->args[$index]} = intval($arg);
+			if (!empty($arg)) $this->{$this->args[$index]} = intval($arg);
 
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
