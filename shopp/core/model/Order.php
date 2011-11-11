@@ -582,8 +582,6 @@ class Order {
 		$this->processor($this->gateway);
 		$this->Billing->cardtype = __('Free Order','Shopp');
 
-		// $this->gateway = $this->Billing->cardtype = __('Free Order','Shopp');
-		// $this->transaction(crc32($this->Customer->email.mktime()),'CHARGED');
 		return true;
 	}
 

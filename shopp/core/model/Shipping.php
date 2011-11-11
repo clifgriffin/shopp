@@ -1605,7 +1605,7 @@ class ShippingPackage implements ShippingPackageInterface {
 		$this->limits = array_merge($this->limits, $limits);
 
 		$this->boxtype = $boxtype;
-		$this->date = mktime();
+		$this->date = time();
 	}
 
 	public function set_limits ( $limits = array ( 'wtl' => -1, 'wl'  => -1, 'hl'  => -1, 'll'  => -1 ) ) {
