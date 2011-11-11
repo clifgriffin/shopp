@@ -818,15 +818,23 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (count($O->products) == 0) return false;
 
 		$defaults = array(
-			'width' => '440',
-			'height' => '180',
-			'fit' => 'crop',
 			'fx' => 'fade',
 			'duration' => 1000,
 			'delay' => 7000,
 			'order' => 'normal'
 		);
-		$options = array_merge($defaults,$options);
+		$imgdefaults = array(
+			'setting' => false,
+			'width' => '580',
+			'height' => '200',
+			'size' => false,
+			'fit' => 'crop',
+			'sharpen' => false,
+			'quality' => false,
+			'bg' => false,
+		);
+
+		$options = array_merge($defaults,$imgdefaults,$options);
 		extract($options, EXTR_SKIP);
 
 		$href = shoppurl(SHOPP_PERMALINKS?trailingslashit('000'):'000','images');
@@ -837,7 +845,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		foreach ($O->products as $Product) {
 			if (empty($Product->images)) continue;
 			$string .= '<li><a href="'.$Product->tag('url').'">';
-			$string .= $Product->tag('image',array('width'=>$width,'height'=>$height,'fit'=>$fit));
+			$imgoptions = array_filter(array_intersect_key($options,$imgdefaults));
+			$string .= shopp($Product,'get-image',$imgoptions);
 			$string .= '</a></li>';
 		}
 		$string .= '</ul>';
