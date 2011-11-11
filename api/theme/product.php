@@ -19,6 +19,7 @@
 class ShoppProductThemeAPI implements ShoppAPI {
 	static $context = 'Product';
 	static $register = array(
+		'addon' => 'addon',
 		'addons' => 'addons',
 		'addtocart' => 'add_to_cart',
 		'buynow' => 'buy_now',
@@ -90,71 +91,119 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
+	function addon ($result, $options, $O) {
+		$addon = current($O->prices);
+
+		$types = array('hidden','checkbox','radio');
+		$defaults = array(
+			'input' => false,
+			'units' => false,
+			'promos' => null,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (!isset($options['taxes'])) $options['taxes'] = null;
+		else $options['taxes'] = value_is_true($options['taxes']);
+		$taxrate = shopp_taxrate($options['taxes'],$addon->tax,$O);
+
+		$weightunit = str_true($units)?shopp_setting('weight_unit'):false;
+
+		if (array_key_exists('id',$options)) $string .= $addon->id;
+		if (array_key_exists('label',$options)) $string .= $addon->label;
+		if (array_key_exists('type',$options)) $string .= $addon->type;
+		if (array_key_exists('sku',$options)) $string .= $addon->sku;
+		if (array_key_exists('price',$options)) $string .= money($addon->price+($addon->price*$taxrate));
+		if (array_key_exists('saleprice',$options)) {
+			if (!is_null($promos) && !str_true($promos)) {
+				$string .= money($addon->saleprice+($addon->saleprice*$taxrate));
+			} else $string .= money($addon->promoprice+($addon->promoprice*$taxrate));
+		}
+		if (array_key_exists('stock',$options)) $string .= $addon->stock;
+		if (array_key_exists('weight',$options)) $string .= round($addon->weight, 3) . (false !== $weightunit ? " $weightunit" : false);
+		if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($addon->shipfee));
+		if (array_key_exists('sale',$options)) return ($addon->sale == "on");
+		if (array_key_exists('shipping',$options)) return ($addon->shipping == "on");
+		if (array_key_exists('tax',$options)) return ($addon->tax == "on");
+		if (array_key_exists('inventory',$options)) return ($addon->inventory == "on");
+		if (in_array($input,$types))
+			$string = '<input type="'.$input.'" name="products['.$O->id.'][addons][]" value="'.$addon->id.'"'.inputattrs($options).' />';
+
+		return $string;
+	}
+
 	function addons ($result, $options, $O) {
-		global $Shopp;
-		$string = "";
 
+		// Default mode is: loop
 		if (!isset($options['mode'])) {
-			if (!$O->priceloop) {
+			if (!isset($O->_addon_loop)) {
 				reset($O->prices);
-				$O->priceloop = true;
+				$O->_addon_loop = true;
 			} else next($O->prices);
-			$O->price = current($O->prices);
 
-			if ($O->price && $O->price->type == "N/A")
-				next($O->prices);
+			$addon = current($O->prices);
 
-			if ($O->price && $O->price->context != "addon")
-				next($O->prices);
+			while (false !== $addon && ('N/A' == $addon->type || 'addon' != $addon->context))
+				$addon = next($O->prices);
 
 			if (current($O->prices) !== false) return true;
 			else {
-				$O->priceloop = false;
+				$O->_addon_loop = false;
 				return false;
 			}
 			return true;
 		}
 
 		if ($O->outofstock) return false; // Completely out of stock, hide menus
-		if (!isset($options['taxes'])) $options['taxes'] = null;
+		if (!isset($O->options['a'])) return false; // There are no addons, don't render menus
 
 		$defaults = array(
 			'defaults' => '',
 			'disabled' => 'show',
 			'before_menu' => '',
-			'after_menu' => ''
+			'after_menu' => '',
+			'mode' => 'menu',
+			'label' => true,
+			'required' => false,
+			'required_error' => __('You must select addon options for this item before you can add it to your shopping cart.','Shopp'),
+			'taxes' => null,
+			'class' => '',
 			);
 
 		$options = array_merge($defaults,$options);
+		extract($options);
 
-		if (!isset($options['label'])) $options['label'] = "on";
-		if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
-		if ($options['mode'] == "single") {
-			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options','Shopp').': </label> '."\n";
+		$addons = $O->options['a'];
+		$idprefix = 'product-addons-';
 
-			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
-			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+		$_ = array();
+		if ('single' == $mode) {
+			if (!empty($before_menu)) $_[] = $before_menu;
+			if (str_true($label)) $_[] = '<label for="'.$idprefix.$O->id.'">'. __('Options','Shopp').': </label> ';
+
+			$_[] = '<select name="products['.$O->id.'][price]" id="'.$idprefix.$O->id.'">';
+			if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
 
 			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "addon") continue;
 
-				if (isset($options['taxes']))
-					$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$O);
-				else $taxrate = shopp_taxrate(null,$pricetag->tax,$O);
+				if (!is_null($taxes))
+					$taxrate = shopp_taxrate(str_true($taxes),$pricetag->tax,$O);
+				else $taxrate = shopp_taxrate($taxes,$pricetag->tax,$O);
+
 				$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 				$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
 				$price = '  ('.money($currently).')';
 				if ($pricetag->type != "N/A")
-					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
+					$_[] = '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>';
 			}
 
-			$string .= '</select>';
-			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+			$_[] = '</select>';
+			if (!empty($after_menu)) $_[] = $after_menu;
 
 		} else {
-			if (!isset($O->options['a'])) return;
+			if (!isset($O->options['a'])) return; // Bail if there are no addons
 
 			$taxrate = shopp_taxrate($options['taxes'],true,$O);
 
@@ -165,32 +214,33 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$pricing[$pricetag->options] = $pricetag;
 			}
 
-			foreach ($O->options['a'] as $id => $menu) {
-				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-				$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-				$string .= '<select name="products['.$O->id.'][addons][]" class="'.$category_class.' product'.$O->id.' addons" id="addons-'.$menu['id'].'">';
-				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-				foreach ($menu['options'] as $key => $option) {
+			foreach ($addons as $id => $menu) {
+				if (!empty($before_menu)) $_[] = $before_menu;
+				if (str_true($label)) $_[] = '<label for="'.$idprefix.$menu['id'].'">'.$menu['name'].'</label> ';
+				$category_class = shopp('collection','get-slug');
+				$classes = array($class,$category_class,'addons');
 
+				$_[] = '<select name="products['.$O->id.'][addons][]" class="'.trim(join(' ',$classes)).'" id="'.$idprefix.$menu['id'].'">';
+				if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
+
+				foreach ($menu['options'] as $key => $option) {
 					$pricetag = $pricing[$option['id']];
 
-					if (isset($options['taxes']))
-						$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$O);
-					else $taxrate = shopp_taxrate(null,$pricetag->tax,$O);
+					if (!is_null($taxes))
+						$taxrate = shopp_taxrate(str_true($taxes),$pricetag->tax,$O);
+					else $taxrate = shopp_taxrate($taxes,$pricetag->tax,$O);
 
-					$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+					$currently = str_true($pricetag->sale) ? $pricetag->promoprice : $pricetag->price;
 					if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
-					$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
+					$_[] = '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>';
 				}
 
-				$string .= '</select>';
+				$_[] = '</select>';
 			}
-			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
-
+			if (!empty($after_menu)) $_[] = $after_menu;
 		}
 
-		return $string;
+		return join('',$_);
 	}
 
 	function add_to_cart ($result, $options, $O) {
