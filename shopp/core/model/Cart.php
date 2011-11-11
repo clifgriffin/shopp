@@ -232,9 +232,9 @@ class Cart {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	function add ($quantity,&$Product,&$Price,$addons=array(),$data=array(),$category=false) {
+	function add ($quantity,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
 
-		$NewItem = new Item($Product,$Price,$addons,$data,$category);
+		$NewItem = new Item($Product,$Price,$category,$data,$addons);
 		if (!$NewItem->valid()) return false;
 
 		if (($item = $this->hasitem($NewItem)) !== false) {
