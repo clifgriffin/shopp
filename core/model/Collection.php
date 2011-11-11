@@ -570,6 +570,7 @@ class ProductTaxonomy extends ProductCollection {
 				$p = $term_parent;
 				while ( $p ) {
 					$terms_parent = get_term( $p, $taxonomy );
+					$terms_parent->id = $terms_parent->term_id;
 					$parents[] = $terms_parent;
 					$p = $terms_parent->parent;
 
@@ -590,6 +591,7 @@ class ProductTaxonomy extends ProductCollection {
 			if ($count >= $start) {
 				if (isset($results[$id])) continue;
 				$results[$id] = get_term($id,$taxonomy);
+				$results[$id]->id = $results[$id]->term_id;
 				$results[$id]->level = $level;
 				$results[$id]->_children = isset($children[$id]);
 			}
