@@ -35,9 +35,19 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
-	var $status = array('' => 'UNKNOWN','Canceled-Reversal' => 'CHARGED','Completed' => 'CHARGED',
-						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
-						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
+	// status to event mapping
+	var $events = array(
+						'Expired' => 'voided',
+						'Failed' => 'voided',
+						'Refunded' => 'voided',
+						'Reversed' => 'voided',
+						'Voided' => 'voided',
+						'Denied' => 'voided',
+						'Canceled-Reversal' => 'captured',
+						'Completed' => 'captured',
+						'Pending' => 'purchase',
+						'Processed' => 'purchase',
+						);
 
 	function __construct () {
 		parent::__construct();
@@ -56,40 +66,103 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 
-		add_action('shopp_txn_update',array(&$this,'updates'));
-		add_filter('shopp_tag_cart_paypal',array(&$this,'sendcart'),10,2);
-		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
+		add_action('shopp_txn_update',array($this,'updates')); // possible IPN updates
+		add_filter('shopp_tag_cart_paypal',array($this,'sendcart'),10,2); // provides shopp('cart','paypal') checkout button
+		add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3); // replace submit button with paypal image
+
+		// event system callbacks, normal established generally by Order::process()
+		add_action('shopp_paypalstandard_captured', array(ShoppOrder(),'accounts')); // account creation
+		add_action('shopp_paypalstandard_captured', array(ShoppOrder(),'notify')); // order email notification
 	}
 
+	/**
+	 * actions
+	 *
+	 * these action callbacks are only established when the current Order::processor() is set to this module.  All other general actiosn belong in the constructor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function actions () {
-		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
-
-		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
-		add_action('shopp_remote_payment',array(&$this,'payment'));
-		add_action('shopp_init_checkout',array(&$this,'returned'));
-		add_action('shopp_process_order',array(&$this,'process'));
+		add_action('shopp_process_checkout', array($this,'checkout'),9); // intercept checkout request, force confirm
+		add_action('shopp_init_confirmation',array($this,'confirmation')); // replace confirm order page with paypal form
+		add_action('shopp_remote_payment',array($this,'payment')); // process PDT sync return
+		add_action('shopp_init_checkout',array($this,'returned')); // wipes shopping session on thanks page load
+		add_action('shopp_process_order',array($this,'process')); // process new order (IPN or PDT)
 	}
 
+	/**
+	 * confirmation
+	 *
+	 * replaces the confirm order form to submit cart to PPS
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function confirmation () {
-		add_filter('shopp_confirm_url',array(&$this,'url'));
-		add_filter('shopp_confirm_form',array(&$this,'form'));
+		add_filter('shopp_confirm_url',array($this,'url'));
+		add_filter('shopp_confirm_form',array($this,'form'));
 	}
 
+	/**
+	 * checkout
+	 *
+	 * forces the checkout request to go to order confirmation so that the confirm order form can be replaced for PPS
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function checkout () {
 		$this->Order->Billing->cardtype = "PayPal";
 		$this->Order->confirm = true;
 	}
 
+	/**
+	 * submit
+	 *
+	 * replaces the submit button the checkout form with a PayPal checkout button image
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function submit ($tag=false,$options=array(),$attrs=array()) {
 		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" '.inputattrs($options,$attrs).' />';
 		return $tag;
 	}
 
+	/**
+	 * url
+	 *
+	 * url returns the live or test paypal url, depending on testmode setting
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string checkout url
+	 **/
 	function url ($url=false) {
 		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
 		else return $this->checkouturl;
 	}
 
+	/**
+	 * sendcart
+	 *
+	 * builds a form appropriate for sending to PayPal directly from the cart.. used by shopp('cart','paypal')
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string PayPal cart form
+	 **/
 	function sendcart () {
 		$Order = $this->Order;
 
@@ -104,8 +177,15 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	/**
-	 * form()
-	 * Builds a hidden form to submit to PayPal when confirming the order for processing */
+	 * form
+	 *
+	 * Builds a hidden form to submit to PayPal when confirming the order for processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return string PayPal cart form contents
+	 **/
 	function form ($form,$options=array()) {
 		global $Shopp;
 		$Shopping = ShoppShopping();
@@ -227,27 +307,57 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		return $form.$this->format($_);
 	}
 
+	/**
+	 * payment
+	 *
+	 * setup valid order override, to force the thanks page regardless of order processing results
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function payment () {
 		if (isset($_REQUEST['tx'])) { // PDT
-			add_filter('shopp_valid_order',array(&$this,'pdtpassthru'));
+			add_filter('shopp_valid_order',array($this,'pdtpassthru'));
 			// Run order processing
 			do_action('shopp_process_order');
 		}
 	}
 
+	/**
+	 * pdtpassthru
+	 *
+	 * If order data validation fails, causes redirect to thank you page
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return bool valid order
+	 **/
 	function pdtpassthru ($valid) {
 		if ($valid) return $valid;
 		// If the order data validation fails, passthru to the thank you page
 		shopp_redirect( shoppurl(false,'thanks') );
 	}
 
+	/**
+	 * returned
+	 *
+	 * resets shopping session in preparation for loading thanks page
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function returned () {
-		$process = get_query_var('s_pr');
-		if ($process != 'thanks') return;
+		if ( ! is_thanks_page() ) return;
+
 		global $Shopp;
 
 		// Session has already been reset after a processed transaction
-		if (!empty($Shopp->Purchase->id)) return;
+		if ( ! empty($Shopp->Purchase->id) ) return;
 
 		// Customer returned from PayPal
 		// but no transaction processed yet
@@ -256,20 +366,34 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	}
 
+	/**
+	 * process
+	 *
+	 * the shopp_process_order action of PPS ( see actions() method )
+	 * process new orders via PDT synchronous redirect from PayPal or asynchronously from IPN ( shopping session populated by updates() )
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function process () {
 		global $Shopp;
 
 		$txnid = false;
 		$txnstatus = false;
+		$event = 'purchase';
+
 		if (isset($_POST['txn_id'])) { // IPN order processing
 			if (SHOPP_DEBUG) new ShoppError('Processing transaction from an IPN message.',false,SHOPP_DEBUG_ERR);
 			$txnid = $_POST['txn_id'];
-			$txnstatus = $this->status[$_POST['payment_status']];
+			$txnstatus = $_POST['payment_status'];
+
 		} elseif (isset($_REQUEST['tx'])) { // PDT order processing
 			if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
 
 			$txnid = $_GET['tx'];
-			$txnstatus = $this->status[$_GET['st']];
+			$txnstatus = $_GET['st'];
 
 			if ($this->settings['pdtverify'] == "on") {
 				$pdtstatus = $this->verifypdt();
@@ -283,34 +407,60 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			if (!empty($Purchase->id)) {
 				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
 				Shopping::resession();
-				$Shopp->Purchase = $Purchase;
-				$Shopp->Order->purchase = $Purchase->id;
+
+
+				ShoppPurchase($Purchase);
+				ShoppOrder()->purchase = $Purchase->id;
 				shopp_redirect(shoppurl(false,'thanks',false));
 			}
 
 		}
 
-		if (!$txnid) return new ShoppError('No transaction ID was found from either a PDT or IPN message. Transaction cannot be processed.',false,SHOPP_DEBUG_ERR);
-		$Shopp->Order->transaction($txnid,$txnstatus);
+		if ( $txnstatus && isset($this->events[$txnstatus]) )
+			$event = $this->events[$txnstatus];
 
+		if ( $event == 'voided') return; // the transaction is void of the starting gate. Don't create a purchase.
+
+		if (!$txnid) return new ShoppError('No transaction ID was found from either a PDT or IPN message. Transaction cannot be processed.',false,SHOPP_DEBUG_ERR);
+
+		// remove undesirable order creation action on new Order object
+		remove_action('shopp_purchase_order_created',array(ShoppOrder(),'process'));
+
+		shopp_add_order_event(false, 'purchase', array(
+			'gateway' => $this->module,
+			'txnid' => $txnid
+		));
 	}
 
 	function updates () {
+		// update is not for PPS
+		if ( 'PPS' != $_REQUEST['_txnupdate'] ) return;
+
+		// Cancel processing if this is not a PayPal IPN message (invalid)
+		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") {
+			if(SHOPP_DEBUG) new ShoppError('Invalid IPN request.  Incorrect txn_type.','paypal_ipn_invalid',SHOPP_DEBUG_ERR);
+			return false;
+		}
+
 		global $Shopp;
 
-		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
-		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
-
 		$target = false;
-		if (isset($_POST['txn_id']) && !isset($_POST['parent_txn_id']))
+		// if no parent transaction id, this is a new transaction
+		if ( isset($_POST['txn_id']) && ! isset($_POST['parent_txn_id']) ) {
 			$target = $_POST['txn_id'];
-		elseif (!empty($_POST['parent_txn_id'])) $target = $_POST['parent_txn_id'];
+		// if a parent transaction id exists, this is associated with our existing purchase
+		} elseif ( ! empty($_POST['parent_txn_id']) ) {
+			$target = $_POST['parent_txn_id'];
+		}
 
 		// No transaction target: invalid IPN, silently ignore the message
-		if (!$target) return;
+		if ( ! $target ) {
+			if(SHOPP_DEBUG) new ShoppError("Invalid IPN request.  Missing txn_id or parent_txn_id.",'paypal_ipn_invalid',SHOPP_DEBUG_ERR);
+			return;
+		}
 
 		// Validate the order notification
-		if ($this->verifyipn() != "VERIFIED") {
+		if ( $this->verifyipn() != "VERIFIED" ) {
 			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
 			return false;
 		}
@@ -318,42 +468,73 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$Purchase = new Purchase($target,'txnid');
 
 		// Purchase record exists, update it
-		if ($Purchase->txnid == $target && !empty($Purchase->id)) {
-			if ($Purchase->gateway != $this->name) return; // Not a PPS order, don't touch it
-			$txnstatus = isset($this->status[$_POST['payment_status']])?
-				$this->status[$_POST['payment_status']]:$_POST['payment_status'];
+		if ( $Purchase->txnid == $target && ! empty($Purchase->id) ) {
+			$txnid = $target;
+			$txnstatus = $_POST['payment_status'];
+			$fee = 0;
+			$amount = 0;
+			if ( isset($_POST['mc_fee']) ) $fee = abs($_POST['mc_fee']);
+			$amount = isset($_POST['mc_gross']) ? abs($_POST['mc_gross']) : $Purchase->total;
 
-			$Purchase->txnstatus = $txnstatus;
-			$Purchase->save();
-			do_action_ref_array('shopp_order_txnstatus_update',array(&$txnstatus,&$Purchase)); // TODO: update Order event system
+			switch ( $this->events($txnstatus) ) {
+				case "purchase":
+					if(SHOPP_DEBUG) new ShoppError('Ignoring IPN with '.$txnstatus.' status on existing order '.$Purchase->id, 'paypal_invalid_txnstatus', SHOPP_DEBUG_ERR);
+					break;
+				case "captured":
+					shopp_add_order_event($Purchase->id, 'captured', array(
+						'txnid' => $txnid,				// Transaction ID of the CAPTURE event
+						'amount' => $amount,			// Amount captured
+						'fees' => $fee,	// Transaction fees taken by the gateway net revenue = amount-fees
+						'gateway' => $this->module		// Gateway handler name (module name from @subpackage)
+					));
+					break;
+				case "refunded":
+					shopp_add_order_event($Purchase->id, 'refunded', array(
+						'txnid' => $txnid,				// Transaction ID for the REFUND event
+						'amount' => $refund,		// Amount refunded
+						'gateway' => $this->module	// Gateway handler name (module name from @subpackage)
+					));
+					break;
+				case "voided":
+					// void txnid
+					$new_txnid = isset($_POST['txn_id']) ? $_POST['txn_id'] : $txnid;
 
-			$Shopp->Purchase = &$Purchase;
-			$Shopp->Order->purchase = $Purchase->id;
+					shopp_add_order_event($Purchase->id, 'voided', array(
+						'txnid' => $new_txnid,				// Transaction ID
+						'txnorigin' => $txnid,				// Original Transaction ID
+						'gateway' => $this->module			// Gateway handler name (module name from @subpackage)
+					));
+					break;
+				default: break; // do nothing
+			}
 
-			do_action('shopp_order_notifications');
 			die('PayPal IPN update processed.');
 		}
 
+		// New order creation by IPN
 		if (!isset($_POST['custom'])) {
 			new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$target),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
 			die('PayPal IPN failed.');
 		}
 
-		$Shopp->Order->unhook();
+		// load the desired session, which leaves the previous/defunct Order object intact
 		Shopping::resession($_POST['custom']);
-		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
-		$this->actions();
+
+		// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
+		// also assign the restored Order object as the global Order object
+		$this->Order = ShoppOrder( ShoppingObject::__new('Order', ShoppOrder()) );
 
 		$Shopping = ShoppShopping();
-		$Shopping->init();
+
 		// Couldn't load the session data
 		if ($Shopping->session != $_POST['custom'])
 			return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 		else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 
+		// process shipping address changes from IPN message
 		$this->ipnupdates();
 
-		do_action('shopp_process_order'); // New order
+		do_action('shopp_process_order');
 		die('PayPal IPN processed.');
 	}
 
@@ -407,8 +588,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_ = array();
 		$_['cmd'] = "_notify-synch";
 		$_['at'] = $this->settings['pdttoken'];
+		$_['tx'] = $_GET['tx'];
 
-		$message = $this->encode(array_merge($_GET,$_));
+		$message = $this->encode($_);
 		$response = $this->send($message);
 		return (strpos($response,"SUCCESS") !== false);
 	}
