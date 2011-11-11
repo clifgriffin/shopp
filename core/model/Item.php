@@ -68,7 +68,7 @@ class Item {
 	 * @return void
 	 **/
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
-		$Product->load_data(array('prices','images','categories','tags','specs','summary'));
+		$Product->load_data();
 
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) {
@@ -94,10 +94,10 @@ class Item {
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 
-		if ($Product->variants == 'on')
+		if (str_true($Product->variants))
 			$this->variants($Product->prices);
 
-		if (isset($Product->addons) && $Product->addons == 'on')
+		if (str_true($Product->addons))
 			$this->addons($this->addonsum,$addons,$Product->prices);
 
 		if (isset($Price->id))
@@ -327,7 +327,7 @@ class Item {
 		foreach ($prices as $p)	{
 			if ('N/A' == $p->type || 'addon' != $p->context) continue;
 			$pricing = $this->mapprice($p);
-			if (empty($pricing) || !in_array($pricing->options,$addons)) continue;
+			if (empty($pricing) || !in_array($pricing->id,$addons)) continue;
 			if ('Shipped' == $p->type) $this->shipped = true;
 			if ($property == 'pricing') {
 				$pricing->unitprice = (str_true($p->sale)?$p->promoprice:$p->price);
