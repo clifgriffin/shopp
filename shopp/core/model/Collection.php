@@ -236,10 +236,9 @@ class ProductCollection implements Iterator {
 			$product = ShoppProduct();
 		}
 
-	    if ($tax_inclusive) {
+	    if (str_true(shopp_setting('tax_inclusive'))) {
 			$Product = new Product($product->id);
-			$Item = new Item($Product);
-	        $taxrate = shopp_taxrate(null, true, $Item);
+	        $taxrate = shopp_taxrate(null, true, $Product);
 	    }
 
 		$item = array();
