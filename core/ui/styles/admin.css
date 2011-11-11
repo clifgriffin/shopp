@@ -363,6 +363,7 @@ span.indent { display: inline-block; width: 36px; }
 #poststuff #save-membership .inside,
 #poststuff #order-status .inside { margin:0; }
 .shopp #major-publishing-actions { text-align:right; clear: none; }
+#save-category #major-publishing-actions input { min-width: 75px; }
 
 .postbox #summary { width:100%; }
 

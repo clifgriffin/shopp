@@ -1236,7 +1236,7 @@ function SlugEditor (id,type) {
 
 			editbs.hide();
 			editorbs.show();
-			save.click(function() {
+			save.unbind('click').click(function() {
 				var slug = editor.children('input').val();
 
 				$.post(editslug_url+'&action=shopp_edit_slug',
@@ -1253,7 +1253,7 @@ function SlugEditor (id,type) {
 						editbs.show();
 					},'text');
 			});
-			cancel.click(function() {
+			cancel.unbind('click').click(function() {
 				editor.html(revert_editor);
 				editorbs.hide();
 				editbs.show();
@@ -1275,4 +1275,5 @@ function SlugEditor (id,type) {
 	};
 
 	edit.click(_.permalink);
+
 }

@@ -29,7 +29,11 @@
 						<?php if (SHOPP_PRETTYURLS && !empty($Category->id)): ?>
 						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Category->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Category->slug); ?></span>/</span>
-						<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
+						<span id="edit-slug-buttons">
+							<button type="button" class="edit button"><?php _e('Edit','Shopp'); ?></button><?php if (!empty($Category->id)): ?><a href="<?php echo esc_url(shopp($Category,'get-url')); ?>" id="view-product" class="view button"><?php _e('View','Shopp'); ?></a><?php endif; ?></span>
+						<span id="editor-slug-buttons">
+							<button type="button" class="save button"><?php _e('Save','Shopp'); ?></button> <button type="button" class="cancel button"><?php _e('Cancel','Shopp'); ?></button>
+						</span>
 						</div>
 						<?php endif; ?>
 					</div>
@@ -63,6 +67,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	uidir = '<?php echo SHOPP_ADMIN_URI; ?>',
 	siteurl = '<?php bloginfo('url'); ?>',
 	adminurl = '<?php echo SHOPP_WPADMIN_URL; ?>',
+	canonurl = '<?php echo trailingslashit(shoppurl( SHOPP_PRETTYURLS ? get_class_property('ProductCategory','namespace') : $Category->taxonomy.'=' )); ?>',
 	ajaxurl = adminurl+'admin-ajax.php',
 	addcategory_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "shopp-ajax_add_category"); ?>',
 	editslug_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',

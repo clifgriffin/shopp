@@ -209,22 +209,37 @@ class AjaxFlow {
 	function edit_slug () {
 		check_admin_referer('wp_ajax_shopp_edit_slug');
 
-		switch ($_REQUEST['type']) {
+		$defaults = array(
+			'slug' => false,
+			'type' => false,
+			'id' => false
+		);
+		$p = array_merge($defaults,$_POST);
+		extract($p);
+
+		if (!$slug) die('-1');
+
+		switch ($type) {
 			case "category":
-				$Category = new ProductCategory($_REQUEST['id']);
-				if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
-				$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-				if ($Category->save()) echo apply_filters('editable_slug',$Category->slug);
-				else echo '-1';
+				$Category = new ProductCategory($_POST['id']);
+				if ($slug == $Category->slug) die('-1');
+				$term = get_term($Category->id,$Category->taxonomy);
+				$slug = wp_unique_term_slug(sanitize_title_with_dashes($slug),$term);
+				if ($slug == $Category->slug) die('-1');
+				$Category->slug = $slug;
+				$Category->save();
+				echo apply_filters('editable_slug',$Category->slug);
 				break;
 			case "product":
-				$Product = new Product($_REQUEST['id']);
+				$Product = new Product($_POST['id']);
 				$slug = $Product->slug;
-				if (!empty($_REQUEST['slug'])) $slug = $_REQUEST['slug'];
+				if ($_REQUEST['slug'] == $slug) die('-1');
+				$slug = $_REQUEST['slug'];
 				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, $Product->status, Product::posttype(), 0);
-				$Product->save();
-				if ($slug != $Product->slug) echo apply_filters('editable_slug',$Product->slug);
-				else echo '-1';
+				if ($slug != $Product->slug) {
+					$Product->save();
+					echo apply_filters('editable_slug',$Product->slug);
+				} else echo '-1';
 				break;
 		}
 		exit();
