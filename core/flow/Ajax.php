@@ -207,7 +207,7 @@ class AjaxFlow {
 	}
 
 	function edit_slug () {
-		// check_admin_referer('wp_ajax_shopp_edit_slug');
+		check_admin_referer('wp_ajax_shopp_edit_slug');
 
 		switch ($_REQUEST['type']) {
 			case "category":
@@ -220,10 +220,10 @@ class AjaxFlow {
 			case "product":
 				$Product = new Product($_REQUEST['id']);
 				$slug = $Product->slug;
-				if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Product->name;
-				$Product->slug = apply_filters('editable_slug',sanitize_title_with_dashes($_REQUEST['slug']));
+				if (!empty($_REQUEST['slug'])) $slug = $_REQUEST['slug'];
+				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, $Product->status, Product::posttype(), 0);
 				$Product->save();
-				if ($slug != $Product->slug) echo $Product->slug;
+				if ($slug != $Product->slug) echo apply_filters('editable_slug',$Product->slug);
 				else echo '-1';
 				break;
 		}
