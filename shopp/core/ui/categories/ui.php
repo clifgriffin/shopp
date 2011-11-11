@@ -16,7 +16,7 @@ function save_meta_box ($Category) {
 		<select name="settings[workflow]" id="workflow">
 		<?php echo menuoptions($workflows,shopp_setting('workflow'),true); ?>
 		</select>
-		<input type="submit" class="button-primary" name="save" value="<?php _e('Save Category','Shopp'); ?>" />
+		<input type="submit" class="button-primary" name="save" value="<?php _e('Update','Shopp'); ?>" />
 	</div>
 <?php
 }
@@ -26,8 +26,6 @@ function settings_meta_box ($Category) {
 	global $Shopp;
 	$tax = get_taxonomy($Category->taxonomy);
 
-	// $categories_menu = $Shopp->Flow->Controller->menu($Category->parent,$Category->id);
-	// $categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 ?>
 	<p><?php wp_dropdown_categories( array( 'taxonomy' => $Category->taxonomy, 'selected'=> $Category->parent,'hide_empty' => 0, 'name' => 'parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => $tax->labels->parent_item.'&hellip;', 'tab_index' => 3 ) );?><br />
 <?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></p>
