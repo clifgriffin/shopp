@@ -255,6 +255,7 @@ class ShoppCartItemThemeAPI {
 			'class' => '',
 			'exclude' => '',
 			'prices' => true,
+			'taxes' => shopp_setting('tax_inclusive')
 
 		);
 		$options = array_merge($defaults,$options);
@@ -262,13 +263,15 @@ class ShoppCartItemThemeAPI {
 
 		$classes = !empty($class)?' class="'.join(' ',$class).'"':'';
 		$excludes = explode(',',$exclude);
-		$prices = value_is_true($prices);
+		$prices = str_true($prices);
+		$taxes = str_true($taxes);
 
 		$result .= $before.'<ul'.$classes.'>';
 		foreach ($O->addons as $id => $addon) {
 			if (in_array($addon->label,$excludes)) continue;
 			$price = (str_true($addon->sale)?$addon->promoprice:$addon->price);
-			if ($O->taxrate > 0) $price = $price+($price*$O->taxrate);
+			if ($taxes && $O->taxrate > 0)
+				$price = $price+($price*$O->taxrate);
 
 			if ($prices) $pricing = " (".($addon->price < 0?'-':'+').money($price).")";
 			$result .= '<li>'.$addon->label.$pricing.'</li>';
