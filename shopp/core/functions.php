@@ -1394,17 +1394,27 @@ function get_wp_query_var ($key) {
  **/
 function shoppdiv ($string) {
 
-	$view = 'grid';
-	$views = array('list','grid');
 	$classes = array();
+
+	$views = array('list','grid');
+	$view = shopp_setting('default_catalog_view');
+	if (empty($view)) $view = 'grid';
 
 	// Handle catalog view style cookie preference
 	if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
-	else $view = shopp_setting('default_catalog_view');
 	if (in_array($view,$views)) $classes[] = $view;
+
+	// Add collection slug
+	if ($category = shopp('collection','get-slug')) $classes[] = $category;
+
+	// Add product id & slug classes
+	if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
+	if ($product = shopp('product','get-slug')) $classes[] = $product;
+
+	$classes = apply_filters('shopp_content_container_classes',$classes);
 	$classes = esc_attr(join(' ',$classes));
 
-	if (strpos($string,'<div id="shopp"') === false)
+	if (false === strpos($string,'<div id="shopp"'))
 		return '<div id="shopp"'.(!empty($classes)?' class="'.$classes.'"':'').'>'.$string.'</div>';
 	return $string;
 }
