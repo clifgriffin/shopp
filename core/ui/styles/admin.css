@@ -10,7 +10,7 @@ th.textright { text-align: right; }
 .shopp button.deleteButton { background:none;border:none;padding:0;width:16px;height:16px; }
 .shopp button.delete,.shopp button.add { display:inline-block;background:none;border:none;padding:3px;margin:1px;z-index:100; vertical-align: top; margin-top: 2px; }
 .shopp button img { display:inline;vertical-align:middle; }
-.shopp input.right { text-align:right; }
+.shopp input.right { text-align:right; float:none; }
 .shopp label .error { display:inline-block;margin-top:5px;padding:0 0.6em; }
 .shopp abbr.symbol { font-size: 1.2em; }
 
@@ -207,7 +207,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 .shopp div.priceline { border-color:#dfdfdf;background-color:#f9f9f9; }
 .shopp div.pricing-label { background-color:#f1f1f1;padding:6px; }
-.shopp div.priceline .pricing-ui { padding:6px;position:relative; }
+.shopp div.priceline .pricing-ui { padding:6px;position:relative;height:auto; }
 
 .shopp .priceline div.inline { display:inline-block; }
 .shopp .priceline .dimui { position: absolute; width: 400px; }
@@ -298,6 +298,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 .shopp .multipane .controls,
 .shopp .details .controls { text-align:right; }
 .shopp .options .setting select { width:97%; }
+.shopp .multipane .controls.right{ float:none; }
 
 .shopp .form-table input[type=checkbox] { vertical-align:middle;border-style:none !important; }
 
