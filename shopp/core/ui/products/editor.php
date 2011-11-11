@@ -33,7 +33,11 @@
 						<?php if (SHOPP_PRETTYURLS && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title=<?php _jse('Click to edit this part of the permalink','Shopp'); ?>><?php echo esc_attr($Product->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Product->slug); ?></span><?php echo user_trailingslashit(""); ?></span>
-							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->status == "publish"): ?><button id="view-product" type="button" class="view button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
+							<span id="edit-slug-buttons">
+								<button type="button" class="edit button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->status == "publish"): ?><a href="<?php echo esc_url(shopp($Product,'get-url')); ?>" id="view-product" class="view button"><?php _e('View','Shopp'); ?></a><?php endif; ?></span>
+							<span id="editor-slug-buttons">
+								<button type="button" class="save button"><?php _e('Save','Shopp'); ?></button> <button type="button" class="cancel button"><?php _e('Cancel','Shopp'); ?></button>
+							</span>
 							</div>
 						<?php else: ?>
 							<?php if (!empty($Product->id)): ?>
