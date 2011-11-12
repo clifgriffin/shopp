@@ -989,8 +989,8 @@ class Setup extends AdminController {
 			if ('new' == $_GET['id']) $edit = 'new';
 		}
 
-		if (!isset($_GET['delete']) || 'delete' == $action) {
-			// check_admin_referrer('');
+		if (isset($_GET['delete']) || 'delete' == $action) {
+			check_admin_referer('shopp-settings-images');
 
 			if (!empty($_GET['delete'])) $selected[] = (int)$_GET['delete'];
 			$selected = array_filter($selected);
