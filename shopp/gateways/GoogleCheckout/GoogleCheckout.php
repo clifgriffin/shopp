@@ -673,7 +673,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if(SHOPP_DEBUG) new ShoppError("Possible recurring payment for $sessionid"._object_r($XML) ,false,SHOPP_DEBUG_ERR);
 
 		// try to find order number for original order
-		$Meta = new ObjectMeta();
+		$Meta = new MetaObject();
 		$loading = array( 'context' => 'purchase', 'type' => 'sessionid', 'name' => 'sessionid', 'value' => $sessionid );
 		$Meta->load( $loading );
 
