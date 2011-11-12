@@ -191,8 +191,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					$taxrate = shopp_taxrate(str_true($taxes),$pricetag->tax,$O);
 				else $taxrate = shopp_taxrate($taxes,$pricetag->tax,$O);
 
-				$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
-				$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
+				$currently = str_true($pricetag->sale)?$pricetag->promoprice:$pricetag->price;
+				$disabled = str_true($pricetag->inventory) && $pricetag->stock == 0?' disabled="disabled"':'';
+
+				if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
 
 				$price = '  ('.money($currently).')';
 				if ($pricetag->type != "N/A")
@@ -332,7 +334,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	function free_shipping ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
-		return $O->freeshipping;
+		return (isset($O->freeshipping) && $O->freeshipping);
 	}
 
 	function gallery ($result, $options, $O) {
@@ -956,11 +958,16 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'before_menu' => '',
 			'after_menu' => '',
 			'label' => 'on',
+			'mode' => 'multiple',
+			'taxes' => null,
 			'required' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp')
 			);
 		$options = array_merge($defaults,$options);
+		extract($options);
 
-		if ($options['mode'] == "single") {
+		$taxes = is_null($taxes) ? null : str_true($taxes);
+
+		if ('single' == $mode) {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$O->id.'">'. __('Options', 'Shopp').': </label> '."\n";
 
@@ -968,16 +975,19 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
 			foreach ($O->prices as $pricetag) {
-				if ($pricetag->context != "variation") continue;
+				if ('variation' != $pricetag->context) continue;
 
-				if (!isset($options['taxes']))
+				if (is_null($taxes))
 					$taxrate = shopp_taxrate(null,$pricetag->tax);
-				else $taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax);
-				$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
-				$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
+				else $taxrate = shopp_taxrate($taxes,$pricetag->tax);
+
+				$currently = str_true($pricetag->sale)?$pricetag->promoprice:$pricetag->price;
+				$disabled = str_true($pricetag->inventory) && $pricetag->stock == 0?' disabled="disabled"':'';
+
+				if ($taxes && $taxrate > 0) $currently = $currently+($currently*$taxrate);
 
 				$price = '  ('.money($currently).')';
-				if ($pricetag->type != "N/A")
+				if ('N/A' != $pricetag->type)
 					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
 			}
 			$string .= '</select>';
@@ -992,22 +1002,18 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$baseop = shopp_setting('base_operations');
 			$precision = $baseop['currency']['format']['precision'];
 
-			if (!isset($options['taxes']))
+			if (is_null($taxes))
 				$taxrate = shopp_taxrate(null,true,$O);
-			else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$O);
+			else $taxrate = shopp_taxrate($taxes,true,$O);
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {
-				$filter = array('');
 				$_ = new StdClass();
-				if ($pricing->type != "Donation")
-					$_->p = ((isset($pricing->sale)
-								&& str_true($pricing->onsale) )?
-									(float)$pricing->promoprice:
-									(float)$pricing->price);
-				$_->i = ($pricing->inventory == "on");
-				$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
-				$_->tax = ($pricing->tax == "on");
+				if ($pricing->type != 'Donation')
+					$_->p = (float)(str_true($pricing->sale) ? $pricing->promoprice : $pricing->price);
+				$_->i = str_true($pricing->inventory);
+				$_->s = $_->i ? $pricing->stock : false;
+				$_->tax = str_true($pricing->tax);
 				$_->t = $pricing->type;
 				$pricekeys[$key] = $_;
 			}

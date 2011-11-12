@@ -515,7 +515,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return true;
 	}
 
-	function id ($result, $options, $O) { return $O->id; }
+	function id ($result, $options, $O) {
+		if ( isset($O->term_id)) return $O->term_id;
+		return false;
+	}
 
 	/**
 	 * Renders a custom category image
@@ -853,7 +856,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function slug ($result, $options, $O) { return urldecode($O->slug); }
+	function slug ($result, $options, $O) {
+		if (isset($O->slug)) return urldecode($O->slug);
+		return false;
+	}
 
 	function subcategories ($result, $options, $O) {
 		if (!isset($O->_children_loop)) {
