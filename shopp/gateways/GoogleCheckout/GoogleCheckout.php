@@ -670,7 +670,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * @return int|bool false if no purchase meta record exists associated with the session id, purchase id on successful recurring lookup
 	 **/
 	function is_recurring ( $sessionid ) {
-		if(SHOPP_DEBUG) new ShoppError("Possible recurring payment for $sessionid"._object_r($XML) ,false,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError("Possible recurring payment for $sessionid", false, SHOPP_DEBUG_ERR);
 
 		// try to find order number for original order
 		$Meta = new MetaObject();
