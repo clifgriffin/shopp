@@ -974,16 +974,30 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$defaults = array(
+			'paged' => 1,
+			'per_page' => 25,
+			'action' => false,
+			'selected' => array(),
+		);
+		$args = array_merge($defaults,$_REQUEST);
+		extract($args,EXTR_SKIP);
+
 		$edit = false;
 		if (isset($_GET['id']))  {
 			$edit = (int)$_GET['id'];
 			if ('new' == $_GET['id']) $edit = 'new';
 		}
 
-		if (!empty($_GET['delete'])) {
-			$delete = (int)$_GET['delete'];
-			$Record = new ImageSetting($delete);
-			$Record->delete();
+		if (!isset($_GET['delete']) || 'delete' == $action) {
+			// check_admin_referrer('');
+
+			if (!empty($_GET['delete'])) $selected[] = (int)$_GET['delete'];
+			$selected = array_filter($selected);
+			foreach ($selected as $delete) {
+				$Record = new ImageSetting( (int)$delete );
+				$Record->delete();
+			}
 		}
 
 		if (!empty($_POST['save'])) {
@@ -996,15 +1010,11 @@ class Setup extends AdminController {
 			if (!empty($ImageSetting->name)) $ImageSetting->save();
 		}
 
-		$pagenum = isset($_GET['page'])?$_GET['page']:1;
-		$pagenum = absint( $pagenum );
-		if ( empty($pagenum) )
-			$pagenum = 1;
-		$per_page = 20;
-		$start = ($per_page * ($pagenum-1));
+		$start = ($per_page * ($paged-1));
 
 		$ImageSetting = new ImageSetting($edit);
 		$table = $ImageSetting->_table;
+		$columns = 'SQL_CALC_FOUND_ROWS *';
 		$where = array(
 			"type='$ImageSetting->type'",
 			"context='$ImageSetting->context'"
@@ -1017,15 +1027,14 @@ class Setup extends AdminController {
 		$total = DB::found();
 
 		$num_pages = ceil($total / $per_page);
-		$page_links = paginate_links( array(
-			'base' => add_query_arg(array('edit'=>null,'pagenum' => '%#%')),
-			'format' => '',
-			'total' => $num_pages,
-			'current' => $pagenum,
-		));
+		$ListTable = ShoppUI::table_set_pagination( $this->screen, $total, $num_pages, $per_page );
 
 		$fit_menu = $ImageSetting->fit_menu();
 		$quality_menu = $ImageSetting->quality_menu();
+
+		$actions_menu = array(
+			'delete' => __('Delete','Shopp')
+		);
 
 		$json_settings = array();
 		$skip = array('created','modified','numeral','context','type','sortorder','parent');
@@ -1037,7 +1046,8 @@ class Setup extends AdminController {
 	}
 
 	function images_ui () {
-		register_column_headers('shopp_page_shopp-settings-images', array(
+		ShoppUI::register_column_headers('shopp_page_shopp-settings-images', array(
+			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'dimensions'=>__('Dimensions','Shopp'),
 			'fit'=>__('Fit','Shopp'),
