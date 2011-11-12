@@ -302,37 +302,44 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	function shipping_estimates ($result, $options, $O) {
-		global $Shopp;
-		if (empty($O->shipped)) return "";
+		$defaults = array(
+			'postcode' => true,
+			'class' => 'ship-estimates'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (empty($O->shipped)) return '';
+
 		$base = shopp_setting('base_operations');
 		$markets = shopp_setting('target_markets');
-		$Shipping = &$Shopp->Order->Shipping;
-		if (empty($markets)) return "";
+		$Shipping = ShoppOrder()->Shipping;
+
+		if (empty($markets)) return '';
+
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		if (!empty($Shipping->country)) $selected = $Shipping->country;
 		else $selected = $base['country'];
-		$postcode = false;
-		$result .= '<ul><li>';
-		if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $O->showpostcode) {
-			$postcode = true;
-			$result .= '<span>';
-			$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
-			$result .= '</span>';
-		}
+		$postcode = (str_true($postcode) || $O->showpostcode);
+
+		$_[] = '<div class="'.$class.'">';
 		if (count($countries) > 1) {
-			$result .= '<span>';
-			$result .= '<select name="shipping[country]" id="shipping-country">';
-			$result .= menuoptions($countries,$selected,true);
-			$result .= '</select>';
-			$result .= '</span>';
-		} else $result .= '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
+			$_[] = '<span>';
+			$_[] = '<select name="shipping[country]" id="shipping-country">';
+			$_[] = menuoptions($countries,$selected,true);
+			$_[] = '</select>';
+			$_[] = '</span>';
+		} else $_[] = '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
 		if ($postcode) {
-			$result .= '</li><li>';
-			$result .= shopp('cart','update-button',array('value' => __('Estimate Shipping & Taxes','Shopp'),'return'=>'1'));
+			$_[] = '<span>';
+			$_[] = '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
+			$_[] = '</span>';
+			$_[] = shopp('cart','get-update-button',array('value' => __('Estimate Shipping & Taxes','Shopp')));
 		}
 
-		$result .= '</li></ul>';
-		return $result;
+		$_[] = '</div>';
+
+		return join('',$_);
 	}
 
 	function sidecart ($result, $options, $O) {
