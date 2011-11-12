@@ -2,7 +2,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Image Settings','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('settings-images'),'id'=>'new'),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
 
-	<form action="<?php echo esc_url($this->url); ?>" id="images" method="post">
+	<form action="<?php echo esc_url(wp_nonce_url($this->url,'shopp-settings-images')); ?>" id="images" method="post">
 	<div>
 		<?php wp_nonce_field('shopp-settings-images'); ?>
 	</div>
@@ -12,7 +12,7 @@
 	<script id="editor" type="text/x-jquery-tmpl">
 	<?php ob_start(); ?>
 	<tr class="inline-edit-row ${classnames}" id="edit-image-setting-${id}">
-		<td>
+		<td colspan="2">
 		<input type="hidden" name="id" value="${id}" /><label><input type="text" name="name" value="${name}" /><br /><?php _e('Name','Shopp'); ?></label>
 		<p class="submit">
 		<a href="<?php echo $this->url; ?>" class="button-secondary cancel"><?php _e('Cancel','Shopp'); ?></a>
@@ -46,7 +46,6 @@
 	</tr>
 	<?php $editor = ob_get_contents(); ob_end_clean(); echo $editor; ?>
 	</script>
-
 
 	<div class="tablenav top">
 
@@ -84,8 +83,8 @@
 			}
 
 			foreach ($settings as $setting):
-				$editurl = add_query_arg(array('id'=>$setting->id),$this->url);
-				$deleteurl = add_query_arg(array('delete'=>$setting->id),$this->url);
+				$editurl = wp_nonce_url(add_query_arg(array('id'=>$setting->id),$this->url),'shopp-settings-images');
+				$deleteurl = wp_nonce_url(add_query_arg(array('delete'=>$setting->id),$this->url),'shopp-settings-images');
 
 				$classes = array();
 				if (!$even) $classes[] = 'alternate'; $even = !$even;
