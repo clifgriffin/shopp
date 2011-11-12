@@ -23,7 +23,7 @@ jQuery(document).ready( function($) {
 				id = $this.attr('href')?$this.attr('href').split('&')[1].split('=')[1].toLowerCase().split('-'):false,
 				gateway = id?id[0]:selected,
 				instance = id?id[1]:0,
-				settings = !id?$.each($ps[gateway],function (i,d) { if (!isNaN(i)) instance++; }):false,
+				settings = !id && $ps[gateway]?$.each($ps[gateway],function (i,d) { if (!isNaN(i)) instance++; }):false,
 				data = $ps[gateway] && $ps[gateway][instance]? $.extend($ps[gateway][instance],{instance:instance}):$.extend($ps[gateway],{instance:instance}),
 				ui = $.tmpl(gateway+'-editor',data),
 				cancel = ui.find('a.cancel'),
@@ -32,11 +32,6 @@ jQuery(document).ready( function($) {
 						options = $this.parents('ul').find('input');
 					options.attr('checked',$this.attr('checked'));
 				});
-
-				debuglog(id);
-				debuglog(instance);
-				debuglog(gateway);
-				debuglog($ps[gateway][instance]);
 
 			if (row.size() == 0) row = $('#payment-setting-'+id).hide();
 			menu.get(0).selectedIndex = 0;
