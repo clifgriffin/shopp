@@ -211,11 +211,12 @@ class PostcodeMapping {
 		$postcodes = Lookup::postcodes();
 		if (!isset($postcodes[$Address->country])) return;
 
-		$prefix = substr($Address->postcode,0,3);
-		$state = isset($postcodes[strtoupper($prefix)])?$postcodes[$prefix]:false;
+		$codemap =& $postcodes[$Address->country];
+		$state = isset($codemap[strtoupper($prefix)])?$codemap[$prefix]:false;
+
 		if (!$state) return;
 
-		if (empty($this->state)) $this->state = $state;
+		if (empty($Address->state)) $Address->state = $state;
 	}
 
 }
