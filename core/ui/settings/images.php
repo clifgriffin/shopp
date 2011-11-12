@@ -89,6 +89,11 @@
 				$classes = array();
 				if (!$even) $classes[] = 'alternate'; $even = !$even;
 
+				if (in_array($setting->quality,ImageSetting::$qualities)) {
+					$index = array_search($setting->quality,ImageSetting::$qualities);
+					$quality = $quality_menu[$index];
+				} else $quality = percentage($setting->quality,0);
+
 				if ($edit == $setting->id) {
 					$template_data = array(
 						'${id}' => $setting->id,
@@ -97,7 +102,7 @@
 						'${height}' => $setting->height,
 						'${sharpen}' => $setting->sharpen,
 						'${select_fit_'.$setting->fit.'}' => ' selected="selected"',
-						'${select_quality_'.$setting->quality.'}' => ' selected="selected"'
+						'${select_quality_'.$quality.'}' => ' selected="selected"'
 					);
 
 					$editor = str_replace(array_keys($template_data),$template_data,$editor);
@@ -116,7 +121,7 @@
 			</td>
 			<td class="dimensions column-dimensions"><?php echo esc_html("$setting->width &times; $setting->height"); ?></td>
 			<td class="scaling column-scaling"><?php echo esc_html($fit_menu[$setting->fit]); ?></td>
-			<td class="quality column-quality"><?php echo esc_html($quality_menu[$setting->quality]); ?></td>
+			<td class="quality column-quality"><?php echo esc_html($quality); ?></td>
 			<td class="sharpen column-sharpen"><?php echo esc_html("$setting->sharpen%"); ?></td>
 
 		</tr>

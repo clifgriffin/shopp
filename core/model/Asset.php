@@ -875,9 +875,9 @@ class ImageSetting extends MetaObject {
 	var $type = 'image_setting';
 	var $_xcols = array('width','height','fit','quality','sharpen','bg');
 
-	function __construct ($id=false) {
+	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
-		$this->load($id);
+		$this->load($id,$key);
 	}
 
 	function fit_menu () {
