@@ -66,12 +66,18 @@
 		$dupurl = esc_url( add_query_arg( array('duplicate'=>$Product->id), $editor_url ) );
 		$restoreurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'restore'),$editor_url ) );
 		$delurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'delete'),$editor_url ) );
+		$category_url = add_query_arg(array('page'=>$this->Admin->pagename('categories')),admin_url('admin.php'));
 
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 
 		$categories = array();
 		foreach ($Product->categories as $id => $category) {
-			$categories[] = '<a href="">'.esc_html($category->name).'</a>';
+
+			$categories[] = sprintf( '<a href="%s">%s</a>',
+				esc_url( add_query_arg( array( 'id' => $category->term_id ), $category_url ) ),
+				esc_html( sanitize_term_field( 'name', $category->name, $category->term_id, 'category', 'display' ) )
+			);
+
 		}
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
