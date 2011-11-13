@@ -582,7 +582,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 #taxrate-editor { width: 100%; }
 #taxrate-editor th, #taxrate-editor td { border: none; overflow: visible;}
-#taxrate-editor td.conditions { width: 325px; }
+#taxrate-editor td.conditions { width: 425px; }
 #taxrate-editor .conditions li { position: relative; margin-left: -28px; padding-left: 28px; }
 
 #taxrate-editor .conditions button.delete { position: absolute; left: 0; }
