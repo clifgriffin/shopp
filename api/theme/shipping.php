@@ -96,7 +96,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 			if (empty($interval)) $interval = 1;
 			if (empty($p)) $p = 'd';
 			if (!empty($result)) $result .= "&mdash;";
-			$result .= _d($format,time()+($interval*$periods[$p]));
+			$result .= _d($format,current_time('timestamp')+($interval*$periods[$p]));
 		}
 		return $result;
 	}

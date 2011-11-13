@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1141;	// Database schema version
+	static $version = 1142;	// Database schema version
 
 	protected static $instance;
 
@@ -393,15 +393,13 @@ class DB extends SingletonFramework {
 				case "date":
 					// If it's an empty date, set it to now()'s timestamp
 					if (is_null($value)) {
-						$data[$property] = "now()";
+						$value = current_time('mysql');
 					// If the date is an integer, convert it to an
 					// sql YYYY-MM-DD HH:MM:SS format
 					} elseif (!empty($value) && is_int(intval($value))) {
-						$data[$property] = "'".mkdatetime(intval($value))."'";
-					// Otherwise it's already ready, so pass it through
-					} else {
-						$data[$property] = "'$value'";
+						$value = mkdatetime(intval($value));
 					}
+					$data[$property] = "'$value'";
 					break;
 				case "int":
 				case "float":
@@ -558,9 +556,10 @@ abstract class DatabaseObject implements Iterator {
 			foreach($this->_datatypes as $var => $type) {
 				$property = isset($map[$var])?$map[$var]:$var;
 
-				if (!isset($this->{$property}))
+				if ( !isset($this->{$property}) )
 					$this->{$property} = isset($defaults[$var]) ? $defaults[$var] : '';
-				if (empty($this->{$property}) && 'date' == $type)
+				if ( 'date' == $type
+					&& ('0000-00-00 00:00:00' == $this->{$property} || empty($this->{$property}) ))
 					$this->{$property} = null;
 			}
 
@@ -758,8 +757,8 @@ abstract class DatabaseObject implements Iterator {
 
 		if (empty($id) || $op != 'update') {
 			// Insert new record
-			if (isset($data['created'])) $data['created'] = "now()";
-			if (isset($data['modified'])) $data['modified'] = "now()";
+			if (isset($data['created'])) $data['created'] = current_time('timestamp');
+			if (isset($data['modified'])) $data['modified'] = current_time('timestamp');
 			$dataset = $this->dataset($data);
 			$this->id = DB::query("INSERT $this->_table SET $dataset");
 			do_action_ref_array('shopp_save_'.strtolower(get_class($this)), array(&$this));
@@ -767,7 +766,7 @@ abstract class DatabaseObject implements Iterator {
 		}
 
 		// Update record
-		if (isset($data['modified'])) $data['modified'] = "now()";
+		if (isset($data['modified'])) $data['modified'] = current_time('timestamp');
 		$dataset = $this->dataset($data);
 		DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
 
@@ -1186,9 +1185,10 @@ abstract class SessionObject {
 
 			do_action('shopp_session_loaded');
 		} else {
+			$now = current_time('mysql');
 			if (!empty($this->session))
 				DB::query("INSERT INTO $this->_table (session, ip, data, created, modified)
-							VALUES ('$this->session','$this->ip','',now(),now())");
+							VALUES ('$this->session','$this->ip','','$now','$now')");
 		}
 		do_action('shopp_session_load');
 
@@ -1242,7 +1242,8 @@ abstract class SessionObject {
 			}
 		}
 
-		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
+		$now = current_time('mysql');
+		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified='$now' WHERE session='$this->session'";
 		if (!DB::query($query))
 			trigger_error("Could not save session updates to the database.");
 
