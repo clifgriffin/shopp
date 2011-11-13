@@ -60,7 +60,7 @@ class Order {
 
 		$this->Shipping->destination();
 
-		$this->created = time();
+		$this->created = null;
 
 		$this->listeners();
 	}

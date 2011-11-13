@@ -154,7 +154,7 @@
 				$time = get_post_time('G', true, $Product->id);
 				$time_diff = time() - $time;
 
-				if ( $time_diff > 0 && $time_diff < 24*60*60 )
+				if ( $time_diff > 0 && $time_diff < 86400 )
 					$h_time = sprintf( __('%s ago'), human_time_diff( $time ) );
 				else
 					$h_time = date(__('Y/m/d'), $m_time);

@@ -58,7 +58,7 @@ function shopp_add_product ( $data = array() ) {
 			$Product->status = 'future';
 		} else {
 			// Auto set the publish date if not set (or more accurately, if set to an irrelevant timestamp)
-			if ($Product->publish <= 86400) $Product->publish = time();
+			if ($Product->publish <= 86400) $Product->publish = null;
 		}
 	} else {
 		$Product->publish = 0;
@@ -481,7 +481,7 @@ function shopp_product_publish ( $product = false, $flag = false, $datetime = fa
 
 	if ( $flag ) {
 		$Product->status = 'publish';
-		$Product->publish = time();
+		$Product->publish = null;
 
 		if ( $datetime && $datetime > $Product->publish ) {
 			$Product->publish = $datetime;

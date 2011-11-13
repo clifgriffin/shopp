@@ -53,7 +53,9 @@ class Product extends WPShoppObject {
 		'status' => 'post_status',
 		'type' => 'post_type',
 		'publish' => 'post_date',
-		'modified' => 'post_modified'
+		'modified' => 'post_modified',
+		'post_date_gmt' => 'post_date_gmt',
+		'post_modified_gmt' => 'post_modified_gmt'
 	);
 
 
@@ -75,6 +77,10 @@ class Product extends WPShoppObject {
 
 	function save () {
 		if ( ! isset($this->ID) ) $this->ID = $this->id ? $this->id : null;
+		$gmtoffset = get_option( 'gmt_offset' ) * 3600;
+		$this->post_modified_gmt = current_time('timestamp')+$gmtoffset;
+		if (is_null($this->publish)) $this->post_date_gmt = $this->post_modified_gmt;
+		else $this->post_date_gmt = $this->publish+$gmtoffset;
 		parent::save();
 	}
 
@@ -478,7 +484,7 @@ class Product extends WPShoppObject {
 	 * @return boolean
 	 **/
 	function published () {
-		return ('publish' == $this->status && time() >= $this->publish);
+		return ('publish' == $this->status && current_time('timestamp') >= $this->publish);
 	}
 
 	/**
