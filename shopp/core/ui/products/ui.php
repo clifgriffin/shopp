@@ -233,7 +233,6 @@ add_meta_box(
 );
 
 function images_meta_box ($Product) {
-	global $ProductImages;
 ?>
 	<ul id="lightbox">
 	<?php foreach ((array)$Product->images as $i => $Image): ?>
@@ -244,12 +243,16 @@ function images_meta_box ($Product) {
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" class="imagetitle" />
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
 				<?php
-					if (isset($Image->cropped) && count($Image->cropped) > 0):
-						foreach ($Image->cropped as $cache):
+					if (isset($Product->cropped) && count($Product->cropped) > 0 && isset($Product->cropped[$Image->id])):
+						$cropped = is_array($Product->cropped[$Image->id]) ? $Product->cropped[$Image->id] : array($Product->cropped[$Image->id]);
+
+						foreach ($cropped as $cache):
+							$cropimage = unserialize($cache->value);
+
 							$cropping = false;
-							if (join('',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale'])) != '')
-								$cropping = join(',',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale']));
-							$c = "$cache->width:$cache->height"; ?>
+							if (join('',array($cropimage->settings['dx'],$cropimage->settings['dy'],$cropimage->settings['cropscale'])) != '')
+								$cropping = join(',',array($cropimage->settings['dx'],$cropimage->settings['dy'],$cropimage->settings['cropscale']));
+							$c = "$cropimage->width:$cropimage->height"; ?>
 					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
 				<?php endforeach; endif;?>
 			</div>

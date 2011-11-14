@@ -792,7 +792,6 @@ class Product extends WPShoppObject {
 					$Cropped->size = strlen($Cropped->data);
 					if ($Cropped->store( $Cropped->data ) === false)
 						return false;
-
 					$Cropped->save();
 
 				}

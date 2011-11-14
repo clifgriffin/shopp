@@ -845,6 +845,7 @@ function ImageUploads (id,type) {
 						var padding = 125; // Pad the resize so we have enough space
 						$.fn.colorbox.resize({innerWidth:(parseInt(d[0],10))+padding});
 					}).bind('change.scalecrop',function (e,c) {
+						if (!c.s) c.s = 1;
 						if (c) srcCropped.filter('input[alt='+cropselect.val()+']').val(c.x+','+c.y+','+c.s);
 					});
 				});
