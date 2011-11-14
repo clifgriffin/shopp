@@ -555,33 +555,8 @@ class Warehouse extends AdminController {
 			$ids = join(',',array_keys($Product->images));
 			$CoverImage = reset($Product->images);
 			$image_table = $CoverImage->_table;
-			//array($Image,'loader')
-			$cropped = DB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array');
+			$Product->cropped = DB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array','index','parent');
 		}
-
-		// if ($Product->id) {
-		// 	$ProductImage = new ProductImage();
-		// 	$results = $db->query("SELECT * FROM $ProductImage->_table WHERE context='product' AND parent=$Product->id AND type='image' ORDER BY sortorder",AS_ARRAY);
-		//
-		// 	$ProductImages = array();
-		// 	foreach ((array)$results as $i => $image) {
-		// 		$image->value = unserialize($image->value);
-		// 		$ProductImages[$i] = new ProductImage();
-		// 		$ProductImages[$i]->copydata($image,false,array());
-		// 		$ProductImages[$i]->expopulate();
-		//
-		// 		// Load any cropped image cache
-		// 		$cropped = $db->query("SELECT * FROM $ProductImage->_table WHERE context='image' AND type='image' AND parent='$image->id' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1)",AS_ARRAY);
-		// 		foreach ((array)$cropped as $c => $cache) {
-		// 			$cache->value = unserialize($cache->value);
-		// 			$CachedImage = new ProductImage();
-		// 			$CachedImage->copydata($cache,false,array());
-		// 			$CachedImage->expopulate();
-		// 			$ProductImages[$i]->cropped[$c] = $CachedImage;
-		// 		}
-		//
-		// 	}
-		// }
 
 		$shiprates = shopp_setting('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
