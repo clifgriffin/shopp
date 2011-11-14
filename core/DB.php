@@ -391,7 +391,7 @@ class DB extends SingletonFramework {
 						$data[$property] = "'$value'";
 					break;
 				case "date":
-					// If it's an empty date, set it to now()'s timestamp
+					// If it's an empty date, set it to the current time
 					if (is_null($value)) {
 						$value = current_time('mysql');
 					// If the date is an integer, convert it to an
@@ -399,6 +399,7 @@ class DB extends SingletonFramework {
 					} elseif (!empty($value) && is_int(intval($value))) {
 						$value = mkdatetime(intval($value));
 					}
+
 					$data[$property] = "'$value'";
 					break;
 				case "int":
@@ -757,8 +758,8 @@ abstract class DatabaseObject implements Iterator {
 
 		if (empty($id) || $op != 'update') {
 			// Insert new record
-			if (isset($data['created'])) $data['created'] = current_time('timestamp');
-			if (isset($data['modified'])) $data['modified'] = current_time('timestamp');
+			if (isset($data['created'])) $data['created'] = "'".current_time('mysql')."'";
+			if (isset($data['modified'])) $data['modified'] = "'".current_time('mysql')."'";
 			$dataset = $this->dataset($data);
 			$this->id = DB::query("INSERT $this->_table SET $dataset");
 			do_action_ref_array('shopp_save_'.strtolower(get_class($this)), array(&$this));
@@ -766,7 +767,7 @@ abstract class DatabaseObject implements Iterator {
 		}
 
 		// Update record
-		if (isset($data['modified'])) $data['modified'] = current_time('timestamp');
+		if (isset($data['modified'])) $data['modified'] = "'".current_time('mysql')."'";
 		$dataset = $this->dataset($data);
 		DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
 
