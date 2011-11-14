@@ -270,6 +270,10 @@ class ShoppInstallation extends FlowController {
 
 		// Shipping
 		ShoppSettings()->setup('active_shipping','');
+		ShoppSettings()->setup('shipping','');
+		ShoppSettings()->setup('inventory','');
+		ShoppSettings()->setup('shipping_packaging','like');
+		ShoppSettings()->setup('shipping_package_weight_limit','-1');
 
 		// Taxes
 		ShoppSettings()->setup('tax_inclusive','');
