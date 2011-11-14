@@ -78,7 +78,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	/**
 	 * actions
 	 *
-	 * these action callbacks are only established when the current Order::processor() is set to this module.  All other general actiosn belong in the constructor
+	 * These action callbacks are only established when the current Order::processor() is set to this module.
+	 * All other general actions belong in the constructor
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -432,6 +433,15 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		));
 	}
 
+	/**
+	 * Updates purchase records from an IPN message
+	 *
+	 * @author Jonathan Davis, John Dillick
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @return void
+	 **/
 	function updates () {
 		// update is not for PPS
 		if ( 'PPS' != $_REQUEST['_txnupdate'] ) return;
@@ -441,8 +451,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			if(SHOPP_DEBUG) new ShoppError('Invalid IPN request.  Incorrect txn_type.','paypal_ipn_invalid',SHOPP_DEBUG_ERR);
 			return false;
 		}
-
-		global $Shopp;
 
 		$target = false;
 		// if no parent transaction id, this is a new transaction
@@ -538,6 +546,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		die('PayPal IPN processed.');
 	}
 
+	/**
+	 * Process customer and shipping record changes from IPN message
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function ipnupdates () {
 		$Order = $this->Order;
 		$data = stripslashes_deep($_POST);
@@ -571,6 +587,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 	}
 
+	/**
+	 * Verify the authenticity of an IPN message sent by PayPal
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return string The response string
+	 **/
 	function verifyipn () {
 		if ($this->settings['testmode'] == "on") return "VERIFIED";
 		$_ = array();
@@ -582,6 +606,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		return $response;
 	}
 
+	/**
+	 * Verify the authenticity of a PDT message sent by PayPal
+	 *
+	 * @author Jonathan Davis, John Dillick
+	 * @since 1.0
+	 *
+	 * @return boolean True if verified, false otherwise
+	 **/
 	function verifypdt () {
 		if ($this->settings['pdtverify'] != "on") return false;
 		if ($this->settings['testmode'] == "on") return "VERIFIED";
@@ -595,6 +627,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		return (strpos($response,"SUCCESS") !== false);
 	}
 
+	/**
+	 * Reads PayPal transaction errors and generates Shopp errors
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return ShoppError The Shopp error message object of the PayPal error message
+	 **/
 	function error () {
 		if (!empty($this->Response)) {
 
@@ -605,10 +645,26 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 	}
 
+	/**
+	 * Wrapper to call the framework send() method with the PayPal-specific server URL
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string The response string from the request
+	 **/
 	function send ($data, $url=false, $deprecated=false, $options = array()) {
 		return parent::send($data,$this->url());
 	}
 
+	/**
+	 * Defines the settings interface
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function settings () {
 
 		$this->ui->text(0,array(
@@ -641,6 +697,15 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	}
 
+	/**
+	 * Custom behaviors for the settings interface
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @version 1.2
+	 *
+	 * @return string JavaScript behaviors to add to the payment settings interface
+	 **/
 	function tokenjs () {
 		ob_start(); ?>
 jQuery(document).bind('paypalstandardSettings',function() {
