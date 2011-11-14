@@ -1197,6 +1197,10 @@ class Storefront extends FlowController {
 				$page = array_merge($page,$updates[$name]);
 		}
 
+		// Remove pages if the shopping cart is disabled
+		if (!str_true(shopp_setting('shopping_cart')))
+			unset($pages['cart'],$pages['checkout'],$pages['confirm'],$pages['thanks']);
+
 		return $pages;
 	}
 

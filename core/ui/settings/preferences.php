@@ -77,6 +77,13 @@
 
 		<h3><?php _e('Checkout Preferences','Shopp')?></h3>
 		<table class="form-table">
+
+			<tr>
+				<th scope="row" valign="top"><label for="shopping-cart-toggle"><?php _e('Shopping Cart','Shopp'); ?></label></th>
+				<td><input type="hidden" name="settings[shopping_cart]" value="off" /><input type="checkbox" name="settings[shopping_cart]" value="on" id="shopping-cart-toggle"<?php if (str_true(shopp_setting('shopping_cart'))) echo ' checked="checked"'?> /><label for="shopping-cart-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+	            <?php _e('Uncheck this to disable the shopping cart and checkout. Useful for catalog-only sites.','Shopp'); ?></td>
+			</tr>
+
 			<tr>
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th>
 				<td><input type="radio" name="settings[order_confirmation]" value="ontax" id="order_confirmation_ontax"<?php if(shopp_setting('order_confirmation') == "ontax") echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show for taxed orders only','Shopp'); ?></label><br />

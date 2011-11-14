@@ -29,6 +29,7 @@ class ShoppCartWidget extends WP_Widget {
 		if ('on' == $options['hide-empty'] && shopp_cart_items_count() == 0) return;
 
 		$sidecart = shopp('cart','get-sidecart',$options);
+		if (empty($sidecart)) return;
 		echo $before_widget.$title.$sidecart.$after_widget;
     }
 

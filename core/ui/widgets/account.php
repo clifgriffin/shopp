@@ -32,9 +32,9 @@ class ShoppAccountWidget extends WP_Widget {
 		unset($_GET['id']);
 		remove_filter('shopp_account_template','shoppdiv');
 		add_filter('shopp_show_account_errors',array(&$this,'showerrors'));
-		$sidecart = $Shopp->Flow->Controller->account_page();
+		$account = $Shopp->Flow->Controller->account_page();
 
-		echo $before_widget.$title.$sidecart.$after_widget;
+		echo $before_widget.$title.$account.$after_widget;
 		$_GET = array_merge($_GET,$request);
 		remove_filter('shopp_show_account_errors',array(&$this,'showerrors'));
 		add_filter('shopp_account_template','shoppdiv');

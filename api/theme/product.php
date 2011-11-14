@@ -246,16 +246,25 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function add_to_cart ($result, $options, $O) {
-		if (!isset($options['class'])) $options['class'] = "addtocart";
-		else $options['class'] .= " addtocart";
-		if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
-		$string = "";
+		if (!str_true(shopp_setting('shopping_cart'))) return '';
+		$defaults = array(
+			'ajax' => false,
+			'class' => 'addtocart',
+			'label' => __('Add to Cart','Shopp'),
+			'redirect' => false,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
 
+		$classes = array();
+		if (!empty($class)) $classes = explode(' ',$class);
+
+		$string = "";
 		if ($O->outofstock)
 			return '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
 
-		if (isset($options['redirect']) && !isset($options['ajax']))
-			$string .= '<input type="hidden" name="redirect" value="'.esc_attr($options['redirect']).'" />';
+		if ($redirect)
+			$string .= '<input type="hidden" name="redirect" value="'.esc_attr($redirect).'" />';
 
 		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
@@ -268,13 +277,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 
 		$string .= '<input type="hidden" name="cart" value="add" />';
-		if (isset($options['ajax'])) {
-			if ($options['ajax'] == "html") $options['class'] .= ' ajax-html';
-			else $options['class'] .= " ajax";
+		if (!$ajax) {
+			$options['class'] = join(' ',$classes);
+			$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';
+		} else {
+			if ('html' == $ajax) $classes[] = 'ajax-html';
+			else $classes[] = 'ajax';
+			$options['class'] = join(' ',$classes);
 			$string .= '<input type="hidden" name="ajax" value="true" />';
 			$string .= '<input type="button" name="addtocart" '.inputattrs($options).' />';
-		} else {
-			$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';
 		}
 
 		return $string;
@@ -663,7 +674,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function quantity ($result, $options, $O) {
-		if ($O->outofstock) return false;
+		if (!str_true(shopp_setting('shopping_cart'))) return '';
+		if ($O->outofstock) return '';
 
 		$inputs = array('text','menu');
 		$defaults = array(
