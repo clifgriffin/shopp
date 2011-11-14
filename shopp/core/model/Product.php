@@ -283,11 +283,17 @@ class Product extends WPShoppObject {
 		$Object = new $DatabaseObject();
 		$Object->populate($record);
 
-		if (isset($record->summed) && DB::mktime($record->summed) > 0 && $record->summed != '0000-00-00 00:00:01') {
+		$resum = false;
+		if (isset($record->summed)) { // Loaded from the collection loader
 			$Object->summary($records,$record);
-		} else {
-			if ($record->summed == '0000-00-00 00:00:01') $Object->summary($records,$record);
-			// Keep track products that don't have summary data for resum build run
+
+			$update = DB::mktime(ProductSummary::$_updates);
+			if (DB::mktime($record->summed) == $update) $resum = true; // Forced resum
+
+		} else $resum = true;
+
+		if ($resum) {
+			// Keep track products that need resum build run
 			if (!isset($this->resum)) $this->resum = array();
 			$this->resum[$index] = $Object;
 		}
@@ -549,6 +555,7 @@ class Product extends WPShoppObject {
 			}
 		}
 		$this->checksum = md5($this->checksum);
+
 		if (isset($data->summed)) {
 			$this->summed = DB::mktime($data->summed);
 		}
@@ -952,6 +959,7 @@ class Product extends WPShoppObject {
 class ProductSummary extends DatabaseObject {
 	static $table = 'summary';
 	static $_ranges = array('price','saleprice','saved','savings','weight');
+	static $_updates = '0000-00-00 00:00:01';
 
 	function __construct ($id=false,$key='product') {
 		$this->init(self::$table);
@@ -962,6 +970,7 @@ class ProductSummary extends DatabaseObject {
 	function save () {
 		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $this->modified) )
 			$this->modified = DB::mktime($this->modified);
+
 		$save = ( ! $this->modified ) ? 'insert' : 'update';
 		parent::save( $save );
 	}
