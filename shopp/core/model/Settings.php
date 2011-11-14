@@ -61,10 +61,6 @@ class Settings extends DatabaseObject {
 	/**
 	 * Load settings from the database
 	 *
-	 * By default, loads all settings with an autoload parameter
-	 * set to "on". Otherwise, loads an individual setting explicitly
-	 * regardless of the autoload parameter.
-	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
@@ -102,7 +98,6 @@ class Settings extends DatabaseObject {
 	 *
 	 * @param string $name Name of the setting
 	 * @param mixed $value Value of the setting
-	 * @param boolean $autoload (optional) Automatically load the setting - default true
 	 * @return boolean
 	 **/
 	function add ($name, $value) {
@@ -151,16 +146,11 @@ class Settings extends DatabaseObject {
 	/**
 	 * Save a setting to the database
 	 *
-	 * Sets an autoload parameter to determine whether the data is
-	 * automatically loaded into the registry, or must be loaded
-	 * explicitly using the get() method.
-	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
 	 * @param string $name Name of the setting to save
 	 * @param mixed $value Value of the setting
-	 * @param boolean $autoload (optional) The autoload setting - true by default
 	 * @return void
 	 **/
 	function save ($name=false,$value=false) {
@@ -179,11 +169,10 @@ class Settings extends DatabaseObject {
 	 *
 	 * @param string $name Name of the setting to save
 	 * @param mixed $value Value of the setting
-	 * @param boolean $autoload (optional) The autoload setting - true by default
 	 * @return void
 	 **/
-	function setup ($name,$value,$autoload=true) {
-		if ($this->get($name) === null) $this->add($name,$value,$autoload);
+	function setup ($name,$value) {
+		if ($this->get($name) === null) $this->add($name,$value);
 	}
 
 	/**
