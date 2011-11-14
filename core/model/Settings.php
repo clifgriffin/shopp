@@ -172,7 +172,7 @@ class Settings extends DatabaseObject {
 	 * @return void
 	 **/
 	function setup ($name,$value) {
-		if ($this->get($name) === null) $this->add($name,$value);
+		if (is_null($this->get($name))) $this->add($name,$value);
 	}
 
 	/**
@@ -220,7 +220,7 @@ class Settings extends DatabaseObject {
 
 		// Return false and add an entry to the registry
 		// to avoid repeat database queries
-		$this->registry[$name] = false;
+		$this->registry[$name] = $null;
 		return $this->registry[$name];
 	}
 
