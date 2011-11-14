@@ -50,14 +50,21 @@ class ImageProcessor {
 		// Determine the dimensions to use for resizing
 		$this->dimensions($width,$height,$fit,$dx,$dy,$cropscale);
 
-		// Fill image with matte color
+		// Setup background fill color
+		$white = array('red'=>255,'green'=>255,'blue'=>255);
+		$rgb = false;
 		if ($fit == "matte") {
-			$rgb = false;
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
+			if (!is_array($rgb)) $rgb = $white;
 
-			// Default to white
-			if (!is_array($rgb)) $rgb = array('red'=>255,'green'=>255,'blue'=>255);
+		} else { // Sample from the corner pixels
+			$topleft = ImageColorAt($this->src->image,0,0);
+			$bottomright = ImageColorAt($this->src->image,$this->src->width,$this->src->height);
+			if ($topleft == $bottomright) $rgb = $this->hexrgb($topleft);
+			if (!is_array($rgb)) $rgb = $white;
+		}
 
+		if (!$alpha) {
 			// Allocate the color in the image palette
 			$matte = ImageColorAllocate($this->processed, $rgb['red'], $rgb['green'], $rgb['blue']);
 
