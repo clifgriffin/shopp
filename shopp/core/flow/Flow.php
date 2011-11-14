@@ -203,7 +203,7 @@ class Flow {
 			'parent' => 'new-content',
 			'id' => 'new-'.Product::posttype(),
 			'title' => $posttype->labels->singular_name,
-			'href' => admin_url( sprintf($posttype->_edit_link,'new') )
+			'href' => admin_url( str_replace('%d','new',$posttype->_edit_link) )
 		) );
 
 		$object = get_queried_object();
