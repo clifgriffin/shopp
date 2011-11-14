@@ -803,6 +803,7 @@ class Storefront extends FlowController {
 		}
 
 		foreach ((array)$parents as $parentid) {
+			if (!isset($keymap[$parentid])) continue;
 			$parent = $menuitems[ $keymap[$parentid] ];
 			$parent->classes[] = 'current-menu-parent';
 			$parent->classes[] = 'current-page-parent';
