@@ -213,7 +213,7 @@ class Settings extends DatabaseObject {
 
 		if (!$this->available()) $this->load();
 
-		if (isset($this->registry[$name])) return $this->registry[$name];
+		if (array_key_exists($name,$this->registry)) return $this->registry[$name];
 		else $this->load($name);
 
 		if (isset($this->registry[$name])) return $this->registry[$name];
