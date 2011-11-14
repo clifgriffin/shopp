@@ -12,7 +12,7 @@
 ?>
 <?php if (shopp('product','found')): ?>
 	<div class="sideproduct">
-	<a href="<?php shopp('product','url'); ?>"><?php shopp('product','thumbnail'); ?></a>
+	<a href="<?php shopp('product','url'); ?>"><?php shopp('product','coverimage'); ?></a>
 
 	<h3><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h3>
 
