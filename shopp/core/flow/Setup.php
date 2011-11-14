@@ -756,7 +756,11 @@ class Setup extends AdminController {
 			else $rates[$edit]['locals'] = $upload;
 		}
 
-		if (isset($_POST['editing'])) shopp_set_setting('taxrates',$rates);
+		if (isset($_POST['editing'])) {
+			// Resort taxes from generic to most specific
+			usort($rates,array($this,'taxrates_sorting'));
+			shopp_set_setting('taxrates',$rates);
+		}
 		if (isset($_POST['addrate'])) $edit = count($rates);
 		if (isset($_POST['submit'])) $edit = false;
 
@@ -765,6 +769,42 @@ class Setup extends AdminController {
 		$zones = Lookup::country_zones();
 
 		include(SHOPP_ADMIN_PATH.'/settings/taxrates.php');
+	}
+
+	/**
+	 * Helper to sort tax rates from most specific to most generic
+	 *
+	 * (more specific) <------------------------------------> (more generic)
+	 * more/less conditions, local taxes, country/zone, country, All Markets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $rates The tax rate settings to sort
+	 * @return void
+	 **/
+	function taxrates_sorting ($a, $b) {
+
+		$args = array('a' => $a, 'b' => $b);
+		$scoring = array('a' => 0 ,'b' => 0);
+
+		foreach ($args as $key => $rate) {
+			$score = &$scoring[$key];
+
+			// More conditional rules are more specific
+			$score += count($rate['rules']);
+
+			// If there are local rates add to specificity
+			if (isset($rate['haslocals']) && $rate['haslocals']) $score++;
+
+			if (isset($rate['zone']) && $rate['zone']) $score++;
+
+			if ('*' != $rate['country']) $score++;
+		}
+
+		if ($scoring['a'] < $scoring['b']) return 1;
+		else return -1;
+
 	}
 
 	function taxrate_upload () {
