@@ -735,11 +735,12 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 			if (isset($options['load'])) return true;
 
+			$options['load'] = array('coverimages');
 			ShoppCollection()->load($options);
 
 			$template = locate_shopp_template(array('sideproduct-'.$Shopp->Category->slug.'.php','sideproduct.php'));
 			ob_start();
-			foreach ($Shopp->Category->products as &$product) {
+			foreach (ShoppCollection()->products as &$product) {
 				ShoppProduct($product);
 				load_template($template,false);
 			}

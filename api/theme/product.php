@@ -328,7 +328,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	function description ($result, $options, $O) { return apply_filters('shopp_product_description',$O->description); }
 
 	function found ($result, $options, $O) {
+		$Collection = ShoppCollection();
 		if (empty($O->id)) return false;
+		if (isset($Collection->products[$O->id])) return true;
 		$loadable = array('prices','coverimages','images','specs','tags','categories','summary');
 		$defaults = array(
 			'load' => false
