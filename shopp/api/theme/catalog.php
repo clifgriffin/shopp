@@ -595,6 +595,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$_ = array();
 		$_[] = '<ul>';
 		foreach ($shoppers as $shopper) {
+			if ('' == $shopper->firstname.$shopper->lastname) continue;
 			if ('lastname' == $abbr) $name = "$shopper->firstname ".$shopper->lastname{0}.".";
 			else $name = $shopper->firstname{0}.". $shopper->lastname";
 
