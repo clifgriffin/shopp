@@ -741,6 +741,8 @@ class Lookup {
 	static function txnstatus_labels () {
 		$_ = array(
 			'review' => __('Review','Shopp'),
+			'purchase' => __('Purchase Order','Shopp'),
+			'invoiced' => __('Invoiced','Shopp'),
 			'authed' => __('Authorized','Shopp'),
 			'captured' => __('Paid','Shopp'),
 			'shipped' => __('Shipped','Shopp'),
