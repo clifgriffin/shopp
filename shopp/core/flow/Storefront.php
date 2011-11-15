@@ -37,6 +37,10 @@ class Storefront extends FlowController {
 	var $behaviors = array();	// Runtime JavaScript behaviors
 	var $request = false;
 
+	var $account = false;		// Account dashboard requests
+	var $dashboard = array();	// Registry of account dashboard pages
+	var $menus = array();		// Account dashboard menu registry
+
 	function __construct () {
 		global $Shopp;
 		parent::__construct();
@@ -105,6 +109,7 @@ class Storefront extends FlowController {
 		add_action('shopp_storefront_init',array($this,'promos'));
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'account'));
+		add_action('shopp_storefront_init',array($this,'dashboard'));
 
 		add_filter('default_feed',array($this,'feed'));
 		add_filter('archive_template',array($this,'collection'));
@@ -171,7 +176,6 @@ class Storefront extends FlowController {
 
 		// Override the custom post type archive request to use the Shopp catalog page
 		if ($wp_query->is_archive && $posttype == Product::$posttype && '' == $product.$page) {
-			echo "override custom post type archive request".BR;
 			$page = Storefront::slug('catalog'); set_query_var('shopp_page',$page);
 		} else {
 
@@ -1019,6 +1023,10 @@ class Storefront extends FlowController {
 		$Order = ShoppOrder();
 		$Customer = $Order->Customer;
 
+		$this->account = $_SERVER['QUERY_STRING'];
+
+		echo $this->account;
+
 		$download_request = get_query_var('s_dl');
 		if ($Customer->logged_in()) do_action('shopp_account_management');
 
@@ -1251,6 +1259,60 @@ class Storefront extends FlowController {
 		return false;
 	}
 
+	function dashboard () {
+		$this->add_dashboard('logout',__('Logout','Shopp'));
+		$this->add_dashboard('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
+		$this->add_dashboard('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
+		$this->add_dashboard('profile',__('My Account','Shopp'));
+
+		// Pages not in menu navigation
+		$this->add_dashboard('menu',__('Account Dashboard','Shopp'),false);
+		$this->add_dashboard('order','Order',false,array(&$this,'order'));
+		$this->add_dashboard('recover','Password Recovery',false);
+
+		do_action_ref_array('shopp_account_menu',array(&$this));
+
+		$query = $_SERVER['QUERY_STRING'];
+		$request = 'menu';
+		$id = false;
+		if (false !== strpos($request,'='))
+			list($request,$id) = explode('=',$query);
+
+		if (in_array($request,array_keys($this->dashboard)))
+			$this->account = compact($request,$id);
+
+		// if ('rp' == $request) $this->reset_password($_GET['key']);
+		// if (isset($_POST['recover-login'])) $this->recovery();
+
+	}
+
+	function add_dashboard ($request,$label,$visible=true,$callback=false,$position=0) {
+		$this->dashboard[$request] = new StorefrontDashboardPage($request,$label,$callback);
+		if ($visible) array_splice($this->menus,$position,0,array(&$this->dashboard[$request]));
+	}
+
 } // END class Storefront
+
+/**
+ * CustomerAccountPage class
+ *
+ * A property container for Shopp's customer account page meta
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package customer
+ **/
+class StorefrontDashboardPage {
+	var $request = "";
+	var $label = "";
+	var $handler = false;
+
+	function __construct ($request,$label,$handler) {
+		$this->request = $request;
+		$this->label = $label;
+		$this->handler = $handler;
+	}
+
+} // END class StorefrontDashboardPage
 
 ?>
