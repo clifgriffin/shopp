@@ -90,7 +90,7 @@ function manage_meta_box ($Purchase) {
 	<div class="minor-publishing-actions headline">
 	<div class="misc-pub-section">
 	<?php
-		$controls = '<div class="alignright"><input type="submit" value="'.__('Print Order','Shopp').'" class="button hide-if-no-js" /></div>';
+		$controls = '<div class="alignright"><input id="print-button" type="submit" value="'.__('Print Order','Shopp').'" class="button hide-if-no-js" /></div>';
 		echo apply_filters('shopp_order_management_controls',$controls);
 	?>
 	</div>

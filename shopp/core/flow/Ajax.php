@@ -81,18 +81,17 @@ class AjaxFlow {
 
 	function receipt () {
 		check_admin_referer('wp_ajax_shopp_order_receipt');
-		global $Shopp;
-		if (preg_match("/\d+/",$_GET['id'])) {
-			$Shopp->Purchase = new Purchase($_GET['id']);
-			$Shopp->Purchase->load_purchased();
-		} else die('-1');
+		if (0 == intval($_GET['id'])) die('-1');
+
+		ShoppPurchase( new Purchase((int)$_GET['id']));
+
 		echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
 			\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
-		<html><head><title>".get_bloginfo('name').' &mdash; '.__('Order','Shopp').' #'.$Shopp->Purchase->id."</title>";
+		<html><head><title>".get_bloginfo('name').' &mdash; '.__('Order','Shopp').' #'.shopp('purchase','get-id')."</title>";
 			echo '<style type="text/css">body { padding: 20px; font-family: Arial,Helvetica,sans-serif; }</style>';
 			echo "<link rel='stylesheet' href='".shopp_template_url('shopp.css')."' type='text/css' />";
 		echo "</head><body>";
-		echo apply_filters('shopp_admin_order_receipt',$Shopp->Purchase->receipt('receipt-admin.php'));
+		echo apply_filters('shopp_admin_order_receipt',shopp('purchase','receipt','template=receipt-admin.php'));
 		if (isset($_GET['print']) && $_GET['print'] == 'auto')
 			echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 		echo "</body></html>";

@@ -561,7 +561,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .labelset li input { padding-right:20px;margin-right:5px; }
 .labelset button { display:inline-block;background:none;margin:0;border:none;padding:0;width:18px;height:22px;margin-top:-3px;vertical-align:middle; }
 .labelset button.delete { position:absolute; left: -24px; top: 0;}
-#print-button { position:absolute;right:15px; }
 
 .shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
