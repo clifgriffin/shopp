@@ -783,7 +783,7 @@ class CartDiscounts {
 			$matches = 0;
 			$total = 0;
 			foreach ($promo->rules as $index => $rule) {
-				if ($index == "item") continue;
+				if ($index === "item") continue;
 				$match = false;
 				$total++;
 				extract($rule);
