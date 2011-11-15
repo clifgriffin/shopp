@@ -189,7 +189,7 @@ class Categorize extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
-			'pagenum' => 1,
+			'paged' => 1,
 			'per_page' => 20,
 			's' => '',
 			'a' => ''
@@ -202,12 +202,8 @@ class Categorize extends AdminController {
 			$per_page = 300;
 		}
 
-		$pagenum = absint( $pagenum );
-		if ( empty($pagenum) )
-			$pagenum = 1;
-		if( !$per_page || $per_page < 0 )
-			$per_page = 20;
-		$start = ($per_page * ($pagenum-1));
+		$paged = absint( $paged );
+		$start = ($per_page * ($paged-1));
 		$end = $start + $per_page;
 
 		$taxonomy = 'shopp_category';
@@ -221,7 +217,7 @@ class Categorize extends AdminController {
 		$Categories = array(); $count = 0;
 		$terms = get_terms( $taxonomy, $filters );
 		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$paged,$per_page);
 		$this->categories = $Categories;
 
 		$ids = array_keys($Categories);
@@ -231,66 +227,7 @@ class Categorize extends AdminController {
 		if ( ! empty($ids) ) DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
 
-		// $children = array();
-		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
-		// foreach ( $childterms as $term_id => $parent ) {
-		// 	if ( $parent > 0 )
-		// 		$children[$parent][] = $term_id;
-		// }
-
-		// $my_parents = $parent_ids = array();
-		// $p = $Category->parent;
-		// while ( $p ) {
-		// 	$my_parent = get_term( $p, $taxonomy );
-		// 	$my_parents[] = $my_parent;
-		// 	$p = $my_parent->parent;
-		// 	if ( in_array($p, $parent_ids) ) // Prevent parent loops.
-		// 		break;
-		// 	$parent_ids[] = $p;
-		// }
-		// unset($parent_ids);
-		//
-		// $num_parents = count($my_parents);
-		// $Category->depth = count($my_parents);
-		// $Categories = array();
-		// $pagecount = 0;
-		// foreach ($children as $id => $child) {
-		// 	echo "$id => $child".BR;
-		// 	if ($pagecount++ > $per_page);
-		// }
-
-		// echo '<pre>';
-		// print_r($Categories);
-		// echo '</pre>';
-		// return;
-
-		// $table = DatabaseObject::tablename(ProductCategory::$table);
-		// $Catalog = new Catalog();
-		// $Catalog->outofstock = true;
-		// if ($workflow) {
-		// 	$filters['columns'] = "cat.id,cat.parent,cat.priority";
-		// 	$results = $Catalog->load_categories($filters,false,true);
-		// 	return array_slice($results,$start,$per_page);
-		// } else {
-		// 	if ('arrange' == $a) {
-		// 		$filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.uri,cat.slug";
-		// 		$filters['parent'] = '0';
-		// 	} else $filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
-		//
-		// 	$Catalog->load_categories($filters);
-		// 	$Categories = array_slice($Catalog->categories,$start,$per_page);
-		// }
-
-		// $count = $db->query("SELECT count(*) AS total FROM $table");
-		// $num_pages = ceil($count->total / $per_page);
-		$page_links = paginate_links( array(
-			'base' => add_query_arg( array('edit'=>null,'pagenum' => '%#%' )),
-			'format' => '',
-			'prev_text' => __('&laquo;'),
-			'next_text' => __('&raquo;'),
-			'total' => ceil(wp_count_terms('shopp_category') / $per_page),
-			'current' => $pagenum
-		));
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, wp_count_terms('shopp_category'), $num_pages, $per_page );
 
 		$action = esc_url(
 			add_query_arg(
@@ -332,7 +269,7 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
-		register_column_headers('shopp_page_shopp-categories', array(
+		ShoppUI::register_column_headers('shopp_page_shopp-categories', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'slug'=>__('Slug','Shopp'),
