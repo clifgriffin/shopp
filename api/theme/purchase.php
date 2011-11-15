@@ -466,19 +466,33 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	function ship_postcode ($result, $options, $O) { return esc_html($O->shippostcode); }
 
 	function ship_state ($result, $options, $O) {
-		if (strlen($O->shipstate > 2)) return esc_html($O->shipstate);
+		$state = esc_html($O->shipstate);
+		if (strlen($O->state > 2)) return $state;
 		$regions = Lookup::country_zones();
-		$states = $regions[$O->country];
-		return $states[$O->shipstate];
+
+		if (isset($regions[$O->country])) {
+			$states = $regions[$O->country];
+			if (isset($states[$O->shipstate]))
+				return esc_html($states[$O->shipstate]);
+		}
+
+		return $state;
 	}
 
 	function ship_xaddress ($result, $options, $O) { return esc_html($O->shipxaddress); }
 
 	function state ($result, $options, $O) {
-		if (strlen($O->state > 2)) return esc_html($O->state);
+		$state = esc_html($O->state);
+		if (strlen($O->state > 2)) return $state;
 		$regions = Lookup::country_zones();
-		$states = $regions[$O->country];
-		return $states[$O->state];
+
+		if (isset($regions[$O->country])) {
+			$states = $regions[$O->country];
+			if (isset($states[$O->state]))
+				return esc_html($states[$O->state]);
+		}
+
+		return $state;
 	}
 
 	function status ($result, $options, $O) {

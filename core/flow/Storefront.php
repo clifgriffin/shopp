@@ -999,13 +999,13 @@ class Storefront extends FlowController {
 	 * @return string The cart template content
 	 **/
 	function account_page ($menuonly=false) {
-		global $wp;
-		$Order =& ShoppOrder();
-		$Customer =& $Order->Customer;
+		$Order = ShoppOrder();
+		$Customer = $Order->Customer;
 
 		$download_request = get_query_var('s_dl');
 		if ($Customer->logged_in()) do_action('shopp_account_management');
 
+		// @todo Add support for individual account dashboard page templates (account-menu.php, account-orders.php)
 		ob_start();
 		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
 		elseif ($Customer->logged_in()) locate_shopp_template(array('account.php'),true);
