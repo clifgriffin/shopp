@@ -9,7 +9,7 @@
  * @copyright Ingenesis Limited, January 12, 2010
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
- * @subpackage transact
+ * @subpackage order
  **/
 
 /**
@@ -17,7 +17,8 @@
  *
  * @author Jonathan Davis
  * @since 1.1
- * @package transact
+ * @version 1.2
+ * @package order
  **/
 class Order {
 
@@ -34,7 +35,8 @@ class Order {
 	var $paymethod = false;			// The selected payment method
 
 	// Post processing properties
-	var $purchase = false;			// Generated purchase ID
+	var $inprogress = false;		// Generated purchase ID
+	var $purchase = false;			// Purchase ID of the finalized sale
 	var $gateway = false;			// Proper name of the gateway used to process the order
 	var $txnid = false;				// The transaction ID reported by the gateway
 	var $txnstatus = 'PENDING';		// Status of the payment
@@ -484,7 +486,7 @@ class Order {
 	 **/
 	function submit () {
 		shopp_add_order_event(false,'purchase',array(
-			'gateway' => $this->processor(),
+			'gateway' => $this->processor()
 		));
 	}
 
@@ -625,7 +627,7 @@ class Order {
 			$promo->uses++;
 		}
 
-		if (empty($this->purchase)) {
+		if (empty($this->inprogress)) {
 			$Purchase = new Purchase();	// Create a new order
 			if ( isset($Event->txnid) ) {
 				$Purchase->txnid = $this->txnid = $Event->txnid;
@@ -633,7 +635,7 @@ class Order {
 		} else { // Handle updates to an existing order from checkout reprocessing
 			$updates = true;
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
-			else $Purchase = new Purchase($this->purchase);
+			else $Purchase = new Purchase($this->inprogress);
 		}
 
 		$Purchase->copydata($this);
@@ -654,7 +656,7 @@ class Order {
 		Promotion::used(array_keys($promos));
 
 		// Process the order events if updating an existing order
-		if (!empty($this->purchase)) {
+		if (!empty($this->inprogress)) {
 			ShoppPurchase($Purchase);
 			return $this->process($Purchase);
 		}
@@ -674,7 +676,7 @@ class Order {
 			if ($Item->inventory) $Item->unstock();
 		}
 
-		$this->purchase = $Purchase->id;
+		$this->inprogress = $Purchase->id;
 		ShoppPurchase( $Purchase );
 
 		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
@@ -910,6 +912,8 @@ class Order {
 	 * @return void
 	 **/
 	function success () {
+		$this->purchase = $this->inprogress;
+		$this->inprogress = false;
 		do_action('shopp_order_success');
 
 		Shopping::resession();
