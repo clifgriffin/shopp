@@ -30,6 +30,7 @@ th.textright { text-align: right; }
 #products-manager button.feature:hover { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -20px; }
 #products-manager button.featured { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -40px; }
 #products-manager select.filters { max-width: 150px; }
+#products-manager .column-name img { margin-right: 3px; }
 
 .shopp .column-featured,
 .shopp .column-inventory,
