@@ -246,7 +246,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function add_to_cart ($result, $options, $O) {
-		if (!str_true(shopp_setting('shopping_cart'))) return '';
+		if (!shopp_setting_enabled('shopping_cart')) return '';
 		$defaults = array(
 			'ajax' => false,
 			'class' => 'addtocart',
@@ -676,7 +676,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function quantity ($result, $options, $O) {
-		if (!str_true(shopp_setting('shopping_cart'))) return '';
+		if (!shopp_setting_enabled('shopping_cart')) return '';
 		if ($O->outofstock) return '';
 
 		$inputs = array('text','menu');
@@ -697,7 +697,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if (!isset($O->_prices_loop)) reset($O->prices);
 		$variation = current($O->prices);
-		if ('Download' == $variation->type && str_true(shopp_setting('download_quantity'))) return '';
+		if ('Download' == $variation->type && shopp_setting_enabled('download_quantity')) return '';
 		$_ = array();
 
 		if ("before" == $labelpos) $_[] = $labeling;
@@ -907,7 +907,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join(',',$types);
 	}
 
-	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS?$O->slug:array(Product::$posttype=>$O->slug) ); }
+	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS?$O->slug:array(Product::$posttype=>$O->slug), false ); }
 
 	function variation ($result, $options, $O) {
 		global $Shopp;

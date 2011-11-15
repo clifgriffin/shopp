@@ -343,7 +343,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	function sidecart ($result, $options, $O) {
-		if (!str_true(shopp_setting('shopping_cart'))) return '';
+		if (!shopp_setting_enabled('shopping_cart')) return '';
 		ob_start();
 		locate_shopp_template(array('sidecart.php'),true);
 		$content = ob_get_contents();

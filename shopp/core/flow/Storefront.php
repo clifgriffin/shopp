@@ -100,7 +100,6 @@ class Storefront extends FlowController {
 		add_filter('shopp_account_manager','shoppdiv');
 		add_filter('shopp_account_vieworder','shoppdiv');
 
-		// add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
 		add_action('shopp_storefront_init',array($this,'promos'));
@@ -363,7 +362,7 @@ class Storefront extends FlowController {
 						);
 		$rss = apply_filters('shopp_rss_meta',$rss);
 
-		$tax_inclusive = str_true(shopp_setting('tax_inclusive'));
+		$tax_inclusive = shopp_setting_enabled('tax_inclusive');
 
 		// $template = locate_shopp_template(array('feed-'.$Collection->slug.'.php','feed.php'));
 		if (!$template) $template = SHOPP_ADMIN_PATH.'/categories/feed.php';
@@ -1199,7 +1198,7 @@ class Storefront extends FlowController {
 		}
 
 		// Remove pages if the shopping cart is disabled
-		if (!str_true(shopp_setting('shopping_cart')))
+		if (!shopp_setting_enabled('shopping_cart'))
 			unset($pages['cart'],$pages['checkout'],$pages['confirm'],$pages['thanks']);
 
 		return $pages;

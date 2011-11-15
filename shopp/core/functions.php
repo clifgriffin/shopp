@@ -1783,7 +1783,7 @@ function shopp_safe_redirect($location, $status = 302) {
  * @return float The determined tax rate
  **/
 function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
-	$inclusive = (str_true(shopp_setting('tax_inclusive')));
+	$inclusive = shopp_setting_enabled('tax_inclusive');
 	$rated = false;
 	$taxrate = 0;
 	$Taxes = new CartTax();
@@ -1848,6 +1848,10 @@ function shopp_template_url ($name) {
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 
+	$structure = get_option('permalink_structure');
+	list(,$prefix,) = explode('/',substr($structure, 0, strpos($structure, '%')));
+	if (!empty($prefix))
+		$path[] = $prefix;
 	$path[] = Storefront::slug('catalog');
 
 	// Build request path based on Storefront shopp_page requested
@@ -1855,7 +1859,8 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		$path[] = 'images';
 		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
 	} else {
-		$page_slug = Storefront::slug($page);
+		if (false !== $page)
+			$page_slug = Storefront::slug($page);
 		if ($page != 'catalog') {
 			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
 			if (!empty($page_slug)) $path[] = $page_slug;
