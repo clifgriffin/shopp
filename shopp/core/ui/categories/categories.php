@@ -14,20 +14,21 @@
 	</p>
 
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions">
 			<button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
 		</div>
+
+		<?php $ListTable->pagination( 'top' ); ?>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-categories'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-categories'); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-categories',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-categories',false); ?></tr>
 		</tfoot>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
@@ -78,7 +79,7 @@
 	</table>
 	</form>
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+		<?php $ListTable->pagination( 'bottom' ); ?>
 		<div class="clear"></div>
 	</div>
 </div>
