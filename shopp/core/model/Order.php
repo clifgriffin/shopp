@@ -450,7 +450,7 @@ class Order {
 		} elseif ($freebie) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
-		if (apply_filter('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
+		if (apply_filters('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 
