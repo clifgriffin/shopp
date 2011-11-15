@@ -78,7 +78,7 @@ class TestMode extends GatewayFramework {
 		$this->handler('refunded',$Event);
 	}
 
-	function cancel (OrderEventMessage $Event) {
+	function void (OrderEventMessage $Event) {
 		$this->handler('voided',$Event);
 	}
 
@@ -96,6 +96,7 @@ class TestMode extends GatewayFramework {
 
 		shopp_add_order_event($Event->order,$type,array(
 			'txnid' => $Event->txnid,
+			'txnorigin' => $Event->txnid,
 			'fees' => 0,
 			'paymethod' => '',
 			'payid' => '',
