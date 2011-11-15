@@ -1405,11 +1405,16 @@ function shoppdiv ($string) {
 	if (in_array($view,$views)) $classes[] = $view;
 
 	// Add collection slug
-	if ($category = shopp('collection','get-slug')) $classes[] = $category;
+	$Collection = ShoppCollection();
+	if (!empty($Collection))
+		if ($category = shopp('collection','get-slug')) $classes[] = $category;
 
 	// Add product id & slug classes
-	if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
-	if ($product = shopp('product','get-slug')) $classes[] = $product;
+	$Product = ShoppProduct();
+	if (!empty($Product)) {
+		if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
+		if ($product = shopp('product','get-slug')) $classes[] = $product;
+	}
 
 	$classes = apply_filters('shopp_content_container_classes',$classes);
 	$classes = esc_attr(join(' ',$classes));

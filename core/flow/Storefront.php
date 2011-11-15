@@ -130,11 +130,15 @@ class Storefront extends FlowController {
 	}
 
 	function posts ($posts) {
-		$stub = new WPDatabaseObject();
-		$stub->init('posts');
-		$stub->ID = -1; // Force to an unusable post ID
-		$stub->comment_status = 'closed'; // Force comments closed
-		if ($this->is_shopp_request()) return array($stub);
+
+		if ( $this->is_shopp_request() ) {
+			global $wp_query;
+			$stub = new WPDatabaseObject();
+			$stub->init('posts');
+			$stub->ID = -1; // Force to an unusable post ID
+			$stub->comment_status = 'closed'; // Force comments closed
+			return array($stub);
+		}
 
 		if (count($posts) == 1) { // @deprecated Legacy support to redirect old shortcode pages
 			$shortcodes = join('|', array_keys( self::pages_settings() ) );
@@ -151,6 +155,10 @@ class Storefront extends FlowController {
 
 	function query ($wp_query) {
 
+		// Only run once when WordPress is loaded
+		// to handle the WordPress global $wp_query instance
+		remove_action('parse_query',array($this,'query'));
+
 		$page	 	= get_query_var('shopp_page');
 		$posttype 	= get_query_var('post_type');
 		$product 	= get_query_var(Product::$posttype);
@@ -163,6 +171,7 @@ class Storefront extends FlowController {
 
 		// Override the custom post type archive request to use the Shopp catalog page
 		if ($wp_query->is_archive && $posttype == Product::$posttype && '' == $product.$page) {
+			echo "override custom post type archive request".BR;
 			$page = Storefront::slug('catalog'); set_query_var('shopp_page',$page);
 		} else {
 
@@ -223,6 +232,14 @@ class Storefront extends FlowController {
 			ShoppCollection( Catalog::load_collection($collection,$options) );
 			if ('' == get_query_var('feed'))
 				ShoppCollection()->load(array('load'=>array('coverimages')));
+
+			// Provide a stub to the queried object for smart collections since WP has no parallel
+			$post_archive = new stdClass();
+			$post_archive->labels = new stdClass();
+			$post_archive->labels->name = ShoppCollection()->name;
+			$wp_query->queried_object = $post_archive;
+			$wp_query->queried_object_id = 0;
+
 		}
 
 		$Collection = ShoppCollection();
