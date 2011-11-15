@@ -271,10 +271,13 @@ class Shopp {
 	function pages () {
 		$var = "shopp_page"; $pages = array();
 		$settings = Storefront::pages_settings();
+ 		$structure = get_option('permalink_structure');
+		$prefix = substr($structure, 0, strpos($structure, '%'));
 		$catalog = array_shift($settings);
+
 		foreach ($settings as $page) $pages[] = $page['slug'];
 		add_rewrite_tag("%$var%", '('.join('|',$pages).')');
-		add_permastruct($var, "{$catalog['slug']}/%$var%", false, EP_NONE);
+		add_permastruct($var, "$prefix{$catalog['slug']}/%$var%", false, EP_NONE);
 	}
 
 	function collections () {
@@ -311,8 +314,11 @@ class Shopp {
 	 * @return array Rewrite rules
 	 **/
 	function rewrites ($wp_rewrite_rules) {
+ 		$structure = get_option('permalink_structure');
+		$prefix = substr($structure, 0, strpos($structure, '%'));
 		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
-		add_rewrite_rule(Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
+
+		add_rewrite_rule($prefix.Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
 		return $wp_rewrite_rules;
 	}
 

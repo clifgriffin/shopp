@@ -45,9 +45,8 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function activate () {
 
-		// If no settings are available,
-		// no tables exist, so this is a
-		// new install
+		// If no settings are available, no tables exist,
+		// so this is a new install
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 		if (!$db_version) $this->install();
@@ -57,10 +56,13 @@ class ShoppInstallation extends FlowController {
 
 		do_action('shopp_setup');
 
+		// Flush rewrite rules after they have all been established
+		add_action('shopp_init','flush_rewrite_rules',100);
+
 		if (ShoppSettings()->available() && shopp_setting('db_version'))
 			shopp_set_setting('maintenance','off');
 
-		if (shopp_setting('show_welcome') == "on")
+		if (shopp_setting_enabled('show_welcome'))
 			shopp_set_setting('display_welcome','on');
 
 		shopp_set_setting('updates', false);
@@ -76,8 +78,6 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function deactivate () {
 		global $Shopp;
-
-		//if (!isset(ShoppSettings())) return;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
 		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));

@@ -1201,10 +1201,10 @@ class CartTax {
 		$this->Order = &ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
-		$this->inclusive = str_true(shopp_setting('tax_inclusive'));
-		$this->enabled = str_true(shopp_setting('taxes'));
+		$this->inclusive = shopp_setting_enabled('tax_inclusive');
+		$this->enabled = shopp_setting_enabled('taxes');
 		$this->rates = shopp_setting('taxrates');
-		$this->shipping = str_true(shopp_setting('tax_shipping'));
+		$this->shipping = shopp_setting_enabled('tax_shipping');
 	}
 
 	/**

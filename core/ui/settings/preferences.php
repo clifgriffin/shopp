@@ -80,7 +80,7 @@
 
 			<tr>
 				<th scope="row" valign="top"><label for="shopping-cart-toggle"><?php _e('Shopping Cart','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[shopping_cart]" value="off" /><input type="checkbox" name="settings[shopping_cart]" value="on" id="shopping-cart-toggle"<?php if (str_true(shopp_setting('shopping_cart'))) echo ' checked="checked"'?> /><label for="shopping-cart-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
+				<td><input type="hidden" name="settings[shopping_cart]" value="off" /><input type="checkbox" name="settings[shopping_cart]" value="on" id="shopping-cart-toggle"<?php if (shopp_setting_enabled('shopping_cart')) echo ' checked="checked"'?> /><label for="shopping-cart-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 	            <?php _e('Uncheck this to disable the shopping cart and checkout. Useful for catalog-only sites.','Shopp'); ?></td>
 			</tr>
 

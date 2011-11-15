@@ -228,7 +228,7 @@ class Item {
 
 		if ('Subscription' == $this->type ||
 			'Membership' == $this->type ||
-			( 'Download' == $this->type && str_true(shopp_setting('download_quantity')) )) {
+			( 'Download' == $this->type && shopp_setting_enabled('download_quantity') )) {
 			return ($this->quantity = 1);
 		}
 

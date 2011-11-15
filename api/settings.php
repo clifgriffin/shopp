@@ -36,6 +36,20 @@ function shopp_setting ( $name ) {
 }
 
 /**
+ * Returns true or false if the setting is toggled on or off
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the setting
+ * @return boolean True is enabled, false is disabled
+ **/
+function shopp_setting_enabled ( $name ) {
+	$setting = shopp_setting($name);
+	return str_true($setting);
+}
+
+/**
  * shopp_set_setting - saves a name value pair as a Shopp setting
  *
  * @author John Dillick

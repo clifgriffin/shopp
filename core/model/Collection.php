@@ -236,7 +236,7 @@ class ProductCollection implements Iterator {
 			$product = ShoppProduct();
 		}
 
-	    if (str_true(shopp_setting('tax_inclusive'))) {
+	    if ( shopp_setting_enabled('tax_inclusive') ) {
 			$Product = new Product($product->id);
 	        $taxrate = shopp_taxrate(null, true, $Product);
 	    }
@@ -1187,7 +1187,7 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @return array The list of supported sort methods
 	 **/
-	function sortoptions () {
+	static function sortoptions () {
 		return apply_filters('shopp_category_sortoptions', array(
 			"title" => __('Title','Shopp'),
 			"custom" => __('Recommended','Shopp'),
