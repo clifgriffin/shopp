@@ -104,7 +104,6 @@ class Order {
 		// Order processing
 		add_action('shopp_process_order', array($this,'validate'),7);
 		add_action('shopp_process_order', array($this,'submit'),100);
-		// add_action('shopp_process_order', array($this,'process'),100);
 
 		add_action('shopp_process_free_order',array($this,'freebie'));
 		add_action('shopp_update_destination',array($this->Shipping,'destination'));
@@ -119,9 +118,6 @@ class Order {
 
 		// Ensure payment card PAN is truncated after successful processing
 		add_action('shopp_authed_order_event',array($this,'securecard'));
-
-		// Schedule for the absolute last action to be run
-		// add_action('shopp_order_success',array($this,'success'),100);
 
 		add_action('shopp_resession',array($this->Cart,'clear'));
 		add_action('shopp_resession',array($this,'clear'));
@@ -308,7 +304,7 @@ class Order {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function shipmethod () {
 		if (empty($this->Cart->shipped)) return;
@@ -454,7 +450,7 @@ class Order {
 		} elseif ($freebie) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
-		if ($estimated != $this->Cart->Totals->total || $this->confirm)
+		if (apply_filter('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 
