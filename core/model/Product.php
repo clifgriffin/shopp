@@ -177,7 +177,6 @@ class Product extends WPShoppObject {
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
 
-		if (count($ids) == 1) $this->resum();
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
