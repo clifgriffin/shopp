@@ -260,12 +260,12 @@ class Shopp {
 		include('core/ui/widgets/account.php');
 		include('core/ui/widgets/cart.php');
 		include('core/ui/widgets/categories.php');
-		include('core/ui/widgets/section.php');
-		include('core/ui/widgets/tagcloud.php');
 		include('core/ui/widgets/facetedmenu.php');
 		include('core/ui/widgets/product.php');
-		include('core/ui/widgets/shoppers.php');
 		include('core/ui/widgets/search.php');
+		include('core/ui/widgets/section.php');
+		include('core/ui/widgets/shoppers.php');
+		include('core/ui/widgets/tagcloud.php');
 	}
 
 	function pages () {
@@ -277,7 +277,8 @@ class Shopp {
 
 		foreach ($settings as $page) $pages[] = $page['slug'];
 		add_rewrite_tag("%$var%", '('.join('|',$pages).')');
-		add_permastruct($var, "$prefix{$catalog['slug']}/%$var%", false, EP_NONE);
+		add_permastruct($var, "{$catalog['slug']}/%$var%", false);
+
 	}
 
 	function collections () {
@@ -315,11 +316,17 @@ class Shopp {
 	 **/
 	function rewrites ($wp_rewrite_rules) {
  		$structure = get_option('permalink_structure');
-		$prefix = substr($structure, 0, strpos($structure, '%'));
+		$prefix = ltrim(substr($structure, 0, strpos($structure, '%')), '/');
 		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
 
+		$rules = array(
+			$prefix.Storefront::slug().'/'.Storefront::slug('account').'/download/([a-f0-9]{40})/?$' // Download handling
+				=> 'index.php?src=download&shopp_download=$matches[1]',
+		);
+
 		add_rewrite_rule($prefix.Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
-		return $wp_rewrite_rules;
+		print_r($rules + $wp_rewrite_rules);
+		return $rules + $wp_rewrite_rules;
 	}
 
 	/**
@@ -334,20 +341,15 @@ class Shopp {
 	 **/
 	function queryvars ($vars) {
 
-		$vars[] = 's_pr';		// Shopp process parameter
-		$vars[] = 's_rs';		// Shopp resource
-		$vars[] = 's_iid';		// Shopp image id
-		$vars[] = 's_cs';		// Catalog (search) flag
-		$vars[] = 's_ac';		// Account process
-		$vars[] = 's_cat';		// Category slug or id
-		$vars[] = 's_tag';		// Tag slug
-		$vars[] = 's_pid';		// Product ID
-		$vars[] = 's_pd';		// Product slug
-		$vars[] = 's_dl';		// Download key
-		$vars[] = 's_so';		// Product sort order (product collections)
-		$vars[] = 's_ff';		// Category filters
+		// $vars[] = 's_pr';		// Shopp process parameter
+		$vars[] = 's_iid';			// Shopp image id
+		$vars[] = 's_cs';			// Catalog (search) flag
+		$vars[] = 's_so';			// Product sort order (product collections)
+		$vars[] = 's_ff';			// Category filters
 
-		$vars[] = 'shopp_page'; // Shopp pages
+		$vars[] = 'src';			// Shopp resource
+		$vars[] = 'shopp_page';
+		$vars[] = 'shopp_download';
 
 		return $vars;
 	}

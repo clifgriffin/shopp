@@ -23,9 +23,6 @@
 class Storefront extends FlowController {
 
 	var $Page = false;
-	var $Catalog = false;
-	var $Category = false;
-	var $Product = false;
 	var $breadcrumb = false;
 	var $referrer = false;
 	var $search = false;		// The search query string
@@ -42,14 +39,9 @@ class Storefront extends FlowController {
 	var $menus = array();		// Account dashboard menu registry
 
 	function __construct () {
-		global $Shopp;
 		parent::__construct();
 
-		$this->Category = &$Shopp->Category;
-		$this->Product = &$Shopp->Product;
-
-		$Catalog = new Catalog();
-		ShoppCatalog($Catalog);
+		ShoppCatalog(new Catalog());
 
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
@@ -593,12 +585,12 @@ class Storefront extends FlowController {
 		foreach ($vars as $v) $request[] = get_query_var($v);
 
 		if (empty($request)) return $title;
-		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
+		if (empty(ShoppProduct()->name) && empty(ShoppCollection()->name)) return $title;
 
 		$_ = array();
-		if (!empty($title))					$_[] = $title;
-		if (!empty($this->Category->name))	$_[] = $this->Category->name;
-		if (!empty($this->Product->name))	$_[] = $this->Product->name;
+		if (!empty($title))						$_[] = $title;
+		if (!empty(ShoppCollection()->name))	$_[] = ShoppCollection()->name;
+		if (!empty(ShoppProduct()->name))		$_[] = ShoppProduct()->name;
 
 		if ('right' == $placement) $_ = array_reverse($_);
 
@@ -661,13 +653,13 @@ class Storefront extends FlowController {
 	function metadata () {
 		$keywords = false;
 		$description = false;
-		if (!empty($this->Product->id)) {
-			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
-			foreach($this->Product->tags as $tag)
+		if (!empty(ShoppProduct()->id)) {
+			if (empty(ShoppProduct()->tags)) ShoppProduct()->load_data(array('tags'));
+			foreach(ShoppProduct()->tags as $tag)
 				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
-			$description = $this->Product->summary;
-		} elseif (!empty($this->Category->id)) {
-			$description = $this->Category->description;
+			$description = ShoppProduct()->summary;
+		} elseif (!empty(ShoppCollection()->id)) {
+			$description = ShoppCollection()->description;
 		}
 		$keywords = esc_attr(apply_filters('shopp_meta_keywords',$keywords));
 		$description = esc_attr(apply_filters('shopp_meta_description',$description));
@@ -1008,41 +1000,6 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Displays the appropriate account page template
-	 *
-	 * Replaces the [account] shortcode on the Account page with
-	 * the processed template contents.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param array $attrs Shortcode attributes
-	 * @return string The cart template content
-	 **/
-	function account_page ($menuonly=false) {
-		$Order = ShoppOrder();
-		$Customer = $Order->Customer;
-
-		$this->account = $_SERVER['QUERY_STRING'];
-
-		echo $this->account;
-
-		$download_request = get_query_var('s_dl');
-		if ($Customer->logged_in()) do_action('shopp_account_management');
-
-		// @todo Add support for individual account dashboard page templates (account-menu.php, account-orders.php)
-		ob_start();
-		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
-		elseif ($Customer->logged_in()) locate_shopp_template(array('account.php'),true);
-		else locate_shopp_template(array('login.php'),true);
-		$content = ob_get_contents();
-		ob_end_clean();
-
-		return apply_filters('shopp_account_template',$content);
-
-	}
-
-	/**
 	 * Renders the errors template
 	 *
 	 * @author Jonathan Davis
@@ -1060,6 +1017,94 @@ class Storefront extends FlowController {
 		ob_end_clean();
 		return apply_filters('shopp_errors_page',$content);
 	}
+
+	/**
+	 * Displays the appropriate account page template
+	 *
+	 * Replaces the [account] shortcode on the Account page with
+	 * the processed template contents.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param array $attrs Shortcode attributes
+	 * @return string The cart template content
+	 **/
+	function account_page ($request=false) {
+
+		$download_request = get_query_var('s_dl');
+		if (!$request) $request = $this->account['request'];
+		$templates = array('account-'.$request.'.php','account.php');
+
+		if ('login' == $request || !ShoppCustomer()->logged_in()) $templates = array('login-'.$request.'.php','login.php');
+		else do_action('shopp_account_management');
+
+		ob_start();
+		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
+		locate_shopp_template($templates,true,false);
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return apply_filters('shopp_account_template',$content);
+
+	}
+
+	function dashboard () {
+		$Order = ShoppOrder();
+
+		$this->add_dashboard('logout',__('Logout','Shopp'));
+		$this->add_dashboard('orders',__('Your Orders','Shopp'),true,array(ShoppCustomer(),'load_orders'));
+		$this->add_dashboard('downloads',__('Downloads','Shopp'),true,array(ShoppCustomer(),'load_downloads'));
+		$this->add_dashboard('profile',__('My Account','Shopp'));
+
+		// Pages not in menu navigation
+		$this->add_dashboard('login',__('Login to your Account'),false);
+		$this->add_dashboard('recover','Password Recovery',false);
+		$this->add_dashboard('rp','Password Recovery',false);
+		$this->add_dashboard('menu',__('Account Dashboard','Shopp'),false);
+
+		do_action('shopp_account_menu');
+
+		add_action('shopp_account_management',array($this,'dashboard_handler'));
+
+		$query = $_SERVER['QUERY_STRING'];
+		$request = 'menu';
+		$id = false;
+		if (false !== strpos($query,'=')) list($request,$id) = explode('=',$query);
+		else $request = $query;
+
+		if ( in_array($request,array_keys($this->dashboard)) )
+			$this->account = compact('request','id');
+		else $this->account = array('request' => 'menu','id' => false);
+
+		$download_request = get_query_var('s_dl');
+		if (!ShoppCustomer()->logged_in()) {
+			$screens = array('login','recover','rp');
+			if (!in_array($this->account['request'],$screens))
+				$this->account = array('request' => 'login','id' => false);
+		}
+
+		do_action('shopp_account_management');
+
+		// if ('rp' == $request) $this->reset_password($_GET['key']);
+		// if (isset($_POST['recover-login'])) $this->recovery();
+
+	}
+
+	function dashboard_handler () {
+		$request = $this->account['request'];
+
+		if (isset($this->dashboard[$request])
+			&& is_callable($this->dashboard[$request]->handler))
+				call_user_func($this->dashboard[$request]->handler);
+
+	}
+
+	function add_dashboard ($request,$label,$visible=true,$callback=false,$position=0) {
+		$this->dashboard[$request] = new StorefrontDashboardPage($request,$label,$callback);
+		if ($visible) array_splice($this->menus,$position,0,array(&$this->dashboard[$request]));
+	}
+
 
 	/**
 	 * Handles rendering the [product] shortcode
@@ -1257,38 +1302,6 @@ class Storefront extends FlowController {
 		foreach ($pages as $name => $page)
 			if ($slug == $page['slug']) return $name;
 		return false;
-	}
-
-	function dashboard () {
-		$this->add_dashboard('logout',__('Logout','Shopp'));
-		$this->add_dashboard('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
-		$this->add_dashboard('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
-		$this->add_dashboard('profile',__('My Account','Shopp'));
-
-		// Pages not in menu navigation
-		$this->add_dashboard('menu',__('Account Dashboard','Shopp'),false);
-		$this->add_dashboard('order','Order',false,array(&$this,'order'));
-		$this->add_dashboard('recover','Password Recovery',false);
-
-		do_action_ref_array('shopp_account_menu',array(&$this));
-
-		$query = $_SERVER['QUERY_STRING'];
-		$request = 'menu';
-		$id = false;
-		if (false !== strpos($request,'='))
-			list($request,$id) = explode('=',$query);
-
-		if (in_array($request,array_keys($this->dashboard)))
-			$this->account = compact($request,$id);
-
-		// if ('rp' == $request) $this->reset_password($_GET['key']);
-		// if (isset($_POST['recover-login'])) $this->recovery();
-
-	}
-
-	function add_dashboard ($request,$label,$visible=true,$callback=false,$position=0) {
-		$this->dashboard[$request] = new StorefrontDashboardPage($request,$label,$callback);
-		if ($visible) array_splice($this->menus,$position,0,array(&$this->dashboard[$request]));
 	}
 
 } // END class Storefront

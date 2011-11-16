@@ -60,7 +60,8 @@ class Login {
 	 **/
 	function process () {
 
-		if (isset($_GET['acct']) && $_GET['acct'] == "logout") {
+		if (isset($_GET['acct']) && $_GET['acct'] == "logout"
+			|| isset($_SERVER['QUERY_STRING']) && 'logout' == $_SERVER['QUERY_STRING']) {
 			// Redirect to remove the logout request
 			add_action('shopp_logged_out',array(&$this,'redirect'));
 			// Trigger the logout

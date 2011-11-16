@@ -1732,10 +1732,10 @@ function shopp_parse_options ($options) {
  * @param boolean $exit (optional) Exit immediately after the redirect (defaults to true, set to false to override)
  * @return void
  **/
-function shopp_redirect ($uri,$exit=true) {
+function shopp_redirect ($uri,$exit=true,$status=302) {
 	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
-	session_write_close();
-	wp_redirect($uri);
+	header('Content-Length: 0');
+	wp_redirect($uri,$status);
 	if ($exit) exit();
 }
 

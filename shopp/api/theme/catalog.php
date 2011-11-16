@@ -9,8 +9,10 @@
 *
 **/
 
+add_filter('shopp_themeapi_context_name', array('ShoppCatalogThemeAPI', '_context_name'));
+
 class ShoppCatalogThemeAPI implements ShoppAPI {
-	static $context = 'Catalog';
+	static $context = 'Catalog'; // @todo transition to Storefront
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',
 		'businessname' => 'business_name',
@@ -41,10 +43,24 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'tagcloud' => 'tag_cloud',
 		'url' => 'url',
 		'views' => 'views',
-		'zoomoptions' => 'zoom_options'
+		'zoomoptions' => 'zoom_options',
+
+		'accountmenu' => 'account_menu',
+		'accountmenuitem' => 'account_menuitem',
+
 	);
 
 	static function _apicontext () { return 'catalog'; }
+
+	static function _context_name ( $name ) {
+		switch ( $name ) {
+			case 'storefront':
+			case 'catalog':
+			return 'catalog';
+			break;
+		}
+		return $name;
+	}
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('product') call
@@ -56,10 +72,14 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function _setobject ($Object, $object) {
 		if ( is_object($Object) && is_a($Object, 'Catalog') ) return $Object;
 
-		if ( strtolower($object) != 'catalog' ) return $Object; // not mine, do nothing
-		else {
-			return ShoppCatalog();
+		switch ( strtolower($object) ) {
+			case 'storefront':
+			case 'catalog':
+				return ShoppCatalog();
+				break;
 		}
+
+		return $Object; // not mine, do nothing
 	}
 
 	static function image ($result, $options, $O) {
@@ -886,7 +906,32 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		add_storefrontjs($js,true);
 	}
 
+	function account_menu ($result, $options, $O) {
+		$Storefront = ShoppStorefront();
+		if (!isset($Storefront->_menu_looping)) {
+			reset($Storefront->menus);
+			$Storefront->_menu_looping = true;
+		} else next($Storefront->menus);
+
+		if (current($Storefront->menus) !== false) return true;
+		else {
+			unset($Storefront->_menu_looping);
+			reset($Storefront->menus);
+			return false;
+		}
+	}
+
+	function account_menuitem ($result, $options, $O) {
+		$Storefront = ShoppStorefront();
+		$page = current($Storefront->menus);
+		if (array_key_exists('url',$options)) return add_query_arg($page->request,'',shoppurl(false,'account'));
+		if (array_key_exists('action',$options)) return $page->request;
+		return $page->label;
+	}
+
+
 }
+
 
 
 

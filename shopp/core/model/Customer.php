@@ -45,8 +45,8 @@ class Customer extends DatabaseObject {
 	}
 
 	function listeners () {
-		add_action('parse_request',array($this,'menus'));
-		add_action('shopp_account_management',array($this,'management'));
+		// add_action('parse_request',array($this,'menus'));
+		// add_action('shopp_account_management',array($this,'management'));
 		add_action('shopp_logged_out', array($this, 'logout'));
 	}
 
@@ -215,13 +215,22 @@ class Customer extends DatabaseObject {
 			}
 		}
 
-		if (!empty($_GET['acct']) && !empty($_GET['id']) && $this->logged_in()) {
-			$Purchase = new Purchase($_GET['id']);
+		$request = false; $id = false;
+		$Storefront = ShoppStorefront();
+
+		if (isset($Storefront->account)) extract($Storefront->account);
+		else {
+			if (isset($_GET['acct'])) $request = $_GET['acct'];
+			if (isset($_GET['id'])) $request = (int)$_GET['id'];
+		}
+
+		if ($this->logged_in() && 'order' == $request && false !== $id) {
+			$Purchase = new Purchase((int)$id);
 			if ($Purchase->customer == $this->id) {
-				$Shopp->Purchase = $Purchase;
+				ShoppPurchase($Purchase);
 				$Purchase->load_purchased();
 				ob_start();
-				locate_shopp_template(array('receipt.php'),true);
+				locate_shopp_template(array('account-receipt.php','receipt.php'),true,false);
 				$content = ob_get_contents();
 				ob_end_clean();
 			} else {
@@ -232,7 +241,6 @@ class Customer extends DatabaseObject {
 
 		}
 	}
-
 
 	/**
 	 * Password recovery processing
@@ -392,8 +400,8 @@ class Customer extends DatabaseObject {
 	}
 
 	function load_downloads () {
+		$Storefront = ShoppStorefront();
 		if (empty($this->id)) return false;
-		$db =& DB::get();
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$asset = DatabaseObject::tablename(ProductDownload::$table);
@@ -401,7 +409,7 @@ class Customer extends DatabaseObject {
 			FROM $purchases AS p
 			LEFT JOIN $orders AS o ON o.id=p.purchase
 			LEFT JOIN $asset AS f ON f.parent=p.price
-			WHERE o.customer=$this->id AND context='price' AND type='download')
+			WHERE o.customer=$this->id AND f.context='price' AND f.type='download')
 			UNION
 			(SELECT a.name AS dkey,p.id,p.purchase,a.value AS download,ao.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata
 			FROM $purchases AS p
@@ -410,8 +418,8 @@ class Customer extends DatabaseObject {
 			LEFT JOIN $orders AS o ON o.id=p.purchase
 			LEFT JOIN $asset AS f on f.id=a.value
 			WHERE o.customer=$this->id AND f.context='price' AND f.type='download') ORDER BY created DESC";
-		$this->downloads = $db->query($query,AS_ARRAY);
-		foreach ($this->downloads as &$download) {
+		$Storefront->downloads = DB::query($query,'array');
+		foreach ($Storefront->downloads as &$download) {
 			$download->filedata = unserialize($download->filedata);
 			foreach ($download->filedata as $property => $value) {
 				$download->{$property} = $value;
@@ -422,6 +430,28 @@ class Customer extends DatabaseObject {
 	function load_orders ($filters=array()) {
 		if (empty($this->id)) return false;
 
+		$request = false; $id = false;
+		$Storefront = ShoppStorefront();
+
+		if (isset($Storefront->account)) extract($Storefront->account);
+		else {
+			if (isset($_GET['acct'])) $request = $_GET['acct'];
+			if (isset($_GET['id'])) $request = (int)$_GET['id'];
+		}
+
+		if ($this->logged_in() && 'orders' == $request && false !== $id) {
+			$Purchase = new Purchase((int)$id);
+			if ($Purchase->customer == $this->id) {
+				ShoppPurchase($Purchase);
+				$Purchase->load_purchased();
+			} else {
+				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),esc_html($_GET['id'])),'customer_order_history',SHOPP_AUTH_ERR);
+				unset($_GET['acct']);
+				return false;
+			}
+
+		}
+
 		$where = '';
 		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
@@ -429,8 +459,7 @@ class Customer extends DatabaseObject {
 		$query = "SELECT o.* FROM $orders AS o WHERE o.customer=$this->id $where ORDER BY created DESC";
 
 		$PurchaseLoader = new Purchase();
-		global $Shopp;
-		$Shopp->purchases = DB::query($query,'array',array($PurchaseLoader,'loader'));
+		$Storefront->purchases = DB::query($query,'array',array($PurchaseLoader,'loader'));
 	}
 
 	function create_wpuser () {
