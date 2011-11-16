@@ -539,30 +539,30 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	function product ($result, $options, $O) {
 		global $Shopp;
-		$Product = ShoppProduct();
-		if (isset($options['name'])) $Product = new Product($options['name'],'name');
-		else if (isset($options['slug'])) $Product = new Product($options['slug'],'slug');
-		else if (isset($options['id'])) $Product = new Product($options['id']);
+		if (isset($options['name'])) ShoppProduct(new Product($options['name'],'name'));
+		else if (isset($options['slug'])) ShoppProduct(new Product($options['slug'],'slug'));
+		else if (isset($options['id'])) ShoppProduct(new Product($options['id']));
 
 		if (isset($options['reset']))
-			return (get_class($Shopp->Requested) == "Product"?($Shopp->Product = $Shopp->Requested):false);
+			return ( $Shopp->Requested && is_a($Shopp->Requested, 'Product') ? ShoppProduct($Shopp->Requested) : false );
 
-		if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
+		if (isset(ShoppProduct()->id) && isset($Shopp->Category->slug)) {
 			$Category = clone($Shopp->Category);
 
 			if (isset($options['load'])) {
-				if ($options['load'] == "next") $Product = $Category->adjacent_product(1);
-				elseif ($options['load'] == "previous") $Product = $Category->adjacent_product(-1);
+				if ($options['load'] == "next") ShoppProduct($Category->adjacent_product(1));
+				elseif ($options['load'] == "previous") ShoppProduct($Category->adjacent_product(-1));
 			} else {
 				if (isset($options['next']) && value_is_true($options['next']))
-					$Product = $Category->adjacent_product(1);
+					ShoppProduct($Category->adjacent_product(1));
 				elseif (isset($options['previous']) && value_is_true($options['previous']))
-					$Product = $Category->adjacent_product(-1);
+					ShoppProduct($Category->adjacent_product(-1));
 			}
 		}
 
 		if (isset($options['load'])) return true;
 
+		$Product = ShoppProduct();
 		$templates = array('product.php');
 		if (isset($Product->id) && !empty($Product->id))
 			array_unshift($templates,'product-'.$Product->id.'.php');
