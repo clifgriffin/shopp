@@ -17,27 +17,32 @@ class ShoppAccountWidget extends WP_Widget {
         parent::__construct(
 			'shopp-account',
 			__('Shopp Account','Shopp'),
-			array('description' => __('Account login &amp; management','Shopp'))
+			array('description' => __('Customer account management dashboard','Shopp'))
 		);
     }
 
     function widget($args, $options) {
-		global $Shopp;
 		if (!empty($args)) extract($args);
 
-		if (empty($options['title'])) $options['title'] = __('Your Account','Shopp');
-		$title = $before_title.$options['title'].$after_title;
-		$request = $_GET;
-		unset($_GET['acct']);
-		unset($_GET['id']);
-		remove_filter('shopp_account_template','shoppdiv');
-		add_filter('shopp_show_account_errors',array(&$this,'showerrors'));
-		$account = $Shopp->Flow->Controller->account_page();
+		$loggedin = ShoppCustomer()->logged_in();
+		// Hide login form on account page when not logged in to prevent duplicate forms
+		if (is_account_page() && !$loggedin) return '';
 
-		echo $before_widget.$title.$account.$after_widget;
-		$_GET = array_merge($_GET,$request);
+		$defaults = array(
+			'title' => $loggedin?__('Your Account','Shopp'):__('Login','Shopp'),
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		$title = $before_title.$title.$after_title;
+
+
 		remove_filter('shopp_show_account_errors',array(&$this,'showerrors'));
-		add_filter('shopp_account_template','shoppdiv');
+
+		$Storefront = ShoppStorefront();
+		$menu = $Storefront->account_page('menu');
+		echo $before_widget.$title.$menu.$after_widget;
+
     }
 
     function update($new_instance, $old_instance) {
@@ -57,9 +62,7 @@ class ShoppAccountWidget extends WP_Widget {
 
 } // END class ShoppAccountWidget
 
-global $Shopp;
 if (shopp_setting('account_system') == "none") return;
-
 register_widget('ShoppAccountWidget');
 
 }

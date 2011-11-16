@@ -1054,8 +1054,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		unset($args['page_id'],$args['acct']);
 		$link = esc_url(add_query_arg($args,$link));
 
-		if ('confirm' == Storefront::slugpage(get_query_var('shopp_page')))
-			$link = apply_filters('shopp_confirm_url',$link);
+		if (is_confirm_page()) $link = apply_filters('shopp_confirm_url',$link);
 		else $link = apply_filters('shopp_checkout_url',$link);
 		return $link;
 	}

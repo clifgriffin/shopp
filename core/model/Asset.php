@@ -379,10 +379,10 @@ class DownloadAsset extends FileAsset {
 
 	function loadby_dkey ($key) {
 		$db = &DB::get();
-		require(SHOPP_MODEL_PATH."/Purchased.php");
+		if (!class_exists('Purchased')) require(SHOPP_MODEL_PATH."/Purchased.php");
 		$pricetable = DatabaseObject::tablename(Price::$table);
 
-		$Purchased = new Purchased($key,"dkey");
+		$Purchased = new Purchased($key,'dkey');
 		if (!empty($Purchased->id)) {
 			// Handle purchased line-item downloads
 			$Purchase = new Purchase($Purchased->purchase);
@@ -405,16 +405,19 @@ class DownloadAsset extends FileAsset {
 	}
 
 	function purchased () {
-		require(SHOPP_MODEL_PATH."/Purchased.php");
+		if (!class_exists('Purchased')) require(SHOPP_MODEL_PATH."/Purchased.php");
 		if (!$this->purchased) return false;
 		return new Purchased($this->purchased);
 	}
 
 	function download ($dkey=false) {
 		$found = $this->found();
-		if (!$found) return false;
+		if (!$found) return new ShoppError(sprintf(__('Download failed. "%s" could not be found.','Shopp'),$this->name),'false');
+
+		add_action('shopp_download_success',array($this,'downloaded'));
 
 		if (!isset($found['redirect'])) {
+			echo "No redirect, direct download\n";
 			// Close the session in case of long download
 			@session_write_close();
 
@@ -434,6 +437,12 @@ class DownloadAsset extends FileAsset {
 		$this->send();
 
 		return true;
+	}
+
+	function downloaded ($Purchased=false) {
+		if (false === $Purchased) return;
+		$Purchased->downloads++;
+		$Purchased->save();
 	}
 
 	function send () {

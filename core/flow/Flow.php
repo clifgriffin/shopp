@@ -64,11 +64,11 @@ class Flow {
 	 **/
 	function parse ($wp) {
 		$request = empty($wp->query_vars)?$_GET:$wp->query_vars;
+		$resource = isset($request['src']);
 
 		$this->transactions();
 
-		if (isset($request['src']) ||
-			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources($request);
+		if ($resource) $this->resources($request);
 
 		if (defined('WP_ADMIN')) {
 			if (!isset($_GET['page'])) return;

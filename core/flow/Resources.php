@@ -42,7 +42,7 @@ class Resources {
 		if ( !empty( $this->request['src'] ) )
 			do_action( 'shopp_resource_' . $this->request['src'] );
 
-		die('-1');
+		exit();
 	}
 
 	/**
@@ -120,9 +120,10 @@ class Resources {
 	 **/
 	function download () {
 		global $Shopp;
-		$download = $this->request['s_dl'];
+		$download = $this->request['shopp_download'];
 		$Purchase = false;
 		$Purchased = false;
+
 
 		if (defined('WP_ADMIN')) {
 			$forbidden = false;
@@ -135,23 +136,27 @@ class Resources {
 
 			$Purchased = $Download->purchased();
 			$Purchase = new Purchase($Purchased->purchase);
+			$Purchase->load_events();
 
 			$name = $Purchased->name.(!empty($Purchased->optionlabel)?' ('.$Purchased->optionlabel.')':'');
 
 			$forbidden = false;
 			// Purchase Completion check
-			if ($Purchase->txnstatus != "CHARGED"
-				&& !SHOPP_PREPAYMENT_DOWNLOADS) {
+			if ($Purchase->balance > 0 && !SHOPP_PREPAYMENT_DOWNLOADS) {
 				new ShoppError(sprintf(__('"%s" cannot be downloaded because payment has not been received yet.','Shopp'),$name),'shopp_download_limit');
 				$forbidden = true;
 			}
 
 			// Account restriction checks
-			if (shopp_setting('account_system') != "none"
-				&& (!$Order->Customer->logged_in()
-				|| $Order->Customer->id != $Purchase->customer)) {
-					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
-					shopp_redirect(shoppurl(false,'account'));
+			if (shopp_setting('account_system') != "none" && !ShoppCustomer()->logged_in()) {
+				new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
+				$forbidden = true;
+			}
+
+			// File owner authorization check
+			if (ShoppCustomer()->id != $Purchase->customer) {
+				new ShoppError(__('You are not authorized to download the requested file.','Shopp'),'shopp_download_unauthorized');
+				$forbidden = true;
 			}
 
 			// Download limit checking
@@ -179,18 +184,19 @@ class Resources {
 			do_action_ref_array('shopp_download_request',array(&$Purchased));
 		}
 
-		if ($forbidden) {
-			shopp_redirect(shoppurl(false,'account'));
+		if (apply_filters('shopp_download_forbidden',$forbidden)) {
+			shopp_redirect(add_query_arg('downloads','',shoppurl(false,'account')),true,303);
 		}
 
-		if ($Download->download()) {
-			if ($Purchased !== false) {
-				$Purchased->downloads++;
-				$Purchased->save();
-				do_action_ref_array('shopp_download_success',array(&$Purchased));
-			}
-			exit();
-		}
+		// Send the download
+		$download = $Download->download();
+
+		if (is_a($download,'ShoppError')) {
+			// If the result is an error redirect to the account downloads page
+			shopp_redirect(add_query_arg('downloads','',shoppurl(false,'account')),true,303);
+		} else do_action_ref_array('shopp_download_success',array(&$Purchased,$Purchase,$Download));
+
+		exit();
 	}
 
 	/**

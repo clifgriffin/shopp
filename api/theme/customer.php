@@ -29,6 +29,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		'emaillogin' => 'account_login',
 		'loginnamelogin' => 'account_login',
 		'accountlogin' => 'account_login',
+		'errors' => 'errors',
 		'errorsexist' => 'errors_exist',
 		'firstname' => 'first_name',
 		'hasaccount' => 'has_account',
@@ -215,7 +216,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function download ($result, $options, $O) {
-		$download = current($O->downloads);
+		$Storefront = ShoppStorefront();
+		$download = current($Storefront->downloads);
 		$df = get_option('date_format');
 		$properties = unserialize($download->properties);
 		$string = '';
@@ -231,24 +233,25 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 		if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
 		if (array_key_exists('url',$options))
-			$string .= SHOPP_PRETTYURLS?
-				shoppurl("download/$download->dkey"):
-				shoppurl(array('s_dl'=>$download->dkey),'account');
-
+			$string .= shoppurl( SHOPP_PRETTYURLS ?
+									'download/'.$download->dkey :
+									array('src'=>'download','shopp_download'=>$download->dkey),
+									'account');
 		return $string;
 	}
 
 	function downloads ($result, $options, $O) {
-		if (empty($O->downloads)) return false;
-		if (!isset($O->_dowload_looping)) {
-			reset($O->downloads);
-			$O->_dowload_looping = true;
-		} else next($O->downloads);
+		$Storefront = ShoppStorefront();
+		if (empty($Storefront->downloads)) return false;
+		if (!isset($Storefront->_downloads_loop)) {
+			reset($Storefront->downloads);
+			$Storefront->_downloads_loop = true;
+		} else next($Storefront->downloads);
 
-		if (current($O->downloads) !== false) return true;
+		if (current($Storefront->downloads) !== false) return true;
 		else {
-			unset($O->_dowload_looping);
-			reset($O->downloads);
+			unset($Storefront->_downloads_loop);
+			reset($Storefront->downloads);
 			return false;
 		}
 	}
@@ -292,7 +295,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function has_downloads ($result, $options, $O) {
-		return (!empty($O->downloads));
+		$Storefront = ShoppStorefront();
+		return (!empty($Storefront->downloads));
 	}
 
 	function has_info ($result, $options, $O) {
@@ -311,13 +315,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function has_purchases ($result, $options, $O) {
+		$Storefront = ShoppStorefront();
 		$filters = array();
 		if (isset($options['daysago']))
 			$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
 
-		global $Shopp;
-		if (empty($Shopp->purchases)) $O->load_orders($filters);
-		return (!empty($Shopp->purchases));
+		if (empty($Storefront->purchases)) $O->load_orders($filters);
+		return (!empty($Storefront->purchases));
 	}
 
 	function info ($result, $options, $O) {
@@ -375,13 +379,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="loginname" id="login"'.inputattrs($options).' />';
 	}
 
-	function management ($result, $options, $O) {
-		$page = current($O->menus);
-		if (array_key_exists('url',$options)) return shoppurl(array('acct'=>$page->request),'account');
-		if (array_key_exists('action',$options)) return $page->request;
-		return $page->label;
-	}
-
 	function marketing ($result, $options, $O) {
 		if ( isset($options['mode']) && "value" == $options['mode'] ) return $O->marketing;
 		if (!empty($O->marketing) && value_is_true($O->marketing)) $options['checked'] = true;
@@ -393,27 +390,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $input;
 	}
 
-	function menu ($result, $options, $O) {
-		if (!isset($O->_menu_looping)) {
-			reset($O->menus);
-			$O->_menu_looping = true;
-		} else next($O->menus);
-
-		if (current($O->menus) !== false) return true;
-		else {
-			unset($O->_menu_looping);
-			reset($O->menus);
-			return false;
-		}
-	}
 
 	function not_logged_in ($result, $options, $O) {
 		return (! ShoppCustomer()->logged_in() && shopp_setting('account_system') != "none");
 	}
 
 	function order ($result, $options, $O) {
-		global $Shopp;
-		return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
+		return shoppurl(array('orders'=>ShoppPurchase()->id),'account');
 	}
 
 	function order_lookup ($result, $options, $O) {
@@ -475,10 +458,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />';
 	}
 
-	function process ($result, $options, $O) {
-		if (!empty($_GET['acct']) && isset($O->pages[$_GET['acct']])) return $_GET['acct'];
-		return false;
-	}
 
 	function profile_saved ($result, $options, $O) {
 		$saved = (isset($O->_saved) && $O->_saved);
@@ -487,18 +466,18 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function purchases ($result, $options, $O) {
-		global $Shopp;
-		if (!isset($O->_purchaseloop)) {
-			reset($Shopp->purchases);
-			$Shopp->Purchase = current($Shopp->purchases);
-			$O->_purchaseloop = true;
+		$Storefront = ShoppStorefront();
+		if (!isset($Storefront->_purchases_loop)) {
+			reset($Storefront->purchases);
+ 			ShoppPurchase( current($Storefront->purchases) );
+			$Storefront->_purchases_loop = true;
 		} else {
-			$Shopp->Purchase = next($Shopp->purchases);
+			ShoppPurchase( next($Storefront->purchases) );
 		}
 
-		if (current($Shopp->purchases) !== false) return true;
+		if (current($Storefront->purchases) !== false) return true;
 		else {
-			unset($O->_purchaseloop);
+			unset($O->_purchases_loop);
 			return false;
 		}
 	}
@@ -508,7 +487,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 	}
 
-	function recover_url ($result, $options, $O) { return add_query_arg('acct','recover',shoppurl(false,'account')); }
+	function recover_url ($result, $options, $O) { return add_query_arg('recover','',shoppurl(false,'account')); }
 
 	function register ($result, $options, $O) {
 		return '<input type="submit" name="shopp_registration" value="Register" />';
@@ -667,6 +646,32 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function wpuser_created ($result, $options, $O) { return $O->newuser; }
+
+	/*************
+	* DEPRECATED *
+	**************/
+
+	/**
+	* @deprecated Replaced by shopp('storefront','account-menu')
+	**/
+	function menu ($result, $options, $O) {
+		return ShoppCatalogThemeAPI::account_menu($result,$options,$O);
+	}
+
+	/**
+	 * @deprecated No longer necessary
+	 **/
+	function process ($result, $options, $O) {
+		$Storefront = ShoppStorefront();
+		return $Storefront->account['request'];
+	}
+
+	/**
+	 * @deprecated Replaced by shopp('storefront','account-menuitem')
+	 **/
+	function management ($result, $options, $O) {
+		return ShoppCatalogThemeAPI::account_menuitem($result,$options,$O);
+	}
 
 }
 
