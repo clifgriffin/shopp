@@ -31,6 +31,7 @@ class Order {
 	var $paycards = array();		// List of accepted PayCards
 	var $sameship = NULL;			// Flag for using the billing address for shipping
 	var $samebill = NULL;			// Flag for using the shipping address for billing
+	var $guest = NULL;				// Flag for guest checkout
 
 	var $processor = false;			// The payment processor module name
 	var $paymethod = false;			// The selected payment method
@@ -358,14 +359,18 @@ class Order {
 
 		}
 
+		// Update guest checkout flag
+		if (isset($_POST['guest'])) $this->guest = str_true($_POST['guest']);
+		$this->guest = apply_filters('shopp_guest_checkout', $this->guest);
+
 		// Remove invlalid characters from the phone number
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
 
 		if (isset($_POST['data'])) $this->data = $_POST['data'];
 		if (isset($_POST['info'])) $this->Customer->info = $_POST['info'];
 
-		if (empty($this->Customer))
-			$this->Customer = new Customer();
+		if (empty($this->Customer)) $this->Customer = new Customer();
+		else $this->Customer->reset();
 
 		$this->Customer->updates($_POST);
 
@@ -375,9 +380,10 @@ class Order {
 
 		if (empty($this->Billing))
 			$this->Billing = new BillingAddress();
-		// Default the cardtype to the payment method label selected
 
+		// Default the cardtype to the payment method label selected
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
+
 		$ignore = array();
 		if ($_POST['billing']['card'] == substr($this->Billing->card,-4))
 			$ignore[] = 'card';
@@ -401,7 +407,6 @@ class Order {
 					$this->Billing->xcsc[] = $field;
 					$this->Billing->{$field} = $value;
 				}
-
 			}
 		}
 
@@ -722,12 +727,12 @@ class Order {
 
 	function accounts ($Event) {
 
-		// @todo guest checkout
-
 		// WordPress account integration used, customer has no wp user
-		if ('wordpress' == $this->accounts && empty($this->Customer->wpuser)) {
-			if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
-			else $this->Customer->create_wpuser(); // not logged in, create new account
+		if (!$this->guest) {
+			if ('wordpress' == $this->accounts && empty($this->Customer->wpuser)) {
+				if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
+				else $this->Customer->create_wpuser(); // not logged in, create new account
+			}
 		}
 
 		// New customer, save hashed password
@@ -735,7 +740,7 @@ class Order {
 			$this->Customer->id = false;
 			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
 			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
-			if ('shopp' == $this->accounts) $this->Customer->notification();
+			if (!$this->guest && 'shopp' == $this->accounts) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
 		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
 

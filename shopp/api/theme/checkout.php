@@ -54,6 +54,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'firstname' => 'first_name',
 		'function' => 'checkout_function',
 		'gatewayinputs' => 'gateway_inputs',
+		'guest' => 'guest',
 		'hasdata' => 'has_data',
 		'lastname' => 'last_name',
 		'localpayment' => 'local_payment',
@@ -617,6 +618,29 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	function gateway_inputs ($result, $options, $O) { return apply_filters('shopp_checkout_gateway_inputs',false); }
 
+	function guest ($result, $options, $O) {
+		$allowed = array('class','checked','title');
+		$defaults = array(
+			'label' => __('Checkout as a guest','Shopp'),
+			'checked' => 'off'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if ( str_true($O->guest) ||str_true($checked) )
+			$options['checked'] = 'on';
+
+		$_ = array();
+		if (!empty($label))
+			$_[] = '<label for="guest-checkout">';
+		$_[] = '<input type="hidden" name="guest" value="no" />';
+		$_[] = '<input type="checkbox" name="guest" value="yes" id="guest-checkout"'.inputattrs($options,$allowed).' />';
+		if (!empty($label))
+			$_[] = "&nbsp;$label</label>";
+
+		return join('',$_);
+	}
+
 	function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
 	function last_name ($result, $options, $O) {
@@ -894,25 +918,44 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	function receipt ($result, $options, $O) { global $Shopp; if (!empty($Shopp->Purchase->id)) return $Shopp->Purchase->receipt(); }
 
 	function residential_shipping_address ($result, $options, $O) {
-		$label = __("Residential shipping address","Shopp");
-		if (isset($options['label'])) $label = $options['label'];
-		if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
-		$output = '<label for="residential-shipping"><input type="hidden" name="shipping[residential]" value="no" /><input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
-		return $output;
+		$allowed = array('class','checked','title');
+		$defaults = array(
+			'label' => __('Residential shipping address','Shopp'),
+			'checked' => 'on'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if ( ( isset($O->Shipping->residential) && ! str_true($O->Shipping->residential) ) || ! str_true($checked) )
+			$options['checked'] = 'off';
+
+		$_ = array();
+		$_[] = '<label for="residential-shipping">';
+		$_[] = '<input type="hidden" name="shipping[residential]" value="no" />';
+		$_[] = '<input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping"'.inputattrs($options,$allowed).' />';
+		$_[] = "&nbsp;$label</label>";
+
+		return join('',$_);
 	}
 
 	function same_shipping_address ($result, $options, $O) {
-		$label = __("Same shipping address","Shopp");
-		if ( isset($options['label']) ) $label = $options['label'];
-		$checked = ' checked="checked"';
-		if (  	( isset($O->sameship) && ! $O->sameship ) ||
-				( isset($options['checked']) && ! value_is_true($options['checked']) )
-			) {
-				$checked = '';
-		}
+		$allowed = array('class','checked');
+		$defaults = array(
+			'label' => __('Same shipping address','Shopp'),
+			'checked' => 'on'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
 
-		$output = '<label for="same-shipping"><input type="hidden" name="sameshipaddress" value="off" /><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
-		return $output;
+		if ( ! $O->sameship || ! str_true($checked) ) $options['checked'] = 'off';
+
+		$_ = array();
+		$_[] = '<label for="same-shipping">';
+		$_[] = '<input type="hidden" name="sameshipaddress" value="off" />';
+		$_[] = '<input type="checkbox" name="sameshipaddress" value="on" id="same-shipping"'.inputattrs($options,$allowed).' />';
+		$_[] = "&nbsp;$label</label>";
+
+		return join('',$_);
 	}
 
 	function shipping ($result, $options, $O) { return (!empty($O->shipped)); }
