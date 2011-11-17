@@ -107,7 +107,8 @@ jQuery(document).ready(function () {
 		}
 	}).trigger('change',[true]);
 
-	$('#billing-country, .billing-state, #shipping-country, .shipping-state').change(function (e, init) {
+	// Locale Menu
+	$('#billing-country, .billing-state, #shipping-country, .shipping-state').bind('change.localemenu',function (e, init) {
 		var	sameshipping = ! sameship.is('#same-shipping') || sameship.is(':checked'),
 			country = sameshipping ? $('#billing-country').val() : $('#shipping-country').val(),
 			state = sameshipping ? $('.billing-state[disabled!="true"]').val() : $('.shipping-state[disabled!="true"]').val(),
@@ -134,11 +135,11 @@ jQuery(document).ready(function () {
 		if (sameship.is(':checked')) {
 			billFields.removeClass('half');
 			shipFields.hide().find('.required').setDisabled(true);
-			$('#billing-country').trigger('change',[init]);
+			$('#billing-country').trigger('change.localemenu',[init]);
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
-			$('#shipping-country').trigger('change',[init]);
+			$('#shipping-country').trigger('change.localemenu',[init]);
 			if (!init) shipFields.find('input:first').focus();
 		}
 	}).trigger('change',[true])
