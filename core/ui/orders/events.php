@@ -348,8 +348,9 @@ class RefundFailOrderEventRenderer extends FailureOrderEventRender {
 }
 
 class ReviewOrderEventRenderer extends OrderEventRenderer {
+
 	function name () {
-		return __('Review information','Shopp');
+		return __('Payment review','Shopp');
 	}
 
 	function details () {

@@ -10,6 +10,7 @@ jQuery(document).ready(function () {
 		submitLogin = $('#submit-login-checkout'),
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),
+		guest = $('#guest-checkout'),
 		checkoutForm = $('#checkout.shopp'),
 		shipFields = $('#shipping-address-fields'),
 		billFields = $('#billing-address-fields'),
@@ -144,6 +145,22 @@ jQuery(document).ready(function () {
 		}
 	}).trigger('change',[true])
 		.click(function () { $(this).change(); }); // For IE compatibility
+
+	guest.change(function(e) {
+		debuglog('guest toggled');
+		var passwords = checkoutForm.find('input.passwords'),labels = [];
+		$.each(passwords,function () { labels.push('label[for='+$(this).attr('id')+']'); });
+		labels = checkoutForm.find(labels.join(','));
+
+		if (guest.is(':checked')) {
+			passwords.setDisabled(true).hide();
+			labels.hide();
+		} else {
+			passwords.setDisabled(false).show();
+			labels.show();
+		}
+
+	}).trigger('change');
 
 	$('.shopp .shipmethod').change(function () {
 		if ('process' == $('#checkout #shopp-checkout-function').val()) {

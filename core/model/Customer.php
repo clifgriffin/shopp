@@ -11,28 +11,17 @@
  * @subpackage customer
  **/
 
-require("Address.php");
+require('Address.php');
 
 class Customer extends DatabaseObject {
-	static $table = "customer";
+	static $table = 'customer';
 
-	var $login = false;
-	var $info = false;
-	var $newuser = false;
-
-	var $accounts = "none";		// Account system setting
+	var $login = false;			// Login authenticated flag
+	var $info = false;			// Custom customer info fields
+	var $newuser = false;		// New WP user created flag
 	var $loginname = false;		// Account login name
-	var $merchant = "";
-
-	var $pages = array();		// Account pages
-	var $menus = array();		// Account menus
 
 	function __construct ($id=false,$key=false) {
-		global $Shopp;
-
-		$this->accounts = shopp_setting('account_system');
-		$this->merchant = shopp_setting('merchant_email');
-
 		$this->init(self::$table);
 		$this->load($id,$key);
 		if (!empty($this->id)) $this->load_info();
@@ -42,6 +31,10 @@ class Customer extends DatabaseObject {
 
 	function __wakeup () {
 		$this->listeners();
+	}
+
+	function reset () {
+		$this->newuser = false;
 	}
 
 	function listeners () {
@@ -103,32 +96,7 @@ class Customer extends DatabaseObject {
 		}
 	}
 
-	function addpage ($request,$label,$visible=true,$callback=false,$position=0) {
-		$this->pages[$request] = new CustomerAccountPage($request,$label,$callback);
-		if ($visible) {
-			array_splice($this->menus,$position,0,array(&$this->pages[$request]));
-		}
-	}
-
-	function menus () {
-		$this->pages = array();
-		$this->menus = array();
-		$this->addpage('logout',__('Logout','Shopp'));
-		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
-		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
-		$this->addpage('account',__('My Account','Shopp'));
-
-		// Pages with not in menu navigation
-		$this->addpage('order','Order',false,array(&$this,'order'));
-		$this->addpage('recover','Password Recovery',false);
-
-		$request = get_query_var('acct');
-		if ('rp' == $request) $this->reset_password($_GET['key']);
-		if (isset($_POST['recover-login'])) $this->recovery();
-
-		do_action_ref_array('shopp_account_menu',array(&$this));
-	}
-
+	// @todo This needs added to account dashboard management hooks
 	/**
 	 * Management menu controller for the account manager
 	 *
@@ -137,45 +105,45 @@ class Customer extends DatabaseObject {
 	 *
 	 * @return boolean|string output based on the account menu request
 	 **/
-	function management () {
-
-		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']])
-				&& isset($this->pages[$_GET['acct']]->handler)
-				&& is_callable($this->pages[$_GET['acct']]->handler))
-			call_user_func($this->pages[$_GET['acct']]->handler);
-
-		if (!empty($_POST['customer'])) {
-
-			$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-
-			$this->updates($_POST);
-			if (isset($_POST['info'])) $this->info = $_POST['info'];
-
-			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
-				$this->password = wp_hash_password($_POST['password']);
-				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
-				$this->_password_change = true;
-			} else {
-				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
-			}
-			if ( ! empty($_POST['billing']) ) {
-				$this->Billing = new BillingAddress($this->id);
-				$this->Billing->updates($_POST['billing']);
-				$this->Billing->save();
-			}
-
-			if ( ! empty($_POST['shipping']) ) {
-				$this->Shipping = new ShippingAddress($this->id);
-				$this->Shipping->updates($_POST['shipping']);
-				$this->Shipping->save();
-			}
-
-			$this->save();
-			$this->load_info();
-			$this->_saved = true;
-		}
-
-	}
+	// function management () {
+	//
+	// 	if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']])
+	// 			&& isset($this->pages[$_GET['acct']]->handler)
+	// 			&& is_callable($this->pages[$_GET['acct']]->handler))
+	// 		call_user_func($this->pages[$_GET['acct']]->handler);
+	//
+	// 	if (!empty($_POST['customer'])) {
+	//
+	// 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
+	//
+	// 		$this->updates($_POST);
+	// 		if (isset($_POST['info'])) $this->info = $_POST['info'];
+	//
+	// 		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
+	// 			$this->password = wp_hash_password($_POST['password']);
+	// 			if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
+	// 			$this->_password_change = true;
+	// 		} else {
+	// 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
+	// 		}
+	// 		if ( ! empty($_POST['billing']) ) {
+	// 			$this->Billing = new BillingAddress($this->id);
+	// 			$this->Billing->updates($_POST['billing']);
+	// 			$this->Billing->save();
+	// 		}
+	//
+	// 		if ( ! empty($_POST['shipping']) ) {
+	// 			$this->Shipping = new ShippingAddress($this->id);
+	// 			$this->Shipping->updates($_POST['shipping']);
+	// 			$this->Shipping->save();
+	// 		}
+	//
+	// 		$this->save();
+	// 		$this->load_info();
+	// 		$this->_saved = true;
+	// 	}
+	//
+	// }
 
 	/**
 	 * Determines if the customer is logged in, and checks for wordpress login if necessary
