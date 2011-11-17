@@ -30,6 +30,7 @@ class Order {
 	var $payoptions = array();		// List of payment method options
 	var $paycards = array();		// List of accepted PayCards
 	var $sameship = NULL;			// Flag for using the billing address for shipping
+	var $samebill = NULL;			// Flag for using the shipping address for billing
 
 	var $processor = false;			// The payment processor module name
 	var $paymethod = false;			// The selected payment method
@@ -415,12 +416,18 @@ class Order {
 			if (isset($this->Cart->shipping[$this->Shipping->method]))
 				$this->Shipping->option = $this->Cart->shipping[$this->Shipping->method]->name;
 
-			// Override posted shipping updates with billing address
-			if ( isset($_POST['sameshipaddress']) ) {
-				if ( $this->sameship = ( 'on' == $_POST['sameshipaddress'] ) ) {
+			// Override posted shipping updates with billing address, if the same billing address toggle is not used
+			if ( isset($_POST['sameshipaddress'])  && !isset($_POST['samebilladdress'])) {
+				if ( $this->sameship = str_true($_POST['sameshipaddress']) ) {
 					$this->Shipping->updates($_POST['billing']);
 				}
 			}
+			if ( isset($_POST['samebilladdress'])  && !isset($_POST['sameshipaddress'])) {
+				if ( $this->sameship = str_true($_POST['sameshipaddress']) ) {
+					$this->Shipping->updates($_POST['billing']);
+				}
+			}
+
 		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
 
 		$freebie = $this->Cart->orderisfree();
@@ -1222,7 +1229,7 @@ class OrderEvent extends SingletonFramework {
 					WHERE context='$Object->context'
 						AND type='$Object->type'
 						AND parent='$order'
-					ORDER BY created";
+					ORDER BY created,id";
 		return DB::query($query,'array',array($Object,'loader'),'name');
 	}
 
@@ -1293,6 +1300,8 @@ class OrderEventMessage extends MetaObject {
 
 		$action = sanitize_title_with_dashes($this->name);
 
+		new ShoppError(sprintf('%s dispatched.',get_class($this)),false,SHOPP_DEBUG_ERR);
+
 		if (isset($this->gateway)) {
 			$gateway = sanitize_title_with_dashes($this->gateway);
 			do_action_ref_array('shopp_'.$gateway.'_'.$action,array($this));
@@ -1301,7 +1310,6 @@ class OrderEventMessage extends MetaObject {
 		do_action_ref_array('shopp_'.$action.'_order_event',array($this));
 		do_action_ref_array('shopp_order_event',array($this));
 
-		new ShoppError(sprintf('%s dispatched.',get_class($this)),false,SHOPP_DEBUG_ERR);
 
 	}
 
@@ -1783,7 +1791,7 @@ OrderEvent::register('notice','NoticeOrderEvent');
 class ReviewOrderEvent extends OrderEventMessage {
 	var $name = 'review';
 	var $message = array(
-		'type' => '',			// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+		'kind' => '',			// The kind of fraud review: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 		'note' => ''			// The message to log for the order
 	);
 

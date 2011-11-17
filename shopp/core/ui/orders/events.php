@@ -260,6 +260,14 @@ class AuthFailOrderEventRenderer extends FailureOrderEventRender {
 
 }
 
+class SaleOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Payment authorization & capture','Shopp');
+	}
+
+}
+
 class CaptureOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
@@ -276,7 +284,6 @@ class CaptureOrderEventRenderer extends OrderEventRenderer {
 			admin_url('user-edit.php')),$user->user_login
 		);
 	}
-
 
 }
 
