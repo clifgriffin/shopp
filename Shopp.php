@@ -51,6 +51,7 @@ require('core/Framework.php');
 require('core/DB.php');
 require('core/model/Settings.php');
 require('core/model/Error.php');
+require('core/model/Meta.php');
 
 // Load super controllers
 require('core/flow/Flow.php');
@@ -67,7 +68,6 @@ require('core/model/API.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
 
-require('core/model/Meta.php');
 require('core/model/Cart.php');
 require('core/model/Asset.php');
 require('core/model/Catalog.php');
