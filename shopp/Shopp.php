@@ -57,6 +57,7 @@ require('core/flow/Flow.php');
 require('core/flow/Storefront.php');
 require('core/flow/Login.php');
 require('core/flow/Scripts.php');
+require('core/flow/Order.php');
 
 // Load frameworks & Shopp-managed data model objects
 require('core/model/Modules.php');
@@ -67,7 +68,6 @@ require('core/model/Lookup.php');
 require('core/model/Shopping.php');
 
 require('core/model/Meta.php');
-require('core/model/Order.php');
 require('core/model/Cart.php');
 require('core/model/Asset.php');
 require('core/model/Catalog.php');
