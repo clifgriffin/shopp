@@ -1293,13 +1293,13 @@ class OrderEventMessage extends MetaObject {
 
 		$action = sanitize_title_with_dashes($this->name);
 
-		do_action_ref_array('shopp_order_event',array($this));
-		do_action_ref_array('shopp_'.$action.'_order_event',array($this));
-
 		if (isset($this->gateway)) {
 			$gateway = sanitize_title_with_dashes($this->gateway);
 			do_action_ref_array('shopp_'.$gateway.'_'.$action,array($this));
 		}
+
+		do_action_ref_array('shopp_'.$action.'_order_event',array($this));
+		do_action_ref_array('shopp_order_event',array($this));
 
 		new ShoppError(sprintf('%s dispatched.',get_class($this)),false,SHOPP_DEBUG_ERR);
 
