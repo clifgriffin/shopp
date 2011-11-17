@@ -283,9 +283,19 @@ class ProductCollection implements Iterator {
 		// Google Base Namespace
 		// http://www.google.com/support/merchants/bin/answer.py?hl=en&answer=188494
 
+		// Below are Google Base specific attributes
+		// You can use the shopp_rss_item filter hook to add new item attributes or change the existing attributes
+
 		$item['g:id'] = $product->id;
 		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
-		$item['g:condition'] = "new";
+		$item['g:condition'] = 'new';
+		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
+
+		// g:google_product_category - left blank to be valid for feeds to Google Base
+		// This is left to populate through the filter hook as there is no built-in way to identify proper
+		// Google product category values. It could be done through tagging, or more extensively using
+		// a custom Shopp product taxonomy populated with Google product category values.
+		$item['g:google_product_category'] = '';
 
 		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 		if (!empty($price))	{
