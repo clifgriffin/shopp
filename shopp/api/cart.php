@@ -156,6 +156,19 @@ function shopp_cart_item ( $item = false ) {
 
 }
 
+/**
+ * Empty the contents of the cart
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return void
+ **/
+function shopp_cart_empty () {
+	$Order = ShoppOrder();
+	$Order->Cart->contents = array();
+}
+
 // todo: implement shopp_add_cart_item_addon in plugin api
 function shopp_add_cart_item_addon ( $item = false, $addon = false ) {
 	// $Order = ShoppOrder();
