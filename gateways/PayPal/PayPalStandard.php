@@ -195,7 +195,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// check payer_status
 		if ( isset($this->response->payer_status) ) {
 			shopp_add_order_event( $Event->order, 'review', array(
-				'type' => 'event',
+				'kind' => 'payer_status',
 				'note' => $this->response->payer_status
 			));
 		}
@@ -203,7 +203,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// check pending_reason
 		if ( isset($this->response->pending_reason) ) {
 			shopp_add_order_event( $Event->order, 'review', array(
-				'type' => 'event',
+				'kind' => 'pending_reasons',
 				'note' => (
 					in_array( $this->response->pending_reason, array_keys( $this->pending_reasons ) ) ?
 					$this->pending_reasons[$this->response->pending_reason] :
@@ -219,7 +219,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				$eligibility = $this->eligibility[$this->response->protection_eligibility];
 			}
 			shopp_add_order_event( $Event->order, 'review', array(
-				'type' => 'event',
+				'kind' => 'protection_eligibility',
 				'note' => $eligibility
 			));
 		}
@@ -258,7 +258,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( isset($this->response->reason_code) ) {
 			// $this->reversals
 			shopp_add_order_event( $Purchase->order, 'review', array(
-				'type' => 'event',
+				'kind' => 'reason',
 				'note' => (
 					in_array( $this->response->reason_code, array_keys( $this->reversals ) ) ?
 					$this->reversals[$this->response->reason_code] :
@@ -292,7 +292,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( isset($this->response->reason_code) ) {
 			// $this->reversals
 			shopp_add_order_event( $Purchase->id, 'review', array(
-				'type' => 'event',
+				'kind' => 'reason',
 				'note' => (
 					in_array( $this->response->reason_code, array_keys( $this->reversals ) ) ?
 					$this->reversals[$this->response->reason_code] :
@@ -770,7 +770,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			// Review event on transaction type
 			if ( $this->txn_types[$this->response->txn_type] ) {
 				shopp_add_order_event( $Purchase->order, 'review', array(
-					'type' => 'event',
+					'kind' => 'txn_type',
 					'note' => $this->txn_types[$this->response->txn_type]
 				));
 			}

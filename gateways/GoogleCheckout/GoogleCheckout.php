@@ -646,7 +646,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->add_order($Purchase); // tell Google to associate this recurring payment with original order number
 
 			shopp_add_order_event($Purchase->id, 'review', array(
-				'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+				'kind' => 'recurring',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 				'note' => sprintf(__('New recurring payment received with id %s.','Shopp'), $txnid)
 			));
 
@@ -739,17 +739,17 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 
 		shopp_add_order_event($Purchase->id, 'review', array(
-			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'kind' => 'AVS',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 			'note' => ('Y' == $avs ? __('Address verification service approved.', 'Shopp') : __('Address verification service denied.', 'Shopp'))
 		));
 
 		shopp_add_order_event($Purchase->id, 'review', array(
-			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'kind' => 'CVN',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 			'note' => ('M' == $cvn ? __('Credit verification match.', 'Shopp') : __('Credit verification failed.', 'Shopp'))
 		));
 
 		shopp_add_order_event($Purchase->id, 'review', array(
-			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'kind' => 'protection_eligible',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 			'note' => ('true' == $eligible ? __('Eligible for Google protection.', 'Shopp') : __('Not eligible for Google protection.', 'Shopp'))
 		));
 	}
@@ -1067,7 +1067,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		));
 
 		shopp_add_order_event($Purchase->id, 'review', array(
-			'type' => 'event',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
+			'kind' => 'chargeback',	// Fraud review trigger type: AVS (address verification system), CVN (card verification number), FRT (fraud review team)
 			'note' => __('Google Checkout issued a chargeback on this order.', 'Shopp')
 		));
 	}
