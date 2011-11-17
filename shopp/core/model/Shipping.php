@@ -1243,6 +1243,16 @@ interface ShippingPackagingInterface {
 	 **/
 	public function package ();
 
+	/**
+	 * return current package count
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return int count of packages
+	 **/
+	public function count ();
+
 }
 
 /**
