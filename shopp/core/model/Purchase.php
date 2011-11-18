@@ -17,6 +17,7 @@ class Purchase extends DatabaseObject {
 	var $purchased = array();
 	var $columns = array();
 	var $message = array();
+	var $data = array();
 	var $downloads = false;
 
 	// Balances
