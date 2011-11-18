@@ -6,7 +6,7 @@
 
 jQuery(document).ready(function () {
 	var $ = jqnc(),login=false,
-		sameship = $('#same-shipping'),
+		sameaddr = $('.sameaddress'),
 		submitLogin = $('#submit-login-checkout'),
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),
@@ -110,15 +110,15 @@ jQuery(document).ready(function () {
 
 	// Locale Menu
 	$('#billing-country, .billing-state, #shipping-country, .shipping-state').bind('change.localemenu',function (e, init) {
-		var	sameshipping = ! sameship.is('#same-shipping') || sameship.is(':checked'),
-			country = sameshipping ? $('#billing-country').val() : $('#shipping-country').val(),
-			state = sameshipping ? $('.billing-state[disabled!="true"]').val() : $('.shipping-state[disabled!="true"]').val(),
+		var	sameaddress = sameaddr.is(':checked') ? sameaddr.val() : false,
+			country = 'shipping' == sameaddress ? $('#billing-country').val() : $('#shipping-country').val(),
+			state = 'shipping' == sameaddress ? $('.billing-state[disabled!="true"]').val() : $('.shipping-state[disabled!="true"]').val(),
 			id = country+state,
 			options,
 			locale;
 		if ( 	init ||
 				! localeMenu.get(0) ||
-			( 	! sameshipping && ( $(this).is('#billing-country') || $(this).is('.billing-state') ) )
+			( 	! sameaddress && ( $(this).is('#billing-country') || $(this).is('.billing-state') ) )
 			) return;
 		localeMenu.empty().attr('disabled',true);
 		if ( locales && (locale = locales[id]) || (locale = locales[country]) ) {
@@ -132,22 +132,29 @@ jQuery(document).ready(function () {
 		}
 	});
 
-	sameship.change(function(e,init) {
-		if (sameship.is(':checked')) {
-			billFields.removeClass('half');
-			shipFields.hide().find('.required').setDisabled(true);
-			$('#billing-country').trigger('change.localemenu',[init]);
+
+	sameaddr.change(function (e,init) {
+		var refocus = false,
+			bc = $('#billing-country'),
+			sc = $('#shipping-country'),
+			prime = 'billing' == sameaddr.val() ? shipFields : billFields,
+			alt   = 'shipping' == sameaddr.val() ? shipFields : billFields;
+
+		if (sameaddr.is(':checked')) {
+			prime.removeClass('half');
+			alt.hide().find('.required').setDisabled(true);
 		} else {
-			billFields.addClass('half');
-			shipFields.show().find('.disabled').setDisabled(false);
-			$('#shipping-country').trigger('change.localemenu',[init]);
-			if (!init) shipFields.find('input:first').focus();
+			prime.addClass('half');
+			alt.show().find('.disabled').setDisabled(false);
+			if (!init) refocus = true;
 		}
+		if (bc.is(':visible')) bc.trigger('change.localemenu',[init]);
+		if (sc.is(':visible')) sc.trigger('change.localemenu',[init]);
+		if (refocus) alt.find('input:first').focus();
 	}).trigger('change',[true])
-		.click(function () { $(this).change(); }); // For IE compatibility
+			.click(function () { $(this).change(); }); // For IE compatibility;
 
 	guest.change(function(e) {
-		debuglog('guest toggled');
 		var passwords = checkoutForm.find('input.passwords'),labels = [];
 		$.each(passwords,function () { labels.push('label[for='+$(this).attr('id')+']'); });
 		labels = checkoutForm.find(labels.join(','));
