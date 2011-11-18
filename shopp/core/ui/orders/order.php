@@ -53,14 +53,17 @@
 						<?php if (is_array($Item->data) || !empty($Item->sku) || !empty($Item->addons)): ?>
 						<ul>
 						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
-						<?php foreach ($Item->addons->meta as $id => $addon):
-							if ($Purchase->taxing == "inclusive")
-								$addonprice = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
-							else $addonprice = $addon->value->unitprice;
 
-							?>
-							<li><small><?php echo apply_filters('shopp_purchased_addon_name',$addon->name); ?><?php if (!empty($addon->value->sku)) echo apply_filters('shopp_purchased_addon_sku',' [SKU: '.$addon->value->sku.']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice',money($addonprice)); ?></strong></small></li>
-						<?php endforeach; ?>
+						<?php if (isset($Item->addons) && isset($Item->addons->meta)): ?>
+							<?php foreach ((array)$Item->addons->meta as $id => $addon):
+								if ($Purchase->taxing == "inclusive")
+									$addonprice = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
+								else $addonprice = $addon->value->unitprice;
+
+								?>
+								<li><small><?php echo apply_filters('shopp_purchased_addon_name',$addon->name); ?><?php if (!empty($addon->value->sku)) echo apply_filters('shopp_purchased_addon_sku',' [SKU: '.$addon->value->sku.']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice',money($addonprice)); ?></strong></small></li>
+							<?php endforeach; ?>
+						<?php endif; ?>
 						<?php foreach ($Item->data as $name => $value): ?>
 							<li><small><?php echo apply_filters('shopp_purchased_data_name',$name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value',$value); ?></strong></small></li>
 						<?php endforeach; ?>
