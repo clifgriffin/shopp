@@ -29,9 +29,8 @@ class Order {
 	var $data = array();			// Extra/custom order data
 	var $payoptions = array();		// List of payment method options
 	var $paycards = array();		// List of accepted PayCards
-	var $sameship = NULL;			// Flag for using the billing address for shipping
-	var $samebill = NULL;			// Flag for using the shipping address for billing
-	var $guest = NULL;				// Flag for guest checkout
+	var $sameaddr = false;			// Toggle for copying a primary address to the secondary address
+	var $guest = false;				// Flag for guest checkout
 
 	var $processor = false;			// The payment processor module name
 	var $paymethod = false;			// The selected payment method
@@ -421,19 +420,21 @@ class Order {
 			if (isset($this->Cart->shipping[$this->Shipping->method]))
 				$this->Shipping->option = $this->Cart->shipping[$this->Shipping->method]->name;
 
-			// Override posted shipping updates with billing address, if the same billing address toggle is not used
-			if ( isset($_POST['sameshipaddress'])  && !isset($_POST['samebilladdress'])) {
-				if ( $this->sameship = str_true($_POST['sameshipaddress']) ) {
-					$this->Shipping->updates($_POST['billing']);
-				}
-			}
-			if ( isset($_POST['samebilladdress'])  && !isset($_POST['sameshipaddress'])) {
-				if ( $this->sameship = str_true($_POST['sameshipaddress']) ) {
-					$this->Shipping->updates($_POST['billing']);
-				}
-			}
-
 		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
+
+		// Same address handling
+		if ( isset($_POST['sameaddress']) ) {
+			switch (strtolower($_POST['sameaddress'])) {
+				case 'shipping':
+					$this->sameaddr = 'shipping';
+					$this->Shipping->updates($_POST['billing']);
+					break;
+				case 'billing':
+					$this->sameaddr = 'billing';
+					$this->Billing->updates($_POST['shipping']);
+					break;
+			}
+		}
 
 		$freebie = $this->Cart->orderisfree();
 		$estimated = $this->Cart->Totals->total;
@@ -1017,13 +1018,13 @@ class Order {
 			}
 		}
 
-		if (apply_filters('shopp_billing_address_required',(empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4)))
+		if (apply_filters('shopp_billing_address_required',(empty($this->Billing->address) || strlen($this->Billing->address) < 4)))
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
 
-		if (apply_filters('shopp_billing_postcode_required',empty($_POST['billing']['postcode'])))
+		if (apply_filters('shopp_billing_postcode_required',empty($this->Billing->postcode)))
 			return new ShoppError(__('You must enter a valid postal code for your billing information.','Shopp'),'cart_validation');
 
-		if (apply_filters('shopp_billing_country_required',empty($_POST['billing']['country'])))
+		if (apply_filters('shopp_billing_country_required',empty($this->Billing->country)))
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
 
 		// Skip validating payment details for purchases not requiring a

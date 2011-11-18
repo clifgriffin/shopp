@@ -74,6 +74,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'phone' => 'phone',
 		'receipt' => 'receipt',
 		'residentialshippingaddress' => 'residential_shipping_address',
+		'samebillingaddress' => 'same_billing_address',
 		'sameshippingaddress' => 'same_shipping_address',
 		'shipping' => 'shipping',
 		'shippingaddress' => 'shipping_address',
@@ -938,21 +939,35 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
+	function same_billing_address ($result, $options, $O) {
+		$allowed = array('class','checked');
+		$defaults = array(
+			'label' => __('Same billing address','Shopp'),
+			'checked' => 'on',
+			'type' => 'billing'
+		);
+		$options = array_merge($defaults,$options);
+		$options['type'] = 'billing';
+		return self::same_shipping_address($result,$options,$O);
+	}
+
 	function same_shipping_address ($result, $options, $O) {
 		$allowed = array('class','checked');
 		$defaults = array(
 			'label' => __('Same shipping address','Shopp'),
-			'checked' => 'on'
+			'checked' => 'on',
+			'type' => 'shipping'
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if ( ! $O->sameship || ! str_true($checked) ) $options['checked'] = 'off';
+		if ( $O->sameaddress == $type || ! str_true($checked) ) $options['checked'] = 'off';
+		$options['class'] = trim($options['class'].' sameaddress '.$type);
+		$id = "same-address-$type";
 
 		$_ = array();
-		$_[] = '<label for="same-shipping">';
-		$_[] = '<input type="hidden" name="sameshipaddress" value="off" />';
-		$_[] = '<input type="checkbox" name="sameshipaddress" value="on" id="same-shipping"'.inputattrs($options,$allowed).' />';
+		$_[] = '<label for="'.$id.'">';
+		$_[] = '<input type="checkbox" name="sameaddress" value="'.$type.'" id="'.$id.'" '.inputattrs($options,$allowed).' />';
 		$_[] = "&nbsp;$label</label>";
 
 		return join('',$_);
