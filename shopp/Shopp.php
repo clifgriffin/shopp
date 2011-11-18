@@ -325,7 +325,6 @@ class Shopp {
 		);
 
 		add_rewrite_rule($prefix.Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
-		print_r($rules + $wp_rewrite_rules);
 		return $rules + $wp_rewrite_rules;
 	}
 
