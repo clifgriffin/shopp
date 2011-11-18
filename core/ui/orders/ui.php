@@ -253,7 +253,6 @@ function contact_meta_box ($Purchase) {
 		$edituser_url = apply_filters('shopp_order_customer_wpuser_url',$edituser_url);
 	}
 
-
 ?>
 	<p class="customer name"><a href="<?php echo esc_url($customer_url); ?>"><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></a><?php
 		if ($wp_user) echo ' (<a href="'.esc_url($edituser_url).'">'.esc_html($wp_user->user_login).'</a>)';
@@ -272,7 +271,7 @@ function orderdata_meta_box ($Purchase) {
 		if (empty($value)) continue;
 		$classname = 'shopp_orderui_orderdata_'.sanitize_title_with_dashes($name);
 		$listing = '<li class="'.$classname.'"><strong>'.$name.':</strong> <span>';
-		if (strpos($value,"\n")) $listing .= '<textarea name="orderdata['.esc_attr($name).']" readonly="readonly" cols="30" rows="4">'.esc_html($value).'</textarea>';
+		if (is_string($value) && strpos($value,"\n")) $listing .= '<textarea name="orderdata['.esc_attr($name).']" readonly="readonly" cols="30" rows="4">'.esc_html($value).'</textarea>';
 		else $listing .= esc_html($value);
 		$listing .= '</span></li>';
 		$_[] = apply_filters($classname,$listing);
@@ -356,15 +355,15 @@ function notes_meta_box ($Purchase) {
 <div id="notation">
 	<p><label for="notes"><?php _e('New Note','Shopp'); ?>:</label><br />
 		<textarea name="note" id="note" cols="50" rows="10"></textarea></p>
-		<?php do_action('shopp_order_new_note_ui'); ?>
-		<p class="alignright">
-			<button type="button" name="cancel-note" value="cancel" id="cancel-note-button" class="button-secondary"><?php _e('Cancel','Shopp'); ?></button>
-			<button type="submit" name="save-note" value="save" class="button-primary"><?php _e('Save Note','Shopp'); ?></button>
-		</p>
-		<div class="alignright options">
-			<input type="checkbox" name="send-note" id="send-note" value="1">
-			<label for="send-note"><?php _e('Send to customer','Shopp'); ?></label>
-		</div>
+	<?php do_action('shopp_order_new_note_ui'); ?>
+	<p class="alignright">
+		<button type="button" name="cancel-note" value="cancel" id="cancel-note-button" class="button-secondary"><?php _e('Cancel','Shopp'); ?></button>
+		<button type="submit" name="save-note" value="save" class="button-primary"><?php _e('Save Note','Shopp'); ?></button>
+	</p>
+	<div class="alignright options">
+		<input type="checkbox" name="send-note" id="send-note" value="1">
+		<label for="send-note"><?php _e('Send to customer','Shopp'); ?></label>
+	</div>
 </div>
 <p class="alignright" id="add-note">
 	<button type="button" name="add-note" value="add" id="add-note-button" class="button-secondary"><?php _e('Add Note','Shopp'); ?></button></p>
