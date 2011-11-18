@@ -1,8 +1,5 @@
 <?php
-global $Shopp;
-
 function manage_meta_box ($Purchase) {
-	global $Shopp;
 	$Gateway = $Purchase->gateway();
 
 ?>
@@ -231,7 +228,7 @@ function shipto_meta_box ($Purchase) {
 		<?php echo $targets[$Purchase->shipcountry]; ?></address>
 <?php
 }
-if (!empty($Shopp->Purchase->shipaddress))
+if (!empty(ShoppPurchase()->shipaddress))
 	add_meta_box('order-shipto', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function contact_meta_box ($Purchase) {
@@ -279,7 +276,7 @@ function orderdata_meta_box ($Purchase) {
 	$_[] = '</ul>';
 	echo apply_filters('shopp_orderui_orderdata',join("\n",$_));
 }
-if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != ""
+if (!empty(ShoppPurchase()->data) && is_array(ShoppPurchase()->data) && join("",ShoppPurchase()->data) != ""
 		|| apply_filters('shopp_orderui_show_orderdata',false)) {
 			add_meta_box('order-data', __('Details','Shopp').$Admin->boxhelp('order-manager-details'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 		}
@@ -295,7 +292,7 @@ function history_meta_box ($Purchase) {
 	echo '</tbody>';
 	echo '</table>';
 }
-if (count($Shopp->Purchase->events) > 0)
+if (count(ShoppPurchase()->events) > 0)
 	add_meta_box('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function downloads_meta_box ($Purchase) {
@@ -309,7 +306,7 @@ function downloads_meta_box ($Purchase) {
 	</ul>
 <?php
 }
-if ($Shopp->Purchase->downloads !== false)
+if (ShoppPurchase()->downloads !== false)
 	add_meta_box('order-downloads', __('Downloads','Shopp').$Admin->boxhelp('order-manager-downloads'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function notes_meta_box ($Purchase) {
