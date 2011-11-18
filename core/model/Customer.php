@@ -154,7 +154,7 @@ class Customer extends DatabaseObject {
 	 * @return bool true if logged in, false if not logged in
 	 **/
 	function logged_in () {
-		if ( 'wordpress' == $this->accounts ) {
+		if ( 'wordpress' == shopp_setting('account_system') ) {
 			$user = wp_get_current_user();
 			return apply_filters('shopp_customer_login_check', $user->ID == $this->wpuser && $this->login );
 		}

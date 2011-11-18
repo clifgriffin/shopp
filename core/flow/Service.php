@@ -364,7 +364,6 @@ class Service extends AdminController {
 			else
 				$message = 0;
 
-			// @todo add checks for shopp_refunds capability
 			shopp_add_order_event($Purchase->id,'void',array(
 				'txnid' => $Purchase->txnid,
 				'gateway' => $Gateway->module,
