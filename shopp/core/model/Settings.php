@@ -156,7 +156,7 @@ class Settings extends DatabaseObject {
 	function save ($name=false,$value=false) {
 		if (empty($name)) return false;
 		// Update or Insert as needed
-		if ($this->get($name) === false) $this->add($name,$value);
+		if ( is_null($this->get($name)) ) $this->add($name,$value);
 		else $this->update($name,$value);
 	}
 
@@ -185,6 +185,7 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function delete ($name=false) {
+		$null = null;
 		if (empty($name)) return false;
 		$Setting = $this->setting();
 
@@ -193,7 +194,7 @@ class Settings extends DatabaseObject {
 		$where = join(' AND ',$where);
 
 		if (!DB::query("DELETE FROM $this->_table WHERE $where")) return false;
-		if (isset($this->registry[$name])) unset($this->registry[$name]);
+		if (isset($this->registry[$name])) $this->registry[$name] = $null;
 		return true;
 	}
 
@@ -221,7 +222,7 @@ class Settings extends DatabaseObject {
 		// Return false and add an entry to the registry
 		// to avoid repeat database queries
 		$this->registry[$name] = $null;
-		return false;
+		return $this->registry[$name];
 	}
 
 	/**
