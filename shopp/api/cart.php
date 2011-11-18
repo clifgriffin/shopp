@@ -164,7 +164,7 @@ function shopp_cart_item ( $item = false ) {
  *
  * @return void
  **/
-function shopp_cart_empty () {
+function shopp_empty_cart () {
 	$Order = ShoppOrder();
 	$Order->Cart->contents = array();
 }
