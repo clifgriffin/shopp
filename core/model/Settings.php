@@ -221,7 +221,7 @@ class Settings extends DatabaseObject {
 		// Return false and add an entry to the registry
 		// to avoid repeat database queries
 		$this->registry[$name] = $null;
-		return $this->registry[$name];
+		return false;
 	}
 
 	/**
