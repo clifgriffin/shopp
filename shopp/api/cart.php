@@ -23,16 +23,21 @@
  * @param int $quantity (optional default: 1) quantity of product to add
  * @return bool true on success, false on failure
  **/
-function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
+function shopp_add_cart_variant ( $variant = false, $quantity = 1, $key = 'id') {
+	$keys = array('id','optionkey','label','sku');
 	if ( false === $variant ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 	}
-	$Price = new Price( $variant );
+	if (!in_array($key,$keys)) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant key $key invalid.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	}
+	$Price = new Price( $variant, $key);
 	if ( empty($Price->id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product variant $variant invalid.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return shopp_add_cart_product($Price->product, $quantity, $variant);
+
+	return shopp_add_cart_product($Price->product, $quantity, $Price->id);
 }
 
 /**
@@ -47,7 +52,7 @@ function shopp_add_cart_variant ( $variant = false, $quantity = 1 ) {
  * @return bool true on success,
  * false on failure
  **/
-function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = false ) {
+function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = false, $data = array() ) {
 	$Order = ShoppOrder();
 	if ( (int) $quantity < 1 ) $quantity = 1;
 
@@ -71,7 +76,14 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
 		}
 	}
 
-	$added = $Order->Cart->add($quantity, $Product, $variant);
+	if ( !empty($data) ) {
+		if ( !is_array($data)) {
+			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product custom input data must be an array.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			return false;
+		}
+	}
+
+	$added = $Order->Cart->add($quantity, $Product, $variant, false, $data);
 	$Order->Cart->changed(true);
 	$Order->Cart->totals();
 	return $added;
@@ -166,6 +178,7 @@ function shopp_cart_item ( $item = false ) {
  **/
 function shopp_empty_cart () {
 	ShoppOrder()->Cart->clear();
+	ShoppOrder()->Cart->totals();
 }
 
 /**

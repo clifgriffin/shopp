@@ -327,12 +327,14 @@ class ShoppCartItemThemeAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
+		if (!empty($exclude)) $exclude = explode(',',$exclude);
+
 		$classes = '';
 		if (!empty($class)) $classes = ' class="'.$class.'"';
 
 		$result .= $before.'<ul'.$classes.'>';
 		foreach ($O->data as $name => $data) {
-			if (in_array($name,$excludes)) continue;
+			if (in_array($name,$exclude)) continue;
 			if (is_array($data)) $data = join($separator,$data);
 			$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
 		}
