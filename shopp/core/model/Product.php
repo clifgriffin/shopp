@@ -854,6 +854,10 @@ class Product extends WPShoppObject {
 		$table = DatabaseObject::tablename(MetaObject::$table);
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
 
+		// Delete product summary
+		$table = DatabaseObject::tablename(ProductSummary::$table);
+		DB::query("DELETE FROM $table WHERE product='$id'");
+
 		// Delete record
 		DB::query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
