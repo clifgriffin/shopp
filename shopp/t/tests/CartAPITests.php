@@ -18,7 +18,7 @@ class CartAPITests extends ShoppTestCase {
 	function setUp () {
 		parent::setUp();
 		$Order =& ShoppOrder();
-		$Order->Shipping->country = 'US';
+		ShoppOrder()->Shipping->country = 'US';
 	}
 
 	function test_cart_url () {
@@ -30,23 +30,19 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_hasitems () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
 		$this->assertFalse(shopp('cart','hasitems'));
 
-		$Product = new Product(81);
-		$Price = false;
-
-		$Order->Cart->add(1,$Product,$Price,false);
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_add_cart_product($Product->id,1);
 		$this->assertTrue(shopp('cart','hasitems'));
 	}
 
 	function test_cart_totalitems () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$FirstProduct = new Product(81); $FirstPrice = false;
-		$SecondProduct = new Product(82); $SecondPrice = false;
-		$Order->Cart->totals();
+		$FirstProduct =  shopp_product('code-is-poetry-t-shirt','slug'); $FirstPrice = false;
+		$SecondProduct = shopp_product('knowing','slug'); $SecondPrice = false;
+		shopp_empty_cart();
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		shopp('cart','totalitems');
@@ -54,8 +50,8 @@ class CartAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals(0,$actual);
 
-		$Order->Cart->add(1,$FirstProduct,$FirstPrice,false);
-		$Order->Cart->totals();
+		shopp_add_cart_product($FirstProduct->id,1);
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		shopp('cart','totalitems');
@@ -63,8 +59,8 @@ class CartAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals(1,$actual);
 
-		$Order->Cart->add(1,$SecondProduct,$SecondPrice,false);
-		$Order->Cart->totals();
+		shopp_add_cart_product($SecondProduct->id,1);
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		shopp('cart','totalitems');
@@ -72,8 +68,8 @@ class CartAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals(2,$actual);
 
-		$Order->Cart->add(3,$FirstProduct,$FirstPrice,false);
-		$Order->Cart->totals();
+		shopp_add_cart_product($FirstProduct->id,3);
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		shopp('cart','totalitems');
@@ -85,14 +81,14 @@ class CartAPITests extends ShoppTestCase {
 	function test_cart_itemlooping () {
 		global $Shopp;
 		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$FirstProduct = new Product(81); $FirstPrice = false;
-		$Order->Cart->add(1,$FirstProduct,$FirstPrice,false);
+		ShoppOrder()->Cart->clear();
+		$FirstProduct = shopp_product('code-is-poetry-t-shirt','slug'); $FirstPrice = false;
+		ShoppOrder()->Cart->add(1,$FirstProduct,$FirstPrice,false);
 
-		$SecondProduct = new Product(82); $SecondPrice = false;
-		$Order->Cart->add(1,$SecondProduct,$SecondPrice,false);
+		$SecondProduct = shopp_product('knowing','slug'); $SecondPrice = false;
+		ShoppOrder()->Cart->add(1,$SecondProduct,$SecondPrice,false);
 
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		if (shopp('cart','hasitems'))
@@ -104,45 +100,44 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_lastitem () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$FirstProduct = new Product(81); $FirstPrice = false;
-		$Order->Cart->add(1,$FirstProduct,$FirstPrice,false);
+		shopp_empty_cart();
+		$FirstProduct = shopp_product('code-is-poetry-t-shirt','slug');
 
+		shopp_add_cart_product($FirstProduct->id,1);
 		$Item = shopp('cart','lastitem','return=true');
-		$this->assertEquals(81,$Item->product);
+		$this->assertEquals($FirstProduct->name,$Item->name);
 
-		$SecondProduct = new Product(82); $SecondPrice = false;
-		$Order->Cart->add(1,$SecondProduct,$SecondPrice,false);
-
+		$SecondProduct = shopp_product('knowing','slug');
+		shopp_add_cart_product($SecondProduct->id,1);
 		$Item = shopp('cart','lastitem','return=true');
-		$this->assertEquals(82,$Item->product);
+		$this->assertEquals($SecondProduct->name,$Item->name);
 
-		$Order->Cart->add(1,$FirstProduct,$FirstPrice,false);
+		shopp_add_cart_product($FirstProduct->id,1);
 		$Item = shopp('cart','lastitem','return=true');
-		$this->assertEquals(81,$Item->product);
+		$this->assertEquals($FirstProduct->name,$Item->name);
 	}
 
 	function test_cart_haspromos () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_empty_cart();
+
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_add_cart_product($Product->id,1);
 
 		$this->assertFalse(shopp('cart','haspromos'));
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 		$this->assertTrue(shopp('cart','haspromos'));
 	}
 
 	function test_cart_totalpromos () {
+		shopp_set_setting('promo_limit',0);
+
 		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		ShoppOrder()->Cart->add(1,$Product,$Price,false);
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		shopp('cart','totalpromos');
@@ -151,8 +146,8 @@ class CartAPITests extends ShoppTestCase {
 
 		$this->assertEquals(0,$actual);
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 		ob_start();
 		shopp('cart','totalpromos');
 		$actual = ob_get_contents();
@@ -161,18 +156,19 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_promo_name () {
-		$Order =& ShoppOrder();
+		shopp_set_setting('promo_limit',0);
+		shopp_empty_cart();
 
-		$Order->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		ShoppOrder()->Cart->add(1,$Product,$Price,false);
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
+
 		$_REQUEST['promocode'] = '3DollarsOff';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		if (shopp('cart','haspromos'))
@@ -187,16 +183,16 @@ class CartAPITests extends ShoppTestCase {
 	function test_cart_promo_discount () {
 		$Order =& ShoppOrder();
 
-		$Order->Cart->clear();
+		ShoppOrder()->Cart->clear();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		ShoppOrder()->Cart->add(1,$Product,$Price,false);
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 		$_REQUEST['promocode'] = '3DollarsOff';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 
 		ob_start();
 		if (shopp('cart','haspromos'))
@@ -281,48 +277,70 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_hasdiscount () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
+		shopp_empty_cart();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_add_cart_product($Product->id,1);
+
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 
 		$this->assertTrue(shopp('cart','hasdiscount'));
 	}
 
 	function test_cart_discount () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		shopp_empty_cart();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_add_cart_product($Product->id,1);
+
+		shopp_add_cart_promocode('2percent');
 
 		ob_start();
 		shopp('cart','discount');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('$1.28',$actual);
+
+		$expected = array(
+			'tag' => 'span',
+			'attributes' => array('class' => 'shopp-cart cart-discount'),
+			'content' => '$0.18'
+		);
+		$this->assertTag($expected,$actual,$actual,true);
+		$this->assertValidMarkup($actual);
+
+
+		shopp_add_cart_promocode('3DollarsOff');
+
+		ob_start();
+		shopp('cart','discount');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$expected = array(
+			'tag' => 'span',
+			'attributes' => array('class' => 'shopp-cart cart-discount'),
+			'content' => '$3.18'
+		);
+		$this->assertTag($expected,$actual,$actual,true);
+		$this->assertValidMarkup($actual);
+
 	}
 
 	function test_cart_promosavailable () {
 		global $Shopp;
 		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		ShoppOrder()->Cart->add(1,$Product,$Price,false);
+		ShoppOrder()->Cart->totals();
 
 		$this->assertTrue(shopp('cart','promos-available'));
 		shopp_set_setting('promo_limit', 1);
 		$this->assertTrue(shopp('cart','promos-available'));
 
 		$_REQUEST['promocode'] = '2percent';
-		$Order->Cart->request();
-		$Order->Cart->totals();
+		ShoppOrder()->Cart->request();
+		ShoppOrder()->Cart->totals();
 
 		$this->assertFalse(shopp('cart','promos-available'));
 
@@ -330,7 +348,7 @@ class CartAPITests extends ShoppTestCase {
 
 	function test_cart_promocode () {
 		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		ShoppOrder()->Cart->clear();
 
 		ob_start();
 		shopp('cart','promo-code');
@@ -353,15 +371,15 @@ class CartAPITests extends ShoppTestCase {
 
 	function test_cart_hasshippingmethods () {
 		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		ShoppOrder()->Cart->clear();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		ShoppOrder()->Cart->add(1,$Product,$Price,false);
+		ShoppOrder()->Cart->totals();
 
-		$Order->Cart->shipping = array();
+		ShoppOrder()->Cart->shipping = array();
 		$this->assertFalse(shopp('cart','has-shipping-methods'));
-		$Order->Cart->shipping['Test'] = array (
+		ShoppOrder()->Cart->shipping['Test'] = array (
             'name' => 'Test',
             'delivery' => 'prompt',
             'method' => 'FlatRates::order',
@@ -374,43 +392,37 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_needsshipped () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_empty_cart();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_add_cart_product($Product->id,1);
+
 		$this->assertTrue(shopp('cart','needs-shipped'));
 	}
 
 	function test_cart_hasshipcosts () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
 		$this->assertTrue(shopp('cart','has-ship-costs'));
 	}
 
 	function test_cart_needsshippingestimates () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug');
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+
 		$this->assertTrue(shopp('cart','needs-shipping-estimates'));
 	}
 
 	function test_cart_shippingestimates () {
-		global $Shopp;
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_empty_cart();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		shopp_add_cart_product($Product->id,1);
+		shopp_set_setting('target_markets', array('US' => 'USA','UK' => 'United Kingdom'));
 
 		ob_start();
 		shopp('cart','shipping-estimates');
@@ -421,7 +433,7 @@ class CartAPITests extends ShoppTestCase {
 			'tag' => 'select',
 			'attributes' => array('name' => 'shipping[country]','id' => 'shipping-country')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 
 		shopp_set_setting('target_markets', array('US' => 'USA'));
 		ob_start();
@@ -433,7 +445,7 @@ class CartAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'shipping[country]','id' => 'shipping-country')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 
 		ob_start();
 		shopp('cart','shipping-estimates','postcode=on');
@@ -444,19 +456,16 @@ class CartAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('name' => 'shipping[postcode]','id' => 'shipping-postcode')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 
 		$this->assertValidMarkup($actual);
 
 	}
 
 	function test_cart_subtotal () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_empty_cart();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		shopp_add_cart_product($Product->id,1);
 
 		ob_start();
 		shopp('cart','subtotal');
@@ -465,21 +474,17 @@ class CartAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'span',
-			'attributes' => array('class' => 'shopp_cart_subtotal'),
-			'content' => '$63.86'
+			'attributes' => array('class' => 'shopp-cart cart-subtotal'),
+			'content' => '$9.01'
 		);
-		$this->assertTag($expected,$actual,'',true);
-
+		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
 	}
 
 	function test_cart_shipping () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		shopp_empty_cart();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		shopp_add_cart_product($Product->id,1);
 
 		ob_start();
 		shopp('cart','shipping');
@@ -488,25 +493,23 @@ class CartAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'span',
-			'attributes' => array('class' => 'shopp_cart_shipping'),
+			'attributes' => array('class' => 'shopp-cart cart-shipping'),
 			'content' => '$3.00'
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 
 		$this->assertValidMarkup($actual);
 	}
 
 	function test_cart_hastaxes () {
-		$this->assertTrue(shopp('cart','has-taxes'));
+		$this->assertFalse(shopp('cart','has-taxes'));
 	}
 
 	function test_cart_tax () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		shopp_add_cart_product($Product->id,1);
 
 		ob_start();
 		shopp('cart','tax');
@@ -515,37 +518,38 @@ class CartAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'span',
-			'attributes' => array('class' => 'shopp_cart_tax'),
-			'content' => '$9.58'
+			'attributes' => array('class' => 'shopp-cart cart-tax'),
+			'content' => '$0.00'
 		);
-		$this->assertTag($expected,$actual,'',true);
 
+		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
 	}
 
 	function test_cart_total () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-		// print_r($Order);
+		shopp_empty_cart();
 
-		$Product = new Product(81); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		$Product = shopp_product('code-is-poetry-t-shirt','slug'); $Price = false;
+		shopp_add_cart_product($Product->id,1);
 
-		// print_r($Order->Cart->totals());
+		ob_start();
+		shopp('cart','total','number=1');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('12.01',$actual);
+
 		ob_start();
 		shopp('cart','total');
 		$actual = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('76.44',$Order->Cart->Totals->total);
-
 		$expected = array(
 			'tag' => 'span',
-			'attributes' => array('class' => 'shopp_cart_total'),
-			'content' => '$76.44'
+			'attributes' => array('class' => 'shopp-cart cart-total'),
+			'content' => '$12.01'
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 
 		$this->assertValidMarkup($actual);
 	}
