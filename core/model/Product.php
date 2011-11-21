@@ -34,7 +34,7 @@ class Product extends WPShoppObject {
 	var $meta = array();
 	var $max = array();
 	var $min = array();
-	var $onsale = false;
+	var $sale = false;
 	var $outofstock = false;
 	var $variants = 'off';
 	var $addons = 'off';
@@ -176,6 +176,9 @@ class Product extends WPShoppObject {
 	 **/
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
+
+		// Load in single product load contexts when the summary has not already been loaded
+		if (!empty($this->id) && !isset($this->summed)) $this->load_summary($ids);
 
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
@@ -638,7 +641,7 @@ class Product extends WPShoppObject {
 					foreach ($minmax as $m) {
 						$attr = $this->$m;
 						foreach (ProductSummary::$_ranges as $name)
-							$ranges[] = (float)$attr[$name];
+							if (isset($attr[$name])) $ranges[] = (float)$attr[$name];
 					}
 					break;
 				case 'taxed':
@@ -660,6 +663,7 @@ class Product extends WPShoppObject {
 			}
 		}
 		$checksum = md5($checksum);
+
 		if ($checksum == $this->checksum) return;
 
 		$Summary->copydata($this);
@@ -971,11 +975,23 @@ class ProductSummary extends DatabaseObject {
 	}
 
 	function save () {
-		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $this->modified) )
-			$this->modified = DB::mktime($this->modified);
+		$data = DB::prepare($this,$this->_map);
 
-		$save = ( ! $this->modified ) ? 'insert' : 'update';
-		parent::save( $save );
+		$id = $this->{$this->_key};
+		if (!empty($this->_map)) {
+			$remap = array_flip($this->_map);
+			if (isset($remap[$this->_key]))
+				$id = $this->{$remap[$this->_key]};
+		}
+
+		// Insert new record
+		$data['modified'] = "'".current_time('mysql')."'";
+		$dataset = $this->dataset($data);
+		$query = "INSERT $this->_table SET $dataset ON DUPLICATE KEY UPDATE $dataset";
+		$id = DB::query($query);
+		do_action_ref_array('shopp_save_productsummary', array(&$this));
+		return $id;
+
 	}
 
 } // END class ProductSummary
