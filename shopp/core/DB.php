@@ -742,12 +742,10 @@ abstract class DatabaseObject implements Iterator {
 	 * @since 1.0
 	 * @version 1.2
 	 *
-	 * @param string $op (optional) Force DB operation of either INSERT or UPDATE
 	 * @return boolean|int Returns true when UPDATEs are successful; returns an integer with the record ID
 	 **/
-	function save ($op='update') {
+	function save () {
 		$data = DB::prepare($this,$this->_map);
-		$op = strtolower($op);
 
 		$id = $this->{$this->_key};
 		if (!empty($this->_map)) {
@@ -756,7 +754,7 @@ abstract class DatabaseObject implements Iterator {
 				$id = $this->{$remap[$this->_key]};
 		}
 
-		if (empty($id) || $op != 'update') {
+		if (empty($id)) {
 			// Insert new record
 			if (isset($data['created'])) $data['created'] = "'".current_time('mysql')."'";
 			if (isset($data['modified'])) $data['modified'] = "'".current_time('mysql')."'";
@@ -1022,8 +1020,8 @@ class WPDatabaseObject extends DatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function save ($op='update') {
-		parent::save($op);
+	function save () {
+		parent::save();
 		do_action('save_post',$this->id,get_post($this->id));
 	}
 
