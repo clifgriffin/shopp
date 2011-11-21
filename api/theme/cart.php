@@ -75,17 +75,32 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	function _cart ($result, $options, $property, $O) {
-		$moneys = array('subtotal','shipping','tax','total');
+		// Passthru for non-monetary results
+		$monetary = array('discount','subtotal','shipping','tax','total');
+		if (!in_array($property,$monetary) || !is_numeric($result)) return $result;
 
-		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		if (in_array($property,$moneys) && is_numeric($result)) {
-			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
-			return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
-		}
+		// @deprecated currency parameter
+		if (isset($options['currency'])) $options['money'] = $options['currency'];
+		// @deprecated wrapper parameter
+		if (isset($options['wrapper'])) $options['wrap'] = $options['wrapper'];
+
+		$defaults = array(
+			'wrap' => 'on',
+			'money' => 'on',
+			'number' => false,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+
+		if ( str_true($number) ) return $result;
+		if ( str_true($money)  ) $result = money($result);
+		if ( str_true($wrap)   ) return '<span class="shopp-cart cart-'.strtolower($property).'">'.$result.'</span>';
+
 		return $result;
 	}
 
-	function discount ($result, $options, $O) { return money($O->Totals->discount); }
+	function discount ($result, $options, $O) { return $O->Totals->discount; }
 
 	function discounts ($result, $options, $O) {
 		if (!isset($O->_promo_looping)) {
@@ -151,11 +166,10 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function has_shipped ($result, $options, $O) { return $O->shipped();	}
 
 	function has_shipping_methods ($result, $options, $O) {
-		return apply_filters(
-					'shopp_shipping_hasestimates',
-					(!empty($O->shipping) && !$O->noshipping),
-					$O->shipping
-				);
+		return apply_filters('shopp_shipping_hasestimates',
+							( shopp_setting_enabled('shipping') && !empty($O->shipping) ),
+							$O->shipping
+		);
 	}
 
 	function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
@@ -179,8 +193,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
 	function needs_shipping_estimates ($result, $options, $O) {
-		$markets = shopp_setting('target_markets');
-		return (!empty($O->shipped) && !$O->noshipping && ($O->showpostcode || count($markets) > 1));
+		// Shipping must be enabled, without free shipping and shipped items must be present in the cart
+		return ( shopp_setting_enabled('shipping') && !( $O->freeship && empty($O->shipped) ) );
 	}
 
 	function promocode ($result, $options, $O) {
@@ -353,15 +367,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
 
-	function tax ($result, $options, $O) {
-		if ($O->Totals->tax > 0) {
-			if (isset($options['label'])) {
-				$options['currency'] = "false";
-				$result = $options['label'];
-			} else $result = $O->Totals->tax;
-		} else $options['currency'] = "false";
-		return $result;
-	}
+	function tax ($result, $options, $O) { return $O->Totals->tax; }
 
 	function total ($result, $options, $O) { return $O->Totals->total; }
 
@@ -369,7 +375,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 	return $O->Totals->quantity;
 	}
 
-	function totalpromos ($result, $options, $O) { return count($O->discounts); }
+	function total_promos ($result, $options, $O) { return count($O->discounts); }
 
 	function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');

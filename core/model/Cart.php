@@ -12,7 +12,7 @@
  * @subpackage cart
  **/
 
-require("Item.php");
+require('Item.php');
 
 class Cart {
 
@@ -20,6 +20,7 @@ class Cart {
 	var $contents = array();	// The contents (Items) of the cart
 	var $shipped = array();		// Reference list of shipped Items
 	var $downloads = array();	// Reference list of digital Items
+	var $recurring = array();	// Reference list of recurring Items
 	var $discounts = array();	// List of promotional discounts applied
 	var $promocodes = array();	// List of promotional codes applied
 	var $shipping = array();	// List of shipping options
@@ -30,7 +31,6 @@ class Cart {
 
 	var $freeship = false;
 	var $showpostcode = false;	// Flag to show postcode field in shipping estimator
-	var $noshipping = false;	// Shipping calculates disabled
 
 	// Internal properties
 	var $changed = false;		// Flag when Cart updates and needs retotaled
@@ -1056,7 +1056,6 @@ class CartShipping {
 
 		$this->showpostcode = $Shopp->Shipping->postcodes;
 
-		$this->disabled = $this->Cart->noshipping = (shopp_setting('shipping') == "off");
 		$this->handling = shopp_setting('order_shipfee');
 		$this->realtime = $Shopp->Shipping->realtime;
 
@@ -1064,7 +1063,7 @@ class CartShipping {
 
 	function status () {
 		// If shipping is disabled, bail
-		if ($this->disabled) return false;
+		if (!shopp_setting_enabled('shipping')) return false;
 		// If no shipped items, bail
 		if (!$this->Cart->shipped()) return false;
 		// If the cart is flagged for free shipping bail

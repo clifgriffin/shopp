@@ -165,8 +165,27 @@ function shopp_cart_item ( $item = false ) {
  * @return void
  **/
 function shopp_empty_cart () {
-	$Order = ShoppOrder();
-	$Order->Cart->contents = array();
+	ShoppOrder()->Cart->clear();
+}
+
+/**
+ * Apply a promocode to the cart
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $code The promotion code to apply
+ * @return void
+ **/
+function shopp_add_cart_promocode ($code = false) {
+	if ( false === $code || empty($code) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing code parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	}
+
+	$Cart = ShoppOrder()->Cart;
+	$Cart->promocode = esc_attr($code);
+	$Cart->changed(true);
+	$Cart->totals();
 }
 
 // todo: implement shopp_add_cart_item_addon in plugin api

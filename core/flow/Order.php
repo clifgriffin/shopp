@@ -1117,7 +1117,7 @@ class Order {
 
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
-		if (!empty($this->Cart->shipped) && !$this->Cart->noshipping) {
+		if (!empty($this->Cart->shipped) && !shopp_setting_enabled('shipping')) {
 			if (empty($Shipping->address))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
 			if (empty($Shipping->country))
