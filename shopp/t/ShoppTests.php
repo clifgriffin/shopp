@@ -56,9 +56,9 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		// $Shopp->Catalog = false;
 		// $Shopp->Category = false;
 		// $Shopp->Product = false;
-		if (!is_null($this->_old_handler)) {
-			restore_error_handler();
-		}
+		// if (!is_null($this->_old_handler)) {
+		// 	restore_error_handler();
+		// }
 	}
 
 	function assertValidMarkup ($string) {
