@@ -4,6 +4,15 @@
 * CartDevAPITests - cart dev api test suite
 */
 class CartDevAPITests extends ShoppTestCase {
+	function setUp () {
+		shopp_set_setting('tax_shipping', 'on');
+	}
+
+	function test_shopp_add_empty_cart () {
+		shopp_empty_cart();
+		$this->AssertTrue(empty(ShoppOrder()->Cart->contents));
+	}
+
 	function test_shopp_add_cart_product () {
 		$Product = shopp_product('1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name');
 		shopp_add_cart_product($Product->id, 2);
@@ -20,10 +29,10 @@ class CartDevAPITests extends ShoppTestCase {
 		$this->AssertEquals(88, $item->total);
 
 		$Totals = ShoppOrder()->Cart->Totals;
-
 		$this->AssertEquals(88, $Totals->subtotal);
 		$this->AssertEquals(3, $Totals->shipping);
-		$this->AssertEquals(91, $Totals->total);
+		$this->AssertEquals(9.1, $Totals->tax);
+		$this->AssertEquals(91 + 9.1, $Totals->total);
 
 		$Product = shopp_product('Aion', 'name');
 		shopp_add_cart_product($Product->id, 1);
@@ -44,7 +53,8 @@ class CartDevAPITests extends ShoppTestCase {
 
 		$this->AssertEquals(88+49.82, $Totals->subtotal);
 		$this->AssertEquals(3, $Totals->shipping);
-		$this->AssertEquals(91+49.82, $Totals->total);
+		$this->AssertEquals(9.1+4.982, $Totals->tax);
+		$this->AssertEquals(91+49.82+9.1+4.98, $Totals->total);
 	}
 
 	// this test will fail if the above shopp_add_cart_product test does not run
@@ -87,7 +97,8 @@ class CartDevAPITests extends ShoppTestCase {
 
 		$this->AssertEquals(88, $Totals->subtotal);
 		$this->AssertEquals(3, $Totals->shipping);
-		$this->AssertEquals(91, $Totals->total);
+		$this->AssertEquals(9.1, $Totals->tax);
+		$this->AssertEquals(91+9.1, $Totals->total);
 
 		shopp_rmv_cart_item(0);
 		$Totals = ShoppOrder()->Cart->Totals;
@@ -113,7 +124,11 @@ class CartDevAPITests extends ShoppTestCase {
 		$this->AssertEquals(9.01, $item->unitprice);
 		$this->AssertEquals(9.01, $item->total);
 
+		foreach( shopp_cart_items() as $i => $item ) {
+			shopp_rmv_cart_item($i);
+		}
 	}
+
 }
 
 ?>
