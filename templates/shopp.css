@@ -164,7 +164,7 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp #shipping-methods li { margin-top: 5px; }
 #shopp #shipping-methods input { margin-left: -16px; }
 
-#shopp #errors { color: #990000; }
+#shopp .shopp-errors { color: #990000; }
 #shopp input.error { background: #ffdddd; }
 #shopp label.error { color: #990000; font-weight: bold; }
 
