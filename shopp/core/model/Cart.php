@@ -735,7 +735,7 @@ class CartDiscounts {
 						$this->Cart->contents[$id]->retotal();
 						if ( $this->Cart->contents[$id]->discounts ) $Discount->applied += $this->Cart->contents[$id]->discounts; // total line item discount
 					}
-					$sum[$id] = $this->Cart->contents[$id]->discount;
+					$sum[$id] = $this->Cart->contents[$id]->discounts;
 				}
 			} else {
 				$sum[] = $Discount->applied;
