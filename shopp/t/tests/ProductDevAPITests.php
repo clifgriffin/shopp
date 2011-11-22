@@ -6,7 +6,8 @@ class ProductDevAPITests extends ShoppTestCase
 {
 
 	function test_shopp_add_product () {
-		global $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		if ( ! empty($Product->id) ) $Product->delete();
 
 		$data = array(
 			'name' => "St. John's Bay® Color Block Windbreaker",
@@ -65,9 +66,8 @@ class ProductDevAPITests extends ShoppTestCase
 		);
 
 		$Product = shopp_add_product($data);
-		$StJohnBayProduct = $Product->id;
-
-		$this->AssertEquals('St. John\'s Bay® Color Block Windbreaker',$Product->name);
+		if(SHOPP_DEBUG) new ShoppError('windbreaker id: '.$Product->id,false,SHOPP_DEBUG_ERR);
+		$this->AssertEquals('St. John\'s Bay® Color Block Windbreaker', $Product->name);
 		$this->AssertEquals('This water-repellent windbreaker offers lightweight protection on those gusty days.',$Product->summary);
 		$this->AssertEquals('on', $Product->variants);
 		$this->AssertEquals('on', $Product->addons);
@@ -125,7 +125,7 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product () {
-		$Product = shopp_product( 107 );
+		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
 		$this->AssertEquals(1, count($Product->prices));
 		$Price = reset($Product->prices);
 		$this->AssertEquals('product', $Price->context);
@@ -141,23 +141,26 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_publish () {
-		shopp_product_publish ( 107, false );
-		$Product = shopp_product( 107 );
+		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
+		shopp_product_publish ( $Product->id, false );
+		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
+
 		$this->AssertEquals('draft', $Product->status);
 
-		shopp_product_publish ( 107, true, mktime( 12, 0, 0, 12, 1, 2011) );
-		$Product = shopp_product( 107 );
+		shopp_product_publish ( $Product->id, true, mktime( 12, 0, 0, 12, 1, 2011) );
+		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
 		$this->AssertEquals('future', $Product->status);
 		$this->AssertEquals($Product->publish, mktime( 12, 0, 0, 12, 1, 2011));
 
-		shopp_product_publish ( 107, true );
-		$Product = shopp_product( 107 );
+		shopp_product_publish ( $Product->id, true );
+		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
 		$this->AssertEquals('publish', $Product->status);
 		$this->assertTrue(time() >= $Product->publish);
 	}
 
 	function test_shopp_product_specs () {
-		$specs = shopp_product_specs( 121 );
+		$Product = shopp_product('Her Personalized Heart Class Ring', 'name');
+		$specs = shopp_product_specs( $Product->id );
 		$this->assertTrue(in_array('Model No.', array_keys($specs)));
 		$this->assertTrue(in_array('Gender', array_keys($specs)));
 		$this->AssertEquals(116, $specs['Model No.']->value);
@@ -165,7 +168,8 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variants () {
-		$variations = shopp_product_variants(70);
+		$Product = shopp_product('Bones - Season 4', 'name');
+		$variations = shopp_product_variants($Product->id);
 
 		$this->assertEquals(2, count($variations));
 		$Price = reset($variations);
@@ -185,10 +189,11 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_addons () {
-		$addons = shopp_product_addons(130);
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+
+		$addons = shopp_product_addons($Product->id);
 		$testing = array (
-		'id' => 302,
-	        'product' => 130,
+	        'product' => $Product->id,
 	        'options' => 1,
 	        'optionkey' => 7001,
 	        'label' => 'Embroidered',
@@ -202,9 +207,15 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variant () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+
+		$product = $Product->id;
 		$Price = shopp_product_variant(array( 'product' => $product, 'option' => array('Size'=>'medium', 'Color'=>'Navy Baby Solid')), 'variant');
+		$this->AssertEquals(79754, $Price->optionkey);
+		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
+		$this->AssertEquals('variation', $Price->context);
+
+		$Price = shopp_product_variant($Price->id); // test load by id
 		$this->AssertEquals(79754, $Price->optionkey);
 		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
 		$this->AssertEquals('variation', $Price->context);
@@ -218,24 +229,19 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals(42, $Price->id);
 		$this->AssertEquals('Price & Delivery', $Price->label);
 		$this->AssertEquals('product', $Price->context);
-
-		$Price = shopp_product_variant(258);
-		$this->AssertEquals(79754, $Price->optionkey);
-		$this->AssertEquals('medium, Navy Baby Solid', $Price->label);
-		$this->AssertEquals('variation', $Price->context);
-
 	}
 
 	function test_shopp_product_addon () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 		$Price = shopp_product_addon(array( 'product' => $product, 'option' => array('Special' => 'Embroidered') ) );
 		$this->AssertEquals(7001, $Price->optionkey);
 		$this->AssertEquals('Embroidered', $Price->label);
 		$this->AssertEquals('addon', $Price->context);
 
+		$id = $Price->id;
 		unset($Price);
-		$Price = shopp_product_addon(302);
+		$Price = shopp_product_addon($id); // test load by id
 		$this->AssertEquals(7001, $Price->optionkey);
 		$this->AssertEquals('Embroidered', $Price->label);
 		$this->AssertEquals('addon', $Price->context);
@@ -243,8 +249,8 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variant_options () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		$options = shopp_product_variant_options($product);
 		$this->AssertEquals('a:2:{s:4:"Size";a:9:{i:0;s:6:"medium";i:1;s:5:"large";i:2;s:7:"x-large";i:3;s:5:"small";i:4;s:8:"xx-large";i:5;s:10:"large-tall";i:6;s:12:"x-large tall";i:7;s:13:"2x-large tall";i:8;s:8:"2x-large";}s:5:"Color";a:5:{i:0;s:18:"Black/Grey Colorbi";i:1;s:15:"Navy Baby Solid";i:2;s:18:"Red/Iron Colorbloc";i:3;s:10:"Iron Solid";i:4;s:17:"Dark Avocado Soil";}}',
@@ -252,32 +258,31 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_addon_options () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		$addon_options = shopp_product_addon_options ( $product );
 		$this->AssertEquals('a:1:{s:7:"Special";a:1:{i:0;s:11:"Embroidered";}}', serialize($addon_options));
 	}
 
 	function test_shopp_product_add_categories () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		$category = shopp_add_product_category ( 'Jackets', "Men's Jackets", 5 );
 		$this->assertTrue(shopp_product_add_categories($product, array($category)));
-		$this->AssertEquals(62, $category);
 
 		$Product = shopp_product($product);
 
-		$this->assertTrue(isset($Product->categories[62]));
-		$this->AssertEquals('jackets', $Product->categories[62]->slug);
-		$this->AssertEquals('Jackets', $Product->categories[62]->name);
-		$this->AssertEquals("Men's Jackets", $Product->categories[62]->description);
+		$this->assertTrue(isset($Product->categories[$category]));
+		$this->AssertEquals('jackets', $Product->categories[$category]->slug);
+		$this->AssertEquals('Jackets', $Product->categories[$category]->name);
+		$this->AssertEquals("Men's Jackets", $Product->categories[$category]->description);
 	}
 
 	function test_shopp_product_add_tags () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		$tag = shopp_add_product_tag ( 'Waterproof' );
 		$tag2 = shopp_add_product_tag ( 'Fashionable' );
@@ -289,8 +294,8 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_set_specs () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		shopp_product_rmv_spec($product, 'pockets');
 		shopp_product_rmv_spec($product, 'drawstring');
@@ -311,8 +316,8 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_add_terms () {
-		global $StJohnBayProduct;
-		$product = $StJohnBayProduct;
+		$Product = shopp_product("St. John's Bay® Color Block Windbreaker", 'name');
+		$product = $Product->id;
 
 		shopp_register_taxonomy('brand', array(
 	        'hierarchical' => true
