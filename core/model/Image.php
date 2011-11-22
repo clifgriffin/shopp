@@ -58,9 +58,11 @@ class ImageProcessor {
 			if (!is_array($rgb)) $rgb = $white;
 
 		} else { // Sample from the corner pixels
-			$topleft = ImageColorAt($this->src->image,0,0);
-			$bottomright = ImageColorAt($this->src->image,$this->src->width,$this->src->height);
-			if ($topleft == $bottomright) $rgb = $this->hexrgb($topleft);
+			if ($this->src->image) {
+				$topleft = ImageColorAt($this->src->image,0,0);
+				$bottomright = ImageColorAt($this->src->image,$this->src->width,$this->src->height);
+				if ($topleft == $bottomright) $rgb = $this->hexrgb($topleft);
+			}
 			if (!is_array($rgb)) $rgb = $white;
 		}
 
