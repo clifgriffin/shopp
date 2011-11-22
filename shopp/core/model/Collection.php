@@ -698,6 +698,7 @@ class ProductCategory extends ProductTaxonomy {
 		if (isset($Storefront->browsing[$this->slug]))
 			$this->filters = $Storefront->browsing[$this->slug];
 
+		$specs = array();
 		if ('disabled' != $this->pricerange) {
 			$specs = $this->specs;
 			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'facetedmenu' => $this->pricerange));
