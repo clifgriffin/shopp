@@ -21,82 +21,76 @@
 class CartTotalsTests extends ShoppTestCase {
 
 	function test_cart_base_case () {
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('aion','slug');
+		$options = array('number' => true,'return' => true);
 
+		shopp_set_setting('tax_shipping', 'off');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
 
+		$expected = '$49.82';
+		shopp('cart', 'items');
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '$59.82';
-		while(shopp('cart', 'items')){
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
-
+		$expected = '49.82';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$0.00';
+		$expected = '0.00';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$8.97';
+		$expected = '4.982';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$71.79';
+		$expected = '57.80';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
 	}
 
 	function test_cart_tax_shipping () {
+		$Product = shopp_product('aion','slug');
+		$options = array('number' => true,'return' => true);
+
 		shopp_set_setting('tax_shipping', 'on');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$expected = '$49.82';
+		shopp('cart', 'items');
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '$59.82';
-		while(shopp('cart', 'items')){
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
-
+		$expected = '49.82';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$0.00';
+		$expected = '0.00';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$9.42';
+		$expected = '5.282';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$72.24';
+		$expected = '58.10';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 		shopp_set_setting('tax_shipping', 'off');
@@ -104,112 +98,88 @@ class CartTotalsTests extends ShoppTestCase {
 	}
 
 	function test_cart_item_percent_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
+		$options = array('number' => true,'return' => true);
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
 
-		@$Shopping->reset();
-		$Order =& ShoppOrder();
-
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-
-		$Order->Cart->promocode = "cart-item-promo";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('cart-item-promo');
 
 		$expected = '$59.82';
-		while(shopp('cart', 'items')){
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
+		shopp('cart', 'items');
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		$expected = '$59.82';
+		$expected = '59.82';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$19.74';
+		$expected = '19.7406';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$6.01';
+		$expected = '4.00794';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$49.09';
+		$expected = '47.09';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
 	}
 
 	function test_cart_order_percent_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
+		$options = array('number' => true,'return' => true);
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
 
-		@$Shopping->reset();
-		$Order =& ShoppOrder();
-
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-
-		$Order->Cart->promocode = "2percent";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('2percent');
 
 		$expected = '$59.82';
-		while(shopp('cart', 'items')){
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
+		shopp('cart', 'items');
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		$expected = '$59.82';
+		$expected = '59.82';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$1.20';
+		$expected = '1.1964';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$8.97';
+		$expected = '5.982';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$70.59';
+		$expected = '67.6';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
 	}
 
 	function test_cart_shipping_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
+		$options = array('number' => true,'return' => true);
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
 
-		@$Shopping->reset();
-		$Order =& ShoppOrder();
-
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-
-		$Order->Cart->promocode = "FreeShip";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('FreeShip');
 
 		$expected = '$59.82';
 		while(shopp('cart', 'items')){
@@ -219,23 +189,23 @@ class CartTotalsTests extends ShoppTestCase {
 			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
 		}
 
-		$expected = '$59.82';
+		$expected = '59.82';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$0.00';
+		$expected = '0.00';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$8.97';
+		$expected = '5.982';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$0.00';
+		$expected = '0.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$68.79';
+		$expected = '65.8';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -243,24 +213,16 @@ class CartTotalsTests extends ShoppTestCase {
 
 
 	function test_cart_vat_base_case () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
-
-		@$Shopping->reset();
-
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$options = array('return' => true,'money'=>true,'wrap'=>false);
+		$default_base = shopp_setting('base_operations');
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+		shopp_set_setting('tax_inclusive','on');
 
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '£68.79';
+		$expected = '£65.80';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -276,7 +238,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£8.97';
+		$expected = '£5.98';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -284,31 +246,26 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£71.79';
+		$expected = '£68.80';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
+		shopp_set_setting('base_operations',$default_base);
 
 	}
 
 	function test_cart_vat_taxed_shipping () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
-
-		@$Shopping->reset();
-
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$default_base = shopp_setting('base_operations');
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
-		shopp_set_setting('tax_shipping', 'on');
+		shopp_set_setting('tax_inclusive','on');
+		shopp_set_setting('tax_shipping','on');
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-		$Order->Cart->totals();
+		$options = array('return' => true,'money'=>true,'wrap'=>false);
 
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '£68.79';
+		$expected = '£65.80';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -324,42 +281,36 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£9.36';
+		$expected = '£6.25';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '£2.61';
+		$expected = '£2.73';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£71.79';
+		$expected = '£68.80';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
+
 		shopp_set_setting('tax_shipping', 'off');
+		shopp_set_setting('base_operations',$default_base);
 
 	}
 
 	function test_cart_vat_item_percent_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
-
-		@$Shopping->reset();
-
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$default_base = shopp_setting('base_operations');
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+		shopp_set_setting('tax_inclusive','on');
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('cart-item-promo');
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
+		$options = array('return' => true,'money'=>true,'wrap'=>false);
 
-		$Order->Cart->promocode = "cart-item-promo";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '£68.79';
+		$expected = '£65.80';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -375,7 +326,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£6.01';
+		$expected = '£4.01';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -383,37 +334,35 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£49.09';
+		$expected = '£47.09';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
+		shopp_set_setting('tax_inclusive','off');
+		shopp_set_setting('base_operations',$default_base);
 	}
 
 	public function test_cartitem_amountoff_promocode_multi_qty () {
-		global $Shopp;
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
 
-		$product = new Product(55);
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,10);
 
-		$price = 108;
-		$Order->Cart->add(10, $product, $price, false);
-		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Order->Cart->contents),1);
+		$options = array('number' => true,'return' => true);
 
 		// Create promo
 		$Promotion = new Promotion();
 		$Promotion->status = "enabled";
 		$Promotion->type = "Amount Off";
 		$Promotion->discount = 1; // $1 off
-		$Promotion->target = "Cart Item"; //Applied to entire order
-		$Promotion->search = "all"; // all rules must apply, alternatively "any"
+		$Promotion->target = "Cart Item";
+		$Promotion->search = "all";
 		$Promotion->rules = array(
 			"item" => array( // item rules
 				array(
 					"property" => "Name",
 					"logic" => "Is equal to",
-					"value" => "Smart & Sexy - Push-Up Underwire Bra and Thong Panty Set"
+					"value" => "Marvel Ultimate Alliance 2"
 					)
 			),
 			1 => array(
@@ -423,68 +372,58 @@ class CartTotalsTests extends ShoppTestCase {
 			)
 		);
 
+		global $Shopp;
 		$Shopp->Promotions->promotions = array($Promotion);
-		$Order->Cart->promocode = "cartitemamount";
-		$Order->Cart->totals();
-		$Shopp->Promotions->reload();
+		shopp_add_cart_promocode('cartitemamount');
 
-		$options = array('return' => '1','wrapper'=>'0');
+		shopp('cart', 'items');
+		$expected = '$59.82';
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$expected = '$598.20';
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		while(shopp('cart', 'items')){
-			$expected = '$10.00';
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$expected = '$100.00';
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
-
-		$expected = '$100.00';
+		$expected = '598.20';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$10.00';
+		$expected = '10.00';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$13.50';
+		$expected = '58.82';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$106.50';
+		$expected = '650.02';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 	}
 
 	public function test_cartitem_amoutoff_multi_qty () {
-		global $Shopp;
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
 
-		$product = new Product(55);
-
-		$price = 108;
-		$Order->Cart->add(10, $product, $price, false);
-		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Order->Cart->contents),1);
+		$options = array('number' => true,'return' => true);
 
 		// Create promo
 		$Promotion = new Promotion();
 		$Promotion->status = "enabled";
 		$Promotion->type = "Amount Off";
 		$Promotion->discount = 1; // $1 off
-		$Promotion->target = "Cart Item"; //Applied to entire order
-		$Promotion->search = "all"; // all rules must apply, alternatively "any"
+		$Promotion->target = "Cart Item";
+		$Promotion->search = "all";
 		$Promotion->rules = array(
 			"item" => array( // item rules
 				array(
 					"property" => "Name",
 					"logic" => "Is equal to",
-					"value" => "Smart & Sexy - Push-Up Underwire Bra and Thong Panty Set"
+					"value" => "Marvel Ultimate Alliance 2"
 					),
 				array(
 					"property" => "Quantity",
@@ -499,64 +438,46 @@ class CartTotalsTests extends ShoppTestCase {
 			)
 		);
 
+		global $Shopp;
 		$Shopp->Promotions->promotions = array($Promotion);
-		$Order->Cart->totals();
-		$Shopp->Promotions->reload();
 
-		$options = array('return' => '1','wrapper'=>'0');
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,10);
 
-		while(shopp('cart', 'items')){
-			$expected = '$10.00';
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$expected = '$100.00';
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
+		shopp('cart', 'items');
+		$expected = '$59.82';
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$expected = '$598.20';
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
 
-		$expected = '$100.00';
+		$expected = '598.20';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$10.00';
+		$expected = '10.00';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$13.50';
+		$expected = '58.82';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$106.50';
+		$expected = '650.02';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
+
 	}
 
 	public function test_cartitem_buy_x_get_y () {
-		global $Shopp;
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
-
-		$product = new Product(55);
-
-		$price = 108;
-		$Order->Cart->add(6, $product, $price, false);
-		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Order->Cart->contents),1);
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		while(shopp('cart', 'items')){
-			$expected = '$10.00';
-			$actual = shopp('cartitem','unitprice',$options);
-			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$expected = '$60.00';
-			$actual = shopp('cartitem','total',$options);
-			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
-		}
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$options = array('number' => true,'return' => true);
 
 		// Create promo
 		$Promotion = new Promotion();
@@ -564,14 +485,14 @@ class CartTotalsTests extends ShoppTestCase {
 		$Promotion->type = "Buy X Get Y Free";
 		$Promotion->buyqty = 5;
 		$Promotion->getqty = 1;
-		$Promotion->target = "Cart Item"; //Applied to entire order
-		$Promotion->search = "all"; // all rules must apply, alternatively "any"
+		$Promotion->target = "Cart Item";
+		$Promotion->search = "all";
 		$Promotion->rules = array(
 			"item" => array( // item rules
 				array(
 					"property" => "Name",
 					"logic" => "Is equal to",
-					"value" => "Smart & Sexy - Push-Up Underwire Bra and Thong Panty Set"
+					"value" => "Marvel Ultimate Alliance 2"
 					)
 			),
 			1 => array(
@@ -581,54 +502,60 @@ class CartTotalsTests extends ShoppTestCase {
 			)
 		);
 
-		$Shopp->Promotions->promotions = array($Promotion);
-		$Order->Cart->promocode = "buy5get1";
-		$Order->Cart->totals();
-		$Shopp->Promotions->reload();
 
-		$expected = '$60.00';
+		global $Shopp;
+		$Shopp->Promotions->promotions = array($Promotion);
+
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,6);
+		shopp_add_cart_promocode('buy5get1');
+
+		shopp('cart', 'items');
+		$expected = '$59.82';
+		$actual = shopp('cartitem','unitprice',$options);
+		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
+		$expected = '$358.92';
+		$actual = shopp('cartitem','total',$options);
+		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
+		shopp('cart', 'items');
+
+		$expected = '358.92';
 		$actual = shopp('cart','subtotal',$options);
 		$this->assertEquals($expected, $actual,'Cart subtotal assertion failed');
 
-		$expected = '$10.00';
+		$expected = '59.82';
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '$7.50';
+		$expected = '29.91';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '$3.00';
+		$expected = '3.00';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '$60.50';
+		$expected = '332.01';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
+
+		$Shopp->Promotions->promotions = array();
+		$Shopp->Promotions->load();
 	}
 
 
 	function test_cart_vat_order_percent_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
-
-		@$Shopping->reset();
-
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$options = array('return' => true,'money'=>true,'wrap'=>false);
+		$default_base = shopp_setting('base_operations');
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+		shopp_set_setting('tax_inclusive','on');
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('2percent');
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-
-		$Order->Cart->promocode = "2percent";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '£68.79';
+		$expected = '£65.80';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -644,7 +571,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£8.97';
+		$expected = '£5.98';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -652,33 +579,26 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£70.59';
+		$expected = '£67.60';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
+		shopp_set_setting('tax_inclusive','off');
+		shopp_set_setting('base_operations',$default_base);
 	}
 
 	function test_cart_vat_shipping_discount () {
-		global $Shopp;
-		$Shopping = ShoppShopping();
-
-		@$Shopping->reset();
-
+		$Product = shopp_product('marvel-ultimate-alliance-2','slug');
+		$options = array('return' => true,'money'=>true,'wrap'=>false);
+		$default_base = shopp_setting('base_operations');
 		shopp_set_setting('base_operations', unserialize('a:7:{s:4:"name";s:14:"United Kingdom";s:8:"currency";a:2:{s:4:"code";s:3:"GBP";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:2:"£";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:6:"metric";s:6:"region";i:3;s:7:"country";s:2:"GB";s:4:"zone";N;s:3:"vat";b:1;}'));
+		shopp_set_setting('tax_inclusive','on');
 
-		$Order =& ShoppOrder();
-		$Order->Cart->clear();
+		shopp_empty_cart();
+		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_promocode('FreeShip');
 
-		$Product = new Product(1); $Price = false;
-		$Order->Cart->add(1,$Product,$Price,false);
-
-		$Order->Cart->promocode = "FreeShip";
-		$Order->Cart->changed(true);
-		$Order->Cart->totals();
-
-		$options = array('return' => '1','wrapper'=>'0');
-
-		$expected = '£68.79';
+		$expected = '£65.80';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -694,7 +614,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£8.97';
+		$expected = '£5.98';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -702,10 +622,12 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£68.79';
+		$expected = '£65.80';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
+		shopp_set_setting('tax_inclusive','off');
+		shopp_set_setting('base_operations',$default_base);
 	}
 
 
