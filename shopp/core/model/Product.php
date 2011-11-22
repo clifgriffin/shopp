@@ -180,6 +180,7 @@ class Product extends WPShoppObject {
 		// Load in single product load contexts when the summary has not already been loaded
 		if (!empty($this->id) && !isset($this->summed)) $this->load_summary($ids);
 
+		$this->resum();
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
@@ -463,7 +464,7 @@ class Product extends WPShoppObject {
 		// Determine savings ranges
 		if (str_true($price->sale)) {
 
-			if (!isset($target->min['saved'])) {
+			if ( ! isset($target->min['saved']) || $target->min['saved'] === false ) {
 				$target->min['saved'] = $price->price;
 				$target->min['savings'] = 100;
 				$target->max['saved'] = $target->max['savings'] = 0;
@@ -474,9 +475,15 @@ class Product extends WPShoppObject {
 
 			// Find lowest savings percentage
 			$delta = $price->price - $price->promoprice;
-			$savings = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
-			if ($target->min['saved'] == $delta) $target->min['savings'] = $savings;
-			if ($target->max['saved'] == $delta) $target->max['savings'] = $savings;
+			if ( $price->price == 0 ) { // no savings possible
+				$target->min['savings'] = 0;
+			} else if ( $delta <= 0 ) { // total savings
+				$target->max['savings'] = 100;
+			} else {
+				$savings = ( $delta / $price->price ) * 100;
+				$target->min['savings'] = min($target->min['savings'], $savings);
+				$target->max['savings'] = max($target->max['savings'], $savings);
+			}
 		}
 
 		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
