@@ -12,10 +12,9 @@ class PurchaseAPITests extends ShoppTestCase {
 
 	function setUp () {
 		parent::setUp();
-		global $Shopp;
 		$_SERVER['REQUEST_URI'] = "/";
-		$Shopp->Purchase = new Purchase(1);
-		$Shopp->Purchase->load_purchased();
+		ShoppPurchase( new Purchase(1) );
+		ShoppPurchase()->load_purchased();
 	}
 
 	function test_purchase_id () {
