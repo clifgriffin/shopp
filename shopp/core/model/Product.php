@@ -178,9 +178,11 @@ class Product extends WPShoppObject {
 		if ( empty($ids) ) return;
 
 		// Load in single product load contexts when the summary has not already been loaded
-		if (!empty($this->id) && !isset($this->summed)) $this->load_summary($ids);
+		if (!empty($this->id) && !isset($this->summed)) {
+			$this->load_summary($ids);
+			$this->resum();
+		}
 
-		if (count($ids) == 1) $this->resum();
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
