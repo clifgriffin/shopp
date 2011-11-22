@@ -420,10 +420,7 @@ class ShoppErrorLogging {
 			$debug = " ".apply_filters('shopp_error_message_debugdata',$debug,$error->debug);
 		}
 		$message = date("Y-m-d H:i:s",time())." - ".$error->message(false,true)."$debug\n";
-		if (($this->log = @fopen($this->logfile,'at')) !== false) {
-			fwrite($this->log,$message);
-			fclose($this->log);
-		}
+		error_log($message,3,$this->logfile);
 		error_log($error->message(false,true));
 	}
 
