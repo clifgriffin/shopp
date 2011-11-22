@@ -204,6 +204,7 @@ class Login {
 	 * @return void
 	 **/
 	function login ($Account) {
+		if ($this->Customer->login) return; // Prevent login pong (Shopp login <-> WP login)
 		$this->Customer->copydata($Account,"",array());
 		$this->Customer->login = true;
 		unset($this->Customer->password);
@@ -215,6 +216,14 @@ class Login {
 		$this->Shipping->load($Account->id,'customer');
 		if (empty($this->Shipping->id))
 			$this->Shipping->copydata($this->Billing);
+
+		// Login WP user if not logged in
+		if ('wordpress' == shopp_setting('account_system') && !get_current_user_id()) {
+			$user = get_user_by('id',$this->Customer->wpuser);
+			wp_set_auth_cookie($user->ID);
+			wp_set_current_user($user->ID,$user->user_login);
+		}
+
 		do_action_ref_array('shopp_login',array(&$this->Customer));
 	}
 

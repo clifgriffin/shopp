@@ -12,7 +12,6 @@ class CustomerAPITests extends ShoppTestCase {
 
 	function __construct () {
 		parent::__construct();
-		global $Shopp;
 
 		$_SERVER['REQUEST_URI'] = "/";
 		$Login = new Login();
@@ -33,11 +32,11 @@ class CustomerAPITests extends ShoppTestCase {
 		shopp('customer','recover-url');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/store/account/?acct=recover',$actual);
+		$this->assertEquals('http://shopptest/store/account/?recover',$actual);
 	}
 
 	function test_customer_process () {
-		$this->assertFalse(shopp('customer','process'));
+		$this->assertEquals(null,shopp('customer','process'));
 	}
 
 	function test_customer_loggedin () {
@@ -142,7 +141,7 @@ class CustomerAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('My Accounthttp://shopptest/store/account/?acct=accountDownloadshttp://shopptest/store/account/?acct=downloadsOrder Historyhttp://shopptest/store/account/?acct=historyLogouthttp://shopptest/store/account/?acct=logout',$actual);
+		$this->assertEquals('My Accounthttp://shopptest/store/account/?profileDownloadshttp://shopptest/store/account/?downloadsYour Ordershttp://shopptest/store/account/?ordersLogouthttp://shopptest/store/account/?logout',$actual);
 	}
 
 	function test_customer_accounts () {
@@ -324,7 +323,7 @@ class CustomerAPITests extends ShoppTestCase {
 				shopp('customer','order');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/store/account/?acct=order&id=2',$actual);
+		$this->assertEquals('http://shopptest/store/account/?orders=2',$actual);
 	}
 
 } // end CustomerAPITests class
