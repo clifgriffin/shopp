@@ -171,11 +171,11 @@ class CollectionDevAPITests extends ShoppTestCase
 
 	function test_shopp_catalog_count () {
 		$count = shopp_catalog_count();
-		$this->AssertEquals(125, $count);
+		$this->AssertEquals(116, $count);
 	}
 
 	function test_shopp_category_count () {
-		$counts = array(3=>15, 29=>0, 49=>5, 27=>29, 55=>2, 51=>3, 23=>0, 9=>64, 47=>5, 45=>6, 53=>1, 35=>14, 19=>6, 62=>1, 15=>3, 37=>32, 5=>10, 21=>21, 25=>0, 43=>13, 41=>9, 17=>1, 33=>0, 13=>0, 11=>5, 31=>14, 39=>11, 7=>6);
+		$counts = array(3=>15, 29=>0, 49=>5, 27=>29, 55=>2, 51=>3, 23=>0, 9=>64, 47=>5, 45=>6, 53=>1, 35=>14, 19=>6, 62=>1, 15=>3, 37=>32, 5=>9, 21=>21, 25=>0, 43=>13, 41=>9, 17=>1, 33=>0, 13=>0, 11=>5, 31=>14, 39=>11, 7=>6);
 		foreach(shopp_product_categories() as $Category) {
 			$count = shopp_category_count($Category->id);
 			$this->AssertEquals($counts[$Category->id], $count);
@@ -199,7 +199,7 @@ class CollectionDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_subcategory_count () {
-		$this->AssertEquals(10, shopp_subcategory_count(3));
+		$this->AssertEquals(9, shopp_subcategory_count(3));
 	}
 
 }
