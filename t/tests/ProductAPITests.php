@@ -16,7 +16,7 @@ class ProductAPITests extends ShoppTestCase {
 		$Shopp->Flow->Controller = new Storefront();
 		ShoppCatalog(new Catalog());
 
-		$Product = shopp_product(94);
+		$Product = shopp_product("Ultimate Matrix Collection", 'name');
 		ShoppProduct($Product);
 	}
 
@@ -25,7 +25,8 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("94",$output);
+		$this->assertTrue( ! empty(ShoppProduct()->id) );
+		$this->assertEquals( ShoppProduct()->id, $output );
 	}
 
 	function test_product_name () {
@@ -105,6 +106,11 @@ class ProductAPITests extends ShoppTestCase {
 
 	function test_product_prices_withvat () {
 		global $Shopp;
+
+		// get original base and tax settings
+		$base_operations = shopp_setting('base_operations');
+		$taxrates = shopp_setting('taxrates');
+
 		shopp_set_setting('base_operations', array(
 			'name' => 'USA',
 		    'currency' => array(
@@ -132,28 +138,29 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','price');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("$40.09 &mdash; $149.44",$output);
+		$this->assertEquals("$34.86 &mdash; $129.95",$output);
 
 		ob_start();
-		shopp('product','price','taxes=off');
+		shopp('product','price','taxes=on');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("$34.86 &mdash; $129.95",$output);
+		$this->assertEquals("$40.09 &mdash; $149.44",$output);
 
 		ob_start();
 		shopp('product','saleprice');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("$17.32 &mdash; $73.44",$output);
-
-		ob_start();
-		shopp('product','saleprice','taxes=off');
-		$output = ob_get_contents();
-		ob_end_clean();
 		$this->assertEquals("$15.06 &mdash; $63.86",$output);
 
-		shopp_set_setting('taxrates', array());
+		ob_start();
+		shopp('product','saleprice','taxes=on');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals("$17.32 &mdash; $73.44",$output);
 
+		// set original base and tax settings
+		shopp_set_setting('base_operations',$base_operations);
+		shopp_set_setting('taxrates', $taxrates);
 	}
 
 	function test_product_hassavings () {
@@ -179,7 +186,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','weight');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("0.2 - 1.151 lb",$output);
+		$this->assertEquals("0.2 - 1.15 lb",$output);
 	}
 
 	function test_product_thumbnail () {
@@ -305,17 +312,28 @@ class ProductAPITests extends ShoppTestCase {
 		global $Shopp;
 		$this->assertTrue(shopp('product','hasspecs'));
 		$this->assertTrue(shopp('product','has-specs'));
-		$this->assertEquals(7,count($Shopp->Product->specs));
+
+		$this->assertEquals(8, count(ShoppProduct()->specs));
 	}
 
 	function test_product_spec_tags () {
-		ob_start();
+		$output = array();
 		if (shopp('product','has-specs'))
-			while(shopp('product','specs')) shopp('product','spec');
-		$output = ob_get_contents();
-		ob_end_clean();
+			while(shopp('product','specs')) $output[] = shopp('product','get-spec');
 
-		$this->assertEquals('Rating: R RatedStudio: Warner Home VideoRun Time (in minutes): 415Format: DVDLanguage: EnglishScreen Format: WidescreenDirector: The Wachowski Brothers',$output);
+		$expected = array(
+			'Rating: R Rated',
+			'Studio: Warner Home Video',
+			'Run Time (in minutes): 415',
+			'Format: Blu-Ray, DVD',
+			'Language: English',
+			'Screen Format: Widescreen',
+			'Director: The Wachowski Brothers'
+		);
+		$this->AssertEquals(count($output), count($expected));
+		foreach ( $expected as $spec_content )
+			$this->assertTrue(in_array($spec_content, $output));
+
 	}
 
 	function test_product_spec_tags_byname () {
@@ -330,13 +348,22 @@ class ProductAPITests extends ShoppTestCase {
 	}
 
 	function test_product_spec_tags_bycontent () {
-		ob_start();
+		$output = array();
 		if (shopp('product','has-specs'))
-			while(shopp('product','specs')) shopp('product','spec','content');
-		$output = ob_get_contents();
-		ob_end_clean();
+			while(shopp('product','specs')) $output[] = shopp('product','get-spec','content');
 
-		$this->assertEquals('R RatedWarner Home Video415DVDEnglishWidescreenThe Wachowski Brothers',$output);
+		$expected = array(
+			'R Rated',
+			'Warner Home Video',
+			'415',
+			'Blu-Ray, DVD',
+			'English',
+			'Widescreen',
+			'The Wachowski Brothers'
+		);
+		$this->AssertEquals(count($output), count($expected));
+		foreach ( $expected as $spec_content )
+			$this->assertTrue(in_array($spec_content, $output));
 	}
 
 	function test_product_outofstock () {
