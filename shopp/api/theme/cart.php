@@ -367,7 +367,18 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
 
-	function tax ($result, $options, $O) { return $O->Totals->tax; }
+	function tax ($result, $options, $O) {
+		$defaults = array(
+			'label' => false,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		if (!empty($label)) return $label;
+
+		return $O->Totals->tax;
+
+	 }
 
 	function total ($result, $options, $O) { return $O->Totals->total; }
 
