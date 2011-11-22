@@ -1292,7 +1292,7 @@ class xHTMLvalidator {
             'param'
             )) ,
             'script' => array(
-            'cdata'
+            '#pcdata'
             ) ,
             'map' => array_merge($block, array(
             'area'
