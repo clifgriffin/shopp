@@ -198,9 +198,10 @@ function shopp_add_product ( $data = array() ) {
 		} //end variants foreach
 	} // end subjects foreach
 
-	// Gather rollup figures for prices.
+	// Reset rollup figures for prices.
 	$Product->resum();
 
+	// Calculates aggregate product stats
 	foreach ( $prices as $Price ) {
 		$Product->sumprice($Price);
 	}
@@ -213,22 +214,14 @@ function shopp_add_product ( $data = array() ) {
 		if ( ! isset($Product->$prop) ) $Product->$prop = NULL;
 	}
 
-
-	//
-	// if ( ! empty($prices) ) {
-
+	// Process pricing stats
 	$records = null;
 	foreach ( $prices as $Price ) {
 		$Product->pricing($records,$Price);
 	}
 
-	// 	foreach ( $prices as $Price ) {
-	// 		$Product->sumprice($Price);
-	// 	}
-	// }
-	//
+	// Saves generated stats to the product summary
 	$Product->sumup();
-	// $Product->load_data(array('pricing','summary'));
 
 	return shopp_product($Product->id);
 } // end function shopp_add_product
@@ -567,7 +560,7 @@ function shopp_product_addons ( $product = false ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$Product->load_data(array('prices'));
+	$Product->load_data(array('prices','summary'));
 	$prices = array();
 	foreach( $Product->prices as $Price ) {
 		if ( 'addon' != $Price->context ) continue;
@@ -638,10 +631,10 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 			}
 
 			$menukey = substr($pricetype, 0, 1);
-			$flag = $pricetype == 'variation' ? 'variants' : 'addons';
+			$flag = ($pricetype == 'variation' ? 'variants' : 'addons');
 
 			if ( ! isset($Product->options[$menukey]) || $Product->$flag == 'off' ) {
-				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No product variant options of type $pricetype.",__FUNCTION__,SHOPP_DEBUG_ERR);
+				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No product variant options of type $pricetype for product {$Product->id}",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
 			}
 
