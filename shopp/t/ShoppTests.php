@@ -14,37 +14,24 @@
  * Initialize
  **/
 
-
-require('wp-config.php');
-
-if (!defined('SHOPP_SQL_DATAFILE')) define('SHOPP_SQL_DATAFILE','shopptest.sql');
-system('mysql -u '.DB_USER.' --password='.DB_PASSWORD.' '.DB_NAME.' < '.SHOPP_SQL_DATAFILE);
-
-require(ABSPATH.'wp-settings.php');
-
-error_reporting(E_ALL);
-// ini_set('display_errors', true);
-
-// require('PHPUnit.php');
 require('PHPUnit/Autoload.php');
 require('xHTMLvalidator.php');
 
 // Abstraction Layer
 class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
-	function __construct () {}
 
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function
 	var $validator = false;
 
 	function setUp() {
-		// // error types taken from PHPUnit_Framework_TestResult::run
-		// $this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
-		// $this->_old_handler = set_error_handler(array(&$this, '_error_handler'));
-		// if (is_null($this->_old_handler)) {
-		// 	restore_error_handler();
-		// }
+		// error types taken from PHPUnit_Framework_TestResult::run
+		$this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
+		$this->_old_handler = set_error_handler(array(&$this, '_error_handler'));
+		if (is_null($this->_old_handler)) {
+			restore_error_handler();
+		}
 
 		set_time_limit($this->_time_limit);
 		$db =& DB::get();
@@ -56,9 +43,9 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		// $Shopp->Catalog = false;
 		// $Shopp->Category = false;
 		// $Shopp->Product = false;
-		// if (!is_null($this->_old_handler)) {
-		// 	restore_error_handler();
-		// }
+		if (!is_null($this->_old_handler)) {
+			restore_error_handler();
+		}
 	}
 
 	function assertValidMarkup ($string) {
@@ -70,27 +57,27 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	/**
 	 * Treat any error, which wasn't handled by PHPUnit as a failure
 	 */
-	// function _error_handler($errno, $errstr, $errfile, $errline) {
-	// 	// @ in front of statement
-	// 	if (error_reporting() == 0) {
-	// 		return;
-	// 	}
-	// 	// notices and strict warnings are passed on to the phpunit error handler but don't trigger an exception
-	// 	if ($errno | $this->_phpunit_err_mask) {
-	// 		PHPUnit_Util_ErrorHandler::handleError($errno, $errstr, $errfile, $errline);
-	// 	}
-	// 	// warnings and errors trigger an exception, which is included in the test results
-	// 	else {
-	// 		//TODO: we should raise custom exception here, sth like WP_PHPError
-	// 		throw new PHPUnit_Framework_Error(
-	// 			$errstr,
-	// 			$errno,
-	// 			$errfile,
-	// 			$errline,
-	// 			$trace
-	// 		);
-	// 	}
-	// }
+	function _error_handler($errno, $errstr, $errfile, $errline) {
+		// @ in front of statement
+		if (error_reporting() == 0) {
+			return;
+		}
+		// notices and strict warnings are passed on to the phpunit error handler but don't trigger an exception
+		if ($errno | $this->_phpunit_err_mask) {
+			PHPUnit_Util_ErrorHandler::handleError($errno, $errstr, $errfile, $errline);
+		}
+		// warnings and errors trigger an exception, which is included in the test results
+		else {
+			//TODO: we should raise custom exception here, sth like WP_PHPError
+			throw new PHPUnit_Framework_Error(
+				$errstr,
+				$errno,
+				$errfile,
+				$errline,
+				$trace
+			);
+		}
+	}
 } // end ShoppTestCase class
 
 function shopp_run_tests($classes, $classname='') {
@@ -152,7 +139,18 @@ function shopptests_print_result($printer, $result) {
 	$printer->printResult($result, timer_stop());
 }
 
+// Override error logging to hide stderr messages from being output by PHPUnit
+ini_set('error_log','/dev/null');
+
 // Main Procedures
+require('wp-config.php');
+
+if (!defined('SHOPP_SQL_DATAFILE')) define('SHOPP_SQL_DATAFILE','shopptest.sql');
+system('mysql -u '.DB_USER.' --password='.DB_PASSWORD.' '.DB_NAME.' < '.SHOPP_SQL_DATAFILE);
+
+require(ABSPATH.'wp-settings.php');
+add_action('shopp_init',create_function('','error_reporting(0); ini_set("display_errors",false);'));
+
 global $Shopp;
 $db = DB::get();
 
@@ -165,6 +163,9 @@ $files = get_shopp_test_files(SHOPP_TESTS_DIR);
 
 foreach ($files as $file) require($file);
 $tests = get_all_test_cases();
+
+// $tests = array('CartAPITests');
+
 list ($result, $printer) = shopp_run_tests($tests);
 shopptests_print_result($printer,$result);
 
