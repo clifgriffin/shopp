@@ -112,8 +112,6 @@ class CustomerAPITests extends ShoppTestCase {
 
 	function test_customer_loginerrors () {
 
-		$Errors = &ShoppErrors();
-
 		ob_start();
 		shopp('customer','login-errors');
 		$actual = ob_get_contents();
@@ -126,7 +124,8 @@ class CustomerAPITests extends ShoppTestCase {
 				'content' => 'Error'
 			)
 		);
-		$this->assertTag($expected,$actual,"$actual",true);
+
+		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
 	}
 

@@ -65,10 +65,8 @@ class CheckoutAPITests extends ShoppTestCase {
 	}
 
 	function test_checkout_notloggedin () {
-		global $Shopp;
 		shopp_set_setting('account_system', 'wordpress');
-		$Order =& ShoppOrder();
-		$Order->Customer = new Customer();
+		ShoppOrder()->Customer = new Customer();
 		$this->assertTrue(shopp('checkout','notloggedin'));
 
 		$Login = new Login();
@@ -374,6 +372,20 @@ class CheckoutAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 
+	function test_checkout_samebillingaddress () {
+		ob_start();
+		shopp('checkout','same-billing-address');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$expected = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'checkbox','name' => 'sameaddress','id' => 'same-address-billing')
+		);
+		$this->assertTag($expected,$actual,"++ $actual",true);
+		$this->assertValidMarkup($actual);
+	}
+
 	function test_checkout_sameshippingaddress () {
 		ob_start();
 		shopp('checkout','same-shipping-address');
@@ -382,7 +394,7 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'checkbox','name' => 'sameshipaddress','id' => 'same-shipping')
+			'attributes' => array('type' => 'checkbox','name' => 'sameaddress','id' => 'same-address-shipping')
 		);
 		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);

@@ -220,7 +220,7 @@ class Login {
 		// Login WP user if not logged in
 		if ('wordpress' == shopp_setting('account_system') && !get_current_user_id()) {
 			$user = get_user_by('id',$this->Customer->wpuser);
-			wp_set_auth_cookie($user->ID);
+			@wp_set_auth_cookie($user->ID);
 			wp_set_current_user($user->ID,$user->user_login);
 		}
 
