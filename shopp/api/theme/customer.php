@@ -269,7 +269,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 
 		ob_start();
-		locate_shopp_template(array('errors.php'),true);
+		locate_shopp_template(array('errors.php'),true,false);
 		$errors = ob_get_contents();
 		ob_end_clean();
 		return $errors;
