@@ -143,7 +143,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	function cart_function ($result, $options, $O) {
 		$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 
-		$Errors = &ShoppErrors();
+		$Errors = ShoppErrors();
 		if (!$Errors->exist(SHOPP_STOCK_ERR)) return $result;
 
 		ob_start();

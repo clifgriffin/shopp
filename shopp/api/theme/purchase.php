@@ -225,7 +225,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	function item_addons_list ($result, $options, $O) {
 		$item = current($O->purchased);
-		if (empty($item->addons)) return false;
+		if (empty($item->addons) || (is_string($item->addons) && !str_true($item->addons))) return false;
 		$defaults = array(
 			'prices' => "on",
 			'download' => __('Download','Shopp'),
@@ -440,9 +440,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	function receipt ($result, $options, $O) {
-		// Skip the receipt processing when sending order notifications in admin without the receipt
-		if (defined('WP_ADMIN') && isset($_POST['receipt']) && $_POST['receipt'] == "no") return;
-
+		$template = '';
 		if (isset($options['template']))
 			$template = locate_shopp_template($options['template']);
 
