@@ -276,7 +276,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	function errors_exist ($result, $options, $O) {
-		$Errors = &ShoppErrors();
+		$Errors = ShoppErrors();
 		return ($Errors->exist(SHOPP_AUTH_ERR));
 	}
 
