@@ -945,9 +945,9 @@ class Storefront extends FlowController {
 	 * @return string The processed template content
 	 **/
 	function checkout_page () {
-		$Errors =& ShoppErrors();
-		$Order =& ShoppOrder();
-		$Cart =& $Order->Cart;
+		$Errors = ShoppErrors();
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
 		$process = get_query_var('s_pr');
 
 		do_action('shopp_init_checkout');
