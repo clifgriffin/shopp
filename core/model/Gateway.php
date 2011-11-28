@@ -63,6 +63,7 @@ abstract class GatewayFramework {
 
 	// Supported features
 	var $cards = false;			// A list of supported payment cards
+	var $authonly = false;		// Forces auth-only order processing
 	var $captures = false;		// Supports capture separate of authorization
 	var $recurring = false;		// Supports recurring billing
 	var $refunds = false;		// Remote refund support flag
@@ -93,7 +94,6 @@ abstract class GatewayFramework {
 	 * @return void
 	 **/
 	function __construct () {
-		global $Shopp;
 		$Shopping = ShoppShopping();
 
 		$this->session = $Shopping->session;
@@ -118,8 +118,12 @@ abstract class GatewayFramework {
 		if ($this->myorder() && method_exists($this,'actions'))
 			$this->actions();
 
-		$gateway = sanitize_title_with_dashes($this->module);
+		$gateway = sanitize_key($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
+
+		if ($this->authonly)
+			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "auth";'));
+
 	}
 
 	/**
@@ -624,12 +628,15 @@ class FreeOrder extends GatewayFramework {
 		parent::__construct();
 		$this->name = __('Free Order','Shopp');
 
-		add_action('shopp_freeorder_sale',array(&$this,'capture'));
-		add_action('shopp_freeorder_auth',array(&$this,'capture'));
-		add_action('shopp_freeorder_capture',array(&$this,'capture'));
-		add_action('shopp_freeorder_refund',array(&$this,'void'));
-		add_action('shopp_freeorder_void',array(&$this,'void'));
+		// Force sale-only order processing
+		add_filter('shopp_purchase_order_freeorder_processing',array($this,'saleonly'));
+
+		add_action('shopp_freeorder_sale',array($this,'capture'));
+		add_action('shopp_freeorder_refund',array($this,'void'));
+		add_action('shopp_freeorder_void',array($this,'void'));
 	}
+
+	function saleonly () { return 'sale'; }
 
 	function capture (OrderEventMessage $Event) {
 		shopp_add_order_event($Event->order,'captured',array(
