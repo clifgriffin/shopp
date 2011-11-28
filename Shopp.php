@@ -138,7 +138,7 @@ class Shopp {
 		$uri = WP_PLUGIN_URL."/$directory";
 		$wpadmin_url = admin_url();
 
-		if ($this->secure = is_shopp_secure()) {
+		if ($this->secure = is_ssl()) {
 			$uri = str_replace('http://','https://',$uri);
 			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
 		}

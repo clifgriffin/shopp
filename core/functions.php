@@ -836,15 +836,10 @@ function is_shopp_userlevel () { return; }
 
 
 /**
- * Detects SSL requests
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @return boolean
+ * @deprecated Using WP function instead
  **/
 function is_shopp_secure () {
-	return (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != "off");
+	return is_ssl();
 }
 
 /**
@@ -1859,9 +1854,9 @@ function shopp_template_url ($name) {
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 
 	$structure = get_option('permalink_structure');
-	list(,$prefix,) = explode('/',substr($structure, 0, strpos($structure, '%')));
-	if (!empty($prefix))
-		$path[] = $prefix;
+	$permastruct = explode('/',substr($structure, 0, strpos($structure, '%')));
+	if (isset($permastruct[1])) $path[] = $permastruct[1];
+
 	$path[] = Storefront::slug('catalog');
 
 	// Build request path based on Storefront shopp_page requested
@@ -1880,7 +1875,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	// Change the URL scheme as necessary
 	$scheme = null; // Full-auto
 	if ($secure === false) $scheme = 'http'; // Contextually forced off
-	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
+	elseif (($secure || is_ssl()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
 
 	$url = home_url(false,$scheme);
 
