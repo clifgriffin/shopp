@@ -149,7 +149,7 @@ class Promotion extends DatabaseObject {
 	 * match_rule ()
 	 * Determines if the value of a given subject matches the rule based
 	 * on the specified operation */
-	function match_rule ($subject,$op,$value,$property=false) {
+	static function match_rule ($subject,$op,$value,$property=false) {
 		switch($op) {
 			// String or Numeric operations
 			case "Is equal to":
