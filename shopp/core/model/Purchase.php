@@ -9,7 +9,7 @@
  * @package shopp
  **/
 
-require("Purchased.php");
+require('Purchased.php');
 
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
@@ -37,13 +37,49 @@ class Purchase extends DatabaseObject {
 		if (!$id) return true;
 		$this->load($id,$key);
 		if (!empty($this->shipmethod)) $this->shipable = true;
-		if (!empty($this->id)) {
-			// Attach the notification system to order events
-			add_action( 'shopp_order_event', array($this, 'notifications') );
-			add_action( 'shopp_order_notifications', array($this, 'success') );
-		}
+		if (!empty($this->id)) $this->listeners();
+	}
+
+	function listeners () {
+
+		// Automatically update the order with order events
+		$updates = array('invoiced','authed','captured','refunded','voided');
+		foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
+			add_action( 'shopp_'.$event.'_order_event', array($this,'event'), 5 );
+
+		// Attach the notification system to order events
+		add_action( 'shopp_order_event', array($this, 'notifications') );
+		add_action( 'shopp_order_notifications', array($this, 'success') );
 
 	}
+
+	/**
+	 * Updates a purchase order with transaction information from order events
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param OrderEvent $Event The order event passed by the action hook
+	 * @return void
+	 **/
+	function event ($Event) {
+		if ($this->id != $Event->order) return;
+
+		if ($this->txnstatus == $Event->name)
+			return new ShoppError('Transaction status ('.$this->txnstatus.') for purchase order #'.$this->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
+
+		$this->txnstatus = $Event->name;
+		$labels = shopp_setting('order_status');
+		$events = shopp_setting('order_states');
+
+		$key = array_search($Event->name,$events);
+		if (isset($labels[$key])) $this->status = $key;
+		if (isset($Event->txnid)) $this->txnid = $Event->txnid;
+
+		$this->save();
+	}
+
+
 
 	function load_purchased () {
 
@@ -343,9 +379,14 @@ class Purchase extends DatabaseObject {
 	}
 
 	function save () {
+		$new = false;
+		if (empty($this->id)) $new = true;
+
 		if (!empty($this->card) && strlen($this->card) > 4)
 			$this->card = substr($this->card,-4);
 		parent::save();
+
+		if ($new && !empty($this->id)) $this->listeners();
 	}
 
 } // end Purchase class

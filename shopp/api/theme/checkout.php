@@ -592,7 +592,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		$js = "var regions = ".json_encode($regions).",".
 				  "c_upd = '".$updating."',".
-				  "d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
+				  "d_pm = '".sanitize_key($O->paymethod)."',".
 				  "pm_cards = {};";
 
 		foreach ($O->payoptions as $handle => $option) {
@@ -944,7 +944,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'label' => __('Same billing address','Shopp'),
 			'checked' => 'on',
-			'type' => 'billing'
+			'type' => 'billing',
+			'class' => ''
 		);
 		$options = array_merge($defaults,$options);
 		$options['type'] = 'billing';
@@ -956,7 +957,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'label' => __('Same shipping address','Shopp'),
 			'checked' => 'on',
-			'type' => 'shipping'
+			'type' => 'shipping',
+			'class' => ''
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
@@ -1109,7 +1111,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		// Pass any arguments along
 		$args = $_GET;
-		unset($args['page_id'],$args['acct']);
+		unset($args['shopp_page'],$args['acct']);
 		$link = esc_url(add_query_arg($args,$link));
 
 		if (is_confirm_page()) $link = apply_filters('shopp_confirm_url',$link);

@@ -29,7 +29,7 @@ class Order {
 	var $data = array();			// Extra/custom order data
 	var $payoptions = array();		// List of payment method options
 	var $paycards = array();		// List of accepted PayCards
-	var $sameaddr = false;			// Toggle for copying a primary address to the secondary address
+	var $sameaddress = false;		// Toggle for copying a primary address to the secondary address
 	var $guest = false;				// Flag for guest checkout
 
 	var $processor = false;			// The payment processor module name
@@ -115,7 +115,6 @@ class Order {
 
 		// Status updates
 		add_action('shopp_order_txnstatus_update',array($this,'salestats'),10,2);
-		add_action('shopp_order_event',array($this,'updates'));
 
 		// Ensure payment card PAN is truncated after successful processing
 		add_action('shopp_authed_order_event',array($this,'securecard'));
@@ -142,7 +141,6 @@ class Order {
 		remove_action('shopp_purchase_order_event',array($this,'purchase'));
 		remove_action('shopp_purchase_order_created',array($this,'invoice'));
 		remove_action('shopp_purchase_order_created',array($this,'process'));
-		remove_action('shopp_order_event',array($this,'updates'));
 
 		// remove_action('shopp_order_notifications',array($this,'notify'));
 		// remove_action('shopp_order_success',array($this,'success'));
@@ -194,7 +192,7 @@ class Order {
 			$_->processor = $Gateway->module;
 			$_->setting = $gateway;
 			$_->cards = array_keys($Gateway->cards());
-			$handle = sanitize_title_with_dashes($_->label);
+			$handle = sanitize_key($_->label);
 			$options[$handle] = $_;
 		}
 
@@ -248,10 +246,11 @@ class Order {
 
 		// Setup Free Order processor
 		if ('FreeOrder' == $processor) {
+			if ( ! $Shopp->Gateways->freeorder ) return $this->processor;
 			$this->processor = 'FreeOrder';
-			if (!isset($Shopp->Gateways->active[ $processor ]))
+			if ( ! isset($Shopp->Gateways->active[ $processor ]) )
 				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
-			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
+			$this->paymethod = sanitize_key($Shopp->Gateways->freeorder->name);
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
@@ -260,7 +259,7 @@ class Order {
 
 			// Set the paymethod if not set already, or if it has changed
 			if (!$this->paymethod)
-				$this->paymethod = sanitize_title_with_dashes($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
+				$this->paymethod = sanitize_key($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
 		}
 
 		return $this->processor;
@@ -426,11 +425,11 @@ class Order {
 		if ( isset($_POST['sameaddress']) ) {
 			switch (strtolower($_POST['sameaddress'])) {
 				case 'shipping':
-					$this->sameaddr = 'shipping';
+					$this->sameaddress = 'shipping';
 					$this->Shipping->updates($_POST['billing']);
 					break;
 				case 'billing':
-					$this->sameaddr = 'billing';
+					$this->sameaddress = 'billing';
 					$this->Billing->updates($_POST['shipping']);
 					break;
 			}
@@ -545,10 +544,27 @@ class Order {
 	 **/
 	function process ($Purchase) {
 
-		if ( ! $this->Cart->orderisfree()
-			&& apply_filters('shopp_authonly_shipped_orders',$this->Cart->shipped)) {
-				$this->auth($Purchase);	// There are shipped products, auth only
-		} else $this->sale($Purchase);	// No shipped products, auth+capture (sale event)
+		$processing = 'sale'; 								// By default, process as a sale event
+		if ( $this->Cart->shipped ) $processing = 'auth';	// If there are shipped items, authorize payment don't charge
+		$default = array($this,$processing);
+
+		// Gateway modules can use 'shopp_purchase_order_gatewaymodule_processing' filter hook to override order processing
+		// Return a string of 'auth' for auth processing, or 'sale' for sale processing
+		// For advanced overrides, gateways can provide custom callbacks as a standard PHP object callback array: array($this,'customhandler')
+		if ( !empty($Purchase->gateway) ) {
+			$gateway = sanitize_key($Purchase->gateway);
+			$processing = apply_filters('shopp_purchase_order_'.$gateway.'_processing',$processing,$Purchase);
+		}
+
+		// General order processing filter override
+		$processing = apply_filters('shopp_purchase_order_processing',$processing,$Purchase);
+
+		if ( is_string($processing) ) $callback = array($this,$processing);
+		elseif ( is_array($processing) ) $callback = $processing;
+
+		if (!is_callable($callback)) $callback = $default;
+
+		call_user_func($callback,$Purchase);
 
 	}
 
@@ -692,38 +708,6 @@ class Order {
 
 		do_action('shopp_purchase_order_created',$Purchase);
 
-	}
-
-	/**
-	 * Updates a purchase order with transaction information from order events
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @param OrderEvent $Event The order event passed by the action hook
-	 * @return void
-	 **/
-	function updates ($Event) {
-		$updates = array('authed','captured','refunded','voided');
-		if (!in_array($Event->name,$updates)) return;
-		$Purchase = new Purchase($Event->order);
-
-		if (empty($Purchase->id)) return;
-		if ($Purchase->txnstatus == $Event->name) return;
-
-		$Purchase->txnstatus = $Event->name;
-		$labels = shopp_setting('order_status');
-		$events = shopp_setting('order_states');
-
-		$key = array_search($Event->name,$events);
-
-		if (isset($labels[$key])) {
-			$status = $labels[$key];
-			$Purchase->status = $status;
-		}
-
-		if (isset($Event->txnid)) $Purchase->txnid = $Event->txnid;
-		$Purchase->save();
 	}
 
 	function accounts ($Event) {
@@ -1304,12 +1288,12 @@ class OrderEventMessage extends MetaObject {
 			return $this->_exception = true;
 		}
 
-		$action = sanitize_title_with_dashes($this->name);
+		$action = sanitize_key($this->name);
 
 		new ShoppError(sprintf('%s dispatched.',get_class($this)),false,SHOPP_DEBUG_ERR);
 
 		if (isset($this->gateway)) {
-			$gateway = sanitize_title_with_dashes($this->gateway);
+			$gateway = sanitize_key($this->gateway);
 			do_action_ref_array('shopp_'.$gateway.'_'.$action,array($this));
 		}
 
