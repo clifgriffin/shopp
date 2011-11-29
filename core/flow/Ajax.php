@@ -231,14 +231,11 @@ class AjaxFlow {
 				break;
 			case "product":
 				$Product = new Product($_POST['id']);
-				$slug = $Product->slug;
-				if ($_REQUEST['slug'] == $slug) die('-1');
-				$slug = $_REQUEST['slug'];
+				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
+
 				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, $Product->status, Product::posttype(), 0);
-				if ($slug != $Product->slug) {
-					$Product->save();
-					echo apply_filters('editable_slug',$Product->slug);
-				} else echo '-1';
+				$Product->save();
+				echo apply_filters('editable_slug',$Product->slug);
 				break;
 		}
 		exit();
