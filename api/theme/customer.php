@@ -490,7 +490,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	function recover_url ($result, $options, $O) { return add_query_arg('recover','',shoppurl(false,'account')); }
 
 	function register ($result, $options, $O) {
-		return '<input type="submit" name="shopp_registration" value="Register" />';
+		$defaults = array(
+			'label' => __('Register','Shopp')
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+		return '<input type="submit" name="shopp_registration" value="'.esc_attr($label).'" />';
 	}
 
 	function registration_errors ($result, $options, $O) {
