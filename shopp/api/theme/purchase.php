@@ -151,11 +151,11 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	// email_* tags are for email headers. The trailing PHP_EOL is to account for PHP ticket #21891
 	// where trailing newlines are removed, despite the PHP docs saying they will be included.
 
-	function email_from ($result, $options, $O) { return ($O->message['from'].PHP_EOL); }
+	function email_from ($result, $options, $O) { if (isset($O->message['from'])) return ($O->message['from'].PHP_EOL); }
 
-	function email_to ($result, $options, $O) { return ($O->message['to'].PHP_EOL); }
+	function email_to ($result, $options, $O) { if (isset($O->message['to'])) return ($O->message['to'].PHP_EOL); }
 
-	function email_subject ($result, $options, $O) { return ($O->message['subject'].PHP_EOL); }
+	function email_subject ($result, $options, $O) { if (isset($O->message['subject'])) return ($O->message['subject'].PHP_EOL); }
 
 	function email_event ($result, $options, $O) {
 		if (!isset($O->message['event'])) return '';
@@ -167,7 +167,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return '';
 	}
 
-	function email_note ($result, $options, $O) { return esc_html($O->message['note']); }
+	function email_note ($result, $options, $O) { if (isset($O->message['note'])) return esc_html($O->message['note']); }
 
 	function first_name ($result, $options, $O) { return esc_html($O->firstname); }
 
