@@ -482,8 +482,9 @@ class DB extends SingletonFramework {
 	}
 
 	private static function col (&$records,&$record,$column=false,$index=false,$collate=false) {
+		$columns = get_object_vars($record);
 		if (isset($record->$column)) $col = $record->$column;
-		else $col = reset(get_object_vars($record)); // No column specified, get first column
+		else $col = reset($columns); // No column specified, get first column
 		if ($index) {
 			if (isset($record->$index)) $id = $record->$index;
 			else $id = null;
