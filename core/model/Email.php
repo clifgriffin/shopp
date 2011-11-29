@@ -275,11 +275,13 @@ class TextifyTag {
 		if (!$block) {
 			// Stitch the content of the first new line to the last content in the line list
 			$firstline = array_shift($lines);
-			$id = count($this->content)-1;
-			$this->content[ $id ] .= $firstline;
+			if (!is_null($firstline) && !empty($this->content)) {
+				$id = count($this->content)-1;
+				$this->content[ $id ] .= $firstline;
 
-			// Determine if max width has changed
-			$this->width['max'] = max($this->width['max'],strlen($this->content[$lastlineid]));
+				// Determine if max width has changed
+				$this->width['max'] = max($this->width['max'],strlen($this->content[$id]));
+			} else $this->content[] = $firstline;
 		}
 
 		$this->content = array_merge($this->content,$lines);
@@ -293,7 +295,7 @@ class TextifyTag {
 		$lastline = array_pop($lines);
 		$this->content[0] = $lastline.$this->content[0];
 		$this->width['max'] = max($this->width['max'],strlen($this->content[0]));
-		$$this->content[0] = TextifyTag::whitespace($this->content[0]);
+		$this->content[0] = TextifyTag::whitespace($this->content[0]);
 
 		$this->content = array_merge($lines,$this->content);
 	}
@@ -301,13 +303,13 @@ class TextifyTag {
 	function lines ($content) {
 		if (is_array($content)) $content = join('',$content);
 
-		if (empty($content)) return false;
+		if (empty($content)) return array();
 		$linebreaks = TextifyTag::NEWLINE;
 		$wordbreaks = " \t";
 
 		$maxline = 0; $maxword = 0;
 		$lines = explode($linebreaks,$content);
-		foreach ($lines as $line) {
+		foreach ((array)$lines as $line) {
 			$maxline = max($maxline,strlen($line));
 
 			$word = false;
@@ -730,7 +732,10 @@ class TextifyTable extends TextifyBlockElement {
 
 		// Stitch the content of the first new line to the last content in the line list
 		$firstline = $lines[0];
-		$lastline = $this->content[ count($this->content)-1 ];
+		$lastline = false;
+
+		if ( ! empty($this->content) )
+			$lastline = $this->content[ count($this->content)-1 ];
 
 		if (!empty($lastline) && $lastline === $firstline) array_shift($lines);
 
@@ -754,6 +759,7 @@ class TextifyTable extends TextifyBlockElement {
 	}
 
 	function colwidth ($column,$width=false) {
+		if ( ! isset($this->colwidths[$column]) ) $this->colwidths[$column] = 0;
 		if (false !== $width)
 			$this->colwidths[$column] = max($this->colwidths[$column],$width);
 		return $this->colwidths[$column];
@@ -782,7 +788,7 @@ class TextifyTableTag extends TextifyBlockElement {
 	 *
 	 * @return DOMNode
 	 **/
-	function &tablenode () {
+	function tablenode () {
 		$path = $this->node->getNodePath();
 		if (false === strpos($path,'table')) return false;
 
@@ -814,13 +820,19 @@ class TextifyTr extends TextifyTableTag {
 			$total = max(count($lines),count($segments));
 
 			for ($i = 0; $i < $total; $i++) {
+
+				if (!isset($segments[$i])) continue;
+
 				if (isset($lines[$i]) && !empty($lines[$i])) {
 					$eol = strlen($lines[$i])-1;
 
-					if ($lines[$i]{$eol} == $segments[$i]{0}) $lines[$i] .= substr($segments[$i],1);
+					if (!empty($segments[$i]) &&  $lines[$i]{$eol} == $segments[$i]{0}) $lines[$i] .= substr($segments[$i],1);
 					else $lines[$i] .= $segments[$i];
 
-				} else $lines[$i] .= $segments[$i];
+				} else {
+					if (!isset($lines[$i])) $lines[$i] = '';
+					$lines[$i] .= $segments[$i];
+				}
 			}
 
 		}
