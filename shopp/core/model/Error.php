@@ -217,7 +217,8 @@ class ShoppErrors {
 	 **/
 	function php ($number, $message, $file, $line) {
 		if (strpos($file,SHOPP_PATH) === false) return true;
-		new ShoppError($message,'php_error',SHOPP_PHP_ERR,
+		if (SHOPP_DEBUG) $debug = sprintf(" [%s, line %d]", basename($file),$line);
+		new ShoppError($message.$debug,'php_error',SHOPP_PHP_ERR,
 			array('file'=>$file,'line'=>$line,'phperror'=>$number));
 		if ($number == E_USER_ERROR) return false; // Always show fatal errors
 		return true;
