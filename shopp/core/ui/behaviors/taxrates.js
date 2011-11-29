@@ -43,6 +43,8 @@ jQuery(document).ready( function($) {
 			taxrate = ui.find('#tax-rate').change(function () { this.value = asPercent(this.value); }).change(),
 			addconditions = ui.find('button.add');
 
+		$this.rules = [];
+
 		countrymenu.html($.tmpl('countries-menu')).val(data.country).change(function (e) {
 			var $this = $(this),options = '',
 				country_zones = zones[$this.val()] ? zones[$this.val()] : false;
@@ -144,13 +146,14 @@ jQuery(document).ready( function($) {
 				rmrulebtn = conditional.find('button.delete').click(function(e) {
 					if (e) e.preventDefault();
 					conditional.remove();
-					data.rules.splice(rule.ruleid,1);
-					if (data.rules.length == 0) conditionsui.hide();
+					$this.rules.pop();
+					if ($this.rules.length == 0) conditionsui.hide();
 				}).hide(),
 			addrulebtn = conditional.find('button.add').click($this.addrule);
 			conditional.hover(function () { rmrulebtn.show(); },function () { rmrulebtn.fadeOut('fast'); });
 			conditionsui.show();
 			rulesidx++;
+			$this.rules.push(rulesidx);
 		};
 		addconditions.click($this.addrule);
 
