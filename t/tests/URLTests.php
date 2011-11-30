@@ -46,7 +46,7 @@ class URLTests extends ShoppTestCase {
 	function test_pretty_account_url () {
 		
 		ob_start();
-		shopp('account','url');
+		shopp('customer','accounturl');
 		$actual = ob_get_contents();
 		ob_end_clean();
 
@@ -105,7 +105,7 @@ class URLTests extends ShoppTestCase {
 	function test_default_account_url () {
 		
 		ob_start();
-		shopp('account','url');
+		shopp('customer','accounturl');
 		$actual = ob_get_contents();
 		ob_end_clean();
 
