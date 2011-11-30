@@ -24,6 +24,7 @@ class Cart {
 	var $discounts = array();	// List of promotional discounts applied
 	var $promocodes = array();	// List of promotional codes applied
 	var $shipping = array();	// List of shipping options
+	var $processing = array();	// Min-Max order processing timeframe
 
 	// Object properties
 	var $Added = false;			// Last Item added
@@ -725,7 +726,7 @@ class CartDiscounts {
 	 **/
 	function calculate () {
 		$this->applypromos();
-		// print_r($this->Cart->discounts);
+
 		$sum = array();
 		foreach ($this->Cart->discounts as $Discount) {
 			if (isset($Discount->items) && !empty($Discount->items)) {
@@ -1088,10 +1089,14 @@ class CartShipping {
 		// Initialize shipping modules
 		do_action('shopp_calculate_shipping_init');
 
+		$this->Cart->processing = array();
 		foreach ($this->Cart->shipped as $id => &$Item) {
 			if ($Item->freeshipping) continue;
 			// Calculate any product-specific shipping fee markups
 			if ($Item->shipfee > 0) $this->fees += ($Item->quantity * $Item->shipfee);
+			$this->Cart->processing['min'] = ShippingFramework::daytimes($this->Cart->processing['min'],$Item->processing['min']);
+			$this->Cart->processing['max'] = ShippingFramework::daytimes($this->Cart->processing['max'],$Item->processing['max']);
+
 			// Run shipping module item calculations
 			do_action_ref_array('shopp_calculate_item_shipping',array($id,&$Item));
 		}
@@ -1116,6 +1121,7 @@ class CartShipping {
 		foreach ($this->options as $name => $option) {
 			// Add in the fees
 			$option->amount += apply_filters('shopp_cart_fees',$this->fees);
+
 			// Skip if not to be included
 			if (!$option->estimate) continue;
 

@@ -26,6 +26,7 @@ class Item {
 	var $addons = array();		// The addons added to the item
 	var $image = false;			// The cover image for the product
 	var $data = array();		// Custom input data
+	var $processing = array();	// Per item order processing delays
 	var $quantity = 0;			// The selected quantity for the line item
 	var $addonsum = 0;			// The sum of selected addons
 	var $unitprice = 0;			// Per unit price
@@ -179,10 +180,17 @@ class Item {
 			foreach ( $dimensions as $dimension => $value ) {
 				$this->$dimension = $value;
 			}
+			if (isset($Product->processing) && str_true($Product->processing)) {
+				if (isset($Product->minprocess)) $this->processing['min'] = $Product->minprocess;
+
+				if (isset($Product->maxprocess)) $this->processing['max'] = $Product->maxprocess;
+			}
+
 		}
 
 		$this->inventory = str_true($Price->inventory);
 		$this->taxable = ( str_true($Price->tax) && shopp_setting_enabled('taxes') );
+
 	}
 
 

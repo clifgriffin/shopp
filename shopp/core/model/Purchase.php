@@ -79,8 +79,6 @@ class Purchase extends DatabaseObject {
 		$this->save();
 	}
 
-
-
 	function load_purchased () {
 
 		$table = DatabaseObject::tablename(Purchased::$table);
