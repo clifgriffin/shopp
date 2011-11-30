@@ -16,8 +16,9 @@
 class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	// Settings
-	var $secure = false;
-	var $recurring = true;
+	var $secure = false; // do not require SSL or session encryption
+	var $saleonly = true; // force sale event on processing (no auth)
+	var $recurring = true; // support for recurring payment
 
 	// URLs
 	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
@@ -128,7 +129,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		add_action('shopp_txn_update',array($this,'ipn')); // process IPN
 
 		// order event handlers
-		add_action('shopp_paypalstandard_purchase',array($this,'purchase'));
 		add_action('shopp_paypalstandard_sale', array($this,'sale'));
 	}
 
@@ -151,35 +151,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 
 	// ORDER EVENT HANDLER
-
-	/**
-	 * purchase
-	 *
-	 * caused Order::process() to always call Order::sale(), instead of Order::auth().  In other words, forces shopp_paypalstandard_sale event.
-	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @return void
-	 *
-	 **/
-	function purchase ( $Event ) {
-		add_filter('shopp_authonly_shipped_orders',array($this,'saleonly'));
-	}
-
-	/**
-	 * saleonly
-	 *
-	 * shopp_authonly_shipped_orders filter.  Always returns false to cause sale event, instead of auth event.
-	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @return false
-	 **/
-	function saleonly ($shipped) {
-		return false;
-	}
 
 	/**
 	 * sale
