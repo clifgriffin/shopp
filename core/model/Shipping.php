@@ -590,11 +590,28 @@ abstract class ShippingFramework {
 	function delivery ($data = array()) {
 		$defaults = array( 'mindelivery' => '1w', 'maxdelivery' => '2w' );
 		$data = array_merge( $defaults, $data );
+		$cart = ShoppOrder()->Cart->processing;
 
 		$min = shopp_setting('order_processing_min');
  		$max = shopp_setting('order_processing_max');
 
-		return shopp_daytimes($min,$data['mindelivery']).'-'.shopp_daytimes($max,$data['maxdelivery']);
+		$earliest = ShippingFramework::daytimes($min,$cart['min'],$data['mindelivery']);
+		$latest = ShippingFramework::daytimes($max,$cart['max'],$data['maxdelivery']);
+
+		return $earliest.'-'.$latest;
+	}
+
+	static function daytimes () {
+		$args = func_get_args();
+		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+
+		$total = 0;
+		foreach ($args as $timeframe) {
+			if (empty($timeframe)) continue;
+			list($i,$p) = sscanf($timeframe,'%d%s');
+			$total += $i*$periods[$p];
+		}
+		return ceil($total/$periods['d']).'d';
 	}
 
 	static function _sorttable ($a, $b) {
