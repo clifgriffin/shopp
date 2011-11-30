@@ -82,18 +82,21 @@ function _shopp_order_purchase ( &$records, &$record ) {
  * @since 1.2
  *
  **/
-function _shopp_order_purchased ( &$records, &$record, $objects ) {
-	if ( ! isset($records[$record->purchase]) && isset($objects[$record->purchase]) ) {
-		if ( ! isset($objects[$record->purchase]->purchased) ) $objects[$record->purchase]->purchased = array();
+function _shopp_order_purchased ( &$records, &$purchased, $orders ) {
+	if ( isset($orders[$purchased->purchase]) ) {
+		if ( ! isset($records[$purchased->purchase]) ) $records[$purchased->purchase] = $orders[$purchased->purchase];
 
-		if ( "yes" == $record->addons ) {
-			$record->addons = new ObjectMeta($record->id, 'purchased', 'addon');
+		if ( ! isset($records[$purchased->purchase]->purchased) ) {
+			$records[$purchased->purchase]->purchased = array();
 		}
 
-		$objects[$record->purchase]->purchased[$record->id] = new Purchased();
-		$objects[$record->purchase]->purchased[$record->id]->populate($record);
-		$records[$record->purchase] = $objects[$record->purchase];
+		$records[$purchased->purchase]->purchased[$purchased->id] = new Purchased();
+		$records[$purchased->purchase]->purchased[$purchased->id]->populate($purchased);
+		if ( "yes" == $purchased->addons ) {
+			$records[$purchased->purchase]->purchased[$purchased->id]->addons = new ObjectMeta($purchased->id, 'purchased', 'addon');
+		}
 	}
+
 }
 
 /**
@@ -242,7 +245,116 @@ function shopp_order ( $id = false, $by = 'id' ) {
 	}
 
 	$Purchase->load_purchased();
+	$Purchase->load_events();
 	return $Purchase;
+}
+
+/**
+ * shopp_order_amt_balance
+ *
+ * get the current amount balance left uncharged on order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return float|bool float amount balance on the order, bool false if order does not exist
+ **/
+function shopp_order_amt_balance ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->balance;
+	return false;
+}
+
+/**
+ * shopp_order_amt_invoiced
+ *
+ * get the current amount invoiced on order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return float|bool float amount invoiced on the order, bool false if order does not exist
+ **/
+function shopp_order_amt_invoiced ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->invoiced;
+	return false;
+}
+
+/**
+ * shopp_order_amt_authorized
+ *
+ * get the current amount authorized on order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return float|bool float amount authorized on the order, bool false if order does not exist
+ **/
+function shopp_order_amt_authorized ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->authorized;
+	return false;
+}
+
+/**
+ * shopp_order_amt_captured
+ *
+ * get the current amount captured on order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return float|bool float amount captured on the order, bool false if order does not exist
+ **/
+function shopp_order_amt_captured ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->captured;
+	return false;
+}
+
+/**
+ * shopp_order_amt_refunded
+ *
+ * get the current amount refunded on order
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return float|bool float amount refunded on the order, bool false if order does not exist
+ **/
+function shopp_order_amt_refunded ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->refunded;
+	return false;
+}
+
+/**
+ * shopp_order_is_void
+ *
+ * find out if the order has been voided
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $id the order id or txn id
+ * @param string $by (optional default:id) lookup by 'id', or 'trans'
+ * @return bool|null true/false voided or null if order does not exist
+ **/
+function shopp_order_is_void ( $id = false, $by = 'id' ) {
+	$Purchase = shopp_order( $id, $by);
+	if ( ! empty($Purchase->id) ) return $Purchase->voided;
+	return null;
 }
 
 /**
@@ -269,37 +381,39 @@ function shopp_order_exists ( $id = false, $by = 'id' ) {
 }
 
 /**
- * shopp_add_order - build an order
+ * shopp_add_order - create an order from the cart and associate with a customer
  *
  * @author John Dillick
  * @since 1.2
  *
- * @param array $data parameters (see $order_field for allowed purchase parameters, and see shopp_add_order_line for line item parameters)
+ * @param int $customer the customer that the order will be created for
  * @return bool|Purchase false on failure, Purchase object of recently created order on success
  **/
-function shopp_add_order ( $data = array() ) {
-	$order_fields = array('customer', 'shipping', 'billing', 'currency', 'ip', 'firstname', 'lastname', 'email', 'phone', 'company', 'card', 'cardtype', 'cardexpires', 'cardholder', 'address', 'xaddress', 'city', 'state', 'country', 'postcode', 'shipaddress', 'shipxaddress', 'shipcity', 'shipstate', 'shipcountry', 'shippostcode', 'geocode', 'promos', 'subtotal', 'freight', 'tax', 'total', 'discount', 'fees', 'taxing', 'txnid', 'txnstatus', 'gateway', 'carrier', 'shipmethod', 'shiptrack', 'status', 'data');
-
-	$Purchase = new Purchase();
-	foreach ( $data as $key => $value ) {
-		if ( ! in_array($key, $order_fields) ) continue;
-		$Purchase->{$key} = $value;
+function shopp_add_order ( $customer = false ) {
+	// check customer
+	if ( ! $Customer = shopp_customer( (int) $customer) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid customer.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
 	}
 
-	$Purchase->save();
-
-	if ( empty($Purchase->id) ) return false;
-
-	if ( isset($data[$items]) && is_array($data[$items]) ) {
-		$Purchase->purchased = array();
-		foreach ( $data[$items] as $i => $item ) {
-			$Purchased = shopp_add_order_line( $Purchase->id, $data[$items] );
-			if ($Purchased) $Purchase->purchased[$i] = $Purchased;
-		}
+	if ( ! shopp_cart_items_count() ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No items in cart.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
 	}
 
-	return $Purchase;
+	$Order = ShoppOrder();
+	$Order->Customer = $Customer;
+	$Order->Billing = $Customer->Billing;
+	$Order->Billing->cardtype = 'api';
+	$Order->Shipping = $Customer->Shipping;
 
+	shopp_add_order_event(false, 'purchase', array(
+		'gateway' => 'GatewayFramework'
+	));
+
+	shopp_empty_cart();
+
+	return ( $Purchase = ShoppPurchase() ) ? $Purchase : false ;
 }
 
 /**
@@ -314,7 +428,9 @@ function shopp_add_order ( $data = array() ) {
 function shopp_rmv_order ($id) {
 	if ( $Purchase = shopp_order_exists($id) ) {
 		$Purchase->load_purchased();
-		foreach ( $Purchase->purchased as $Purchased ) {
+		foreach ( $Purchase->purchased as $P ) {
+			$Purchased = new Purchased();
+			$Purchased->populate($P);
 			$Purchased->delete();
 		}
 		$Purchase->delete();
@@ -324,13 +440,13 @@ function shopp_rmv_order ($id) {
 }
 
 /**
- * shopp_add_order_line - add a line item to an order
+ * shopp_add_order_line - add a line item to an order.
  *
  * @author John Dillick
  * @since 1.2
  *
  * @param int $order (required) the order id to add the line item to
- * @param array $data data to create the item from (see $item_fields for allowed data)
+ * @param array|Item $data data to create the free-form item from (see $item_fields for allowed data), or alternately an Item object
  * @return bool|Purchased item object - false on failure, new order line item on success.
  **/
 function shopp_add_order_line ( $order = false, $data = array() ) {
@@ -348,6 +464,7 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 		'unittax', // unit tax
 		'shipping', // line item shipping cost
 		'total', // line item total cost
+		'type', // Shipped, Download, Virtual, Membership, Subscription
 		'addons', // array of addons
 		'variation', // array of key => value (optionmenu => option) pairs for the variant combination
 		'data' // associative array of item "data" key value pairs
@@ -358,14 +475,40 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 		return false;
 	}
 
-	foreach ( $data as $key => $value ) {
-		if ( ! in_array($key, $item_fields) ) continue;
-		$Purchased->{$key} = $value;
+	// Create and save a new Purchased item object
+	$Purchased = new Purchased;
+	if ( is_object($data) && is_a($data, 'Item') ) {
+		$Purchased->copydata($data);
+		if ($data->inventory) $data->unstock();
+	} else {
+		// build purchased line item
+		$Purchased->unitprice = $Purchased->unittax = $Purchased->shipping = $Purchased->total = 0;
+		foreach ( $data as $key => $value ) {
+			if ( ! in_array($key, $item_fields) ) continue;
+			$Purchased->{$key} = $value;
+		}
+		if ( ! isset($Purchased->type) ) $Purchase->type = 'Shipped';
 	}
-
 	$Purchased->purchase = $order;
-
+	if (!empty($Purchased->download)) $Purchased->keygen();
 	$Purchased->save();
+
+	// Update the Purchase
+	$Purchase->subtotal += $Purchased->unitprice * $Purchased->quantity;
+
+	$Purchase->tax += $Purchased->unittax * $Purchased->quantity;
+	$Purchase->freight += $Purchased->shipping;
+
+	$total_added = $Purchased->total + ($Purchased->unittax * $Purchased->quantity) + $Purchased->shipping;
+	$Purchase->total += $total_added;
+	$Purchase->save();
+
+	// invoice new amount
+	shopp_add_order_event($Purchase->id,'invoiced',array(
+		'gateway' => $Purchase->gateway,			// Gateway handler name (module name from @subpackage)
+		'amount' => $total_added					// Capture of entire order amount
+	));
+
 	return ( ! empty($Purchased->id) ? $Purchased : false );
 }
 
@@ -382,7 +525,25 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 function shopp_rmv_order_line ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) ) return false;
-	$Lines[$line]->delete();
+	$Purchased = new Purchased();
+	$Purchased->populate($Lines[$line]);
+	$Purchase = shopp_order($order);
+
+	$Purchase->subtotal -= $Purchased->unitprice * $Purchased->quantity;
+	$Purchase->tax -= $Purchased->unittax * $Purchased->quantity;
+	$Purchase->freight -= $Purchased->shipping;
+	$total_removed = $Purchased->total + ($Purchased->unittax * $Purchased->quantity) + $Purchased->shipping;
+	$Purchase->total -= $total_removed;
+	$Purchased->delete();
+	$Purchase->save();
+
+	if ( $Purchase->balance && $Purchase->balance >= $total_removed ) {
+		// invoice new amount
+		shopp_add_order_event($Purchase->id,'amt-voided',array(
+			'amount' => $total_removed					// Capture of entire order amount
+		));
+	}
+
 	return true;
 }
 
@@ -438,8 +599,12 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
 		return false;
 	}
 
-	$Lines[$line]->download = $download;
-	$Lines[$line]->save();
+	$Purchased = new Purchased;
+	$Purchased->populate($Lines[$line]);
+
+	$Purchased->download = $download;
+	$Purchased->keygen();
+	$Purchased->save();
 	return true;
 }
 
@@ -457,9 +622,12 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
 		return false;
+	$Purchased = new Purchased;
+	$Purchased->populate($Lines[$line]);
 
-	$Lines[$line]->download = 0;
-	$Lines[$line]->save();
+	$Purchase->download = 0;
+	$Purchase->dkey = '';
+	$Purchase->save();
 	return true;
 }
 
@@ -569,10 +737,10 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
  *
  * @param int $order (conditionally required default:false) Will be false for purchase events, but needs the order id otherwise.
  * @param string $type (required) the order event type
- * @param string $message (optional default:'') the log message for the event
+ * @param array $message (optional default:array()) the event message protocol
  * @return bool true on success, false on error
  **/
-function shopp_add_order_event ($order = false, $type = false, $message = '') {
+function shopp_add_order_event ( $order = false, $type = false, $message = array() ) {
 	if ( false !== $order && ! shopp_order_exists($order) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." '$type' failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
