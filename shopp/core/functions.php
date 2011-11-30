@@ -1201,11 +1201,13 @@ function preg_e_callback ($matches) {
 function raw_request_url () {
 	return esc_url(
 		'http'.
-		(is_shopp_secure()?'s':'').
+		(is_ssl()?'s':'').
 		'://'.
 		$_SERVER['HTTP_HOST'].
 		$_SERVER['REQUEST_URI'].
-		('' != get_option('permalink_structure')?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
+		('' != get_option('permalink_structure') ? (
+			(!empty($_SERVER['QUERY_STRING']) ? '?' : '' ).$_SERVER['QUERY_STRING'] ):''
+		)
 	);
 }
 
