@@ -20,8 +20,11 @@ class Purchased extends DatabaseObject {
 
 	function copydata ($Item) {
 		parent::copydata ($Item);
-		if (isset($Item->option->label))
+		if ( isset($Item->option->label) )
 			$this->optionlabel = $Item->option->label;
+
+		$this->price = $Item->option->id;
+		if ( ! empty($this->download) ) $this->keygen();
 
 		$this->addons = 'no';
 		if (empty($Item->addons) || !is_array($Item->addons)) return true;

@@ -685,9 +685,7 @@ class Order {
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
 			$Purchased->copydata($Item);
-			$Purchased->price = $Item->option->id;
 			$Purchased->purchase = $Purchase->id;
-			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
 		}
@@ -1739,6 +1737,22 @@ class VoidOrderEvent extends OrderEventMessage {
 
 }
 OrderEvent::register('void','VoidOrderEvent');
+
+/**
+ * Used to cancel an amount on the order
+ *
+ * @author John Dillick
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class AmountVoidedEvent extends CreditOrderEventMessage {
+	var $name = 'amt-void';
+	var $message = array(
+		'amount' => 0.0		// Amount voided
+	);
+}
+OrderEvent::register('amt-void','AmountVoidedEvent');
 
 /**
  * Used to cancel the balance of an order from either an Authed or Refunded event
