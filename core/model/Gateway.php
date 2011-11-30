@@ -64,6 +64,7 @@ abstract class GatewayFramework {
 	// Supported features
 	var $cards = false;			// A list of supported payment cards
 	var $authonly = false;		// Forces auth-only order processing
+	var $saleonly = false;		// Forces sale-only order processing
 	var $captures = false;		// Supports capture separate of authorization
 	var $recurring = false;		// Supports recurring billing
 	var $refunds = false;		// Remote refund support flag
@@ -120,6 +121,9 @@ abstract class GatewayFramework {
 
 		$gateway = sanitize_key($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
+
+		if ($this->saleonly)
+			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "sale";'));
 
 		if ($this->authonly)
 			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "auth";'));
