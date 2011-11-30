@@ -634,15 +634,8 @@ class Order {
 		// Lock for concurrency protection
 		$this->lock();
 
-		$this->Billing->customer = false;
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
-		$this->Billing->save();
-
-		if (!empty($this->Shipping->address)) {
-			$this->Shipping->customer = $this->Customer->id;
-			$this->Shipping->save();
-		}
 
 		$base = shopp_setting('base_operations');
 
@@ -669,8 +662,6 @@ class Order {
 		$Purchase->copydata($this->Shipping,'ship');
 		$Purchase->copydata($this->Cart->Totals);
 		$Purchase->customer = $this->Customer->id;
-		$Purchase->billing = $this->Billing->id;
-		$Purchase->shipping = $this->Shipping->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive')?'inclusive':'exclusive';
 		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->shipping;
@@ -731,6 +722,18 @@ class Order {
 
 		$this->Customer->save();
 
+		// Update billing address
+		if (!empty($this->Billing->address)) {
+			$this->Billing->customer = $this->Customer->id;
+			$this->Billing->save();
+		}
+
+		// Update shipping address
+		if (!empty($this->Shipping->address)) {
+			$this->Shipping->customer = $this->Customer->id;
+			$this->Shipping->save();
+		}
+
 		// Update Purchase with link to created customer record
 		if ( ! empty($this->Customer->id) ) {
 			$Purchase = ShoppPurchase();
@@ -739,6 +742,8 @@ class Order {
 				$Purchase = new Purchase($Event->order);
 
 			$Purchase->customer = $this->Customer->id;
+			$Purchase->billing = $this->Billing->id;
+			$Purchase->shipping = $this->Shipping->id;
 			$Purchase->save();
 
 		}
