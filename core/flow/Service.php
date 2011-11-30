@@ -228,7 +228,8 @@ class Service extends AdminController {
 		$selected = shopp_setting('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
-		$Gateways = $Shopp->Gateways->modules;
+		$Gateways = array_merge($Shopp->Gateways->modules,array('FreeOrder' => $Shopp->Gateways->freeorder));
+
 
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}
