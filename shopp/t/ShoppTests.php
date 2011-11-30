@@ -24,6 +24,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function
 	var $validator = false;
+	var $shopp_settings = array(); // testing settings, so tests can play nice
 
 	function setUp() {
 		// error types taken from PHPUnit_Framework_TestResult::run
@@ -78,6 +79,19 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 			);
 		}
 	}
+
+	function _set_setting ( $setting, $value ) {
+		$this->shopp_settings[$setting] = shopp_setting($setting);
+		shopp_set_setting($setting, $value);
+	}
+
+	function _restore_setting ( $setting ) {
+		if ( isset($this->shopp_settings[$setting]) ) {
+			shopp_set_setting($setting, $this->shopp_settings[$setting]);
+			unset($this->shopp_settings[$setting]);
+		}
+	}
+
 } // end ShoppTestCase class
 
 function shopp_run_tests($classes, $classname='') {
