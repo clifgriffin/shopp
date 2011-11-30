@@ -356,18 +356,18 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories);
 
 		$string = "";
-		$depthlimit = $depth;
+		$levellimit = $level;
 		$depth = 0;
 		$exclude = explode(",",$exclude);
 		$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
-		$wraplist = value_is_true($wraplist);
+		$wraplist = str_true($wraplist);
 
-		if (value_is_true($dropdown)) {
+		if (str_true($dropdown)) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
 			$string .= $title;
 			$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
-			foreach ($O->categories as &$category) {
+			foreach ($categories as &$category) {
 				// If the parent of this category was excluded, add this to the excludes and skip
 				if (!empty($category->parent) && in_array($category->parent,$exclude)) {
 					$exclude[] = $category->id;
@@ -375,25 +375,25 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 				if ($category->count == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
-				if ($depthlimit && $category->depth >= $depthlimit) continue;
+				if ($levellimit && $category->level >= $levellimit) continue;
 
-				if (value_is_true($hierarchy) && $category->depth > $depth) {
+				if (str_true($hierarchy) && $category->level > $level) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 				}
 
-				if (value_is_true($hierarchy))
-					$padding = str_repeat("&nbsp;",$category->depth*3);
+				if (str_true($hierarchy))
+					$padding = str_repeat("&nbsp;",$category->level*3);
 
 				$category_uri = empty($category->id)?$category->uri:$category->id;
 				$link = shoppurl( '' != get_option('permalink_structure') ? "category/$category->uri" : array('s_cat'=>$category_uri) );
 
 				$total = '';
-				if (value_is_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
+				if (str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
 
 				$string .= '<option value="'.$link.'">'.$padding.$category->name.$total.'</option>';
 				$previous = &$category;
-				$depth = $category->depth;
+				$level = $category->level;
 
 			}
 			$string .= '</select></form>';
