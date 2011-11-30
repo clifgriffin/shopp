@@ -233,10 +233,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 		if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
 		if (array_key_exists('url',$options))
-			$string .= shoppurl( SHOPP_PRETTYURLS ?
-									'download/'.$download->dkey :
-									array('src'=>'download','shopp_download'=>$download->dkey),
-									'account');
+			$string .= shoppurl( ('' == get_option('permalink_structure') ? 
+							array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey), 
+							'account');
 		return $string;
 	}
 

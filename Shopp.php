@@ -175,9 +175,6 @@ class Shopp {
 		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
 		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
-		define('SHOPP_PRETTYURLS',(get_option('permalink_structure') == '')?false:true);
-		define('SHOPP_PERMALINKS',SHOPP_PRETTYURLS); // Deprecated
-
 		// Error singletons
 		ShoppErrors();
 		ShoppErrorLogging();

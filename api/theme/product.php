@@ -907,7 +907,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join(',',$types);
 	}
 
-	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS?$O->slug:array(Product::$posttype=>$O->slug), false ); }
+	function url ($result, $options, $O) { return shoppurl( '' == get_option('permalink_structure')?array(Product::$posttype=>$O->slug):$O->slug, false ); }
 
 	function variation ($result, $options, $O) {
 		global $Shopp;
