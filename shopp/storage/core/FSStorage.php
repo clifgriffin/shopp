@@ -62,9 +62,9 @@ class FSStorage extends StorageModule implements StorageEngine {
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
 			if (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the uploaded file to the storage repository.");
-		} elseif ($type == "file") { // $data is a file path, just move the file
+		} elseif ($type == "file") { // $data is a file path, just copy the file
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
-			if (rename($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
+			if (copy($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the file to the storage repository.");
 		}
 

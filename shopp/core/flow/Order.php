@@ -1747,12 +1747,12 @@ OrderEvent::register('void','VoidOrderEvent');
  * @subpackage orderevent
  **/
 class AmountVoidedEvent extends CreditOrderEventMessage {
-	var $name = 'amt-void';
+	var $name = 'amt-voided';
 	var $message = array(
 		'amount' => 0.0		// Amount voided
 	);
 }
-OrderEvent::register('amt-void','AmountVoidedEvent');
+OrderEvent::register('amt-voided','AmountVoidedEvent');
 
 /**
  * Used to cancel the balance of an order from either an Authed or Refunded event
