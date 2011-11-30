@@ -122,12 +122,10 @@ abstract class GatewayFramework {
 		$gateway = sanitize_key($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
 
-		if ($this->saleonly)
-			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "sale";'));
-
 		if ($this->authonly)
 			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "auth";'));
-
+		elseif ($this->saleonly)
+			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "sale";'));
 	}
 
 	/**
