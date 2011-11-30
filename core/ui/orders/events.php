@@ -287,6 +287,14 @@ class CaptureOrderEventRenderer extends OrderEventRenderer {
 
 }
 
+class AmountVoidedEventRenderer extends TxnOrderEventRenderer {
+
+	function name () {
+		return __('Amount voided','Shopp');
+	}
+
+}
+
 class CapturedOrderEventRenderer extends TxnOrderEventRenderer {
 
 	function name () {
