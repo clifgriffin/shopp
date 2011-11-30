@@ -232,19 +232,18 @@ jQuery(document).ready(function() {
 
 	});
 
-	$('#print-button').click(function () {
-		var frame = $('#print-receipt').get(0);
-		if ($.browser.opera || $.browser.msie) {
-			var preview = window.open(frame.contentWindow.location.href+"&print=auto");
-			$(preview).load(function () {
-				preview.close();
-			});
-		} else {
-			frame.contentWindow.focus();
-			frame.contentWindow.print();
-		}
-
-	});
+	// $('#print-button').click(function (e) {
+	// 	$(e).preventDefault();
+	// 	var frame = $('#print-receipt').get(0), fw = frame.contentWindow;
+	// 	if ($.browser.opera || $.browser.msie) {
+	// 		var preview = window.open(fw.location.href+"&print=auto");
+	// 		$(preview).load(function () {	preview.close(); });
+	// 	} else {
+	// 		fw.focus();
+	// 		fw.print();
+	// 	}
+	//
+	// });
 
 	$('#customer').click(function () {
 		window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";

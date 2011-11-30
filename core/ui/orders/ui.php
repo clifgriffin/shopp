@@ -85,9 +85,10 @@ function manage_meta_box ($Purchase) {
 <div class="minor-publishing">
 
 	<div class="minor-publishing-actions headline">
-	<div class="misc-pub-section">
+	<div class="misc-pub-section controls">
 	<?php
-		$controls = '<div class="alignright"><input id="print-button" type="submit" value="'.__('Print Order','Shopp').'" class="button hide-if-no-js" /></div>';
+		$printurl = wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt');
+		$controls = '<div class="alignright"><a id="print-button" href="'.esc_url($printurl).'" class="button hide-if-no-js" target="_blank">'.__('Print Order','Shopp').'</a></div>';
 		echo apply_filters('shopp_order_management_controls',$controls);
 	?>
 	</div>
