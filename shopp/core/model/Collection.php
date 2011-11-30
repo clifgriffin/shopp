@@ -962,67 +962,25 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @version 1.1
+	 * @version 1.2
 	 *
-	 * @param array $loading Query configuration array
+	 * @see get_terms() in wp-includes/taxonomy.php for accepted $options values
+	 *
+	 * @param array $options Named array for WP get_terms
 	 * @return boolean successfully loaded or not
 	 **/
-	function load_children($loading=array()) {
-		if ((isset($this->smart) && $this->smart)
-			|| empty($this->id)) return false;
+	function load_children ( $options=array() ) {
+		if ( empty($this->id) ) return false;
 
-		$args = array_merge($loading,array('child_of'=>$this->id,'hide_empty' => 0,'fields'=>'id=>parent'));
-		$terms = get_terms( self::$taxonomy, $args );
+		$args = array_merge($options,array('parent'=>$this->id,'fields'=>'ids'));
+		$children = get_terms( self::$taxonomy, $args );
 
 		$this->children = array();
-		foreach ( (array)$terms as $term )
-			$this->children[$term] = new ProductCategory($term);
-		return (!empty($this->children));
+		foreach ( $children as $childterm )
+			$this->children[$childterm] = new ProductCategory($childterm);
 
-		// DISABLED
+		return !empty($this->children);
 
-		$defaults = array(
-			'columns' => 'cat.*,count(sc.product) as total',
-			'joins' => array("LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.taxonomy='$this->taxonomy'"),
-			'where' => array("cat.uri like '%$this->uri%' AND cat.id <> $this->id"),
-			'orderby' => 'name',
-			'order' => 'ASC'
-		);
-		$loading = array_merge($defaults,$loading);
-		extract($loading);
-
-		switch(strtolower($orderby)) {
-			case 'id': $orderby = "cat.id"; break;
-			case 'slug': $orderby = "cat.slug"; break;
-			case 'count': $orderby = "total"; break;
-			default: $orderby = "cat.name";
-		}
-
-		switch(strtoupper($order)) {
-			case 'DESC': $order = "DESC"; break;
-			default: $order = "ASC";
-		}
-
-		$joins = join(' ',$joins);
-		$where = join(' AND ',$where);
-		$name_order = ($orderby !== "name")?",name ASC":"";
-
-		$query = "SELECT $columns FROM $this->_table AS cat
-					$joins
-					WHERE $where
-					GROUP BY cat.id
-					ORDER BY cat.parent DESC,$orderby $order$name_order";
-		$children = $db->query($query,AS_ARRAY);
-
-		$children = sort_tree($children,$this->id);
-		foreach ($children as &$child) {
-			$this->children[$child->id] = new ProductCategory();
-			$this->children[$child->id]->populate($child);
-			$this->children[$child->id]->depth = $child->depth;
-			$this->children[$child->id]->total = $child->total;
-		}
-
-		return (!empty($this->children));
 	}
 
 	/**
