@@ -1140,7 +1140,7 @@ class Order {
 	 **/
 	function security () {
 		global $Shopp;
-		return $Shopp->Gateways->secure || is_shopp_secure();
+		return $Shopp->Gateways->secure || is_ssl();
 	}
 
 	/**
