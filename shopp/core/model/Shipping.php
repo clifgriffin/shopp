@@ -1333,7 +1333,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param Item $item the item to add to packages
 	 **/
 	public function add_item ( Item &$Item ) {
-		if ( isset($Item->packaging) && "on" == $Item->packaging )
+		if ( str_true($Item->packaging) )
 			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );
 		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$Item, &$this) );
 	}
