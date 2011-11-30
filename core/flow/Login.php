@@ -29,15 +29,13 @@ class Login {
 
 	function __construct () {
 
-		$this->accounts = shopp_setting('account_system');
-
 		$this->Customer =& ShoppOrder()->Customer;
 		$this->Billing =& ShoppOrder()->Billing;
 		$this->Shipping =& ShoppOrder()->Shipping;
 
 		add_action('shopp_logout',array(&$this,'logout'));
 
-		if ('wordpress' == $this->accounts) {
+		if ('wordpress' == shopp_setting('account_system')) {
 			add_action('set_logged_in_cookie',array(&$this,'wplogin'),10,4);
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_logout',1);
@@ -68,7 +66,7 @@ class Login {
 			do_action('shopp_logout');
 		}
 
-		if ("wordpress" == $this->accounts) {
+		if ("wordpress" == shopp_setting('account_system')) {
 			// See if the wordpress user is already logged in
 			$user = wp_get_current_user();
 
@@ -90,7 +88,7 @@ class Login {
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
 
-		switch ($this->accounts) {
+		switch (shopp_setting('account_system')) {
 			case "wordpress":
 				if (!empty($_POST['account-login'])) {
 					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
@@ -127,8 +125,7 @@ class Login {
 	 **/
 	function auth ($id,$password,$type='email') {
 
-		$db = DB::get();
-		switch($this->accounts) {
+		switch(shopp_setting('account_system')) {
 			case "shopp":
 				$Account = new Customer($id,'email');
 
@@ -250,6 +247,8 @@ class Login {
 
 		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
 
+		$_POST = apply_filters('shopp_customer_registration',$_POST);
+
 		$this->Customer = new Customer();
 		$this->Customer->updates($_POST);
 
@@ -265,12 +264,12 @@ class Login {
 			$this->Shipping->updates($_POST['shipping']);
 
 		// Override posted shipping updates with billing address
-		if ($_POST['sameshipaddress'] == "on")
+		if (str_true($_POST['sameshipaddress']))
 			$this->Shipping->updates($this->Billing,
 				array("_datatypes","_table","_key","_lists","id","created","modified"));
 
 		// WordPress account integration used, customer has no wp user
-		if ("wordpress" == $this->accounts && empty($this->Customer->wpuser)) {
+		if ("wordpress" == shopp_setting('account_system') && empty($this->Customer->wpuser)) {
 			if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
 			else $this->Customer->create_wpuser(); // not logged in, create new account
 		}
@@ -292,6 +291,8 @@ class Login {
 			$this->Shipping->customer = $this->Customer->id;
 			$this->Shipping->save();
 		}
+
+		do_action('shopp_customer_registered',$this->Customer);
 
 		if (!empty($this->Customer->id)) $this->login($this->Customer);
 
