@@ -536,7 +536,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #major-publishing-actions { height: 25px; }
 #order .minor-publishing-actions,
 #order .misc-pub-section { overflow: auto; }
-
+#order .misc-pub-section.controls { padding: 10px; }
 #order .status { font-size: 1.2em; }
 
 #order .shipment { width: 450px; margin: 6px auto 1.33em; }

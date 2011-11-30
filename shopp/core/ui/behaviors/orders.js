@@ -93,6 +93,20 @@ jQuery(document).ready( function($) {
 				});
 
 			ui.appendTo(headline);
+		}),
+
+		printbtn = $('#print-button').click(function (e) {
+			e.preventDefault();
+			var frame = $('#print-receipt').get(0), fw = frame.contentWindow;
+			if ($.browser.opera || $.browser.msie) {
+				var preview = window.open(fw.location.href+"&print=auto");
+				$(preview).load(function () {	preview.close(); });
+			} else {
+				fw.focus();
+				fw.print();
+			}
+			return false;
 		});
+
 
 });
