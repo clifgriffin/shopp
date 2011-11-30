@@ -49,13 +49,10 @@ class Item {
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $taxable = false;		// Taxable setting of the selected price object
 	var $freeshipping = false;	// Free shipping status of the selected price object
-	var $packaging = 'off';		// Should the item be packaged separately
+	var $packaging = false;		// Should the item be packaged separately
 
 	/**
 	 * Constructs a line item from a Product object and identified price object
-	 *
-	 *
-	 * @todo Move load/processing to a new method (outside constructor)
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -67,23 +64,44 @@ class Item {
 	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
+	function __construct ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
+		$args = func_get_args();
+		if ( empty($args) ) return;
+
+		$this->load($Product, $pricing, $category = false, $data = array(), $addons = array());
+	}
+
+	/**
+	 * load
+	 *
+	 * loads/constructs the Item object from parameters
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param object $Product Product object
+	 * @param mixed $pricing A list of price IDs; The option key of a price object; or a Price object
+	 * @param int $category (optional)The breadcrumb category ID where the product was added from
+	 * @param array $data (optional) Custom data associated with the line item
+	 * @param array $addons (optional) A set of addon options
+	 * @return void
+	 **/
+	function load ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
 		$Product->load_data();
 
 		// If option ids are passed, lookup by option key, otherwise by id
-		if (is_array($pricing)) {
+		if ( is_array($pricing) ) {
 			$Price = $Product->pricekey[$Product->optionkey($pricing)];
-			if (empty($Price)) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
-		} elseif ($pricing !== false) {
+			if ( empty($Price) ) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
+		} elseif ( false !== $pricing ) {
 			$Price = $Product->priceid[$pricing];
 		} else {
-			foreach ($Product->prices as &$Price)
-				if ($Price->type != 'N/A' &&
-					(!$Price->stocked ||
-					($Price->stocked && $Price->stock > 0))) break;
+			foreach ( $Product->prices as &$Price ) {
+				if ( $Price->type != 'N/A' && ( ! $Price->stocked || $Price->stocked && $Price->stock > 0 ) ) break;
+			}
 		}
-		if (isset($Product->id)) $this->product = $Product->id;
-		if (isset($Price->id)) $this->priceline = $Price->id;
+		if ( isset($Product->id) ) $this->product = $Product->id;
+		if ( isset($Price->id) ) $this->priceline = $Price->id;
 
 		$this->name = $Product->name;
 		$this->slug = $Product->slug;
@@ -94,9 +112,11 @@ class Item {
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 
-		if (str_true($Product->variants))
+		// Product has variants
+		if ( str_true($Product->variants) )
 			$this->variants($Product->prices);
 
+		// Product has Addons
 		if (str_true($Product->addons))
 			$this->addons($this->addonsum,$addons,$Product->prices);
 
@@ -109,21 +129,21 @@ class Item {
 		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
 		// $this->saved = ($Price->price - $Price->promoprice);
 		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
-		$this->unitprice = ($this->sale?$Price->promoprice:$Price->price)+$this->addonsum;
+		$this->unitprice = ( $this->sale ? $Price->promoprice : $Price->price ) + $this->addonsum;
 
-		if ($this->type == 'Donation')
+		if ( 'Donation' == $this->type )
 			$this->donation = $Price->donation;
 
 		$this->data = stripslashes_deep(esc_attrs($data));
 		$this->recurrences();
 
 		// Map out the selected menu name and option
-		if ($Product->variants == 'on') {
+		if ( str_true($Product->variants) ) {
 			$selected = explode(',',$this->option->options); $s = 0;
-			$variants = isset($Product->options['v'])?$Product->options['v']:$Product->options;
-			foreach ($variants as $i => $menu) {
-				foreach($menu['options'] as $option) {
-					if ($option['id'] == $selected[$s]) {
+			$variants = isset($Product->options['v']) ? $Product->options['v'] : $Product->options;
+			foreach ( $variants as $i => $menu ) {
+				foreach( $menu['options'] as $option ) {
+					if ( $option['id'] == $selected[$s] ) {
 						$this->variant[$menu['name']] = $option['name']; break;
 					}
 				}
@@ -131,14 +151,13 @@ class Item {
 			}
 		}
 
-		$packaging_meta = shopp_product_meta($Product->id, 'packaging');
-		$this->packaging = ( 'on' == $packaging_meta ) ? 'on' : 'off';
+		$this->packaging = str_true( shopp_product_meta($Product->id, 'packaging') );
 
-		if (!empty($Price->download)) $this->download = $Price->download;
+		if ( ! empty($Price->download) ) $this->download = $Price->download;
 
-		if ('Shipped' == $Price->type) $this->shipped = true;
+		if ( 'Shipped' == $Price->type ) $this->shipped = true;
 
-		if ($this->shipped) {
+		if ( $this->shipped ) {
 			$dimensions = array(
 				'weight' => 0,
 				'length' => 0,
@@ -146,25 +165,26 @@ class Item {
 				'height' => 0
 			);
 
-			if ('on' == $Price->shipping) {
+			if ( str_true($Price->shipping) ) {
 				$this->shipfee = $Price->shipfee;
-				if (isset($Price->dimensions))
+				if ( isset($Price->dimensions) )
 					$dimensions = array_merge($dimensions,$Price->dimensions);
 			} else $this->freeshipping = true;
 
-			if (isset($Product->addons) && $Product->addons == 'on') {
+			if ( isset($Product->addons) && str_true($Product->addons) ) {
 				$this->addons($dimensions,$addons,$Product->prices,'dimensions');
 				$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
 			}
 
-			foreach ($dimensions as $dimension => $value)
+			foreach ( $dimensions as $dimension => $value ) {
 				$this->$dimension = $value;
-
+			}
 		}
 
-		$this->inventory = ($Price->inventory == 'on')?true:false;
-		$this->taxable = ($Price->tax == 'on' && shopp_setting('taxes') == 'on')?true:false;
+		$this->inventory = str_true($Price->inventory);
+		$this->taxable = ( str_true($Price->tax) && shopp_setting_enabled('taxes') );
 	}
+
 
 	/**
 	 * Validates the line item
@@ -218,17 +238,15 @@ class Item {
 	 **/
 	function quantity ($qty) {
 
-		if ($this->type == 'Donation' && $this->donation['var'] == 'on') {
-			if ($this->donation['min'] == 'on' && floatvalue($qty) < $this->unitprice)
+		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
+			if ( str_true($this->donation['min']) && floatvalue($qty) < $this->unitprice )
 				$this->unitprice = $this->unitprice;
 			else $this->unitprice = floatvalue($qty,false);
 			$this->quantity = 1;
 			$qty = 1;
 		}
 
-		if ('Subscription' == $this->type ||
-			'Membership' == $this->type ||
-			( 'Download' == $this->type && shopp_setting_enabled('download_quantity') )) {
+		if ( in_array($this->type, array('Membership','Subscription')) || 'Download' == $this->type && shopp_setting_enabled('download_quantity') ) {
 			return ($this->quantity = 1);
 		}
 
@@ -236,7 +254,7 @@ class Item {
 		if ($this->inventory) {
 			$levels = array($this->option->stock);
 			foreach ($this->addons as $addon) // Take into account stock levels of any addons
-				if ($addon->inventory == 'on') $levels[] = $addon->stock;
+				if ( str_true($addon->inventory) ) $levels[] = $addon->stock;
 			if ($qty > min($levels)) {
 				new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
 				$this->quantity = min($levels);
@@ -255,7 +273,7 @@ class Item {
 	 * @return void
 	 **/
 	function add ($qty) {
-		if ($this->type == 'Donation' && $this->donation['var'] == 'on') {
+		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			$qty = floatvalue($qty);
 			$this->quantity = $this->unitprice;
 		}
@@ -288,7 +306,7 @@ class Item {
 			$selected = '';
 			if ($selection == $option->id) $selected = ' selected="selected"';
 			$disabled = '';
-			if ($option->inventory == 'on' && $option->stock < $this->quantity)
+			if ( str_true($option->inventory) && $option->stock < $this->quantity )
 				$disabled = ' disabled="disabled"';
 
 			$string .= '<option value="'.$option->id.'"'.$selected.$disabled.'>'.$option->label.$price.'</option>';
@@ -334,11 +352,11 @@ class Item {
 				$this->addons[] = $pricing;
 				$sum += $pricing->unitprice;
 			} elseif ('dimensions' == $property) {
-				if ('on' != $p->shipping || 'Shipped' != $p->type) continue;
+				if ( ! str_true($p->shipping) || 'Shipped' != $p->type ) continue;
 				foreach ($p->dimensions as $dimension => $value)
 					$sum[$dimension] += $value;
 			} elseif ('shipfee' == $property) {
-				if ('on' != $p->shipping) continue;
+				if ( ! str_true($p->shipping) ) continue;
 				$sum += $pricing->shipfee;
 			} else {
 				if (isset($pricing->$property)) $sum += $pricing->$property;
@@ -408,7 +426,7 @@ class Item {
 		}
 
 		$subscription = array();
-		if ($trial == 'on') {
+		if ( str_true($trial) ) {
 			$singular = (int)($trialint==1);
 			$periodLabel = $periods[$singular][$trialperiod];
 			$price = $trialprice > 0?money($trialprice):__('Free','Shopp');
@@ -504,7 +522,7 @@ class Item {
 
 		if ( ! empty($this->addons) ) {
 			foreach ($this->addons as $addon) {
-				if ( 'on' == $addon->inventory )
+				if ( str_true($addon->inventory) )
 					$ids[] = $addon->id;
 			}
 		}
