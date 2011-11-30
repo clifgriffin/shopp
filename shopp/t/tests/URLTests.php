@@ -21,6 +21,8 @@ class URLTests extends ShoppTestCase {
 		
 		$Product = shopp_product("Ultimate Matrix Collection", 'name');
 		ShoppProduct($Product);
+		
+		shopp('catalog','category','slug=apparel&load=true');
 	}
 
 	function test_pretty_cart_url () {
