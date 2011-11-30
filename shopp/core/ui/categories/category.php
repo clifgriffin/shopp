@@ -26,7 +26,7 @@
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Category->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
-						<?php if (SHOPP_PRETTYURLS && !empty($Category->id)): ?>
+						<?php if ('' != get_option('permalink_structure') && !empty($Category->id)): ?>
 						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Category->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Category->slug); ?></span>/</span>
 						<span id="edit-slug-buttons">
@@ -67,7 +67,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	uidir = '<?php echo SHOPP_ADMIN_URI; ?>',
 	siteurl = '<?php bloginfo('url'); ?>',
 	adminurl = '<?php echo SHOPP_WPADMIN_URL; ?>',
-	canonurl = '<?php echo trailingslashit(shoppurl( SHOPP_PRETTYURLS ? get_class_property('ProductCategory','namespace') : $Category->taxonomy.'=' )); ?>',
+	canonurl = '<?php echo trailingslashit(shoppurl( '' != get_option('permalink_structure') ? get_class_property('ProductCategory','namespace') : $Category->taxonomy.'=' )); ?>',
 	ajaxurl = adminurl+'admin-ajax.php',
 	addcategory_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "shopp-ajax_add_category"); ?>',
 	editslug_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',

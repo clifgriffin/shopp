@@ -92,7 +92,7 @@ class ShoppCartItemThemeAPI {
 
 	function type ($result, $options, $O) { return $O->type; }
 
-	function url ($result, $options, $O) { return shoppurl( SHOPP_PRETTYURLS ? $O->slug : array( 's_pid'=>$O->product ) ); }
+	function url ($result, $options, $O) { return shoppurl( '' != get_option('permalink_structure') ? $O->slug : array( 's_pid'=>$O->product ) ); }
 
 	function sku ($result, $options, $O) { return $O->sku; }
 

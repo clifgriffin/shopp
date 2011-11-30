@@ -617,6 +617,7 @@ class FreeOrder extends GatewayFramework {
 
 	var $secure = false;	// SSL not required
 	var $refunds = true;	// Supports refunds
+	var $saleonly = true;
 
 	/**
 	 * Setup the FreeOrder gateway
@@ -630,15 +631,11 @@ class FreeOrder extends GatewayFramework {
 		parent::__construct();
 		$this->name = __('Free Order','Shopp');
 
-		// Force sale-only order processing
-		add_filter('shopp_purchase_order_freeorder_processing',array($this,'saleonly'));
-
 		add_action('shopp_freeorder_sale',array($this,'capture'));
 		add_action('shopp_freeorder_refund',array($this,'void'));
 		add_action('shopp_freeorder_void',array($this,'void'));
 	}
 
-	function saleonly () { return 'sale'; }
 
 	function capture (OrderEventMessage $Event) {
 		shopp_add_order_event($Event->order,'captured',array(

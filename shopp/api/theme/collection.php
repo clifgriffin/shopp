@@ -486,7 +486,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	function feed_url ($result, $options, $O) {
 		$url = self::url($result,$options,$O);
-		if (!SHOPP_PRETTYURLS) return add_query_arg(array('src'=>'category_rss'),$url);
+		if ( '' == get_option('permalink_structure') ) return add_query_arg(array('src'=>'category_rss'),$url);
 
 		$query = false;
 		if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
@@ -1020,7 +1020,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	function url ($result, $options, $O) {
 		$class = get_class($O);
 		$namespace = get_class_property($class,'namespace');
-		$url = shoppurl( SHOPP_PRETTYURLS ? "$namespace/$O->slug" : array($O->taxonomy=>$O->slug) );
+		$url = shoppurl( '' != get_option('permalink_structure') ? "$namespace/$O->slug" : array($O->taxonomy=>$O->slug) );
 		if (isset($options['page'])) $url = $O->pagelink((int)$options['page']);
 		return $url;
 	}

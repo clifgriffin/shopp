@@ -30,7 +30,7 @@
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Product->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
-						<?php if (SHOPP_PRETTYURLS && !empty($Product->id)): ?>
+						<?php if ('' != get_option('permalink_structure') && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title=<?php _jse('Click to edit this part of the permalink','Shopp'); ?>><?php echo esc_attr($Product->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Product->slug); ?></span><?php echo user_trailingslashit(""); ?></span>
 							<span id="edit-slug-buttons">

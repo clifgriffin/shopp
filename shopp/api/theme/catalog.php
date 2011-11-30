@@ -224,7 +224,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 			$category_uri = isset($Category->smart)?$Category->slug:$Category->id;
 
-			$link = SHOPP_PRETTYURLS?
+			$link = ('' != get_option('permalink_structure'))?
 				shoppurl("$type/$Category->uri") :
 				shoppurl(array_merge($_GET,array('s_cat'=>$category_uri,'s_pid'=>null)));
 
@@ -245,7 +245,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			while ($parentkey != '_0' && $depth-- > 0) {
 				$tree_category = $O->categories[$parentkey];
 
-				$link = SHOPP_PRETTYURLS?
+				$link = ('' != get_option('permalink_structure'))?
 					shoppurl("category/$tree_category->uri"):
 					shoppurl(array_merge($_GET,array('s_cat'=>$tree_category->id,'s_pid'=>null)));
 
@@ -386,7 +386,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					$padding = str_repeat("&nbsp;",$category->depth*3);
 
 				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+				$link = shoppurl( '' != get_option('permalink_structure') ? "category/$category->uri" : array('s_cat'=>$category_uri) );
 
 				$total = '';
 				if (value_is_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
@@ -444,7 +444,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 
 				// $category_uri = empty($category->id)?$category->uri:$category->id;
-				// $link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+				// $link = ( '' != get_option('permalink_structure') )?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 				$link = get_term_link($category->name,$category->taxonomy);
 				if (is_wp_error($link)) $link = '';
 				$total = '';
@@ -529,7 +529,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$default = $Storefront->browsing['sortorder'];
 			$string .= $title;
 			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
-			if (!SHOPP_PRETTYURLS) {
+			if ( '' == get_option('permalink_structure') ) {
 				foreach ($_GET as $key => $value)
 					if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 			}

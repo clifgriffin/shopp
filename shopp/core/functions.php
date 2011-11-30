@@ -1205,7 +1205,7 @@ function raw_request_url () {
 		'://'.
 		$_SERVER['HTTP_HOST'].
 		$_SERVER['REQUEST_URI'].
-		(SHOPP_PRETTYURLS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
+		('' != get_option('permalink_structure')?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
 	);
 }
 
