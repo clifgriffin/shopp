@@ -1854,6 +1854,7 @@ function shopp_template_url ($name) {
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 
 	$structure = get_option('permalink_structure');
+	$prettyurls = ('' != $structure);
 	$permastruct = explode('/',substr($structure, 0, strpos($structure, '%')));
 	if (isset($permastruct[1])) $path[] = $permastruct[1];
 
@@ -1862,7 +1863,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	// Build request path based on Storefront shopp_page requested
 	if ('images' == $page) {
 		$path[] = 'images';
-		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
+		if (!$prettyurls) $request = array('siid'=>$request);
 	} else {
 		if (false !== $page)
 			$page_slug = Storefront::slug($page);
@@ -1878,9 +1879,9 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	elseif (($secure || is_ssl()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
 
 	$url = home_url(false,$scheme);
-
-	if (SHOPP_PRETTYURLS) $url = home_url(join('/',$path),$scheme);
+	if ($prettyurls) $url = home_url(join('/',$path),$scheme);
 	if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
+	$url = trailingslashit($url);
 
 	if (!empty($query)) {
 		parse_str($query,$home_queryvars);
@@ -1893,10 +1894,10 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		}
 	}
 
-	if (!SHOPP_PRETTYURLS) $url = isset($page_slug)?add_query_arg('shopp_page',$page_slug,$url):$url;
+	if (!$prettyurls) $url = isset($page_slug)?add_query_arg('shopp_page',$page_slug,$url):$url;
 
 	// No extra request, return the complete URL
-	if (!$request) return user_trailingslashit($url);
+	if (!$request) return apply_filters('shopp_url',$url);
 
 	// Filter URI request
 	$uri = false;
@@ -1904,7 +1905,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	if (is_array($request) && isset($request[0])) $uri = array_shift($request);
 	if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
 
-	$url = user_trailingslashit(trailingslashit($url).$uri);
+	$url = user_trailingslashit($url.$uri);
 
 	if (!empty($request) && is_array($request)) {
 		$request = array_map('urldecode',$request);
