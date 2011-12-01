@@ -75,6 +75,15 @@ class URLTests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/store/category/apparel/',$actual);
 	}
 	
+	function test_pretty_catalog_url () {
+	
+		ob_start();
+		shopp('catalog','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/',$actual);
+	}
 /**
  * Switch to Default DB Structure
  **/
@@ -124,6 +133,25 @@ class URLTests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/?shopp_product=ultimate-matrix-collection',$actual);
 	}
 	
+	function test_default_category_url () {
+		
+		ob_start();
+		shopp('category','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+		
+		$this->assertEquals('http://shopptest/?shopp_category=apparel',$actual);
+	}
+	
+	function test_default_catalog_url () {
+	
+		ob_start();
+		shopp('catalog','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/?shopp_page=store',$actual);
+	}
 	
 } // end URLTests class
 
