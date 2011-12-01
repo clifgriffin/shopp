@@ -19,10 +19,13 @@ class URLTests extends ShoppTestCase {
 		parent::setUp();
 		// ShoppOrder()->Shipping->country = 'US';
 		
-		$Product = shopp_product("Ultimate Matrix Collection", 'name');
-		ShoppProduct($Product);
+		// Pre-set product for repeated use
+		// $Product = shopp_product("Ultimate Matrix Collection", 'name');
+		// ShoppProduct($Product);
 		
-		shopp('catalog','category','slug=apparel&load=true');
+		// Load category for repeated use
+		// shopp('catalog','category','slug=apparel&load=true');
+		
 	}
 
 	function test_pretty_cart_url () {
@@ -57,6 +60,8 @@ class URLTests extends ShoppTestCase {
 	
 	function test_pretty_product_url () {
 		
+		$Product = shopp_product("Ultimate Matrix Collection", 'name');
+		ShoppProduct($Product);
 		ob_start();
 		shopp('product','url');
 		$actual = ob_get_contents();
@@ -67,6 +72,7 @@ class URLTests extends ShoppTestCase {
 	
 	function test_pretty_category_url () {
 		
+		shopp('catalog','category','slug=apparel&load=true');
 		ob_start();
 		shopp('category','url');
 		$actual = ob_get_contents();
@@ -84,6 +90,62 @@ class URLTests extends ShoppTestCase {
 	
 		$this->assertEquals('http://shopptest/store/',$actual);
 	}
+	
+	function test_pretty_catalogproducts_url () {
+	
+	    shopp('catalog','catalog-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/collection/catalog/',$actual);
+	}
+	
+	function test_pretty_newproducts_url () {
+	
+	    shopp('catalog','new-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/collection/new/',$actual);
+	}
+	
+	function test_pretty_featuredproducts_url () {
+	
+	    shopp('catalog','featured-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/collection/featured/',$actual);
+	}
+	
+	function test_pretty_onsaleproducts_url () {
+	
+	    shopp('catalog','onsale-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/collection/onsale/',$actual);
+	}
+	
+	function test_pretty_bestsellerproducts_url () {
+	
+	    shopp('catalog','bestseller-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+	
+		$this->assertEquals('http://shopptest/store/collection/bestsellers/',$actual);
+	}
+	
 /**
  * Switch to Default DB Structure
  **/
@@ -135,6 +197,7 @@ class URLTests extends ShoppTestCase {
 	
 	function test_default_category_url () {
 		
+		shopp('catalog','category','slug=apparel&load=true');
 		ob_start();
 		shopp('category','url');
 		$actual = ob_get_contents();
