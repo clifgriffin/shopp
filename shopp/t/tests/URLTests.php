@@ -145,6 +145,28 @@ class URLTests extends ShoppTestCase {
 
 		$this->assertEquals('http://shopptest/store/collection/bestsellers/',$actual);
 	}
+	
+	function test_pretty_alsoboughtproducts_url () {
+
+	    shopp('catalog','alsobought-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/store/collection/alsobought/',$actual);
+	}
+	
+	function test_pretty_randomproducts_url () {
+
+	    shopp('catalog','random-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/store/collection/random/',$actual);
+	}
 
 /**
  * Switch to Default DB Structure
@@ -287,6 +309,30 @@ class URLTests extends ShoppTestCase {
 
 		$this->_pretty_urls( $orig ); // restore before assertions
 		$this->assertEquals('http://shopptest/?shopp_collection=bestsellers',$actual);
+	}
+	
+	function test_default_alsoboughtproducts_url () {
+
+	    shopp('catalog','alsobought-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->_pretty_urls( $orig ); // restore before assertions
+		$this->assertEquals('http://shopptest/?shopp_collection=alsobought',$actual);
+	}
+	
+	function test_default_randomproducts_url () {
+
+	    shopp('catalog','random-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->_pretty_urls( $orig ); // restore before assertions
+		$this->assertEquals('http://shopptest/?shopp_collection=random',$actual);
 	}
 		
 } // end URLTests class
