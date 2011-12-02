@@ -90,6 +90,26 @@ function _object_r ($object) {
 }
 
 /**
+ * _var_dump
+ *
+ * like _object_r, but in var_dump format.  Useful when you need to know both object and scalar types.
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @return string var_dump output
+ **/
+if ( ! function_exists('_var_dump') ) {
+	function _var_dump( $object ) {
+			ob_start();
+			var_dump($object);
+			$ret_val = ob_get_contents();
+			ob_end_clean();
+			return $ret_val;
+	}
+}
+
+/**
  * Appends a string to the end of URL as a query string
  *
  * @author Jonathan Davis
