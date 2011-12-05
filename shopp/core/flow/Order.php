@@ -523,10 +523,10 @@ class Order {
 	 **/
 	function captured ($Event) {
 		shopp_add_order_event($Event->order,'captured',array(
-			'txnid' => $Purchase->txnid,				// Can be either the original transaction ID or an ID for this transaction
-			'amount' => $Event->amount,					// Capture of entire order amount
+			'txnid' => $Event->txnid,				// Can be either the original transaction ID or an ID for this transaction
+			'amount' => $Event->amount,				// Capture of entire order amount
 			'fees' => $Event->fees,					// Transaction fees taken by the gateway net revenue = amount-fees
-			'gateway' => $Event->gateway					// Gateway handler name (module name from @subpackage)
+			'gateway' => $Event->gateway			// Gateway handler name (module name from @subpackage)
 		));
 	}
 
