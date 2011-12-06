@@ -161,6 +161,39 @@ class PrettyURLTests extends ShoppTestCase {
 
 		$this->assertEquals('http://shopptest/store/collection/random/',$actual);
 	}
+	
+	function test_relatedproducts_url () {
+
+	    shopp('catalog','related-products','load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/store/collection/related/',$actual);
+	}
+	
+	function test_tagproducts_url () {
+
+	    shopp('catalog','tag-products','tag=action&load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/store/collection/tag/',$actual);
+	}
+	
+	function test_searchproducts_url () {
+
+	    shopp('catalog','search-products','search=Star+Wars&load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('',$actual);
+	}
 
 } // end PrettyURLTests class
 
