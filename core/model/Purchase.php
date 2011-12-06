@@ -41,42 +41,10 @@ class Purchase extends DatabaseObject {
 	}
 
 	function listeners () {
-
-		// Automatically update the order with order events
-		$updates = array('invoiced','authed','captured','refunded','voided');
-		foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
-			add_action( 'shopp_'.$event.'_order_event', array($this,'event'), 5 );
-
 		// Attach the notification system to order events
 		add_action( 'shopp_order_event', array($this, 'notifications') );
 		add_action( 'shopp_order_notifications', array($this, 'success') );
 
-	}
-
-	/**
-	 * Updates a purchase order with transaction information from order events
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @param OrderEvent $Event The order event passed by the action hook
-	 * @return void
-	 **/
-	function event ($Event) {
-		if ($this->id != $Event->order) return;
-
-		if ($this->txnstatus == $Event->name)
-			return new ShoppError('Transaction status ('.$this->txnstatus.') for purchase order #'.$this->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
-
-		$this->txnstatus = $Event->name;
-		$labels = shopp_setting('order_status');
-		$events = shopp_setting('order_states');
-
-		$key = array_search($Event->name,$events);
-		if (isset($labels[$key])) $this->status = $key;
-		if (isset($Event->txnid)) $this->txnid = $Event->txnid;
-
-		$this->save();
 	}
 
 	function load_purchased () {
@@ -132,6 +100,46 @@ class Purchase extends DatabaseObject {
 			}
 		}
 
+	}
+
+	/**
+	 * Updates a purchase order with transaction information from order events
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param OrderEvent $Event The order event passed by the action hook
+	 * @return void
+	 **/
+	static function status_event ($Event) {
+		$Purchase = ShoppPurchase();
+
+		if ($Purchase->id != $Event->order) { // Avoid unnecessary queries when possible
+			if ($Purchase->txnstatus == $Event->name)
+				return new ShoppError('Transaction status ('.$Purchase->txnstatus.') for purchase order #'.$Purchase->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
+		}
+		if (empty($Event->order)) return new ShoppError('Cannot update',false,SHOPP_DEBUG_ERR);
+
+		$status = false;
+		$txnid = false;
+
+		// Set transaction status from event name
+		$txnstatus = "'".DB::escape($Event->name)."'";
+
+		// Set order workflow status from status label mapping
+		$labels = shopp_setting('order_status');
+		$events = shopp_setting('order_states');
+		$key = array_search($Event->name,$events);
+		if (isset($labels[$key])) $status = "'".DB::escape($key)."'";
+
+		// Set the transaction ID if available
+		if (isset($Event->txnid)) $txnid = "'".DB::escape($Event->txnid)."'";
+
+		$updates = compact('txnstatus','txnid','status');
+		$dataset = DatabaseObject::dataset(array_filter($updates));
+
+		$table = DatabaseObject::tablename(self::$table);
+		DB::query("UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1");
 	}
 
 	function capturable () {
@@ -640,5 +648,11 @@ class PurchasesIIFExport extends PurchasesExport {
 		<?php
 	}
 }
+
+// Automatically update the orders from order events
+$updates = array('invoiced','authed','captured','refunded','voided');
+foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
+	add_action( 'shopp_'.$event.'_order_event', array('Purchase','status_event'), 5 );
+
 
 ?>
