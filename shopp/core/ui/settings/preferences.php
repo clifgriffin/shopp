@@ -98,7 +98,7 @@
 				<th scope="row" valign="top"><label for="account-system-none"><?php _e('Customer Accounts','Shopp'); ?></label></th>
 				<td><input type="radio" name="settings[account_system]" value="none" id="account-system-none"<?php if(shopp_setting('account_system') == "none") echo ' checked="checked"' ?> /> <label for="account-system-none"><?php _e('No Accounts','Shopp'); ?></label><br />
 					<input type="radio" name="settings[account_system]" value="shopp" id="account-system-shopp"<?php if(shopp_setting('account_system') == "shopp") echo ' checked="checked"' ?> /> <label for="account-system-shopp"><?php _e('Enable Account Logins','Shopp'); ?></label><br />
-					<input type="radio" name="settings[account_system]" value="wordpress" id="account-system-wp"<?php if(shopp_setting('account_system') == "wordpress") echo ' checked="checked"' ?> /> <label for="account-system-wp"><?php _e('Enable Account Logins integrated with WordPress Accounts','Shopp'); ?></label></td>
+					<input type="radio" name="settings[account_system]" value="wordpress" id="account-system-wp"<?php if(shopp_setting('account_system') == "wordpress") echo ' checked="checked"' ?> /> <label for="account-system-wp"><?php _e('Enable Account Logins integrated with WordPress Users','Shopp'); ?></label></td>
 			</tr>
 
 		</table>
