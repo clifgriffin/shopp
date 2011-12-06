@@ -310,6 +310,12 @@ class Storefront extends FlowController {
 		if (isset($Product->id) && !empty($Product->id))
 			array_unshift($templates,'product-'.$Product->id.'.php');
 
+		// Load product summary data, before checking inventory
+		if (!isset($Product->summed)) $Product->load_data(array('summary'));
+
+		if ( str_true($Product->inventory) && $Product->stock < 1 )
+			array_unshift($templates,'product-outofstock.php');
+
 		ob_start();
 		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
