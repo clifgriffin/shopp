@@ -221,6 +221,17 @@ class DefaultURLTests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/?shopp_collection=tag',$actual);
 	}
 	
+	function test_searchproducts_url () {
+
+	    shopp('catalog','search-products','search=Star+Wars&load=true');
+		ob_start();
+		shopp('collection','url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/?shopp_collection=search-results/?s=Star+Wars&s_cs=1',$actual);
+	}
+	
 	function tearDown() {
 		
 		parent::tearDown();
