@@ -111,7 +111,8 @@
 #shopp .gallery .previews li.fill { position: relative; }
 #shopp .gallery .previews li.fill img { margin: 0; padding: 0; }
 #shopp .gallery .previews li.active { visibility: visible; }
-#shopp .gallery .thumbnails { margin-top: 10px; overflow: hidden; text-align: justify; display: block; }
+#shopp .gallery .thumbnails { margin-top: 10px; overflow: hidden; text-align: justify; text-align-last: justify; display: block; }
+#shopp .gallery .thumbnails:after { content:"."; display:inline-block; width:100%; height:0; visibility:hidden; }
 #shopp .gallery .thumbnails ul { padding: 0; }
 #shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; top: auto; left: auto; }
 #shopp .gallery .thumbnails li.first { margin-left: 0; }
