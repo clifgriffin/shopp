@@ -105,6 +105,8 @@ function _shopp_order_purchased ( &$records, &$purchased, $orders ) {
  * @author John Dillick
  * @since 1.2
  *
+ * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
+ * @param mixed $to (optional) mktime or SQL datetime, get purchased before this date/time.
  * @return int number of orders found
  **/
 function shopp_order_count ($from = false, $to = false) {
