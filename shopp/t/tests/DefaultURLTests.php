@@ -117,7 +117,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_catalogproducts_url () {
 
-	    shopp('catalog','catalog-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','catalog-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -129,7 +130,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_newproducts_url () {
 
-	    shopp('catalog','new-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','new-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -141,7 +143,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_featuredproducts_url () {
 
-	    shopp('catalog','featured-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','featured-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -153,7 +156,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_onsaleproducts_url () {
 
-	    shopp('catalog','onsale-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','onsale-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -165,7 +169,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_bestsellerproducts_url () {
 
-	    shopp('catalog','bestseller-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','bestseller-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -177,7 +182,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_alsoboughtproducts_url () {
 
-	    shopp('catalog','alsobought-products','load=true');
+		$orig = $this->_default_urls();
+		shopp('catalog','alsobought-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -189,7 +195,8 @@ class DefaultURLTests extends ShoppTestCase {
 
 	function test_randomproducts_url () {
 
-	    shopp('catalog','random-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','random-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -201,7 +208,8 @@ class DefaultURLTests extends ShoppTestCase {
 	
 	function test_relatedproducts_url () {
 
-	    shopp('catalog','related-products','load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','related-products','load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -212,7 +220,8 @@ class DefaultURLTests extends ShoppTestCase {
 	
 	function test_tagproducts_url () {
 
-	    shopp('catalog','tag-products','tag=action&load=true');
+	    $orig = $this->_default_urls();
+		shopp('catalog','tag-products','tag=action&load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -223,7 +232,9 @@ class DefaultURLTests extends ShoppTestCase {
 	
 	function test_searchproducts_url () {
 
-	    shopp('catalog','search-products','search=Star+Wars&load=true');
+	    
+		$orig = $this->_default_urls();
+		shopp('catalog','search-products','search=Star+Wars&load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
@@ -232,11 +243,44 @@ class DefaultURLTests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/?shopp_collection=search-results/?s=Star+Wars&s_cs=1',$actual);
 	}
 	
+	function test_category_paginated_url () {
+
+	    $orig = $this->_default_urls();
+		shopp('catalog','category','slug=apparel&load=true');
+		shopp('collection','has-products');
+		
+		ob_start();
+		shopp('collection','pagination');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$markup = array(
+			'tag' => 'a',
+			'attributes' => array(
+				'href' => 'http://shopptest/store/category/apparel/page/2/',
+			),
+			'content' => '2'
+		);
+		$this->assertTag($markup,$output,'',true);
+		$this->assertValidMarkup($output);
+	}
+	
+	function test_category_feed_url () {
+
+		$orig = $this->_default_urls();
+		shopp('catalog','category','slug=apparel&load=true');
+		ob_start();
+		shopp('category','feed-url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/?shopp_category=apparel&src=category_rss',$actual);
+	}
+	
 	function tearDown() {
 		
 		parent::tearDown();
 		// Set back to original (Pretty)
-		
 	}
 
 } // end DefaultURLTests class

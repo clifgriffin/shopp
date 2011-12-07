@@ -194,6 +194,38 @@ class PrettyURLTests extends ShoppTestCase {
 
 		$this->assertEquals('http://shopptest/store/collection/search-results/?s=Star+Wars&s_cs=1',$actual);
 	}
+	
+	function test_category_paginated_url () {
+
+	    shopp('catalog','category','slug=apparel&load=true');
+		shopp('collection','has-products');
+		
+		ob_start();
+		shopp('collection','pagination');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$markup = array(
+			'tag' => 'a',
+			'attributes' => array(
+				'href' => 'http://shopptest/store/category/apparel/page/2/',
+			),
+			'content' => '2'
+		);
+		$this->assertTag($markup,$output,'',true);
+		$this->assertValidMarkup($output);
+	}
+	
+	function test_category_feed_url () {
+
+		shopp('catalog','category','slug=apparel&load=true');
+		ob_start();
+		shopp('category','feed-url');
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('http://shopptest/store/category/apparel/feed',$actual);
+	}
 
 } // end PrettyURLTests class
 
