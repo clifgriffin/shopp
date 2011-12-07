@@ -675,6 +675,34 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 } // end shopp_product_variant
 
 /**
+ * shopp_product_variant_to_item
+ *
+ * Convert a variant Price object to an Item object
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param Price $Variant a product or variant Price object to create the item from.
+ * @param int $quantity (optional default:1) quantity of the variant the Item object will represent
+ * @return Item|bool Item object on success, false on failure
+ **/
+function shopp_product_variant_to_item ( $Variant, $quantity = 1 ) {
+	$quantity = (int) $quantity;
+	if ( ! $quantity ) $quantity = 1;
+
+	if ( is_object($Variant) && is_a($Variant, 'Price') && $Variant->product && $Variant->id && in_array($Variant->context, array('product', 'variation')) ) {
+		$Product = shopp_product( $Variant->product );
+		$Item = new Item( $Product, $Variant->id );
+		$Item->quantity($quantity);
+		return $Item;
+	}
+
+	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant object missing or invalid.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	return false;
+}
+
+
+/**
  * shopp_product_addon - get a specific addon Price object.
  *
  * @author John Dillick
