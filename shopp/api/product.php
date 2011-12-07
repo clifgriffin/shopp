@@ -621,6 +621,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 					$Price = new Price();
 					$Price->populate($price);
 					$Price->load_settings();
+					$Price->load_download();
 					break;
 				}
 			}
@@ -659,6 +660,7 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 					$Price = new Price();
 					$Price->populate($price);
 					$Price->load_settings();
+					$Price->load_download();
 					break;
 				}
 			}
