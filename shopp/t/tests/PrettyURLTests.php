@@ -174,7 +174,7 @@ class PrettyURLTests extends ShoppTestCase {
 	}
 	
 	function test_tagproducts_url () {
-
+		
 	    shopp('catalog','tag-products','tag=action&load=true');
 		ob_start();
 		shopp('collection','url');
@@ -186,13 +186,13 @@ class PrettyURLTests extends ShoppTestCase {
 	
 	function test_searchproducts_url () {
 
-	    shopp('catalog','search-products','search=Star+Wars&load=true');
+	    shopp('catalog','search-resultsproducts','search=Star+Wars&load=true');
 		ob_start();
 		shopp('collection','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('',$actual);
+		$this->assertEquals('http://shopptest/store/collection/search-results/?s=Star+Wars&s_cs=1',$actual);
 	}
 
 } // end PrettyURLTests class
