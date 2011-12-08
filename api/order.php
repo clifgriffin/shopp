@@ -633,16 +633,73 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	return true;
 }
 
+/**
+ * shopp_order_data
+ *
+ * Retrieve one or or all order data entries
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id from which to retrieve the data entry
+ * @param string $name (optional) the key/index of the data entry to retrieve from the data, false for the whole array
+ * @return mixed one named order data value, or an array of data, false if no value can be found
+ **/
 function shopp_order_data ( $order = false, $name = false ) {
-
+	if ( $Purchase = shopp_order_exists($order) && isset($Purchase->data) && is_array($Purchase->data) ) {
+		if ( false === $name ) return $Purchase->data;
+		if ( isset($Purchase->data[$name]) ) return $Purchase->data[$name];
+	}
+	return false;
 }
 
+/**
+ * shopp_set_order_data
+ *
+ * set an order data entry
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $order the order id to which to set the order data entry
+ * @param string $name the key/index of the order data entry
+ * @param mixed $value the value to set to the order data
+ * @return bool true on success, false on failure
+ **/
 function shopp_set_order_data ( $order = false, $name = false, $value = false ) {
+	if ( ! ( $Purchase = shopp_order_exists($order) ) || ! $name ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Order id and name parameters are required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
 
+	if ( ! isset($Purchase->data) || ! is_array($Purchase->data) ) $Purchase->data = array();
+
+	$Purchase->data[$name] = $value;
+	$Purchase->save();
+	return true;
 }
 
+/**
+ * shopp_rmv_order_data
+ *
+ * Remove one or all order data entries.
+ *
+ * @author John Dillick
+ * @since 1.3
+ *
+ * @param int $order the order id from which to remove the order data
+ * @param string $name (optional default:false) the key/index of the order data entry to remove, false to remove all entries
+ * @return bool true on success, false on failure
+ **/
 function shopp_rmv_order_data ( $order = false, $name = false ) {
-
+	if ( ! $order || ! ( $Purchase = shopp_order_exists($order) ) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Order id parameter is required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+	if ( ! $name ) $Purchase->data = array();
+	else if ( isset($Purchase->data[$name]) ) unset($Purchase->data[$name]);
+	$Purchase->save();
+	return true;
 }
 
 /**
@@ -665,14 +722,15 @@ function shopp_order_line_data_count ($order = false, $line = 0 ) {
 }
 
 /**
- * shopp_order_line_data - return the line item data array
+ * shopp_order_line_data - return the line item data
  *
  * @author John Dillick
  * @since 1.2
  *
  * @param int $order the order id
  * @param int $line the order line item
- * @return array|bool entries in the line item data array for a given line item, false if line item doesn't exist
+ * @param string $name (optional) the key/index to the order line-item data to retrieve
+ * @return mixed false if the line-item does not exist, the value if name is specified, else the data entries array
  **/
 function shopp_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines = shopp_order_lines($order);
@@ -701,11 +759,13 @@ function shopp_add_order_line_data ( $order = false, $line = 0, $data = array() 
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
 		return false;
+	$Purchased = new Purchased();
+	$Purchased->populate($Lines[$line]);
 
-	if ( ! is_array($Lines[$line]->data) ) $Lines[$line]->data = array();
+	if ( ! is_array($Purchased->data) ) $Purchased->data = array();
 
-	$Lines[$line]->data = array_merge($Lines[$line]->data, $data);
-	$Lines[$line]->save();
+	$Purchased->data = array_merge($Purchased->data, $data);
+	$Purchased->save();
 	return true;
 }
 
@@ -724,11 +784,13 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
 	$Lines = shopp_order_lines($order);
 	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
 		return false;
+	$Purchased = new Purchased();
+	$Purchased->populate($Lines[$line]);
 
-	if ( ! is_array($Lines[$line]->data) ) $Lines[$line]->data = array();
-	if ( $name && in_array($name, array_keys($Lines[$line]->data) ) ) unset($Lines[$line]->data[$name]);
+	if ( ! is_array($Purchased->data) ) $Purchased->data = array();
+	if ( $name && in_array($name, array_keys($Purchased->data) ) ) unset($Purchased->data[$name]);
 
-	$Lines[$line]->save();
+	$Purchased->save();
 }
 
 /**
