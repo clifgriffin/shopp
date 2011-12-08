@@ -1371,11 +1371,13 @@ class BestsellerProducts extends SmartCollection {
 
 // @todo Document SearchResults
 class SearchResults extends SmartCollection {
-	static $_slug = "search-results";
+	static $_slug = 'search-results';
+	static $_altslugs = array('search');
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
+
 		$this->loading['debug'] = true;
 		// Load search engine components
 		if (!class_exists('SearchParser'))
@@ -1424,7 +1426,7 @@ class SearchResults extends SmartCollection {
 			'columns'=> "$score AS score",
 			'where'=> array($where),
 			'groupby'=>'p.ID',
-			'order'=>'score DESC');
+			'order'=>'score DESC','debug'=>true);
 		if (!empty($pricematch)) $this->loading['having'] = array($pricematch);
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 
@@ -1614,9 +1616,8 @@ class RandomProducts extends SmartCollection {
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
-			global $Shopp;
 			if (in_array('current-product',$excludes) &&
-				isset($Shopp->Product->id)) $where[] = '(p.id != $Shopp->Product->id)';
+				isset(ShoppProduct()->id)) $where[] = '(p.id != '.ShoppProduct()->id.')';
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
