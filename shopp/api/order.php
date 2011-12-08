@@ -685,7 +685,7 @@ function shopp_set_order_data ( $order = false, $name = false, $value = false ) 
  * Remove one or all order data entries.
  *
  * @author John Dillick
- * @since 1.3
+ * @since 1.2
  *
  * @param int $order the order id from which to remove the order data
  * @param string $name (optional default:false) the key/index of the order data entry to remove, false to remove all entries
