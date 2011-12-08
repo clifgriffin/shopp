@@ -41,7 +41,7 @@ function shopp_register_collection ( $name = '' ) {
 
 	$slugs = array($slug);
 	$altslugs = get_class_property($name,'_altslugs');
-	if (is_array($altslugs)) $slugs = $altslugs;
+	if (is_array($altslugs)) $slugs = array_merge($slugs,$altslugs);
 
 	foreach ($slugs as $collection) {
 		$collection = str_replace(array('-','_'),'',$collection); // Sanitize slugs
