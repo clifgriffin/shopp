@@ -417,7 +417,13 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ($price->type == "N/A" || $price->context == "addon" || (count($target->prices) > 1 && !$variations)) return;
+		// Set promoprice before data aggregation
+		if (str_true($price->sale)) $price->promoprice = $price->saleprice;
+
+		if ('N/A' == $price->type || 'addon' ==  $price->context || (count($target->prices) > 1 && !$variations)) return;
+
+		// Simple product or variant product is on sale
+		if (str_true($price->sale)) $target->sale = $price->sale;
 
 		// Build third lookup table using the combined optionkey
 		$target->pricekey[$price->optionkey] = $price;
@@ -429,12 +435,6 @@ class Product extends WPShoppObject {
 
 		if (!isset($price->freeshipping) || !$price->freeshipping || str_true($price->shipping))
 			$freeshipping = false;
-
-		// Boolean flag for custom product sales
-		if (str_true($price->sale)) {
-			$target->sale = $price->sale;
-			$price->promoprice = $price->saleprice;
-		}
 
 		// Calculate catalog discounts if not already calculated
 		if (empty($price->promoprice)) {
