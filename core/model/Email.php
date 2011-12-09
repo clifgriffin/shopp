@@ -16,9 +16,9 @@
 class ShoppEmailDefaultFilters extends ShoppEmailFilters {
 
 	function __construct () {
-		add_filter('shopp_email_headers',array('ShoppEmailDefaultFilters','AutoMultipart'));
-		add_filter('shopp_email_message',array('ShoppEmailDefaultFilters','InlineStyles'));
 		do_action('shopp_email_filters');
+		add_filter('shopp_email_message',array('ShoppEmailDefaultFilters','AutoMultipart'));
+		add_filter('shopp_email_message',array('ShoppEmailDefaultFilters','InlineStyles'),99);
 	}
 
 }
@@ -40,77 +40,14 @@ abstract class ShoppEmailFilters {
 
 	}
 
-	static function AutoMultipart ($headers) {
-
-		$key = self::ContentTypeHeader($headers);
-		if (false === $key) return $headers;
-
-		$contenttype = $headers[ $key ];
-
-		// Not a pure text/html email, do nothing
-		if (false === strpos($contenttype,'text/html')) return $headers;
-
-		$boundary = md5(date('U'));
-		$headers[ $key ] = 'Content-Type: multipart/alternative;\n\tboundary='.$boundary.';';
-		$headers['MIME-Version'] = '1.0';
-
-		add_filter('shopp_email_message',array('ShoppEmailFilters','PlainTextAlternative'),100,2);
-
-		return $headers;
+	static function AutoMultipart ($message,$headers) {
+		add_action('phpmailer_init',array('ShoppEmailDefaultFilters','AltBody') );
+		return $message;
 	}
 
-	static function PlainTextAlternative ($message,$headers) {
-
-		$key = self::ContentTypeHeader($headers);
-		if (false === $key) return $message;
-		$contenttype = $headers[ $key ];
-
-		$b = strpos($contenttype,'boundary=');
-		if (false === $b) return $message; // No valid MIME-type boundary, return with no alt format
-
-		list($boundary) = sscanf(substr($contenttype,$b),'boundary=%s');
-		$boundary = rtrim($boundary,';');
-
-		$notice = __('This is a multi-part message in MIME format.','Shopp');
-
-		$Textify = new Textify($message);
-		$plaintext = $Textify->render();
-
-		$_ = array();
-		$_[] = $notice;
-		$_[] = '';
-		$_[] = '--'.$boundary;
-		$_[] = 'Content-Type: text/plain; charset=utf-8';
-		$_[] = '';
-		$_[] = $plaintext;
-		$_[] = '--'.$boundary;
-		$_[] = 'Content-Type: text/html; charset=utf-8';
-		$_[] = '';
-		$_[] = $message;
-		$_[] = '--'.$boundary.'--';
-
-		return join("\n",$_);
-	}
-
-	/**
-	 * Utility function to find the Content-Type header
-	 *
-	 * Finds the header regardless of mixed-case characters since
-	 * the headers can be specified by a user in the email template.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @param array $headers The message headers
-	 * @return string|boolean The header index key if found, or boolean false if not found
-	 **/
-	static function ContentTypeHeader ($headers) {
-		$keys = array_map('strtolower',array_keys($headers));
-		$headermap = array_combine($keys,array_keys($headers));
-
-		// No content type header found, do nothing
-		if (!isset($headermap['content-type'])) return false;
-		return $headermap['content-type'];
+	static function AltBody ($phpmailer) {
+		$Textify = new Textify($phpmailer->Body);
+		$phpmailer->AltBody = $Textify->render();
 	}
 
 }
