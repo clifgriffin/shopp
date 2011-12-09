@@ -103,7 +103,6 @@ class Storefront extends FlowController {
 		add_action('shopp_storefront_init',array($this,'account'));
 		add_action('shopp_storefront_init',array($this,'dashboard'));
 
-		add_filter('default_feed',array($this,'feed'));
 		add_filter('archive_template',array($this,'collection'));
 		add_filter('search_template',array($this,'collection'));
 		add_filter('page_template',array($this,'pages'));
@@ -241,8 +240,11 @@ class Storefront extends FlowController {
 		$Collection = ShoppCollection();
 		if (!empty($Collection)) {
 			add_action('wp_head', array(&$this, 'metadata'));
-			add_action('wp_head', array(&$this, 'feedlinks'));
+			remove_action('wp_head','feed_links',2);
+			add_action('wp_head', array(&$this, 'feedlinks'),2);
 		}
+
+		if (is_feed()) $this->feed();
 
 	}
 
@@ -354,7 +356,7 @@ class Storefront extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function feed () {
+	function feed ($feed) {
 		if ('' == get_query_var('feed')) return;
 		$Collection = ShoppCollection();
 
@@ -370,7 +372,7 @@ class Storefront extends FlowController {
 
 		do_action_ref_array('shopp_collection_feed',array(&$Collection));
 
-		$rss = array('title' => trim(get_bloginfo('name')." ".$this->name),
+		$rss = array('title' => trim(get_bloginfo('name')." ".$Collection->name),
 			 			'link' => shopp($Collection,'get-feed-url'),
 					 	'description' => $Collection->description,
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
@@ -400,10 +402,9 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function feedlinks () {
-		$Collection = ShoppCollection();
-		if (empty($Collection->name)) return;
-?>
-	<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($Collection->name); ?> RSS Feed" href="<?php esc_attr_e(shopp('category','get-feed-url')); ?>" /><?php
+		if (empty(ShoppCollection()->name)) return;
+		$title = apply_filters('shopp_collection_feed_title', sprintf('%s %s %s', get_bloginfo('name'), ShoppCollection()->name, __('Feed','Shopp')) );
+		echo '<link rel="alternate" type="'.feed_content_type('rss').'" title="'.esc_attr($title).'" href="'.esc_attr(shopp('collection','get-feed-url')).'" />'."\n";
 	}
 
 
