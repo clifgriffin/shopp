@@ -3,7 +3,7 @@
 /**
 * Validate Shopp Schema file
 */
-class SchemaTest extends ShoppTestCase
+class SchemaTests extends ShoppTestCase
 {
 	function test_shopp_schema () {
 		$this->AssertTrue(file_exists(SHOPP_DBSCHEMA));
