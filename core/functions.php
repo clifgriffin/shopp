@@ -100,12 +100,13 @@ function _object_r ($object) {
  * @return string var_dump output
  **/
 if ( ! function_exists('_var_dump') ) {
-	function _var_dump( $object ) {
-			ob_start();
-			var_dump($object);
-			$ret_val = ob_get_contents();
-			ob_end_clean();
-			return $ret_val;
+	function _var_dump() {
+		$args = func_get_args();
+		ob_start();
+		var_dump($args);
+		$ret_val = ob_get_contents();
+		ob_end_clean();
+		return $ret_val;
 	}
 }
 
