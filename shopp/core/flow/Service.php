@@ -428,25 +428,23 @@ class Service extends AdminController {
 	 * @return void
 	 **/
 	function status_counts () {
-		$db = DB::get();
-
 		$table = DatabaseObject::tablename(Purchase::$table);
 		$labels = shopp_setting('order_status');
 
 		if (empty($labels)) return false;
 		$status = array();
 
-		$r = $db->query("SELECT status AS id,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",AS_ARRAY);
+		$alltotal = DB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
+		$r = DB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",'array','index','status');
+
+		$labels = array_merge(array( '' => __('All Orders','Shopp') ),$labels);
 		foreach ($labels as $id => $label) {
 			$_ = new StdClass();
 			$_->label = $label;
 			$_->id = $id;
 			$_->total = 0;
-			foreach ($r as $state) {
-				if ($state->id == $id) {
-					$_->total = (int)$state->total;	break;
-				}
-			}
+			if ( isset($r[ $id ]) ) $_->total = (int)$r[$id]->total;
+			if ('' === $id) $_->total = $alltotal;
 			$status[$id] = $_;
 		}
 
