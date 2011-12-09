@@ -18,14 +18,16 @@
 	</p>
 
 	<div class="tablenav">
-		<?php if ($page_links): ?><div class="tablenav-pages""><?php echo $page_links; ?></div><?php endif; ?>
 
 		<div class="alignleft actions filters">
 		<?php echo $categories_menu; ?>
 		<?php echo $inventory_menu; ?>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
-		<div class="clear"></div>
+
+		<?php $ListTable->pagination('top'); ?>
+
+		<br class="clear" />
 	</div>
 	</form>
 	<div class="clear"></div>
@@ -33,10 +35,10 @@
 	<form action="" method="post" id="inventory-manager">
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-products'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products'); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products',false); ?></tr>
 		</tfoot>
 	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
@@ -47,7 +49,7 @@
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
-					'id'=>$Product->product,
+					'id'=>$Product->id,
 					'f'=>null)),
 					admin_url('admin.php'))));
 
@@ -71,8 +73,8 @@
 	</table>
 	</form>
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="clear"></div>
+		<?php $ListTable->pagination( 'bottom' ); ?>
+		<br class="clear" />
 	</div>
 </div>
 
