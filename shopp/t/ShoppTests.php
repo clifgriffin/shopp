@@ -178,8 +178,6 @@ $files = get_shopp_test_files(SHOPP_TESTS_DIR);
 foreach ($files as $file) require($file);
 $tests = get_all_test_cases();
 
-$tests = array('URLTests');
-
 list ($result, $printer) = shopp_run_tests($tests);
 shopptests_print_result($printer,$result);
 
