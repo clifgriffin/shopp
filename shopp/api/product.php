@@ -227,6 +227,24 @@ function shopp_add_product ( $data = array() ) {
 } // end function shopp_add_product
 
 /**
+ * shopp_rmv_product
+ *
+ * remove a product
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $product the product id
+ * @return bool true on success, false on failure
+ **/
+function shopp_rmv_product ( $product = false ) {
+	if ( ! $product || ! ( $Product = shopp_product($product) ) ) return false;
+	$Product->delete();
+	return true;
+}
+
+
+/**
  * _validate_product_data - helper function for shopp_add_product that can be called recursively to validate the associative data array needed to build a product object.
  *
  * @author John Dillick
