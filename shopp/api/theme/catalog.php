@@ -319,7 +319,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$Shopp->Category = false; // Reset the current category
 
-		if (isset($options['wrap']) && value_is_true($options['wrap'])) $content = shoppdiv($content);
+		if (isset($options['wrap']) && str_true($options['wrap'])) $content = shoppdiv($content);
 
 		return $content;
 	}
