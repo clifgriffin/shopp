@@ -56,8 +56,7 @@ class Storefront extends FlowController {
 		add_filter('the_posts', array($this, 'posts'));
 
 		add_action('wp', array($this, 'loaded'));
-		// add_action('wp', array($this, 'pageid'));
-		// add_action('wp', array($this, 'security'));
+		add_action('wp', array($this, 'security'));
 		add_action('wp', array($this, 'cart'));
 		add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
@@ -407,43 +406,24 @@ class Storefront extends FlowController {
 		echo '<link rel="alternate" type="'.feed_content_type('rss').'" title="'.esc_attr($title).'" href="'.esc_attr(shopp('collection','get-feed-url')).'" />'."\n";
 	}
 
-
 	/**
-	 * Identifies the currently loaded Shopp storefront page
+	 * Forces SSL on pages when required by gateways that handle sensitive payment details onsite
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function pageid () {
-		global $wp_query;
-		$pagename = get_query_var('pagename');
-		if (empty($pagename)) return false;
-
-		// Identify the current page
-		foreach ($this->pages as &$page)
-			if ($page['uri'] == $pagename) break;
-
-		if (!empty($page)) $this->Page = $page;
-	}
-
-	/**
-	 * Forces SSL on pages when required and available
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @version 1.2
 	 *
 	 * @return void
 	 **/
 	function security () {
+		
 		global $Shopp;
-		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
+		if (is_ssl() || !$Shopp->Gateways->secure) return;
 
-		switch ($this->Page['name']) {
-			case "checkout": shopp_redirect(shoppurl($_GET,get_query_var('s_pr'),true)); break;
-			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
-		}
+		if (is_checkout_page())	shopp_redirect( shoppurl($_GET,'checkout',true) );
+		if (is_confirm_page())	shopp_redirect( shoppurl($_GET,'confirm',true) );
+		if (is_account_page())	shopp_redirect( shoppurl($_GET,'account',true) );
+
 	}
 
 	/**
