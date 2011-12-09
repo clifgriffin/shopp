@@ -556,7 +556,11 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (isset($options['load'])) {
 			$dataset = explode(",",$options['load']);
 			$options['load'] = array();
-			foreach ($dataset as $name) $options['load'][] = trim($name);
+			foreach ($dataset as $name) {
+				if ( 'description' == trim(strtolower($name)) )
+					$options['columns'] = 'p.post_content';
+				$options['load'][] = trim($name);
+			}
 		 } else {
 			$options['load'] = array('prices');
 		}
