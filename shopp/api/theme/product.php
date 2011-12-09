@@ -351,7 +351,6 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	function gallery ($result, $options, $O) {
-		global $Shopp;
 		if (empty($O->images)) $O->load_data(array('images'));
 		if (empty($O->images)) return false;
 		$styles = '';
@@ -418,6 +417,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		// Find the max dimensions to use for the preview spacing image
 		$maxwidth = $maxheight = 0;
+
 		foreach ($O->images as $img) {
 			$scale = $p_fit?false:array_search($p_fit,$img->_scaling);
 			$scaled = $img->scaled($width,$height,$scale);

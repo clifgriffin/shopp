@@ -349,7 +349,12 @@ class Product extends WPShoppObject {
 
 		}
 
-		if ('images' == $property) $collate = 'id';
+		if ('images' == $property) {
+			// Prevent double-loading images (can occur when images are specifically loaded, then all meta is generically loaded)
+			if (isset($target->$property) && isset($target->{$property}[$record->id])) return;
+			$collate = 'id';
+		}
+
 		if ('specs' == $property) {
 			$property = 'specnames';
 			parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);
