@@ -89,10 +89,13 @@
 				$classes = array();
 				if (!$even) $classes[] = 'alternate'; $even = !$even;
 
-				if (in_array($setting->quality,ImageSetting::$qualities)) {
-					$index = array_search($setting->quality,ImageSetting::$qualities);
-					$quality = $quality_menu[$index];
-				} else $quality = percentage($setting->quality,0);
+
+
+				if (isset(ImageSetting::$qualities[ $setting->quality ])) {
+					$quality = ImageSetting::$qualities[ $setting->quality ];
+				} else $quality = $setting->quality;
+
+				$quality = percentage($quality,0);
 
 				if ($edit == $setting->id) {
 					$template_data = array(
