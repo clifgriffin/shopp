@@ -291,7 +291,7 @@ class Warehouse extends AdminController {
 			'onsale' => 	array('label' => __('On Sale','Shopp'),		'where'=>array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured' => 	array('label' => __('Featured','Shopp'),	'where'=>array("s.featured='on' AND p.post_status != 'trash'")),
 			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status != 'trash'"),'order' => 'bestselling'),
-			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'"),'grouping'=>'pt.id'),
+			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'")),
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status = 'trash'"))
 		);
 
@@ -299,7 +299,7 @@ class Warehouse extends AdminController {
 
 		switch ($view) {
 			case 'inventory':
-				if ('on' == shopp_setting('inventory')) $is_inventory = true;
+				if ( shopp_setting_enabled('inventory') ) $is_inventory = true;
 				break;
 			case 'trash': $is_trash = true; break;
 			case 'bestselling': $is_bestselling = true; break;
@@ -323,7 +323,7 @@ class Warehouse extends AdminController {
 			$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
 		}
 
-		if (!empty($sl) && 'on' == shopp_setting('inventory')) {
+		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
 			switch($sl) {
 				case "ns": $where[] = "s.inventory='off'"; break;
 				case "oos":
@@ -445,10 +445,10 @@ class Warehouse extends AdminController {
 
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Products->total, $num_pages, $per_page );
 
-		$path = SHOPP_ADMIN_PATH."/products";
-		$ui = "products.php";
+		$path = SHOPP_ADMIN_PATH.'/products';
+		$ui = 'products.php';
 		switch ($view) {
-			case 'inventory': if ('on' == shopp_setting('inventory')) $ui = "inventory.php"; break;
+			case 'inventory': if ('on' == shopp_setting('inventory')) $ui = 'inventory.php'; break;
 		}
 
 		include("$path/$ui");
@@ -489,10 +489,9 @@ class Warehouse extends AdminController {
 			)
 		);
 
-		$columns = isset($headings[$this->view]) ? $headings[$this->view] : $headings['default'];
+		if ( ! shopp_setting_enabled('inventory') ) unset($columns['inventory']);
 
-		if ('on' != shopp_setting('inventory'))
-			unset($columns['inventory']);
+		$columns = isset($headings[$this->view]) ? $headings[$this->view] : $headings['default'];
 
 		// Remove category column from the "trash" view
 		if ('trash' == $this->view) unset($columns['category']);
@@ -696,13 +695,12 @@ class Warehouse extends AdminController {
 				if ($Price->stock != $priceline['stocked']) {
 					$priceline['stock'] = $priceline['stocked'];
 				} else unset($priceline['stocked']);
-
 				$Price->updates($priceline);
 				$Price->save();
 
 				// Save 'price' meta records after saving the price record
-				if (isset($pricelines['dimensions']) && is_array($pricelines['dimensions']))
-					array_map('floatvalue',$priceline['dimensions']);
+				if (isset($priceline['dimensions']) && is_array($priceline['dimensions']))
+					$priceline['dimensions'] = array_map('floatvalue',$priceline['dimensions']);
 
 				$settings = array('donation','recurring','membership','dimensions');
 
@@ -882,16 +880,11 @@ class Warehouse extends AdminController {
 		if (!class_exists('ImageProcessor'))
 			require(SHOPP_MODEL_PATH."/Image.php");
 
-		if (isset($_REQUEST['type'])) {
+		$valid_contexts = array('product','category');
+
+		if (isset($_REQUEST['type']) && in_array(strtolower($_REQUEST['type']),$valid_contexts) ) {
 			$parent = $_REQUEST['parent'];
-			switch (strtolower($_REQUEST['type'])) {
-				case "product":
-					$context = "product";
-					break;
-				case "category":
-					$context = "category";
-					break;
-			}
+			$context = strtolower($_REQUEST['type']);
 		}
 
 		if (!$context)
