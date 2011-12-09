@@ -74,6 +74,18 @@ function shopp_add_image ( $id, $context, $file ) {
 	return false;
 }
 
+/**
+ * shopp_rmv_image
+ *
+ * remove an image record from the database
+ *
+ * @author John Dillick
+ * @since 1.2
+ *
+ * @param int $image the image id
+ * @param string $context the object type the image asset is attached to.  This can be product or category
+ * @return mixed false on failure, int image asset id on success.
+ **/
 function shopp_rmv_image ( $image, $context ) {
 	if ( empty($image) || empty($context) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing parameters",__FUNCTION__,SHOPP_DEBUG_ERR);
