@@ -28,11 +28,14 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	'methodmenu' => 'option_menu',
 	'optionname' => 'option_name',
 	'methodname' => 'option_name',
+	'methodslug' => 'option_slug',
 	'optionslug' => 'option_slug',
-	'methodselected' => 'method_selected',
+	'optionselected' => 'option_selected',
+	'methodselected' => 'option_selected',
 	'optioncost' => 'option_cost',
 	'methodcost' => 'option_cost',
-	'methodselector' => 'method_selector',
+	'optionselector' => 'option_selector',
+	'methodselector' => 'option_selector',
 	'optiondelivery' => 'option_delivery',
 	'methoddelivery' => 'option_delivery',
 	'updatebutton' => 'update_button'
@@ -58,7 +61,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 
 	function has_estimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
-	function method_selector ($result, $options, $O) {
+	function option_selector ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 
@@ -71,7 +74,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function method_selected ($result, $options, $O) {
+	function option_selected ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
