@@ -28,6 +28,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	'methodmenu' => 'option_menu',
 	'optionname' => 'option_name',
 	'methodname' => 'option_name',
+	'optionslug' => 'option_slug',
 	'methodselected' => 'method_selected',
 	'optioncost' => 'option_cost',
 	'methodcost' => 'option_cost',
@@ -75,6 +76,11 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
 			$Shopp->Order->Shipping->method == $method->slug));
+	}
+
+	function option_slug ($result, $options, $O) {
+		$option = current($O->shipping);
+		return $option->slug;
 	}
 
 	function option_cost ($result, $options, $O) {
