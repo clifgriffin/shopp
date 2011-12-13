@@ -60,7 +60,7 @@ jQuery(document).ready(function () {
 	};
 
 	submitLogin.click(function () { login=true; });
-	checkoutForm.unbind('submit').submit(function () {
+	checkoutForm.unbind('submit.validate').submit(function () {
 		if (login) {
 			if (accountLogin.val() == "") {
 				alert($co.loginname);
@@ -101,9 +101,11 @@ jQuery(document).ready(function () {
 				if (!init) menu.empty().append(options).setDisabled(false).show().focus();
 			}
 			menu.setDisabled(false).show();
+			$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
 		} else {
 			menu.empty().setDisabled(true).hide();
 			state.setDisabled(false).show();
+			$('label[for='+menu.attr('id')+']').attr('for',state.attr('id'));
 			if (!init) state.val('').focus();
 		}
 	}).trigger('change',[true]);
