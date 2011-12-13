@@ -352,7 +352,7 @@ function validate (form) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
 
-		if (input.attr('disabled') == 'disabled') return;
+		if (true === input.attr('disabled') || 'disabled' == input.attr('disabled')) return;
 
 		if (input.hasClass(required) && input.val() == "")
 			error = new Array($cv.field.replace(/%s/,input.attr(title)),field);
@@ -389,7 +389,6 @@ function validate (form) {
 			$('#'+error[1].id).addClass('error');
 			$('label[for=' + error[1].id + ']').addClass('error');
 		}
-
 	}
 
 	if (error.length > 0) {
