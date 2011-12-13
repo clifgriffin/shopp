@@ -234,12 +234,12 @@ class Account extends AdminController {
 		shopp_enqueue_script('calendar');
 		register_column_headers('shopp_page_shopp-customers', array(
 			'cb'=>'<input type="checkbox" />',
-			'name'=>__('Name','Shopp'),
-			'login'=>__('Login','Shopp'),
+			'customer-name'=>__('Name','Shopp'),
+			'customer-login'=>__('Login','Shopp'),
 			'email'=>__('Email','Shopp'),
-			'location'=>__('Location','Shopp'),
-			'orders'=>__('Orders','Shopp'),
-			'joined'=>__('Joined','Shopp'))
+			'customer-location'=>__('Location','Shopp'),
+			'customer-orders'=>__('Orders','Shopp'),
+			'customer-joined'=>__('Joined','Shopp'))
 		);
 
 	}
