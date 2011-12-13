@@ -342,8 +342,8 @@ function validate (form) {
 	if (!form) return false;
 	var $ = jqnc(),
 		passed = true,
-		passwords = new Array(),
-		error = new Array(),
+		passwords = [],
+		error = [],
 		inputs = $(form).find('input,select,textarea'),
 		required = 'required',
 		title = 'title';
@@ -381,7 +381,7 @@ function validate (form) {
 
 	});
 
-	form.shopp_validate = false;
+	form.shopp_validation = false;
 	$(form).trigger('shopp_validate',[error]);
 	if (form.shopp_validation) {
 		error = form.shopp_validation;
@@ -398,7 +398,6 @@ function validate (form) {
 		passed = false;
 	}
 
-	return false;
 	return passed;
 }
 
