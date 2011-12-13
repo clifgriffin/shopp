@@ -21,7 +21,8 @@
 class ShoppShippingThemeAPI implements ShoppAPI {
 	static $register = array(
 	'url' => 'url',
-	'hasestimates' => 'has_estimates',
+	'hasestimates' => 'has_options',
+	'hasoptions' => 'has_options',
 	'options' => 'options',
 	'methods' => 'options',
 	'optionmenu' => 'option_menu',
@@ -59,7 +60,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $Order->Cart;
 	}
 
-	function has_estimates ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
+	function has_options ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
 	function option_selector ($result, $options, $O) {
 		global $Shopp;
