@@ -383,8 +383,8 @@ function validate (form) {
 
 	form.shopp_validate = false;
 	$(form).trigger('shopp_validate',[error]);
-	if (form.shopp_validate) {
-		error = form.shopp_validate;
+	if (form.shopp_validation) {
+		error = form.shopp_validation;
 		if (error[1] && $('#'+error[1].id).length > 0) {
 			$('#'+error[1].id).addClass('error');
 			$('label[for=' + error[1].id + ']').addClass('error');
@@ -397,6 +397,8 @@ function validate (form) {
 		if ($(form).hasClass('validation-alerts')) alert(error[0]);
 		passed = false;
 	}
+
+	return false;
 	return passed;
 }
 

@@ -29,7 +29,7 @@ jQuery(document).ready(function () {
 
 	// Validate paycard number before submit
 	checkoutForm.bind('shopp_validate',function () {
-		if (!validcard()) this.shopp_validate = ["Not a valid card number.",billCard.get(0)];
+		if (!validcard()) this.shopp_validation = ["Not a valid card number.",billCard.get(0)];
 	});
 
 	// Validate paycard number on entry
