@@ -175,13 +175,16 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$addons = $O->options['a'];
 		$idprefix = 'product-addons-';
+		if ($required) $class = trim("$class validate");
 
 		$_ = array();
 		if ('single' == $mode) {
 			if (!empty($before_menu)) $_[] = $before_menu;
-			if (str_true($label)) $_[] = '<label for="'.$idprefix.$O->id.'">'. __('Options','Shopp').': </label> ';
+			$menuid = $idprefix.$O->id;
 
-			$_[] = '<select name="products['.$O->id.'][price]" id="'.$idprefix.$O->id.'">';
+			if (str_true($label)) $_[] = '<label for="'.esc_attr($menuid).'">'. __('Options','Shopp').': </label> ';
+
+			$_[] = '<select name="products['.$O->id.'][price]" id="'.esc_attr($menuid).'">';
 			if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
 
 			foreach ($O->prices as $pricetag) {
@@ -202,6 +205,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 
 			$_[] = '</select>';
+
 			if (!empty($after_menu)) $_[] = $after_menu;
 
 		} else {
@@ -218,11 +222,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			foreach ($addons as $id => $menu) {
 				if (!empty($before_menu)) $_[] = $before_menu;
-				if (str_true($label)) $_[] = '<label for="'.$idprefix.$menu['id'].'">'.$menu['name'].'</label> ';
+				$menuid = $idprefix.$menu['id'];
+				if (str_true($label)) $_[] = '<label for="'.esc_attr($menuid).'">'.esc_html($menu['name']).'</label> ';
 				$category_class = shopp('collection','get-slug');
 				$classes = array($class,$category_class,'addons');
 
-				$_[] = '<select name="products['.$O->id.'][addons][]" class="'.trim(join(' ',$classes)).'" id="'.$idprefix.$menu['id'].'">';
+				$_[] = '<select name="products['.$O->id.'][addons][]" class="'.trim(join(' ',$classes)).'" id="'.esc_attr($menuid).'" title="'.esc_attr($menu['name']).'">';
 				if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
 
 				foreach ($menu['options'] as $key => $option) {
@@ -239,8 +244,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$_[] = '</select>';
 			}
+
 			if (!empty($after_menu)) $_[] = $after_menu;
 		}
+
+
+		if ($required)
+			add_storefrontjs("$('#".$menuid."').parents('form').bind('shopp_validate',function () { if ('' == $('#".$menuid."').val()) this.shopp_validation = ['".$required_error."', $('#".$menuid."').get(0) ]; }); ");
 
 		return join('',$_);
 	}

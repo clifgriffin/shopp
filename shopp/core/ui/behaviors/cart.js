@@ -112,9 +112,11 @@ jQuery(document).ready(function($) {
 		var button = $(this),
 			form = button.parents('form.product');
 		if (!form) return false;
-		form.bind('submit.addtocart',function (e) {
+		form.unbind('submit.validate').bind('submit.addtocart',function (e) {
 			e.preventDefault();
-			if (form.hasClass('validate') && !validate(this)) return false;
+			if (form.hasClass('validate')) {
+				if (!validate(this)) return false;
+			}
 			addtocart(this);
 		});
 		if (button.attr('type') == "button")

@@ -39,10 +39,8 @@ jQuery(document).ready( function($) {
 
 						tracking = shipment.find('.tracking').change(function () {
 							var tracknum = $(this).val().toUpperCase().replace(/[^A-Z0-9]/,'');
-							debuglog(tracknum);
 							$.each(carriers,function (c,r) {
 								if (tracknum.match( new RegExp(r[1].substr( 1,r[1].length-2 )) ) != null) {
-									debuglog(c);
 									carriermenu.val(c);
 									return false;
 								}
