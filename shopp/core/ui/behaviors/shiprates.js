@@ -139,9 +139,11 @@ jQuery(document).ready( function($) {
 				data.module = module;
 				data.row = (rows.length);
 				var row = $.tmpl('flatrate-row',data),
-					moneyfields = row.find('input.money').change(function () {
+					moneyfields = row.find('input.money').each(function () {
+						this.value = asMoney(new Number(this.value));
+					}).change(function () {
 						this.value = asMoney(this.value);
-					}).change().mouseup(function () { $(this).select(); }),
+					}).mouseup(function () { $(this).select(); }),
 					loc = new LocationFields(data),
 					delctrl = row.find('button.delete').click(function (e) {
 						e.preventDefault();
@@ -235,11 +237,15 @@ jQuery(document).ready( function($) {
 							e.preventDefault();
 							tier.fadeRemove();
 						});
-
-					tier.find('input.money').change(function () {
+						debuglog(tierset);
+					tier.find('input.money').each(function () {
+						this.value = asMoney(this.value.match(/[^(\d,\. )]/) ? asNumber(this.value) : new Number(this.value));
+					}).change(function () {
 						this.value = asMoney(this.value);
-					}).change();
-					tier.find('input.percentage').change(function () {
+					});
+					tier.find('input.percentage').each(function () {
+						this.value = asPercent(this.value.match(/[^(\d,\. )]/) ? asNumber(this.value) : new Number(this.value));
+					}).change(function () {
 						this.value = asPercent(this.value);
 					}).change();
 
