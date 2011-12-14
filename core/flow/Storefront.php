@@ -416,7 +416,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function security () {
-		
+
 		global $Shopp;
 		if (is_ssl() || !$Shopp->Gateways->secure) return;
 
@@ -464,7 +464,7 @@ class Storefront extends FlowController {
 	function behaviors () {
 		global $Shopp;
 
-		if(is_shopp_secure()) {
+		if(is_ssl()) {
 			add_filter('option_siteurl', 'force_ssl');
 			add_filter('option_home', 'force_ssl');
 			add_filter('option_url', 'force_ssl');

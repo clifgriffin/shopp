@@ -717,7 +717,7 @@ function floatvalue ($value, $round=true, $format=false) {
  * @return string $url The secure URL
  **/
 function force_ssl ($url,$rewrite=false) {
-	if(is_shopp_secure() || $rewrite)
+	if(is_ssl() || $rewrite)
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
 }
