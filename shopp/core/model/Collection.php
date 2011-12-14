@@ -575,7 +575,7 @@ class ProductTaxonomy extends ProductCollection {
 			if ($term_parent != $parent ) continue;
 
 			// Render parents when pagination starts in a branch
-			if ( $count == $start && $term_parent > 0 ) {
+			if ( $start > 0 && $count == $start && $term_parent > 0 ) {
 				$parents = $parent_ids = array();
 				$p = $term_parent;
 				while ( $p ) {
@@ -593,8 +593,7 @@ class ProductTaxonomy extends ProductCollection {
 				$parent_count = count($parents);
 				while ($terms_parent = array_pop($parents)) {
 					$results[$terms_parent->term_id] = $terms_parent;
-					$results[$terms_parent->term_id]->level = $level-$parent_count;
-					$parent_count--;
+					$results[$terms_parent->term_id]->level = $level-($parent_count--);
 				}
 			}
 
@@ -971,12 +970,18 @@ class ProductCategory extends ProductTaxonomy {
 	function load_children ( $options=array() ) {
 		if ( empty($this->id) ) return false;
 
-		$args = array_merge($options,array('parent'=>$this->id,'fields'=>'ids'));
-		$children = get_terms( self::$taxonomy, $args );
+		$taxonomy = self::$taxonomy;
+		$categories = array(); $count = 0;
+		$args = array_merge($options,array('child_of'=>$this->id,'fields'=>'id=>parent'));
+		$terms = get_terms( $taxonomy, $args );
+		$children = _get_term_hierarchy($taxonomy);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories,1,0,$this->id);
 
 		$this->children = array();
-		foreach ( $children as $childterm )
-			$this->children[$childterm] = new ProductCategory($childterm);
+		foreach ( $categories as $id => $childterm ) {
+			$this->children[$id] = new ProductCategory($id);
+			$this->children[$id]->populate($childterm);
+		}
 
 		return !empty($this->children);
 
