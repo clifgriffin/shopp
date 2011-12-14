@@ -119,8 +119,9 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-preferences',__('Preferences','Shopp'),'Setup','Store Preferences',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
-		// Action hook for adding custom third-party pages
-		do_action('shopp_admin_menu');
+		// Filter hook for adding/modifying Shopp admin menus
+		apply_filters('shopp_admin_menus',$this);
+		do_action('shopp_admin_menu'); // @deprecated
 
 		reset($this->Pages);
 		$this->MainMenu = key($this->Pages);
