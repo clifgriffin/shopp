@@ -192,16 +192,16 @@ class ProductCollection implements Iterator {
 	}
 
 	function pagelink ($page) {
-		$type = 'category';
-		if ($this->tag) $type = 'tag';
-		if ($this->smart) $type = 'collection';
+		$prettyurls = ( '' != get_option('permalink_structure') );
+
 		$alpha = preg_match('/([a-z]|0\-9)/',$page);
 		$prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
 		if ('catalog' == $this->uri) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
-		$queryvars = array("shopp_$type"=>$this->uri);
+
+		$queryvars = array($this->taxonomy=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		return apply_filters('shopp_paged_link', shoppurl('' == get_option('permalink_structure')?$queryvars:user_trailingslashit($prettyurl)) );
+		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false) );
 	}
 
 	/**
@@ -804,7 +804,7 @@ class ProductCategory extends ProductTaxonomy {
 		$CategoryFilters =& $Storefront->browsing[$this->slug];
 
 		$Filtered = new ProductCategory($this->id);
-		$filtering = array_merge($Filtered->facetsql(),array('ids'=>true,'limit'=>1000));
+		$filtering = array_merge($Filtered->facetsql(array()),array('ids'=>true,'limit'=>1000));
 		$Filtered->load($filtering);
 		$ids = join(',',$Filtered->worklist());
 
@@ -1169,10 +1169,12 @@ class ProductCategory extends ProductTaxonomy {
 	}
 
 	function pagelink ($page) {
+		$categoryurl = get_term_link($this->slug,$this->taxonomy);
 
-		$categoryurl = get_term_link($this->name,$this->taxonomy);
 		$alpha = preg_match('/([a-z]|0\-9)/',$page);
 		$prettyurl = $categoryurl.($page > 1 || $alpha?"page/$page":"");
+
+		$queryvars = array($this->taxonomy=>$this->slug);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
@@ -1250,6 +1252,7 @@ class ProductTag extends ProductTaxonomy {
 
 // @todo Document SmartCollection
 class SmartCollection extends ProductCollection {
+	static $taxonomy = 'shopp_collection';
 	static $namespace = 'collection';
 	var $smart = true;
 	var $slug = false;
@@ -1258,9 +1261,9 @@ class SmartCollection extends ProductCollection {
 	var $loading = array();
 
 	function __construct ($options=array()) {
-		global $Shopp;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+		$this->taxonomy = self::$taxonomy;
 		$this->smart($options);
 	}
 
@@ -1275,7 +1278,7 @@ class SmartCollection extends ProductCollection {
 
 		$args['rewrite'] = wp_parse_args($args['rewrite'], array(
 			'slug' => sanitize_title_with_dashes($taxonomy),
-			'with_front' => true,
+			'with_front' => false,
 		));
 		add_rewrite_tag("%$taxonomy%", '([^/]+)', $args['query_var'] ? "{$args['query_var']}=" : "taxonomy=$taxonomy&term=");
 		add_permastruct($taxonomy, "{$args['rewrite']['slug']}/%$taxonomy%", $args['rewrite']['with_front']);
@@ -1373,12 +1376,18 @@ class BestsellerProducts extends SmartCollection {
 class SearchResults extends SmartCollection {
 	static $_slug = 'search-results';
 	static $_altslugs = array('search');
+	var $search = false;
+
+	function __construct ($options=array()) {
+		parent::__construct($options);
+		add_filter('shopp_themeapi_category_url',array($this,'permalink'),10,3);
+	}
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
 
-		$this->loading['debug'] = true;
+		// $this->loading['debug'] = true;
 		// Load search engine components
 		if (!class_exists('SearchParser'))
 			require(SHOPP_MODEL_PATH.'/Search.php');
@@ -1388,6 +1397,9 @@ class SearchResults extends SmartCollection {
 
 		// Sanitize the search string
 		$search = $options['search'];
+		$this->search = $search;
+
+		if (ShoppStorefront()) ShoppStorefront()->search = $search;
 
 		// Price matching
 		$prices = SearchParser::PriceMatching($search);
@@ -1434,11 +1446,20 @@ class SearchResults extends SmartCollection {
 		if (empty($options['search'])) $options['search'] = __('(no search terms)','Shopp');
 		$this->name = __("Search Results for","Shopp").": {$options['search']}";
 
-		add_filter('shopp_paged_link',array($this,'pagination'));
 	}
 
-	function pagination ($link) {
-		return add_query_arg(array('s'=>get_query_var('s'),'s_cs'=>1),$link);
+	function pagelink ($page) {
+		$link = parent::pagelink($page);
+
+		return add_query_arg(array('s'=>$this->search,'s_cs'=>1),$link);
+	}
+
+	function permalink ($result, $options, $O) {
+		if (get_class($this) != get_class($O)) return $result;
+		if (!isset($this->search) || !isset($O->search)) return $result;
+		if ($this->search != $O->search) return $result;
+
+		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$result);
 	}
 
 }
