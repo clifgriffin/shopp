@@ -334,12 +334,15 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			'orderby' => 'name',
 			'order' => 'ASC',
 			'depth' => 0,
+			'level' => 0,
 			'childof' => 0,
+			'section' => false,
 			'parent' => false,
 			'showall' => false,
 			'linkall' => false,
 			'linkcount' => false,
 			'dropdown' => false,
+			'default' => __('Select category&hellip;','Shopp'),
 			'hierarchy' => false,
 			'products' => false,
 			'wraplist' => true,
@@ -348,16 +351,28 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
+
 		$taxonomy = 'shopp_category';
+		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent');
+
+		$baseparent = 0;
+		if (str_true($section)) {
+			if (!isset(ShoppCollection()->id)) return false;
+			$sectionterm = ShoppCollection()->id;
+			$baseparent = end(get_ancestors($sectionterm,$taxonomy));
+			$termargs['child_of'] = $baseparent;
+		}
+
+		if (0 != $childof) $termargs['child_of'] = $baseparent = $childof;
 
 		$categories = array(); $count = 0;
-		$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'id=>parent') );
+		$terms = get_terms( $taxonomy, $termargs );
 		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories,1,0,$baseparent);
 
 		$string = "";
+		if ($depth > 0) $level = $depth;
 		$levellimit = $level;
-		$depth = 0;
 		$exclude = explode(",",$exclude);
 		$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
 		$wraplist = str_true($wraplist);
@@ -385,8 +400,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				if (str_true($hierarchy))
 					$padding = str_repeat("&nbsp;",$category->level*3);
 
-				$category_uri = empty($category->id)?$category->uri:$category->id;
-				$link = shoppurl( '' != get_option('permalink_structure') ? "category/$category->uri" : array('s_cat'=>$category_uri) );
+				$link = get_term_link($category->slug,$taxonomy);
 
 				$total = '';
 				if (str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
@@ -443,9 +457,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					}
 				}
 
-				// $category_uri = empty($category->id)?$category->uri:$category->id;
-				// $link = ( '' != get_option('permalink_structure') )?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
-				$link = get_term_link($category->name,$category->taxonomy);
+				$link = get_term_link($category->slug,$category->taxonomy);
 				if (is_wp_error($link)) $link = '';
 				$total = '';
 				if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
