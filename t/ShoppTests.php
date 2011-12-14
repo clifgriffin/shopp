@@ -69,6 +69,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		}
 		// warnings and errors trigger an exception, which is included in the test results
 		else {
+
 			//TODO: we should raise custom exception here, sth like WP_PHPError
 			throw new PHPUnit_Framework_Error(
 				$errstr,
