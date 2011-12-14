@@ -1438,7 +1438,7 @@ class SearchResults extends SmartCollection {
 			'columns'=> "$score AS score",
 			'where'=> array($where),
 			'groupby'=>'p.ID',
-			'order'=>'score DESC','debug'=>true);
+			'order'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = array($pricematch);
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 
