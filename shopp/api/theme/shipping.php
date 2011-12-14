@@ -93,34 +93,75 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	}
 
 	function option_delivery ($result, $options, $O) {
-		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 		$option = current($O->shipping);
 		if (!$option->delivery) return "";
-		$estimates = explode("-",$option->delivery);
-		$format = get_option('date_format');
-		if (count($estimates) > 1
-			&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+		return self::_delivery_format($option->delivery, $options);
+	}
+
+	function _delivery_format( $estimate, $options = array() ) {
+		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+		$defaults = array(
+			'dateformat' => get_option('date_format'),
+			'dateseparator' => '&mdash;',
+		);
+		$options = array_merge($defaults, $options);
+		extract( $options );
+		if ( ! $dateformat ) $dateformat = 'F j, Y';
+
+		$estimates = explode("-",$estimate);
+		if ( empty($estimates) ) return "";
+
+		if (count($estimates) > 1 && $estimates[0] == $estimates[1])
+			$estimates = array($estimates[0]);
+
 		$result = "";
-		for ($i = 0; $i < count($estimates); $i++) {
-			list($interval,$p) = sscanf($estimates[$i],'%d%s');
+		for ( $i = 0; $i < count($estimates); $i++ ) {
+			list ( $interval, $p ) = sscanf($estimates[$i],'%d%s');
 			if (empty($interval)) $interval = 1;
 			if (empty($p)) $p = 'd';
-			if (!empty($result)) $result .= "&mdash;";
-			$result .= _d($format,current_time('timestamp')+($interval*$periods[$p]));
+			if (!empty($result)) $result .= $dateseparator;
+			$result .= _d( $dateformat, current_time('timestamp') + $interval * $periods[$p] );
 		}
 		return $result;
 	}
 
 	function option_menu ($result, $options, $O) {
-		global $Shopp;
-		// @todo Add options for differential pricing and estimated delivery dates
-		$_ = array();
-		$_[] = '<select name="shipmethod" class="shopp shipmethod">';
-		foreach ($O->shipping as $method) {
-			$selected = ((isset($Shopp->Order->Shipping->method) &&
-				$Shopp->Order->Shipping->method == $method->slug))?' selected="selected"':false;
+		$Order = ShoppOrder();
 
-			$_[] = '<option value="'.esc_attr($method->slug).'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
+		$defaults = array(
+			'difference' => true,
+			'times' => false,
+			'class' => false,
+			'dateformat' => get_option('date_format'),
+			'dateseparator' => '&mdash;',
+		);
+
+		$options = array_merge($defaults, $options);
+		extract($options);
+
+		$classes = 'shopp shipmethod';
+		if ( ! empty($class) ) $classes = $class.' '.$classes;
+
+		$_ = array();
+		$selected_option = false;
+		if ( isset($Order->Shipping->method) ) $selected_option = $O->shipping[$Order->Shipping->method];
+
+		$_[] = '<select name="shipmethod" class="'.$classes.'">';
+		foreach ( $O->shipping as $method ) {
+			$cost = money($method->amount);
+			$delivery = false;
+			if ( str_true($times) && ! empty($method->delivery) ) {
+				$delivery = self::_delivery_format($method->delivery, $options).' ';
+			}
+			if ( $selected_option && str_true($difference) ) {
+				$diff = $method->amount - $selected_option->amount;
+				$pre = $diff < 0 ? '-' : '+';
+				$cost = $pre.money(abs($diff));
+			}
+
+			$selected = $selected_option && $selected_option->slug == $method->slug ?' selected="selected"' : false;
+
+			$_[] = '<option value="'.esc_attr($method->slug).'"'.$selected.'>'.$method->name.' ( '.$delivery.$cost.' )</option>';
 		}
 		$_[] = '</select>';
 		return join("",$_);
