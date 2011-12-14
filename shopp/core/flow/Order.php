@@ -348,7 +348,7 @@ class Order {
 
 			// If the card number is provided over a secure connection
 			// Change the cart to operate in secure mode
-			if (!empty($_POST['billing']['card']) && is_shopp_secure())
+			if (!empty($_POST['billing']['card']) && is_ssl())
 				$Shopping->secured(true);
 
 			// Sanitize the card number to ensure it only contains numbers

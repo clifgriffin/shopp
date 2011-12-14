@@ -1167,7 +1167,7 @@ abstract class SessionObject {
 		if ($result = DB::query($query)) {
 			if (substr($result->data,0,1) == "!") {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
-				if (empty($key) && !is_shopp_secure())
+				if (empty($key) && !is_ssl())
 					shopp_redirect(force_ssl(raw_request_url(),true));
 				$readable = DB::query("SELECT AES_DECRYPT('".
 										mysql_real_escape_string(
@@ -1231,7 +1231,7 @@ abstract class SessionObject {
 
 		$data = DB::escape(addslashes(serialize($this->data)));
 
-		if ($this->secured() && is_shopp_secure()) {
+		if ($this->secured() && is_ssl()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
 			if (!empty($key) && $key !== false) {
 				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
@@ -1305,7 +1305,7 @@ abstract class SessionObject {
 	 * @return string
 	 **/
 	function securekey () {
-		if (!is_shopp_secure()) return false;
+		if (!is_ssl()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
 		else $key = md5(serialize($this->data).time());
