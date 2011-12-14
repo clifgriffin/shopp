@@ -1060,7 +1060,7 @@ class WPShoppObject extends WPDatabaseObject {
 		register_post_type( $posttype, array(
 			'labels' => call_user_func(array($class,'labels')),
 			'capabilities' => call_user_func(array($class, 'capabilities')),
-			'rewrite' => array( 'slug' => $slug ),
+			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
 			'public' => true,
 			'has_archive' => true,
 			'show_ui' => false,
