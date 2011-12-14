@@ -1878,8 +1878,6 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 
 	$structure = get_option('permalink_structure');
 	$prettyurls = ('' != $structure);
-	$permastruct = explode('/',substr($structure, 0, strpos($structure, '%')));
-	if (isset($permastruct[1])) $path[] = $permastruct[1];
 
 	$path[] = Storefront::slug('catalog');
 

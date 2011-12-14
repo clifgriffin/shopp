@@ -417,7 +417,7 @@ class ProductTaxonomy extends ProductCollection {
 			'labels' => call_user_func(array($class,'labels'),$class),
 			'show_ui' => true,
 			'query_var' => true,
-			'rewrite' => array( 'slug' => $slug ),
+			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
 			'update_count_callback' => '_update_post_term_count'
 		));
 
