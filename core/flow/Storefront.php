@@ -59,7 +59,6 @@ class Storefront extends FlowController {
 		add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
 
-		add_filter('the_title', array($this,'pagetitle'), 10, 2);
 		add_filter('wp_get_nav_menu_items', array($this,'navmenus'), 10, 2);
 
 		// Shopp product text filters
@@ -128,7 +127,7 @@ class Storefront extends FlowController {
 			global $wp_query;
 			$stub = new WPDatabaseObject();
 			$stub->init('posts');
-			$stub->ID = -1; // Force to an unusable post ID
+			$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
 			$stub->comment_status = 'closed'; // Force comments closed
 			return array($stub);
 		}
@@ -186,6 +185,7 @@ class Storefront extends FlowController {
 			$wp_query->is_archive = false;
 			$wp_query->is_page = true;
 			$wp_query->post_count = true;
+			$wp_query->shopp_page = true;
 			return;
 		}
 
@@ -268,7 +268,7 @@ class Storefront extends FlowController {
 		// or not a shopp taxonomy request
 		if (empty($Collection) && get_query_var('post_type') != Product::$posttype) return $template;
 
-		add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return shopp("category","get-name");'));
+		add_filter('the_title',create_function('$title,$id','return in_the_loop() && is_archive() && -42 == $id?shopp("category","get-name"):$title;'),10,2);
 		add_filter('the_content',array(&$this,'category_template'),11);
 
 		$templates = array('shopp-collection.php', 'shopp-category.php', 'shopp.php', 'page.php');
@@ -285,8 +285,8 @@ class Storefront extends FlowController {
 		$pages = self::pages_settings();
 		$pagetitle = apply_filters($page.'_page_title',$pages[$page]['title']);
 
-		add_filter('the_title',create_function('$title','return in_the_loop()?"'.$pagetitle.'":$title;'));
-		add_filter('the_content',array(&$this,$page.'_page'),11);
+		add_filter('the_title',create_function('$title,$id','return in_the_loop() && -42 == $id?"'.$pagetitle.'":$title;'),10,2);
+		add_filter('the_content',array(&$this,$page.'_page'),10);
 
 		$templates = array("$page.php", 'shopp.php', 'page.php');
 		return locate_template($templates);
@@ -585,33 +585,6 @@ class Storefront extends FlowController {
 		return join(" $sep ",$_);
 	}
 
-	/**
-	 * Override the WP page title for the extra checkout process pages
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $title The current WP page title
-	 * @param int $post_id (optional) The post id
-	 * @return string The modified title
-	 **/
-	function pagetitle ($title,$post_id=false) {
-		if (!$post_id) return $title;
-		global $wp;
-
-		// @todo replace with storefront_pages setting?
-		$pages = shopp_setting('pages');
-		$process = get_query_var('s_pr');
-
-		if (!empty($process) && $post_id == $pages['checkout']['id']) {
-			switch($process) {
-				case 'thanks': $title = apply_filters('shopp_thanks_pagetitle',__('Thank You!','Shopp')); break;
-				case 'confirm-order': $title = apply_filters('shopp_confirmorder_pagetitle',__('Confirm Order','Shopp')); break;
-			}
-		}
-		return $title;
-	}
-
 	function navmenus ($items) {
 		foreach ($items as &$item) {
 			if ('shopp_page' != $item->type) continue;
@@ -841,7 +814,7 @@ class Storefront extends FlowController {
 	// }
 
 	function catalog_page () {
-		global $Shopp,$wp;
+		global $Shopp,$wp,$wp_query;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
 
 		// $referrer = get_bloginfo('url')."/".$wp->request;

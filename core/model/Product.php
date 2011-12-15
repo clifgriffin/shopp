@@ -280,8 +280,6 @@ class Product extends WPShoppObject {
 	 **/
 	function loader (&$records,&$record,$DatabaseObject=false,$index='id',$collate=false) {
 
-
-
 		if (isset($this)) {
 			$index = $this->_key;
 			$DatabaseObject = get_class($this);
