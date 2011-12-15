@@ -9,7 +9,7 @@
 
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('products'); ?>" />
-		<input type="hidden" name="f" value="i" />
+		<input type="hidden" name="view" value="<?php echo $this->view; ?>" />
 	</div>
 
 	<p id="post-search" class="search-box">
@@ -43,7 +43,7 @@
 	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
-		$hidden = get_hidden_columns('shopp_page_shopp-products');
+		$hidden = get_hidden_columns('toplevel_page_shopp-products');
 
 		$even = false;
 		foreach ($Products as $key => $Product):
@@ -54,14 +54,13 @@
 					admin_url('admin.php'))));
 
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
-		if (!empty($Product->label) && $Product->optionkey > 0) $ProductName .= " ($Product->label)";
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<td class="inventory column-inventory">
-			<input type="text" name="stock[<?php echo $Product->id; ?>]" value="<?php echo $Product->stock; ?>" size="6" class="stock selectall" />
-			<input type="hidden" name="db[<?php echo $Product->id; ?>]" value="<?php echo $Product->stock; ?>" class="db" />
+			<input type="text" name="stock[<?php echo $Product->stockid; ?>]" value="<?php echo $Product->stock; ?>" size="6" class="stock selectall" />
+			<input type="hidden" name="db[<?php echo $Product->stockid; ?>]" value="<?php echo $Product->stock; ?>" class="db" />
 			</td>
-			<td class="sku column-sku"><?php echo $Product->sku; ?></td>
+			<td class="sku column-sku<?php echo in_array('sku',$hidden)?' hidden':''; ?>"><?php echo $Product->sku; ?></td>
 			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a></td>
 
 		</tr>
@@ -105,7 +104,7 @@ jQuery(document).ready( function() {
 		});
 	});
 
-	pagenow = 'shopp_page_shopp-products';
+	pagenow = 'toplevel_page_shopp-products';
 	columns.init(pagenow);
 
 });
