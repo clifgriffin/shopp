@@ -288,6 +288,10 @@ class Product extends WPShoppObject {
 		$Object = new $DatabaseObject();
 		$Object->populate($record);
 
+		// Added for inventory management support
+		if (isset($record->stockid)) $Object->stockid = $record->stockid;
+		if (isset($record->sku)) $Object->sku = $record->sku;
+
 		$resum = false;
 		if (isset($record->summed)) { // Loaded from the collection loader
 			$Object->summary($records,$record);
