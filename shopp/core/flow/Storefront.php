@@ -23,7 +23,6 @@
 class Storefront extends FlowController {
 
 	var $Page = false;
-	var $breadcrumb = false;
 	var $referrer = false;
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
@@ -45,7 +44,6 @@ class Storefront extends FlowController {
 
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
-		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 		ShoppingObject::store('referrer',$this->referrer);
 		ShoppingObject::store('viewed',$this->viewed);
 
@@ -1048,7 +1046,7 @@ class Storefront extends FlowController {
 		$this->add_dashboard('login',__('Login to your Account'),false);
 		$this->add_dashboard('recover','Password Recovery',false);
 		$this->add_dashboard('rp','Password Recovery',false);
-		$this->add_dashboard('menu',__('Account Dashboard','Shopp'),false);
+		$this->add_dashboard('menu',__('Dashboard','Shopp'),false);
 
 		do_action('shopp_account_menu');
 
@@ -1073,8 +1071,8 @@ class Storefront extends FlowController {
 
 		do_action('shopp_account_management');
 
-		// if ('rp' == $request) $this->reset_password($_GET['key']);
-		// if (isset($_POST['recover-login'])) $this->recovery();
+		if ('rp' == $request) $this->account_resetpwd($_GET['rp']);
+		if (isset($_POST['recover-login'])) $this->account_recovery();
 
 	}
 
@@ -1092,6 +1090,127 @@ class Storefront extends FlowController {
 		if ($visible) array_splice($this->menus,$position,0,array(&$this->dashboard[$request]));
 	}
 
+
+	/**
+	 * Password recovery processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 *
+	 * @return void
+	 **/
+	function account_recovery () {
+		$errors = array();
+
+		// Check email or login supplied
+		if (empty($_POST['account-login'])) {
+			if ( 'wordpress' == shopp_setting('account_system') ) $errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
+			else $errors[] = new ShoppError(__('Enter an email address','Shopp'));
+		} else {
+			// Check that the account exists
+			if (strpos($_POST['account-login'],'@') !== false) {
+				$RecoveryCustomer = new Customer($_POST['account-login'],'email');
+				if (!$RecoveryCustomer->id)
+					$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+			} else {
+				$user_data = get_userdatabylogin($_POST['account-login']);
+				$RecoveryCustomer = new Customer($user_data->ID,'wpuser');
+				if (empty($RecoveryCustomer->id))
+					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+			}
+		}
+
+		// return errors
+		if (!empty($errors)) return;
+
+		// Generate new key
+		$RecoveryCustomer->activation = wp_generate_password(20, false);
+		do_action_ref_array('shopp_generate_password_key', array(&$RecoveryCustomer));
+		$RecoveryCustomer->save();
+
+		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request','Shopp'),get_option('blogname')));
+
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'To: '.$RecoveryCustomer->email;
+		$_[] = 'Subject: '.$subject;
+		$_[] = '';
+		$_[] = __('A request has been made to reset the password for the following site and account:','Shopp');
+		$_[] = get_option('siteurl');
+		$_[] = '';
+		if (isset($_POST['email-login']))
+			$_[] = sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email);
+		if (isset($_POST['loginname-login']))
+			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+		$_[] = '';
+		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
+		$_[] = '';
+		$_[] = add_query_arg(array('rp'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
+		$message = apply_filters('shopp_recover_password_message',$_);
+
+		if (!shopp_email(join("\n",$message))) {
+			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
+			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
+		} else {
+			new ShoppError(__('Check your email address for instructions on resetting the password for your account.','Shopp'),'password_recovery_email',SHOPP_ERR);
+		}
+
+	}
+
+	function account_resetpwd ($activation) {
+		if ( 'none' == shopp_setting('account_system') ) return;
+
+		$user_data = false;
+		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
+
+		$errors = array();
+		if (empty($activation) || !is_string($activation))
+			$errors[] = new ShoppError(__('Invalid key','Shopp'));
+
+		$RecoveryCustomer = new Customer($activation,'activation');
+		if (empty($RecoveryCustomer->id))
+			$errors[] = new ShoppError(__('Invalid key','Shopp'));
+
+		if (!empty($errors)) return false;
+
+		// Generate a new random password
+		$password = wp_generate_password();
+
+		do_action_ref_array('password_reset', array(&$RecoveryCustomer,$password));
+
+		$RecoveryCustomer->password = wp_hash_password($password);
+		if ( 'wordpress' == shopp_setting('account_system') ) {
+			$user_data = get_userdata($RecoveryCustomer->wpuser);
+			wp_set_password($password, $user_data->ID);
+		}
+
+		$RecoveryCustomer->activation = '';
+		$RecoveryCustomer->save();
+
+		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
+
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'To: '.$RecoveryCustomer->email;
+		$_[] = 'Subject: '.$subject;
+		$_[] = '';
+		$_[] = sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl'));
+		$_[] = '';
+		if ($user_data)
+			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
+		$_[] = '';
+		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
+		$message = apply_filters('shopp_reset_password_message',$_);
+
+		if (!shopp_email(join("\n",$message))) {
+			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
+			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
+		} else new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
+
+		unset($_GET['acct']);
+	}
 
 	/**
 	 * Handles rendering the [product] shortcode
