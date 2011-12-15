@@ -477,9 +477,10 @@ class AjaxFlow {
 	function update_inventory () {
 		check_admin_referer('wp_ajax_shopp_update_inventory');
 		$Priceline = new Price($_GET['id']);
-		if ($Priceline->inventory != "on") die('0');
-		if ((int)$_GET['stock'] < 0) die('0');
-		$Priceline->stock = $_GET['stock'];
+		if ( empty($Priceline->id) ) die('0');
+		if ( ! str_true($Priceline->inventory) ) die('0');
+		if ( (int)$_GET['stock'] < 0 ) die('0');
+		$Priceline->stock = $Priceline->stocked = $_GET['stock'];
 		$Priceline->save();
 		echo "1";
 		exit();
