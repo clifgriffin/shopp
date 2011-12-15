@@ -30,7 +30,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'istaxonomy' => 'is_taxonomy',
 		'iscollection' => 'is_collection',
 		'ischeckout' => 'is_checkout',
-		'islanding' => 'is_catalog',
+		'islanding' => 'is_frontpage',
+		'isfrontpage' => 'is_frontpage',
 		'iscatalog' => 'is_catalog',
 		'isproduct' => 'is_product',
 		'orderbylist' => 'orderby_list',
@@ -500,19 +501,21 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function is_account ($result, $options, $O) { return is_shopp_page('account'); }
+	function is_account ($result, $options, $O) { return is_account_page(); }
 
-	function is_cart ($result, $options, $O) { return is_shopp_page('cart'); }
+	function is_cart ($result, $options, $O) { return is_cart_page(); }
 
-	function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
+	function is_catalog ($result, $options, $O) { return is_catalog_page(); }
+
+	function is_checkout ($result, $options, $O) { return is_checkout_page(); }
 
 	function is_collection ($result, $options, $O) { return is_shopp_collection(); }
 
-	function is_checkout ($result, $options, $O) { return is_shopp_page('checkout'); }
-
-	function is_catalog ($result, $options, $O) { return is_shopp_page('catalog'); }
+	function is_frontpage ($result, $options, $O) { return is_catalog_frontpage(); }
 
 	function is_product ($result, $options, $O) { return is_shopp_product(); }
+
+	function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
 
 	function orderby_list ($result, $options, $O) {
 		global $Shopp;

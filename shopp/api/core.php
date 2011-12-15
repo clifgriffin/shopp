@@ -111,7 +111,10 @@ function &ShoppOrder ( &$Object = false ) {
 
 
 /**
- * Determines if the requested page is the catalog landing page.
+ * Determines if the requested page is a catalog page
+ *
+ * Returns true for the catalog front page, Shopp taxonomy (categories, tags) pages,
+ * smart collections and product pages
  *
  * @author John Dillick
  * @since 1.2
@@ -120,6 +123,18 @@ function &ShoppOrder ( &$Object = false ) {
  **/
 function is_catalog_page () {
 	return is_shopp_page('catalog');
+}
+
+/**
+ * Determines if the requested page is the catalog front page.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return bool true if the current page request is the catalog landing page, else false.
+ **/
+function is_catalog_frontpage () {
+	return is_shopp_page('catalog') && !( is_shopp_taxonomy() || is_shopp_product() || is_shopp_collection() );
 }
 
 /**
