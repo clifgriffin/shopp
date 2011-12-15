@@ -1053,14 +1053,20 @@ class Storefront extends FlowController {
 		add_action('shopp_account_management',array($this,'dashboard_handler'));
 
 		$query = $_SERVER['QUERY_STRING'];
+		$query = html_entity_decode($query);
+		$query  = explode('&', $query);
+
 		$request = 'menu';
 		$id = false;
-		if (false !== strpos($query,'=')) list($request,$id) = explode('=',$query);
-		else $request = $query;
 
-		if ( in_array($request,array_keys($this->dashboard)) )
-			$this->account = compact('request','id');
-		else $this->account = array('request' => 'menu','id' => false);
+		foreach ($query as $queryvar) {
+			if (false !== strpos($queryvar,'=')) list($key,$id) = explode('=',$queryvar);
+			else $key = $queryvar;
+
+			if ( in_array($key,array_keys($this->dashboard))) $request = $key;
+		}
+
+		$this->account = compact('request','id');
 
 		$download_request = get_query_var('s_dl');
 		if (!ShoppCustomer()->logged_in()) {
