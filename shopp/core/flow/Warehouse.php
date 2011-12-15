@@ -373,9 +373,10 @@ class Warehouse extends AdminController {
 		);
 
 		if ($is_inventory) { // Override for inventory products
+			$where[] = "(pt.context='product' OR pt.context='variation') AND pt.type != 'N/A'";
 			$loading = array(
-				'columns' => "CONCAT(p.post_title,': ',pt.label) AS post_title,pt.sku AS sku",
-				'joins' => array($pt => "INNER JOIN $pt AS pt ON p.ID=pt.product"),
+				'columns' => "pt.id AS stockid,IF(pt.context='variation',CONCAT(p.post_title,': ',pt.label),p.post_title) AS post_title,pt.sku AS sku,pt.stock AS stock",
+				'joins' => array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),
 				'where' => $where,
 				'groupby' => 'pt.id',
 				'order' => 'p.ID,pt.sortorder',
@@ -448,7 +449,7 @@ class Warehouse extends AdminController {
 		$path = SHOPP_ADMIN_PATH.'/products';
 		$ui = 'products.php';
 		switch ($view) {
-			case 'inventory': if ('on' == shopp_setting('inventory')) $ui = 'inventory.php'; break;
+			case 'inventory': if (shopp_setting_enabled('inventory')) $ui = 'inventory.php'; break;
 		}
 
 		include("$path/$ui");
