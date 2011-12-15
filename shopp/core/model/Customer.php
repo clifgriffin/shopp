@@ -96,55 +96,6 @@ class Customer extends DatabaseObject {
 		}
 	}
 
-	// @todo This needs added to account dashboard management hooks
-	/**
-	 * Management menu controller for the account manager
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean|string output based on the account menu request
-	 **/
-	// function management () {
-	//
-	// 	if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']])
-	// 			&& isset($this->pages[$_GET['acct']]->handler)
-	// 			&& is_callable($this->pages[$_GET['acct']]->handler))
-	// 		call_user_func($this->pages[$_GET['acct']]->handler);
-	//
-	// 	if (!empty($_POST['customer'])) {
-	//
-	// 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-	//
-	// 		$this->updates($_POST);
-	// 		if (isset($_POST['info'])) $this->info = $_POST['info'];
-	//
-	// 		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
-	// 			$this->password = wp_hash_password($_POST['password']);
-	// 			if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
-	// 			$this->_password_change = true;
-	// 		} else {
-	// 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
-	// 		}
-	// 		if ( ! empty($_POST['billing']) ) {
-	// 			$this->Billing = new BillingAddress($this->id);
-	// 			$this->Billing->updates($_POST['billing']);
-	// 			$this->Billing->save();
-	// 		}
-	//
-	// 		if ( ! empty($_POST['shipping']) ) {
-	// 			$this->Shipping = new ShippingAddress($this->id);
-	// 			$this->Shipping->updates($_POST['shipping']);
-	// 			$this->Shipping->save();
-	// 		}
-	//
-	// 		$this->save();
-	// 		$this->load_info();
-	// 		$this->_saved = true;
-	// 	}
-	//
-	// }
-
 	/**
 	 * Determines if the customer is logged in, and checks for wordpress login if necessary
 	 *
