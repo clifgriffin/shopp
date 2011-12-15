@@ -236,7 +236,7 @@ class Login {
 		$this->Customer = new Customer();
 		$this->Billing = new BillingAddress();
 		$this->Shipping = new ShippingAddress();
-		$this->Shipping->destination();
+		$this->Shipping->locate();
 
 		session_commit();
 		do_action_ref_array('shopp_logged_out',array(&$this->Customer));
