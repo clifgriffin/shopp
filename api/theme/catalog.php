@@ -220,7 +220,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (is_account_page()) {
 			$breadcrumb += array($pages['account']['title'] => shoppurl(false,'account'));
 
-			// Handle adding sub pages
+			$request = $Storefront->account['request'];
+			if (isset($Storefront->dashboard[$request]))
+				$breadcrumb += array($Storefront->dashboard[$request]->label => shoppurl(false,'account'));
+
 		} elseif (is_cart_page()) {
 			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
 		} elseif (is_checkout_page()) {
