@@ -1060,10 +1060,13 @@ class Storefront extends FlowController {
 		$id = false;
 
 		foreach ($query as $queryvar) {
-			if (false !== strpos($queryvar,'=')) list($key,$id) = explode('=',$queryvar);
+			if (false !== strpos($queryvar,'=')) list($key,$value) = explode('=',$queryvar);
 			else $key = $queryvar;
 
-			if ( in_array($key,array_keys($this->dashboard))) $request = $key;
+			if ( in_array($key,array_keys($this->dashboard))) {
+				$request = $key;
+				$id = $value;
+			}
 		}
 
 		$this->account = compact('request','id');
