@@ -381,7 +381,7 @@ class Warehouse extends AdminController {
 				'groupby' => 'pt.id',
 				'order' => 'p.ID,pt.sortorder',
 				'limit'=>"$start,$per_page",
-				'published' => false
+				'published' => false,
 			);
 		}
 

@@ -178,7 +178,7 @@ class Product extends WPShoppObject {
 		if ( empty($ids) ) return;
 
 		// Load in single product load contexts when the summary has not already been loaded
-		if (!empty($this->id) && !isset($this->summed)) {
+		if (!empty($this->id) && $this->id == $ids) {
 			$this->load_summary($ids);
 			$this->resum();
 		}
@@ -279,6 +279,9 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function loader (&$records,&$record,$DatabaseObject=false,$index='id',$collate=false) {
+
+
+
 		if (isset($this)) {
 			$index = $this->_key;
 			$DatabaseObject = get_class($this);
@@ -289,8 +292,11 @@ class Product extends WPShoppObject {
 		$Object->populate($record);
 
 		// Added for inventory management support
-		if (isset($record->stockid)) $Object->stockid = $record->stockid;
-		if (isset($record->sku)) $Object->sku = $record->sku;
+		if (isset($record->stockid)) {
+			$Object->stockid = $record->stockid;
+			if (isset($record->sku)) $Object->sku = $record->sku;
+			$index = $record->stockid; // Rewrite index to index on price record id
+		}
 
 		$resum = false;
 		if (isset($record->summed)) { // Loaded from the collection loader
@@ -583,7 +589,7 @@ class Product extends WPShoppObject {
 	}
 
 	/**
-	 * Calculates aggregate product stats
+	 * Calculates aggregate product stats from posted price data
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
@@ -592,7 +598,7 @@ class Product extends WPShoppObject {
 	 * @return void
 	 **/
 	function sumprice ($Price) {
-		if ($Price->type == 'N/A' || $Price->context == 'addon' || (float)$Price->promoprice == 0) return;
+		if ($Price->type == 'N/A' || $Price->context == 'addon') return;
 
 		if ($this->maxprice === false) $this->maxprice = (float)$Price->promoprice;
 		else $this->maxprice = max($this->maxprice,$Price->promoprice);
@@ -600,14 +606,14 @@ class Product extends WPShoppObject {
 		if ($this->minprice === false) $this->minprice = (float)$Price->promoprice;
 		else $this->minprice = min($this->minprice,$Price->promoprice);
 
-		if ('on' == $Price->sale) $this->sale = $Price->sale;
+		if (str_true($Price->sale)) $this->sale = $Price->sale;
 
-		if ('on' == $Price->inventory) {
+		if (str_true($Price->inventory)) {
 			$this->inventory = $Price->inventory;
 			$this->stock += $Price->stock;
 			if ( ! isset($this->lowstock) ) $this->lowstock = 'none';
 			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
-		} else if (!$this->inventory) $this->inventory = 'off';
+		} elseif (!$this->inventory) $this->inventory = 'off';
 
 		if (!isset($this->_soldcount)) { // Only recalculate sold count once
 			$sc = $this->sold();
@@ -680,8 +686,8 @@ class Product extends WPShoppObject {
 				else $checksum .= $this->$property;
 			}
 		}
-		$checksum = md5($checksum);
 
+		$checksum = md5($checksum);
 		if ($checksum == $this->checksum) return;
 
 		$Summary->copydata($this);
