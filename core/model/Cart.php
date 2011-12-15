@@ -1053,7 +1053,7 @@ class CartShipping {
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->modules = &$Shopp->Shipping->active;
 		$this->Shipping = &$Shopp->Order->Shipping;
-		$this->Shipping->destination();
+		$this->Shipping->locate();
 
 		$this->showpostcode = $Shopp->Shipping->postcodes;
 
