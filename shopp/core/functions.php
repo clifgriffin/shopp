@@ -295,7 +295,6 @@ function copy_shopp_templates ($src,$target) {
  *
  * @author Ashley Roll {@link ash@digitalnemesis.com}, Scott Dattalo
  * @since 1.1
- * @todo Implement using dechex() to encode/compress strings (e.g. faceted menu filter keys)
  *
  * @return int The checksum polynomial
  **/

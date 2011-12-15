@@ -36,6 +36,19 @@ class Address extends DatabaseObject {
 	}
 
 	/**
+	 * Overloads the default load to update location details after load
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function load ($id=false,$key=false) {
+		parent::load($id,$key);
+		$this->locate();
+	}
+
+	/**
 	 * Determines the domestic area name from a U.S. ZIP code or
 	 * Canadian postal code.
 	 *
@@ -57,6 +70,38 @@ class Address extends DatabaseObject {
 		if (!preg_match("/$pattern/",$postcode)) return false;
 
 		do_action_ref_array('shopp_map_'.strtolower($this->country).'_postcode',array(&$this));
+	}
+
+	/**
+	 * Sets the address location for calculating tax and shipping estimates
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function locate ($data=false) {
+		$base = shopp_setting('base_operations');
+		$markets = shopp_setting('target_markets');
+		$countries = Lookup::countries();
+		$regions = Lookup::regions();
+
+		if ($data) $this->updates($data);
+
+		// Update state if postcode changes for tax updates
+		if (isset($this->postcode))	$this->postmap();
+
+		if (empty($this->country)) {
+			// If the target markets are set to single country, use that target as default country
+			// otherwise default to the base of operations for tax and shipping estimates
+			if (1 == count($markets)) $this->country = key($markets);
+			else $this->country = $base['country'];
+		}
+
+		$this->region = false;
+		if (isset($regions[$countries[$this->country]['region']]))
+			$this->region = $regions[$countries[$this->country]['region']];
+
 	}
 
 } // END class Address
@@ -156,35 +201,6 @@ class ShippingAddress extends Address {
 			$prefix.'postcode' => __('Shipping Postal Code','Shopp'),
 		);
 	}
-
-	/**
-	 * Sets the shipping address location for calculating
-	 * shipping estimates.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function destination ($data=false) {
-		$base = shopp_setting('base_operations');
-		$countries = Lookup::countries();
-		$regions = Lookup::regions();
-
-		if ($data) $this->updates($data);
-
-		// Update state if postcode changes for tax updates
-		if (isset($this->postcode))	$this->postmap();
-
-		if (empty($this->country))
-			$this->country = $base['country'];
-
-		$this->region = false;
-		if (isset($regions[$countries[$this->country]['region']]))
-			$this->region = $regions[$countries[$this->country]['region']];
-
-	}
-
 
 } // END class ShippingAddress
 
