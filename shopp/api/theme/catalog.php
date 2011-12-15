@@ -196,70 +196,65 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		$defaults = array(
 			'separator' => '&nbsp;&raquo; ',
-			'depth'		=> 7
+			'depth'		=> 7,
+
+			'wrap' 		=> '<ul class="breadcrumb">',
+			'endwrap' 	=> '</ul>',
+			'before'	=> '<li>',
+			'after'		=> '</li>'
+
 		);
+
 		$options = array_merge($defaults,$options);
 		extract($options);
-		return false; // @todo Fix CatalogAPI breadcrumb
-		if (isset($Shopp->Category->controls)) return false;
-		if (empty($O->categories)) $O->load_categories(array('outofstock' => true));
 
-		$category = false;
-		if (isset($Shopp->Flow->Controller->breadcrumb))
-			$category = $Shopp->Flow->Controller->breadcrumb;
+		$linked = $before.'%2$s<a href="%3$s">%1$s</a>'.$after;
+		$list = $before.'%2$s<strong>%1$s</strong>'.$after;
 
-		$trail = false;
-		$search = array();
-		if (isset($Shopp->Flow->Controller->search)) $search = array('search'=>$Shopp->Flow->Controller->search);
-		$path = explode("/",$category);
-		if ($path[0] == "tag") {
-			$category = "tag";
-			$search = array('tag'=>urldecode($path[1]));
-		}
-		$Category = Catalog::load_collection($category,$search);
+		$Storefront = ShoppStorefront();
+		$pages = Storefront::pages_settings();
 
-		if (!empty($Category->uri)) {
-			$type = "category";
-			if (isset($Category->tag)) $type = "tag";
+		// store front page
+		$breadcrumb = array($pages['catalog']['title'] => shoppurl(false,'catalog'));
 
-			$category_uri = isset($Category->smart)?$Category->slug:$Category->id;
+		if (is_account_page()) {
+			$breadcrumb += array($pages['account']['title'] => shoppurl(false,'account'));
 
-			$link = ('' != get_option('permalink_structure'))?
-				shoppurl("$type/$Category->uri") :
-				shoppurl(array_merge($_GET,array('s_cat'=>$category_uri,'s_pid'=>null)));
-
-			$filters = false;
-			if (!empty($Shopp->Cart->data->Category[$Category->slug]))
-				$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
-
-			if (!empty($Shopp->Product))
-				$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
-			elseif (!empty($Category->name))
-				$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
-
-			// Build category names path by going from the target category up the parent chain
-			$parentkey = (!empty($Category->id)
-				&& isset($O->categories['_'.$Category->id]->parent)?
-					'_'.$O->categories['_'.$Category->id]->parent:'_0');
-
-			while ($parentkey != '_0' && $depth-- > 0) {
-				$tree_category = $O->categories[$parentkey];
-
-				$link = ('' != get_option('permalink_structure'))?
-					shoppurl("category/$tree_category->uri"):
-					shoppurl(array_merge($_GET,array('s_cat'=>$tree_category->id,'s_pid'=>null)));
-
-				$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
-					(empty($trail)?'':$separator).'</li>'.$trail;
-
-				$parentkey = '_'.$tree_category->parent;
+			// Handle adding sub pages
+		} elseif (is_cart_page()) {
+			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
+		} elseif (is_checkout_page()) {
+			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
+		} elseif (is_confirm_page()) {
+			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
+			$breadcrumb += array($pages['confirm']['title'] => shoppurl(false,'confirm'));
+		} elseif (is_thanks_page()) {
+			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
+			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
+		} elseif (is_shopp_collection() || !empty($Storefront->search)) {
+			// collections
+			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
+		} elseif (is_shopp_taxonomy()) {
+			$taxonomy = ShoppCollection()->taxonomy;
+			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id,$taxonomy));
+			foreach ($ancestors as $ancestor) {
+				$term = get_term($ancestor,$taxonomy);
+				$breadcrumb[ $term->name ] = get_term_link($term->slug,$taxonomy);
 			}
+			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
+		} elseif (is_shopp_product()) {
+			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxonomy);
+			$term = array_shift($categories);
+			$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
+			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
 		}
-		// @todo replace with storefront_pages setting?
-		$pages = shopp_setting('pages');
 
-		$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
-		return '<ul class="breadcrumb">'.$trail.'</ul>';
+		$last = end(array_keys($breadcrumb));
+		$trail = '';
+		foreach ($breadcrumb as $name => $link)
+			$trail .= sprintf(($last == $name?$list:$linked),$name,(empty($trail)?'':$separator),$link);
+
+		return $wrap.$trail.$endwrap;
 	}
 
 	function business_name ($result, $options, $O) { return esc_html(shopp_setting('business_name')); }
