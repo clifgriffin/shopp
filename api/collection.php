@@ -30,9 +30,12 @@ function shopp_register_collection ( $name = '' ) {
 	if (empty($Shopp)) return;
 	$slug = get_class_property($name,'_slug');
 	$Shopp->Collections[$slug] = $name;
+	$permastruct = SmartCollection::$taxonomy;
 
-	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
-	add_permastruct('shopp_collection', Storefront::slug()."/%shopp_collection%", true);
+	add_rewrite_tag("%$permastruct%",'collection/([^/]+)');
+	add_permastruct($permastruct, Storefront::slug()."/%shopp_collection%", false);
+
+	add_filter($permastruct.'_rewrite_rules',array('ProductCollection','pagerewrites'));
 
 	$apicall = create_function ('$result, $options, $O',
 		'ShoppCollection( new '.$name.'($options) );

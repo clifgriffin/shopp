@@ -178,6 +178,10 @@ class Storefront extends FlowController {
 		$this->request = true;
 		set_query_var('suppress_filters',false); // Override default WP_Query request
 
+		// Restore paged query var for Shopp's alpha-pagination support
+		if (isset($wp_query->query['paged']) && false != preg_match('/([A-Z]|0\-9)/i',$wp_query->query['paged']))
+			$wp_query->query_vars['paged'] = strtoupper($wp_query->query['paged']);
+
 		if (!empty($page)) {
 			// Overrides to enforce page behavior
 			$wp_query->is_home = false;
