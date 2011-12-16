@@ -614,7 +614,7 @@ class Item {
 				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
 			$taxable = array_sum($_);
 
-			$this->unittax = ($this-taxable*$this->taxrate); // unit tax figure
+			$this->unittax = ($taxable*$this->taxrate); // unit tax figure
 			$this->pricedtax = ($taxable*$this->taxrate); // discounted unit tax
 			$this->tax = ($this->pricedtax*$this->quantity); // total discounted tax amount
 		}
