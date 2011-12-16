@@ -303,7 +303,7 @@ class Shopp {
 	}
 
 	/**
-	 * Adds Shopp-specific mod_rewrite rule for low-resource, speedy image server
+	 * Adds Shopp-specific mod_rewrite rule for low-resource, speedy image server and downloads request handler
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
@@ -322,6 +322,7 @@ class Shopp {
 		);
 
 		add_rewrite_rule($prefix.Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
+
 		return $rules + $wp_rewrite_rules;
 	}
 

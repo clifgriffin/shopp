@@ -59,13 +59,14 @@ class ProductCollection implements Iterator {
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
+		$loading = apply_filters("shopp_{$this->slug}_collection_load_options",$loading);
 		extract($loading);
 
 		// Setup pagination
 		$this->paged = false;
 		$this->pagination = (false === $paged)?shopp_setting('catalog_pagination'):$paged;
 		$page = (false === $page)?get_query_var('paged'):$page;
-		$this->page = ((int)$page > 0 || !is_numeric($page))?$page:1;
+		$this->page = ((int)$page > 0 || preg_match('/(0\-9|[A-Z])/',$page) )?$page:1;
 
 		// Hard product limit per category to keep resources "reasonable"
 		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
@@ -114,7 +115,7 @@ class ProductCollection implements Iterator {
 
 		// Pagination
 		if (empty($limit)) {
-			if ($this->pagination > 0 && is_numeric($this->page) && value_is_true($pagination)) {
+			if ($this->pagination > 0 && is_numeric($this->page) && str_true($pagination)) {
 				if( !$this->pagination || $this->pagination < 0 )
 					$this->pagination = $hardlimit;
 				$start = ($this->pagination * ($this->page-1));
@@ -136,8 +137,40 @@ class ProductCollection implements Iterator {
 		$table = "$Processing->_table AS p";
 		$where[] = "p.post_type='".Product::posttype()."'";
 		$joins[$summary_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
-
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
+
+
+		// Alphabetic pagination
+		if ('alpha' === $pagination || preg_match('/(0\-9|[A-Z])/',$page)) {
+			// Setup Roman alphabet navigation
+			$alphanav = array_merge(array('0-9'),range('A','Z'));
+			$this->alpha = array_combine($alphanav,array_fill(0,count($alphanav),0));
+
+			// Setup alphabetized index query
+			$a = $options;
+			$a['columns'] = "count(DISTINCT p.ID) AS total,IF(LEFT(p.post_title,1) REGEXP '[0-9]',LEFT(p.post_title,1),LEFT(SOUNDEX(p.post_title),1)) AS letter";
+			$a['groupby'] = "letter";
+			$alphaquery = DB::select($a);
+
+			$cachehash = 'collection_alphanav_'.md5($alphaquery);
+			$cached = wp_cache_get($cachehash,'shopp_collection');
+			if ($cached) { // Load from object cache, if available
+				$this->alpha = $cached;
+				$cached = false;
+			} else { // Run query and cache results
+				$expire = apply_filters('shopp_collection_cache_expire',43200);
+				$alpha = DB::query($alphaquery,'array',array($this,'alphatable'));
+				wp_cache_set($cachehash,$alpha,'shopp_collection_alphanav');
+			}
+
+			$this->paged = true;
+			if ($this->page == 1) $this->page = '0-9';
+			$alphafilter = $this->page == "0-9"?
+				"(LEFT(p.post_title,1) REGEXP '[0-9]') = 1":
+				"IF(LEFT(p.post_title,1) REGEXP '[0-9]',LEFT(p.post_title,1),LEFT(SOUNDEX(p.post_title),1))='$this->page'";
+			$options['where'][] = $alphafilter;
+		}
+
 		$query = DB::select($options);
 
 		if ($debug) echo $query.BR.BR;
@@ -194,14 +227,32 @@ class ProductCollection implements Iterator {
 	function pagelink ($page) {
 		$prettyurls = ( '' != get_option('permalink_structure') );
 
-		$alpha = preg_match('/([a-z]|0\-9)/',$page);
-		$prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
-		if ('catalog' == $this->uri) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
+		$alpha = (false !== preg_match('/([a-z]|0\-9)/',$page));
+
+		// $prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
+		// if ('catalog' == $this->uri) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
 
 		$queryvars = array($this->taxonomy=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
 		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false) );
+	}
+
+	// Add alpha-pagination support to category/collection pagination rules
+	function pagerewrites ($rewrites) {
+		$rules = array_keys($rewrites);
+		$queries = array_values($rewrites);
+
+		foreach ($rules as &$rule)
+			if (false !== strpos($rule,'/?([0-9]{1,})/?$'))
+				$rule = str_replace('[0-9]','0\-9|[A-Z0-9]',$rule);
+
+		return array_combine($rules,$queries);
+	}
+
+	function alphatable (&$records,&$record) {
+		if (is_numeric($record->letter)) $this->alpha['0-9'] += $record->total;
+		elseif (isset($this->alpha[ strtoupper($record->letter) ])) $this->alpha[ strtoupper($record->letter) ] = $record->total;
 	}
 
 	/**
@@ -406,7 +457,7 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	static function register ($class) {
-		global $ShoppTaxonomies;
+		global $Shopp,$ShoppTaxonomies;
 
 		$namespace = get_class_property($class,'namespace');
 		$taxonomy = get_class_property($class,'taxonomy');
@@ -420,6 +471,8 @@ class ProductTaxonomy extends ProductCollection {
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
 			'update_count_callback' => '_update_post_term_count'
 		));
+
+		add_filter($taxonomy.'_rewrite_rules',array('ProductCollection','pagerewrites'));
 
 		$ShoppTaxonomies[$taxonomy] = $class;
 	}
@@ -1012,53 +1065,53 @@ class ProductCategory extends ProductTaxonomy {
 		return true;
 	}
 
-	function alphapages ($loading=array()) {
-		$db =& DB::get();
-
-		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		$producttable = DatabaseObject::tablename(Product::$table);
-		$pricetable = DatabaseObject::tablename(Price::$table);
-
-		$alphanav = range('A','Z');
-
-		$ac =   "SELECT count(*) AS total,
-						IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,
-						AVG((p.maxprice+p.minprice)/2) as avgprice
-					FROM $producttable AS p {$loading['useindex']}
-					{$loading['joins']}
-					WHERE {$loading['where']}
-					GROUP BY letter";
-
-		$alpha = $db->query($ac,AS_ARRAY);
-
-		$entry = new stdClass();
-		$entry->letter = false;
-		$entry->total = $entry->avg = 0;
-
-		$existing = current($alpha);
-		if (!isset($this->alpha['0-9'])) {
-			$this->alpha['0-9'] = clone $entry;
-			$this->alpha['0-9']->letter = '0-9';
-		}
-
-		while (is_numeric($existing->letter)) {
-			$this->alpha['0-9']->total += $existing->total;
-			$this->alpha['0-9']->avg = ($this->alpha['0-9']->avg+$existing->avg)/2;
-			$this->alpha['0-9']->letter = '0-9';
-			$existing = next($alpha);
-		}
-
-		foreach ($alphanav as $letter) {
-			if ($existing->letter == $letter) {
-				$this->alpha[$letter] = $existing;
-				$existing = next($alpha);
-			} else {
-				$this->alpha[$letter] = clone $entry;
-				$this->alpha[$letter]->letter = $letter;
-			}
-		}
-
-	}
+	// function alphapages ($loading=array()) {
+	// 	$db =& DB::get();
+	//
+	// 	$catalogtable = DatabaseObject::tablename(Catalog::$table);
+	// 	$producttable = DatabaseObject::tablename(Product::$table);
+	// 	$pricetable = DatabaseObject::tablename(Price::$table);
+	//
+	// 	$alphanav = range('A','Z');
+	//
+	// 	$ac =   "SELECT count(*) AS total,
+	// 					IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,
+	// 					AVG((p.maxprice+p.minprice)/2) as avgprice
+	// 				FROM $producttable AS p {$loading['useindex']}
+	// 				{$loading['joins']}
+	// 				WHERE {$loading['where']}
+	// 				GROUP BY letter";
+	//
+	// 	$alpha = $db->query($ac,AS_ARRAY);
+	//
+	// 	$entry = new stdClass();
+	// 	$entry->letter = false;
+	// 	$entry->total = $entry->avg = 0;
+	//
+	// 	$existing = current($alpha);
+	// 	if (!isset($this->alpha['0-9'])) {
+	// 		$this->alpha['0-9'] = clone $entry;
+	// 		$this->alpha['0-9']->letter = '0-9';
+	// 	}
+	//
+	// 	while (is_numeric($existing->letter)) {
+	// 		$this->alpha['0-9']->total += $existing->total;
+	// 		$this->alpha['0-9']->avg = ($this->alpha['0-9']->avg+$existing->avg)/2;
+	// 		$this->alpha['0-9']->letter = '0-9';
+	// 		$existing = next($alpha);
+	// 	}
+	//
+	// 	foreach ($alphanav as $letter) {
+	// 		if ($existing->letter == $letter) {
+	// 			$this->alpha[$letter] = $existing;
+	// 			$existing = next($alpha);
+	// 		} else {
+	// 			$this->alpha[$letter] = clone $entry;
+	// 			$this->alpha[$letter]->letter = $letter;
+	// 		}
+	// 	}
+	//
+	// }
 
 	/**
 	 * Returns the product adjacent to the requested product in the category
@@ -1176,7 +1229,7 @@ class ProductCategory extends ProductTaxonomy {
 	function pagelink ($page) {
 		$categoryurl = get_term_link($this->slug,$this->taxonomy);
 
-		$alpha = preg_match('/([a-z]|0\-9)/',$page);
+		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
 		$prettyurl = $categoryurl.($page > 1 || $alpha?"page/$page":"");
 
 		$queryvars = array($this->taxonomy=>$this->slug);

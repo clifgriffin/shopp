@@ -590,11 +590,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (isset($O->alpha) && $O->paged) {
 			$_[] = $before.$label;
 			$_[] = '<ul class="paging">';
-			foreach ($O->alpha as $alpha) {
-				$link = $O->pagelink($alpha->letter);
-				if ($alpha->total > 0)
-					$_[] = '<li><a href="'.esc_url($link).'">'.$alpha->letter.'</a></li>';
-				else $_[] = '<li><span>'.$alpha->letter.'</span></li>';
+			foreach ($O->alpha as $letter => $products) {
+				$link = $O->pagelink($letter);
+				if ($products > 0) $_[] = '<li><a href="'.esc_url($link).'">'.$letter.'</a></li>';
+				else $_[] = '<li><span>'.$letter.'</span></li>';
 			}
 			$_[] = '</ul>';
 			$_[] = $after;
