@@ -563,10 +563,40 @@ abstract class ShippingFramework {
 				if (in_array($rule['area'],$match['area'])) unset($d['area']); // Clear excpetion to match
 			}
 
-			// Handle special case for postcode wildcard matching
-			if (!empty($d['postcode']) && strpos($rule['postcode'],'*') !== false) {
-				$pattern = str_replace('*','\d+?',$rule['postcode']);
-				if (preg_match("/$pattern/i",$match['postcode'])) unset($d['postcode']); // Clear exception for match
+			// Handle postcode matching
+			if (!empty($d['postcode'])) {
+				if (false !== strpos($rule['postcode'],','))
+					$postcodes = explode(',',$rule['postcode']);
+				else $postcodes = array($rule['postcode']);
+
+				foreach ($postcodes as $coderule) {
+					echo "Matching $coderule";
+
+					// Match numeric postcode ranges (only works for pure numeric postcodes like US zip codes)
+					// Cannot be mixed with wildcard ranges (eg 55*-56* does not work, use 55000-56999)
+					if (false !== strpos($coderule,'-')) {
+						list($start,$end) = explode('-',$coderule);
+						if ($match['postcode'] >= $start && $match['postcode'] <= $end)
+							unset($d['postcode']); // Clear exception to match
+						continue;
+					}
+
+					// Match wildcard postcode patterns
+					if (strpos($coderule,'*') !== false) {
+						$pattern = str_replace('*','\d+?',$coderule);
+						if (preg_match("/$pattern/i",$match['postcode']))
+							unset($d['postcode']); // Clear exception for match
+						continue;
+					}
+
+					// Exact match
+					if ($coderule == $match['postcode']) {
+						unset($d['postcode']);
+						continue;
+					}
+
+				}
+
 			}
 
 			// If exceptions were cleared, return the matching rate
