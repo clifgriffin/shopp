@@ -36,6 +36,7 @@ class Item {
 	var $pricedtax = 0;			// Per unit tax amount after discounts are applied
 	var $tax = 0;				// Sum of the per unit tax amount for the line item
 	var $taxrate = 0;			// Tax rate for the item
+	var $taxable = array();		// Per unit taxable amounts (baseprice & add-ons that are taxed)
 	var $total = 0;				// Total cost of the line item (unitprice x quantity)
 	var $discount = 0;			// Discount applied to each unit
 	var $discounts = 0;			// Sum of per unit discounts (discount for the line)
@@ -48,7 +49,7 @@ class Item {
 	var $shipping = false;		// Shipping setting of the selected price object
 	var $shipped = false;		// Shipped flag when the item needs shipped
 	var $inventory = false;		// Inventory setting of the selected price object
-	var $taxable = false;		// Taxable setting of the selected price object
+	var $istaxed = false;		// Taxable setting of the selected price object
 	var $freeshipping = false;	// Free shipping status of the selected price object
 	var $packaging = false;		// Should the item be packaged separately
 
@@ -69,7 +70,7 @@ class Item {
 		$args = func_get_args();
 		if ( empty($args) ) return;
 
-		$this->load($Product, $pricing, $category = false, $data = array(), $addons = array());
+		$this->load($Product, $pricing, $category, $data, $addons);
 	}
 
 	/**
@@ -128,12 +129,19 @@ class Item {
 		$this->type = $Price->type;
 		$this->sale = str_true($Price->sale);
 		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
-		// $this->saved = ($Price->price - $Price->promoprice);
-		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
-		$this->unitprice = ( $this->sale ? $Price->promoprice : $Price->price ) + $this->addonsum;
+
+		$baseprice = ( $this->sale ? $Price->promoprice : $Price->price );
+		$this->unitprice = $baseprice + $this->addonsum;
+
+		if (shopp_setting_enabled('taxes')) {
+			if (str_true($Price->tax)) $this->taxable[] = $baseprice;
+			$this->istaxed = ( $this->taxable > 0 );
+		}
 
 		if ( 'Donation' == $this->type )
 			$this->donation = $Price->donation;
+
+		$this->inventory = str_true($Price->inventory) && shopp_setting_enabled('inventory');
 
 		$this->data = stripslashes_deep(esc_attrs($data));
 		$this->recurrences();
@@ -187,9 +195,6 @@ class Item {
 			}
 
 		}
-
-		$this->inventory = str_true($Price->inventory);
-		$this->taxable = ( str_true($Price->tax) && shopp_setting_enabled('taxes') );
 
 	}
 
@@ -359,6 +364,10 @@ class Item {
 				$pricing->unitprice = (str_true($p->sale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
 				$sum += $pricing->unitprice;
+
+				if (shopp_setting_enabled('taxes') && str_true($pricing->tax))
+					$this->taxable[] = $pricing->unitprice;
+
 			} elseif ('dimensions' == $property) {
 				if ( ! str_true($p->shipping) || 'Shipped' != $p->type ) continue;
 				foreach ($p->dimensions as $dimension => $value)
@@ -593,15 +602,23 @@ class Item {
 	 * @return void
 	 **/
 	function retotal () {
-		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
+		$this->taxrate = shopp_taxrate(true,$this->istaxed,$this);
 
 		$this->priced = ($this->unitprice-$this->discount); // discounted unit price
 		$this->discounts = ($this->discount*$this->quantity); // total item discount figure
 
-		$this->unittax = ($this->unitprice*$this->taxrate); // unit tax	figure
-		$this->pricedtax = ($this->priced*$this->taxrate); // discounted unit tax
+		if ($this->istaxed) {
+			 // Distribute discounts across taxable amounts using weighted averages
+			$_ = array();
+			foreach ($this->taxable as $amount)
+				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
+			$taxable = array_sum($_);
 
-		$this->tax = ($this->pricedtax*$this->quantity); // total discounted tax amount
+			$this->unittax = ($this-taxable*$this->taxrate); // unit tax figure
+			$this->pricedtax = ($taxable*$this->taxrate); // discounted unit tax
+			$this->tax = ($this->pricedtax*$this->quantity); // total discounted tax amount
+		}
+
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
 		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
 
