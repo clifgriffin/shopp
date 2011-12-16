@@ -109,7 +109,7 @@ class Order {
 		add_action('shopp_process_order', array($this,'submit'),100);
 
 		add_action('shopp_process_free_order',array($this,'freebie'));
-		add_action('shopp_update_destination',array($this->Shipping,'destination'));
+		add_action('shopp_update_destination',array($this->Shipping,'locate'));
 
 		add_action('shopp_purchase_order_event',array($this,'purchase'));
 		add_action('shopp_purchase_order_created',array($this,'invoice'));
