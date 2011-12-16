@@ -347,32 +347,38 @@ function remove_class_actions ( $tags = false, $class = 'stdClass', $priority = 
 
 
 /**
- * Determines the currency format for the store
+ * Determines the currency format to use
  *
- * If a format is provided, it is passed through. Otherwise the locale-based
- * currency format is used or if no locale setting is available
- * a default of $#,###.## is returned.  Any formatting settings that are
- * missing will use settings from the default.
+ * Uses the locale-based currency format (set by the Base of Operations setting)
+ * as a base format. If one is not set, a default format of $#,###.## is used. If
+ * a $format is provided, it will be merged with the base format overriding any
+ * specific settings made while keeping the settings from the base format that are
+ * not specified.
  *
  * The currency format settings consist of a named array with the following:
- * cpos boolean The position of the currency symbol: true to prefix the number, false for suffix
- * currency string The currency symbol
- * precision int The decimal precision
- * decimals string The decimal delimiter
- * thousands string The thousands separator
+ * cpos 		boolean	The position of the currency symbol: true to prefix the number, false for suffix
+ * currency		string	The currency symbol
+ * precision	int		The decimal precision
+ * decimals		string	The decimal delimiter
+ * thousands	string	The thousands separator
  *
  * @author Jonathan Davis
  * @since 1.1
+ * @version 1.2
  *
  * @param array $format (optional) A currency format settings array
  * @return array Format settings array
  **/
 function currency_format ($format=false) {
 	$default = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",","grouping"=>3);
-	if ($format !== false) return array_merge($default,$format);
 	$locale = shopp_setting('base_operations');
+
+	if (!isset($locale['currency']) || !isset($locale['currency']['format'])) return $default;
 	if (empty($locale['currency']['format']['currency'])) return $default;
-	return array_merge($default,$locale['currency']['format']);
+
+	$f = array_merge($default,$locale['currency']['format']);
+	if ($format !== false) $f = array_merge($f,$format);
+	return $f;
 }
 
 /**
@@ -1120,6 +1126,8 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
 	$whole = join($separator,$ng);
 	$whole = str_pad($whole,1,'0');
 
+	// echo BR.$fraction.BR;
+
 	$fraction = rtrim(substr($fraction,0,$precision),'0');
 	$fraction = str_pad($fraction,$precision,'0');
 
@@ -1190,7 +1198,12 @@ function phone ($num) {
  **/
 function percentage ($amount,$format=false) {
 	$format = currency_format($format);
-	return rtrim(numeric_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']),'0').'%';
+	extract($format,EXTR_SKIP);
+	$float = floatvalue($amount,true,$format);
+	$percent = numeric_format($float, $precision, $decimals, $thousands, $grouping);
+	$percent = rtrim($percent,'0');
+	$percent = rtrim($percent, $decimals);
+	return "$percent%";
 }
 
 /**
