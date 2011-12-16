@@ -59,6 +59,7 @@
 			foreach ($shiprates as $setting => $module):
 				$shipping = shopp_setting($setting);
 				$service = $Shipping->modules[$module]->name;
+				if (str_true($shipping['fallback'])) $service = '<big title="'.__('Fallback shipping option for online shipping failures','Shopp').'">&#9100;</big>  '.$service;
 				$destinations = array();
 
 				$min = $max = false;
@@ -72,7 +73,8 @@
 					elseif (!empty($d['country'])) $destinations[] = $d['country'];
 					elseif (!empty($d['region'])) $destinations[] = $d['region'];
 				}
-				if (empty($destinations)) $destinations[] = '<big>&#9100;</big>';
+				if (!empty($destinations)) $destinations = array_keys(array_flip($destinations)); // Combine duplicate destinations
+				if (isset($Shipping->active[$module]) && $Shipping->active[$module]->realtime) $destinations = array($Shipping->active[$module]->destinations);
 
 				$label = $service;
 				if (isset($shipping['label'])) $label = $shipping['label'];
@@ -104,7 +106,7 @@
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>
 			</td>
-			<td class="type column-type"><?php echo esc_html($service); ?></td>
+			<td class="type column-type"><?php echo $service; ?></td>
 			<td class="supported column-supported"><?php echo join(', ',$destinations); ?></td>
 
 		</tr>
