@@ -1315,7 +1315,7 @@ class CartTax {
 		$tiers = array();
 		$taxes = 0;
 		foreach ($this->Order->Cart->contents as $id => &$Item) {
-			if (!$Item->taxable) continue;
+			if (!$Item->istaxed) continue;
 			$Item->taxrate = $this->rate($Item);
 
 			if (!isset($tiers[$Item->taxrate])) $tiers[$Item->taxrate] = $Item->total;

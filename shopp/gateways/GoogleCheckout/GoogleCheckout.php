@@ -368,7 +368,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					$_[] = '</merchant-private-item-data>';
 
 					if ($this->settings['use_google_taxes'] != 'on' && is_array($this->settings['taxes'])) { // handle tax free or per item tax
-						if ($Item->taxable === false)
+						if ($Item->istaxed === false)
 							$_[] = '<tax-table-selector>non-taxable</tax-table-selector>';
 						elseif ($item_tax_table_selector = apply_filters('shopp_google_item_tax_table_selector', false, $Item) !== false)
 							$_[] = $item_tax_table_selector;
