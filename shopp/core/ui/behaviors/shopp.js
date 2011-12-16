@@ -75,9 +75,9 @@ function asMoney (n,f) {
  **/
 function asPercent (n,f,p,pr) {
 	f = getCurrencyFormat(f);
-
 	f.precision = p?p:1;
-	return formatNumber(n,f,pr).replace(/0+$/,'')+'%';
+
+	return formatNumber(n,f,pr).replace(/0+$/,'').replace(new RegExp(f.decimals+'$'),'')+'%';
 }
 
 /**
