@@ -40,7 +40,7 @@ jQuery(document).ready( function($) {
 			upbtnparent = uploadbtn.parent(),
 			instructions = ui.find('p.instructions'),
 			cancel = ui.find('a.cancel'),
-			taxrate = ui.find('#tax-rate').change(function () { this.value = asPercent(this.value); }).change(),
+			taxrate = ui.find('#tax-rate').change(function () { this.value = asPercent(this.value,false,4); }).change(),
 			addconditions = ui.find('button.add');
 
 		$this.rules = [];
