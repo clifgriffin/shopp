@@ -69,7 +69,7 @@ class Address extends DatabaseObject {
 		$pattern = $patterns[$this->country];
 		if (!preg_match("/$pattern/",$postcode)) return false;
 
-		do_action_ref_array('shopp_map_'.strtolower($this->country).'_postcode',array(&$this));
+		do_action('shopp_map_'.strtolower($this->country).'_postcode',$this);
 	}
 
 	/**
@@ -206,12 +206,12 @@ class ShippingAddress extends Address {
 
 class PostcodeMapping {
 
-	static function uszip (&$Address) {
-		PostcodeMapping::prefixcode(substr($Address->postcode,0,3),&$Address);
+	static function uszip ($Address) {
+		PostcodeMapping::prefixcode(substr($Address->postcode,0,3),$Address);
 	}
 
-	static function capost (&$Address) {
-		PostcodeMapping::prefixcode(strtoupper($Address->postcode{0}),&$Address);
+	static function capost ($Address) {
+		PostcodeMapping::prefixcode(strtoupper($Address->postcode{0}),$Address);
 	}
 
 	/**
@@ -223,7 +223,7 @@ class PostcodeMapping {
 	 * @param string $prefix The postal code prefix
 	 * @return void
 	 **/
-	static function prefixcode ($prefix,&$Address) {
+	static function prefixcode ($prefix,$Address) {
 		$postcodes = Lookup::postcodes();
 		if (!isset($postcodes[$Address->country])) return;
 
@@ -232,7 +232,8 @@ class PostcodeMapping {
 
 		if (!$state) return;
 
-		if (empty($Address->state)) $Address->state = $state;
+		$Address->state = $state;
+
 	}
 
 }
