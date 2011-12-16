@@ -731,12 +731,23 @@ class CartDiscounts {
 		foreach ($this->Cart->discounts as $Discount) {
 			if (isset($Discount->items) && !empty($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
+
 					if (isset($this->Cart->contents[$id])) {
-						$this->Cart->contents[$id]->discount += $amount; // unit discount
-						$this->Cart->contents[$id]->retotal();
-						if ( $this->Cart->contents[$id]->discounts ) $Discount->applied += $this->Cart->contents[$id]->discounts; // total line item discount
+						$Item = $this->Cart->contents[$id];
+
+						if (shopp_setting_enabled('tax_inclusive') && 'Buy X Get Y Free' == $Discount->type) {
+							// Specialized line item for inclusive tax model buy X get Y free discounts [bug #806]
+							$Item->retotal();
+							$Item->discounts += $amount; // total line item discount
+						} else {
+							$Item->discount += $amount; // unit discount
+							$Item->retotal();
+						}
+
+						if ( $Item->discounts ) $Discount->applied += $Item->discounts; // total line item discount
+						$sum[$id] = $Item->discounts;
 					}
-					$sum[$id] = $this->Cart->contents[$id]->discounts;
+
 				}
 			} else {
 				$sum[] = $Discount->applied;
@@ -898,9 +909,13 @@ class CartDiscounts {
 						case "Percentage Off": $discount = $Item->unitprice*($promo->discount/100); break;
 						case "Amount Off": $discount = $promo->discount; break;
 						case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
-						// free/total ratio * unit price = unit discount
-						case "Buy X Get Y Free": $discount = $Item->unitprice*( $promo->getqty / ($promo->buyqty + $promo->getqty ));
-						break;
+						case "Buy X Get Y Free":
+							// With inclusive tax model, the discount must be applied to the line item discounts [bug #806]
+							// The exclusive tax model needs a pre-tax unit price discount to avoid tax on the free item(s)
+							if (shopp_setting_enabled('tax_inclusive'))
+								$discount = $promo->getqty * ($Item->unitprice + $Item->unittax);
+							else $discount = $Item->unitprice*( $promo->getqty / ($promo->buyqty + $promo->getqty ));
+							break;
 					}
 					$promo->items[$id] = $discount;
 				}
