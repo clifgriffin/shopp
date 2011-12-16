@@ -21,7 +21,7 @@ add_filter('shopp_themeapi_context_name', array('ShoppCollectionThemeAPI', '_con
  *
  **/
 class ShoppCollectionThemeAPI implements ShoppAPI {
-	static $context = 'Category'; // TODO transition to Collection
+	static $context = 'Category'; // @todo transition to Collection
 	static $register = array(
 		'carousel' => 'carousel',
 		'coverimage' => 'coverimage',

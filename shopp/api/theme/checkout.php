@@ -247,7 +247,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			$options['selected'] = $O->Billing->locale ? $O->Billing->locale : false;
 		}
 
-		$rates = shopp_setting("taxrates");
+		$rates = shopp_setting('taxrates');
 		foreach ( $rates as $rate ) { // @todo - what if more than one set of local rates applies to current country/zone? ie. conditions
 			if ( isset( $rate['locals'] ) ) {
 				$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
