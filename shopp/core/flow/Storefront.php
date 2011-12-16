@@ -99,11 +99,20 @@ class Storefront extends FlowController {
 		add_action('shopp_storefront_init',array($this,'account'));
 		add_action('shopp_storefront_init',array($this,'dashboard'));
 
+		add_filter('wp_nav_menu_objects',array($this,'menus'));
+
+		if ($this->maintenance()) {
+			add_filter('archive_template',array($this,'maintenance_page'));
+			add_filter('search_template',array($this,'maintenance_page'));
+			add_filter('page_template',array($this,'maintenance_page'));
+			add_filter('single_template',array($this,'maintenance_page'));
+			return;
+		}
+
 		add_filter('archive_template',array($this,'collection'));
 		add_filter('search_template',array($this,'collection'));
 		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
-		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
 	}
 
@@ -817,6 +826,37 @@ class Storefront extends FlowController {
 	// 	return $redirect;
 	// }
 
+	/**
+	 * Handles rendering the maintenance message
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string The processed content
+	 **/
+	function maintenance_page ($template) {
+		if (!$this->is_shopp_request()) return $template;
+		global $wp_query;
+
+		if ( '' != locate_shopp_template(array('maintenance.php')) ) {
+			ob_start();
+			locate_shopp_template(array('maintenance.php'));
+			$content = ob_get_contents();
+			ob_end_clean();
+		} else $content = '<div id="shopp" class="update"><p>'.__("The store is currently down for maintenance.  We'll be back soon!","Shopp").'</p><div class="clear"></div></div>';
+
+		$stub = new WPDatabaseObject();
+		$stub->init('posts');
+		$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
+		$stub->comment_status = 'closed'; // Force comments closed
+		$stub->post_title = __("We're Sorry!",'Shopp');
+		$stub->post_content = $content;
+		$wp_query->posts = array($stub);
+
+		$templates = array("shopp-maintenance.php", 'shopp.php', 'page.php');
+		return locate_template($templates);
+	}
+
 	function catalog_page () {
 		global $Shopp,$wp,$wp_query;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
@@ -1259,26 +1299,6 @@ class Storefront extends FlowController {
 		apply_filters('shopp_category_shortcode',$markup);
 
 		return apply_filters('shopp_collection_shortcode',$markup);
-	}
-
-	/**
-	 * Handles rendering the maintenance message in place of all shortcodes
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param array $attrs The parsed shortcode attributes
-	 * @return string The processed content
-	 **/
-	function maintenance_shortcode ($atts) {
-		if ( '' != locate_shopp_template(array('maintenance.php')) ) {
-			ob_start();
-			locate_shopp_template(array('maintenance.php'),true);
-			$content = ob_get_contents();
-			ob_end_clean();
-		} else $content = '<div id="shopp" class="update"><p>'.__("The store is currently down for maintenance.  We'll be back soon!","Shopp").'</p><div class="clear"></div></div>';
-
-		return $content;
 	}
 
 	/**
