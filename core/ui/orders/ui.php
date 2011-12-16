@@ -221,7 +221,7 @@ add_meta_box('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('ord
 function shipto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
-		<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
+		<address><big><?php echo esc_html($Purchase->shipname); ?></big><br />
 		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
 		<?php echo esc_html($Purchase->shipaddress); ?><br />
 		<?php if (!empty($Purchase->shipxaddress)) echo esc_html($Purchase->shipxaddress)."<br />"; ?>

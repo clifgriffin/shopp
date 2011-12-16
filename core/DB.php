@@ -14,7 +14,7 @@
  **/
 
 define("AS_ARRAY",false); // @deprecated
-define("SHOPP_DBPREFIX","shopp_");
+if (!defined('SHOPP_DBPREFIX')) define('SHOPP_DBPREFIX','shopp_');
 if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1142;	// Database schema version
+	static $version = 1143;	// Database schema version
 
 	protected static $instance;
 
