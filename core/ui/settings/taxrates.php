@@ -124,7 +124,7 @@
 				extract($defaults);
 				echo ShoppUI::template($editor,array(
 					'${id}' => $edit,
-					'${rate}' => percentage($rate,array('precision'=>1)),
+					'${rate}' => percentage($rate,array('precision'=>4)),
 					'${countries}' => menuoptions($countries,$country,true),
 					'${zones}' => !empty($zones[$country])?menuoptions($zones[$country],$zone,true):'',
 					'${conditions}' => join('',$conditions),
@@ -154,7 +154,7 @@
 				$taxrate = array_merge($defaults,$taxrate);
 				extract($taxrate);
 
-				$rate = percentage($rate,array('precision'=>1));
+				$rate = percentage($rate,array('precision'=>4));
 				$location = $countries[ $country ];
 
 				if (isset($zone) && !empty($zone))

@@ -1190,7 +1190,7 @@ function phone ($num) {
  **/
 function percentage ($amount,$format=false) {
 	$format = currency_format($format);
-	return numeric_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']).'%';
+	return rtrim(numeric_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']),'0').'%';
 }
 
 /**
