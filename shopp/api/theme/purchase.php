@@ -76,6 +76,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'promolist' => 'promo_list',
 		'gateway' => 'gateway',
 		'receipt' => 'receipt',
+		'shipname' => 'ship_name',
 		'shipaddress' => 'ship_address',
 		'shipcity' => 'ship_city',
 		'shipcountry' => 'ship_country',
@@ -446,6 +447,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 		return $O->receipt();
 	}
+
+	function ship_name ($result, $options, $O) { return esc_html($O->shipname); }
 
 	function ship_address ($result, $options, $O) { return esc_html($O->shipaddress); }
 

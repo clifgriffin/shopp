@@ -170,6 +170,7 @@ CREATE TABLE <?php echo $purchase; ?> (							-- Purchase log
 	state varchar(100) NOT NULL default '',						-- State
 	country varchar(2) NOT NULL default '',						-- Country
 	postcode varchar(10) NOT NULL default '',					-- Post code
+	shipname varchar(100) NOT NULL default '',					-- Ship to name
 	shipaddress varchar(100) NOT NULL default '',				-- Shipping address
 	shipxaddress varchar(100) NOT NULL default '',				-- Shipping address, line 2
 	shipcity varchar(100) NOT NULL default '',					-- Shipping address city
