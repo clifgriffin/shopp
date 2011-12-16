@@ -239,7 +239,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 					$currently = str_true($pricetag->sale) ? $pricetag->promoprice : $pricetag->price;
 					if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
-					$_[] = '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>';
+					$_[] = '<option value="'.$pricetag->id.'">'.$option['name'].' (+'.money($currently).')</option>';
 				}
 
 				$_[] = '</select>';
