@@ -266,6 +266,7 @@ abstract class ShippingFramework {
 	var $realtime = false;		// Shipping module can only be loaded once
 	var $packager = false;		// Shipping packager object
 	var $setting = '';			// Setting name for the shipping module setting record
+	var $destinations = '';		// Destination label for settings display
 	var $settings = array();	// Settings for the shipping module
 
 	/**
@@ -314,6 +315,8 @@ abstract class ShippingFramework {
 		if ( isset($this->packaging) && $this->packaging != $this->settings['shipping_packaging'] )
 			$this->settings['shipping_packaging'] = $this->packaging;
 		$this->packager = apply_filters('shopp_'.strtolower($this->module).'_packager', new ShippingPackager( array( 'type' => $this->settings['shipping_packaging'] ), $this->module ));
+
+		$this->destinations = __('Service provider markets','Shopp');
 
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_item_shipping',array(&$this,'calcitem'),10,2);
