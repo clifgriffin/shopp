@@ -299,7 +299,7 @@ class Storefront extends FlowController {
 		$pagetitle = apply_filters($page.'_page_title',$pages[$page]['title']);
 
 		add_filter('the_title',create_function('$title,$id','return in_the_loop() && -42 == $id?"'.$pagetitle.'":$title;'),10,2);
-		add_filter('the_content',array(&$this,$page.'_page'),10);
+		add_filter('the_content',array(&$this,$page.'_page'),20);
 
 		$templates = array("$page.php", 'shopp.php', 'page.php');
 		return locate_template($templates);
@@ -519,35 +519,6 @@ class Storefront extends FlowController {
 		}
 
 		if ('checkout' == $page) shopp_enqueue_script('checkout');
-
-	}
-
-	/**
-	 * Sets handlers for Shopp shortcodes
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function shortcodes () {
-
-		$this->shortcodes = array();
-
-		// Additional shortcode functionality
-		$this->shortcodes['catalog-product'] = array(&$this,'product_shortcode');
-		$this->shortcodes['catalog-buynow'] = array(&$this,'buynow_shortcode');
-		$this->shortcodes['catalog-collection'] = array(&$this,'collection_shortcode');
-
-		// @deprecated shortcodes
-		$this->shortcodes['product'] = array(&$this,'product_shortcode');
-		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
-		$this->shortcodes['category'] = array(&$this,'collection_shortcode');
-
-		foreach ($this->shortcodes as $name => &$callback)
-			if (shopp_setting('maintenance') == 'on' || !ShoppSettings()->available() || $this->maintenance())
-				add_shortcode($name,array(&$this,'maintenance_shortcode'));
-			else add_shortcode($name,$callback);
 
 	}
 
@@ -1236,6 +1207,35 @@ class Storefront extends FlowController {
 		} else new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
 
 		unset($_GET['acct']);
+	}
+
+	/**
+	 * Sets handlers for Shopp shortcodes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function shortcodes () {
+
+		$this->shortcodes = array();
+
+		// Additional shortcode functionality
+		$this->shortcodes['catalog-product'] = array(&$this,'product_shortcode');
+		$this->shortcodes['catalog-buynow'] = array(&$this,'buynow_shortcode');
+		$this->shortcodes['catalog-collection'] = array(&$this,'collection_shortcode');
+
+		// @deprecated shortcodes
+		$this->shortcodes['product'] = array(&$this,'product_shortcode');
+		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
+		$this->shortcodes['category'] = array(&$this,'collection_shortcode');
+
+		foreach ($this->shortcodes as $name => &$callback)
+			if (shopp_setting('maintenance') == 'on' || !ShoppSettings()->available() || $this->maintenance())
+				add_shortcode($name,array(&$this,'maintenance_shortcode'));
+			else add_shortcode($name,$callback);
+
 	}
 
 	/**
