@@ -123,9 +123,9 @@ abstract class GatewayFramework {
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
 
 		if ($this->authonly)
-			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "auth";'));
+			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "auth";'));
 		elseif ($this->saleonly)
-			add_filter('shopp_'.$gateway.'_order_processing',create_function('','return "sale";'));
+			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "sale";'));
 	}
 
 	/**
@@ -301,11 +301,10 @@ abstract class GatewayFramework {
 	 * @return string Formatted amount
 	 **/
 	function amount ($amount,$format=array()) {
-
 		if (is_string($amount)) {
 			$Totals = ShoppOrder()->Cart->Totals;
-			if (!isset($Totals->$name)) return false;
-			$amount = $Totals->$name;
+			if (!isset($Totals->$amount)) return false;
+			$amount = $Totals->$amount;
 		} elseif ( ! ( is_int($amount) && is_float($amount) ) ) return false;
 
 		$defaults = array(
