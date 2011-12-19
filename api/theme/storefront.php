@@ -596,12 +596,23 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (isset($options['load'])) return true;
 
 		$Product = ShoppProduct();
-		$templates = array('product.php');
-		if (isset($Product->id) && !empty($Product->id))
-			array_unshift($templates,'product-'.$Product->id.'.php');
+
+		// Expand base template file names to support product-id and product-slug specific versions
+		// product-id templates will be highest priority, followed by slug versions and the generic names
+		$templates = isset($options['template']) ? $options['template'] : array('product.php');
+		if (!is_array($templates)) $templates = explode(',',$templates);
+
+		$idslugs = array();
+		$reversed = array_reverse($templates);
+		foreach ($reversed as $template) {
+			list($basename,$php) = explode('.',$template);
+			if (!empty($Product->slug)) array_unshift($idslugs,"$basename-$Product->slug.$php");
+			if (!empty($Product->id)) array_unshift($idslugs,"$basename-$Product->id.$php");
+		}
+		$templates = array_merge($idslugs,$templates);
 
 		ob_start();
-		locate_shopp_template($templates,true);
+		locate_shopp_template($templates,true,false);
 		$content = ob_get_contents();
 		ob_end_clean();
 

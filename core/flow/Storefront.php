@@ -1248,17 +1248,7 @@ class Storefront extends FlowController {
 	 * @return string The processed content
 	 **/
 	function product_shortcode ($atts) {
-
-		$properties = array('name','slug','id');
-		foreach ($properties as $prop) {
-			if (!isset($atts[$prop])) continue;
-			$Product = new Product($atts[ $prop ],$prop);
-		}
-
-		if (empty($Product->id)) return "";
-
-		ShoppProduct($Product);
-
+		$atts['template'] = array('product-shortcode.php','product.php');
 		return apply_filters('shopp_product_shortcode',shopp('catalog','get-product',$atts));
 	}
 
@@ -1296,7 +1286,7 @@ class Storefront extends FlowController {
 		$markup = shopp('catalog',"get-$tag",$atts);
 
 		// @deprecated in favor of the shopp_collection_shortcode
-		apply_filters('shopp_category_shortcode',$markup);
+		$markup = apply_filters('shopp_category_shortcode',$markup);
 
 		return apply_filters('shopp_collection_shortcode',$markup);
 	}
