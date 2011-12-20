@@ -377,7 +377,7 @@ function currency_format ($format=false) {
 	if (empty($locale['currency']['format']['currency'])) return $default;
 
 	$f = array_merge($default,$locale['currency']['format']);
-	if ($format !== false) $f = array_merge($f,$format);
+	if ($format !== false) $f = array_merge($f,(array)$format);
 	return $f;
 }
 
