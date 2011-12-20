@@ -78,6 +78,13 @@ class Purchased extends DatabaseObject {
 				$Addon->save();
 			}
 		}
+
+		// Update sold tallies
+		if (!empty($this->product)) {
+			$summary = DatabaseObject::tablename(ProductSummary::$table);
+			DB::query("UPDATE $summary SET sold=sold+$this->quantity,grossed=grossed+$this->total WHERE product='$this->product'");
+		}
+
 		$this->addons = $addons; // restore addons model
 	}
 
