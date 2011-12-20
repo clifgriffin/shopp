@@ -554,7 +554,7 @@ class Cart {
 	 * @return boolean
 	 **/
 	private function _filter_recurring ($item) {
-		return ($item->type == "Subscription" || $item->type == "Membership");
+		return ($item->recurring);
 	}
 
 } // END class Cart

@@ -47,6 +47,7 @@ class Item {
 	var $shipfee = 0;			// Shipping fees for each unit of the line item
 	var $download = false;		// Download ID of the asset from the selected price object
 	var $shipping = false;		// Shipping setting of the selected price object
+	var $recurring = false;		// Recurring flag when the item requires recurring billing
 	var $shipped = false;		// Shipped flag when the item needs shipped
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $istaxed = false;		// Taxable setting of the selected price object
@@ -458,6 +459,7 @@ class Item {
 		$subscription[] = "$price $for $interval $periodLabel";
 
 		$this->data['Subscription'] = $subscription;
+		$this->recurring = true;
 	}
 
 	/**
