@@ -839,16 +839,115 @@ class AdminFlow extends FlowController {
 				$menuitem['menu-item-title'] = $pages[$requested]['title'];
 			}
 
-
 		}
 		add_meta_box( 'add-shopp-pages', __('Catalog Pages'), array($this,'shoppage_meta_box'), 'nav-menus', 'side', 'low' );
+		add_meta_box( 'add-shopp-collections', __('Catalog Collections'), array($this,'shopp_collections_meta_box'), 'nav-menus', 'side', 'low' );
 	}
 
 	function navmenu_setup ($menuitem) {
 		if ('shopp_page' == $menuitem->type) {
 			$menuitem->type_label = 'Shopp';
 		}
+		if ('shopp_collection' == $menuitem->type) {
+			$menuitem->type_label = 'Collection';
+		}
 		return $menuitem;
+	}
+
+	function shopp_collections_meta_box () {
+		global $Shopp,$_nav_menu_placeholder, $nav_menu_selected_id;
+
+		$removed_args = array(
+			'action',
+			'customlink-tab',
+			'edit-menu-item',
+			'menu-item',
+			'page-tab',
+			'_wpnonce',
+		);
+
+		?>
+		<br />
+		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
+			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
+
+				<ul class="categorychecklist form-no-clear">
+
+				<?php
+					$collections = $Shopp->Collections;
+					foreach ($collections as $slug => $CollectionClass):
+						if (!get_class_property($CollectionClass,'_auto')) continue;
+						$Collection = new $CollectionClass();
+						$Collection->smart();
+						$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
+				?>
+					<li>
+						<label class="menu-item-title">
+						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
+							echo esc_html( $Collection->name );
+						?></label>
+						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
+						<input type="hidden" class="menu-item-object-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object-id]" value="<?php echo $slug; ?>" />
+						<input type="hidden" class="menu-item-object" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object]" value="<?php echo $slug; ?>" />
+						<input type="hidden" class="menu-item-parent-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-parent-id]" value="0">
+						<input type="hidden" class="menu-item-type" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" value="<?php echo SmartCollection::$taxonomy; ?>" />
+						<input type="hidden" class="menu-item-title" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]" value="<?php echo $Collection->name; ?>" />
+
+					</li>
+				<?php endforeach; ?>
+				<?php
+					// Promo Collections
+					$select = DB::select(array(
+						'table' => DatabaseObject::tablename(Promotion::$table),
+						'columns' => 'SQL_CALC_FOUND_ROWS id,name',
+						'where' => array("target='Catalog'","status='enabled'"),
+						'orderby' => 'created DESC'
+					));
+
+					$Promotions = DB::query($select,'array');
+					foreach ($Promotions as $promo):
+						$slug = sanitize_title_with_dashes($promo->name);
+				?>
+					<li>
+						<label class="menu-item-title">
+						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
+							echo esc_html( $promo->name );
+						?></label>
+						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
+						<input type="hidden" class="menu-item-object-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object-id]" value="<?php echo $slug; ?>" />
+						<input type="hidden" class="menu-item-object" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object]" value="<?php echo $slug; ?>" />
+						<input type="hidden" class="menu-item-parent-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-parent-id]" value="0">
+						<input type="hidden" class="menu-item-type" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" value="<?php echo SmartCollection::$taxonomy; ?>" />
+						<input type="hidden" class="menu-item-title" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]" value="<?php echo $promo->name; ?>" />
+
+					</li>
+				<?php endforeach; ?>
+				</ul>
+
+			</div>
+
+			<p class="button-controls">
+				<span class="list-controls">
+					<a href="<?php
+						echo esc_url(add_query_arg(
+							array(
+								'shopp-pages-menu-item' => 'all',
+								'selectall' => 1,
+							),
+							remove_query_arg($removed_args)
+						));
+					?>#shopp-pages-menu-item" class="select-all"><?php _e('Select All'); ?></a>
+				</span>
+
+				<span class="add-to-menu">
+					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
+				</span>
+			</p>
+
+		</div><!-- /.customlinkdiv -->
+		<?php
+
 	}
 
 	function shoppage_meta_box () {
@@ -865,8 +964,8 @@ class AdminFlow extends FlowController {
 
 		?>
 		<br />
-		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
-			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
+		<div class="shopp-collections-menu-item customlinkdiv" id="shopp-collections-menu-item">
+			<div id="tabs-panel-shopp-collections" class="tabs-panel tabs-panel-active">
 
 				<ul class="categorychecklist form-no-clear">
 
@@ -916,6 +1015,7 @@ class AdminFlow extends FlowController {
 		<?php
 
 	}
+
 
 } // END class AdminFlow
 
