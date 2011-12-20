@@ -686,11 +686,10 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_category_products_order');
 		if (empty($_POST['category']) || empty($_POST['position']) || !is_array($_POST['position'])) die('0');
 
-		$db =& DB::get();
-		$table = DatabaseObject::tablename(Catalog::$table);
+		global $wpdb;
 		$updates = $_POST['position'];
-		foreach ($updates as $id => $position)
-			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
+		foreach ((array)$updates as $id => $position)
+			DB::query("UPDATE $wpdb->term_relationships SET term_order='$position' WHERE object_id='$id'");
 		die('1');
 		exit();
 	}

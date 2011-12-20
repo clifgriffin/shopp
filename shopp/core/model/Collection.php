@@ -97,17 +97,12 @@ class ProductCollection implements Iterator {
 				case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
 				case 'chaos': $orderby = "RAND(".time().")"; break;
 				case 'reverse': $orderby = "p.post_title DESC"; break;
-				case 'title':
-				default: $orderby = "p.post_title ASC";
-				// case 'recommended':
-				// default:
-					// Need to add the catalog table for access to category-product priorities
-					// if (!isset($this->smart)) {
-					// 	$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
-					// 	$order = "c.priority ASC,p.name ASC";
-					// } else $order = "p.name ASC";
-					// $orderby = "p.post_title ASC";
-					// break;
+				case 'title': $orderby = "p.post_title ASC"; break;
+				case 'recommended':
+				default:
+					if (!$this->smart) $orderby = "tr.term_order ASC,p.post_title ASC";
+					else $order = "p.post_title ASC";
+					break;
 			}
 		}
 

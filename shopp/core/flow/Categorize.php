@@ -512,23 +512,10 @@ class Categorize extends AdminController {
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
 
-		$filters = array();
-		// $filters['limit'] = "$start,$per_page";
-		if (!empty($s))
-			$filters['where'] = "cat.name LIKE '%$s%'";
-		else $filters['where'] = "true";
+		$CategoryProducts = new ProductCategory($id);
+		$CategoryProducts->load(array('order'=>'recommended'));
 
-		$Category = new ProductCategory($id);
-
-		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$product_table = DatabaseObject::tablename(Product::$table);
-		$columns = "c.id AS cid,p.id,c.priority,p.name";
-		$where = "c.parent=$id AND taxonomy='$Category->taxonomy'";
-		$query = "SELECT $columns FROM $catalog_table AS c LEFT JOIN $product_table AS p ON c.product=p.id WHERE $where ORDER BY c.priority ASC,p.name ASC LIMIT $start,$per_page";
-		$products = $db->query($query);
-
-		$count = $db->query("SELECT count(*) AS total FROM $table");
-		$num_pages = ceil($count->total / $per_page);
+		$num_pages = ceil($CategoryProducts->total / $per_page);
 		$page_links = paginate_links( array(
 			'base' => add_query_arg( array('edit'=>null,'pagenum' => '%#%' )),
 			'format' => '',
@@ -542,7 +529,6 @@ class Categorize extends AdminController {
 				admin_url('admin.php')
 			)
 		);
-
 
 		include(SHOPP_ADMIN_PATH."/categories/products.php");
 	}
