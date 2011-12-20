@@ -20,6 +20,8 @@
  **/
 class ShoppInstallation extends FlowController {
 
+	var $errors = array();
+
 	/**
 	 * Install constructor
 	 *
@@ -33,6 +35,22 @@ class ShoppInstallation extends FlowController {
 		add_action('shopp_setup',array(&$this,'setup'));
 		add_action('shopp_setup',array(&$this,'roles'));
 		add_action('shopp_autoupdate',array(&$this,'update'));
+
+		$this->errors = array(
+			'header' => __('Shopp Activation Error','Shopp'),
+			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
+			'dbprivileges' => __('Shopp cannot be installed because the database privileges do not allow Shopp to create new tables.','Shopp'),
+			'nodbschema-install' => sprintf(__('Could not install the Shopp database tables because the table definitions file is missing. (%s)','Shopp'),SHOPP_DBSCHEMA),
+			'nodbschema-upgrade' => sprintf(__('Could not upgrade the Shopp database tables because the table definitions file is missing. (%s)','Shopp'),SHOPP_DBSCHEMA),
+			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+			'continue' => __('Return to Plugins page')
+		);
+
+		$this->nextstep = array(
+			'dbprivileges' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+			'nodbschema-install' => sprintf(__('For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+			'nodbschema-upgrade' => sprintf(__('For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+		);
 	}
 
 	/**
@@ -106,10 +124,7 @@ class ShoppInstallation extends FlowController {
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 
 		// Install tables
-		if (!file_exists(SHOPP_DBSCHEMA)) {
-		 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA,E_USER_ERROR);
-			exit();
-		}
+		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-install');
 
 		ob_start();
 		include(SHOPP_DBSCHEMA);
@@ -150,6 +165,13 @@ class ShoppInstallation extends FlowController {
 
 	}
 
+	function error ($message) {
+		$string = '<h1>'.$this->errors['header'].'</h1><p>'.$this->errors['intro'].'</h1></p><ul>';
+		if (isset($this->errors[$message])) $string .= "<li>{$this->errors[$message]}</li>";
+		$string .= '</ul><p>'.$this->nextstep[$message].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$this->errors['continue'].'</a></p>';
+		wp_die($string);
+	}
+
 	/**
 	 * Updates the database schema
 	 *
@@ -159,10 +181,19 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function upschema () {
+		// Test to ensure Shopp can create/drop tables
+		$testtable = 'shopp_db_permissions_test_'.time();
+		$tests = array("CREATE TABLE $testtable ( id INT )","DROP TABLE $testtable");
+		foreach ($tests as $testquery) {
+			$db = DB::get();
+			DB::query($testquery);
+			$error = mysql_error($db->dbh);
+			if (!empty($error)) $this->error('dbprivileges');
+		}
+
 		require(ABSPATH.'wp-admin/includes/upgrade.php');
 		// Check for the schema definition file
-		if (!file_exists(SHOPP_DBSCHEMA))
-		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
+		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-upgrade');
 
 		ob_start();
 		include(SHOPP_DBSCHEMA);
@@ -177,6 +208,7 @@ class ShoppInstallation extends FlowController {
 		ob_start(); // Suppress dbDelta errors
 		$changes = dbDelta($tables);
 		ob_end_clean();
+
 		shopp_set_setting('db_updates',$changes);
 	}
 
