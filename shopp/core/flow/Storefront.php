@@ -571,8 +571,15 @@ class Storefront extends FlowController {
 
 	function navmenus ($items) {
 		foreach ($items as &$item) {
-			if ('shopp_page' != $item->type) continue;
-			$item->url = shoppurl(false,$item->object);
+			switch (strtolower($item->type)) {
+				case 'shopp_page': $item->url = shoppurl(false,$item->object); break;
+				case 'shopp_collection':
+					$namespace = get_class_property( 'SmartCollection' ,'namespace');
+					$taxonomy = get_class_property( 'SmartCollection' ,'taxonomy');
+					$prettyurls = ( '' != get_option('permalink_structure') );
+					$item->url = shoppurl( $prettyurls ? "$namespace/$item->object" : array($taxonomy=>$item->object),false );
+					break;
+			}
 		}
 		return $items;
 	}
@@ -734,26 +741,33 @@ class Storefront extends FlowController {
 		$keymap = array();
 		$parents = array();
 		foreach ($menuitems as $key => $item) {
-
+			$page = false;
 			// Remove the faulty wp_page_menu (deprecated) class for Shopp pages
 			if ($is_shopp_page && in_array('current_page_parent',$item->classes))
 				unset($item->classes[ array_search('current_page_parent',$item->classes) ]);
 
 			// Otherwise, skip dealing with any non-Shopp page
-			if ('shopp_page' != $item->type) continue;
+			if ('shopp_page' == $item->type) {
+				// Determine the queried Shopp page object name
+				$page = Storefront::slugpage( get_query_var('shopp_page') );
 
-			// Determine the queried Shopp page object name
-			$page = Storefront::slugpage( get_query_var('shopp_page') );
+				// Set the catalog as current page parent
+				if ('catalog' == $item->object && $is_shopp_page) $item->classes[] = 'current-page-parent';
 
-			// Set the catalog as current page parent
-			if ('catalog' == $item->object && $is_shopp_page) $item->classes[] = 'current-page-parent';
+				$keymap[$item->db_id] = $key;
+			}
 
-			$keymap[$item->db_id] = $key;
+			if ('shopp_collection' == $item->type) {
+				$page = get_query_var($item->type);
+				$keymap[$item->db_id] = $key;
+			}
+
 			if ($page == $item->object) {
 				$item->classes[] = 'current-page-item';
 				$item->classes[] = 'current-menu-item';
 				$parents[] = $item->menu_item_parent;
 			}
+
 		}
 
 		foreach ((array)$parents as $parentid) {
@@ -761,6 +775,8 @@ class Storefront extends FlowController {
 			$parent = $menuitems[ $keymap[$parentid] ];
 			$parent->classes[] = 'current-menu-parent';
 			$parent->classes[] = 'current-page-parent';
+			$parent->classes[] = 'current-menu-ancestor';
+			$parent->classes[] = 'current-page-ancestor';
 
 			$ancestor = $parent;
 			while($ancestor->menu_item_parent != 0) {

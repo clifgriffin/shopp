@@ -1347,6 +1347,7 @@ class SmartCollection extends ProductCollection {
 // @todo Document CatalogProducts
 class CatalogProducts extends SmartCollection {
 	static $_slug = "catalog";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1687,6 +1688,7 @@ class AlsoBoughtProducts extends SmartCollection {
 // @todo Document RandomProducts
 class RandomProducts extends SmartCollection {
 	static $_slug = "random";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1708,10 +1710,11 @@ class RandomProducts extends SmartCollection {
 // @todo Document ViewedProducts
 class ViewedProducts extends SmartCollection {
 	static $_slug = "viewed";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$Storefront = ShoppStorefront();
-		$viewed = array_filter($Storefront->viewed);
+		$viewed = isset($Storefront->viewed)?array_filter($Storefront->viewed):array();
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('Recently Viewed','Shopp');
 		$this->loading = array();
