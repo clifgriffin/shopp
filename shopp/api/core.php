@@ -75,6 +75,8 @@ function &ShoppCatalog ( &$Object = false ) {
 	global $Shopp; $false = false;
 	if (empty($Shopp)) return $false;
 	if ($Object !== false) $Shopp->Catalog = $Object;
+	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new Catalog();
+
 	return $Shopp->Catalog;
 }
 
