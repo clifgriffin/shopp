@@ -229,8 +229,11 @@ class ProductCollection implements Iterator {
 
 		$alpha = (false !== preg_match('/([a-z]|0\-9)/',$page));
 
-		// $prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
-		// if ('catalog' == $this->uri) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
+		$namespace = get_class_property( get_class($this) ,'namespace');
+		$prettyurl = "$namespace/$this->slug".($page > 1 || $alpha?"/page/$page":"");
+
+		// Handle catalog landing page category pagination
+		if (is_catalog_frontpage()) $prettyurl = ($page > 1 || $alpha?"page/$page":"");
 
 		$queryvars = array($this->taxonomy=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
