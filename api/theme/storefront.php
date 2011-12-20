@@ -518,14 +518,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
 
 	static function orderby_list ($result, $options, $O) {
-		global $Shopp;
-
-		if (isset($Shopp->Category->controls)) return false;
-		if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['sortorder'])) return false;
+		$Collection = ShoppCollection();
+		if (isset($Collection->controls)) return false;
+		if (isset($Collection->loading['order']) || isset($Collection->loading['sortorder'])) return false;
 
 		$menuoptions = ProductCategory::sortoptions();
 		// Don't show custom product order for smart categories
-		if (isset($Shopp->Category->smart)) unset($menuoptions['custom']);
+		if ($Collection->smart) unset($menuoptions['custom']);
 
 		$title = "";
 		$string = "";
@@ -541,7 +540,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if (isset($Storefront->browsing['sortorder']))
 				$default = $Storefront->browsing['sortorder'];
 			$string .= $title;
-			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
+			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Collection->slug.'-orderby-menu">';
 			if ( '' == get_option('permalink_structure') ) {
 				foreach ($_GET as $key => $value)
 					if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';

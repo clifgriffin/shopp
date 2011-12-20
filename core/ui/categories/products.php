@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<h2><?php printf(__('Arrange Products for "%s"','Shopp'),$Category->name); ?></h2>
+	<h2><?php printf(__('Arrange Products for "%s"','Shopp'),$CategoryProducts->name); ?></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 	<form action="" id="products" method="get">
@@ -11,7 +11,7 @@
 
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php printf(__('Return to %s','Shopp'),$Category->name); ?></a>
+			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php printf(__('Return to %s','Shopp'),$CategoryProducts->name); ?></a>
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -24,14 +24,15 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-categories',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($products) > 0): ?>
+	<?php if (sizeof($CategoryProducts) > 0): ?>
 		<tbody id="categories-table" class="list categories">
 		<?php
 		$hidden = array();
 		$hidden = get_hidden_columns('shopp_page_shopp-categories');
 
 		$even = false;
-		foreach ($products as $Product):
+		foreach ($CategoryProducts as $Product):
+
 
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->pagename('products'),
@@ -47,12 +48,12 @@
 		<tr class="<?php echo $classes; ?>">
 			<th scope="row" class='move-column'><button type="button" name="top" alt="<?php _e('Move to the top','Shopp'); ?>&hellip;" class="moveto top">&nbsp;</button><button type="button" name="bottom" alt="<?php _e('Move to the bottom','Shopp'); ?>&hellip;" class="moveto bottom">&nbsp;</button></th>
 			<td><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a>
-			<input type="hidden" name="position[<?php echo $Product->cid; ?>]" value="<?php echo $Product->priority; ?>" /></td>
+			<input type="hidden" name="position[<?php echo $Product->id; ?>]" value="<?php echo $Product->priority; ?>" /></td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="6"><?php _e('No categories found.','Shopp'); ?></td></tr></tbody>
+		<tbody><tr><td colspan="6"><?php _e('No products found.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 	</form>
