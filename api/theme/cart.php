@@ -74,7 +74,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $Order->Cart;
 	}
 
-	function _cart ($result, $options, $property, $O) {
+	static function _cart ($result, $options, $property, $O) {
 		// Passthru for non-monetary results
 		$monetary = array('discount','subtotal','shipping','tax','total');
 		if (!in_array($property,$monetary) || !is_numeric($result)) return $result;
@@ -100,9 +100,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function discount ($result, $options, $O) { return $O->Totals->discount; }
+	static function discount ($result, $options, $O) { return $O->Totals->discount; }
 
-	function discounts ($result, $options, $O) {
+	static function discounts ($result, $options, $O) {
 		if (!isset($O->_promo_looping)) {
 			reset($O->discounts);
 			$O->_promo_looping = true;
@@ -120,7 +120,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function download_items ($result, $options, $O) {
+	static function download_items ($result, $options, $O) {
 		if (!isset($O->_downloads_loop)) {
 			reset($O->downloads);
 			$O->_downloads_loop = true;
@@ -134,13 +134,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function empty_button ($result, $options, $O) {
+	static function empty_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 		return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 	}
 
-	function cart_function ($result, $options, $O) {
+	static function cart_function ($result, $options, $O) {
 		$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 
 		$Errors = ShoppErrors();
@@ -153,28 +153,28 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $result.$errors;
 	}
 
-	function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
+	static function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
 
-	function has_downloads ($result, $options, $O) { return $O->downloads(); }
+	static function has_downloads ($result, $options, $O) { return $O->downloads(); }
 
-	function has_items ($result, $options, $O) { return (count($O->contents) > 0); }
+	static function has_items ($result, $options, $O) { return (count($O->contents) > 0); }
 
-	function has_promos ($result, $options, $O) { return (count($O->discounts) > 0);  }
+	static function has_promos ($result, $options, $O) { return (count($O->discounts) > 0);  }
 
-	function has_ship_costs ($result, $options, $O) { return ($O->Totals->shipping > 0); }
+	static function has_ship_costs ($result, $options, $O) { return ($O->Totals->shipping > 0); }
 
-	function has_shipped ($result, $options, $O) { return $O->shipped();	}
+	static function has_shipped ($result, $options, $O) { return $O->shipped();	}
 
-	function has_shipping_methods ($result, $options, $O) {
+	static function has_shipping_methods ($result, $options, $O) {
 		return apply_filters('shopp_shipping_hasestimates',
 							( shopp_setting_enabled('shipping') && !empty($O->shipping) ),
 							$O->shipping
 		);
 	}
 
-	function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
+	static function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
 
-	function items ($result, $options, $O) {
+	static function items ($result, $options, $O) {
 		if (!isset($O->_item_loop)) {
 			reset($O->contents);
 			$O->_item_loop = true;
@@ -188,16 +188,16 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function last_item ($result, $options, $O) { return $O->contents[$O->added]; }
+	static function last_item ($result, $options, $O) { return $O->contents[$O->added]; }
 
-	function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
+	static function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
-	function needs_shipping_estimates ($result, $options, $O) {
+	static function needs_shipping_estimates ($result, $options, $O) {
 		// Shipping must be enabled, without free shipping and shipped items must be present in the cart
 		return ( shopp_setting_enabled('shipping') && !( $O->freeship && empty($O->shipped) ) );
 	}
 
-	function promocode ($result, $options, $O) {
+	static function promocode ($result, $options, $O) {
 		global $Shopp;
 
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
@@ -222,7 +222,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function promo_discount ($result, $options, $O) {
+	static function promo_discount ($result, $options, $O) {
 		$discount = current($O->discounts);
 		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
@@ -241,13 +241,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function promo_name ($result, $options, $O) {
+	static function promo_name ($result, $options, $O) {
 		$discount = current($O->discounts);
 		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		return $discount->name;
 	}
 
-	function promos ($result, $options, $O) {
+	static function promos ($result, $options, $O) {
 		if (!isset($O->_promo_looping)) {
 			reset($O->discounts);
 			$O->_promo_looping = true;
@@ -265,7 +265,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function promos_available ($result, $options, $O) {
+	static function promos_available ($result, $options, $O) {
 		global $Shopp;
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
@@ -274,14 +274,14 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return true;
 	}
 
-	function referrer ($result, $options, $O) {
+	static function referrer ($result, $options, $O) {
 		$Shopping = ShoppShopping();
 		$referrer = $Shopping->data->referrer;
 		if (!$referrer) $referrer = shopp('catalog','url','return=1');
 		return $referrer;
 	}
 
-	function shipped_items ($result, $options, $O) {
+	static function shipped_items ($result, $options, $O) {
 		if (!isset($O->_shipped_loop)) {
 			reset($O->shipped);
 			$O->_shipped_loop = true;
@@ -295,7 +295,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function shipping ($result, $options, $O) {
+	static function shipping ($result, $options, $O) {
 		if (empty($O->shipped)) return "";
 		if (isset($options['label'])) {
 			$options['currency'] = "false";
@@ -315,7 +315,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function shipping_estimates ($result, $options, $O) {
+	static function shipping_estimates ($result, $options, $O) {
 		$defaults = array(
 			'postcode' => true,
 			'class' => 'ship-estimates'
@@ -356,7 +356,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	function sidecart ($result, $options, $O) {
+	static function sidecart ($result, $options, $O) {
 		if (!shopp_setting_enabled('shopping_cart')) return '';
 		ob_start();
 		locate_shopp_template(array('sidecart.php'),true);
@@ -365,9 +365,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $content;
 	}
 
-	function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
+	static function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
 
-	function tax ($result, $options, $O) {
+	static function tax ($result, $options, $O) {
 		$defaults = array(
 			'label' => false,
 		);
@@ -380,15 +380,15 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	 }
 
-	function total ($result, $options, $O) { return $O->Totals->total; }
+	static function total ($result, $options, $O) { return $O->Totals->total; }
 
-	function total_items ($result, $options, $O) {
+	static function total_items ($result, $options, $O) {
 	 	return $O->Totals->quantity;
 	}
 
-	function total_promos ($result, $options, $O) { return count($O->discounts); }
+	static function total_promos ($result, $options, $O) { return count($O->discounts); }
 
-	function update_button ($result, $options, $O) {
+	static function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 		if (isset($options['class'])) $options['class'] .= " update-button";
@@ -396,7 +396,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return '<input type="submit" name="update"'.inputattrs($options,$submit_attrs).' />';
 	}
 
-	function url ($result, $options, $O) {
+	static function url ($result, $options, $O) {
 			return shoppurl(false,'cart');
 	}
 }

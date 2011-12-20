@@ -192,7 +192,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $imgtag;
 	}
 
-	function breadcrumb ($result, $options, $O) {
+	static function breadcrumb ($result, $options, $O) {
 		global $Shopp;
 
 		$defaults = array(
@@ -261,11 +261,11 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $wrap.$trail.$endwrap;
 	}
 
-	function business_name ($result, $options, $O) { return esc_html(shopp_setting('business_name')); }
+	static function business_name ($result, $options, $O) { return esc_html(shopp_setting('business_name')); }
 
-	function business_address ($result, $options, $O) { return esc_html(shopp_setting('business_address')); }
+	static function business_address ($result, $options, $O) { return esc_html(shopp_setting('business_address')); }
 
-	function categories ($result, $options, $O) {
+	static function categories ($result, $options, $O) {
 		global $Shopp;
 		if (!isset($O->_category_loop)) {
 			reset($O->categories);
@@ -283,7 +283,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function category ($result, $options, $O) {
+	static function category ($result, $options, $O) {
 		global $Shopp;
 
 		if (isset($options['name'])) $Shopp->Category = new ProductCategory($options['name'],'name');
@@ -323,7 +323,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $content;
 	}
 
-	function category_list ($result, $options, $O) {
+	static function category_list ($result, $options, $O) {
 		$defaults = array(
 			'title' => '',
 			'before' => '',
@@ -493,31 +493,31 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		break;
 	}
 
-	function type ($result, $options, $O) { return $O->type; }
+	static function type ($result, $options, $O) { return $O->type; }
 
-	function has_categories ($result, $options, $O) {
+	static function has_categories ($result, $options, $O) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
 		if (empty($O->categories)) $O->load_categories(array('where'=>'true'),$showsmart);
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function is_account ($result, $options, $O) { return is_account_page(); }
+	static function is_account ($result, $options, $O) { return is_account_page(); }
 
-	function is_cart ($result, $options, $O) { return is_cart_page(); }
+	static function is_cart ($result, $options, $O) { return is_cart_page(); }
 
-	function is_catalog ($result, $options, $O) { return is_catalog_page(); }
+	static function is_catalog ($result, $options, $O) { return is_catalog_page(); }
 
-	function is_checkout ($result, $options, $O) { return is_checkout_page(); }
+	static function is_checkout ($result, $options, $O) { return is_checkout_page(); }
 
-	function is_collection ($result, $options, $O) { return is_shopp_collection(); }
+	static function is_collection ($result, $options, $O) { return is_shopp_collection(); }
 
-	function is_frontpage ($result, $options, $O) { return is_catalog_frontpage(); }
+	static function is_frontpage ($result, $options, $O) { return is_catalog_frontpage(); }
 
-	function is_product ($result, $options, $O) { return is_shopp_product(); }
+	static function is_product ($result, $options, $O) { return is_shopp_product(); }
 
-	function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
+	static function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
 
-	function orderby_list ($result, $options, $O) {
+	static function orderby_list ($result, $options, $O) {
 		global $Shopp;
 
 		if (isset($Shopp->Category->controls)) return false;
@@ -570,7 +570,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function product ($result, $options, $O) {
+	static function product ($result, $options, $O) {
 		global $Shopp;
 		if (isset($options['name'])) ShoppProduct(new Product($options['name'],'name'));
 		else if (isset($options['slug'])) ShoppProduct(new Product($options['slug'],'slug'));
@@ -619,7 +619,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $content;
 	}
 
-	function recent_shoppers ($result, $options, $O) {
+	static function recent_shoppers ($result, $options, $O) {
 		$defaults = array(
 			'abbr' => 'firstname',
 			'city' => true,
@@ -657,7 +657,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	function search ($result, $options, $O) {
+	static function search ($result, $options, $O) {
 		$Storefront =& ShoppStorefront();
 		global $wp;
 
@@ -720,7 +720,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $before.$input.$after;
 	}
 
-	function search_form ($result, $options, $O) {
+	static function search_form ($result, $options, $O) {
 		ob_start();
 		get_search_form();
 		$content = ob_get_contents();
@@ -739,7 +739,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return join('',$markup);
 	}
 
-	function side_product ($result, $options, $O) {
+	static function side_product ($result, $options, $O) {
 		global $Shopp;
 
 		$content = false;
@@ -802,12 +802,12 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $content;
 	}
 
-	function tag_products ($result, $options, $O) {
+	static function tag_products ($result, $options, $O) {
 		ShoppCollection( new TagProducts($options) );
 		return self::category($result, $options, $O);
 	}
 
-	function tag_cloud ($result, $options, $O) {
+	static function tag_cloud ($result, $options, $O) {
 		$defaults = array(
 			'orderby' => 'name',
 			'order' => false,
@@ -862,9 +862,9 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $markup;
 	}
 
-	function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
+	static function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
 
-	function views ($result, $options, $O) {
+	static function views ($result, $options, $O) {
 		global $Shopp;
 		if (isset($Shopp->Category->controls)) return false;
 		$string = "";
@@ -876,7 +876,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function zoom_options ($result, $options, $O) {
+	static function zoom_options ($result, $options, $O) {
 		$defaults = array(				// Colorbox 1.3.15
 			'transition' => 'elastic',	// The transition type. Can be set to 'elastic', 'fade', or 'none'.
 			'speed' => 350,				// Sets the speed of the fade and elastic transitions, in milliseconds.
@@ -930,7 +930,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		add_storefrontjs($js,true);
 	}
 
-	function account_menu ($result, $options, $O) {
+	static function account_menu ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		if (!isset($Storefront->_menu_looping)) {
 			reset($Storefront->menus);
@@ -945,7 +945,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function account_menuitem ($result, $options, $O) {
+	static function account_menuitem ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		$page = current($Storefront->menus);
 		if (array_key_exists('url',$options)) return add_query_arg($page->request,'',shoppurl(false,'account'));
