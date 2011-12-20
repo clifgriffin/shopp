@@ -100,9 +100,7 @@ class ProductCollection implements Iterator {
 				case 'title': $orderby = "p.post_title ASC"; break;
 				case 'recommended':
 				default:
-					if (!$this->smart) $orderby = "tr.term_order ASC,p.post_title ASC";
-					else $order = "p.post_title ASC";
-					break;
+					$orderby = ('taxonomy' == $this->api)?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
 			}
 		}
 
@@ -676,25 +674,8 @@ class ProductCategory extends ProductTaxonomy {
 	var $facets = array();
 	var $filters = array();
 
-	// static $table = "category";
-	// var $loaded = false;
-	// var $paged = false;
 	var $children = array();
 	var $child = false;
-	// var $parent = 0;
-	// var $total = 0;
-	// var $description = "";
-	// var $timestamp = false;
-	// var $thumbnail = false;
-	// var $products = array();
-	// var $pricing = array();
-	// var $filters = array();
-	// var $loading = array();
-	// var $images = array();
-	// var $facetedmenus = "off";
-	// var $published = true;
-	// var $taxonomy = false;
-	// var $depth = false;
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
