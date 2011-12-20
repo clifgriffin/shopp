@@ -299,6 +299,18 @@ class ShoppInstallation extends FlowController {
 		ShoppSettings()->setup('receipt_copy','1');
 		ShoppSettings()->setup('account_system','none');
 		ShoppSettings()->setup('shopping_cart','on');
+		ShoppSettings()->setup('cancel_reasons',array(
+			__('Not as described or expected','Shopp'),
+			__('Wrong size','Shopp'),
+			__('Found better prices elsewhere','Shopp'),
+			__('Product is missing parts','Shopp'),
+			__('Product is defective or damaaged','Shopp'),
+			__('Took too long to deliver','Shopp'),
+			__('Item out of stock','Shopp'),
+			__('Customer request to cancel','Shopp'),
+			__('Item discontinued','Shopp'),
+			__('Other reason','Shopp')
+		));
 
 		// Shipping
 		ShoppSettings()->setup('active_shipping','');

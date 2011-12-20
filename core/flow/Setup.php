@@ -384,7 +384,6 @@ class Setup extends AdminController {
 			__('Other reason','Shopp')
 		);
 
-
 		include(SHOPP_ADMIN_PATH.'/settings/preferences.php');
 	}
 

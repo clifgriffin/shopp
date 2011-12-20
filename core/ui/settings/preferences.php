@@ -149,7 +149,7 @@ jQuery(document).ready(function ($) {
 		var menuid = $(menu).attr('id'),
 			id = menuid.substr(menuid.indexOf('-')+1);
 
-		if(states[id] != undefined)
+		if(states != null && states[id] != undefined)
 			$(this).find("option[value="+states[id]+"]").attr("selected", "selected");
 	});
 	$('#order-cancelreasons').labelset(reasons,'#reasonLabel');
