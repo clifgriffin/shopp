@@ -142,13 +142,20 @@ jQuery(document).ready( function($) {
 			rule.ruleid = rid;
 			rule.rulevalue = rule.v;
 			var conditional = $.tmpl('conditional',rule).appendTo(rulesui),
-				propmenu = conditional.find('select.property').html($.tmpl('property-menu')).val(rule.p),
+				search = conditional.find('input.value'),
+				propmenu = conditional.find('select.property').html($.tmpl('property-menu')).val(rule.p).change(function () {
+					search.unbind('keydown').unbind('keypress').suggest(
+						suggurl+'&action=shopp_suggestions&t='+$(this).val(),
+						{ delay:500, minchars:2, format:'json' }
+					);
+				}).change(),
 				rmrulebtn = conditional.find('button.delete').click(function(e) {
 					if (e) e.preventDefault();
 					conditional.remove();
 					$this.rules.pop();
 					if ($this.rules.length == 0) conditionsui.hide();
-				}).hide(),
+				}).hide();
+
 			addrulebtn = conditional.find('button.add').click($this.addrule);
 			conditional.hover(function () { rmrulebtn.show(); },function () { rmrulebtn.fadeOut('fast'); });
 			conditionsui.show();

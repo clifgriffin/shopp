@@ -238,7 +238,8 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var rates = <?php echo json_encode($rates); ?>,
+var suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
+	rates = <?php echo json_encode($rates); ?>,
 	base = <?php echo json_encode($base); ?>,
 	zones = <?php echo json_encode($zones); ?>,
 	localities = <?php echo json_encode(Lookup::localities()); ?>,
