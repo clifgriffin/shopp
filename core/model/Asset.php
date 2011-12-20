@@ -917,14 +917,14 @@ class ImageSetting extends MetaObject {
 		return self::$qualities[2];
 	}
 
-	function options() {
+	function options ($prefix='') {
 		$settings = array();
 		$properties = array('width','height','fit','quality','sharpen','bg');
 		foreach ($properties as $property) {
 			$value = $this->{$property};
 			if ('quality' == $property) $value = $this->quality_value($this->{$property});
 			if ('fit' == $property) $value = $this->fit_value($this->{$property});
-			$settings[$property] = $value;
+			$settings[$prefix.$property] = $value;
 		}
 		return $settings;
 	}
