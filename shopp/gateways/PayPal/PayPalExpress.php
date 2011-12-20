@@ -73,7 +73,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 
 		add_action('shopp_txn_update',array($this,'updates'));
-		add_filter('shopp_tag_cart_paypal-express',array($this,'cartcheckout'),10,2);
+		add_filter('shopp_tag_cart_paypalexpress',array($this,'cartcheckout'),10,2);
 		add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3);
 
 		// Order Event Handlers
