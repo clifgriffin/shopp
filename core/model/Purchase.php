@@ -113,7 +113,6 @@ class Purchase extends DatabaseObject {
 	 **/
 	static function status_event ($Event) {
 		$Purchase = ShoppPurchase();
-
 		if ($Purchase->id != $Event->order) { // Avoid unnecessary queries when possible
 			if ($Purchase->txnstatus == $Event->name)
 				return new ShoppError('Transaction status ('.$Purchase->txnstatus.') for purchase order #'.$Purchase->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
@@ -124,22 +123,26 @@ class Purchase extends DatabaseObject {
 		$txnid = false;
 
 		// Set transaction status from event name
-		$txnstatus = "'".DB::escape($Event->name)."'";
+		$txnstatus = $Event->name;
 
 		// Set order workflow status from status label mapping
 		$labels = shopp_setting('order_status');
 		$events = shopp_setting('order_states');
 		$key = array_search($Event->name,$events);
-		if (isset($labels[$key])) $status = "'".DB::escape($key)."'";
+		if (false !== $key && isset($labels[$key])) $status = (int)$key;
 
 		// Set the transaction ID if available
-		if (isset($Event->txnid)) $txnid = "'".DB::escape($Event->txnid)."'";
+		if (isset($Event->txnid) && !empty($Event->txnid)) $txnid = $Event->txnid;
 
 		$updates = compact('txnstatus','txnid','status');
-		$dataset = DatabaseObject::dataset(array_filter($updates));
+		$updates = array_filter($updates);
+		$data = array_map($updates,create_function('$v','return "\'".DB::escape($v)."\'";'));
+		$dataset = DatabaseObject::dataset($data);
 
 		$table = DatabaseObject::tablename(self::$table);
-		DB::query("UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1");
+		$query = "UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1";
+		DB::query($query);
+		$Purchase->updates($updates);
 	}
 
 	function capturable () {
