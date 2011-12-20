@@ -51,6 +51,7 @@
 jQuery(document).ready( function($) {
 
 var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_encode($base['currency']['format']); ?>,
+	suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
 	rules = <?php echo json_encode($Promotion->rules); ?>,
 	ruleidx = 1,
 	itemidx = 1,
@@ -120,8 +121,8 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 	},
 	conditions = {
 		"Catalog":{
-			"Name":{"logic":["boolean","fuzzy"],"value":"text"},
-			"Category":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_categories"},
 			"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
 			"Price":{"logic":["boolean","amount"],"value":"price"},
 			"Sale price":{"logic":["boolean","amount"],"value":"price"},
@@ -129,36 +130,36 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 			"In stock":{"logic":["boolean","amount"],"value":"text"}
 		},
 		"Cart":{
-			"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Any item name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
 			"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
 			"Any item amount":{"logic":["boolean","amount"],"value":"price"},
 			"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 			"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
-			"Customer type":{"logic":["boolean"],"value":"text"},
-			"Ship-to country":{"logic":["boolean"],"value":"text"},
+			"Customer type":{"logic":["boolean"],"value":"text","source":"shopp_customer_types"},
+			"Ship-to country":{"logic":["boolean"],"value":"text","source":"shopp_target_markets"},
 			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 			"Promo code":{"logic":["boolean"],"value":"text"}
 		},
 		"Cart Item":{
-			"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Any item name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
 			"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
 			"Any item amount":{"logic":["boolean","amount"],"value":"price"},
 			"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 			"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
-			"Customer type":{"logic":["boolean"],"value":"text"},
-			"Ship-to country":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Customer type":{"logic":["boolean"],"value":"text","source":"shopp_customer_types"},
+			"Ship-to country":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_target_markets"},
 			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 			"Promo code":{"logic":["boolean"],"value":"text"}
 		},
 		"Cart Item Target":{
-			"Name":{"logic":["boolean","fuzzy"],"value":"text"},
-			"Category":{"logic":["boolean","fuzzy"],"value":"text"},
-			"Tag name":{"logic":["boolean","fuzzy"],"value":"text"},
-			"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_categories"},
+			"Tag name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_tags"},
+			"Variation":{"logic":["boolean","fuzzy"],"value":"text",},
 			"Input name":{"logic":["boolean","fuzzy"],"value":"text"},
 			"Input value":{"logic":["boolean","fuzzy"],"value":"text"},
 			"Quantity":{"logic":["boolean","amount"],"value":"text"},
@@ -217,6 +218,7 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 			var name = (type=='cartitem')?'rules[item]['+i+'][value]':'rules['+i+'][value]';
 			field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
 			if (fieldtype == "price") field.change(function () { this.value = asMoney(this.value); });
+			return field;
 		}
 
 		// Generate logic operation menu
@@ -238,7 +240,11 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 				}
 			} else operation.hide();
 
-			valuefield(c['value']);
+			valuefield(c['value']).unbind('keydown').unbind('keypress').suggest(
+				suggurl+'&action=shopp_suggestions&s='+c['source'],
+				{ delay:500, minchars:2, format:'json' }
+			);
+
 		}).change();
 
 		// Load up existing conditional rule
@@ -292,7 +298,7 @@ $('#promotion-target').change(function () {
 	$(menus).empty().each(function (id,menu) {
 		for (var label in conditions[target])
 			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',target).appendTo($(menu));
-	});
+	}).change();
 	if (target == "Cart Item") {
 		if (rules['item']) for (var r in rules['item']) new Conditional('cartitem',rules['item'][r]);
 		else new Conditional('cartitem');

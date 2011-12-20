@@ -48,6 +48,7 @@ class AjaxFlow {
 		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array($this, 'checkout_button'));
 		add_action('wp_ajax_shopp_checkout_submit_button', array($this, 'checkout_button'));
 
+
 		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
 
@@ -66,13 +67,13 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_deactivate_key',array($this,'deactivate_key'));
 		add_action('wp_ajax_shopp_rebuild_search_index',array($this,'rebuild_search_index'));
 		add_action('wp_ajax_shopp_rebuild_search_index_progress',array($this,'rebuild_search_index_progress'));
-		add_action('wp_ajax_shopp_suggestions',array($this,'suggestions'));
 		add_action('wp_ajax_shopp_upload_local_taxes',array($this,'upload_local_taxes'));
 		add_action('wp_ajax_shopp_feature_product',array($this,'feature_product'));
 		add_action('wp_ajax_shopp_update_inventory',array($this,'update_inventory'));
 		add_action('wp_ajax_shopp_import_file',array($this,'import_file'));
 		add_action('wp_ajax_shopp_import_file_progress',array($this,'import_file_progress'));
 		add_action('wp_ajax_shopp_storage_suggestions',array($this,'storage_suggestions'),11);
+		add_action('wp_ajax_shopp_suggestions',array($this,'suggestions'));
 		add_action('wp_ajax_shopp_verify_file',array($this,'verify_file'));
 		add_action('wp_ajax_shopp_gateway',array($this,'gateway_ajax'));
 		add_action('wp_ajax_shopp_debuglog',array($this,'logviewer'));
@@ -328,35 +329,21 @@ class AjaxFlow {
 
 	function suggestions () {
 		check_admin_referer('wp_ajax_shopp_suggestions');
-		$db = DB::get();
 
 		if (isset($_GET['t'])) {
 			switch($_GET['t']) {
-				case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
-				case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
-				case "product-category": $table = DatabaseObject::tablename(ProductCategory::$table); break;
-				case "customer-type":
-					$types = Lookup::customer_types();
-					$results = array();
-					foreach ($types as $type)
-						if (strpos(strtolower($type),strtolower($_GET['q'])) !== false) $results[] = $type;
-					echo join("\n",$results);
-					exit();
-					break;
+				case "product-name": $_GET['s'] = 'shopp_products'; break;
+				case "product-tags": $_GET['s'] = 'shopp_tags'; break;
+				case "product-category": $_GET['s'] = 'shopp_categories'; break;
+				case "customer-type": $_GET['s'] = 'shopp_customer_types'; break;
 			}
-
-			$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);
-			$results = array();
-			foreach ($entries as $entry) $results[] = $entry->name;
-			echo join("\n",$results);
-			exit();
 		}
 
 		if (isset($_GET['s'])) {
 			global $wpdb;
 
 			$source = strtolower($_GET['s']);
-			$q = $db->escape($_GET['q']);
+			$q = $_GET['q'];
 
 			do_action('shopp_suggestions_from_'.$source);
 
@@ -378,14 +365,14 @@ class AjaxFlow {
 					$id = 't.term_id';
 					$name = 'name';
 					$table = "$wpdb->terms AS t";
-					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
 					$where[] = "tt.taxonomy = 'category'";
 					break;
 				case 'wp_tags':
 					$id = 't.term_id';
 					$name = 'name';
 					$table = "$wpdb->terms AS t";
-					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
 					$where[] = "tt.taxonomy = 'post_tag'";
 					break;
 				case 'wp_media':
@@ -402,31 +389,27 @@ class AjaxFlow {
 					$where[] = "type='membership'";
 					break;
 				case 'shopp_products':
-					$id = 'id';
-					$name = 'name';
-					$table = DatabaseObject::tablename(Product::$table);
+					$id = 'ID';
+					$name = 'post_title';
+					$table = $wpdb->posts;
+					$where[] = "post_type='".Product::$posttype."'";
 					break;
 				case 'shopp_categories':
-					$id = 'id';
+					$id = 't.term_id';
 					$name = 'name';
-					$table = DatabaseObject::tablename(ProductCategory::$table);
+					$table = "$wpdb->terms AS t";
+					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = '".ProductCategory::$taxonomy."'";
 					break;
 				case 'shopp_tags':
 					$id = 't.term_id';
 					$name = 'name';
 					$table = "$wpdb->terms AS t";
-					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
 					$where[] = "tt.taxonomy = 'shopp_tag'";
 					if ('shopp_popular_tags' == strtolower($q)) {
 						$q = ''; $orderlimit = "ORDER BY tt.count DESC LIMIT 15";
 					}
-					break;
-				case 'shopp_tags':
-					$id = 't.term_id';
-					$name = 'name';
-					$table = "$wpdb->terms AS t";
-					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
-					$where[] = "tt.taxonomy = 'shopp_tag'";
 					break;
 				case 'shopp_promotions':
 					$id = 'id';
@@ -440,14 +423,43 @@ class AjaxFlow {
 					$where[] = "context='price'";
 					$where[] = "type='download'";
 					break;
+				case 'shopp_target_markets':
+					$markets = shopp_setting('target_markets');
+					$results = array();
+					foreach ($markets as $id => $market) {
+						if (strpos(strtolower($market),strtolower($_GET['q'])) !== false) {
+							$_ = new StdClass();
+							$_->id = $id;
+							$_->name = stripslashes($market);
+							$results[] = $_;
+						}
+					}
+					echo json_encode($results);
+					exit();
+					break;
+				case 'shopp_customer_types':
+					$types = Lookup::customer_types();
+					$results = array();
+					foreach ($types as $id => $type) {
+						if (strpos(strtolower($type),strtolower($_GET['q'])) !== false) {
+							$_ = new StdClass();
+							$_->id = $id;
+							$_->name = $type;
+							$results[] = $_;
+						}
+					}
+					echo json_encode($results);
+					exit();
+					break;
+
 			}
 			if (!empty($q))
-				$where[] = "$name LIKE '%$q%'";
-			$wheres = join(' AND ',$where);
+				$where[] = "$name LIKE '%".DB::escape($q)."%'";
+			$where = join(' AND ',$where);
+			$joins = join(' ',$joins);
 
-			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres $orderlimit";
-
-			$items = $db->query($query,AS_ARRAY);
+			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $where $orderlimit";
+			$items = DB::query($query,'array');
 			echo json_encode($items);
 			exit();
 		}

@@ -42,10 +42,10 @@ class Setup extends AdminController {
 				));
 				break;
 			case 'taxes':
-				wp_enqueue_script('suggest');
 				shopp_enqueue_script('ocupload');
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('taxrates');
+				shopp_enqueue_script('suggest');
 				shopp_localize_script( 'taxrates', '$tr', array(
 					'confirm' => __('Are you sure you want to remove this tax rate?','Shopp'),
 				));

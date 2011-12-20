@@ -32,6 +32,7 @@ class Promote extends AdminController {
 			wp_enqueue_script('postbox');
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('calendar');
+			shopp_enqueue_script('suggest');
 			do_action('shopp_promo_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
