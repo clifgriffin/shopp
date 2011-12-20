@@ -17,6 +17,10 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 	// Settings
 	var $secure = false;
+	var $saleonly = true;
+	var $precision = 2;
+	var $decimals = '.';
+	var $thousands = '';
 
 	// URLs
 	var $url = 'https://www.2checkout.com/checkout/purchase';	// Multi-page checkout
@@ -27,10 +31,11 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		$this->setup('sid','verify','secret','returnurl','testmode','singlepage');
 
-		global $Shopp;
 		$this->settings['returnurl'] = add_query_arg('rmtpay','process',shoppurl(false,'thanks',false));
 
-		add_action('shopp_txn_update',array(&$this,'notifications'));
+		// add_action('shopp_txn_update',array(&$this,'notifications'));
+		add_action('shopp__2checkout_sale', array($this,'sale'));
+
 	}
 
 	function actions () {
@@ -39,7 +44,6 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
 		add_action('shopp_remote_payment',array(&$this,'returned'));
-		add_action('shopp_process_order',array(&$this,'process'));
 	}
 
 	function confirmation () {
@@ -57,12 +61,14 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	}
 
 	function form ($form) {
-		$db =& DB::get();
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
-		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_schema=database() AND table_name='$purchasetable' LIMIT 1");
+		$next = DB::query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
 
 		$Order = $this->Order;
+		$Customer = $Order->Customer;
+		$Billing = $Order->Billing;
+		$Shipping = $Order->Shipping;
 		$Order->_2COcart_order_id = date('mdy').'-'.date('His').'-'.$next->id;
 
 		// Build the transaction
@@ -70,7 +76,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		// Required
 		$_['sid']				= $this->settings['sid'];
-		$_['total']				= number_format($Order->Cart->Totals->total,$this->precision, '.', '');
+		$_['total']				= $this->amount('total');
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
 		$_['vendor_order_id']	= $this->session;
 		$_['id_type']			= 1;
@@ -86,48 +92,41 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		// Line Items
 		foreach($this->Order->Cart->contents as $i => $Item) {
-			// $description[] = $Item->quantity."x ".$Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$id = $i+1;
 			$_['c_prod_'.$id]			= 'shopp_pid-'.$Item->product.','.$Item->quantity;
 			$_['c_name_'.$id]			= $Item->name;
-			$_['c_description_'.$id]	= !empty($Item->option->label)?$Item->$Item->option->label:'';
-			$_['c_price_'.$id]			= number_format($Item->unitprice, $this->precision, '.', '');
+			$_['c_description_'.$id]	= !empty($Item->option->label)?$Item->option->label:'';
+			$_['c_price_'.$id]			= $this->amount($Item->unitprice);
 
 		}
 
-		$_['card_holder_name'] 		= $Order->Customer->firstname.' '.$Order->Customer->lastname;
-		$_['street_address'] 		= $Order->Billing->address;
-		$_['street_address2'] 		= $Order->Billing->xaddress;
-		$_['city'] 					= $Order->Billing->city;
-		$_['state'] 				= $Order->Billing->state;
-		$_['zip'] 					= $Order->Billing->postcode;
-		$_['country'] 				= $Order->Billing->country;
-		$_['email'] 				= $Order->Customer->email;
-		$_['phone'] 				= $Order->Customer->phone;
+		$_['card_holder_name'] 		= $Billing->name;
+		$_['street_address'] 		= $Billing->address;
+		$_['street_address2'] 		= $Billing->xaddress;
+		$_['city'] 					= $Billing->city;
+		$_['state'] 				= $Billing->state;
+		$_['zip'] 					= $Billing->postcode;
+		$_['country'] 				= $Billing->country;
+		$_['email'] 				= $Customer->email;
+		$_['phone'] 				= $Customer->phone;
 
-		$_['ship_name'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
-		$_['ship_street_address'] 	= $Order->Shipping->address;
-		$_['ship_street_address2'] 	= $Order->Shipping->xaddress;
-		$_['ship_city'] 			= $Order->Shipping->city;
-		$_['ship_state'] 			= $Order->Shipping->state;
-		$_['ship_zip'] 				= $Order->Shipping->postcode;
-		$_['ship_country'] 			= $Order->Shipping->country;
+		$_['ship_name'] 			= $Shipping->name;
+		$_['ship_street_address'] 	= $Shipping->address;
+		$_['ship_street_address2'] 	= $Shipping->xaddress;
+		$_['ship_city'] 			= $Shipping->city;
+		$_['ship_state'] 			= $Shipping->state;
+		$_['ship_zip'] 				= $Shipping->postcode;
+		$_['ship_country'] 			= $Shipping->country;
 
 		return $form.$this->format($_);
 	}
 
 	function returned () {
-		// Run order processing
-		if (!empty($_POST['order_number']))
-			do_action('shopp_process_order');
-	}
 
-	function process () {
-		global $Shopp;
-
-		if ($this->settings['verify'] == "on" && !$this->verify($_POST['key'])) {
+		if (str_true($this->settings['verify']) && !$this->verify($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));
+
 		}
 
 		if (empty($_POST['order_number'])) {
@@ -135,25 +134,68 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			shopp_redirect(shoppurl(false,'checkout'));
 		}
 
-		$txnid = $_POST['order_number'];
-		$txnstatus = $_POST['credit_card_processed'] == "Y"?'CHARGED':'PENDING';
+		// Create the order and begin processing it
+		shopp_add_order_event(false, 'purchase', array(
+			'gateway' => $this->module,
+			'txnid' => $_POST['order_number']
+		));
 
-		$Shopp->Order->transaction($txnid,$txnstatus);
+		ShoppOrder()->purchase = ShoppPurchase()->id;
+		shopp_redirect(shoppurl(false,'thanks',false));
 
 	}
+
+	function sale ($Event) {
+
+		$Paymethod = $this->Order->paymethod();
+		$Billing = $this->Order->Billing;
+
+		shopp_add_order_event($Event->order, 'authed', array(
+			'txnid' => $_POST['order_number'],						// Transaction ID
+			'amount' => $_POST['total'],							// Gross amount authorized
+			'gateway' => $this->module,								// Gateway handler name (module name from @subpackage)
+			'paymethod' => $Paymethod->label,						// Payment method (payment method label from payment settings)
+			'paytype' => $Billing->cardtype,						// Type of payment (check, MasterCard, etc)
+			'payid' => $Billing->card,								// Payment ID (last 4 of card or check number)
+			'capture' => true										// Capture flag
+		));
+
+	}
+
+	// function process () {
+	// 	global $Shopp;
+	//
+	// 	if ($this->settings['verify'] == "on" && !$this->verify($_POST['key'])) {
+	// 		new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
+	// 		shopp_redirect(shoppurl(false,'checkout'));
+	// 	}
+	//
+	// 	if (empty($_POST['order_number'])) {
+	// 		new ShoppError(__('The order submitted by 2Checkout did not specify a transaction ID.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
+	// 		shopp_redirect(shoppurl(false,'checkout'));
+	// 	}
+	//
+	// 	$txnid = $_POST['order_number'];
+	// 	$txnstatus = $_POST['credit_card_processed'] == "Y"?'CHARGED':'PENDING';
+	//
+	// 	$Shopp->Order->transaction($txnid,$txnstatus);
+	//
+	//
+	// }
 
 	function notification () {
 		// INS updates not implemented
 	}
 
 	function verify ($key) {
-		if ($this->settings['testmode'] == "on") return true;
+		if ( str_true($this->settings['testmode']) ) return true;
 		$order = $_POST['order_number'];
 
 		$verification = strtoupper(md5($this->settings['secret'].
 							$this->settings['sid'].
 							$order.
-							number_format($this->Order->Cart->Totals->total,$this->precision, '.', '')));
+							$this->amount($this->Order->Cart->Totals->total))
+						);
 
 		return ($verification == $key);
 	}
