@@ -158,6 +158,8 @@ class Product extends WPShoppObject {
 				call_user_func_array(array($this,$loadmethod),array($ids));
 		}
 
+		// print_r($this);
+
 	}
 
 	function load_summary ($ids) {
@@ -194,6 +196,12 @@ class Product extends WPShoppObject {
 			$ObjectMeta = new ObjectMeta();
 			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
+
+		// Load product sales counts
+		$purchase = DatabaseObject::tablename(Purchase::$table);
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus !='void' GROUP BY p.product";
+		DB::query($query,'array',array($this,'sold'));
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -521,14 +529,24 @@ class Product extends WPShoppObject {
 	 * Returns the number of this product sold
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @since 1.2
 	 *
 	 * @return int
 	 **/
-	function sold () {
-		$purchase = DatabaseObject::tablename(Purchase::$table);
-		$purchased = DatabaseObject::tablename(Purchased::$table);
-		return DB::query("SELECT sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE product=$this->id AND o.txnstatus='CHARGED' LIMIT 1");
+	function sold (&$records,&$data) {
+
+		if (isset($this->products) && !empty($this->products)) $products = &$this->products;
+		else $products = array();
+
+		$target = false;
+		if (is_array($products) && isset($products[ $data->id ]))
+			$target = $products[ $data->id ];
+		elseif (isset($this))
+			$target = $this;
+
+		$target->sold = $data->sold;
+		$target->grossed = $data->grossed;
+
 	}
 
 	/**
@@ -613,12 +631,12 @@ class Product extends WPShoppObject {
 			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
 		} elseif (!$this->inventory) $this->inventory = 'off';
 
-		if (!isset($this->_soldcount)) { // Only recalculate sold count once
-			$sc = $this->sold();
-			$this->sold = $sc->sold;
-			$this->grossed = $sc->grossed;
-			$this->_soldcount = true;
-		}
+		// if (!isset($this->_soldcount)) { // Only recalculate sold count once
+		// 	$sc = $this->sold();
+		// 	$this->sold = $sc->sold;
+		// 	$this->grossed = $sc->grossed;
+		// 	$this->_soldcount = true;
+		// }
 
 	}
 
