@@ -539,6 +539,104 @@ class ShoppInstallation extends FlowController {
 			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
 			ShoppSettings()->load();
 			$db_version = intval(shopp_setting('db_version'));
+
+
+
+			// Convert Shopp 1.1.x shipping settings to Shopp 1.2-compatible settings
+			$active_shipping = array();
+			$regions = Lookup::regions();
+			$countries = Lookup::countries();
+			$areas = Lookup::country_areas();
+
+			$calcnaming = array(
+				'FlatRates::order' => 'OrderRates',
+				'FlatRates::item' => 'ItemRates',
+				'FreeOption' => 'FreeOption',
+				'ItemQuantity::range' => 'ItemQuantity',
+				'OrderAmount::range' => 'OrderAmount',
+				'OrderWeight::range' => 'OrderWeight'
+			);
+			$shipping_rates = shopp_setting('shipping_rates');
+			foreach ((array)$shipping_rates as $id => $old) {
+				if (isset($calcnaming[ $old['method'] ])) {
+					// Add to active setting registry for that calculator class
+					$calcname = $calcnaming[ $old['method'] ];
+					if (!isset($$calcname) && !is_array($$calcname)) $$calcname = array();
+					${$calcname}[] = true;
+					$active_shipping[$calcname] = $$calcname;
+
+					// Define the setting name
+					$settingid = end(array_keys( $$calcname ));
+					$setting_name = $calcname.'-'.$settingid;
+				} else {
+					// Not a calculator, must be a shipping rate provider module, add it to the active roster
+					$active_shipping[ $old['name'] ] = true;
+					continue;
+				}
+
+				$new = array();
+
+				$new['label'] = $old['name'];
+				list($new['mindelivery'],$new['maxdelivery']) = explode('-',$old['delivery']);
+				$new['fallback'] = 'off'; // Not used in legacy settings
+
+				$oldkeys = array_keys($old);
+
+				$old_destinations = array_diff($oldkeys,array('name','delivery','method','max'));
+				$table = array();
+				foreach ($old_destinations as $old_dest) {
+					$_ = array();
+
+					if ('Worldwide' == $old_dest) $d = '*';
+
+					$region = array_search($old_dest,$regions);
+					if (false !== $region) $d = "$region";
+
+					if (isset($countries[ $old_dest ])) {
+						$country = $countries[ $old_dest ];
+						$region =  $country['region'];
+						$d = "$region,$old_dest";
+					}
+					foreach ($areas as $countrykey => $countryarea) {
+						$areakeys = array_keys($countryarea);
+						$area = array_search($old_dest,$areakeys);
+						if (false !== $area) {
+							$country = $countrykey;
+							$region = $countries[ $countrykey ]['region'];
+							$area = $areakeys[ $area ];
+							$d = "$region,$country,$area";
+							break;
+						}
+					}
+
+					$_['destination'] = $d;
+					$_['postcode'] = '*'; // Postcodes are new in 1.2, hardcode to wildcard
+					if (isset($old['max']) && !empty($old['max'])) { // Capture tiered rates
+						$_['tiers'] = array();
+						$prior = 1;
+						foreach ($old['max'] as $index => $oldthreshold) {
+							$tier = array('threshold' => 0,'rate' => 0);
+							if ( in_array($oldthreshold,array('+','>')))
+								$tier['threshold'] = $prior+1;
+							elseif ( 1 == $oldthreshold )
+								$tier['threshold'] = 1;
+							else $tier['threshold'] = $prior+1;
+							$prior = $oldthreshold;
+							$tier['rate'] = $old[$old_dest][$index];
+							$_['tiers'][] = $tier;
+						}
+					} else $_['rate'] = $old[$old_dest][0]; // Capture flat rates
+
+					$table[] = $_;
+				}
+				$new['table'] = $table;
+				shopp_set_setting($setting_name,$new); // Save the converted settings
+
+			} // End foreach($shipping_rates) to convert old shipping calculator setting format
+
+			shopp_set_setting('active_shipping',$active_shipping); // Save the active shipping options
+
+
 		}
 
 		if ($db_version <= 1121) {
