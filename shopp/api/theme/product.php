@@ -91,7 +91,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function addon ($result, $options, $O) {
+	static function addon ($result, $options, $O) {
 		$addon = current($O->prices);
 
 		$types = array('hidden','checkbox','radio');
@@ -132,7 +132,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function addons ($result, $options, $O) {
+	static function addons ($result, $options, $O) {
 
 		// Default mode is: loop
 		if (!isset($options['mode'])) {
@@ -255,7 +255,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	function add_to_cart ($result, $options, $O) {
+	static function add_to_cart ($result, $options, $O) {
 		if (!shopp_setting_enabled('shopping_cart')) return '';
 		$defaults = array(
 			'ajax' => false,
@@ -301,12 +301,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function buy_now ($result, $options, $O) {
+	static function buy_now ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
 		return self::addtocart($result, $options, $O);
 	}
 
-	function categories ($result, $options, $O) {
+	static function categories ($result, $options, $O) {
 		if (!isset($O->_categories_loop)) {
 			reset($O->categories);
 			$O->_categories_loop = true;
@@ -319,7 +319,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function category ($result, $options, $O) {
+	static function category ($result, $options, $O) {
 		$category = current($O->categories);
 		if (isset($options['show'])) {
 			if ($options['show'] == "id") return $category->id;
@@ -328,16 +328,16 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $category->name;
 	}
 
-	function coverimage ($result, $options, $O) {
+	static function coverimage ($result, $options, $O) {
 		// Force select the first loaded image
 		unset($options['id']);
 		$options['index'] = 0;
 		return self::image($result, $options, $O);
 	}
 
-	function description ($result, $options, $O) { return apply_filters('shopp_product_description',$O->description); }
+	static function description ($result, $options, $O) { return apply_filters('shopp_product_description',$O->description); }
 
-	function found ($result, $options, $O) {
+	static function found ($result, $options, $O) {
 		$Collection = ShoppCollection();
 		if (empty($O->id)) return false;
 		if (isset($Collection->products[$O->id])) return true;
@@ -355,12 +355,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return true;
 	}
 
-	function free_shipping ($result, $options, $O) {
+	static function free_shipping ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 		return (isset($O->freeshipping) && $O->freeshipping);
 	}
 
-	function gallery ($result, $options, $O) {
+	static function gallery ($result, $options, $O) {
 		if (empty($O->images)) $O->load_data(array('images'));
 		if (empty($O->images)) return false;
 		$styles = '';
@@ -513,37 +513,37 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function has_addons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
+	static function has_addons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
 
-	function has_categories ($result, $options, $O) {
+	static function has_categories ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
-	function has_images ($result, $options, $O) {
+	static function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_data(array('images'));
 		return (!empty($O->images));
 	}
 
-	function has_savings ($result, $options, $O) { return (str_true($O->sale) && $O->min['saved'] > 0); }
+	static function has_savings ($result, $options, $O) { return (str_true($O->sale) && $O->min['saved'] > 0); }
 
-	function has_specs ($result, $options, $O) {
+	static function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
 		if (count($O->specs) > 0) return true;
 		else return false;
 	}
 
-	function has_tags ($result, $options, $O) {
+	static function has_tags ($result, $options, $O) {
 		if (empty($O->tags)) $O->load_data(array('tags'));
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
-	function has_variations ($result, $options, $O) {
+	static function has_variations ($result, $options, $O) {
 		if (0 == $O->options) $O->load_data(array('summary','meta','prices'));
 		return ('on' == $O->variants && (!empty($O->options['v']) || !empty($O->options)));
 	}
 
-	function id ($result, $options, $O) { return $O->id; }
+	static function id ($result, $options, $O) { return $O->id; }
 
 	/**
 	 * Renders a product image
@@ -554,12 +554,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 *
 	 * @return string
 	 **/
-	function image ($result, $options, $O) {
+	static function image ($result, $options, $O) {
 		if (!self::has_images($result, $options, $O)) return '';
 		return ShoppCatalogThemeAPI::image($result, $options, $O);
 	}
 
-	function images ($result, $options, $O) {
+	static function images ($result, $options, $O) {
 		if (!$O->images) return false;
 		if (!isset($O->_images_loop)) {
 			reset($O->images);
@@ -574,7 +574,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	// @todo Add Theme API documentation for shopp('product','in-cart')
-	function in_cart ($result, $options, $O) {
+	static function in_cart ($result, $options, $O) {
 		$Order = ShoppOrder();
 		$cartitems = $Order->Cart->contents;
 		if (empty($cartitems)) return false;
@@ -582,7 +582,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if ($Item->product == $O->id) return true;
 	}
 
-	function in_category ($result, $options, $O) {
+	static function in_category ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
 		if (isset($options['id'])) $field = "id";
 		if (isset($options['name'])) $field = "name";
@@ -592,7 +592,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return false;
 	}
 
-	function input ($result, $options, $O) {
+	static function input ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
@@ -624,17 +624,17 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function is_featured ($result, $options, $O) { return ($O->featured == "on"); }
+	static function is_featured ($result, $options, $O) { return ($O->featured == "on"); }
 
-	function name ($result, $options, $O) { return apply_filters('shopp_product_name',$O->name); }
+	static function name ($result, $options, $O) { return apply_filters('shopp_product_name',$O->name); }
 
-	function on_sale ($result, $options, $O) {
+	static function on_sale ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices','summary'));
 		if (empty($O->prices)) return false;
 		return str_true($O->sale);
 	}
 
-	function out_of_stock ($result, $options, $O) {
+	static function out_of_stock ($result, $options, $O) {
 		global $Shopp;
 		if ($O->outofstock) {
 			$label = isset($options['label'])?$options['label']:shopp_setting('outofstock_text');
@@ -643,7 +643,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		} else return false;
 	}
 
-	function price ($result, $options, $O) {
+	static function price ($result, $options, $O) {
 		// if (empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'taxes' => null,
@@ -680,12 +680,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		} else return money($pricetag+($pricetag*$taxrate));
 	}
 
-	function saleprice ($result, $options, $O) {
+	static function saleprice ($result, $options, $O) {
 		$options['property'] = 'saleprice';
 		return self::price($result, $options, $O);
 	}
 
-	function quantity ($result, $options, $O) {
+	static function quantity ($result, $options, $O) {
 		if (!shopp_setting_enabled('shopping_cart')) return '';
 		if ($O->outofstock) return '';
 
@@ -752,9 +752,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join("\n",$_);
 	}
 
-	function relevance ($result, $options, $O) { return (string)$O->score; }
+	static function relevance ($result, $options, $O) { return (string)$O->score; }
 
-	function savings ($result, $options, $O) {
+	static function savings ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
@@ -783,9 +783,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function slug ($result, $options, $O) { return $O->slug; }
+	static function slug ($result, $options, $O) { return $O->slug; }
 
-	function spec ($result, $options, $O) {
+	static function spec ($result, $options, $O) {
 		$showname = false;
 		$showcontent = false;
 		$defaults = array(
@@ -841,7 +841,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function sku ( $result, $options, $O ) {
+	static function sku ( $result, $options, $O ) {
 		if ( empty($O->prices) ) $O->load_data(array('prices'));
 
 		if ( 1 == count($O->prices) && $O->prices[0]->sku )
@@ -855,7 +855,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return '';
 	}
 
-	function specs ($result, $options, $O) {
+	static function specs ($result, $options, $O) {
 		if (!isset($O->_specs_loop)) {
 			reset($O->specnames);
 			$O->_specs_loop = true;
@@ -868,11 +868,11 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function stock ($result, $options, $O) { return (int)$O->stock; }
+	static function stock ($result, $options, $O) { return (int)$O->stock; }
 
-	function summary ($result, $options, $O) { return apply_filters('shopp_product_summary',$O->summary); }
+	static function summary ($result, $options, $O) { return apply_filters('shopp_product_summary',$O->summary); }
 
-	function tag ($result, $options, $O) {
+	static function tag ($result, $options, $O) {
 		$tag = current($O->tags);
 		if (isset($options['show'])) {
 			if ($options['show'] == "id") return $tag->id;
@@ -880,7 +880,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $tag->name;
 	}
 
-	function tagged ($result, $options, $O) {
+	static function tagged ($result, $options, $O) {
 		if (empty($O->tags)) $O->load_data(array('tags'));
 		if (isset($options['id'])) $field = "id";
 		if (isset($options['name'])) $field = "name";
@@ -889,7 +889,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return false;
 	}
 
-	function tags ($result, $options, $O) {
+	static function tags ($result, $options, $O) {
 		if (!isset($O->_tags_loop)) {
 			reset($O->tags);
 			$O->_tags_loop = true;
@@ -902,9 +902,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$O); }
+	static function taxrate ($result, $options, $O) { return shopp_taxrate(null,true,$O); }
 
-	function type ($result, $options, $O) {
+	static function type ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
 
 		if (1 == count($O->prices))
@@ -917,9 +917,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join(',',$types);
 	}
 
-	function url ($result, $options, $O) { return shoppurl( '' == get_option('permalink_structure')?array(Product::$posttype=>$O->slug):$O->slug, false ); }
+	static function url ($result, $options, $O) { return shoppurl( '' == get_option('permalink_structure')?array(Product::$posttype=>$O->slug):$O->slug, false ); }
 
-	function variation ($result, $options, $O) {
+	static function variation ($result, $options, $O) {
 		global $Shopp;
 		$variation = current($O->prices);
 
@@ -950,7 +950,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	function variations ($result, $options, $O) {
+	static function variations ($result, $options, $O) {
 		global $Shopp;
 		$string = "";
 
@@ -1075,7 +1075,7 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 		return $string;
 	}
 
-	function weight ($result, $options, $O) {
+	static function weight ($result, $options, $O) {
 		global $Shopp;
 		if(empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(

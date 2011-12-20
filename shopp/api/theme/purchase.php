@@ -114,25 +114,25 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function address ($result, $options, $O) { return esc_html($O->address); }
+	static function address ($result, $options, $O) { return esc_html($O->address); }
 
-	function card ($result, $options, $O) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }
+	static function card ($result, $options, $O) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }
 
-	function card_type ($result, $options, $O) { return $O->cardtype; }
+	static function card_type ($result, $options, $O) { return $O->cardtype; }
 
-	function city ($result, $options, $O) { return esc_html($O->city); }
+	static function city ($result, $options, $O) { return esc_html($O->city); }
 
-	function company ($result, $options, $O) { return esc_html($O->company); }
+	static function company ($result, $options, $O) { return esc_html($O->company); }
 
-	function country ($result, $options, $O) {
+	static function country ($result, $options, $O) {
 		global $Shopp;
 		$countries = shopp_setting('target_markets');
 		return $countries[$O->country];
 	}
 
-	function customer ($result, $options, $O) { return $O->customer; }
+	static function customer ($result, $options, $O) { return $O->customer; }
 
-	function data ($result, $options, $O) {
+	static function data ($result, $options, $O) {
 		if (!is_array($O->data)) return false;
 		$data = current($O->data);
 		$name = key($O->data);
@@ -140,25 +140,25 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return esc_html($data);
 	}
 
-	function date ($result, $options, $O) {
+	static function date ($result, $options, $O) {
 		if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
 		return _d($options['format'],((is_int($O->created))?$O->created:mktimestamp($O->created)));
 	}
 
-	function discount ($result, $options, $O) { return money($O->discount); }
+	static function discount ($result, $options, $O) { return money($O->discount); }
 
-	function email ($result, $options, $O) { return esc_html($O->email); }
+	static function email ($result, $options, $O) { return esc_html($O->email); }
 
 	// email_* tags are for email headers. The trailing PHP_EOL is to account for PHP ticket #21891
 	// where trailing newlines are removed, despite the PHP docs saying they will be included.
 
-	function email_from ($result, $options, $O) { if (isset($O->message['from'])) return ($O->message['from'].PHP_EOL); }
+	static function email_from ($result, $options, $O) { if (isset($O->message['from'])) return ($O->message['from'].PHP_EOL); }
 
-	function email_to ($result, $options, $O) { if (isset($O->message['to'])) return ($O->message['to'].PHP_EOL); }
+	static function email_to ($result, $options, $O) { if (isset($O->message['to'])) return ($O->message['to'].PHP_EOL); }
 
-	function email_subject ($result, $options, $O) { if (isset($O->message['subject'])) return ($O->message['subject'].PHP_EOL); }
+	static function email_subject ($result, $options, $O) { if (isset($O->message['subject'])) return ($O->message['subject'].PHP_EOL); }
 
-	function email_event ($result, $options, $O) {
+	static function email_event ($result, $options, $O) {
 		if (!isset($O->message['event'])) return '';
 		extract($options);
 
@@ -168,37 +168,37 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return '';
 	}
 
-	function email_note ($result, $options, $O) { if (isset($O->message['note'])) return esc_html($O->message['note']); }
+	static function email_note ($result, $options, $O) { if (isset($O->message['note'])) return esc_html($O->message['note']); }
 
-	function first_name ($result, $options, $O) { return esc_html($O->firstname); }
+	static function first_name ($result, $options, $O) { return esc_html($O->firstname); }
 
-	function freight ($result, $options, $O) { return money($O->freight); }
+	static function freight ($result, $options, $O) { return money($O->freight); }
 
-	function gateway ($result, $options, $O) { return $O->gateway; }
+	static function gateway ($result, $options, $O) { return $O->gateway; }
 
-	function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
+	static function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
 
-	function has_discount ($result, $options, $O) { return ($O->discount > 0); }
+	static function has_discount ($result, $options, $O) { return ($O->discount > 0); }
 
-	function has_downloads ($result, $options, $O) { return ($O->downloads); }
+	static function has_downloads ($result, $options, $O) { return ($O->downloads); }
 
-	function has_freight ($result, $options, $O) { return (!empty($O->shipmethod) || $O->freight > 0); }
+	static function has_freight ($result, $options, $O) { return (!empty($O->shipmethod) || $O->freight > 0); }
 
-	function has_items ($result, $options, $O) {
+	static function has_items ($result, $options, $O) {
 		if (empty($O->purchased)) $O->load_purchased();
 		return (count($O->purchased) > 0);
 	}
 
-	function has_promo ($result, $options, $O) {
+	static function has_promo ($result, $options, $O) {
 		if (empty($options['name'])) return false;
 		return (in_array($options['name'],$O->promos));
 	}
 
-	function has_tax ($result, $options, $O) { return ($O->tax > 0)?true:false; }
+	static function has_tax ($result, $options, $O) { return ($O->tax > 0)?true:false; }
 
-	function id ($result, $options, $O) { return $O->id; }
+	static function id ($result, $options, $O) { return $O->id; }
 
-	function item_addons ($result, $options, $O) {
+	static function item_addons ($result, $options, $O) {
 		$item = current($O->purchased);
 		if (!isset($O->_itemaddons_loop)) {
 			reset($item->addons->meta);
@@ -224,7 +224,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		// return money($addon->value->unitprice);
 	}
 
-	function item_addons_list ($result, $options, $O) {
+	static function item_addons_list ($result, $options, $O) {
 		$item = current($O->purchased);
 		if (empty($item->addons) || (is_string($item->addons) && !str_true($item->addons))) return false;
 		$defaults = array(
@@ -265,17 +265,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function item_description ($result, $options, $O) {
+	static function item_description ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->description;
 	}
 
-	function item_type ($result, $options, $O) {
+	static function item_type ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->type;
 	}
 
-	function item_download ($result, $options, $O) {
+	static function item_download ($result, $options, $O) {
 		$item = current($O->purchased);
 		if (empty($item->download)) return "";
 		if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
@@ -286,22 +286,22 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>';
 	}
 
-	function item_has_addons ($result, $options, $O) {
+	static function item_has_addons ($result, $options, $O) {
 		$item = current($O->purchased);
 		return (count($item->addons) > 0);
 	}
 
-	function item_has_inputs ($result, $options, $O) {
+	static function item_has_inputs ($result, $options, $O) {
 		$item = current($O->purchased);
 		return (count($item->data) > 0);
 	}
 
-	function item_id ($result, $options, $O) {
+	static function item_id ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->id;
 	}
 
-	function item_input ($result, $options, $O) {
+	static function item_input ($result, $options, $O) {
 		$item = current($O->purchased);
 		$data = current($item->data);
 		$name = key($item->data);
@@ -309,7 +309,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return esc_html($data);
 	}
 
-	function item_inputs ($result, $options, $O) {
+	static function item_inputs ($result, $options, $O) {
 		$item = current($O->purchased);
 		if (!isset($O->_iteminputs_loop)) {
 			reset($item->data);
@@ -323,7 +323,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function item_inputs_list ($result, $options, $O) {
+	static function item_inputs_list ($result, $options, $O) {
 		$item = current($O->purchased);
 		if (empty($item->data)) return false;
 		$before = ""; $after = ""; $classes = ""; $excludes = array();
@@ -341,33 +341,33 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function item_name ($result, $options, $O) {
+	static function item_name ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->name;
 	}
 
-	function item_options ($result, $options, $O) {
+	static function item_options ($result, $options, $O) {
 		if (!isset($options['after'])) $options['after'] = "";
 		$item = current($O->purchased);
 		return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:'';
 	}
 
-	function item_price ($result, $options, $O) {
+	static function item_price ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->price;
 	}
 
-	function item_product ($result, $options, $O) {
+	static function item_product ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->product;
 	}
 
-	function item_quantity ($result, $options, $O) {
+	static function item_quantity ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->quantity;
 	}
 
-	function items ($result, $options, $O) {
+	static function items ($result, $options, $O) {
 		if (!isset($O->_items_loop)) {
 			reset($O->purchased);
 			$O->_items_loop = true;
@@ -380,28 +380,28 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function item_sku ($result, $options, $O) {
+	static function item_sku ($result, $options, $O) {
 		$item = current($O->purchased);
 		return $item->sku;
 	}
 
-	function item_total ($result, $options, $O) {
+	static function item_total ($result, $options, $O) {
 		$item = current($O->purchased);
 		$amount = $item->total+($O->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
 		return money($amount);
 	}
 
-	function item_unit_price ($result, $options, $O) {
+	static function item_unit_price ($result, $options, $O) {
 		$item = current($O->purchased);
 		$amount = $item->unitprice+($O->taxing == 'inclusive'?$item->unittax:0);
 		return money($amount);
 	}
 
-	function last_name ($result, $options, $O) { return esc_html($O->lastname); }
+	static function last_name ($result, $options, $O) { return esc_html($O->lastname); }
 
-	function not_paid ($result, $options, $O) { return ('captured' != $O->txnstatus); }
+	static function not_paid ($result, $options, $O) { return ('captured' != $O->txnstatus); }
 
-	function order_data ($result, $options, $O) {
+	static function order_data ($result, $options, $O) {
 		if (!isset($O->_data_loop)) {
 			reset($O->data);
 			$O->_data_loop = true;
@@ -414,20 +414,20 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function paid ($result, $options, $O) { return ('captured' == $O->txnstatus); }
+	static function paid ($result, $options, $O) { return ('captured' == $O->txnstatus); }
 
-	function payment ($result, $options, $O) {
+	static function payment ($result, $options, $O) {
 		$labels = Lookup::txnstatus_labels();
 		return isset($labels[$O->txnstatus])?$labels[$O->txnstatus]:$O->txnstatus;
 	}
 
-	function paymethod ($result, $options, $O) { return $O->paymethod; }
+	static function paymethod ($result, $options, $O) { return $O->paymethod; }
 
-	function phone ($result, $options, $O) { return esc_html($O->phone); }
+	static function phone ($result, $options, $O) { return esc_html($O->phone); }
 
-	function postcode ($result, $options, $O) { return esc_html($O->postcode); }
+	static function postcode ($result, $options, $O) { return esc_html($O->postcode); }
 
-	function promo_list ($result, $options, $O) {
+	static function promo_list ($result, $options, $O) {
 		$output = "";
 		if (!empty($O->promos)) {
 			$output .= '<ul>';
@@ -438,7 +438,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	function receipt ($result, $options, $O) {
+	static function receipt ($result, $options, $O) {
 		$template = '';
 		if (isset($options['template']))
 			$template = locate_shopp_template($options['template']);
@@ -448,23 +448,23 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $O->receipt();
 	}
 
-	function ship_name ($result, $options, $O) { return esc_html($O->shipname); }
+	static function ship_name ($result, $options, $O) { return esc_html($O->shipname); }
 
-	function ship_address ($result, $options, $O) { return esc_html($O->shipaddress); }
+	static function ship_address ($result, $options, $O) { return esc_html($O->shipaddress); }
 
-	function ship_city ($result, $options, $O) { return esc_html($O->shipcity); }
+	static function ship_city ($result, $options, $O) { return esc_html($O->shipcity); }
 
-	function ship_country ($result, $options, $O) {
+	static function ship_country ($result, $options, $O) {
 		global $Shopp;
 		$countries = shopp_setting('target_markets');
 		return $countries[$O->shipcountry];
 	}
 
-	function ship_method ($result, $options, $O) { return esc_html($O->shipoption); }
+	static function ship_method ($result, $options, $O) { return esc_html($O->shipoption); }
 
-	function ship_postcode ($result, $options, $O) { return esc_html($O->shippostcode); }
+	static function ship_postcode ($result, $options, $O) { return esc_html($O->shippostcode); }
 
-	function ship_state ($result, $options, $O) {
+	static function ship_state ($result, $options, $O) {
 		$state = esc_html($O->shipstate);
 		if (strlen($O->state > 2)) return $state;
 		$regions = Lookup::country_zones();
@@ -478,9 +478,9 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $state;
 	}
 
-	function ship_xaddress ($result, $options, $O) { return esc_html($O->shipxaddress); }
+	static function ship_xaddress ($result, $options, $O) { return esc_html($O->shipxaddress); }
 
-	function state ($result, $options, $O) {
+	static function state ($result, $options, $O) {
 		$state = esc_html($O->state);
 		if (strlen($O->state > 2)) return $state;
 		$regions = Lookup::country_zones();
@@ -494,26 +494,26 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $state;
 	}
 
-	function status ($result, $options, $O) {
+	static function status ($result, $options, $O) {
 		global $Shopp;
 		$labels = shopp_setting('order_status');
 		if (empty($labels)) $labels = array('');
 		return $labels[$O->status];
 	}
 
-	function subtotal ($result, $options, $O) { return money($O->subtotal); }
+	static function subtotal ($result, $options, $O) { return money($O->subtotal); }
 
-	function tax ($result, $options, $O) { return money($O->tax); }
+	static function tax ($result, $options, $O) { return money($O->tax); }
 
-	function total ($result, $options, $O) { return money($O->total); }
+	static function total ($result, $options, $O) { return money($O->total); }
 
-	function total_items ($result, $options, $O) { return count($O->purchased); }
+	static function total_items ($result, $options, $O) { return count($O->purchased); }
 
-	function txnid ($result, $options, $O) { return $O->txnid; }
+	static function txnid ($result, $options, $O) { return $O->txnid; }
 
-	function url ($result, $options, $O) { return shoppurl(false,'account'); }
+	static function url ($result, $options, $O) { return shoppurl(false,'account'); }
 
-	function xaddress ($result, $options, $O) { return esc_html($O->xaddress); }
+	static function xaddress ($result, $options, $O) { return esc_html($O->xaddress); }
 
 }
 

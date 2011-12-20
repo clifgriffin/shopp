@@ -759,7 +759,7 @@ abstract class DatabaseObject implements Iterator {
 			// Insert new record
 			if (isset($data['created'])) $data['created'] = "'".current_time('mysql')."'";
 			if (isset($data['modified'])) $data['modified'] = "'".current_time('mysql')."'";
-			$dataset = $this->dataset($data);
+			$dataset = DatabaseObject::dataset($data);
 			$this->id = DB::query("INSERT $this->_table SET $dataset");
 			do_action_ref_array('shopp_save_'.strtolower(get_class($this)), array(&$this));
 			return $this->id;
@@ -767,7 +767,7 @@ abstract class DatabaseObject implements Iterator {
 
 		// Update record
 		if (isset($data['modified'])) $data['modified'] = "'".current_time('mysql')."'";
-		$dataset = $this->dataset($data);
+		$dataset = DatabaseObject::dataset($data);
 		DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
 
 		do_action_ref_array('shopp_save_'.strtolower(get_class($this)), array(&$this));
@@ -860,7 +860,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param array $data The prepared data
 	 * @return string The query fragment of column value updates
 	 **/
-	function dataset ($data) {
+	static function dataset ($data) {
 		$sets = array();
 		foreach($data as $property => $value)
 			$sets[] = "$property=$value";

@@ -60,9 +60,9 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $Order->Cart;
 	}
 
-	function has_options ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
+	static function has_options ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
-	function option_selector ($result, $options, $O) {
+	static function option_selector ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 
@@ -75,30 +75,30 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function option_selected ($result, $options, $O) {
+	static function option_selected ($result, $options, $O) {
 		global $Shopp;
 		$method = current($O->shipping);
 		return ((isset($Shopp->Order->Shipping->method) &&
 			$Shopp->Order->Shipping->method == $method->slug));
 	}
 
-	function option_slug ($result, $options, $O) {
+	static function option_slug ($result, $options, $O) {
 		$option = current($O->shipping);
 		return $option->slug;
 	}
 
-	function option_cost ($result, $options, $O) {
+	static function option_cost ($result, $options, $O) {
 		$option = current($O->shipping);
 		return money($option->amount);
 	}
 
-	function option_delivery ($result, $options, $O) {
+	static function option_delivery ($result, $options, $O) {
 		$option = current($O->shipping);
 		if (!$option->delivery) return "";
 		return self::_delivery_format($option->delivery, $options);
 	}
 
-	function _delivery_format( $estimate, $options = array() ) {
+	static function _delivery_format( $estimate, $options = array() ) {
 		$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 		$defaults = array(
 			'dateformat' => get_option('date_format'),
@@ -125,7 +125,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	function option_menu ($result, $options, $O) {
+	static function option_menu ($result, $options, $O) {
 		$Order = ShoppOrder();
 
 		$defaults = array(
@@ -167,12 +167,12 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return join("",$_);
 	}
 
-	function option_name ($result, $options, $O) {
+	static function option_name ($result, $options, $O) {
 		$option = current($O->shipping);
 		return $option->name;
 	}
 
-	function options ($result, $options, $O) {
+	static function options ($result, $options, $O) {
 		if (!isset($O->sclooping)) $O->sclooping = false;
 		if (!$O->sclooping) {
 			reset($O->shipping);
@@ -187,7 +187,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		}
 	}
 
-	function url ($result, $options, $O) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
+	static function url ($result, $options, $O) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
 
 	/**
 	 * Displays an update button for shipping method form if JavaScript is disabled
@@ -197,7 +197,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 *
 	 * @return void
 	 **/
-	function update_button ($result, $options, $O) {
+	static function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		$stdclasses = "update-button hide-if-js";
 		$defaults = array(
