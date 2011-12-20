@@ -101,12 +101,14 @@ jQuery(document).ready(function($) {
 			engine = (engines[selected]?engines[selected]:false),
 			settings = {context:context},
 			container = $('#'+context+'-storage-engine');
-
-			$.each(storageset[selected],function (name,setting) {
-				settings[name] = setting[context];
-			});
+			if (storageset != null && storageset[selected] != undefined) {
+				$.each(storageset[selected],function (name,setting) {
+					settings[name] = setting[context];
+				});
+			}
 
 			$.tmpl(engine,settings).appendTo(container);
+			$(window).scrollTop(0);
 
 			return $this;
 	};
@@ -126,9 +128,6 @@ jQuery(document).ready(function($) {
 		dlsmenu = $('#download-storage').change(function () {
 			$(this).storageEngineSettings(this,'download');
 		}).change();
-
-
-
 
 	function progress () {
 		$.ajax({url:searchprog_url+'&action=shopp_rebuild_search_index_progress',
