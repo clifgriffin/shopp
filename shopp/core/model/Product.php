@@ -1008,7 +1008,7 @@ class ProductSummary extends DatabaseObject {
 
 		// Insert new record
 		$data['modified'] = "'".current_time('mysql')."'";
-		$dataset = $this->dataset($data);
+		$dataset = DatabaseObject::dataset($data);
 		$query = "INSERT $this->_table SET $dataset ON DUPLICATE KEY UPDATE $dataset";
 		$id = DB::query($query);
 		do_action_ref_array('shopp_save_productsummary', array(&$this));
