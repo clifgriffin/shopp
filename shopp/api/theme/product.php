@@ -379,17 +379,19 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			// 'thumbpos' => 'after',
 
 			// Preview image settings
-			'p.size' => false,
-			'p.width' => false,
-			'p.height' => false,
-			'p.fit' => false,
-			'p.sharpen' => false,
-			'p.quality' => false,
-			'p.bg' => false,
-			'p.link' => true,
+			'p_setting' => false,
+			'p_size' => false,
+			'p_width' => false,
+			'p_height' => false,
+			'p_fit' => false,
+			'p_sharpen' => false,
+			'p_quality' => false,
+			'p_bg' => false,
+			'p_link' => true,
 			'rel' => '',
 
 			// Thumbnail image settings
+			'thumbsetting' => false,
 			'thumbsize' => false,
 			'thumbwidth' => false,
 			'thumbheight' => false,
@@ -405,14 +407,30 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 
 		);
+
+		// Populate defaults from named settings, if provided
+		$ImageSettings = ImageSettings::__instance();
+
+		if (!empty($options['p_setting'])) {
+			$settings = $ImageSettings->get( $options['p_setting']);
+			if ($settings) $defaults = array_merge($defaults,$settings->options('p_'));
+		}
+
+		if (!empty($options['thumbsetting'])) {
+			$settings = $ImageSettings->get( $options['thumbsetting']);
+			if ($settings) $defaults = array_merge($defaults,$settings->options('thumb'));
+		}
+
 		$optionset = array_merge($defaults,$options);
 
-		// Translate dot names
+		// Translate dot-notation options to underscore
 		$options = array();
 		$keys = array_keys($optionset);
 		foreach ($keys as $key)
 			$options[str_replace('.','_',$key)] = $optionset[$key];
+
 		extract($options);
+
 
 		if ($p_size > 0)
 			$_width = $_height = $p_size;
@@ -440,7 +458,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$p_link = value_is_true($p_link);
 
+		// Setup preview images
 		foreach ($O->images as $img) {
+
 
 			$scale = $p_fit?array_search($p_fit,$img->_scaling):false;
 			$sharpen = $p_sharpen?min($p_sharpen,$img->_sharpen):false;
