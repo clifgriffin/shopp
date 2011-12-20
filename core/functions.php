@@ -1898,10 +1898,10 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		$path[] = 'images';
 		if (!$prettyurls) $request = array('siid'=>$request);
 	} else {
+		if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
 		if (false !== $page)
 			$page_slug = Storefront::slug($page);
 		if ($page != 'catalog') {
-			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
 			if (!empty($page_slug)) $path[] = $page_slug;
 		}
 	}
