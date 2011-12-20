@@ -325,7 +325,7 @@ if (!function_exists('shopp_prereqs')) {
 
 		if ($activation) {
 			$string = '<h1>'.$_['header'].'</h1><p>'.$_['intro'].'</h1></p><ul>';
-			foreach ($errors as $error) if (isset($_[$error])) $string .= "<li>{$_[$error]}</li>";
+			foreach ((array)$errors as $error) if (isset($_[$error])) $string .= "<li>{$_[$error]}</li>";
 			$string .= '</ul><p>'.$_['nextstep'].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$_['continue'].'</a></p>';
 			wp_die($string);
 		}
