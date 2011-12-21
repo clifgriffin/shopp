@@ -130,6 +130,11 @@ function shopp_product_category ( $cat = false, $options = array() ) {
 	$Cat = new ProductCategory( (int) $cat );
 	if ( ! $Cat->id ) return false;
 
+	$defaults = array(
+		'pagination' => false
+	);
+	$options = array_merge($defaults,$options);
+
 	$Cat->load($options);
 
 	return $Cat;
