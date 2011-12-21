@@ -151,8 +151,8 @@ class Item {
 		if ( str_true($Product->variants) ) {
 			$selected = explode(',',$this->option->options); $s = 0;
 			$variants = isset($Product->options['v']) ? $Product->options['v'] : $Product->options;
-			foreach ( $variants as $i => $menu ) {
-				foreach( $menu['options'] as $option ) {
+			foreach ( (array)$variants as $i => $menu ) {
+				foreach( (array)$menu['options'] as $option ) {
 					if ( $option['id'] == $selected[$s] ) {
 						$this->variant[$menu['name']] = $option['name']; break;
 					}
