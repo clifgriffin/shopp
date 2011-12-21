@@ -180,7 +180,10 @@ class Product extends WPShoppObject {
 		if ( empty($ids) ) return;
 
 		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
-		if (!empty($this->id) && $this->id == $ids) $this->resum();
+		if (!empty($this->id) && $this->id == $ids) {
+			$this->load_summary($ids);
+			$this->resum();
+		}
 
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
@@ -209,13 +212,13 @@ class Product extends WPShoppObject {
 
 	function load_meta ($ids) {
 		if ( empty($ids) ) return;
-		$table = DatabaseObject::tablename(ObjectMeta::$table);
-		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		$table = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	function load_coverimages ($ids) {
 		if ( empty($ids) ) return;
-		$table = DatabaseObject::tablename(ObjectMeta::$table);
+		$table = DatabaseObject::tablename(MetaObject::$table);
 		DB::query("SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
