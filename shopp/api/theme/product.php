@@ -559,8 +559,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function has_variations ($result, $options, $O) {
-		if (0 == $O->options) $O->load_data(array('summary','meta','prices'));
-		return ('on' == $O->variants && (!empty($O->options['v']) || !empty($O->options)));
+		if (str_true($O->variants) && empty($O->options)) $O->load_data(array('summary','meta','prices'));
+		return (str_true($O->variants) && (!empty($O->options['v']) || !empty($O->options)));
 	}
 
 	static function id ($result, $options, $O) { return $O->id; }

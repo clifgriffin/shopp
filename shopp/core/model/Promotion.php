@@ -81,9 +81,6 @@ class Promotion extends DatabaseObject {
 						$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (prc.product=tr.object_id)";
 						$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id)";
 						$joins[$wpdb->terms] = "INNER JOIN $wpdb->terms AS tm ON (tm.term_id=tt.term_id)";
-
-						// $joins[$catalog_table] = "LEFT JOIN $catalog_table AS catalog ON catalog.product=prc.product";
-						// $joins[$category_table] = "LEFT JOIN $category_table AS cat ON catalog.parent=cat.id AND catalog.type='category'";
 						break;
 					case "Variation": $where[] = "prc.label$match"; break;
 					case "Price": $where[] = "prc.price$match"; break;
@@ -125,23 +122,21 @@ class Promotion extends DatabaseObject {
 		// Remove discounts from pricetags that now don't match the conditions
 		if (!empty($removed)) $this->uncatalog_discounts($removed);
 
-		// Recalculate product stats for the products with pricetags that have changed
+		// Recalculate product stats for products with pricetags that have changed
 		$Collection = new PromoProducts(array('id' => $this->id));
-		$Collection->pagination = false;
-		$Collection->load( array('load'=>array('prices')) );
+		$Collection->load( array('load'=>array('prices'),'pagination' => false) );
 	}
 
 	function uncatalog_discounts ($pricetags) {
-		$db =& DB::get();
 		$_table = DatabaseObject::tablename(Price::$table);
 		if (empty($pricetags)) return;
 
-		$discounted = $db->query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE id IN ('".join(',',$pricetags)."')",AS_ARRAY);
+		$discounted = DB::query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE id IN ('".join(',',$pricetags)."')",'array');
 
 		foreach ($discounted as $index => $pricetag) {
 			$promos = explode(',',$pricetag->discounts);
 			array_splice($promos,($offset-1),1);
-			$db->query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
+			DB::query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
 		}
 	}
 
@@ -356,6 +351,13 @@ class Promotion extends DatabaseObject {
 		if (empty($ids) || !is_array($ids)) return false;
 		$table = DatabaseObject::tablename(self::$table);
 		DB::query("UPDATE $table SET status='enabled' WHERE id IN (".join(',',$ids).")");
+
+		$catalogpromos = DB::query("SELECT id FROM $table WHERE target='Catalog'",'array','col','id');
+		foreach ($catalogpromos as $promoid) {
+			$Promo = new Promotion($promoid);
+			$Promo->catalog_discounts();
+		}
+
 		return true;
 	}
 
@@ -372,6 +374,13 @@ class Promotion extends DatabaseObject {
 		if (empty($ids) || !is_array($ids)) return false;
 		$table = DatabaseObject::tablename(self::$table);
 		DB::query("UPDATE $table SET status='disabled' WHERE id IN (".join(',',$ids).")");
+
+		$catalogpromos = DB::query("SELECT id FROM $table WHERE target='Catalog'",'array','col','id');
+		foreach ($catalogpromos as $promoid) {
+			$Promo = new Promotion($promoid);
+			$Promo->catalog_discounts();
+		}
+
 		return true;
 	}
 
