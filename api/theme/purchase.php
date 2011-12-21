@@ -125,7 +125,6 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	static function company ($result, $options, $O) { return esc_html($O->company); }
 
 	static function country ($result, $options, $O) {
-		global $Shopp;
 		$countries = shopp_setting('target_markets');
 		return $countries[$O->country];
 	}
