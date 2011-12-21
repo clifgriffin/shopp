@@ -668,6 +668,7 @@ class Order {
 		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->shipping;
 		$Purchase->ip = $Shopping->ip;
+		$Purchase->created = current_time('mysql');
 		$Purchase->save();
 
 		$this->unlock();
