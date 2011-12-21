@@ -68,7 +68,7 @@ class CategoryAPITests extends ShoppTestCase {
 			while(shopp('category','products')) shopp('product','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('129302245694136656849595212812733',$output);
+		$this->assertEquals('1293022456941366568',$output);
 	}
 
 	function test_category_total () {
@@ -95,7 +95,7 @@ class CategoryAPITests extends ShoppTestCase {
 			while(shopp('category','subcategories')) shopp('subcategory','id');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('357',$output);
+		$this->assertEquals('5151711719',$output);
 	}
 
 	function test_category_subcategorylist () {
