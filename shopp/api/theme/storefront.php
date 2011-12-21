@@ -235,7 +235,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		} elseif (is_thanks_page()) {
 			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
 			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
-		} elseif (is_shopp_collection() || !empty($Storefront->search)) {
+		} elseif (is_shopp_collection()) {
 			// collections
 			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
 		} elseif (is_shopp_taxonomy()) {
