@@ -538,13 +538,13 @@ function shopp_product_specs ( $product = false ) {
  * @param int $product the product id to get the variants for
  * @return array of variant Price objects, empty array if no variants, false on error
  **/
-function shopp_product_variants ( $product = false ) {
+function shopp_product_variants ( $product = false, $load_by = 'id' ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Product = new Product($product);
+	$Product = new Product($product,$load_by);
 	if ( empty($Product->id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
@@ -567,13 +567,13 @@ function shopp_product_variants ( $product = false ) {
  * @param int $product the product id to get the addons for
  * @return array of addon Price objects, empty array if no addons, false on error
  **/
-function shopp_product_addons ( $product = false ) {
+function shopp_product_addons ( $product = false, $load_by = 'id' ) {
 	if ( false === $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$Product = new Product($product);
+	$Product = new Product($product,$load_by);
 	if ( empty($Product->id) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to load product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;

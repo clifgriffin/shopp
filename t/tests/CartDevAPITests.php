@@ -110,10 +110,8 @@ class CartDevAPITests extends ShoppTestCase {
 	}
 
 	function test_shopp_add_cart_variant () {
-		$Product = shopp_product('Code Is Poetry T-Shirt', 'name');
-		$Variant = reset($Product->prices);
-		$Variant = next($Product->prices);
-
+		$variants = shopp_product_variants('code-is-poetry-t-shirt', 'slug');
+		$Variant = reset($variants);
 		shopp_add_cart_variant ( $Variant->id, 1 );
 
 		$item = shopp_cart_item('recent-cartitem');
