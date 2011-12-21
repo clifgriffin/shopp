@@ -209,16 +209,14 @@ class Product extends WPShoppObject {
 
 	function load_meta ($ids) {
 		if ( empty($ids) ) return;
-		$Object = new ObjectMeta();
-
+		$table = DatabaseObject::tablename(ObjectMeta::$table);
 		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	function load_coverimages ($ids) {
 		if ( empty($ids) ) return;
-		$Object = new ObjectMeta();
-
-		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND sortorder=0 AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		$table = DatabaseObject::tablename(ObjectMeta::$table);
+		DB::query("SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	function load_sold ($ids) {
