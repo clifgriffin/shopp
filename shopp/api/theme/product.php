@@ -469,7 +469,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$scaled = $img->scaled($width,$height,$scale);
 
 			if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
-				$href = shoppurl(SHOPP_PERMALINKS?trailingslashit('000'):'000','images');
+				$href = shoppurl('' != get_option('permalink_structure')?trailingslashit('000'):'000','images');
 				$previews .= '<li'.(($firstPreview)?' class="fill"':'').'>';
 				$previews .= '<img src="'.add_query_string("$maxwidth,$maxheight",$href).'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
 				$previews .= '</li>';
@@ -479,7 +479,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 
-			$href = shoppurl(SHOPP_PERMALINKS?trailingslashit($img->id).$img->filename:$img->id,'images');
+			$href = shoppurl('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
 			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').''.$title.'>';
 			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
 			$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
