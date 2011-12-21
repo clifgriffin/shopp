@@ -165,7 +165,7 @@ class Product extends WPShoppObject {
 	function load_summary ($ids) {
 		if ( empty($ids) ) return;
 		$Object = new ProductSummary();
-		DB::query("SELECT *,modified AS summed FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'summary'));
+		DB::query("SELECT *,modified AS summed FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'sumloader'));
 	}
 
 	/**
@@ -179,11 +179,8 @@ class Product extends WPShoppObject {
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
 
-		// Load in single product load contexts when the summary has not already been loaded
-		if (!empty($this->id) && $this->id == $ids) {
-			$this->load_summary($ids);
-			$this->resum();
-		}
+		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
+		if (!empty($this->id) && $this->id == $ids) $this->resum();
 
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
@@ -306,7 +303,7 @@ class Product extends WPShoppObject {
 
 		$resum = false;
 		if (isset($record->summed)) { // Loaded from the collection loader
-			$Object->summary($records,$record);
+			$Object->sumloader($records,$record);
 
 			$update = DB::mktime(ProductSummary::$_updates);
 			if (DB::mktime($record->summed) == $update) $resum = true; // Forced resum
@@ -380,6 +377,59 @@ class Product extends WPShoppObject {
 		}
 
 		parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);
+	}
+
+	/**
+	 * Populates the product with summary data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function sumloader (&$records,&$data) {
+
+		$Summary = new ProductSummary();
+		$properties = array_keys($Summary->_datatypes);
+		$ignore = array('product','modified');
+
+		foreach ($properties as $property) {
+			if ($property{0} == '_') continue;
+			if (in_array($property,$ignore)) continue;
+
+			switch ($property) {
+				case 'ranges':
+					$ranges = explode(',',$data->{$property});
+					$minmax = array('min','max'); $i = 0;
+					foreach ($minmax as $m) {
+						$range = &$this->$m;
+						foreach (ProductSummary::$_ranges as $prop) {
+							if (isset($ranges[$i])) $range[$prop] = (float)$ranges[$i++];
+						}
+					}
+					break;
+				case 'taxed':
+					$taxed = explode(',',$data->{$property});
+					foreach ($taxed as $pricetag) {
+						if ( ! $pricetag ) continue;
+						list($m,$name) = explode(' ',$pricetag);
+
+						if (empty($m)) continue;
+						$range = &$this->$m;
+						$range[$name.'_tax'] = true;
+					}
+					break;
+				default: $this->{$property} = isset($data->{$property})?($data->{$property}):false;
+			}
+			if ( isset($this->$property) ) {
+				if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
+				else $this->checksum .= $this->$property;
+			}
+		}
+		$this->checksum = md5($this->checksum);
+
+		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
+
 	}
 
 	/**
@@ -462,8 +512,9 @@ class Product extends WPShoppObject {
 			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
 			if (!empty($price->discounts)) $price->promoprice = Promotion::pricing($pricetag,$price->discounts);
 			else $price->promoprice = $pricetag;
-			if ($price->promoprice < $price->price) $target->sale = 'on';
 		}
+
+		if ($price->promoprice < $price->price) $price->sale = $target->sale = 'on';
 
 		// Grab price and saleprice ranges (minimum - maximum)
 		if (!$price->price) $price->price = 0;
@@ -550,61 +601,6 @@ class Product extends WPShoppObject {
 	}
 
 	/**
-	 * Populates the product with summary data
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	function summary (&$records,&$data) {
-
-		$Summary = new ProductSummary();
-		$properties = array_keys($Summary->_datatypes);
-		$ignore = array('product','modified');
-
-		foreach ($properties as $property) {
-			if ($property{0} == '_') continue;
-			if (in_array($property,$ignore)) continue;
-
-			switch ($property) {
-				case 'ranges':
-					$ranges = explode(',',$data->{$property});
-					$minmax = array('min','max'); $i = 0;
-					foreach ($minmax as $m) {
-						$range = &$this->$m;
-						foreach (ProductSummary::$_ranges as $prop) {
-							if (isset($ranges[$i])) $range[$prop] = (float)$ranges[$i++];
-						}
-					}
-					break;
-				case 'taxed':
-					$taxed = explode(',',$data->{$property});
-					foreach ($taxed as $pricetag) {
-						if ( ! $pricetag ) continue;
-						list($m,$name) = explode(' ',$pricetag);
-
-						if (empty($m)) continue;
-						$range = &$this->$m;
-						$range[$name.'_tax'] = true;
-					}
-					break;
-				default: $this->{$property} = isset($data->{$property})?($data->{$property}):false;
-			}
-			if ( isset($this->$property) ) {
-				if ('float' == $Summary->_datatypes[$property]) $this->checksum .= (float)$this->$property;
-				else $this->checksum .= $this->$property;
-			}
-		}
-		$this->checksum = md5($this->checksum);
-
-		if (isset($data->summed)) {
-			$this->summed = DB::mktime($data->summed);
-		}
-
-	}
-
-	/**
 	 * Calculates aggregate product stats from posted price data
 	 *
 	 * @author Jonathan Davis
@@ -674,8 +670,8 @@ class Product extends WPShoppObject {
 			if ($property{0} == '_') continue;
 			if (in_array($property,$ignore)) continue;
 			switch ($property) {
-				case 'minprice': $this->minprice = (float)(str_true($this->sale)?$this->min['saleprice']:$this->min['price']); break;
-				case 'maxprice': $this->maxprice = (float)$this->max['price']; break;
+				case 'minprice': $this->minprice = (float)$this->min[ str_true($this->sale)?'saleprice':'price' ]; break;
+				case 'maxprice': $this->maxprice = (float)$this->max[ str_true($this->sale)?'saleprice':'price' ]; break;
 				case 'ranges':
 					$ranges = array();
 					foreach ($minmax as $m) {
@@ -703,8 +699,7 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		$checksum = md5($checksum);
-		if ($checksum == $this->checksum) return;
+		if (md5($checksum) == $this->checksum) return;
 
 		$Summary->copydata($this);
 		if (isset($this->summed))
