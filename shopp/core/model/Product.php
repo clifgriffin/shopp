@@ -195,10 +195,7 @@ class Product extends WPShoppObject {
 		}
 
 		// Load product sales counts
-		$purchase = DatabaseObject::tablename(Purchase::$table);
-		$purchased = DatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus !='void' GROUP BY p.product";
-		DB::query($query,'array',array($this,'sold'));
+		$this->load_sold($ids);
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -222,6 +219,14 @@ class Product extends WPShoppObject {
 		$Object = new ObjectMeta();
 
 		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND sortorder=0 AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+	}
+
+	function load_sold ($ids) {
+		if ( empty($ids) ) return;
+		$purchase = DatabaseObject::tablename(Purchase::$table);
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus !='void' GROUP BY p.product";
+		DB::query($query,'array',array($this,'sold'));
 	}
 
 	/**
@@ -626,13 +631,6 @@ class Product extends WPShoppObject {
 			if ( ! isset($this->lowstock) ) $this->lowstock = 'none';
 			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
 		} elseif (!$this->inventory) $this->inventory = 'off';
-
-		// if (!isset($this->_soldcount)) { // Only recalculate sold count once
-		// 	$sc = $this->sold();
-		// 	$this->sold = $sc->sold;
-		// 	$this->grossed = $sc->grossed;
-		// 	$this->_soldcount = true;
-		// }
 
 	}
 

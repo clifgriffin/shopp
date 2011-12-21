@@ -751,6 +751,7 @@ class Warehouse extends AdminController {
 			unset($Price);
 		} // END if (!empty($_POST['price']))
 
+		$Product->load_sold($Product->id); // Refresh accurate product sales stats
 		$Product->sumup();
 
 		if (!empty($_POST['meta']['options']))
