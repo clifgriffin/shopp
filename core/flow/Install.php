@@ -123,16 +123,19 @@ class ShoppInstallation extends FlowController {
 	function install () {
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 
-		// Install tables
 		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-install');
 
+		// Remove any old product post types and taxonomies to prevent duplication of irrelevant data
+		DB::query("DELETE FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
+		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='".ProductCategory::$taxonomy."' OR taxonomy='".ProductTag::$taxonomy."'");
+
+		// Install tables
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_contents();
 		ob_end_clean();
 
-		$db = DB::get();
-		$db->loaddata($schema);
+		DB::loaddata($schema);
 		unset($schema);
 
 	}
