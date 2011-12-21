@@ -50,12 +50,15 @@
 		foreach ($gateways as $gateway):
 			$id = false;
 			if (false !== strpos($gateway,'-')) list($gateway,$id) = explode('-',$gateway);
+
 			if (!isset($Gateways->active[$gateway])) continue;
 			$Gateway = $Gateways->active[$gateway];
 			$payment = $Gateway->settings;
 
-			if (false !== $id) $payment = $Gateway->settings[$id];
-			$slug = join('-',array_filter(array($gateway,$id)));
+			if (false !== $id) {
+				$payment = $Gateway->settings[$id];
+				$slug = join('-',array($gateway,$id));
+			} else $slug = $gateway;
 
 			$cards = array();
 			if (isset($payment['cards'])) {
