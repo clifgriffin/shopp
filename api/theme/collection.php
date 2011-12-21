@@ -724,7 +724,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$imgdefaults,$options);
 		extract($options, EXTR_SKIP);
 
-		$href = shoppurl(SHOPP_PERMALINKS?trailingslashit('000'):'000','images');
+		$href = shoppurl('' != get_option('permalink_structure')?trailingslashit('000'):'000','images');
 		$imgsrc = add_query_string("$width,$height",$href);
 
 		$string = '<ul class="slideshow '.$fx.'-fx '.$order.'-order duration-'.$duration.' delay-'.$delay.'">';
