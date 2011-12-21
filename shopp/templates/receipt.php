@@ -85,7 +85,7 @@
 <?php if(shopp('purchase','has-data')): ?>
 	<ul>
 	<?php while(shopp('purchase','orderdata')): ?>
-		<?php if (shopp('purchase','data','echo=0') == '') continue; ?>
+		<?php if (shopp('purchase','get-data') == '') continue; ?>
 		<li><strong><?php shopp('purchase','data','name'); ?>:</strong> <?php shopp('purchase','data'); ?></li>
 	<?php endwhile; ?>
 	</ul>
