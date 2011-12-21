@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-08 12:53-0500\n"
-"PO-Revision-Date: 2011-11-08 12:53-0500\n"
+"POT-Creation-Date: 2011-12-21 16:55-0500\n"
+"PO-Revision-Date: 2011-12-21 16:55-0500\n"
 "Last-Translator: Jonathan Davis <jond@ingenesis.net>\n"
 "Language-Team: Ingenesis Limited <storefront@shopplugin.net>\n"
 "MIME-Version: 1.0\n"
@@ -18,133 +18,133 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: /Users/jond/Sites/shopp/trunk/shopp\n"
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:237
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:234
 msgid "The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:389
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:394
 #, php-format
 msgid "Your %s is required."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:390
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:395
 msgid "The e-mail address you provided does not appear to be a valid address."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:391
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:396
 #, php-format
 msgid "The %s you entered is too short. It must be at least %d characters long."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:392
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:397
 msgid "The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:393
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:398
 #, php-format
 msgid "%s must be checked before you can proceed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:399
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:404
 msgid "You did not enter a login."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:400
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:405
 msgid "You did not enter a password to login with."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:406
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:411
 msgid "January"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:407
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:412
 msgid "February"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:408
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:413
 msgid "March"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:409
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:414
 msgid "April"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:410
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:415
 msgid "May"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:411
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:416
 msgid "June"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:412
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:417
 msgid "July"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:413
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:418
 msgid "August"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:414
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:419
 msgid "September"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:415
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:420
 msgid "October"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:416
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:421
 msgid "November"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:417
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:422
 msgid "December"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:420
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:425
 msgid "Sun"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:421
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:426
 msgid "Mon"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:422
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:427
 msgid "Tue"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:423
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:428
 msgid "Wed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:424
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:429
 msgid "Thu"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:425
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:430
 msgid "Fri"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:426
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:431
 msgid "Sat"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:678
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:683
 #, php-format
 msgid "There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:682
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:687
 #, php-format
 msgid "There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:691
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:696
 #, php-format
 msgid "Please activate a valid %1$s access key for automatic updates and official support services. %2$s Find your %1$s access key %4$s or %3$s purchase a new key at the Shopp Store. %4$s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:703
+#: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:708
 #, php-format
 msgid "There is a new version of the %1$s add-on available. %3$s Upgrade automatically to version %2$s. %4$s"
 msgstr ""
@@ -162,40 +162,40 @@ msgstr ""
 msgid "The shopp('%s') tag cannot be used in this context because the object responsible for handling it doesn't exist."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:124
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:139
 msgid "Empty Cart"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:195
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:209
 msgid "Apply Promo Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:214
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:228
 msgid "Off!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:223
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:237
 #, php-format
 msgid "Buy %s get %s free"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:274
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:304
 msgid "Free Shipping!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:280
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:310
 msgid "Enter Postal Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:282
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:312
 msgid "Not Available"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:315
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:351
 msgid "Estimate Shipping & Taxes"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:352
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/cart.php:393
 msgid "Update Subtotal"
 msgstr ""
 
@@ -203,136 +203,146 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:213
-msgid "Clear Filters"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:346
-msgid "Select category&hellip;"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:622
-msgid "Search the blog"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:623
-msgid "Search the shop"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:866
-msgid "start slideshow"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:867
-msgid "stop slideshow"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:868
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:572
-msgid "previous"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:869
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:571
-msgid "next"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:870
-msgid "close"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/catalog.php:873
-#, php-format
-msgid "image %s of %s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:459
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:461
 msgid "Return to Checkout"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:460
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:462
 msgid "Confirm Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:584
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:586
 msgid "Updating"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:897
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:625
+msgid "Checkout as a guest"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:924
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:517
 msgid "Residential shipping address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:905
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:945
+msgid "Same billing address"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:958
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:525
 msgid "Same shipping address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:1025
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/checkout.php:1085
 msgid "Submit Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:570
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:577
 msgid "Pages:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:755
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:912
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:578
+msgid "next"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:579
+msgid "previous"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/collection.php:771
 msgid "Select a sub-category&hellip;"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:364
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:367
 msgid "Email Address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:365
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:368
 msgid "Login Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:507
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:485
 msgid "Get New Password"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:551
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:493
+msgid "Register"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:534
 msgid "Save"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:648
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Account.php:238
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/customer.php:631
 msgid "Login"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:131
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:909
-msgid "You must select the options for this item before you can add it to your shopping cart."
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:168
+msgid "You must select addon options for this item before you can add it to your shopping cart."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:134
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:915
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:185
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:1016
 msgid "Options"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:199
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:263
 msgid "Add to Cart"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:232
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:305
 msgid "Buy Now"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/product.php:1007
+msgid "You must select the options for this item before you can add it to your shopping cart."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/api/theme/purchase.php:231
 #: /Users/jond/Sites/shopp/trunk/shopp/api/theme/purchase.php:280
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:395
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:332
 msgid "Download"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/shipping.php:153
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/shipping.php:204
 msgid "Update Shipping"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/DB.php:1050
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:346
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:382
+msgid "Select category&hellip;"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:668
+msgid "Search the blog"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:669
+msgid "Search the shop"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:913
+msgid "start slideshow"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:914
+msgid "stop slideshow"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:917
+msgid "close"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/api/theme/storefront.php:920
+#, php-format
+msgid "image %s of %s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/DB.php:1053
 msgid "Posts"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/DB.php:1051
+#: /Users/jond/Sites/shopp/trunk/shopp/core/DB.php:1054
 msgid "Post"
 msgstr ""
 
@@ -408,11 +418,11 @@ msgstr ""
 msgid "Dec"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/functions.php:1224
+#: /Users/jond/Sites/shopp/trunk/shopp/core/functions.php:1259
 msgid "bytes"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/functions.php:1479
+#: /Users/jond/Sites/shopp/trunk/shopp/core/functions.php:1529
 msgid "Could not open the email template because the file does not exist or is not readable."
 msgstr ""
 
@@ -500,7 +510,7 @@ msgid "Last Week"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Account.php:198
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:543
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:544
 msgid "Last 30 Days"
 msgstr ""
 
@@ -541,9 +551,9 @@ msgid "Microsoft&reg; Excel.xls"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Account.php:237
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:281
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:596
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:337
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:282
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:597
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:274
 msgid "Name"
 msgstr ""
 
@@ -566,9 +576,9 @@ msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Account.php:273
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:189
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:384
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:437
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:560
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:321
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:374
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:497
 msgid "You do not have sufficient permissions to access this page."
 msgstr ""
 
@@ -581,8 +591,8 @@ msgid "Customers"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:99
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:284
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:339
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:285
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:276
 msgid "Products"
 msgstr ""
 
@@ -595,7 +605,7 @@ msgid "Promotions"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:112
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:154
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:155
 msgid "Setup"
 msgstr ""
 
@@ -631,93 +641,93 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:153
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:154
 msgid "Catalog"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:282
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:283
 msgid "Description"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:283
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:338
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:284
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:275
 msgid "Slug"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:460
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:461
 msgid "New Product"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:476
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:477
 msgid "Shopp Stats"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:480
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:481
 msgid "Shopp Orders"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:484
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:485
 msgid "Shopp Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:543
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:544
 msgid "Lifetime"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:545
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:546
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:547
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:91
 msgid "Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:548
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:549
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:550
 msgid "Sales"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:551
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:552
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:553
 msgid "Average Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:596
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:597
 msgid "Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:596
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:597
 msgid "Items"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:596
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:597
 msgid "Total"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:596
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:597
 msgid "Status"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:611
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:612
 msgid "No orders, yet."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:651
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:652
 msgid "Recent Bestsellers"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:653
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:662
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:654
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:663
 msgid "Nothing has been sold, yet."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:660
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:661
 msgid "Lifetime Bestsellers"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:753
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:754
 msgid "Insert Product Category or Product"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:754
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:755
 msgid "Insert a product or category from Shopp..."
 msgstr ""
 
@@ -725,33 +735,39 @@ msgstr ""
 msgid "Catalog Pages"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:905
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:844
+msgid "Catalog Collections"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:939
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:1005
 msgid "Select All"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:910
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:944
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Admin.php:1010
 msgid "Add to Menu"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:481
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:507
 msgid "No file import URL was provided."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:512
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:538
 msgid "A temporary file could not be created for importing the file."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:513
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:539
 #, php-format
 msgid "A temporary file at %s could not be opened for importing."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:515
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:541
 #, php-format
 msgid "The file at %s could not be opened for importing."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:518
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Ajax.php:544
 msgid "The connection timed out while trying to get information about the target file."
 msgstr ""
 
@@ -759,226 +775,294 @@ msgstr ""
 msgid "has been saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:289
-msgid "&laquo;"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:290
-msgid "&raquo;"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:340
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:277
 msgid "Templates"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:341
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:278
 msgid "Menus"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:367
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:304
 msgid "Category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:393
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:330
 msgid "Shipped"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:394
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:331
 msgid "Virtual"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:396
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:333
 msgid "Donation"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:397
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:334
 msgid "N/A"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:405
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:342
 msgid "Price ranges disabled"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:406
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:343
 msgid "Build price ranges automatically"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:407
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:344
 msgid "Use custom price ranges"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:414
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:351
 msgid "Continue Editing"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:415
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:352
 msgid "Categories Manager"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:416
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:353
 msgid "New Category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:417
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:354
 msgid "Edit Next"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:418
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:355
 msgid "Edit Previous"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:507
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:444
 msgid "category saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:545
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Categorize.php:482
 msgid "Product"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:212
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:42
+msgid "Shopp cannot be installed because the database privileges do not allow Shopp to create new tables."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:43
+#, php-format
+msgid "Could not install the Shopp database tables because the table definitions file is missing. (%s)"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:44
+#, php-format
+msgid "Could not upgrade the Shopp database tables because the table definitions file is missing. (%s)"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:45
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:50
+#, php-format
+msgid "Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:51
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:52
+#, php-format
+msgid "For more information about this error, see the %sShopp Documentation%s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:247
 msgid "Merchant"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:212
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:247
 msgid "Customer Service Rep"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:260
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:295
 msgid "Pending"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:260
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:295
 msgid "Completed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:738
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:306
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:375
+msgid "Not as described or expected"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:307
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:376
+msgid "Wrong size"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:308
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:377
+msgid "Found better prices elsewhere"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:309
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:378
+msgid "Product is missing parts"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:310
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:379
+msgid "Product is defective or damaaged"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:311
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:380
+msgid "Took too long to deliver"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:312
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:381
+msgid "Item out of stock"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:313
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:382
+msgid "Customer request to cancel"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:314
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:383
+msgid "Item discontinued"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:315
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:384
+msgid "Other reason"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:889
 msgid "You do not have sufficient permissions to update plugins for this blog."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:742
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:893
 msgid "Upgrade Shopp"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:756
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:771
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:785
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:907
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:922
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:936
 msgid "Upgrade Shopp Add-on"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:849
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1000
 msgid "Invalid URL Provided"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:855
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:859
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1006
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1010
 msgid "Could not create Temporary file"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:940
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1091
 msgid "Shopp is at the latest version."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:941
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1092
 msgid "Shopp upgrade package not available."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:942
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1039
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1093
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1190
 #, php-format
 msgid "Downloading update from <span class=\"code\">%s</span>."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:943
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1040
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1094
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1191
 msgid "Unpacking the update."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:944
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1095
 msgid "Deactivating Shopp."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:945
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1096
 msgid "Removing the old version of Shopp."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:946
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1097
 msgid "Could not remove the old Shopp."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:947
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1098
 msgid "Shopp upgrade Failed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:948
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1099
 msgid "Shopp upgraded successfully."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1010
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1161
 msgid "Finishing Shopp upgrade..."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1037
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1188
 msgid "The add-on is at the latest version."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1038
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1189
 msgid "Upgrade package not available."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1041
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1192
 msgid "Deactivating the add-on."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1042
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1193
 msgid "Removing the old version of the add-on."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1043
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1194
 msgid "Could not remove the old add-on."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1044
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1195
 msgid "Add-on upgrade Failed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1045
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1196
 msgid "Add-on upgraded successfully."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1046
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1197
 msgid "Add-on included successfully."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1083
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Install.php:1234
 #, php-format
 msgid "Updating addon %1$d of %2$d..."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:98
 msgid "You must provide a valid login name or email address to proceed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:135
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:151
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:133
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:149
 msgid "No customer account was found with that email."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:140
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:165
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:138
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:163
 msgid "The password is incorrect."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:164
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:162
 msgid "No customer account was found with that login."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:166
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Login.php:164
 msgid "Unknown login error: "
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Members.php:253
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:211
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:665
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:212
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:664
 msgid "Type"
 msgstr ""
 
@@ -1008,6 +1092,7 @@ msgid "Memberships"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Members.php:286
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1046
 msgid "Downloads"
 msgstr ""
 
@@ -1015,59 +1100,203 @@ msgstr ""
 msgid "The requested membership record does not exist."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:177
-msgid "Active"
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:229
+msgid "The payment method you selected is no longer available. Please choose another."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:461
+msgid "Payment information for this order is missing."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:612
+msgid "Free Order"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:684
+msgid "The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:799
+#, php-format
+msgid "Transaction %s failed. Could not acheive a transaction lock."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:935
+msgid "You must provide your first name."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:938
+msgid "You must provide your last name."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:948
+msgid "You must provide a valid e-mail address."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:951
+msgid "You must agree to the terms of sale."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:959
+msgid "The login name you provided is not available.  Try logging in if you have previously created an account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:974
+msgid "A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:979
+msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:983
+msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:988
+msgid "You must enter a login name for your account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:995
+#, php-format
+msgid "The login name provided includes invalid characters: %s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:999
+msgid "The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1004
+msgid "You must provide a password for your account and confirm it to ensure correct spelling."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1007
+msgid "The passwords you entered do not match. Please re-enter your passwords."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1012
+msgid "You must enter a valid street address for your billing information."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1015
+msgid "You must enter a valid postal code for your billing information."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1018
+msgid "You must select a country for your billing information."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1025
+msgid "You did not provide a credit card number."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1028
+msgid "You did not select a credit card type."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1033
+msgid "The credit card number you provided is invalid."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1036
+msgid "You did not enter the month the credit card expires."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1039
+msgid "You did not enter the year the credit card expires."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1043
+msgid "The credit card expiration date you provided has already expired."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1046
+msgid "You did not enter the name on the credit card you provided."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1049
+msgid "You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1081
+msgid "There are no items in the cart."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1088
+#, php-format
+msgid "%s does not have sufficient stock to process order."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1105
+msgid "There is not enough customer information to process the order."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1120
+#, php-format
+msgid "The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Order.php:1128
+msgid "The shipping address information is incomplete. The order cannot be processed."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:178
-msgid "Not Active"
+msgid "Active"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:179
-msgid "Enabled"
+msgid "Not Active"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:180
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1104
+msgid "Enabled"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:181
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1153
 msgid "Disabled"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:184
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:185
 msgid "Catalog Promotions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:185
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:186
 msgid "Cart Promotions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:186
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:187
 msgid "Cart Item Promotions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:210
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Promote.php:211
 msgid "Discount"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:145
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:146
 #, php-format
 msgid "\"%s\" cannot be downloaded because payment has not been received yet."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:153
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:152
 msgid "You must login to download purchases."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:160
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:158
+msgid "You are not authorized to download the requested file."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:165
 #, php-format
 msgid "\"%s\" is no longer available for download because the download limit has been reached."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:167
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:172
 #, php-format
 msgid "\"%s\" is no longer available for download because it has expired."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:175
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Resources.php:180
 #, php-format
 msgid "\"%s\" cannot be downloaded because your computer could not be verified as the system the file was purchased from."
 msgstr ""
@@ -1108,16 +1337,20 @@ msgstr ""
 msgid "Intuit&reg; QuickBooks.iif"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:251
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:252
 msgid "Destination"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:252
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:253
 msgid "Transaction"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:329
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:330
 msgid "Shipping notice sent."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Service.php:440
+msgid "All Orders"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:41
@@ -1328,264 +1561,332 @@ msgstr ""
 msgid "Map the label to an order state:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:375
-msgid "Not as described or expected"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:376
-msgid "Wrong size"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:377
-msgid "Found better prices elsewhere"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:378
-msgid "Product is missing parts"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:379
-msgid "Product is defective or damaaged"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:380
-msgid "Took too long to deliver"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:381
-msgid "Item out of stock"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:382
-msgid "Customer request to cancel"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:383
-msgid "Item discontinued"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:384
-msgid "Other reason"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:419
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:498
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:556
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:418
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:497
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:555
 msgid "Shipping settings saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:479
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:478
 msgid "Shipping method setting removed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:509
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:508
 msgid "Shipping settings saved but there were errors: "
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:576
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:575
 msgid "Shipping Method"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:636
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:635
 msgid "Anywhere"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:666
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:665
 msgid "Destinations"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:682
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:681
 msgid "Tax settings saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:706
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:705
 msgid "Rate"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:707
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:706
 msgid "Local Rates"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:708
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:707
 msgid "Conditional"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:764
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:767
 msgid "All Markets"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:790
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:829
 msgid "The uploaded file is not properly formatted as an XML, CSV or tab-delimmited file."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:836
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:875
 msgid "No useable tax rates could be found. The uploaded file may not be properly formatted."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:893
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:932
 msgid "Shopp payments settings saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:925
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:964
 msgid "Processor"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:927
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:966
 msgid "SSL"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:928
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:967
 msgid "Captures"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:929
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:968
 msgid "Recurring"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:930
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:969
 msgid "Refunds"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:966
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1005
 msgid "Title"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1042
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1075
+msgid "Delete"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1091
 msgid "Dimensions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1043
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1092
 msgid "Fit"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1044
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1093
 msgid "Quality"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1045
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1094
 msgid "Sharpness"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1073
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1122
 msgid "Shopp system settings saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1078
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1127
 msgid "All cached images have been cleared."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1096
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1106
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1145
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1155
 msgid "Transaction Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1097
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1107
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1146
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1156
 msgid "Login Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1098
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1108
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1147
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1157
 msgid "Add-on Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1099
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1109
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1148
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1158
 msgid "Communication Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1100
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1110
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1149
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1159
 msgid "Inventory Warnings"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1105
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1154
 msgid "General Shopp Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1111
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1160
 msgid "Admin Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1112
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1161
 msgid "Database Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1113
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1162
 msgid "PHP Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1114
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1163
 msgid "All Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1115
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1164
 msgid "Debugging Messages"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1118
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1167
 msgid "Load on Shopp-pages only"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1118
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Setup.php:1167
 msgid "Load on entire site"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:611
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1181
-msgid "Thank You!"
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:416
+msgid "Feed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1117
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:833
 msgid "The store is currently down for maintenance.  We'll be back soon!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1150
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:839
+msgid "We're Sorry!"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1044
+msgid "Logout"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1045
+msgid "Your Orders"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1047
+msgid "My Account"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1050
+msgid "Login to your Account"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1053
+msgid "Dashboard"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1121
+msgid "Enter an email address or login name"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1122
+msgid "Enter an email address"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1128
+msgid "There is no user registered with that email address."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1133
+msgid "There is no user registered with that login name."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1145
+#, php-format
+msgid "[%s] Password Recovery Request"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1152
+msgid "A request has been made to reset the password for the following site and account:"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1156
+#, php-format
+msgid "Email: %s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1158
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1214
+#, php-format
+msgid "Login name: %s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1160
+msgid "To reset your password visit the following address, otherwise just ignore this email and nothing will happen."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1166
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1221
+msgid "The e-mail could not be sent."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1169
+msgid "Check your email address for instructions on resetting the password for your account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1182
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1186
+msgid "Invalid key"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1204
+#, php-format
+msgid "[%s] New Password"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1211
+#, php-format
+msgid "Your new password for %s:"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1215
+#, php-format
+msgid "Password: %s"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1217
+msgid "Click here to login:"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1223
+msgid "Check your email address for your new password."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1338
 msgid "Select an option"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1154
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1157
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1342
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1345
 msgid "Select an add-on"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1176
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1364
 msgid "Shop"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1176
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1364
 msgid "The page title and base slug for products, categories &amp; collections."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1177
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1365
 msgid "Account"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1177
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1365
 msgid "Used to display customer account dashboard &amp; profile pages."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1178
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1366
 msgid "Cart"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1178
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1366
 msgid "Displays the shopping cart."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1179
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1367
 msgid "Checkout"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1179
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1367
 msgid "Displays the checkout form."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1180
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1368
 msgid "Used to display an order summary to confirm changes in order price."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1181
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1369
+msgid "Thank You!"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Storefront.php:1369
 msgid "The final page of the ordering process."
 msgstr ""
 
@@ -1623,7 +1924,7 @@ msgid "Not stocked"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:289
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:884
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:893
 msgid "All"
 msgstr ""
 
@@ -1636,8 +1937,8 @@ msgid "On Sale"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:292
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:472
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:487
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:473
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:488
 msgid "Featured"
 msgstr ""
 
@@ -1646,9 +1947,9 @@ msgid "Bestselling"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:294
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:471
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:476
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:486
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:472
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:477
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:487
 msgid "Inventory"
 msgstr ""
 
@@ -1656,44 +1957,44 @@ msgstr ""
 msgid "Trash"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:430
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:431
 msgid "Publish"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:431
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:432
 msgid "Unpublish"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:432
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:433
 msgid "Feature"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:433
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:434
 msgid "De-feature"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:434
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:435
 msgid "Move to trash"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:439
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:440
 msgid "Restore"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:440
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:441
 msgid "Delete permanently"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:470
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:485
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:471
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:486
 msgid "Price"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:477
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:478
 msgid "SKU"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:483
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:484
 msgid "Sold"
 msgstr ""
 
@@ -1701,599 +2002,504 @@ msgstr ""
 msgid "Products Manager"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:865
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:926
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:840
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:896
 msgid "The file could not be saved because the upload was not found on the server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:868
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:843
 msgid "The file could not be saved because the web server does not have permission to read the upload."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:871
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:932
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:846
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:902
 msgid "The file could not be saved because the uploaded file is empty."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:923
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:893
 msgid "The file could not be saved because the server cannot tell whether to attach the asset to a product or a category."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:929
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:899
 msgid "The file could not be saved because the web server does not have permission to read the upload from the server's temporary directory."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:946
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:916
 msgid "The image already exists, but a new filename could not be generated."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:952
+#: /Users/jond/Sites/shopp/trunk/shopp/core/flow/Warehouse.php:922
 msgid "The image reference was not saved to the database."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:98
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:143
 msgid "Billing Street Address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:144
 msgid "Billing Street Address 2"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:100
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:145
 msgid "Billing City"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:101
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:146
 msgid "Billing State/Province"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:147
 msgid "Billing Country"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:103
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:148
 msgid "Billing Postal Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:151
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:196
 msgid "Shipping Street Address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:152
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:197
 msgid "Shipping Street Address 2"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:153
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:198
 msgid "Shipping City"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:154
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:199
 msgid "Shipping State/Province"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:155
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:200
 msgid "Shipping Country"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:156
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Address.php:201
 msgid "Shipping Postal Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:885
-msgid "Fill"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:886
-msgid "Crop"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:887
-msgid "Width"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:888
-msgid "Height"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:893
-msgid "Highest quality, largest file size"
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:415
+#, php-format
+msgid "Download failed. \"%s\" could not be found."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:894
-msgid "Higher quality, larger file size"
+msgid "Fill"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:895
-msgid "Balanced quality &amp; file size"
+msgid "Crop"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:896
-msgid "Lower quality, smaller file size"
+msgid "Width"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:897
+msgid "Height"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:902
+msgid "Highest quality, largest file size"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:903
+msgid "Higher quality, larger file size"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:904
+msgid "Balanced quality &amp; file size"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:905
+msgid "Lower quality, smaller file size"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Asset.php:906
 msgid "Lowest quality, smallest file size"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:201
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:202
 msgid "Edit shopping cart"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:203
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:204
 msgid "Proceed to Checkout"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:776
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:788
 msgid "No additional codes can be applied."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:859
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:871
 #, php-format
 msgid "%s is not a valid code."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:932
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Cart.php:948
 #, php-format
 msgid "%s has already been applied."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:266
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:275
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:312
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:321
 msgid "from "
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:420
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:478
 msgid "Catalog Groups"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:421
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:479
 msgid "Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:422
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:480
 msgid "Search Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:423
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:651
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1267
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:481
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:693
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1275
 msgid "Popular"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:424
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:652
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1268
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:482
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:694
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1276
 msgid "Show All"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:425
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:483
 msgid "Parent Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:426
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:484
 msgid "Parent Catalog Group:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:427
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:485
 msgid "Edit Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:428
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:486
 msgid "Update Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:429
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:487
 msgid "New Catalog Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:430
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:488
 msgid "New Catalog Group Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:431
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:489
 msgid "Separate catalog groups with commas"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:432
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:490
 msgid "Add or remove catalog groups"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:433
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:491
 msgid "Choose from the most used catalog groups"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:648
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:690
 msgid "Catalog Categories"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:650
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:692
 msgid "Search Categories"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:653
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:695
 msgid "Parent Category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:654
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:696
 msgid "Parent Category:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:655
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:697
 msgid "Edit Category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:656
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:698
 msgid "Update Category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:658
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:700
 msgid "New Category Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:692
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:735
 msgid "Price Filter"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:823
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:866
 #, php-format
 msgid "Under %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:824
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:867
 #, php-format
 msgid "%s and up"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:887
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:930
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1232
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:973
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1240
 msgid "Under "
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:893
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:931
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1233
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:936
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:974
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1241
 msgid "and up"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1192
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1198
 msgid "Recommended"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1194
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1200
 msgid "Price High to Low"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1195
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1201
 msgid "Price Low to High"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1196
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1202
 msgid "Newest to Oldest"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1197
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1203
 msgid "Oldest to Newest"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1198
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1204
 msgid "Random"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1264
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1272
 msgid "Catalog Tags"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1265
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1273
 msgid "Tag"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1266
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1274
 msgid "Search Tag"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1269
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1277
 msgid "Edit Tag"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1270
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1278
 msgid "Update Tag"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1271
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1279
 msgid "New Tag"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1272
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1280
 msgid "New Tag Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1273
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1281
 msgid "Separate tags with commas"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1274
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1282
 #, php-format
 msgid "Type a tag name and press tab %s to add it."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1274
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1282
 msgid "tab key"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1275
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1283
 msgid "Type to search, or wait for popular tags&hellip;"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1323
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1333
 msgid "Catalog Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1336
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1346
 msgid "New Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1350
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1360
 msgid "Featured Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1377
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1387
 msgid "Bestsellers"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1463
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1484
 msgid "(no search terms)"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1464
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1485
 msgid "Search Results for"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1493
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1523
 #, php-format
 msgid "Products tagged \"%s\""
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1556
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1586
 msgid "Products related to"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1583
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1613
 msgid "Customers also bought&hellip;"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1610
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1640
 #, php-format
 msgid "Customers that bought \"%s\" also bought&hellip;"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1643
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1674
 msgid "Random Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1667
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Collection.php:1698
 msgid "Recently Viewed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:116
-msgid "Logout"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:117
-msgid "Order History"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:119
-msgid "My Account"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:159
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1006
-msgid "The passwords you entered do not match. Please re-enter your passwords."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:228
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:156
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:245
 #, php-format
 msgid "Order number %s could not be found in your order history."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:252
-msgid "Enter an email address or login name"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:253
-msgid "Enter an email address"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:259
-msgid "There is no user registered with that email address."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:264
-msgid "There is no user registered with that login name."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:276
-#, php-format
-msgid "[%s] Password Recovery Request"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:283
-msgid "A request has been made to reset the password for the following site and account:"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:287
-#, php-format
-msgid "Email: %s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:289
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:345
-#, php-format
-msgid "Login name: %s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:291
-msgid "To reset your password visit the following address, otherwise just ignore this email and nothing will happen."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:297
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:352
-msgid "The e-mail could not be sent."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:300
-msgid "Check your email address for instructions on resetting the password for your account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:313
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:317
-msgid "Invalid key"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:335
-#, php-format
-msgid "[%s] New Password"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:342
-#, php-format
-msgid "Your new password for %s:"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:346
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:385
-#, php-format
-msgid "Password: %s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:348
-msgid "Click here to login:"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:354
-msgid "Check your email address for your new password."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:368
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:381
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:173
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:186
 #, php-format
 msgid "[%s] New Customer Registration"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:370
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:383
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:175
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:188
 #, php-format
 msgid "New customer registration on your \"%s\" store:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:371
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:384
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:176
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:189
 #, php-format
 msgid "E-mail: %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:440
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:266
 msgid "This login name is invalid because it uses illegal characters. Please enter a valid login name."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:444
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:270
 msgid "The login name is already registered. Please choose another login name."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:490
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:293
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:316
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:339
 msgid "Customer's First Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:491
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:294
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:317
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:340
 msgid "Customer's Last Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:492
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:295
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:318
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:341
 msgid "Customer's Email Address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:493
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:296
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:319
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:342
 msgid "Customer's Phone Number"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:494
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:297
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:320
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:343
 msgid "Customer's Company"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:495
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:321
 msgid "Customer's Marketing Preference"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:497
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:323
 msgid "Customer Created Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:498
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Customer.php:324
 msgid "Customer Last Updated Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Error.php:556
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Error.php:555
 msgid "Shopp Notification"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Error.php:558
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Error.php:557
 msgid "This is an automated notification message generated by the Shopp installation at "
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:105
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:108
 msgid "Credit Card"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:539
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:546
 msgid "Option Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:552
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:559
 msgid "Save Changes"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:623
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Gateway.php:636
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:583
-msgid "Free Order"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:182
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:216
 msgid "The product could not be added to the cart because it could not be found."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:186
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:220
 msgid "The product could not be added to the cart because it is not in stock."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:241
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:273
 msgid "Not enough of the product is available in stock to fulfill your request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:414
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:421
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:450
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:457
 msgid "Free"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:415
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:422
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:451
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:458
 msgid "for"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:454
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:468
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:491
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:505
 #, php-format
 msgid "%s is now out-of-stock!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:456
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:471
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:493
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Item.php:508
 #, php-format
 msgid "%s has low stock levels and should be re-ordered soon."
 msgstr ""
@@ -3520,341 +3726,349 @@ msgstr ""
 msgid "Tax-Exempt"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:670
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:672
 msgid "All together by weight"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:671
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:673
 msgid "All together with dimensions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:672
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:674
 msgid "Only like items together"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:673
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:675
 msgid "Each piece separately"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:682
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:684
 msgid "US Postal Service"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:684
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:686
 msgid "Australia Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:685
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:687
 msgid "Canada Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:686
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:688
 msgid "China Air Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:687
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:689
 msgid "EMS China"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:688
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:690
 msgid "Hong Kong Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:689
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:691
 msgid "India Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:690
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:692
 msgid "Japan Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:691
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:693
 msgid "Parcelforce"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:692
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:694
 msgid "Post Danmark"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:693
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:695
 msgid "Posten Norway"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:694
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:696
 msgid "Posten Sweden"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:695
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:697
 msgid "Purolator"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:696
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:698
 msgid "Thailand Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:697
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:699
 msgid "New Zealand Post"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:734
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:736
 msgid "Charged"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:735
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:747
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:737
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:751
 msgid "Refunded"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:736
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:748
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:738
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:752
 msgid "Void"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:743
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:745
 msgid "Review"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:744
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:746
+msgid "Purchase Order"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:747
+msgid "Invoiced"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:748
 msgid "Authorized"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:745
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:749
 msgid "Paid"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:749
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:753
 msgid "Closed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:834
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:838
 #, php-format
 msgid "%d day"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:835
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:839
 #, php-format
 msgid "%d week"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:836
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:840
 #, php-format
 msgid "%d month"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:860
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:864
 #, php-format
 msgid "For help with this, contact the Shopp %ssupport team%s."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:861
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:865
 #, php-format
 msgid "For help with this, contact Shopp %scustomer service%s."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:862
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:866
 msgid "For help with this, contact your web hosting provider or server administrator."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:863
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:867
 msgid "For help with this, contact your website developer."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:864
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:868
 msgid "For help with this, contact the website administrator."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:870
-#, php-format
-msgid "The uploaded file is too big for the server.%s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:871
-#, php-format
-msgid "Files must be less than %s."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:874
 #, php-format
-msgid "The uploaded file is too big.%s"
+msgid "The uploaded file is too big for the server.%s"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:875
 #, php-format
-msgid "Files must be less than %s. Please try again with a smaller file."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:877
-msgid "The file upload did not complete correctly."
+msgid "Files must be less than %s."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:878
-msgid "No file was uploaded."
+#, php-format
+msgid "The uploaded file is too big.%s"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:879
+#, php-format
+msgid "Files must be less than %s. Please try again with a smaller file."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:881
+msgid "The file upload did not complete correctly."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:882
+msgid "No file was uploaded."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:883
 msgid "The server is missing the necessary temporary folder."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:880
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:884
 #, php-format
 msgid "The file could not be saved to the server.%s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:881
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:885
 msgid "The file upload was stopped by a server extension."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:886
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:890
 msgid "The file specified is not a valid upload and is out of bounds. Nice try though!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:887
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:891
 msgid "The uploaded file cannot be read by the web server and is unusable."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:888
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:892
 msgid "The uploaded file is empty."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:889
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:893
 msgid "The size of the uploaded file does not match the size reported by the client. Something fishy going on?"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:893
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:897
 msgid "Could not connect to the shopplugin.net server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:894
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:898
 msgid "No response was sent back by the shopplugin.net server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:895
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:899
 msgid "The connection to the shopplugin.net server failed due to an unknown error."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:896
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:912
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:928
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:900
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:916
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:932
 msgid "The server couldn't understand the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:897
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:913
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:929
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:901
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:917
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:933
 msgid "The server requires login authentication and denied access."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:898
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:914
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:930
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:902
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:918
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:934
 msgid "The server refused the connection."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:899
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:903
 msgid "The requested resource does not exist on the shopplugin.net server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:900
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:904
 msgid "The shopplugin.net server experienced an error and could not handle the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:901
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:905
 msgid "The shopplugin.net server does not support the method of the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:902
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:906
 msgid "The shopplugin.net server is acting as a gateway and received an invalid response from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:903
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:907
 msgid "The shopplugin.net server is temporarily unavailable due to a high volume of traffic."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:904
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:908
 msgid "The connected shopplugin.net server is acting as a gateway and received a connection timeout from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:905
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:909
 msgid "The shopplugin.net server doesn't support the connection protocol version used in the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:909
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:913
 msgid "Could not connect to the payment server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:910
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:914
 msgid "No response was sent back by the payment server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:911
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:915
 msgid "The connection to the payment server failed due to an unknown error."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:915
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:919
 msgid "The requested resource does not exist on the payment server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:916
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:920
 msgid "The payment server experienced an error and could not handle the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:917
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:921
 msgid "The payment server does not support the method of the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:918
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:922
 msgid "The connected payment server is acting as a gateway and received an invalid response from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:919
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:923
 msgid "The payment server is temporarily unavailable due to a high volume of traffic."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:920
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:924
 msgid "The connected payment server is acting as a gateway and received a connection timeout from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:921
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:925
 msgid "The payment server doesn't support the connection protocol version used in the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:925
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:929
 msgid "Could not connect to the shipping rates server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:926
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:930
 msgid "No response was sent back by the shipping rates server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:927
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:931
 msgid "The connection to the shipping rates server failed due to an unknown error."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:931
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:935
 msgid "The requested resource does not exist on the shipping rates server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:932
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:936
 msgid "The shipping rates server experienced an error and could not handle the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:933
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:937
 msgid "The shipping rates server does not support the method of the request."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:934
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:938
 msgid "The connected shipping rates server is acting as a gateway and received an invalid response from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:935
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:939
 msgid "The shipping rates server is temporarily unavailable due to a high volume of traffic."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:936
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:940
 msgid "The connected shipping rates server is acting as a gateway and received a connection timeout from the upstream server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:937
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Lookup.php:941
 msgid "The shipping rates server doesn't support the connection protocol version used in the request."
 msgstr ""
 
@@ -3870,138 +4084,6 @@ msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Modules.php:549
 msgid "Button"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:230
-msgid "The payment method you selected is no longer available. Please choose another."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:449
-msgid "Payment information for this order is missing."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:665
-msgid "The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:800
-#, php-format
-msgid "Transaction %s failed. Could not acheive a transaction lock."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:934
-msgid "You must provide your first name."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:937
-msgid "You must provide your last name."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:947
-msgid "You must provide a valid e-mail address."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:950
-msgid "You must agree to the terms of sale."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:958
-msgid "The login name you provided is not available.  Try logging in if you have previously created an account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:973
-msgid "A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:978
-msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:982
-msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:987
-msgid "You must enter a login name for your account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:994
-#, php-format
-msgid "The login name provided includes invalid characters: %s"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:998
-msgid "The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1003
-msgid "You must provide a password for your account and confirm it to ensure correct spelling."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1011
-msgid "You must enter a valid street address for your billing information."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1014
-msgid "You must enter a valid postal code for your billing information."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1017
-msgid "You must select a country for your billing information."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1024
-msgid "You did not provide a credit card number."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1027
-msgid "You did not select a credit card type."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1032
-msgid "The credit card number you provided is invalid."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1035
-msgid "You did not enter the month the credit card expires."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1038
-msgid "You did not enter the year the credit card expires."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1042
-msgid "The credit card expiration date you provided has already expired."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1045
-msgid "You did not enter the name on the credit card you provided."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1048
-msgid "You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1080
-msgid "There are no items in the cart."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1087
-#, php-format
-msgid "%s does not have sufficient stock to process order."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1104
-msgid "There is not enough customer information to process the order."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1119
-#, php-format
-msgid "The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Order.php:1127
-msgid "The shipping address information is incomplete. The order cannot be processed."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/model/Price.php:189
@@ -4040,204 +4122,208 @@ msgstr ""
 msgid "year"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Product.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Product.php:108
 msgid "Edit Product"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Product.php:861
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Product.php:917
 msgid "copy"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Promotion.php:290
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Promotion.php:285
 #, php-format
 msgid "%s copy"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:148
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:194
 #, php-format
 msgid "Your order status changed: %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:153
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:199
 #, php-format
 msgid "Order #%s: %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:206
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:252
 #, php-format
 msgid "Your order with %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:211
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:257
 #, php-format
 msgid "New Order - %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:249
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:295
 msgid "A purchase notification could not be sent because the template for it does not exist."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:291
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:337
 msgid "Order ID"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:292
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:338
 msgid "Customer's IP Address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:298
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:344
 msgid "Credit Card Number"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:299
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:345
 msgid "Credit Card Type"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:300
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:346
 msgid "Credit Card Expiration Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:301
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:347
 msgid "Credit Card Holder's Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:315
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:361
 msgid "Promotions Applied"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:316
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:362
 msgid "Order Subtotal"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:317
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:363
 msgid "Order Discount"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:318
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:364
 msgid "Order Shipping Fees"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:319
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:365
 msgid "Order Taxes"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:320
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:366
 msgid "Order Total"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:321
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:367
 msgid "Transaction Fees"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:322
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:368
 msgid "Transaction ID"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:323
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:369
 msgid "Transaction Status"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:324
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:370
 msgid "Payment Gateway"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:325
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:371
 msgid "Order Status"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:326
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:372
 msgid "Order Data"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:327
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:373
 msgid "Order Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:328
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:374
 msgid "Order Last Updated"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:582
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchase.php:633
 msgid "QuickBooks account name for transactions"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:92
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:102
 msgid "Line Item ID"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:93
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:103
 msgid "Product Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:94
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:104
 msgid "Product Variation Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:95
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:105
 msgid "Product Description"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:96
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:106
 msgid "Product SKU"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:97
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:107
 msgid "Product Quantity Purchased"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:98
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:108
 msgid "Product Unit Price"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:109
 msgid "Product Total Price"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:100
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:110
 msgid "Product Data"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:101
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Purchased.php:111
 msgid "Product Downloads"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:691
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:319
+msgid "Service provider markets"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:740
 msgid "Estimated Delivery"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:693
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:742
 msgid "Enable this setting to offer it only when all real-time online rates fail."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:693
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:742
 msgid "Real-time rates fallback"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:710
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:759
 msgid "Add Destination Rate"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:761
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:909
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:810
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:958
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/customers/ui.php:135
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/customers/ui.php:173
 msgid "Postal Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:910
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:959
 #, php-format
 msgid "Rates by %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:961
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:1010
 msgid "and above"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:992
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:1041
 msgid "Worldwide"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:1137
+#: /Users/jond/Sites/shopp/trunk/shopp/core/model/Shipping.php:1186
 msgid "Click to load sub-regions of the selected region..."
 msgstr ""
 
@@ -4266,31 +4352,31 @@ msgid "Return to Manage Categories"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/arrange.php:40
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:52
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:53
 msgid "no category name"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/arrange.php:51
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:48
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:49
 msgid "Move to the top"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/arrange.php:51
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:48
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:49
 msgid "Move to the bottom"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/arrange.php:51
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:57
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:59
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:49
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:58
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:60
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:33
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:50
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/customers/customers.php:55
 msgid "Edit"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/arrange.php:58
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:76
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:55
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:77
 msgid "No categories found."
 msgstr ""
 
@@ -4302,23 +4388,18 @@ msgstr ""
 msgid "The child categories could not be loaded because of a communication error with the server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:19
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:60
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/customers/customers.php:19
-msgid "Delete"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:61
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:62
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:33
 msgid "View"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:100
 msgid ""
 "You are about to delete this category!\\n"
 " 'Cancel' to stop, 'OK' to delete."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:108
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/categories.php:109
 msgid "Are you sure you want to delete the selected categories?"
 msgstr ""
 
@@ -4334,150 +4415,146 @@ msgstr ""
 msgid "Click to edit this part of the permalink"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:83
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:89
 msgid "Are you sure you want to delete this category image?"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:84
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:90
 msgid "There was an error communicating with the server."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:87
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:93
 msgid "Detail Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:88
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:97
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:94
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:103
 msgid "New Option"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:89
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:95
 msgid "Faceted menu disabled"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:90
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:96
 msgid "Build faceted menu automatically"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:91
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:97
 msgid "Build as custom number ranges"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:92
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:98
 msgid "Build from preset options"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:93
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:69
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:71
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:73
 msgid "Add New Image"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:96
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:102
 msgid "Option Menu"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:99
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:105
 msgid "Upload&nbsp;File"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:108
 msgid "Amount"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:103
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:109
 msgid "Sale Price"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:104
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:110
 msgid "Not on Sale"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:105
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:111
 msgid "Not Taxed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:107
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:113
 msgid "Free Shipping"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:108
-msgid "Weight"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:109
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:119
 msgid "Handling Fee"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:110
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:120
 msgid "Amount added to shipping costs for each unit ordered (for handling costs, etc)"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:112
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:122
 msgid "Not Tracked"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:113
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:123
 msgid "In Stock"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:115
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:125
 msgid "Stock Keeping Unit"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:116
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:126
 msgid "Enter a unique stock keeping unit identification code."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:117
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:127
 msgid "Accept variable amounts"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:118
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:128
 msgid "Amount required as minimum"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:119
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:129
 msgid "Product Download"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:120
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:130
 msgid "No product download"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:121
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:131
 msgid "No download file"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:122
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:132
 msgid "An unknown error occurred. The upload could not be saved."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:124
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:134
 msgid "The file you specified could not be found."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:125
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:135
 msgid "The file you specified is not readable and cannot be used."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:126
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:136
 msgid "The file you specified is a directory and cannot be used."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:127
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:137
 msgid "Image Details"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:129
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:139
 msgid "Alt"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:130
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:140
 msgid "OK"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:131
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/category.php:141
 msgid "Cropped images"
 msgstr ""
 
@@ -4491,8 +4568,12 @@ msgstr ""
 msgid "Return to %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:41
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:42
 msgid "no product name"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/products.php:56
+msgid "No products found."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:7
@@ -4500,91 +4581,91 @@ msgid "Category Manager"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:19
-msgid "Save Category"
+msgid "Update"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:33
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:31
 msgid "Categories, unlike tags, can be or have nested sub-categories."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:35
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:33
 msgid "Product Details Template"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:35
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:33
 msgid "Predefined details for products created in this category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:36
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:34
 msgid "Faceted Menus"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:36
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:34
 msgid "Build drill-down filter menus based on the details template of this category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:37
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:35
 msgid "Variations"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:37
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:35
 msgid "Predefined selectable product options for products created in this category"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:38
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:36
 msgid "Arrange Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:76
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:74
 msgid "Double-click images to edit their details. Save the product to confirm deleted images."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:79
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:77
 msgid "Category Images"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:89
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:87
 msgid "Setup template values that will be copied into new products that are created and assigned this category."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:94
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:92
 msgid "Product Details"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:104
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:102
 msgid "Add Detail"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:112
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:163
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:110
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:161
 msgid "Add Option"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:124
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:122
 msgid "Price Range Search"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:133
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:131
 msgid "Add Price Range"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:139
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:137
 msgid "Configure how you want price range options in this category to appear."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:149
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:147
 msgid "Variation Option Menus"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:152
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:150
 msgid "Create a predefined set of variation options for products in this category."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:156
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:154
 msgid "Add Option Menu"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:177
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/categories/ui.php:175
 msgid "Product Templates &amp; Menus"
 msgstr ""
 
@@ -4990,51 +5071,59 @@ msgid "Authorization failed"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:266
+msgid "Payment authorization & capture"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:274
 msgid "Charge initiated"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:286
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:293
+msgid "Amount voided"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:301
 msgid "Payment received"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:294
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:309
 msgid "Payment failed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:302
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:317
 msgid "Refund initiated"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:322
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:337
 msgid "Refund completed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:334
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:349
 msgid "Refund failed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:346
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:361
+msgid "Payment review"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:372
 msgid "Order cancellation initiated"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:365
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:391
 msgid "Order cancelled"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:373
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:399
 msgid "Order cancellation failed"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:383
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:409
 msgid "Order shipped"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:420
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/events.php:446
 msgid "Payment details accessed"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/navigation.php:2
-msgid "All Orders"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:37
@@ -5053,15 +5142,15 @@ msgstr ""
 msgid "Item Total"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:79
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:82
 msgid "Subtotal"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:104
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:107
 msgid "Tax"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:116
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/order.php:119
 msgid "There were no items found for this purchase."
 msgstr ""
 
@@ -5075,10 +5164,6 @@ msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/orders.php:22
 msgid "Average Sale"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/orders.php:32
-msgid "Update"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/orders.php:82
@@ -5104,96 +5189,100 @@ msgstr ""
 msgid "Are you sure you want to update the status of the selected orders?"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:15
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:12
 msgid "Tracking Number"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:19
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:16
 msgid "Carrier"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:34
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:31
 msgid "Add Shipment"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:40
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:37
 msgid "Send Shipping Notice"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:58
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:55
 msgid "Message to the customer"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:93
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:91
 msgid "Print Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:107
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:105
 msgid "Processed by"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:158
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:156
 msgid "Cancel Refund"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:187
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:185
 msgid "Refund"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:193
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:191
 msgid "Send Shipment Notice"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:196
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:194
 msgid "Charge Order"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:202
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:200
 msgid "Management"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:241
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:239
 #, php-format
 msgid "RE: %s: Order #%s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:264
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:261
 msgid "Agreed to marketing"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:264
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:261
 msgid "No marketing"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:267
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:264
 msgid "Customer"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:291
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:288
 msgid "Order Balance"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:339
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:297
+msgid "Order History"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:336
 msgid "Sent to the Customer:"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:357
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:354
 msgid "New Note"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:362
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:359
 msgid "Save Note"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:366
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:363
 msgid "Send to customer"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:370
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:367
 msgid "Add Note"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:374
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/orders/ui.php:371
 msgid "Notes"
 msgstr ""
 
@@ -5205,7 +5294,7 @@ msgstr ""
 msgid "Enter product name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/editor.php:40
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/editor.php:44
 msgid "Product ID"
 msgstr ""
 
@@ -5213,17 +5302,15 @@ msgstr ""
 msgid "Search Products"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/inventory.php:69
-msgid "No products found."
-msgstr ""
-
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:26
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/promotions/promotions.php:22
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/images.php:54
 msgid "Bulk Actions&hellip;"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:29
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/promotions/promotions.php:27
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/images.php:57
 msgid "Apply"
 msgstr ""
 
@@ -5231,59 +5318,59 @@ msgstr ""
 msgid "Empty Trash"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:90
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:96
 #, php-format
 msgid "Delete %s permanently"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:90
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:96
 msgid "Delete Permanently"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:95
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:101
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/promotions/promotions.php:73
 msgid "Duplicate"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:96
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:102
 #, php-format
 msgid "Move %s to the trash"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:119
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:125
 msgid "Sale"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:143
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:149
 msgid "Unpublished"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:146
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:152
 msgid "Y/m/d g:i:s A"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:152
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:158
 #, php-format
 msgid "%s ago"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:154
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:160
 msgid "Y/m/d"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:163
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:169
 msgid "Missed schedule"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:165
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:171
 msgid "Scheduled"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:167
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:173
 msgid "Last Modified"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:213
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/products.php:219
 msgid "Are you sure you want to delete the selected products?"
 msgstr ""
 
@@ -5385,55 +5472,55 @@ msgstr ""
 msgid "Details &amp; Specs"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:256
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:259
 msgid "Delete product image&hellip"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:272
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:275
 msgid "Product Images"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:290
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:293
 msgid "Create the menus and menu options for the product's variations."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:294
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:297
 msgid "Add Menu"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:301
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:304
 msgid "Link All Variations"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:316
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:319
 msgid "Add-on Option Menus"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:319
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:322
 msgid "Create the menus and menu options for the product's add-ons."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:323
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:326
 msgid "New Add-on Group"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:344
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:347
 msgid "Attach file by URL"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:345
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:348
 msgid "Attach File"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:346
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:349
 msgid "Select a file from your computer"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:347
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:350
 msgid "Upload File"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:354
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/products/ui.php:357
 msgid "Pricing"
 msgstr ""
 
@@ -5563,7 +5650,7 @@ msgstr ""
 msgid "Sharpen"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/images.php:109
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/images.php:134
 msgid "No predefined image settings available, yet."
 msgstr ""
 
@@ -5595,7 +5682,7 @@ msgstr ""
 msgid "No payment methods, yet."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/payments.php:92
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/payments.php:95
 msgid "(no label)"
 msgstr ""
 
@@ -5647,79 +5734,87 @@ msgstr ""
 msgid "Checkout Preferences"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:81
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:82
+msgid "Shopping Cart"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:84
+msgid "Uncheck this to disable the shopping cart and checkout. Useful for catalog-only sites."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:88
 msgid "Order Confirmation"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:82
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:89
 msgid "Show for taxed orders only"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:83
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:90
 msgid "Show for all orders"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:86
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:93
 msgid "Receipt Emails"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:87
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:94
 msgid "Send to Customer Only"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:88
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:95
 msgid "Send to Customer &amp; Shop Owner Email"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:88
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:95
 msgid "see"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:88
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:95
 msgid "General Settings"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:91
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:98
 msgid "Customer Accounts"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:92
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:99
 msgid "No Accounts"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:93
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:100
 msgid "Enable Account Logins"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:94
-msgid "Enable Account Logins integrated with WordPress Accounts"
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:101
+msgid "Enable Account Logins integrated with WordPress Users"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:109
 msgid "Download Limit"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:110
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:117
 msgid "Time Limit"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:112
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:119
 msgid "No Limit"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:118
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:125
 msgid "IP Restriction"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:120
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:127
 msgid "Restrict to the computer the product is purchased from"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:123
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:130
 msgid "Download Quantity"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:125
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/preferences.php:132
 msgid "Enable quantity selection for download products"
 msgstr ""
 
@@ -6031,6 +6126,10 @@ msgstr ""
 msgid "No shipping methods, yet."
 msgstr ""
 
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/shiprates.php:62
+msgid "Fallback shipping real-time rate lookup failures"
+msgstr ""
+
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/system.php:4
 msgid "System Settings"
 msgstr ""
@@ -6124,7 +6223,7 @@ msgstr ""
 msgid "Reset Log"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/system.php:149
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/settings/system.php:148
 msgid "Product Indexing"
 msgstr ""
 
@@ -6222,10 +6321,10 @@ msgid "Shopp Account"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/core/ui/widgets/account.php:20
-msgid "Account login &amp; management"
+msgid "Customer account management dashboard"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/widgets/account.php:28
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/widgets/account.php:32
 msgid "Your Account"
 msgstr ""
 
@@ -6241,7 +6340,7 @@ msgstr ""
 msgid "Your Cart"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/widgets/cart.php:45
+#: /Users/jond/Sites/shopp/trunk/shopp/core/ui/widgets/cart.php:46
 msgid "Hide when cart is empty"
 msgstr ""
 
@@ -6425,36 +6524,36 @@ msgstr ""
 msgid "Popular product tags in a cloud format"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:129
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:127
 msgid "The order submitted to 2Checkout could not be verified."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:134
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:133
 msgid "The order submitted by 2Checkout did not specify a transaction ID."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:167
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:209
 msgid "Your 2Checkout vendor account number."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:176
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:218
 msgid "Copy as the <strong>Approved URL</strong> & <strong>Pending URL</strong> in your 2Checkout Vendor Area under the <strong>Account &rarr; Site Management</strong> settings page."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:182
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:224
 msgid "Enable test mode"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:188
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:230
 msgid "Single-page, credit card only checkout"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:194
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:442
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:236
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:901
 msgid "Enable order verification"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:201
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/2Checkout/2Checkout.php:243
 msgid "Your 2Checkout secret word for order verification."
 msgstr ""
 
@@ -6470,51 +6569,112 @@ msgstr ""
 msgid "Enter your eProcessingNetwork RestrictKey."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:134
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:149
 #, php-format
 msgid "There is not sufficient stock on %s to process order."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:254
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:271
 msgid "You will receive an email with download instructions upon receipt of payment."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:340
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:312
+#, php-format
+msgid "Trial for %d day."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:313
+#, php-format
+msgid "Trial for %d week."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:314
+#, php-format
+msgid "Trial for %d month."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:315
+#, php-format
+msgid "Trial for %d year."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:436
 msgid "Shipping Option"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:768
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:650
+#, php-format
+msgid "New recurring payment received with id %s."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:743
+msgid "Address verification service approved."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:743
+msgid "Address verification service denied."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:748
+msgid "Credit verification match."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:748
+msgid "Credit verification failed."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:753
+msgid "Eligible for Google protection."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:753
+msgid "Not eligible for Google protection."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1021
+msgid "Unable to cancel an order that has been charged."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1027
+msgid "Order canceled"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1071
+msgid "Google Checkout issued a chargeback on this order."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1169
 msgid "Enter your Google Checkout merchant ID."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:775
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1176
 msgid "Enter your Google Checkout merchant key."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:785
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1186
 msgid "Copy this URL to your Google Checkout integration settings API callback URL."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:792
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:435
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:454
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1193
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:596
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:913
 #, php-format
 msgid "Use the %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:803
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1204
 msgid "Select the preferred size and style of the Google Checkout button."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:809
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1210
 msgid "Automatically charge orders"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:815
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1216
 msgid "Use Google tax settings"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:821
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1222
 msgid "Use Google shipping rate settings"
 msgstr ""
 
@@ -6526,56 +6686,199 @@ msgstr ""
 msgid "Use this area to provide your customers with instructions on how to make payments offline."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:204
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:222
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:325
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:283
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:307
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:412
 msgid "The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:293
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:375
 msgid "The location you are purchasing from is outside of our market regions. This transaction cannot be processed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:319
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:402
 msgid "No response was received from PayPal. The order cannot be processed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:350
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:314
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:465
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:669
 #, php-format
 msgid "An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:415
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:576
 msgid "Enter your PayPal API Username."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:422
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:583
 msgid "Enter your PayPal API Password."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:429
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:590
 msgid "Enter your PayPal API Signature."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:213
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:78
+msgid "The customer did not include a confirmed shipping address."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:79
+msgid "The eCheck that has not yet cleared"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:80
+msgid "You must manually accept or deny transactions for your non-US account."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:81
+msgid "You must manually accept or deny a transaction in this currency."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:82
+msgid "You set the payment action to Order and have not yet captured funds."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:83
+msgid "The payment is pending while it is being reviewed by PayPal for risk."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:84
+msgid "The payment is pending because it was made to an email address that is not yet registered or confirmed."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:85
+msgid "Contact PayPal Customer Service to see if your account needs to be upgraded."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:86
+msgid "Your account is not yet verified."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:87
+msgid "Contact PayPal Customer Service to determine why payment was not completed."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:91
+msgid "Eligible for PayPal’s Expanded Seller Protection"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:92
+msgid "Eligible for PayPal’s Seller Protection"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:93
+msgid "Not Eligible for PayPal’s Seller Protection"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:97
+msgid "Reversal of an adjustment"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:98
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:99
+msgid "Reversal on customer complaint."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:100
+msgid "Reversal on chargeback."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:101
+msgid "Reimbursement for a chargeback"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:102
+msgid "Settlement of a chargeback"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:103
+msgid "Reversal due to a money-back guarantee."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:104
+msgid "Non-specified reversal."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:105
+msgid "Reversal by merchant refund."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:109
+msgid "A credit card chargeback has occurred"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:110
+msgid "A dispute has been resolved and closed"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:112
+msgid "A payment dispute has been filed."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:113
+msgid "Recurring payment received"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:114
+msgid "Recurring payment expired"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:115
+msgid "Recurring payment profile created"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:116
+msgid "Recurring payment skipped"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:117
+msgid "Subscription canceled"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:118
+msgid "Subscription expired"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:119
+msgid "Subscription signup failed"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:120
+msgid "Subscription payment received"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:121
+msgid "Subscription started"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:489
 msgid "Shipping & Handling"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:277
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:568
 msgid "The transaction was not verified by PayPal."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:338
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:599
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:692
+msgid "Payer verified"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:599
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:692
+msgid "Payer unverified"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:705
 #, php-format
 msgid "No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:436
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:895
 msgid "Enter your PayPal account email."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:449
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:908
 msgid "PDT identity token for validating orders."
 msgstr ""
 
@@ -6621,6 +6924,10 @@ msgstr ""
 msgid "Order Weight Tiers"
 msgstr ""
 
+#: /Users/jond/Sites/shopp/trunk/shopp/shipping/core/OrderWeight.php:65
+msgid "Weight"
+msgstr ""
+
 #: /Users/jond/Sites/shopp/trunk/shopp/shipping/core/PercentageAmount.php:22
 msgid "Percentage Rate Tiers"
 msgstr ""
@@ -6657,138 +6964,145 @@ msgstr ""
 msgid "The file system path to your storage directory."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:29
-msgid "Your password has been changed successfully."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:32
-msgid "Your account has been updated."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:36
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:123
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:130
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:154
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:160
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:180
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:182
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:184
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:190
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:194
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-downloads.php:17
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-downloads.php:41
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-orders.php:13
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-orders.php:49
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:36
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:123
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:130
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:154
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:160
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:180
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:182
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:184
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:190
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:194
 msgid "Return to Account Management"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:40
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-downloads.php:30
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:143
+msgid "Download File"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-downloads.php:39
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:152
+msgid "You have no digital product downloads available."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-orders.php:44
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:183
+msgid "You have no orders, yet."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:29
+msgid "Your password has been changed successfully."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:32
+msgid "Your account has been updated."
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:40
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:30
 msgid "First"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:41
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:41
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:31
 msgid "Last"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:54
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:54
 msgid "I would like to continue receiving e-mail updates and special offers!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:63
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:63
 msgid "Change Your Password"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:64
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:64
 msgid "New Password"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:65
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:65
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:46
 msgid "Confirm Password"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:70
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:57
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:70
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:61
 msgid "Billing street address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:74
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:61
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:74
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:65
 msgid "Billing address line 2"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:75
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:102
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:62
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:91
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:75
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:66
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:99
 msgid "Address Line 2"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:78
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:65
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:78
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:69
 msgid "City billing address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:82
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:69
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:82
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:73
 msgid "State/Provice/Region billing address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:86
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:73
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:86
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:77
 msgid "Postal/Zip Code billing address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:87
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:114
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:74
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:103
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:87
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:114
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:78
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:111
 msgid "Postal / Zip Code"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:90
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:77
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:90
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:81
 msgid "Country billing address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:97
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:86
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:97
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:94
 msgid "Shipping street address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:101
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:90
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:101
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:98
 msgid "Shipping address line 2"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:105
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:94
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:105
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:102
 msgid "City shipping address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:109
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:98
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:109
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:106
 msgid "State/Provice/Region shipping address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:113
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:102
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:113
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:110
 msgid "Postal/Zip Code shipping address"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:117
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:106
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/account-profile.php:117
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:114
 msgid "Country shipping address"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:143
-msgid "Download File"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:152
-msgid "You have no digital product downloads available."
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/account.php:183
-msgid "You have no orders, yet."
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/cart.php:16
@@ -6836,8 +7150,6 @@ msgstr ""
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:23
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:43
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:44
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:40
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:41
 msgid "Password"
 msgstr ""
 
@@ -6853,80 +7165,86 @@ msgstr ""
 msgid "Password Confirmation"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:117
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:57
+msgid "Bill to"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:90
+msgid "Ship to"
+msgstr ""
+
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:125
 msgid "Local Jurisdiction"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:128
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:136
 msgid "Payment Information"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:129
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:137
 msgid "Credit/Debit Card Number"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:130
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:138
 msgid "Card's 2-digit expiration month"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:130
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:138
 msgid "MM"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:131
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:139
 msgid "Card's 2-digit expiration year"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:131
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:139
 msgid "YY"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:132
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:140
 msgid "Card Type"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:135
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:143
 msgid "Card Holder's Name"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:135
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:143
 msgid "Name on Card"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:136
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:144
 msgid "Card's security code (3-4 digits on the back of the card)"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:136
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:144
 msgid "Security ID"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:140
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:148
 msgid "Card's start date (MM/YY)"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:140
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:148
 msgid "Start Date"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:141
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:149
 msgid "Card's issue number"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:141
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:149
 msgid "Issue #"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:148
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/checkout.php:156
 msgid "Yes, I would like to receive e-mail updates and special offers!"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/email-notice.php:10
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/email.php:10
 msgid "Order Update"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/email-notice.php:16
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/email.php:16
 msgid "Your order is"
 msgstr ""
@@ -6935,15 +7253,15 @@ msgstr ""
 msgid "Errors"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:22
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/login-recover.php:17
 msgid "Recover your password"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:37
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:19
 msgid "Account Login"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:44
+#: /Users/jond/Sites/shopp/trunk/shopp/templates/login.php:26
 msgid "Lost your password?"
 msgstr ""
 
@@ -6977,10 +7295,6 @@ msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/receipt.php:11
 msgid "Billed to"
-msgstr ""
-
-#: /Users/jond/Sites/shopp/trunk/shopp/templates/receipt.php:21
-msgid "Ship to"
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/receipt.php:28
