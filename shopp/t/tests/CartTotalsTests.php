@@ -310,7 +310,7 @@ class CartTotalsTests extends ShoppTestCase {
 
 		$options = array('return' => true,'money'=>true,'wrap'=>false);
 
-		$expected = '£65.80';
+		$expected = '£63.83';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
