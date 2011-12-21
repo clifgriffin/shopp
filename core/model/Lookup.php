@@ -88,7 +88,7 @@ class Lookup {
 		$_['AI'] = array('name'=>__('Anguilla','Shopp'),'currency'=>array('code'=>'XCD','format'=>'EC$#,###.##'),'units'=>'metric','region'=>1);
 		$_['AG'] = array('name'=>__('Antigua and Barbuda','Shopp'),'currency'=>array('code'=>'XCD','format'=>'EC$#,###.##'),'units'=>'metric','region'=>1);
 		$_['AR'] = array('name'=>__('Argentina','Shopp'),'currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>2);
-		$_['AM'] = array('name'=>__('Armenia','Shopp'),'currency'=>array('code'=>'AMD','format'=>'####,## Դրամ'),'units'=>'metric','region'=>6);
+		$_['AM'] = array('name'=>__('Armenia','Shopp'),'currency'=>array('code'=>'AMD','format'=>'####,## Դրամ'),'units'=>'metric','region'=>6);
 		$_['AW'] = array('name'=>__('Aruba','Shopp'),'currency'=>array('code'=>'AWG','format'=>'ƒ#,###.##'),'units'=>'metric','region'=>2);
 		$_['AU'] = array('name'=>__('Australia','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$# ###.##'),'units'=>'metric','region'=>7);
 		$_['AT'] = array('name'=>__('Austria','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
@@ -111,9 +111,9 @@ class Lookup {
 		$_['VG'] = array('name'=>__('British Virgin Islands','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>1);
 		$_['BN'] = array('name'=>__('Brunei Darussalam','Shopp'),'currency'=>array('code'=>'BND','format'=>'$ #.###,##'),'units'=>'metric','region'=>6);
 		$_['BG'] = array('name'=>__('Bulgaria','Shopp'),'currency'=>array('code'=>'BGN','format'=>'# ###,## лв.'),'units'=>'metric','region'=>3);
-		$_['BF'] = array('name'=>__('Burkina Faso','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
+		$_['BF'] = array('name'=>__('Burkina Faso','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['MM'] = array('name'=>__('Burma','Shopp'),'currency'=>array('code'=>'MMK','format'=>'K #,###.##'),'units'=>'metric','region'=>6);
-		$_['BI'] = array('name'=>__('Burundi','Shopp'),'currency'=>array('code'=>'BIF','format'=>'# ###,## FBu'),'units'=>'metric','region'=>5);
+		$_['BI'] = array('name'=>__('Burundi','Shopp'),'currency'=>array('code'=>'BIF','format'=>'# ###,## FBu'),'units'=>'metric','region'=>5);
 		$_['KH'] = array('name'=>__('Cambodia','Shopp'),'currency'=>array('code'=>'KHR','format'=>'#.###,##៛'),'units'=>'metric','region'=>6);
 		$_['CM'] = array('name'=>__('Cameroon','Shopp'),'currency'=>array('code'=>'XAF','format'=>'# ### FCFA'),'units'=>'metric','region'=>5);
 		$_['CV'] = array('name'=>__('Cape Verde','Shopp'),'currency'=>array('code'=>'CVE','format'=>'CV$#.###,##'),'units'=>'metric','region'=>5);
@@ -133,7 +133,7 @@ class Lookup {
 		$_['CI'] = array('name'=>__("Côte d'Ivoire",'Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['HR'] = array('name'=>__('Croatia','Shopp'),'currency'=>array('code'=>'HRK','format'=>'#.###,## kn'),'units'=>'metric','region'=>3);
 		$_['CY'] = array('name'=>__('Cyprus','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#.###,##'),'units'=>'metric','region'=>3);
-		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'# ###,## Kč'),'units'=>'metric','region'=>3);
+		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'# ###,## Kč'),'units'=>'metric','region'=>3);
 		$_['DK'] = array('name'=>__('Denmark','Shopp'),'currency'=>array('code'=>'DKK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3);
 		$_['DJ'] = array('name'=>__('Djibouti','Shopp'),'currency'=>array('code'=>'DJF','format'=>'# ### Fdj'),'units'=>'metric','region'=>5);
 		$_['DM'] = array('name'=>__('Dominica','Shopp'),'currency'=>array('code'=>'XCD','format'=>'EC$#,###.##'),'units'=>'metric','region'=>1);
@@ -169,7 +169,7 @@ class Lookup {
 		$_['GT'] = array('name'=>__('Guatemala','Shopp'),'currency'=>array('code'=>'GTQ','format'=>'Q#,###.##'),'units'=>'metric','region'=>1);
 		$_['GG'] = array('name'=>__('Guernsey','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3);
 		$_['GN'] = array('name'=>__('Guinea','Shopp'),'currency'=>array('code'=>'GNF','format'=>'# ### FG'),'units'=>'metric','region'=>5);
-		$_['GW'] = array('name'=>__('Guinea-Bissau','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
+		$_['GW'] = array('name'=>__('Guinea-Bissau','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['GY'] = array('name'=>__('Guyana','Shopp'),'currency'=>array('code'=>'GYD','format'=>'G$#,###.##'),'units'=>'metric','region'=>2);
 		$_['HT'] = array('name'=>__('Haiti','Shopp'),'currency'=>array('code'=>'HTG','format'=>'# ###,## HTG'),'units'=>'metric','region'=>1);
 		$_['HM'] = array('name'=>__('Heard and McDonald Islands','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
@@ -208,7 +208,7 @@ class Lookup {
 		$_['MW'] = array('name'=>__('Malawi','Shopp'),'currency'=>array('code'=>'MWK','format'=>'MK #,###.##'),'units'=>'metric','region'=>5);
 		$_['MY'] = array('name'=>__('Malaysia','Shopp'),'currency'=>array('code'=>'MYR','format'=>'RM#,###.##'),'units'=>'metric','region'=>6);
 		$_['MV'] = array('name'=>__('Maldives','Shopp'),'currency'=>array('code'=>'MVR','format'=>'Rf#,###.##'),'units'=>'metric','region'=>6);
-		$_['ML'] = array('name'=>__('Mali','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
+		$_['ML'] = array('name'=>__('Mali','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['MT'] = array('name'=>__('Malta','Shopp'),'currency'=>array('code'=>'MTL','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['MH'] = array('name'=>__('Marshall Islands','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
 		$_['MQ'] = array('name'=>__('Martinique','Shopp'),'currency'=>array('code'=>'EUR','format'=>'# ###,## €'),'units'=>'metric','region'=>1);
@@ -239,7 +239,7 @@ class Lookup {
 		$_['OM'] = array('name'=>__('Oman','Shopp'),'currency'=>array('code'=>'OMR','format'=>'#.###,## ر.ع'),'units'=>'metric','region'=>4);
 		$_['PK'] = array('name'=>__('Pakistan','Shopp'),'currency'=>array('code'=>'PKR','format'=>'₨#,###.##'),'units'=>'metric','region'=>4);
 		$_['PW'] = array('name'=>__('Palau','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
-		$_['PA'] = array('name'=>__('Panama','Shopp'),'currency'=>array('code'=>'USD','format'=>'$ #,###.##'),'units'=>'metric','region'=>1);
+		$_['PA'] = array('name'=>__('Panama','Shopp'),'currency'=>array('code'=>'USD','format'=>'$ #,###.##'),'units'=>'metric','region'=>1);
 		$_['PG'] = array('name'=>__('Papua New Guinea','Shopp'),'currency'=>array('code'=>'PGK','format'=>'K#,###.##'),'units'=>'metric','region'=>7);
 		$_['PY'] = array('name'=>__('Paraguay','Shopp'),'currency'=>array('code'=>'PYG','format'=>'₲#.###'),'units'=>'metric','region'=>3);
 		$_['PE'] = array('name'=>__('Peru','Shopp'),'currency'=>array('code'=>'PEN','format'=>'S/. #,###.##'),'units'=>'metric','region'=>2);
@@ -251,7 +251,7 @@ class Lookup {
 		$_['QA'] = array('name'=>__('Qatar','Shopp'),'currency'=>array('code'=>'QAR','format'=>'####,## ر.ق'),'units'=>'metric','region'=>3);
 		$_['RE'] = array('name'=>__('Réunion','Shopp'),'currency'=>array('code'=>'','format'=>'# ###,## €'),'units'=>'metric','region'=>5);
 		$_['RO'] = array('name'=>__('Romania','Shopp'),'currency'=>array('code'=>'ROL','format'=>'#.###,## lei'),'units'=>'metric','region'=>3);
-		$_['RU'] = array('name'=>__('Russia','Shopp'),'currency'=>array('code'=>'RUB','format'=>'# ###,## руб'),'units'=>'metric','region'=>6);
+		$_['RU'] = array('name'=>__('Russia','Shopp'),'currency'=>array('code'=>'RUB','format'=>'# ###,## руб'),'units'=>'metric','region'=>6);
 		$_['RW'] = array('name'=>__('Rwanda','Shopp'),'currency'=>array('code'=>'RWF','format'=>'RF #.###'),'units'=>'metric','region'=>5);
 		$_['BL'] = array('name'=>__('Saint Barthélemy','Shopp'),'currency'=>array('code'=>'EUR','format'=>'# ###,## €'),'units'=>'metric','region'=>1);
 		$_['SH'] = array('name'=>__('Saint Helena','Shopp'),'currency'=>array('code'=>'SHP','format'=>'£#,###.##'),'units'=>'metric','region'=>5);
@@ -264,7 +264,7 @@ class Lookup {
 		$_['SM'] = array('name'=>__('San Marino','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€ #,###.##'),'units'=>'metric','region'=>3);
 		$_['ST'] = array('name'=>__('São Tomé and Príncipe','Shopp'),'currency'=>array('code'=>'STD','format'=>'Db #,###.##'),'units'=>'metric','region'=>5);
 		$_['SA'] = array('name'=>__('Saudi Arabia','Shopp'),'currency'=>array('code'=>'SAR','format'=>'####,## ر.س'),'units'=>'metric','region'=>4);
-		$_['SN'] = array('name'=>__('Senegal','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
+		$_['SN'] = array('name'=>__('Senegal','Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['RS'] = array('name'=>__('Serbia','Shopp'),'currency'=>array('code'=>'RSD','format'=>'din. #,###'),'units'=>'metric','region'=>3);
 		$_['SC'] = array('name'=>__('Seychelles','Shopp'),'currency'=>array('code'=>'SCR','format'=>'₨#,###'),'units'=>'metric','region'=>5);
 		$_['SL'] = array('name'=>__('Sierra Leone','Shopp'),'currency'=>array('code'=>'SLL','format'=>'Le #,###.##'),'units'=>'metric','region'=>5);
@@ -300,7 +300,7 @@ class Lookup {
 		$_['TC'] = array('name'=>__('Turks and Caicos Islands','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>1);
 		$_['TV'] = array('name'=>__('Tuvalu','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
 		$_['UG'] = array('name'=>__('Uganda','Shopp'),'currency'=>array('code'=>'UGX','format'=>'#,###.## USh'),'units'=>'metric','region'=>5);
-		$_['UA'] = array('name'=>__('Ukraine','Shopp'),'currency'=>array('code'=>'UAH','format'=>'# ###,## ₴'),'units'=>'metric','region'=>4);
+		$_['UA'] = array('name'=>__('Ukraine','Shopp'),'currency'=>array('code'=>'UAH','format'=>'# ###,## ₴'),'units'=>'metric','region'=>4);
 		$_['AE'] = array('name'=>__('United Arab Emirates','Shopp'),'currency'=>array('code'=>'AED','format'=>'Dhs. #,###.##'),'units'=>'metric','region'=>4);
 		$_['UY'] = array('name'=>__('Uruguay','Shopp'),'currency'=>array('code'=>'UYP','format'=>'$#,###.##'),'units'=>'metric','region'=>2);
 		$_['UZ'] = array('name'=>__('Uzbekistan','Shopp'),'currency'=>array('code'=>'UZS','format'=>'$#,###.##'),'units'=>'metric','region'=>6);
