@@ -399,7 +399,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function last_name ($result, $options, $O) { return esc_html($O->lastname); }
 
-	static function not_paid ($result, $options, $O) { return !in_array($O->txnstatus,array('authed','captured')); }
+	static function not_paid ($result, $options, $O) { return !self::paid($result,$options,$O); }
 
 	static function order_data ($result, $options, $O) {
 		if (!isset($O->_data_loop)) {
@@ -414,7 +414,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function paid ($result, $options, $O) { return ('captured' == $O->txnstatus); }
+	static function paid ($result, $options, $O) { return in_array($O->txnstatus,array('authed','captured')); }
 
 	static function payment ($result, $options, $O) {
 		$labels = Lookup::txnstatus_labels();
