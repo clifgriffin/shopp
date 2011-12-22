@@ -248,10 +248,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
 		} elseif (is_shopp_product()) {
 			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxonomy);
-			if ( ! $categories ) return '';
-
-			$term = array_shift($categories);
-			$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
+			if ( $categories ) {
+				$term = array_shift($categories);
+				$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
+			}
 			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
 		}
 
