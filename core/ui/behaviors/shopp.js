@@ -36,22 +36,23 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if ($s && $s.d !== 'undefined')
-		return {	// from base of operations
-			'cpos':$s.cp,
-			'currency':$s.c,
-			'precision':parseInt($s.p,10),
-			'decimals':$s.d,
-			'thousands':$s.t,
-			'grouping':$s.g
+	if ($s && $s.d !== undefined)
+		return {	// from base of operations setting
+			cpos:$s.cp,
+			currency:$s.c,
+			precision:parseInt($s.p,10),
+			decimals:$s.d,
+			thousands:$s.t,
+			grouping:$s.g
 		};
+
 	return {		// Default currency format
-		'cpos':true,
-		'currency':'$',
-		'precision':2,
-		'decimals':'.',
-		'thousands':',',
-		'grouping':[3]
+		cpos:true,
+		currency:'$',
+		precision:2,
+		decimals:'.',
+		thousands:',',
+		grouping:[3]
 	};
 }
 
