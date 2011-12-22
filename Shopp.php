@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.2b6
+Version: 1.2RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2b5r1');
+	define('SHOPP_VERSION','1.2RC1');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
@@ -187,25 +187,27 @@ class Shopp {
 		$this->Shopping = ShoppShopping();
 		$this->Settings = ShoppSettings();
 
-		add_action('init', array(&$this,'init'));
+		add_action('init', array($this,'init'));
 
 		// Core WP integration
-		add_action('shopp_init', array(&$this,'pages'));
-		add_action('shopp_init', array(&$this,'collections'));
-		add_action('shopp_init', array(&$this,'taxonomies'));
-		add_action('shopp_init', array(&$this,'products'),99);
+		add_action('shopp_init', array($this,'pages'));
+		add_action('shopp_init', array($this,'collections'));
+		add_action('shopp_init', array($this,'taxonomies'));
+		add_action('shopp_init', array($this,'products'),99);
+		add_action('shopp_init', array($this,'rebuild'),99);
 
-		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
-		add_filter('query_vars', array(&$this,'queryvars'));
+		add_filter('rewrite_rules_array',array($this,'rewrites'));
+		add_filter('query_vars', array($this,'queryvars'));
 
 		// Theme integration
-		add_action('widgets_init', array(&$this, 'widgets'));
-		add_filter('wp_list_pages',array(&$this,'secure_links'));
+		add_action('widgets_init', array($this, 'widgets'));
+		add_filter('wp_list_pages',array($this,'secure_links'));
 
 		// Plugin management
-        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
-        add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
-        add_action('shopp_check_updates', array(&$this, 'updates'));
+        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
+        add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
+		add_action('load-plugins.php',array($this,'updates'));
+        add_action('shopp_check_updates', array($this, 'updates'));
 
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
@@ -233,12 +235,6 @@ class Shopp {
 
 		if ( ! $Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started '.str_repeat('-',64),'shopp_session_debug',SHOPP_DEBUG_ERR);
-
-		global $pagenow;
-		if (defined('WP_ADMIN')
-			&& 'plugins.php' == $pagenow
-			&& isset($_GET['action'])
-			&& $_GET['action'] != 'deactivate') $this->updates();
 
 		new Login();
 		do_action('shopp_init');
@@ -275,7 +271,6 @@ class Shopp {
 		foreach ($settings as $page) $pages[] = $page['slug'];
 		add_rewrite_tag("%$var%", '('.join('|',$pages).')');
 		add_permastruct($var, "{$catalog['slug']}/%$var%", false);
-
 	}
 
 	function collections () {
@@ -324,6 +319,21 @@ class Shopp {
 		add_rewrite_rule($prefix.Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
 
 		return $rules + $wp_rewrite_rules;
+	}
+
+	/**
+	 * Force rebuilding rewrite rules when necessary
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function rebuid () {
+		if ( ! shopp_setting_enabled('rebuild_rewrites') ) return;
+
+		flush_rewrite_rules();
+		shopp_set_setting('rebuild_rewrites','off');
 	}
 
 	/**
@@ -570,6 +580,13 @@ class Shopp {
 	 * @return array List of available updates
 	 **/
 	function updates () {
+
+		global $pagenow;
+		if (defined('WP_ADMIN')
+			&& 'plugins.php' == $pagenow
+			&& isset($_GET['action'])
+			&& 'deactivate' == $_GET['action']) return array();
+
 		$updates = new StdClass();
 
 		$addons = array_merge(
