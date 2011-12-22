@@ -228,12 +228,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		} elseif (is_cart_page()) {
 			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
 		} elseif (is_checkout_page()) {
+			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
 			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
 		} elseif (is_confirm_page()) {
+			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
 			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
 			$breadcrumb += array($pages['confirm']['title'] => shoppurl(false,'confirm'));
 		} elseif (is_thanks_page()) {
-			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
 			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
 		} elseif (is_shopp_collection()) {
 			// collections
