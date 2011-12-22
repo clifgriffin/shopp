@@ -99,7 +99,6 @@ class AdminFlow extends FlowController {
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
 
-		// $this->addpage('tags',__('Tags','Shopp'),'Categorize','Editing a Tag','products');
 		$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
 		foreach ( $taxonomies as $t ) {
 			if ($t->name == 'shopp_category') continue;
