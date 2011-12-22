@@ -73,11 +73,10 @@ tinyMCEPopup.onInit.add(function(ed) {
 			insert = $('#insert').click(function () {
 				var tag = '';
 				// Category shortcodes
-				if (parseInt(cm.val()) > 0) tag = '[category id="'+cm.val()+'"]';
-				else if (cm.val() != '') tag = '[category slug="catalog"]';
+				if (parseInt(cm.val()) > 0) tag = '[catalog-collection id="'+cm.val()+'"]';
+				else if (cm.val() != '') tag = '[catalog-collection slug="catalog"]';
 				// Product shortcodes
-
-				if (pm.val() != 0 && pm.val() != null) tag = '[product id="'+pm.val()+'"]';
+				if (pm.val() != 0 && pm.val() != null) tag = '[catalog-product id="'+pm.val()+'"]';
 
 				if (window.tinyMCE) {
 					window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tag);
