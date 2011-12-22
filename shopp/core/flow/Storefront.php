@@ -32,6 +32,7 @@ class Storefront extends FlowController {
 	var $viewed = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
 	var $request = false;
+	var $shortcoded = array();
 
 	var $account = false;		// Account dashboard requests
 	var $dashboard = array();	// Registry of account dashboard pages
@@ -80,6 +81,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_product_spec', 'convert_chars');
 		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
 
+
 		add_filter('shopp_order_lookup','shoppdiv');
 		add_filter('shopp_order_confirmation','shoppdiv');
 		add_filter('shopp_errors_page','shoppdiv');
@@ -91,6 +93,8 @@ class Storefront extends FlowController {
 		add_filter('shopp_order_receipt','shoppdiv');
 		add_filter('shopp_account_manager','shoppdiv');
 		add_filter('shopp_account_vieworder','shoppdiv');
+
+		add_filter('the_content',array($this,'autowrap'),99);
 
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
@@ -1254,6 +1258,11 @@ class Storefront extends FlowController {
 
 	}
 
+	function autowrap ($content) {
+		if ( ! in_array(get_the_ID(),$this->shortcoded) ) return $content;
+		return shoppdiv($content);
+	}
+
 	/**
 	 * Handles rendering the [product] shortcode
 	 *
@@ -1265,6 +1274,7 @@ class Storefront extends FlowController {
 	 **/
 	function product_shortcode ($atts) {
 		$atts['template'] = array('product-shortcode.php','product.php');
+		$this->shortcoded[] = get_the_ID();
 		return apply_filters('shopp_product_shortcode',shopp('catalog','get-product',$atts));
 	}
 
@@ -1279,7 +1289,6 @@ class Storefront extends FlowController {
 	 **/
 	function collection_shortcode ($atts) {
 		global $Shopp;
-		$Collection = ShoppCollection();
 		$tag = 'category';
 		if (isset($atts['name'])) {
 			$Collection = new ProductCategory($atts['name'],'name');
@@ -1299,11 +1308,13 @@ class Storefront extends FlowController {
 			unset($atts['id']);
 		} else return "";
 
+		ShoppCollection($Collection);
+
 		$markup = shopp('catalog',"get-$tag",$atts);
+		$this->shortcoded[] = get_the_ID();
 
 		// @deprecated in favor of the shopp_collection_shortcode
 		$markup = apply_filters('shopp_category_shortcode',$markup);
-
 		return apply_filters('shopp_collection_shortcode',$markup);
 	}
 
@@ -1355,6 +1366,8 @@ class Storefront extends FlowController {
 		<?php
 		$markup = ob_get_contents();
 		ob_end_clean();
+
+		$this->shortcoded[] = get_the_ID();
 
 		return $markup;
 	}
