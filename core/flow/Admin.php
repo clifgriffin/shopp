@@ -868,8 +868,8 @@ class AdminFlow extends FlowController {
 
 		?>
 		<br />
-		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
-			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
+		<div class="shopp-collections-menu-item customlinkdiv" id="shopp-collections-menu-item">
+			<div id="tabs-panel-shopp-collections" class="tabs-panel tabs-panel-active">
 
 				<ul class="categorychecklist form-no-clear">
 
@@ -883,7 +883,7 @@ class AdminFlow extends FlowController {
 				?>
 					<li>
 						<label class="menu-item-title">
-						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
+						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-collection]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
 							echo esc_html( $Collection->name );
 						?></label>
 						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
@@ -910,7 +910,7 @@ class AdminFlow extends FlowController {
 				?>
 					<li>
 						<label class="menu-item-title">
-						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
+						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-collection]" value="<?php echo $slug; ?>" class="menu-item-checkbox" /> <?php
 							echo esc_html( $promo->name );
 						?></label>
 						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
@@ -936,12 +936,12 @@ class AdminFlow extends FlowController {
 							),
 							remove_query_arg($removed_args)
 						));
-					?>#shopp-pages-menu-item" class="select-all"><?php _e('Select All'); ?></a>
+					?>#shopp-collections-menu-item" class="select-all"><?php _e('Select All'); ?></a>
 				</span>
 
 				<span class="add-to-menu">
 					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
-					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
+					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-collections-menu-item" />
 				</span>
 			</p>
 
@@ -964,8 +964,8 @@ class AdminFlow extends FlowController {
 
 		?>
 		<br />
-		<div class="shopp-collections-menu-item customlinkdiv" id="shopp-collections-menu-item">
-			<div id="tabs-panel-shopp-collections" class="tabs-panel tabs-panel-active">
+		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
+			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
 
 				<ul class="categorychecklist form-no-clear">
 
