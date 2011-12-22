@@ -29,12 +29,12 @@ class ShoppInstallation extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function __construct () {
-		add_action('shopp_activate',array(&$this,'activate'));
-		add_action('shopp_deactivate',array(&$this,'deactivate'));
-		add_action('shopp_reinstall',array(&$this,'install'));
-		add_action('shopp_setup',array(&$this,'setup'));
-		add_action('shopp_setup',array(&$this,'roles'));
-		add_action('shopp_autoupdate',array(&$this,'update'));
+		add_action('shopp_activate',array($this,'activate'));
+		add_action('shopp_deactivate',array($this,'deactivate'));
+		add_action('shopp_reinstall',array($this,'install'));
+		add_action('shopp_setup',array($this,'setup'));
+		add_action('shopp_setup',array($this,'roles'));
+		add_action('shopp_autoupdate',array($this,'update'));
 
 		$this->errors = array(
 			'header' => __('Shopp Activation Error','Shopp'),
@@ -74,12 +74,6 @@ class ShoppInstallation extends FlowController {
 
 		do_action('shopp_setup');
 
-		// Flush rewrite rules after Shopp rewrites have all been registered
-		add_action('shopp_init','flush_rewrite_rules',100);
-
-		// Force shopp_init to get register rewrites and rebuild the rules
-		do_action('shopp_init');
-
 		if (ShoppSettings()->available() && shopp_setting('db_version'))
 			shopp_set_setting('maintenance','off');
 
@@ -87,6 +81,7 @@ class ShoppInstallation extends FlowController {
 			shopp_set_setting('display_welcome','on');
 
 		shopp_set_setting('updates', false);
+		shopp_set_setting('rebuild_rewrites','on');
 
 		return true;
 	}
