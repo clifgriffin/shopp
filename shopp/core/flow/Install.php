@@ -74,8 +74,11 @@ class ShoppInstallation extends FlowController {
 
 		do_action('shopp_setup');
 
-		// Flush rewrite rules after they have all been established
+		// Flush rewrite rules after Shopp rewrites have all been registered
 		add_action('shopp_init','flush_rewrite_rules',100);
+
+		// Force shopp_init to get register rewrites and rebuild the rules
+		do_action('shopp_init');
 
 		if (ShoppSettings()->available() && shopp_setting('db_version'))
 			shopp_set_setting('maintenance','off');
@@ -84,6 +87,8 @@ class ShoppInstallation extends FlowController {
 			shopp_set_setting('display_welcome','on');
 
 		shopp_set_setting('updates', false);
+
+		return true;
 	}
 
 	/**
@@ -98,7 +103,8 @@ class ShoppInstallation extends FlowController {
 		global $Shopp;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
-		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));
+		remove_action('shopp_init', array($Shopp,'pages'));
+		remove_filter('rewrite_rules_array',array($Shopp,'rewrites'));
 		flush_rewrite_rules();
 
 		shopp_set_setting('data_model','');
