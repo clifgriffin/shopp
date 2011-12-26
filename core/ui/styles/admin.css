@@ -8,7 +8,7 @@ th.textright { text-align: right; }
 .shopp .clickable,
 .shopp button { cursor:pointer; }
 .shopp button.deleteButton { background:none;border:none;padding:0;width:16px;height:16px; }
-.shopp button.delete,.shopp button.add { display:inline-block;background:none;border:none;padding:3px;margin:1px;z-index:100; vertical-align: top; margin-top: 2px; }
+.shopp button.delete,.shopp button.add { display:inline-block;background:none;border:none;padding:3px;margin:1px;z-index:100; vertical-align: top; }
 .shopp button img { display:inline;vertical-align:middle; }
 .shopp input.right { text-align:right; float:none; }
 .shopp label .error { display:inline-block;margin-top:5px;padding:0 0.6em; }
@@ -310,14 +310,15 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 .shopp .multiple-select ul li.odd { background:#f9f9f9; }
 .shopp .multiple-select ul ul { padding-left:20px; }
 
-.shopp .multipane ul li { position:relative;padding:0 2px;background:none;width:99%; }
+.shopp .multipane ul li { position:relative;padding:0 2px;background:none;width:99%; height: 21px; }
 .shopp .multipane .menu ul li,
-.shopp .multipane .menu ul li.hover { padding:0 2px;background-image:url('../icons/more_arrow.png');background-repeat:no-repeat;background-position:96% 5px; }
+.shopp .multipane .menu ul li.hover { padding:0 2px;background-image:url('../icons/more_arrow.png');background-repeat:no-repeat;background-position:right 5px; }
 
 .shopp .multipane ul li.hover { background-color:#eaf3fa; }
 .shopp .multipane ul li.selected { background-color:#cee1ef; }
-.shopp .multipane ul li button { width:24px;border:none;background:none; }
-.shopp .multipane ul li button.delete { position:absolute;top:0;right:4px;visibility:hidden; }
+.shopp .multipane ul li button { width:24px;border:none;background:none;padding:0;margin:0; }
+.shopp .multipane ul li button img { display:block; }
+.shopp .multipane ul li button.delete { position:absolute;top:2px;right:0;visibility:hidden; }
 .shopp .multipane ul li img.link { padding:2px 0 3px;margin:1px 0 0 3px; }
 .shopp .multipane ul li.hover img.link { visibility:hidden; }
 
