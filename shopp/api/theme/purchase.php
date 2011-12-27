@@ -281,7 +281,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$classes = "";
 		if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 		$request = '' == get_option('permalink_structure') ? array('src'=>'download','s_dl'=>$item->dkey) : "download/$item->dkey";
-		$url = shoppurl($request,'catalog');
+		$url = shoppurl($request,'account');
 		return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>';
 	}
 
