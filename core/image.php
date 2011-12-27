@@ -59,34 +59,12 @@ class ImageServer {
 		if (!defined('SHOPP_QUERY_DEBUG'))
 			define('SHOPP_QUERY_DEBUG',true);
 
-		$this->init();
 		$this->request();
 		$this->settings();
 		if ($this->load())
 			$this->render();
 		else $this->error();
 
-	}
-
-	/**
-	 * Boot WordPress
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * @return void
-	 **/
-	function init () {
-		if (defined('ABSPATH')) return;
-		$loadfile = shopp_find_wpload();
-		if ($loadfile) {
-			 // barebones bootstrap (say that 5x fast)
-			define('SHORTINIT',true);
-			global $table_prefix;
-			require($loadfile);
-			return true;
-		}
-
-		return false;
 	}
 
 	/**
@@ -287,6 +265,15 @@ if (!function_exists('__')) {
 	function __ ($string,$domain=false) {
 		return $string;
 	}
+}
+
+if (defined('ABSPATH')) return;
+
+// Barebones bootstrap (say that 5x fast) for WordPress
+if ($loadfile = shopp_find_wpload()) {
+	define('SHORTINIT',true);
+	require($loadfile);
+	global $table_prefix;
 }
 
 // Start the server
