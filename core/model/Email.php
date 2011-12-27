@@ -937,11 +937,11 @@ class Emogrifier {
             $body = preg_replace("/<($unprocessableHTMLTags)[^>]*>/i",'',$body);
 	    }
 
-        $encoding = mb_detect_encoding($body);
-        $body = mb_convert_encoding($body, 'HTML-ENTITIES', $encoding);
+        // $encoding = mb_detect_encoding($body);
+        // $body = mb_convert_encoding($body, 'HTML-ENTITIES', $encoding);
 
         $xmldoc = new DOMDocument;
-		$xmldoc->encoding = $encoding;
+		$xmldoc->encoding = 'UTF-8';
 		$xmldoc->strictErrorChecking = false;
 		$xmldoc->formatOutput = true;
         $xmldoc->loadHTML($body);

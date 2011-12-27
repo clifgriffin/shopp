@@ -467,7 +467,7 @@ class ShoppErrorLogging {
 			$seek = min(ftell($f), $buffer);				// Figure out how far to go back
 			fseek($f, -$seek, SEEK_CUR);					// Jump back from the current position
 			$output = ($chunk = fread($f, $seek)).$output;	// Read a buffer chunk and prepend it to our output
-			fseek($f, -mb_strlen($chunk, '8bit'), SEEK_CUR);// Jump back to where we started reading
+			fseek($f, -strlen($chunk), SEEK_CUR);// Jump back to where we started reading
 			$lines -= substr_count($chunk, "\n");			// Decrease our line counter
 		}
 		fclose($f);
