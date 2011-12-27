@@ -542,7 +542,7 @@ class Cart {
 	 * @return boolean
 	 **/
 	private function _filter_downloads ($item) {
-		return ($item->download >= 0);
+		return ($item->download);
 	}
 
 	/**
