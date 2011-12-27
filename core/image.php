@@ -267,10 +267,8 @@ if (!function_exists('__')) {
 	}
 }
 
-if (defined('ABSPATH')) return;
-
 // Barebones bootstrap (say that 5x fast) for WordPress
-if ($loadfile = shopp_find_wpload()) {
+if (!defined('ABSPATH') && $loadfile = shopp_find_wpload()) {
 	define('SHORTINIT',true);
 	require($loadfile);
 	global $table_prefix;
