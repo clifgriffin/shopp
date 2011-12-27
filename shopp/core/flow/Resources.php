@@ -124,7 +124,6 @@ class Resources {
 		$Purchase = false;
 		$Purchased = false;
 
-
 		if (defined('WP_ADMIN')) {
 			$forbidden = false;
 			$Download = new ProductDownload($download);

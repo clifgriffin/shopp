@@ -417,7 +417,6 @@ class DownloadAsset extends FileAsset {
 		add_action('shopp_download_success',array($this,'downloaded'));
 
 		if (!isset($found['redirect'])) {
-			echo "No redirect, direct download\n";
 			// Close the session in case of long download
 			@session_write_close();
 
