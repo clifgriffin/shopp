@@ -1023,10 +1023,10 @@ class Storefront extends FlowController {
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
-	function account_page ($request=false) {
+	function account_page () {
 
 		$download_request = get_query_var('s_dl');
-		if (!$request) $request = $this->account['request'];
+		$request = $this->account['request'];
 		$templates = array('account-'.$request.'.php','account.php');
 
 		if ('login' == $request || !ShoppCustomer()->logged_in()) $templates = array('login-'.$request.'.php','login.php');
