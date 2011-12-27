@@ -233,10 +233,10 @@ class Customer extends DatabaseObject {
 		if (isset($Storefront->account)) extract($Storefront->account);
 		else {
 			if (isset($_GET['acct'])) $request = $_GET['acct'];
-			if (isset($_GET['id'])) $request = (int)$_GET['id'];
+			if (isset($_GET['id'])) $id = (int)$_GET['id'];
 		}
 
-		if ($this->logged_in() && 'orders' == $request && false !== $id) {
+		if ($this->logged_in() && 'orders' == $request && !empty($id)) {
 			$Purchase = new Purchase((int)$id);
 			if ($Purchase->customer == $this->id) {
 				ShoppPurchase($Purchase);
