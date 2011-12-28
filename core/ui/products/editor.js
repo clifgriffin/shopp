@@ -47,14 +47,13 @@ jQuery(document).ready(function($) {
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 
-
 	$('.postbox a.help').click(function () {
 		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 		return false;
 	});
 
 	// Handle publishing/scheduling
-	$('#publish-calendar').PopupCalendar({
+	$('<div id="publish-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
 		m_input:$('#publish-month'),
 		d_input:$('#publish-date'),
 		y_input:$('#publish-year'),

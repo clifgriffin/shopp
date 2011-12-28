@@ -150,8 +150,8 @@ jQuery.fn.PopupCalendar = function (settings) {
 
 		title = $('<h3></h3>').appendTo($this);
 		for (i = 0; i < tf.length; i++) {
-			if (tf[i] == "m") $('<span class="month">'+MONTH_NAMES[month]+'</span>').appendTo(title);
-			if (tf[i] == "y") $('<span class="year">'+year.toString()+'</span>').appendTo(title);
+			if (-1 != $.inArray(tf[i],['m','n','M','F'])) $('<span class="month">'+MONTH_NAMES[month]+'</span>').appendTo(title);
+			if (-1 != $.inArray(tf[i],['y','Y'])) $('<span class="year">'+year.toString()+'</span>').appendTo(title);
 			$('<span> </span>').appendTo(title);
 		}
 
@@ -318,7 +318,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 
 
 	if (input !== false) {
-		pos = input.parent().offset();
+		pos = input.offset();
 		pad = 0; // Padding offset
 
 		if (pos.left+pos.top == 0) {

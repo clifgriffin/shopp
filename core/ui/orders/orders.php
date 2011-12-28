@@ -144,9 +144,6 @@
 	</div>
 </div>
 
-<div id="start-calendar" class="calendar"></div>
-<div id="end-calendar" class="calendar"></div>
-
 <script type="text/javascript">
 var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('purchaselog_lastexport')); ?>);
 
@@ -188,14 +185,14 @@ function formatDate (e) {
 
 var range = $('#range'),
 	start = $('#start').change(formatDate),
-	StartCalendar = $('#start-calendar').PopupCalendar({
+	StartCalendar = $('<div id="start-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
 		scheduling:false,
 		input:start
 	}).bind('calendarSelect',function () {
 		range.val('custom');
 	}),
 	end = $('#end').change(formatDate),
-	EndCalendar = $('#end-calendar').PopupCalendar({
+	EndCalendar = $('<div id="end-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
 		scheduling:true,
 		input:end,
 		scheduleAfter:StartCalendar
