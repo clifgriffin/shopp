@@ -91,9 +91,15 @@ class Purchased extends DatabaseObject {
 	}
 
 	function keygen () {
-		$message = $this->name.$this->purchase.$this->product.$this->price.$this->download;
+		$message = ShoppCustomer()->email.serialize($this).current_time('mysql');
 		$key = sha1($message);
-		if (empty($key)) $key = md5($message);
+
+		$limit = 25; $c = 0;
+		while ((int)DB::query("SELECT count(*) AS exists FROM $this->_table WHERE dkey=$key",'auto','col','exists') > 0) {
+			$key = sha1($message.rand());
+			if ($c++ > $limit) break;
+		}
+
 		$this->dkey = $key;
 		do_action_ref_array('shopp_download_keygen',array(&$this));
 	}
