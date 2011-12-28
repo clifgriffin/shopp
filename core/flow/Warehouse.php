@@ -332,7 +332,7 @@ class Warehouse extends AdminController {
 				case "ls":
 					$ls = shopp_setting('lowstock_level');
 					if (empty($ls)) $ls = '0';
-					$where[] = "(s.inventory='on' AND s.stock <= $ls AND s.stock > 0)";
+					$where[] = "(s.inventory='on' AND s.lowstock != 'none')";
 					break;
 				case "is": $where[] = "(s.inventory='on' AND s.stock > 0)";
 			}
