@@ -38,14 +38,14 @@ th.textright { text-align: right; }
 .shopp .column-captures,
 .shopp .column-recurring,
 .shopp .column-refunds { text-align: center; }
-.saletag { position: relative; display: inline-block; background: #608E0F; color: #fff; height: 9px; font-family: sans-serif; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-left: 9px; line-height: 9px; text-indent: -9px; padding: 1px 2px 1px 0px; border: none;	-moz-border-radius-topright: 2px; -webkit-border-top-right-radius: 2px; -khtml-border-top-right-radius: 2px; border-top-right-radius: 2px; -moz-border-radius-bottomright: 2px; -webkit-border-bottom-right-radius: 2px; -khtml-border-bottom-right-radius: 2px; border-bottom-right-radius: 2px; top: -1px; }
-.saletag:before { position: relative; content: "\25C0"; color: #608E0F; background: none; top: 1px; font-size: 11px; text-shadow: #608E0F 1px 0 1px; vertical-align: top; }
+
+.saletag { margin-left: 3px; background: url('../icons/saletag.svg') no-repeat; padding: 2px 3px 1px 3px; color: #fff; font-family: sans-serif; font-size: 9px; text-transform: uppercase; font-weight: bold; -o-background-size: 100% 100%; -webkit-background-size: 100%; -moz-background-size: 100% 100%; background-size: 100% 100%; line-height: 16px; vertical-align: top; }
+.saletag:before { content: "\00a0\00a0"; }
 
 span.stock { padding: 0px 3px 1px; }
 span.stock.lowstock { color: #fff; font-weight: bold; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:2px; }
 span.lowstock.critical { background: #900; }
 span.lowstock.warning { background: #C60; }
-
 
 /** Inventory Manager **/
 #inventory-manager td.inventory { width: 60px; }
