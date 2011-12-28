@@ -396,8 +396,8 @@ class DB extends SingletonFramework {
 						$value = current_time('mysql');
 					// If the date is an integer, convert it to an
 					// sql YYYY-MM-DD HH:MM:SS format
-					} elseif (!empty($value) && is_int(intval($value))) {
-						$value = mkdatetime(intval($value));
+					} elseif (!empty($value) && (is_int($value) || intval($value) > 86400)) {
+						$value = DB::mkdatetime(intval($value));
 					}
 
 					$data[$property] = "'$value'";
