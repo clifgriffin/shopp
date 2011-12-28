@@ -66,12 +66,24 @@
 			$classes = array();
 
 			$viewurl = add_query_arg('id',$Order->id,$url);
-			$customer = '' == trim($Order->firstname.$Order->lastname) ? "(".__('no contact name','Shopp').")" : "{$Order->firstname} {$Order->lastname}";
+			$customer = '' == trim($Order->firstname.$Order->lastname) ? "(".__('no contact name','Shopp').")" : ucfirst("{$Order->firstname} {$Order->lastname}");
 			$customerurl = add_query_arg('customer',$Order->customer,$url);
 
 			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
 			$gateway = $Gateways[$Order->gateway]->name;
+
+
+			$addrfields = array('city','state','country');
+			$format = '%3$s, %2$s &mdash; %1$s';
+			if (empty($Order->shipaddress))
+				$location = sprintf($format,$Order->country,$Order->state,$Order->city);
+			else $location = sprintf($format,$Order->shipcountry,$Order->shipstate,$Order->shipcity);
+
+			$location = ltrim($location,' ,');
+			if (0 === strpos($location,'&mdash;'))
+				$location = str_replace('&mdash; ','',$location);
+			$location = str_replace(',  &mdash;',' &mdash;',$location);
 
 			if (!$even) $classes[] = "alternate";
 			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
@@ -81,17 +93,7 @@
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php printf(__('View Order #%d','Shopp'),$Order->id); ?>'><?php printf(__('Order #%d','Shopp'),$Order->id); ?></a></td>
 			<td class="name column-name"><a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
-			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php
-				$location = '';
-				$location = $Order->shipcity;
-				if (!empty($location) && !empty($Order->shipstate)) $location .= ', ';
-				$location .= $Order->shipstate;
-				if (!empty($location) && !empty($Order->shipcountry))
-					$location .= ' &mdash; ';
-				$location .= $Order->shipcountry;
-				echo esc_html($location);
-				if (isset($Order->downloads)) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
-				?></td>
+			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php echo esc_html($location); ?></td>
 			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
 				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
