@@ -508,6 +508,7 @@ class Product extends WPShoppObject {
 		if (str_true($price->inventory)) {
 			$target->stock += $price->stock;
 			$target->inventory = $price->inventory;
+			$target->lowstock($price->stock,$price->stocked);
 		}
 
 		if (!isset($price->freeshipping) || !$price->freeshipping || str_true($price->shipping))
@@ -629,8 +630,7 @@ class Product extends WPShoppObject {
 		if (str_true($Price->inventory)) {
 			$this->inventory = $Price->inventory;
 			$this->stock += $Price->stock;
-			if ( ! isset($this->lowstock) ) $this->lowstock = 'none';
-			$this->lowstock = $this->lowstock($this->lowstock,$Price->stock,$Price->stocked);
+			$this->lowstock($Price->stock,$Price->stocked);
 		} elseif (!$this->inventory) $this->inventory = 'off';
 
 	}
@@ -709,22 +709,22 @@ class Product extends WPShoppObject {
 		$Summary->save();
 	}
 
-	function lowstock ($level=false,$stock,$stocked) {
+	function lowstock ($stock,$stocked) {
 		$lowstock_level = shopp_setting('lowstock_level');
 		if ( false === $lowstock_level ) $lowstock_level = 5;
 		$setting = ( shopp_setting('lowstock_level')/100 );
 
 		$levels = array('none','warning','critical','backorder');
-		$max = array_search($level,$levels);
+		$max = array_search($this->lowstock,$levels);
 		$factors = array(0,1,3);
 
-		$x = 3;
+		$x = count($factors);
 		foreach ($factors as $factor) {
-			if ($stock <= min(1,$setting*$factor) * $stocked ) break;
+			if ($stock < min(1,$setting*$factor) * $stocked ) break;
 			$x--;
 		}
 
-		return $levels[max($max,$x)];
+		$this->lowstock = $levels[max($max,$x)];
 	}
 
 	/**
