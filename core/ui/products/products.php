@@ -122,7 +122,7 @@
 				if (!str_true($Product->variants)) echo money($Product->minprice);
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
-				if ($Product->sale == 'on') echo '<span class="saletag">'.__('Sale','Shopp').'</span>';
+				if ($Product->sale == 'on') echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
 			?>
 			</td>
 
