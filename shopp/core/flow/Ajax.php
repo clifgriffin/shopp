@@ -45,9 +45,6 @@ class AjaxFlow {
 		// Actions that can happen on front end whether or not logged in
 		add_action('wp_ajax_nopriv_shopp_ship_costs',array($this,'shipping_costs'));
 		add_action('wp_ajax_shopp_ship_costs',array($this,'shipping_costs'));
-		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array($this, 'checkout_button'));
-		add_action('wp_ajax_shopp_checkout_submit_button', array($this, 'checkout_button'));
-
 
 		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
@@ -494,6 +491,8 @@ class AjaxFlow {
 		if ( (int)$_GET['stock'] < 0 ) die('0');
 		$Priceline->stock = $Priceline->stocked = $_GET['stock'];
 		$Priceline->save();
+		$summary = DatabaseObject::tablename(ProductSummary::$table);
+		DB::query("UPDATE $summary SET modified='0000-00-00 00:00:01' WHERE product=$Priceline->product LIMIT 1");
 		echo "1";
 		exit();
 	}
@@ -691,34 +690,6 @@ class AjaxFlow {
 		foreach ((array)$updates as $id => $position)
 			DB::query("UPDATE $wpdb->term_relationships SET term_order='$position' WHERE object_id='$id'");
 		die('1');
-		exit();
-	}
-
-	/**
-	 * @deprecated Discontinuing Use
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void Description...
-	 **/
-	function checkout_button () {
-		global $Shopp;
-		if (isset($_POST['paymethod']) && isset($Shopp->Order->payoptions[ $_POST['paymethod'] ])) {
-			$Shopp->Order->paymethod = $paymethod = $_POST['paymethod'];
-			$Shopp->Order->_paymethod_selected = true;
-			// User selected one of the payment options
-			$processor = $Shopp->Order->payoptions[$this->paymethod]->processor;
-			if (isset($Shopp->Gateways->active[$processor])) {
-				remove_all_filters('shopp_init_checkout');
-				remove_all_filters('shopp_checkout_submit_button');
-				remove_all_filters('shopp_process_checkout');
-				$Gateway = $Shopp->Order->processor($processor);
-				$Gateway->actions();
-				do_action('shopp_init_checkout');
-			}
-		}
-		echo $Shopp->Order->tag('submit');
 		exit();
 	}
 
