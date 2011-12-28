@@ -43,9 +43,6 @@
 		</form>
 	</div>
 
-<div id="starts-calendar" class="calendar"></div>
-<div id="ends-calendar" class="calendar"></div>
-
 <script type="text/javascript">
 
 jQuery(document).ready( function($) {
@@ -311,7 +308,7 @@ if (rules) {
 	for (var r in rules) if (r != 'item') new Conditional('condition',rules[r]);
 } else new Conditional();
 
-$('#starts-calendar').PopupCalendar({
+$('<div id="starts-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
 	m_input:$('#starts-month'),
 	d_input:$('#starts-date'),
 	y_input:$('#starts-year')
@@ -319,7 +316,7 @@ $('#starts-calendar').PopupCalendar({
 	$('#ends-calendar').hide();
 });
 
-$('#ends-calendar').PopupCalendar({
+$('<div id="ends-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
 	m_input:$('#ends-month'),
 	d_input:$('#ends-date'),
 	y_input:$('#ends-year')

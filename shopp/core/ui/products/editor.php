@@ -68,8 +68,6 @@
 	</form>
 </div>
 
-<div id="publish-calendar" class="calendar"></div>
-
 <?php do_action('shopp_product_editor_templates'); ?>
 <script type="text/javascript">
 /* <![CDATA[ */
