@@ -548,6 +548,9 @@ class ShoppInstallation extends FlowController {
 			DB::query("UPDATE $summary_table SET modified='0000-00-00 00:00:01'");
 		}
 
+		$purchase_table = DatabaseObject::tablename('purchase');
+		DB::query("UPDATE $purchase_table SET txnstatus='captured' WHERE txnstatus='CHARGED'");
+
 		if ($db_version <= 1130) {
 			// Move settings to meta table
 			$meta_table = DatabaseObject::tablename('meta');
@@ -555,8 +558,6 @@ class ShoppInstallation extends FlowController {
 			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
 			ShoppSettings()->load();
 			$db_version = intval(shopp_setting('db_version'));
-
-
 
 			// Convert Shopp 1.1.x shipping settings to Shopp 1.2-compatible settings
 			$active_shipping = array();
