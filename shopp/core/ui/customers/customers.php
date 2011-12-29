@@ -32,7 +32,8 @@
 				<button type="submit" id="filter-button" name="filter" value="customers" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
 			</div>
 			</div>
-			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+
+			<?php $ListTable->pagination('top'); ?>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -104,7 +105,9 @@
 			</form>
 		</div>
 		<?php endif; ?>
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+
+		<?php $ListTable->pagination('bottom'); ?>
+
 		<div class="clear"></div>
 	</div>
 </div>

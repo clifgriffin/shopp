@@ -14,9 +14,6 @@
 	</p>
 
 	<div class="tablenav">
-		<?php if ($page_links): ?><div class='tablenav-pages'><?php echo $page_links; ?></div><?php endif; ?>
-
-
 		<div class="alignleft actions">
 			<select name="action" id="actions">
 				<option value="" selected="selected"><?php _e('Bulk Actions&hellip;','Shopp'); ?></option>
@@ -39,6 +36,7 @@
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
 
+		<?php $ListTable->pagination('top'); ?>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -106,7 +104,7 @@
 	</table>
 	</form>
 	<div class="tablenav">
-		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+		<?php $ListTable->pagination('bottom'); ?>
 		<div class="clear"></div>
 	</div>
 </div>

@@ -63,7 +63,7 @@ class Account extends AdminController {
 			'update' => false,
 			'newstatus' => false,
 			'pagenum' => 1,
-			'per_page' => false,
+			'per_page' => 20,
 			'start' => '',
 			'end' => '',
 			'status' => false,
@@ -192,17 +192,12 @@ class Account extends AdminController {
 		}
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$customercount = $db->query("SELECT count(*) as total FROM $customer_table AS c $where");
+		$customercount = DB::query("SELECT count(*) as total FROM $customer_table AS c $where");
 		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND (c.wpuser IS NULL OR c.wpuser !=0) $where GROUP BY c.id ORDER BY c.created DESC LIMIT $index,$per_page";
-		$Customers = $db->query($query,AS_ARRAY);
+		$Customers = DB::query($query,'array');
 
 		$num_pages = ceil($customercount->total / $per_page);
-		$page_links = paginate_links( array(
-			'base' => add_query_arg( 'pagenum', '%#%' ),
-			'format' => '',
-			'total' => $num_pages,
-			'current' => $pagenum
-		));
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $customercount->total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show New Customers','Shopp'),
