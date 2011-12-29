@@ -13,7 +13,7 @@
 <?php shopp('catalog','breadcrumb')?>
 <?php if (shopp('product','found')): ?>
 
-	<?php shopp('product','gallery'); ?>
+	<?php shopp('product','gallery','p_setting=gallery-previews&thumbsetting=gallery-thumbnails'); ?>
 
 	<h3><?php shopp('product','name'); ?></h3>
 	<p class="headline"><big><?php shopp('product','summary'); ?></big></p>

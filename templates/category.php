@@ -29,7 +29,7 @@
 		<?php if(shopp('category','row')): ?></ul></li><li class="row"><ul><?php endif; ?>
 			<li class="product">
 				<div class="frame">
-				<a href="<?php shopp('product','url'); ?>"><?php shopp('product','coverimage'); ?></a>
+				<a href="<?php shopp('product','url'); ?>"><?php shopp('product','coverimage','setting=thumbnails'); ?></a>
 					<div class="details">
 					<h4 class="name"><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h4>
 					<p class="price"><?php shopp('product','saleprice','starting='.__('from','Shopp')); ?> </p>
