@@ -56,8 +56,9 @@ class Setup extends AdminController {
 				);
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
+				else $_GET['sub'] = shopp_setting_enabled('taxes')?'rates':'settings';
 
-				if ('on' == shopp_setting('taxes'))
+				if (shopp_setting_enabled('taxes'))
 					$this->taxrate_ui();
 
 				break;
@@ -100,9 +101,11 @@ class Setup extends AdminController {
 				);
 
 				if (isset($_GET['sub'])) $this->url = add_query_arg(array('sub'=>esc_attr($_GET['sub'])),$this->url);
+				else $_GET['sub'] = shopp_setting_enabled('taxes')?'rates':'settings';
 
-				if ('on' == shopp_setting('shipping'))
+				if (shopp_setting_enabled('shipping'))
 					$this->shipping_ui();
+
 				break;
 			case 'settings':
 				shopp_enqueue_script('setup');
@@ -404,10 +407,9 @@ class Setup extends AdminController {
 		global $Shopp;
 
 		$sub = 'settings';
-		if ('on' == shopp_setting('shipping')) $sub = 'rates';
+		if (shopp_setting_enabled('shipping')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
-
 
 		if (!empty($_POST['save']) && empty($_POST['module']) ) {
 			check_admin_referer('shopp-settings-shipping');
@@ -647,11 +649,11 @@ class Setup extends AdminController {
 	}
 
 	function shipping_menu () {
-		if ('off' == shopp_setting('shipping')) return;
+		if (!shopp_setting_enabled('shipping')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
-				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['page'] == $page) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
+				<li><a href="<?php echo esc_url($url); ?>"<?php if ($_GET['sub'] == $screen) echo ' class="current"'; ?>><?php echo $label; ?></a><?php if (count($this->subscreens)-1!=$i++): ?> | <?php endif; ?></li>
 			<?php endforeach; ?>
 		</ul>
 		<br class="clear" />
@@ -671,7 +673,7 @@ class Setup extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$sub = 'settings';
-		if ('on' == shopp_setting('taxes')) $sub = 'rates';
+		if (shopp_setting_enabled('taxes')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
 
@@ -688,8 +690,7 @@ class Setup extends AdminController {
 	}
 
 	function taxes_menu () {
-		if ('off' == shopp_setting('taxes')) return;
-		if (!isset($_GET['sub'])) $_GET['sub'] = 'rates';
+		if (!shopp_setting_enabled('taxes')) return;
 		?>
 		<ul class="subsubsub">
 			<?php $i = 0; foreach ($this->subscreens as $screen => $label):  $url = add_query_arg(array('sub'=>$screen),$this->url); ?>
@@ -718,9 +719,6 @@ class Setup extends AdminController {
 
 		$rates = shopp_setting('taxrates');
 		if (!is_array($rates)) $rates = array();
-
-		// echo "<pre>"; print_r($_POST); echo "</pre>";
-		// echo "<pre>"; print_r($_FILES); echo "</pre>";
 
 		if (isset($_GET['delete'])) {
 			check_admin_referer('shopp_delete_taxrate');
@@ -764,7 +762,7 @@ class Setup extends AdminController {
 		if (isset($_POST['submit'])) $edit = false;
 
 		$base = shopp_setting('base_operations');
-		$countries = array_merge(array('*' => __('All Markets','Shopp')),shopp_setting('target_markets'));
+		$countries = array_merge(array('*' => __('All Markets','Shopp')),(array)shopp_setting('target_markets'));
 		$zones = Lookup::country_zones();
 
 		include(SHOPP_ADMIN_PATH.'/settings/taxrates.php');
