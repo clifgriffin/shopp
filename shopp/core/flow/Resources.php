@@ -134,6 +134,7 @@ class Resources {
 			$Download->loadby_dkey($download);
 
 			$Purchased = $Download->purchased();
+
 			$Purchase = new Purchase($Purchased->purchase);
 			$Purchase->load_events();
 
@@ -193,7 +194,16 @@ class Resources {
 		if (is_a($download,'ShoppError')) {
 			// If the result is an error redirect to the account downloads page
 			shopp_redirect(add_query_arg('downloads','',shoppurl(false,'account')),true,303);
-		} else do_action_ref_array('shopp_download_success',array(&$Purchased,$Purchase,$Download));
+		} else {
+			do_action_ref_array('shopp_download_success',array(&$Purchased,$Purchase,$Download)); // @deprecated use shopp_download_order_event instead
+
+			shopp_add_order_event($Purchase->id,'download',array(
+				'purchased' => $Purchased->id,		// Purchased line item ID (or add-on meta record ID)
+				'download' => $Download->id,		// Download ID (meta record)
+				'ip' => ShoppShopping()->ip,		// IP address of the download
+				'customer' => ShoppCustomer()->id	// Authenticated customer
+			));
+		}
 
 		exit();
 	}
