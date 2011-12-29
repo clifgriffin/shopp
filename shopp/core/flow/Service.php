@@ -298,18 +298,18 @@ class Service extends AdminController {
 
 		// Handle Order note processing
 		if (!empty($_POST['note']))
-			$this->addnote($Purchase->id, $_POST['note'], !empty($_POST['send-note']));
+			$this->addnote($Purchase->id, stripslashes($_POST['note']), !empty($_POST['send-note']));
 
 		if (!empty($_POST['delete-note'])) {
 			$noteid = key($_POST['delete-note']);
-			$Note = new MetaObject($noteid);
+			$Note = new MetaObject(array('id' => $noteid,'type'=>'order_note'));
 			$Note->delete();
 		}
 
 		if (!empty($_POST['edit-note'])) {
 			$noteid = key($_POST['note-editor']);
 			$Note = new MetaObject($noteid);
-			$Note->value->message = $_POST['note-editor'][$noteid];
+			$Note->value->message = stripslashes($_POST['note-editor'][$noteid]);
 			$Note->save();
 		}
 		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
@@ -408,8 +408,6 @@ class Service extends AdminController {
 			}
 		}
 		unset($carrierdata);
-
-		$shipping_method = $Purchase->shipoption;
 
 		if (empty($statusLabels)) $statusLabels = array('');
 

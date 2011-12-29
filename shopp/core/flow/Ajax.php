@@ -256,7 +256,7 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_order_note_message');
 		if (!isset($_GET['id'])) die('1');
 
-		$Note = new MetaObject($_GET['id']);
+		$Note = new MetaObject(array('id' => intval($_GET['id']),'type'=>'order_note'));
 		die($Note->value->message);
 	}
 
