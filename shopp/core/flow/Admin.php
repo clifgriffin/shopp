@@ -473,15 +473,15 @@ class AdminFlow extends FlowController {
 		$dashboard = shopp_setting('dashboard');
 		if ( ! ( current_user_can('shopp_financials') && "on" == $dashboard ) ) return false;
 
-		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array($this,'stats_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_stats', __('Sales Stats','Shopp'), array($this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_add_dashboard_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array($this,'orders_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_orders', __('Recent Orders','Shopp'), array($this,'orders_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_add_dashboard_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array($this,'products_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_inventory', __('Low Inventory Monitor','Shopp'), array($this,'inventory_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
@@ -510,19 +510,79 @@ class AdminFlow extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function stats_widget ($args=null) {
+	function stats_widget ($args=false) {
 		global $Shopp;
-		$db = DB::get();
+
+		$ranges = array(
+			'today' => __('Today','Shopp'),
+			'week' => __('This Week','Shopp'),
+			'month' => __('This Month','Shopp'),
+			'quarter' => __('This Quarter','Shopp'),
+			'year' => __('This Year','Shopp'),
+			'yesterday' => __('Yesterday','Shopp'),
+			'lastweek' => __('Last Week','Shopp'),
+			'last30' => __('Last 30 Days','Shopp'),
+			'last90' => __('Last 3 Months','Shopp'),
+			'lastmonth' => __('Last Month','Shopp'),
+			'lastquarter' => __('Last Quarter','Shopp'),
+			'lastyear' => __('Last Year','Shopp'),
+		);
+
 		$defaults = array(
 			'before_widget' => '',
 			'before_title' => '',
 			'widget_name' => '',
 			'after_title' => '',
-			'after_widget' => ''
+			'after_widget' => '',
+			'range' => $_GET['shopp-stats-range']
 		);
 		if (!$args) $args = array();
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
+
+		if ( ! $range || !isset($ranges[ strtolower($range) ]) ) $range = 'last30';
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+
+		$now = current_time('timestamp');
+		$offset = get_option( 'gmt_offset' ) * 3600;
+		$daytimes = 86400;
+		$day = date('j',$now);
+		$month = date('n',$now);
+		$year = date('Y',$now);
+		$end = $now;
+
+		list($weekstart,$weekend) = array_values(get_weekstartend(current_time('mysql')));
+		switch ($range) {
+			case 'today': $start = mktime(0,0,0,$month,$day,$year); break;
+			case 'week': $start = $weekstart; $end = $weekend; break;
+			case 'month': $start = mktime(0,0,0,$month,1,$year); break;
+			case 'quarter': $start = mktime(0,0,0,$month-(3 - ($month % 3)),1,$year); break;
+			case 'year': $start = mktime(0,0,0,1,1,$year); break;
+			case 'yesterday': $start = mktime(0,0,0,$month,$day-1,$year); $end = mktime(23,59,59,$month,$day-1,$year); break;
+			case 'lastweek': $start = $weekstart-(7*$daytimes); $end = $weekstart-1; break;
+			case 'last7': $start = $now - (7 * $daytimes); break;
+			case 'last30': $start = $now - (30 * $daytimes); break;
+			case 'last90': $start = $now - (90 * $daytimes); break;
+			case 'lastmonth': $start = mktime(0,0,0,$month-1,1,$year); $end = mktime(0,0,0,$month,0,$year); break;
+			case 'lastquarter': $start = mktime(0,0,0,($month-(3 - ($month % 3)))-3,1,$year); $end = mktime(23,59,59,date('n',$start)+3,0,$year); break;
+			case 'lastyear': $start = mktime(0,0,0,$month,1,$year-1); $end = mktime(23,59,59,1,0,$year); break;
+		}
+
+		$results = DB::query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
+		 						SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,1,0)) AS wkorders,
+								SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,0)) AS wksales,
+								AVG(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,null)) AS wkavg
+		 						FROM $purchasetable WHERE txnstatus='captured'");
+
+		$RecentBestsellers = new BestsellerProducts(array('range' => array($start,$end),'show'=>5));
+		$RecentBestsellers->load(array('pagination'=>false));
+		$RecentBestsellers->maxsold = 0;
+		foreach ($RecentBestsellers as $product) $RecentBestsellers->maxsold = max($RecentBestsellers->maxsold,$product->sold);
+
+		$LifeBestsellers = new BestsellerProducts(array('show'=>5));
+		$LifeBestsellers->load(array('pagination'=>false));
+		$LifeBestsellers->maxsold = 0;
+		foreach ($LifeBestsellers as $product) $LifeBestsellers->maxsold = max($LifeBestsellers->maxsold,$product->sold);
 
 		echo $before_widget;
 
@@ -530,30 +590,77 @@ class AdminFlow extends FlowController {
 		echo $widget_name;
 		echo $after_title;
 
-		$purchasetable = DatabaseObject::tablename(Purchase::$table);
-
-		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
-		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
-								SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,0)) AS wksales,
-								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
-		 						FROM $purchasetable WHERE txnstatus='CHARGED'");
-
 		$orderscreen = add_query_arg('page',$this->pagename('orders'),admin_url('admin.php'));
-		echo '<div class="table"><table><tbody>';
-		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
+		$productscreen = add_query_arg(array('page'=>$this->pagename('products')),admin_url('admin.php'));
 
-		echo '<tr><td class="amount"><a href="' . $orderscreen . '">' . (int)$results->wkorders . '</a></td><td>' . _n('Order', 'Orders', (int)$results->wkorders, 'Shopp') . '</td>';
-		echo '<td class="amount"><a href="' . $orderscreen . '">' . (int)$results->orders . '</a></td><td>' . _n('Order', 'Orders', (int)$results->orders, 'Shopp') . '</td></tr>';
+		?>
+		<div class="table"><table>
+		<tr><th colspan="2"><form action="<?php echo admin_url('index.php'); ?>">
+			<select name="shopp-stats-range" id="shopp-stats-range">
+				<?php echo menuoptions($ranges,$range,true); ?>
+			</select>
+			<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary hide-if-js"><?php _e('Filter','Shopp'); ?></button>
+		</form>
+		</th><th colspan="2"><?php _e('Lifetime','Shopp'); ?></th></tr>
 
-		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wksales).'</a></td><td>'.__('Sales','Shopp').'</td>';
-		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->sales).'</a></td><td>'.__('Sales','Shopp').'</td></tr>';
+		<tbody>
+		<tr><td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo (int)$results->wkorders; ?></a></td><td class="label"><?php echo _n('Order', 'Orders', (int)$results->wkorders, 'Shopp'); ?></td>
+		<td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo (int)$results->orders; ?></a></td><td class="label"><?php echo _n('Order', 'Orders', (int)$results->orders, 'Shopp'); ?></td></tr>
 
-		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wkavg).'</a></td><td>'.__('Average Order','Shopp').'</td>';
-		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->average).'</a></td><td>'.__('Average Order','Shopp').'</td></tr>';
+		<tr><td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo money($results->wksales); ?></a></td><td class="label"><?php _e('Sales','Shopp'); ?></td>
+		<td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo money($results->sales); ?></a></td><td class="label"><?php _e('Sales','Shopp'); ?></td></tr>
 
-		echo '</tbody></table></div>';
+		<tr><td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo money($results->wkavg); ?></a></td><td class="label"><?php _e('Average Order','Shopp'); ?></td>
+		<td class="amount"><a href="<?php echo esc_url($orderscreen); ?>"><?php echo money($results->average); ?></a></td><td class="label"><?php _e('Average Order','Shopp'); ?></td></tr>
 
+		<?php if (!empty($RecentBestsellers->products) || !empty($LifeBestsellers->products)): ?>
+		<tr>
+			<th colspan="2"><?php printf(__('Bestsellers %s','Shopp'),$ranges[$range]); ?></th>
+			<th colspan="2"><?php printf(__('Lifetime Bestsellers','Shopp'),$ranges[$range]); ?></th>
+		</tr>
+		<?php
+			reset($RecentBestsellers);
+			reset($LifeBestsellers);
+			$firstrun = true;
+			while (true):
+				list($recentid,$recent) = each($RecentBestsellers->products);
+				list($lifetimeid,$lifetime) = each($LifeBestsellers->products);
+				if (!$recent && !$lifetime) break;
+			?>
+			<tr>
+				<?php if (empty($RecentBestsellers->products) && $firstrun) echo '<td colspan="2" rowspan="5">'.__('None','Shopp').'</td>'; ?>
+				<?php if (!empty($recent->id)): ?>
+				<td class="salesgraph">
+					<div class="bar" style="width:<?php echo ($recent->sold/$RecentBestsellers->maxsold)*100; ?>%;"><?php echo $recent->sold; ?></div>
+				</td>
+				<td>
+				<a href="<?php echo esc_url(add_query_arg('view','bestselling',$productscreen)); ?>"><?php echo esc_html($recent->name); ?></a>
+				</td>
+				<?php endif; ?>
+				<?php if (empty($LifeBestsellers->products) && $firstrun) echo '<td colspan="2" rowspan="5">'.__('None','Shopp').'</td>'; ?>
+				<?php if (!empty($lifetime->id)): ?>
+				<td class="salesgraph">
+					<div class="bar" style="width:<?php echo ($lifetime->sold/$LifeBestsellers->maxsold)*100; ?>%;"><?php echo $lifetime->sold; ?></div>
+				</td>
+				<td>
+				<a href="<?php echo esc_url(add_query_arg('view','bestselling',$productscreen)); ?>"><?php echo esc_html($lifetime->name); ?></a>
+				</td>
+				<?php endif; ?>
+			</tr>
+		<?php $firstrun = false; endwhile; ?>
+		<?php endif; ?>
+		</tbody></table></div>
+		<script type="text/javascript">
+		jQuery(document).ready( function() {
+			var $=jQuery.noConflict();
+			$('#shopp-stats-range').change(function () {
+				$(this).parents('form').submit();
+			});
+		});
+		</script>
+		<?php
 		echo $after_widget;
+
 
 	}
 
@@ -623,9 +730,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function products_widget ($args=null) {
-		global $Shopp;
-
+	function inventory_widget ($args=null) {
 		$defaults = array(
 			'before_widget' => '',
 			'before_title' => '',
@@ -638,32 +743,50 @@ class AdminFlow extends FlowController {
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
 
+		$pt = DatabaseObject::tablename(Price::$table);
+		$setting = ( shopp_setting('lowstock_level') );
+
+		$where = array();
+
+		$where[] = "pt.stock < pt.stocked AND pt.stock/pt.stocked < $setting";
+		$where[] = "(pt.context='product' OR pt.context='variation') AND pt.type != 'N/A'";
+
+		$loading = array(
+			'columns' => "pt.id AS stockid,IF(pt.context='variation',CONCAT(p.post_title,': ',pt.label),p.post_title) AS post_title,pt.sku AS sku,pt.stock,pt.stocked",
+			'joins' => array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),
+			'where' => $where,
+			'groupby' => 'pt.id',
+			'orderby' => '(pt.stock/pt.stocked) ASC',
+			'published' => false,
+			'pagination' => false,
+			'limit' => 25,
+			// 'debug' => true
+		);
+
+		$Collection = new ProductCollection();
+		$Collection->load($loading);
+
+		$productscreen = add_query_arg(array('page'=>$this->pagename('products')),admin_url('admin.php'));
+
 		echo $before_widget;
 
 		echo $before_title;
 		echo $widget_name;
 		echo $after_title;
 
-		$RecentBestsellers = new BestsellerProducts(array('range' => array(-30,0),'show'=>5));
-		$RecentBestsellers->load();
+		?>
+		<table><tbody>
+		<?php foreach ($Collection->products as $product): $product->lowstock($product->stock,$product->stocked); ?>
+		<tr>
+			<td class="amount"><?php echo $product->stock; ?></td>
+			<td><span class="stock lowstock <?php echo $product->lowstock; ?>"><?php echo $product->lowstock; ?></span></td>
+			<td><a href="<?php echo esc_url(add_query_arg('id',$product->id,$productscreen)); ?>"><?php echo $product->name; ?></a></td>
+			<td><a href="<?php echo esc_url(add_query_arg('view','inventory',$productscreen)); ?>"><?php echo $product->sku; ?></a></td>
+		</tr>
+		<?php endforeach; ?>
+		</tbody></table>
 
-		echo '<table><tbody><tr>';
-		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
-		echo '<ul>';
-		if (empty($RecentBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
-		foreach ($RecentBestsellers->products as $product)
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
-		echo '</ul></td>';
-
-		$LifetimeBestsellers = new BestsellerProducts(array('show'=>5));
-		$LifetimeBestsellers->load();
-		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
-		echo '<ul>';
-		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
-		foreach ($LifetimeBestsellers->products as $product)
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
-		echo '</ul></td>';
-		echo '</tr></tbody></table>';
+		<?php
 		echo $after_widget;
 
 	}
