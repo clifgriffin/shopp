@@ -378,6 +378,11 @@ class AjaxFlow {
 					$table = $wpdb->posts;
 					$where[] = "post_type='attachment'";
 					break;
+				case 'wp_users':
+					$id = 'ID';
+					$name = 'user_login';
+					$table = $wpdb->users;
+					break;
 				case 'shopp_memberships':
 					$id = 'id';
 					$name = 'name';

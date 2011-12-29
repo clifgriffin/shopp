@@ -34,23 +34,20 @@
 		</form>
 	</div>
 
-<div id="starts-calendar" class="calendar"></div>
-<div id="ends-calendar" class="calendar"></div>
-
 <script type="text/javascript">
 /* <![CDATA[ */
-
-var PWD_INDICATOR = "<?php _e('Strength indicator','Shopp'); ?>",
-	PWD_GOOD = "<?php _e('Good','Shopp'); ?>",
-	PWD_BAD = "<?php _e('Bad','Shopp'); ?>",
-	PWD_SHORT = "<?php _e('Short','Shopp'); ?>",
-	PWD_STRONG = "<?php _e('Strong','Shopp'); ?>";
 
 jQuery(document).ready( function() {
 
 var $=jqnc(),
-	regions = <?php echo json_encode($regions); ?>;
+	regions = <?php echo json_encode($regions); ?>,
+	suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
+	userlogin = $('#userlogin').unbind('keydown').unbind('keypress').suggest(
+		suggurl+'&action=shopp_suggestions&s=wp_users',
+		{ delay:500, minchars:2, format:'json' }
+	);
 
+debuglog(suggurl);
 postboxes.add_postbox_toggles('shopp_page_shopp-customers');
 // close postboxes that should be closed
 $('.if-js-closed').removeClass('if-js-closed').addClass('closed');
@@ -60,10 +57,11 @@ $('.postbox a.help').click(function () {
 	return false;
 });
 
-$('#username').click(function () {
-	var url = $(this).attr('rel');
-	if (url) document.location.href = url;
-});
+
+// $('#username').click(function () {
+// 	var url = $(this).attr('rel');
+// 	if (url) document.location.href = url;
+// });
 
 updateStates('#billing-country','#billing-state-inputs');
 updateStates('#shipping-country','#shipping-state-inputs');
@@ -104,55 +102,39 @@ function updateStates (country,state)  {
 
 }
 
-// Included from the WP 2.8 password strength meter
+// Derived from the WP password strength meter
 // Copyright by WordPress.org
 $('#new-password').val('').keyup( check_pass_strength );
+$('#confirm-password').val('').keyup( check_pass_strength );
+$('#pass-strength-result').show();
 
-function check_pass_strength () {
-	var pass = $('#new-password').val(), user = $('#email').val(), strength;
+function check_pass_strength() {
+	var pass1 = $('#new-password').val(), user = $('#email').val(), pass2 = $('#confirm-password').val(), strength;
 
 	$('#pass-strength-result').removeClass('short bad good strong');
-	if ( ! pass ) {
-		$('#pass-strength-result').html( PWD_INDICATOR );
+	if ( ! pass1 ) {
+		$('#pass-strength-result').html( pwsL10n.empty );
 		return;
 	}
 
-	strength = passwordStrength(pass, user);
+	strength = passwordStrength(pass1, user, pass2);
 
 	switch ( strength ) {
 		case 2:
-			$('#pass-strength-result').addClass('bad').html( PWD_BAD );
+			$('#pass-strength-result').addClass('bad').html( pwsL10n['bad'] );
 			break;
 		case 3:
-			$('#pass-strength-result').addClass('good').html( PWD_GOOD );
+			$('#pass-strength-result').addClass('good').html( pwsL10n['good'] );
 			break;
 		case 4:
-			$('#pass-strength-result').addClass('strong').html( PWD_STRONG );
+			$('#pass-strength-result').addClass('strong').html( pwsL10n['strong'] );
+			break;
+		case 5:
+			$('#pass-strength-result').addClass('short').html( pwsL10n['mismatch'] );
 			break;
 		default:
-			$('#pass-strength-result').addClass('short').html( PWD_SHORT );
+			$('#pass-strength-result').addClass('short').html( pwsL10n['short'] );
 	}
-}
-
-function passwordStrength(password,username) {
-    var shortPass = 1, badPass = 2, goodPass = 3, strongPass = 4, symbolSize = 0, natLog, score;
-
-	//password < 4
-    if (password.length < 4 ) { return shortPass };
-
-    //password == username
-    if (password.toLowerCase()==username.toLowerCase()) return badPass;
-
-	if (password.match(/[0-9]/)) symbolSize +=10;
-	if (password.match(/[a-z]/)) symbolSize +=26;
-	if (password.match(/[A-Z]/)) symbolSize +=26;
-	if (password.match(/[^a-zA-Z0-9]/)) symbolSize +=31;
-
-	natLog = Math.log( Math.pow(symbolSize,password.length) );
-	score = natLog / Math.LN2;
-	if (score < 40 )  return badPass
-	if (score < 56 )  return goodPass
-    return strongPass;
 }
 
 });
