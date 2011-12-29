@@ -441,6 +441,9 @@ function Priceline (id,options,data,target,attachment) {
 		dis = ui2.find('span.status');
 		ui = ui2.find('span.ui').hide();
 
+		// Defaults
+		if (!r) r = {period:1,interval:'d',cycles:0,trialperiod:1,trialint:1,trialprice:0.0};
+
 		_.period = $('#period-'+i).val(r.period);
 		_.interval = $('#interval-'+i).val(r.interval).change(function () {
 			var $this=$(this),s = _.period.val();
