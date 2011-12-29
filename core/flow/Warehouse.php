@@ -490,9 +490,10 @@ class Warehouse extends AdminController {
 			)
 		);
 
-		if ( ! shopp_setting_enabled('inventory') ) unset($columns['inventory']);
-
 		$columns = isset($headings[$this->view]) ? $headings[$this->view] : $headings['default'];
+
+		// Remove inventory column if inventory tracking is disabled
+		if ( ! shopp_setting_enabled('inventory') ) unset($columns['inventory']);
 
 		// Remove category column from the "trash" view
 		if ('trash' == $this->view) unset($columns['category']);

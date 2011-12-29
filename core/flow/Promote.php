@@ -174,6 +174,9 @@ class Promote extends AdminController {
 		$Promotions = DB::query($select,'array');
 		$count = DB::found();
 
+		$num_pages = ceil($count / $per_page);
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $count, $num_pages, $per_page );
+
 		$states = array(
 			'active' => __('Active','Shopp'),
 			'inactive' => __('Not Active','Shopp'),
