@@ -23,6 +23,8 @@ class Account extends AdminController {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
 			wp_enqueue_script('postbox');
+			wp_enqueue_script('password-strength-meter');
+			shopp_enqueue_script('suggest');
 			shopp_enqueue_script('colorbox');
 			do_action('shopp_customer_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
@@ -89,6 +91,7 @@ class Account extends AdminController {
 			}
 		}
 
+		$updated = false;
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-customer');
 
@@ -98,7 +101,21 @@ class Account extends AdminController {
 				$Shipping = new ShippingAddress($Customer->id);
 			} else $Customer = new Customer();
 
+			if (!empty($Customer->wpuser)) $user = get_user_by('id',$Customer->wpuser);
+
 			$Customer->updates($_POST);
+
+			// Reassign WordPress login
+			if ('wordpress' == shopp_setting('account_system') && !empty($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login) {
+				$newlogin = get_user_by('login',$_POST['userlogin']);
+				if (!empty($newlogin->ID)) {
+					if (DB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
+						$Customer->wpuser = $newlogin->ID;
+						$updated = sprintf(__('Updated customer login to %s.','Shopp'),"<strong>$newlogin->user_login</strong>");
+					} else $updated = sprintf(__('Could not update customer login to "%s" because that user is already assigned to another customer.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+
+				} else $updated = sprintf(__('Could not update customer login to "%s" because the user does not exist in WordPress.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+			}
 
 			if (!empty($_POST['new-password']) && !empty($_POST['confirm-password'])
 				&& $_POST['new-password'] == $_POST['confirm-password']) {
@@ -122,6 +139,7 @@ class Account extends AdminController {
 			if (isset($Customer->id)) $Shipping->customer = $Customer->id;
 			$Shipping->updates($_POST['shipping']);
 			$Shipping->save();
+			if (!$updated) __('Customer updated.','Shopp');
 
 		}
 
@@ -283,11 +301,13 @@ class Account extends AdminController {
 
 		if (empty($Customer->info->meta)) remove_meta_box('customer-info','shopp_page_shopp-customers','normal');
 
-		$purchase_table = DatabaseObject::tablename(Purchase::$table);
-		$r = $db->query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
+		if ($Customer->id > 0) {
+			$purchase_table = DatabaseObject::tablename(Purchase::$table);
+			$r = $db->query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
 
-		$Customer->orders = $r->purchases;
-		$Customer->total = $r->total;
+			$Customer->orders = $r->purchases;
+			$Customer->total = $r->total;
+		}
 
 
 		$countries = array(''=>'&nbsp;');
