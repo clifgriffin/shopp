@@ -303,6 +303,7 @@ class Product extends WPShoppObject {
 		// Added for inventory management support
 		if (isset($record->stockid)) {
 			$Object->stockid = $record->stockid;
+			if (isset($record->stocked)) $Object->stocked = $record->stocked;
 			if (isset($record->sku)) $Object->sku = $record->sku;
 			$index = $record->stockid; // Rewrite index to index on price record id
 		}

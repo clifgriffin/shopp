@@ -1389,11 +1389,12 @@ class BestsellerProducts extends SmartCollection {
 		if (isset($options['range']) && is_array($options['range']) && 2 == count($options['range'])) {
 			$start = $options['range'][0];
 			$end = $options['range'][1];
+			if (!$end) $end = current_time('timestamp');
 			$purchased = DatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
-			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()+(86400*$start) AND UNIX_TIMESTAMP(pur.created) < UNIX_TIMESTAMP()+(86400*$end)");
-			$this->loading['order'] = 'sold DESC';
+			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) BETWEEN $start AND $end");
+			$this->loading['orderby'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {
 			$this->loading['where'] = array(BestsellerProducts::threshold()." < s.sold");
