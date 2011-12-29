@@ -201,7 +201,7 @@ class AdminFlow extends FlowController {
 		$name = $page->page;
 
 		$controller = array(&$Shopp->Flow,'admin');
-		if (shopp_setting('display_welcome') == "on" &&  empty($_POST['setup']))
+		if (shopp_setting_enabled('display_welcome') &&  empty($_POST['setup']))
 			$controller = array($this,'welcome');
 		if ($this->maintenance()) $controller = array($this,'reactivate');
 

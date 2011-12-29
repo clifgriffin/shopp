@@ -277,7 +277,7 @@ class CaptureOrderEventRenderer extends OrderEventRenderer {
 	function details () {
 		$user = get_user_by('id',$this->user);
 
-		return sprintf('by <a href="%s">%s</a> (<a href="%s">%s</a>)',
+		return sprintf(__('by <a href="%s">%s</a> (<a href="%s">%s</a>)','Shopp'),
 			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
 			"$user->user_firstname $user->user_lastname",
 			add_query_arg(array('user_id'=>$this->user),
@@ -399,9 +399,7 @@ class VoidFailOrderEventRenderer extends FailureOrderEventRender {
 		return __('Order cancellation failed','Shopp');
 	}
 
-
 }
-
 
 class ShippedOrderEventRenderer extends OrderEventRenderer {
 
@@ -455,6 +453,46 @@ class DecryptOrderEventRenderer extends OrderEventRenderer {
 			add_query_arg(array('user_id'=>$this->user),
 			admin_url('user-edit.php')),$user->user_login
 		);
+	}
+
+}
+
+class DownloadOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		$Purchased = new Purchased($this->purchased);
+		$Download = new ProductDownload($this->download);
+		return sprintf(__('%s downloaded','Shopp'),'<strong>'.$Purchased->name.' ('.$Download->name.')</strong>');
+	}
+
+	function details () {
+		$Customer = new Customer($this->customer);
+
+		return sprintf('by <a href="%2$s">%1$s</a> from %3$s',
+			"$Customer->firstname $Customer->lastname",
+			add_query_arg(array('page'=>'','id'=>$this->customer),admin_url('admin.php') ),
+			$this->ip
+		);
+	}
+
+}
+class NoticeOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Notice','Shopp');
+	}
+
+	function details () {
+		if (!empty($this->user) && (int)$this->user > 0) {
+			$user = get_user_by('id',$this->user);
+			return sprintf(
+				__('by %s (%s)','Shopp'),
+				'<a href="'.add_query_arg(array('user_id'=>$this->user),admin_url('user-edit.php')).'">'.$user->display_name.'</a>',
+				'<a href="'."mailto:$user->user_email?subject=RE: Order #{$this->Event->order}".'">'.$user->user_email.'</a>'
+			);
+		}
+
+		return '';
 	}
 
 }

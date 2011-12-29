@@ -66,7 +66,7 @@ class MetaObject extends DatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function save ($op='update') {
+	function save () {
 		if (!empty($this->_xcols)) {
 			$value = new stdClass();
 			foreach ((array)$this->_xcols as $col)

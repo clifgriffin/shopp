@@ -98,7 +98,7 @@
 			<?php endif; ?>
 			<?php if ($Purchase->freight > 0): ?>
 			<tr class="totals">
-				<th scope="row" colspan="3" class="total shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$shipping_method); ?></span> <?php _e('Shipping','Shopp'); ?></th>
+				<th scope="row" colspan="3" class="total shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->freight); ?></td>
 			</tr>
 			<?php endif; ?>
@@ -162,8 +162,6 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-
-
 	$('#notification').hide();
 	$('#notify-customer').click(function () {
 		$('#notification').animate({
@@ -209,41 +207,31 @@ jQuery(document).ready(function() {
 	});
 
 	$('td .editnote').click(function () {
-		var cell = $(this).parents('td');
-		var note = $(cell).find('div');
-		var ctrls = cell.find('span.notectrls');
-		var meta = cell.find('p.notemeta');
-		var idattr = note.attr('id').split("-");
-		var id = idattr[1];
+		var editbtn = $(this).attr('disabled',true).addClass('updating'),
+			cell = editbtn.parents('td'),
+			note = cell.find('div'),
+			ctrls = cell.find('span.notectrls'),
+			meta = cell.find('p.notemeta'),
+			idattr = note.attr('id').split("-"),
+			id = idattr[1];
 		$.get(noteurl+'&action=shopp_order_note_message&id='+id,false,function (msg) {
+			editbtn.removeAttr('disabled').removeClass('updating');
 			if (msg == '1') return;
 			var editor = $('<textarea name="note-editor['+id+']" cols="50" rows="10" />').val(msg).prependTo(cell);
-			var buttons = $('<p class="alignright" />').appendTo(meta);
-			var cancel = $('<button type="button" name="cancel" class="button-secondary">Cancel<\/button>').appendTo(buttons).click(function () {
-				buttons.remove();
-				editor.remove();
-				note.show();
-				ctrls.addClass('notectrls');
-			});
-			var save = $('<button type="submit" name="edit-note['+id+']" class="button-primary">Save Note<\/button>').appendTo(buttons);
+				ui = $('<div class="controls alignright">'+
+						'<button type="button" name="cancel" class="cancel-edit-note button-secondary">Cancel</button>'+
+						'<button type="submit" name="edit-note['+id+']" class="save-note button-primary">Save Note</button></div>').appendTo(meta),
+				cancel = ui.find('button.cancel-edit-note').click(function () {
+						editor.remove();
+						ui.remove();
+						note.show();
+						ctrls.addClass('notectrls');
+					});
 			note.hide();
 			ctrls.hide().removeClass('notectrls');
 		});
 
 	});
-
-	// $('#print-button').click(function (e) {
-	// 	$(e).preventDefault();
-	// 	var frame = $('#print-receipt').get(0), fw = frame.contentWindow;
-	// 	if ($.browser.opera || $.browser.msie) {
-	// 		var preview = window.open(fw.location.href+"&print=auto");
-	// 		$(preview).load(function () {	preview.close(); });
-	// 	} else {
-	// 		fw.focus();
-	// 		fw.print();
-	// 	}
-	//
-	// });
 
 	$('#customer').click(function () {
 		window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";

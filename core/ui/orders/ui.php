@@ -60,7 +60,7 @@ function manage_meta_box ($Purchase) {
 				<span>
 				<select name="reason">
 					<option>&mdash; Select &mdash;</option>
-					<?php echo menuoptions(shopp_setting('cancel_reasons'),false,true); ?>
+					<?php echo menuoptions(stripslashes_deep(shopp_setting('cancel_reasons')),false,true); ?>
 				</select><br />
 				<label>${reason}</label>
 				</span>
@@ -326,9 +326,9 @@ function notes_meta_box ($Purchase) {
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>
 	<tr>
-		<th><?php echo get_avatar($User->user_id,48); ?><br />
-			<?php echo esc_html($User->user_nicename); ?><br />
-			<span><?php echo _d(get_option('date_format'), $Note->created); ?></span><br />
+		<th class="column-author column-username"><?php echo get_avatar($User->ID,32); ?>
+			<?php echo esc_html($User->display_name); ?><br />
+			<span><?php echo _d(get_option('date_format'), $Note->created); ?></span>
 			<span><?php echo _d(get_option('time_format'), $Note->created); ?></span></th>
 		<td>
 			<div id="note-<?php echo $Note->id; ?>">
