@@ -33,6 +33,7 @@ class ShoppInstallation extends FlowController {
 		add_action('shopp_deactivate',array($this,'deactivate'));
 		add_action('shopp_reinstall',array($this,'install'));
 		add_action('shopp_setup',array($this,'setup'));
+		add_action('shopp_setup',array($this,'images'));
 		add_action('shopp_setup',array($this,'roles'));
 		add_action('shopp_autoupdate',array($this,'update'));
 
@@ -278,6 +279,37 @@ class ShoppInstallation extends FlowController {
 		}
 	}
 
+	function images () {
+		$settings = array(
+			'gallery-previews' => array('fit' => 'all','size' => 240,'quality' => 100),
+			'gallery-thumbnails' => array('fit' => 'all','size' => 64,'quality' => 100),
+			'thumbnails' => array('fit' => 'all','size' => 96,'quality' => 100)
+		);
+
+		// Determine if any of the default settings exist to prevent overwriting changes
+		$defaults = array_keys($settings);
+		$ImageSetting = new ImageSetting();
+		$options = array(
+			'columns' => 'name',
+			'table' => $ImageSetting->_table,
+			'where' => array(
+				"type='$ImageSetting->type'",
+				"context='$ImageSetting->context'",
+				"name IN ('".join("','",$defaults)."')"
+			),
+			'limit' => count($defaults)
+		);
+		$query = DB::select($options);
+		$existing = DB::query($query,'array','col','name');
+
+		// Get the settings that need setup
+		$setup = array_diff($defaults,$existing);
+
+		foreach ($setup as $setting)
+			shopp_set_image_setting($setting,$settings[ $setting ]);
+
+	}
+
 	/**
 	 * Initializes default settings or resets missing settings
 	 *
@@ -347,6 +379,8 @@ class ShoppInstallation extends FlowController {
 
 		ShoppSettings()->setup('version',SHOPP_VERSION);
 		ShoppSettings()->setup('db_version',DB::$version);
+
+		$this->images(); // Setup default image settings
 
 	}
 
@@ -867,8 +901,6 @@ class ShoppInstallation extends FlowController {
 							),created,modified FROM $price_table");
 
 		} // END if ($db_version <= 1135)
-
-		$this->roles(); // Setup Roles and Capabilities
 
 	}
 
