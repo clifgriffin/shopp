@@ -117,7 +117,7 @@
 			?>
 		<tr class="<?php echo join(' ',$classes); ?>" id="image-setting-<?php echo $setting->id; ?>">
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $setting->id; ?>' /></th>
-			<td class="title column-title"><a class="row-title" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($setting->name); ?>&quot;" class="edit"><?php echo esc_html($setting->name); ?></a>
+			<td class="title column-title"><a class="row-title edit" href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($setting->name); ?>&quot;"><?php echo esc_html($setting->name); ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($setting->name); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($setting->name); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>
@@ -131,7 +131,7 @@
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody id="image-setting-table" class="list"><tr><td colspan="6"><?php _e('No predefined image settings available, yet.','Shopp'); ?></td></tr></tbody>
+		<tbody id="image-setting-table" class="list"><tr class="empty"><td colspan="6"><?php _e('No predefined image settings available, yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 	</form>

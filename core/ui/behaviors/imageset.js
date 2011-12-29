@@ -17,7 +17,7 @@ jQuery(document).ready( function($) {
 			id = row.size() > 0?row.attr('id').substr(14):false,
 			data = images[id]?images[id]:{name:''},
 			ui = $.tmpl('editor',data),
-			emptylabel = table.find('tr:first'),
+			emptylabel = table.find('tr.empty'),
 			sm = ui.find('select.fit-menu').val(data.fit),
 			qm = ui.find('select.quality-menu').val(data.quality),
 			percentage = function () { $(this).val( asPercent( $(this).val() ) ); },
@@ -37,7 +37,7 @@ jQuery(document).ready( function($) {
 
 		if (row.size() > 0) ui.insertAfter(row);
 		else {
-			if (table.find('tr').size() == 1) emptylabel.hide();
+			if (emptylabel.size() > 0) emptylabel.hide();
 			table.prepend(ui);
 		}
 
