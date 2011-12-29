@@ -471,7 +471,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function dashboard () {
 		$dashboard = shopp_setting('dashboard');
-		if ( ! ( current_user_can('shopp_financials') && "on" == $dashboard ) ) return false;
+		if ( ! ( current_user_can('shopp_financials') && str_true($dashboard) ) ) return false;
 
 		wp_add_dashboard_widget('dashboard_shopp_stats', __('Sales Stats','Shopp'), array($this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
@@ -481,9 +481,11 @@ class AdminFlow extends FlowController {
 			array('all_link' => 'admin.php?page='.$this->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_add_dashboard_widget('dashboard_shopp_inventory', __('Low Inventory Monitor','Shopp'), array($this,'inventory_widget'),
-			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
-		);
+		if (shopp_setting_enabled('inventory')) {
+			wp_add_dashboard_widget('dashboard_shopp_inventory', __('Low Inventory Monitor','Shopp'), array($this,'inventory_widget'),
+				array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
+			);
+		}
 
 	}
 
@@ -661,7 +663,6 @@ class AdminFlow extends FlowController {
 		<?php
 		echo $after_widget;
 
-
 	}
 
 	/**
@@ -731,6 +732,14 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function inventory_widget ($args=null) {
+
+		$warnings = array(
+			'none' => __('OK','Shopp'),
+			'warning' => __('warning','Shopp'),
+			'critical' => __('critical','Shopp'),
+			'backorder' => __('backorder','Shopp')
+		);
+
 		$defaults = array(
 			'before_widget' => '',
 			'before_title' => '',
@@ -759,8 +768,7 @@ class AdminFlow extends FlowController {
 			'orderby' => '(pt.stock/pt.stocked) ASC',
 			'published' => false,
 			'pagination' => false,
-			'limit' => 25,
-			// 'debug' => true
+			'limit' => 25
 		);
 
 		$Collection = new ProductCollection();
@@ -779,7 +787,7 @@ class AdminFlow extends FlowController {
 		<?php foreach ($Collection->products as $product): $product->lowstock($product->stock,$product->stocked); ?>
 		<tr>
 			<td class="amount"><?php echo $product->stock; ?></td>
-			<td><span class="stock lowstock <?php echo $product->lowstock; ?>"><?php echo $product->lowstock; ?></span></td>
+			<td><span class="stock lowstock <?php echo $product->lowstock; ?>"><?php echo $warnings[ $product->lowstock ]; ?></span></td>
 			<td><a href="<?php echo esc_url(add_query_arg('id',$product->id,$productscreen)); ?>"><?php echo $product->name; ?></a></td>
 			<td><a href="<?php echo esc_url(add_query_arg('view','inventory',$productscreen)); ?>"><?php echo $product->sku; ?></a></td>
 		</tr>
