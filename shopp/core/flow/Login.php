@@ -25,24 +25,23 @@ class Login {
 	var $Billing = false;
 	var $Shipping = false;
 
-	var $accounts = 'none';		// Account system setting
-
 	function __construct () {
 
 		$this->Customer =& ShoppOrder()->Customer;
 		$this->Billing =& ShoppOrder()->Billing;
 		$this->Shipping =& ShoppOrder()->Shipping;
 
-		add_action('shopp_logout',array(&$this,'logout'));
 
-		if ('wordpress' == shopp_setting('account_system')) {
-			add_action('set_logged_in_cookie',array(&$this,'wplogin'),10,4);
-			add_action('wp_logout',array(&$this,'logout'));
-			add_action('shopp_logout','wp_logout',1);
+		switch (shopp_setting('account_system')) {
+			case 'shopp':
+				add_action('shopp_logout',array($this,'logout'));
+				break;
+			case 'wordpress':
+				add_action('set_logged_in_cookie',array($this,'wplogin'),10,4);
+				add_action('wp_logout',array($this,'logout'));
+				add_action('shopp_logout','wp_logout',1);
+				break;
 		}
-
-		if (isset($_POST['shopp_registration']))
-			$this->registration();
 
 		$this->process();
 
@@ -58,10 +57,11 @@ class Login {
 	 **/
 	function process () {
 
-		if (isset($_GET['acct']) && $_GET['acct'] == "logout"
-			|| isset($_SERVER['QUERY_STRING']) && false !== strpos($_SERVER['QUERY_STRING'],'logout')) {
+		if (isset($_POST['shopp_registration'])) $this->registration();
+
+		if (isset($_REQUEST['acct']) && $_REQUEST['acct'] == "logout" || isset($_REQUEST['logout'])) {
 			// Redirect to remove the logout request
-			add_action('shopp_logged_out',array(&$this,'redirect'));
+			add_action('shopp_logged_out',array($this,'redirect'));
 			// Trigger the logout
 			do_action('shopp_logout');
 		}
@@ -83,12 +83,16 @@ class Login {
 		if (empty($_POST['process-login'])) return false;
 		if ($_POST['process-login'] != "true") return false;
 
-		// add_action('shopp_login',array(&$this,'redirect'));
-
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
 
 		switch (shopp_setting('account_system')) {
+			case "shopp":
+				$mode = "loginname";
+				if (!empty($_POST['account-login']) && strpos($_POST['account-login'],'@') !== false)
+					$mode = "email";
+				$this->auth($_POST['account-login'],$_POST['password-login'],$mode);
+				break;
 			case "wordpress":
 				if (!empty($_POST['account-login'])) {
 					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
@@ -101,12 +105,6 @@ class Login {
 				if ($loginname) {
 					$this->auth($loginname,$_POST['password-login'],$mode);
 				}
-				break;
-			case "shopp":
-				$mode = "loginname";
-				if (!empty($_POST['account-login']) && strpos($_POST['account-login'],'@') !== false)
-					$mode = "email";
-				$this->auth($_POST['account-login'],$_POST['password-login'],$mode);
 				break;
 		}
 
@@ -233,6 +231,7 @@ class Login {
 	 * @return void
 	 **/
 	function logout () {
+		if ('none' == shopp_setting('account_system')) return;
 		$this->Customer = new Customer();
 		$this->Billing = new BillingAddress();
 		$this->Shipping = new ShippingAddress();

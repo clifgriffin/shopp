@@ -126,10 +126,12 @@ class Account extends AdminController {
 			$Customer->info = false; // No longer used from DB
 			$Customer->save();
 
-			foreach ($_POST['info'] as $id => $info) {
-				$Meta = new MetaObject($id);
-				$Meta->value = $info;
-				$Meta->save();
+			if (isset($_POST['info']) && !empty($_POST['info'])) {
+				foreach ((array)$_POST['info'] as $id => $info) {
+					$Meta = new MetaObject($id);
+					$Meta->value = $info;
+					$Meta->save();
+				}
 			}
 
 			if (isset($Customer->id)) $Billing->customer = $Customer->id;
