@@ -216,9 +216,14 @@ class Categorize extends AdminController {
 
 		$Categories = array(); $count = 0;
 		$terms = get_terms( $taxonomy, $filters );
-		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$paged,$per_page);
-		$this->categories = $Categories;
+		if (empty($s)) {
+			$children = _get_term_hierarchy($taxonomy);
+			ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$paged,$per_page);
+			$this->categories = $Categories;
+		} else {
+			foreach ($terms as $id => $parent)
+				$Categories[$id] = get_term($id,$taxonomy);
+		}
 
 		$ids = array_keys($Categories);
 		if ($workflow) return $ids;
@@ -236,7 +241,7 @@ class Categorize extends AdminController {
 			)
 		);
 
-		// @todo Fix category arrange ui and updating to use WP taxonomies
+		// @todo Rework category arrange ui and updating to use WP taxonomies
 		// if ('arrange' == $a) {
 		// 	include(SHOPP_ADMIN_PATH."/categories/arrange.php");
 		// 	return;
