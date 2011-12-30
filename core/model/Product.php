@@ -964,12 +964,12 @@ class Product extends WPShoppObject {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
 			case "product-tags":
-				if (!isset($this->tagskey)) return false;
-				else return (in_array($rule['v'],array_keys($this->tagskey)));
+				if (empty($this->tags)) $this->load_data(array('tags'));
+				foreach ($this->tags as $tag) if ($rule['v'] == $tag->name) return true;
 				break;
 			case "product-category":
-				if (!isset($this->categorieskey)) return false;
-				else return (in_array($rule['v'],array_keys($this->categorieskey))); break;
+				if (empty($this->categories)) $this->load_data(array('categories'));
+				foreach ($this->categories as $category) if ($rule['v'] == $category->name) return true;
 		}
 		return false;
 	}

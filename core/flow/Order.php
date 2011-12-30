@@ -62,7 +62,7 @@ class Order {
 		$this->Shipping = new ShippingAddress();
 
 		$markets = shopp_setting('target_markets');
-		if (count($markets == 1) || shopp_setting_enabled('tax_inclusive')) $this->Billing->locate();
+		$this->Billing->locate();
 		$this->Shipping->locate();
 
 		$this->created = null;

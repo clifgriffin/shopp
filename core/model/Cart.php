@@ -1255,22 +1255,20 @@ class CartTax {
 
 		foreach ($this->rates as $setting) {
 			$rate = false;
-
 			if (isset($setting['locals']) && is_array($setting['locals'])) {
 				$localmatch = true;
 				if ( $country != $setting['country'] ) $localmatch = false;
-				if ( isset($setting['zone']) && $zone != $setting['zone'] ) $localmatch = false;
+				if ( isset($setting['zone']) && !empty($setting['zone']) && $zone != $setting['zone'] ) $localmatch = false;
 				if ( $localmatch ) {
 					$localrate = isset($setting['locals'][$locale])?$setting['locals'][$locale]:0;
 					$rate = ($this->float($setting['rate'])+$this->float($localrate));
 				}
-			} elseif (isset($setting['zone'])) {
+			} elseif (isset($setting['zone']) && !empty($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
 					$rate = $this->float($setting['rate']);
 			} elseif ($country == $setting['country']) {
 				$rate = $this->float($setting['rate']);
 			}
-
 
 			// Match tax rules
 			if (isset($setting['rules']) && is_array($setting['rules'])) {
@@ -1290,9 +1288,9 @@ class CartTax {
 				}
 				if ($setting['logic'] == "all" && $matches == count($setting['rules'])) $applies = true;
 				if ($setting['logic'] == "any" && $matches > 0) $applies = true;
+
 				if (!$applies) continue;
 			}
-
 			// Grab the global setting if found
 			if ($setting['country'] == "*") $global = $setting;
 
