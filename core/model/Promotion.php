@@ -298,7 +298,7 @@ class Promotion extends DatabaseObject {
 	 *
 	 * @return void Description...
 	 **/
-	function pricing ($pricetag,$ids) {
+	static function pricing ($pricetag,$ids) {
 
 		if (empty($pricetag) || empty($ids)) return $pricetag;
 

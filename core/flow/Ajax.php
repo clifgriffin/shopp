@@ -63,7 +63,6 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_activate_key',array($this,'activate_key'));
 		add_action('wp_ajax_shopp_deactivate_key',array($this,'deactivate_key'));
 		add_action('wp_ajax_shopp_rebuild_search_index',array($this,'rebuild_search_index'));
-		add_action('wp_ajax_shopp_rebuild_search_index_progress',array($this,'rebuild_search_index_progress'));
 		add_action('wp_ajax_shopp_upload_local_taxes',array($this,'upload_local_taxes'));
 		add_action('wp_ajax_shopp_feature_product',array($this,'feature_product'));
 		add_action('wp_ajax_shopp_update_inventory',array($this,'update_inventory'));
@@ -277,7 +276,6 @@ class AjaxFlow {
 	function rebuild_search_index () {
 		check_admin_referer('wp_ajax_shopp_rebuild_search_index');
 		global $wpdb;
-		$db = DB::get();
 		if (!class_exists('ContentParser'))
 			require(SHOPP_MODEL_PATH.'/Search.php');
 		new ContentParser();
@@ -285,44 +283,30 @@ class AjaxFlow {
 		$set = 10;
 		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 
-		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts");
+		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
 		if (empty($total->products)) die('-1');
 
-		$Settings = &ShoppSettings();
-		$Settings->save('searchindex_build',mktimestamp($total->start));
-
+		shopp_set_setting('searchindex_build',mktimestamp($total->start));
+		echo str_repeat(' ',1024);
+		echo '<script type="text/javascript">var indexProgress = 0;</script>'."\n";
+		@ob_flush();
+		@flush();
 		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
-			$products = DB::query("SELECT ID FROM $wpdb->posts LIMIT ".($i*$set).",$set",'array','col','ID');
+			$products = DB::query("SELECT ID FROM $wpdb->posts WHERE post_type='".Product::$posttype."' LIMIT ".($i*$set).",$set",'array','col','ID');
 			foreach ($products as $id) {
 				$Indexer = new IndexProduct($id);
 				$Indexer->index();
 				$indexed++;
+				echo '<script type="text/javascript">indexProgress = '.$indexed/(int)$total->products.';</script>'."\n";
+				@ob_flush();
+				@flush();
 			}
+			@ob_end_flush();
 		}
-		echo "1";
 		exit();
 	}
 
-	function rebuild_search_index_progress () {
-		check_admin_referer('wp_ajax_shopp_rebuild_search_index_progress');
-		$db = DB::get();
-
-		if (!class_exists('ContentIndex'))
-			require(SHOPP_MODEL_PATH.'/Search.php');
-
-		$product_table = DatabaseObject::tablename(Product::$table);
-		$index_table = DatabaseObject::tablename(ContentIndex::$table);
-
-		$Settings = &ShoppSettings();
-		$lastbuild = $Settings->get('searchindex_build');
-		if (empty($lastbuild)) $lastbuild = 0;
-
-		$status = $db->query("SELECT count(DISTINCT product.id) AS products, count(DISTINCT product) AS indexed FROM $product_table AS product LEFT JOIN $index_table AS indx ON product.id=indx.product AND $lastbuild < UNIX_TIMESTAMP(indx.modified)");
-
-		if (empty($status)) die('');
-		die($status->indexed.':'.$status->products);
-	}
 
 	function suggestions () {
 		check_admin_referer('wp_ajax_shopp_suggestions');

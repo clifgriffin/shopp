@@ -39,7 +39,7 @@ th.textright { text-align: right; }
 .shopp .column-recurring,
 .shopp .column-refunds { text-align: center; }
 
-.saletag { margin-left: 3px; background: url('../icons/saletag.svg') no-repeat; padding: 2px 3px 1px 3px; color: #fff; font-family: sans-serif; font-size: 9px; text-transform: uppercase; font-weight: bold; -o-background-size: 100% 100%; -webkit-background-size: 100%; -moz-background-size: 100% 100%; background-size: 100% 100%; line-height: 16px; vertical-align: top; }
+.saletag { white-space: nowrap; margin-left: 3px; background: url('../icons/saletag.svg') no-repeat; padding: 2px 3px 1px 3px; color: #fff; font-family: sans-serif; font-size: 9px; text-transform: uppercase; font-weight: bold; -o-background-size: 100% 100%; -webkit-background-size: 100%; -moz-background-size: 100% 100%; background-size: 100% 100%; line-height: 16px; vertical-align: top; }
 .saletag:before { content: "\00a0\00a0"; }
 
 span.stock { padding: 0px 3px 1px; }
@@ -122,7 +122,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 #cboxContent input.ok { background:url('../icons/accept.png') no-repeat right center; }
 
 /** Search Index Rebuild Progress **/
-#cboxLoadedContent #process { display:none; }
+#cboxLoadedContent #reindexProcessor { display:none; }
 
 #cboxLoadedContent #progress { position:relative;width:200px;height:10px;margin:18px auto 0;background:#ffffff;border:1px solid #dddddd; }
 #cboxLoadedContent #progress div.bar { position:absolute;height:10px;background:#85ec3d;border:none; }
