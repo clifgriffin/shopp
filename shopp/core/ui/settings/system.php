@@ -115,7 +115,6 @@ jQuery(document).ready(function($) {
 
 	var progressbar = false,
 		search_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index'); ?>';
-		searchprog_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index_progress'); ?>',
 		engines = <?php echo json_encode($engines); ?>,
 		storageset = <?php echo json_encode($storageset); ?>,
 
@@ -130,35 +129,22 @@ jQuery(document).ready(function($) {
 		}).change();
 
 	function progress () {
-		$.ajax({url:searchprog_url+'&action=shopp_rebuild_search_index_progress',
-			type:"GET",
-			timeout:500,
-			dataType:'text',
-			success:function (results) {
-				var p = results.split(':'),
-					width = Math.ceil((p[0]/p[1])*76);
-				if (p[0] < p[1]) setTimeout(progress,1000);
-				progressbar.animate({'width':width+'px'},500);
-			}
-		});
-
+		var progressbar = $('#progress div.bar'),
+			scale = $('#progress').outerWidth(),
+			p = $('#reindexProcessor').get(0).contentWindow['indexProgress'];
+		if (!p) p = 0;
+		progressbar.animate({'width': Math.ceil(p*scale) +'px'},100);
+		if (p == 1) return setTimeout($.fn.colorbox.close,1000);
+		setTimeout(progress,100);
 	}
 
 	$('#rebuild-index').click(function () {
+		setTimeout(progress,100);
 		$.fn.colorbox({'title':'<?php _e('Product Indexing','Shopp'); ?>',
 			'innerWidth':'250',
 			'innerHeight':'50',
 			'html':
-			'<div id="progress"><div class="bar"><\/div><div class="gloss"><\/div><\/div><iframe id="process" width="0" height="0" src="'+search_url+'&action=shopp_rebuild_search_index"><\/iframe>',
-			'onComplete':function () {
-				progressbar = $('#progress div.bar');
-				progress();
-				$('#process').load(function () {
-					progressbar.animate({'width':'100%'},500,'swing',function () {
-						setTimeout($.fn.colorbox.close,1000);
-					});
-				});
-			}
+			'<div id="progress"><div class="bar"><\/div><div class="gloss"><\/div><\/div><iframe id="reindexProcessor" width="0" height="0" src="'+search_url+'&action=shopp_rebuild_search_index"><\/iframe>'
 		});
 	});
 

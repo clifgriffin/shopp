@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2RC1');
+	define('SHOPP_VERSION','1.2RC2');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
