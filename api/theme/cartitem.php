@@ -92,7 +92,7 @@ class ShoppCartItemThemeAPI {
 
 	static function type ($result, $options, $O) { return $O->type; }
 
-	static function url ($result, $options, $O) { return shoppurl( '' != get_option('permalink_structure') ? $O->slug : array( 's_pid'=>$O->product ) ); }
+	static function url ($result, $options, $O) { return shoppurl( '' == get_option('permalink_structure')?array(Product::$posttype=>$O->slug):$O->slug, false ); }
 
 	static function sku ($result, $options, $O) { return $O->sku; }
 
