@@ -100,13 +100,12 @@ jQuery(document).ready(function($) {
 			selected = $this.val(),
 			engine = (engines[selected]?engines[selected]:false),
 			settings = {context:context},
-			container = $('#'+context+'-storage-engine');
-			if (storageset != null && storageset[selected] != undefined) {
+			container = $('#'+context+'-storage-engine').empty();
+			if (storageset != null && storageset[selected] != undefined && storageset[selected] != null) {
 				$.each(storageset[selected],function (name,setting) {
 					settings[name] = setting[context];
 				});
 			}
-
 			$.tmpl(engine,settings).appendTo(container);
 			$(window).scrollTop(0);
 
