@@ -696,11 +696,11 @@ function floatvalue ($value, $round=true, $format=false) {
 		is_float($v) 					// $v correctly casts to a float
 		&& $v > 0 && (					// The casted float value is not 0
 				$decimals == '.' || 	// not a normalized float if the decimal separator is in the value
-				!empty($decimals) && $decimals != '.' && strpos($value,$decimals) === false	// and is not a period-character
+				!empty($decimals) && $decimals != '.' && strpos($v,$decimals) === false	// and is not a period-character
 			) && (						// Not a valid float if the thousands separator is present at all
-				strpos($value,$thousands) === false
+				strpos($v,$thousands) === false
 			)
-		)) return floatval($round?round($value,$precision):$value);
+		)) return floatval($round?round($v,$precision):$v);
 
 	$value = preg_replace("/(\D\.|[^\d\,\.])/","",$value); // Remove any non-numeric string data
 	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
