@@ -1,0 +1,134 @@
+/**
+ * catalog.css
+ *
+ * The catalog CSS file provides core styling used to initialize foundational
+ * elements of the Shopp catalog layout.
+ *
+ * DO NOT EDIT! Setup custom theme tempaltes and edit shopp.css to override
+ * styles here as necessary.
+ *
+ **/
+#shopp div.description,
+#shopp .products,
+#shopp .products ul,
+#shopp .products li.row,
+#shopp .category,
+#shopp #cart,
+#shopp #cart table { overflow: hidden; }
+
+#shopp { position: relative; }
+#shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
+#shopp li { background: none !important; padding: 0; margin: 0; }
+#shopp li:before,
+#shopp-cart:before,
+#shopp-cart ul li:before,
+#shopp-cart #shopp-cart-ajax ul li:before,
+#shopp ul.breadcrumb li:before { content: ""; }
+#shopp div.hidden,
+#shopp select.hidden { display: none; }
+
+
+#shopp .frame { border: none; }
+
+#shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
+#shopp .products ul li { display: block; float: left; border: none; }
+#shopp .products li.row { display: block; width: 100%; }
+#shopp .products .frame { text-align: center; overflow: hidden; }
+#shopp .products .frame img { display: inline; }
+
+#shopp ul.paging { clear: none; display: inline; }
+#shopp ul.paging li { display: inline; margin-left: 5px;}
+
+/* Shopp Forms */
+#shopp #checkout,
+#shopp #checkout > ul,
+#shopp #checkout > ul ul,
+#shopp #checkout > ul li { margin: 0; padding: 0; }
+#shopp form ul { width: 100%; overflow: hidden; line-height: 1; }
+#shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
+#shopp form label { clear: both; display: block; }
+#shopp form ul li label.inline { display: inline; clear: none; }
+#shopp form ul li:before { content: ""; }
+#shopp form ul li div.inline { width: auto; clear: both; }
+#shopp form ul li div.inline input { width: auto;  }
+#shopp form ul li div.inline label { clear: none; display: inline; }
+#shopp form ul li input,
+#shopp form ul li select { margin: 0 0 5px 0; }
+#shopp form ul li div input,
+#shopp form ul li div select { width: 100%; }
+#shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+#shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
+#shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
+#shopp form ul li.half.right { display: inline; float: right; }
+#shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+
+/* Workaround for IE to hide the cart's 'default button' but keep it active */
+#hidden-update { position: absolute; left: -999em; }
+
+/** Shopp Catalog Tag Cloud **/
+#shopp .tagcloud,
+.shopp.tagcloud { padding: 0; width: 100%; }
+#shopp .tagcloud li,
+.shopp.tagcloud li { display: inline; margin-right: 10px; line-height: 1.2; padding: 0; background-image: none; }
+.shopp.tagcloud li.level-1 { font-size: 30px; }
+.shopp.tagcloud li.level-2 { font-size: 24px; }
+.shopp.tagcloud li.level-3 { font-size: 20px; }
+.shopp.tagcloud li.level-4 { font-size: 18px; }
+.shopp.tagcloud li.level-5 { font-size: 14px; }
+.shopp.tagcloud li.level-6 { font-size: 12px; }
+.shopp.tagcloud li.level-7 { font-size: 11px; }
+
+/** Categories **/
+#shopp .category { position: relative; }
+.content #shopp .views li,
+#shopp .views li { display: inline; margin: 0; padding: 0; }
+
+#shopp .views .grid { width: 15px; height: 15px; background: url('../../../core/ui/icons/grid.png') no-repeat 50% 50%; }
+#shopp .views .list { width: 15px; height: 15px; background: url('../../../core/ui/icons/list.png') no-repeat 50% 50%; }
+
+#shopp .category ul { margin: 0; padding: 0; }
+#shopp.catalog .category .products li,
+#shopp.category .category .products li,
+#shopp.catalog .carousel .frame li { margin: 0; padding: 0; }
+
+#shopp.catalog .listview form { margin: 0; padding: 0; }
+
+
+/** Product Page Gallery **/
+#shopp form.product label { clear: none; display: inline; }
+
+#shopp .gallery { float: left; display: block; }
+#shopp .gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
+#shopp .gallery ul li:before { content: ""; }
+#shopp .gallery li a { margin: 0; padding: 0; float: none; }
+#shopp .gallery .previews { position: relative;  margin: 0 !important; overflow: hidden; }
+#shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+#shopp .gallery .previews li.fill { position: relative; }
+#shopp .gallery .previews li.fill img { margin: 0; padding: 0; }
+#shopp .gallery .previews li.active { visibility: visible; }
+#shopp .gallery .thumbnails { margin-top: 10px; overflow: hidden; text-align: justify; display: block; }
+#shopp .gallery .thumbnails ul { padding: 0; }
+#shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; top: auto; left: auto; }
+#shopp .gallery .thumbnails li.first { margin-left: 0; }
+#shopp .gallery .thumbnails li img { cursor: pointer; display: inline; }
+
+/** Category Slideshow **/
+#shopp .slideshow { position: relative; margin: 0; clear: both; width: 100%; overflow: auto; }
+#shopp .slideshow li { position: absolute; top: 0; left: 0; margin: 0; display: block; text-align: center; visibility: hidden; }
+#shopp .slideshow li.clear { position: relative; clear: both; visibility: visible; }
+#shopp .slideshow li.clear:after { clear: both; }
+
+/** Category Carousel **/
+#shopp .carousel { position: relative; margin: 0; clear: both; width: 100%; }
+#shopp .carousel .frame { position: relative; margin: 0 20px; overflow: hidden; }
+#shopp .carousel ul { position: relative; width: 999em; }
+#shopp.catalog .carousel li { display: inline-block; vertical-align: middle;}
+#shopp .carousel button { position: absolute; bottom: 50%; cursor: pointer; border: none; width: 14px; height: 14px; background-image: url('../../../core/ui/icons/carousel.png'); background-repeat: no-repeat; background-color: transparent; }
+#shopp .carousel button.left { left: 0; }
+#shopp .carousel button.right { right: 0; background-position: -16px 0; }
+#shopp .carousel button.left:hover { background-position: 0 -16px; }
+#shopp .carousel button.right:hover { background-position: -16px -16px; }
+
+/** Twenty-Ten Fixes **/
+#shopp h1,#shopp h2,#shopp h3,#shopp h4,#shopp h5,#shopp h6 { clear: none; }
+#shopp form table, #shopp form table td { border: none; }
