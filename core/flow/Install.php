@@ -586,11 +586,23 @@ class ShoppInstallation extends FlowController {
 		DB::query("UPDATE $purchase_table SET txnstatus='captured' WHERE txnstatus='CHARGED'");
 
 		if ($db_version <= 1130) {
+
 			// Move settings to meta table
 			$meta_table = DatabaseObject::tablename('meta');
 			$setting_table = DatabaseObject::tablename('setting');
+
 			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
+
+			// Clean up unnecessary duplicate settings
+			shopp_rmv_setting('data_model');
+			shopp_rmv_setting('updates');
+			shopp_rmv_setting('shopp_setup');
+			shopp_rmv_setting('maintenance');
+
+			// Re-load the Shopp settings registry
 			ShoppSettings()->load();
+
+			shopp_set_setting('maintenance','on');
 			$db_version = intval(shopp_setting('db_version'));
 
 			// Convert Shopp 1.1.x shipping settings to Shopp 1.2-compatible settings
