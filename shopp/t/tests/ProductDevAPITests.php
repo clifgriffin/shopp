@@ -124,6 +124,55 @@ class ProductDevAPITests extends ShoppTestCase
 
 	}
 
+	function test_shopp_add_product_1386 () {
+		$Product = shopp_add_product( array(
+		    'name' => 'This is a book',
+		    'publish' => array(
+		        'flag' => true,
+		        'publishtime' => array(
+		            'month' => 10,
+		            'day' => 6,
+		            'year' => 2011,
+		            'hour' => 12,
+		            'minute' => 02,
+		            'meridian' => 'AM'
+		        )
+		    ),
+		    'categories' => array(),
+		    'tags' => array(),
+		    'terms' => array(),
+		    'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit...',
+		    'summary' => '',
+		    'specs' => array(
+		        'Author' => 'Bourne, Jason'
+		    ),
+		    'single' => array(
+		        'type' => 'Shipped',
+		        'taxed' => true,
+		        'price' => 19.00,
+		        'sale' => array(
+		            'flag' => true,
+		            'price' => 14.99
+		        ),
+		        'shipping' => array(
+		            'flag' => true,
+		            'fee' => 0,
+		         ),
+		        'inventory' => array(
+		            'flag' => true,
+		            'stock' => 1,
+		            'sku' => '237469'
+		        )
+		    ),
+		    'featured' => false,
+		    'packaging' => false,
+		    'processing' => array(
+		        'flag' => false
+		    )
+		));
+		$this->AssertTrue( (bool) $Product );
+	}
+
 	function test_shopp_product () {
 		$Product = shopp_product( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name' );
 		$this->AssertEquals(1, count($Product->prices));
