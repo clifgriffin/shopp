@@ -688,6 +688,8 @@ abstract class ShippingFramework {
 		return str_replace(array_keys($data),$data,$editor);
 	}
 
+	function settings() { }
+
 } // END class ShippingFramework
 
 class ShippingSettingsUI extends ModuleSettingsUI {

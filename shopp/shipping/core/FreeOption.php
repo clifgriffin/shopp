@@ -5,10 +5,10 @@
  * Provides a free shipping rate not included in shipping estimates
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.2
  * @copyright Ingenesis Limited, January 19, 2010
  * @package shopp
- * @since 1.1 dev
+ * @since 1.2
  * @subpackage FreeOption
  *
  * $Id: FreeOption.php 510 2009-09-22 14:14:09Z jond $
