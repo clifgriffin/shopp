@@ -5,10 +5,10 @@
  * Provides shipping calculations based on the total quantity of items ordered
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.2
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
- * @since 1.1 dev
+ * @since 1.2
  * @subpackage ItemQuantity
  *
  * $Id$

@@ -567,6 +567,8 @@ class Setup extends AdminController {
 		$settings = array();	// Registry of loaded settings for table-based shipping rates for JS
 
 		foreach ($Shipping->active as $name => $module) {
+			if (version_compare($Shipping->modules[$name]->since,'1.2') == -1) continue; // Skip 1.1 modules, they are incompatible
+
 			$default_name = strtolower($name);
 			$fullname = $module->methods();
 			$installed[$name] = $fullname;
@@ -586,7 +588,7 @@ class Setup extends AdminController {
 				continue;
 			}
 
-			// Setup shipping calcualtor shipping rate entires and settings
+			// Setup shipping calcualtor shipping rate entries and settings
 			foreach ($ModuleSetting as $id => $m) {
 				$setting = "$name-$id";
 				$shiprates[$setting] = $name;

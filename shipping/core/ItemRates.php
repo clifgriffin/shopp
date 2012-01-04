@@ -8,7 +8,7 @@
  * @version 1.2
  * @copyright Ingenesis Limited, June 14, 2011
  * @package shopp
- * @since 1.2 dev
+ * @since 1.2
  * @subpackage ItemRates
  *
  **/

@@ -5,10 +5,10 @@
  * Provides shipping calculations based on a percentage of order amount ranges
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.2
  * @copyright Ingenesis Limited, 12 July, 2011
  * @package shopp
- * @since 1.1 dev
+ * @since 1.2
  * @subpackage PercentageAmount
  *
  **/
