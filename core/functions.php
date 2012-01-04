@@ -688,28 +688,24 @@ function floatvalue ($value, $round=true, $format=false) {
 	$format = currency_format($format);
 	extract($format,EXTR_SKIP);
 
-	$v = (float)$value; // Try interpretting as a float and see if we have a valid value
+	$float = false;
+	if (is_float($value)) $float = $value;
 
-	// If a valid float already, pass the value through
-	// The variety of currency formats makes determining a valid float very difficult
-	if (is_float($value) || (			// Original $value is a float, passthru
-		is_float($v) 					// $v correctly casts to a float
-		&& $v > 0 && (					// The casted float value is not 0
-				$decimals == '.' || 	// not a normalized float if the decimal separator is in the value
-				!empty($decimals) && $decimals != '.' && strpos($v,$decimals) === false	// and is not a period-character
-			) && (						// Not a valid float if the thousands separator is present at all
-				strpos($v,$thousands) === false
-			)
-		)) return floatval($round?round($v,$precision):$v);
+	$value = preg_replace('/(\D\.|[^\d\,\.\-])/','',$value); // Remove any non-numeric string data
+	$value = preg_replace('/\\'.$thousands.'/','',$value); // Remove thousands
+	$v = (float)$value;
 
-	$value = preg_replace("/(\D\.|[^\d\,\.])/","",$value); // Remove any non-numeric string data
-	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
-	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
+	if ('.' == $decimals && $v > 0) $float = $v;
 
-	if ($precision > 0) // Don't convert decimals if not required
-		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
+	if (false === $float) {
+		$value = preg_replace('/^\./','',$value); // Remove any decimals at the beginning of the string
+		if ($precision > 0) // Don't convert decimals if not required
+			$value = preg_replace('/\\'.$decimals.'/','.',$value); // Convert decimal delimter
 
-	return $round?round(floatval($value),$precision):floatval($value);
+		$float = (float)$value;
+	}
+
+	return $round?round($float,$precision):$float;
 }
 
 /**
