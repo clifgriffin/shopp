@@ -23,7 +23,6 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function
-	var $validator = false;
 	var $shopp_settings = array(); // testing settings, so tests can play nice
 
 	function setUp() {
@@ -44,6 +43,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		// $Shopp->Catalog = false;
 		// $Shopp->Category = false;
 		// $Shopp->Product = false;
+		unset($this->shopp_settings);
 		if (!is_null($this->_old_handler)) {
 			restore_error_handler();
 		}

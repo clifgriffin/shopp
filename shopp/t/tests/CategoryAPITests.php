@@ -10,8 +10,6 @@
  **/
 class CategoryAPITests extends ShoppTestCase {
 
-	var $Storefront;
-
 	function setUp () {
 		parent::setUp();
 		global $Shopp;

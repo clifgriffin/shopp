@@ -9,8 +9,8 @@
  **/
 class CheckoutAPITests extends ShoppTestCase {
 
-	function __construct () {
-		parent::__construct();
+	function setUp () {
+		parent::setUp();
 		global $Shopp;
 		$_SERVER['REQUEST_URI'] = "/store/checkout/";
 		$Shopp->Flow->Controller = new Storefront();

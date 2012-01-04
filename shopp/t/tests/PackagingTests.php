@@ -80,6 +80,12 @@ class PackagingTests extends ShoppTestCase {
 
 	}
 
+	function tearDown () {
+		parent::tearDown();
+		global $PkgProduct1, $PkgProduct2, $PkgProduct3, $PkgProduct4;
+		unset($PkgProduct1, $PkgProduct2, $PkgProduct3, $PkgProduct4);
+	}
+
 	// testing packaging all items together, by mass
 	function test_package_mass () {
 		global $PkgProduct1, $PkgProduct2, $PkgProduct3, $PkgProduct4;

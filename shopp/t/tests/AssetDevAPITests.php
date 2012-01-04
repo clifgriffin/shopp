@@ -66,6 +66,7 @@ class AssetDevAPITests extends ShoppTestCase {
 		}
 		if ( $this->product ) shopp_rmv_product( $this->product );
 		if ( $this->category ) shopp_rmv_product_category( $this->category );
+		unset($this->product,$this->category,$this->assets,$this->files);
 	}
 
 	// shopp_add_image ( $id, $context, $file )
