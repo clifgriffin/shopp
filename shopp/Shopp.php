@@ -325,7 +325,7 @@ class Shopp {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function rebuild () {
 		if ( ! shopp_setting_enabled('rebuild_rewrites') ) return;

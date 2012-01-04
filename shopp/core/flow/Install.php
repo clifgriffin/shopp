@@ -70,6 +70,9 @@ class ShoppInstallation extends FlowController {
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 		if (!$db_version) $this->install();
 
+		// Force the Shopp init action to register needed taxonomies & CPTs
+		do_action('shopp_init');
+
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
 
