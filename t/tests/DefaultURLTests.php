@@ -30,6 +30,18 @@ class DefaultURLTests extends ShoppTestCase {
 
 	}
 
+	function tearDown() {
+
+		parent::tearDown();
+		// Set back to original (Pretty)
+		global $wp_rewrite;
+		$wp_rewrite->extra_permastructs = $this->extra_permastructs;
+		update_option('permalink_structure', $this->permastruct);
+		flush_rewrite_rules();
+		unset($this->extra_permastructs,$this->permastruct);
+
+	}
+
 	function test_cart_url () {
 		ob_start();
 		shopp('cart','url');
@@ -234,16 +246,6 @@ class DefaultURLTests extends ShoppTestCase {
 		$this->assertEquals('http://shopptest/?shopp_collection=search-results&s=Star+Wars&s_cs=1',$actual);
 	}
 
-	function tearDown() {
-
-		parent::tearDown();
-		// Set back to original (Pretty)
-		global $wp_rewrite;
-		$wp_rewrite->extra_permastructs = $this->extra_permastructs;
-		update_option('permalink_structure', $this->permastruct);
-		flush_rewrite_rules();
-
-	}
 
 } // end DefaultURLTests class
 

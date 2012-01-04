@@ -10,8 +10,8 @@
  **/
 class CustomerAPITests extends ShoppTestCase {
 
-	function __construct () {
-		parent::__construct();
+	function setUp () {
+		parent::setUp();
 
 		$_SERVER['REQUEST_URI'] = "/";
 		$Login = new Login();

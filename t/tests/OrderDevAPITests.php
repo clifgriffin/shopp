@@ -5,7 +5,7 @@
 */
 class OrderDevAPITests extends ShoppTestCase {
 
-	function Setup () {
+	function setUp () {
 		shopp_empty_cart();
 		$this->_set_setting('tax_shipping', 'off');
 	}

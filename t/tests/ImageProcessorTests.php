@@ -20,8 +20,8 @@
  **/
 class ImageProcessorTests extends ShoppTestCase {
 
-	function __construct () {
-		parent::__construct();
+	function setUp () {
+		parent::setUp();
 		if ( ! class_exists('ImageProcessor') ) require(SHOPP_MODEL_PATH."/Image.php");
 	}
 
