@@ -546,17 +546,20 @@ class ModuleSettingsUI {
 	function button ($column=0,$attributes=array()) {
 		$defaults = array(
 			'type' => 'button',
-			'label' => __('Button','Shopp'),
+			'label' => '',
 			'disabled' => false,
+			'content' =>__('Button','Shopp'),
 			'value' => '',
 			'class' => ''
 		);
 		$attributes = array_merge($defaults,$attributes);
-		$attributes['id'] = "{$this->id}";
+		$attributes['id'] = "{$this->id}-".sanitize_title_with_dashes($attributes['name']);
 		$attributes['class'] = 'button-secondary'.('' == $attributes['class']?'':' '.$attributes['class']);
 		extract($attributes);
 
-		$this->ui('<div><button type="'.$type.'" name="'.$name.'" '.inputattrs($attributes).'>'.$label.'</button></div>',$column);
+		$this->ui('<button type="'.$type.'" name="'.$name.'" id="'.$id.'"'.inputattrs($attributes).'>'.$content.'</button>',$column);
+		if (!empty($label)) $this->ui('<br /><label for="'.$id.'">'.$label.'</label>',$column);
+
 	}
 
 	/**

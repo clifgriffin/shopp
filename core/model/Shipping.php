@@ -702,8 +702,6 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	function __construct ($Module,$name) {
 		parent::__construct($Module,$name);
 
-		$this->id = empty($Module->setting)?$this->module:$Module->setting;
-
 		if ($this->label == $name) $this->label = __('Shipping Method','Shopp');
 		if (method_exists($Module,'logo')) $this->label = 'data:image/png;base64,'.$Module->logo();
 	}
@@ -717,9 +715,14 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return $settings;
 	}
 
+	function behaviors ($script) {
+		shopp_custom_script('shiprates',$script);
+	}
+
 	function generate () {
 
 		$logo = (strpos($this->label,'data:image') !== false);
+		$this->id = strtolower(empty($this->label)?$this->module:$this->label);
 
 		$_ = array();
 		$_[] = '<tr><td colspan="5">';
