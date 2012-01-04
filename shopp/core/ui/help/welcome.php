@@ -20,7 +20,7 @@
 			</ul>
 			</li>
 		<li><strong><?php _e('Easy setup in just a few steps.','Shopp'); ?></strong><br /><?php _e('Setup is simple and takes about 10-15 minutes.  Just jump through each of the settings screens to configure your store.','Shopp'); ?></li>
-		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to activate your update key on the %sShopp%s &rarr; %sSettings%s screen so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong>','</strong>'); ?></li>
+		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to activate your key on the %sShopp%s &rarr; %sSettings%s screen so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong>','</strong>'); ?></li>
 		<li><strong><?php _e('Show It Off','Shopp')?></strong><br /><?php printf(__('Once you\'re up and running, drop by the Shopp website and %ssubmit your site%s to be included in the showcase of Shopp-powered websites.','Shopp'),'<a href="http://shopplugin.net/showcase">','</a>'); ?></li>
 	</ul>
 	<br />
