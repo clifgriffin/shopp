@@ -78,7 +78,7 @@ function asPercent (n,f,p,pr) {
 	f = getCurrencyFormat(f);
 	f.precision = p?p:1;
 
-	return formatNumber(n,f,pr).replace(/0+$/,'').replace(new RegExp(f.decimals+'$'),'')+'%';
+	return formatNumber(n,f,pr).replace(/0+$/,'').replace(new RegExp('\\'+f.decimals+'$'),'')+'%';
 }
 
 /**
@@ -141,7 +141,7 @@ function asNumber (n,f) {
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
 
 	n = n.toString().replace(f.currency,''); // Remove the currency symbol
-	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
+	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.\-])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
 	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
 
 	if (f.precision > 0)
