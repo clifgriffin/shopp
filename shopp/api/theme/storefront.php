@@ -361,8 +361,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (str_true($section)) {
 			if (!isset(ShoppCollection()->id)) return false;
 			$sectionterm = ShoppCollection()->id;
-			$baseparent = end(get_ancestors($sectionterm,$taxonomy));
-			$termargs['child_of'] = $baseparent;
+			if (ShoppCollection()->parent == 0) $baseparent = $sectionterm;
+			else $baseparent = end(get_ancestors($sectionterm,$taxonomy));
 		}
 
 		if (0 != $childof) $termargs['child_of'] = $baseparent = $childof;
