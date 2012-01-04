@@ -122,6 +122,10 @@ class BillingAddress extends Address {
 
 	var $type = 'billing';
 
+	var $card = false;
+	var $cardtype = false;
+	var $cardexpires = false;
+
 	/**
 	 * Billing constructor
 	 *
