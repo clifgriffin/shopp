@@ -9,7 +9,7 @@
 
 		<table class="form-table">
 			<tr>
-				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th>
+				<th scope="row" valign="top"><label for="update-key"><?php _e('Support Key','Shopp'); ?></label></th>
 				<td>
 					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="54" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
 					<input type="submit" id="activation-button" name="activation-button" class="button-secondary" value="<?php echo $button; ?>" />
