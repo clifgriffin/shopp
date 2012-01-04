@@ -80,8 +80,8 @@
 
 			</td>
 			<td class="discount column-discount<?php echo in_array('discount',$hidden)?' hidden':''; ?>"><?php
-				if ($Promotion->type == "Percentage Off") echo percentage($Promotion->discount);
-				if ($Promotion->type == "Amount Off") echo money($Promotion->discount);
+				if ($Promotion->type == "Percentage Off") echo percentage((float)$Promotion->discount);
+				if ($Promotion->type == "Amount Off") echo money((float)$Promotion->discount);
 				if ($Promotion->type == "Free Shipping") echo shopp_setting("free_shipping_text");
 				if ($Promotion->type == "Buy X Get Y Free") echo __('Buy','Shopp').' '.$Promotion->buyqty.' '.__('Get','Shopp').' '.$Promotion->getqty.' '.__('Free','Shopp');
 			?></td>

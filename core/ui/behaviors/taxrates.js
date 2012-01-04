@@ -174,6 +174,8 @@ jQuery(document).ready( function($) {
 		if (row.size() > 0) ui.insertAfter(row);
 		else ui.prependTo('#taxrates-table');
 
+		quickSelects();
+
 		editing = $this;
 
 	});
