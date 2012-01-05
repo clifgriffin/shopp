@@ -413,6 +413,12 @@ class Shopp {
 			'loginpwd' => __('You did not enter a password to login with.','Shopp'),
 		));
 
+		// Validation alerts
+		shopp_localize_script('cart', '$ct', array(
+			'items' => __('Items','Shopp'),
+			'total' => __('Total','Shopp'),
+		));
+
 		// Calendar localization
 		shopp_localize_script('calendar','$cal',array(
 			// Month names
