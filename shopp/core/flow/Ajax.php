@@ -676,8 +676,9 @@ class AjaxFlow {
 
 		global $wpdb;
 		$updates = $_POST['position'];
+		$category = (int)$_POST['category'];
 		foreach ((array)$updates as $id => $position)
-			DB::query("UPDATE $wpdb->term_relationships SET term_order='$position' WHERE object_id='$id'");
+			DB::query("UPDATE $wpdb->term_relationships SET term_order='".((int)$position)."' WHERE object_id='".((int)$id)."' AND term_taxonomy_id='$category'");
 		die('1');
 		exit();
 	}

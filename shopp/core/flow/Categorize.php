@@ -518,7 +518,7 @@ class Categorize extends AdminController {
 		$start = ($per_page * ($pagenum-1));
 
 		$CategoryProducts = new ProductCategory($id);
-		$CategoryProducts->load(array('order'=>'recommended'));
+		$CategoryProducts->load(array('order'=>'recommended','pagination'=>false));
 
 		$num_pages = ceil($CategoryProducts->total / $per_page);
 		$page_links = paginate_links( array(

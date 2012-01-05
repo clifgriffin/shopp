@@ -100,7 +100,7 @@ class ProductCollection implements Iterator {
 				case 'title': $orderby = "p.post_title ASC"; break;
 				case 'recommended':
 				default:
-					$orderby = ('taxonomy' == $this->api)?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
+					$orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
 			}
 		}
 
