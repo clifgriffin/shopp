@@ -517,11 +517,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			}
 		}
 
-		if (isset($O->Customer->info->named[$name])) $info = $O->Customer->info->named[$name];
+		if (isset($O->Customer->info[$name])) $info = $O->Customer->info[$name];
 		if ($name && $mode == "value") return $info;
+		if (empty($value) && !empty($info)) $op['value'] = $info;
 
 		if (!in_array($type,$allowed_types)) $type = 'hidden';
-		if (empty($title)) $title = $name;
+		if (empty($title)) $op['title'] = $name;
 		$id = 'customer-info-'.sanitize_title_with_dashes($name);
 
 		if (in_array($type,$value_override) && !empty($info))
