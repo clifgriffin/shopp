@@ -88,7 +88,7 @@ function ShoppCartAjaxHandler (cart,response) {
 	$('<p />').html(asMoney(new Number(Item.unitprice))).appendTo(item);
 
 	status.html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+Totals.quantity+'</span> '+
-				'<strong>Items</strong> &mdash; <strong>Total</strong> '+
+				'<strong>'+$ct.items+'</strong> &mdash; <strong>'+$ct.total+'</strong> '+
 				'<span id="shopp-sidecart-total">'+asMoney(new Number(Totals.total))+'</span></a>');
 
 	if (actions.size() != 1) actions = $('<ul />').appendTo(ui);
