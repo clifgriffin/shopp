@@ -17,6 +17,8 @@ class Warehouse extends AdminController {
 	var $view = 'all';
 	var $worklist = array();
 	var $screen = 'toplevel_page_shopp-products';
+	var $products = array();
+	var $subs = array();
 
 	/**
 	 * Store constructor
@@ -62,12 +64,17 @@ class Warehouse extends AdminController {
 			shopp_enqueue_script('shopp-swfupload-queue');
 			do_action('shopp_product_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
-		} else add_action('admin_print_scripts',array(&$this,'columns'));
+
+		} else {
+			add_action('load-'.$this->screen,array($this,'loader'));
+			add_action('admin_print_scripts',array(&$this,'columns'));
+		}
 
 		if ('inventory' == $this->view && 'on' == shopp_setting('inventory'))
 			do_action('shopp_inventory_manager_scripts');
 
-		add_action('load-'.$this->screen,array(&$this,'workflow'));
+		add_action('load-'.$this->screen,array($this,'workflow'));
+
 		do_action('shopp_product_admin_scripts');
 
 		// Load the search model for indexing
@@ -95,7 +102,7 @@ class Warehouse extends AdminController {
 			if ($Products->total == 0) return;
 
 			// Save workflow list
-			$this->worklist = $this->manager(true);
+			$this->worklist = $this->loader(true);
 			$this->worklist['query'] = $_GET;
 		}
 	}
@@ -216,21 +223,9 @@ class Warehouse extends AdminController {
 
 	}
 
-	/**
-	 * Interface processor for the product list manager
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @version 1.2
-	 *
-	 * @param boolean $workflow True to get workflow data
-	 * @return void
-	 **/
-	function manager ($workflow=false) {
-		global $Shopp,$Products;
+	function loader ($workflow=false) {
 
-		if ( ! current_user_can('shopp_products') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
+		if ( ! current_user_can('shopp_products') ) return;
 
 		$defaults = array(
 			'cat' => false,
@@ -258,33 +253,6 @@ class Warehouse extends AdminController {
 
 		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
 
-		if (!$workflow) {
-			if (empty($categories)) $categories = array('');
-
-			$categories_menu = wp_dropdown_categories(array(
-				'show_option_all' => __('View all categories','Shopp'),
-				'show_option_none' => __('Uncategorized','Shopp'),
-				'hide_empty' => 0,
-				'hierarchical' => 1,
-				'show_count' => 0,
-				'orderby' => 'name',
-				'selected' => $cat,
-				'echo' => 0,
-				'taxonomy' => 'shopp_category'
-			));
-
-			if ('on' == shopp_setting('inventory')) {
-				$inventory_filters = array(
-					'all' => __('View all products','Shopp'),
-					'is' => __('In stock','Shopp'),
-					'ls' => __('Low stock','Shopp'),
-					'oos' => __('Out-of-stock','Shopp'),
-					'ns' => __('Not stocked','Shopp')
-				);
-				$inventory_menu = '<select name="sl">'.menuoptions($inventory_filters,$sl,true).'</select>';
-			}
-		}
-
 		$subs = array(
 			'all' => 		array('label' => __('All','Shopp'), 		'where'=>array("p.post_status!='trash'")),
 			'published' => 	array('label' => __('Published','Shopp'),	'where'=>array("p.post_status='publish'")),
@@ -307,7 +275,6 @@ class Warehouse extends AdminController {
 		}
 
 		if ($is_inventory) $per_page = 50;
-
 		$pagenum = absint( $paged );
 		$start = ($per_page * ($pagenum-1));
 
@@ -370,7 +337,8 @@ class Warehouse extends AdminController {
 			'limit'=>"$start,$per_page",
 			'load' => array('categories','coverimages'),
 			'published' => false,
-			'order' => $order
+			'order' => $order,
+			// 'debug' => true
 		);
 
 		if ($is_inventory) { // Override for inventory products
@@ -390,14 +358,19 @@ class Warehouse extends AdminController {
 		if ($workflow) {
 			unset($loading['limit']);
 			$loading['ids'] = true;
+			$loading['pagination'] = false;
 			$loading['load'] = array();
 		};
 
-		$Products = new ProductCollection();
-		$Products->load($loading);
+		$this->products = new ProductCollection();
+		$this->products->load($loading);
+
+		// Overpagination protection, redirect to page 1 if the requested page doesn't exist
+		$num_pages = ceil($this->products->total / $per_page);
+		if ($paged > 1 && $paged > $num_pages) shopp_redirect(add_query_arg('paged',null,$url));
 
 		// Return a list of product keys for workflow list requests
-		if ($workflow) return $Products->worklist();
+		if ($workflow) return $this->products->worklist();
 
 		// Get sub-screen counts
 		$subcounts = wp_cache_get('shopp_product_subcounts','shopp_admin');
@@ -412,7 +385,7 @@ class Warehouse extends AdminController {
 					'columns' => "count(*) AS total",
 					'table' => "$pd as p",
 					'joins' => array(),
-					'where' => array()
+					'where' => array(),
 				);
 
 				$query = array_merge($query,$subquery);
@@ -427,6 +400,92 @@ class Warehouse extends AdminController {
 			}
 			wp_cache_set('shopp_product_subcounts',$subcounts,'shopp_admin');
 		}
+
+		$this->subs = $subs;
+	}
+
+	/**
+	 * Interface processor for the product list manager
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @param boolean $workflow True to get workflow data
+	 * @return void
+	 **/
+	function manager () {
+
+		if ( ! current_user_can('shopp_products') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+		// Explicitly recall the loader to reload products inside the admin content
+		$this->loader();
+
+		$defaults = array(
+			'cat' => false,
+			'paged' => 1,
+			'per_page' => 20,
+			's' => '',
+			'sl' => '',
+			'matchcol' => '',
+			'view' => $this->view,
+			'is_inventory' => false,
+			'is_trash' => false,
+			'is_bestselling' => false,
+			'categories_menu' => false,
+			'inventory_menu' => false,
+			'lowstock' => 0,
+			'columns' => '',
+			'orderby' => '',
+			'order' => '',
+			'where' => array(),
+			'joins' => array()
+		);
+
+		$args = array_merge($defaults,$_GET);
+		extract($args,EXTR_SKIP);
+
+		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
+
+		if (empty($categories)) $categories = array('');
+
+		$categories_menu = wp_dropdown_categories(array(
+			'show_option_all' => __('View all categories','Shopp'),
+			'show_option_none' => __('Uncategorized','Shopp'),
+			'hide_empty' => 0,
+			'hierarchical' => 1,
+			'show_count' => 0,
+			'orderby' => 'name',
+			'selected' => $cat,
+			'echo' => 0,
+			'taxonomy' => 'shopp_category'
+		));
+
+		if ('on' == shopp_setting('inventory')) {
+			$inventory_filters = array(
+				'all' => __('View all products','Shopp'),
+				'is' => __('In stock','Shopp'),
+				'ls' => __('Low stock','Shopp'),
+				'oos' => __('Out-of-stock','Shopp'),
+				'ns' => __('Not stocked','Shopp')
+			);
+			$inventory_menu = '<select name="sl">'.menuoptions($inventory_filters,$sl,true).'</select>';
+		}
+
+		if ('off' == shopp_setting('inventory')) unset($subs['inventory']);
+		switch ($view) {
+			case 'inventory':
+				if ( shopp_setting_enabled('inventory') ) $is_inventory = true;
+				break;
+			case 'trash': $is_trash = true; break;
+			case 'bestselling': $is_bestselling = true; break;
+		}
+
+		if ($is_inventory) $per_page = 50;
+
+		$pagenum = absint( $paged );
+		$start = ($per_page * ($pagenum-1));
 
 		$actions_menu = array(
 			'publish' => __('Publish','Shopp'),
@@ -443,9 +502,12 @@ class Warehouse extends AdminController {
 			);
 		}
 
+		global $Products;
+		$Products = $this->products;
 		$num_pages = ceil($Products->total / $per_page);
-
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Products->total, $num_pages, $per_page );
+
+		$subs = $this->subs;
 
 		$path = SHOPP_ADMIN_PATH.'/products';
 		$ui = 'products.php';
