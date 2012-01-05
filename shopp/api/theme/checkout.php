@@ -517,7 +517,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			}
 		}
 
-		if (isset($O->Customer->info[$name])) $info = $O->Customer->info[$name];
+		if (is_array($O->Customer->info) && isset($O->Customer->info[$name])) $info = $O->Customer->info[$name];
 		if ($name && $mode == "value") return $info;
 		if (empty($value) && !empty($info)) $op['value'] = $info;
 
