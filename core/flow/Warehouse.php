@@ -13,7 +13,7 @@
 
 class Warehouse extends AdminController {
 
-	var $views = array('featured','published','onsale','bestselling','inventory','trash');
+	var $views = array('published','drafts','onsale','featured','bestselling','inventory','trash');
 	var $view = 'all';
 	var $worklist = array();
 	var $screen = 'toplevel_page_shopp-products';
@@ -286,13 +286,14 @@ class Warehouse extends AdminController {
 		}
 
 		$subs = array(
-			'all' => 		array('label' => __('All','Shopp'), 		'where'=>array("p.post_status != 'trash'")),
+			'all' => 		array('label' => __('All','Shopp'), 		'where'=>array("p.post_status!='trash'")),
 			'published' => 	array('label' => __('Published','Shopp'),	'where'=>array("p.post_status='publish'")),
+			'drafts' => 	array('label' => __('Drafts','Shopp'),		'where'=>array("p.post_status='draft'")),
 			'onsale' => 	array('label' => __('On Sale','Shopp'),		'where'=>array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured' => 	array('label' => __('Featured','Shopp'),	'where'=>array("s.featured='on' AND p.post_status != 'trash'")),
-			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status != 'trash'"),'order' => 'bestselling'),
+			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status!='trash'"),'order' => 'bestselling'),
 			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'")),
-			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status = 'trash'"))
+			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status='trash'"))
 		);
 
 		if ('off' == shopp_setting('inventory')) unset($subs['inventory']);
