@@ -483,7 +483,6 @@ class Setup extends AdminController {
 			}
 		}
 
-
 		if (isset($_POST['module'])) {
 			check_admin_referer('shopp-settings-shiprate');
 
@@ -526,7 +525,9 @@ class Setup extends AdminController {
 				// Cancel editing if saving
 				if (isset($_POST['save'])) unset($_REQUEST['id']);
 
-				list($setting_module,$id) = explode('-',$setting);
+				$setting_module = $setting; $id = 0;
+				if (false !== strpos($setting,'-'))
+					list($setting_module,$id) = explode('-',$setting);
 
 				// Prevent fishy stuff from happening
 				if ($module != $setting_module) $module = false;
@@ -559,7 +560,6 @@ class Setup extends AdminController {
 
 			}
 		}
-
 
 		$Shipping->ui(); // Setup setting UIs
 		$installed = array();
