@@ -168,38 +168,62 @@ class Account extends AdminController {
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$users_table = $wpdb->users;
 
-		$where = '';
+		$where = array();
 		if (!empty($s)) {
 			$s = stripslashes($s);
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER)) {
 				foreach ($props as $search) {
 					$keyword = !empty($search[2])?$search[2]:$search[3];
 					switch(strtolower($search[1])) {
-						case "company": $where .= ((empty($where))?"WHERE ":" AND ")."c.company LIKE '%$keyword%'"; break;
-						case "login": $where .= ((empty($where))?"WHERE ":" AND ")."u.user_login LIKE '%$keyword%'"; break;
-						case "address": $where .= ((empty($where))?"WHERE ":" AND ")."(b.address LIKE '%$keyword%' OR b.xaddress='%$keyword%')"; break;
-						case "city": $where .= ((empty($where))?"WHERE ":" AND ")."b.city LIKE '%$keyword%'"; break;
+						case "company": $where[] = "c.company LIKE '%$keyword%'"; break;
+						case "login": $where[] = "u.user_login LIKE '%$keyword%'"; break;
+						case "address": $where[] = "(b.address LIKE '%$keyword%' OR b.xaddress='%$keyword%')"; break;
+						case "city": $where[] = "b.city LIKE '%$keyword%'"; break;
 						case "province":
-						case "state": $where .= ((empty($where))?"WHERE ":" AND ")."b.state='$keyword'"; break;
+						case "state": $where[] = "b.state='$keyword'"; break;
 						case "zip":
 						case "zipcode":
-						case "postcode": $where .= ((empty($where))?"WHERE ":" AND ")."b.postcode='$keyword'"; break;
-						case "country": $where .= ((empty($where))?"WHERE ":" AND ")."b.country='$keyword'"; break;
+						case "postcode": $where[] = "b.postcode='$keyword'"; break;
+						case "country": $where[] = "b.country='$keyword'"; break;
 					}
 				}
 			} elseif (strpos($s,'@') !== false) {
-				 $where .= ((empty($where))?"WHERE ":" AND ")."c.email='$s'";
-			} else $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";
+				 $where[] = "c.email='$s'";
+			} elseif (is_numeric($s)) {
+				$where[] = "c.id='$s'";
+			} else $where[] = "(CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";
 
 		}
-		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
+		if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$customercount = DB::query("SELECT count(*) as total FROM $customer_table AS c $where");
-		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND (c.wpuser IS NULL OR c.wpuser !=0) $where GROUP BY c.id ORDER BY c.created DESC LIMIT $index,$per_page";
-		$Customers = DB::query($query,'array');
+		$select = array(
+			'columns' => 'c.*,city,state,country,user_login',
+			'table' => "$customer_table as c",
+			'joins' => array(
+					$billing_table => "LEFT JOIN $billing_table AS b ON b.customer=c.id AND b.type='billing'",
+					$users_table => "LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND (c.wpuser IS NULL OR c.wpuser != 0)"
+				),
+			'where' => $where,
+			'groupby' => "c.id",
+			'orderby' => "c.created DESC",
+			'limit' => "$index,$per_page"
+		);
+		$query = DB::select($select);
+
+		$Customers = DB::query($query,'array','index','id');
+		$total = DB::found();
+
+		// Add order data to customer records in this view
+		$orders = DB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (".join(',',array_keys($Customers)).") GROUP BY customer",'array','index','customer');
+		foreach ($Customers as &$Customer) {
+			$Customer->total = 0; $Customer->orders = 0;
+			if ( ! isset($orders[$Customer->id]) ) continue;
+			$Customer->total = $orders[$Customer->id]->total;
+			$Customer->orders = $orders[$Customer->id]->orders;
+		}
 
 		$num_pages = ceil($customercount->total / $per_page);
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $customercount->total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show New Customers','Shopp'),
