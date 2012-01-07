@@ -145,7 +145,7 @@ class Account extends AdminController {
 
 		}
 
-		$pagenum = absint( $pagenum );
+		$pagenum = absint( $paged );
 		if ( empty($pagenum) )
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
@@ -197,7 +197,7 @@ class Account extends AdminController {
 		if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
 		$select = array(
-			'columns' => 'c.*,city,state,country,user_login',
+			'columns' => 'SQL_CALC_FOUND_ROWS c.*,city,state,country,user_login',
 			'table' => "$customer_table as c",
 			'joins' => array(
 					$billing_table => "LEFT JOIN $billing_table AS b ON b.customer=c.id AND b.type='billing'",
@@ -209,7 +209,6 @@ class Account extends AdminController {
 			'limit' => "$index,$per_page"
 		);
 		$query = DB::select($select);
-
 		$Customers = DB::query($query,'array','index','id');
 		$total = DB::found();
 
@@ -222,7 +221,7 @@ class Account extends AdminController {
 			$Customer->orders = $orders[$Customer->id]->orders;
 		}
 
-		$num_pages = ceil($customercount->total / $per_page);
+		$num_pages = ceil($total / $per_page);
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $total, $num_pages, $per_page );
 
 		$ranges = array(
