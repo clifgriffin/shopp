@@ -128,7 +128,7 @@ class Resources {
 			$forbidden = false;
 			$Download = new ProductDownload($download);
 		} else {
-			$Order = &ShoppOrder();
+			$Order = ShoppOrder();
 
 			$Download = new ProductDownload();
 			$Download->loadby_dkey($download);
@@ -140,9 +140,11 @@ class Resources {
 
 			$name = $Purchased->name.(!empty($Purchased->optionlabel)?' ('.$Purchased->optionlabel.')':'');
 
+			$paidstatus = array( /* For 1.1 */ 'CHARGED', /* For 1.2+ */'captured' );
+
 			$forbidden = false;
 			// Purchase Completion check
-			if ($Purchase->balance > 0 && !SHOPP_PREPAYMENT_DOWNLOADS) {
+			if ( !in_array($Purchase->txnstatus,$paidstatus) && !SHOPP_PREPAYMENT_DOWNLOADS) {
 				new ShoppError(sprintf(__('"%s" cannot be downloaded because payment has not been received yet.','Shopp'),$name),'shopp_download_limit');
 				$forbidden = true;
 			}
