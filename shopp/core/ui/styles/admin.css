@@ -116,7 +116,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 #cboxContent p.submit { text-align:right; }
 #cboxContent label { display:inline-block;width:50px;text-align:right;margin-right:5px; }
 
-#cboxContent input.fileimport { padding-right:16px;width:80%; }
+#cboxContent input.fileimport { padding-right:16px;width:75%; }
 #cboxContent input.verifying { background:url('../icons/updating.gif') no-repeat right center; }
 #cboxContent input.warning { background:url('../icons/error.png') no-repeat right center; }
 #cboxContent input.ok { background:url('../icons/accept.png') no-repeat right center; }
