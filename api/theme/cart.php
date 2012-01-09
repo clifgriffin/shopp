@@ -51,6 +51,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'tax' => 'tax',
 		'total' => 'total',
 		'totalitems' => 'total_items',
+		'totalquantity' => 'total_quantity',
 		'totalpromos' => 'total_promos',
 		'updatebutton' => 'update_button',
 		'url' => 'url'
@@ -383,10 +384,14 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	static function total ($result, $options, $O) { return $O->Totals->total; }
 
 	static function total_items ($result, $options, $O) {
-	 	return $O->Totals->quantity;
+	 	return count($O->contents);
 	}
 
 	static function total_promos ($result, $options, $O) { return count($O->discounts); }
+
+	static function total_quantity ($result, $options, $O) {
+	 	return $O->Totals->quantity;
+	}
 
 	static function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
