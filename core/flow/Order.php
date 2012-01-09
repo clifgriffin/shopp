@@ -194,7 +194,8 @@ class Order {
 			$_->processor = $Gateway->module;
 			$_->setting = $gateway;
 			$_->cards = array_keys($Gateway->cards());
-			$handle = sanitize_key($_->label);
+			$handle = sanitize_title_with_dashes($_->label);
+
 			$options[$handle] = $_;
 		}
 
@@ -252,7 +253,7 @@ class Order {
 			$this->processor = 'FreeOrder';
 			if ( ! isset($Shopp->Gateways->active[ $processor ]) )
 				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
-			$this->paymethod = sanitize_key($Shopp->Gateways->freeorder->name);
+			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
@@ -261,7 +262,7 @@ class Order {
 
 			// Set the paymethod if not set already, or if it has changed
 			if (!$this->paymethod)
-				$this->paymethod = sanitize_key($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
+				$this->paymethod = sanitize_title_with_dashes($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
 		}
 
 		return $this->processor;
