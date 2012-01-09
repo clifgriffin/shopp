@@ -39,13 +39,14 @@
 				<label><?php _e('Select the shipping carriers you will be using for shipment tracking.','Shopp'); ?></label>
 				</td>
 			</tr>
+			<?php global $Shopp; if ($Shopp->Shipping->realtime): ?>
 			<tr>
 				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[shipping_packaging]" id="packaging">
 						<?php echo menuoptions(Lookup::packaging_types(), shopp_setting('shipping_packaging'),true); ?>
 				</select><br />
-				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
+				<?php _e('Determines packaging method used for real-time shipping quotes.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="packaging"><?php _e('Package Limit','Shopp'); ?></label></th>
@@ -54,8 +55,9 @@
 						<?php echo menuoptions(apply_filters('shopp_package_weight_limits', array('-1'=>'∞',10,20,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800)),
 								shopp_setting('shipping_package_weight_limit'),true); ?>
 				</select><br />
-				<?php _e('The maximum weight units to which packages are limited.','Shopp'); ?></td>
+				<?php _e('The maximum weight allowed for a package.','Shopp'); ?></td>
 			</tr>
+			<?php endif; ?>
 			<tr>
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
 				<td>
