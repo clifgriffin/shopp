@@ -593,7 +593,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		$js = "var regions = ".json_encode($regions).",".
 				  "c_upd = '".$updating."',".
-				  "d_pm = '".sanitize_key($O->paymethod)."',".
+				  "d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
 				  "pm_cards = {};";
 
 		foreach ($O->payoptions as $handle => $option) {
