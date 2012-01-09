@@ -136,7 +136,8 @@ class Purchase extends DatabaseObject {
 
 		$updates = compact('txnstatus','txnid','status');
 		$updates = array_filter($updates);
-		$data = array_map($updates,create_function('$v','return "\'".DB::escape($v)."\'";'));
+
+		$data = array_map(create_function('$v','return "\'".DB::escape($v)."\'";'),$updates);
 		$dataset = DatabaseObject::dataset($data);
 
 		$table = DatabaseObject::tablename(self::$table);

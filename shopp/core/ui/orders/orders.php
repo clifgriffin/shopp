@@ -276,6 +276,7 @@ $('#selectall_columns').change(function () {
 	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
 	else $('#export-columns input').not(this).attr('checked',false);
 });
+$('input.current-page').unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });
 
 });
 

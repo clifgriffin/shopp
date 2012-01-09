@@ -73,6 +73,11 @@ function manage_meta_box ($Purchase) {
 		<div class="submit">
 			<input type="submit" id="cancel-refund" name="cancel-refund" value="${cancel}" class="button-secondary" />
 			<div class="alignright">
+			<span class="mark-status">
+				<input type="hidden" name="mark" value="off" />
+				<label title="<?php printf(__('Force the order status without processing through %s','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="mark" value="on" />&nbsp;${mark}</label>
+			</span>
+
 			<input type="submit" name="process-refund" value="${process}" class="button-primary" />
 			</div>
 		</div>
@@ -153,6 +158,7 @@ function manage_meta_box ($Purchase) {
 					'${action}' => 'refund',
 					'${title}' => __('Refund Order','Shopp'),
 					'${reason}' => __('Reason for refund','Shopp'),
+					'${mark}' => __('Mark Refunded','Shopp'),
 					'${cancel}' => __('Cancel Refund','Shopp'),
 					'${process}' => __('Process Refund','Shopp')
 				);
@@ -163,6 +169,7 @@ function manage_meta_box ($Purchase) {
 						'${disable_amount}' =>  ' disabled="disabled"',
 						'${title}' => __('Cancel Order','Shopp'),
 						'${reason}' => __('Reason for cancellation','Shopp'),
+						'${mark}' => __('Mark Cancelled','Shopp'),
 						'${cancel}' => __('Do Not Cancel','Shopp'),
 						'${process}' => __('Cancel Order','Shopp')
 					);
@@ -181,7 +188,7 @@ function manage_meta_box ($Purchase) {
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />
 			<?php endif; ?>
 			<?php
-			if ($Purchase->authorized && $Purchase->captured && $Purchase->refunded < $Purchase->total): ?>
+			if ( ('CHARGED' == $Purchase->txnstatus) || ($Purchase->authorized && $Purchase->captured && $Purchase->refunded < $Purchase->total) ): ?>
 				<input type="submit" id="refund-button" name="refund-order" value="<?php _e('Refund','Shopp'); ?>" class="button-secondary refund" />
 			<?php endif; ?>
 		</div>

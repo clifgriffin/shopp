@@ -36,12 +36,14 @@ class Service extends AdminController {
 			shopp_enqueue_script('orders');
 			shopp_localize_script( 'orders', '$om', array(
 				'co' => __('Cancel Order','Shopp'),
+				'mr' => __('Mark Refunded','Shopp'),
 				'pr' => __('Process Refund','Shopp'),
 				'dnc' => __('Do Not Cancel','Shopp'),
 				'ro' => __('Refund Order','Shopp'),
 				'cancel' => __('Cancel','Shopp'),
 				'rr' => __('Reason for refund','Shopp'),
-				'rc' => __('Reason for cancellation','Shopp')
+				'rc' => __('Reason for cancellation','Shopp'),
+				'mc' => __('Mark Cancelled','Shopp')
 			));
 
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
@@ -89,6 +91,7 @@ class Service extends AdminController {
 			'update' => false,
 			'newstatus' => false,
 			'pagenum' => 1,
+			'paged' => 1,
 			'per_page' => false,
 			'start' => '',
 			'end' => '',
@@ -148,7 +151,7 @@ class Service extends AdminController {
 			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 
-		$pagenum = absint( $pagenum );
+		$pagenum = absint( $paged );
 		if ( empty($pagenum) )
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
@@ -329,19 +332,30 @@ class Service extends AdminController {
 		}
 
 		if (isset($_POST['order-action']) && 'refund' == $_POST['order-action']) {
-			// unset($_POST['refund-order']);
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 			$amount = floatvalue($_POST['amount']);
 
-			// @todo add checks for shopp_refunds capability
-			shopp_add_order_event($Purchase->id,'refund',array(
-				'txnid' => $Purchase->txnid,
-				'gateway' => $Gateway->module,
-				'amount' => $amount,
-				'reason' => $reason,
-				'user' => $user->ID
-			));
+			if (str_true($_POST['mark'])) { // Force the order status
+				shopp_add_order_event($Purchase->id,'notice',array(
+					'user' => $user->ID,
+					'note' => __('Marked Refunded','Shopp')
+				));
+				shopp_add_order_event($Purchase->id,'refunded',array(
+					'txnid' => $Purchase->txnid,
+					'gateway' => $Gateway->module,
+					'amount' => $amount,
+				));
+			} else {
+				shopp_add_order_event($Purchase->id,'refund',array(
+					'txnid' => $Purchase->txnid,
+					'gateway' => $Gateway->module,
+					'amount' => $amount,
+					'reason' => $reason,
+					'user' => $user->ID
+				));
+			}
+
 
 			if (!empty($_POST['message']))
 				$this->addnote($Purchase->id,$_POST['message']);
@@ -360,13 +374,26 @@ class Service extends AdminController {
 			else
 				$message = 0;
 
-			shopp_add_order_event($Purchase->id,'void',array(
-				'txnid' => $Purchase->txnid,
-				'gateway' => $Gateway->module,
-				'reason' => $reason,
-				'user' => $user->ID,
-				'note' => $message
-			));
+
+			if (str_true($_POST['mark'])) { // Force the order status
+				shopp_add_order_event($Purchase->id,'notice',array(
+					'user' => $user->ID,
+					'note' => __('Marked Cancelled','Shopp')
+				));
+				shopp_add_order_event($Purchase->id,'voided',array(
+					'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
+					'txnid' => time(),			// Transaction ID for the VOID event
+					'gateway' => $Gateway->module		// Gateway handler name (module name from @subpackage)
+				));
+			} else {
+				shopp_add_order_event($Purchase->id,'void',array(
+					'txnid' => $Purchase->txnid,
+					'gateway' => $Gateway->module,
+					'reason' => $reason,
+					'user' => $user->ID,
+					'note' => $message
+				));
+			}
 
 			if (!empty($_POST['message']))
 				$this->addnote($Purchase->id,$_POST['message']);
