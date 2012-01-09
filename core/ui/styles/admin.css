@@ -545,6 +545,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .refunding { margin: 6px 10px 1.33em; }
 #order .refunding label { font-weight: bold; }
 #order .refunding div { padding-bottom: 8px; }
+#order .mark-status { margin-right: 1em; }
 #order .shipment ol { list-style:none; margin-left: 0;}
 #order .shipment ol .number { margin: 6px 2px 0; position: relative;}
 #order .shipment div.delete { position: absolute; left: -2px; top: -2px; }
