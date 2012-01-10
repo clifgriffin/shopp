@@ -95,7 +95,7 @@ class Purchased extends DatabaseObject {
 		$key = sha1($message);
 
 		$limit = 25; $c = 0;
-		while ((int)DB::query("SELECT count(*) AS exists FROM $this->_table WHERE dkey=$key",'auto','col','exists') > 0) {
+		while ((int)DB::query("SELECT count(*) AS exists FROM $this->_table WHERE dkey='$key'",'auto','col','exists') > 0) {
 			$key = sha1($message.rand());
 			if ($c++ > $limit) break;
 		}
