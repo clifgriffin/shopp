@@ -937,8 +937,12 @@ class Emogrifier {
             $body = preg_replace("/<($unprocessableHTMLTags)[^>]*>/i",'',$body);
 	    }
 
-        // $encoding = mb_detect_encoding($body);
-        // $body = mb_convert_encoding($body, 'HTML-ENTITIES', $encoding);
+		if (function_exists('mb_detect_encoding'))
+			$encoding = mb_detect_encoding($body);
+		else $encoding = 'UTF-8';
+
+		if (function_exists('mb_convert_encoding'))
+			$body = mb_convert_encoding($body, 'HTML-ENTITIES', $encoding);
 
         $xmldoc = new DOMDocument;
 		$xmldoc->encoding = 'UTF-8';
@@ -1032,7 +1036,7 @@ class Emogrifier {
         // we don't try to call removeChild on a nonexistent child node
         if ($nodes->length > 0) foreach ($nodes as $node) if ($node->parentNode && is_callable(array($node->parentNode,'removeChild'))) $node->parentNode->removeChild($node);
 
-        if ($this->preserveEncoding) {
+        if ($this->preserveEncoding && function_exists('mb_convert_encoding')) {
             return mb_convert_encoding($xmldoc->saveHTML(), $encoding, 'HTML-ENTITIES');
         } else {
             return $xmldoc->saveHTML();
