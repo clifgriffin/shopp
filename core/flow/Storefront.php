@@ -794,30 +794,6 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Cancels canonical redirects when the catalog is Set as the front page
-	 *
-	 * Added for WordPress 3.0 compatibility {@see wp-includes/canonical.php line 111}
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $redirect The redirected URL
-	 * @return mixed False when the Shopp catalog is set as the front page
-	 **/
-	// function canonical_home ($redirect) {
-	// 	// @todo replace with storefront_pages setting?
-	// 	$pages = shopp_setting('pages');
-	// 	if (!function_exists('home_url')) return $redirect;
-	// 	list($url,) = explode("?",$redirect);
-	// 	if ($url == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
-	// 		return false;
-	// 	// Cancel WP pagination redirects for Shopp category pages
-	// 	if ( get_query_var('s_cat') && get_query_var('paged') > 0 )
-	// 		return false;
-	// 	return $redirect;
-	// }
-
-	/**
 	 * Handles rendering the maintenance message
 	 *
 	 * @author Jonathan Davis
