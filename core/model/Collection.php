@@ -1512,8 +1512,12 @@ class TagProducts extends SmartCollection {
 	static $_slug = "tag";
 
 	function smart ($options=array()) {
-		$this->slug = self::$_slug;
+		if (!isset($options['tag'])) {
+			new ShoppError('No tag option provided for the requested TagProducts collection','doing_it_wrong',SHOPP_DEBUG_ERR);
+			return false;
+		}
 
+		$this->slug = self::$_slug;
 		$this->tag = stripslashes(urldecode($options['tag']));
 
 		$term = get_term_by('name',$this->tag,ProductTag::$taxonomy);
