@@ -614,7 +614,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$templates = array_merge($idslugs,$templates);
 
 		ob_start();
-		locate_shopp_template($templates,true,false);
+		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
