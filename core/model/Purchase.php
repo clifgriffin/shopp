@@ -381,7 +381,7 @@ class Purchase extends DatabaseObject {
 		if (empty($this->purchased)) $this->load_purchased();
 
 		ob_start();
-		locate_shopp_template(array($template),true,false);
+		locate_shopp_template(array($template),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 

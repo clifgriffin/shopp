@@ -303,7 +303,7 @@ class Storefront extends FlowController {
 		$pagetitle = apply_filters($page.'_page_title',$pages[$page]['title']);
 
 		add_filter('the_title',create_function('$title,$id','return in_the_loop() && -42 == $id?"'.$pagetitle.'":$title;'),10,2);
-		add_filter('the_content',array(&$this,$page.'_page'),20);
+		add_filter('the_content',array($this,$page.'_page'),20);
 
 		$templates = array("$page.php", 'shopp.php', 'page.php');
 		return locate_template($templates);
@@ -912,9 +912,8 @@ class Storefront extends FlowController {
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
-	function cart_page ($attrs=array()) {
-		global $Shopp;
-		$Order = &ShoppOrder();
+	function cart_page ($content) {
+		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
 
 		ob_start();
@@ -1034,7 +1033,7 @@ class Storefront extends FlowController {
 
 		ob_start();
 		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
-		locate_shopp_template($templates,true,false);
+		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
 

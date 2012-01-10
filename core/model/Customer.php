@@ -149,7 +149,7 @@ class Customer extends DatabaseObject {
 				ShoppPurchase($Purchase);
 				$Purchase->load_purchased();
 				ob_start();
-				locate_shopp_template(array('account-receipt.php','receipt.php'),true,false);
+				locate_shopp_template(array('account-receipt.php','receipt.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 			} else {

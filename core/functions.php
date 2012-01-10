@@ -894,7 +894,7 @@ function linkencode ($url) {
  * @param bool $require_once (optional) Whether to require_once or require. Default true. Has no effect if $load is false.
  * @return string The full template file path, if one is located
  **/
-function locate_shopp_template ($template_names, $load = false, $require_once = true ) {
+function locate_shopp_template ($template_names, $load = false, $require_once = false ) {
 	if ( !is_array($template_names) ) return '';
 
 	$located = '';

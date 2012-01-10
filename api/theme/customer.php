@@ -233,8 +233,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 		if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
 		if (array_key_exists('url',$options))
-			$string .= shoppurl( ('' == get_option('permalink_structure') ? 
-							array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey), 
+			$string .= shoppurl( ('' == get_option('permalink_structure') ?
+							array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey),
 							'account');
 		return $string;
 	}
@@ -268,7 +268,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 
 		ob_start();
-		locate_shopp_template(array('errors.php'),true,false);
+		locate_shopp_template(array('errors.php'),true);
 		$errors = ob_get_contents();
 		ob_end_clean();
 		return $errors;
