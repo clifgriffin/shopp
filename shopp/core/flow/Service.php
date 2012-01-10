@@ -20,6 +20,8 @@
  **/
 class Service extends AdminController {
 
+	var $screen = 'toplevel_page_shopp-orders';
+
 	/**
 	 * Service constructor
 	 *
@@ -46,8 +48,8 @@ class Service extends AdminController {
 				'mc' => __('Mark Cancelled','Shopp')
 			));
 
-			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
-			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
+			add_action('load-'.$this->screen,array(&$this,'workflow'));
+			add_action('load-'.$this->screen,array(&$this,'layout'));
 			do_action('shopp_order_management_scripts');
 
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
@@ -243,7 +245,7 @@ class Service extends AdminController {
 	 **/
 	function columns () {
 		shopp_enqueue_script('calendar');
-		register_column_headers('toplevel_page_shopp-orders', array(
+		register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'order'=>__('Order','Shopp'),
 			'name'=>__('Name','Shopp'),
