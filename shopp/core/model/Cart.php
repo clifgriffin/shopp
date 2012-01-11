@@ -129,8 +129,9 @@ class Cart {
 
 				foreach ($products as $id => $product) {
 					if (isset($product['quantity']) && $product['quantity'] == '0') continue;
-					$quantity = (empty($product['quantity']) &&
-						$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
+					$quantity = ( ! isset($product['quantity']) ||
+									( empty($product['quantity']) && $product['quantity'] !== 0 )
+								) ? 1 : $product['quantity']; // Add 1 by default
 					$Product = new Product($product['product']);
 					$pricing = false;
 
