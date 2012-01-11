@@ -14,7 +14,7 @@
  **/
 
 class ProductCollection implements Iterator {
-	var $api = "collection";
+	var $api = 'collection';
 	var $loaded = false;
 	var $paged = false;
 	var $pages = 1;
@@ -29,7 +29,10 @@ class ProductCollection implements Iterator {
 	private $_position = array();
 
 	function load ($options=array()) {
-		$Storefront =& ShoppStorefront();
+
+		$slug = isset($this->slug) ? $this->slug : sanitize_key(get_class($this));
+
+		$Storefront = ShoppStorefront();
 		$Shopping = ShoppShopping();
 		$Processing = new Product();
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
@@ -59,7 +62,7 @@ class ProductCollection implements Iterator {
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
-		$loading = apply_filters("shopp_{$this->slug}_collection_load_options",$loading);
+		$loading = apply_filters("shopp_{$slug}_collection_load_options",$loading);
 		extract($loading);
 
 		// Setup pagination
