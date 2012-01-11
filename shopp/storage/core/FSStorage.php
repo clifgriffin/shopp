@@ -98,19 +98,20 @@ class FSStorage extends StorageModule implements StorageEngine {
 			}
 
 			$size = @filesize($filepath);
+			$modified = @filemtime($filepath);
 
-			$range = '';
+			$range = ''; $start = ''; $end = '';
 			// Handle resumable downloads
 			if (isset($_SERVER['HTTP_RANGE'])) {
 				list($units, $reqrange) = explode('=', $_SERVER['HTTP_RANGE'], 2);
 				if ($units == 'bytes') {
 					// Use first range - http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
 					list($range, $extra) = explode(',', $reqrange, 2);
+					// Determine download chunk to grab
+					if (!empty($range)) list($start, $end) = explode('-', $range, 2);
+
 				}
 			}
-
-			// Determine download chunk to grab
-		    list($start, $end) = explode('-', $range, 2);
 
 		    // Set start and end based on range (if set), or set defaults
 		    // also check for invalid ranges.
@@ -125,7 +126,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		    header('Content-length: '.($end-$start+1));
 
 			// WebKit/Safari resumable download support headers
-		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified));
+		    header('Last-modified: '.date('D, d M Y H:i:s O',$modified));
 			if (isset($etag)) header('ETag: '.$etag);
 
 			$file = fopen($filepath, 'rb');
