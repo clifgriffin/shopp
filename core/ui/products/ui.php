@@ -102,13 +102,13 @@ function shopp_categories_meta_box ($Product,$options) {
 ?>
 <div id="taxonomy-<?php echo $taxonomy; ?>" class="category-metabox">
 	<div id="<?php echo $taxonomy; ?>-pop" class="multiple-select category-menu tabs-panel hide-if-no-js hidden">
-		<ul id="<?php echo $taxonomy; ?>-checklist-pop">
+		<ul id="<?php echo $taxonomy; ?>-checklist-pop" class="form-no-clear">
 			<?php $popular_ids = shopp_popular_terms_checklist($Product->id,$taxonomy); ?>
 		</ul>
 	</div>
 
 	<div id="<?php echo $taxonomy; ?>-all" class="multiple-select category-menu tabs-panel">
-		<ul id="<?php echo $taxonomy; ?>-checklist" class="list:<?php echo $taxonomy?>">
+		<ul id="<?php echo $taxonomy; ?>-checklist" class="list:<?php echo $taxonomy?> form-no-clear">
 		<?php wp_terms_checklist($Product->id, array( 'taxonomy' => $taxonomy, 'popular_cats' => $popular_ids) ) ?>
 		</ul>
 	</div>
