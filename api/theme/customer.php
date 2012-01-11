@@ -219,7 +219,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$Storefront = ShoppStorefront();
 		$download = current($Storefront->downloads);
 		$df = get_option('date_format');
-		$properties = unserialize($download->properties);
 		$string = '';
 		if (array_key_exists('id',$options)) $string .= $download->download;
 		if (array_key_exists('purchase',$options)) $string .= $download->purchase;
@@ -229,7 +228,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (array_key_exists('key',$options)) $string .= $download->dkey;
 		if (array_key_exists('created',$options)) $string .= $download->created;
 		if (array_key_exists('total',$options)) $string .= money($download->total);
-		if (array_key_exists('filetype',$options)) $string .= $properties['mimetype'];
+		if (array_key_exists('filetype',$options)) $string .= $download->mime;
 		if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 		if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
 		if (array_key_exists('url',$options))
@@ -264,11 +263,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	static function errors ($result, $options, $O) {
 		if (!apply_filters('shopp_show_account_errors',true)) return false;
-		$Errors = &ShoppErrors();
-		if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
+		if (!ShoppErrors()->exist(SHOPP_AUTH_ERR)) return false;
 
 		ob_start();
-		locate_shopp_template(array('errors.php'),true);
+		locate_shopp_template(array('account-errors.php','errors.php'),true);
 		$errors = ob_get_contents();
 		ob_end_clean();
 		return $errors;
@@ -276,7 +274,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	static function errors_exist ($result, $options, $O) {
 		$Errors = ShoppErrors();
-		return ($Errors->exist(SHOPP_AUTH_ERR));
+		return (ShoppErrors()->exist(SHOPP_AUTH_ERR));
 	}
 
 	static function first_name ($result, $options, $O) {
