@@ -112,12 +112,18 @@ class Purchase extends DatabaseObject {
 	 * @return void
 	 **/
 	static function status_event ($Event) {
+		if (empty($Event->order)) return new ShoppError('Cannot update. No event order.',false,SHOPP_DEBUG_ERR);
+
+		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
 		$Purchase = ShoppPurchase();
-		if ($Purchase->id != $Event->order) { // Avoid unnecessary queries when possible
-			if ($Purchase->txnstatus == $Event->name)
-				return new ShoppError('Transaction status ('.$Purchase->txnstatus.') for purchase order #'.$Purchase->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
-		}
-		if (empty($Event->order)) return new ShoppError('Cannot update',false,SHOPP_DEBUG_ERR);
+		if (!isset($Purchase->id) || empty($Purchase->id)) $Purchase = new Purchase($Event->order);
+
+		// Loaded Purchase does not match the one for the event
+		if ($Purchase->id != $Event->order) return new ShoppError('Cannot update. Loaded purchase does not match the purchase for the event.',false,SHOPP_DEBUG_ERR);
+
+		// Transaction status is the same as the event, no update needed
+		if ($Purchase->txnstatus == $Event->name)
+			return new ShoppError('Transaction status ('.$Purchase->txnstatus.') for purchase order #'.$Purchase->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
 
 		$status = false;
 		$txnid = false;

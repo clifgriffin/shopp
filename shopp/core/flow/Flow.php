@@ -82,6 +82,7 @@ class Flow {
 	}
 
 	function transactions () {
+		add_action('shopp_txn_update',array($this,'txn_update'),101); // Default to HTTP status 200
 
 		if (!empty($_REQUEST['_txnupdate']))
 			return do_action('shopp_txn_update');
@@ -216,6 +217,11 @@ class Flow {
 			) );
 		}
 
+	}
+
+	function txn_update () {
+		status_header('200');
+		exit();
 	}
 
 } // End class Flow
