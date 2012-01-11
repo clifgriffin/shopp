@@ -13,6 +13,8 @@
 
 class Account extends AdminController {
 
+	var $screen = 'shopp_page_shopp-customers';
+
 	/**
 	 * Account constructor
 	 *
@@ -63,6 +65,7 @@ class Account extends AdminController {
 			'update' => false,
 			'newstatus' => false,
 			'pagenum' => 1,
+			'paged' => false,
 			'per_page' => 20,
 			'start' => '',
 			'end' => '',
@@ -270,7 +273,7 @@ class Account extends AdminController {
 	 **/
 	function columns () {
 		shopp_enqueue_script('calendar');
-		register_column_headers('shopp_page_shopp-customers', array(
+		register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'customer-name'=>__('Name','Shopp'),
 			'customer-login'=>__('Login','Shopp'),
