@@ -13,6 +13,7 @@
 
 class Categorize extends AdminController {
 
+	var $screen = 'shopp_page_shopp-categories';
 	var $worklist = array();
 
 	/**
@@ -231,8 +232,10 @@ class Categorize extends AdminController {
 		$meta = DatabaseObject::tablename(MetaObject::$table);
 		if ( ! empty($ids) ) DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
+		$count = wp_count_terms('shopp_category');
+		$num_pages = ceil($count / $per_page);
 
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, wp_count_terms('shopp_category'), $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $count, $num_pages, $per_page );
 
 		$action = esc_url(
 			add_query_arg(
@@ -274,7 +277,7 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
-		ShoppUI::register_column_headers('shopp_page_shopp-categories', array(
+		ShoppUI::register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'slug'=>__('Slug','Shopp'),

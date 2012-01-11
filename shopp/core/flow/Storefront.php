@@ -1043,6 +1043,7 @@ class Storefront extends FlowController {
 		$id = false;
 
 		foreach ($query as $queryvar) {
+			$value = false;
 			if (false !== strpos($queryvar,'=')) list($key,$value) = explode('=',$queryvar);
 			else $key = $queryvar;
 

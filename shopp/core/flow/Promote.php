@@ -18,7 +18,9 @@
  * @author Jonathan Davis
  **/
 class Promote extends AdminController {
+
 	var $Notice = false;
+	var $screen = 'shopp_page_shopp-promotions';
 
 	/**
 	 * Promote constructor
@@ -208,7 +210,7 @@ class Promote extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
-		register_column_headers('shopp_page_shopp-promotions', array(
+		register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'discount'=>__('Discount','Shopp'),
