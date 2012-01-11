@@ -74,7 +74,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		$Billing = $Order->Billing;
 		$Paymethod = $Order->paymethod();
 
-		shopp_add_order_event(false,'authed',array(
+		shopp_add_order_event($Event->order,'authed',array(
 			'txnid' => time(),
 			'amount' => $OrderTotals->total,
 			'fees' => 0,
