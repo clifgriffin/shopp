@@ -207,6 +207,9 @@ class Purchase extends DatabaseObject {
 				"email-$Event->name-merchant.php")		// Template
 		));
 
+		// Remove merchant notification if disabled in receipt copy setting
+		if (!shopp_setting_enabled('receipt_copy')) unset($messages['merchant']);
+
 		// Event-specific hook for event specific email messages
 		$messages = apply_filters('shopp_'.$Event->name.'_order_event_emails',$messages);
 
