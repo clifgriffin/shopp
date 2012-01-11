@@ -870,7 +870,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			if (in_array($default,$payoptions)) $paymethod = $default;
 		}
 
-		if ( ! $O->_paymethod_selected && $O->paymethod != $paymethod ) {
+		if ( isset($O->_paymethod_selected) && !$O->_paymethod_selected && $O->paymethod != $paymethod ) {
 			$O->paymethod = $paymethod;
 			$processor = $O->payoptions[$O->paymethod]->processor;
 			if (!empty($processor)) $O->processor($processor);
