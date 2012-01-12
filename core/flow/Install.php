@@ -768,7 +768,11 @@ class ShoppInstallation extends FlowController {
 
 				$terms = DB::query("(SELECT id,'shopp_category' AS taxonomy,name,parent,description,slug FROM $category_table)
 											UNION
-										(SELECT id,'shopp_tag' AS taxonomy,name,0 AS parent,'' AS description,name AS slug FROM $tag_current_table) ORDER BY id");
+										(SELECT id,'shopp_tag' AS taxonomy,name,0 AS parent,'' AS description,name AS slug FROM $tag_current_table) ORDER BY id",'array');
+
+				// Prep category images for the move
+				$category_image_offset = 65535;
+				DB::query("UPDATE $meta_table set parent=parent+$category_image_offset WHERE context='category' AND type='image'");
 
 				$mapping = array();
 				$tt_ids = array();
@@ -817,6 +821,10 @@ class ShoppInstallation extends FlowController {
 											SELECT $term_id,'category','meta','$field',$field
 											FROM $category_table
 											WHERE id=$term->id");
+
+
+							// Update category images to new term ids
+							DB::query("UPDATE $meta_table set parent='$term_id' WHERE parent='".((int)$term->id+$category_image_offset)."' AND context='category' AND type='image'");
 						}
 					}
 
