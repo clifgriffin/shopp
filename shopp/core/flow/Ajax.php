@@ -129,7 +129,7 @@ class AjaxFlow {
 	function load_spec_template () {
 		check_admin_referer('wp_ajax_shopp_spec_template');
 
-		$Category = new ProductCategory($_GET['category']);
+		$Category = new ProductCategory((int)$_GET['category']);
 		$Category->load_meta();
 
 		echo json_encode($Category->specs);
@@ -139,7 +139,7 @@ class AjaxFlow {
 	function load_options_template() {
 		check_admin_referer('wp_ajax_shopp_options_template');
 
-		$Category = new ProductCategory($_GET['category']);
+		$Category = new ProductCategory((int)$_GET['category']);
 		$Category->load_meta();
 
 		$result = new stdClass();

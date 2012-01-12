@@ -208,14 +208,16 @@ function categories () {
 
 		// Load category variation option templates
 		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (t) {
-			if (!(t && t.options)) return true;
+			debuglog(t);
+			debuglog((t && t.options && t.prices));
+			if (!(t && t.options && t.prices)) return true;
 
-			var variations_setting = $('#variations-setting'),
+			var variant_setting = $('#variations-setting'),
 				options = !t.options.v?t.options:t.options.v,
 				added = false;
 
-			if (!variations_setting.attr('checked'))
-				variations_setting.attr('checked',true).trigger('toggleui');
+			if (!variant_setting.attr('checked'))
+				variant_setting.attr('checked',true).trigger('toggleui');
 
 			if (optionMenus.length > 0) {
 				$.each(options,function (tid,tm) {
