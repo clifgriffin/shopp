@@ -399,11 +399,11 @@ class Storefront extends FlowController {
 
 		$tax_inclusive = shopp_setting_enabled('tax_inclusive');
 
-		// $template = locate_shopp_template(array('feed-'.$Collection->slug.'.php','feed.php'));
+		$template = locate_shopp_template(array('feed-'.$Collection->slug.'.php','feed.php'));
 		if (!$template) $template = SHOPP_ADMIN_PATH.'/categories/feed.php';
 
 		header("Content-type: application/rss+xml; charset=".get_option('blog_charset'));
-		require($template);
+		include($template);
 		exit();
 	}
 
