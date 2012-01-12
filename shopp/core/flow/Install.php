@@ -775,11 +775,13 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $meta_table set parent=parent+$category_image_offset WHERE context='category' AND type='image'");
 
 				$mapping = array();
+				$children = array();
 				$tt_ids = array();
 				foreach ($terms as $term) {
 					$term_id = (int) $term->id;
 					$taxonomy = $term->taxonomy;
 					if (!isset($mapping[$taxonomy])) $mapping[$taxonomy] = array();
+					if (!isset($children[$taxonomy])) $children[$taxonomy] = array();
 					$name = $term->name;
 					$parent = $term->parent;
 					$description = $term->description;
@@ -802,14 +804,25 @@ class ShoppInstallation extends FlowController {
 						}
 					}
 
+					// Move the term into the terms table
 					$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->terms (name, slug, term_group) VALUES (%s, %s, %d)", $name, $slug, $term_group) );
-					$mapping[$taxonomy][$term_id] = (int) $wpdb->insert_id;
-					$term_id = $mapping[$taxonomy][$term_id];
+					$mapping[$taxonomy][$term_id] = (int) $wpdb->insert_id; // Map the old id to the new id
+					$term_id = $mapping[$taxonomy][$term_id]; // Update the working id to the new id
 					if (!isset($tt_ids[$taxonomy])) $tt_ids[$taxonomy] = array();
 
-					if (isset($mapping[$taxonomy][$parent])) $parent = $mapping[$taxonomy][$parent];
-
 					if ( 'shopp_category' == $taxonomy ) {
+
+						// If the parent term has already been added to the terms table, set the new parent id
+						if (isset($mapping[$taxonomy][$parent])) $parent = $mapping[$taxonomy][$parent];
+						else { // Parent hasn't been created, keep track of children for the parent to do a mass update when the parent term record is created
+							if (!isset($children[$taxonomy][$parent])) $children[$taxonomy][$parent] = array();
+							$children[$taxonomy][$parent][] = $term_id;
+						}
+
+						if (!empty($children[$taxonomy][$term->id])) // If there are children already created for this term, update their parent to our new id
+							$wpdb->query( "UPDATE $wpdb->term_taxonomy SET parent=$term_id WHERE term_id IN (".join(',',$children[$taxonomy][$term->id]).")" );
+
+						// Associate the term to the proper taxonomy and parent terms
 						$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->term_taxonomy (term_id, taxonomy, description, parent, count) VALUES ( %d, %s, %s, %d, %d)", $term_id, $taxonomy, $description, $parent, 0) );
 						$tt_ids[$taxonomy][$term_id] = (int) $wpdb->insert_id;
 
@@ -833,8 +846,7 @@ class ShoppInstallation extends FlowController {
 						$tt_ids[$taxonomy][$term_id] = (int) $wpdb->insert_id;
 					}
 
-				}
-				update_option('shopp_category_children', '');
+				}				update_option('shopp_category_children', '');
 
 			// Re-catalog custom post type_products term relationships (new taxonomical catalog) from old Shopp catalog table
 
