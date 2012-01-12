@@ -173,7 +173,7 @@ jQuery(document).ready(function () {
 
 	$('.shopp .shipmethod').change(function () {
 		if ('process' == $('#checkout #shopp-checkout-function').val()) {
-			var prefix = '.shopp_cart_',
+			var prefix = '.shopp-cart.cart-',
 				spans = 'span'+prefix,
 				inputs = 'input'+prefix,
 				fields = ['shipping','tax','total'],
