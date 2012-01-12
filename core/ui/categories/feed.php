@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?php echo '<?xml version="1.0" encoding="utf-8"?>'; ?>
 <rss version="2.0" <?php if (is_array($rss['xmlns'])) foreach ($rss['xmlns'] as $key => $value) echo 'xmlns:'.$key.'="'.$value.'" '; ?>>
 <channel>
 	<atom:link href="<?php echo esc_attr($rss['link']); ?>" rel="self" type="application/rss+xml" />
