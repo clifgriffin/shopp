@@ -1546,14 +1546,20 @@ class ShippingPackager implements ShippingPackagingInterface {
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		$limits = array_merge($defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
 
-		if (empty($this->packages)) {
-			$this->packages[] = new ShippingPackage(($type == 'dims'),$limits);
-		} else {
-			foreach($this->packages as $current) if($current->limits($Item)) { $current->add($Item); return;}
+		if ( empty($this->packages) ) { // Initialize the first package and add the item
+			$current = new ShippingPackage(($type == 'dims'),$limits);
+			$current->add($Item);
+			$this->packages[] = $current;
+			return;
+		} else { // Attempt to add to first available package the item fits in
+			foreach($this->packages as $current) if ($current->add($Item)) return;
 		}
-		$current = $this->packages[count($this->packages)-1];
 
-		if($Item->quantity > 1) {  //try breaking them up
+		// Initial add didn't work in any existing packages, try exception handling strategies
+
+		$current = end($this->packages);
+
+		if ( $Item->quantity > 1 ) {  // try breaking them up
 			$pieces = clone $Item;
 			$piece = clone $Item;
 			$pieces->quantity = $pieces->quantity - 1;
@@ -1562,7 +1568,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 			// break one Item off and recurse
 			$this->all_add($pieces, $this, $type);
 			$this->all_add($piece, $this, $type);
-		} else if ( count($current->contents()) > 0 ) { // full, need new package
+		} elseif ( count($current->contents()) > 0 ) { // can't be broken up and all full, need new package
 			$this->packages[] = new ShippingPackage(($type == 'dims'), $limits);
 			$this->all_add($Item, $this, $type);
 		} else { // never fit, ship separately
