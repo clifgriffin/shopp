@@ -296,7 +296,7 @@ if (!function_exists('shopp_prereqs')) {
 
 		// Check WordPress version
 		if (version_compare(get_bloginfo('version'),'3.1','<'))
-			$errors = array_push($errors,'wpversion','wp31');
+			array_push($errors,'wpversion','wp31');
 
 		// Check for cURL
 		$curl_func = array('curl_init','curl_setopt','curl_exec','curl_close');
