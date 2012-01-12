@@ -78,7 +78,7 @@ class ProductCollection implements Iterator {
 		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
 
 		// Inventory filtering
-		if (str_true($loading['nostock']) || !shopp_setting_enabled('outofstock_catalog'))
+		if ( ! ( str_true($loading['nostock']) && shopp_setting_enabled('outofstock_catalog') ))
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
 		// Check for inventory-based queries (for specialized cache support)

@@ -338,6 +338,7 @@ class Warehouse extends AdminController {
 			'load' => array('categories','coverimages'),
 			'published' => false,
 			'order' => $order,
+			'nostock' => true,
 			// 'debug' => true
 		);
 
@@ -350,6 +351,7 @@ class Warehouse extends AdminController {
 				'groupby' => 'pt.id',
 				'order' => 'p.ID,pt.sortorder',
 				'limit'=>"$start,$per_page",
+				'nostock' => true,
 				'published' => false,
 			);
 		}
