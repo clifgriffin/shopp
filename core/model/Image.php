@@ -53,15 +53,23 @@ class ImageProcessor {
 		// Setup background fill color
 		$white = array('red'=>255,'green'=>255,'blue'=>255);
 		$rgb = false;
-		if ($fit == "matte") {
+
+		if (false !== $fill) {
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
 			if (!is_array($rgb)) $rgb = $white;
-
 		} else { // Sample from the corner pixels
 			if ($this->src->image) {
-				$topleft = ImageColorAt($this->src->image,0,0);
-				$bottomright = ImageColorAt($this->src->image,$this->src->width,$this->src->height);
+				$topleft = @ImageColorAt($this->src->image,0,0);
+				$bottomright = @ImageColorAt($this->src->image,$this->src->width-1,$this->src->height-1);
 				if ($topleft == $bottomright) $rgb = $this->hexrgb($topleft);
+				else {
+					// Use average of sampled colors for background
+					$tl_rgb = $this->hexrgb($topleft);
+					$br_rgb = $this->hexrgb($bottomright);
+					$rgb = $white;
+					$keys = array_keys($rgb);
+					foreach ($keys as $color) $rgb[$color] = floor( ($tl_rgb[$color]+$br_rgb[$color]) / 2 );
+				}
 			}
 			if (!is_array($rgb)) $rgb = $white;
 		}
