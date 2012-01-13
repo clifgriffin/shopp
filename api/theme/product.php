@@ -466,6 +466,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$sharpen = $p_sharpen?min($p_sharpen,$img->_sharpen):false;
 			$quality = $p_quality?min($p_quality,$img->_quality):false;
 			$fill = $p_bg?hexdec(ltrim($p_bg,'#')):false;
+			if ('transparent' == strtolower($p_bg)) $fill = -1;
 			$scaled = $img->scaled($width,$height,$scale);
 
 			if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
@@ -511,6 +512,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$sharpen = $thumbsharpen?min($thumbsharpen,$img->_sharpen):false;
 				$quality = $thumbquality?min($thumbquality,$img->_quality):false;
 				$fill = $thumbbg?hexdec(ltrim($thumbbg,'#')):false;
+				if ('transparent' == strtolower($thumbbg)) $fill = -1;
+
 				$scaled = $img->scaled($width,$height,$scale);
 
 				$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
