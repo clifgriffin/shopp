@@ -58,11 +58,11 @@ class Order {
 	function __construct () {
 		$this->Cart = new Cart();
 		$this->Customer = new Customer();
-		$this->Billing = new BillingAddress();
-		$this->Shipping = new ShippingAddress();
 
-		$markets = shopp_setting('target_markets');
+		$this->Billing = new BillingAddress();
 		$this->Billing->locate();
+
+		$this->Shipping = new ShippingAddress();
 		$this->Shipping->locate();
 
 		$this->created = null;
@@ -144,19 +144,8 @@ class Order {
 		remove_action('shopp_purchase_order_created',array($this,'invoice'));
 		remove_action('shopp_purchase_order_created',array($this,'process'));
 
-		// remove_action('shopp_order_notifications',array($this,'notify'));
-		// remove_action('shopp_order_success',array($this,'success'));
 		remove_action('shopp_process_order', array($this,'validate'),7);
 		remove_action('shopp_process_order', array($this,'submit'),100);
-
-		// remove_class_actions(array(
-		// 	'shopp_process_order',
-		// 	'shopp_create_purchase',
-		// 	'shopp_authed_order_event',
-		// 	'shopp_captured_order_event',
-		// 	'shopp_order_notifications',
-		// 	'shopp_order_success',
-		// 	),'GatewayFramework');
 
 	}
 

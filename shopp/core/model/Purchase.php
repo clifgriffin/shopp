@@ -207,19 +207,15 @@ class Purchase extends DatabaseObject {
 				"email-$Event->name-merchant.php")		// Template
 		));
 
-		// Remove merchant notification if disabled in receipt copy setting
-		if (!shopp_setting_enabled('receipt_copy')) unset($messages['merchant']);
-
 		// Event-specific hook for event specific email messages
 		$messages = apply_filters('shopp_'.$Event->name.'_order_event_emails',$messages);
 
 		foreach ($messages as $name => $message) {
 			list($addressee,$email,$subject,$template) = $message;
 			$file = locate_shopp_template(array($template));
-
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
-			if ( $template == basename($file) && ! in_array($email,$Event->_emails) ) {
+			if ( ! empty($file) && ! in_array($email,$Event->_emails) ) {
 
 				if ( $this->email($addressee,$email,$subject,array($template)) )
 					$Event->_emails[] = $email;
@@ -267,6 +263,9 @@ class Purchase extends DatabaseObject {
 				sprintf(__('New Order - %s', 'Shopp'), $this->id),					 	// Subject
 				array_merge(array('email-order-merchant.php'),$templates))				// Templates
 		));
+
+		// Remove merchant notification if disabled in receipt copy setting
+		if (!shopp_setting_enabled('receipt_copy')) unset($messages['merchant']);
 
 		foreach ($messages as $name => $message) {
 			list($addressee,$email,$subject,$templates) = $message;
