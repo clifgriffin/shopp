@@ -326,6 +326,9 @@ class Storefront extends FlowController {
 		if (isset($Product->id) && !empty($Product->id))
 			array_unshift($templates,'product-'.$Product->id.'.php');
 
+		if (isset($Product->slug) && !empty($Product->slug))
+			array_unshift($templates,'product-'.$Product->slug.'.php');
+
 		// Load product summary data, before checking inventory
 		if (!isset($Product->summed)) $Product->load_data(array('summary'));
 
