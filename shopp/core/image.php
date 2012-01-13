@@ -35,8 +35,9 @@ if (!function_exists('shopp_setting')) require(realpath('../api/settings.php'));
  **/
 class ImageServer {
 
+	var $caching = true;	// Set to false to force off image caching
+
 	var $request = false;
-	var $caching = true;
 	var $parameters = array();
 	var $args = array('width','height','scale','sharpen','quality','fill');
 	var $scaling = array('all','matte','crop','width','height');
@@ -88,7 +89,7 @@ class ImageServer {
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg)
-			if (!empty($arg)) $this->{$this->args[$index]} = intval($arg);
+			if ('' != $arg) $this->{$this->args[$index]} = intval($arg);
 
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
@@ -148,7 +149,8 @@ class ImageServer {
 			require(SHOPP_MODEL_PATH."/Image.php");
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
-		$alpha = ($this->Image->mime == "image/png");
+		$alpha = ('image/png' == $this->Image->mime);
+		if (-1 == $this->fill) $alpha = true;
 		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha,$this->fill);
 
 		// Post sharpen

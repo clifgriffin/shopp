@@ -153,6 +153,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$sharpen = $sharpen?min($sharpen,$img->_sharpen):false;
 		$quality = $quality?min($quality,$img->_quality):false;
 		$fill = $bg?hexdec(ltrim($bg,'#')):false;
+		if ('transparent' == strtolower($bg)) $fill = -1;
 
 		list($width_a,$height_a) = array_values($img->scaled($width,$height,$scale));
 		if ($size == "original") {
