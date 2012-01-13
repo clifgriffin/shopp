@@ -162,8 +162,19 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		extract($options);
 
 		$Event = $O->message['event'];
-		if (isset($Event->$name))
-			return esc_html($Event->$name);
+		if (isset($Event->$name)) {
+			$string = $Event->$name;
+
+			if ('shipped' == $Event->name) {
+				$carriers = Lookup::shipcarriers();
+				$carrier = $carriers[$Event->carrier];
+				if ('carrier' == $name) $string = $carrier->name;
+				if ('tracking' == $name && str_true($link)) return'<a href="'.esc_url(sprintf($carrier->trackurl,$string)).'">'.esc_html($string).'</a>';
+			}
+
+			return esc_html($string);
+		}
+
 		return '';
 	}
 
