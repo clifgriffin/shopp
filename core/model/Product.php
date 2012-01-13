@@ -219,7 +219,7 @@ class Product extends WPShoppObject {
 	function load_coverimages ($ids) {
 		if ( empty($ids) ) return;
 		$table = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) GROUP BY parent ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		DB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY sortorder ASC ) AS img GROUP BY parent",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
 	function load_sold ($ids) {
