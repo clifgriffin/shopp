@@ -300,7 +300,45 @@ class Customer extends DatabaseObject {
 		return true;
 	}
 
-	function wpuser_notify ($user,$password) {
+	/**
+	 * Handler for profile updates in the account dashboard
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return boolean|string output based on the account menu request
+	 **/
+	function profile () {
+		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
+
+		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
+
+		$this->updates($_POST);
+		if (isset($_POST['info'])) $this->info = $_POST['info'];
+		$this->save();
+		$this->load_info();
+
+		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
+			$this->password = wp_hash_password($_POST['password']);
+			if ( 'wordpress' == shopp_setting('account_system') && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
+			$this->_password_change = true;
+		} else {
+			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
+		}
+
+		$addresses = array('Billing'=>'BillingAddress','Shipping'=>'ShippingAddress');
+		foreach ($addresses as $Address => $class) {
+			$type = strtolower($Address);
+			if (isset($_POST[$type]) && !empty($_POST[$type])) {
+				$Updated = new $class($this->id,'customer');
+				$Updated->updates($_POST[$type]);
+				$Updated->save();
+				ShoppOrder()->$Address = $Updated;
+			}
+		}
+
+		$this->_saved = true;
+
 	}
 
 	function taxrule ($rule) {

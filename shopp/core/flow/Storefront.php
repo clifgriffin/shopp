@@ -1026,7 +1026,7 @@ class Storefront extends FlowController {
 		$this->add_dashboard('logout',__('Logout','Shopp'));
 		$this->add_dashboard('orders',__('Your Orders','Shopp'),true,array(ShoppCustomer(),'load_orders'));
 		$this->add_dashboard('downloads',__('Downloads','Shopp'),true,array(ShoppCustomer(),'load_downloads'));
-		$this->add_dashboard('profile',__('My Account','Shopp'));
+		$this->add_dashboard('profile',__('My Account','Shopp'),true);
 
 		// Pages not in menu navigation
 		$this->add_dashboard('login',__('Login to your Account'),false);
@@ -1036,6 +1036,10 @@ class Storefront extends FlowController {
 
 		do_action('shopp_account_menu');
 
+		// Always handle customer profile updates
+		add_action('shopp_account_management',array(ShoppCustomer(),'profile'));
+
+		// Add dashboard page specific handlers
 		add_action('shopp_account_management',array($this,'dashboard_handler'));
 
 		$query = $_SERVER['QUERY_STRING'];
@@ -1085,7 +1089,6 @@ class Storefront extends FlowController {
 		$this->dashboard[$request] = new StorefrontDashboardPage($request,$label,$callback);
 		if ($visible) array_splice($this->menus,$position,0,array(&$this->dashboard[$request]));
 	}
-
 
 	/**
 	 * Password recovery processing
