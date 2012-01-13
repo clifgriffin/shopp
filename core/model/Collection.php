@@ -340,7 +340,6 @@ class ProductCollection implements Iterator {
 		// Below are Google Base specific attributes
 		// You can use the shopp_rss_item filter hook to add new item attributes or change the existing attributes
 
-		$item['g:id'] = $product->id;
 		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 		$item['g:condition'] = 'new';
 		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
