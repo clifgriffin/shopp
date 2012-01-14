@@ -17,11 +17,10 @@
 	<h3><?php shopp('category','name'); ?></h3>
 	<?php shopp('catalog','views','label='.__('Views: ','Shopp')); ?>
 
-	<p><?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories&dropdown=1'); ?></p>
+	<div><?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories&dropdown=1'); ?></div>
 
 	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
 	<div class="alignright"><?php shopp('category','pagination','show=10'); ?></div>
-
 
 	<ul class="products">
 		<li class="row"><ul>
