@@ -230,7 +230,7 @@ class Product extends WPShoppObject {
 
 		$imagesort = $this->image_order();
 		$metasort = array('sortorder','sortorder ASC');
-		if (in_array($imagesort,$mestasort))
+		if (in_array($imagesort,$metasort))
 			DB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 		else { // Separate sort order for images
 			DB::query("SELECT * FROM $table WHERE context='product' AND type != 'image' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
