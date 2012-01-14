@@ -72,8 +72,47 @@ class CartAPITests extends ShoppTestCase {
 		shopp('cart','totalitems');
 		$actual = ob_get_contents();
 		ob_end_clean();
+		$this->assertEquals(2,$actual);
+	}
+
+
+	function test_cart_totalquantity () {
+		$FirstProduct =  shopp_product('eagle-eye','slug');
+		$SecondProduct = shopp_product('knowing','slug');
+
+		shopp_empty_cart();
+
+		ob_start();
+		shopp('cart','totalquantity');
+		$actual = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals(0,$actual);
+
+		shopp_add_cart_product($FirstProduct->id,1);
+
+		ob_start();
+		shopp('cart','totalquantity');
+		$actual = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals(1,$actual);
+
+		shopp_add_cart_product($SecondProduct->id,1);
+
+		ob_start();
+		shopp('cart','totalquantity');
+		$actual = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals(2,$actual);
+
+		shopp_add_cart_product($FirstProduct->id,3);
+
+		ob_start();
+		shopp('cart','totalquantity');
+		$actual = ob_get_contents();
+		ob_end_clean();
 		$this->assertEquals(5,$actual);
 	}
+
 
 	function test_cart_itemlooping () {
 		shopp_empty_cart();
