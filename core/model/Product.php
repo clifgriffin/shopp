@@ -158,10 +158,16 @@ class Product extends WPShoppObject {
 				call_user_func_array(array($this,$loadmethod),array($ids));
 		}
 
-		// print_r($this);
-
 	}
 
+	/**
+	 * Loads product aggregate summary data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function load_summary ($ids) {
 		if ( empty($ids) ) return;
 		$Object = new ProductSummary();
@@ -210,18 +216,51 @@ class Product extends WPShoppObject {
 
 	}
 
+	/**
+	 * Loads all product meta data (meta,specs,images)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function load_meta ($ids) {
 		if ( empty($ids) ) return;
 		$table = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+
+		$imagesort = $this->image_order();
+		$metasort = array('sortorder','sortorder ASC');
+		if (in_array($imagesort,$mestasort))
+			DB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		else { // Separate sort order for images
+			DB::query("SELECT * FROM $table WHERE context='product' AND type != 'image' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
+			DB::query("SELECT * FROM $table WHERE context='product' AND type = 'image' AND parent IN ($ids) ORDER BY $imagesort",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		}
 	}
 
+	/**
+	 * Loads the cover image (first image) of the product image set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function load_coverimages ($ids) {
 		if ( empty($ids) ) return;
 		$table = DatabaseObject::tablename(MetaObject::$table);
-		DB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY sortorder ASC ) AS img GROUP BY parent",'array',array($this,'metaloader'),'parent','metatype','name',false);
+		$sortorder = $this->image_order();
+		DB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder ) AS img GROUP BY parent",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
+	/**
+	 * Loads the aggregate product sales data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function load_sold ($ids) {
 		if ( empty($ids) ) return;
 		$purchase = DatabaseObject::tablename(Purchase::$table);
@@ -329,6 +368,14 @@ class Product extends WPShoppObject {
 		} else $records[$index] = $Object;
 	}
 
+	/**
+	 * Callback for processing meta records into the appropriate product properties
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function metaloader (&$records,&$record,$id='id',$property=false,$collate=true,$merge=false) {
 
 		if (isset($this->products) && !empty($this->products)) $products = &$this->products;
@@ -636,6 +683,14 @@ class Product extends WPShoppObject {
 
 	}
 
+	/**
+	 * Resets summary data to intial values so summation is accurate
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function resum () {
 		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
@@ -710,6 +765,14 @@ class Product extends WPShoppObject {
 		$Summary->save();
 	}
 
+	/**
+	 * Determines the aggregate lowstock level of the product for each price record
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
 	function lowstock ($stock,$stocked) {
 		$lowstock_level = shopp_setting('lowstock_level');
 		if ( false === $lowstock_level ) $lowstock_level = 5;
@@ -729,8 +792,16 @@ class Product extends WPShoppObject {
 	}
 
 	/**
-	 * optionkey
-	 * There is no Zul only XOR! */
+	 * Magic option key generator
+	 *
+	 * There is no Zul only XOR!
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param array option ids
+	 * @return int option key
+	 **/
 	function optionkey ($ids=array(),$deprecated=false) {
 		if ($deprecated) $factor = 101;
 		else $factor = 7001;
@@ -774,34 +845,69 @@ class Product extends WPShoppObject {
 	}
 
 	/**
-	 * save_imageorder()
-	 * Updates the sortorder of image assets (source, featured and thumbnails)
-	 * based on the provided array of image ids */
+	 * Updates the custom arrangement order of image assets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param array image ids
+	 * @return void
+	 **/
 	function save_imageorder ($ordering) {
 		$table = DatabaseObject::tablename(ProductImage::$table);
 		foreach ($ordering as $i => $id)
 			DB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
-		return true;
 	}
 
 	/**
-	 * link_images()
-	 * Updates the product id of the images to link to the product
-	 * when the product being saved is new (has no previous id assigned) */
+	 * Translates image order settings to an appropriate SQL order by clause
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string
+	 **/
+	function image_order () {
+		$orderings = array('ASC','DESC','RAND');
+		$ordering = shopp_setting('product_image_order');
+		if (!in_array($ordering,$orderings)) $ordering = '';
+
+		$columns = array('sortorder','created');
+		$column = shopp_setting('product_image_orderby');
+		if (!in_array($column,$columns)) $column = reset($columns);
+
+		$sortorder = trim("$column $ordering");
+		if ('RAND' == $ordering) $sortorder = 'RAND()';
+
+		return $sortorder;
+	}
+
+	/**
+	 * Links a set of image records to the product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param array image record ids
+	 * @return void
+	 **/
 	function link_images ($images) {
-		if (empty($images)) return false;
+		if (empty($images)) return;
 		$table = DatabaseObject::tablename(ProductImage::$table);
-		$set = "id=".join(' OR id=',$images);
-		$query = "UPDATE $table SET parent='$this->id',context='product' WHERE ".$set;
-		DB::query($query);
-		return true;
+		DB::query("UPDATE $table SET parent='$this->id',context='product' WHERE id IN (".join(',',$images).")");
 	}
 
 	/**
-	 * update_images()
-	 * Updates the image details for all cached images */
+	 * Updates image details for all cached images of the product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param array image record ids
+ 	 * @return void
+	 **/
 	function update_images ($images) {
-		if (!is_array($images)) return false;
+		if (!is_array($images)) return;
 
 		foreach ($images as $img) {
 
@@ -845,7 +951,6 @@ class Product extends WPShoppObject {
 			$Image->save();
 		}
 
-		return true;
 	}
 
 
@@ -867,14 +972,22 @@ class Product extends WPShoppObject {
 	}
 
 	/**
-	 * Deletes the record associated with this object */
+	 * Deletes all the associated records of the product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @return void
+	 **/
 	function delete () {
 		$id = $this->id;
 		if (empty($id)) return false;
 
-		// Delete from categories @todo Remove from categories
-		// $table = DatabaseObject::tablename(Catalog::$table);
-		// $db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
+		global $wpdb;
+		$tbale = $wpdb->term_relationships;
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE object_id='$id'");
 
 		// Delete prices
 		$table = DatabaseObject::tablename(Price::$table);
@@ -904,11 +1017,28 @@ class Product extends WPShoppObject {
 
 	}
 
+	/**
+	 * Moves the product to the trash
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function trash () {
 		$id = $this->{$this->_key};
 		DB::query("UPDATE $this->_table SET post_status='trash' WHERE ID='$id'");
 	}
 
+	/**
+	 * Creates a duplicate product of this product's data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @return void
+	 **/
 	function duplicate () {
 
 		$original = $this->id;
@@ -960,6 +1090,15 @@ class Product extends WPShoppObject {
 		$this->load_data(array('prices','summary'));
 	}
 
+	/**
+	 * Matches the product against tax conditional rules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param array Conditional rule to match against
+	 * @return boolean Match or no match
+	 **/
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
@@ -974,6 +1113,16 @@ class Product extends WPShoppObject {
 		return false;
 	}
 
+	/**
+	 * Sets the status of a set of products
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $ids Set of product IDs to update
+	 * @param string $status The status to set: publish, draft, trash
+	 * @return boolean
+	 **/
 	static function publishset ($ids,$status) {
 		if (empty($ids) || !is_array($ids)) return false;
 		$settings = array('publish','draft','trash');
@@ -983,6 +1132,16 @@ class Product extends WPShoppObject {
 		return true;
 	}
 
+	/**
+	 * Updates the featured setting of a set of products
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $ids Set of product IDs to update
+	 * @param string $setting Either 'on' or 'off'
+	 * @return boolean
+	 **/
 	static function featureset ($ids,$setting) {
 		if (empty($ids) || !is_array($ids)) return false;
 		$settings = array('on','off');

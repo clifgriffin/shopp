@@ -313,7 +313,6 @@ class Setup extends AdminController {
 							  'RAND' => __('Shuffle','Shopp'));
 
 		$orderBy = array('sortorder' => __('Custom arrangement','Shopp'),
-						 'name' => __('File name','Shopp'),
 						 'created' => __('Upload date','Shopp'));
 
 
