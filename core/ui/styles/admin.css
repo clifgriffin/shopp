@@ -578,6 +578,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp-settings .multiple-select ul { font-size: 12px; }
 .shopp-settings div.spacer { width: 200px; }
 .shopp-settings button.addrate { margin-right: 32px; }
+.shopp-settings td, .shopp-settings th { border-top-color: transparent; }
 
 /** Tax Rates **/
 #taxrates .column-local,
