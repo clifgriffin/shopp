@@ -65,7 +65,7 @@ class ShoppErrors {
 		if ($this->reporting >= SHOPP_PHP_ERR)
 			set_error_handler(array($this,'php'),$types);
 
-		add_action('init', array(&$this, 'init'), 20);
+		add_action('init', array(&$this, 'init'), 5);
 	}
 
 	function init () {
@@ -254,7 +254,7 @@ class ShoppError {
 	 *
 	 * @return void Description...
 	 **/
-	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
+	function __construct ($message='',$code='',$level=SHOPP_ERR,$data='') {
 		$Errors = ShoppErrors();
 
 		if (!is_a($Errors,'ShoppErrors')) return;
