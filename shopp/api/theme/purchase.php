@@ -450,11 +450,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function receipt ($result, $options, $O) {
 		$template = '';
-		if (isset($options['template']))
-			$template = locate_shopp_template($options['template']);
-
-		if ('' != $template) return $O->receipt($template);
-
+		if ( isset($options['template']) && !empty($options['template']) )
+			return $O->receipt($options['template']);
 		return $O->receipt();
 	}
 

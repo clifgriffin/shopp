@@ -385,11 +385,11 @@ class Purchase extends DatabaseObject {
 	}
 
 	// Display a sales receipt
-	function receipt ($template="receipt.php") {
+	function receipt ($template='receipt.php') {
 		if (empty($this->purchased)) $this->load_purchased();
 
 		ob_start();
-		locate_shopp_template(array($template),true);
+		locate_shopp_template(array($template,'receipt.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
