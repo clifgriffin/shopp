@@ -192,16 +192,15 @@ class Cart {
 	 * @return string JSON response
 	 **/
 	function ajax () {
-		global $Shopp;
 
-		if ($_REQUEST['response'] == "html") {
-			echo $this->tag('sidecart');
+		if ('html' == strtolower($_REQUEST['response'])) {
+			echo shopp('cart','get-sidecart');
 			exit();
 		}
 		$AjaxCart = new StdClass();
 		$AjaxCart->url = shoppurl(false,'cart');
 		$AjaxCart->label = __('Edit shopping cart','Shopp');
-		$AjaxCart->checkouturl = shoppurl(false,'checkout',$Shopp->Order->security());
+		$AjaxCart->checkouturl = shoppurl(false,'checkout',ShoppOrder()->security());
 		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
 		$AjaxCart->imguri = '' != get_option('permalink_structure')?trailingslashit(shoppurl('images')):shoppurl().'&siid=';
 		$AjaxCart->Totals = clone($this->Totals);
