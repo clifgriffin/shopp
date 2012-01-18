@@ -123,47 +123,59 @@ class Login {
 	 **/
 	function auth ($id,$password,$type='email') {
 
+		$errors = array(
+			'empty_username' => __('The login field is empty.','Shopp'),
+			'empty_password' => __('The password field is empty.','Shopp'),
+			'invalid_email' => __('No customer account was found with that email.','Shopp'),
+			'invalid_username' => __('No customer account was found with that login.','Shopp'),
+			'incorrect_password' => __('The password is incorrect.','Shopp')
+		);
+
 		switch(shopp_setting('account_system')) {
-			case "shopp":
+			case 'shopp':
 				$Account = new Customer($id,'email');
 
 				if (empty($Account)) {
-					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-					return false;
+					new ShoppError( $errors['invalid_email'],'invalid_account',SHOPP_AUTH_ERR );
+					return;
 				}
 
 				if (!wp_check_password($password,$Account->password)) {
-					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
-					return false;
+					new ShoppError( $errors['incorrect_password'],'incorrect_password',SHOPP_AUTH_ERR );
+					return;
 				}
 
 				break;
 
-  		case "wordpress":
-			if($type == 'email'){
+  		case 'wordpress':
+			if('email' == $type){
 				$user = get_user_by_email($id);
 				if ($user) $loginname = $user->user_login;
 				else {
-					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-					return false;
+					new ShoppError( $errors['invalid_email'],'invalid_account',SHOPP_AUTH_ERR );
+					return;
 				}
 			} else $loginname = $id;
+
 			$user = wp_authenticate($loginname,$password);
-			if (!is_wp_error($user)) {
+			if (is_wp_error($user)) { // WordPress User Authentication failed
+				$code = $user->get_error_code();
+				if ( isset($errors[ $code ]) ) new ShoppError( $errors[ $code ],'invalid_account',SHOPP_AUTH_ERR );
+				else {
+					$messages = $user->get_error_messages();
+					foreach ($messages as $message)
+						new ShoppError( sprintf(__('Unknown login error: %s'),$message),'unknown_login_error',SHOPP_AUTH_ERR);
+				}
+				return;
+			} else {
 				wp_set_auth_cookie($user->ID);
 				do_action('wp_login', $loginname);
 				wp_set_current_user($user->ID,$user->user_login);
 
-				return true;
-			} else { // WordPress User Authentication failed
-				$_e = $user->get_error_code();
-				if($_e == 'invalid_username') new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-				else if($_e == 'incorrect_password') new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
-				else new ShoppError(__('Unknown login error: ').$_e,false,SHOPP_AUTH_ERR);
-				return false;
+				return;
 			}
   			break;
-			default: return false;
+			default: return;
 		}
 
 		$this->login($Account);
