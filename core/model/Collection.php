@@ -344,12 +344,6 @@ class ProductCollection implements Iterator {
 		$item['g:condition'] = 'new';
 		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
 
-		// g:google_product_category - left blank to be valid for feeds to Google Base
-		// This is left to populate through the filter hook as there is no built-in way to identify proper
-		// Google product category values. It could be done through tagging, or more extensively using
-		// a custom Shopp product taxonomy populated with Google product category values.
-		$item['g:google_product_category'] = '';
-
 		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 		if (!empty($price))	{
 			$item['g:price'] = $price;
@@ -377,7 +371,8 @@ class ProductCollection implements Iterator {
 			'Pattern' => 'pattern',
 			'Size' => 'size',
 			'Gender' => 'gender',
-			'Age Group' => 'age_group'
+			'Age Group' => 'age_group',
+			'Google Product Category' => 'google_product_category'
 		);
 		foreach ( apply_filters('shopp_googlebase_spec_map', $g_props) as $name => $key ) {
 			$value = shopp($product,'get-spec','name='.$name);
