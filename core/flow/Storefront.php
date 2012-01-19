@@ -22,17 +22,18 @@
  **/
 class Storefront extends FlowController {
 
+	var $behaviors = array();	// Runtime JavaScript behaviors
+	var $browsing = array();
+	var $checkout = false;		// Flags when the checkout form is being processed
 	var $Page = false;
+	var $pages = array();
 	var $referrer = false;
+	var $request = false;
+	var $Requested = false;		// Property for tracking the originally requested content
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
-	var $checkout = false;		// Flags when the checkout form is being processed
-	var $pages = array();
-	var $browsing = array();
-	var $viewed = array();
-	var $behaviors = array();	// Runtime JavaScript behaviors
-	var $request = false;
 	var $shortcoded = array();
+	var $viewed = array();
 
 	var $account = false;		// Account dashboard requests
 	var $dashboard = array();	// Registry of account dashboard pages
@@ -253,6 +254,7 @@ class Storefront extends FlowController {
 
 		$Collection = ShoppCollection();
 		if (!empty($Collection)) {
+			$this->Requested = $Collection;
 			add_action('wp_head', array(&$this, 'metadata'));
 			remove_action('wp_head','feed_links',2);
 			add_action('wp_head', array(&$this, 'feedlinks'),2);
@@ -270,6 +272,7 @@ class Storefront extends FlowController {
 		$Product = new Product();
 		$Product->populate($object);
 		ShoppProduct($Product);
+		$this->Requested = $Product;
 
 		if (!in_array($Product->id,$this->viewed)) {
 			array_unshift($this->viewed,$Product->id);
