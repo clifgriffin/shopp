@@ -285,6 +285,26 @@ class Storefront extends FlowController {
 		// or not a shopp taxonomy request
 		if (empty($Collection) && get_query_var('post_type') != Product::$posttype) return $template;
 
+		// Define the edit link for collections and taxonomies
+		$editlink = '<a href="'.add_query_arg('page','shopp-settings-pages',admin_url('admin.php')).'">'.__('Edit','Shopp').'</a>';
+		if (isset($Collection->taxonomy) && isset($Collection->id)) {
+			$page = 'edit-tags.php';
+			$query = array(
+				'action' => 'edit',
+				'taxonomy' => $Collection->taxonomy,
+				'tag_ID' => $Collection->id
+			);
+			if ('shopp_category' == $Collection->taxonomy) {
+				$page = 'admin.php';
+				$query = array(
+					'page' => 'shopp-categories',
+					'id' => $Collection->id
+				);
+			}
+			$editlink = '<a href="'.add_query_arg($query,admin_url($page)).'">'.__('Edit','Shopp').'</a>';
+		}
+
+		add_filter('edit_post_link',create_function('$link',"return '$editlink';"));
 		add_filter('the_title',create_function('$title,$id','return in_the_loop() && is_archive() && -42 == $id?shopp("category","get-name"):$title;'),10,2);
 		add_filter('the_content',array(&$this,'category_template'),11);
 
@@ -301,7 +321,9 @@ class Storefront extends FlowController {
 
 		$pages = self::pages_settings();
 		$pagetitle = apply_filters($page.'_page_title',$pages[$page]['title']);
+		$editlink = '<a href="'.add_query_arg('page','shopp-settings-pages',admin_url('admin.php')).'">'.__('Edit','Shopp').'</a>';
 
+		add_filter('edit_post_link',create_function('$link',"return '$editlink';"));
 		add_filter('the_title',create_function('$title,$id','return in_the_loop() && -42 == $id?"'.$pagetitle.'":$title;'),10,2);
 		add_filter('the_content',array($this,$page.'_page'),20);
 
