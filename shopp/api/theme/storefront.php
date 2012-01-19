@@ -289,31 +289,32 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	static function category ($result, $options, $O) {
 		global $Shopp;
+		$Storefront = ShoppStorefront();
 
-		if (isset($options['name'])) $Shopp->Category = new ProductCategory($options['name'],'name');
-		else if (isset($options['slug'])) $Shopp->Category = new ProductCategory($options['slug'],'slug');
-		else if (isset($options['id'])) $Shopp->Category = new ProductCategory($options['id']);
+		if (isset($options['name'])) ShoppCollection( new ProductCategory($options['name'],'name') );
+		else if (isset($options['slug'])) ShoppCollection( new ProductCategory($options['slug'],'slug') );
+		else if (isset($options['id'])) ShoppCollection( new ProductCategory($options['id']) );
 
 		if (isset($options['reset']))
-			return ( is_a($Shopp->Requested, 'ProductCollection') ? ($Shopp->Category = $Shopp->Requested) : false );
-		if (isset($options['title'])) $Shopp->Category->name = $options['title'];
-		if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
-		if (isset($options['order'])) $Shopp->Category->loading['order'] = $options['order'];
+			return ( is_a($Storefront->Requested, 'ProductCollection') ? ( ShoppCollection($Storefront->Requested) ) : false );
+		if (isset($options['title'])) ShoppCollection()->name = $options['title'];
+		if (isset($options['show'])) ShoppCollection()->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) ShoppCollection()->loading['pagination'] = $options['pagination'];
+		if (isset($options['order'])) ShoppCollection()->loading['order'] = $options['order'];
 
 		if (isset($options['load'])) return true;
 		if (isset($options['controls']) && !value_is_true($options['controls']))
-			$Shopp->Category->controls = false;
+			ShoppCollection()->controls = false;
 		if (isset($options['view'])) {
-			if ($options['view'] == "grid") $Shopp->Category->view = "grid";
-			else $Shopp->Category->view = "list";
+			if ($options['view'] == "grid") ShoppCollection()->view = "grid";
+			else ShoppCollection()->view = "list";
 		}
 
 		ob_start();
 		$templates = array('category.php','collection.php');
 		$ids = array('slug','id');
 		foreach ($ids as $property) {
-			if (isset($Shopp->Category->$property)) $id = $Shopp->Category->$property;
+			if (isset(ShoppCollection()->$property)) $id = ShoppCollection()->$property;
 			array_unshift($templates,'category-'.$id.'.php','collection-'.$id.'.php');
 		}
 		locate_shopp_template($templates,true);
@@ -575,12 +576,14 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	static function product ($result, $options, $O) {
 		global $Shopp;
+		$Storefront = ShoppStorefront();
+
 		if (isset($options['name'])) ShoppProduct(new Product($options['name'],'name'));
 		else if (isset($options['slug'])) ShoppProduct(new Product($options['slug'],'slug'));
 		else if (isset($options['id'])) ShoppProduct(new Product($options['id']));
 
 		if (isset($options['reset']))
-			return ( $Shopp->Requested && is_a($Shopp->Requested, 'Product') ? ShoppProduct($Shopp->Requested) : false );
+			return ( $Storefront->Requested && is_a($Storefront->Requested, 'Product') ? ShoppProduct($Storefront->Requested) : false );
 
 		if (isset(ShoppProduct()->id) && isset($Shopp->Category->slug)) {
 			$Category = clone($Shopp->Category);
