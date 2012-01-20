@@ -476,10 +476,10 @@ class DownloadOrderEventRenderer extends OrderEventRenderer {
 	}
 
 }
-class NoticeOrderEventRenderer extends OrderEventRenderer {
+class NoteOrderEventRenderer extends OrderEventRenderer {
 
 	function name () {
-		return __('Notice','Shopp');
+		return __('Message Sent','Shopp');
 	}
 
 	function details () {
@@ -496,5 +496,30 @@ class NoticeOrderEventRenderer extends OrderEventRenderer {
 	}
 
 }
+
+class NoticeOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Notice','Shopp');
+	}
+
+	function details () {
+		$_ = array();
+		if (!empty($this->notice)) $_[] = $this->notice;
+
+		if (!empty($this->user) && (int)$this->user > 0) {
+			$user = get_user_by('id',$this->user);
+			$_[] = sprintf(
+				__('by %s (%s)','Shopp'),
+				'<a href="'.add_query_arg(array('user_id'=>$this->user),admin_url('user-edit.php')).'">'.$user->display_name.'</a>',
+				'<a href="'."mailto:$user->user_email?subject=RE: Order #{$this->Event->order}".'">'.$user->user_email.'</a>'
+			);
+		}
+
+		return join(' ',$_);
+	}
+
+}
+
 
 ?>

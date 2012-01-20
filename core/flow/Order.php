@@ -45,7 +45,6 @@ class Order {
 	// Processing control properties
 	var $confirm = false;			// Flag to confirm order or not
 	var $confirmed = false;			// Confirmed by the shopper for processing
-	var $accounts = false;			// Account system setting
 	var $validated = false;			// The pre-processing order validation flag
 
 	/**
@@ -96,7 +95,6 @@ class Order {
 	 **/
 	function listeners () {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
-		$this->accounts = shopp_setting('account_system');
 		$this->validated = false; // Reset the order validation flag
 
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
@@ -696,7 +694,7 @@ class Order {
 
 		// WordPress account integration used, customer has no wp user
 		if (!$this->guest) {
-			if ('wordpress' == $this->accounts && empty($this->Customer->wpuser)) {
+			if ('wordpress' == shopp_setting('account_system') && empty($this->Customer->wpuser)) {
 				if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
 				else $this->Customer->create_wpuser(); // not logged in, create new account
 			}
@@ -707,7 +705,7 @@ class Order {
 			$this->Customer->id = false;
 			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
 			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
-			if (!$this->guest && 'shopp' == $this->accounts) $this->Customer->notification();
+			if (!$this->guest && 'shopp' == shopp_setting('account_system')) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
 		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
 
@@ -940,7 +938,7 @@ class Order {
 		if (apply_filters(' shopp_clickwrap_required',isset($_POST['data']['clickwrap']) && 'agreed' !== $_POST['data']['clickwrap']) )
 			return new ShoppError(__('You must agree to the terms of sale.','Shopp'),'checkout_validation');
 
-		if ($this->accounts == "wordpress" && !$this->Customer->logged_in()) {
+		if ('wordpress' == shopp_setting('account_system') && !$this->Customer->logged_in()) {
 			require(ABSPATH."/wp-includes/registration.php");
 
 			// Validate possible wp account names for availability
@@ -967,7 +965,7 @@ class Order {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
-		} elseif ($this->accounts == "shopp"  && !$this->Customer->logged_in()) {
+		} elseif ('shopp' == shopp_setting('account_system') && !$this->Customer->logged_in()) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id)))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
@@ -1732,7 +1730,7 @@ class VoidOrderEvent extends OrderEventMessage {
 OrderEvent::register('void','VoidOrderEvent');
 
 /**
- * Used to cancel an amount on the order
+ * Used to cancel an order through the payment gateway service
  *
  * @author John Dillick
  * @since 1.2
@@ -1766,7 +1764,24 @@ class VoidedOrderEvent extends CreditOrderEventMessage {
 OrderEvent::register('voided','VoidedOrderEvent');
 
 /**
- * Used to cancel the balance of an order from either an Authed or Refunded event
+ * Used to send a message to the customer on record for the order
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class NoteOrderEvent extends OrderEventMessage {
+	var $name = 'note';
+	var $message = array(
+		'user' => 0,			// The WP user ID of the note author
+		'note' => ''			// The message to send
+	);
+}
+OrderEvent::register('note','NoteOrderEvent');
+
+/**
+ * A generic order event that can be used to specify a custom order event notice in the order history
  *
  * @author Jonathan Davis
  * @since 1.2
@@ -1776,14 +1791,15 @@ OrderEvent::register('voided','VoidedOrderEvent');
 class NoticeOrderEvent extends OrderEventMessage {
 	var $name = 'notice';
 	var $message = array(
-		'user' => 0,			// The WP user ID processing the void
-		'note' => ''			// The message to log for the order
+		'user' => 0,			// The WP user ID associated with the notice
+		'kind' => '',			// Free form notice type to be used for classifying types of notices
+		'notice' => ''			// The message to log
 	);
 }
 OrderEvent::register('notice','NoticeOrderEvent');
 
 /**
- * Used to cancel the balance of an order from either an Authed or Refunded event
+ * Used to log a transaction review notice to the order
  *
  * @author Jonathan Davis
  * @since 1.2

@@ -293,7 +293,7 @@ class Service extends AdminController {
 
 		if (!empty($_POST["send-note"])){
 			$user = wp_get_current_user();
-			shopp_add_order_event($Purchase->id,'notice',array(
+			shopp_add_order_event($Purchase->id,'note',array(
 				'note' => $_POST['note'],
 				'user' => $user->ID
 			));
@@ -341,7 +341,8 @@ class Service extends AdminController {
 			if (str_true($_POST['mark'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
-					'note' => __('Marked Refunded','Shopp')
+					'kind' => 'refunded',
+					'notice' => __('Marked Refunded','Shopp')
 				));
 				shopp_add_order_event($Purchase->id,'refunded',array(
 					'txnid' => $Purchase->txnid,
@@ -380,7 +381,8 @@ class Service extends AdminController {
 			if (str_true($_POST['mark'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
-					'note' => __('Marked Cancelled','Shopp')
+					'kind' => 'cancelled',
+					'notice' => __('Marked Cancelled','Shopp')
 				));
 				shopp_add_order_event($Purchase->id,'voided',array(
 					'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
