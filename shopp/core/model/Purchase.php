@@ -193,6 +193,7 @@ class Purchase extends DatabaseObject {
 		$this->message['event'] = $Event;
 		$this->message['note'] = &$Event->note;
 
+
 		// Generic filter hook for specifying global email messages
 		$messages = apply_filters('shopp_order_event_emails',array(
 			'customer' => array(
@@ -204,7 +205,7 @@ class Purchase extends DatabaseObject {
 				'',										// Recipient name
 				shopp_setting('merchant_email'),		// Recipient email address
 				sprintf(__('Order #%s: %s', 'Shopp'), $this->id, $Event->label()), // Subject
-				"email-$Event->name-merchant.php")		// Template
+				"email-merchant-$Event->name.php")		// Template
 		));
 
 		// Event-specific hook for event specific email messages
@@ -212,7 +213,17 @@ class Purchase extends DatabaseObject {
 
 		foreach ($messages as $name => $message) {
 			list($addressee,$email,$subject,$template) = $message;
-			$file = locate_shopp_template(array($template));
+
+			$templates = array($template);
+
+			// Add note kind-specific template support
+			if (isset($Event->kind) && !empty($Event->kind)) {
+				list($basename,$php) = explode('.',$template);
+				$notekind = "$basename-$Event->kind.$php";
+				array_unshift($templates,$notekind);
+			}
+
+			$file = locate_shopp_template($templates);
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
 			if ( ! empty($file) && ! in_array($email,$Event->_emails) ) {
@@ -261,7 +272,7 @@ class Purchase extends DatabaseObject {
 				shopp_setting('business_name')	,										// Recipient name
 				shopp_setting('merchant_email'),										// Recipient email address
 				sprintf(__('New Order - %s', 'Shopp'), $this->id),					 	// Subject
-				array_merge(array('email-order-merchant.php'),$templates))				// Templates
+				array_merge(array('email-merchant-order.php'),$templates))				// Templates
 		));
 
 		// Remove merchant notification if disabled in receipt copy setting
