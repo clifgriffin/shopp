@@ -570,11 +570,14 @@ class AdminFlow extends FlowController {
 			case 'lastyear': $start = mktime(0,0,0,$month,1,$year-1); $end = mktime(23,59,59,1,0,$year); break;
 		}
 
+		// Include authorizations, captures and old 1.1 tranaction status CHARGED in sales data
+		$salestatus = array("'authed'","'captured'","'CHARGED'");
+
 		$results = DB::query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
 		 						SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,1,0)) AS wkorders,
 								SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,0)) AS wksales,
 								AVG(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,null)) AS wkavg
-		 						FROM $purchasetable WHERE txnstatus='captured'");
+		 						FROM $purchasetable WHERE txnstatus IN (".join(',',$salestatus).")");
 
 		$RecentBestsellers = new BestsellerProducts(array('range' => array($start,$end),'show'=>5));
 		$RecentBestsellers->load(array('pagination'=>false));
