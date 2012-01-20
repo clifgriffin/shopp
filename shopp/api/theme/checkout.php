@@ -9,6 +9,12 @@
 *
 **/
 
+// Default text filters for checkout Theme API tags
+add_filter('shopp_checkout_clickwrap_terms', 'wptexturize');
+add_filter('shopp_checkout_clickwrap_terms', 'convert_chars');
+add_filter('shopp_checkout_clickwrap_terms', 'wpautop');
+add_filter('shopp_checkout_clickwrap_terms', 'do_shortcode', 11); // AFTER wpautop()
+
 /**
  * Provides shopp('checkout') theme API functionality
  *

@@ -11,6 +11,12 @@
 
 add_filter('shopp_themeapi_context_name', array('ShoppCollectionThemeAPI', '_context_name'));
 
+// Default text filters for category/collection Theme API tags
+add_filter('shopp_themeapi_category_description', 'wptexturize');
+add_filter('shopp_themeapi_category_description', 'convert_chars');
+add_filter('shopp_themeapi_category_description', 'wpautop');
+add_filter('shopp_themeapi_category_description', 'do_shortcode',11);
+
 /**
  * shopp('category','...') tags
  *
@@ -135,7 +141,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return self::image($result, $options, $O);
 	}
 
-	static function description ($result, $options, $O) { return wpautop($O->description);  }
+	static function description ($result, $options, $O) { return $O->description;  }
 
 
 	static function is_facet_filtered ($result, $options, $O) {

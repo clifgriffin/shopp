@@ -9,6 +9,17 @@
 *
 **/
 
+// Default text filters for product Theme API tags
+add_filter('shopp_themeapi_product_name','convert_chars');
+add_filter('shopp_themeapi_product_summary','convert_chars');
+add_filter('shopp_themeapi_product_description', 'wptexturize');
+add_filter('shopp_themeapi_product_description', 'convert_chars');
+add_filter('shopp_themeapi_product_description', 'wpautop');
+add_filter('shopp_themeapi_product_description', 'do_shortcode',11);
+add_filter('shopp_themeapi_product_spec', 'wptexturize');
+add_filter('shopp_themeapi_product_spec', 'convert_chars');
+add_filter('shopp_themeapi_product_spec', 'do_shortcode', 11);
+
 /**
  * Provides shopp('product') template API functionality
  *
@@ -335,7 +346,11 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return self::image($result, $options, $O);
 	}
 
-	static function description ($result, $options, $O) { return apply_filters('shopp_product_description',$O->description); }
+	static function description ($result, $options, $O) {
+		// @deprecated filter hook, no longer needed
+		$description = apply_filters('shopp_product_description',$O->description);
+		return $description;
+	}
 
 	static function found ($result, $options, $O) {
 		$Collection = ShoppCollection();

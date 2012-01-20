@@ -63,26 +63,6 @@ class Storefront extends FlowController {
 
 		add_filter('wp_get_nav_menu_items', array($this,'navmenus'), 10, 2);
 
-		// Shopp product text filters
-		add_filter('shopp_product_name','convert_chars');
-		add_filter('shopp_product_summary','convert_chars');
-
-		add_filter('shopp_product_description', 'wptexturize');
-		add_filter('shopp_product_description', 'convert_chars');
-		add_filter('shopp_product_description', 'wpautop');
-		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()
-
-		add_filter('shopp_checkout_clickwrap_terms', 'wptexturize');
-		add_filter('shopp_checkout_clickwrap_terms', 'convert_chars');
-		add_filter('shopp_checkout_clickwrap_terms', 'wpautop');
-		add_filter('shopp_checkout_clickwrap_terms', 'do_shortcode', 11); // AFTER wpautop()
-
-
-		add_filter('shopp_product_spec', 'wptexturize');
-		add_filter('shopp_product_spec', 'convert_chars');
-		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
-
-
 		add_filter('shopp_order_lookup','shoppdiv');
 		add_filter('shopp_order_confirmation','shoppdiv');
 		add_filter('shopp_errors_page','shoppdiv');
