@@ -51,7 +51,7 @@ class ProductCollection implements Iterator {
 
 			'page' => false,		// Current page number to load
 			'paged' => false,		// Entries per page to load
-			'nostock' => false,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
+			'nostock' => null,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
 			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
 			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
 			'ids' => false,			// Flag for loading product IDs only
@@ -78,7 +78,7 @@ class ProductCollection implements Iterator {
 		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
 
 		// Inventory filtering
-		if ( ! ( str_true($loading['nostock']) && shopp_setting_enabled('outofstock_catalog') ))
+		if ( (is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock)) )
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
 		// Check for inventory-based queries (for specialized cache support)
