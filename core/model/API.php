@@ -66,8 +66,8 @@ class ShoppAPIFile extends ModuleFile {
 		if (!empty($register)) {
 			foreach ( $register as $tag => $method ) {
 				if ( is_callable(array($api, $method)) ) {
-					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($api, $method), 10, 4 ); // general filter
-					else add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $method), 10, 3 );
+					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($api, $method), 9, 4 ); // general filter
+					else add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $method), 9, 3 );
 				}
 			}
 			return;
@@ -77,7 +77,7 @@ class ShoppAPIFile extends ModuleFile {
 		// _ prefix members can be used as helper functions
 		$methods = array_filter( get_class_methods ($api), create_function( '$m','return ( "_" != $m{0} );' ) );
 		foreach ( $methods as $tag )
-			add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $tag), 10, 3 );
+			add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $tag), 9, 3 );
 
 	}
 
