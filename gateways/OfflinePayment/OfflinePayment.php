@@ -68,7 +68,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return void
 	 **/
-	function auth () {
+	function auth ($Event) {
 		$Order = $this->Order;
 		$OrderTotals = $Order->Cart->Totals;
 		$Billing = $Order->Billing;
