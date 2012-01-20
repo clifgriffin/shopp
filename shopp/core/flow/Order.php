@@ -677,8 +677,8 @@ class Order {
 
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
-			$Purchased->copydata($Item);
 			$Purchased->purchase = $Purchase->id;
+			$Purchased->copydata($Item);
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
 		}
