@@ -55,9 +55,11 @@ class Product extends WPShoppObject {
 		'publish' => 'post_date',
 		'modified' => 'post_modified',
 		'post_date_gmt' => 'post_date_gmt',
-		'post_modified_gmt' => 'post_modified_gmt'
+		'post_modified_gmt' => 'post_modified_gmt',
+		'post_content_filtered' => 'post_content_filtered',
+		'to_ping' => 'to_ping',
+		'pinged' => 'pinged'
 	);
-
 
 	/**
 	 * Product constructor
@@ -77,6 +79,7 @@ class Product extends WPShoppObject {
 
 	function save () {
 		if ( ! isset($this->ID) ) $this->ID = $this->id ? $this->id : null;
+		$this->post_content_filtered = $this->to_ping = $this->pinged = '';
 		$gmtoffset = get_option( 'gmt_offset' ) * 3600;
 		$this->post_modified_gmt = current_time('timestamp')+$gmtoffset;
 		if (is_null($this->publish)) $this->post_date_gmt = $this->post_modified_gmt;
