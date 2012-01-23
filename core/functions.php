@@ -1555,9 +1555,8 @@ function shopp_email ($template,$data=array()) {
 
 			if ( 'to' == strtolower($header) ) $to = $value;
 			elseif ( 'subject' == strtolower($header) ) $subject = $value;
-			else $headers[$header] = $value;
+			else $headers[] = $line;
 		}
-
 
 		// Catches the first blank line to begin capturing message body
 		if ( !$in_body && empty($line) ) $in_body = true;

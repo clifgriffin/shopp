@@ -190,6 +190,8 @@ class Purchase extends DatabaseObject {
 	function notifications ($Event) {
 		if ($Event->order != $this->id) return; // Only handle notifications for events relating to this order
 
+		$defaults = array('note');
+
 		$this->message['event'] = $Event;
 		$this->message['note'] = &$Event->note;
 
@@ -199,7 +201,7 @@ class Purchase extends DatabaseObject {
 			'customer' => array(
 				"$this->firstname $this->lastname",		// Recipient name
 				$this->email,							// Recipient email address
-				sprintf(__('Your order status changed: %s', 'Shopp'), $Event->label()), // Subject
+				sprintf(__('Your order with %s has been updated', 'Shopp'), shopp_setting('business_name')), // Subject
 				"email-$Event->name.php"),				// Template
 			'merchant' => array(
 				'',										// Recipient name
@@ -222,6 +224,10 @@ class Purchase extends DatabaseObject {
 				$notekind = "$basename-$Event->kind.$php";
 				array_unshift($templates,$notekind);
 			}
+
+			// Always send messages to customers for default event types (note, etc)
+			if (in_array($Event->name,$defaults) && 'customer' == $name)
+				$templates[] = 'email.php';
 
 			$file = locate_shopp_template($templates);
 			// Send email if the specific template is available
@@ -306,14 +312,6 @@ class Purchase extends DatabaseObject {
 
 		new ShoppError("Purchase::email(): $addressee,$address,$subject,"._object_r($templates),false,SHOPP_DEBUG_ERR);
 
-		$defaults = array('email.php','order.php','order.html');
-		$emails = array_merge((array)$templates,$defaults);
-
-		$template = locate_shopp_template($emails);
-
-		if (!file_exists($template))
-			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
-
 		// Build the e-mail message data
 		$_ = array();
 		$email['from'] = '"'.wp_specialchars_decode( shopp_setting('business_name'), ENT_QUOTES ).'"';
@@ -330,6 +328,15 @@ class Purchase extends DatabaseObject {
 		$email = apply_filters('shopp_email_receipt_data',$email);
 		$email = apply_filters('shopp_purchase_email_message',$email);
 		$this->message = array_merge($this->message,$email);
+
+		// Load and process the template file
+		$defaults = array('email.php','order.php','order.html');
+		$emails = array_merge((array)$templates,$defaults);
+
+		$template = locate_shopp_template($emails);
+
+		if (!file_exists($template))
+			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 
 		// Send the email
 		if (shopp_email($template,$this->message)) {
