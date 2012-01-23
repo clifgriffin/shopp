@@ -67,7 +67,6 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_feature_product',array($this,'feature_product'));
 		add_action('wp_ajax_shopp_update_inventory',array($this,'update_inventory'));
 		add_action('wp_ajax_shopp_import_file',array($this,'import_file'));
-		add_action('wp_ajax_shopp_import_file_progress',array($this,'import_file_progress'));
 		add_action('wp_ajax_shopp_storage_suggestions',array($this,'storage_suggestions'),11);
 		add_action('wp_ajax_shopp_suggestions',array($this,'suggestions'));
 		add_action('wp_ajax_shopp_verify_file',array($this,'verify_file'));
@@ -286,11 +285,11 @@ class AjaxFlow {
 		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
 		if (empty($total->products)) die('-1');
 
-		shopp_set_setting('searchindex_build',mktimestamp($total->start));
 		echo str_repeat(' ',1024);
 		echo '<script type="text/javascript">var indexProgress = 0;</script>'."\n";
 		@ob_flush();
 		@flush();
+		set_time_limit(0); // Prevent timeouts
 		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
 			$products = DB::query("SELECT ID FROM $wpdb->posts WHERE post_type='".Product::$posttype."' LIMIT ".($i*$set).",$set",'array','col','ID');
@@ -502,7 +501,6 @@ class AjaxFlow {
 		$_->name = $filename;
 		$_->stored = false;
 
-
 		$File = new ProductDownload();
 		$stored = false;
 		$File->_engine(); // Set engine from storage settings
@@ -541,7 +539,7 @@ class AjaxFlow {
 			}
 
 			$tmp = basename($importfile);
-			$Settings =& ShoppSettings();
+			// $Settings =& ShoppSettings();
 
 			$_->path = $importfile;
 			if (empty($headers)) {
@@ -558,48 +556,34 @@ class AjaxFlow {
 		// Mimetype must be set or we'll have problems in the UI
 		if (!$_->mime) $_->mime = "application/octet-stream";
 
-		ob_end_clean();
-		header("Connection: close");
-		header("Content-Encoding: none");
-		ob_start();
-	 	echo json_encode($_);
-		$size = ob_get_length();
-		header("Content-Length: $size");
-		ob_end_flush();
-		flush();
-		ob_end_clean();
-
+		echo str_repeat(' ',1024); // Minimum browser data
+		echo '<script type="text/javascript">var importFile = '.json_encode($_).';</script>'."\n";
+		echo '<script type="text/javascript">var importProgress = 0;</script>'."\n";
 		if ($_->stored) exit();
+		@ob_flush();
+		@flush();
 
 		$progress = 0;
+		$bytesread = 0;
 		fseek($file, 0);
 		$packet = 1024*1024;
+		set_time_limit(0); // Prevent timeouts
 		while(!feof($file)) {
 			if (connection_status() !== 0) return false;
 			$buffer = fread($file,$packet);
 			if (!empty($buffer)) {
 				fwrite($incoming, $buffer);
-				$progress += strlen($buffer);
-				$Settings->save($tmp.'_import_progress',$progress);
+				$bytesread += strlen($buffer);
+				echo '<script type="text/javascript">importProgress = '.$bytesread/(int)$_->size.';</script>'."\n";
+				@ob_flush();
+				@flush();
 			}
 		}
+		@ob_end_flush();
 		fclose($file);
 		fclose($incoming);
 
-		sleep(5);
-		$Settings->delete($tmp.'_import_progress');
-
 		exit();
-	}
-
-	function import_file_progress () {
-		check_admin_referer('wp_ajax_shopp_import_file_progress');
-		if (empty($_REQUEST['proc'])) die('0');
-
-		$Settings =& ShoppSettings();
-		$progress = $Settings->get($_REQUEST['proc'].'_import_progress');
-		if (empty($progress)) die('0');
-		die($progress);
 	}
 
 	function storage_suggestions () { exit(); }
