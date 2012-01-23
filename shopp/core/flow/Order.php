@@ -901,7 +901,7 @@ class Order {
 	function success () {
 		$this->purchase = $this->inprogress;
 		$this->inprogress = false;
-		do_action('shopp_order_success');
+		do_action('shopp_order_success',ShoppPurchase());
 
 		Shopping::resession();
 
