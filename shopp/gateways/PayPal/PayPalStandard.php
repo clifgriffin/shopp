@@ -319,7 +319,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function force_confirm ( $confirm ) {
-		$this->Order->Billing->card = "PayPal";
 		$this->Order->Billing->cardtype = "PayPal";
 		$this->Order->confirm = true;
 		return true;
