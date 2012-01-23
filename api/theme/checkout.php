@@ -970,7 +970,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if ( $O->sameaddress == $type || ! str_true($checked) ) $options['checked'] = 'off';
+		if ( $O->sameaddress == $type || str_true($checked) ) $options['checked'] = 'on';
 		$options['class'] = trim($options['class'].' sameaddress '.$type);
 		$id = "same-address-$type";
 
@@ -1115,13 +1115,14 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	static function url ($result, $options, $O) {
 		$link = shoppurl(false,'checkout',$O->security());
+		$Storefront = ShoppStorefront();
 
 		// Pass any arguments along
 		$args = $_GET;
 		unset($args['shopp_page'],$args['acct']);
 		$link = esc_url(add_query_arg($args,$link));
 
-		if (is_confirm_page()) $link = apply_filters('shopp_confirm_url',$link);
+		if (isset($Storefront->_confirm_page_content)) $link = apply_filters('shopp_confirm_url',$link);
 		else $link = apply_filters('shopp_checkout_url',$link);
 		return $link;
 	}

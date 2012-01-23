@@ -121,8 +121,10 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			'subscr_signup' => __('Subscription started','Shopp')
 		);
 
-		add_filter('shopp_tag_cart_paypal',array($this,'sendcart'),10,2); // provides shopp('cart','paypal') checkout button
-		add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3); // replace submit button with paypal image
+		add_filter('shopp_themeapi_cart_paypal',array($this,'sendcart'),10,2); // provides shopp('cart','paypal') checkout button
+		// add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3); // replace submit button with paypal image
+
+
 
 		// request handlers
 		add_action('shopp_remote_payment',array($this,'remote')); // process sync return from PayPal
@@ -303,6 +305,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function confirmation () {
 		add_filter('shopp_confirm_url',array($this,'url'));
 		add_filter('shopp_confirm_form',array($this,'form'));
+		add_filter('shopp_themeapi_checkout_confirmbutton',array($this,'submit'),10,3); // replace submit button with paypal image
 	}
 
 	/**
@@ -333,8 +336,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" '.inputattrs($options,$attrs).' />';
-		return $tag;
+		return '<input type="image" name="process" src="'.$this->buttonurl.'" '.inputattrs($options,$attrs).' />';
 	}
 
 	/**
@@ -348,6 +350,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string checkout url
 	 **/
 	function url ($url=false) {
+
 		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
 		else return $this->checkouturl;
 	}
@@ -363,14 +366,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form
 	 **/
 	function sendcart () {
-		$Order = $this->Order;
-
-		$submit = $this->submit(array());
-		$submit = $submit[$this->settings['label']];
-
 		$result = '<form action="'.$this->url().'" method="POST">';
 		$result .= $this->form('',array('address_override'=>0));
-		$result .= $submit;
+		$result .= $this->submit();
 		$result .= '</form>';
 		return $result;
 	}

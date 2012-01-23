@@ -955,8 +955,10 @@ class Storefront extends FlowController {
 		}
 
 		ob_start();
+		$this->_confirm_page_content = true;
 		locate_shopp_template(array('confirm.php'),true);
 		$content = ob_get_contents();
+		unset($this->_confirm_page_content);
 		ob_end_clean();
 		return apply_filters('shopp_order_confirmation',$errors.$content);
 	}
