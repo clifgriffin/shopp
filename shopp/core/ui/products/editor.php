@@ -93,7 +93,6 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	editslug_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',
 	fileverify_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_verify_file"); ?>',
 	fileimport_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_import_file"); ?>',
-	fileimportp_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_import_file_progress"); ?>',
 	imageul_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>',
 	adminpage = '<?php echo $this->Admin->pagename('products'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,

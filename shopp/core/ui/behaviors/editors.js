@@ -969,6 +969,7 @@ jQuery.fn.FileChooser = function (line,status) {
 		dlname = $('#download_file-'+line),
 		file = $('#file-'+line),
 		stored = false,
+		nostatus = 0,
 		progressbar = false;
 
 	_.line = line;
@@ -1010,50 +1011,52 @@ jQuery.fn.FileChooser = function (line,status) {
 			var importid = false,
 				importdata = false,
 				importfile = importurl.val(),
-				importing = function () {
-					$.ajax({url:fileimportp_url+'&action=shopp_import_file_progress&proc='+importid,
-						timeout:500,
-						dataType:'text',
-						success:function (status) {
-							var total = parseInt(importdata.size,10),
-								width = Math.ceil((status/total)*76),
-								progressbar = file.find('div.progress > div.bar');
-							if (status < total) setTimeout(importing,1000);
-							else { // Completed
-								if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () {
-									if (!importdata.name) return $this.attr('class','');
-									file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
-									dlpath.val(importdata.path); dlname.val(importdata.name);
-									importurl.val('').attr('class','fileimport');
-								});
-								return;
-							}
-							if (progressbar) progressbar.animate({'width':width+'px'},500);
-						}
-					});
 
+				completed = function (f) {
+					if (!f.name) return $this.attr('class','');
+					file.attr('class','file '+f.mime.replace('/',' ')).html(f.name+'<br /><small>'+readableFileSize(f.size)+'</small>');
+					dlpath.val(f.path); dlname.val(f.name);
+					importurl.val('').attr('class','fileimport');
+				},
+
+				importing = function () {
+					var ui = file.find('div.progress'),
+						progressbar = ui.find('div.bar'),
+						scale = ui.outerWidth(),
+						dataframe = $('#import-file-'+line).get(0).contentWindow,
+						p = dataframe['importProgress'],
+						f = dataframe['importFile'];
+
+					if (f !== undefined) {
+						if (f.error) return file.attr('class','error').html('<small>'+f.error+'</small>');
+						if (!f.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+
+						if (f.stored) {
+							return completed(f);
+						} else {
+							savepath = f.path.split('/');
+							importid = savepath[savepath.length-1];
+						}
+					}
+
+					if (!p) p = 0;
+
+					// No status timeout failure
+					if (p === 0 && nostatus++ > 60) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+
+					progressbar.animate({'width': Math.ceil(p*scale) +'px'},100);
+					if (p == 1) { // Completed
+						if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () { completed(f); });
+						return;
+					}
+					setTimeout(importing,100);
 				};
 
-			file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
-			file.find('iframe').load(function () {
-				var f = $(this).contents().find('body').html();
-				importdata = $.parseJSON(f);
-
-				if (importdata.error) return file.attr('class','error').html('<small>'+importdata.error+'</small>');
-				if (!importdata.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
-
-				if (importdata.stored) {
-					file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
-					dlpath.val(importdata.path); dlname.val(importdata.name);
-					importurl.val('').attr('class','fileimport');
-					return;
-				} else {
-					savepath = importdata.path.split('/');
-					importid = savepath[savepath.length-1];
-					importing();
-				}
-			});
-
+			setTimeout(importing,100);
+			file.attr('class','').html(
+				'<div class="progress"><div class="bar"></div><div class="gloss"></div></div>'+
+				'<iframe id="import-file-'+line+'" width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>'
+			);
 		});
 
 	});
