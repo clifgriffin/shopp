@@ -148,7 +148,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function actions () {
 		add_action('shopp_order_confirm_needed', array($this,'force_confirm'),9); // intercept checkout request, force confirm
 		add_action('shopp_init_confirmation',array($this,'confirmation')); // replace confirm order page with paypal form
-		add_action('shopp_init_checkout',array($this,'returned')); // wipes shopping session on thanks page load
+		add_action('template_redirect',array($this,'returned')); // wipes shopping session on thanks page load
 	}
 
 
