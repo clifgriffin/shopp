@@ -202,12 +202,10 @@ class ImageAsset extends FileAsset {
 			if (!empty($etag)) header('ETag: '.$etag);
 
 			header("Content-type: $this->mime");
-			if (!empty($this->filename))
-				header("Content-Disposition: inline; filename=".$this->filename);
-			else header("Content-Disposition: inline; filename=image-".$this->id.".jpg");
 
+		 	$filename = empty($this->filename) ? "image-$this->id.jpg" : $this->filename;
+			header('Content-Disposition: inline; filename="'.$filename.'"');
 			header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->storage})");
-
 		}
 
 		if (!empty($data)) echo $data;
@@ -427,11 +425,11 @@ class DownloadAsset extends FileAsset {
 			set_time_limit(0);	// Don't timeout on long downloads
 			// ob_end_clean();		// End any automatic output buffering
 
-			header("Pragma: public");
-			header("Cache-Control: maxage=1");
-			header("Content-type: application/octet-stream");
-			header("Content-Disposition: attachment; filename=\"".$this->name."\"");
-			header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+			header('Pragma: public');
+			header('Cache-Control: maxage=1');
+			header('Content-type: application/octet-stream');
+			header('Content-Disposition: attachment; filename="'.$this->name.'"');
+			header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
 		}
 		$this->send();
 
