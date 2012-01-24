@@ -220,8 +220,7 @@ class Storefront extends FlowController {
 			$wp_query->post_count = true;
 
 			ShoppCollection( Catalog::load_collection($collection,$options) );
-			if ('' == get_query_var('feed'))
-				ShoppCollection()->load(array('load'=>array('coverimages')));
+			if (!is_feed()) ShoppCollection()->load(array('load'=>array('coverimages')));
 
 			// Provide a stub to the queried object for smart collections since WP has no parallel
 			$post_archive = new stdClass();
@@ -378,7 +377,7 @@ class Storefront extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function feed ($feed) {
+	function feed () {
 		if ('' == get_query_var('feed')) return;
 		$Collection = ShoppCollection();
 
@@ -392,7 +391,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_rss_description','wpautop',30);
 		add_filter('shopp_rss_description','ent2ncr');
 
-		do_action_ref_array('shopp_collection_feed',array(&$Collection));
+		do_action_ref_array('shopp_collection_feed',array($Collection));
 
 		$rss = array('title' => trim(get_bloginfo('name')." ".$Collection->name),
 			 			'link' => shopp($Collection,'get-feed-url'),

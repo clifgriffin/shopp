@@ -285,14 +285,15 @@ class ProductCollection implements Iterator {
 			if (!$this->products) $page = 1;
 			else $page = $this->page + 1;
 			if ($this->pages > 0 && $page > $this->pages) return false;
-			$this->load( array('load'=>array('prices','specs'), 'paged'=>$paged, 'page' => $page) );
+			$this->load( array('load'=>array('prices','specs','coverimages'), 'paged'=>$paged, 'page' => $page) );
 			$loop = shopp($this,'products');
 			$product = ShoppProduct();
+			if (!$product) return false; // No products, bail
 		}
 
 	    if ( shopp_setting_enabled('tax_inclusive') ) {
-			$Product = new Product($product->id);
-	        $taxrate = shopp_taxrate(null, true, $Product);
+			$TaxProduct = new Product($product->id);
+	        $taxrate = shopp_taxrate(null, true, $TaxProduct);
 	    }
 
 		$item = array();
@@ -1262,6 +1263,8 @@ class ProductTag extends ProductTaxonomy {
 	static $hierarchical = false;
 
 	protected $context = 'tag';
+
+	var $api = 'category';
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
