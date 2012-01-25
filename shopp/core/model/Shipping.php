@@ -1478,32 +1478,49 @@ class ShippingPackager implements ShippingPackagingInterface {
 		$limits = array_merge($defaults,$limits);
 		$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
 
-		// one quantity, check for existing package
-		if ( ! empty($this->packages) && 1 == $Item->quantity ) {
-			$package = $this->packages[count($this->packages)-1];
-			if ( in_array( $label, array_keys( $package->contents() ) ) && $package->limits($Item) ) {
-				$package->add($Item);
+		// Base Case Test: Item will never fit in package
+		$package = new ShippingPackage(true, $limits);
+
+		// Check for full or partial fit on new package
+		$fit = $package->limits($Item);
+
+		// No fit possible with these limits; force separate packaging on item.
+		if ( ! $fit ) {
+			unset($package); // useless package, toss out
+			$this->piece_add($Item, $this); // package alone
+			return;
+		}
+
+		// Package Initialization
+		if ( empty($this->packages) ) {
+			$this->packages[] = $package;
+		}
+
+		// General Case Test: We have an empty package, or one with like items.
+		foreach ( $this->packages as $i => $pkg ) {
+			if ( $pkg->contents() && ! in_array( $label, array_keys( $pkg->contents() ) ) ) {
+				continue; // the package isn't empty and isn't like this item
+			}
+
+			// Attempt add
+			$Result = $pkg->add($Item);
+			if ( ! $Result ) {
+				continue; // No fit; keep looking.
+			}
+
+			if ( true === $Result ) {
+				return; // Full fit; done.
+			}
+
+			if ( is_a( $Result, 'Item') ) {
+				$this->like_add($Result, $this); // Partial fit; recurse to fit remainder.
 				return;
 			}
 		}
-		$package = new ShippingPackage(true,$limits);
 
-		if ( $package->limits($Item) ) {
-			$package->add($Item);
-			$this->packages[] = $package;
-		} else if ( $Item->quantity > 1 ) {
-			$pieces = clone $Item;
-			$piece = clone $Item;
-			$pieces->quantity = $pieces->quantity - 1;
-			$piece->quantity = 1;
-
-			// break one Item off and recurse
-			$this->like_add($pieces, $this);
-			$this->like_add($piece, $this);
-		} else {
-			// doesn't "fit", and by itself
-			$this->piece_add($Item, $this);
-		}
+		// Default Case: All packages too full; Create new and recurse.
+		$this->packages[] = new ShippingPackage(true, $limits);
+		$this->like_add($Item, $this);
 	}
 
 	/**
@@ -1523,10 +1540,11 @@ class ShippingPackager implements ShippingPackagingInterface {
 		$piece = clone $Item;
 		$piece->quantity = 1;
 
-		for ($i=0; $i < $count;$i++) {
+		for ( $i=0; $i < $count; $i++ ) {
 			$this->packages[] = $package = new ShippingPackage(true); // no limits on individual add
 			$package->add($piece);
 			$package->set_full(true);
+			unset( $piece->pos );
 		}
 	}
 
@@ -1538,7 +1556,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $Item Item to add
 	 * @param string $type expect dimensions, or just mass
-	 * @return void Description...
+	 * @return void
 	 **/
 	public function all_add ( &$Item, $pkgr, $type='dims' ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
@@ -1546,36 +1564,44 @@ class ShippingPackager implements ShippingPackagingInterface {
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		$limits = array_merge($defaults, ( isset($this->options['limits']) ? $this->options['limits'] : array() ) );
 
-		if ( empty($this->packages) ) { // Initialize the first package and add the item
-			$current = new ShippingPackage(($type == 'dims'),$limits);
-			$current->add($Item);
-			$this->packages[] = $current;
+		// Base Case Test: The item will never fit
+		$package = new ShippingPackage( ('dims' == $type), $limits );
+		$fit = $package->limits( $Item );
+
+		// No fit possible with these limits; force separate packaging on item.
+		if ( ! $fit ) {
+			unset($package);
+			$this->piece_add($Item, $this); // package alone
 			return;
-		} else { // Attempt to add to first available package the item fits in
-			foreach($this->packages as $current) if ($current->add($Item)) return;
 		}
 
-		// Initial add didn't work in any existing packages, try exception handling strategies
-
-		$current = end($this->packages);
-
-		if ( $Item->quantity > 1 ) {  // try breaking them up
-			$pieces = clone $Item;
-			$piece = clone $Item;
-			$pieces->quantity = $pieces->quantity - 1;
-			$piece->quantity = 1;
-
-			// break one Item off and recurse
-			$this->all_add($pieces, $this, $type);
-			$this->all_add($piece, $this, $type);
-		} elseif ( count($current->contents()) > 0 ) { // can't be broken up and all full, need new package
-			$this->packages[] = new ShippingPackage(($type == 'dims'), $limits);
-			$this->all_add($Item, $this, $type);
-		} else { // never fit, ship separately
-			$current->set_limits($defaults);
-			$current->add($Item);
-			$current->set_full(true);
+		// Package Initialization
+		if ( empty($this->packages) ) {
+			$this->packages[] = $package;
 		}
+
+		// General Case Test: We have a package that the Item will fit in.
+		foreach( $this->packages as $i => $pkg ) {
+			$Result = $pkg->add($Item);
+			if ( ! $Result ) {
+				continue; // try next
+			}
+
+			if ( true === $Result ) {
+				return; // found full fit
+			}
+
+			if ( is_a($Result, 'Item') ) {
+				// recurse to place remainder
+				$this->all_add($Result, $this, $type);
+				return;
+			}
+
+		}
+
+		// Default Case: All packages too full; Create new and recurse.
+		$this->packages[] = new ShippingPackage( ('dims' == $type), $limits );
+		$this->all_add($Item, $this, $type);
 	}
 
 } // end class ShippingPackager
@@ -1689,29 +1715,46 @@ class ShippingPackage implements ShippingPackageInterface {
 
 	/**
 	*
-	* add() adds item to current package if it fits, otherwise it marks the package full and returns the full status
+	* add() adds item to current package if it fits
 	*
 	* @since 1.2
-	* @return bool true if the item was added to the package, else false
+	* @return mixed true if the item was added to the package, false if no quantity will fit, Item remainder if partial add.
 	* @param Item $Item - Item object being added
 	*
 	**/
 	public function add( &$Item ) {
-		if ( $this->limits( $Item ) ) { // within limits
+		$total = $Item->quantity;
+
+		if ( $fit = $this->limits( $Item ) ) { // within limits
+			// partial fit
+			if ( $fit < $total ) {
+				$Remainder = clone $Item;
+				$Remainder->quantity = $total - $fit;
+				unset($Remainder->pos, $Remainder->orient);
+				$Item->quantity = $fit;
+			}
+
 			$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
-			if( ! empty( $this->contents[$label] ) )
+			if ( ! empty( $this->contents[$label] ) )
 				$this->contents[$label]->quantity += $Item->quantity;
 			else $this->contents[$label] = $Item;
 			$this->wt += $Item->weight * $Item->quantity;
 			$this->val += $Item->unitprice * $Item->quantity;
 			if ( $this->dims ) {
-				$this->w = max( $this->w, $Item->width );
-				$this->l = max( $this->l, $Item->length );
-				$this->h = $this->h + $Item->height * $Item->quantity;
+				$this->w = max( $this->w, $Item->orient['x'] );
+				$this->l = max( $this->l, $Item->orient['y'] );
+				$this->h = $this->h + $Item->orient['z'] * $Item->quantity;
 			}
-		} else $this->full = true;
+		}
 
-		return ( ! $this->full );
+		// didn't fit, return false
+		if ( ! $fit ) return false;
+
+		// fit perfectly, return true
+		if ( $fit == $total ) return true;
+
+		// partial fit
+		return $Remainder;
 	}
 
 	/**
@@ -1719,29 +1762,149 @@ class ShippingPackage implements ShippingPackageInterface {
 	* limits() determines if an item will fit in the current package
 	*
 	* @since 1.2
-	* @return bool true if the item fits, else false
+	* @return int quantity that fits
 	* @param Item $Item - Item object being added
 	*
 	**/
 	public function limits( &$Item ) {
-		if( $this->full ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits );
+		if ( $this->is_full() ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits ); // full
 
-		$underlimit = true;
 		list( $wtl, $wl, $hl, $ll ) = -1;
 		extract($this->limits);
 
-		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 ) {
-			$underlimit = ( $wl >= max( $this->w, $Item->width ) &&
-				$ll >= max( $this->l, $Item->length ) &&
-				$hl >= ( $this->h + $Item->height * $Item->quantity )
-			);
+		if ( -3 == array_sum(array($wl,$hl,$ll)) ) {
+			// use default orientation when no dimension limits
+			$this->orient($Item);
+			unset($Item->pos);
+
+			if ( -1 == $wtl ) return $Item->quantity; // no limits
 		}
 
-		if( $wtl > 0 ) {
-			$underlimit = $underlimit && ( $wtl >= ( $this->wt + $Item->weight * $Item->quantity ) );
+		$underlimit = true;				// bool package is under limit
+		$fits = 0;						// number of items known to fit in current package
+		$quantity = $Item->quantity;	// total quantity to attempt
+		$orient = array();				// current fitting orientation
+
+		// check for maximum quantity that will fit in this package
+		for ( $qt = 1 ; $qt <= $quantity ; $qt++ ) {
+
+			// Check if the dimensions will fit
+			if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 ) {
+				$orienting = $this->orient($Item);
+				// unable to complete fitting processing, missing item dims
+				if ( ! $orienting ) $underlimit = false;
+
+				$foundfit = false;
+				while ( $orienting ) {
+
+					// based on quantity and orientation, is it underlimit?
+					$foundfit = (
+						$wl >= max( $this->w, $Item->orient['x'] ) &&
+						$ll >= max( $this->l, $Item->orient['y'] ) &&
+						$hl >= ( $this->h + $Item->orient['z'] * $qt )
+					);
+
+					// if we find a successful orientation at this qty, preserve
+					// reset orientation loop for next qty
+					if ( $foundfit ) {
+						unset($Item->pos);
+						$orient = array_merge($orient, $Item->orient);
+
+						break; // break while
+					}
+
+					$orienting = $this->orient($Item);
+				}
+
+				// if we found a fit, we are still underlimit
+				$underlimit = $foundfit;
+			}
+
+			// Check if the weight will fit
+			if ( $wtl > 0 ) {
+				$underlimit = $underlimit && ( $wtl >= ( $this->wt + $Item->weight * $qt ) );
+			}
+
+			// current quantity fits
+			if ( $underlimit ) {
+				$fits = $qt;
+				continue;
+			}
+			break;
 		}
 
-		return apply_filters( 'shopp_package_limit', $underlimit, $Item, $this->contents, $this->limits ); // stub, always fits
+		// set the resulting Item orientation
+		if ( $fits && ! empty($orient) ) {
+			$Item->orient = $orient;
+		}
+
+		return apply_filters( 'shopp_package_limit', $fits, $Item, $this->contents, $this->limits ); // stub, always fits
+	}
+
+	/**
+	 * orient - flips item orientation
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true if flipped, false if not flipped
+	 **/
+	public function orient( &$Item ) {
+		if ( ! $Item->width || ! $Item->length || ! $Item->height ) return false;
+
+		// setup
+		if ( ! isset($Item->pos) ) {
+			$Item->pos = array('start','x', 'y', 'z');
+
+			$Item->orient = array( 'x' => $Item->width, 'y' => $Item->length, 'z' => $Item->height );
+			reset($Item->pos);
+			return true;
+		}
+
+		$pos = next( $Item->pos );
+
+		// rotate about x
+		if ( 'x' == $pos ) {
+			list ( $Item->orient['x'], $Item->orient['y'], $Item->orient['z'] ) = array( $Item->width, $Item->length, $Item->height );
+			return true;
+		}
+
+		// rotate about y
+		if ( 'y' == $pos ) {
+			list ( $Item->orient['x'], $Item->orient['y'], $Item->orient['z'] ) = array( $Item->length, $Item->height, $Item->width );
+			return true;
+		}
+		// rotate about z
+		if ( 'z' == $pos ) {
+			list ( $Item->orient['x'], $Item->orient['y'], $Item->orient['z'] ) = array( $Item->length, $Item->width, $Item->height );
+			return true;
+		}
+
+		// finished looping, reset
+		unset($Item->pos);
+		return false;
+	}
+
+	/**
+	 * is_full
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true if the package has been marked full or if the weight or height limits have been met (or exceeded), else false
+	 **/
+	public function is_full () {
+		if ( $this->full ) return true;
+
+		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 && $this->h >= $hl ) {
+			return ($this->full = true);
+		}
+
+		if ( $wtl > 0 && $this->wt >= $wtl ) {
+			return ($this->full = true);
+		}
+
+		return ($this->full = false);
 	}
 
 	/**
