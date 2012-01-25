@@ -793,7 +793,6 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	static function relevance ($result, $options, $O) { return (string)$O->score; }
 
 	static function savings ($result, $options, $O) {
-		if (empty($O->prices)) $O->load_data(array('prices'));
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
 		$taxrate = shopp_taxrate($options['taxes']);
