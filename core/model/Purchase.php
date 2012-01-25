@@ -55,9 +55,9 @@ class Purchase extends DatabaseObject {
 		$this->purchased = DB::query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		foreach ($this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
-			if ($purchase->shipping > 0) $this->shipable = true;
+			if ('Shipped' == $purchase->type) $this->shipable = true;
 			$purchase->data = unserialize($purchase->data);
-			if ($purchase->addons == "yes") {
+			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
 			}
