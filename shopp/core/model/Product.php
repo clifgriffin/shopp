@@ -548,7 +548,8 @@ class Product extends WPShoppObject {
 		// Set promoprice before data aggregation
 		if (str_true($price->sale)) $price->promoprice = $price->saleprice;
 
-		if ('N/A' == $price->type || 'addon' ==  $price->context || (count($target->prices) > 1 && !$variations)) return;
+		// Do not count disabled price lines or addon price lines in aggregate summary stats
+		if ('N/A' == $price->type || 'addon' ==  $price->context) return;
 
 		// Simple product or variant product is on sale
 		if (str_true($price->sale)) $target->sale = $price->sale;
