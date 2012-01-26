@@ -55,8 +55,7 @@ class Account extends AdminController {
 	 * @return void
 	 **/
 	function customers () {
-		global $Shopp,$Customers,$wpdb;
-		$db = DB::get();
+		global $wpdb;
 
 		$defaults = array(
 			'page' => false,
@@ -145,6 +144,7 @@ class Account extends AdminController {
 			$Shipping->updates($_POST['shipping']);
 			$Shipping->save();
 			if (!$updated) __('Customer updated.','Shopp');
+			$Customer = false;
 
 		}
 
@@ -213,15 +213,16 @@ class Account extends AdminController {
 		);
 		$query = DB::select($select);
 		$Customers = DB::query($query,'array','index','id');
+
 		$total = DB::found();
 
 		// Add order data to customer records in this view
 		$orders = DB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (".join(',',array_keys($Customers)).") GROUP BY customer",'array','index','customer');
-		foreach ($Customers as &$Customer) {
-			$Customer->total = 0; $Customer->orders = 0;
-			if ( ! isset($orders[$Customer->id]) ) continue;
-			$Customer->total = $orders[$Customer->id]->total;
-			$Customer->orders = $orders[$Customer->id]->orders;
+		foreach ($Customers as &$record) {
+			$record->total = 0; $record->orders = 0;
+			if ( ! isset($orders[$record->id]) ) continue;
+			$record->total = $orders[$record->id]->total;
+			$record->orders = $orders[$record->id]->orders;
 		}
 
 		$num_pages = ceil($total / $per_page);
@@ -260,6 +261,8 @@ class Account extends AdminController {
 		if (empty($selected)) $selected = array_keys($columns);
 
 		$authentication = shopp_setting('account_system');
+
+		$action = add_query_arg( array('page'=>$this->Admin->pagename('customers') ),admin_url('admin.php'));
 
 		include(SHOPP_ADMIN_PATH."/customers/customers.php");
 
@@ -307,8 +310,6 @@ class Account extends AdminController {
 	 * @return void
 	 **/
 	function editor () {
-		global $Shopp,$Customer;
-		$db =& DB::get();
 
 		if ( ! current_user_can('shopp_customers') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -326,7 +327,7 @@ class Account extends AdminController {
 
 		if ($Customer->id > 0) {
 			$purchase_table = DatabaseObject::tablename(Purchase::$table);
-			$r = $db->query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
+			$r = DB::query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
 
 			$Customer->orders = $r->purchases;
 			$Customer->total = $r->total;
