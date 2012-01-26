@@ -3,9 +3,9 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<div class="icon32"></div>
-	<h2><?php _e('Customers','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>'new'),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
+	<h2><?php _e('Customers','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg('id','new', $action) ); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders-list" method="get">
+	<form action="<?php echo esc_url($action); ?>" id="orders-list" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
@@ -45,13 +45,14 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-customers',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Customers) > 0): ?>
+	<?php if (count($Customers) > 0): ?>
 		<tbody id="customers-table" class="list orders">
 		<?php
 			$hidden = get_hidden_columns('shopp_page_shopp-customers');
 
 			$even = false;
 			foreach ($Customers as $Customer):
+
 			$CustomerName = (empty($Customer->firstname) && empty($Customer->lastname))?'('.__('no contact name','Shopp').')':"{$Customer->firstname} {$Customer->lastname}";
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
