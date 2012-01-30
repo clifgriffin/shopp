@@ -46,6 +46,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'hastax' => 'has_tax',
 		'id' => 'id',
 		'itemaddons' => 'item_addons',
+		'itemaddon' => 'item_addon',
 		'itemaddonslist' => 'item_addons_list',
 		'itemdescription' => 'item_description',
 		'itemdownload' => 'item_download',
@@ -220,18 +221,22 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			unset($O->_itemaddons_loop);
 			return false;
 		}
-		// @todo Do we need this somewhere?
-		// $item = current($O->purchased);
-		// $addon = current($item->addons->meta);
-		// if (isset($options['id'])) return esc_html($addon->id);
-		// if (isset($options['name'])) return esc_html($addon->name);
-		// if (isset($options['label'])) return esc_html($addon->name);
-		// if (isset($options['type'])) return esc_html($addon->value->type);
-		// if (isset($options['onsale'])) return $addon->value->sale;
-		// if (isset($options['inventory'])) return $addon->value->inventory;
-		// if (isset($options['sku'])) return esc_html($addon->value->sku);
-		// if (isset($options['unitprice'])) return money($addon->value->unitprice);
-		// return money($addon->value->unitprice);
+	}
+
+	static function item_addon ($result, $options, $O) {
+		$item = current($O->purchased);
+		$addon = current($item->addons->meta);
+		if ( false === $item || false === $addon ) return '';
+
+		if (isset($options['id'])) return esc_html($addon->id);
+		if (isset($options['name'])) return esc_html($addon->name);
+		if (isset($options['label'])) return esc_html($addon->name);
+		if (isset($options['type'])) return esc_html($addon->value->type);
+		if (isset($options['onsale'])) return $addon->value->sale;
+		if (isset($options['inventory'])) return $addon->value->inventory;
+		if (isset($options['sku'])) return esc_html($addon->value->sku);
+		if (isset($options['unitprice'])) return money($addon->value->unitprice);
+		return money($addon->value->unitprice);
 	}
 
 	static function item_addons_list ($result, $options, $O) {
