@@ -236,6 +236,23 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		if (isset($options['inventory'])) return $addon->value->inventory;
 		if (isset($options['sku'])) return esc_html($addon->value->sku);
 		if (isset($options['unitprice'])) return money($addon->value->unitprice);
+
+		if (isset($options['download'])) {
+			$link = false;
+			if (isset($addon->value->download) && isset($addon->value->dkey)) {
+				$label = __('Download','Shopp');
+				if ( isset($options['linktext']) && $options['linktext'] != '' ) $label = $options['linktext'];
+
+				$dkey = $addon->value->dkey;
+				$request = '' == get_option('permalink_structure')?"download/$dkey":array('s_dl'=>$dkey);
+				$url = shoppurl($request,'catalog');
+
+				$link = '<a href="'.$url.'">'.$label.'</a>';
+				return esc_html($link);
+			}
+			return '';
+		}
+
 		return money($addon->value->unitprice);
 	}
 
