@@ -1243,14 +1243,18 @@ class CartTax {
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
 		$country = $zone = $locale = $global = false;
-		if ( ! $this->Order->Cart->shipped() ) { // Use billing address
-			$country = $Billing->country;
-			$zone = $Billing->state;
-			if ( isset($Billing->locale) ) $locale = $Billing->locale;
-		} else {
+		if (defined('WP_ADMIN')) { // Always use the base of operations in the admin
+			$base = shopp_setting('base_operations');
+			$country = apply_filters('shopp_admin_tax_country',$base['country']);
+			$zone = apply_filters('shopp_admin_tax_zone', (isset($base['zone'])?$base['zone']:false) );
+		} elseif ( $this->Order->Cart->shipped() ) { // Use shipping address for shipped orders
 			$country = $Shipping->country;
 			$zone = $Shipping->state;
 			if ( isset($Billing->locale) ) $locale = $Billing->locale; // exception for locale
+		} else {
+			$country = $Billing->country;
+			$zone = $Billing->state;
+			if ( isset($Billing->locale) ) $locale = $Billing->locale;
 		}
 
 		foreach ($this->rates as $setting) {
