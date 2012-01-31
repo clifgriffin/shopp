@@ -910,7 +910,7 @@ class ShoppInstallation extends FlowController {
 
 			shopp_set_setting('storefront_pages',$pages);
 
-			DB::query("UPDATE $wpdb->posts SET post_status='trash' where ID IN (".join(',',$trash).")");
+			DB::query("UPDATE $wpdb->posts SET post_name=CONCAT(post_name,'-deprecated'),post_status='trash' where ID IN (".join(',',$trash).")");
 		}
 
 		// Move needed price table columns to price meta records
@@ -936,6 +936,28 @@ class ShoppInstallation extends FlowController {
 							),created,modified FROM $price_table");
 
 		} // END if ($db_version <= 1135)
+
+		if ($db_version <= 1145) {
+			// Update purchase gateway property to use gateway class names
+			// for proper order event handling on 1.1-generated orders
+			$gateways = array(
+				'PayPal Standard' => 'PayPalStandard',
+				'PayPal Expresss' => 'PayPalExpress',
+				'PayPal Pro' => 'PayPalPro',
+				'2Checkout.com' => '_2Checkout',
+				'Authorize.Net' => 'AuthorizeNet',
+				'Google Checkout' => 'GoogleCheckout',
+				'HSBC ePayments' => 'HSBCepayments',
+				'iDeal Mollie' => 'iDealMollie',
+				'Manual Processing' => 'ManualProcessing',
+				'Merchant Warrior' => 'MerchantWarrior',
+				'Offline Payment' => 'OfflinePayment',
+				'PayPal Payflow Pro' => 'PayflowPro',
+				'Test Mode' => 'TestMode'
+			);
+			foreach ($gateways as $name => $classname)
+				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
+		} // END if ($db_version <= 1145)
 
 	}
 
