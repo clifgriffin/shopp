@@ -611,13 +611,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		}
 	}
 
-	// @todo Add Theme API documentation for shopp('product','in-cart')
 	static function in_cart ($result, $options, $O) {
 		$Order = ShoppOrder();
 		$cartitems = $Order->Cart->contents;
 		if (empty($cartitems)) return false;
 		foreach ((array)$cartitems as $Item)
 			if ($Item->product == $O->id) return true;
+		return false;
 	}
 
 	static function in_category ($result, $options, $O) {
