@@ -663,8 +663,22 @@ class ProductTaxonomy extends ProductCollection {
 		}
 	}
 
+	function pagelink ($page) {
+		$categoryurl = get_term_link($this->slug,$this->taxonomy);
+
+		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
+		$prettyurl = trailingslashit($categoryurl).($page > 1 || $alpha?"page/$page":"");
+
+		$queryvars = array($this->taxonomy=>$this->slug);
+		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
+
+		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
+
+		return apply_filters('shopp_paged_link',$url);
+	}
 
 }
+
 // @todo Document ProductCategory
 class ProductCategory extends ProductTaxonomy {
 	static $taxonomy = 'shopp_category';
@@ -1205,20 +1219,6 @@ class ProductCategory extends ProductTaxonomy {
 			"oldest" => __('Oldest to Newest','Shopp'),
 			"random" => __('Random','Shopp')
 		));
-	}
-
-	function pagelink ($page) {
-		$categoryurl = get_term_link($this->slug,$this->taxonomy);
-
-		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
-		$prettyurl = $categoryurl.($page > 1 || $alpha?"page/$page":"");
-
-		$queryvars = array($this->taxonomy=>$this->slug);
-		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
-
-		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
-
-		return apply_filters('shopp_paged_link',$url);
 	}
 
 } // END class ProductCategory
