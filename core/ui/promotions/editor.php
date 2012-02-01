@@ -67,7 +67,7 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 	SCOPEPROP_LANG = {
 		"Catalog":<?php _jse('price','Shopp'); ?>,
 		"Cart":<?php _jse('subtotal','Shopp'); ?>,
-		"Cart Item":<?php _jse('total, where:','Shopp'); ?>
+		"Cart Item":<?php _jse('unit price, where:','Shopp'); ?>
 	},
 	TARGET_LANG = {
 		"Catalog":<?php _jse('product','Shopp'); ?>,
