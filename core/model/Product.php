@@ -476,7 +476,6 @@ class Product extends WPShoppObject {
 						$range = &$this->$m;
 						$range[$name.'_tax'] = true;
 					}
-					break;
 				default: $this->{$property} = isset($data->{$property})?($data->{$property}):false;
 			}
 			if ( isset($this->$property) ) {
@@ -487,7 +486,7 @@ class Product extends WPShoppObject {
 		$this->checksum = md5($this->checksum);
 
 		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
-
+		if (str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
 	}
 
 	/**
