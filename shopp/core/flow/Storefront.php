@@ -928,7 +928,8 @@ class Storefront extends FlowController {
 		do_action('shopp_init_checkout');
 
 		ob_start();
-		if ($Errors->exist(SHOPP_COMM_ERR)) locate_shopp_template(array('errors.php'),true);
+		if ($Errors->exist(SHOPP_COMM_ERR))
+			locate_shopp_template(array('errors.php'),true);
 		$this->checkout = true;
 		locate_shopp_template(array('checkout.php'),true);
 		$content = ob_get_contents();
@@ -945,21 +946,15 @@ class Storefront extends FlowController {
 		do_action('shopp_init_confirmation');
 		$Order->validated = $Order->isvalid();
 
-		$errors = '';
-		if ($Errors->exist(SHOPP_COMM_ERR)) {
-			ob_start();
-			locate_shopp_template(array('errors.php'),true);
-			$errors = ob_get_contents();
-			ob_end_clean();
-		}
-
 		ob_start();
 		$this->_confirm_page_content = true;
+		if ($Errors->exist(SHOPP_COMM_ERR))
+			locate_shopp_template(array('errors.php'),true);
 		locate_shopp_template(array('confirm.php'),true);
 		$content = ob_get_contents();
 		unset($this->_confirm_page_content);
 		ob_end_clean();
-		return apply_filters('shopp_order_confirmation',$errors.$content);
+		return apply_filters('shopp_order_confirmation',$content);
 	}
 
 	function thanks_page () {
