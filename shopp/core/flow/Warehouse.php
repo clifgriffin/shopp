@@ -264,11 +264,12 @@ class Warehouse extends AdminController {
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status='trash'"))
 		);
 
-		if ('off' == shopp_setting('inventory')) unset($subs['inventory']);
+		if (!shopp_setting_enabled('inventory')) unset($subs['inventory']);
 
 		switch ($view) {
 			case 'inventory':
 				if ( shopp_setting_enabled('inventory') ) $is_inventory = true;
+				else shopp_redirect(add_query_arg('view',null,$url),true);
 				break;
 			case 'trash': $is_trash = true; break;
 			case 'bestselling': $is_bestselling = true; break;
