@@ -236,14 +236,14 @@ class Cart {
 	function add ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
 
 		$NewItem = new Item($Product,$Price,$category,$data,$addons);
-		$NewItem->quantity($quantity);
 
-		if ( ! ( $NewItem->valid() && $this->valid_add($NewItem) ) ) return false;
+		if ( ! $NewItem->valid() || ! $this->valid_add($NewItem) ) return false;
 
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $item;
 		} else {
+			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
 			$this->added = count($this->contents)-1;
 		}

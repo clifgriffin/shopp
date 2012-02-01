@@ -271,13 +271,13 @@ class Item {
 		$qty = preg_replace('/[^\d+]/','',$qty);
 		$this->quantity = $qty;
 
-		if ( ! $this->instock() ) {
+		if ( ! $this->instock($qty) ) {
 			$levels = array($this->option->stock);
 			foreach ($this->addons as $addon) // Take into account stock levels of any addons
 				if ( str_true($addon->inventory) ) $levels[] = $addon->stock;
 
 			if ( $qty > $min = min($levels) ) {
-				// new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
+				new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
 				if ( ! $min ) return; // don't set min to item quantity if no stock
 				$this->quantity = $min;
 			}
@@ -549,7 +549,7 @@ class Item {
 
 		// Force summary update to get new stock warning levels on next load
 		$summarytable = DatabaseObject::tablename(ProductSummary::$table);
-		db::query("UPDATE $summarytable SET modified='".Product::$_updates."' WHERE product='{$this->product}'");
+		db::query("UPDATE $summarytable SET modified='".ProductSummary::$_updates."' WHERE product='{$this->product}'");
 
 		// Update
 		if ( ! empty($this->addons) ) {
