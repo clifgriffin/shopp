@@ -132,7 +132,7 @@ class ShoppInstallation extends FlowController {
 
 		// Remove any old product post types and taxonomies to prevent duplication of irrelevant data
 		DB::query("DELETE FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
-		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='".ProductCategory::$taxonomy."' OR taxonomy='".ProductTag::$taxonomy."'");
+		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='".ProductCategory::$taxon."' OR taxonomy='".ProductTag::$taxon."'");
 
 		// Install tables
 		ob_start();

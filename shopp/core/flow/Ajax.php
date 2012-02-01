@@ -384,7 +384,7 @@ class AjaxFlow {
 					$name = 'name';
 					$table = "$wpdb->terms AS t";
 					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
-					$where[] = "tt.taxonomy = '".ProductCategory::$taxonomy."'";
+					$where[] = "tt.taxonomy = '".ProductCategory::$taxon."'";
 					break;
 				case 'shopp_tags':
 					$id = 't.term_id';

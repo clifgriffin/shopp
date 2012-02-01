@@ -30,7 +30,7 @@ function shopp_register_collection ( $name = '' ) {
 	if (empty($Shopp)) return;
 	$slug = get_class_property($name,'_slug');
 	$Shopp->Collections[$slug] = $name;
-	$permastruct = SmartCollection::$taxonomy;
+	$permastruct = SmartCollection::$taxon;
 
 	add_rewrite_tag("%$permastruct%",'collection/([^/]+)');
 	add_permastruct($permastruct, Storefront::slug()."/%shopp_collection%", false);
@@ -95,15 +95,15 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 	$args['description'] = ( $description ? $description : '');
 	$args['parent'] = ( $parent ? $parent : 0 );
 
-	$term = wp_insert_term($name, ProductCategory::$taxonomy, $args);
+	$term = wp_insert_term($name, ProductCategory::$taxon, $args);
 
 	if ( $term && isset($term['term_id']) ) {
-		$hierarchy = _get_term_hierarchy(ProductCategory::$taxonomy);
+		$hierarchy = _get_term_hierarchy(ProductCategory::$taxon);
 		if ( $parent && (! in_array($parent, array_keys($hierarchy)) || ! in_array($term['term_id'], $hierarchy[$parent]) ) ) {
 			// update hierarchy if necessary
 			if ( ! isset($hierarchy[$parent])) $hierarchy[$parent] = array();
 			$hierarchy[$parent][] = $term['term_id'];
-			update_option(ProductCategory::$taxonomy."_children", $hierarchy);
+			update_option(ProductCategory::$taxon."_children", $hierarchy);
 		}
 
 		return $term['term_id'];
@@ -361,7 +361,7 @@ function shopp_product_categories ( $args = array() ) {
 	}
 
 
-	$terms = get_terms( ProductCategory::$taxonomy, $args );
+	$terms = get_terms( ProductCategory::$taxon, $args );
 	if ( ! is_array($terms) ) return false;
 
 	$categories = array();
@@ -402,7 +402,7 @@ function shopp_product_tags ( $args = array() ) {
 		unset($args['index']);
 	}
 
-	$terms = get_terms( ProductTag::$taxonomy, $args );
+	$terms = get_terms( ProductTag::$taxon, $args );
 	if ( ! is_array($terms) ) return false;
 
 	$tags = array();
@@ -449,7 +449,7 @@ function shopp_category_products ( $category = 0, $options = array() ) {
 
 	$options = wp_parse_args($options, $defaults);
 
-	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
+	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
@@ -477,7 +477,7 @@ function shopp_tag_products ( $tag = false, $options = array() ) {
 
 	$options = wp_parse_args($options, $defaults);
 
-	if ( ! $term = term_exists( $tag, ProductTag::$taxonomy ) ) {
+	if ( ! $term = term_exists( $tag, ProductTag::$taxon ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $tag not a valid Shopp product tag.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
@@ -560,7 +560,7 @@ function shopp_catalog_count ( $status = 'publish' ) {
  * @return int number of products in the category
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
-	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
+	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
@@ -568,7 +568,7 @@ function shopp_category_count (	$category = 0, $children = false ) {
 	$args = array( 	'post_type' => Product::$posttype,
 					'suppress_filters' => true,
 					'tax_query' => array(
-							array( 	'taxonomy' => ProductCategory::$taxonomy,
+							array( 	'taxonomy' => ProductCategory::$taxon,
 									'terms' => array($category),
 									'include_children' => $children
 									)
@@ -590,12 +590,12 @@ function shopp_category_count (	$category = 0, $children = false ) {
  * @return int count of subcategories
  **/
 function shopp_subcategory_count ( $category = 0 ) {
-	if ( ! term_exists( (int) $category, ProductCategory::$taxonomy ) ) {
+	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$children = get_term_children( $category, ProductCategory::$taxonomy );
+	$children = get_term_children( $category, ProductCategory::$taxon );
 
 	return count($children);
 }
@@ -615,7 +615,7 @@ function shopp_product_categories_count ( $product ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	$terms = wp_get_post_terms( $product, ProductCategory::$taxonomy, array());
+	$terms = wp_get_post_terms( $product, ProductCategory::$taxon, array());
 
 	return count($terms);
 }

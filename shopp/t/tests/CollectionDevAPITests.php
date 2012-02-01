@@ -15,7 +15,7 @@ class CollectionDevAPITests extends ShoppTestCase
 		$this->AssertFalse( ! $ggrandchild = shopp_add_product_category('Unit Test Category Great Grand-Child', 'Product Category for Unit Testing', $secondgrandchild) );
 
 		// check hierarchy
-		$hierarchy = _get_term_hierarchy(ProductCategory::$taxonomy);
+		$hierarchy = _get_term_hierarchy(ProductCategory::$taxon);
 		$this->AssertTrue(in_array($parent, array_keys($hierarchy)));
 		$this->AssertTrue(in_array($child, $hierarchy[$parent]));
 
@@ -99,7 +99,7 @@ class CollectionDevAPITests extends ShoppTestCase
 
 	function test_shopp_product_term () {
 		$Tag = shopp_product_tag('action');
-		$Term = shopp_product_term($Tag->id, ProductTag::$taxonomy);
+		$Term = shopp_product_term($Tag->id, ProductTag::$taxon);
 		$this->AssertEquals($Term->name, 'action');
 		$this->AssertEquals($Term->slug, 'action');
 		$this->AssertTrue( ! empty($Term->products) );

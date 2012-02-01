@@ -437,7 +437,7 @@ $ShoppTaxonomies = array();
 
 // @todo Document ProductTaxonomy
 class ProductTaxonomy extends ProductCollection {
-	static $taxonomy = 'shopp_group';
+	static $taxon = 'shopp_group';
 	static $namespace = 'group';
 	static $hierarchical = true;
 
@@ -458,7 +458,7 @@ class ProductTaxonomy extends ProductCollection {
 		global $Shopp,$ShoppTaxonomies;
 
 		$namespace = get_class_property($class,'namespace');
-		$taxonomy = get_class_property($class,'taxonomy');
+		$taxonomy = get_class_property($class,'taxon');
 		$hierarchical = get_class_property($class,'hierarchical');
 		$slug = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$namespace : $namespace;
 		register_taxonomy($taxonomy,array(Product::$posttype), array(
@@ -681,7 +681,7 @@ class ProductTaxonomy extends ProductCollection {
 
 // @todo Document ProductCategory
 class ProductCategory extends ProductTaxonomy {
-	static $taxonomy = 'shopp_category';
+	static $taxon = 'shopp_category';
 	static $namespace = 'category';
 	static $hierarchical = true;
 
@@ -694,7 +694,7 @@ class ProductCategory extends ProductTaxonomy {
 	var $child = false;
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
-		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
+		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
 		parent::__construct($id,$key);
 		if (!empty($this->id)) $this->load_meta();
 		if (isset($this->facetedmenus) && str_true($this->facetedmenus))
@@ -1018,7 +1018,7 @@ class ProductCategory extends ProductTaxonomy {
 	function load_children ( $options=array() ) {
 		if ( empty($this->id) ) return false;
 
-		$taxonomy = self::$taxonomy;
+		$taxonomy = self::$taxon;
 		$categories = array(); $count = 0;
 		$args = array_merge($options,array('child_of'=>$this->id,'fields'=>'id=>parent'));
 		$terms = get_terms( $taxonomy, $args );
@@ -1258,7 +1258,7 @@ class ProductCategoryFacetFilter {
 
 // @todo Document ProductTag
 class ProductTag extends ProductTaxonomy {
-	static $taxonomy = 'shopp_tag';
+	static $taxon = 'shopp_tag';
 	static $namespace = 'tag';
 	static $hierarchical = false;
 
@@ -1267,7 +1267,7 @@ class ProductTag extends ProductTaxonomy {
 	var $api = 'category';
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
-		$this->taxonomy = $taxonomy? $taxonomy : self::$taxonomy;
+		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
 		parent::__construct($id,$key);
 	}
 
@@ -1293,7 +1293,7 @@ class ProductTag extends ProductTaxonomy {
 
 // @todo Document SmartCollection
 class SmartCollection extends ProductCollection {
-	static $taxonomy = 'shopp_collection';
+	static $taxon = 'shopp_collection';
 	static $namespace = 'collection';
 	var $smart = true;
 	var $slug = false;
@@ -1304,7 +1304,7 @@ class SmartCollection extends ProductCollection {
 	function __construct ($options=array()) {
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
-		$this->taxonomy = self::$taxonomy;
+		$this->taxonomy = self::$taxon;
 		$this->smart($options);
 	}
 
@@ -1520,7 +1520,7 @@ class TagProducts extends SmartCollection {
 		$this->slug = self::$_slug;
 		$this->tag = stripslashes(urldecode($options['tag']));
 
-		$term = get_term_by('name',$this->tag,ProductTag::$taxonomy);
+		$term = get_term_by('name',$this->tag,ProductTag::$taxon);
 
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {

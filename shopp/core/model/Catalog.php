@@ -40,7 +40,7 @@ class Catalog {
 	 **/
 	function load_categories ($loading=array(),$showsmart=false,$results=false) {
 
-		$terms = get_terms(ProductCategory::$taxonomy);
+		$terms = get_terms(ProductCategory::$taxon);
 		foreach ($terms as $term)
 			$this->categories[] = new ProductCategory($term);
 
