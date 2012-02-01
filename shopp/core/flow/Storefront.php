@@ -998,19 +998,17 @@ class Storefront extends FlowController {
 	/**
 	 * Displays the appropriate account page template
 	 *
-	 * Replaces the [account] shortcode on the Account page with
-	 * the processed template contents.
-	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @version 1.2
 	 *
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
-	function account_page () {
+	function account_page ($request=false) {
 
 		$download_request = get_query_var('s_dl');
-		$request = $this->account['request'];
+		if (!$request) $request = $this->account['request'];
 		$templates = array('account-'.$request.'.php','account.php');
 
 		if ('login' == $request || !ShoppCustomer()->logged_in()) $templates = array('login-'.$request.'.php','login.php');
