@@ -213,12 +213,15 @@ class Item {
 	 * @return boolean
 	 **/
 	function valid () {
-		if (!$this->product || !$this->priceline) {
-			new ShoppError(__('The product could not be added to the cart because it could not be found.','cart_item_invalid',SHOPP_ERR));
+		// no product or no price specified
+		if ( ! $this->product || ! $this->priceline ) {
+			new ShoppError(__('The product could not be added to the cart because it could not be found.','Shopp'),'cart_item_invalid',SHOPP_ERR);
 			return false;
 		}
-		if ($this->inventory && !$this->instock()) {
-			new ShoppError(__('The product could not be added to the cart because it is not in stock.','cart_item_invalid',SHOPP_ERR));
+
+		// the item is not in stock
+		if ( ! $this->instock() ) {
+			new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
 			return false;
 		}
 		return true;
@@ -266,15 +269,19 @@ class Item {
 		}
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
-		if ($this->inventory) {
+		$this->quantity = $qty;
+
+		if ( ! $this->instock() ) {
 			$levels = array($this->option->stock);
 			foreach ($this->addons as $addon) // Take into account stock levels of any addons
 				if ( str_true($addon->inventory) ) $levels[] = $addon->stock;
-			if ($qty > min($levels)) {
-				new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
-				$this->quantity = min($levels);
-			} else $this->quantity = $qty;
-		} else $this->quantity = $qty;
+
+			if ( $qty > $min = min($levels) ) {
+				// new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
+				if ( ! $min ) return; // don't set min to item quantity if no stock
+				$this->quantity = $min;
+			}
+		}
 
 		$this->retotal();
 	}
@@ -518,42 +525,43 @@ class Item {
 	 * @return void
 	 **/
 	function unstock () {
-		if (!$this->inventory) return;
-		$db = DB::get();
+		// no inventory tracking system wide
+		if ( ! shopp_setting_enabled('inventory') ) return;
+
+		// collect list of ids to update
+		$ids = array();
+		if ( $this->inventory ) $ids[] = $this->priceline;
+		if ( ! empty($this->addons) ) {
+			foreach ($this->addons as $addon) {
+				if ( str_true($addon->inventory) )
+					$ids[] = $addon->id;
+			}
+		}
+
+		// no inventory tracked base item or addons
+		if ( empty($ids) ) return;
 
 		// Update stock in the database
 		$pricetable = DatabaseObject::tablename(Price::$table);
-		if ($db->query("UPDATE $pricetable SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0")) {
-			$producttable = DatabaseObject::tablename(Product::$table);
-			$db->query("UPDATE $producttable SET stock=stock-{$this->quantity} WHERE id='{$this->product}' AND stock > 0");
+		foreach ( $ids as $priceline ) {
+			db::query("UPDATE $pricetable SET stock=stock-{$this->quantity} WHERE id='{$priceline}'");
 		}
 
-		if (!empty($this->addons)) {
-			foreach ($this->addons as &$Addon) {
-				$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$Addon->id}' AND stock > 0");
-				$Addon->stock -= $this->quantity;
-				$product_addon = "$product ($Addon->label)";
-				// @todo Handle new low stock level setting to trigger appropriate notifications for addons
-				if ($Addon->stock == 0)
-					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
-				elseif ($Addon->stock <= shopp_setting('lowstock_level'))
-					return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product_addon),'lowstock_warning',SHOPP_STOCK_ERR);
+		// Force summary update to get new stock warning levels on next load
+		$summarytable = DatabaseObject::tablename(ProductSummary::$table);
+		db::query("UPDATE $summarytable SET modified='".Product::$_updates."' WHERE product='{$this->product}'");
 
+		// Update
+		if ( ! empty($this->addons) ) {
+			foreach ($this->addons as &$Addon) {
+				if ( str_true($addon->inventory) ) {
+					$Addon->stock -= $this->quantity;
+				}
 			}
 		}
 
 		// Update stock in the model
-		$this->option->stock = max(0, (int) $this->option->stock - $this->quantity);
-
-		// Handle notifications
-		$product = "$this->name (".$this->option->label.")";
-		// @todo Handle new low stock level setting to trigger appropriate notifications for product variants
-		if ($this->option->stock == 0)
-			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
-
-		if ($this->option->stock <= shopp_setting('lowstock_level'))
-			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
-
+		if ( $this->inventory ) $this->option->stock = $this->option->stock - $this->quantity;
 	}
 
 	/**
@@ -564,14 +572,32 @@ class Item {
 	 *
 	 * @return boolean
 	 **/
-	function instock () {
-		if (!$this->inventory) return true;
+	function instock ( $qty = false ) {
+		if ( ! shopp_setting_enabled('inventory') ) return true;
+
+		if ( ! $this->inventory ) {
+			// base item doesn't track inventory and no addons
+			if ( empty($this->addons) ) return true;
+
+			$addon_inventory = false;
+			foreach ($this->addons as $addon) {
+				if ( str_true($addon->inventory) )
+					$addon_inventory = true;
+			}
+
+			// base item doesn't track inventory, but an addon does
+			if ( ! $addon_inventory ) return true;
+		}
+
+		// need to get the current minimum stock for item + addons
 		$this->option->stock = $this->getstock();
-		return $this->option->stock >= $this->quantity;
+
+		if ( $qty ) return $this->option->stock >= $qty;
+		return ( $this->option->stock > 0 );
 	}
 
 	/**
-	 * Determines the stock level of the line item
+	 * Determines the minimum stock level of the item and its addons
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -579,7 +605,6 @@ class Item {
 	 * @return int The amount of stock available
 	 **/
 	function getstock () {
-		$db = DB::get();
 		$stock = apply_filters('shopp_cartitem_stock',false,$this);
 		if ($stock !== false) return $stock;
 
@@ -593,7 +618,7 @@ class Item {
 			}
 		}
 
-		$result = $db->query("SELECT min(stock) AS stock FROM $table WHERE 0 < FIND_IN_SET(id,'".join(',',$ids)."')");
+		$result = db::query("SELECT min(stock) AS stock FROM $table WHERE 0 < FIND_IN_SET(id,'".join(',',$ids)."')");
 		if (isset($result->stock)) return $result->stock;
 
 		return $this->option->stock;

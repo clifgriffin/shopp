@@ -233,16 +233,17 @@ class Cart {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	function add ($quantity,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
+	function add ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
 
 		$NewItem = new Item($Product,$Price,$category,$data,$addons);
-		if (!$NewItem->valid()) return false;
+		$NewItem->quantity($quantity);
+
+		if ( ! ( $NewItem->valid() && $this->valid_add($NewItem) ) ) return false;
 
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $item;
 		} else {
-			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
 			$this->added = count($this->contents)-1;
 		}
@@ -253,6 +254,29 @@ class Cart {
 		$this->changed(true);
 		return true;
 	}
+
+	/**
+	 *
+	 * Determine if the combinations of items in the cart is proper.
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param Item $Item the item being added
+	 * @return bool true if the item can be added, false if it would be improper.
+	 **/
+	function valid_add ( $Item ) {
+		$allowed = true;
+
+		// Subscription products must be alone in the cart
+		if ( 'Subscription' == $Item->type && ! empty($this->contents) || $this->recurring() ) {
+			new ShoppError(__('A subscription must be purchased separately. Complete your current transaction and try again.','Shopp'),'cart_valid_add_failed',SHOPP_ERR);
+			return false;
+		}
+
+		return true;
+	}
+
 
 	/**
 	 * Removes an item from the cart

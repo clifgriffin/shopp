@@ -142,16 +142,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function cart_function ($result, $options, $O) {
-		$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-
-		$Errors = ShoppErrors();
-		if (!$Errors->exist(SHOPP_STOCK_ERR)) return $result;
-
-		ob_start();
-		locate_shopp_template(array('errors.php'),true);
-		$errors = ob_get_contents();
-		ob_end_clean();
-		return $result.$errors;
+		return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 	}
 
 	static function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
