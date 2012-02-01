@@ -106,7 +106,7 @@ class Catalog {
 	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
 	 * @return object The loaded Category object
 	 **/
-	function load_collection ($slug,$options=array()) {
+	static function load_collection ($slug,$options=array()) {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
 			$Collection_slug = get_class_property($Collection,'_slug');
