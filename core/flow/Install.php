@@ -608,6 +608,9 @@ class ShoppInstallation extends FlowController {
 			shopp_set_setting('maintenance','on');
 			$db_version = intval(shopp_setting('db_version'));
 
+			// Force inventory in 1.2 on to mimic 1.1 behavior (inventory tracking always on)
+			shopp_set_setting('inventory','on');
+
 			// Convert Shopp 1.1.x shipping settings to Shopp 1.2-compatible settings
 			$active_shipping = array();
 			$regions = Lookup::regions();
@@ -701,7 +704,6 @@ class ShoppInstallation extends FlowController {
 			} // End foreach($shipping_rates) to convert old shipping calculator setting format
 
 			shopp_set_setting('active_shipping',$active_shipping); // Save the active shipping options
-
 
 		}
 
@@ -958,6 +960,7 @@ class ShoppInstallation extends FlowController {
 			foreach ($gateways as $name => $classname)
 				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 		} // END if ($db_version <= 1145)
+
 
 	}
 
