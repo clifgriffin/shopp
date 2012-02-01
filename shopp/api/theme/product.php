@@ -682,40 +682,42 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function price ($result, $options, $O) {
-		// if (empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'taxes' => null,
 			'starting' => '',
+			'separator' => ' &mdash; ',
 			'property' => 'price'
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if (!is_null($taxes)) $taxes = value_is_true($taxes);
+		if (!is_null($taxes)) $taxes = str_true($taxes);
 
 		if (!str_true($O->sale)) $property = 'price';
 		$min = $O->min[$property];
-		$mintax = $O->min[$property.'_tax'];
+		$mintax = $O->min[$property.'_tax']; // flag to apply tax to min price (from summary)
 
 		$max = $O->max[$property];
-		$maxtax = $O->max[$property.'_tax'];
+		$maxtax = $O->max[$property.'_tax']; // flag to apply tax to max price (from summary)
 
 		$taxrate = shopp_taxrate($taxes,$mintax,$O);
+
+		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
+		$taxes = is_null($taxes) ? self::_include_tax($O) : str_true( $taxes );
+		if ( ! $taxes ) $taxrate = 0;
 
 		if ('saleprice' == $property) $pricetag = $O->min['saleprice'];
 		else $pricetag = $O->min['price'];
 
 		if ($min != $max) {
 			$taxrate = shopp_taxrate($taxes,true,$O);
-			$mintax = $mintax?$min*$taxrate:0;
-			$maxtax = $maxtax?$max*$taxrate:0;
+			$mintax = $taxes && $mintax?$min*$taxrate:0;
+			$maxtax = $taxes && $maxtax?$max*$taxrate:0;
 
-			if ($min == $max) return money($min+$mintax);
-			else {
-				if (!empty($starting)) return "$starting ".money($min+$mintax);
-				return money($min+$mintax)." &mdash; ".money($max+$maxtax);
-			}
-		} else return money($pricetag+($pricetag*$taxrate));
+			if (!empty($starting)) return "$starting ".money($min+$mintax);
+			return money($min+$mintax).$separator.money($max+$maxtax);
+
+		} else return money( $pricetag + ($pricetag * $taxrate ) );
 	}
 
 	static function saleprice ($result, $options, $O) {
@@ -961,10 +963,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$variation = current($O->prices);
 
 		if (!isset($options['taxes'])) $options['taxes'] = null;
-		else $options['taxes'] = value_is_true($options['taxes']);
-		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$O);
 
-		$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : shopp_setting('weight_unit');
+		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$O);
+		$taxes = is_null($options['taxes']) ? self::_include_tax($O) : str_true($options['taxes']);
+		if ( ! $taxes ) $taxrate = 0;
+
+		$weightunit = (isset($options['units']) && !str_true($options['units']) ) ? false : shopp_setting('weight_unit');
 
 		$string = '';
 		if (array_key_exists('id',$options)) $string .= $variation->id;
@@ -973,7 +977,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (array_key_exists('sku',$options)) $string .= $variation->sku;
 		if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
 		if (array_key_exists('saleprice',$options)) {
-			if (isset($options['promos']) && !value_is_true($options['promos'])) {
+			if (isset($options['promos']) && !str_true($options['promos'])) {
 				$string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 			} else $string .= money($variation->promoprice+($variation->promoprice*$taxrate));
 		}
@@ -1026,7 +1030,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$taxes = is_null($taxes) ? null : str_true($taxes);
+		$taxes = is_null($taxes) ? self::_include_tax($O) : str_true($taxes);
 
 		if ('single' == $mode) {
 			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
@@ -1038,9 +1042,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			foreach ($O->prices as $pricetag) {
 				if ('variation' != $pricetag->context) continue;
 
-				if (is_null($taxes))
-					$taxrate = shopp_taxrate(null,$pricetag->tax);
-				else $taxrate = shopp_taxrate($taxes,$pricetag->tax);
+				$taxrate = shopp_taxrate($taxes,$pricetag->tax);
+				if ( ! $taxes ) $taxrate = 0;
 
 				$currently = str_true($pricetag->sale)?$pricetag->promoprice:$pricetag->price;
 				$disabled = str_true($pricetag->inventory) && $pricetag->stock == 0?' disabled="disabled"':'';
@@ -1063,9 +1066,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$baseop = shopp_setting('base_operations');
 			$precision = $baseop['currency']['format']['precision'];
 
-			if (is_null($taxes))
-				$taxrate = shopp_taxrate(null,true,$O);
-			else $taxrate = shopp_taxrate($taxes,true,$O);
+			$taxrate = shopp_taxrate($taxes,true,$O);
+			if ( ! $taxes ) $taxrate = 0;
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {
@@ -1143,6 +1145,10 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 		$string = ($min == $max)?round($min,3):round($range[0],3)." - ".round($range[1],3);
 		$string .= value_is_true($units) ? " $unit" : "";
 		return $string;
+	}
+
+	static function _include_tax ($O) {
+		return (shopp_setting_enabled('tax_inclusive') && !str_true($O->excludetax));
 	}
 
 }

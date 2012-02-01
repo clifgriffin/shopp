@@ -51,6 +51,7 @@ class Item {
 	var $shipped = false;		// Shipped flag when the item needs shipped
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $istaxed = false;		// Taxable setting of the selected price object
+	var $excludetax = false;	// Exclude tax in price renderings
 	var $freeshipping = false;	// Free shipping status of the selected price object
 	var $packaging = false;		// Should the item be packaged separately
 
@@ -137,6 +138,7 @@ class Item {
 		if (shopp_setting_enabled('taxes')) {
 			if (str_true($Price->tax)) $this->taxable[] = $baseprice;
 			$this->istaxed = ( $this->taxable > 0 );
+			if (isset($Product->excludetax)) $this->excludetax = str_true($Product->excludetax);
 		}
 
 		if ( 'Donation' == $this->type )
@@ -198,7 +200,6 @@ class Item {
 		}
 
 	}
-
 
 	/**
 	 * Validates the line item

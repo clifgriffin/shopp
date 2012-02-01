@@ -101,8 +101,7 @@ class ShoppCartItemThemeAPI {
 	static function discount ($result, $options, $O) { return (float) $O->discount; }
 
 	static function unitprice ($result, $options, $O) {
-		$taxes = isset( $options['taxes'] ) ? value_is_true( $options['taxes'] ) : null;
-		$taxes = shopp_taxrate( $taxes, $O->istaxed, $O ) > 0 ? true : false;
+		$taxes = isset( $options['taxes'] ) ? str_true( $options['taxes'] ) : self::_include_tax($O);
 		return (float) $O->unitprice + ( $taxes ? $O->unittax : 0 );
 	}
 
@@ -113,8 +112,7 @@ class ShoppCartItemThemeAPI {
 	static function tax ($result, $options, $O) { return (float) $O->tax; }
 
 	static function total ($result, $options, $O) {
-		$taxes = isset( $options['taxes'] ) ? value_is_true( $options['taxes'] ) : null;
-		$taxes = shopp_taxrate( $taxes, $O->istaxed, $O ) > 0 ? true : false;
+		$taxes = isset( $options['taxes'] ) ? str_true( $options['taxes'] ) : self::_include_tax($O);
 		return (float) $O->total + ( $taxes ? ( $O->unittax * $O->quantity ) : 0 );
 	}
 
@@ -379,6 +377,16 @@ class ShoppCartItemThemeAPI {
 			return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 		}
 	}
+
+	static function _include_tax ($O) {
+		return (
+			shopp_setting_enabled('tax_inclusive') &&
+			$O->istaxed &&
+			$O->unittax > 0 &&
+			!$O->excludetax
+		);
+	}
+
 }
 
 ?>

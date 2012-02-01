@@ -307,7 +307,7 @@ class Warehouse extends AdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate();
+		if (shopp_setting_enabled('tax_inclusive') && !$Product->excludetax) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
@@ -658,10 +658,6 @@ class Warehouse extends AdminController {
 
 		ShoppSettings()->saveform(); // Save workflow setting
 
-		// Get needed settings
-		$taxrate = 0;
-		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate(null,true,$Product);
-
 		// Set publish date
 		if ('publish' == $_POST['status']) {
 			$publishing = isset($_POST['publish'])?$_POST['publish']:array();
@@ -725,6 +721,11 @@ class Warehouse extends AdminController {
 		}
 
 		// Update Prices
+
+		$taxrate = 0;
+		$excludetax = isset($_POST['meta']['excludetax'])?str_true($_POST['meta']['excludetax']):false;
+		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate(null,true,$Product);
+
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
@@ -751,7 +752,7 @@ class Warehouse extends AdminController {
 				$priceline['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 
 				// Remove VAT amount to save in DB
-				if (shopp_setting_enabled('tax_inclusive') && isset($priceline['tax']) && $priceline['tax'] == "on") {
+				if (shopp_setting_enabled('tax_inclusive') && !$excludetax && isset($priceline['tax']) && str_true($priceline['tax'])) {
 					$priceline['price'] = (floatvalue($priceline['price'])/(1+$taxrate));
 					$priceline['saleprice'] = (floatvalue($priceline['saleprice'])/(1+$taxrate));
 				}
