@@ -435,31 +435,77 @@ class Item {
 	 **/
 	function recurrences () {
 		if (empty($this->option->recurring)) return;
+
+		// if free subscription, don't process as subscription
+		if ( 0 == $this->unitprice ) return;
+
 		extract($this->option->recurring);
 
-		$ps = Price::periods();
-		$periods = array();
-		foreach ($ps as $i => $p) {
-			$periods[$i] = array();
-			foreach ($p as $r) $periods[$i][$r['value']] = $r['label'];
-		}
+		$term_labels = array(
+			// _nx_noop( singular, plural, context)
+			'trial' => array(
+				'd' => _nx_noop("%s for the first day.",  "%s for the first %s days.", 		"Trial term label: '$10 for the first day.' or '$5 for the first 10 days.'"),
+				'w' => _nx_noop("%s for the first week.", "%s for the first %s weeks.", 	"Trial term label: '$10 for the first week.' or '$5 for the first 10 weeks.'"),
+				'm' => _nx_noop("%s for the first month.","%s for the first %s months.", 	"Trial term label: '$10 for the first month.' or '$5 for the first 10 months.'"),
+				'y' => _nx_noop("%s for the first year.", "%s for the first %s years.", 	"Trial term label: '$10 for the first year.' or '$5 for the first 10 years.'"),
+			),
+			'freetrial' => array(
+				'd' => _nx_noop("Free for the first day.",   "Free for the first %s days.",		"Free trial label."),
+				'w' => _nx_noop("Free for the first week.",  "Free for the first %s weeks.",	"Free trial label."),
+				'm' => _nx_noop("Free for the first month.", "Free for the first %s months.", 	"Free trial label."),
+				'y' => _nx_noop("Free for the first year.",  "Free for the first %s years.", 	"Free trial label."),
+			),
+			'aftertrial' => array(
+				'd' => _nx_noop("%s per day after the trial period.", "%s every %s days after the trial period.",		"Subscription term label: '$10 per day after the trial period.' or '$5 every 10 days after the trial period.'"),
+				'w' => _nx_noop("%s per week after the trial period.", "%s every %s weeks after the trial period.",		"Subscription term label: '$10 per week after the trial period.' or '$5 every 10 weeks after the trial period.'"),
+				'm' => _nx_noop("%s per month after the trial period.", "%s every %s months after the trial period.",	"Subscription term label: '$10 per month after the trial period.' or '$5 every 10 months after the trial period.'"),
+				'y' => _nx_noop("%s per year after the trial period.", "%s every %s years after the trial period.", 	"Subscription term label: '$10 per year after the trial period.' or '$5 every 10 years after the trial period.'"),
+			),
+			'period' => array(
+				'd' => _nx_noop("%s per day.", "%s every %s days.", 	"Subscription term label: '$10 per day.' or '$5 every 10 days.'"),
+				'w' => _nx_noop("%s per week.", "%s every %s weeks.", 	"Subscription term label: '$10 per week.' or '$5 every 10 weeks.'"),
+				'm' => _nx_noop("%s per month.", "%s every %s months.", "Subscription term label: '$10 per month.' or '$5 every 10 months.'"),
+				'y' => _nx_noop("%s per year.", "%s every %s years.", 	"Subscription term label: '$10 per year.' or '$5 every 10 years.'"),
+			),
+		);
 
-		$subscription = array();
+		$rebill_labels = array(
+			0 => __('Subscription rebilled unlimited times.', 'Shopp'),
+			1 => _n_noop('Subscription rebilled once.', 'Subscription rebilled %s times.'),
+		);
+
+		// Build Trial Label
 		if ( str_true($trial) ) {
-			$singular = (int)($trialint==1);
-			$periodLabel = $periods[$singular][$trialperiod];
-			$price = $trialprice > 0?money($trialprice):__('Free','Shopp');
-			$for = __('for','Shopp');
-			$subscription[] = "$price $for $trialint $periodLabel";
+			// pick untranlated label
+			$trial_label = ( $trialprice > 0 ? $term_labels['trial'][$trialperiod] : $term_labels['freetrial'][$trialperiod] );
+
+			// pick singular or plural translation
+			$trial_label = translate_nooped_plural($trial_label, $trialint, 'Shopp');
+
+			// string replacements
+			if ( $trialprice > 0 ) {
+				$trial_label = sprintf($trial_label, money($trialprice), $trialint);
+			} else {
+				$trial_label = sprintf($trial_label, $trialint);
+			}
+
+			$this->data[_x('Trial Period','Item trial period label','Shopp')] = $trial_label;
 		}
 
-		$singular = (int)($interval==1);
-		$periodLabel = $periods[$singular][$period];
-		$price = $this->unitprice > 0?money($this->unitprice):__('Free','Shopp');
-		$for = __('for','Shopp');
-		$subscription[] = "$price $for $interval $periodLabel";
+		// pick untranslated label
+		$normal = str_true($trial) ? 'aftertrial' : 'period';
+		$subscription_label = $term_labels[$normal][$period];
 
-		$this->data['Subscription'] = $subscription;
+		// pick singular or plural translation
+		$subscription_label = translate_nooped_plural($subscription_label, $interval);
+		$subscription_label = sprintf($subscription_label, money($this->unitprice), $interval);
+
+		// pick rebilling label and translate if plurals
+		$rebill_label = sprintf(translate_nooped_plural($rebill_labels[1], $cycles, 'Shopp'), $cycles);
+		if ( ! $cycles ) $rebill_label =  $rebill_labels[0];
+
+		$this->data[_x('Subscription','Subscription terms label','Shopp')] = array($subscription_label,$rebill_label);
+
 		$this->recurring = true;
 	}
 
@@ -552,6 +598,86 @@ class Item {
 
 		return $this->option->stock;
 	}
+
+	/**
+	 * is_recurring()
+	 *
+	 * Tests if the item is recurring
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true if recurring, false otherwise
+	 **/
+	function is_recurring () {
+		$recurring = ($this->recurring && ! empty($this->option) && ! empty($this->option->recurring));
+		return apply_filters('shopp_cartitem_recurring', $recurring, $this);
+	}
+
+	/**
+	 * has_trial()
+	 *
+	 * Tests if item is recurring and has a trial period
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return bool true if recurring and has trial, false otherwise
+	 **/
+	function has_trial () {
+		$trial = false;
+		if ( $this->is_recurring() && str_true($this->option->recurring['trial']) ) $trial = true;
+		return apply_filters('shopp_cartitem_hastrial', $trial, $this);
+	}
+
+	/**
+	 * trial()
+	 *
+	 * Gets the trial subscription settings for recurring items.
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return mixed false if no trial, array of trial interval (interval), trial period (period), and trial price (price) if set
+	 **/
+	function trial () {
+		$trial = false;
+
+		if ( $this->has_trial() ) {
+			$trial = array(
+				'interval' => $this->option->recurring['trialint'],
+				'period' => $this->option->recurring['trialperiod'],
+				'price' => $this->option->recurring['trialprice']
+			);
+		}
+
+		return apply_filters('shopp_cartitem_trial_settings', $trial, $this);
+	}
+
+	/**
+	 * recurring()
+	 *
+	 * Gets the recurring settings for a recurring item.
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @return mixed false if not a recurring item, array of interval (interval), period (period), and number of cycles (cycles) if set.
+	 **/
+	function recurring () {
+		$recurring = false;
+
+		if ( $this->is_recurring() ) {
+			$recurring = array(
+				'interval' => $this->option->recurring['interval'],
+				'period' => $this->option->recurring['period'],
+				'cycles' => $this->option->recurring['cycles']
+			);
+		}
+
+		return apply_filters('shopp_cartitem_recurring_settings', $recurring, $this);
+	}
+
 
 	/**
 	 * Match a rule to the item

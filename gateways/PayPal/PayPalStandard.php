@@ -441,9 +441,23 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Transaction
 		$_['currency_code']			= $this->settings['currency_code'];
 
-		if ($Order->Cart->recurring()) {
+		// Recurring Non-Free Item
+		if ( $Order->Cart->recurring() && $Order->Cart->recurring[0]->unitprice > 0 ) {
+			$tranges = array(
+				'D'=>array('min'=>1,'max'=>90),
+				'W'=>array('min'=>1,'max'=>52),
+				'M'=>array('min'=>1,'max'=>24),
+				'Y'=>array('min'=>1,'max'=>5),
+				);
 
 			$Item = $Order->Cart->recurring[0];
+
+			$recurring = $Item->recurring();
+			$recurring['period'] = strtoupper($recurring['period']);
+
+			//normalize recurring interval
+			$recurring['interval'] = min(max($recurring['interval'], $tranges[$recurring['period']]['min']), $tranges[$recurring['period']]['max']);
+
 			$_['cmd']	= '_xclick-subscriptions';
 			$_['rm']	= 2; // Return with transaction data
 
@@ -451,16 +465,25 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$_['item_name'] = $Item->name.((!empty($Item->option->label))?' ('.$Item->option->label.')':'');
 
 			// Trial pricing
-			$_['a1']	= number_format($Item->recurring['trialprice'],$this->precision);
-			$_['p1']	= $Item->option->recurring['trialint'];
-			$_['t1']	= strtoupper($Item->option->recurring['trialperiod']);
+			if ( $Item->has_trial() ) {
+				$trial = $Item->trial();
+				$trial['period'] = strtoupper($trial['period']);
 
+				// normalize trial interval
+				$trial['interval'] = min(max($trial['interval'], $tranges[$trial['period']]['min']), $tranges[$trial['period']]['max']);
+
+				$_['a1']	= number_format($trial['price'],$this->precision);
+				$_['p1']	= $trial['interval'];
+				$_['t1']	= $trial['period'];
+			}
 
 			$_['a3']	= number_format($Item->unitprice,$this->precision);
-			$_['p3']	= $Item->option->recurring['interval'];
-			$_['t3']	= strtoupper($Item->option->recurring['period']);
+			$_['p3']	= $recurring['interval'];
+			$_['t3']	= $recurring['period'];
 
 			$_['src']	= 1;
+
+			if ( $recurring['cycles'] ) $_['srt'] = (int) $recurring['cycles'];
 
 		} else {
 
