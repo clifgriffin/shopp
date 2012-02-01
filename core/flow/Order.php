@@ -1042,9 +1042,7 @@ class Order {
 
 	function validate () {
 		if (apply_filters('shopp_valid_order',$this->isvalid())) return true;
-		$Shopping = ShoppShopping();
-		$Shopping->save();
-		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
+		shopp_redirect( shoppurl(false,'checkout',$this->security()), true );
 	}
 
 	/**
@@ -1095,7 +1093,7 @@ class Order {
 
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
-		if (!empty($this->Cart->shipped) && !shopp_setting_enabled('shipping')) {
+		if ($this->Cart->shipped() && shopp_setting_enabled('shipping')) {
 			if (empty($Shipping->address))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
 			if (empty($Shipping->country))
@@ -1105,7 +1103,13 @@ class Order {
 
 			if ($Cart->freeshipping === false && $Cart->Totals->shipping === false) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
-				$message = __('The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again.', 'Shopp');
+
+				$message = __('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', 'Shopp');
+
+				global $Shopp;
+				if ($Shopp->Shipping->realtime)
+					$message = __('The order cannot be processed. The shipping rate service did not provide rates because of a problem and no other shipping is available to the address you provided. Please return to %scheckout%s and try again or contact the store administrator.', 'Shopp');
+
 				if (!$valid) new ShoppError( sprintf( $message,'<a href="'.shoppurl(false,'checkout',$this->security()).'">','</a>' ), 'invalid_order'.$errors++, ($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR)
 				);
 			}
