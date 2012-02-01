@@ -1167,15 +1167,15 @@ abstract class SessionObject {
 		if ($result = DB::query($query)) {
 			if (substr($result->data,0,1) == "!") {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
-				if (empty($key) && !is_ssl())
-					shopp_redirect(force_ssl(raw_request_url(),true));
+				if (empty($key) && !is_ssl()) shopp_redirect(force_ssl(raw_request_url(),true));
 				$readable = DB::query("SELECT AES_DECRYPT('".
 										mysql_real_escape_string(
 											base64_decode(
 												substr($result->data,1)
 											)
-										)."','$key') AS data");
-				$result->data = $readable->data;
+										)."','$key') AS data",'auto','col','data');
+				$result->data = $readable;
+
 			}
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
