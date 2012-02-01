@@ -186,6 +186,7 @@ class Setup extends AdminController {
 		$country = (isset($_POST['settings']) && isset($_POST['settings']['base_operations']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
 		$countrydata = Lookup::countries();
+		$country_zones = Lookup::country_zones();
 		foreach ($countrydata as $iso => $c) {
 			if ($country == $iso) $base_region = $c['region'];
 			$countries[$iso] = $c['name'];
@@ -231,7 +232,7 @@ class Setup extends AdminController {
 			if (isset($_POST['settings']['base_operations'])) {
 				$baseop = &$_POST['settings']['base_operations'];
 
-				$zone = isset($baseop['zone']) ? $baseop['zone']:false;
+				$zone = isset($baseop['zone']) && isset($country_zones[ $country ]) && isset($country_zones[ $country ][ $baseop['zone'] ]) ? $baseop['zone']:false;
 				if (isset($countrydata[$country])) $baseop = $countrydata[$country];
 				$baseop['country'] = $country;
 				$baseop['zone'] = $zone;
@@ -250,7 +251,6 @@ class Setup extends AdminController {
 		}
 
 		$operations = shopp_setting('base_operations');
-		$country_zones = Lookup::country_zones();
 		if (isset($country_zones[ $operations['country'] ]))
 			$zones = $country_zones[ $operations['country'] ];
 

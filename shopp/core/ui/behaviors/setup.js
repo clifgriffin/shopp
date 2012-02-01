@@ -60,20 +60,19 @@ jQuery(document).ready(function ($) {
 
 	baseop.change(function() {
 		if (baseop.val() == '') {
-			baseopZone.hide();
+			baseopZone.hide().attr('disabled',true);
 			return true;
 		}
 
 		$.getJSON(zones_url+'&action=shopp_country_zones&country='+baseop.val(),
 			function(data) {
-				baseopZone.hide();
-				baseopZone.empty();
+				baseopZone.hide().empty().attr('disabled',true);;
 				if (!data) return true;
 
 				$.each(data, function(value,label) {
 					option = $('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
 				});
-				baseopZone.show();
+				baseopZone.show().removeAttr('disabled');
 
 		});
 	});

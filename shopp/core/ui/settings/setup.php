@@ -30,11 +30,9 @@
 					<option value="">&nbsp;</option>
 						<?php echo menuoptions($countries,$operations['country'],true); ?>
 					</select>
-					<?php if (isset($zones)): ?>
-					<select name="settings[base_operations][zone]" id="base_operations_zone">
+					<select name="settings[base_operations][zone]" id="base_operations_zone"<?php if (!isset($zones)): ?>disabled="disabled" class="hide-if-no-js"<?php endif; ?>>
 						<?php echo menuoptions($zones,$operations['zone'],true); ?>
 					</select>
-					<?php endif; ?>
 					<br />
 	            	<?php _e('Select your primary business location.','Shopp'); ?><br />
 					<?php if (!empty($operations['country'])): ?>
