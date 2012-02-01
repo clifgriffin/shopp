@@ -149,7 +149,7 @@ class ContentIndex extends DatabaseObject {
 	 *
 	 * @return void Description...
 	 **/
-	function save ($content) {
+	function save () {
 		if (empty($this->product) || empty($this->type) || empty($content))
 			return false;
 
