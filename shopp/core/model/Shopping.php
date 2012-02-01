@@ -48,7 +48,8 @@ class Shopping extends SessionObject {
 		parent::__construct();
 
 		// Queue the session to start
-		add_action('init',array(&$this,'init'));
+		// prioritize really early (before errors priority 5)
+		add_action('init',array($this,'init'),2);
 	}
 
 	public static function instance () {
@@ -194,6 +195,7 @@ class ShoppingObject {
 		$Shopping = ShoppShopping();
 		if (isset($Shopping->data->{$property}))	// Restore the data
 			$data = $Shopping->data->{$property};
+
 		$Shopping->data->{$property} = &$data;	// Keep a reference
 	}
 
