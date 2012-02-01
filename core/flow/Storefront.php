@@ -244,6 +244,13 @@ class Storefront extends FlowController {
 	}
 
 	function loaded ($wp) {
+
+		if (!is_cart_page()) { // Track referrer for the cart referrer URL
+			$referrer = get_bloginfo('url')."/".$wp->request;
+			if (!empty($_GET)) $referrer = add_query_arg($_GET,$referrer);
+			$this->referrer = user_trailingslashit($referrer);
+		}
+
 		if (! (is_single() && get_query_var('post_type') == Product::$posttype)) return;
 
 		global $wp_query;
@@ -258,6 +265,7 @@ class Storefront extends FlowController {
 			$this->viewed = array_slice($this->viewed,0,
 				apply_filters('shopp_recently_viewed_limit',25));
 		}
+
 	}
 
 	function collection ($template) {
@@ -834,10 +842,6 @@ class Storefront extends FlowController {
 	function catalog_page () {
 		global $Shopp,$wp,$wp_query;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
-
-		// $referrer = get_bloginfo('url')."/".$wp->request;
-		// if (!empty($wp->query_vars)) $referrer = add_query_arg($wp->query_vars,$referrer);
-		// $this->referrer = $referrer;
 
 		ob_start();
 		locate_shopp_template(array('catalog.php'),true);
