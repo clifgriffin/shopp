@@ -12,8 +12,6 @@
 ?>
 <p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 
-<?php shopp('purchase','id'); ?>
-
 <?php if (shopp('purchase','get-id')): ?>
 	<?php shopp('purchase','receipt'); ?>
 <?php return; endif; ?>
