@@ -904,6 +904,7 @@ class Storefront extends FlowController {
 		$Cart = $Order->Cart;
 
 		ob_start();
+		if (ShoppErrors()->exist(SHOPP_COMM_ERR)) locate_shopp_template(array('errors.php'),true);
 		locate_shopp_template(array('cart.php'),true);
 		$content = ob_get_contents();
 		ob_end_clean();
