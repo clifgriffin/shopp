@@ -28,7 +28,7 @@ class Categorize extends AdminController {
 		ShoppingObject::store('worklist',$this->worklist);
 
 		if ('shopp-tags' == $_GET['page']) {
-			wp_redirect(add_query_arg(array('taxonomy'=>ProductTag::$taxonomy),admin_url('edit-tags.php')));
+			wp_redirect(add_query_arg(array('taxonomy'=>ProductTag::$taxon),admin_url('edit-tags.php')));
 			return;
 		}
 

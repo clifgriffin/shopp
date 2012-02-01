@@ -249,7 +249,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			}
 			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
 		} elseif (is_shopp_product()) {
-			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxonomy);
+			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxon);
 			if ( $categories ) {
 				$term = array_shift($categories);
 				$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
@@ -257,7 +257,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
 		}
 
-		$last = end(array_keys($breadcrumb));
+		$names = array_keys($breadcrumb);
+		$last = end($names);
 		$trail = '';
 		foreach ($breadcrumb as $name => $link)
 			$trail .= sprintf(($last == $name?$list:$linked),$name,(empty($trail)?'':$separator),$link);
@@ -780,9 +781,10 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if ($Shopp->Product) $RequestedProduct = $Shopp->Product;
 			if (empty($options['category'])) return false;
 
-			if (in_array($options['category'],array_keys($Shopp->Collections)))
-				ShoppCollection( Catalog::load_collection($options['category'],$options) );
-			else ShoppCollection( new ProductCategory($options['category'],'name') );
+			if ( in_array($options['category'],array_keys($Shopp->Collections)) ) {
+				$Category = Catalog::load_collection($options['category'],$options);
+				ShoppCollection($Category);
+			} else ShoppCollection( new ProductCategory($options['category'],'name') );
 
 			if (isset($options['load'])) return true;
 
@@ -825,7 +827,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$tags = get_terms( ProductTag::$taxonomy, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
+		$tags = get_terms( ProductTag::$taxon, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
 
 		if (empty($tags)) return false;
 
@@ -835,7 +837,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$max = !$max?$tag->count:max($max,$tag->count);
 
 			$link_function = ('edit' == $link?'get_edit_tag_link':'get_term_link');
-			$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxonomy);
+			$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxon);
 		}
 
 		// Sorting

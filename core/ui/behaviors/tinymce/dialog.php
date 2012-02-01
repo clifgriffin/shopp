@@ -29,7 +29,7 @@
 		<table border="0" cellpadding="4" cellspacing="0">
 		<tr>
 		<th nowrap="nowrap"><label for="category-menu"><?php _e('Category', 'Shopp'); ?></label></th>
-		<td><?php wp_dropdown_categories( array( 'id' => 'category-menu','taxonomy' => ProductCategory::$taxonomy, 'hide_empty' => 0, 'name' => ProductCategory::$taxonomy, 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => __('Select a category&hellip;','Shopp'), 'tab_index' => 1 ) ); ?></td>
+		<td><?php wp_dropdown_categories( array( 'id' => 'category-menu','taxonomy' => ProductCategory::$taxon, 'hide_empty' => 0, 'name' => ProductCategory::$taxon, 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => __('Select a category&hellip;','Shopp'), 'tab_index' => 1 ) ); ?></td>
 		</tr>
 		<tr id="product-selector">
 		<th nowrap="nowrap"><label for="product-menu"><?php _e('Product', 'Shopp'); ?></label></th>

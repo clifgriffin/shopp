@@ -856,7 +856,7 @@ function shopp_product_addon_options ( $product = false ) {
  * @return bool true for success, false otherwise
  **/
 function shopp_product_add_categories ( $product = false, $categories = array() ) {
-	return shopp_product_add_terms( $product, $categories, ProductCategory::$taxonomy );
+	return shopp_product_add_terms( $product, $categories, ProductCategory::$taxon );
 }
 
 /**
@@ -870,7 +870,7 @@ function shopp_product_add_categories ( $product = false, $categories = array() 
  * @return bool true for success, false otherwise
  **/
 function shopp_product_add_tags ( $product = false, $tags = array() ) {
-	return shopp_product_add_terms( $product, $tags, ProductTag::$taxonomy );
+	return shopp_product_add_terms( $product, $tags, ProductTag::$taxon );
 }
 
 /**
