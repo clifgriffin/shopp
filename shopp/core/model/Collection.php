@@ -616,7 +616,7 @@ class ProductTaxonomy extends ProductCollection {
 
 	}
 
-	function tree ($taxonomy,$terms,&$children,&$count,&$results = array(),$page=1,$per_page=0,$parent=0,$level=0) {
+	static function tree ($taxonomy,$terms,&$children,&$count,&$results = array(),$page=1,$per_page=0,$parent=0,$level=0) {
 
 		$start = ($page - 1) * $per_page;
 		$end = $start + $per_page;
