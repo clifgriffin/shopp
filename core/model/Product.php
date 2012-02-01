@@ -36,6 +36,7 @@ class Product extends WPShoppObject {
 	var $min = array();
 	var $sale = false;
 	var $outofstock = false;
+	var $excludetax = false;
 	var $variants = 'off';
 	var $addons = 'off';
 	var $freeship = 'off';
@@ -135,9 +136,9 @@ class Product extends WPShoppObject {
 		$loaders = array(
 		//  'name'      'callback_method'
 			'summary' 	 => 'load_summary',
+			'meta' 		 => 'load_meta',
 			'prices' 	 => 'load_prices',
 			'specs' 	 => 'load_meta',
-			'meta' 		 => 'load_meta',
 			'images' 	 => 'load_meta',
 			'coverimages'=> 'load_coverimages',
 			'categories' => 'load_taxonomies',
@@ -152,7 +153,7 @@ class Product extends WPShoppObject {
 		if (!empty($products) ) {
 			$ids = join(',',array_keys($products));
 			$this->products = &$products;
-		} else $ids = $this->id;	// @todo Undefined property Product::$id in context of the shopp_themeapi_collection_hasproducts handler (ShoppCollectionThemeAPI::load_products)
+		} else $ids = $this->id;
 
 		if ( empty($ids) ) return;
 
@@ -536,8 +537,8 @@ class Product extends WPShoppObject {
 		$target->priceid[$price->id] = $price;
 
 		if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-		if ( isset($options['taxes']) && value_is_true($options['taxes']) && $price->tax == "on" ) {
-			if ( shopp_setting_enabled('tax_inclusive') ) {
+		if ( isset($options['taxes']) && str_true($options['taxes']) && str_true($price->tax) ) {
+			if ( shopp_setting_enabled('tax_inclusive') && !str_true($target->excludetax)) {
 				$Taxes = new CartTax();
 				$taxrate = $Taxes->rate($target);
 				$price->price += $price->price*$taxrate;

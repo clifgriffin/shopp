@@ -1818,14 +1818,13 @@ function shopp_safe_redirect($location, $status = 302) {
  * @return float The determined tax rate
  **/
 function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
-	$inclusive = shopp_setting_enabled('tax_inclusive');
+	$Taxes = new CartTax();
 	$rated = false;
 	$taxrate = 0;
-	$Taxes = new CartTax();
 
-	if ($inclusive) $rated = true;
-	if (!is_null($override)) $rated = $override;
-	if (!value_is_true($taxprice)) $rated = false;
+	if ( shopp_setting_enabled('tax_inclusive') ) $rated = true;
+	if ( ! is_null($override) ) $rated = $override;
+	if ( ! str_true($taxprice) ) $rated = false;
 
 	if ($rated) $taxrate = $Taxes->rate($Item);
 	return $taxrate;
