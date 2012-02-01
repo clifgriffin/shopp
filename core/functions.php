@@ -1197,8 +1197,10 @@ function percentage ($amount,$format=false) {
 	extract($format,EXTR_SKIP);
 	$float = floatvalue($amount,true,$format);
 	$percent = numeric_format($float, $precision, $decimals, $thousands, $grouping);
-	$percent = rtrim($percent,'0');
-	$percent = rtrim($percent, $decimals);
+	if (strpos($percent,$decimals) !== false) { // Only remove trailing 0's after the decimal
+		$percent = rtrim($percent,'0');
+		$percent = rtrim($percent, $decimals);
+	}
 	return "$percent%";
 }
 
