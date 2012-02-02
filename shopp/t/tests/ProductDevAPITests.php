@@ -386,6 +386,40 @@ class ProductDevAPITests extends ShoppTestCase
 		$this->AssertEquals($term, $Product->shopp_brands[$term1]->parent);
 	}
 
+	function test_shopp_product_add_terms_1485 () {
+		$pid = shopp_product("St. John's Bay® Color Block Windbreaker", 'name')->id;
+
+		$args = array(
+			'type'			=> 'post',
+			'child_of'		=> 0,
+			'parent'		=> '',
+			'orderby'		=> 'name',
+			'order'			=> 'ASC',
+			'hide_empty'	=> 0,
+			'hierarchical'	=> 0,
+			'exclude'		=> '',
+			'include'		=> '',
+			'number'		=> '',
+			'taxonomy'		=> 'shopp_category',
+			'pad_counts'	=> false
+		);
+		$categories = get_categories($args);
+
+		$terms = array();
+		foreach ( $categories as $category ) {
+			$terms[] = $category->term_id;
+		}
+
+		$this->AssertTrue(shopp_product_add_terms($pid, $terms, 'shopp_category', false));
+		$expected = array();
+		foreach ( shopp_product("St. John's Bay® Color Block Windbreaker", 'name')->categories as $category ) {
+			$expected[] = $category->id;
+		}
+
+		$compare = array_diff($terms, $expected);
+		$this->AssertTrue( empty( $compare ) );
+	}
+
 	function test_shopp_product_set_variant () {
 		global $lastpid;
 		// Create new product for subscription
