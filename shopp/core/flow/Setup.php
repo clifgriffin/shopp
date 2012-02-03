@@ -113,12 +113,14 @@ class Setup extends AdminController {
 				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
 
 				$this->keystatus = array(
-					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="'.SHOPP_HOME.'store/'.'">','</a>'),
-					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'),
-					'ks_1' => __('An unkown error occurred.','Shopp'),
-					'ks0' => __('This site has been deactivated.','Shopp'),
-					'ks1' => __('This site has been activated.','Shopp'),
-					'ks_100' => __('An unknown activation error occurred.','Shopp').$customer_service,
+					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="'.SHOPP_HOME.'store/'.'">','</a>'), // No key is activated yet
+					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'), 		// Cannot communicate with the server, config?, firewall?
+					'k_001' => __('The server is experiencing problems.','Shopp').$customer_service,			// The server did not provide a valid response? Uncovered maintenance?
+					'ks_1' => __('An unkown error occurred.','Shopp'),											// Absolutely no clue what happened
+					'ks_2' => __('The activation server is currently down for maintenance.','Shopp'),			// The server is giving a maintenance code
+					'ks0' => __('This site has been deactivated.','Shopp'),										// Successful deactivation
+					'ks1' => __('This site has been activated.','Shopp'),										// Successful activation
+					'ks_100' => __('An unknown activation error occurred.','Shopp').$customer_service,			// Unknown activation problem
 					'ks_101' => __('The key provided is not valid.','Shopp').$customer_service,
 					'ks_102' => __('This site is not valid to activate the key.','Shopp').$customer_service,
 					'ks_103' => __('The key provided could not be validated by shopplugin.net.','Shopp').$customer_service,
