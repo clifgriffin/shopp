@@ -22,7 +22,7 @@ jQuery(document).ready(function ($) {
 				code = (response instanceof Array)?response[0]:false,
 				key = (response instanceof Array)?response[1]:false,
 				type = (response instanceof Array)?response[2]:false;
-				response = null;
+
 			if (!response || code === false) {
 				button.attr('disabled',true);
 				activationStatus.html($sl['k_001']).addClass('activating').show();
