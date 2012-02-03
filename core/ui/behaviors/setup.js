@@ -20,12 +20,13 @@ jQuery(document).ready(function ($) {
 			var button = activationButton.attr('disabled',false).removeClass('updating'),
 				keyin = $('#update-key'),
 				code = (response instanceof Array)?response[0]:false,
-				key = (response instanceof Array)?response[1]:false;
+				key = (response instanceof Array)?response[1]:false,
 				type = (response instanceof Array)?response[2]:false;
-
-			if (code === false) {
+				response = null;
+			if (!response || code === false) {
 				button.attr('disabled',true);
-				return activationStatus.html($sl['ks_000']).addClass('activating').show();
+				activationStatus.html($sl['k_001']).addClass('activating').show();
+				return;
 			}
 
 			if (button.hasClass('deactivation')) button.html($sl.deactivate_button);
@@ -46,8 +47,7 @@ jQuery(document).ready(function ($) {
 				if (code != '0' && code != '1') activationStatus.addClass('activating');
 				else activationStatus.removeClass('activating');
 				code = 'ks'+code.toString().replace(/\-/,'_');
-				status = $('<div/>').html($sl[code]).text();
-				activationStatus.html(status).show();
+				activationStatus.html($sl[code]?$sl[code]:'A problem with your WordPress install causing problems with activation/deactivation.').show();
 			} else activationStatus.addClass('activating').show();
 
 		};
