@@ -224,7 +224,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_function_tag () {
-		new ShoppError('Error');
+
 		ob_start();
 		shopp('cart','function');
 		$actual = ob_get_contents();
@@ -242,14 +242,6 @@ class CartAPITests extends ShoppTestCase {
 		);
 		$this->assertTag($expected,$actual,'',true);
 
-		$expected = array(
-			'tag' => 'ul',
-			'child' => array(
-				'tag' => 'li',
-				'content' => 'Error'
-			)
-		);
-		$this->assertTag($expected,$actual,"$actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
