@@ -223,9 +223,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		if (!empty($options['before'])) $string = $options['before'];
 
 		switch($discount->type) {
-			case "Free Shipping": $string .= money($discount->freeshipping).$options['label']; break;
-			case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
-			case "Amount Off": $string .= money($discount->discount).$options['label']; break;
+			case "Free Shipping": $string .= money((float)$discount->freeshipping).$options['label']; break;
+			case "Percentage Off": $string .= percentage((float)$discount->discount,array('precision' => 0)).$options['label']; break;
+			case "Amount Off": $string .= money((float)$discount->discount).$options['label']; break;
 			case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
 		}
 		if (!empty($options['after'])) $string .= $options['after'];
