@@ -198,6 +198,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		$Paymethod = $this->Order->paymethod();
+		$Billing = $this->Order->Billing;
+
 		$message = array(
 			'txnid' => $this->response->txnid,						// Transaction ID
 			'amount' => $this->response->amount,					// Gross amount authorized
