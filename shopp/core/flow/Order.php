@@ -512,6 +512,12 @@ class Order {
 	 * @return void
 	 **/
 	function captured ($Event) {
+
+		if ('authed' == $Event->name) {
+			if (!isset($Event->capture)) return;
+			if (!$Event->capture) return;
+		}
+
 		shopp_add_order_event($Event->order,'captured',array(
 			'txnid' => $Event->txnid,				// Can be either the original transaction ID or an ID for this transaction
 			'amount' => $Event->amount,				// Capture of entire order amount
@@ -521,7 +527,7 @@ class Order {
 	}
 
 	/**
-	 * Order processing decides the type of request to make
+	 * Order processing decides the type of transaction processing request to make
 	 *
 	 * Decides with operation to request:
 	 * Authorization - Get authorization to charge the order amount with the payment method provided
@@ -558,6 +564,14 @@ class Order {
 
 	}
 
+	/**
+	 * Sets up order events for Auth-only transaction processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function auth ($Purchase) {
 
 		add_action('shopp_authed_order_event',array($this,'notify'));
@@ -571,6 +585,14 @@ class Order {
 
 	}
 
+	/**
+	 * Sets up order events for Auth-Capture "Sale" transaction processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function sale ($Purchase) {
 
 		add_action('shopp_authed_order_event',array($this,'captured'));
@@ -637,14 +659,14 @@ class Order {
 
 		if (empty($this->inprogress)) {
 			$Purchase = new Purchase();	// Create a new order
-			if ( isset($Event->txnid) ) {
-				$Purchase->txnid = $this->txnid = $Event->txnid;
-			}
 		} else { // Handle updates to an existing order from checkout reprocessing
 			$updates = true;
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
 			else $Purchase = new Purchase($this->inprogress);
 		}
+
+		// Capture early event transaction IDs
+		if ( isset($Event->txnid) ) $Purchase->txnid = $this->txnid = $Event->txnid;
 
 		$Purchase->copydata($this);
 		$Purchase->copydata($this->Customer);
@@ -668,11 +690,13 @@ class Order {
 			return $this->process($Purchase);
 		}
 
+		// Catch Purchase record save errors
 		if (empty($Purchase->id)) {
 			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
 			return;
 		}
 
+		// Build purchased records from cart items
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
 			$Purchased->purchase = $Purchase->id;
@@ -681,15 +705,25 @@ class Order {
 			if ($Item->inventory) $Item->unstock();
 		}
 
-		$this->inprogress = $Purchase->id;
+		$this->purchase = false; 			// Clear last purchase in prep for new purchase
+		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
 		ShoppPurchase( $Purchase );
 
 		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 
+		// Start the transaction processing events
 		do_action('shopp_purchase_order_created',$Purchase);
 
 	}
 
+	/**
+	 * Creates a customer record (and WordPress user) and attaches the order to it
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function accounts ($Event) {
 
 		// WordPress account integration used, customer has no wp user
