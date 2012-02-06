@@ -652,10 +652,22 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
+	/**
+	 * Loads the change log for an available update
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function changelog () {
-		if($_REQUEST["plugin"] != "shopp") return;
+		if ('shopp' != $_REQUEST['plugin']) return;
 
-		$request = array("ShoppServerRequest" => "changelog");
+		$request = array('ShoppServerRequest' => 'changelog');
+		if (isset($_GET['core']) && !empty($_GET['core']))
+			$request['core'] = $_GET['core'];
+		if (isset($_GET['addon']) && !empty($_GET['addon']))
+			$request['addons'] = $_GET['addon'];
 		$data = array();
 		$response = $this->callhome($request,$data);
 
@@ -696,7 +708,7 @@ class Shopp {
 				&& isset($core->new_version)	// New version info available
 				&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
 			) {
-			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . esc_url($core->slug) . '&TB_iframe=true&width=600&height=800');
+			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin='.($core->slug).'&core='.($core->new_version).'&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
 			if (!$activated) { // Key not active
@@ -722,12 +734,13 @@ class Shopp {
 			return;
 		}
 
-        if ($addons) {
+     if ($addons) {
 			// Addon update messages
 			foreach ($addons as $addon) {
+				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
 				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
-				$message = sprintf(__('There is a new version of the %1$s add-on available. %3$s Upgrade automatically to version %2$s. %4$s','Shopp'),
-								esc_html($addon->name),esc_html($addon->new_version),'<a href="'.esc_url($update_url).'">','</a>');
+				$message = sprintf(__('There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.','Shopp'),
+						esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version) );
 
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
