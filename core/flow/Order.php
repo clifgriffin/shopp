@@ -819,19 +819,14 @@ class Order {
 	 * @return true
 	 **/
 	function transaction ($id,$status='PENDING',$fees=0) {
+		global $Shopp;
 		$this->txnid = $id;
 		$this->txnstatus = $status;
 		$this->fees = $fees;
 
-		$Order = ShoppOrder();
-		if (empty($id)) return new ShoppError(sprintf('Order failure. %s did not provide a transaction ID.',$Order->processor()),'shopp_order_transaction',SHOPP_DEBUG_ERR);
-
-		$OrderTotals = $Order->Cart->Totals;
-		$paymethod = $Order->payoptions[$Order->paymethod]->label;
-		$paytype = $Order->Billing->cardtype;
-		$payid = $Order->Billing->card;
-
 		$Purchase = new Purchase($id,'txnid');
+		$processor = ShoppOrder()->processor();
+		$Gateway = $Shopp->Gateways->active[ $processor ];
 
 		$type = false;
 		switch ($status) {
@@ -839,40 +834,30 @@ class Order {
 			case 'VOID':	if (!$type) $type = 'voided';
 			case 'REFUND':	if (!$type) $type = 'refunded';
 
-				if (empty($Purchase->id)) {
-					shopp_add_order_event(false,'authed',array(
-						'txnid' => $id,
-						'amount' => (float)$OrderTotals->total,
-						'fees' => (float)$fees,
-						'gateway' => $Order->processor(),
-						'paymethod' => $paymethod,
-						'paytype' => $paytype,
-						'payid' => $payid
-					));
-					$Purchase = new Purchase($id,'txnid');
-				}
+				// Force Sale (auth-capture) processing for 1.1 transaction model compatibility
+				add_action('shopp_purchase_order_processing',create_function('$p','return "sale";'));
+
+				add_action('shopp_sale_order_event',array($Gateway,'process'));
+
+				if (empty($Purchase->id)) return $this->submit();
 
 				shopp_add_order_event($Purchase->id,$type,array(
-					'txnid' => $id,								// Can be either the original transaction ID or an ID for this transaction
-					'amount' => $Purchase->total,				// Capture of entire order amount (limitation of 1.1 payment gateways)
-					'gateway' => $Order->processor()			// Gateway handler name (module name from @subpackage)
+					'txnid' => $this->txnid,			// Transaction ID of the CAPTURE event
+					'amount' => $Purchase->total,		// Amount captured
+					'fees' => $this->fees,				// Transaction fees taken by the gateway net revenue = amount-fees
+					'gateway' => $Purchase->gateway		// Gateway handler name (module name from @subpackage)
 				));
 				break;
 
 			case 'PENDING':
 			default:
-				shopp_add_order_event(false,'authed',array(
-					'txnid' => $id,
-					'amount' => $OrderTotals->total,
-					'fees' => $fees,
-					'gateway' => $Order->processor(),
-					'paymethod' => $paymethod,
-					'paytype' => $paytype,
-					'payid' => $payid
-				));
+				// Force Authorization-only processing for PENDING status orders
+				add_action('shopp_purchase_order_processing',create_function('$p','return "auth";'));
+				add_action('shopp_sale_order_event',array($Gateway,'process'));
 		}
 
 	}
+
 
 	/**
 	 * Send out new order notifications
