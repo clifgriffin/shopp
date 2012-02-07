@@ -1005,7 +1005,7 @@ class Storefront extends FlowController {
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
-	function account_page ($request=false) {
+	function account_page ($content,$request=false) {
 
 		$download_request = get_query_var('s_dl');
 		if (!$request) $request = $this->account['request'];
@@ -1014,8 +1014,11 @@ class Storefront extends FlowController {
 		if ('login' == $request || !ShoppCustomer()->logged_in()) $templates = array('login-'.$request.'.php','login.php');
 		else do_action('shopp_account_management');
 
+
+
 		ob_start();
-		if (!empty($download_request)) locate_shopp_template(array('errors.php'),true);
+		if (apply_filters('shopp_show_account_errors',true) && ShoppErrors()->exist(SHOPP_AUTH_ERR))
+			locate_shopp_template(array('account-errors.php','errors.php'),true);
 		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();

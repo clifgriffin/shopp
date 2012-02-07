@@ -10,8 +10,6 @@
  **
  **/
 ?>
-<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
-
 <ul class="shopp account">
 <?php while (shopp('storefront','account-menu')): ?>
 	<li>

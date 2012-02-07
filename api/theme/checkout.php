@@ -564,20 +564,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function error ($result, $options, $O) {
-		$Errors = &ShoppErrors();
-		if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
-		$errors = $Errors->get(SHOPP_COMM_ERR);
-		$defaults = array(
-			'before' => '<li>',
-			'after' => '</li>'
-		);
-		$options = array_merge($defaults,$options);
-		extract($options);
-
-		$result = "";
-		foreach ( (array) $errors as $error )
-			if ( is_a($error, 'ShoppError') && ! $error->blank() ) $result .= $before.$error->message(true).$after;
-		return $result;
+		return ShoppCatalogThemeAPI::errors($result,$options,$O);
 	}
 
 	static function first_name ($result, $options, $O) {

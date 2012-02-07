@@ -22,6 +22,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		'collection' => 'category',
 		'categorylist' => 'category_list',
 		'display' => 'type',
+		'errors' => 'errors',
 		'type' => 'type',
 		'hascategories' => 'has_categories',
 		'isaccount' => 'is_account',
@@ -497,6 +498,23 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		}
 		return $string;
 		break;
+	}
+
+	static function errors ($result, $options, $O) {
+		$Errors = ShoppErrors();
+		if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
+		$errors = $Errors->get(SHOPP_COMM_ERR);
+		$defaults = array(
+			'before' => '<li>',
+			'after' => '</li>'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+
+		$result = "";
+		foreach ( (array) $errors as $error )
+			if ( is_a($error, 'ShoppError') && ! $error->blank() ) $result .= $before.$error->message(true).$after;
+		return $result;
 	}
 
 	static function type ($result, $options, $O) { return $O->type; }
