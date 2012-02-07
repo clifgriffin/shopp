@@ -12,7 +12,6 @@
 ?>
 <form action="<?php shopp('customer','action'); ?>" method="post" class="shopp validate" autocomplete="off">
 
-	<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
 	<?php if(shopp('customer','password-changed')): ?>
 	<div class="notice"><?php _e('Your password has been changed successfully.','Shopp'); ?></div>
 	<?php endif; ?>

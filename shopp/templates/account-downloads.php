@@ -10,8 +10,6 @@
  **
  **/
 ?>
-Errors: <?php shopp('customer','errors'); ?>
-
 <h3><?php _e('Downloads','Shopp'); ?></h3>
 
 <p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>

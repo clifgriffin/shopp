@@ -40,7 +40,7 @@ class ShoppAccountWidget extends WP_Widget {
 		remove_filter('shopp_show_account_errors',array(&$this,'showerrors'));
 
 		$Storefront = ShoppStorefront();
-		$menu = $Storefront->account_page('menu');
+		$menu = $Storefront->account_page('','menu');
 		echo $before_widget.$title.$menu.$after_widget;
 
     }
