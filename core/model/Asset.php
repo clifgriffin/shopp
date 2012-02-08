@@ -864,7 +864,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 
 
 // Prevent loading image setting classes when run in image server script context
-if ( !class_exists('RegistryFramework') ) return;
+if ( !class_exists('RegistryManager') ) return;
 
 class ImageSetting extends MetaObject {
 
