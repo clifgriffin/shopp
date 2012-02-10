@@ -348,6 +348,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	static function has_images ($result, $options, $O) {
+		if ( ! is_a($O, 'ProductCategory') ) return false;
 		if (empty($O->images)) $O->load_images();
 		if (empty($O->images)) return false;
 		return true;
