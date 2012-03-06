@@ -926,6 +926,10 @@ class Warehouse extends AdminController {
 			$File->name = $File->filename = $filetype['proper_filename'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
+
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message()) ) );
+
 		$File->save();
 
 		do_action('add_product_download',$File,$_FILES['Filedata']);
@@ -984,6 +988,9 @@ class Warehouse extends AdminController {
 		if ( ! $Image->unique() ) die(json_encode(array("error" => __('The image already exists, but a new filename could not be generated.','Shopp'))));
 
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message()) ) );
+
 		$Image->save();
 
 		if (empty($Image->id))
