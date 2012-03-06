@@ -928,7 +928,7 @@ class Warehouse extends AdminController {
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
 
 		$Error = ShoppErrors()->code('storage_engine_save');
-		if (!empty($Error)) die( json_encode( array('error' => $Error->message()) ) );
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
 
 		$File->save();
 
@@ -989,7 +989,7 @@ class Warehouse extends AdminController {
 
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
 		$Error = ShoppErrors()->code('storage_engine_save');
-		if (!empty($Error)) die( json_encode( array('error' => $Error->message()) ) );
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
 
 		$Image->save();
 
