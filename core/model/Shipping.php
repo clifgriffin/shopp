@@ -585,7 +585,7 @@ abstract class ShippingFramework {
 
 					// Match wildcard postcode patterns
 					if (strpos($coderule,'*') !== false) {
-						$pattern = str_replace('*','\d+?',$coderule);
+						$pattern = trim(str_replace('*','(.+?)',$coderule));
 						if (preg_match("/$pattern/i",$match['postcode']))
 							unset($d['postcode']); // Clear exception for match
 						continue;
