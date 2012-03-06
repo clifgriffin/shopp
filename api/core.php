@@ -121,10 +121,11 @@ function &ShoppOrder ( &$Object = false ) {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the catalog landing page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_catalog_page () {
-	return is_shopp_page('catalog');
+function is_catalog_page ( $wp_query = false ) {
+	return is_shopp_page('catalog', $wp_query);
 }
 
 /**
@@ -133,10 +134,12 @@ function is_catalog_page () {
  * @author Jonathan Davis
  * @since 1.2
  *
- * @return bool true if the current page request is the catalog landing page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_catalog_frontpage () {
-	return is_shopp_page('catalog') && !( is_shopp_taxonomy() || is_shopp_product() || is_shopp_collection() );
+function is_catalog_frontpage ( $wp_query = false ) {
+	if ( false === $wp_query ) global $wp_query;
+	return is_shopp_page('catalog', $wp_query) && !( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
 }
 
 /**
@@ -145,10 +148,11 @@ function is_catalog_frontpage () {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the account page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_account_page () {
-	return is_shopp_page('account');
+function is_account_page ( $wp_query = false ) {
+	return is_shopp_page('account', $wp_query);
 }
 
 /**
@@ -157,10 +161,11 @@ function is_account_page () {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the cart page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_cart_page () {
-	return is_shopp_page('cart');
+function is_cart_page ( $wp_query = false ) {
+	return is_shopp_page('cart', $wp_query);
 }
 
 /**
@@ -169,10 +174,11 @@ function is_cart_page () {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the checkout page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_checkout_page () {
-	return is_shopp_page('checkout');
+function is_checkout_page ( $wp_query = false ) {
+	return is_shopp_page('checkout', $wp_query);
 }
 
 /**
@@ -181,10 +187,11 @@ function is_checkout_page () {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the confirm order page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_confirm_page () {
-	return is_shopp_page('confirm');
+function is_confirm_page ( $wp_query = false ) {
+	return is_shopp_page('confirm', $wp_query);
 }
 
 /**
@@ -193,10 +200,11 @@ function is_confirm_page () {
  * @author John Dillick
  * @since 1.2
  *
- * @return bool true if the current page request is the thanks page, else false.
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
  **/
-function is_thanks_page () {
-	return is_shopp_page('thanks');
+function is_thanks_page ( $wp_query = false ) {
+	return is_shopp_page('thanks', $wp_query);
 }
 
 
@@ -209,20 +217,40 @@ function is_thanks_page () {
  * @since 1.0
  *
  * @param string $page (optional) System page name ID for the correct Storefront page @see Storefront::default_pages()
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_page ($page=false) {
+function is_shopp_page ( $page = false, $wp_query = false ) {
+	if ( false === $wp_query ) global $wp_query;
+
 	// Check for Shopp custom posttype/taxonomy requests
 	if ( 'catalog' == $page ||  ! $page )
-		if ( is_shopp_taxonomy() || is_shopp_product() || is_shopp_collection() ) return true;
+		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) return true;
 
 	$pages = Storefront::pages_settings();
 
 	// Detect if the requested page is a Storefront page
-	if ( ! $page ) $page = Storefront::slugpage(get_query_var('shopp_page'));
+	$slugpage = $wp_query->get('shopp_page');
+	if ( ! $page && $slugpage ) $page = Storefront::slugpage($wp_query->get('shopp_page'));
 
-	return isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == get_query_var('shopp_page');
+	return isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $wp_query->get('shopp_page');
 }
+
+/**
+ * Determines if the passed WP_Query object is a Shopp storefront page, Shopp product collection, Shopp product taxonomy, or Shopp product query.
+ * Alias for is_shopp_page() with reordered arguments, as it will usually be used for testing parse_query action referenced objects for custom WP_Query loops.
+ *
+ * @author John Dillick
+ * @since 1.2.1
+ *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @param string $page (optional) System page name ID for the correct Storefront page @see Storefront::default_pages()
+ * @return bool
+ **/
+function is_shopp_query ( $wp_query = false, $page = false ) {
+	return is_shopp_page( $page, $wp_query );
+}
+
 
 /**
  * Determines if the current request is for a registered dynamic Shopp collection
@@ -236,15 +264,19 @@ function is_shopp_page ($page=false) {
  * @author Jonathan Davis
  * @since 1.2
  *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_collection () {
-	$slug = get_query_var('shopp_collection');
+function is_shopp_collection ( $wp_query = false ) {
+	if ( false === $wp_query ) global $wp_query;
+
+	$slug = $wp_query->get('shopp_collection');
 	if (empty($slug)) return false;
 
 	global $Shopp;
 	foreach ($Shopp->Collections as $Collection) {
 		$Collection_slug = get_class_property($Collection,'_slug');
+
 		if ($slug == $Collection_slug) return true;
 	}
 	return false;
@@ -256,12 +288,16 @@ function is_shopp_collection () {
  * @author John Dillick
  * @since 1.2
  *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_taxonomy () {
+function is_shopp_taxonomy ( $wp_query = false ) {
+	if ( false === $wp_query ) global $wp_query;
+
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
-	foreach ( $taxonomies as $taxonomy )
-		if ( is_tax($taxonomy) ) return true;
+	foreach ( $taxonomies as $taxonomy ) {
+		if ( $wp_query->is_tax($taxonomy) ) return true;
+	}
 	return false;
 }
 
@@ -271,10 +307,12 @@ function is_shopp_taxonomy () {
  * @author John Dillick
  * @since 1.2
  *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_product () {
-	return is_singular(Product::$posttype);
+function is_shopp_product ( $wp_query = false ) {
+	if ( false === $wp_query ) global $wp_query;
+	return $wp_query->is_singular(Product::$posttype);
 }
 
 ?>

@@ -36,6 +36,7 @@ class Storefront extends FlowController {
 	var $viewed = array();
 
 	var $account = false;		// Account dashboard requests
+	var $shopp_loop = true;	// Shopp loop flag
 	var $dashboard = array();	// Registry of account dashboard pages
 	var $menus = array();		// Account dashboard menu registry
 
@@ -101,23 +102,25 @@ class Storefront extends FlowController {
 
 	}
 
-	function is_shopp_request () {
-		return $this->request;
+
+
+	function in_shopp_loop () {
+		return apply_filters('in_shopp_loop', $this->shopp_loop);
 	}
 
 	function noquery ($request) {
-		if ($this->is_shopp_request()) return false;
+		if ($this->in_shopp_loop()) return false;
 		return $request;
 	}
 
 	function found ($found_posts) {
-		if ($this->is_shopp_request()) return true;
+		if ($this->in_shopp_loop()) return true;
 		return $found_posts;
 	}
 
 	function posts ($posts) {
 
-		if ( $this->is_shopp_request() ) {
+		if ( $this->in_shopp_loop() ) {
 			global $wp_query;
 			$stub = new WPDatabaseObject();
 			$stub->init('posts');
@@ -140,24 +143,22 @@ class Storefront extends FlowController {
 	}
 
 	function query ($wp_query) {
+		$this->shopp_loop = is_shopp_query( $wp_query );
+		if ( ! $this->in_shopp_loop() ) return;
 
-		// Only run once when WordPress is loaded
-		// to handle the WordPress global $wp_query instance
-		remove_action('parse_query',array($this,'query'));
-
-		$page	 	= get_query_var('shopp_page');
-		$posttype 	= get_query_var('post_type');
-		$product 	= get_query_var(Product::$posttype);
-		$collection = get_query_var('shopp_collection');
-		$sortorder 	= get_query_var('s_so');
-		$searching 	= get_query_var('s_cs');
-		$search 	= get_query_var('s');
+		$page	 	= $wp_query->get('shopp_page');
+		$posttype 	= $wp_query->get('post_type');
+		$product 	= $wp_query->get(Product::$posttype);
+		$collection = $wp_query->get('shopp_collection');
+		$sortorder 	= $wp_query->get('s_so');
+		$searching 	= $wp_query->get('s_cs');
+		$search 	= $wp_query->get('s');
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
 		// Override the custom post type archive request to use the Shopp catalog page
 		if ($wp_query->is_archive && $posttype == Product::$posttype && '' == $product.$page) {
-			$page = Storefront::slug('catalog'); set_query_var('shopp_page',$page);
+			$page = Storefront::slug('catalog'); $wp_query->set('shopp_page',$page);
 		} else {
 
 			if ($posttype == Product::$posttype && '' == $page) return;
@@ -169,8 +170,8 @@ class Storefront extends FlowController {
 
 		// Shopp request, remove noindex
 		remove_action( 'wp_head', 'noindex', 1 );
-		$this->request = true;
-		set_query_var('suppress_filters',false); // Override default WP_Query request
+		$this->shopp_loop = true;
+		$wp_query->set('suppress_filters',false); // Override default WP_Query request
 
 		// Restore paged query var for Shopp's alpha-pagination support
 		if (isset($wp_query->query['paged']) && false != preg_match('/([A-Z]|0\-9)/i',$wp_query->query['paged']))
@@ -191,8 +192,8 @@ class Storefront extends FlowController {
 		if (is_archive()) {
 			$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
 			foreach ( $taxonomies as $t ) {
-				if (get_query_var($t->query_var) == '') continue;
-				$taxonomy = get_query_var($t->query_var);
+				if ($wp_query->get($t->query_var) == '') continue;
+				$taxonomy = $wp_query->get($t->query_var);
 				if ($t->hierarchical) ShoppCollection( new ProductCategory($taxonomy,'slug',$t->name) );
 				else ShoppCollection( new ProductTag($taxonomy,'slug',$t->name) );
 			}
@@ -325,6 +326,7 @@ class Storefront extends FlowController {
 		$post_type = get_query_var('post_type');
 
 		if ($post_type != Product::$posttype) return $template;
+
 		add_filter('the_content',array(&$this,'product_template'),11);
 
 		$templates = array('single-' . $post_type . '.php', 'shopp.php', 'page.php');
@@ -332,6 +334,8 @@ class Storefront extends FlowController {
 	}
 
 	function product_template ($content) {
+		remove_filter('the_content',array(&$this,'product_template'),11);
+
 		$Product = ShoppProduct();
 
 		$templates = array('product.php');
@@ -355,6 +359,7 @@ class Storefront extends FlowController {
 	}
 
 	function category_template ($content) {
+		remove_filter('the_content',array(&$this,'category_template'),11);
 		global $wp_query;
 		$Collection = ShoppCollection();
 
@@ -817,7 +822,13 @@ class Storefront extends FlowController {
 	 * @return string The processed content
 	 **/
 	function maintenance_page ($template) {
-		if (!$this->is_shopp_request()) return $template;
+		$Collection = ShoppCollection();
+		$post_type = get_query_var('post_type');
+		$page = self::slugpage( get_query_var('shopp_page') );
+
+		if (empty($Collection) && get_query_var('post_type') != Product::$posttype && $post_type != Product::$posttype && empty($page))
+			return $template;
+
 		global $wp_query;
 
 		if ( '' != locate_shopp_template(array('maintenance.php')) ) {
@@ -840,6 +851,8 @@ class Storefront extends FlowController {
 	}
 
 	function catalog_page () {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		global $Shopp,$wp,$wp_query;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
 
@@ -900,6 +913,8 @@ class Storefront extends FlowController {
 	 * @return string The cart template content
 	 **/
 	function cart_page ($content) {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
 
@@ -925,6 +940,8 @@ class Storefront extends FlowController {
 	 * @return string The processed template content
 	 **/
 	function checkout_page () {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		$Errors = ShoppErrors();
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
@@ -944,6 +961,8 @@ class Storefront extends FlowController {
 	}
 
 	function confirm_page () {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		$Errors = ShoppErrors();
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
@@ -963,6 +982,8 @@ class Storefront extends FlowController {
 	}
 
 	function thanks_page () {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		global $Shopp;
 		$Errors = ShoppErrors();
 		$Order = ShoppOrder();
@@ -985,6 +1006,8 @@ class Storefront extends FlowController {
 	 * @return string The processed errors.php template file
 	 **/
 	function error_page ($template='errors.php') {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
+
 		global $Shopp;
 		$Cart = $Shopp->Orders->Cart;
 
@@ -1006,6 +1029,7 @@ class Storefront extends FlowController {
 	 * @return string The cart template content
 	 **/
 	function account_page ($content,$request=false) {
+		remove_filter('the_content',array($this,__FUNCTION__),20);
 
 		$download_request = get_query_var('s_dl');
 		if (!$request) $request = $this->account['request'];
