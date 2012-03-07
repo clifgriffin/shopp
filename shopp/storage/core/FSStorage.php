@@ -175,6 +175,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		}
 
+		if ( ! isset($this->settings['path'][$context]) ) $this->settings['path'][$context] = false;
 		$this->ui[$context]->text(0,array(
 			'name' => 'path',
 			'value' => $this->settings['path'][$context],
