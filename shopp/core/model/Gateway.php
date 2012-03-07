@@ -622,6 +622,11 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 		return $attributes;
 	}
 
+	function behaviors ($script) {
+		shopp_custom_script('payments',$script);
+	}
+
+
 }
 
 /**

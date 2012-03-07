@@ -775,6 +775,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 * @return void
 	 **/
 	function menu ($column=0,$attributes=array(),$options=array()) {
+		$attributes['title'] = '${'.$attributes['name'].'}';
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
 		parent::menu($column,$attributes,$options);
@@ -858,6 +859,10 @@ class StorageSettingsUI extends ModuleSettingsUI {
 			$attributes['name'] .= '][${context}';
 		}
 		parent::button($column,$attributes);
+	}
+
+	function behaviors ($script) {
+		shopp_custom_script('system-settings',$script);
 	}
 
 }

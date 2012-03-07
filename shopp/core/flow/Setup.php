@@ -65,6 +65,12 @@ class Setup extends AdminController {
 			case 'system':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('colorbox');
+				shopp_enqueue_script('system');
+				shopp_localize_script( 'system', '$sys', array(
+					'indexing' => __('Product Indexing','Shopp'),
+					'indexurl' => wp_nonce_url(add_query_arg('action','shopp_rebuild_search_index',admin_url('admin-ajax.php')),'wp_ajax_shopp_rebuild_search_index')
+				));
+
 				break;
 			case 'pages':
 				shopp_enqueue_script('jquery-tmpl');
@@ -1126,12 +1132,6 @@ class Setup extends AdminController {
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
 			if (DB::query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
-		} elseif (isset($_POST['image-settings']) || isset($_POST['download-settings'])) {
-			check_admin_referer('shopp-settings-system');
-
-			$this->settings_save();
-			$Storage->settings();
-
 		}
 
 		if (isset($_POST['resetlog'])) {
