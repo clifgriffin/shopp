@@ -171,6 +171,64 @@ class ProductDevAPITests extends ShoppTestCase
 		    )
 		));
 		$this->AssertTrue( (bool) $Product );
+		$this->AssertEquals( 1, count($Product->prices) );
+	}
+
+	function test_shopp_add_product_1525 () {
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'0.00',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'3',
+					'sku'=>'BE_0001_NI_11,5'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'3.25',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'0',
+					'sku'=>'BE_0002_NI_10'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'2.00',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'5',
+					'sku'=>'BE_0003_GO_14'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
 	}
 
 	function test_shopp_product () {
