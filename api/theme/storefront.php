@@ -437,7 +437,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-			if ($depthlimit && $category->level >= $depthlimit) continue;
+			if ($levellimit && $category->level >= $levellimit) continue;
 				if (value_is_true($hierarchy) && $category->level > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
