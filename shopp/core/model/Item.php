@@ -163,7 +163,13 @@ class Item {
 		$this->inventory = str_true($Price->inventory) && shopp_setting_enabled('inventory');
 
 		$this->data = stripslashes_deep(esc_attrs($data));
+
+		// Handle Recurrences
 		$this->recurrences();
+		if ( $this->is_recurring() && $this->has_trial() ) {
+			$trial = $this->trial();
+			$this->unitprice = $trial['price'];
+		}
 
 		// Map out the selected menu name and option
 		if ( str_true($Product->variants) ) {
