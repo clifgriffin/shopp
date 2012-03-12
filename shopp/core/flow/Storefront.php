@@ -246,7 +246,7 @@ class Storefront extends FlowController {
 
 	function loaded ($wp) {
 
-		if (!is_cart_page()) { // Track referrer for the cart referrer URL
+		if (is_catalog_page()) { // Track referrer for the cart referrer URL
 			$referrer = get_bloginfo('url')."/".$wp->request;
 			if (!empty($_GET)) $referrer = add_query_arg($_GET,$referrer);
 			$this->referrer = user_trailingslashit($referrer);
