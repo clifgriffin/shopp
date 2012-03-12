@@ -600,6 +600,10 @@ class Shopp {
 		);
 
 		$request = array("ShoppServerRequest" => "update-check");
+		/**
+		 * Update checks collect environment details for faster support service only,
+		 * none of it is linked to personally identifiable information.
+		 **/
 		$data = array(
 			'core' => SHOPP_VERSION,
 			'addons' => join("-",$addons),
@@ -609,6 +613,7 @@ class Shopp {
 			'php' => phpversion(),
 			'uploadmax' => ini_get('upload_max_filesize'),
 			'postmax' => ini_get('post_max_size'),
+			'memlimit' => ini_get('memory_limit'),
 			'server' => $_SERVER['SERVER_SOFTWARE'],
 			'agent' => $_SERVER['HTTP_USER_AGENT']
 		);
