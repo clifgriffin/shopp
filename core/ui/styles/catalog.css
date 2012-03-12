@@ -55,7 +55,7 @@
 #shopp form ul li input,
 #shopp form ul li select { margin: 0 0 5px 0; }
 #shopp form ul li div input,
-#shopp form ul li div select { width: 100%; }
+#shopp form ul li div select { width: 100%; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
 #shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
 #shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 #shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
