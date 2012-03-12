@@ -147,9 +147,10 @@ class ContentIndex extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void Description...
+	 * @param string $content The content to index
+	 * @return void
 	 **/
-	function save () {
+	function save ($content) {
 		if (empty($this->product) || empty($this->type) || empty($content))
 			return false;
 
