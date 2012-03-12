@@ -605,7 +605,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #taxrate-editor .local-rates .ui label:before { content:"+";position:absolute;top:-4px;left:4px; }
 #taxrate-editor .local-rates .ui input { text-align:right;padding-left:1em; }
 #taxrate-editor .local-rates ul { padding:0;margin:0;position:relative; }
-#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
+#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;white-space:nowrap;position:relative;overflow:hidden;text-overflow:ellipsis; }
 
 /** Payment Setting Tables **/
 #payments .shopp-settings td { max-width: 300px; }
