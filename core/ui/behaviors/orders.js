@@ -78,8 +78,8 @@ jQuery(document).ready( function($) {
 
 			var $this = $(this).hide(),
 				data = ('refund-button' == $this.attr('id') ?
-					{ action:'refund',title:$om.ro,cancel:$om.cancel,mark:$om.mr,process:$om.pr,reason: $om.rr } :
-					{ action:'cancel',title:$om.co,cancel:$om.dnc,mark:$om.mc,process:$om.co,reason: $om.rc,disable_amount: ' disabled="disabled"' }),
+					{ action:'refund',title:$om.ro,cancel:$om.cancel,send:$om.stg,process:$om.pr,reason: $om.rr } :
+					{ action:'cancel',title:$om.co,cancel:$om.dnc,send:$om.stg,process:$om.co,reason: $om.rc,disable_amount: ' disabled="disabled"' }),
 				ui = $.tmpl('refund-ui',data),
 
 				cancel = ui.find('#cancel-refund').click(function (e) {
