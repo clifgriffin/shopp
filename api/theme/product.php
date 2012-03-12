@@ -848,7 +848,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string = '';
 
-		if (false !== $name) {
+		if ( !empty($name) ) {
 			if ( ! isset($O->specnames[$name]) ) return apply_filters('shopp_product_spec',false);
 			$spec = $O->specnames[$name];
 			if (is_array($spec)) {
