@@ -3,7 +3,7 @@ function manage_meta_box ($Purchase) {
 	$Gateway = $Purchase->gateway();
 
 ?>
-<?php if ($Purchase->shipable && !$Purchase->shipped): ?>
+<?php if ($Purchase->shipable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <li class="inline-fields">
@@ -43,7 +43,7 @@ function manage_meta_box ($Purchase) {
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
+<?php if (!$Purchase->voided): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -74,8 +74,8 @@ function manage_meta_box ($Purchase) {
 			<input type="submit" id="cancel-refund" name="cancel-refund" value="${cancel}" class="button-secondary" />
 			<div class="alignright">
 			<span class="mark-status">
-				<input type="hidden" name="mark" value="off" />
-				<label title="<?php printf(__('Force the order status without processing through %s','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="mark" value="on" />&nbsp;${mark}</label>
+				<input type="hidden" name="send" value="off" />
+				<label title="<?php printf(__('Enable to process through the payment gateway (%s) and set the Shopp payment status. Disable to update only the Shopp payment status.','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="send" value="on" <?php if ($Gateway && $Gateway->refunds) echo ' checked="checked"'; ?>/>&nbsp;${send}</label>
 			</span>
 
 			<input type="submit" name="process-refund" value="${process}" class="button-primary" />
@@ -158,7 +158,7 @@ function manage_meta_box ($Purchase) {
 					'${action}' => 'refund',
 					'${title}' => __('Refund Order','Shopp'),
 					'${reason}' => __('Reason for refund','Shopp'),
-					'${mark}' => __('Mark Refunded','Shopp'),
+					'${send}' => __('Send to gateway','Shopp'),
 					'${cancel}' => __('Cancel Refund','Shopp'),
 					'${process}' => __('Process Refund','Shopp')
 				);
@@ -169,7 +169,7 @@ function manage_meta_box ($Purchase) {
 						'${disable_amount}' =>  ' disabled="disabled"',
 						'${title}' => __('Cancel Order','Shopp'),
 						'${reason}' => __('Reason for cancellation','Shopp'),
-						'${mark}' => __('Mark Cancelled','Shopp'),
+						'${send}' => __('Send to gateway','Shopp'),
 						'${cancel}' => __('Do Not Cancel','Shopp'),
 						'${process}' => __('Cancel Order','Shopp')
 					);
@@ -182,7 +182,7 @@ function manage_meta_box ($Purchase) {
 </div>
 <?php if (!($Purchase->voided && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
+		<?php if (!$Purchase->voided): ?>
 		<div class="alignleft">
 			<?php if (!$Purchase->captured): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />

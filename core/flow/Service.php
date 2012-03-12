@@ -45,7 +45,8 @@ class Service extends AdminController {
 				'cancel' => __('Cancel','Shopp'),
 				'rr' => __('Reason for refund','Shopp'),
 				'rc' => __('Reason for cancellation','Shopp'),
-				'mc' => __('Mark Cancelled','Shopp')
+				'mc' => __('Mark Cancelled','Shopp'),
+				'stg' => __('Send to gateway','Shopp')
 			));
 
 			add_action('load-'.$this->screen,array(&$this,'workflow'));
@@ -338,7 +339,7 @@ class Service extends AdminController {
 			$reason = (int)$_POST['reason'];
 			$amount = floatvalue($_POST['amount']);
 
-			if (str_true($_POST['mark'])) { // Force the order status
+			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
 					'kind' => 'refunded',
@@ -378,7 +379,7 @@ class Service extends AdminController {
 				$message = 0;
 
 
-			if (str_true($_POST['mark'])) { // Force the order status
+			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
 					'kind' => 'cancelled',
