@@ -40,7 +40,7 @@ function addtocart (form) {
 function ShoppCartAjaxRequest (url,data,response) {
 	if (!response) response = "json";
 	var $ = jqnc(),
-		datatype = ((response == 'json')?'json':'string');
+		datatype = ((response == 'json')?'json':'html');
 	$.ajax({
 		type:"POST",
 		url:url,
