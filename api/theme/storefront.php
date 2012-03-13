@@ -424,6 +424,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			add_storefrontjs($script);
 
 		} else {
+			$Requested = ShoppCollection();
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
 			foreach ($categories as &$category) {
@@ -468,21 +469,23 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$total = '';
 				if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
 
-				$current = '';
-				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
-					$current = ' class="current"';
+				$itemclasses = array();
+				if (isset($Requested->slug) && $Requested->slug == $category->slug)
+					$itemclasses[] = 'current';
+
+				$liclass = empty($itemclasses)?'':' class="'.esc_attr(join(' ',$itemclasses)).'"';
 
 				$listing = '';
 
 				if (!empty($link) && ($category->count > 0 || isset($category->smart) || $linkall))
-					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
+					$listing = '<a href="'.$link.'"'.$liclass.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
 				if (value_is_true($showall) ||
 					$category->count > 0 ||
 					isset($category->smart) ||
 					$category->_children)
-					$string .= '<li'.$current.'>'.$listing.'</li>';
+					$string .= '<li'.$liclass.'>'.$listing.'</li>';
 
 				$previous = &$category;
 				$depth = $category->level;
