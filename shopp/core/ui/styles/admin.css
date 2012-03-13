@@ -298,6 +298,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 .shopp .multipane > li { float:left;margin-right:3px; }
 .shopp .multipane .controls,
 .shopp .details .controls { text-align:right; }
+.shopp .options .setting { height: auto; }
 .shopp .options .setting select { width:97%; }
 .shopp .multipane .controls.right{ float:none; }
 
