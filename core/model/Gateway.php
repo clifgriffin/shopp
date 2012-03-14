@@ -301,11 +301,12 @@ abstract class GatewayFramework {
 	 * @return string Formatted amount
 	 **/
 	function amount ($amount,$format=array()) {
+		var_dump($amount);
 		if (is_string($amount)) {
 			$Totals = ShoppOrder()->Cart->Totals;
 			if (!isset($Totals->$amount)) return false;
 			$amount = $Totals->$amount;
-		} elseif ( ! ( is_int($amount) && is_float($amount) ) ) return false;
+		} elseif ( ! ( is_int($amount) || is_float($amount) ) ) return $amount;
 
 		$defaults = array(
 			'precision' => $this->precision,
