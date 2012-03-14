@@ -301,7 +301,7 @@ abstract class GatewayFramework {
 	 * @return string Formatted amount
 	 **/
 	function amount ($amount,$format=array()) {
-		var_dump($amount);
+
 		if (is_string($amount)) {
 			$Totals = ShoppOrder()->Cart->Totals;
 			if (!isset($Totals->$amount)) return false;
