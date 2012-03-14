@@ -1330,6 +1330,7 @@ class SmartCollection extends ProductCollection {
 // @todo Document CatalogProducts
 class CatalogProducts extends SmartCollection {
 	static $_slug = "catalog";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1342,6 +1343,7 @@ class CatalogProducts extends SmartCollection {
 // @todo Document NewProducts
 class NewProducts extends SmartCollection {
 	static $_slug = "new";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1355,6 +1357,7 @@ class NewProducts extends SmartCollection {
 // @todo Document FeaturedProducts
 class FeaturedProducts extends SmartCollection {
 	static $_slug = 'featured';
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1367,6 +1370,7 @@ class FeaturedProducts extends SmartCollection {
 // @todo Document OnSaleProducts
 class OnSaleProducts extends SmartCollection {
 	static $_slug = 'onsale';
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1380,6 +1384,7 @@ class OnSaleProducts extends SmartCollection {
 class BestsellerProducts extends SmartCollection {
 	static $_slug = "bestsellers";
 	static $_altslugs = array('bestsellers','bestseller','bestselling');
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1671,6 +1676,7 @@ class AlsoBoughtProducts extends SmartCollection {
 // @todo Document RandomProducts
 class RandomProducts extends SmartCollection {
 	static $_slug = "random";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1692,6 +1698,7 @@ class RandomProducts extends SmartCollection {
 // @todo Document ViewedProducts
 class ViewedProducts extends SmartCollection {
 	static $_slug = "viewed";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$Storefront = ShoppStorefront();
