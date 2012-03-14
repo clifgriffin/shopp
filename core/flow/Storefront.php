@@ -183,7 +183,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function query ($wp_query) {
-		if ( ! is_shopp_query($wp_query) ) return;
+		if ( ! $this->request($wp_query) ) return;
 
 		$page	 	= $wp_query->get('shopp_page');
 		$posttype 	= $wp_query->get('post_type');
@@ -193,19 +193,15 @@ class Storefront extends FlowController {
 		$searching 	= $wp_query->get('s_cs');
 		$search 	= $wp_query->get('s');
 
-		// set query parameters
-		$wp_query->is_home = false; // no shopp types are home
-		$wp_query->is_archive = is_shopp_query($wp_query, 'catalog') && ! is_shopp_product($wp_query);
+		// Shopp requests are never automatic on the home page
+		$wp_query->is_home = false;
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
-		// Override the custom post type archive request to use the Shopp catalog page
-		if ($wp_query->is_archive && $posttype == Product::$posttype && '' == $product.$page) {
+		// Detect catalog page requests
+		if (is_archive() && $posttype == Product::$posttype && '' == $product.$page) {
 			$page = Storefront::slug('catalog');
 			$wp_query->set('shopp_page',$page);
-		} else {
-			if ($posttype == Product::$posttype && '' == $page) return;
-			if (!is_shopp_taxonomy($wp_query) && $collection.$page.$searching == '' && $posttype != Product::$posttype) return;
 		}
 
 		// Shopp request, remove noindex
@@ -250,6 +246,7 @@ class Storefront extends FlowController {
 			$collection = 'promo';
 		}
 
+		// Handle Shopp Smart Collections
 		if (!empty($collection)) {
 			// Overrides to enforce archive behavior
 			$wp_query->is_archive = true;
@@ -440,9 +437,9 @@ class Storefront extends FlowController {
 	function category_template ($content) {
 		global $wp_query,$wp_the_query;
 		// Test that this is the main query and it is a product collection or product taxonomy
-		if ( $wp_the_query !== $wp_query || ( ! is_shopp_collection() && ! is_shopp_taxonomy() ) ) return $content;
+		if ( $wp_the_query !== $wp_query ||
+				( ! is_shopp_collection() && ! is_shopp_taxonomy() && ! is_shopp_search() ) ) return $content;
 
-		global $wp_query;
 		$Collection = ShoppCollection();
 
 		// Short-circuit the loop for the archive/category requests
