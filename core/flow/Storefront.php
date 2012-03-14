@@ -199,7 +199,7 @@ class Storefront extends FlowController {
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
 		// Detect catalog page requests
-		if (is_archive() && $posttype == Product::$posttype && '' == $product.$page) {
+		if (is_archive() && $posttype == Product::$posttype && '' == $product.$page.$search) {
 			$page = Storefront::slug('catalog');
 			$wp_query->set('shopp_page',$page);
 		}
