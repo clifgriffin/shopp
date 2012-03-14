@@ -124,7 +124,7 @@ class Storefront extends FlowController {
 	 * @return string|boolean The request, or false if a Shopp Storefront request
 	 **/
 	function noquery ($request,$wp_query) {
-		if ( $this->request() ) return false;
+		if ( $this->request($wp_query) ) return false;
 		return $request;
 	}
 
@@ -137,7 +137,7 @@ class Storefront extends FlowController {
 	 * @return int|boolean Number of posts found or, true if a Shopp Storefront request
 	 **/
 	function found ($found_posts,$wp_query) {
-		if ( $this->request() ) return true;
+		if ( $this->request($wp_query) ) return true;
 		return $found_posts;
 	}
 
@@ -152,7 +152,7 @@ class Storefront extends FlowController {
 	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
 	 **/
 	function posts ($posts, $wp_query) {
-		if ( $this->request() ) {
+		if ( $this->request($wp_query) ) {
 			$stub = new WPDatabaseObject();
 			$stub->init('posts');
 			$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
