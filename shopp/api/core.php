@@ -207,6 +207,19 @@ function is_thanks_page ( $wp_query = false ) {
 	return is_shopp_page('thanks', $wp_query);
 }
 
+/**
+ * Determines if the requested page is the shopp search page.
+ *
+ * @author John Dillick
+ * @since 1.2.1
+ *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
+ **/
+function is_shopp_search ( $wp_query = false ) {
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+	return $wp_query->is_search() && $wp_query->get('s_cs');
+}
 
 /**
  * Determines if the requested page is a Shopp page or if it matches a given Shopp page
@@ -227,7 +240,7 @@ function is_shopp_page ( $page = false, $wp_query = false ) {
 
 	// Check for Shopp custom posttype/taxonomy requests
 	if ( 'catalog' == $page ||  ! $page ) {
-		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) $is_shopp_page = true;
+		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) || is_shopp_search($wp_query) ) $is_shopp_page = true;
 
 		$slug = $wp_query->get('shopp_page');
 		if ( $slug && $pages['catalog']['slug'] == $slug ) $is_shopp_page = true;
