@@ -138,7 +138,7 @@ function is_catalog_page ( $wp_query = false ) {
  * @return boolean
  **/
 function is_catalog_frontpage ( $wp_query = false ) {
-	if ( false === $wp_query ) global $wp_query;
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 	return is_shopp_page('catalog', $wp_query) && !( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
 }
 
@@ -221,19 +221,25 @@ function is_thanks_page ( $wp_query = false ) {
  * @return boolean
  **/
 function is_shopp_page ( $page = false, $wp_query = false ) {
-	if ( false === $wp_query ) global $wp_query;
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+	$is_shopp_page = false;
+	$pages = Storefront::pages_settings();
 
 	// Check for Shopp custom posttype/taxonomy requests
-	if ( 'catalog' == $page ||  ! $page )
-		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) return true;
+	if ( 'catalog' == $page ||  ! $page ) {
+		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) $is_shopp_page = true;
 
-	$pages = Storefront::pages_settings();
+		$slug = $wp_query->get('shopp_page');
+		if ( $slug && $pages['catalog']['slug'] == $slug ) $is_shopp_page = true;
+		if ( ! $is_shopp_page && ! $slug && Product::$posttype == $wp_query->get('post_type') ) $is_shopp_page = true;
+	}
 
 	// Detect if the requested page is a Storefront page
 	$slugpage = $wp_query->get('shopp_page');
-	if ( ! $page && $slugpage ) $page = Storefront::slugpage($wp_query->get('shopp_page'));
+	if ( ! $page && $slugpage ) $page = Storefront::slugpage($slugpage);
+	if ( isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $wp_query->get('shopp_page') ) $is_shopp_page = true;
 
-	return isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $wp_query->get('shopp_page');
+	return $is_shopp_page;
 }
 
 /**
@@ -268,7 +274,7 @@ function is_shopp_query ( $wp_query = false, $page = false ) {
  * @return boolean
  **/
 function is_shopp_collection ( $wp_query = false ) {
-	if ( false === $wp_query ) global $wp_query;
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 
 	$slug = $wp_query->get('shopp_collection');
 	if (empty($slug)) return false;
@@ -292,7 +298,7 @@ function is_shopp_collection ( $wp_query = false ) {
  * @return boolean
  **/
 function is_shopp_taxonomy ( $wp_query = false ) {
-	if ( false === $wp_query ) global $wp_query;
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
 	foreach ( $taxonomies as $taxonomy ) {
@@ -311,8 +317,9 @@ function is_shopp_taxonomy ( $wp_query = false ) {
  * @return boolean
  **/
 function is_shopp_product ( $wp_query = false ) {
-	if ( false === $wp_query ) global $wp_query;
-	return $wp_query->is_singular(Product::$posttype);
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+	$product = $wp_query->get(Product::$posttype);
+	return (bool) $product;
 }
 
 ?>
