@@ -57,6 +57,8 @@ class Storefront extends FlowController {
 
 		add_action('wp', array($this, 'loaded'));
 		add_action('wp', array($this, 'security'));
+		add_action('wp', array($this, 'trackurl'));
+		add_action('wp', array($this, 'viewed'));
 		add_action('wp', array($this, 'cart'));
 		add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
@@ -101,16 +103,54 @@ class Storefront extends FlowController {
 
 	}
 
+	/**
+	 * Determines if the wp_query
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function request ( $wp_query = false ) {
+		return is_shopp_query($wp_query) && ! is_shopp_product($wp_query);
+	}
+
+	/**
+	 * Override the WP posts_request so the storefront controller can take over
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string|boolean The request, or false if a Shopp Storefront request
+	 **/
 	function noquery ($request,$wp_query) {
 		if ( $this->request() ) return false;
 		return $request;
 	}
 
+	/**
+	 * Sets the found count to avoid 404 pages when handling Shopp requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return int|boolean Number of posts found or, true if a Shopp Storefront request
+	 **/
 	function found ($found_posts,$wp_query) {
 		if ( $this->request() ) return true;
 		return $found_posts;
 	}
 
+	/**
+	 * Provide a stub to the wp_query posts property to mimic post functionality
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $posts The current list of posts
+	 * @param object $wp_query The working WP_Query object
+	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
+	 **/
 	function posts ($posts, $wp_query) {
 		if ( $this->request() ) {
 			$stub = new WPDatabaseObject();
@@ -133,10 +173,15 @@ class Storefront extends FlowController {
 		return $posts;
 	}
 
-	function request ( $wp_query = false ) {
-		return is_shopp_query($wp_query) && ! is_shopp_product($wp_query);
-	}
-
+	/**
+	 * Parse the query request and initialize Shopp content
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $wp_query The WP_Query object (passed via parse_query action)
+	 * @return void
+	 **/
 	function query ($wp_query) {
 		if ( ! is_shopp_query($wp_query) ) return;
 
@@ -165,7 +210,6 @@ class Storefront extends FlowController {
 
 		// Shopp request, remove noindex
 		remove_action( 'wp_head', 'noindex', 1 );
-		$this->shopp_loop = true;
 		$wp_query->set('suppress_filters',false); // Override default WP_Query request
 
 		// Restore paged query var for Shopp's alpha-pagination support
@@ -238,28 +282,66 @@ class Storefront extends FlowController {
 
 	}
 
+	/**
+	 * Convert WP queried Shopp product post types to a Shopp Product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $wp The main WP object from the 'wp' action
+	 * @return void
+	 **/
 	function loaded ($wp) {
-
-		if (is_catalog_page()) { // Track referrer for the cart referrer URL
-			$referrer = get_bloginfo('url')."/".$wp->request;
-			if (!empty($_GET)) $referrer = add_query_arg($_GET,$referrer);
-			$this->referrer = user_trailingslashit($referrer);
-		}
-
-		// Loaded product
 		if ( ! is_shopp_product() ) return;
+
+		// Get the loaded object (a Shopp product post type)
+		global $wp_the_query;
 		$object = $wp_the_query->get_queried_object();
 
+		// Populate so we don't have to req-uery
 		$Product = new Product();
 		$Product->populate($object);
 		ShoppProduct($Product);
 		$this->Requested = $Product;
 
-		if (!in_array($this->Requested->id,$this->viewed)) {
-			array_unshift($this->viewed,$this->Requested->id);
-			$this->viewed = array_slice($this->viewed,0,
-				apply_filters('shopp_recently_viewed_limit',25));
-		}
+	}
+
+	/**
+	 * Tracks a product as recently viewed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $wp The main WP object from the 'wp' action
+	 * @return void
+	 **/
+	function viewed ($wp) {
+
+		if ( ! is_shopp_product() ) return;
+		if (in_array($this->Requested->id,$this->viewed)) return;
+
+		array_unshift($this->viewed,$this->Requested->id);
+		$this->viewed = array_slice($this->viewed,0,apply_filters('shopp_recently_viewed_limit',25));
+
+	}
+
+	/**
+	 * Track the URL as a referrer from catalog pages (collections, taxonomies, products)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $wp The main WP object from the 'wp' action
+	 * @return void
+	 **/
+	function trackurl ($wp) {
+
+		if (!is_catalog_page()) return;
+
+		 // Track referrer for the cart referrer URL
+		$referrer = get_bloginfo('url')."/".$wp->request;
+		if (!empty($_GET)) $referrer = add_query_arg($_GET,$referrer);
+		$this->referrer = user_trailingslashit($referrer);
 
 	}
 
