@@ -1273,7 +1273,9 @@ abstract class SessionObject {
 	function trash () {
 		if (empty($this->session)) return false;
 
-		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)"))
+		$timeout = SHOPP_SESSION_TIMEOUT;
+		$now = current_time('timestamp');
+		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < $now - UNIX_TIMESTAMP(modified)"))
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
