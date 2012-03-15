@@ -53,7 +53,7 @@ add_meta_box(
 	'save-product',
 	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
 	'save_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'side',
 	'core'
 );
@@ -155,8 +155,8 @@ foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
 	if ( is_taxonomy_hierarchical($taxonomy_name) )
-		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
 
 }
 
@@ -192,7 +192,7 @@ add_meta_box(
 	'product-settings',
 	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
 	'settings_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'side',
 	'core'
 );
@@ -207,7 +207,7 @@ add_meta_box(
 	'product-summary',
 	__('Summary','Shopp').$Admin->boxhelp('product-editor-summary'),
 	'summary_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -233,7 +233,7 @@ add_meta_box(
 	'product-details-box',
 	__('Details &amp; Specs','Shopp').$Admin->boxhelp('product-editor-details'),
 	'details_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -280,7 +280,7 @@ add_meta_box(
 	'product-images',
 	 __('Product Images','Shopp').$Admin->boxhelp('product-editor-images'),
 	'images_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -362,7 +362,7 @@ add_meta_box(
 	'product-pricing-box',
 	__('Pricing','Shopp').$Admin->boxhelp('product-editor-pricing'),
 	'pricing_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'advanced',
 	'core'
 );
