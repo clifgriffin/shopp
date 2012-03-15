@@ -290,6 +290,11 @@ class Warehouse extends AdminController {
 			global $wpdb;
 			$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 			$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
+			if (-1 == $cat) {
+				unset($joins[$wpdb->term_taxonomy]);
+				$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+				$where[] = 'tr.object_id IS NULL';
+			}
 		}
 
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
@@ -1008,12 +1013,23 @@ class Warehouse extends AdminController {
 	function category ($id) {
 		global $wpdb;
 		$p = "$wpdb->posts AS p";
+		$where = array();
 		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$id)";
 
+		if (-1 == $id) {
+			$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+			unset($joins[$wpdb->term_taxonomy]);
+			$where[] = 'tr.object_id IS NULL';
+			$where[] = "p.post_status='publish'";
+			$where[] = "p.post_type='shopp_product'";
+		}
+
+		$where = empty($where) ? '' : ' WHERE '.join(' AND ',$where);
+
 		if ('catalog-products' == $id)
-			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p ORDER BY name ASC",'array','col','name','id');
-		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins)." ORDER BY name ASC",'array','col','name','id');
+			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p $where ORDER BY name ASC",'array','col','name','id');
+		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins).$where." ORDER BY name ASC",'array','col','name','id');
 
 		return menuoptions($products,0,true);
 	}
