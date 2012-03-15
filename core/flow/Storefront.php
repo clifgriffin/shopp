@@ -678,7 +678,7 @@ class Storefront extends FlowController {
 				case 'shopp_page': $item->url = shoppurl(false,$item->object); break;
 				case 'shopp_collection':
 					$namespace = get_class_property( 'SmartCollection' ,'namespace');
-					$taxonomy = get_class_property( 'SmartCollection' ,'taxonomy');
+					$taxonomy = get_class_property( 'SmartCollection' ,'taxon');
 					$prettyurls = ( '' != get_option('permalink_structure') );
 					$item->url = shoppurl( $prettyurls ? "$namespace/$item->object" : array($taxonomy=>$item->object),false );
 					break;

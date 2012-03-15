@@ -65,7 +65,7 @@ class Catalog {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
 			$auto = get_class_property($Collection,'_auto');
-			if ($auto) continue;
+			if (!$auto) continue;
 			$category = new $Collection(array("noload" => true));
 			switch($method) {
 				case "before": array_unshift($this->categories,$category); break;

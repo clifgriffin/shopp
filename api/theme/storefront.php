@@ -371,22 +371,25 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 		if (0 != $childof) $termargs['child_of'] = $baseparent = $childof;
 
-		$categories = array(); $count = 0;
+		$O->categories = array(); $count = 0;
 		$terms = get_terms( $taxonomy, $termargs );
 		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy,$terms,$children,$count,$categories,1,0,$baseparent);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$O->categories,1,0,$baseparent);
+		if ($showsmart == "before" || $showsmart == "after")
+			$O->collections($showsmart);
+		$categories = $O->categories;
 
 		$string = "";
 		if ($depth > 0) $level = $depth;
 		$levellimit = $level;
 		$exclude = explode(",",$exclude);
-		$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
+		$classes = ' class="shopp-categories-menu'.(empty($class)?'':' '.$class).'"';
 		$wraplist = str_true($wraplist);
 
 		if (str_true($dropdown)) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
 			$string .= $title;
-			$string .= '<form action="/" method="get"><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
+			$string .= '<form action="/" method="get"><select name="shopp_cats" '.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
 			foreach ($categories as &$category) {
 				// If the parent of this category was excluded, add this to the excludes and skip
@@ -408,6 +411,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 				$link = get_term_link($category->slug,$taxonomy);
 
+				if ( isset($category->smart) ) {
+					$namespace = get_class_property( 'SmartCollection' ,'namespace');
+					$taxonomy = get_class_property( 'SmartCollection' ,'taxon');
+					$prettyurls = ( '' != get_option('permalink_structure') );
+					$link = shoppurl( $prettyurls ? "$namespace/{$category->slug}" : array($taxonomy=>$category->slug),false );
+				}
+
 				$total = '';
 				if (str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
 
@@ -417,14 +427,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 			}
 			$string .= '</select></form>';
-
-			$script = "$('#shopp-categories-menu').change(function (){";
-			$script .= "document.location.href = $(this).val();";
-			$script .= "});";
-			add_storefrontjs($script);
-
 		} else {
-			$Requested = ShoppCollection();
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
 			foreach ($categories as &$category) {
@@ -469,23 +472,28 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$total = '';
 				if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
 
-				$itemclasses = array();
-				if (isset($Requested->slug) && $Requested->slug == $category->slug)
-					$itemclasses[] = 'current';
-
-				$liclass = empty($itemclasses)?'':' class="'.esc_attr(join(' ',$itemclasses)).'"';
+				$current = '';
+				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
+					$current = ' class="current"';
 
 				$listing = '';
 
+				if ( isset($category->smart) ) {
+					$namespace = get_class_property( 'SmartCollection' ,'namespace');
+					$taxonomy = get_class_property( 'SmartCollection' ,'taxon');
+					$prettyurls = ( '' != get_option('permalink_structure') );
+					$link = shoppurl( $prettyurls ? "$namespace/{$category->slug}" : array($taxonomy=>$category->slug),false );
+				}
+
 				if (!empty($link) && ($category->count > 0 || isset($category->smart) || $linkall))
-					$listing = '<a href="'.$link.'"'.$liclass.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
+					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
 				if (value_is_true($showall) ||
 					$category->count > 0 ||
 					isset($category->smart) ||
 					$category->_children)
-					$string .= '<li'.$liclass.'>'.$listing.'</li>';
+					$string .= '<li'.$current.'>'.$listing.'</li>';
 
 				$previous = &$category;
 				$depth = $category->level;
