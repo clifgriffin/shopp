@@ -41,6 +41,8 @@ class Warehouse extends AdminController {
 			$this->view = $_GET['view'];
 
 		if (!empty($_GET['id'])) {
+		 	get_current_screen()->post_type = $post_type;
+
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
