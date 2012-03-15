@@ -619,7 +619,7 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
+		if ( str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
 		$target->freeship = $freeshipping?'on':'off';
 	}
 

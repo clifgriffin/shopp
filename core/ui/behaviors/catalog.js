@@ -75,7 +75,7 @@ function ProductOptionsMenus (target,settings) {
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 					option.text(optiontext+pricetag);
 					if ($.browser.msie) option.css('color','#373737');
-					if ((price.i && !price.s) || price.t == 'N/A') {
+					if ((price.i && price.s < 1) || price.t == 'N/A') {
 						if (option.attr('selected'))
 							option.parent().attr('selectedIndex',0);
 						if (!settings.disabled) option.remove();
