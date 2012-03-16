@@ -122,7 +122,8 @@ class ProductCollection implements Iterator {
 
 				$limit = "$start,$this->pagination";
 			} else $limit = $hardlimit;
-		}
+			$limited = false;	// Flag that the result set does not have forced limits
+		} else $limited = true; // The result set has forced limits
 
 		// Core query components
 
@@ -205,7 +206,7 @@ class ProductCollection implements Iterator {
 		if ($ids) return ($this->size() > 0);
 
 		// Finish up pagination construction
-		if ($this->pagination > 0 && $this->total > $this->pagination) {
+		if ($this->pagination > 0 && $this->total > $this->pagination && !$limited) {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;
 		}
@@ -1682,6 +1683,7 @@ class RandomProducts extends SmartCollection {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Random Products","Shopp");
 		$this->loading = array('order'=>'random');
+
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
@@ -1691,6 +1693,7 @@ class RandomProducts extends SmartCollection {
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
 		}
+
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }
