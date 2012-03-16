@@ -189,7 +189,11 @@ class ProductCollection implements Iterator {
 
 			if ($ids) $cache->products = $this->products = DB::query($query,'array','col','ID');
 			else $cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
+
 			$cache->total = $this->total = DB::found();
+
+			// If running a limited set, the reported total found should not exceed the limit (but can because of SQL_CALC_FOUND_ROWS)
+			if ($limited) $cache->total = $this->total = min($limit,$this->total);
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
@@ -206,7 +210,7 @@ class ProductCollection implements Iterator {
 		if ($ids) return ($this->size() > 0);
 
 		// Finish up pagination construction
-		if ($this->pagination > 0 && $this->total > $this->pagination && !$limited) {
+		if ($this->pagination > 0 && $this->total > $this->pagination) {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;
 		}
@@ -1331,7 +1335,6 @@ class SmartCollection extends ProductCollection {
 // @todo Document CatalogProducts
 class CatalogProducts extends SmartCollection {
 	static $_slug = "catalog";
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1344,7 +1347,6 @@ class CatalogProducts extends SmartCollection {
 // @todo Document NewProducts
 class NewProducts extends SmartCollection {
 	static $_slug = "new";
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1358,7 +1360,6 @@ class NewProducts extends SmartCollection {
 // @todo Document FeaturedProducts
 class FeaturedProducts extends SmartCollection {
 	static $_slug = 'featured';
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1371,7 +1372,6 @@ class FeaturedProducts extends SmartCollection {
 // @todo Document OnSaleProducts
 class OnSaleProducts extends SmartCollection {
 	static $_slug = 'onsale';
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1385,7 +1385,6 @@ class OnSaleProducts extends SmartCollection {
 class BestsellerProducts extends SmartCollection {
 	static $_slug = "bestsellers";
 	static $_altslugs = array('bestsellers','bestseller','bestselling');
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1677,7 +1676,6 @@ class AlsoBoughtProducts extends SmartCollection {
 // @todo Document RandomProducts
 class RandomProducts extends SmartCollection {
 	static $_slug = "random";
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1701,7 +1699,6 @@ class RandomProducts extends SmartCollection {
 // @todo Document ViewedProducts
 class ViewedProducts extends SmartCollection {
 	static $_slug = "viewed";
-	static $_auto = true;
 
 	function smart ($options=array()) {
 		$Storefront = ShoppStorefront();
