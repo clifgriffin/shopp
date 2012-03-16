@@ -425,6 +425,12 @@ class Purchase extends DatabaseObject {
 		if ($new && !empty($this->id)) $this->listeners();
 	}
 
+	function delete () {
+		$table = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchase'");
+		parent::delete();
+	}
+
 } // end Purchase class
 
 class PurchasesExport {
