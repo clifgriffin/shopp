@@ -250,7 +250,7 @@ function is_shopp_page ( $page = false, $wp_query = false ) {
 	// Detect if the requested page is a Storefront page
 	$slugpage = $wp_query->get('shopp_page');
 	if ( ! $page && $slugpage ) $page = Storefront::slugpage($slugpage);
-	if ( isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $wp_query->get('shopp_page') ) $is_shopp_page = true;
+	if ( isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $slugpage ) $is_shopp_page = true;
 
 	return $is_shopp_page;
 }

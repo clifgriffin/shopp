@@ -755,14 +755,17 @@ class Shopp {
 	}
 
 	/**
-	 * Detect if this Shopp installation needs maintenance
+	 * Detect if the Shopp installation needs maintenance
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return boolean
 	 **/
-	function maintenance () {
+	static function maintenance () {
+		$db_version = intval(shopp_setting('db_version'));
+		return ( !ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
+
 		// Settings unavailable
 		if (!ShoppSettings()->available() || !shopp_setting('shopp_setup') != "completed")
 			return false;
