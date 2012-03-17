@@ -147,7 +147,7 @@ class AdminFlow extends FlowController {
 		global $Shopp,$menu;
 
 		$access = $this->caps['main'];
-		if ($this->maintenance()) $access = 'manage_options';
+		if (Shopp::maintenance()) $access = 'manage_options';
 
 		$this->topmenu('main','Shopp',$access,'orders',50);
 		$this->topmenu('catalog',__('Catalog','Shopp'),$access,'products',50);
@@ -162,7 +162,7 @@ class AdminFlow extends FlowController {
 		// Add admin JavaScript & CSS
 		add_action('admin_enqueue_scripts', array($this, 'behaviors'),50);
 
-		if ($this->maintenance()) return;
+		if (Shopp::maintenance()) return;
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $item) $this->help($pagename,$item);
@@ -203,7 +203,7 @@ class AdminFlow extends FlowController {
 		$controller = array(&$Shopp->Flow,'admin');
 		if (shopp_setting_enabled('display_welcome') &&  empty($_POST['setup']))
 			$controller = array($this,'welcome');
-		if ($this->maintenance()) $controller = array($this,'reactivate');
+		if (Shopp::maintenance()) $controller = array($this,'reactivate');
 
 		do_action('shopp_add_menu_'.$page->page);
 
@@ -362,20 +362,6 @@ class AdminFlow extends FlowController {
 		if ( 'rtl' == get_bloginfo('text_direction') )
 			wp_enqueue_style('shopp.admin-rtl',SHOPP_ADMIN_URI.'/styles/rtl.css',array(),'20110801','all');
 
-	}
-
-	/**
-	 * Determines if a database schema upgrade is required
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	function maintenance () {
-		$db_version = intval(shopp_setting('db_version'));
-		if ($db_version != DB::$version) return true;
-		return false;
 	}
 
 	/**
