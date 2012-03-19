@@ -573,6 +573,7 @@ abstract class ShippingFramework {
 				else $postcodes = array($rule['postcode']);
 
 				foreach ($postcodes as $coderule) {
+					$coderule = trim($coderule);
 
 					// Match numeric postcode ranges (only works for pure numeric postcodes like US zip codes)
 					// Cannot be mixed with wildcard ranges (eg 55*-56* does not work, use 55000-56999)
@@ -585,7 +586,7 @@ abstract class ShippingFramework {
 
 					// Match wildcard postcode patterns
 					if (strpos($coderule,'*') !== false) {
-						$pattern = str_replace('*','\d+?',$coderule);
+						$pattern = str_replace('*','(.+?)',$coderule);
 						if (preg_match("/$pattern/i",$match['postcode']))
 							unset($d['postcode']); // Clear exception for match
 						continue;

@@ -94,16 +94,32 @@ class Item {
 		$Product->load_data();
 
 		// If option ids are passed, lookup by option key, otherwise by id
-		if ( is_array($pricing) ) {
-			$Price = $Product->pricekey[$Product->optionkey($pricing)];
-			if ( empty($Price) ) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
-		} elseif ( false !== $pricing ) {
+		if ( is_array($pricing) && ! empty($pricing) ) {
+			$optionkey = $Product->optionkey($pricing);
+			if ( ! isset($Product->pricekey[$optionkey]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
+			if ( isset($Product->pricekey[$optionkey]) ) $Price = $Product->pricekey[$optionkey];
+		} elseif ( $pricing ) {
 			$Price = $Product->priceid[$pricing];
-		} else {
+		}
+
+		// Find single product priceline
+		if ( ! $Price && ! str_true($Product->variants) ) {
 			foreach ( $Product->prices as &$Price ) {
-				if ( $Price->type != 'N/A' && ( ! $Price->stocked || $Price->stocked && $Price->stock > 0 ) ) break;
+				$stock = true;
+				if ( str_true($Price->inventory) && 1 > $Price->stock ) $stock = false;
+				if ( 'product' == $Price->context && 'N/A' != $Price->type && $stock ) break;
 			}
 		}
+
+		// Find first available variant priceline
+		if ( ! $Price && str_true($Product->variants) ) {
+			foreach ( $Product->prices as &$Price ) {
+				$stock = true;
+				if ( str_true($Price->inventory) && 1 > $Price->stock ) $stock = false;
+				if ( 'variation' == $Price->context && 'N/A' != $Price->type && $stock ) break;
+			}
+		}
+
 		if ( isset($Product->id) ) $this->product = $Product->id;
 		if ( isset($Price->id) ) $this->priceline = $Price->id;
 
@@ -147,7 +163,13 @@ class Item {
 		$this->inventory = str_true($Price->inventory) && shopp_setting_enabled('inventory');
 
 		$this->data = stripslashes_deep(esc_attrs($data));
+
+		// Handle Recurrences
 		$this->recurrences();
+		if ( $this->is_recurring() && $this->has_trial() ) {
+			$trial = $this->trial();
+			$this->unitprice = $trial['price'];
+		}
 
 		// Map out the selected menu name and option
 		if ( str_true($Product->variants) ) {

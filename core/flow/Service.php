@@ -21,6 +21,8 @@
 class Service extends AdminController {
 
 	var $screen = 'toplevel_page_shopp-orders';
+	var $orders = array();
+	var $ordercount = false;
 
 	/**
 	 * Service constructor
@@ -45,14 +47,18 @@ class Service extends AdminController {
 				'cancel' => __('Cancel','Shopp'),
 				'rr' => __('Reason for refund','Shopp'),
 				'rc' => __('Reason for cancellation','Shopp'),
-				'mc' => __('Mark Cancelled','Shopp')
+				'mc' => __('Mark Cancelled','Shopp'),
+				'stg' => __('Send to gateway','Shopp')
 			));
 
-			add_action('load-'.$this->screen,array(&$this,'workflow'));
-			add_action('load-'.$this->screen,array(&$this,'layout'));
+			add_action('load-'.$this->screen,array($this,'workflow'));
+			add_action('load-'.$this->screen,array($this,'layout'));
 			do_action('shopp_order_management_scripts');
 
-		} else add_action('admin_print_scripts',array(&$this,'columns'));
+		} else {
+			add_action('load-'.$this->screen,array($this,'loader'));
+			add_action('admin_print_scripts',array($this,'columns'));
+		}
 		do_action('shopp_order_admin_scripts');
 	}
 
@@ -76,15 +82,15 @@ class Service extends AdminController {
 	}
 
 	/**
-	 * Interface processor for the orders list interface
+	 * Handles orders list loading
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.2.1
 	 *
 	 * @return void
 	 **/
-	function orders () {
-		global $Shopp,$Orders;
-		$db = DB::get();
+	function loader () {
+		if ( ! current_user_can('shopp_orders') ) return;
 
 		$defaults = array(
 			'page' => false,
@@ -94,7 +100,7 @@ class Service extends AdminController {
 			'newstatus' => false,
 			'pagenum' => 1,
 			'paged' => 1,
-			'per_page' => false,
+			'per_page' => 20,
 			'start' => '',
 			'end' => '',
 			'status' => false,
@@ -107,8 +113,7 @@ class Service extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 
-		if ( ! current_user_can('shopp_orders') )
-			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('orders'))),admin_url('admin.php'));
 
 		if ($page == "shopp-orders"
 						&& !empty($deleting)
@@ -124,6 +129,8 @@ class Service extends AdminController {
 				}
 				$Purchase->delete();
 			}
+			if (count($selected) == 1) $this->notice(__('Order deleted.','Shopp'));
+			else $this->notice(sprintf(__('%d orders deleted.','Shopp'),count($selected)));
 		}
 
 		$statusLabels = shopp_setting('order_status');
@@ -138,6 +145,8 @@ class Service extends AdminController {
 				$Purchase->status = $newstatus;
 				$Purchase->save();
 			}
+			if (count($selected) == 1) $this->notice(__('Order status updated.','Shopp'));
+			else $this->notice(sprintf(__('%d orders updated.','Shopp'),count($selected)));
 		}
 
 		$Purchase = new Purchase();
@@ -154,47 +163,87 @@ class Service extends AdminController {
 		}
 
 		$pagenum = absint( $paged );
-		if ( empty($pagenum) )
-			$pagenum = 1;
-		if( !$per_page || $per_page < 0 )
-			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
 
-		$where = '';
-		if (!empty($status) || $status === '0') $where = "WHERE status='$status'";
+		$where = array();
+		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
 
 		if (!empty($s)) {
 			$s = stripslashes($s);
+			$search = array();
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
-				foreach ($props as $search) {
-					$keyword = !empty($search[2])?$search[2]:$search[3];
+				foreach ($props as $query) {
+					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
 					switch(strtolower($search[1])) {
-						case "txn": $where .= (empty($where)?"WHERE ":" AND ")."txnid='$keyword'"; break;
-						case "gateway": $where .= (empty($where)?"WHERE ":" AND ")."gateway LIKE '%$keyword%'"; break;
-						case "cardtype": $where .= ((empty($where))?"WHERE ":" AND ")."cardtype LIKE '%$keyword%'"; break;
-						case "address": $where .= ((empty($where))?"WHERE ":" AND ")."(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
-						case "city": $where .= ((empty($where))?"WHERE ":" AND ")."city LIKE '%$keyword%'"; break;
+						case "txn": 		$search[] = "txnid='$keyword'"; break;
+						case "gateway":		$search[] = "gateway LIKE '%$keyword%'"; break;
+						case "cardtype":	$search[] = "cardtype LIKE '%$keyword%'"; break;
+						case "address": 	$search[] = "(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
+						case "city": 		$search[] = "city LIKE '%$keyword%'"; break;
 						case "province":
-						case "state": $where .= ((empty($where))?"WHERE ":" AND ")."state='$keyword'"; break;
+						case "state": 		$search[] = "state='$keyword'"; break;
 						case "zip":
 						case "zipcode":
-						case "postcode": $where .= ((empty($where))?"WHERE ":" AND ")."postcode='$keyword'"; break;
-						case "country": $where .= ((empty($where))?"WHERE ":" AND ")."country='$keyword'"; break;
+						case "postcode":	$search[] = "postcode='$keyword'"; break;
+						case "country": 	$search[] = "country='$keyword'"; break;
 					}
 				}
-				if (empty($where)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				if (empty($search)) $search[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				$where[] = "(".join(' OR ',$search).")";
 			} elseif (strpos($s,'@') !== false) {
-				 $where .= ((empty($where))?"WHERE ":" AND ")." email='$s'";
-			} else $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				 $where[] = "email='".DB::escape($s)."'";
+			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
 		}
-		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
-		if (!empty($customer)) $where .= ((empty($where))?"WHERE ":" AND ")."customer=$customer";
-		$ordercount = DB::query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1");
-		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
-		$Orders = DB::query($query,'array');
+		if (!empty($starts) && !empty($ends)) $where[] = '(UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
+		if (!empty($customer)) $where[] = "customer=".intval($customer);
+		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 
+		$this->ordercount = DB::query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
+		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
+		$this->orders = DB::query($query,'array','index','id');
+
+		$num_pages = ceil($this->ordercount->total / $per_page);
+		if ($paged > 1 && $paged > $num_pages) shopp_redirect(add_query_arg('paged',null,$url));
+
+	}
+
+
+	/**
+	 * Interface processor for the orders list interface
+	 *
+	 * @author Jonathan Davis
+	 *
+	 * @return void
+	 **/
+	function orders () {
+		global $Shopp,$Orders;
+
+		$defaults = array(
+			'page' => false,
+			'update' => false,
+			'newstatus' => false,
+			'pagenum' => 1,
+			'paged' => 1,
+			'per_page' => 20,
+			'status' => false,
+		);
+
+		$args = array_merge($defaults,$_GET);
+		extract($args, EXTR_SKIP);
+
+		if ( ! current_user_can('shopp_orders') )
+			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+
+		$statusLabels = shopp_setting('order_status');
+		if (empty($statusLabels)) $statusLabels = array('');
+		$txnstatus_labels = Lookup::txnstatus_labels();
+
+		$Purchase = new Purchase();
+
+		$Orders = $this->orders;
+		$ordercount = $this->ordercount;
 		$num_pages = ceil($ordercount->total / $per_page);
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $ordercount->total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Orders->total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
@@ -229,7 +278,6 @@ class Service extends AdminController {
 		if (empty($selected)) $selected = array_keys($columns);
 
 		$Gateways = array_merge($Shopp->Gateways->modules,array('FreeOrder' => $Shopp->Gateways->freeorder));
-
 
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}
@@ -338,7 +386,7 @@ class Service extends AdminController {
 			$reason = (int)$_POST['reason'];
 			$amount = floatvalue($_POST['amount']);
 
-			if (str_true($_POST['mark'])) { // Force the order status
+			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
 					'kind' => 'refunded',
@@ -378,7 +426,7 @@ class Service extends AdminController {
 				$message = 0;
 
 
-			if (str_true($_POST['mark'])) { // Force the order status
+			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
 					'kind' => 'cancelled',

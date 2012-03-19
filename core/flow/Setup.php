@@ -65,6 +65,12 @@ class Setup extends AdminController {
 			case 'system':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('colorbox');
+				shopp_enqueue_script('system');
+				shopp_localize_script( 'system', '$sys', array(
+					'indexing' => __('Product Indexing','Shopp'),
+					'indexurl' => wp_nonce_url(add_query_arg('action','shopp_rebuild_search_index',admin_url('admin-ajax.php')),'wp_ajax_shopp_rebuild_search_index')
+				));
+
 				break;
 			case 'pages':
 				shopp_enqueue_script('jquery-tmpl');
@@ -823,9 +829,10 @@ class Setup extends AdminController {
 		if (!is_uploaded_file($filename)) return array('error' => Lookup::errors('uploadsecurity','is_uploaded_file'));
 
 		$data = file_get_contents($upload['tmp_name']);
+		$cr = array("\r\n", "\r");
 
 		$formats = array(0=>false,3=>'xml',4=>'tab',5=>'csv');
-		preg_match('/((<[^>]+>.+?<\/[^>]+>)|(.+?\t.+?\n)|(.+?,.+?\n))/',$data,$_);
+		preg_match('/((<[^>]+>.+?<\/[^>]+>)|(.+?\t.+?[\n|\r])|(.+?,.+?[\n|\r]))/',$data,$_);
 		$format = $formats[count($_)];
 		if (!$format) return array('error' => __('The uploaded file is not properly formatted as an XML, CSV or tab-delimmited file.','Shopp'));
 
@@ -858,14 +865,17 @@ class Setup extends AdminController {
 				}
 				break;
 			case 'csv':
+				ini_set('auto_detect_line_endings',true);
 				if (($csv = fopen($upload['tmp_name'], 'r')) === false)
 					return array('error' => Lookup::errors('uploadsecurity','is_readable'));
-				while ( $data = fgetcsv($csv, 1000, ',') !== false )
+				while ( ($data = fgetcsv($csv, 1000)) !== false )
 					$_[$data[0]] = !empty($data[1])?$data[1]:0;
 				fclose($csv);
+				ini_set('auto_detect_line_endings',false);
 				break;
 			case 'tab':
 			default:
+				$data = str_replace($cr,"\n",$data);
 				$lines = explode("\n",$data);
 				foreach ($lines as $line) {
 					list($key,$value) = explode("\t",$line);
@@ -1126,12 +1136,6 @@ class Setup extends AdminController {
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
 			if (DB::query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
-		} elseif (isset($_POST['image-settings']) || isset($_POST['download-settings'])) {
-			check_admin_referer('shopp-settings-system');
-
-			$this->settings_save();
-			$Storage->settings();
-
 		}
 
 		if (isset($_POST['resetlog'])) {

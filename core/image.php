@@ -77,11 +77,14 @@ class ImageServer {
 	 * @return void
 	 **/
 	function request () {
-		foreach ($_GET as $key => $value) {
-			if ($key == "siid") $this->request = $value;
-			if (isset($key) && empty($value))
-				$this->parameters = explode(',',$key);
+
+		if ( isset($_GET['siid']) ) $this->request = $_GET['siid'];
+
+		foreach ($_GET as $arg => $v) {
+			if (false !== strpos($arg,',')) {
+				$this->parameters = explode(',',$arg);
 				$this->valid = array_pop($this->parameters);
+			}
 		}
 
 		// Handle pretty permalinks

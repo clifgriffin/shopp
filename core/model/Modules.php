@@ -68,7 +68,7 @@ abstract class ModuleLoader {
 	 * @return void
 	 **/
 	function load ($all=false) {
-		if ($all) $activate = array_keys($this->modules);
+		if ($all) $activate = array_diff( array_keys($this->modules), $this->activated );
 		else $activate = $this->activated;
 
 		foreach ($activate as $module) {
@@ -357,11 +357,11 @@ class ModuleSettingsUI {
 		$id = "{$this->id}-".sanitize_title_with_dashes($name);
 
 		$this->ui('<div>',$column);
-		$this->ui('<select name="settings['.$this->module.']['.$name.']" '.inputattrs($attributes).'>',$column);
+		$this->ui('<select name="settings['.$this->module.']['.$name.']" id="'.$id.'"'.inputattrs($attributes).'>',$column);
 		if (is_array($options)) {
 			foreach ($options as $val => $option) {
-				$value = ' value="'.$val.'"';
-				$select = ($selected == $val || $selected == $option)?' selected="selected"':'';
+				$value = $keyed?' value="'.$val.'"':'';
+				$select = ($selected === $val || $selected == $option)?' selected="selected"':'';
 				$this->ui('<option'.$value.$select.'>'.$option.'</option>',$column);
 			}
 		}
@@ -592,7 +592,7 @@ class ModuleSettingsUI {
 	}
 
 	function behaviors ($script) {
-		shopp_custom_script('payments',$script);
+		shopp_custom_script('shopp',$script);
 	}
 
 } // END class ModuleSettingsUI

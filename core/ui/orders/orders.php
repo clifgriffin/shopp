@@ -2,6 +2,8 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
+	<?php do_action('shopp_admin_notices'); ?>
+
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
 	<?php include("navigation.php"); ?>
 	<div>
@@ -56,7 +58,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Orders) > 0): ?>
+	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
 			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
@@ -136,7 +138,7 @@
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select>
 			</div>
-			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
+			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"<?php if (count($Orders) < 1) echo ' disabled="disabled"'; ?>><?php _e('Download','Shopp'); ?></button>
 			<div class="clear"></div>
 			</form>
 		</div>

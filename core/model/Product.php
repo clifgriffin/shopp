@@ -58,6 +58,8 @@ class Product extends WPShoppObject {
 		'post_date_gmt' => 'post_date_gmt',
 		'post_modified_gmt' => 'post_modified_gmt',
 		'post_content_filtered' => 'post_content_filtered',
+		'comment_status' => 'comment_status',
+		'ping_status' => 'ping_status',
 		'to_ping' => 'to_ping',
 		'pinged' => 'pinged'
 	);
@@ -196,7 +198,7 @@ class Product extends WPShoppObject {
 		}
 
 		$Object = new Price();
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,optionkey",'array',array($this,'pricing'));
 
 		// Load price metadata that exists
 		if (!empty($this->priceid)) {
@@ -619,7 +621,7 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
+		if ( str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
 		$target->freeship = $freeshipping?'on':'off';
 	}
 

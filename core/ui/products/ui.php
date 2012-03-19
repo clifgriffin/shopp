@@ -53,7 +53,7 @@ add_meta_box(
 	'save-product',
 	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
 	'save_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'side',
 	'core'
 );
@@ -155,8 +155,8 @@ foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
 	if ( is_taxonomy_hierarchical($taxonomy_name) )
-		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
 
 }
 
@@ -177,6 +177,11 @@ function settings_meta_box ($Product) {
 	<p><input type="hidden" name="meta[packaging]" value="off" /><input type="checkbox" name="meta[packaging]" value="on" id="packaging-setting" tabindex="18"  <?php if(isset($Product->meta['packaging']) && $Product->meta['packaging']->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
 	<?php endif; ?>
 
+
+	<p><input type="hidden" name="comment_status" value="closed" /><input type="checkbox" name="comment_status" value="open" id="allow-comments" tabindex="18"  <?php if(str_true($Product->comment_status)) echo 'checked="checked"'; ?> /> <label for="allow-comments"><?php _e('Comments','Shopp'); ?></label>
+
+	<p><input type="hidden" name="ping_status" value="closed" /><input type="checkbox" name="ping_status" value="open" id="allow-trackpings" tabindex="18"  <?php if(str_true($Product->ping_status)) echo 'checked="checked"'; ?> /> <label for="allow-trackpings"><?php _e('Trackbacks & Pingbacks','Shopp'); ?></label>
+
 	<p><input type="hidden" name="meta[processing]" value="off" /><input type="checkbox" name="meta[processing]" value="on" id="process-time" tabindex="18"  <?php if(isset($Product->meta['processing']) && str_true($Product->meta['processing']->value)) echo 'checked="checked"'; ?> /> <label for="process-time"><?php _e('Processing Time','Shopp'); ?></label>
 
 	<div id="processing" class="hide-if-js">
@@ -192,7 +197,7 @@ add_meta_box(
 	'product-settings',
 	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
 	'settings_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'side',
 	'core'
 );
@@ -207,7 +212,7 @@ add_meta_box(
 	'product-summary',
 	__('Summary','Shopp').$Admin->boxhelp('product-editor-summary'),
 	'summary_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -233,7 +238,7 @@ add_meta_box(
 	'product-details-box',
 	__('Details &amp; Specs','Shopp').$Admin->boxhelp('product-editor-details'),
 	'details_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -280,7 +285,7 @@ add_meta_box(
 	'product-images',
 	 __('Product Images','Shopp').$Admin->boxhelp('product-editor-images'),
 	'images_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'normal',
 	'core'
 );
@@ -362,7 +367,7 @@ add_meta_box(
 	'product-pricing-box',
 	__('Pricing','Shopp').$Admin->boxhelp('product-editor-pricing'),
 	'pricing_meta_box',
-	'shopp_page_shopp-products',
+	get_current_screen()->id,
 	'advanced',
 	'core'
 );

@@ -446,7 +446,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function paid ($result, $options, $O) { return in_array($O->txnstatus,array('authed','captured')); }
+	static function paid ($result, $options, $O) { return in_array($O->txnstatus,array('captured')); }
 
 	static function payment ($result, $options, $O) {
 		$labels = Lookup::txnstatus_labels();

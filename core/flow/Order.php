@@ -218,39 +218,30 @@ class Order {
 		}
 
 		if ('FreeOrder' == $this->processor) {
-			$processor = 'FreeOrder';
-			$Shopp->Gateways->activated = array($processor);
-		}
-
-		if (count($Shopp->Gateways->activated) == 1 // base case
-			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) {
-			// Automatically select the first active gateway
-			reset($Shopp->Gateways->activated);
-			$module = current($Shopp->Gateways->activated);
-			if ($this->processor != $module)
-				$this->processor = $module;
-		} elseif (!empty($processor)) { // Change the current processor
-			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated))
-				$this->processor = $processor;
-		}
-
-		// Setup Free Order processor
-		if ('FreeOrder' == $processor) {
-			if ( ! $Shopp->Gateways->freeorder ) return $this->processor;
+			if ( ! $Shopp->Gateways->freeorder ) break;
 			$this->processor = 'FreeOrder';
+			$Shopp->Gateways->activated = array($this->processor);
 			if ( ! isset($Shopp->Gateways->active[ $processor ]) )
 				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
 			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
 		}
 
-		if (isset($Shopp->Gateways->active[$this->processor])) {
-			$Gateway = $Shopp->Gateways->active[$this->processor];
-			$this->gateway = $Gateway->name;
-
-			// Set the paymethod if not set already, or if it has changed
-			if (!$this->paymethod)
-				$this->paymethod = sanitize_title_with_dashes($Gateway->multi ? $Gateway->settings[0]['label'] : $Gateway->settings['label']);
+		// No processor set for this order, set default from payment options
+		if ( false == $this->processor ) {
+			$default = reset($this->payoptions);
+			if (!empty($default)) $this->paymethod = key($this->payoptions);
 		}
+
+		// No valid payoptions for the selected payment method, bail
+		if ( ! isset($this->payoptions[$this->paymethod]) ) {
+			$this->paymethod = false;
+			return false;
+		}
+
+		// Set the processor based on the payment method selected
+		$processor = $this->payoptions[$this->paymethod]->processor;
+		if (in_array($processor,$Shopp->Gateways->activated))
+			$this->processor = $processor;
 
 		return $this->processor;
 	}

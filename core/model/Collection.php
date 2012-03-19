@@ -122,7 +122,8 @@ class ProductCollection implements Iterator {
 
 				$limit = "$start,$this->pagination";
 			} else $limit = $hardlimit;
-		}
+			$limited = false;	// Flag that the result set does not have forced limits
+		} else $limited = true; // The result set has forced limits
 
 		// Core query components
 
@@ -188,7 +189,11 @@ class ProductCollection implements Iterator {
 
 			if ($ids) $cache->products = $this->products = DB::query($query,'array','col','ID');
 			else $cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
+
 			$cache->total = $this->total = DB::found();
+
+			// If running a limited set, the reported total found should not exceed the limit (but can because of SQL_CALC_FOUND_ROWS)
+			if ($limited) $cache->total = $this->total = min($limit,$this->total);
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
@@ -1676,6 +1681,7 @@ class RandomProducts extends SmartCollection {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Random Products","Shopp");
 		$this->loading = array('order'=>'random');
+
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
@@ -1685,6 +1691,7 @@ class RandomProducts extends SmartCollection {
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
 		}
+
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }

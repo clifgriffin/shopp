@@ -298,6 +298,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 .shopp .multipane > li { float:left;margin-right:3px; }
 .shopp .multipane .controls,
 .shopp .details .controls { text-align:right; }
+.shopp .options .setting { height: auto; }
 .shopp .options .setting select { width:97%; }
 .shopp .multipane .controls.right{ float:none; }
 
@@ -400,7 +401,7 @@ span.indent { display: inline-block; width: 36px; }
 form { position:relative; }
 p.controls { position:absolute;top:0;right:0;margin:0; }
 
-.shopp .postbox p { text-indent:0;display:block;padding:4px 0;margin:0;line-height:1;overflow:hidden;padding-right: 5px;}
+.shopp .postbox p { text-indent:0;display:block;position:relative;padding:4px 0;margin:0;line-height:1.4em;overflow:hidden;padding-right: 5px; }
 .shopp .postbox p input,
 .shopp .postbox p select { width:100%; }
 .shopp .postbox p span { float:left;padding:0 5px 0 0;display:inline-block;text-align:left; }
@@ -408,13 +409,15 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp .postbox p span select { width:auto; }
 .shopp .postbox p label { display:block;font-size:11px;font-weight:bold;line-height:24px; }
 .shopp .postbox p label.inline { clear: none;display:inline; }
+.shopp .postbox label span { font-weight: normal; }
+
+.shopp .toggle label { position: relative; display: block; padding-left: 1.8em; top: -1.8em; }
 
 .shopp #product-settings input,
 .shopp #category-settings input,
 .shopp #membership-settings input,
 .shopp #misc-publishing-actions input { width:auto; }
 .shopp #product-settings label,
-.shopp #category-settings label,
 .shopp #membership-settings label,
 .shopp #misc-publishing-actions label { display:inline; vertical-align: middle; }
 .shopp .postbox p .small { width:auto; }
@@ -605,7 +608,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #taxrate-editor .local-rates .ui label:before { content:"+";position:absolute;top:-4px;left:4px; }
 #taxrate-editor .local-rates .ui input { text-align:right;padding-left:1em; }
 #taxrate-editor .local-rates ul { padding:0;margin:0;position:relative; }
-#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;position:relative; }
+#taxrate-editor .local-rates li { font-size:11px;display:inline-block;width:140px;margin-right:10px;padding:0;white-space:nowrap;position:relative;overflow:hidden;text-overflow:ellipsis; }
 
 /** Payment Setting Tables **/
 #payments .shopp-settings td { max-width: 300px; }
