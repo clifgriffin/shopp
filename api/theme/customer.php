@@ -398,20 +398,19 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function order_lookup ($result, $options, $O) {
-		$auth = shopp_setting('account_system');
-		if ($auth != "none") return true;
+		if ('none' != shopp_setting('account_system')) return true;
 
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-			require("Purchase.php");
-			$Purchase = new Purchase($_POST['purchaseid']);
-			if ($Purchase->email == $_POST['email']) {
-				$Shopp->Purchase = $Purchase;
-				$Purchase->load_purchased();
+			ShoppPurchase( new Purchase((int)$_POST['purchaseid']) );
+			if (ShoppPurchase()->email == $_POST['email']) {
+				ShoppPurchase()->load_purchased();
 				ob_start();
 				locate_shopp_template(array('receipt.php'),true);
 				$content = ob_get_contents();
 				ob_end_clean();
 				return apply_filters('shopp_order_lookup',$content);
+			} else {
+				new ShoppError(__('No order could be found with that information.','Shopp'),'',SHOPP_AUTH_ERR);
 			}
 		}
 

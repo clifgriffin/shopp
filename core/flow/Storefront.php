@@ -1371,12 +1371,24 @@ class CollectionStorefrontPage extends StorefrontPage {
  **/
 class AccountStorefrontPage extends StorefrontPage {
 
+	function __construct ( $settings = array() ) {
+
+		if ('none' == shopp_setting('account_system')) {
+			$settings['title'] = __('Order Lookup','Shopp');
+		}
+		parent::__construct($settings);
+
+	}
+
 	function content ($content,$request=false) {
 		if (!$request) {
 			global $wp_query,$wp_the_query;
 			// Test that this is the main query and it is the account page
 			if ( $wp_the_query !== $wp_query || ! is_shopp_page('account') ) return $content;
 		}
+
+		if ('none' == shopp_setting('account_system'))
+			return apply_filters('shopp_account_template',shopp('customer','get-order-lookup'));
 
 		$download_request = get_query_var('s_dl');
 		if (!$request) $request = ShoppStorefront()->account['request'];
