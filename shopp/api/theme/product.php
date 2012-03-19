@@ -289,8 +289,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
-		if (!empty($O->prices[0]) && $O->prices[0]->type != "N/A")
-			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$O->prices[0]->id.'" />';
+		if (!str_true($O->variants)) {
+			foreach ($O->prices as $price) {
+				if ('product' == $price->context) {
+					$default = $price; break;
+				}
+			}
+
+			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$default->id.'" />';
+		}
 
 		$collection = isset(ShoppCollection()->slug)?shopp('collection','get-slug'):false;
 		if (!empty($collection)) {
@@ -841,7 +848,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string = '';
 
-		if ($name && isset($O->specnames[$name])) {
+		if ( !empty($name) ) {
+			if ( ! isset($O->specnames[$name]) ) return apply_filters('shopp_product_spec',false);
 			$spec = $O->specnames[$name];
 			if (is_array($spec)) {
 				if ($index) {

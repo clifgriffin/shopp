@@ -85,7 +85,7 @@ class TestMode extends GatewayFramework {
 	function handler ($type,$Event) {
 		if(!isset($Event->txnid)) $Event->txnid = time();
 		if (str_true($this->settings['error'])) {
-			new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),'testmode_error',SHOPP_TRXN_ERROR);
+			new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),'testmode_error',SHOPP_TRXN_ERR);
 			return shopp_add_order_event($Event->order,$Event->type.'-fail',array(
 				'amount' => $Event->amount,
 				'error' => 0,

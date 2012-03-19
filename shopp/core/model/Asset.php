@@ -775,6 +775,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 * @return void
 	 **/
 	function menu ($column=0,$attributes=array(),$options=array()) {
+		$attributes['title'] = '${'.$attributes['name'].'}';
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
 		parent::menu($column,$attributes,$options);
@@ -860,11 +861,15 @@ class StorageSettingsUI extends ModuleSettingsUI {
 		parent::button($column,$attributes);
 	}
 
+	function behaviors ($script) {
+		shopp_custom_script('system-settings',$script);
+	}
+
 }
 
 
 // Prevent loading image setting classes when run in image server script context
-if ( !class_exists('RegistryFramework') ) return;
+if ( !class_exists('RegistryManager') ) return;
 
 class ImageSetting extends MetaObject {
 

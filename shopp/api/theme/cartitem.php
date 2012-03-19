@@ -259,7 +259,7 @@ class ShoppCartItemThemeAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$classes = !empty($class)?' class="'.join(' ',$class).'"':'';
+		$classes = !empty($class)?' class="'.esc_attr($class).'"':'';
 		$excludes = explode(',',$exclude);
 		$prices = str_true($prices);
 		$taxes = str_true($taxes);

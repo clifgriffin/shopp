@@ -45,7 +45,7 @@
 
 	<script id="localrate" type="text/x-jquery-tmpl">
 	<?php ob_start(); ?>
-	<li><label><input type="text" name="settings[taxrates][${id}][locals][${localename}]" size="6" value="${localerate}" />&nbsp;${localename}</label></li>
+	<li><label title="${localename}"><input type="text" name="settings[taxrates][${id}][locals][${localename}]" size="6" value="${localerate}" />&nbsp;${localename}</label></li>
 	<?php $localrateui = ob_get_contents(); ob_end_clean(); echo $localrateui; ?>
 	</script>
 

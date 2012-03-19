@@ -97,9 +97,8 @@
 #shopp form.product ul { width: auto; }
 #shopp ul.variations label { display: block; }
 #shopp dl { overflow: hidden; }
-#shopp dl dt { font-weight: bold; margin-right: 1em; display: inline-block; }
-#shopp dl dd { display: inline; }
-#shopp dl dd:after { content:"\A"; white-space: pre; }
+#shopp dt { clear:left; float:left; text-align: right; width:50%; margin-right: 1em; }
+#shopp dd { clear:right; width:50%; padding-left: 50%; }
 
 #shopp .gallery { margin: 5px 10px 5px 0; }
 #shopp .gallery ul.previews li.thumbnails ul { margin: 10px 0 10px 0; }

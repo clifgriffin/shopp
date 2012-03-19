@@ -41,6 +41,8 @@ class Warehouse extends AdminController {
 			$this->view = $_GET['view'];
 
 		if (!empty($_GET['id'])) {
+		 	get_current_screen()->post_type = $post_type;
+
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
@@ -184,7 +186,7 @@ class Warehouse extends AdminController {
 		if ($save) {
 			wp_cache_delete('shopp_product_subcounts');
 			$this->save($Shopp->Product);
-			$this->Notice = sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>');
+			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );
 
 			// Workflow handler
 			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
@@ -290,6 +292,11 @@ class Warehouse extends AdminController {
 			global $wpdb;
 			$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 			$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
+			if (-1 == $cat) {
+				unset($joins[$wpdb->term_taxonomy]);
+				$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+				$where[] = 'tr.object_id IS NULL';
+			}
 		}
 
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
@@ -875,8 +882,10 @@ class Warehouse extends AdminController {
 		// Save any meta data
 		if (isset($_POST['meta']) && is_array($_POST['meta'])) {
 			foreach ($_POST['meta'] as $name => $value) {
-				if (isset($Product->meta[$name])) $Meta = $Product->meta[$name];
-				else $Meta = new MetaObject(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>$name));
+				if (isset($Product->meta[$name])) {
+					$Meta = $Product->meta[$name];
+					if (is_array($Meta)) $Meta = reset($Product->meta[$name]);
+				} else $Meta = new MetaObject(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>$name));
 				$Meta->parent = $Product->id;
 				$Meta->name = $name;
 				$Meta->value = $value;
@@ -926,6 +935,10 @@ class Warehouse extends AdminController {
 			$File->name = $File->filename = $filetype['proper_filename'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
+
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+
 		$File->save();
 
 		do_action('add_product_download',$File,$_FILES['Filedata']);
@@ -984,6 +997,9 @@ class Warehouse extends AdminController {
 		if ( ! $Image->unique() ) die(json_encode(array("error" => __('The image already exists, but a new filename could not be generated.','Shopp'))));
 
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+
 		$Image->save();
 
 		if (empty($Image->id))
@@ -1001,12 +1017,23 @@ class Warehouse extends AdminController {
 	function category ($id) {
 		global $wpdb;
 		$p = "$wpdb->posts AS p";
+		$where = array();
 		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$id)";
 
+		if (-1 == $id) {
+			$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+			unset($joins[$wpdb->term_taxonomy]);
+			$where[] = 'tr.object_id IS NULL';
+			$where[] = "p.post_status='publish'";
+			$where[] = "p.post_type='shopp_product'";
+		}
+
+		$where = empty($where) ? '' : ' WHERE '.join(' AND ',$where);
+
 		if ('catalog-products' == $id)
-			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p ORDER BY name ASC",'array','col','name','id');
-		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins)." ORDER BY name ASC",'array','col','name','id');
+			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p $where ORDER BY name ASC",'array','col','name','id');
+		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins).$where." ORDER BY name ASC",'array','col','name','id');
 
 		return menuoptions($products,0,true);
 	}
