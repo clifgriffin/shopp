@@ -58,6 +58,8 @@ class Product extends WPShoppObject {
 		'post_date_gmt' => 'post_date_gmt',
 		'post_modified_gmt' => 'post_modified_gmt',
 		'post_content_filtered' => 'post_content_filtered',
+		'comment_status' => 'comment_status',
+		'ping_status' => 'ping_status',
 		'to_ping' => 'to_ping',
 		'pinged' => 'pinged'
 	);
