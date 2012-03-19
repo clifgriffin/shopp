@@ -109,8 +109,9 @@ class Flow {
 	 **/
 	function handler ($controller) {
 		if (!$controller) return false;
-		if (!class_exists($controller))
-			require(SHOPP_FLOW_PATH."/$controller.php");
+		if ( is_a($this->Controller,$controller) ) return true; // Already initialized
+		if (!class_exists($controller))	require(SHOPP_FLOW_PATH."/$controller.php");
+
 		$this->Controller = new $controller();
 		do_action('shopp_'.strtolower($controller).'_init');
 		return true;
@@ -271,6 +272,9 @@ abstract class AdminController extends FlowController {
 
 	var $Admin = false;
 	var $url;
+
+	private $notices = array();
+
 	/**
 	 * AdminController constructor
 	 *
@@ -284,6 +288,27 @@ abstract class AdminController extends FlowController {
 		global $Shopp;
 		if (!empty($Shopp->Flow->Admin)) $this->Admin = &$Shopp->Flow->Admin;
 		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
+
+		add_action('shopp_admin_notices',array($this,'notices'));
+	}
+
+	function notice ($message,$style='updated',$priority=10) {
+		$notice = new StdClass();
+		$notice->message = $message;
+		$notice->style = $style;
+		array_splice($this->notices,$priority,0,array($notice));
+	}
+
+	function notices () {
+		if (empty($this->notices)) return;
+		$markup = array();
+		foreach ($this->notices as $notice) {
+			$markup[] = '<div class="'.$notice->style.' below-h2">';
+			$markup[] = '<p>'.$notice->message.'</p>';
+			$markup[] = '</div>';
+		}
+		if ( ! empty($markup) ) echo join('',$markup);
+		$this->notices = array(); // Reset output buffer
 	}
 
 }

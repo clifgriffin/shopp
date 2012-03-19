@@ -186,7 +186,7 @@ class Warehouse extends AdminController {
 		if ($save) {
 			wp_cache_delete('shopp_product_subcounts');
 			$this->save($Shopp->Product);
-			$this->Notice = sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>');
+			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );
 
 			// Workflow handler
 			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
