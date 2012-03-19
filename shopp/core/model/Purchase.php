@@ -465,23 +465,42 @@ class PurchasesExport {
 	}
 
 	function query ($request=array()) {
-		$db =& DB::get();
-		if (empty($request)) $request = $_GET;
+		$defaults = array(
+			'status' => false,
+			's' => false,
+			'start' => false,
+			'end' => false
+		);
+		$request = array_merge($defaults,$_GET);
+		extract($request);
 
-		if (!empty($request['start'])) {
-			list($month,$day,$year) = explode("/",$request['start']);
-			$starts = mktime(0,0,0,$month,$day,$year);
+
+		if (!empty($start)) {
+			list($month,$day,$year) = explode('/',$start);
+			$start = mktime(0,0,0,$month,$day,$year);
 		}
 
-		if (!empty($request['end'])) {
-			list($month,$day,$year) = explode("/",$request['end']);
-			$ends = mktime(0,0,0,$month,$day,$year);
+		if (!empty($end)) {
+			list($month,$day,$year) = explode('/',$end);
+			$end = mktime(23,59,59,$month,$day,$year);
 		}
 
-		$where = "WHERE o.id IS NOT NULL AND p.id IS NOT NULL ";
-		if (isset($request['status']) && !empty($request['status'])) $where .= "AND status='{$request['status']}'";
-		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
-		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(o.created) >= $starts AND UNIX_TIMESTAMP(o.created) <= $ends)";
+		$where = array();
+		if (!empty($status)) $where[] = "status='".DB::escape($status)."'";
+		if (!empty($s)) {
+			$searchterm = DB::escape($s);
+			$search = array(
+				"id='$searchterm'",
+				"firstname LIKE '%$searchterm%'",
+				"lastname LIKE '%$searchterm%'",
+				"CONCAT(firstname,' ',lastname) LIKE '%$searchterm%'",
+				"txnid LIKE '%$searchterm%'"
+			);
+			$where[] = "(".join(' OR ',$search).")";
+		}
+		if (!empty($start) && !empty($end))
+			$where[] = "(UNIX_TIMESTAMP(o.created) >= $start AND UNIX_TIMESTAMP(o.created) <= $end)";
+		$where = "WHERE ".join(' AND ',$where);
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
@@ -489,14 +508,14 @@ class PurchasesExport {
 
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
-		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
-		$this->data = $db->query($query,AS_ARRAY);
+		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
+		$this->data = DB::query($query,'array');
 	}
 
 	// Implement for exporting all the data
 	function output () {
 		if (!$this->data) $this->query();
-		if (!$this->data) return false;
+		if (!$this->data) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");
