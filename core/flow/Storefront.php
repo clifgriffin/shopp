@@ -1166,7 +1166,10 @@ class StorefrontPage {
 
 		add_filter('edit_post_link',array($this,'editlink'));
 
-		add_filter('wp_title',array($this,'title'));
+		// Page title has to be reprocessed
+		add_filter('wp_title',array($this,'title'),10);
+		add_filter('wp_title',array($this,'wptitle'),10,3);
+
 		add_filter('the_title',array($this,'title'));
 
 		add_filter('the_content',array($this,'content'),20);
@@ -1184,10 +1187,49 @@ class StorefrontPage {
 		return $content;
 	}
 
+	/**
+	 * Provides the title for the page from settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
 	function title ($title) {
 		global $wp_query,$wp_the_query;
 		if ( $wp_the_query !== $wp_query) return $title;
-		if (empty($title)) return $this->title;
+		if ( empty($title) ) return $this->title;
+		return $title;
+	}
+
+	/**
+	 * Reprocesses the wp_title (page title) filter with proper formatting
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @param string $title The current title string
+	 * @param string $sep The separator character string between title elements
+	 * @param string $seplocation Direction to display title (right|left)
+	 * @return string The reprocessed wp_title string
+	 **/
+	function wptitle ($title,$sep,$seplocation) {
+		$t_sep = '%WP_TITILE_SEP%';
+
+		$prefix = '';
+		if ( !empty($title) )
+			$prefix = " $sep ";
+
+	 	// Determines position of the separator and direction of the breadcrumb
+		if ( 'right' == $seplocation ) { // sep on right, so reverse the order
+			$title_array = explode( $t_sep, $title );
+			$title_array = array_reverse( $title_array );
+			$title = implode( " $sep ", $title_array ) . $prefix;
+		} else {
+			$title_array = explode( $t_sep, $title );
+			$title = $prefix . implode( " $sep ", $title_array );
+		}
+
 		return $title;
 	}
 
