@@ -81,7 +81,6 @@ class Storefront extends FlowController {
 
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
-		add_action('shopp_storefront_init',array($this,'promos'));
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'account'));
 		add_action('shopp_storefront_init',array($this,'dashboard'));
@@ -702,11 +701,6 @@ class Storefront extends FlowController {
 			if ($paged > 1) $url = shopp('category','get-url',"page=$paged");
 		}
 		return $url;
-	}
-
-
-	function promos () {
-		if (!isset($this->promos) || empty($this->promos)) return;
 	}
 
 	/**
