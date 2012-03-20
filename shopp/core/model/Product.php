@@ -529,8 +529,6 @@ class Product extends WPShoppObject {
 		$variations = ((isset($target->variants) && $target->variants == 'on')
 							|| ($price->type != 'N/A' && $price->context == 'variation'));
 
-		$freeshipping = true;
-
 		// Force to floats
 		$price->price = (float)$price->price;
 		$price->saleprice = (float)$price->saleprice;
@@ -568,14 +566,17 @@ class Product extends WPShoppObject {
 			$target->lowstock($price->stock,$price->stocked);
 		}
 
-		if (!isset($price->freeshipping) || !$price->freeshipping || str_true($price->shipping))
-			$freeshipping = false;
+		$freeshipping = false;
+		if (!str_true($price->shipping)) $freeshipping = true;
 
 		// Calculate catalog discounts if not already calculated
 		if (empty($price->promoprice)) {
 			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
-			if (!empty($price->discounts)) $price->promoprice = Promotion::pricing($pricetag,$price->discounts);
-			else $price->promoprice = $pricetag;
+			if (!empty($price->discounts)) {
+				$discount = Promotion::pricing($pricetag,$price->discounts);
+				if ($discount->freeship) $freeshipping = true;
+				$price->promoprice = $discount->pricetag;
+			} else $price->promoprice = $pricetag;
 		}
 
 		if ($price->promoprice < $price->price) $price->sale = $target->sale = 'on';
@@ -625,7 +626,8 @@ class Product extends WPShoppObject {
 		}
 
 		if ( str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
-		$target->freeship = $freeshipping?'on':'off';
+		if ( $freeshipping ) $target->freeship = 'on';
+
 	}
 
 	/**
@@ -706,6 +708,7 @@ class Product extends WPShoppObject {
 		$this->stock = $this->stocked = $this->sold = 0;
 		$this->maxprice = $this->minprice = false;
 		$this->min = $this->max = array();
+		$this->freeship = 'off';
 		foreach ( ProductSummary::$_ranges as $index ) {
 			$this->min[$index] = false;
 			$this->max[$index] = false;
