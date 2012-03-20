@@ -151,17 +151,15 @@
 			} else {
 				$t_time = get_the_time(__('Y/m/d g:i:s A'));
 				$m_time = $Product->publish;
-				$time = get_post_time('G', true, $Product->id);
-				$time_diff = time() - $time;
+				$h_time = date(__('Y/m/d'), $m_time);
+				$time_diff = current_time('timestamp') - $m_time;
 
 				if ( $time_diff > 0 && $time_diff < 86400 )
-					$h_time = sprintf( __('%s ago'), human_time_diff( $time ) );
-				else
-					$h_time = date(__('Y/m/d'), $m_time);
+					$h_time = sprintf( __('%s ago'), human_time_diff( $m_time, current_time('timestamp') ) );
+
 			}
 
-				echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr>';
-			echo '<br />';
+			echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr><br />';
 			if ( 'publish' == $Product->status ) {
 				_e('Published');
 			} elseif ( 'future' == $Product->status ) {
