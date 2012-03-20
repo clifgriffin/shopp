@@ -297,13 +297,16 @@ class Promotion extends DatabaseObject {
 	 * @return void Description...
 	 **/
 	static function pricing ($pricetag,$ids) {
+		$discount = new StdClass();
+		$discount->pricetag = $pricetag;
+		$discount->freeship = false;
 
-		if (empty($pricetag) || empty($ids)) return $pricetag;
+		if (empty($pricetag) || empty($ids)) return $discount;
 
 		$table = DatabaseObject::tablename(self::$table);
 		$query = "SELECT type,SUM(discount) AS amount FROM $table WHERE 0 < FIND_IN_SET(id,'$ids') AND (discount > 0 OR type='Free Shipping') AND status='enabled' GROUP BY type ORDER BY type DESC";
 		$discounts = DB::query($query,'array');
-		if (empty($discounts)) return $pricetag;
+		if (empty($discounts)) return $discount;
 
 		$freeship = false;
 		// Apply discounts
@@ -312,16 +315,15 @@ class Promotion extends DatabaseObject {
 			switch ($discount->type) {
 				case 'Amount Off': $a += $discount->amount; break;
 				case 'Percentage Off': $p += $discount->amount; break;
-				case 'Free Shipping': $freeship = true; break;
+				case 'Free Shipping': $discount->freeship = true; break;
 			}
 		}
 
 		if ($a > 0) $pricetag -= $a; // Take amounts off first (to reduce merchant percentage discount burden)
 		if ($p > 0)	$pricetag -= ($pricetag * ($p/100));
 
-		$discount = new StdClass();
 		$discount->pricetag = $pricetag;
-		$discount->freeship = $freeship;
+
 		return $discount;
 	}
 
