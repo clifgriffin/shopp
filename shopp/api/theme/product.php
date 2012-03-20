@@ -379,7 +379,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	static function free_shipping ($result, $options, $O) {
 		if (empty($O->prices)) $O->load_data(array('prices'));
-		return (isset($O->freeshipping) && $O->freeshipping);
+		return str_true($O->freeship);
 	}
 
 	static function gallery ($result, $options, $O) {
