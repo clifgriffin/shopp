@@ -8,7 +8,6 @@
 	<?php include("navigation.php"); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
-		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
 	<div class="clear"></div>
 
@@ -118,7 +117,7 @@
 	<div class="tablenav">
 		<?php if (current_user_can('shopp_financials') && current_user_can('shopp_export_orders')): ?>
 		<div class="alignleft actions">
-			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_purchases')),admin_url("admin.php"))); ?>" id="log" method="post">
+			<form action="<?php echo esc_url( add_query_arg(urlencode_deep(array_merge(stripslashes_deep($_GET),array('src'=>'export_purchases'))),admin_url('admin.php')) ); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">

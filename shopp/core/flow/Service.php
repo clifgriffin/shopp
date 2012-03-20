@@ -167,15 +167,15 @@ class Service extends AdminController {
 
 		$where = array();
 		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
-
 		if (!empty($s)) {
 			$s = stripslashes($s);
 			$search = array();
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
 				foreach ($props as $query) {
 					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
-					switch(strtolower($search[1])) {
+					switch(strtolower($query[1])) {
 						case "txn": 		$search[] = "txnid='$keyword'"; break;
+						case "company":		$search[] = "company LIKE '%$keyword%'"; break;
 						case "gateway":		$search[] = "gateway LIKE '%$keyword%'"; break;
 						case "cardtype":	$search[] = "cardtype LIKE '%$keyword%'"; break;
 						case "address": 	$search[] = "(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
@@ -216,13 +216,15 @@ class Service extends AdminController {
 	 * @return void
 	 **/
 	function orders () {
+		if ( ! current_user_can('shopp_orders') )
+			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+
 		global $Shopp,$Orders;
 
 		$defaults = array(
 			'page' => false,
 			'update' => false,
 			'newstatus' => false,
-			'pagenum' => 1,
 			'paged' => 1,
 			'per_page' => 20,
 			'status' => false,
@@ -231,8 +233,7 @@ class Service extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 
-		if ( ! current_user_can('shopp_orders') )
-			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+		$s = stripslashes($s);
 
 		$statusLabels = shopp_setting('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
@@ -241,8 +242,8 @@ class Service extends AdminController {
 		$Purchase = new Purchase();
 
 		$Orders = $this->orders;
-		$ordercount = $this->ordercount;
-		$num_pages = ceil($ordercount->total / $per_page);
+		$num_pages = ceil($this->ordercount->total / $per_page);
+
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Orders->total, $num_pages, $per_page );
 
 		$ranges = array(
