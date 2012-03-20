@@ -509,8 +509,10 @@ class Service extends AdminController {
 
 		$alltotal = DB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
 		$r = DB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",'array','index','status');
+		$all = array('' => __('All Orders','Shopp'));
 
-		$labels = array_merge(array( '' => __('All Orders','Shopp') ),$labels);
+		$labels = $all+$labels;
+
 		foreach ($labels as $id => $label) {
 			$_ = new StdClass();
 			$_->label = $label;
