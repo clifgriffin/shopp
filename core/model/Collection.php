@@ -863,7 +863,7 @@ class ProductCategory extends ProductTaxonomy {
 		// Load price facet filters first
 		if ('disabled' != $this->pricerange && isset($this->facets['price'])) {
 			$Facet = $this->facets['price'];
-			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
 			if (!$this->loaded) $this->load();
 			if ('auto' == $this->pricerange) $ranges = auto_ranges($this->pricing->average,$this->pricing->max,$this->pricing->min);
@@ -911,7 +911,7 @@ class ProductCategory extends ProductTaxonomy {
 			$slug = sanitize_title_with_dashes($spec['name']);
 			if (!isset($this->facets[ $slug ])) continue;
 			$Facet = &$this->facets[ $slug ];
-			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
 			// For custom menu presets
 

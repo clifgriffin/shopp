@@ -231,7 +231,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function facet_option_link  ($result, $options, $O) {
 		$facet = current($O->facets);
 		$option = current($facet->filters);
-		return add_query_arg($facet->slug,$option->param,$facet->link);
+		return add_query_arg(urlencode($facet->slug),$option->param,$facet->link);
 	}
 
 	static function facet_option_label  ($result, $options, $O) {
@@ -308,7 +308,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$_[] = '<ul class="facet-option '.self::facet_slug(false,false,$O).'">';
 			while(self::facet_options(false,false,$O)) {
 				$_[] = '<li>';
-				$_[] = sprintf('<a href="%s">%s</a>',self::facet_option_link(false,false,$O),self::facet_option_label(false,false,$O));
+				$_[] = sprintf('<a href="%s">%s</a>',esc_url(self::facet_option_link(false,false,$O)),self::facet_option_label(false,false,$O));
 				$_[] = ' <span class="count">'.self::facet_option_count(false,false,$O).'</span>';
 				$_[] = '</li>';
 			}
