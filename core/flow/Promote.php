@@ -98,7 +98,7 @@ class Promote extends AdminController {
 			'page' => false,
 			'status' => false,
 			'type' => false,
-			'pagenum' => 1,
+			'paged' => 1,
 			'per_page' => 20,
 			's' => '',
 			);
@@ -141,9 +141,7 @@ class Promote extends AdminController {
 
 		}
 
-		$pagenum = absint( $pagenum );
-		if ( empty($pagenum) )
-			$pagenum = 1;
+		$pagenum = absint( $paged );
 		$start = ($per_page * ($pagenum-1));
 
 		$where = array();
