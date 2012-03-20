@@ -191,6 +191,9 @@ class Product extends WPShoppObject {
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
 
+		// Reset price property
+		$this->prices = array();
+
 		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
 		if (!empty($this->id) && $this->id == $ids) {
 			$this->load_summary($ids);

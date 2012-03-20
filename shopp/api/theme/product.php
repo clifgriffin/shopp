@@ -584,8 +584,17 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function has_variations ($result, $options, $O) {
-		if (str_true($O->variants) && empty($O->options)) $O->load_data(array('summary','meta','prices'));
-		return (str_true($O->variants) && (!empty($O->options['v']) || !empty($O->options)));
+
+		if (! str_true($O->variants)) return false;
+
+		// Only load again if needed
+		$load = array();
+		if (empty($O->options)) $load[] = 'meta';
+		if (empty($O->prices)) $load[] = 'prices';
+		if (!empty($load)) $O->load_data($load);
+
+		return (!empty($O->options['v']) || !empty($O->options));
+
 	}
 
 	static function id ($result, $options, $O) { return $O->id; }
@@ -1011,14 +1020,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$price = current($O->prices);
 
 			if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
-				next($O->prices);
+				$price = next($O->prices);
 
-			if (current($O->prices) !== false) return true;
+			if ($price !== false) return true;
 			else {
 				unset($O->_prices_loop);
 				return false;
 			}
-			return true;
+			return false;
 		}
 
 		if ($O->outofstock) return false; // Completely out of stock, hide menus
