@@ -1373,6 +1373,9 @@ class CollectionStorefrontPage extends StorefrontPage {
 
 	}
 
+	function editlink ($link) { return false; }
+
+
 	function content ($content) {
 		global $wp_query,$wp_the_query;
 		// Test that this is the main query and it is a product collection or product taxonomy
