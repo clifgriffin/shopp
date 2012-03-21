@@ -569,7 +569,7 @@ class Product extends WPShoppObject {
 			} else $price->promoprice = $pricetag;
 		}
 
-		if ($price->promoprice < $price->price) $price->sale = $target->sale = 'on';
+		if ($price->promoprice < $price->price) $target->sale = 'on';
 
 		// Grab price and saleprice ranges (minimum - maximum)
 		if (!$price->price) $price->price = 0;
