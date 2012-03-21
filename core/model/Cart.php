@@ -75,9 +75,13 @@ class Cart {
 	 * @return void
 	 **/
 	function listeners () {
-		add_action('parse_request',array(&$this,'totals'),99);
-		add_action('shopp_cart_request',array(&$this,'request'));
-		add_action('shopp_session_reset',array(&$this,'clear'));
+		add_action('parse_request',array($this,'totals'),99);
+		add_action('shopp_cart_request',array($this,'request'));
+		add_action('shopp_session_reset',array($this,'clear'));
+
+		// Recalculate cart based on logins (for customer type discounts)
+		add_action('shopp_login',array($this,'changed'));
+		add_action('shopp_logged_out',array($this,'retotal'));
 	}
 
 	/**
@@ -402,6 +406,19 @@ class Cart {
 	function changed ($changed=false) {
 		if ($changed) $this->changed = true;
 		else return $this->changed;
+	}
+
+	/**
+	 * Forces the cart to recalculate totals
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return void
+	 **/
+	function retotal () {
+		$this->retotal = true;
+		$this->totals();
 	}
 
 	/**
