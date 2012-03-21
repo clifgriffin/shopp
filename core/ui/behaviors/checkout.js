@@ -93,7 +93,7 @@ jQuery(document).ready(function () {
 		if (menu.hasClass('hidden')) menu.removeClass('hidden').hide();
 
 		if (regions[country] || (init && menu.find('option').length > 1)) {
-			state.setDisabled(true).hide();
+			state.setDisabled(true).addClass('_important').hide();
 			if (regions[country]) {
 				$.each(regions[country], function (value,label) {
 					options += '<option value="'+value+'">'+label+'</option>';
@@ -104,7 +104,8 @@ jQuery(document).ready(function () {
 			$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
 		} else {
 			menu.empty().setDisabled(true).hide();
-			state.setDisabled(false).show();
+			state.setDisabled(false).show().removeClass('_important');
+
 			$('label[for='+menu.attr('id')+']').attr('for',state.attr('id'));
 			if (!init) state.val('').focus();
 		}
@@ -147,7 +148,7 @@ jQuery(document).ready(function () {
 			alt.hide().find('.required').setDisabled(true);
 		} else {
 			prime.addClass('half');
-			alt.show().find('.disabled').setDisabled(false);
+			alt.show().find('.disabled:not(._important)').setDisabled(false);
 			if (!init) refocus = true;
 		}
 		if (bc.is(':visible')) bc.trigger('change.localemenu',[init]);
