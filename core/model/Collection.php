@@ -193,7 +193,8 @@ class ProductCollection implements Iterator {
 			$cache->total = $this->total = DB::found();
 
 			// If running a limited set, the reported total found should not exceed the limit (but can because of SQL_CALC_FOUND_ROWS)
-			if ($limited) $cache->total = $this->total = min($limit,$this->total);
+			// Don't use the limit if it is offset
+			if ($limited && false === strpos($limit,',')) $cache->total = $this->total = min($limit,$this->total);
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
 
