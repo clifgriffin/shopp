@@ -41,10 +41,8 @@ class Promotion extends DatabaseObject {
 	function catalog_discounts () {
 		$db = DB::get();
 
-		$product_table = DatabaseObject::tablename(Product::$table);
+		$product_table = WPDatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		// $catalog_table = DatabaseObject::tablename(Catalog::$table);
-		// $category_table = DatabaseObject::tablename(ProductCategory::$table);
 
 		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
 		$where = array();
@@ -72,7 +70,7 @@ class Promotion extends DatabaseObject {
 
 				switch($rule['property']) {
 					case "Name":
-						$where[] = "p.name$match";
+						$where[] = "p.post_title$match";
 						$joins[$product_table] = "INNER JOIN $product_table as p ON prc.product=p.id";
 						break;
 					case "Category":
@@ -299,27 +297,34 @@ class Promotion extends DatabaseObject {
 	 * @return void Description...
 	 **/
 	static function pricing ($pricetag,$ids) {
+		$discount = new StdClass();
+		$discount->pricetag = $pricetag;
+		$discount->freeship = false;
 
-		if (empty($pricetag) || empty($ids)) return $pricetag;
+		if (empty($pricetag) || empty($ids)) return $discount;
 
 		$table = DatabaseObject::tablename(self::$table);
-		$query = "SELECT type,SUM(discount) AS amount FROM $table WHERE 0 < FIND_IN_SET(id,'$ids') AND discount > 0 AND status='enabled' GROUP BY type ORDER BY type DESC";
+		$query = "SELECT type,SUM(discount) AS amount FROM $table WHERE 0 < FIND_IN_SET(id,'$ids') AND (discount > 0 OR type='Free Shipping') AND status='enabled' GROUP BY type ORDER BY type DESC";
 		$discounts = DB::query($query,'array');
-		if (empty($discounts)) return $pricetag;
+		if (empty($discounts)) return $discount;
 
+		$freeship = false;
 		// Apply discounts
 		$a = $p = 0;
 		foreach ($discounts as $discount) {
 			switch ($discount->type) {
 				case 'Amount Off': $a += $discount->amount; break;
 				case 'Percentage Off': $p += $discount->amount; break;
+				case 'Free Shipping': $discount->freeship = true; break;
 			}
 		}
 
 		if ($a > 0) $pricetag -= $a; // Take amounts off first (to reduce merchant percentage discount burden)
 		if ($p > 0)	$pricetag -= ($pricetag * ($p/100));
 
-		return $pricetag;
+		$discount->pricetag = $pricetag;
+
+		return $discount;
 	}
 
 	/**

@@ -201,6 +201,17 @@ class Order {
 	function processor ($processor=false) {
 		global $Shopp;
 
+		if ('FreeOrder' == $processor || 'FreeOrder' == $this->processor) {
+			if ( $Shopp->Gateways->freeorder ) {
+				$this->processor = 'FreeOrder';
+				$Shopp->Gateways->activated = array($this->processor);
+				if ( ! isset($Shopp->Gateways->active[ $processor ]) )
+					$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
+				$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
+				return $this->processor;
+			}
+		}
+
 		// Set the gateway processor from a selected payment method
 		if (isset($_POST['paymethod'])) {
 			$processor = false;
@@ -217,14 +228,6 @@ class Order {
 			if (!$processor) new ShoppError(__('The payment method you selected is no longer available. Please choose another.','Shopp'));
 		}
 
-		if ('FreeOrder' == $this->processor) {
-			if ( ! $Shopp->Gateways->freeorder ) break;
-			$this->processor = 'FreeOrder';
-			$Shopp->Gateways->activated = array($this->processor);
-			if ( ! isset($Shopp->Gateways->active[ $processor ]) )
-				$Shopp->Gateways->active[ $processor ] = $Shopp->Gateways->freeorder;
-			$this->paymethod = sanitize_title_with_dashes($Shopp->Gateways->freeorder->name);
-		}
 
 		// No processor set for this order, set default from payment options
 		if ( false == $this->processor ) {

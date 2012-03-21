@@ -60,8 +60,8 @@ class Login {
 		if (isset($_POST['shopp_registration'])) $this->registration();
 
 		if (isset($_REQUEST['acct']) && $_REQUEST['acct'] == "logout" || isset($_REQUEST['logout'])) {
-			// Redirect to remove the logout request
-			add_action('shopp_logged_out',array($this,'redirect'));
+			// Set the last logged out action to save the session and redirect to remove the logout request
+			add_action('shopp_logged_out',array($this,'redirect'),100);
 			// Trigger the logout
 			do_action('shopp_logout');
 		}
@@ -249,7 +249,6 @@ class Login {
 		$this->Shipping = new ShippingAddress();
 		$this->Shipping->locate();
 
-		session_commit();
 		do_action_ref_array('shopp_logged_out',array(&$this->Customer));
 	}
 
@@ -312,6 +311,7 @@ class Login {
 
 	function redirect () {
 		global $Shopp;
+		session_commit(); // Save the session just prior to redirect
 		if (!empty($_POST['redirect'])) {
 			if ($_POST['redirect'] == "checkout") shopp_redirect(shoppurl(false,'checkout',$Shopp->Gateways->secure));
 			else shopp_safe_redirect($_POST['redirect']);

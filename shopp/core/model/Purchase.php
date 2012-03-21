@@ -486,21 +486,39 @@ class PurchasesExport {
 		}
 
 		$where = array();
-		if (!empty($status)) $where[] = "status='".DB::escape($status)."'";
+		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
 		if (!empty($s)) {
-			$searchterm = DB::escape($s);
-			$search = array(
-				"id='$searchterm'",
-				"firstname LIKE '%$searchterm%'",
-				"lastname LIKE '%$searchterm%'",
-				"CONCAT(firstname,' ',lastname) LIKE '%$searchterm%'",
-				"txnid LIKE '%$searchterm%'"
-			);
-			$where[] = "(".join(' OR ',$search).")";
+			$s = stripslashes($s);
+			$search = array();
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
+				foreach ($props as $query) {
+					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
+					switch(strtolower($query[1])) {
+						case "txn": 		$search[] = "txnid='$keyword'"; break;
+						case "company":		$search[] = "company LIKE '%$keyword%'"; break;
+						case "gateway":		$search[] = "gateway LIKE '%$keyword%'"; break;
+						case "cardtype":	$search[] = "cardtype LIKE '%$keyword%'"; break;
+						case "address": 	$search[] = "(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
+						case "city": 		$search[] = "city LIKE '%$keyword%'"; break;
+						case "province":
+						case "state": 		$search[] = "state='$keyword'"; break;
+						case "zip":
+						case "zipcode":
+						case "postcode":	$search[] = "postcode='$keyword'"; break;
+						case "country": 	$search[] = "country='$keyword'"; break;
+					}
+				}
+				if (empty($search)) $search[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				$where[] = "(".join(' OR ',$search).")";
+			} elseif (strpos($s,'@') !== false) {
+				 $where[] = "email='".DB::escape($s)."'";
+			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
 		}
-		if (!empty($start) && !empty($end))
-			$where[] = "(UNIX_TIMESTAMP(o.created) >= $start AND UNIX_TIMESTAMP(o.created) <= $end)";
-		$where = "WHERE ".join(' AND ',$where);
+		if (!empty($start) && !empty($end)) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
+		if (!empty($customer)) $where[] = "customer=".intval($customer);
+		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
+
+		echo $where;
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
