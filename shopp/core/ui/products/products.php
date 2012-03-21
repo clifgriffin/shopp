@@ -119,10 +119,8 @@
 
 
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; if ($Product->sale == 'on') echo " sale"?>"><?php
-				if (!str_true($Product->variants)) echo money($Product->minprice);
-				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
-				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
-				if ($Product->sale == 'on') echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
+				shopp($Product,'price');
+				if (str_true($Product->sale)) echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
 			?>
 			</td>
 

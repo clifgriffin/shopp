@@ -538,16 +538,6 @@ class Product extends WPShoppObject {
 		// Build secondary lookup table using the price id as the key
 		$target->priceid[$price->id] = $price;
 
-		if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-		if ( isset($options['taxes']) && str_true($options['taxes']) && str_true($price->tax) ) {
-			if ( shopp_setting_enabled('tax_inclusive') && !str_true($target->excludetax)) {
-				$Taxes = new CartTax();
-				$taxrate = $Taxes->rate($target);
-				$price->price += $price->price*$taxrate;
-				$price->saleprice += $price->saleprice*$taxrate;
-			}
-		}
-
 		// Set promoprice before data aggregation
 		if (str_true($price->sale)) $price->promoprice = $price->saleprice;
 

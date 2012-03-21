@@ -41,7 +41,7 @@ class Warehouse extends AdminController {
 			$this->view = $_GET['view'];
 
 		if (!empty($_GET['id'])) {
-		 	get_current_screen()->post_type = $post_type;
+		 	get_current_screen()->post_type = Product::$posttype;
 
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
@@ -315,7 +315,7 @@ class Warehouse extends AdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		if (shopp_setting_enabled('tax_inclusive') && !$Product->excludetax) $taxrate = shopp_taxrate();
+		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
@@ -641,6 +641,18 @@ class Warehouse extends AdminController {
 		$process = (!empty($Product->id)?$Product->id:'new');
 		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
 		$post_type = Product::posttype();
+
+		// For inclusive taxes, add tax to base product price (so tax is part of the price)
+		// This has to take place outside of Product::pricing() so that the summary system
+		// doesn't cache the results causing strange/unexpected price jumps
+		if ( shopp_setting_enabled('tax_inclusive') && !str_true($Product->excludetax) ) {
+			foreach ($Product->prices as &$price) {
+				$Taxes = new CartTax();
+				$taxrate = $Taxes->rate($Product);
+				$price->price += $price->price*$taxrate;
+				$price->saleprice += $price->saleprice*$taxrate;
+			}
+		}
 
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 	}
