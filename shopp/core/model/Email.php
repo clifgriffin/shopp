@@ -40,7 +40,7 @@ abstract class ShoppEmailFilters {
 
 	}
 
-	static function AutoMultipart ($message,$headers) {
+	static function AutoMultipart ($message) {
 		add_action('phpmailer_init',array('ShoppEmailDefaultFilters','AltBody') );
 		return $message;
 	}
