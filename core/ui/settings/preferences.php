@@ -86,8 +86,8 @@
 
 			<tr>
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th>
-				<td><input type="radio" name="settings[order_confirmation]" value="ontax" id="order_confirmation_ontax"<?php if(shopp_setting('order_confirmation') == "ontax") echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show for taxed orders only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if(shopp_setting('order_confirmation') == "always") echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders','Shopp') ?></label></td>
+				<td><input type="radio" name="settings[order_confirmation]" value="" id="order_confirmation_ontax"<?php if ( 'always' != shopp_setting('order_confirmation') ) echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show only when the order total changes','Shopp'); ?></label><br />
+					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if ( 'always' == shopp_setting('order_confirmation') ) echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders','Shopp') ?></label></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th>

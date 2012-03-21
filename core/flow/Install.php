@@ -334,7 +334,7 @@ class ShoppInstallation extends FlowController {
 		ShoppSettings()->setup('dashboard','on');
 
 		// Preferences
-		ShoppSettings()->setup('order_confirmation','ontax');
+		ShoppSettings()->setup('order_confirmation','');
 		ShoppSettings()->setup('receipt_copy','1');
 		ShoppSettings()->setup('account_system','none');
 		ShoppSettings()->setup('shopping_cart','on');
