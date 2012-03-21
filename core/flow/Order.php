@@ -367,7 +367,7 @@ class Order {
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
 
 		$ignore = array();
-		if ($_POST['billing']['card'] == substr($this->Billing->card,-4))
+		if (isset($_POST['billing']['card']) && $_POST['billing']['card'] == substr($this->Billing->card,-4))
 			$ignore[] = 'card';
 		$this->Billing->updates($_POST['billing'],$ignore);
 
