@@ -1,8 +1,9 @@
 	<div class="wrap shopp">
-		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
 
 		<div class="icon32"></div>
 		<h2><?php _e('Membership Editor','Shopp'); ?></h2>
+
+		<?php do_action('shopp_admin_notice'); ?>
 
 		<div id="ajax-response"></div>
 		<form name="membership" id="membership" action="<?php echo add_query_arg('page',$this->Admin->pagename('memberships'),admin_url('admin.php')); ?>" method="post">
