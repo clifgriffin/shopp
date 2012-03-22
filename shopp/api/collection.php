@@ -97,7 +97,7 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 
 	$term = wp_insert_term($name, ProductCategory::$taxon, $args);
 
-	if ( $term && isset($term['term_id']) ) {
+	if ( ! is_wp_error($term) && isset($term['term_id']) ) {
 		$hierarchy = _get_term_hierarchy(ProductCategory::$taxon);
 		if ( $parent && (! in_array($parent, array_keys($hierarchy)) || ! in_array($term['term_id'], $hierarchy[$parent]) ) ) {
 			// update hierarchy if necessary
