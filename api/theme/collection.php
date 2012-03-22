@@ -500,7 +500,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return join("\n",$_);
 	}
 
-	static function parent ($result, $options, $O) { return $O->parent;  }
+	static function parent ($result, $options, $O) { return isset($O->parent) ? $O->parent : false;  }
 
 	static function products ($result, $options, $O) {
 		global $Shopp;
