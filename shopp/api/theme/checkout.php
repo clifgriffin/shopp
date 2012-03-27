@@ -838,7 +838,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		extract($options);
 		unset($options['type']);
 
-		if ("loop" == $mode) {
+		if ('loop' == $mode) {
 			if (!isset($O->_pay_loop)) {
 				reset($O->payoptions);
 				$O->_pay_loop = true;
@@ -877,7 +877,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 					if (in_array($value,$excludes)) continue;
 					$payoption = $O->payoptions[$value];
 					$options['value'] = $value;
-					$options['checked'] = ($O->paymethod == $value)?'checked':false;
+					$options['checked'] = ($O->paymethod == $value);
 					if ($options['checked'] === false) unset($options['checked']);
 					$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$payoption->label.'</label></li>';
 				}
