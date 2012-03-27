@@ -463,6 +463,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function purchases ($result, $options, $O) {
+		$null = null;
 		$Storefront = ShoppStorefront();
 		if (!isset($Storefront->_purchases_loop)) {
 			reset($Storefront->purchases);
@@ -474,7 +475,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if (current($Storefront->purchases) !== false) return true;
 		else {
-			unset($O->_purchases_loop);
+			unset($Storefront->_purchases_loop);
+			ShoppPurchase($null);
 			return false;
 		}
 	}
