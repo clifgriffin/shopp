@@ -637,9 +637,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if ($checkout) {
 			$id .= "-checkout";
-			$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="process-login" value="true" /><input type="hidden" name="redirect" value="'.shoppurl($request,'account',$Order->security()).'" />';
+		} else $string .= '<input type="hidden" name="redirect" value="'.shoppurl($request,'account',$Order->security()).'" />';
 		$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 		return $string;
 	}

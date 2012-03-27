@@ -80,8 +80,7 @@ class Login {
 			}
 		}
 
-		if (empty($_POST['process-login'])) return false;
-		if ($_POST['process-login'] != "true") return false;
+		if ( !isset($_POST['submit-login']) ) return false;
 
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');

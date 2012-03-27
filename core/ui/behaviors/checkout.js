@@ -74,7 +74,6 @@ jQuery(document).ready(function () {
 				login=false;
 				return false;
 			}
-			$('#process-login').val('true');
 			return true;
 		}
 

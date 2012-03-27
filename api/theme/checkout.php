@@ -1095,8 +1095,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function submit_login ($result, $options, $O) {
-		$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-		$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
+		$string = '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 		return $string;
 	}
 
