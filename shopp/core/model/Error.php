@@ -70,6 +70,9 @@ class ShoppErrors {
 
 	function init () {
 		ShoppingObject::store('errors', $this->errors);
+		foreach( $this->errors as $index => $error ) {
+			if ( $error->remove ) unset($this->errors[$index]);
+		}
 	}
 
 	public static function instance () {
@@ -187,7 +190,7 @@ class ShoppErrors {
 	 **/
 	function remove ($error) {
 		if (!isset($this->errors[$error->code])) return false;
-		unset($this->errors[$error->code]);
+		$this->errors[$error->code]->remove = true;
 		return true;
 	}
 
@@ -245,6 +248,7 @@ class ShoppError {
 	var $messages;
 	var $level;
 	var $data = array();
+	var $remove = false;
 
 	/**
 	 * Creates and registers a new error
@@ -310,7 +314,7 @@ class ShoppError {
 	 * @return void
 	 **/
 	function __sleep () {
-		return array('code','source','messages','level');
+		return array('remove','code','source','messages','level');
 	}
 
 	/**
