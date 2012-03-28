@@ -225,17 +225,17 @@ class Storefront extends FlowController {
 			$options = array('search'=>$search);
 		}
 
-		// Promo Collection routing
-		$promos = shopp_setting('active_catalog_promos');
-		if ( isset($promos[$collection]) ) {
-			$options['id'] = $promos[$collection][0];
-			$collection = 'promo';
-		}
-
 		// Handle Shopp Smart Collections
 		if ( ! empty($collection) ) {
 			// Overrides to enforce archive behavior
 			$page = $catalog;
+
+			// Promo Collection routing
+			$promos = shopp_setting('active_catalog_promos');
+			if ( isset($promos[$collection]) ) {
+				$options['id'] = $promos[$collection][0];
+				$collection = 'promo';
+			}
 
 			ShoppCollection( Catalog::load_collection($collection,$options) );
 			if (!is_feed()) ShoppCollection()->load(array('load'=>array('coverimages')));
@@ -1140,7 +1140,7 @@ class StorefrontPage {
 		foreach ($options as $name => $value)
 			if (isset($this->$name)) $this->$name = $value;
 
-		add_filter('edit_post_link',array($this,'editlink'));
+		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
 		add_filter('wp_title',array($this,'title'),10);
@@ -1156,7 +1156,7 @@ class StorefrontPage {
 	function editlink ($link) {
 		$url = admin_url('admin.php');
 		if (!empty($this->edit)) $url = add_query_arg($this->edit,$url);
-		return '<a href="'.($url).'">'.__('Edit').'</a>';
+		return $url;
 	}
 
 	function content ($content) {
@@ -1276,6 +1276,11 @@ class ProductStorefrontPage extends StorefrontPage {
 	function __construct ( $settings = array() ) {
 		$settings['template'] = 'single-'.Product::$posttype. '.php';
 		parent::__construct($settings);
+
+	}
+
+	function editlink ($link) {
+		return $link;
 	}
 
 	function content ($content) {
@@ -1322,7 +1327,7 @@ class CollectionStorefrontPage extends StorefrontPage {
 
 		$Collection = ShoppCollection();
 		// Define the edit link for collections and taxonomies
-		$editlink = '<a href="'.add_query_arg('page','shopp-settings-pages',admin_url('admin.php')).'">'.__('Edit','Shopp').'</a>';
+		$editlink = add_query_arg('page','shopp-settings-pages',admin_url('admin.php'));
 		if (isset($Collection->taxonomy) && isset($Collection->id)) {
 			$page = 'edit-tags.php';
 			$query = array(
@@ -1337,7 +1342,7 @@ class CollectionStorefrontPage extends StorefrontPage {
 					'id' => $Collection->id
 				);
 			}
-			$editlink = '<a href="'.add_query_arg($query,admin_url($page)).'">'.__('Edit','Shopp').'</a>';
+			$editlink = add_query_arg($query,admin_url($page));
 		}
 
 		$settings = array(
@@ -1349,19 +1354,17 @@ class CollectionStorefrontPage extends StorefrontPage {
 
 	}
 
-	function editlink ($link) { return false; }
-
+	function editlink ($link) {
+		return $this->edit;
+	}
 
 	function content ($content) {
 		global $wp_query,$wp_the_query;
-		// Test that this is the main query and it is a product collection or product taxonomy
-		if ( $wp_the_query !== $wp_query ||
-				( ! is_shopp_collection() && ! is_shopp_taxonomy() && ! is_shopp_search() ) ) return $content;
+		// Only modify content for Shopp collections (Shopp smart collections and taxonomies)
+		if ( $wp_the_query !== $wp_query ||  ! is_shopp_collection() ) return $content;
 
 		$Collection = ShoppCollection();
 
-		// Short-circuit the loop for the archive/category requests
-		$wp_query->current_post = $wp_query->post_count;
 		ob_start();
 		if (empty($Collection)) locate_shopp_template(array('catalog.php'),true);
 		else {
