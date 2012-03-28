@@ -272,19 +272,21 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function business_address ($result, $options, $O) { return esc_html(shopp_setting('business_address')); }
 
 	static function categories ($result, $options, $O) {
-		global $Shopp;
+		$null = null;
 		if (!isset($O->_category_loop)) {
 			reset($O->categories);
-			$Shopp->Category = current($O->categories);
+			ShoppCollection(current($O->categories));
 			$O->_category_loop = true;
 		} else {
-			$Shopp->Category = next($O->categories);
+			ShoppCollection(next($O->categories));
 		}
 
 		if (current($O->categories) !== false) return true;
 		else {
 			unset($O->_category_loop);
 			reset($O->categories);
+			ShoppCollection($null);
+			if ( is_a(ShoppStorefront()->Requested, 'ProductCollection') ) ShoppCollection(ShoppStorefront()->Requested);
 			return false;
 		}
 	}
