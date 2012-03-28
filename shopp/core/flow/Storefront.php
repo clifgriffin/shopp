@@ -60,6 +60,7 @@ class Storefront extends FlowController {
 		add_action('wp', array($this, 'trackurl'));
 		add_action('wp', array($this, 'viewed'));
 		add_action('wp', array($this, 'cart'));
+		add_action('wp', array($this, 'dashboard'));
 		add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
 
@@ -83,7 +84,6 @@ class Storefront extends FlowController {
 
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'account'));
-		add_action('shopp_storefront_init',array($this,'dashboard'));
 
 		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
