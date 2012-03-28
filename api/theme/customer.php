@@ -262,20 +262,14 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="email" id="email"'.inputattrs($options).' />';
 	}
 
+	// Disabled and Deprecated
 	static function errors ($result, $options, $O) {
-		if (!apply_filters('shopp_show_account_errors',true)) return false;
-		if (!ShoppErrors()->exist(SHOPP_AUTH_ERR)) return false;
-
-		ob_start();
-		locate_shopp_template(array('account-errors.php','errors.php'),true);
-		$errors = ob_get_contents();
-		ob_end_clean();
-		return $errors;
+		// Now handled in Storefront controller always.
+		return false;
 	}
-
 	static function errors_exist ($result, $options, $O) {
-		$Errors = ShoppErrors();
-		return (ShoppErrors()->exist(SHOPP_AUTH_ERR));
+		// Now handled in Storefront controller always.
+		return false;
 	}
 
 	static function first_name ($result, $options, $O) {

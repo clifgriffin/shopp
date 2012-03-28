@@ -105,29 +105,8 @@ class CustomerAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 
-	function test_customer_errorsexist () {
-		new ShoppError("Test Error",'',SHOPP_AUTH_ERR);
-		$this->assertTrue(shopp('customer','errors-exist'));
-	}
-
-	function test_customer_loginerrors () {
-
-		ob_start();
-		shopp('customer','login-errors');
-		$actual = ob_get_contents();
-		ob_end_clean();
-
-		$expected = array(
-			'tag' => 'ul',
-			'child' => array(
-				'tag' => 'li',
-				'content' => 'Error'
-			)
-		);
-
-		$this->assertTag($expected,$actual,$actual,true);
-		$this->assertValidMarkup($actual);
-	}
+	function test_customer_errorsexist () {} // Deprecated Test
+	function test_customer_loginerrors () {} // Deprecated Test
 
 	function test_customer_menu_tags () {
 		do_action('parse_request');

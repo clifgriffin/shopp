@@ -1,5 +1,4 @@
 <form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
-<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
 <ul>
 	<li>
 		<span><input type="text" name="purchaseid" size="12" /><label><?php _e('Order Number','Shopp'); ?></label></span>
