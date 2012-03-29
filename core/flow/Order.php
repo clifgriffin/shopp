@@ -418,6 +418,9 @@ class Order {
 					$this->sameaddress = 'billing';
 					$this->Billing->updates($_POST['shipping']);
 					break;
+				default:
+					$this->sameaddress = 'off';
+					break;
 			}
 		}
 
