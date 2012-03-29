@@ -435,6 +435,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		} else {
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
+			$Collection = ShoppCollection();
 			foreach ($categories as &$category) {
 				if (!isset($category->count)) $category->count = 0;
 				if (!isset($category->level)) $category->level = 0;
@@ -446,7 +447,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-			if ($levellimit && $category->level >= $levellimit) continue;
+				if ($levellimit && $category->level >= $levellimit) continue;
 				if (str_true($hierarchy) && $category->level > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
@@ -454,8 +455,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 						$string = substr($string,0,-5);  // last </li> to re-open the entry
 					$active = '';
 
-					if (isset($Shopp->Category->uri) && !empty($parent->slug)
-							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
+					if (isset($Collection->uri) && !empty($parent->slug)
+							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Collection->uri)) {
 						$active = ' active';
 					}
 
@@ -486,7 +487,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				if ( str_true($showall) || str_true($products) && $category->count > 0 ) $total = ' <span>('.$category->count.')</span>';
 
 				$current = '';
-				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
+				if (isset($Collection->slug) && $Collection->slug == $category->slug)
 					$current = ' class="current"';
 
 				$listing = '';
