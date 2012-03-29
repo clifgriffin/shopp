@@ -348,7 +348,9 @@ function validate (form) {
 		required = 'required',
 		title = 'title';
 
-	$.each(inputs,function (id,field) {
+	$.fn.reverse = [].reverse;
+
+	$.each(inputs.reverse(),function (id,field) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
 

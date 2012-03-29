@@ -19,6 +19,7 @@ jQuery(document).ready(function () {
 		billCard = $('#billing-card'),
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
+		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = $('#checkout.shopp li.locale');
 
 	// No payment option selectors found, use default when on checkout page only
@@ -37,8 +38,9 @@ jQuery(document).ready(function () {
 
 	// Enable/disable the extra card security fields when needed
 	billCardtype.change(function () {
-		var cardtype = billCardtype.val(),
-			card = paycards[cardtype.toLowerCase()];
+
+		var cardtype = new String( billCardtype.val() ).toLowerCase(),
+			card = paycards[cardtype];
 
 		$('.paycard.xcsc').attr('disabled',true).addClass('disabled');
 		if (!card || !card['inputs']) return;
@@ -59,27 +61,23 @@ jQuery(document).ready(function () {
 		return $(this);
 	};
 
-	submitLogin.click(function () { login=true; });
-	checkoutForm.unbind('submit.validate').submit(function () {
-		if (login) {
-			if (accountLogin.val() == "") {
-				alert($co.loginname);
-				accountLogin.focus();
-				login=false;
+	submitLogin.click(function (e) {
+		checkoutForm.unbind('submit.validate').bind('submit.validlogin',function (e) {
+			var error = false;
+			if ('' == passwordLogin.val()) error = [$co.loginpwd,passwordLogin];
+			if ('' == accountLogin.val()) error = [$co.loginname,accountLogin];
+			if (error) {
+				e.preventDefault();
+				checkoutForm.unbind('submit.validlogin').bind('submit.validate',function (e) {
+					return validate(this);
+				});
+				alert(error[0]);
+				error[1].focus().addClass('error');
 				return false;
 			}
-			if (passwordLogin.val() == "") {
-				alert($co.loginpwd);
-				passwordLogin.focus();
-				login=false;
-				return false;
-			}
-			return true;
-		}
-
-		if (validate(this)) return true;
-		else return false;
-	});
+			checkoutProcess.val('login');
+		});
+ 	});
 
 	$('#billing-country,#shipping-country').change(function (e,init) {
 		var prefix = $(this).attr('id').split('-')[0],
@@ -134,6 +132,9 @@ jQuery(document).ready(function () {
 		}
 	});
 
+	$('#firstname,#lastname').change(function () {
+		$('#billing-name,#shipping-name').val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
+	});
 
 	sameaddr.change(function (e,init) {
 		var refocus = false,
