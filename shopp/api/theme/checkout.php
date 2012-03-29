@@ -957,12 +957,22 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if ( $O->sameaddress == $type || str_true($checked) ) $options['checked'] = 'on';
+		// Doing it wrong
+		if ( 'shipping' == $type && 'billing' == $O->sameaddress ) return '';
+		if ( 'billing' == $type && 'shipping' == $O->sameaddress ) return '';
+
+		// Order->sameaddress defaults to false
+		if ( $O->sameaddress ) {
+			if ( 'off' == $O->sameaddress ) $options['checked'] = 'off';
+			if ( $O->sameaddress == $type ) $options['checked'] = 'on';
+		}
+
 		$options['class'] = trim($options['class'].' sameaddress '.$type);
 		$id = "same-address-$type";
 
 		$_ = array();
 		$_[] = '<label for="'.$id.'">';
+		$_[] = '<input type="hidden" name="sameaddress" value="off" />';
 		$_[] = '<input type="checkbox" name="sameaddress" value="'.$type.'" id="'.$id.'" '.inputattrs($options,$allowed).' />';
 		$_[] = "&nbsp;$label</label>";
 
