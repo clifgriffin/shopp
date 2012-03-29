@@ -139,7 +139,7 @@ function is_catalog_page ( $wp_query = false ) {
  **/
 function is_catalog_frontpage ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	return is_shopp_page('catalog', $wp_query) && !( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
+	return is_shopp_page('catalog', $wp_query) && ! ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
 }
 
 /**
