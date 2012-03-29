@@ -1113,12 +1113,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return $link;
 	}
 
-	/**
-	 * @since 1.0
-	 * @deprecated 1.1
-	 **/
-	static function xco_buttons ($result, $options, $O) { return; }
-
 }
 
 ?>
