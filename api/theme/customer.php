@@ -100,11 +100,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	static function account_login ($result, $options, $O) {
 		global $Shopp;
-		$checkout = false;
-		if (isset($Shopp->Flow->Controller->checkout))
-			$checkout = $Shopp->Flow->Controller->checkout;
 
-		$id = "account-login".($checkout?"-checkout":'');
+		$id = "account-login".(ShoppStorefront()->checkout?'-checkout':'');
 		if (!empty($_POST['account-login']))
 			$options['value'] = $_POST['account-login'];
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
@@ -430,12 +427,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function password_login ($result, $options, $O) {
-		global $Shopp;
-		$checkout = false;
-		if (isset($Shopp->Flow->Controller->checkout))
-			$checkout = $Shopp->Flow->Controller->checkout;
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		$id = "password-login".($checkout?"-checkout":'');
+		$id = "password-login".(ShoppStorefront()->checkout?"-checkout":'');
 
 		if (!empty($_POST['password-login']))
 			$options['value'] = $_POST['password-login'];
@@ -616,11 +609,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function submit_login ($result, $options, $O) {
-		global $Shopp;
-		$checkout = false;
-		if (isset($Shopp->Flow->Controller->checkout))
-			$checkout = $Shopp->Flow->Controller->checkout;
-		$Order =& ShoppOrder();
 
 		if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 		$string = "";
@@ -629,10 +617,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$request = $_GET;
 		if (isset($request['acct']) && $request['acct'] == "logout") unset($request['acct']);
 
-		if ($checkout) {
+		if (ShoppStorefront()->checkout) {
 			$id .= "-checkout";
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="redirect" value="'.shoppurl($request,'account',$Order->security()).'" />';
+		} else $string .= '<input type="hidden" name="redirect" value="'.shoppurl($request,'account',ShoppOrder()->security()).'" />';
 		$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 		return $string;
 	}
