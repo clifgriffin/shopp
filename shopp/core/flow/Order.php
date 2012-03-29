@@ -301,6 +301,8 @@ class Order {
 		if ( !isset($this->Cart->shipping[ $_POST['shipmethod'] ]) ) return;
 
 		$this->Shipping->method = $_POST['shipmethod'];
+		$this->Shipping->option = $this->Cart->shipping[$_POST['shipmethod']]->name;
+
 		$this->Cart->retotal = true;
 		$this->Cart->totals();
 	}
@@ -397,7 +399,7 @@ class Order {
 				$this->Shipping = new ShippingAddress();
 
 			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod'])) $this->Shipping->method = $_POST['shipmethod'];
+			if (!empty($_POST['shipmethod']) && isset($this->Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
 			else $this->Shipping->method = key($this->Cart->shipping);
 
 			if (isset($this->Cart->shipping[$this->Shipping->method]))
