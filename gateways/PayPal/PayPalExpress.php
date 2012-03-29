@@ -378,7 +378,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 	}
 
-	function DoExpressCheckoutPayment ( SaleOrderEvent $Event ) {
+	function DoExpressCheckoutPayment ( $Event ) {
 		$Purchase = shopp_order($Event->order);
 
 		if (!isset($this->Order->token) ||
