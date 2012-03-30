@@ -113,6 +113,8 @@ class Order {
 		add_action('shopp_purchase_order_created',array($this,'invoice'));
 		add_action('shopp_purchase_order_created',array($this,'process'));
 
+		add_action('shopp_authed_order_event',array($this,'captured'));
+
 		// Status updates
 		add_action('shopp_order_txnstatus_update',array($this,'salestats'),10,2);
 
@@ -455,7 +457,6 @@ class Order {
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 
-
 	}
 
 	/**
@@ -594,7 +595,6 @@ class Order {
 	 **/
 	function sale ($Purchase) {
 
-		add_action('shopp_authed_order_event',array($this,'captured'));
 		add_action('shopp_captured_order_event',array($this,'notify'));
 		add_action('shopp_captured_order_event',array($this,'accounts'));
 		add_action('shopp_captured_order_event',array($this,'success'));
@@ -631,7 +631,7 @@ class Order {
 	 *
 	 * @return void
 	 **/
-	function purchase (PurchaseOrderEvent $Event) {
+	function purchase ( PurchaseOrderEvent $Event ) {
 		$Shopping = ShoppShopping();
 
 		// No auth message, bail
