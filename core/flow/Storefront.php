@@ -1612,8 +1612,9 @@ class CheckoutStorefrontPage extends StorefrontPage {
 		ob_start();
 		if ($Errors->exist(SHOPP_COMM_ERR))
 			echo Storefront::errors(array('errors.php'));
-		$this->checkout = true;
+		ShoppStorefront()->checkout = true;
 		locate_shopp_template(array('checkout.php'),true);
+		ShoppStorefront()->checkout = false;
 		$content = ob_get_contents();
 		ob_end_clean();
 
