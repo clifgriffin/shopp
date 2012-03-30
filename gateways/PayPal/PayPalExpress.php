@@ -571,7 +571,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if ( $Purchase->gateway != $this->module ) return; // Not a PPE order, don't touch it
 
 		// Validate the order notification
-		if ( $this->verifyipn() ) {
+		if ( ! $this->verifyipn() ) {
 			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
 			return false;
 		}
