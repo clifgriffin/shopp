@@ -501,20 +501,13 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (empty($this->Order->Cart->shipped) &&
 			!in_array($this->settings['locale'],$this->shiprequired)) $_['NOSHIPPING'] = 1;
 
-		// Transaction
-		$_['PAYMENTREQUEST_0_CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['PAYMENTREQUEST_0_AMT']					= $this->amount('total');
-		$_['PAYMENTREQUEST_0_ITEMAMT']				= (float)$this->amount('subtotal')-(float)$this->amount('discount');
-		$_['PAYMENTREQUEST_0_SHIPPINGAMT']			= $this->amount('shipping');
-		$_['PAYMENTREQUEST_0_TAXAMT']				= $this->amount('tax');
-
 		// Line Items
 		foreach($Cart->contents as $i => $Item) {
 			$_['L_PAYMENTREQUEST_0_NAME'.$i]		= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= number_format($Item->unitprice,$this->precision);
+			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount($Item->unitprice);
 			$_['L_PAYMENTREQUEST_0_NUMBER'.$i]		= $i;
 			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= $Item->quantity;
-			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= number_format(0,$this->precision);
+			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
 		}
 
 		if ($Totals->discount != 0) {
@@ -525,10 +518,34 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$i++;
 			$_['L_PAYMENTREQUEST_0_NUMBER'.$i]		= $i;
 			$_['L_PAYMENTREQUEST_0_NAME'.$i]		= htmlentities(join(", ",$discounts));
-			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= number_format($Totals->discount*-1,$this->precision);
+			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount($Totals->discount*-1);
 			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= 1;
-			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= number_format(0,$this->precision);
+			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
 		}
+
+		// Workaround a PayPal limitation that does not handle a 0.00 subtotal amount/
+		// that may happen because of discounts (subtotal-discount=0.00). We handle this
+		// situation by moving shipping fees to a line item instead of a shipping amount,
+		// and lacking shipping fees, use a subtotal of 0.01 to satisfy minimum order
+		// amount requirements. Yes it is ugly. Thanks PayPal.
+
+		if ($_['PAYMENTREQUEST_0_ITEMAMT'] == 0) {
+
+			$i++;
+			$_['L_PAYMENTREQUEST_0_NUMBER'.$i]		= $i;
+			$_['L_PAYMENTREQUEST_0_NAME'.$i]		= apply_filters('paypal_freeorder_handling_label',__('Shipping & Handling','Shopp'));
+			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount( max(0.01,$this->amount('shipping')) ); // Choose the higher amount of shipping costs or 0.01
+			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= 1;
+			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
+
+		} else $_['PAYMENTREQUEST_0_SHIPPINGAMT']	= $this->amount('shipping');
+
+		// Transaction
+		$_['PAYMENTREQUEST_0_AMT']					= $this->amount('total');
+		$_['PAYMENTREQUEST_0_ITEMAMT']				= (float)$this->amount('subtotal')-(float)$this->amount('discount');
+		$_['PAYMENTREQUEST_0_TAXAMT']				= $this->amount('tax');
+		$_['PAYMENTREQUEST_0_CURRENCYCODE']			= $this->settings['currency_code'];
+
 
 		return $_;
 	}
