@@ -142,6 +142,8 @@ class Resources {
 
 			$paidstatus = array( /* For 1.1 */ 'CHARGED', /* For 1.2+ */'captured' );
 
+			$accounts = ('none' != shopp_setting('account_system'));
+
 			$forbidden = false;
 			// Purchase Completion check
 			if ( !in_array($Purchase->txnstatus,$paidstatus) && !SHOPP_PREPAYMENT_DOWNLOADS) {
@@ -150,13 +152,13 @@ class Resources {
 			}
 
 			// Account restriction checks
-			if (shopp_setting('account_system') != "none" && !ShoppCustomer()->logged_in()) {
+			if ($accounts && !ShoppCustomer()->logged_in()) {
 				new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
 				$forbidden = true;
 			}
 
 			// File owner authorization check
-			if (ShoppCustomer()->id != $Purchase->customer) {
+			if ($accounts && ShoppCustomer()->id != $Purchase->customer) {
 				new ShoppError(__('You are not authorized to download the requested file.','Shopp'),'shopp_download_unauthorized');
 				$forbidden = true;
 			}
