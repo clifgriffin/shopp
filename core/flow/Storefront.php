@@ -87,9 +87,11 @@ class Storefront extends FlowController {
 
 		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
+		add_filter('search_template',array($this,'maintenance'));
 		add_filter('page_template',array($this,'maintenance'));
 		add_filter('single_template',array($this,'maintenance'));
 
+		add_filter('search_template',array($this,'pages'));
 		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
 
@@ -215,7 +217,6 @@ class Storefront extends FlowController {
 				if ($t->hierarchical) ShoppCollection( new ProductCategory($taxonomy,'slug',$t->name) );
 				else ShoppCollection( new ProductTag($taxonomy,'slug',$t->name) );
 				$page = $catalog;
-
 			}
 		}
 
@@ -247,17 +248,7 @@ class Storefront extends FlowController {
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
 
-		}
-
-		if ( ! empty($page) ) {
-			// Overrides to enforce page behavior
-			$wp_query->set('shopp_page',$page);
-			$wp_query->is_page = true;
-			$wp_query->is_singular = true;
-			$wp_query->post_count = true;
-			$wp_query->shopp_page = true;
-			$wp_query->is_archive = false;
-			return;
+			if (is_feed()) return $this->feed();
 		}
 
 		$Collection = ShoppCollection();
@@ -268,7 +259,15 @@ class Storefront extends FlowController {
 			add_action('wp_head', array($this, 'feedlinks'),2);
 		}
 
-		if (is_feed()) $this->feed();
+		if ( ! empty($page) ) {
+			// Overrides to enforce page behavior
+			$wp_query->set('shopp_page',$page);
+			$wp_query->is_page = true;
+			$wp_query->is_singular = true;
+			$wp_query->post_count = true;
+			$wp_query->shopp_page = true;
+			$wp_query->is_archive = false;
+		}
 
 	}
 
@@ -381,9 +380,11 @@ class Storefront extends FlowController {
 	 * @return string The output of the templates
 	 **/
 	function pages ($template) {
+
 		// Get the requested storefront page identifier from the slug
 		$page = self::slugpage( get_query_var('shopp_page') );
 		if ( empty($page) ) return $template;
+
 
 		// Load the request Storefront page settings
 		$pages = self::pages_settings();
@@ -643,7 +644,7 @@ class Storefront extends FlowController {
 			foreach(ShoppProduct()->tags as $tag)
 				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
 			$description = ShoppProduct()->summary;
-		} elseif (!empty(ShoppCollection()->id)) {
+		} elseif (isset(ShoppCollection()->description)) {
 			$description = ShoppCollection()->description;
 		}
 		$keywords = esc_attr(apply_filters('shopp_meta_keywords',$keywords));
