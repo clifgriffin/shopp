@@ -88,14 +88,17 @@ class Storefront extends FlowController {
 		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
 		add_filter('search_template',array($this,'maintenance'));
+		add_filter('taxonomy_template',array($this,'maintenance'));
 		add_filter('page_template',array($this,'maintenance'));
 		add_filter('single_template',array($this,'maintenance'));
 
 		add_filter('search_template',array($this,'pages'));
+		add_filter('taxonomy_template',array($this,'pages'));
 		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
 
 	}
+
 
 	/**
 	 * Determines if the wp_query is for Shopp content
@@ -350,6 +353,7 @@ class Storefront extends FlowController {
 	 **/
 	function maintenance ($template) {
 		// Only run if in maintenance mode
+		if (!is_shopp_page()) return $template;
 		if (!Shopp::maintenance()) return $template;
 
 		// Remove normal Shopp Storefront template processing
