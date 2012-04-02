@@ -15,6 +15,7 @@
 class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	var $secure = false;	// SSL not required
+	var $authonly = true;	// Auth only transactions
 	var $multi = true;		// Support multiple methods
 	var $captures = true;	// Supports Auth-only
 	var $refunds = true;	// Supports refunds

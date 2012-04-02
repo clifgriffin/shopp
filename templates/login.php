@@ -14,7 +14,6 @@
 
 <ul>
 	<?php if (shopp('customer','notloggedin')): ?>
-	<li><?php shopp('customer','errors'); ?></li>
 	<li>
 		<label for="login"><?php _e('Account Login','Shopp'); ?></label>
 		<span><?php shopp('customer','account-login','size=20&title='.__('Login','Shopp')); ?>

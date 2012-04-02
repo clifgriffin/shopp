@@ -259,14 +259,6 @@ if (!function_exists('shopp_suhosin_warning')) {
 	}
 }
 
-if (!function_exists('thesis_shopp_archive_page')) {
-	add_action('thesis_hook_before_header','thesis_shopp_archive_page');
-	function thesis_shopp_archive_page () {
-		global $wp_query;
-		if (is_archive() && (is_shopp_collection() || is_shopp_taxonomy())) $wp_query->is_page = true;
-	}
-}
-
 /**
  * Checks for prerequisite technologies needed for Shopp
  *

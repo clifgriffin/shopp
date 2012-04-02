@@ -272,19 +272,21 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function business_address ($result, $options, $O) { return esc_html(shopp_setting('business_address')); }
 
 	static function categories ($result, $options, $O) {
-		global $Shopp;
+		$null = null;
 		if (!isset($O->_category_loop)) {
 			reset($O->categories);
-			$Shopp->Category = current($O->categories);
+			ShoppCollection(current($O->categories));
 			$O->_category_loop = true;
 		} else {
-			$Shopp->Category = next($O->categories);
+			ShoppCollection(next($O->categories));
 		}
 
 		if (current($O->categories) !== false) return true;
 		else {
 			unset($O->_category_loop);
 			reset($O->categories);
+			ShoppCollection($null);
+			if ( is_a(ShoppStorefront()->Requested, 'ProductCollection') ) ShoppCollection(ShoppStorefront()->Requested);
 			return false;
 		}
 	}
@@ -433,6 +435,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		} else {
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
+			$Collection = ShoppCollection();
 			foreach ($categories as &$category) {
 				if (!isset($category->count)) $category->count = 0;
 				if (!isset($category->level)) $category->level = 0;
@@ -444,7 +447,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-			if ($levellimit && $category->level >= $levellimit) continue;
+				if ($levellimit && $category->level >= $levellimit) continue;
 				if (str_true($hierarchy) && $category->level > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
@@ -452,8 +455,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 						$string = substr($string,0,-5);  // last </li> to re-open the entry
 					$active = '';
 
-					if (isset($Shopp->Category->uri) && !empty($parent->slug)
-							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
+					if (isset($Collection->uri) && !empty($parent->slug)
+							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Collection->uri)) {
 						$active = ' active';
 					}
 
@@ -484,7 +487,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				if ( str_true($showall) || str_true($products) && $category->count > 0 ) $total = ' <span>('.$category->count.')</span>';
 
 				$current = '';
-				if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
+				if (isset($Collection->slug) && $Collection->slug == $category->slug)
 					$current = ' class="current"';
 
 				$listing = '';
@@ -817,7 +820,11 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if ( in_array($options['category'],array_keys($Shopp->Collections)) ) {
 				$Category = Catalog::load_collection($options['category'],$options);
 				ShoppCollection($Category);
-			} else ShoppCollection( new ProductCategory($options['category'],'name') );
+			} elseif ( intval($options['category']) > 0) { // By ID
+				ShoppCollection( new ProductCategory($options['category']) );
+			} else {
+				ShoppCollection( new ProductCategory($options['category'],'slug') );
+			}
 
 			if (isset($options['load'])) return true;
 

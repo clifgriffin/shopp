@@ -139,7 +139,7 @@ function is_catalog_page ( $wp_query = false ) {
  **/
 function is_catalog_frontpage ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	return is_shopp_page('catalog', $wp_query) && !( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
+	return is_shopp_page('catalog', $wp_query) && ! ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
 }
 
 /**
@@ -235,12 +235,13 @@ function is_shopp_search ( $wp_query = false ) {
  **/
 function is_shopp_page ( $page = false, $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+	if (empty($wp_query->query_vars)) new ShoppError('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.','doing_it_wrong',SHOPP_DEBUG_ERR);
 	$is_shopp_page = false;
 	$pages = Storefront::pages_settings();
 
 	// Check for Shopp custom posttype/taxonomy requests
 	if ( 'catalog' == $page ||  ! $page ) {
-		if ( is_shopp_taxonomy($wp_query) || is_shopp_product($wp_query) || is_shopp_collection($wp_query) || is_shopp_search($wp_query) ) $is_shopp_page = true;
+		if ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) $is_shopp_page = true;
 
 		$slug = $wp_query->get('shopp_page');
 		if ( $slug && $pages['catalog']['slug'] == $slug ) $is_shopp_page = true;
@@ -270,6 +271,25 @@ function is_shopp_query ( $wp_query = false, $page = false ) {
 	return is_shopp_page( $page, $wp_query );
 }
 
+/**
+ * Determines if the current request is for any shopp smart collection, product taxonomy term, or search collection
+ *
+ * NOTE: This function will not identify PHP loaded collections, it only
+ * compares the page request, meaning using is_shopp_collection on the catalog landing
+ * page, even when the landing page (catalog.php) template loads the CatalogProducts collection
+ * will return false, because CatalogProducts is loaded in the template and not directly
+ * from the request.
+ *
+ * @author John Dillick, Jonathan Davis
+ * @since 1.2
+ *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
+ **/
+function is_shopp_collection ( $wp_query = false ) {
+	if ( is_shopp_smart_collection($wp_query) || is_shopp_taxonomy($wp_query) || is_shopp_search($wp_query) ) return true;
+	return false;
+}
 
 /**
  * Determines if the current request is for a registered dynamic Shopp collection
@@ -280,13 +300,13 @@ function is_shopp_query ( $wp_query = false, $page = false ) {
  * will return false, because CatalogProducts is loaded in the template and not directly
  * from the request.
  *
- * @author Jonathan Davis
+ * @author John Dillick, Jonathan Davis
  * @since 1.2
  *
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_collection ( $wp_query = false ) {
+function is_shopp_smart_collection ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 
 	$slug = $wp_query->get('shopp_collection');

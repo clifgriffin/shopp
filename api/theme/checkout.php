@@ -838,7 +838,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		extract($options);
 		unset($options['type']);
 
-		if ("loop" == $mode) {
+		if ('loop' == $mode) {
 			if (!isset($O->_pay_loop)) {
 				reset($O->payoptions);
 				$O->_pay_loop = true;
@@ -877,7 +877,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 					if (in_array($value,$excludes)) continue;
 					$payoption = $O->payoptions[$value];
 					$options['value'] = $value;
-					$options['checked'] = ($O->paymethod == $value)?'checked':false;
+					$options['checked'] = ($O->paymethod == $value);
 					if ($options['checked'] === false) unset($options['checked']);
 					$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$payoption->label.'</label></li>';
 				}
@@ -957,12 +957,22 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if ( $O->sameaddress == $type || str_true($checked) ) $options['checked'] = 'on';
+		// Doing it wrong
+		if ( 'shipping' == $type && 'billing' == $O->sameaddress ) return '';
+		if ( 'billing' == $type && 'shipping' == $O->sameaddress ) return '';
+
+		// Order->sameaddress defaults to false
+		if ( $O->sameaddress ) {
+			if ( 'off' == $O->sameaddress ) $options['checked'] = 'off';
+			if ( $O->sameaddress == $type ) $options['checked'] = 'on';
+		}
+
 		$options['class'] = trim($options['class'].' sameaddress '.$type);
 		$id = "same-address-$type";
 
 		$_ = array();
 		$_[] = '<label for="'.$id.'">';
+		$_[] = '<input type="hidden" name="sameaddress" value="off" />';
 		$_[] = '<input type="checkbox" name="sameaddress" value="'.$type.'" id="'.$id.'" '.inputattrs($options,$allowed).' />';
 		$_[] = "&nbsp;$label</label>";
 
@@ -1095,8 +1105,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function submit_login ($result, $options, $O) {
-		$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-		$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
+		$string = '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 		return $string;
 	}
 
@@ -1113,12 +1122,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		else $link = apply_filters('shopp_checkout_url',$link);
 		return $link;
 	}
-
-	/**
-	 * @since 1.0
-	 * @deprecated 1.1
-	 **/
-	static function xco_buttons ($result, $options, $O) { return; }
 
 }
 
