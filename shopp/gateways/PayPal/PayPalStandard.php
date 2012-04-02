@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis, John Dillick
- * @version 1.2
+ * @version 1.2.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * @since 1.2
@@ -122,9 +122,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		);
 
 		add_filter('shopp_themeapi_cart_paypal',array($this,'sendcart'),10,2); // provides shopp('cart','paypal') checkout button
-		// add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3); // replace submit button with paypal image
-
-
+		add_filter('shopp_checkout_submit_button',array($this,'submit'),10,3); // replace submit button with paypal image
 
 		// request handlers
 		add_action('shopp_remote_payment',array($this,'remote')); // process sync return from PayPal
@@ -227,7 +225,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function captured ( $Purchase ) {
-		if ( $Purchase->captured == $Purchase->total ) return; // no more to capture
+		$Purchase->load_events();
+		if ( ! ($Purchase->balance > 0) ) return; // no more to capture
 
 		// check for reason_code
 		if ( isset($this->response->reason_code) ) {
@@ -307,7 +306,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function confirmation () {
 		add_filter('shopp_confirm_url',array($this,'url'));
 		add_filter('shopp_confirm_form',array($this,'form'));
-		add_filter('shopp_themeapi_checkout_confirmbutton',array($this,'submit'),10,3); // replace submit button with paypal image
+		add_filter('shopp_themeapi_checkout_confirmbutton',array($this,'confirm'),10,3); // replace submit button with paypal image
 	}
 
 	/**
@@ -334,10 +333,23 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void
+	 * @return array The modified list of button tags
 	 **/
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		return '<input type="image" name="process" src="'.$this->buttonurl.'" '.inputattrs($options,$attrs).' />';
+		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" class="checkout-button" '.inputattrs($options,$attrs).' />';
+		return $tag;
+	}
+
+	/**
+	 * Replaces the confirm button with the PayPal checkout button image
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return string
+	 **/
+	function confirm ($tag=false,$options=array(),$attrs=array()) {
+		return join('', $this->submit(array(),$options,$attrs));
 	}
 
 	/**
@@ -351,7 +363,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string checkout url
 	 **/
 	function url ($url=false) {
-
 		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
 		else return $this->checkouturl;
 	}
@@ -579,12 +590,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_REQUEST),false,SHOPP_DEBUG_ERR);
 
-		$txnid = $_GET['tx'];
-		$txnstatus = $_GET['st'];
-		$event = 'purchase';
-
+		// Verify the message is authentically from PayPal
 		$authentic = false;
-		if ($this->settings['pdtverify'] == "on") {
+		if (str_true($this->settings['pdtverify'])) {
 			$pdtstatus = $this->verifypdt();
 			if (!$pdtstatus) {
 				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
@@ -593,35 +601,41 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$authentic = true;
 		}
 
-		$Purchase = new Purchase($txnid,'txnid');
+		// Parse the message
+		$message = array(
+			'amt' => 0,		// Amount of the transaction
+			'cc' => '',		// Currency code
+			'cm' => '', 	// Custom message
+			'sig' => '', 	// Not documented
+			'st' => '',		// Transaction status
+			'tx' => ''		// Transaction ID/PDT token
+		);
+		$message = array_intersect_key($_GET,$message);
+		extract($message);
+
+		// Attempt to load a previous order from the transaction ID
+		// This can happen when IPN async messages are received before
+		// the customer returns to the storefront
+		$Purchase = new Purchase($tx,'txnid');
 
 		// create new purchase on PDT if necessary
 		if ( empty($Purchase->id) ) {
-			if ( $txnstatus && isset($this->events[$txnstatus]) )
-				$event = $this->events[$txnstatus];
-
+			$event = isset($this->events[$st])?$this->events[$st]:'purchase';
 			if ( $event == 'voided') return; // the transaction is void of the starting gate. Don't create a purchase.
 
-			// IPN data into response object
-			/*
-				TODO check to see if the below if valid for PDT
-			*/
-			$fees = 0;
-			$amount = 0;
-			if ( isset($_POST['mc_fee']) ) $fees = abs($_POST['mc_fee']);
-			$amount = isset($_POST['mc_gross']) ? abs($_POST['mc_gross']) : $Purchase->total;
+			// PDT data into response object
 
 			// build response object
 			$this->response = new stdClass;
-			$this->response->status = $txnstatus;
+			$this->response->status = $st;
 			$this->response->event = $event;
-			$this->response->txnid = $txnid;
-			$this->response->fees = $fees;
-			$this->response->amount = $amount;
-			if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
-			if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
-			if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
-			if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
+			$this->response->txnid = $tx;
+			$this->response->fees = 0;
+			$this->response->amount = abs($amt);
+			// if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
+			// if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
+			// if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
+			// if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
 
 			if(SHOPP_DEBUG) new ShoppError('PDT to response protocol: '._object_r($this->response),false,SHOPP_DEBUG_ERR);
 
@@ -634,7 +648,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 			shopp_add_order_event(false, 'purchase', array(
 				'gateway' => $this->module,
-				'txnid' => $txnid
+				'txnid' => $tx
 			));
 
 			return; // end after purchase creation
@@ -654,15 +668,17 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function ipn () {
+
 		// Not an IPN for PPS
 		if ( 'PPS' != $_REQUEST['_txnupdate'] ) return;
 
 		// chargeback types vary
 		if ( isset($_POST['txn_type']) && false !== strpos(strtolower($_POST['txn_type']), 'chargeback') ) $_POST['txn_type'] = 'chargeback';
 
+
 		// Cancel processing if this is not a PayPal IPN message (invalid)
 		if ( ! isset($_POST['txn_type']) || ! in_array($_POST['txn_type'], array_keys($this->txn_types)) ) {
-			if(SHOPP_DEBUG) new ShoppError('Missing or invalid txn_type.','paypal_ipn_invalid',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError('Not a PayPal IPN message. Missing or invalid txn_type.','paypal_ipn_invalid',SHOPP_DEBUG_ERR);
 			return false;
 		}
 
@@ -680,6 +696,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( $txnstatus && isset($this->events[$txnstatus]) )
 			$event = $this->events[$txnstatus];
 
+
+
 		// No transaction target: invalid IPN, silently ignore the message
 		if ( ! $txnid ) {
 			if(SHOPP_DEBUG) new ShoppError("Invalid IPN request.  Missing txn_id or parent_txn_id.",'paypal_ipn_invalid',SHOPP_DEBUG_ERR);
@@ -687,10 +705,11 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		// Validate the order notification
-		if ( $this->verifyipn() != "VERIFIED" ) {
+		if ( ! $this->verifyipn() ) {
 			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$txnid,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
 			return false;
 		}
+		if(SHOPP_DEBUG) new ShoppError('IPN: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
 
 		// IPN data into response object
 		$fees = 0;
@@ -706,7 +725,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$this->response->txnid = $txnid;
 		$this->response->fees = $fees;
 		$this->response->amount = $amount;
-		if ( 'voided' == $event ) {
+
+		if ( in_array($event,array('captured','voided')) ) {
 			$new_txnid = isset($_POST['txn_id']) ? $_POST['txn_id'] : $txnid;
 			$this->response->txnid = $new_txnid;
 			$this->response->txnorigin = $txnid;
@@ -769,6 +789,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			}
 
 			$this->$event( $Purchase );
+
 		}
 
 		die('PayPal IPN processed.');
@@ -835,18 +856,24 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @version 1.2
 	 *
-	 * @return string The response string
+	 * @return boolean True if the IPN message is authentic, false otherwise
 	 **/
 	function verifyipn () {
-		if ($this->settings['testmode'] == "on") return "VERIFIED";
+
+		if ( str_true($this->settings['testmode']) ) return true;
+
 		$_ = array();
 		$_['cmd'] = "_notify-validate";
 
 		$message = $this->encode(array_merge($_POST,$_));
 		$response = $this->send($message);
+
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verification response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
-		return $response;
+
+		return ('VERIFIED' == $response);
+
 	}
 
 	/**

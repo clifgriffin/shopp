@@ -28,6 +28,7 @@ class ShoppProductWidget extends WP_Widget {
 		unset($options['title']);
 
 		$content = shopp('catalog','get-sideproduct',$options);
+		if (empty($content)) return false;
 		echo $before_widget.$title.$content.$after_widget;
     }
 

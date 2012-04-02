@@ -43,6 +43,10 @@ class FSStorage extends StorageModule implements StorageEngine {
 	function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
  		add_filter('shopp_verify_stored_file',array(&$this,'verify'));
+
+		// Override access checks when resuming a previous download
+		if (isset($_SERVER['HTTP_RANGE']) && !empty($_SERVER['HTTP_RANGE']))
+			add_filter('shopp_download_forbidden',create_function('$a','return false;'));
 	}
 
 	function context ($context) {
@@ -141,12 +145,24 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 			$file = fopen($filepath, 'rb');
 			fseek($file, $start);
-			$packet = 1024*1024;
-			while(!feof($file)) {
-				if (connection_status() !== 0) return false;
-				$buffer = fread($file,$packet);
-				if (!empty($buffer)) echo $buffer;
-				ob_flush(); flush();
+
+			// Detmerine memory available for optimum packet size
+			$packet = $limit = $memory = ini_get('memory_limit');
+			switch ($limit{0}) {
+			    case 'G': case 'g': $limit *= 1073741824; break;
+			    case 'M': case 'm': $limit *= 1048576; break;
+			    case 'K': case 'k': $limit *= 1024; break;
+			}
+			$memory = $limit - memory_get_usage(true);
+
+			// Use 90% of availble memory for read buffer size, 4K minimum (less chunks, less overhead, faster throughput)
+			$packet = max(4096,apply_filters('shopp_fsstorage_download_read_buffer',floor($memory*0.9)));
+
+			while(!feof($file) && connection_status() == 0) {
+				$buffer = fread($file, $packet);
+				echo $buffer;	// Output
+				unset($buffer); // Free memory immediately
+ 				flush();		// Flush output to web server
 			}
 			fclose($file);
 		} else readfile($filepath);

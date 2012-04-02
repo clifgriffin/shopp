@@ -1,8 +1,9 @@
 	<div class="wrap shopp">
-		<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 		<div class="icon32"></div>
 		<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
+
+		<?php do_action('shopp_admin_notice'); ?>
 
 		<div id="ajax-response"></div>
 		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',admin_url('admin.php')); ?>" method="post">

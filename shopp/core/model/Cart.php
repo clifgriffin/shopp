@@ -1188,9 +1188,10 @@ class CartShipping {
 		}
 
 		// Always return the selected shipping option if a valid/available method has been set
-		if (empty($this->Shipping->method)
-			|| !isset($this->options[$this->Shipping->method]))
+		if (empty($this->Shipping->method) || !isset($this->options[$this->Shipping->method])) {
 				$this->Shipping->method = $estimate->slug;
+				$this->Shipping->option = $estimate->name;
+		}
 
 		$amount = $this->options[$this->Shipping->method]->amount;
 		$this->Cart->freeshipping = ($amount == 0);

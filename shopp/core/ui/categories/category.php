@@ -1,8 +1,9 @@
 <div class="wrap shopp">
-	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
-
+	
 	<div class="icon32"></div>
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
+
+	<?php do_action('shopp_admin_notice'); ?>
 
 	<div id="ajax-response"></div>
 	<form name="category" id="category" action="<?php echo admin_url('admin.php'); ?>" method="post">

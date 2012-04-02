@@ -138,7 +138,7 @@ class Categorize extends AdminController {
 
 		if ($save) {
 			$this->save($Shopp->Category);
-			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
+			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Category->name).'</strong>') );
 
 			// Workflow handler
 			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {

@@ -500,24 +500,26 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return join("\n",$_);
 	}
 
-	static function parent ($result, $options, $O) { return $O->parent;  }
+	static function parent ($result, $options, $O) { return isset($O->parent) ? $O->parent : false;  }
 
 	static function products ($result, $options, $O) {
-		global $Shopp;
+		$null = null;
 		if (!isset($O->_product_loop)) {
 			reset($O->products);
-			$Shopp->Product = current($O->products);
+			ShoppProduct(current($O->products));
 			$O->_pindex = 0;
 			$O->_rindex = false;
 			$O->_product_loop = true;
 		} else {
-			$Shopp->Product = next($O->products);
+			ShoppProduct(next($O->products));
 			$O->_pindex++;
 		}
 
 		if (current($O->products) !== false) return true;
 		else {
 			unset($O->_product_loop);
+			ShoppProduct($null);
+			if ( is_a(ShoppStorefront()->Requested, 'Product') ) ShoppProduct(ShoppStorefront()->Requested);
 			$O->_pindex = 0;
 			return false;
 		}

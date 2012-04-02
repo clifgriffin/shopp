@@ -113,6 +113,8 @@ class Order {
 		add_action('shopp_purchase_order_created',array($this,'invoice'));
 		add_action('shopp_purchase_order_created',array($this,'process'));
 
+		add_action('shopp_authed_order_event',array($this,'captured'));
+
 		// Status updates
 		add_action('shopp_order_txnstatus_update',array($this,'salestats'),10,2);
 
@@ -301,6 +303,8 @@ class Order {
 		if ( !isset($this->Cart->shipping[ $_POST['shipmethod'] ]) ) return;
 
 		$this->Shipping->method = $_POST['shipmethod'];
+		$this->Shipping->option = $this->Cart->shipping[$_POST['shipmethod']]->name;
+
 		$this->Cart->retotal = true;
 		$this->Cart->totals();
 	}
@@ -367,7 +371,7 @@ class Order {
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
 
 		$ignore = array();
-		if ($_POST['billing']['card'] == substr($this->Billing->card,-4))
+		if (isset($_POST['billing']['card']) && $_POST['billing']['card'] == substr($this->Billing->card,-4))
 			$ignore[] = 'card';
 		$this->Billing->updates($_POST['billing'],$ignore);
 
@@ -397,7 +401,7 @@ class Order {
 				$this->Shipping = new ShippingAddress();
 
 			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod'])) $this->Shipping->method = $_POST['shipmethod'];
+			if (!empty($_POST['shipmethod']) && isset($this->Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
 			else $this->Shipping->method = key($this->Cart->shipping);
 
 			if (isset($this->Cart->shipping[$this->Shipping->method]))
@@ -415,6 +419,9 @@ class Order {
 				case 'billing':
 					$this->sameaddress = 'billing';
 					$this->Billing->updates($_POST['shipping']);
+					break;
+				default:
+					$this->sameaddress = 'off';
 					break;
 			}
 		}
@@ -449,7 +456,6 @@ class Order {
 		if (apply_filters('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
-
 
 	}
 
@@ -589,7 +595,6 @@ class Order {
 	 **/
 	function sale ($Purchase) {
 
-		add_action('shopp_authed_order_event',array($this,'captured'));
 		add_action('shopp_captured_order_event',array($this,'notify'));
 		add_action('shopp_captured_order_event',array($this,'accounts'));
 		add_action('shopp_captured_order_event',array($this,'success'));
@@ -626,7 +631,7 @@ class Order {
 	 *
 	 * @return void
 	 **/
-	function purchase (PurchaseOrderEvent $Event) {
+	function purchase ( PurchaseOrderEvent $Event ) {
 		$Shopping = ShoppShopping();
 
 		// No auth message, bail
