@@ -820,7 +820,11 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			if ( in_array($options['category'],array_keys($Shopp->Collections)) ) {
 				$Category = Catalog::load_collection($options['category'],$options);
 				ShoppCollection($Category);
-			} else ShoppCollection( new ProductCategory($options['category'],'name') );
+			} elseif ( intval($options['category']) > 0) { // By ID
+				ShoppCollection( new ProductCategory($options['category']) );
+			} else {
+				ShoppCollection( new ProductCategory($options['category'],'slug') );
+			}
 
 			if (isset($options['load'])) return true;
 
