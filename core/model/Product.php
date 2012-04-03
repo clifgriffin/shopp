@@ -1057,10 +1057,22 @@ class Product extends WPShoppObject {
 
 		// Copy prices
 		foreach ($this->prices as $price) {
+
 			$Price = new Price();
 			$Price->copydata($price);
 			$Price->product = $this->id;
 			$Price->save();
+
+			// Copy Price record meta entries
+			$meta = array('donation','recurring','membership','dimensions');
+			$priceline['settings'] = array();
+			$settings = array();
+			foreach ($meta as $name)
+				if ( isset($price->$name) ) $settings[$name] = $price->$name;
+
+			shopp_set_meta($Price->id,'price','settings',$settings);
+			shopp_set_meta($Price->id,'price','options',$price->options);
+
 		}
 
 		// Copy taxonomy assignments
