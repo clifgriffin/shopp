@@ -587,6 +587,8 @@ class ProductTaxonomy extends ProductCollection {
 		$properties = array('name'=>null,'slug'=>null,'description'=>null,'parent'=>null);
 		$updates = array_intersect_key(get_object_vars($this),$properties);
 
+		remove_filter('pre_term_description','wp_filter_kses'); // Allow HTML in category descriptions
+
 		if ($this->id) wp_update_term($this->id,$this->taxonomy,$updates);
 		else list($this->id, $this->term_taxonomy_id) = array_values(wp_insert_term($this->name, $this->taxonomy, $updates));
 
