@@ -88,14 +88,17 @@ class Storefront extends FlowController {
 		add_filter('wp_nav_menu_objects',array($this,'menus'));
 
 		add_filter('search_template',array($this,'maintenance'));
+		add_filter('taxonomy_template',array($this,'maintenance'));
 		add_filter('page_template',array($this,'maintenance'));
 		add_filter('single_template',array($this,'maintenance'));
 
 		add_filter('search_template',array($this,'pages'));
+		add_filter('taxonomy_template',array($this,'pages'));
 		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
 
 	}
+
 
 	/**
 	 * Determines if the wp_query is for Shopp content
@@ -245,6 +248,7 @@ class Storefront extends FlowController {
 			$post_archive = new stdClass();
 			$post_archive->labels = new stdClass();
 			$post_archive->labels->name = ShoppCollection()->name;
+			$post_archive->post_title = ShoppCollection()->name; // Added so single_post_title will return the title properly
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
 
@@ -350,6 +354,7 @@ class Storefront extends FlowController {
 	 **/
 	function maintenance ($template) {
 		// Only run if in maintenance mode
+		if (!is_shopp_page()) return $template;
 		if (!Shopp::maintenance()) return $template;
 
 		// Remove normal Shopp Storefront template processing
@@ -1144,8 +1149,8 @@ class StorefrontPage {
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
-		add_filter('wp_title',array($this,'title'),10);
-		add_filter('wp_title',array($this,'wptitle'),10,3);
+		add_filter('wp_title',array($this,'title'),9);
+		add_filter('single_post_title',array($this,'title'));
 
 		add_filter('the_title',array($this,'title'));
 
@@ -1176,37 +1181,6 @@ class StorefrontPage {
 		global $wp_query,$wp_the_query;
 		if ( $wp_the_query !== $wp_query) return $title;
 		if ( empty($title) ) return $this->title;
-		return $title;
-	}
-
-	/**
-	 * Reprocesses the wp_title (page title) filter with proper formatting
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2.1
-	 *
-	 * @param string $title The current title string
-	 * @param string $sep The separator character string between title elements
-	 * @param string $seplocation Direction to display title (right|left)
-	 * @return string The reprocessed wp_title string
-	 **/
-	function wptitle ($title,$sep,$seplocation) {
-		$t_sep = '%WP_TITILE_SEP%';
-
-		$prefix = '';
-		if ( !empty($title) )
-			$prefix = " $sep ";
-
-	 	// Determines position of the separator and direction of the breadcrumb
-		if ( 'right' == $seplocation ) { // sep on right, so reverse the order
-			$title_array = explode( $t_sep, $title );
-			$title_array = array_reverse( $title_array );
-			$title = implode( " $sep ", $title_array ) . $prefix;
-		} else {
-			$title_array = explode( $t_sep, $title );
-			$title = $prefix . implode( " $sep ", $title_array );
-		}
-
 		return $title;
 	}
 
@@ -1402,7 +1376,6 @@ class AccountStorefrontPage extends StorefrontPage {
 			$settings['title'] = __('Order Lookup','Shopp');
 		}
 		parent::__construct($settings);
-
 	}
 
 	function content ($content,$request=false) {
