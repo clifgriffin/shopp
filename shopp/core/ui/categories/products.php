@@ -7,7 +7,7 @@
 	<form action="" id="products" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
-		<input type="hidden" name="category" id="category-id" value="<?php echo $id; ?>" />
+		<input type="hidden" name="category" id="category-id" value="<?php echo $CategoryProducts->term_taxonomy_id; ?>" />
 	</div>
 
 	<div class="tablenav">
