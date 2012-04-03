@@ -107,7 +107,7 @@
 #shopp .gallery ul li:before { content: ""; }
 #shopp .gallery li a { margin: 0; padding: 0; float: none; }
 #shopp .gallery .previews { position: relative;  margin: 0 !important; overflow: hidden; }
-#shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+#shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; min-width: 100%; }
 #shopp .gallery .previews li.fill { position: relative; }
 #shopp .gallery .previews li.fill img { margin: 0; padding: 0; }
 #shopp .gallery .previews li.active { visibility: visible; }
