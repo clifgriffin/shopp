@@ -228,6 +228,7 @@ CREATE TABLE <?php echo $purchased; ?> (						-- Line items purchased in an orde
 	modified datetime NOT NULL default '0000-00-00 00:00:00',	-- Modification date
 	PRIMARY KEY id (id),
 	KEY purchase (purchase),									-- Lookup by purchase record id
+	KEY price (price),											-- Lookup by price record id
 	KEY product (product),										-- Lookup by product record id
 	KEY dkey (dkey(8))											-- Download key lookup
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
