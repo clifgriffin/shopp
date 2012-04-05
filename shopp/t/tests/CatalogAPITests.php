@@ -225,7 +225,7 @@ class CatalogAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('My Account http://shopptest/store/account/?profile Downloads http://shopptest/store/account/?downloads Your Orders http://shopptest/store/account/?orders Logout http://shopptest/store/account/?logout',$actual);
+		$this->assertEquals('My Account http://shopptest/store/account/?profile Downloads http://shopptest/store/account/?downloads Your Orders http://shopptest/store/account/?orders Logout http://shopptest/store/account/?logout ',$actual);
 	}
 
 } // end CatalogAPITests class
