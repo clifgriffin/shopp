@@ -18,7 +18,6 @@ class Purchase extends DatabaseObject {
 	var $columns = array();
 	var $message = array();
 	var $data = array();
-	var $downloads = false;
 
 	// Balances
 	var $invoiced = false;		// Amount invoiced
@@ -28,8 +27,10 @@ class Purchase extends DatabaseObject {
 	var $voided = false;		// Order cancelled prior to capture
 	var $balance = 0;			// Current balance
 
+	var $downloads = false;
 	var $shipable = false;
 	var $shipped = false;
+	var $stocked = false;
 
 	function Purchase ($id=false,$key=false) {
 
@@ -51,15 +52,24 @@ class Purchase extends DatabaseObject {
 
 		$table = DatabaseObject::tablename(Purchased::$table);
 		$meta = DatabaseObject::tablename(MetaObject::$table);
+		$price = DatabaseObject::tablename(Price::$table);
+
 		if (empty($this->id)) return false;
-		$this->purchased = DB::query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
-		foreach ($this->purchased as &$purchase) {
+		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",'array','index','id');
+		foreach ( $this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ('Shipped' == $purchase->type) $this->shipable = true;
+			if ( str_true($purchase->inventory) ) $this->stocked = true;
 			$purchase->data = unserialize($purchase->data);
 			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
+				foreach ( $purchase->addons->meta as $Addon ) {
+					$addon = $Addon->value;
+					if ( 'Download' == $addon->type ) $this->downloads = true;
+					if ( 'Shipped' == $addon->type ) $this->shipable = true;
+					if ( str_true($addon->inventory) ) $this->stocked = true;
+				}
 			}
 		}
 
@@ -100,6 +110,59 @@ class Purchase extends DatabaseObject {
 			}
 		}
 
+	}
+
+	static function unstock ( UnstockOrderEvent $Event ) {
+		if (empty($Event->order)) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
+
+		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
+		$Purchase = ShoppPurchase();
+		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id) {
+			$Purchase = new Purchase($Event->order);
+		}
+
+		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
+
+		$allocated = array();
+		foreach ( $Purchase->purchased as $Purchased ) {
+			if ( is_a($Purchased->addons,'ObjectMeta') && ! empty($Purchased->addons->meta) ) {
+				foreach ( $Purchased->addons->meta as $index => $Addon ) {
+					if ( ! str_true($Addon->value->inventory) ) continue;
+
+					$allocated[$Addon->value->id] = new PurchaseStockAllocation(array(
+						'purchased' => $Purchased->id,
+						'addon' => $index,
+						'sku' => $Addon->value->sku,
+						'price' => $Addon->value->id,
+						'quantity' => $Purchased->quantity
+					));
+
+				}
+
+				if ( ! str_true($Purchased->inventory) ) continue;
+
+				$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
+					'purchased' => $Purchased->id,
+					'sku' => $Purchased->sku,
+					'price' => $Purchased->price,
+					'quantity' => $Purchased->quantity
+				));
+
+			}
+		}
+
+		if ( ! empty($allocated) ) {
+			$pricetable = DatabaseObject::tablename(Price::$table);
+			$prices = array();
+			foreach ( $allocated as $id => $PSA )
+				$prices[$PSA->price] = isset($prices[$PSA->price]) ? $prices[$PSA->price] + $PSA->quantity : $PSA->quantity;
+
+			foreach ( $prices as $price => $qty )
+				DB::query("UPDATE $pricetable SET stock=stock-".(int)$qty." WHERE id='$price' LIMIT 1");
+
+			$Event->unstocked($allocated);
+		}
 	}
 
 	/**
@@ -433,6 +496,16 @@ class Purchase extends DatabaseObject {
 
 } // end Purchase class
 
+class PurchaseStockAllocation extends AutoObjectFramework {
+
+	var $purchased = 0; // purchased id
+	var $addon = false;	// index of addons
+	var $sku = '';		// sku
+	var $price = 0; 	// price id
+	var $quantity = 0;	// quantity
+
+}
+
 class PurchasesExport {
 	var $sitename = "";
 	var $headings = false;
@@ -727,5 +800,7 @@ $updates = array('invoiced','authed','captured','refunded','voided');
 foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
 	add_action( 'shopp_'.$event.'_order_event', array('Purchase','status_event'), 5 );
 
+// Handle unstock event
+add_action('shopp_unstock_order_event', array('Purchase','unstock'));
 
 ?>
