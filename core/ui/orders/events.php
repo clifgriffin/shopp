@@ -50,15 +50,16 @@ class OrderEventRenderer {
 			'date' => 'created'
 		);
 		$message = array_combine($this->Event->_xcols,$this->Event->_xcols);
-		$map = array_merge($map,$message);
+		if (!empty($message)) $map = array_merge($map,$message);
 
 		foreach ($map as $property => $data)
 			$this->$property = $this->Event->$data;
+
 	}
 
 	static function renderer (OrderEventMessage $Event) {
 		$Renderer = get_class($Event).'Renderer';
-		if (!class_exists($Renderer)) $Renderer = __CLASS__;
+		if ( ! class_exists($Renderer) ) $Renderer = __CLASS__;
 
 		return new $Renderer($Event);
 	}
@@ -434,6 +435,23 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 		$url = $this->trackurl();
 		if (empty($url)) return $this->tracking;
 		return sprintf('<a href="%s" target="_top">%s</a>',$url,$this->tracking);
+	}
+
+}
+
+class UnstockOrderEventRenderer extends OrderEventRenderer {
+
+	function name () {
+		return __('Inventory updated','Shopp');
+	}
+
+	function details () {
+		$allocated = $this->Event->allocated();
+
+		$total = 0;
+		foreach ($allocated as $items) $total += (int)$items->quantity;
+
+		return sprintf(_n('Allocated %d item from inventory','Allocated %d items from inventory',$total,'Shopp'),$total);
 	}
 
 }
