@@ -526,9 +526,16 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
  **/
 function shopp_rmv_order_line ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
-	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) ) return false;
+
+	$ids = array_keys($Lines);
+	if (!isset($ids[$line])) return false;
+
+	$id = $ids[$line];
+
+	if ( empty($Lines) || $line >= count($Lines) ) return false;
+
 	$Purchased = new Purchased();
-	$Purchased->populate($Lines[$line]);
+	$Purchased->populate($Lines[$id]);
 	$Purchase = shopp_order($order);
 
 	$Purchase->subtotal -= $Purchased->unitprice * $Purchased->quantity;
@@ -592,8 +599,13 @@ function shopp_order_line_count ( $order = false ) {
  **/
 function shopp_add_order_line_download ( $order = false, $line = 0, $download = false ) {
 	$Lines = shopp_order_lines($order);
-	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
+
+	$ids = array_keys($Lines);
+
+	if ( empty($Lines) || $line >= count($Lines) || ! isset($ids[$line]) )
 		return false;
+
+	$id = $ids[$line];
 
 	$DL = new ProductDownload($download);
 	if ( empty($DL->id) ) {
@@ -602,7 +614,7 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
 	}
 
 	$Purchased = new Purchased;
-	$Purchased->populate($Lines[$line]);
+	$Purchased->populate($Lines[$id]);
 
 	$Purchased->download = $download;
 	$Purchased->keygen();
@@ -622,10 +634,14 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
  **/
 function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
 	$Lines = shopp_order_lines($order);
-	if ( empty($Lines) || $line >= count($Lines) || ! isset($Lines[$line]) )
+	$ids = array_keys($Lines);
+
+	if ( empty($Lines) || $line >= count($Lines) || ! isset($ids[$line]) )
 		return false;
+
+	$id = $ids[$line];
 	$Purchased = new Purchased;
-	$Purchased->populate($Lines[$line]);
+	$Purchased->populate($Lines[$id]);
 
 	$Purchase->download = 0;
 	$Purchase->dkey = '';
