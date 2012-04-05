@@ -230,7 +230,7 @@ class Customer extends DatabaseObject {
 		$request = false; $id = false;
 		$Storefront = ShoppStorefront();
 
-		if (isset($Storefront->account)) extract($Storefront->account);
+		if (isset($Storefront->account)) extract((array)$Storefront->account);
 		else {
 			if (isset($_GET['acct'])) $request = $_GET['acct'];
 			if (isset($_GET['id'])) $id = (int)$_GET['id'];
