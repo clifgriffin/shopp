@@ -12,6 +12,7 @@ class CatalogAPITests extends ShoppTestCase {
 	function setUp () {
 		global $Shopp;
 		parent::setUp();
+		$Shopp->Flow->handler('Storefront');
 		$Shopp->Catalog = false;
 		$Shopp->Catalog = new Catalog();
 	}
@@ -209,6 +210,22 @@ class CatalogAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
+	}
+
+	function test_storefront_accountmenu () {
+		ShoppStorefront()->dashboard();
+
+		ob_start();
+		while (shopp('storefront','account-menu')) {
+			shopp('storefront','account-menuitem');
+			echo ' ';
+			shopp('storefront','account-menuitem','url');
+			echo ' ';
+		}
+		$actual = ob_get_contents();
+		ob_end_clean();
+
+		$this->assertEquals('My Account http://shopptest/store/account/?profile Downloads http://shopptest/store/account/?downloads Your Orders http://shopptest/store/account/?orders Logout http://shopptest/store/account/?logout',$actual);
 	}
 
 } // end CatalogAPITests class
