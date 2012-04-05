@@ -12,6 +12,8 @@ class CustomerAPITests extends ShoppTestCase {
 
 	function setUp () {
 		parent::setUp();
+		global $Shopp;
+		$Shopp->Flow->handler('Storefront');
 
 		$_SERVER['REQUEST_URI'] = "/";
 		$Login = new Login();
@@ -103,23 +105,6 @@ class CustomerAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
-	}
-
-	function test_customer_errorsexist () {} // Deprecated Test
-	function test_customer_loginerrors () {} // Deprecated Test
-
-	function test_customer_menu_tags () {
-		do_action('parse_request');
-
-		ob_start();
-		while (shopp('customer','menu')) {
-			shopp('customer','management');
-			shopp('customer','management','url');
-		}
-		$actual = ob_get_contents();
-		ob_end_clean();
-
-		$this->assertEquals('My Accounthttp://shopptest/store/account/?profileDownloadshttp://shopptest/store/account/?downloadsYour Ordershttp://shopptest/store/account/?ordersLogouthttp://shopptest/store/account/?logout',$actual);
 	}
 
 	function test_customer_accounts () {
@@ -294,11 +279,13 @@ class CustomerAPITests extends ShoppTestCase {
 	// }
 
 	function test_customer_purchase_tags () {
-		global $Shopp;
+
 		ob_start();
-		if (shopp('customer','has-purchases'))
+		if (shopp('customer','has-purchases')) {
 			while (shopp('customer','purchases'))
 				shopp('customer','order');
+
+		}
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('http://shopptest/store/account/?orders=2',$actual);
