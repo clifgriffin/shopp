@@ -417,7 +417,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					if (is_wp_error($link)) $link = '';
 
 					$total = '';
-					if ( str_true($showall) || str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
+					if ( str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
 				} else {
 					$category->level = 1;
 					$namespace = get_class_property( 'SmartCollection' ,'namespace');
@@ -484,7 +484,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 
 				$total = '';
-				if ( str_true($showall) || str_true($products) && $category->count > 0 ) $total = ' <span>('.$category->count.')</span>';
+				if ( str_true($products) && $category->count > 0 ) $total = ' <span>('.$category->count.')</span>';
 
 				$current = '';
 				if (isset($Collection->slug) && $Collection->slug == $category->slug)
