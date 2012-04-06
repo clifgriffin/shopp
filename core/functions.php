@@ -1869,7 +1869,7 @@ function shopp_template_url ($name) {
 	$themepath = get_stylesheet_directory();
 	$themeuri = get_stylesheet_directory_uri();
 	$builtin = SHOPP_PLUGINURI.'/templates';
-	$template = shopp_template_prefix('');
+	$template = rtrim(shopp_template_prefix(''),'/');
 
 	$path = "$themepath/$template";
 

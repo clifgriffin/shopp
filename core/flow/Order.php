@@ -113,6 +113,7 @@ class Order {
 		add_action('shopp_purchase_order_created',array($this,'invoice'));
 		add_action('shopp_purchase_order_created',array($this,'process'));
 
+		add_action('shopp_authed_order_event',array($this,'unstock'));
 		add_action('shopp_authed_order_event',array($this,'captured'));
 
 		// Status updates
@@ -125,7 +126,7 @@ class Order {
 		add_action('shopp_resession',array($this,'clear'));
 
 		// Collect available payment methods from active gateways
-		// Schedule for after the gateways are loaded  (priority 20)
+		// Schedule for after the gateways are loaded (priority 20)
 		add_action('shopp_init',array($this,'payoptions'),20);
 
 		// Select the default gateway processor
@@ -146,7 +147,6 @@ class Order {
 
 		remove_action('shopp_process_order', array($this,'validate'),7);
 		remove_action('shopp_process_order', array($this,'submit'),100);
-
 	}
 
 	/**
@@ -166,7 +166,7 @@ class Order {
 		$gateways = explode(",",shopp_setting('active_gateways'));
 
 		foreach ($gateways as $gateway) {
-			$id  = false;
+			$id	= false;
 			if (false !== strpos($gateway,'-')) list($module,$id) = explode('-',$gateway);
 			else $module = $gateway;
 			if (!isset($Gateways->active[ $module ])) continue;
@@ -504,6 +504,29 @@ class Order {
 	}
 
 	/**
+	 * Fires an unstock order event for a purchase to deduct stock from inventory
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return void
+	 **/
+	function unstock ( AuthedOrderEvent $Event ) {
+		if ( ! shopp_setting_enabled('inventory') ) return false;
+
+		$Purchase = ShoppPurchase();
+		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id)
+			$Purchase = new Purchase($Event->order);
+
+		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load purchased
+		if ( in_array('unstock', array_keys($Purchase->events)) ) return true; // Unstock already occurred, do nothing
+		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+		if ( ! $Purchase->stocked ) return false;
+
+		shopp_add_order_event($Purchase->id,'unstock');
+	}
+
+	/**
 	 * Marks an order as captured
 	 *
 	 * @author Jonathan Davis
@@ -540,8 +563,12 @@ class Order {
 	 **/
 	function process ($Purchase) {
 
-		$processing = 'sale'; 								// By default, process as a sale event
-		if ( $this->Cart->shipped ) $processing = 'auth';	// If there are shipped items, authorize payment don't charge
+		$processing = 'sale'; 						// By default, process as a sale event
+		if ( $this->Cart->shipped ) {				// If there are shipped items
+			$processing = 'auth';					// Use authorize payment processing don't charge
+			if (shopp_setting_enabled('inventory'))	// If inventory tracking enabled, set items to unstock after successful authed event
+				add_action('shopp_authed_order_event',array($this,'unstock'));
+		}
 		$default = array($this,$processing);
 
 		// Gateway modules can use 'shopp_purchase_order_gatewaymodule_processing' filter hook to override order processing
@@ -642,9 +669,6 @@ class Order {
 		$this->txnstatus = $Event->name;
 		$this->gateway = $Event->gateway;
 
-		// Lock for concurrency protection
-		$this->lock();
-
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
 
@@ -680,7 +704,6 @@ class Order {
 		$Purchase->created = current_time('mysql');
 		$Purchase->save();
 
-		$this->unlock();
 		Promotion::used(array_keys($promos));
 
 		// Process the order events if updating an existing order
@@ -701,7 +724,6 @@ class Order {
 			$Purchased->purchase = $Purchase->id;
 			$Purchased->copydata($Item);
 			$Purchased->save();
-			if ($Item->inventory) $Item->unstock();
 		}
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
@@ -798,41 +820,6 @@ class Order {
 
 		$db->query($query);
 
-	}
-
-	/**
-	 * Create a lock for transaction processing
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	function lock () {
-		if (empty($this->txnid)) return false;
-
-		$locked = 0;
-		for ($attempts = 0; $attempts < 3 && $locked == 0; $attempts++)
-			$locked = DB::query("SELECT GET_LOCK('$this->txnid',".SHOPP_TXNLOCK_TIMEOUT.") AS locked",'auto','col','locked');
-
-		if ($locked == 1) return true;
-
-		new ShoppError(sprintf(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),$this->txnid),'order_txn_lock',SHOPP_TRXN_ERR);
-		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
-	}
-
-	/**
-	 * Unlocks a transaction lock
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	function unlock () {
-		if (empty($this->txnid)) return false;
-		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->txnid') as unlocked",'auto','col','unlocked');
-		return ($unlocked == 1)?true:false;
 	}
 
 	/**
@@ -977,7 +964,7 @@ class Order {
 				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 
 				if(apply_filters('shopp_login_required',!isset($_POST['loginname'])))
-					return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
+					return new ShoppError(__('A login is not available for creation with the information you provided. Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
 			}
 			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['loginname'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);
 			$ExistingCustomer = new Customer($_POST['email'],'email');
@@ -1265,6 +1252,8 @@ class OrderEventMessage extends MetaObject {
 	var $context = 'purchase';
 	var $type = 'event';
 
+	var $message = array();		// Message protocol to be defined by sub-classes
+
 	var $order = false;
 	var $amount = 0.0;
 	var $txnid = false;
@@ -1333,16 +1322,16 @@ class OrderEventMessage extends MetaObject {
 	}
 
 	function datatype ($var) {
-        if (is_array($var)) return 'array';
-        if (is_bool($var)) return 'boolean';
-        if (is_float($var)) return 'float';
-        if (is_int($var)) return 'integer';
-        if (is_null($var)) return 'NULL';
-        if (is_numeric($var)) return 'numeric';
-        if (is_object($var)) return 'object';
-        if (is_resource($var)) return 'resource';
-        if (is_string($var)) return 'string';
-        return 'unknown type';
+		if (is_array($var)) return 'array';
+		if (is_bool($var)) return 'boolean';
+		if (is_float($var)) return 'float';
+		if (is_int($var)) return 'integer';
+		if (is_null($var)) return 'NULL';
+		if (is_numeric($var)) return 'numeric';
+		if (is_object($var)) return 'object';
+		if (is_resource($var)) return 'resource';
+		if (is_string($var)) return 'string';
+		return 'unknown type';
 	}
 
 	/**
@@ -1522,9 +1511,20 @@ class AuthedOrderEvent extends OrderEventMessage {
 		'payid' => ''			// Payment ID (last 4 of card or check number)
 	);
 
-	function filter ($msg) {
-		if (isset($msg['capture']) && true === $msg['capture'])
+	function __construct ($data) {
+
+		$this->lock($data);
+
+		if (isset($data['capture']) && true === $data['capture'])
 			$this->capture = true;
+
+		parent::__construct($data);
+
+		$this->unlock();
+
+	}
+
+	function filter ($msg) {
 
 		if (empty($msg['payid'])) return $msg;
 		$paycards = Lookup::paycards();
@@ -1535,8 +1535,106 @@ class AuthedOrderEvent extends OrderEventMessage {
 
 		return $msg;
 	}
+
+	/**
+	 * Create a lock for transaction processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return boolean
+	 **/
+	function lock ($data) {
+		if (!isset($data['order'])) return false;
+
+		$order = $data['order'];
+		$locked = 0;
+		for ($attempts = 0; $attempts < 3 && $locked == 0; $attempts++)
+			$locked = DB::query("SELECT GET_LOCK('$order',".SHOPP_TXNLOCK_TIMEOUT.") AS locked",'auto','col','locked');
+
+		if ($locked == 1) return true;
+
+		new ShoppError(sprintf(__('Purchase authed lock for order %s failed. Could not achieve a lock.','Shopp'),$order),'order_txn_lock',SHOPP_TRXN_ERR);
+		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
+
+	}
+
+	/**
+	 * Unlocks a transaction lock
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return boolean
+	 **/
+	function unlock () {
+		if (!$this->order) return false;
+		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->order') as unlocked",'auto','col','unlocked');
+		return ($unlocked == 1);
+	}
+
 }
 OrderEvent::register('authed','AuthedOrderEvent');
+
+
+/**
+ * Unstock authorization message
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage orderevent
+ **/
+class UnstockOrderEvent extends OrderEventMessage {
+	var $name = 'unstock';
+	protected $allocated = array();
+
+	/**
+	 * Filter the message to include allocated item data set by the Purchase handler
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return array The updated message
+	 **/
+	function filter ($message) {
+		$this->_xcols[] = 'allocated';
+		$message['allocated'] = false;
+		return $message;
+	}
+
+	/**
+	 * Get the allocated item objects
+ 	*
+ 	* @author Jonathan Davis, John Dillick
+ 	* @since 1.2.1
+ 	*
+ 	* @param int $id (optional) the purchased item id
+ 	* @return mixed if id is provided, the allocated object, else array of allocated objects
+ 	**/
+	function allocated ( $id = false ) {
+		if ( $id && isset($this->allocated[$id]) ) return $this->allocated[$id];
+		return $this->allocated;
+	}
+
+	/**
+	 * Set the allocated item objects
+ 	*
+ 	* @author Jonathan Davis, John Dillick
+ 	* @since 1.2.1
+ 	*
+ 	* @param array $allocated the array of allocated item objects
+ 	* @return boolean success
+ 	**/
+	function unstocked ( $allocated = array() ) {
+		if ( empty($allocated) ) return false;
+		$this->allocated = $allocated;
+		$this->save();
+		return true;
+	}
+}
+OrderEvent::register('unstock','UnstockOrderEvent');
+
 
 /**
  * Shopper initiated authorization and capture command message

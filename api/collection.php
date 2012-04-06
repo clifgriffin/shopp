@@ -560,24 +560,11 @@ function shopp_catalog_count ( $status = 'publish' ) {
  * @return int number of products in the category
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
-	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
+	if ( ! $category || ! ( $Category = new ProductCategory( (int) $category) ) || $category != $Category->id ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-
-	$args = array( 	'post_type' => Product::$posttype,
-					'suppress_filters' => true,
-					'tax_query' => array(
-							array( 	'taxonomy' => ProductCategory::$taxon,
-									'terms' => array($category),
-									'include_children' => $children
-									)
-					)
-				);
-	$Q = new WP_Query( $args );
-
-	return $Q->found_posts;
-
+	return $Category->count;
 }
 
 /**
