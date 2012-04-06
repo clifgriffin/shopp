@@ -158,7 +158,7 @@ class Lookup {
 		$_['GA'] = array('name'=>__('Gabon','Shopp'),'currency'=>array('code'=>'XAF','format'=>'# ### FCFA'),'units'=>'metric','region'=>5);
 		$_['GM'] = array('name'=>__('Gambia','Shopp'),'currency'=>array('code'=>'GMD','format'=>'GMD#,###.##'),'units'=>'metric','region'=>5);
 		$_['GE'] = array('name'=>__('Georgia','Shopp'),'currency'=>array('code'=>'GEL','format'=>'GEL #.###,##'),'units'=>'metric','region'=>6);
-		$_['DE'] = array('name'=>__('Germany','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
+		$_['DE'] = array('name'=>__('Germany','Shopp'),'currency'=>array('code'=>'EUR','format'=>'#,###.## €'),'units'=>'metric','region'=>3);
 		$_['GH'] = array('name'=>__('Ghana','Shopp'),'currency'=>array('code'=>'GHS','format'=>'₵#,###.##'),'units'=>'metric','region'=>5);
 		$_['GI'] = array('name'=>__('Gibraltar','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3);
 		$_['GR'] = array('name'=>__('Greece','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
@@ -277,7 +277,7 @@ class Lookup {
 		$_['ZA'] = array('name'=>__('South Africa','Shopp'),'currency'=>array('code'=>'ZAR','format'=>'R# ###,##'),'units'=>'metric','region'=>5);
 		$_['GS'] = array('name'=>__('South Georgia','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>2);
 		$_['KR'] = array('name'=>__('South Korea','Shopp'),'currency'=>array('code'=>'KRW','format'=>'₩#,###.##'),'units'=>'metric','region'=>6);
-		$_['ES'] = array('name'=>__('Spain','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#.###,##'),'units'=>'metric','region'=>3);
+		$_['ES'] = array('name'=>__('Spain','Shopp'),'currency'=>array('code'=>'EUR','format'=>'#.###,## €'),'units'=>'metric','region'=>3);
 		$_['LK'] = array('name'=>__('Sri Lanka','Shopp'),'currency'=>array('code'=>'LKR','format'=>'SL₨ #,###.##'),'units'=>'metric','region'=>6);
 		$_['SD'] = array('name'=>__('Sudan','Shopp'),'currency'=>array('code'=>'SDG','format'=>'SDG #.###,##'),'units'=>'metric','region'=>5);
 		$_['SR'] = array('name'=>__('Suriname','Shopp'),'currency'=>array('code'=>'SRD','format'=>'$#,###.##'),'units'=>'metric','region'=>3);

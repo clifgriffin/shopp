@@ -535,7 +535,10 @@ abstract class ShippingFramework {
 		// Evaluate each destination rule
 		foreach ($table as $index => $rate) {
 			$r = floatvalue(isset($rate['rate'])?$rate['rate']:0);
-			if (isset($rate['tiers'])) $r = $rate['tiers'];
+			if (isset($rate['tiers'])) {
+				$r = $rate['tiers'];
+				usort($r,array('ShippingFramework','_sorttier'));
+			}
 
 			$dr = strpos($rate['destination'],',') !== false ? explode(',',$rate['destination']) : array($rate['destination']);
 			$k = array_keys( array_slice($target, 0, count($dr) ) );
@@ -658,6 +661,10 @@ abstract class ShippingFramework {
 		}
 
 		return ($c[0] < $c[1]);
+	}
+
+	static function _sorttier ($a, $b) {
+		return floatvalue($a['threshold']) < floatvalue($b['threshold']) ? -1 : 1;
 	}
 
 
@@ -893,8 +900,11 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		if (!$this->template) {
 			if (empty($table)) $_[] = $this->tablerate_row(0,$attributes,array());
 			else {
-				foreach ($table as $row => $setting)
+				usort($table,array('ShippingFramework','_sorttable'));
+				foreach ($table as $row => $setting) {
+					if ( isset($setting['tiers']) ) usort($setting['tiers'],array('ShippingFramework','_sorttier'));
 					$_[] = $this->tablerate_row($row,$attributes,$setting);
+				}
 			}
 
 		}

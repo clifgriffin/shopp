@@ -5,6 +5,10 @@
 class CollectionDevAPITests extends ShoppTestCase
 {
 
+	function setUp () {
+		if ( ! ShoppStorefront() ) ShoppStorefront(new Storefront());
+	}
+
 	function test_shopp_add_product_category () {
 		global $test_shopp_add_product_category;
 
@@ -175,10 +179,38 @@ class CollectionDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_category_count () {
-		$counts = array(3=>15, 29=>0, 49=>5, 27=>29, 55=>2, 51=>3, 23=>0, 9=>64, 47=>5, 45=>6, 53=>1, 35=>14, 19=>6, 62=>1, 15=>3, 37=>32, 5=>9, 21=>21, 25=>0, 43=>13, 41=>9, 17=>1, 33=>0, 13=>0, 11=>5, 31=>14, 39=>11, 7=>6);
+		$counts = array(
+			"apparel"=>15,
+			"bathing-suites"=>0,
+			"blue-ray"=>5,
+			"books"=>29,
+			"charities"=>2,
+			"donations"=>3,
+			"dresses"=>0,
+			"entertainment"=>64,
+			"for-her"=>5,
+			"for-him"=>6,
+			"foundations"=>1,
+			"games"=>14,
+			"underwear"=>6,
+			"jeans"=>3,
+			"jewelry"=>32,
+			"mens"=>9,
+			"movies-tv"=>21,
+			"music"=>0,
+			"pendants-necklaces"=>13,
+			"rings"=>9,
+			"suits"=>1,
+			"systems"=>0,
+			"t-shirts-2"=>0,
+			"t-shirts"=>5,
+			"video-games"=>14,
+			"watches"=>11,
+			"womens"=>6
+		);
 		foreach(shopp_product_categories() as $Category) {
 			$count = shopp_category_count($Category->id);
-			$this->AssertEquals($counts[$Category->id], $count);
+			if ( in_array($Category->slug, array_keys($counts)) ) $this->AssertEquals($Category->slug.$counts[$Category->slug], $Category->slug.$count);
 		}
 	}
 

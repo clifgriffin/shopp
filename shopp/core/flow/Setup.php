@@ -603,6 +603,12 @@ class Setup extends AdminController {
 				$settings[$setting] = shopp_setting($setting);
 				$settings[$setting]['id'] = $setting;
 				$settings[$setting] = array_merge($defaults[$default_name],$settings[$setting]);
+				if ( isset($settings[$setting]['table']) ) {
+					usort($settings[$setting]['table'],array('ShippingFramework','_sorttier'));
+					foreach ( $settings[$setting]['table'] as &$r ) {
+						if ( isset($r['tiers']) ) usort($r['tiers'],array('ShippingFramework','_sorttier'));
+					}
+				}
 			}
 
 		}

@@ -44,7 +44,6 @@ class OrderDevAPITests extends ShoppTestCase {
 		$cid = shopp_add_customer($data);
 
 		$Product = shopp_product('1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', 'name');
-
 		shopp_add_cart_product ( $Product->id, 1 );
 		$Purchase = shopp_add_order($cid);
 		$Purchase->load_purchased();
@@ -52,7 +51,9 @@ class OrderDevAPITests extends ShoppTestCase {
 		$this->AssertTrue( ! empty($Purchase->id) );
 		$this->AssertEquals( $cid, $Purchase->customer );
 		$this->AssertEquals( 1, count($Purchase->purchased) );
-		$this->AssertEquals( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', $Purchase->purchased[0]->name );
+
+		$Purchased = reset($Purchase->purchased);
+		$this->AssertEquals( '1/10 Carat Diamond Journey Heart Pendant in Yellow Gold', $Purchased->name );
 
 		remove_action('shopp_authed_order_event',array(ShoppOrder(),'notify'));
 		remove_action('shopp_authed_order_event',array(ShoppOrder(),'accounts'));
