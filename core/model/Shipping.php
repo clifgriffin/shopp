@@ -1780,7 +1780,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	public function limits( &$Item ) {
 		if ( $this->is_full() ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits ); // full
 
-		list( $wtl, $wl, $hl, $ll ) = -1;
+		list( $wtl, $wl, $hl, $ll ) = array(-1,-1,-1,-1);
 		extract($this->limits);
 
 		if ( -3 == array_sum(array($wl,$hl,$ll)) ) {
