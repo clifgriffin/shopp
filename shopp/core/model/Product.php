@@ -988,7 +988,7 @@ class Product extends WPShoppObject {
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		global $wpdb;
-		$tbale = $wpdb->term_relationships;
+		$table = $wpdb->term_relationships;
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE object_id='$id'");
 
 		// Delete prices
