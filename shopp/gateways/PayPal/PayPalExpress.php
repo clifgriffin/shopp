@@ -294,7 +294,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$_ = array_merge($_,$this->PaymentRequest());
 
-		print_r($_);
 		$message = $this->encode($_);
 		$response = $this->send($message);
 
