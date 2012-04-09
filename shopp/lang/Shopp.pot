@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-09 10:19-0500\n"
-"PO-Revision-Date: 2012-04-09 10:20-0500\n"
+"POT-Creation-Date: 2012-04-09 10:52-0500\n"
+"PO-Revision-Date: 2012-04-09 10:53-0500\n"
 "Last-Translator: Jonathan Davis <jond@ingenesis.net>\n"
 "Language-Team: Ingenesis Limited <storefront@shopplugin.net>\n"
 "MIME-Version: 1.0\n"
@@ -17,6 +17,9 @@ msgstr ""
 "X-Poedit-KeywordsList: __;_e;esc_attr__;esc_html__;esc_attr_e;esc_html_e;_x;esc_attr_x;esc_html_x;_n;_nx;_nx_noop;_ex\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: /Users/jond/Sites/shopp/trunk/shopp\n"
+"X-Poedit-SearchPath-1: /Users/jond/Sites/Addons/gateways\n"
+"X-Poedit-SearchPath-2: /Users/jond/Sites/Addons/shipping\n"
+"X-Poedit-SearchPath-3: /Users/jond/Sites/Addons/storage\n"
 
 #: /Users/jond/Sites/shopp/trunk/shopp/Shopp.php:236
 msgid "The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function."
@@ -6879,7 +6882,7 @@ msgid "Copy this URL to your Google Checkout integration settings API callback U
 msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/gateways/GoogleCheckout/GoogleCheckout.php:1193
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:745
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:744
 #: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:962
 #, php-format
 msgid "Use the %s"
@@ -6909,44 +6912,44 @@ msgstr ""
 msgid "Use this area to provide your customers with instructions on how to make payments offline."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:307
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:416
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:458
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:306
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:415
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:457
 msgid "The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:311
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:310
 msgid "The transaction failed because PayPal did not issue a payment token."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:375
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:374
 msgid "The location you are purchasing from is outside of our market regions. This transaction cannot be processed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:408
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:407
 msgid "No response was received from PayPal. The order cannot be processed."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:536
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:535
 #: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:522
 msgid "Shipping & Handling"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:575
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:574
 #: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalStandard.php:709
 #, php-format
 msgid "An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s"
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:725
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:724
 msgid "Enter your PayPal API Username."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:732
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:731
 msgid "Enter your PayPal API Password."
 msgstr ""
 
-#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:739
+#: /Users/jond/Sites/shopp/trunk/shopp/gateways/PayPal/PayPalExpress.php:738
 msgid "Enter your PayPal API Signature."
 msgstr ""
 
@@ -7584,5 +7587,1260 @@ msgstr ""
 
 #: /Users/jond/Sites/shopp/trunk/shopp/templates/thanks.php:42
 msgid "Your order is still in progress and has not yet been received from the payment processor. You will receive an email notification when your payment has been verified and the order has been completed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/AuthorizeNet/tags/1.1/Authorize.net.php:180
+msgid "Enter your AuthorizeNet Login ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/AuthorizeNet/tags/1.1/Authorize.net.php:187
+msgid "Enter your AuthorizeNet Password or Transaction Key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/AuthorizeNet/trunk/Authorize.net.php:354
+msgid "Enter your AuthorizeNet API Login ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/AuthorizeNet/trunk/Authorize.net.php:361
+msgid "Enter your AuthorizeNet Transaction Key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Beanstream/tags/1.1/BeanStream.php:98
+#: /Users/jond/Sites/Addons/gateways/Beanstream/trunk/BeanStream.php:98
+msgid "Enter your BeanStream Merchant ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Camtech/trunk/Camtech.php:108
+msgid "Enter your Camtech Merchant ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Camtech/trunk/Camtech.php:115
+msgid "Enter your Camtech Password"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:44
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:44
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:44
+msgid "A system error occurred processing the transaction.  Please try again later."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:45
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:45
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:45
+msgid "The transaction was declined"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:148
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:148
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:148
+msgid "Error connecting to Cybersource"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:162
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:162
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:162
+#, php-format
+msgid "The SoapClient class is not enabled for PHP. The Cybersource add-on cannot be used without the SoapClient class. See %s for more information."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:175
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:175
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:175
+msgid "Enter your Cybersource Merchant ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:182
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:182
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:182
+msgid "Enter a generic merchant reference code."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0/Cybersource.php:188
+#: /Users/jond/Sites/Addons/gateways/Cybersource/tags/1.0.1/Cybersource.php:188
+#: /Users/jond/Sites/Addons/gateways/Cybersource/trunk/Cybersource.php:188
+msgid "Enter your Cybersource Security Keys (SOAP Toolkit API)"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:40
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:42
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:40
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:40
+msgid "Your Payment Key has been sent to the email address registered for your Dwolla account.  When you recieve your Payment Key, enter it below to confirm your payment."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:41
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:43
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:41
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:41
+msgid "Payment Key request failed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:48
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:50
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:48
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:48
+msgid "Payment could not be confirmed.  Check your funds and try again."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:50
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:52
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:50
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:50
+msgid "You must enter both your Dwolla Customer ID and your Payment Key to complete the transaction."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:121
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:110
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:121
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:121
+msgid "Error connecting to Dwolla"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:136
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:121
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:136
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:136
+msgid "Dwolla Payment Information"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:138
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:123
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:138
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:138
+msgid "Your Dwolla Customer ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:139
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:124
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:139
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:139
+msgid "Payment Key from Email"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:165
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:150
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:165
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:165
+#, php-format
+msgid "The SoapClient class is not enabled for PHP. The Dwolla add-on cannot be used without the built-in php SoapClient class, or nusoap. See %s for more information."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:173
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:158
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:173
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:173
+msgid "Enter your Dwolla API key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Dwolla/branches/1.1/Dwolla.php:180
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.0/Dwolla.php:165
+#: /Users/jond/Sites/Addons/gateways/Dwolla/tags/1.1/Dwolla.php:180
+#: /Users/jond/Sites/Addons/gateways/Dwolla/trunk/Dwolla.php:180
+msgid "Enter your Dwolla API code."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/eWayPayment/tags/1.1/eWayPayment.php:109
+#: /Users/jond/Sites/Addons/gateways/eWayPayment/tags/1.2/eWayPayment.php:189
+#: /Users/jond/Sites/Addons/gateways/eWayPayment/trunk/eWayPayment.php:185
+msgid "Enter your eWay Customer ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/eWayPayment/tags/1.2/eWayPayment.php:196
+#: /Users/jond/Sites/Addons/gateways/eWayPayment/trunk/eWayPayment.php:192
+msgid "Enter your eWay refund password (to issue refunds)."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/FirstData/tags/1.1/FirstData.php:57
+msgid "An unknown error occurred while processing this transaction.  Please contact the site administrator."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/FirstData/tags/1.1/FirstData.php:137
+msgid "No certificate file is installed for FirstData"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/FirstData/tags/1.1/FirstData.php:176
+msgid "Enter your FirstData store number."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/FirstData/trunk/FirstData.php:301
+msgid "No certificate file is installed for FirstData."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/FirstData/trunk/FirstData.php:329
+msgid "An unknown error occurred while processing this transaction. Please contact the site administrator."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.1.1/HSBCepayments.php:48
+msgid "A configuration error occurred while processing this transaction. Please contact the site administrator."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.1.1/HSBCepayments.php:151
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.2/HSBCepayments.php:330
+#: /Users/jond/Sites/Addons/gateways/HSBC/trunk/HSBCepayments.php:330
+msgid "Enter your HSBC ePayments username."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.1.1/HSBCepayments.php:158
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.2/HSBCepayments.php:337
+#: /Users/jond/Sites/Addons/gateways/HSBC/trunk/HSBCepayments.php:337
+msgid "Enter your HSBC ePayments password."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.1.1/HSBCepayments.php:165
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.2/HSBCepayments.php:344
+#: /Users/jond/Sites/Addons/gateways/HSBC/trunk/HSBCepayments.php:344
+msgid "HSBC ePayments Client ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/HSBC/tags/1.2/HSBCepayments.php:310
+#: /Users/jond/Sites/Addons/gateways/HSBC/trunk/HSBCepayments.php:310
+msgid "The response was not properly formatted XML."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1/iDealMollie.php:108
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1.1/iDealMollie.php:105
+msgid "Order validation failed. Received duplicate transaction id: "
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1/iDealMollie.php:124
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1.1/iDealMollie.php:121
+msgid "Payment could not be confirmed, this order cannot be processed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1/iDealMollie.php:165
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1.1/iDealMollie.php:162
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:219
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:219
+msgid "iDeal Payment"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1/iDealMollie.php:173
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1.1/iDealMollie.php:170
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:227
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:227
+msgid "iDeal Bank"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1/iDealMollie.php:194
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.1.1/iDealMollie.php:194
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:251
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:251
+msgid "Enter your iDeal Mollie account ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:94
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:120
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:94
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:120
+msgid "No transaction ID was provided by mollie.nl."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:102
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:102
+msgid "The order failed to be created because no payment report was provided by mollie.nl."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:157
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:157
+msgid "You cancelled the payment."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:158
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:158
+msgid "The payment expired."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/tags/1.2/iDealMollie.php:161
+#: /Users/jond/Sites/Addons/gateways/iDealMollie/trunk/iDealMollie.php:161
+msgid "The payment could not be completed. There are no further details available as to why."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:76
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:76
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:76
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:76
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:192
+msgid "This browser is unsupported for Manual Processing administration. Please use Opera 10.50, Google Chrome 5, Apple Safari 4, Mozilla Firefox 3.6, Internet Explorer 8, or a later version of these browsers."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:77
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:77
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:77
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:77
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:193
+msgid "Browser Local Storage Quota Exceeded, Setup Failed"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:78
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:78
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:78
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:78
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:194
+msgid "Browser Local Storage Error: "
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:79
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:79
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:79
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:79
+msgid "There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair.  Data decryption failed.  You may only decrypt secure data from the browser with a proper private key installed.  See your Payment Settings to reinstall the correct private key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:80
+msgid "Shopp was unable to destroy the sensitive card data from this order.  This could result from using a browser with AJAX disabled, try decrypting from a supported browswer."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:81
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:392
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:393
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:81
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:392
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:393
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:81
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:396
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:397
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:398
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:81
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:395
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:396
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:397
+msgid "[ENCRYPTED]"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:100
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:175
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:100
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:175
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:104
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:179
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:104
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:179
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:227
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:237
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:248
+msgid "Unable to Complete Setup"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:101
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:101
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:105
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:105
+msgid "This payment method requires PHP to be compiled with OpenSSL library support, see http://www.php.net/manual/en/openssl.installation.php.  Setup can not complete."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:119
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:119
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:123
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:123
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:289
+msgid "Getting Started"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:120
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:120
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:124
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:124
+msgid "To begin setup, click the Generate button to create an encryption keypair.  For more information on this technology and important server and browser requirements, see <a href=\"http://docs.shopplugin.net/Manual_Processing\">Manual Processing</a> documentation."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:124
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:124
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:128
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:128
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:295
+msgid "Generate Keys"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:134
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:134
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:138
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:138
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:310
+msgid "Failed Creating Private Key"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:135
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:135
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:139
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:139
+#, php-format
+msgid "Creation of your key pairs failed.  See your Shopp log, located in <a href=\"%s\">System Settings</a>, for more information on the errors.  Resave your Payment Settings, and try again after correcting the configuration problem."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:148
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:148
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:152
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:152
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:326
+msgid "Save Your Private Key"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:149
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:149
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:153
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:153
+msgid "To finalize the setup process, click the Finish button to save your settings.  Your private key file will automatically be downloaded.  It is important that this file be retained and remain private to the store owner. We also recommend storing a backup of this file, as secure payment information in your orders will be inaccessible without an installed private key. See <a href=\"http://docs.shopplugin.net/Manual_Processing\">Manual Processing</a> documentation for more information"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:150
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:150
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:154
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:154
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:328
+msgid "Finish"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:161
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:161
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:165
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:165
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:270
+msgid "Setup Complete"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:162
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:162
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:166
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:166
+msgid "The Manual Processing payment method setup is complete.  Please keep your private key in a secure place and backed up.  If you need to re-cache your private key in your browser, or use this key in another browser, click the \"Reinstall Key\" button to select your saved private key file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:166
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:166
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:170
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:170
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:275
+msgid "Reinstall Key"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:176
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:176
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:180
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:180
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:249
+msgid "This payment method requires an SSL enabled site, and also SSL security in the WordPress Admin."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:176
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:176
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:180
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:180
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:249
+msgid "Please save to activate this module, and then login in secure mode to complete the setup. See the <a target=\"_blank\" href=\"http://codex.wordpress.org/Administration_Over_SSL#To_Force_SSL_Logins_and_SSL_Admin_Access\">WordPress Codex - Administration Over SSL</a> for more information on securing your WordPress Admin."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:205
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:205
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:209
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:208
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:197
+msgid "Error saving private key into your browser."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:231
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:231
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:235
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:233
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:199
+msgid "Private key installed"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:244
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:244
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:248
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:246
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:202
+msgid "Uploading..."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:250
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:250
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:254
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:252
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:200
+msgid "Invalid private key file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:256
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:256
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:260
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:259
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:201
+msgid "Invalid private key file or mismatched key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:283
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:303
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:283
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:303
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:287
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:307
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:286
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:306
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:350
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:370
+msgid "Private key resource creation failed. openssl_error_string reports "
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:290
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:290
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:294
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:293
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:357
+msgid "Private key PEM export failed. openssl_error_string reports "
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:310
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:310
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:314
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:313
+msgid "Unable to extract key components from new key.  Installation failed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:318
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:318
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:322
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:321
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:385
+msgid "Unable to get public key. openssl_error_string reports "
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:390
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:390
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:394
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:393
+msgid "Decrypt the secured card data only at transaction time.  Once revealed, sensitive card information is automatically and permanently destroyed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:392
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:392
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:396
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:395
+msgid "Secured Card"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:393
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:393
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:397
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:396
+msgid "Secured CVV"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:394
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:394
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:399
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:398
+msgid "Expiration"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1/ManualProcessing.php:396
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:396
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:401
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:400
+msgid "Decrypt Card"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.1/ManualProcessing.php:80
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:80
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:80
+msgid "Shopp was unable to destroy the sensitive card data from this order.  This could result from using a browser with AJAX disabled, try decrypting from a supported browser."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:97
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:97
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:120
+msgid "Unable to process transaction because card data is missing."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.2/ManualProcessing.php:398
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/tags/1.1.3/ManualProcessing.php:397
+msgid "Secured XCSC"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:64
+msgid "Encrypted"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:175
+msgid "Manual Processing"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:195
+msgid "There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair. Data decryption failed. You may only decrypt secure data from the browser with a proper private key installed. See your Payment Settings to reinstall the correct private key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:196
+msgid "Shopp was unable to destroy the sensitive card data from this order. This could result from using a browser with AJAX disabled, try decrypting from a supported browser."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:203
+msgid "Success"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:219
+msgid "No Javascript"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:220
+#, php-format
+msgid "JavaScript is disabled or has been broken by a problem in a plugin or the active theme. JavaScript is required to complete the Manaul Processing setup process. For details, see the %sManual Processing%s documentation"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:228
+msgid "You must be logged in with an account that can view store financials to continue."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:238
+#, php-format
+msgid "This payment method requires PHP to be compiled with OpenSSL library support, see \"%sOpenSSL Installing/Configuring%s\". Setup can not complete."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:271
+msgid "The Manual Processing payment method setup is complete. Please keep your private key in a secure place and backed up.  If you need to reinstall your private key in your browser, or use this key in another browser, click the <strong>Reinstall Key</strong> button to select your saved private key file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:290
+#, php-format
+msgid "To begin setup, click the Generate button to create an encryption keypair. For more information on this technology and important server and browser requirements, see \"%sManual Processing%s\" documentation."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:311
+#, php-format
+msgid "Creation of your key pairs failed. See your Shopp log, located in <a href=\"%s\">System Settings</a>, for more information on the errors. Resave your Payment Settings, and try again after correcting the configuration problem."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:327
+msgid "To finalize the setup process, click the <strong>Finish</strong> button to save your settings. Your private key file will automatically be downloaded. It is important that this file be retained and remain private to the store owner. We also recommend storing a backup of this file, as secure payment information in your orders will be inaccessible without an installed private key. See <a href=\"http://docs.shopplugin.net/Manual_Processing\">Manual Processing</a> documentation for more information"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:377
+msgid "Unable to extract key components from new key. Installation failed."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:474
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:485
+msgid "Card"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:475
+msgid "CVV"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:476
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:486
+msgid "Expires"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:490
+msgid "Decrypt"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/ManualProcessing/trunk/ManualProcessing.php:492
+msgid "Decrypt card to view encrypted information. Charge Order to mark the order <strong>paid</strong> and <strong>destroy</strong> sensitive card holder information."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:65
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:64
+msgid "A configuration error occurred while processing this transaction.  Please contact the site administrator."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:119
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:118
+msgid "Enter your Merchant Warrior merchant UUID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:126
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:125
+msgid "Enter your Merchant Warrior API key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:133
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:132
+msgid "Enter your Merchant Warrior Merchant API passphrase."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:169
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:168
+msgid "Missing or blank amount in supplied data"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/tags/1.0/MerchantWarrior.php:175
+#: /Users/jond/Sites/Addons/gateways/MerchantWarrior/trunk/MerchantWarrior.php:174
+msgid "Missing or blank currency field in supplied data"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayflowPro/tags/1.0/PayflowPro.php:116
+msgid "Enter your Payflow Pro user account for this site.  Leave this blank if you have not setup multiple users on your Payflow Pro account."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayflowPro/tags/1.0/PayflowPro.php:123
+msgid "Enter your Payflow Pro merchant login ID that you created when you registered your account."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayflowPro/tags/1.0/PayflowPro.php:130
+msgid "Enter your Payflow Pro resellers ID.  If you purchased your account directly from PayPal, use PayPal"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayflowPro/tags/1.0/PayflowPro.php:137
+msgid "Enter your Payflow Pro account password."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayJunction/tags/1.1/PayJunction.php:173
+#: /Users/jond/Sites/Addons/gateways/PayJunction/tags/1.2/PayJunction.php:285
+#: /Users/jond/Sites/Addons/gateways/PayJunction/trunk/PayJunction.php:285
+msgid "Enter your PayJunction login name."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/PayJunction/tags/1.1/PayJunction.php:180
+#: /Users/jond/Sites/Addons/gateways/PayJunction/tags/1.2/PayJunction.php:292
+#: /Users/jond/Sites/Addons/gateways/PayJunction/trunk/PayJunction.php:292
+msgid "Enter your PayJunction password."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:108
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:109
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:109
+msgid "An unverifiable order was received from Payson. Possible fraudulent order attempt!"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:136
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:137
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:137
+msgid "An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:155
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:156
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:156
+msgid "Enter your Payson Agent ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:162
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:163
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:163
+msgid "Enter your Payson seller email address."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:169
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:170
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:170
+msgid "Enter your Payson secret key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:176
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:177
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:177
+msgid "Enter a name or description for your store."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:182
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:183
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:183
+msgid "Choose the payment methods accepted."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:184
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:185
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:185
+msgid "Credit Cards, Internet Banks &amp; Payson"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:185
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:186
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:186
+msgid "Credit Cards Only"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:186
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:187
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:187
+msgid "Internet Banks Only"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:187
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:188
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:188
+msgid "Payson Account Funds Only"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:188
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:189
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:189
+msgid "Internet Banks &amp; Payson Account Funds"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.1/Payson.php:193
+#: /Users/jond/Sites/Addons/gateways/Payson/tags/1.1.2/Payson.php:194
+#: /Users/jond/Sites/Addons/gateways/Payson/trunk/Payson.php:194
+msgid "Offer Payson Guarantee payments."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SagePay/branches/1.1/SagePay.php:82
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1/SagePay.php:82
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1.1/SagePay.php:82
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1.2/SagePay.php:82
+#: /Users/jond/Sites/Addons/gateways/SagePay/trunk/SagePay.php:82
+msgid "An unknown error occurred while handling the 3-D Secure response from your bank. Please retry the checkout process, or contact the site administrator if the problem persists."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SagePay/branches/1.1/SagePay.php:238
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1/SagePay.php:227
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1.1/SagePay.php:227
+#: /Users/jond/Sites/Addons/gateways/SagePay/tags/1.1.2/SagePay.php:236
+#: /Users/jond/Sites/Addons/gateways/SagePay/trunk/SagePay.php:238
+msgid "Enter your Sage Pay vendor name."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:150
+msgid "The transaction was declined."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:151
+msgid "The transaction was not allowed due to fraud scrubbing."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:152
+msgid "An error occurred while processing the transaction."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:192
+msgid "Enter your Slim CD Client ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:199
+msgid "Enter your Slim CD Site ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:206
+msgid "Enter your Slim CD Price ID."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:213
+msgid "Enter your Slim CD account password."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/gateways/SlimCD/trunk/SlimCD.php:220
+msgid "Enter your Slim CD Key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/AusPost/branches/1.1/AusPost.php:99
+#: /Users/jond/Sites/Addons/shipping/AusPost/tags/1.1.1/AusPost.php:95
+#: /Users/jond/Sites/Addons/shipping/AusPost/tags/1.1.2/AusPost.php:95
+#: /Users/jond/Sites/Addons/shipping/AusPost/tags/1.1.3/AusPost.php:99
+#: /Users/jond/Sites/Addons/shipping/AusPost/trunk/AusPost.php:84
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/branches/1.1/CanadaPost.php:114
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.1/CanadaPost.php:116
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.2/CanadaPost.php:113
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.3/CanadaPost.php:113
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.4/CanadaPost.php:114
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/trunk/CanadaPost.php:251
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:138
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:137
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:138
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:138
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:138
+msgid "Your postal code"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/branches/1.1/CanadaPost.php:113
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.1/CanadaPost.php:115
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.2/CanadaPost.php:112
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.3/CanadaPost.php:112
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/tags/1.1.4/CanadaPost.php:113
+#: /Users/jond/Sites/Addons/shipping/CanadaPost/trunk/CanadaPost.php:244
+msgid "Canada Post merchant ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:103
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:102
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:103
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:103
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:103
+msgid "FedEx Rates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:136
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:135
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:136
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:136
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:136
+msgid "Account Number"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:137
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:136
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:137
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:137
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:137
+msgid "Meter Number"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:139
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:138
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:139
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:139
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:139
+msgid "SmartPost HubID (Required for SmartPost)"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:143
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:142
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:143
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:143
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:143
+msgid "FedEx web services key"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:144
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:143
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:144
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:144
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:144
+msgid "FedEx web services password"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:145
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:144
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:145
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:145
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:145
+msgid "Rates include insurance."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:146
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:145
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:146
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:146
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:146
+msgid "Include only methods with Saturday delivery."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:191
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:195
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:196
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:195
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:191
+msgid "There was an error obtaining FedEx Rates."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:395
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:388
+msgid "FedEx Rates cannot be used because this server does not have SOAP support."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:399
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:394
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:398
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:397
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:392
+msgid "FedEx could not be reached for realtime rates."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:419
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:428
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:427
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:412
+msgid "The specified SHOPP_FEDEX_WSDL_FILE does not exist."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:422
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:431
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:430
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:415
+msgid "PHP does not support bzip2 decompression of the embedded WSDL file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:426
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:435
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:434
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:419
+msgid "An unknown error occurred while reading the WSDL file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:429
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:438
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:437
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:422
+#, php-format
+msgid "Unable to read the web services description file to establish a SOAP connection to FedEx. %s See the <strong>Troubleshooting</strong> section of the \"%s\" article in the online documentation for help with this issue."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/branches/1.1/FedExRates.php:440
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.4/FedExRates.php:449
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.5/FedExRates.php:448
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.6/FedExRates.php:433
+msgid "FedEx Rates WSDL Error"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/tags/1.1.3/FedExRates.php:426
+msgid "Unable to decompress wsdl file."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/trunk/FedExRates.php:104
+msgid "220 countries world-wide"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/trunk/FedExRates.php:142
+msgid "SmartPost HubID<br />(required for SmartPost)"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/trunk/FedExRates.php:168
+msgid "Rates include insurance"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/FedExRates/trunk/FedExRates.php:174
+msgid "Include only methods with Saturday delivery"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:56
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:53
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:53
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:53
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:53
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:52
+msgid "Order Fulfillment"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:58
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:55
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:55
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:55
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:55
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:54
+msgid "Real-Time Inventory Updates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:59
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:56
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:56
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:56
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:56
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:55
+msgid "Tracking Status Updates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:63
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:60
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:60
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:60
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:60
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:59
+msgid "Everyday"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:64
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:61
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:61
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:61
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:61
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:60
+msgid "Twice a day"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:65
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:62
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:62
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:62
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:62
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:61
+msgid "Every Hour"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:85
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:92
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:93
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:93
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:93
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:84
+msgid "ShipWire Service"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:122
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:129
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:130
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:130
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:130
+msgid "ShipWire Email"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:123
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:130
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:131
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:131
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:131
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:110
+msgid "ShipWire password"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:127
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:134
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:135
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:135
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:135
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:116
+msgid "Update Inventory"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:128
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:135
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:136
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:136
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:136
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:124
+msgid "Shipment tracking updates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.1/ShipWire.php:324
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.2/ShipWire.php:329
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.3/ShipWire.php:329
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.4/ShipWire.php:329
+#: /Users/jond/Sites/Addons/shipping/ShipWire/tags/1.1.5/ShipWire.php:329
+#, php-format
+msgid "Processed %s updates to ShipWire shipment tracking."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:103
+msgid "ShipWire e-mail"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:147
+msgid "Updating..."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/ShipWire/trunk/ShipWire.php:155
+msgid "No updates required"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:106
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:104
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:104
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:104
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:106
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:104
+msgid "UPS Service Rates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:138
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:136
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:136
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:136
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:138
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:281
+msgid "UPS Access License Number"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:140
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:138
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:138
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:138
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:140
+msgid "Negotiated Rates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:141
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:139
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:139
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:139
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:141
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:302
+msgid "UPS Shipper Number"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:147
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:145
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:145
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:145
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:147
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:312
+msgid "UPS User ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:148
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:146
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:146
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:146
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:148
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:319
+msgid "UPS password"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/branches/1.1/UPSServiceRates.php:149
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.2/UPSServiceRates.php:147
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.3/UPSServiceRates.php:147
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.4/UPSServiceRates.php:147
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/tags/1.1.5/UPSServiceRates.php:149
+msgid "Pickup"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:268
+msgid "200+ countries world-wide"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:295
+msgid "Enable negotiated rates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/UPSServiceRates/trunk/UPSServiceRates.php:328
+msgid "UPS Pickup"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/USPSRates/branches/1.1/USPSRates.php:98
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.1/USPSRates.php:98
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.2/USPSRates.php:98
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.3/USPSRates.php:98
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2/USPSRates.php:93
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2.1/USPSRates.php:94
+#: /Users/jond/Sites/Addons/shipping/USPSRates/trunk/USPSRates.php:94
+msgid "USPS Rates"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/USPSRates/branches/1.1/USPSRates.php:130
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.1/USPSRates.php:130
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.2/USPSRates.php:130
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.3/USPSRates.php:130
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2/USPSRates.php:256
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2.1/USPSRates.php:263
+#: /Users/jond/Sites/Addons/shipping/USPSRates/trunk/USPSRates.php:262
+msgid "USPS User ID"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/USPSRates/branches/1.1/USPSRates.php:160
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.2/USPSRates.php:160
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.1.3/USPSRates.php:160
+msgid "Shipping options and rates are not available from UPS. Please try again."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2/USPSRates.php:103
+#: /Users/jond/Sites/Addons/shipping/USPSRates/tags/1.2.1/USPSRates.php:104
+#: /Users/jond/Sites/Addons/shipping/USPSRates/trunk/USPSRates.php:104
+msgid "Shipping options and rates are not available from USPS. Please try again."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.0/AmazonS3.php:120
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2/AmazonS3.php:120
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2.1/AmazonS3.php:125
+#: /Users/jond/Sites/Addons/storage/AmazonS3/trunk/AmazonS3.php:125
+msgid "Enter your Amazon Web Services access key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.0/AmazonS3.php:127
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2/AmazonS3.php:127
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2.1/AmazonS3.php:132
+#: /Users/jond/Sites/Addons/storage/AmazonS3/trunk/AmazonS3.php:132
+msgid "Enter your Amazon Web Services secret key."
+msgstr ""
+
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.0/AmazonS3.php:132
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2/AmazonS3.php:132
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2.1/AmazonS3.php:137
+#: /Users/jond/Sites/Addons/storage/AmazonS3/trunk/AmazonS3.php:137
+msgid "Create new bucket"
+msgstr ""
+
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.0/AmazonS3.php:137
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2/AmazonS3.php:137
+#: /Users/jond/Sites/Addons/storage/AmazonS3/tags/1.2.1/AmazonS3.php:142
+#: /Users/jond/Sites/Addons/storage/AmazonS3/trunk/AmazonS3.php:142
+msgid "Select the storage bucket."
 msgstr ""
 
