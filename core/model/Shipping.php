@@ -1780,7 +1780,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	public function limits( &$Item ) {
 		if ( $this->is_full() ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits ); // full
 
-		list( $wtl, $wl, $hl, $ll ) = array(-1,-1,-1,-1);
+		$wtl = $wl = $hl = $ll = -1;
 		extract($this->limits);
 
 		if ( -3 == array_sum(array($wl,$hl,$ll)) ) {
@@ -1904,19 +1904,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	 *
 	 * @return bool true if the package has been marked full or if the weight or height limits have been met (or exceeded), else false
 	 **/
-	public function is_full () {
-		if ( $this->full ) return true;
-
-		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 && $this->h >= $hl ) {
-			return ($this->full = true);
-		}
-
-		if ( $wtl > 0 && $this->wt >= $wtl ) {
-			return ($this->full = true);
-		}
-
-		return ($this->full = false);
-	}
+	public function is_full () { return $this->full; }
 
 	/**
 	*
