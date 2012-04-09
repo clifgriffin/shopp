@@ -1625,12 +1625,12 @@ class ConfirmStorefrontPage extends StorefrontPage {
 		$Order->validated = $Order->isvalid();
 
 		ob_start();
-		$this->_confirm_page_content = true;
+		ShoppStorefront()->_confirm_page_content = true;
 		if ($Errors->exist(SHOPP_COMM_ERR))
 			echo Storefront::errors(array('errors.php'));
 		locate_shopp_template(array('confirm.php'),true);
 		$content = ob_get_contents();
-		unset($this->_confirm_page_content);
+		unset(ShoppStorefront()->_confirm_page_content);
 		ob_end_clean();
 		return apply_filters('shopp_order_confirmation',$content);
 	}
