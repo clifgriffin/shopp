@@ -506,7 +506,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount($Item->unitprice);
 			$_['L_PAYMENTREQUEST_0_NUMBER'.$i]		= $i;
 			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= $Item->quantity;
-			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
 		}
 
 		if ($Totals->discount != 0) {
@@ -519,8 +518,13 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$_['L_PAYMENTREQUEST_0_NAME'.$i]		= htmlentities(join(", ",$discounts));
 			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount($Totals->discount*-1);
 			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= 1;
-			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
 		}
+
+		// Transaction
+		$_['PAYMENTREQUEST_0_CURRENCYCODE']			= $this->settings['currency_code'];
+		$_['PAYMENTREQUEST_0_ITEMAMT']				= (float)$this->amount('subtotal')-(float)$this->amount('discount');
+		$_['PAYMENTREQUEST_0_TAXAMT']				= $this->amount('tax');
+		$_['PAYMENTREQUEST_0_AMT']					= $this->amount('total');
 
 		// Workaround a PayPal limitation that does not handle a 0.00 subtotal amount/
 		// that may happen because of discounts (subtotal-discount=0.00). We handle this
@@ -530,21 +534,18 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		if ($_['PAYMENTREQUEST_0_ITEMAMT'] == 0) {
 
+			$amount = $this->amount( max(0.01,$this->amount('shipping')) ); // Choose the higher amount of shipping costs or 0.01
 			$i++;
 			$_['L_PAYMENTREQUEST_0_NUMBER'.$i]		= $i;
 			$_['L_PAYMENTREQUEST_0_NAME'.$i]		= apply_filters('paypal_freeorder_handling_label',__('Shipping & Handling','Shopp'));
-			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $this->amount( max(0.01,$this->amount('shipping')) ); // Choose the higher amount of shipping costs or 0.01
+			$_['L_PAYMENTREQUEST_0_AMT'.$i]			= $amount;
 			$_['L_PAYMENTREQUEST_0_QTY'.$i]			= 1;
-			$_['L_PAYMENTREQUEST_0_TAXAMT'.$i]		= $this->amount(0);
+
+			// Adjust subtotals accordingly
+			$_['PAYMENTREQUEST_0_ITEMAMT'] += $amount;
+			$_['PAYMENTREQUEST_0_AMT'] += $amount;
 
 		} else $_['PAYMENTREQUEST_0_SHIPPINGAMT']	= $this->amount('shipping');
-
-		// Transaction
-		$_['PAYMENTREQUEST_0_AMT']					= $this->amount('total');
-		$_['PAYMENTREQUEST_0_ITEMAMT']				= (float)$this->amount('subtotal')-(float)$this->amount('discount');
-		$_['PAYMENTREQUEST_0_TAXAMT']				= $this->amount('tax');
-		$_['PAYMENTREQUEST_0_CURRENCYCODE']			= $this->settings['currency_code'];
-
 
 		return $_;
 	}
