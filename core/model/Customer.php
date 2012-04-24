@@ -331,6 +331,7 @@ class Customer extends DatabaseObject {
 			$type = strtolower($Address);
 			if (isset($_POST[$type]) && !empty($_POST[$type])) {
 				$Updated = new $class($this->id,'customer');
+				$Updated->customer = $this->id;
 				$Updated->updates($_POST[$type]);
 				$Updated->save();
 				ShoppOrder()->$Address = $Updated;
