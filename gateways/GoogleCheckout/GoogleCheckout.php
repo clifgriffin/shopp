@@ -25,7 +25,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	var $xml = true;
 
 	var $debug = false;
-	var $dev = true;
+	var $dev = false;
 
 	function __construct () {
 		parent::__construct();
