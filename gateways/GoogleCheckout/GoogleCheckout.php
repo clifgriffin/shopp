@@ -4,10 +4,10 @@
  * @class GoogleCheckout
  *
  * @author Jonathan Davis, John Dillick
- * @version 1.1.5
- * @copyright Ingenesis Limited, 19 August, 2008
+ * @version 1.2
+ * @copyright Ingenesis Limited, 2008-2012
  * @package Shopp
- * @since 1.1
+ * @since 1.2
  * @subpackage GoogleCheckout
  *
  * $Id$
