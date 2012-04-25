@@ -591,8 +591,6 @@ class PurchasesExport {
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
 		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 
-		echo $where;
-
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 		$offset = ($this->set*$this->limit);
