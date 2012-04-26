@@ -139,17 +139,15 @@ class Purchase extends DatabaseObject {
 					));
 
 				}
-
-				if ( ! str_true($Purchased->inventory) ) continue;
-
-				$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
-					'purchased' => $Purchased->id,
-					'sku' => $Purchased->sku,
-					'price' => $Purchased->price,
-					'quantity' => $Purchased->quantity
-				));
-
 			}
+			if ( ! str_true($Purchased->inventory) ) continue;
+
+			$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
+				'purchased' => $Purchased->id,
+				'sku' => $Purchased->sku,
+				'price' => $Purchased->price,
+				'quantity' => $Purchased->quantity
+			));
 		}
 
 		if ( ! empty($allocated) ) {
