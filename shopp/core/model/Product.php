@@ -533,7 +533,7 @@ class Product extends WPShoppObject {
 		$price->price = (float)$price->price;
 		$price->saleprice = (float)$price->saleprice;
 		$price->shipfee = (float)$price->shipfee;
-		$price->promoprice = (float)$price->promoprice;
+		$price->promoprice = (float)str_true($price->sale)?$price->saleprice:$price->price;
 
 		// Build secondary lookup table using the price id as the key
 		$target->priceid[$price->id] = $price;
@@ -560,13 +560,10 @@ class Product extends WPShoppObject {
 		if (!str_true($price->shipping)) $freeshipping = true;
 
 		// Calculate catalog discounts if not already calculated
-		if (empty($price->promoprice)) {
-			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
-			if (!empty($price->discounts)) {
-				$discount = Promotion::pricing($pricetag,$price->discounts);
-				if ($discount->freeship) $freeshipping = true;
-				$price->promoprice = $discount->pricetag;
-			} else $price->promoprice = $pricetag;
+		if (!empty($price->discounts)) {
+			$discount = Promotion::pricing($price->promoprice,$price->discounts);
+			if ($discount->freeship) $freeshipping = true;
+			$price->promoprice = $discount->pricetag;
 		}
 
 		if ($price->promoprice < $price->price) $target->sale = 'on';
