@@ -1287,7 +1287,7 @@ interface ShippingPackagingInterface {
 	 *
 	 * @param Item $Item the Item to add to packages
 	 **/
-	public function add_item ( Item &$Item );
+	public function add_item ( $Item );
 
 	/**
 	 * packages is the packages container iterator
@@ -1398,11 +1398,11 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $item the item to add to packages
 	 **/
-	public function add_item ( Item &$Item ) {
+	public function add_item ( $Item ) {
 		$Item = new ShippingPackageItem($Item, $Item->quantity);
 		if ( str_true($Item->packaging) )
-			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );
-		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$Item, &$this) );
+			do_action_ref_array('shopp_packager_add_piece', array($Item, &$this) );
+		else do_action_ref_array('shopp_packager_add_'.$this->pack, array($Item, &$this) );
 	}
 
 
@@ -1467,7 +1467,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param array $p packages
 	 * @param ShippingPackageItem $Item the Item to add
 	 **/
-	public function mass_add ( &$Item, $pkgr ) {
+	public function mass_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$this->all_add($Item, $this, 'mass');
@@ -1481,7 +1481,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param ShippingPackageItem $Item Item to add
 	 **/
-	public function like_add ( &$Item, $pkgr ) {
+	public function like_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$limits = array();
@@ -1545,7 +1545,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param ShippingPackager $pkgr the calling packager object
 	 * @return void
 	 **/
-	public function piece_add ( &$Item, $pkgr ) {
+	public function piece_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$count = $Item->quantity;
@@ -1568,7 +1568,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @param string $type expect dimensions 'dims', or just mass
 	 * @return void
 	 **/
-	public function all_add ( &$Item, $pkgr, $type='dims' ) {
+	public function all_add ( $Item, $pkgr, $type='dims' ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
@@ -1731,7 +1731,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	* @param ShippingPackageItem $Item - Item object being added
 	* @return mixed boolean true if total fit, false if did not fit at all, and ShippingPackageItem remainder if parital fit.
 	**/
-	public function add( &$Item ) {
+	public function add( $Item ) {
 		$total = $Item->quantity;
 
 		if ( $fit = $this->limits( $Item ) ) { // within limits
@@ -1772,7 +1772,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	* @param ShippingPackageItem $Item - Item object being added
 	* @return int quantity that fits
 	**/
-	public function limits( &$Item ) {
+	public function limits( $Item ) {
 		if ( $this->is_full() ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits ); // full
 
 		$wtl = $wl = $hl = $ll = -1;
@@ -1856,7 +1856,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	 * @param ShippingPackageItem $Item the Item being reoriented
 	 * @return bool true if flipped, false if not flipped
 	 **/
-	public function orient( &$Item ) {
+	public function orient( $Item ) {
 		if ( ! $Item->width || ! $Item->length || ! $Item->height ) return false;
 
 		// setup
@@ -1976,7 +1976,7 @@ class ShippingPackageItem {
 	public $orient;			// Item orientation
 	public $pos;			// Item position
 
-	function __construct ( &$Item, $quantity = 1 ) {
+	function __construct ( $Item, $quantity = 1 ) {
 		if ( ! is_object($Item) ) return;
 
 		// just a clone of another ShippingPackageItem
