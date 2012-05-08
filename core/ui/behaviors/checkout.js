@@ -19,13 +19,16 @@ jQuery(document).ready(function () {
 		billCard = $('#billing-card'),
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
+		checkoutButton = $('.payoption-'+d_pm),
 		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = $('#checkout.shopp li.locale');
 
 	// No payment option selectors found, use default when on checkout page only
 	if (checkoutForm.find('input[name=checkout]').val() == "process") {
-		if (paymethods.length == 0) paymethod_select(false,d_pm);
-		else paymethods.change(paymethod_select).change();
+		checkoutButtons.hide();
+		if (checkoutButton.length == 0) checkoutButton = $('.payoption-0');
+		checkoutButton.show();
+		paymethods.change(paymethod_select).change();
 	}
 
 	// Validate paycard number before submit
@@ -200,9 +203,8 @@ jQuery(document).ready(function () {
 		$(document).trigger('shopp_paymethod',[paymethods.val()]);
 	});
 
-	function paymethod_select (e,paymethod) {
-		if (!paymethod) paymethod = $(this).val();
-		var $this = $(this),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
+	function paymethod_select (e) {
+		var $this = $(this),paymethod = $(this).val(),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
 
 		if (this != window && $this.attr && $this.attr('type') == "radio" && $this.attr('checked') == false) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
