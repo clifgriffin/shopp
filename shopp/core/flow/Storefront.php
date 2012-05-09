@@ -92,6 +92,7 @@ class Storefront extends FlowController {
 		add_filter('page_template',array($this,'maintenance'));
 		add_filter('single_template',array($this,'maintenance'));
 
+		add_action('do_feed_rss2',array($this,'feed'),1);
 		add_filter('search_template',array($this,'pages'));
 		add_filter('taxonomy_template',array($this,'pages'));
 		add_filter('page_template',array($this,'pages'));
@@ -251,8 +252,6 @@ class Storefront extends FlowController {
 			$post_archive->post_title = ShoppCollection()->name; // Added so single_post_title will return the title properly
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
-
-			if (is_feed()) return $this->feed();
 		}
 
 		$Collection = ShoppCollection();
@@ -434,7 +433,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function feed () {
-		if ('' == get_query_var('feed')) return;
+		if (! is_shopp_collection()) return;
 		$Collection = ShoppCollection();
 
 	    $base = shopp_setting('base_operations');
