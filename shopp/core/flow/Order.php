@@ -1397,8 +1397,8 @@ class OrderEventMessage extends MetaObject {
 	function label () {
 		if ( '' == $this->name ) return '';
 
-		$states = shopp_setting('order_states');
-		$labels = shopp_setting('order_status');
+		$states = (array)shopp_setting('order_states');
+		$labels = (array)shopp_setting('order_status');
 
 		$index = array_search($this->name, $states);
 
