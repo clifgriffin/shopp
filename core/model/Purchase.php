@@ -193,8 +193,8 @@ class Purchase extends DatabaseObject {
 		$txnstatus = $Event->name;
 
 		// Set order workflow status from status label mapping
-		$labels = shopp_setting('order_status');
-		$events = shopp_setting('order_states');
+		$labels = (array)shopp_setting('order_status');
+		$events = (array)shopp_setting('order_states');
 		$key = array_search($Event->name,$events);
 		if (false !== $key && isset($labels[$key])) $status = (int)$key;
 
