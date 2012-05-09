@@ -311,10 +311,10 @@ class Promotion extends DatabaseObject {
 		$freeship = false;
 		// Apply discounts
 		$a = $p = 0;
-		foreach ($discounts as $discount) {
-			switch ($discount->type) {
-				case 'Amount Off': $a += $discount->amount; break;
-				case 'Percentage Off': $p += $discount->amount; break;
+		foreach ($discounts as $r) {
+			switch ($r->type) {
+				case 'Amount Off': $a += $r->amount; break;
+				case 'Percentage Off': $p += $r->amount; break;
 				case 'Free Shipping': $discount->freeship = true; break;
 			}
 		}
