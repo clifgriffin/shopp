@@ -207,6 +207,8 @@ class Categorize extends AdminController {
 		$start = ($per_page * ($paged-1));
 		$end = $start + $per_page;
 
+		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('categories'))),admin_url('admin.php'));
+
 		$taxonomy = 'shopp_category';
 
 		$filters = array('hide_empty' => 0,'fields'=>'id=>parent');
@@ -323,7 +325,6 @@ class Categorize extends AdminController {
 	 **/
 	function editor () {
 		global $Shopp,$CategoryImages;
-		$db = DB::get();
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
