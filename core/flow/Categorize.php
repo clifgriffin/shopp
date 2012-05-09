@@ -363,6 +363,13 @@ class Categorize extends AdminController {
 			"previous" => __('Edit Previous','Shopp')
 			);
 
+		do_action('add_meta_boxes', ProductCategory::$taxon, $Category);
+		do_action('add_meta_boxes_'.ProductCategory::$taxon, $Category);
+
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'normal', $Category);
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'advanced', $Category);
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'side', $Category);
+
 		include(SHOPP_ADMIN_PATH."/categories/category.php");
 	}
 
