@@ -432,7 +432,7 @@ class DownloadAsset extends FileAsset {
 			header("Content-Transfer-Encoding: binary");
 			header('Content-Disposition: attachment; filename="'.$this->name.'"');
 			header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
-		}
+		} else $this->send();
 
 		ignore_user_abort(true);
 		ob_end_flush(); // Don't use the PHP output buffer
