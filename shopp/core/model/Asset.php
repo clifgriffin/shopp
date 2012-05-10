@@ -414,25 +414,29 @@ class DownloadAsset extends FileAsset {
 
 		add_action('shopp_download_success',array($this,'downloaded'));
 
-		if (!isset($found['redirect'])) {
-			// Close the session in case of long download
-			@session_write_close();
+		// send immediately if the storage engine is redirecting
+		if ( isset($found['redirect']) ) {
+			$this->send();
+			exit();
+		}
 
-			// Don't want interference from the server
-		    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
-		    @ini_set('zlib.output_compression', 0);
+		// Close the session in case of long download
+		@session_write_close();
 
-			set_time_limit(0);	// Don't timeout on long downloads
+		// Don't want interference from the server
+	    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
+	    @ini_set('zlib.output_compression', 0);
 
-			// Use HTTP/1.0 Expires to support bad browsers (trivia: timestamp used is the Shopp 1.0 release date)
-			header('Expires: '.date('D, d M Y H:i:s O',1230648947));
+		set_time_limit(0);	// Don't timeout on long downloads
 
-			header('Cache-Control: maxage=0, no-cache, must-revalidate');
-			header('Content-type: application/octet-stream');
-			header("Content-Transfer-Encoding: binary");
-			header('Content-Disposition: attachment; filename="'.$this->name.'"');
-			header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
-		} else $this->send();
+		// Use HTTP/1.0 Expires to support bad browsers (trivia: timestamp used is the Shopp 1.0 release date)
+		header('Expires: '.date('D, d M Y H:i:s O',1230648947));
+
+		header('Cache-Control: maxage=0, no-cache, must-revalidate');
+		header('Content-type: application/octet-stream');
+		header("Content-Transfer-Encoding: binary");
+		header('Content-Disposition: attachment; filename="'.$this->name.'"');
+		header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
 
 		ignore_user_abort(true);
 		ob_end_flush(); // Don't use the PHP output buffer
