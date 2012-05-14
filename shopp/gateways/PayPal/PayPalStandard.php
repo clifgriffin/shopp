@@ -396,9 +396,10 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form contents
 	 **/
 	function form ($form,$options=array()) {
-		global $Shopp;
 		$Shopping = ShoppShopping();
-		$Order = $this->Order;
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
+		$CartTotals = $Cart->Totals;
 
 		$_ = array();
 
@@ -514,13 +515,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			// handling discounts in the amount of the item subtotals by adding the
 			// shipping fee to the line items to get included in the subtotal. If no
 			// shipping fee is available use 0.01 to satisfy minimum order amount requirements
-			if ((int)$Order->Cart->Totals->subtotal == 0 ||
-				$Order->Cart->Totals->subtotal-$Order->Cart->Totals->discount == 0) {
+			// Additionally, this condition should only be possible when using the shopp('cart','paypal')
+			// Theme API tag which would circumvent normal checkout and use PayPal even for free orders
+			if ((float)$this->amount('subtotal') == 0 || (float)$this->amount('subtotal')-(float)$this->amount('discount') == 0) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
 															__('Shipping & Handling','Shopp'));
-				$_['amount_'.$id]			= number_format(max($Order->Cart->Totals->shipping,0.01),$this->precision);
+				$_['amount_'.$id]			= number_format(max($CartTotals->shipping,0.01),$this->precision);
 				$_['quantity_'.$id]			= 1;
 			} else
 				$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
