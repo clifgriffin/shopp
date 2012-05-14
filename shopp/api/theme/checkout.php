@@ -452,13 +452,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function completed ($result, $options, $O) {
-		global $Shopp;
-		if (empty($Shopp->Purchase->id) && $O->purchase !== false) {
-			$Shopp->Purchase = new Purchase($O->purchase);
-			$Shopp->Purchase->load_purchased();
-			return (!empty($Shopp->Purchase->id));
+		if ( $O->purchase === false ) return false;
+		if ( ! ShoppPurchase() || empty(ShoppPurchase()->id) ) {
+			ShoppPurchase(new Purchase($O->purchase));
+			ShoppPurchase()->load_purchased();
 		}
-		return false;
+		return (!empty(ShoppPurchase()->id));
 	}
 
 	static function confirm_button ($result, $options, $O) {
