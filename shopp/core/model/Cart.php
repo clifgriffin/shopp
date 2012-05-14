@@ -1278,7 +1278,7 @@ class CartTax {
 	 **/
 	function __construct () {
 		global $Shopp;
-		$this->Order = &ShoppOrder();
+		$this->Order = ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
 		$this->inclusive = shopp_setting_enabled('tax_inclusive');
@@ -1303,7 +1303,7 @@ class CartTax {
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
 		$country = $zone = $locale = $global = false;
-		if (defined('WP_ADMIN')) { // Always use the base of operations in the admin
+		if ( is_admin() && !defined('DOING_AJAX') ) { // Always use the base of operations in the admin
 			$base = shopp_setting('base_operations');
 			$country = apply_filters('shopp_admin_tax_country',$base['country']);
 			$zone = apply_filters('shopp_admin_tax_zone', (isset($base['zone'])?$base['zone']:false) );
