@@ -103,44 +103,57 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function addon ($result, $options, $O) {
-		$addon = current($O->prices);
-
-		$types = array('hidden','checkbox','radio');
 		$defaults = array(
 			'input' => false,
-			'units' => false,
+			'units' => 'on',
 			'promos' => null,
+			'taxes' => null,
 		);
 		$options = array_merge($defaults,$options);
-		extract($options);
+		extract($options,EXTR_SKIP);
 
-		if (!isset($options['taxes'])) $options['taxes'] = null;
-		else $options['taxes'] = value_is_true($options['taxes']);
-		$taxrate = shopp_taxrate($options['taxes'],$addon->tax,$O);
 
-		$weightunit = str_true($units)?shopp_setting('weight_unit'):false;
+		$defaults = array(
+			'separator' => ' ',
+			'units' => 'on',
+			'promos' => 'on',
+			'taxes' => null,
+			'input' => null
+		);
+		$options = array_merge($defaults,$options);
+		extract($options,EXTR_SKIP);
 
-		if (array_key_exists('id',$options)) $string .= $addon->id;
-		if (array_key_exists('label',$options)) $string .= $addon->label;
-		if (array_key_exists('type',$options)) $string .= $addon->type;
-		if (array_key_exists('sku',$options)) $string .= $addon->sku;
-		if (array_key_exists('price',$options)) $string .= money($addon->price+($addon->price*$taxrate));
+		$types = array('hidden','checkbox','radio');
+
+		$addon = current($O->prices);
+
+		$taxrate = shopp_taxrate($taxes,$addon->tax,$O);
+		$taxes = is_null($taxes) ? self::_include_tax($O) : str_true($taxes);
+		if ( ! $taxes ) $taxrate = 0;
+
+		$weightunit = str_true($units) ? shopp_setting('weight_unit') : '';
+
+		$_ = array();
+		if (array_key_exists('id',$options)) 		$_[] = $addon->id;
+		if (array_key_exists('label',$options)) 	$_[] = $addon->label;
+		if (array_key_exists('type',$options)) 		$_[] = $addon->type;
+		if (array_key_exists('sku',$options)) 		$_[] = $addon->sku;
+		if (array_key_exists('price',$options)) 	$_[] = money($addon->price+($addon->price*$taxrate));
 		if (array_key_exists('saleprice',$options)) {
-			if (!is_null($promos) && !str_true($promos)) {
-				$string .= money($addon->saleprice+($addon->saleprice*$taxrate));
-			} else $string .= money($addon->promoprice+($addon->promoprice*$taxrate));
+			if (str_true($promos)) $_[] = money($addon->promoprice+($addon->promoprice*$taxrate));
+			else $_[] = money($addon->saleprice+($addon->saleprice*$taxrate));
 		}
-		if (array_key_exists('stock',$options)) $string .= $addon->stock;
-		if (array_key_exists('weight',$options)) $string .= round($addon->weight, 3) . (false !== $weightunit ? " $weightunit" : false);
-		if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($addon->shipfee));
-		if (array_key_exists('sale',$options)) return ($addon->sale == "on");
-		if (array_key_exists('shipping',$options)) return ($addon->shipping == "on");
-		if (array_key_exists('tax',$options)) return ($addon->tax == "on");
-		if (array_key_exists('inventory',$options)) return ($addon->inventory == "on");
+		if (array_key_exists('stock',$options)) 	$_[] = $addon->stock;
+		if (array_key_exists('weight',$options)) 	$_[] = round($addon->weight, 3) . (false !== $weightunit ? " $weightunit" : false);
+		if (array_key_exists('shipfee',$options))	$_[] = money(floatvalue($addon->shipfee));
+		if (array_key_exists('sale',$options))		return ($addon->sale == "on");
+		if (array_key_exists('shipping',$options))	return ($addon->shipping == "on");
+		if (array_key_exists('tax',$options))		return ($addon->tax == "on");
+		if (array_key_exists('inventory',$options))	return ($addon->inventory == "on");
 		if (in_array($input,$types))
-			$string = '<input type="'.$input.'" name="products['.$O->id.'][addons][]" value="'.$addon->id.'"'.inputattrs($options).' />';
+			$_[] = '<input type="'.$input.'" name="products['.$O->id.'][addons][]" value="'.$addon->id.'"'.inputattrs($options).' />';
 
-		return $string;
+		return join($separator,$_);
 	}
 
 	static function addons ($result, $options, $O) {
@@ -689,7 +702,6 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function out_of_stock ($result, $options, $O) {
-		global $Shopp;
 		if ($O->outofstock) {
 			$label = isset($options['label'])?$options['label']:shopp_setting('outofstock_text');
 			$string = '<span class="outofstock">'.$label.'</span>';
@@ -976,40 +988,45 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	static function url ($result, $options, $O) { return shoppurl( '' == get_option('permalink_structure')?array(Product::$posttype=>$O->slug):$O->slug, false ); }
 
 	static function variation ($result, $options, $O) {
-		global $Shopp;
+		$defaults = array(
+			'separator' => ' ',
+			'units' => 'on',
+			'promos' => 'on',
+			'taxes' => null
+		);
+		$options = array_merge($defaults,$options);
+		extract($options,EXTR_SKIP);
+
+		$weightunit = str_true($units) ? shopp_setting('weight_unit') : '';
+
 		$variation = current($O->prices);
 
-		if (!isset($options['taxes'])) $options['taxes'] = null;
-
-		$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$O);
-		$taxes = is_null($options['taxes']) ? self::_include_tax($O) : str_true($options['taxes']);
+		$taxrate = shopp_taxrate($taxes,$variation->tax,$O);
+		$taxes = is_null($taxes) ? self::_include_tax($O) : str_true($taxes);
 		if ( ! $taxes ) $taxrate = 0;
 
-		$weightunit = (isset($options['units']) && !str_true($options['units']) ) ? false : shopp_setting('weight_unit');
-
-		$string = '';
-		if (array_key_exists('id',$options)) $string .= $variation->id;
-		if (array_key_exists('label',$options)) $string .= $variation->label;
-		if (array_key_exists('type',$options)) $string .= $variation->type;
-		if (array_key_exists('sku',$options)) $string .= $variation->sku;
-		if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
+		$_ = array();
+		if (array_key_exists('id',$options)) 		$_[] = $variation->id;
+		if (array_key_exists('label',$options))		$_[] = $variation->label;
+		if (array_key_exists('type',$options))		$_[] = $variation->type;
+		if (array_key_exists('sku',$options))		$_[] = $variation->sku;
+		if (array_key_exists('price',$options)) 	$_[] = money($variation->price+($variation->price*$taxrate));
 		if (array_key_exists('saleprice',$options)) {
-			if (isset($options['promos']) && !str_true($options['promos'])) {
-				$string .= money($variation->saleprice+($variation->saleprice*$taxrate));
-			} else $string .= money($variation->promoprice+($variation->promoprice*$taxrate));
+			if (str_true($promos)) $_[] = money($variation->promoprice+($variation->promoprice*$taxrate));
+			else $_[] = money($variation->saleprice+($variation->saleprice*$taxrate));
 		}
-		if (array_key_exists('stock',$options)) $string .= $variation->stock;
-		if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
-		if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($variation->shipfee));
-		if (array_key_exists('sale',$options)) return ($variation->sale == "on");
-		if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
-		if (array_key_exists('tax',$options)) return ($variation->tax == "on");
-		if (array_key_exists('inventory',$options)) return ($variation->inventory == "on");
-		return $string;
+		if (array_key_exists('stock',$options)) 	$_[] = $variation->stock;
+		if (array_key_exists('weight',$options)) 	$_[] = round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
+		if (array_key_exists('shipfee',$options)) 	$_[] = money(floatvalue($variation->shipfee));
+		if (array_key_exists('sale',$options)) 		return str_true($variation->sale);
+		if (array_key_exists('shipping',$options))	return str_true($variation->shipping);
+		if (array_key_exists('tax',$options))		return str_true($variation->tax);
+		if (array_key_exists('inventory',$options))	return str_true($variation->inventory);
+
+		return join($separator,$_);
 	}
 
 	static function variations ($result, $options, $O) {
-		global $Shopp;
 		$string = "";
 
 		if (!isset($options['mode'])) {
@@ -1107,7 +1124,7 @@ $s.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
 if ( ! pricetags ) var pricetags = new Array();
 pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
-new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
+new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo ".category-".ShoppCollection()->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
 <?php
 			$script = ob_get_contents();
 			ob_end_clean();
@@ -1117,7 +1134,7 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 			foreach ($menuoptions as $id => $menu) {
 				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-				$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
+				$category_class = isset(ShoppCollection()->slug)?'category-'.ShoppCollection()->slug:'';
 				$string .= '<select name="products['.$O->id.'][options][]" class="'.$category_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
 				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 				foreach ($menu['options'] as $key => $option)
@@ -1132,7 +1149,6 @@ new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".
 	}
 
 	static function weight ($result, $options, $O) {
-		global $Shopp;
 		if(empty($O->prices)) $O->load_data(array('prices'));
 		$defaults = array(
 			'unit' => shopp_setting('weight_unit'),
