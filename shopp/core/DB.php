@@ -1274,8 +1274,8 @@ abstract class SessionObject {
 		if (empty($this->session)) return false;
 
 		$timeout = SHOPP_SESSION_TIMEOUT;
-		$now = current_time('timestamp');
-		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < $now - UNIX_TIMESTAMP(modified)"))
+		$now = current_time('mysql');
+		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP($now) - UNIX_TIMESTAMP(modified)"))
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
