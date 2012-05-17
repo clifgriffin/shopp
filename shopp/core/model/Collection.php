@@ -473,7 +473,13 @@ class ProductTaxonomy extends ProductCollection {
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
-			'update_count_callback' => '_update_post_term_count'
+			'update_count_callback' => '_update_post_term_count',
+			'capabilities' => array(
+				'manage_terms' => 'shopp_categories',
+				'edit_terms'   => 'shopp_categories',
+				'delete_terms' => 'shopp_categories',
+				'assign_terms' => 'shopp_categories',
+			)
 		));
 
 		add_filter($taxonomy.'_rewrite_rules',array('ProductCollection','pagerewrites'));
