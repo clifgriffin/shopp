@@ -207,7 +207,6 @@ class Service extends AdminController {
 
 	}
 
-
 	/**
 	 * Interface processor for the orders list interface
 	 *
@@ -228,6 +227,10 @@ class Service extends AdminController {
 			'paged' => 1,
 			'per_page' => 20,
 			'status' => false,
+			's' => '',
+			'range' => '',
+			'startdate' => '',
+			'enddate' => ''
 		);
 
 		$args = array_merge($defaults,$_GET);
@@ -242,9 +245,10 @@ class Service extends AdminController {
 		$Purchase = new Purchase();
 
 		$Orders = $this->orders;
-		$num_pages = ceil($this->ordercount->total / $per_page);
+		$ordercount = $this->ordercount;
+		$num_pages = ceil($ordercount->total / $per_page);
 
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Orders->total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $ordercount->total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
