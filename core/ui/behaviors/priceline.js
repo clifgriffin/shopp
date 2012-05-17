@@ -345,10 +345,7 @@ function Priceline (id,options,data,target,attachment) {
 				.bind('change.value',dv)
 				.trigger('change.value',true);
 
-			weight = _.w;
-			function toggleDimensions () {
-				weight.toggleClass('extoggle');
-				dc.toggle(); _.dw.focus();
+			function volumeWeight () {
 				var d = 0, w = 0;
 				dc.find('input').each(function (id,dims) {
 					if ($(dims).hasClass('weight')) { w = asNumber(dims.value); }
@@ -357,15 +354,23 @@ function Priceline (id,options,data,target,attachment) {
 						else d *= asNumber(dims.value);
 					}
 				});
-				if (!isNaN(d/w)) weight.val((d/w)).trigger('change.value');
+				if (!isNaN(d/w)) _.w.val((d/w)).trigger('change.value');
 			}
+
+			function toggleDimensions () {
+				_.w.toggleClass('extoggle');
+				dc.toggle(); _.dw.focus();
+				volumeWeight();
+			}
+
 
 			_.st.change(function () { // Make sure to hide the dimensions panel if shipping is disabled
 				if (!$(this).attr('checked')) dc.hide();
 			});
 
 			_.dh.blur(toggleDimensions);
-			weight.click(toggleDimensions).attr('readonly',true);
+			_.w.click(toggleDimensions).attr('readonly',true);
+			volumeWeight();
 
 		}
 
