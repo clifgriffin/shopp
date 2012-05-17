@@ -495,7 +495,7 @@ class Storefront extends FlowController {
 	function security () {
 
 		global $Shopp;
-		if (is_ssl() || !$Shopp->Gateways->secure) return;
+	    if (SHOPP_NOSSL || !$Shopp->Gateways->secure || is_ssl() ) return;
 
 		$redirect = false;
 		if (is_checkout_page())	$redirect = 'checkout';
