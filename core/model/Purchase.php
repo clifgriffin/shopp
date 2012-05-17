@@ -792,7 +792,7 @@ class PurchasesIIFExport extends PurchasesExport {
 }
 
 // Automatically update the orders from order events
-$updates = array('invoiced','authed','captured','refunded','voided');
+$updates = array('invoiced','authed','captured','shipped','refunded','voided');
 foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
 	add_action( 'shopp_'.$event.'_order_event', array('Purchase','status_event'), 5 );
 
