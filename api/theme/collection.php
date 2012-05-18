@@ -387,6 +387,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	static function is_subcategory ($result, $options, $O) {
+		if (isset($options['id'])) return ($this->parent == $options['id']);
 		return ($O->parent != 0);
 	}
 
