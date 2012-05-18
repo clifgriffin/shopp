@@ -91,7 +91,7 @@ class Purchase extends DatabaseObject {
 				case 'authed': $this->authorized += $Event->amount; break;
 				case 'captured': $this->captured += $Event->amount; break;
 				case 'refunded': $this->refunded += $Event->amount; break;
-				case 'voided': $this->voided = true; $Event->amount = $this->balance; $Event->credit = true; break;
+				case 'voided': $Event->amount = $this->balance; $this->voided += $Event->amount; $Event->credit = true; break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
 			if (isset($Event->transactional)) {
@@ -110,6 +110,32 @@ class Purchase extends DatabaseObject {
 			}
 		}
 
+	}
+
+	/**
+	 * Detects when the purchase has been voided
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
+	function isvoid () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->voided == $this->invoiced);
+	}
+
+	/**
+	 * Detects when the purchase has been paid in full
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
+	function ispaid () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->captured == $this->total);
 	}
 
 	static function unstock ( UnstockOrderEvent $Event ) {
@@ -491,6 +517,16 @@ class Purchase extends DatabaseObject {
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchase'");
 		parent::delete();
 	}
+
+	function delete_purchased () {
+		if (empty($this->purchased)) $this->load_purchased();
+		foreach ($this->purchased as $item) {
+			$Purchased = new Purchased();
+			$Purchased->populate($item);
+			$Purchased->delete();
+		}
+	}
+
 
 } // end Purchase class
 
