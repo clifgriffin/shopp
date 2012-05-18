@@ -583,10 +583,10 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$regions = Lookup::country_zones();
 		$base = shopp_setting('base_operations');
 
-		$js = "var regions = ".json_encode($regions).",".
-				  "c_upd = '".$updating."',".
-				  "d_pm = '".sanitize_title_with_dashes($O->paymethod)."',".
-				  "pm_cards = {};";
+		$js = "var regions=".json_encode($regions).",".
+				  "c_upd='".$updating."',".
+				  "d_pm='".sanitize_title_with_dashes($O->paymethod)."',".
+				  "pm_cards={};";
 
 		foreach ($O->payoptions as $handle => $option) {
 			if (empty($option->cards)) continue;
