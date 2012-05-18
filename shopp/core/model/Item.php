@@ -13,6 +13,7 @@
  * @subpackage cart
  **/
 class Item {
+	var $api = 'cartitem';		// Theme API name
 	var $product = false;		// The source product ID
 	var $priceline = false;		// The source price ID
 	var $category = false;		// The breadcrumb category
