@@ -18,6 +18,7 @@
 
 				do_action('submitpage_box');
 				do_meta_boxes(get_current_screen()->id, 'side', $Product);
+				do_meta_boxes($post_type, 'side', $Product);
 
 			?>
 			</div>
