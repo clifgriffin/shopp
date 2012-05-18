@@ -137,8 +137,8 @@ class BillingAddress extends Address {
 	 * @return void
 	 **/
 	function __construct ($id=false,$key='customer') {
-		if ( ! $id ) return;
 		$this->init(self::$table);
+		if ( ! $id ) return;
 		$this->load(array($key => $id,'type' => 'billing'));
 		$this->type = 'billing';
 	}
@@ -183,8 +183,8 @@ class ShippingAddress extends Address {
 	 * @return void
 	 **/
 	function __construct ($id=false,$key='customer') {
-		if ( ! $id ) return;
 		$this->init(self::$table);
+		if ( ! $id ) return;
 		$this->load(array($key => $id,'type' => 'shipping'));
 		$this->type = 'shipping';
 	}
