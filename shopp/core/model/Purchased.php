@@ -90,6 +90,12 @@ class Purchased extends DatabaseObject {
 		$this->addons = $addons; // restore addons model
 	}
 
+	function delete () {
+		$table = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchased'");
+		parent::delete();
+	}
+
 	function keygen () {
 		$message = ShoppCustomer()->email.serialize($this).current_time('mysql');
 		$key = sha1($message);

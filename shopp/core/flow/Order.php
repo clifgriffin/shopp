@@ -704,6 +704,7 @@ class Order {
 			$updates = true;
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
 			else $Purchase = new Purchase($this->inprogress);
+			$changed = ($this->checksum != $this->Cart->checksum); // Detect changes to the cart
 		}
 
 		// Capture early event transaction IDs
@@ -725,24 +726,36 @@ class Order {
 		Promotion::used(array_keys($promos));
 
 		// Process the order events if updating an existing order
-		if (!empty($this->inprogress)) {
+		if ( ! empty($this->inprogress) ) {
+
+			if ($changed) { // The order has changed since the last order attempt
+
+				// Rebuild purchased records from cart items
+				$Purchase->delete_purchased();
+
+				// Void prior invoiced balance
+				shopp_add_order_event($Purchase->id,'voided',array(
+					'txnorigin' => '','txnid' => '',
+					'gateway' => $Purchase->gateway
+				));
+
+				// Recreate purchased records from the cart and re-invoice for the new order total
+				$this->items($Purchase->id);
+				$this->invoice($Purchase);
+
+			}
+
 			ShoppPurchase($Purchase);
 			return $this->process($Purchase);
 		}
 
 		// Catch Purchase record save errors
-		if (empty($Purchase->id)) {
+		if ( empty($Purchase->id) ) {
 			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
 			return;
 		}
 
-		// Build purchased records from cart items
-		foreach($this->Cart->contents as $Item) {
-			$Purchased = new Purchased();
-			$Purchased->purchase = $Purchase->id;
-			$Purchased->copydata($Item);
-			$Purchased->save();
-		}
+		$this->items($Purchase->id);		// Create purchased records from the cart items
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -753,6 +766,25 @@ class Order {
 		// Start the transaction processing events
 		do_action('shopp_purchase_order_created',$Purchase);
 
+	}
+
+	/**
+	 * Builds purchased records from cart items attached to the given Purchase ID
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @param int $purchaseid The Purchase id to attach the purchased records to
+	 * @return void
+	 **/
+	function items ( $purchaseid ) {
+		foreach($this->Cart->contents as $Item) {	// Build purchased records from cart items
+			$Purchased = new Purchased();
+			$Purchased->purchase = $purchaseid;
+			$Purchased->copydata($Item);
+			$Purchased->save();
+		}
+		$this->checksum = $this->Cart->checksum;	// Track the cart contents checksum to detect changes.
 	}
 
 	/**

@@ -43,7 +43,7 @@ function manage_meta_box ($Purchase) {
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->voided): ?>
+<?php if (!$Purchase->isvoid()): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -180,9 +180,9 @@ function manage_meta_box ($Purchase) {
 		?>
 	</div>
 </div>
-<?php if (!($Purchase->voided && $Purchase->refunded)): ?>
+<?php if (!($Purchase->isvoid() && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->voided): ?>
+		<?php if (!$Purchase->isvoid()): ?>
 		<div class="alignleft">
 			<?php if (!$Purchase->captured): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />

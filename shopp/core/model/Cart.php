@@ -25,6 +25,7 @@ class Cart {
 	var $promocodes = array();	// List of promotional codes applied
 	var $shipping = array();	// List of shipping options
 	var $processing = array();	// Min-Max order processing timeframe
+	var $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
 	var $Added = false;			// Last Item added
@@ -98,25 +99,6 @@ class Cart {
 
 		if (isset($_REQUEST['shopping'])) shopp_redirect(shoppurl());
 
-		// @todo Replace with full CartItem/Purchased syncing after order submission
-		if ( ShoppOrder()->inprogress ) {
-
-			// This is a temporary measure for 1.2.1 to prevent changes to the order after an order has been
-			// submitted for processing. It prevents situations where items in the cart are added, removed or changed
-			// but are not recorded in Purchased item records for the Purchase. We try to give the customer options in the
-			// error message to either fix errors in the checkout form to complete the order as is, or start a new order.
-			// This is a interim attempt to reduce abandonment in a very unlikely situation to begin with.
-
-			new ShoppError(sprintf(
-				__('The shopping cart cannot be changed because it has already been submitted for processing. Please correct problems in %1$scheckout%3$s or %2$sstart a new order%3$s.','Shopp'),
-				'<a href="'.shopp('checkout','get-url').'">',
-				'<a href="'.add_query_arg('shopping','reset',shopp('storefront','get-url')).'">',
-				'</a>'
-			),'order_inprogress',SHOPP_ERR);
-			return false;
-		}
-
-
 		if (isset($_REQUEST['shipping'])) {
 			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
 				$_REQUEST['shipping']['postcode'] = esc_attr($_REQUEST['shipping']['postcode']);
@@ -124,7 +106,6 @@ class Cart {
 			do_action_ref_array('shopp_update_destination',array($_REQUEST['shipping']));
 			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
 				$this->changed(true);
-
 
 		}
 
@@ -359,10 +340,12 @@ class Cart {
 	 * @return boolean
 	 **/
 	function xitemstock ( Item $Item ) {
+		if ( ! shopp_setting_enabled('inventory') ) return true;
 
 		// Build a cross-product map of the total quantity of ordered products to known stock levels
 		$order = array();
 		foreach ($this->contents as $index => $cartitem) {
+			if ( ! $cartitem->inventory ) continue;
 
 			if ( isset($order[$cartitem->priceline]) ) $ordered = $order[$cartitem->priceline];
 			else {
@@ -512,6 +495,7 @@ class Cart {
 	function totals () {
 		if (!($this->retotal || $this->changed())) return true;
 
+		$checksum = array();
 		$Totals = new CartTotals();
 		$this->Totals = &$Totals;
 
@@ -530,6 +514,9 @@ class Cart {
 		foreach ($this->contents as $key => $Item) {
 			$Item->retotal();
 
+			// Build item checksum strings
+			$checksum[] = $Item->quantity.':'.$Item->fingerprint();
+
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
@@ -540,6 +527,8 @@ class Cart {
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $this->freeshipping = false;
 		}
+
+		$this->checksum = md5(join(',',$checksum));
 
 		// Calculate Shipping
 		$Shipping = new CartShipping();
@@ -622,7 +611,6 @@ class Cart {
 	function recurring () {
 		return $this->_typeitems('recurring');
 	}
-
 
 	private function _typeitems ($type) {
 		$types = array('shipped','downloads','recurring');
