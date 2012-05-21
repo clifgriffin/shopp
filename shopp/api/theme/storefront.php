@@ -366,7 +366,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		extract($options, EXTR_SKIP);
 
 		$taxonomy = 'shopp_category';
-		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent');
+		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent','orderby'=>$orderby,'order'=>$order);
 
 		$baseparent = 0;
 		if (str_true($section)) {
