@@ -762,14 +762,14 @@ class ProductCategory extends ProductTaxonomy {
 		$specs = array();
 		if ('disabled' != $this->pricerange) {
 			$specs = $this->specs;
-			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'facetedmenu' => $this->pricerange));
+			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'slug'=> 'price','facetedmenu' => $this->pricerange));
 		}
 
 		foreach ($specs as $spec) {
 			if (!isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu']) continue;
 
-			$slug = sanitize_title_with_dashes($spec['name']);
-			if ('price-filter' == $slug) $slug = 'price';
+			if (isset($spec['slug'])) $slug = $spec['slug'];
+			else $slug = sanitize_title_with_dashes($spec['name']);
 			$selected = isset($_GET[$slug]) && str_true(get_query_var('s_ff')) ? $_GET[$slug] : false;
 
 			$Facet = new ProductCategoryFacet();
