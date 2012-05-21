@@ -238,9 +238,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$breadcrumb += array($pages['confirm']['title'] => shoppurl(false,'confirm'));
 		} elseif (is_thanks_page()) {
 			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
-		} elseif (is_shopp_collection()) {
-			// collections
-			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
 		} elseif (is_shopp_taxonomy()) {
 			$taxonomy = ShoppCollection()->taxonomy;
 			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id,$taxonomy));
@@ -249,10 +246,18 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$breadcrumb[ $term->name ] = get_term_link($term->slug,$taxonomy);
 			}
 			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
+		} elseif (is_shopp_collection()) {
+			// collections
+			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
 		} elseif (is_shopp_product()) {
 			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxon);
 			if ( $categories ) {
 				$term = array_shift($categories);
+				$ancestors = array_reverse(get_ancestors($term->term_id,ProductCategory::$taxon));
+				foreach ($ancestors as $ancestor) {
+					$parent_term = get_term($ancestor,ProductCategory::$taxon);
+					$breadcrumb[ $parent_term->name ] = get_term_link($parent_term->slug,ProductCategory::$taxon);
+				}
 				$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
 			}
 			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
