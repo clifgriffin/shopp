@@ -660,14 +660,25 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function input ($result, $options, $O) {
+		$defaults = array(
+			'type' => 'text',
+			'name' => false,
+			'value' => ''
+		);
+		$options = array_merge($defaults,$options);
+		extract($options,EXTR_SKIP);
+
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
-		if (!isset($options['type']) ||
-			($options['type'] != "menu" && $options['type'] != "textarea" && !valid_input($options['type']))) $options['type'] = "text";
-		if (!isset($options['name'])) return "";
-		if ($options['type'] == "menu") {
-			$result = '<select name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.inputattrs($options,$select_attrs).'>';
+		if (empty($type) || !in_array($type,array('menu','textarea')) || !valid_input($options['type']) ) $type = $defaults['type'];
+
+		if (empty($name)) return '';
+		$slug = sanitize_title_with_dashes($name);
+		$id = "data-$slug-{$O->id}";
+
+		if ('menu' == $type) {
+			$result = '<select name="products['.$O->id.'][data]['.$name.']" id="'.$id.'"'.inputattrs($options,$select_attrs).'>';
 			if (isset($options['options']))
 				$menuoptions = preg_split('/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/',$options['options']);
 			if (is_array($menuoptions)) {
@@ -680,12 +691,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				}
 			}
 			$result .= '</select>';
-		} elseif ($options['type'] == "textarea") {
+		} elseif ('textarea' == $type) {
 			if (isset($options['cols'])) $cols = ' cols="'.$options['cols'].'"';
 			if (isset($options['rows'])) $rows = ' rows="'.$options['rows'].'"';
-			$result .= '<textarea name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.$cols.$rows.inputattrs($options).'>'.$options['value'].'</textarea>';
+			$result .= '<textarea name="products['.$O->id.'][data]['.$name.']" id="'.$id.'"'.$cols.$rows.inputattrs($options).'>'.esc_html($value).'</textarea>';
 		} else {
-			$result = '<input type="'.$options['type'].'" name="products['.$O->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$O->id.'"'.inputattrs($options).' />';
+			$result = '<input type="'.$type.'" name="products['.$O->id.'][data]['.$name.']" id="'.$id.'"'.inputattrs($options).' />';
 		}
 
 		return $result;
