@@ -1503,7 +1503,7 @@ class SearchResults extends SmartCollection {
 	function pagelink ($page) {
 		$link = parent::pagelink($page);
 
-		return add_query_arg(array('s'=>$this->search,'s_cs'=>1),$link);
+		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$link);
 	}
 
 	function permalink ($result, $options, $O) {
