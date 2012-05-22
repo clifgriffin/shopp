@@ -1449,17 +1449,21 @@ class AccountStorefrontPage extends StorefrontPage {
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
-		$_[] = __('A request has been made to reset the password for the following site and account:','Shopp');
-		$_[] = get_option('siteurl');
+		$_[] = '<p>'.__('A request has been made to reset the password for the following site and account:','Shopp').'<br />';
+		$_[] = get_option('siteurl').'</p>';
 		$_[] = '';
+		$_[] = '<ul>';
 		if (isset($_POST['email-login']))
-			$_[] = sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email);
+			$_[] = '<li>'.sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email).'</li>';
 		if (isset($_POST['loginname-login']))
-			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+			$_[] = '<li>'.sprintf(__('Login name: %s','Shopp'), $user_data->user_login).'</li>';
+		if (isset($_POST['account-login']))
+			$_[] = '<li>'.sprintf(__('Login: %s','Shopp'), $user_data->user_login).'</li>';
+		$_[] = '</ul>';
 		$_[] = '';
-		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
+		$_[] = '<p>'.__('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
 		$_[] = '';
-		$_[] = add_query_arg(array('rp'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
+		$_[] = '<p>'.add_query_arg(array('rp'=>$RecoveryCustomer->activation),shoppurl(false,'account')).'</p>';
 		$message = apply_filters('shopp_recover_password_message',$_);
 
 		if (!shopp_email(join("\n",$message))) {
@@ -1508,13 +1512,15 @@ class AccountStorefrontPage extends StorefrontPage {
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
-		$_[] = sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl'));
+		$_[] = '<p>'.sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl')).'</p>';
 		$_[] = '';
+		$_[] = '<ul>';
 		if ($user_data)
-			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
-		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
+			$_[] = '<li>'.sprintf(__('Login name: %s','Shopp'), $user_data->user_login).'</li>';
+		$_[] = '<li>'.sprintf(__('Password: %s'), $password).'</li>';
+		$_[] = '</ul>';
 		$_[] = '';
-		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
+		$_[] = '<p>'.__('Click here to login:').' '.shoppurl(false,'account').'</p>';
 		$message = apply_filters('shopp_reset_password_message',$_);
 
 		if (!shopp_email(join("\n",$message))) {
