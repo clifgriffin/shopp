@@ -203,7 +203,10 @@ function Priceline (id,options,data,target,attachment) {
 	optionkey = $('#optionkey-'+i);
 	_.row.optionkey = optionkey;
 
-	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
+	$(priceTypes).each(function (t,option) {
+ 		if ('addon' == data.context && 'Subscription' == option.label) return; // Prevent subscription addons [#1544]
+		typeOptions += '<option value="'+option.value+'">'+option.label+'</option>';
+	});
 	type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);
 
 	if (data && data.label) {
