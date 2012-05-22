@@ -309,6 +309,7 @@ class Customer extends DatabaseObject {
 	 * @return boolean|string output based on the account menu request
 	 **/
 	function profile () {
+		print_r($_POST);
 		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
 
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
@@ -334,7 +335,7 @@ class Customer extends DatabaseObject {
 				$Updated->customer = $this->id;
 				$Updated->updates($_POST[$type]);
 				$Updated->save();
-				ShoppOrder()->$Address = $Updated;
+				$this->$Address = ShoppOrder()->$Address = $Updated;
 			}
 		}
 
