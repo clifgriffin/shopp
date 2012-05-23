@@ -974,6 +974,10 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 		} // END if ($db_version <= 1145)
 
+		if ($db_version <= 1148) {
+			$price_table = DatabaseObject::tablename('price');
+			DB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
+		}
 
 	}
 
