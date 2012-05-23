@@ -2073,6 +2073,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array(),
 			$Price->context = 'addon';
 			list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($addon, $options, 'addon');
 			$Price->save();
+			shopp_set_meta ( $Price->id, 'price', 'options', $Price->options );
 			$prices[] = $Price;
 		}
 	}
