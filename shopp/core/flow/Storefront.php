@@ -588,7 +588,17 @@ class Storefront extends FlowController {
 
 		}
 
-		if ('checkout' == $page) shopp_enqueue_script('checkout');
+		if ('checkout' == $page) {
+			shopp_enqueue_script('checkout');
+			shopp_enqueue_script('address');
+		}
+		if ('account' == $page) {
+			shopp_enqueue_script('address');
+			$regions = Lookup::country_zones();
+			$js = "var regions=".json_encode($regions);
+			add_storefrontjs($js,true);
+		}
+
 
 	}
 
