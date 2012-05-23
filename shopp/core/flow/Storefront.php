@@ -1154,7 +1154,7 @@ class StorefrontPage {
 
 		foreach ($options as $name => $value)
 			if (isset($this->$name)) $this->$name = $value;
-
+		print_r($this);
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
@@ -1184,12 +1184,12 @@ class StorefrontPage {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return string The page title
 	 **/
 	function title ($title) {
 		global $wp_query,$wp_the_query;
 		if ( $wp_the_query !== $wp_query) return $title;
-		if ( empty($title) ) return $this->title;
+		if ( empty($title) ) return apply_filters('shopp_'.$this->name.'_pagetitle',$this->title);
 		return $title;
 	}
 
