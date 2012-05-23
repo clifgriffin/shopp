@@ -1154,7 +1154,7 @@ class StorefrontPage {
 
 		foreach ($options as $name => $value)
 			if (isset($this->$name)) $this->$name = $value;
-		print_r($this);
+
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
