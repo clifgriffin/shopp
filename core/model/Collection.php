@@ -291,7 +291,7 @@ class ProductCollection implements Iterator {
 			if (!$this->products) $page = 1;
 			else $page = $this->page + 1;
 			if ($this->pages > 0 && $page > $this->pages) return false;
-			$this->load( array('load'=>array('prices','specs','coverimages'), 'paged'=>$paged, 'page' => $page) );
+			$this->load( array('load'=>array('prices','specs','categories','coverimages'), 'paged'=>$paged, 'page' => $page) );
 			$loop = shopp($this,'products');
 			$product = ShoppProduct();
 			if (!$product) return false; // No products, bail
@@ -357,6 +357,17 @@ class ProductCollection implements Iterator {
 			$item['g:price_type'] = "starting";
 		}
 
+		// Include product_type using Shopp category taxonomies
+		foreach ($product->categories as $category) {
+			$ancestry = array($category->name);
+			$ancestors = get_ancestors($category->term_id,$category->taxonomy);
+			foreach ((array)$ancestors as $ancestor) {
+				$term = get_term($ancestor,$category->taxonomy);
+				if ($term) array_unshift($ancestry,$term->name);
+			}
+			$item['g:product_type['.$category->term_id.']'] = join(' > ',$ancestry);
+		}
+
 		$brand = shopp($product,'get-spec','name=Brand');
 		if (!empty($brand)) $item['g:brand'] = $brand;
 
@@ -391,6 +402,7 @@ class ProductCollection implements Iterator {
 
 	function feeditem ($item) {
 		foreach ($item as $key => $value) {
+			$key = preg_replace('/\[\d+\]$/','',$key); // Remove duplicate tag identifiers
 			$attrs = '';
 			if (is_array($value)) {
 				$rss = $value;
