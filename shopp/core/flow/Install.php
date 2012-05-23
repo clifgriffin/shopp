@@ -947,7 +947,7 @@ class ShoppInstallation extends FlowController {
 											'a:1:{s:6:\"weight\";s:',CHAR_LENGTH(weight),':\"', weight, '\";}'
 										), dimensions
 									)
-								),'s:8:\"donation\";',donation,'}'
+								),'s:8:\"donation\";',IF(donation='','N;',donation),'}'
 							),created,modified FROM $price_table");
 
 		} // END if ($db_version <= 1135)
