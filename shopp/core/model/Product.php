@@ -524,10 +524,10 @@ class Product extends WPShoppObject {
 			$this->_last_product = $price->product;
 		} else $target = &$this;
 
-		$target->prices[] = $price;
+		// Skip calulating variant pricing when variants are not enabled for the product
+		if (!( isset($target->variants) && str_true($target->variants) ) && 'variation' == $price->context) return;
 
-		$variations = ((isset($target->variants) && $target->variants == 'on')
-							|| ($price->type != 'N/A' && $price->context == 'variation'));
+		$target->prices[] = $price;
 
 		// Force to floats
 		$price->price = (float)$price->price;
