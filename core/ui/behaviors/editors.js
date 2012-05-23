@@ -427,6 +427,7 @@ function orderVariationPrices () {
 
 // Magic key generator
 function xorkey (ids) {
+	if (!(ids instanceof Array)) ids = [ids];
 	for (var key=0,i=0; i < ids.length; i++)
 		key = key ^ (ids[i]*7001);
 	return key;
