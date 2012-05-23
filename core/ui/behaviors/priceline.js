@@ -411,7 +411,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		if (d && d.id) {
 			if (d.mime) d.mime = d.mime.replace(/\//gi," ");
-			_.file.attr('class','file '+d.mime).html(d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
+			_.file.attr('class','file '+d.mime).html('<div class="icon">'+d.mime+'</div>'+d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
 				window.location.href = adminurl+"admin.php?src=download&shopp_download="+d.id;
 			});
 		}
