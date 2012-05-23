@@ -391,6 +391,11 @@ class Service extends AdminController {
 			$reason = (int)$_POST['reason'];
 			$amount = floatvalue($_POST['amount']);
 
+			if (!empty($_POST['message'])) {
+				$message = $_POST['message'];
+				$Purchase->message['note'] = $message;
+			}
+
 			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
@@ -400,7 +405,7 @@ class Service extends AdminController {
 				shopp_add_order_event($Purchase->id,'refunded',array(
 					'txnid' => $Purchase->txnid,
 					'gateway' => $Gateway->module,
-					'amount' => $amount,
+					'amount' => $amount
 				));
 			} else {
 				shopp_add_order_event($Purchase->id,'refund',array(
@@ -411,7 +416,6 @@ class Service extends AdminController {
 					'user' => $user->ID
 				));
 			}
-
 
 			if (!empty($_POST['message']))
 				$this->addnote($Purchase->id,$_POST['message']);
@@ -424,11 +428,10 @@ class Service extends AdminController {
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 
-
-			if (!empty($_POST['message']))
+			if (!empty($_POST['message'])) {
 				$message = $_POST['message'];
-			else
-				$message = 0;
+				$Purchase->message['note'] = $message;
+			} else $message = 0;
 
 
 			if (!str_true($_POST['send'])) { // Force the order status
@@ -447,8 +450,7 @@ class Service extends AdminController {
 					'txnid' => $Purchase->txnid,
 					'gateway' => $Gateway->module,
 					'reason' => $reason,
-					'user' => $user->ID,
-					'note' => $message
+					'user' => $user->ID
 				));
 			}
 

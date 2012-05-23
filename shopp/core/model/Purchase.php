@@ -280,8 +280,7 @@ class Purchase extends DatabaseObject {
 		$defaults = array('note');
 
 		$this->message['event'] = $Event;
-		$this->message['note'] = &$Event->note;
-
+		if (!empty($Event->note)) $this->message['note'] = &$Event->note;
 
 		// Generic filter hook for specifying global email messages
 		$messages = apply_filters('shopp_order_event_emails',array(
