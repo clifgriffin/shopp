@@ -817,20 +817,36 @@ class Product extends WPShoppObject {
 		$selection = array();
 		$mapping = array();
 		$count = 1;
+
+		// get saved product options
+		$poptions = array();
+		$pkey = 'addon' == $type ? 'a' : 'v';
+		if ( isset($this->options[$pkey]) ) $poptions = $this->options[$pkey];
+
 		foreach ( $menus as $menuname => $options ) {
+
+			// get saved product menu
+			$pmenu = array();
+			foreach ( $poptions as $pmenu ) if ( $pmenu['name'] == $menuname ) break;
+
 			$mapping[$menuname] = array();
 			foreach ( $options as $option ) {
-				$mapping[$menuname][$option] = $count++;
+
+				// get save option id
+				$poption = array();
+				if ( isset($pmenu['options']) ) foreach ( $pmenu['options'] as $poption )
+					if ( $poption['name'] == $option ) break;
+
+				$id = isset($poption['id']) ? $poption['id'] : $count++;
+				$mapping[$menuname][$option] = $id;
 			}
 		}
-
 		if ( 'addon' == $type) {
 			$type = key($variant);
 			$option = current($variant);
 
 			$selection[] = $mapping[$type][$option];
 			if ( 'optionkey' == $return ) return $this->optionkey($selection);
-
 			return array( $this->optionkey($selection), $selection[0], $option, $mapping );
 		}
 

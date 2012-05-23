@@ -125,6 +125,9 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_add_product_1386 () {
+		$Product = shopp_product('This is a book','name');
+		if ( ! empty($Product->id) ) $Product->delete();
+
 		$Product = shopp_add_product( array(
 		    'name' => 'This is a book',
 		    'publish' => array(
@@ -275,23 +278,23 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variants () {
-		$Product = shopp_product('Bones - Season 4', 'name');
+		$Product = shopp_product('Code Is Poetry T-Shirt', 'name');
 		$variations = shopp_product_variants($Product->id);
 
-		$this->assertEquals(2, count($variations));
+		$this->assertEquals(5, count($variations));
 		$Price = reset($variations);
-		$this->assertEquals('Widescreen', $Price->label);
-		$this->assertEquals(77011, $Price->optionkey);
-		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.86, $Price->saleprice);
-		$this->assertEquals(34.86, $Price->promoprice);
+		$this->assertEquals('Small', $Price->label);
+		$this->assertEquals(7001, $Price->optionkey);
+		$this->assertEquals(9.01, $Price->price);
+		$this->assertEquals(0, $Price->saleprice);
+		$this->assertEquals(9.01, $Price->promoprice);
 
 		$Price = next($variations);
-		$this->assertEquals('Full-Screen', $Price->label);
-		$this->assertEquals(84012, $Price->optionkey);
-		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.86, $Price->saleprice);
-		$this->assertEquals(34.86, $Price->promoprice);
+		$this->assertEquals('Medium', $Price->label);
+		$this->assertEquals(14002, $Price->optionkey);
+		$this->assertEquals(9.89, $Price->price);
+		$this->assertEquals(0, $Price->saleprice);
+		$this->assertEquals(9.89, $Price->promoprice);
 
 	}
 
