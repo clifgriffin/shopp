@@ -234,6 +234,15 @@ jQuery.fn.clickSubmit = function () {
 	return this;
 };
 
+jQuery.fn.setDisabled = function (setting) {
+	var $this = jQuery(this);
+	$this.each(function () {
+		if (setting) $this.attr('disabled',true).addClass('disabled');
+		else $this.attr('disabled',false).removeClass('disabled');
+	});
+	return this;
+};
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()
