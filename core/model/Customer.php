@@ -334,7 +334,7 @@ class Customer extends DatabaseObject {
 				$Updated->customer = $this->id;
 				$Updated->updates($_POST[$type]);
 				$Updated->save();
-				$this->$Address = ShoppOrder()->$Address = $Updated;
+				ShoppOrder()->$Address = $Updated;
 			}
 		}
 
