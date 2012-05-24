@@ -407,6 +407,11 @@ class Service extends AdminController {
 					'gateway' => $Gateway->module,
 					'amount' => $amount
 				));
+				shopp_add_order_event($Purchase->id,'voided',array(
+					'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
+					'txnid' => time(),					// Transaction ID for the VOID event
+					'gateway' => $Gateway->module		// Gateway handler name (module name from @subpackage)
+				));
 			} else {
 				shopp_add_order_event($Purchase->id,'refund',array(
 					'txnid' => $Purchase->txnid,
