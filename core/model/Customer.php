@@ -315,8 +315,6 @@ class Customer extends DatabaseObject {
 
 		$this->updates($_POST);
 		if (isset($_POST['info'])) $this->info = $_POST['info'];
-		$this->save();
-		$this->load_info();
 
 		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 			$this->password = wp_hash_password($_POST['password']);
@@ -325,6 +323,9 @@ class Customer extends DatabaseObject {
 		} else {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 		}
+
+		$this->save();
+		$this->load_info();
 
 		$addresses = array('Billing'=>'BillingAddress','Shipping'=>'ShippingAddress');
 		foreach ($addresses as $Address => $class) {
