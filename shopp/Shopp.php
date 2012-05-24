@@ -532,8 +532,8 @@ class Shopp {
 		if (isset($response['code']) && 200 != $response['code']) {
 			$error = Lookup::errors('callhome','http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
-			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
-			return false;
+			new ShoppError($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
+			return $body;
 		}
 
 		return $body;
@@ -621,8 +621,9 @@ class Shopp {
 		$response = $this->callhome($request,$data);
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
-
 		unset($updates->response);
+
+		if (isset($response->key) && !str_true($response->key)) shopp_set_setting( 'updatekey', array(0) );
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
