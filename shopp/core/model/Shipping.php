@@ -1746,7 +1746,7 @@ class ShippingPackage implements ShippingPackageInterface {
 			$this->contents[$label] = $Item;
 
 			$this->wt += $Item->weight * $Item->quantity;
-			if ( $Item->parentItem() ) $this->val += $Item->parentItem()->unitprice * $Item->quantity;
+			if ( false !== $Item->index ) $this->val += $Item->parentItem()->unitprice * $Item->quantity;
 			if ( $this->dims ) {
 				$this->w = max( $this->w, $Item->orient['x'] );
 				$this->l = max( $this->l, $Item->orient['y'] );
