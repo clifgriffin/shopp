@@ -358,10 +358,11 @@ class ModuleSettingsUI {
 
 		$this->ui('<div>',$column);
 		$this->ui('<select name="settings['.$this->module.']['.$name.']" id="'.$id.'"'.inputattrs($attributes).'>',$column);
+
 		if (is_array($options)) {
 			foreach ($options as $val => $option) {
 				$value = $keyed?' value="'.$val.'"':'';
-				$select = ($selected === $val || $selected == $option)?' selected="selected"':'';
+				$select = ($selected == (string)$val || $selected == $option)?' selected="selected"':'';
 				$this->ui('<option'.$value.$select.'>'.$option.'</option>',$column);
 			}
 		}
