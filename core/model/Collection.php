@@ -1641,7 +1641,7 @@ class AlsoBoughtProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
 		$this->name = __('Customers also bought&hellip;','Shopp');
-		$this->uri = urlencode($slug);
+		$this->uri = urlencode($this->slug);
 		$this->controls = false;
 
 		$where = array("true=false");
