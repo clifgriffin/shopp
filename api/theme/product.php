@@ -178,7 +178,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			return true;
 		}
 
-		if ($O->outofstock) return false; // Completely out of stock, hide menus
+		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return false; // Completely out of stock, hide menus
 		if (!isset($O->options['a'])) return false; // There are no addons, don't render menus
 
 		$defaults = array(
@@ -294,7 +294,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (!empty($class)) $classes = explode(' ',$class);
 
 		$string = "";
-		if ($O->outofstock)
+		if ( shopp_setting_enabled('inventory') && $O->outofstock )
 			return '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
 
 		if ($redirect)
@@ -302,13 +302,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
-		if (!str_true($O->variants)) {
+		if ( ! str_true($O->variants) && ! empty($O->prices) ) {
 			foreach ($O->prices as $price) {
 				if ('product' == $price->context) {
 					$default = $price; break;
 				}
 			}
-
 			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$default->id.'" />';
 		}
 
@@ -713,7 +712,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function out_of_stock ($result, $options, $O) {
-		if ($O->outofstock) {
+		if ( shopp_setting_enabled('inventory') && $O->outofstock ) {
 			$label = isset($options['label'])?$options['label']:shopp_setting('outofstock_text');
 			$string = '<span class="outofstock">'.$label.'</span>';
 			return $string;
@@ -766,7 +765,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	static function quantity ($result, $options, $O) {
 		if (!shopp_setting_enabled('shopping_cart')) return '';
-		if ($O->outofstock) return '';
+		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return '';
 
 		$inputs = array('text','menu');
 		$defaults = array(
@@ -1058,7 +1057,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			return false;
 		}
 
-		if ($O->outofstock) return false; // Completely out of stock, hide menus
+		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return false; // Completely out of stock, hide menus
 		if (!isset($options['taxes'])) $options['taxes'] = null;
 
 		$defaults = array(
