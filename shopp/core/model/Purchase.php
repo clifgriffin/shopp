@@ -120,9 +120,22 @@ class Purchase extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
+	function isrefunded () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->refunded == $this->captured);
+	}
+
+	/**
+	 * Detects when the purchase has been voided
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
 	function isvoid () {
 		if (empty($this->events)) $this->load_events();
-		return ($this->voided == $this->invoiced);
+		return ($this->voided >= $this->invoiced);
 	}
 
 	/**
@@ -217,6 +230,15 @@ class Purchase extends DatabaseObject {
 
 		// Set transaction status from event name
 		$txnstatus = $Event->name;
+
+		if ( 'refunded' == $txnstatus) { // Determine if this is fully refunded (previous refunds + this refund amount)
+			if (empty($Purchase->events)) $Purchase->load_events(); // Not refunded if less than captured, so don't update txnstatus
+			if ($Purchase->refunded+$Event->amount < $Purchase->captured) $txnstatus = false;
+		}
+		if ( 'voided' == $txnstatus) { // Determine if the transaction has been cancelled
+			if (empty($Purchase->events)) $Purchase->load_events();
+			if ($Purchase->captured) $txnstatus = false; // If previously captured, don't mark voided
+		}
 
 		// Set order workflow status from status label mapping
 		$labels = (array)shopp_setting('order_status');
