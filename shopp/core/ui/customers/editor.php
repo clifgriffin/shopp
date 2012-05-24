@@ -48,7 +48,6 @@ var $=jqnc(),
 		{ delay:500, minchars:2, format:'json' }
 	);
 
-debuglog(suggurl);
 postboxes.add_postbox_toggles('shopp_page_shopp-customers');
 // close postboxes that should be closed
 $('.if-js-closed').removeClass('if-js-closed').addClass('closed');
