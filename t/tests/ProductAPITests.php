@@ -427,7 +427,7 @@ class ProductAPITests extends ShoppTestCase {
 			'attributes' => array(
 				'type' => 'text',
 				'name' => 'products[94][data][Testing]',
-				'id' => 'data-Testing-94'
+				'id' => 'data-testing-94'
 			)
 		);
 		$this->assertTag($markup,$output,'',true);
