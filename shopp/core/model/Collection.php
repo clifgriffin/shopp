@@ -78,7 +78,7 @@ class ProductCollection implements Iterator {
 		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
 
 		// Inventory filtering
-		if ( (is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock)) )
+		if ( shopp_setting_enabled('inventory') && ((is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock))) )
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
 		// Check for inventory-based queries (for specialized cache support)
@@ -349,7 +349,7 @@ class ProductCollection implements Iterator {
 
 		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 		$item['g:condition'] = 'new';
-		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
+		$item['g:availability'] = shopp_setting_enabled('inventory') && $product->outofstock?'out of stock':'in stock';
 
 		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 		if (!empty($price))	{

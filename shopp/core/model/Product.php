@@ -491,7 +491,7 @@ class Product extends WPShoppObject {
 		$this->checksum = md5($this->checksum);
 
 		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
-		if (str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
+		if (shopp_setting_enabled('inventory') && str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
 	}
 
 	/**
@@ -612,7 +612,7 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ( str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
+		if ( shopp_setting_enabled('inventory') && str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
 		if ( $freeshipping ) $target->freeship = 'on';
 
 	}
