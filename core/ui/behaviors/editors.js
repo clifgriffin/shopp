@@ -573,6 +573,12 @@ function newAddonGroup (data) {
 		option.deleteButton.unbind('click');
 
 		option.deleteButton.click(function () {
+			var dbPriceid = Pricelines.row[optionid].data.id, dP=$('#deletePrices');
+			if ( dbPriceid ) {
+				if (dP.val() == "") dP.val(dbPriceid);
+				else dP.val(dP.val()+","+dbPriceid);
+			}
+
 			Pricelines.row[optionid].row.remove();
 			option.element.remove();
 		});
@@ -613,8 +619,15 @@ function newAddonGroup (data) {
 			.not('.ui-sortable-helper')
 			.find('input.id')
 			.each(function (id,option) {
-				if (Pricelines.row[$(option).val()])
-					Pricelines.row[$(option).val()].row.remove();
+				var optionid = $(option).val(),dbPriceid, dP=$('#deletePrices');;
+				if (Pricelines.row[optionid]) {
+					dbPriceid = Pricelines.row[optionid].data.id;
+					if ( dbPriceid ) {
+						if (dP.val() == "") dP.val(dbPriceid);
+						else dP.val(dP.val()+","+dbPriceid);
+					}
+					Pricelines.row[optionid].row.remove();
+				}
 		});
 		menu.deleteButton.trigger('delete');
 		menu.pricegroup.remove();
