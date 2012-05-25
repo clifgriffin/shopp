@@ -395,7 +395,7 @@ class Shopp {
 				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 
 		}
-		$base = array('nocache' => is_shopp_page('account'));
+		if (!is_admin()) $base = array('nocache' => is_shopp_page('account'));
 
 		// Validation alerts
 		shopp_localize_script('catalog', '$cv', array(
