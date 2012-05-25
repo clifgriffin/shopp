@@ -922,6 +922,7 @@ class Lookup {
 		);
 
 		$_['gateway'] = array(
+			'nogateways' => __('No payment system has been setup for the storefront.','Shopp')." {$_['contact']['admin']}",
 			'fail' => __('Could not connect to the payment server.','Shopp'),
 			'noresponse' => __('No response was sent back by the payment server.','Shopp')." {$_['contact']['admin']}",
 			'http-unknown' => __('The connection to the payment server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
