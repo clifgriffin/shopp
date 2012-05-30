@@ -312,7 +312,6 @@ class Customer extends DatabaseObject {
 		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
 
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-
 		$this->updates($_POST);
 		if (isset($_POST['info'])) $this->info = $_POST['info'];
 
@@ -323,6 +322,8 @@ class Customer extends DatabaseObject {
 		} else {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 		}
+
+		add_action('shopp_customer_update',$this);
 
 		$this->save();
 		$this->load_info();
