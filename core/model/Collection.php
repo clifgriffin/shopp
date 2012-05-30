@@ -107,7 +107,9 @@ class ProductCollection implements Iterator {
 				case 'title': $orderby = "p.post_title ASC"; break;
 				case 'recommended':
 				default:
-					$orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
+					if ($order === false) $orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC";
+					else $orderby = $order;
+					break;
 			}
 		}
 
