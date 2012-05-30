@@ -622,7 +622,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (ShoppStorefront()->checkout) {
 			$id .= "-checkout";
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="redirect" value="'.shoppurl($request,'account',ShoppOrder()->security()).'" />';
+		} else $string .= '<input type="hidden" name="redirect" value="'.esc_attr(shoppurl($request,'account',ShoppOrder()->security())).'" />';
 		$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 		return $string;
 	}
