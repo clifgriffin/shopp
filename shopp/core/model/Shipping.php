@@ -1724,6 +1724,23 @@ class ShippingPackage implements ShippingPackageInterface {
 	}
 
 	/**
+	 * Get dimensions array or false if no dimensions
+	 *
+	 * @author John Dillick
+	 * @since 1.2.2
+	 *
+	 * @return mixed boolean false if no dimensions, else array of package dimensions
+	 **/
+	public function dimensions () {
+		if ( ! $this->dims ) return false;
+		return array(
+			'width' => $this->w,
+			'length' => $this->l,
+			'height' => $this->h,
+		);
+	}
+
+	/**
 	*
 	* add() adds item to current package if it fits
 	*
@@ -1916,31 +1933,40 @@ class ShippingPackage implements ShippingPackageInterface {
 	*
 	* width() returns the current package width
 	* @since 1.2
-	* @return float width of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float width of package, in system units
 	**/
-	public function width() { return $this->w; }
+	public function width() {
+		if ( ! $this->dims ) return false;
+		return $this->w;
+	}
 
 	/**
 	*
 	* height() returns the current package height
 	* @since 1.2
-	* @return float height of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float height of package, in system units
 	**/
-	public function height() { return $this->h; }
+	public function height() {
+		if ( ! $this->dims ) return false;
+		return $this->h;
+	}
 
 	/**
 	*
 	* length() returns the current package length
 	* @since 1.2
-	* @return float length of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float length of package, in system units
 	**/
-	public function length() { return $this->l; }
+	public function length() {
+		if ( ! $this->dims ) return false;
+		return $this->l;
+	}
 
 	/**
 	*
