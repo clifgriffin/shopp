@@ -102,7 +102,6 @@ class ShippingModules extends ModuleLoader {
 		if ($this->active[$module]->postcode) $this->postcodes = true;
 		if ($this->active[$module]->dimensions) $this->dimensions = true;
 		if ($this->active[$module]->realtime) $this->realtime = true;
-		if ( $this->dimensions ) add_filter('shopp_packaging_types',array($this,'pkgrfilter'));
 
 		if (!is_array($m)) return $this->methods[$module] = $module;
 
@@ -112,28 +111,6 @@ class ShippingModules extends ModuleLoader {
 			if (empty($setting)) continue;
  			$this->methods[$setting_name] = $module;
 		}
-	}
-
-	/**
-	 * Filters/disables mass only packager setting when dimensions are required by any active shipping module.
-	 *
-	 * @author John Dillick
-	 * @since 1.2.2
-	 *
-	 * @param array $packagers original packager type setting options
-	 * @return array packager type setting options
-	 **/
-	function pkgrfilter ( $packagers ) {
-		$shipping_packaging = shopp_setting('shipping_packaging');
-
-		// Set all as default if need dimensions and packaging type unset or set to mass
-		if ( ! $shipping_packaging || 'mass' == $shipping_packaging )
-			shopp_set_setting('shipping_packaging', 'all');
-
-		// remove the mass option from settings
-		unset( $packagers['mass'] );
-
-		return $packagers;
 	}
 
 	/**
@@ -333,9 +310,6 @@ abstract class ShippingFramework {
 
 		// Setup default packaging for shipping module
 		$this->settings['shipping_packaging'] = shopp_setting('shipping_packaging');
-
-		// Enforce dimensions in packager if the module requires dimensions
-		if ( $this->dimensions && 'mass' == $this->settings['shipping_packaging'] ) $this->settings['shipping_packaging'] == 'all';
 
 		// Shipping module can override the default behavior and the global setting by specifying the local packaging property
 		if ( isset($this->packaging) && $this->packaging != $this->settings['shipping_packaging'] )
