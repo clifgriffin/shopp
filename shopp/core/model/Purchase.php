@@ -112,59 +112,6 @@ class Purchase extends DatabaseObject {
 
 	}
 
-	static function unstock ( UnstockOrderEvent $Event ) {
-		if (empty($Event->order)) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
-
-		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
-		$Purchase = ShoppPurchase();
-		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id) {
-			$Purchase = new Purchase($Event->order);
-		}
-
-		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
-		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
-
-		$allocated = array();
-		foreach ( $Purchase->purchased as $Purchased ) {
-			if ( is_a($Purchased->addons,'ObjectMeta') && ! empty($Purchased->addons->meta) ) {
-				foreach ( $Purchased->addons->meta as $index => $Addon ) {
-					if ( ! str_true($Addon->value->inventory) ) continue;
-
-					$allocated[$Addon->value->id] = new PurchaseStockAllocation(array(
-						'purchased' => $Purchased->id,
-						'addon' => $index,
-						'sku' => $Addon->value->sku,
-						'price' => $Addon->value->id,
-						'quantity' => $Purchased->quantity
-					));
-
-				}
-
-				if ( ! str_true($Purchased->inventory) ) continue;
-
-				$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
-					'purchased' => $Purchased->id,
-					'sku' => $Purchased->sku,
-					'price' => $Purchased->price,
-					'quantity' => $Purchased->quantity
-				));
-
-			}
-		}
-
-		if ( ! empty($allocated) ) {
-			$pricetable = DatabaseObject::tablename(Price::$table);
-			$prices = array();
-			foreach ( $allocated as $id => $PSA )
-				$prices[$PSA->price] = isset($prices[$PSA->price]) ? $prices[$PSA->price] + $PSA->quantity : $PSA->quantity;
-
-			foreach ( $prices as $price => $qty )
-				DB::query("UPDATE $pricetable SET stock=stock-".(int)$qty." WHERE id='$price' LIMIT 1");
-
-			$Event->unstocked($allocated);
-		}
-	}
-
 	/**
 	 * Detects when the purchase has been voided
 	 *
