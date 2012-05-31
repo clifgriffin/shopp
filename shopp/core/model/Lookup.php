@@ -681,11 +681,12 @@ class Lookup {
 	 * @return array List of packaging methods
 	 **/
 	static function packaging_types() {
-		$_ = array( "mass" => __("All together by weight","Shopp"),
-					"all" => __("All together with dimensions","Shopp"),
-					"like" => __("Only like items together","Shopp"),
-					"piece" => __("Each piece separately","Shopp")
-					);
+		$_ = array(
+			'like' => __("Only like items together","Shopp"),
+			'piece' => __("Each piece separately","Shopp"),
+			'all' => __("All together with dimensions","Shopp"),
+			'mass' => __("All together by weight","Shopp"),
+		);
 		return apply_filters('shopp_packaging_types', $_);
 	}
 
