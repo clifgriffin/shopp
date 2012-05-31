@@ -203,7 +203,10 @@ function Priceline (id,options,data,target,attachment) {
 	optionkey = $('#optionkey-'+i);
 	_.row.optionkey = optionkey;
 
-	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
+	$(priceTypes).each(function (t,option) {
+ 		if ('addon' == data.context && 'Subscription' == option.label) return; // Prevent subscription addons [#1544]
+		typeOptions += '<option value="'+option.value+'">'+option.label+'</option>';
+	});
 	type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);
 
 	if (data && data.label) {
@@ -345,10 +348,7 @@ function Priceline (id,options,data,target,attachment) {
 				.bind('change.value',dv)
 				.trigger('change.value',true);
 
-			weight = _.w;
-			function toggleDimensions () {
-				weight.toggleClass('extoggle');
-				dc.toggle(); _.dw.focus();
+			function volumeWeight () {
 				var d = 0, w = 0;
 				dc.find('input').each(function (id,dims) {
 					if ($(dims).hasClass('weight')) { w = asNumber(dims.value); }
@@ -357,15 +357,23 @@ function Priceline (id,options,data,target,attachment) {
 						else d *= asNumber(dims.value);
 					}
 				});
-				if (!isNaN(d/w)) weight.val((d/w)).trigger('change.value');
+				if (!isNaN(d/w)) _.w.val((d/w)).trigger('change.value');
 			}
+
+			function toggleDimensions () {
+				_.w.toggleClass('extoggle');
+				dc.toggle(); _.dw.focus();
+				volumeWeight();
+			}
+
 
 			_.st.change(function () { // Make sure to hide the dimensions panel if shipping is disabled
 				if (!$(this).attr('checked')) dc.hide();
 			});
 
 			_.dh.blur(toggleDimensions);
-			weight.click(toggleDimensions).attr('readonly',true);
+			_.w.click(toggleDimensions).attr('readonly',true);
+			volumeWeight();
 
 		}
 
@@ -403,7 +411,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		if (d && d.id) {
 			if (d.mime) d.mime = d.mime.replace(/\//gi," ");
-			_.file.attr('class','file '+d.mime).html(d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
+			_.file.attr('class','file '+d.mime).html('<div class="icon">'+d.mime+'</div>'+d.name+'<br /><small>'+readableFileSize(d.size)+'</small>').click(function () {
 				window.location.href = adminurl+"admin.php?src=download&shopp_download="+d.id;
 			});
 		}

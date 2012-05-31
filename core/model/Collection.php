@@ -78,7 +78,7 @@ class ProductCollection implements Iterator {
 		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
 
 		// Inventory filtering
-		if ( (is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock)) )
+		if ( shopp_setting_enabled('inventory') && ((is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock))) )
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
 		// Check for inventory-based queries (for specialized cache support)
@@ -107,7 +107,9 @@ class ProductCollection implements Iterator {
 				case 'title': $orderby = "p.post_title ASC"; break;
 				case 'recommended':
 				default:
-					$orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
+					if ($order === false) $orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC";
+					else $orderby = $order;
+					break;
 			}
 		}
 
@@ -291,7 +293,7 @@ class ProductCollection implements Iterator {
 			if (!$this->products) $page = 1;
 			else $page = $this->page + 1;
 			if ($this->pages > 0 && $page > $this->pages) return false;
-			$this->load( array('load'=>array('prices','specs','coverimages'), 'paged'=>$paged, 'page' => $page) );
+			$this->load( array('load'=>array('prices','specs','categories','coverimages'), 'paged'=>$paged, 'page' => $page) );
 			$loop = shopp($this,'products');
 			$product = ShoppProduct();
 			if (!$product) return false; // No products, bail
@@ -349,12 +351,23 @@ class ProductCollection implements Iterator {
 
 		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 		$item['g:condition'] = 'new';
-		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
+		$item['g:availability'] = shopp_setting_enabled('inventory') && $product->outofstock?'out of stock':'in stock';
 
 		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 		if (!empty($price))	{
 			$item['g:price'] = $price;
 			$item['g:price_type'] = "starting";
+		}
+
+		// Include product_type using Shopp category taxonomies
+		foreach ($product->categories as $category) {
+			$ancestry = array($category->name);
+			$ancestors = get_ancestors($category->term_id,$category->taxonomy);
+			foreach ((array)$ancestors as $ancestor) {
+				$term = get_term($ancestor,$category->taxonomy);
+				if ($term) array_unshift($ancestry,$term->name);
+			}
+			$item['g:product_type['.$category->term_id.']'] = join(' > ',$ancestry);
 		}
 
 		$brand = shopp($product,'get-spec','name=Brand');
@@ -391,6 +404,7 @@ class ProductCollection implements Iterator {
 
 	function feeditem ($item) {
 		foreach ($item as $key => $value) {
+			$key = preg_replace('/\[\d+\]$/','',$key); // Remove duplicate tag identifiers
 			$attrs = '';
 			if (is_array($value)) {
 				$rss = $value;
@@ -473,7 +487,13 @@ class ProductTaxonomy extends ProductCollection {
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
-			'update_count_callback' => '_update_post_term_count'
+			'update_count_callback' => '_update_post_term_count',
+			'capabilities' => array(
+				'manage_terms' => 'shopp_categories',
+				'edit_terms'   => 'shopp_categories',
+				'delete_terms' => 'shopp_categories',
+				'assign_terms' => 'shopp_categories',
+			)
 		));
 
 		add_filter($taxonomy.'_rewrite_rules',array('ProductCollection','pagerewrites'));
@@ -756,14 +776,14 @@ class ProductCategory extends ProductTaxonomy {
 		$specs = array();
 		if ('disabled' != $this->pricerange) {
 			$specs = $this->specs;
-			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'facetedmenu' => $this->pricerange));
+			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'slug'=> 'price','facetedmenu' => $this->pricerange));
 		}
 
 		foreach ($specs as $spec) {
 			if (!isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu']) continue;
 
-			$slug = sanitize_title_with_dashes($spec['name']);
-			if ('price-filter' == $slug) $slug = 'price';
+			if (isset($spec['slug'])) $slug = $spec['slug'];
+			else $slug = sanitize_title_with_dashes($spec['name']);
 			$selected = isset($_GET[$slug]) && str_true(get_query_var('s_ff')) ? $_GET[$slug] : false;
 
 			$Facet = new ProductCategoryFacet();
@@ -1497,7 +1517,7 @@ class SearchResults extends SmartCollection {
 	function pagelink ($page) {
 		$link = parent::pagelink($page);
 
-		return add_query_arg(array('s'=>$this->search,'s_cs'=>1),$link);
+		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$link);
 	}
 
 	function permalink ($result, $options, $O) {
@@ -1623,7 +1643,7 @@ class AlsoBoughtProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
 		$this->name = __('Customers also bought&hellip;','Shopp');
-		$this->uri = urlencode($slug);
+		$this->uri = urlencode($this->slug);
 		$this->controls = false;
 
 		$where = array("true=false");

@@ -491,7 +491,7 @@ class Product extends WPShoppObject {
 		$this->checksum = md5($this->checksum);
 
 		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
-		if (str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
+		if (shopp_setting_enabled('inventory') && str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
 	}
 
 	/**
@@ -524,16 +524,16 @@ class Product extends WPShoppObject {
 			$this->_last_product = $price->product;
 		} else $target = &$this;
 
-		$target->prices[] = $price;
+		// Skip calulating variant pricing when variants are not enabled for the product
+		if (!( isset($target->variants) && str_true($target->variants) ) && 'variation' == $price->context) return;
 
-		$variations = ((isset($target->variants) && $target->variants == 'on')
-							|| ($price->type != 'N/A' && $price->context == 'variation'));
+		$target->prices[] = $price;
 
 		// Force to floats
 		$price->price = (float)$price->price;
 		$price->saleprice = (float)$price->saleprice;
 		$price->shipfee = (float)$price->shipfee;
-		$price->promoprice = (float)$price->promoprice;
+		$price->promoprice = (float)str_true($price->sale)?$price->saleprice:$price->price;
 
 		// Build secondary lookup table using the price id as the key
 		$target->priceid[$price->id] = $price;
@@ -560,13 +560,10 @@ class Product extends WPShoppObject {
 		if (!str_true($price->shipping)) $freeshipping = true;
 
 		// Calculate catalog discounts if not already calculated
-		if (empty($price->promoprice)) {
-			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
-			if (!empty($price->discounts)) {
-				$discount = Promotion::pricing($pricetag,$price->discounts);
-				if ($discount->freeship) $freeshipping = true;
-				$price->promoprice = $discount->pricetag;
-			} else $price->promoprice = $pricetag;
+		if (!empty($price->discounts)) {
+			$discount = Promotion::pricing($price->promoprice,$price->discounts);
+			if ($discount->freeship) $freeshipping = true;
+			$price->promoprice = $discount->pricetag;
 		}
 
 		if ($price->promoprice < $price->price) $target->sale = 'on';
@@ -615,7 +612,7 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ( str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
+		if ( shopp_setting_enabled('inventory') && str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
 		if ( $freeshipping ) $target->freeship = 'on';
 
 	}
@@ -820,20 +817,36 @@ class Product extends WPShoppObject {
 		$selection = array();
 		$mapping = array();
 		$count = 1;
+
+		// get saved product options
+		$poptions = array();
+		$pkey = 'addon' == $type ? 'a' : 'v';
+		if ( isset($this->options[$pkey]) ) $poptions = $this->options[$pkey];
+
 		foreach ( $menus as $menuname => $options ) {
+
+			// get saved product menu
+			$pmenu = array();
+			foreach ( $poptions as $pmenu ) if ( $pmenu['name'] == $menuname ) break;
+
 			$mapping[$menuname] = array();
 			foreach ( $options as $option ) {
-				$mapping[$menuname][$option] = $count++;
+
+				// get save option id
+				$poption = array();
+				if ( isset($pmenu['options']) ) foreach ( $pmenu['options'] as $poption )
+					if ( $poption['name'] == $option ) break;
+
+				$id = isset($poption['id']) ? $poption['id'] : $count++;
+				$mapping[$menuname][$option] = $id;
 			}
 		}
-
 		if ( 'addon' == $type) {
 			$type = key($variant);
 			$option = current($variant);
 
 			$selection[] = $mapping[$type][$option];
 			if ( 'optionkey' == $return ) return $this->optionkey($selection);
-
 			return array( $this->optionkey($selection), $selection[0], $option, $mapping );
 		}
 
@@ -988,7 +1001,7 @@ class Product extends WPShoppObject {
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		global $wpdb;
-		$tbale = $wpdb->term_relationships;
+		$table = $wpdb->term_relationships;
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE object_id='$id'");
 
 		// Delete prices

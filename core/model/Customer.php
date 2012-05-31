@@ -312,11 +312,8 @@ class Customer extends DatabaseObject {
 		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
 
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-
 		$this->updates($_POST);
 		if (isset($_POST['info'])) $this->info = $_POST['info'];
-		$this->save();
-		$this->load_info();
 
 		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 			$this->password = wp_hash_password($_POST['password']);
@@ -326,11 +323,17 @@ class Customer extends DatabaseObject {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 		}
 
+		add_action('shopp_customer_update',$this);
+
+		$this->save();
+		$this->load_info();
+
 		$addresses = array('Billing'=>'BillingAddress','Shipping'=>'ShippingAddress');
 		foreach ($addresses as $Address => $class) {
 			$type = strtolower($Address);
 			if (isset($_POST[$type]) && !empty($_POST[$type])) {
 				$Updated = new $class($this->id,'customer');
+				$Updated->customer = $this->id;
 				$Updated->updates($_POST[$type]);
 				$Updated->save();
 				ShoppOrder()->$Address = $Updated;

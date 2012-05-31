@@ -158,6 +158,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function billing_state ($result, $options, $O) {
+		return ShoppCheckoutThemeAPI::billing_state($result,$options,ShoppOrder());
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
@@ -567,6 +568,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function shipping_state ($result, $options, $O) {
+		return ShoppCheckoutThemeAPI::shipping_state($result,$options,ShoppOrder());
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
@@ -620,7 +622,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (ShoppStorefront()->checkout) {
 			$id .= "-checkout";
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="redirect" value="'.shoppurl($request,'account',ShoppOrder()->security()).'" />';
+		} else $string .= '<input type="hidden" name="redirect" value="'.esc_attr(shoppurl($request,'account',ShoppOrder()->security())).'" />';
 		$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 		return $string;
 	}

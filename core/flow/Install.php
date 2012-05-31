@@ -248,11 +248,23 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function roles () {
 		global $wp_roles; // WP_Roles roles container
-		if(!$wp_roles) $wp_roles = new WP_Roles();
-		$shopp_roles = array('administrator'=>'Administrator', 'shopp-merchant'=>__('Merchant','Shopp'), 'shopp-csr'=>__('Customer Service Rep','Shopp'));
-		$caps['shopp-csr'] = array('shopp_customers', 'shopp_orders','shopp_menu','read');
-		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'],
-			array('shopp_categories',
+
+		if ( ! $wp_roles ) $wp_roles = new WP_Roles();
+
+		$shopp_roles = apply_filters('shopp_user_roles', array(
+			'administrator'		=>	'Administrator',
+			'shopp-merchant'	=>	__('Merchant','Shopp'),
+			'shopp-csr'			=>	__('Customer Service Rep','Shopp')
+		));
+
+		$caps['shopp-csr'] = array(
+				'shopp_customers',
+				'shopp_orders',
+				'shopp_menu',
+				'read'
+		);
+		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'], array(
+				'shopp_categories',
 				'shopp_products',
 				'shopp_memberships',
 				'shopp_promotions',
@@ -260,22 +272,23 @@ class ShoppInstallation extends FlowController {
 				'shopp_export_orders',
 				'shopp_export_customers',
 				'shopp_delete_orders',
-				'shopp_delete_customers'));
-		$caps['administrator'] = array_merge($caps['shopp-merchant'],
-			array('shopp_settings_update',
+				'shopp_delete_customers'
+		));
+		$caps['administrator'] = array_merge($caps['shopp-merchant'], array(
+				'shopp_settings_update',
 				'shopp_settings_system',
 				'shopp_settings_presentation',
 				'shopp_settings_taxes',
 				'shopp_settings_shipping',
 				'shopp_settings_payments',
 				'shopp_settings_checkout',
-				'shopp_settings'));
-		$wp_roles->remove_role('shopp-csr');
-		$wp_roles->remove_role('shopp-merchant');
+				'shopp_settings'
+		));
 
-		foreach($shopp_roles as $role => $display) {
-			if($wp_roles->is_role($role)) {
-				foreach($caps[$role] as $cap) $wp_roles->add_cap($role, $cap, true);
+		$caps = apply_filters('shopp_role_caps', $caps, $shopp_roles);
+		foreach ( $shopp_roles as $role => $display ) {
+			if ( $wp_roles->is_role($role) ) {
+				foreach( $caps[$role] as $cap ) $wp_roles->add_cap($role, $cap, true);
 			} else {
 				$wp_roles->add_role($role, $display, array_combine($caps[$role],array_fill(0,count($caps[$role]),true)));
 			}
@@ -343,7 +356,7 @@ class ShoppInstallation extends FlowController {
 			__('Wrong size','Shopp'),
 			__('Found better prices elsewhere','Shopp'),
 			__('Product is missing parts','Shopp'),
-			__('Product is defective or damaaged','Shopp'),
+			__('Product is defective or damaged','Shopp'),
 			__('Took too long to deliver','Shopp'),
 			__('Item out of stock','Shopp'),
 			__('Customer request to cancel','Shopp'),
@@ -934,7 +947,7 @@ class ShoppInstallation extends FlowController {
 											'a:1:{s:6:\"weight\";s:',CHAR_LENGTH(weight),':\"', weight, '\";}'
 										), dimensions
 									)
-								),'s:8:\"donation\";',donation,'}'
+								),'s:8:\"donation\";',IF(donation='','N;',donation),'}'
 							),created,modified FROM $price_table");
 
 		} // END if ($db_version <= 1135)
@@ -961,6 +974,10 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 		} // END if ($db_version <= 1145)
 
+		if ($db_version <= 1148) {
+			$price_table = DatabaseObject::tablename('price');
+			DB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
+		}
 
 	}
 
@@ -1075,9 +1092,9 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		$this->skin->feedback('downloading_package', $package);
 
-		$keydata = shopp_setting('updatekey');
+		$key = Shopp::keysetting();
 		$vars = array('VERSION','KEY','URL');
-		$values = array(urlencode(SHOPP_VERSION),urlencode($keydata[1]),urlencode(get_option('siteurl')));
+		$values = array(urlencode(SHOPP_VERSION),urlencode($key['k']),urlencode(get_option('siteurl')));
 		$package = str_replace($vars,$values,$package);
 
 		$download_file = $this->download_url($package);

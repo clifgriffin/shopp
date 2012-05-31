@@ -544,6 +544,7 @@ class Warehouse extends AdminController {
 				'price'=>__('Price','Shopp'),
 				'inventory'=>__('Inventory','Shopp'),
 				'featured'=>__('Featured','Shopp'),
+				'test' => 'Test',
 				'date'=>__('Date','Shopp')
 			),
 			'inventory' => array(
@@ -653,6 +654,13 @@ class Warehouse extends AdminController {
 				$price->saleprice += $price->saleprice*$taxrate;
 			}
 		}
+
+		do_action('add_meta_boxes', Product::$posttype, $Product);
+		do_action('add_meta_boxes_'.Product::$posttype, $Product);
+
+		do_action('do_meta_boxes', Product::$posttype, 'normal', $Product);
+		do_action('do_meta_boxes', Product::$posttype, 'advanced', $Product);
+		do_action('do_meta_boxes', Product::$posttype, 'side', $Product);
 
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 	}

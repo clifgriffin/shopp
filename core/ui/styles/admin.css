@@ -237,29 +237,30 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 .pricing tbody th,.pricing tbody td { padding-bottom:1px;border-bottom-width:3px; }
 
-.shopp .file { line-height:1.3em;background:url('../icons/filetypes.png') no-repeat -8px -8px; padding-left:20px;cursor:pointer;font-size:11px; }
+.shopp .file { line-height:1.3em;padding-left:20px;cursor:pointer;font-size:11px; }
 .shopp .file small { color:#606060; }
 
-.shopp .file.zip,
-.shopp .file.stuffit,
-.shopp .file.tar { background-position: -8px -40px; }
-.shopp .file.audio { background-position: -8px -72px; }
-.shopp .file.code,
-.shopp .file.php,
-.shopp .file.html { background-position: -8px -104px; }
-.shopp .file.doc { background-position: -8px -136px; }
-.shopp .file.slides { background-position: -8px -168px; }
-.shopp .file.spreadsheet { background-position: -8px -200px; }
-.shopp .file.text { background-position: -8px -232px; }
-.shopp .file.video { background-position: -8px -264px; }
-.shopp .file.image { background-position: -8px -296px; }
-.shopp .file.msword { background-position: -8px -328px; }
-.shopp .file.excel { background-position: -8px -360px; }
-.shopp .file.ppt { background-position: -8px -392px; }
-.shopp .file.pdf { background-position: -8px -424px; }
-.shopp .file.flv { background-position: -8px -456px; }
-.shopp .file.psd { background-position: -8px -488px; }
-.shopp .file.ai { background-position: -8px -520px; }
+.shopp .file .icon { background:url('../icons/filetypes.png') no-repeat -8px -8px; width:20px;height:20px;border:none;float:left;margin-left:-20px;text-indent:-9999em; }
+.shopp .file.zip .icon,
+.shopp .file.stuffit .icon,
+.shopp .file.tar .icon { background-position: -8px -40px; }
+.shopp .file.audio .icon { background-position: -8px -72px; }
+.shopp .file.code .icon,
+.shopp .file.php .icon,
+.shopp .file.html .icon { background-position: -8px -104px; }
+.shopp .file.doc .icon { background-position: -8px -136px; }
+.shopp .file.slides .icon { background-position: -8px -168px; }
+.shopp .file.spreadsheet .icon { background-position: -8px -200px; }
+.shopp .file.text .icon { background-position: -8px -232px; }
+.shopp .file.video .icon { background-position: -8px -264px; }
+.shopp .file.image .icon { background-position: -8px -296px; }
+.shopp .file.msword .icon { background-position: -8px -328px; }
+.shopp .file.excel .icon { background-position: -8px -360px; }
+.shopp .file.ppt .icon { background-position: -8px -392px; }
+.shopp .file.pdf .icon { background-position: -8px -424px; }
+.shopp .file.flv .icon { background-position: -8px -456px; }
+.shopp .file.psd .icon { background-position: -8px -488px; }
+.shopp .file.ai .icon { background-position: -8px -520px; }
 
 #variations-pricing > tr > th,#variations-pricing > tr > td { border-top:1px solid #dfdfdf; }
 .form-table.pricing { border-bottom:1px solid #dfdfdf; }

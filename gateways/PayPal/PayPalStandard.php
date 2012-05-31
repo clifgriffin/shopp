@@ -284,7 +284,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 
 	function voided ( $Purchase ) {
-		if ( $Purchase->voided ) return; // already voided
+		if ( $Purchase->isvoid() ) return; // already voided
 
 		shopp_add_order_event($Purchase->id, 'voided', array(
 			'txnid' => $this->response->new_txnid,	// Transaction ID
@@ -396,9 +396,10 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form contents
 	 **/
 	function form ($form,$options=array()) {
-		global $Shopp;
 		$Shopping = ShoppShopping();
-		$Order = $this->Order;
+		$Order = ShoppOrder();
+		$Customer = $Order->Customer;
+		$Shipping =
 
 		$_ = array();
 
@@ -418,28 +419,37 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['rm']					= 1; // Return with no transaction data
 
 		// Pre-populate PayPal Checkout
-		$_['first_name']			= $Order->Customer->firstname;
-		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->baseop['country'];
 		$_['charset']				= 'utf-8';
 		$_['bn']					= 'shopplugin.net[WPS]';
 
-		$AddressType = "Shipping";
+		$_['first_name']			= $Customer->firstname;
+		$_['last_name']				= $Customer->lastname;
+
+		$AddressType = 'Shipping';
 		// Disable shipping fields if no shipped items in cart
 		if (empty($Order->Cart->shipped)) {
-			$AddressType = "Billing";
-			$_['no_shipping'] = 1;
+			$AddressType = 'Billing';
+			$_['no_shipping'] 		= 1;
+		}
+		$Address = $Order->$AddressType;
+
+		if (!empty($Order->Cart->shipped)) {
+			$shipname = explode(' ',$Address->name);
+			$_['first_name'] = array_shift($shipname);
+			$_['last_name'] = join(' ',$shipname);
 		}
 
 		$_['address_override'] 		= 1;
-		$_['address1']				= $Order->{$AddressType}->address;
-		if (!empty($Order->{$AddressType}->xaddress))
-			$_['address2']			= $Order->{$AddressType}->xaddress;
-		$_['city']					= $Order->{$AddressType}->city;
-		$_['state']					= $Order->{$AddressType}->state;
-		$_['zip']					= $Order->{$AddressType}->postcode;
-		$_['country']				= $Order->{$AddressType}->country;
-		$_['email']					= $Order->Customer->email;
+
+		$_['address1']				= $Address->address;
+		if (!empty($Address->xaddress))
+			$_['address2']			= $Address->xaddress;
+		$_['city']					= $Address->city;
+		$_['state']					= $Address->state;
+		$_['zip']					= $Address->postcode;
+		$_['country']				= $Address->country;
+		$_['email']					= $Customer->email;
 
 		$phone = parse_phone($Order->Customer->phone);
 		if ( in_array($Order->Billing->country,array('US','CA')) ) {
@@ -485,12 +495,12 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				// normalize trial interval
 				$trial['interval'] = min(max($trial['interval'], $tranges[$trial['period']]['min']), $tranges[$trial['period']]['max']);
 
-				$_['a1']	= number_format($trial['price'],$this->precision);
+				$_['a1']	= $this->amount($trial['price']);
 				$_['p1']	= $trial['interval'];
 				$_['t1']	= $trial['period'];
 			}
 
-			$_['a3']	= number_format($Item->unitprice,$this->precision);
+			$_['a3']	= $this->amount($Item->unitprice);
 			$_['p3']	= $recurring['interval'];
 			$_['t3']	= $recurring['period'];
 
@@ -505,29 +515,30 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				$id=$i+1;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
-				$_['amount_'.$id]			= number_format($Item->unitprice,$this->precision);
+				$_['amount_'.$id]			= $this->amount($Item->unitprice);
 				$_['quantity_'.$id]			= $Item->quantity;
-				$_['weight_'.$id]			= $Item->quantity;
+				// $_['weight_'.$id]			= $Item->quantity;
 			}
 
 			// Workaround a PayPal limitation of not correctly handling no subtotals or
 			// handling discounts in the amount of the item subtotals by adding the
 			// shipping fee to the line items to get included in the subtotal. If no
 			// shipping fee is available use 0.01 to satisfy minimum order amount requirements
-			if ((int)$Order->Cart->Totals->subtotal == 0 ||
-				$Order->Cart->Totals->subtotal-$Order->Cart->Totals->discount == 0) {
+			// Additionally, this condition should only be possible when using the shopp('cart','paypal')
+			// Theme API tag which would circumvent normal checkout and use PayPal even for free orders
+			if ((float)$this->amount('subtotal') == 0 || (float)$this->amount('subtotal')-(float)$this->amount('discount') == 0) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
 															__('Shipping & Handling','Shopp'));
-				$_['amount_'.$id]			= number_format(max($Order->Cart->Totals->shipping,0.01),$this->precision);
+				$_['amount_'.$id]			= $this->amount( max((float)$this->amount('shipping'),0.01) );
 				$_['quantity_'.$id]			= 1;
 			} else
-				$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
+				$_['handling_cart']			= $this->amount('shipping');
 
-			$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$this->precision);
-			$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
-			$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
+			$_['discount_amount_cart'] 		= $this->amount('discount');
+			$_['tax_cart']					= $this->amount('tax');
+			$_['amount']					= $this->amount('total');
 
 		}
 

@@ -28,6 +28,18 @@ class Price extends DatabaseObject {
 
 	}
 
+	function delete () {
+		if ( empty($this->id) ) return;
+
+		$price = $this->id;
+		parent::delete();
+
+		// clean up meta entries for deleted price
+		$metatable = DatabaseObject::tablename('meta');
+		$query = "DELETE FROM $metatable WHERE context='price' and parent=$price";
+		DB::query($query);
+	}
+
 	function metaloader (&$records,&$record,$id='id',$property=false,$collate=false,$merge=false) {
 		if (isset($this->prices) && !empty($this->prices)) $prices = &$this->prices;
 		else $prices = array();

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.2.1RC1
+Version: 1.2.2dev
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2.1RC1');
+	define('SHOPP_VERSION','1.2.2dev');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
@@ -395,7 +395,7 @@ class Shopp {
 				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 
 		}
-		$base = array('nocache' => is_shopp_page('account'));
+		if (!is_admin()) $base = array('nocache' => is_shopp_page('account'));
 
 		// Validation alerts
 		shopp_localize_script('catalog', '$cv', array(
@@ -532,8 +532,8 @@ class Shopp {
 		if (isset($response['code']) && 200 != $response['code']) {
 			$error = Lookup::errors('callhome','http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
-			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
-			return false;
+			new ShoppError($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
+			return $body;
 		}
 
 		return $body;
@@ -621,8 +621,9 @@ class Shopp {
 		$response = $this->callhome($request,$data);
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
-
 		unset($updates->response);
+
+		if (isset($response->key) && !str_true($response->key)) shopp_set_setting( 'updatekey', array(0) );
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;

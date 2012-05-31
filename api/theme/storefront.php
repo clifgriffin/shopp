@@ -238,9 +238,6 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$breadcrumb += array($pages['confirm']['title'] => shoppurl(false,'confirm'));
 		} elseif (is_thanks_page()) {
 			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
-		} elseif (is_shopp_collection()) {
-			// collections
-			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
 		} elseif (is_shopp_taxonomy()) {
 			$taxonomy = ShoppCollection()->taxonomy;
 			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id,$taxonomy));
@@ -249,10 +246,18 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$breadcrumb[ $term->name ] = get_term_link($term->slug,$taxonomy);
 			}
 			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
+		} elseif (is_shopp_collection()) {
+			// collections
+			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
 		} elseif (is_shopp_product()) {
 			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxon);
 			if ( $categories ) {
 				$term = array_shift($categories);
+				$ancestors = array_reverse(get_ancestors($term->term_id,ProductCategory::$taxon));
+				foreach ($ancestors as $ancestor) {
+					$parent_term = get_term($ancestor,ProductCategory::$taxon);
+					$breadcrumb[ $parent_term->name ] = get_term_link($parent_term->slug,ProductCategory::$taxon);
+				}
 				$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
 			}
 			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
@@ -361,7 +366,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		extract($options, EXTR_SKIP);
 
 		$taxonomy = 'shopp_category';
-		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent');
+		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent','orderby'=>$orderby,'order'=>$order);
 
 		$baseparent = 0;
 		if (str_true($section)) {
@@ -387,6 +392,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$exclude = explode(",",$exclude);
 		$classes = ' class="shopp-categories-menu'.(empty($class)?'':' '.$class).'"';
 		$wraplist = str_true($wraplist);
+		$hierarchy = str_true($hierarchy);
 
 		if (str_true($dropdown)) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
@@ -405,12 +411,12 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					if ($category->count == 0 && !isset($category->smart) && !$category->_children && ! str_true($showall)) continue; // Only show categories with products
 					if ($levellimit && $category->level >= $levellimit) continue;
 
-					if (str_true($hierarchy) && $category->level > $level) {
+					if ($hierarchy && $category->level > $level) {
 						$parent = &$previous;
 						if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 					}
 
-					if (str_true($hierarchy))
+					if ($hierarchy)
 						$padding = str_repeat("&nbsp;",$category->level*3);
 					$term_id = $category->term_id;
 					$link = get_term_link( (int) $category->term_id, $category->taxonomy);
@@ -433,6 +439,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 			$string .= '</select></form>';
 		} else {
+			$depth = 0;
+
 			$string .= $title;
 			if ($wraplist) $string .= '<ul'.$classes.'>';
 			$Collection = ShoppCollection();
@@ -448,7 +456,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 				if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 				if ($levellimit && $category->level >= $levellimit) continue;
-				if (str_true($hierarchy) && $category->level > $depth) {
+				if ($hierarchy && $category->level > $depth) {
 					$parent = &$previous;
 					if (!isset($parent->path)) $parent->path = $parent->slug;
 					if (substr($string,-5,5) == "</li>") // Keep everything but the
@@ -464,7 +472,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					$string .= $subcategories;
 				}
 
-				if (str_true($hierarchy) && $category->level < $depth) {
+				if ($hierarchy && $category->level < $depth) {
 					for ($i = $depth; $i > $category->level; $i--) {
 						if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 							// If the child menu is empty, remove the <ul> to avoid breaking standards
@@ -493,7 +501,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$listing = '';
 
 				if (!empty($link) && ($category->count > 0 || isset($category->smart) || str_true($linkall)))
-					$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
+					$listing = '<a href="'.$link.'"'.$current.'>'.esc_html($category->name).($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
 				if (str_true($showall) ||
@@ -505,7 +513,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$previous = &$category;
 				$depth = $category->level;
 			}
-			if (str_true($hierarchy) && $depth > 0)
+			if ($hierarchy && $depth > 0)
 				for ($i = $depth; $i > 0; $i--) {
 					if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 						// If the child menu is empty, remove the <ul> to avoid breaking standards

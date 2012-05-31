@@ -207,7 +207,6 @@ class Service extends AdminController {
 
 	}
 
-
 	/**
 	 * Interface processor for the orders list interface
 	 *
@@ -228,6 +227,10 @@ class Service extends AdminController {
 			'paged' => 1,
 			'per_page' => 20,
 			'status' => false,
+			's' => '',
+			'range' => '',
+			'startdate' => '',
+			'enddate' => ''
 		);
 
 		$args = array_merge($defaults,$_GET);
@@ -242,9 +245,10 @@ class Service extends AdminController {
 		$Purchase = new Purchase();
 
 		$Orders = $this->orders;
-		$num_pages = ceil($this->ordercount->total / $per_page);
+		$ordercount = $this->ordercount;
+		$num_pages = ceil($ordercount->total / $per_page);
 
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Orders->total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $ordercount->total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
@@ -387,6 +391,11 @@ class Service extends AdminController {
 			$reason = (int)$_POST['reason'];
 			$amount = floatvalue($_POST['amount']);
 
+			if (!empty($_POST['message'])) {
+				$message = $_POST['message'];
+				$Purchase->message['note'] = $message;
+			}
+
 			if (!str_true($_POST['send'])) { // Force the order status
 				shopp_add_order_event($Purchase->id,'notice',array(
 					'user' => $user->ID,
@@ -396,7 +405,12 @@ class Service extends AdminController {
 				shopp_add_order_event($Purchase->id,'refunded',array(
 					'txnid' => $Purchase->txnid,
 					'gateway' => $Gateway->module,
-					'amount' => $amount,
+					'amount' => $amount
+				));
+				shopp_add_order_event($Purchase->id,'voided',array(
+					'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
+					'txnid' => time(),					// Transaction ID for the VOID event
+					'gateway' => $Gateway->module		// Gateway handler name (module name from @subpackage)
 				));
 			} else {
 				shopp_add_order_event($Purchase->id,'refund',array(
@@ -407,7 +421,6 @@ class Service extends AdminController {
 					'user' => $user->ID
 				));
 			}
-
 
 			if (!empty($_POST['message']))
 				$this->addnote($Purchase->id,$_POST['message']);
@@ -420,11 +433,10 @@ class Service extends AdminController {
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 
-
-			if (!empty($_POST['message']))
+			if (!empty($_POST['message'])) {
 				$message = $_POST['message'];
-			else
-				$message = 0;
+				$Purchase->message['note'] = $message;
+			} else $message = 0;
 
 
 			if (!str_true($_POST['send'])) { // Force the order status
@@ -443,8 +455,7 @@ class Service extends AdminController {
 					'txnid' => $Purchase->txnid,
 					'gateway' => $Gateway->module,
 					'reason' => $reason,
-					'user' => $user->ID,
-					'note' => $message
+					'user' => $user->ID
 				));
 			}
 

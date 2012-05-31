@@ -155,8 +155,8 @@ foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
 	if ( is_taxonomy_hierarchical($taxonomy_name) )
-		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', get_current_screen()->id, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', Product::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', Product::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
 
 }
 
@@ -197,7 +197,7 @@ add_meta_box(
 	'product-settings',
 	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
 	'settings_meta_box',
-	get_current_screen()->id,
+	Product::$posttype,
 	'side',
 	'core'
 );

@@ -190,7 +190,9 @@ function shopp_add_product_download ( $product, $file, $variant = false ) {
 		return false;
 	}
 
-	if( ! is_file($file) || ! is_readable($file) ) {
+	$File = new ProductDownload();
+	$instore = $File->found($file);
+	if( ! $instore && ( ! is_file($file) || ! is_readable($file) ) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed for file $file: File missing or unreadable.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
@@ -224,16 +226,20 @@ function shopp_add_product_download ( $product, $file, $variant = false ) {
 	}
 
 	// Save the uploaded file
-	$File = new ProductDownload();
 	$File->load(array('type'=>'download', 'parent'=> $Price->id));
 	$File->parent = $Price->id;
 	$File->context = "price";
 	$File->type = "download";
 	$File->name = basename($file);
 	$File->filename = $File->name;
-	$File->mime = file_mimetype($file,$File->name);
-	$File->size = filesize($file);
-	$File->store($file,'file');
+	if ( ! $instore ) {
+		$File->mime = file_mimetype($file,$File->name);
+		$File->size = filesize($file);
+		$File->store($file,'file');
+	} else {
+		$File->uri = $file;
+		$File->readmeta();
+	}
 	$File->save();
 
 	if ( $File->id ) return $File->id;

@@ -106,7 +106,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function carousel ($result, $options, $O) {
 		$options['load'] = array('images');
-		if (!$O->loaded) $O->load_products($options);
+		if (!$O->loaded) $O->load($options);
 		if (count($O->products) == 0) return false;
 
 		$defaults = array(
@@ -388,6 +388,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	static function is_subcategory ($result, $options, $O) {
+		if (isset($options['id'])) return ($this->parent == $options['id']);
 		return ($O->parent != 0);
 	}
 
@@ -617,6 +618,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function total ($result, $options, $O) { return $O->loaded?$O->total:false; }
 
 	static function url ($result, $options, $O) {
+		global $ShoppTaxonomies;
+		if ( $O->id && isset($O->taxonomy) && ! in_array($O->taxonomy, array_keys($ShoppTaxonomies)) )
+			return get_term_link( (int) $O->id, $O->taxonomy);
+
 		$namespace = get_class_property( get_class($O) ,'namespace');
 		$prettyurls = ( '' != get_option('permalink_structure') );
 
