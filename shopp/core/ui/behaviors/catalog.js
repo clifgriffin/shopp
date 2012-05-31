@@ -92,6 +92,7 @@ function ProductOptionsMenus (target,settings) {
 
 	// Magic key generator
 	function xorkey (ids,deprecated) {
+		if (!(ids instanceof Array)) ids = [ids];
 		for (var key=0,i=0,mod=deprecated?101:7001; i < ids.length; i++)
 			key = key ^ (ids[i]*mod);
 		return key;

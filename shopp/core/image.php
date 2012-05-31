@@ -157,7 +157,7 @@ class ImageServer {
 		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha,$this->fill);
 
 		// Post sharpen
-		if ($this->sharpen !== false)
+		if (!$alpha && $this->sharpen !== false)
 			$Resized->UnsharpMask($this->sharpen);
 
 		$ResizedImage = new ImageAsset();

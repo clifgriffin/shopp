@@ -17,12 +17,12 @@
 				<div class="alignright">
 
 					<?php if ($Purchase->shipped): ?>
-					<div class="stamp shipped<?php if ($Purchase->voided) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+					<div class="stamp shipped<?php if ($Purchase->isvoid()) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 					<?php endif; ?>
 
-					<?php if ($Purchase->voided): ?>
+					<?php if ($Purchase->isvoid()): ?>
 					<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
-					<?php elseif ($Purchase->captured == $Purchase->total): ?>
+					<?php elseif ($Purchase->ispaid()): ?>
 					<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 					<?php endif; ?>
 

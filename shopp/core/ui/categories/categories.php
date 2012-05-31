@@ -4,7 +4,8 @@
 
 	<?php do_action('shopp_admin_notice'); ?>
 
-	<form action="" id="categories" method="get">
+	<form action="<?php echo esc_url($url); ?>" id="categories" method="get">
+	<?php include('navigation.php'); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
 	</div>

@@ -25,6 +25,7 @@ class Cart {
 	var $promocodes = array();	// List of promotional codes applied
 	var $shipping = array();	// List of shipping options
 	var $processing = array();	// Min-Max order processing timeframe
+	var $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
 	var $Added = false;			// Last Item added
@@ -124,7 +125,6 @@ class Cart {
 			do_action_ref_array('shopp_update_destination',array($_REQUEST['shipping']));
 			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
 				$this->changed(true);
-
 
 		}
 
@@ -270,35 +270,15 @@ class Cart {
 			$this->added = count($this->contents)-1;
 		}
 
+		if (!$this->xitemstock($this->contents[$this->added]) )
+			return $this->remove($this->added); // Remove items if no cross-item stock available
+
 		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
 		$this->Added = &$NewItem;
 
 		$this->changed(true);
 		return true;
 	}
-
-	/**
-	 *
-	 * Determine if the combinations of items in the cart is proper.
-	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @param Item $Item the item being added
-	 * @return bool true if the item can be added, false if it would be improper.
-	 **/
-	function valid_add ( $Item ) {
-		$allowed = true;
-
-		// Subscription products must be alone in the cart
-		if ( 'Subscription' == $Item->type && ! empty($this->contents) || $this->recurring() ) {
-			new ShoppError(__('A subscription must be purchased separately. Complete your current transaction and try again.','Shopp'),'cart_valid_add_failed',SHOPP_ERR);
-			return false;
-		}
-
-		return true;
-	}
-
 
 	/**
 	 * Removes an item from the cart
@@ -328,14 +308,94 @@ class Cart {
 	function update ($item,$quantity) {
 		if (empty($this->contents)) return false;
 		if ($quantity == 0) return $this->remove($item);
-		elseif (isset($this->contents[$item])) {
+
+		if ( isset($this->contents[$item]) ) {
+			$updated = ($quantity != $this->contents[$item]->quantity);
+
 			$this->contents[$item]->quantity($quantity);
 			if ($this->contents[$item]->quantity == 0) $this->remove($item);
+			if ($updated && !$this->xitemstock($this->contents[$item]) )
+				$this->remove($item); // Remove items if no cross-item stock available
+
 			$this->changed(true);
 		}
+
 		return true;
 	}
 
+	/**
+	 *
+	 * Determine if the combinations of items in the cart is proper.
+	 *
+	 * @author John Dillick
+	 * @since 1.2
+	 *
+	 * @param Item $Item the item being added
+	 * @return bool true if the item can be added, false if it would be improper.
+	 **/
+	function valid_add ( $Item ) {
+		$allowed = true;
+
+		// Subscription products must be alone in the cart
+		if ( 'Subscription' == $Item->type && ! empty($this->contents) || $this->recurring() ) {
+			new ShoppError(__('A subscription must be purchased separately. Complete your current transaction and try again.','Shopp'),'cart_valid_add_failed',SHOPP_ERR);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validates stock levels for cross-item quantities
+	 *
+	 * This function handles the case where the stock of an product variant is
+	 * checked across items where an the variant may exist across several line items
+	 * because of either add-ons or custom product inputs. {@see issue #1681}
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @param int|CartItem $item The index of an item in the cart or a cart Item
+	 * @return boolean
+	 **/
+	function xitemstock ( Item $Item ) {
+		if ( ! shopp_setting_enabled('inventory') ) return true;
+
+		// Build a cross-product map of the total quantity of ordered products to known stock levels
+		$order = array();
+		foreach ($this->contents as $index => $cartitem) {
+			if ( ! $cartitem->inventory ) continue;
+
+			if ( isset($order[$cartitem->priceline]) ) $ordered = $order[$cartitem->priceline];
+			else {
+				$ordered = new StdClass();
+				$ordered->stock = $cartitem->option->stock;
+				$ordered->quantity = 0;
+				$order[$cartitem->priceline] = $ordered;
+			}
+
+			$ordered->quantity += $cartitem->quantity;
+		}
+
+		// Item doesn't exist in the cart (at all) so automatically validate
+		if (!isset($order[ $Item->priceline ])) return true;
+		else $ordered = $order[ $Item->priceline ];
+
+		$overage = $ordered->quantity - $ordered->stock;
+
+		if ($overage < 1) return true; // No overage, the item is valid
+
+		// Reduce ordered amount or remove item with error
+		if ($overage < $Item->quantity) {
+			new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
+			$Item->quantity -= $overage;
+			return true;
+		}
+
+		new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
+		return false;
+
+	}
 
 	/**
 	 * Empties the contents of the cart
@@ -454,6 +514,7 @@ class Cart {
 	function totals () {
 		if (!($this->retotal || $this->changed())) return true;
 
+		$checksum = array();
 		$Totals = new CartTotals();
 		$this->Totals = &$Totals;
 
@@ -472,6 +533,9 @@ class Cart {
 		foreach ($this->contents as $key => $Item) {
 			$Item->retotal();
 
+			// Build item checksum strings
+			$checksum[] = $Item->quantity.':'.$Item->fingerprint();
+
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
@@ -482,6 +546,8 @@ class Cart {
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $this->freeshipping = false;
 		}
+
+		$this->checksum = md5(join(',',$checksum));
 
 		// Calculate Shipping
 		$Shipping = new CartShipping();
@@ -564,7 +630,6 @@ class Cart {
 	function recurring () {
 		return $this->_typeitems('recurring');
 	}
-
 
 	private function _typeitems ($type) {
 		$types = array('shipped','downloads','recurring');
@@ -1278,7 +1343,7 @@ class CartTax {
 	 **/
 	function __construct () {
 		global $Shopp;
-		$this->Order = &ShoppOrder();
+		$this->Order = ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
 		$this->inclusive = shopp_setting_enabled('tax_inclusive');
@@ -1303,7 +1368,7 @@ class CartTax {
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
 		$country = $zone = $locale = $global = false;
-		if (defined('WP_ADMIN')) { // Always use the base of operations in the admin
+		if ( is_admin() && !defined('DOING_AJAX') ) { // Always use the base of operations in the admin
 			$base = shopp_setting('base_operations');
 			$country = apply_filters('shopp_admin_tax_country',$base['country']);
 			$zone = apply_filters('shopp_admin_tax_zone', (isset($base['zone'])?$base['zone']:false) );

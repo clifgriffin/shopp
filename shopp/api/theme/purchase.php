@@ -511,7 +511,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function state ($result, $options, $O) {
 		$state = esc_html($O->state);
-		if (strlen($O->state > 2)) return $state;
+		if (strlen($O->state) > 2) return $state;
 		$regions = Lookup::country_zones();
 
 		if (isset($regions[$O->country])) {

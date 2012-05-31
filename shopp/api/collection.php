@@ -564,7 +564,12 @@ function shopp_category_count (	$category = 0, $children = false ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	return $Category->count;
+
+	$count = $Category->count;
+	if ( $children )
+		foreach( shopp_subcategories($category) as $cat ) $count += $cat->count;
+
+	return $count;
 }
 
 /**

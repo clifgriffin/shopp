@@ -92,6 +92,7 @@ class Storefront extends FlowController {
 		add_filter('page_template',array($this,'maintenance'));
 		add_filter('single_template',array($this,'maintenance'));
 
+		add_action('do_feed_rss2',array($this,'feed'),1);
 		add_filter('search_template',array($this,'pages'));
 		add_filter('taxonomy_template',array($this,'pages'));
 		add_filter('page_template',array($this,'pages'));
@@ -251,8 +252,6 @@ class Storefront extends FlowController {
 			$post_archive->post_title = ShoppCollection()->name; // Added so single_post_title will return the title properly
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
-
-			if (is_feed()) return $this->feed();
 		}
 
 		$Collection = ShoppCollection();
@@ -434,7 +433,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function feed () {
-		if ('' == get_query_var('feed')) return;
+		if (! is_shopp_collection()) return;
 		$Collection = ShoppCollection();
 
 	    $base = shopp_setting('base_operations');
@@ -496,7 +495,7 @@ class Storefront extends FlowController {
 	function security () {
 
 		global $Shopp;
-		if (is_ssl() || !$Shopp->Gateways->secure) return;
+	    if (SHOPP_NOSSL || !$Shopp->Gateways->secure || is_ssl() ) return;
 
 		$redirect = false;
 		if (is_checkout_page())	$redirect = 'checkout';
@@ -589,7 +588,17 @@ class Storefront extends FlowController {
 
 		}
 
-		if ('checkout' == $page) shopp_enqueue_script('checkout');
+		if ('checkout' == $page) {
+			shopp_enqueue_script('checkout');
+			shopp_enqueue_script('address');
+		}
+		if ('account' == $page) {
+			shopp_enqueue_script('address');
+			$regions = Lookup::country_zones();
+			$js = "var regions=".json_encode($regions);
+			add_storefrontjs($js,true);
+		}
+
 
 	}
 
@@ -1175,12 +1184,12 @@ class StorefrontPage {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return string The page title
 	 **/
 	function title ($title) {
 		global $wp_query,$wp_the_query;
 		if ( $wp_the_query !== $wp_query) return $title;
-		if ( empty($title) ) return $this->title;
+		if ( empty($title) ) return apply_filters('shopp_'.$this->name.'_pagetitle',$this->title);
 		return $title;
 	}
 
@@ -1450,17 +1459,21 @@ class AccountStorefrontPage extends StorefrontPage {
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
-		$_[] = __('A request has been made to reset the password for the following site and account:','Shopp');
-		$_[] = get_option('siteurl');
+		$_[] = '<p>'.__('A request has been made to reset the password for the following site and account:','Shopp').'<br />';
+		$_[] = get_option('siteurl').'</p>';
 		$_[] = '';
+		$_[] = '<ul>';
 		if (isset($_POST['email-login']))
-			$_[] = sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email);
+			$_[] = '<li>'.sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email).'</li>';
 		if (isset($_POST['loginname-login']))
-			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+			$_[] = '<li>'.sprintf(__('Login name: %s','Shopp'), $user_data->user_login).'</li>';
+		if (isset($_POST['account-login']))
+			$_[] = '<li>'.sprintf(__('Login: %s','Shopp'), $user_data->user_login).'</li>';
+		$_[] = '</ul>';
 		$_[] = '';
-		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
+		$_[] = '<p>'.__('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
 		$_[] = '';
-		$_[] = add_query_arg(array('rp'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
+		$_[] = '<p>'.add_query_arg(array('rp'=>$RecoveryCustomer->activation),shoppurl(false,'account')).'</p>';
 		$message = apply_filters('shopp_recover_password_message',$_);
 
 		if (!shopp_email(join("\n",$message))) {
@@ -1509,13 +1522,15 @@ class AccountStorefrontPage extends StorefrontPage {
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
-		$_[] = sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl'));
+		$_[] = '<p>'.sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl')).'</p>';
 		$_[] = '';
+		$_[] = '<ul>';
 		if ($user_data)
-			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
-		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
+			$_[] = '<li>'.sprintf(__('Login name: %s','Shopp'), $user_data->user_login).'</li>';
+		$_[] = '<li>'.sprintf(__('Password: %s'), $password).'</li>';
+		$_[] = '</ul>';
 		$_[] = '';
-		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
+		$_[] = '<p>'.__('Click here to login:').' '.shoppurl(false,'account').'</p>';
 		$message = apply_filters('shopp_reset_password_message',$_);
 
 		if (!shopp_email(join("\n",$message))) {
@@ -1625,12 +1640,12 @@ class ConfirmStorefrontPage extends StorefrontPage {
 		$Order->validated = $Order->isvalid();
 
 		ob_start();
-		$this->_confirm_page_content = true;
+		ShoppStorefront()->_confirm_page_content = true;
 		if ($Errors->exist(SHOPP_COMM_ERR))
 			echo Storefront::errors(array('errors.php'));
 		locate_shopp_template(array('confirm.php'),true);
 		$content = ob_get_contents();
-		unset($this->_confirm_page_content);
+		unset(ShoppStorefront()->_confirm_page_content);
 		ob_end_clean();
 		return apply_filters('shopp_order_confirmation',$content);
 	}

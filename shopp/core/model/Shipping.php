@@ -1287,7 +1287,7 @@ interface ShippingPackagingInterface {
 	 *
 	 * @param Item $Item the Item to add to packages
 	 **/
-	public function add_item ( Item &$Item );
+	public function add_item ( $Item );
 
 	/**
 	 * packages is the packages container iterator
@@ -1398,10 +1398,11 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 *
 	 * @param Item $item the item to add to packages
 	 **/
-	public function add_item ( Item &$Item ) {
+	public function add_item ( $CartItem ) {
+		$Item = new ShippingPackageItem($CartItem, $CartItem->quantity);
 		if ( str_true($Item->packaging) )
-			do_action_ref_array('shopp_packager_add_piece', array(&$Item, &$this) );
-		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$Item, &$this) );
+			do_action_ref_array('shopp_packager_add_piece', array($Item, $this) );
+		else do_action_ref_array('shopp_packager_add_'.$this->pack, array($Item, $this) );
 	}
 
 
@@ -1464,9 +1465,9 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @since 1.2
 	 *
 	 * @param array $p packages
-	 * @param Item $Item the Item to add
+	 * @param ShippingPackageItem $Item the Item to add
 	 **/
-	public function mass_add ( &$Item, $pkgr ) {
+	public function mass_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$this->all_add($Item, $this, 'mass');
@@ -1478,16 +1479,16 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $Item Item to add
+	 * @param ShippingPackageItem $Item Item to add
 	 **/
-	public function like_add ( &$Item, $pkgr ) {
+	public function like_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$limits = array();
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
 		extract($this->options);
 		$limits = array_merge($defaults,$limits);
-		$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
+		$label = apply_filters( 'shopp_package_item_label', $Item->fingerprint, $Item->parentItem() );
 
 		// Base Case Test: Item will never fit in package
 		$package = new ShippingPackage(true, $limits);
@@ -1523,7 +1524,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 				return; // Full fit; done.
 			}
 
-			if ( is_a( $Result, 'Item') ) {
+			if ( is_object( $Result ) ) {
 				$this->like_add($Result, $this); // Partial fit; recurse to fit remainder.
 				return;
 			}
@@ -1540,22 +1541,19 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $Item Item to add
-	 * @return void Description...
+	 * @param ShippingPackageItem $Item Item to add
+	 * @param ShippingPackager $pkgr the calling packager object
+	 * @return void
 	 **/
-	public function piece_add ( &$Item, $pkgr ) {
+	public function piece_add ( $Item, $pkgr ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$count = $Item->quantity;
-
-		$piece = clone $Item;
-		$piece->quantity = 1;
-
 		for ( $i=0; $i < $count; $i++ ) {
+			$piece = new ShippingPackageItem($Item, 1);
 			$this->packages[] = $package = new ShippingPackage(true); // no limits on individual add
 			$package->add($piece);
 			$package->set_full(true);
-			unset( $piece->pos );
 		}
 	}
 
@@ -1565,11 +1563,12 @@ class ShippingPackager implements ShippingPackagingInterface {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param Item $Item Item to add
-	 * @param string $type expect dimensions, or just mass
+	 * @param ShippingPackageItem $Item Item to add
+	 * @param ShippingPackager $pkgr the calling packager object
+	 * @param string $type expect dimensions 'dims', or just mass
 	 * @return void
 	 **/
-	public function all_add ( &$Item, $pkgr, $type='dims' ) {
+	public function all_add ( $Item, $pkgr, $type='dims' ) {
 		if ( $pkgr->module != $this->module ) return; // not mine
 
 		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
@@ -1602,7 +1601,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 				return; // found full fit
 			}
 
-			if ( is_a($Result, 'Item') ) {
+			if ( is_object($Result) ) {
 				// recurse to place remainder
 				$this->all_add($Result, $this, $type);
 				return;
@@ -1725,32 +1724,46 @@ class ShippingPackage implements ShippingPackageInterface {
 	}
 
 	/**
+	 * Get dimensions array or false if no dimensions
+	 *
+	 * @author John Dillick
+	 * @since 1.2.2
+	 *
+	 * @return mixed boolean false if no dimensions, else array of package dimensions
+	 **/
+	public function dimensions () {
+		if ( ! $this->dims ) return false;
+		return array(
+			'width' => $this->w,
+			'length' => $this->l,
+			'height' => $this->h,
+		);
+	}
+
+	/**
 	*
 	* add() adds item to current package if it fits
 	*
 	* @since 1.2
-	* @return mixed true if the item was added to the package, false if no quantity will fit, Item remainder if partial add.
-	* @param Item $Item - Item object being added
-	*
+	* @param ShippingPackageItem $Item - Item object being added
+	* @return mixed boolean true if total fit, false if did not fit at all, and ShippingPackageItem remainder if parital fit.
 	**/
-	public function add( &$Item ) {
+	public function add( $Item ) {
 		$total = $Item->quantity;
 
 		if ( $fit = $this->limits( $Item ) ) { // within limits
 			// partial fit
 			if ( $fit < $total ) {
-				$Remainder = clone $Item;
-				$Remainder->quantity = $total - $fit;
+				$Remainder = new ShippingPackageItem($Item, $total - $fit);
 				unset($Remainder->pos, $Remainder->orient);
 				$Item->quantity = $fit;
 			}
 
-			$label = apply_filters( 'shopp_package_item_label', ! empty($Item->sku) ? $Item->sku : "{$Item->product}-{$Item->priceline}", $Item );
-			if ( ! empty( $this->contents[$label] ) )
-				$this->contents[$label]->quantity += $Item->quantity;
-			else $this->contents[$label] = $Item;
+			$label = apply_filters( 'shopp_package_item_label', $Item->fingerprint, $Item->parentItem() );
+			$this->contents[$label] = $Item;
+
 			$this->wt += $Item->weight * $Item->quantity;
-			$this->val += $Item->unitprice * $Item->quantity;
+			if ( false !== $Item->index ) $this->val += $Item->parentItem()->unitprice * $Item->quantity;
 			if ( $this->dims ) {
 				$this->w = max( $this->w, $Item->orient['x'] );
 				$this->l = max( $this->l, $Item->orient['y'] );
@@ -1773,14 +1786,13 @@ class ShippingPackage implements ShippingPackageInterface {
 	* limits() determines if an item will fit in the current package
 	*
 	* @since 1.2
+	* @param ShippingPackageItem $Item - Item object being added
 	* @return int quantity that fits
-	* @param Item $Item - Item object being added
-	*
 	**/
-	public function limits( &$Item ) {
+	public function limits( $Item ) {
 		if ( $this->is_full() ) return apply_filters( 'shopp_package_limit', false, $Item, $this->contents, $this->limits ); // full
 
-		list( $wtl, $wl, $hl, $ll ) = -1;
+		$wtl = $wl = $hl = $ll = -1;
 		extract($this->limits);
 
 		if ( -3 == array_sum(array($wl,$hl,$ll)) ) {
@@ -1858,9 +1870,10 @@ class ShippingPackage implements ShippingPackageInterface {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
+	 * @param ShippingPackageItem $Item the Item being reoriented
 	 * @return bool true if flipped, false if not flipped
 	 **/
-	public function orient( &$Item ) {
+	public function orient( $Item ) {
 		if ( ! $Item->width || ! $Item->length || ! $Item->height ) return false;
 
 		// setup
@@ -1904,19 +1917,7 @@ class ShippingPackage implements ShippingPackageInterface {
 	 *
 	 * @return bool true if the package has been marked full or if the weight or height limits have been met (or exceeded), else false
 	 **/
-	public function is_full () {
-		if ( $this->full ) return true;
-
-		if ( $this->dims && $wl > 0 && $hl > 0 && $ll > 0 && $this->h >= $hl ) {
-			return ($this->full = true);
-		}
-
-		if ( $wtl > 0 && $this->wt >= $wtl ) {
-			return ($this->full = true);
-		}
-
-		return ($this->full = false);
-	}
+	public function is_full () { return $this->full; }
 
 	/**
 	*
@@ -1932,31 +1933,40 @@ class ShippingPackage implements ShippingPackageInterface {
 	*
 	* width() returns the current package width
 	* @since 1.2
-	* @return float width of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float width of package, in system units
 	**/
-	public function width() { return $this->w; }
+	public function width() {
+		if ( ! $this->dims ) return false;
+		return $this->w;
+	}
 
 	/**
 	*
 	* height() returns the current package height
 	* @since 1.2
-	* @return float height of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float height of package, in system units
 	**/
-	public function height() { return $this->h; }
+	public function height() {
+		if ( ! $this->dims ) return false;
+		return $this->h;
+	}
 
 	/**
 	*
 	* length() returns the current package length
 	* @since 1.2
-	* @return float length of package, in system units
-	* @param none
 	*
+	* @param none
+	* @return mixed boolean false if package has no dimensions, float length of package, in system units
 	**/
-	public function length() { return $this->l; }
+	public function length() {
+		if ( ! $this->dims ) return false;
+		return $this->l;
+	}
 
 	/**
 	*
@@ -1979,6 +1989,65 @@ class ShippingPackage implements ShippingPackageInterface {
 	public function contents() { return $this->contents; }
 
 } // end class ShippingPackage
+
+class ShippingPackageItem {
+	public $index = false;	// Item index in Cart
+	public $fingerprint; 	// Item fingerprint
+	public $quantity;		// Item quantity
+	public $height;			// Item height
+	public $width;			// Item width
+	public $length;			// Item length
+	public $weight;			// Item weight
+	public $packaging;		// Item packaging
+	public $orient;			// Item orientation
+	public $pos;			// Item position
+
+	function __construct ( $Item, $quantity = 1 ) {
+		if ( ! is_object($Item) ) return;
+
+		// just a clone of another ShippingPackageItem
+		if ( is_a($Item, 'ShippingPackageItem') ) {
+			foreach ( get_object_vars($Item) as $key => $value ) $this->{$key} = $value;
+			$this->quantity = $quantity;
+			return; // no more information needed
+		}
+
+		// Reduced Copy from base item
+		foreach ( get_object_vars($Item) as $key => $value ) {
+			if ( ! in_array($key, array_keys(get_object_vars($this))) ) continue;
+			$this->{$key} = $value;
+		}
+
+		$this->fingerprint = 0;
+		$this->quantity = $quantity;
+
+		// Parent Item, need to gather information needed for packager
+		if ( is_a($Item, 'Item') ) {
+			$this->fingerprint = $Item->fingerprint();
+
+			// store reference index to cart contents
+			foreach ( shopp_cart_items() as $index => $CartItem ) {
+				if ( $this->fingerprint == $CartItem->fingerprint() ) {
+					$this->index = $index;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get the Item object referenced in the Cart->contents(). Note the ShippingPackageItem may contain only a portion of the quantity of the referenced Item.
+	 *
+	 * @author John Dillick
+	 * @since 1.2.2
+	 *
+	 * @return mixed boolean false if reference doesn't exist, else parent Item object
+	 **/
+	function parentItem () {
+		if ( false === $this->index ) return false;
+		return shopp_cart_item($this->index);
+	}
+}
 
 /**
  * ShippingCarrier class
