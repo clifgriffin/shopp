@@ -760,7 +760,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$id = 'order-data-'.sanitize_title_with_dashes($name);
 
 		if (in_array($type,$value_override) && !empty($data))
-			$value = $data;
+			$op['value'] = $value = $data;
+
 		switch (strtolower($type)) {
 			case "textarea":
 				return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
