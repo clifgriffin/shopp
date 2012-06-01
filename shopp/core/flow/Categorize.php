@@ -335,13 +335,8 @@ class Categorize extends AdminController {
 		$Category->load_images();
 
 		$Price = new Price();
-		$priceTypes = array(
-			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
-			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
-			array('value'=>'Download','label'=>__('Download','Shopp')),
-			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'N/A','label'=>__('N/A','Shopp'))
-		);
+		$priceTypes = Price::types();
+		$billPeriods = Price::periods();
 
 		// Build permalink for slug editor
 		$permalink = trailingslashit(shoppurl())."category/";

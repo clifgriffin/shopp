@@ -1,5 +1,5 @@
 <div class="wrap shopp">
-	
+
 	<div class="icon32"></div>
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
@@ -78,6 +78,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	worklist = <?php echo json_encode($this->categories(true)); ?>,
 	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
 	priceTypes = <?php echo json_encode($priceTypes) ?>,
+	billPeriods = <?php echo json_encode($billPeriods) ?>,
 	weightUnit = '<?php echo shopp_setting('weight_unit'); ?>',
 	dimensionUnit = '<?php echo shopp_setting('dimension_unit'); ?>',
 	dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>,
@@ -127,6 +128,11 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	SKU_XTRA = "<?php _e('Enter a unique stock keeping unit identification code.','Shopp'); ?>",
 	DONATIONS_VAR_LABEL = "<?php _e('Accept variable amounts','Shopp'); ?>",
 	DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>",
+	BILLCYCLE_LABEL = <?php _jse('Billing Cycle','Shopp'); ?>,
+	TRIAL_LABEL = <?php _jse('Trial Period','Shopp'); ?>,
+	NOTRIAL_TEXT = <?php _jse('No trial period','Shopp'); ?>,
+	TIMES_LABEL = <?php _jse('times','Shopp'); ?>,
+	MEMBERSHIP_LABEL = <?php _jse('Membership','Shopp'); ?>,
 	PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>",
 	NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download','Shopp'); ?>",
 	NO_DOWNLOAD = "<?php _e('No download file','Shopp'); ?>",
