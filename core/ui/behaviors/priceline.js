@@ -524,13 +524,13 @@ function Priceline (id,options,data,target,attachment) {
 	_.Subscription = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.recurring(data.recurring);
+		_.recurring(data.recurring);
 	};
 
 	_.Membership = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.recurring();
+		_.recurring();
 		if (!tmp) _.memberlevel();
 	};
 

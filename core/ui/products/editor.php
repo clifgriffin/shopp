@@ -17,7 +17,6 @@
 			<?php
 
 				do_action('submitpage_box');
-				do_meta_boxes(get_current_screen()->id, 'side', $Product);
 				do_meta_boxes($post_type, 'side', $Product);
 
 			?>
@@ -138,13 +137,13 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	SHIPFEE_LABEL = <?php _jse('Extra Fee','Shopp'); ?>,
 	SHIPFEE_XTRA = <?php _jse('Amount added to shipping costs for each unit ordered (for handling costs, etc)','Shopp'); ?>,
 	INVENTORY_LABEL = <?php _jse('Inventory','Shopp'); ?>,
+	NOT_TRACKED_TEXT = <?php _jse('Not Tracked','Shopp'); ?>,
+	IN_STOCK_LABEL = <?php _jse('In Stock','Shopp'); ?>,
 	BILLCYCLE_LABEL = <?php _jse('Billing Cycle','Shopp'); ?>,
 	TRIAL_LABEL = <?php _jse('Trial Period','Shopp'); ?>,
 	NOTRIAL_TEXT = <?php _jse('No trial period','Shopp'); ?>,
 	TIMES_LABEL = <?php _jse('times','Shopp'); ?>,
 	MEMBERSHIP_LABEL = <?php _jse('Membership','Shopp'); ?>,
-	NOT_TRACKED_TEXT = <?php _jse('Not Tracked','Shopp'); ?>,
-	IN_STOCK_LABEL = <?php _jse('In Stock','Shopp'); ?>,
 	OPTION_MENU_DEFAULT = <?php _jse('Option Menu','Shopp'); ?>,
 	NEW_OPTION_DEFAULT = <?php _jse('New Option','Shopp'); ?>,
 	ADDON_GROUP_DEFAULT = <?php _jse('Add-on Group','Shopp'); ?>,

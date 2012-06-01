@@ -53,7 +53,7 @@ add_meta_box(
 	'save-product',
 	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
 	'save_meta_box',
-	get_current_screen()->id,
+	Product::$posttype,
 	'side',
 	'core'
 );
