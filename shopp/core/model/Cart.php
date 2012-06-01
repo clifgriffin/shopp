@@ -143,7 +143,7 @@ class Cart {
 		switch($_REQUEST['cart']) {
 			case "add":
 				$products = array(); // List of products to add
-				if (isset($_REQUEST['product'])) $products[] = $_REQUEST['product'];
+				if (isset($_REQUEST['product'])) $products[$_REQUEST['product']] = array('product' => $_REQUEST['product']);
 				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products']))
 					$products = array_merge($products,$_REQUEST['products']);
 
