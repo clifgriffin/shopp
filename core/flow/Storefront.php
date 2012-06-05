@@ -1835,7 +1835,7 @@ class StorefrontShortcodes {
 
 		ShoppStorefront()->shortcoded[] = get_the_ID();
 
-		return $markup;
+		return apply_filters('shopp_buynow_shortcode', $markup);
 	}
 
 }
