@@ -198,7 +198,7 @@ class Service extends AdminController {
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
 		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 
-		$this->ordercount = DB::query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
+		$this->ordercount = DB::query("SELECT count(*) as total,SUM(IF(txnstatus IN ('authorized','captured'),total,0)) AS sales,AVG(IF(txnstatus IN ('authorized','captured'),total,0)) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
 		$this->orders = DB::query($query,'array','index','id');
 
