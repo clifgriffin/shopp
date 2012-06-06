@@ -161,6 +161,9 @@ class Order {
 	 * @return void
 	 **/
 	function payoptions () {
+
+		if ('FreeOrder' == $this->processor) return;
+
 		global $Shopp;
 		$Gateways = $Shopp->Gateways;
 		$accepted = array();
@@ -195,6 +198,9 @@ class Order {
 
 		$this->paycards = $accepted;
 		$this->payoptions = $options;
+
+		$processors = array_keys($this->payoptions);
+		$processors[] = 'FreeOrder'; // Include FreeOrder in list of available payment systems
 
 		// Setup default payment method if the current is not found in the active gateways or payment options
 		if ( false == $processor || !in_array($this->paymethod,array_keys($this->payoptions))) {
@@ -662,8 +668,8 @@ class Order {
 	function freebie ($free) {
 		// if (!$free) return $free;
 
-		$this->gateway = 'FreeOrder';
-		$this->processor($this->gateway);
+		$this->processor = 'FreeOrder';
+		$this->processor($this->processor);
 		$this->Billing->cardtype = __('Free Order','Shopp');
 
 		return true;
