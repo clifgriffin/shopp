@@ -164,7 +164,7 @@ class Lookup {
 		$_['GR'] = array('name'=>__('Greece','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['GL'] = array('name'=>__('Greenland','Shopp'),'currency'=>array('code'=>'DKK','format'=>'kr#.###,##'),'units'=>'metric','region'=>1);
 		$_['GD'] = array('name'=>__('Grenada','Shopp'),'currency'=>array('code'=>'XCD','format'=>'EC$#,###.##'),'units'=>'metric','region'=>2);
-		$_['GP'] = array('name'=>__('Guadeloupe','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
+		$_['GP'] = array('name'=>__('Guadeloupe','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>0);
 		$_['GU'] = array('name'=>__('Guam','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
 		$_['GT'] = array('name'=>__('Guatemala','Shopp'),'currency'=>array('code'=>'GTQ','format'=>'Q#,###.##'),'units'=>'metric','region'=>1);
 		$_['GG'] = array('name'=>__('Guernsey','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3);
