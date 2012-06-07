@@ -979,6 +979,13 @@ class ShoppInstallation extends FlowController {
 			DB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
 		}
 
+		if ($db_version <= 1149) {
+			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
+			if ('mass' == shopp_setting('shipping_packaging'))
+				shopp_set_setting('shipping_packaging','all');
+		}
+
+
 	}
 
 	/**
