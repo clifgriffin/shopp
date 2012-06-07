@@ -1,5 +1,5 @@
 /*!
- * account.js - Description
+ * address.js - Description
  * Copyright © 2012 by Ingenesis Limited. All rights reserved.
  * Licensed under the GPLv3 {@see license.txt}
  */
