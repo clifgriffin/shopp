@@ -1420,7 +1420,7 @@ class BestsellerProducts extends SmartCollection {
 			$purchased = DatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
-			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) BETWEEN $start AND $end");
+			$this->loading['where'] = array("pur.created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'");
 			$this->loading['orderby'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {
