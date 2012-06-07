@@ -589,8 +589,8 @@ class Storefront extends FlowController {
 		}
 
 		if ('checkout' == $page) {
-			shopp_enqueue_script('checkout');
 			shopp_enqueue_script('address');
+			shopp_enqueue_script('checkout');
 		}
 		if ('account' == $page) {
 			shopp_enqueue_script('address');
@@ -598,7 +598,6 @@ class Storefront extends FlowController {
 			$js = "var regions=".json_encode($regions);
 			add_storefrontjs($js,true);
 		}
-
 
 	}
 
