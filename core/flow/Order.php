@@ -264,7 +264,8 @@ class Order {
 		// No valid payoptions for the selected payment method, bail
 		if ( ! isset($this->payoptions[$this->paymethod]) ) {
 			$this->paymethod = false;
-			new ShoppError(Lookup::errors('gateway','nogateways'));
+			// Only show error after checkout form is submitted
+			if (isset($_POST['checkout'])) new ShoppError(Lookup::errors('gateway','nogateways'));
 			return false;
 		}
 
