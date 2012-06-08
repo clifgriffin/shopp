@@ -1255,6 +1255,8 @@ class CartShipping {
 			if (empty($this->options)) return false; // Still no rates, bail
 		}
 
+		uksort($this->options,array('self','sort'));
+
 		// Determine the lowest cost estimate
 		$estimate = false;
 		foreach ($this->options as $name => $option) {
@@ -1269,6 +1271,7 @@ class CartShipping {
 			if (!$estimate || $option->amount < $estimate->amount)
 				$estimate = $option;
 		}
+
 
 		// Always return the selected shipping option if a valid/available method has been set
 		if (empty($this->Shipping->method) || !isset($this->options[$this->Shipping->method])) {
@@ -1312,6 +1315,11 @@ class CartShipping {
 			return $this->Cart->shipping[$this->Shipping->method]->amount;
 		$method = current($this->Cart->shipping);
 		return $method->amount;
+	}
+
+	static function sort ($a,$b) {
+		if ($a->amount == $b->amount) return 0;
+		return ($a->amount < $b->amount) ? -1 : 1;
 	}
 
 } // END class CartShipping
