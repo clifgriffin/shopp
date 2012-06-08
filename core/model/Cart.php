@@ -531,6 +531,8 @@ class Cart {
 		if (!$this->shipped()) $this->freeshipping = false;
 
 		foreach ($this->contents as $key => $Item) {
+			// Reinitialize item discount amounts
+			$Item->discount = 0;
 			$Item->retotal();
 
 			// Build item checksum strings
@@ -539,8 +541,6 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
-			// Reinitialize item discount amounts
-			$Item->discount = 0;
 
 			// Item does not have free shipping,
 			// so the cart shouldn't have free shipping
