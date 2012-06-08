@@ -115,7 +115,7 @@ class ShoppTMCELoader {
 		if (is_int($path)) return !($error = self::errors($path));
 		$wpadmin = $path.'wp-admin/admin.php';
 		if (!file_exists($wpadmin)) return !($error = self::errors(2));
-		define('WP_ADMIN',false);
+		define('WP_ADMIN',true);
 		return $wpadmin;
 	}
 
