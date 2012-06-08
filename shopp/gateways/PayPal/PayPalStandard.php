@@ -499,8 +499,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				$_['p1']	= $trial['interval'];
 				$_['t1']	= $trial['period'];
 			}
-
-			$_['a3']	= $this->amount($Item->unitprice);
+			$_['a3']	= $this->amount($Item->subprice);
 			$_['p3']	= $recurring['interval'];
 			$_['t3']	= $recurring['period'];
 
@@ -706,8 +705,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$txnstatus = $_POST['payment_status'];
 		if ( $txnstatus && isset($this->events[$txnstatus]) )
 			$event = $this->events[$txnstatus];
-
-
 
 		// No transaction target: invalid IPN, silently ignore the message
 		if ( ! $txnid ) {
