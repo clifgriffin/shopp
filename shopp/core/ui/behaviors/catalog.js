@@ -349,7 +349,7 @@ function validate (form) {
 		required = 'required',
 		title = 'title';
 
-	$.fn.reverse = [].reverse;
+	$.fn.reverse = (typeof []._reverse == 'undefined') ? [].reverse : []._reverse; // For Prototype-compatibility #1854
 
 	$.each(inputs.reverse(),function (id,field) {
 		input = $(field).removeClass('error');
