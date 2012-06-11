@@ -156,6 +156,9 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function checkout () {
+		// because shopp_process_free_order occurs after shopp_checkout_processed
+		// we do not want to redirect if the order is free at shopp_checkout_processed
+		if ( $this->Order->Cart->orderisfree() ) return;
 
 		$response = $this->SetExpressCheckout();
 		shopp_redirect(add_query_arg('token',$response->token,$this->url()));
