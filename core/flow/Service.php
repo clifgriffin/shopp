@@ -203,7 +203,6 @@ class Service extends AdminController {
 
 		$this->ordercount = DB::query("SELECT count(*) as total,SUM(IF(txnstatus IN ('authorized','captured'),total,0)) AS sales,AVG(IF(txnstatus IN ('authorized','captured'),total,0)) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
-		echo BR.BR.BR.$query;
 
 		$this->orders = DB::query($query,'array','index','id');
 
