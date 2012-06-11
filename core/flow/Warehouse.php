@@ -544,7 +544,6 @@ class Warehouse extends AdminController {
 				'price'=>__('Price','Shopp'),
 				'inventory'=>__('Inventory','Shopp'),
 				'featured'=>__('Featured','Shopp'),
-				'test' => 'Test',
 				'date'=>__('Date','Shopp')
 			),
 			'inventory' => array(
