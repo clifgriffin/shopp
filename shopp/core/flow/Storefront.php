@@ -151,11 +151,8 @@ class Storefront extends FlowController {
 	 **/
 	function posts ($posts, $wp_query) {
 		if ( $this->request($wp_query) ) {
-			$stub = new WPDatabaseObject();
-			$stub->init('posts');
-			$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
-			$stub->comment_status = 'closed'; // Force comments closed
-			return array($stub);
+			$StubPage = new StorefrontPage();
+			return array($StubPage->poststub());
 		}
 
 		if (count($posts) == 1) { // @deprecated Legacy support to redirect old shortcode pages
