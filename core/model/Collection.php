@@ -760,7 +760,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function filters () {
 		if ('off' == $this->facetedmenus) return;
@@ -768,14 +768,13 @@ class ProductCategory extends ProductTaxonomy {
 		if (!$Storefront) return;
 
 		if (!empty($this->facets)) return;
+		$specs = $this->specs;
 
 		$this->facets = array();
 		if (isset($Storefront->browsing[$this->slug]))
 			$this->filters = $Storefront->browsing[$this->slug];
 
-		$specs = array();
 		if ('disabled' != $this->pricerange) {
-			$specs = $this->specs;
 			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'slug'=> 'price','facetedmenu' => $this->pricerange));
 		}
 
@@ -873,7 +872,6 @@ class ProductCategory extends ProductTaxonomy {
 		if ('off' == $this->facetedmenus) return;
 		$output = '';
 		$this->filters();
-
 		$Storefront = ShoppStorefront();
 		if (!$Storefront) return;
 		$CategoryFilters =& $Storefront->browsing[$this->slug];
@@ -1420,7 +1418,7 @@ class BestsellerProducts extends SmartCollection {
 			$purchased = DatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
-			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) BETWEEN $start AND $end");
+			$this->loading['where'] = array("pur.created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'");
 			$this->loading['orderby'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {

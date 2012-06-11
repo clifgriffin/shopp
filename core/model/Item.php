@@ -33,6 +33,7 @@ class Item {
 	var $unitprice = 0;			// Per unit price
 	var $priced = 0;			// Per unit price after discounts are applied
 	var $totald = 0;			// Total price after discounts
+	var $subprice = 0;			// Regular price for subscription payments
 	var $unittax = 0;			// Per unit tax amount
 	var $pricedtax = 0;			// Per unit tax amount after discounts are applied
 	var $tax = 0;				// Sum of the per unit tax amount for the line item
@@ -166,10 +167,13 @@ class Item {
 		$this->data = stripslashes_deep(esc_attrs($data));
 
 		// Handle Recurrences
-		$this->recurrences();
-		if ( $this->is_recurring() && $this->has_trial() ) {
-			$trial = $this->trial();
-			$this->unitprice = $trial['price'];
+		if ($this->has_recurring()) {
+			$this->subprice = $this->unitprice;
+			$this->recurrences();
+			if ( $this->is_recurring() && $this->has_trial() ) {
+				$trial = $this->trial();
+				$this->unitprice = $trial['price'];
+			}
 		}
 
 		// Map out the selected menu name and option
@@ -467,8 +471,7 @@ class Item {
 		if (empty($this->option->recurring)) return;
 
 		// if free subscription, don't process as subscription
-		if ( 0 == $this->unitprice ) return;
-
+		if ( 0 == $this->option->promoprice ) return;
 		extract($this->option->recurring);
 
 		$term_labels = array(
@@ -528,7 +531,7 @@ class Item {
 
 		// pick singular or plural translation
 		$subscription_label = translate_nooped_plural($subscription_label, $interval);
-		$subscription_label = sprintf($subscription_label, money($this->unitprice), $interval);
+		$subscription_label = sprintf($subscription_label, money($this->subprice), $interval);
 
 		// pick rebilling label and translate if plurals
 		$rebill_label = sprintf(translate_nooped_plural($rebill_labels[1], $cycles, 'Shopp'), $cycles);
@@ -660,6 +663,10 @@ class Item {
 	function is_recurring () {
 		$recurring = ($this->recurring && ! empty($this->option) && ! empty($this->option->recurring));
 		return apply_filters('shopp_cartitem_recurring', $recurring, $this);
+	}
+
+	function has_recurring () {
+		return (! empty($this->option) && ! empty($this->option->recurring));
 	}
 
 	/**
@@ -798,6 +805,15 @@ class Item {
 
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
 		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
+
+		if ($this->is_recurring()) {
+			$this->subprice = $this->priced;
+			if ($this->has_trial()) {
+				$this->subprice = ($this->option->promoprice-$this->discount);
+				$this->discounts = 0;
+				$this->recurrences();
+			}
+		}
 
 		do_action('shopp_cart_item_retotal',$this);
 

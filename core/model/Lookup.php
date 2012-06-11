@@ -248,7 +248,7 @@ class Lookup {
 		$_['PL'] = array('name'=>__('Poland','Shopp'),'currency'=>array('code'=>'PLN','format'=>'#.###,## zł'),'units'=>'metric','region'=>3);
 		$_['PT'] = array('name'=>__('Portugal','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['PR'] = array('name'=>__('Puerto Rico','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0);
-		$_['QA'] = array('name'=>__('Qatar','Shopp'),'currency'=>array('code'=>'QAR','format'=>'####,## ر.ق'),'units'=>'metric','region'=>5);
+		$_['QA'] = array('name'=>__('Qatar','Shopp'),'currency'=>array('code'=>'QAR','format'=>'####,## ر.ق'),'units'=>'metric','region'=>4);
 		$_['RE'] = array('name'=>__('Réunion','Shopp'),'currency'=>array('code'=>'','format'=>'# ###,## €'),'units'=>'metric','region'=>5);
 		$_['RO'] = array('name'=>__('Romania','Shopp'),'currency'=>array('code'=>'ROL','format'=>'#.###,## lei'),'units'=>'metric','region'=>3);
 		$_['RU'] = array('name'=>__('Russia','Shopp'),'currency'=>array('code'=>'RUB','format'=>'# ###,## руб'),'units'=>'metric','region'=>6);
@@ -712,7 +712,7 @@ class Lookup {
 		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post','Shopp'),'http://www.nzpost.co.nz/','NZ','http://www.nzpost.co.nz/tools/tracking-new?trackid=%s','/[A-Z]{2}\d{9}[A-Z]{2}/i');
 
 		// Global carriers - don't translate global carrier brand names
-		$_['ups'] = new ShippingCarrier('UPS','http://ups.com/','*','http://forwarding.ups-scs.com/tracking/trackformaction.asp?optTYPE=SHIPNUM&PRO1=%s','/^(1Z[0-9A-Z]{16}|[\dT]\d{10})$/');
+		$_['ups'] = new ShippingCarrier('UPS','http://ups.com/','*','http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums=%s','/^(1Z[0-9A-Z]{16}|[\dT]\d{10})$/');
 		$_['fedex'] = new ShippingCarrier('FedEx','http://fedex.com/','*','http://www.fedex.com/Tracking?tracknumbers=%s','/^(\d{12}|\d{15}|96\d{20}|96\d{17}|96\d{13}|96\d{10})$/');
 		$_['aramex'] = new ShippingCarrier('Aramex','http://aramex.com/','*','http://www.aramex.com/express/track_results_multiple.aspx?ShipmentNumber=%s','/\d{10}/');
 		$_['dhl'] = new ShippingCarrier('DHL','http://www.dhl.com/','*','http://track.dhl-usa.com/TrackByNbr.asp?ShipmentNumber=%s','/^([A-Z]{3}\d{7}|[A-Z]{5}\d{7})/');
