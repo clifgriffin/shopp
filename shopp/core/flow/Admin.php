@@ -559,11 +559,18 @@ class AdminFlow extends FlowController {
 		// Include authorizations, captures and old 1.1 tranaction status CHARGED in sales data
 		$salestatus = array("'authed'","'captured'","'CHARGED'");
 
-		$results = DB::query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
-		 						SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,1,0)) AS wkorders,
-								SUM(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,0)) AS wksales,
-								AVG(IF(UNIX_TIMESTAMP(created) BETWEEN $start AND $end,total,null)) AS wkavg
-		 						FROM $purchasetable WHERE txnstatus IN (".join(',',$salestatus).")");
+		$txnstatus = "txnstatus IN (".join(',',$salestatus).")";
+		$daterange = "created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'";
+
+		$query = "SELECT count(id) AS orders,
+						SUM(total) AS sales,
+						AVG(total) AS average,
+		 				SUM(IF($daterange,1,0)) AS wkorders,
+						SUM(IF($daterange,total,0)) AS wksales,
+						AVG(IF($daterange,total,null)) AS wkavg
+ 					FROM $purchasetable WHERE $txnstatus";
+
+		$results = DB::query($query);
 
 		$RecentBestsellers = new BestsellerProducts(array('range' => array($start,$end),'show'=>5));
 		$RecentBestsellers->load(array('pagination'=>false));

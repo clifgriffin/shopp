@@ -240,6 +240,8 @@ class Purchase extends DatabaseObject {
 			if ($Purchase->captured) $txnstatus = false; // If previously captured, don't mark voided
 		}
 
+		if ( 'shipped' == $txnstatus) $txnstatus = false; // 'shipped' is not a valid txnstatus
+
 		// Set order workflow status from status label mapping
 		$labels = (array)shopp_setting('order_status');
 		$events = (array)shopp_setting('order_states');

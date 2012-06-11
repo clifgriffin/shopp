@@ -188,12 +188,15 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			$options['selected'] = $O->Billing->cardtype;
 
 		$cards = array();
-		foreach ($O->paycards as $paycard)
+		foreach ($O->paycards as $paycard) {
+			// Convert full card type names to card type symbols
+			if ($options['selected'] == $paycard->name) $options['selected'] = $paycard->symbol;
 			$cards[$paycard->symbol] = $paycard->name;
+		}
 
 		$label = (!empty($options['label']))?$options['label']:'';
 		$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
-		$output .= '<option value="" selected="selected">'.$label.'</option>';
+		$output .= '<option value="">'.$label.'</option>';
 	 	$output .= menuoptions($cards,$options['selected'],true);
 		$output .= '</select>';
 
@@ -760,7 +763,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$id = 'order-data-'.sanitize_title_with_dashes($name);
 
 		if (in_array($type,$value_override) && !empty($data))
-			$value = $data;
+			$op['value'] = $value = $data;
+
 		switch (strtolower($type)) {
 			case "textarea":
 				return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';

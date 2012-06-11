@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.3dev
+Version: 1.2.2dev
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.3dev');
+	define('SHOPP_VERSION','1.2.2dev');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
@@ -380,6 +380,7 @@ class Shopp {
 		$baseop = shopp_setting('base_operations');
 
 		$currency = array();
+		$base = array();
 		if (isset($baseop['currency']['format']['decimals'])) {
 			$settings = &$baseop['currency']['format'];
 			$currency = array(
@@ -390,7 +391,6 @@ class Shopp {
 				't' =>  $settings['thousands'],
 				'd' =>  $settings['decimals']
 			);
-
 			if (isset($settings['grouping']))
 				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 

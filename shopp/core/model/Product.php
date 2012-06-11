@@ -209,7 +209,8 @@ class Product extends WPShoppObject {
 			$Object->prices = $this->priceid;
 			$Object->products = ( isset($this->products) && !empty($this->products) )?$this->products:$this;
 			$ObjectMeta = new ObjectMeta();
-			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
+			// Sort by sort order then by the modified timestamp so the most recent changes are last and become the authoritative record
+			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
 
 		// Load product sales counts

@@ -524,13 +524,13 @@ function Priceline (id,options,data,target,attachment) {
 	_.Subscription = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.recurring(data.recurring);
+		_.recurring(data.recurring);
 	};
 
 	_.Membership = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		if (!tmp) _.recurring();
+		_.recurring();
 		if (!tmp) _.memberlevel();
 	};
 
@@ -649,7 +649,9 @@ function Priceline (id,options,data,target,attachment) {
 		_.inputs = new Array(
 			type,_.p,_.t,_.spt,_.sp,_.dv,_.dm,
 			_.st,_.w,_.dw,_.dl,_.dwd,_.dh,_.fee,
-			_.it,_.stock,_.sku);
+			_.it,_.stock,_.sku,_.period,_.interval,
+			_.cycles,_.trialperiod,_.trialint,
+			_.trialprice,_.trial);
 
 	_.updateKey();
 	_.updateLabel();
