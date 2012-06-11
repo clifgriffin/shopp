@@ -99,6 +99,25 @@ class Cart {
 
 		if (isset($_REQUEST['shopping'])) shopp_redirect(shoppurl());
 
+		// @todo Replace with full CartItem/Purchased syncing after order submission
+		if ( ShoppOrder()->inprogress ) {
+
+			// This is a temporary measure for 1.2.1 to prevent changes to the order after an order has been
+			// submitted for processing. It prevents situations where items in the cart are added, removed or changed
+			// but are not recorded in Purchased item records for the Purchase. We try to give the customer options in the
+			// error message to either fix errors in the checkout form to complete the order as is, or start a new order.
+			// This is a interim attempt to reduce abandonment in a very unlikely situation to begin with.
+
+			new ShoppError(sprintf(
+				__('The shopping cart cannot be changed because it has already been submitted for processing. Please correct problems in %1$scheckout%3$s or %2$sstart a new order%3$s.','Shopp'),
+				'<a href="'.shopp('checkout','get-url').'">',
+				'<a href="'.add_query_arg('shopping','reset',shopp('storefront','get-url')).'">',
+				'</a>'
+			),'order_inprogress',SHOPP_ERR);
+			return false;
+		}
+
+
 		if (isset($_REQUEST['shipping'])) {
 			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
 				$_REQUEST['shipping']['postcode'] = esc_attr($_REQUEST['shipping']['postcode']);
@@ -124,7 +143,7 @@ class Cart {
 		switch($_REQUEST['cart']) {
 			case "add":
 				$products = array(); // List of products to add
-				if (isset($_REQUEST['product'])) $products[] = $_REQUEST['product'];
+				if (isset($_REQUEST['product'])) $products[$_REQUEST['product']] = array('product' => $_REQUEST['product']);
 				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products']))
 					$products = array_merge($products,$_REQUEST['products']);
 
@@ -512,6 +531,8 @@ class Cart {
 		if (!$this->shipped()) $this->freeshipping = false;
 
 		foreach ($this->contents as $key => $Item) {
+			// Reinitialize item discount amounts
+			$Item->discount = 0;
 			$Item->retotal();
 
 			// Build item checksum strings
@@ -520,8 +541,6 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
-			// Reinitialize item discount amounts
-			$Item->discount = 0;
 
 			// Item does not have free shipping,
 			// so the cart shouldn't have free shipping
@@ -1236,6 +1255,8 @@ class CartShipping {
 			if (empty($this->options)) return false; // Still no rates, bail
 		}
 
+		uksort($this->options,array('self','sort'));
+
 		// Determine the lowest cost estimate
 		$estimate = false;
 		foreach ($this->options as $name => $option) {
@@ -1250,6 +1271,7 @@ class CartShipping {
 			if (!$estimate || $option->amount < $estimate->amount)
 				$estimate = $option;
 		}
+
 
 		// Always return the selected shipping option if a valid/available method has been set
 		if (empty($this->Shipping->method) || !isset($this->options[$this->Shipping->method])) {
@@ -1293,6 +1315,11 @@ class CartShipping {
 			return $this->Cart->shipping[$this->Shipping->method]->amount;
 		$method = current($this->Cart->shipping);
 		return $method->amount;
+	}
+
+	static function sort ($a,$b) {
+		if ($a->amount == $b->amount) return 0;
+		return ($a->amount < $b->amount) ? -1 : 1;
 	}
 
 } // END class CartShipping

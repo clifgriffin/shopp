@@ -151,11 +151,8 @@ class Storefront extends FlowController {
 	 **/
 	function posts ($posts, $wp_query) {
 		if ( $this->request($wp_query) ) {
-			$stub = new WPDatabaseObject();
-			$stub->init('posts');
-			$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
-			$stub->comment_status = 'closed'; // Force comments closed
-			return array($stub);
+			$StubPage = new StorefrontPage();
+			return array($StubPage->poststub());
 		}
 
 		if (count($posts) == 1) { // @deprecated Legacy support to redirect old shortcode pages
@@ -589,8 +586,8 @@ class Storefront extends FlowController {
 		}
 
 		if ('checkout' == $page) {
-			shopp_enqueue_script('checkout');
 			shopp_enqueue_script('address');
+			shopp_enqueue_script('checkout');
 		}
 		if ('account' == $page) {
 			shopp_enqueue_script('address');
@@ -598,7 +595,6 @@ class Storefront extends FlowController {
 			$js = "var regions=".json_encode($regions);
 			add_storefrontjs($js,true);
 		}
-
 
 	}
 
@@ -1835,7 +1831,7 @@ class StorefrontShortcodes {
 
 		ShoppStorefront()->shortcoded[] = get_the_ID();
 
-        return apply_filters('shopp_buynow_shortcode', $markup);
+		return apply_filters('shopp_buynow_shortcode', $markup);
 	}
 
 }

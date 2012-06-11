@@ -151,6 +151,8 @@ class Service extends AdminController {
 
 		$Purchase = new Purchase();
 
+		$offset = get_option( 'gmt_offset' ) * 3600;
+
 		if (!empty($start)) {
 			$startdate = $start;
 			list($month,$day,$year) = explode("/",$startdate);
@@ -194,12 +196,15 @@ class Service extends AdminController {
 				 $where[] = "email='".DB::escape($s)."'";
 			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
 		}
-		if (!empty($starts) && !empty($ends)) $where[] = '(UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
+		if (!empty($starts) && !empty($ends)) $where[] = "created BETWEEN '".DB::mkdatetime($starts)."' AND '".DB::mkdatetime($ends)."'";
+
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
 		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 
-		$this->ordercount = DB::query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
+		$this->ordercount = DB::query("SELECT count(*) as total,SUM(IF(txnstatus IN ('authorized','captured'),total,0)) AS sales,AVG(IF(txnstatus IN ('authorized','captured'),total,0)) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
+		echo BR.BR.BR.$query;
+
 		$this->orders = DB::query($query,'array','index','id');
 
 		$num_pages = ceil($this->ordercount->total / $per_page);
