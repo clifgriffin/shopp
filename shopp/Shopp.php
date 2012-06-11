@@ -380,6 +380,7 @@ class Shopp {
 		$baseop = shopp_setting('base_operations');
 
 		$currency = array();
+		$base = array();
 		if (isset($baseop['currency']['format']['decimals'])) {
 			$settings = &$baseop['currency']['format'];
 			$currency = array(
@@ -390,7 +391,6 @@ class Shopp {
 				't' =>  $settings['thousands'],
 				'd' =>  $settings['decimals']
 			);
-
 			if (isset($settings['grouping']))
 				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 
