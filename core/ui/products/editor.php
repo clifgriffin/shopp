@@ -18,7 +18,6 @@
 
 				do_action('submitpage_box');
 				do_meta_boxes($post_type, 'side', $Product);
-				do_meta_boxes($post_type, 'side', $Product);
 
 			?>
 			</div>
