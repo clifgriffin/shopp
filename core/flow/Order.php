@@ -464,6 +464,8 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
+		// If using shopp_checkout_processed for a payment gateway redirect action
+		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
 		do_action('shopp_checkout_processed');
 
 		// Catch originally free orders that get extra (shipping) costs added to them
