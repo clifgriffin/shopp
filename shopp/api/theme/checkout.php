@@ -814,13 +814,15 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		if (empty($options['value'])) $options['value'] = key($O->payoptions);
 
 		$_ = array();
-		if (value_is_true($labeling))
-			$_[] = '<label>';
-		if ($labelpos == "before") $_[] = $payoption->label;
-		$_[] = '<input type="'.$type.'" name="paymethod"'.inputattrs($options).' />';
-		if ($labelpos == "after") $_[] = $payoption->label;
-		if (value_is_true($labeling))
+		if (str_true($labeling)) {
+			$_[] = '<label class="'.esc_attr($options['value']).'">';
+			if ($labelpos == "before") $_[] = $payoption->label;
+		}
+		$_[] = '<input type="'.$type.'" name="paymethod" id="paymethod-'.esc_attr($options['value']).'"'.inputattrs($options).' />';
+		if (str_true($labeling)) {
+			if ($labelpos == "after") $_[] = $payoption->label;
 			$_[] = '</label>';
+		}
 
 		return join("",$_);
 	}
