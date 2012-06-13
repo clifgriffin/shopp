@@ -670,7 +670,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
-		if (empty($type) || !in_array($type,array('menu','textarea')) || !valid_input($options['type']) ) $type = $defaults['type'];
+		if (empty($type) || (!in_array($type,array('menu','textarea')) && !valid_input($options['type'])) ) $type = $defaults['type'];
 
 		if (empty($name)) return '';
 		$slug = sanitize_title_with_dashes($name);
