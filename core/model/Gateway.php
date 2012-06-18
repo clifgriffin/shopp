@@ -115,10 +115,7 @@ abstract class GatewayFramework {
 
 		$this->_loadcards();
 
-		// @deprecated
-		if ($this->myorder() && method_exists($this,'actions'))
-			$this->actions();
-
+		add_action('shopp_init',array($this,'myactions'),30);
 		$gateway = sanitize_key($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
 
@@ -126,6 +123,11 @@ abstract class GatewayFramework {
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "auth";'));
 		elseif ($this->saleonly)
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "sale";'));
+	}
+
+	function myactions () {
+		if ($this->myorder() && method_exists($this,'actions'))
+			$this->actions();
 	}
 
 	/**
