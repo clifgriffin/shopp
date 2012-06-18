@@ -97,6 +97,9 @@ class Order {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
 		$this->validated = false; // Reset the order validation flag
 
+		add_action('shopp_init',array($this,'updates'),20);
+		add_action('parse_request',array($this,'request'));
+
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
@@ -136,6 +139,11 @@ class Order {
 		// Schedule for after the gateways are loaded (priority 20)
 		add_action('shopp_init',array($this,'processor'),20);
 
+		// Handle remote transaction processing (priority 20)
+		// Needs to happen after the processor is selected in the session,
+		// but before gateway-order specific handlers are established
+		add_action('shopp_init',array($this,'remote'),20);
+
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
@@ -150,6 +158,52 @@ class Order {
 
 		remove_action('shopp_process_order', array($this,'validate'),7);
 		remove_action('shopp_process_order', array($this,'submit'),100);
+	}
+
+	/**
+	 * Handles remote transaction update request flow control
+	 *
+	 * Moved from the Flow class in 1.2.3
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.3
+	 *
+	 * @return void
+	 **/
+	function remote () {
+
+		add_action('shopp_txn_update',create_function('',"status_header('200'); exit();"),101); // Default shopp_txn_update requests to HTTP status 200
+
+		if ( ! empty($_REQUEST['_txnupdate']) )
+			return do_action('shopp_txn_update');
+
+		if ( ! empty($_REQUEST['rmtpay']) )
+			return do_action('shopp_remote_payment');
+
+	}
+
+	/**
+	 * Handles checkout request flow control
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.3
+	 *
+	 * @return void
+	 **/
+	function request () {
+
+		if ( array_key_exists('checkout',$_POST) ) {
+
+			$checkout = strtolower($_POST['checkout']);
+			if ('process' == $checkout) 		do_action('shopp_process_checkout');
+			elseif ('confirmed' == $checkout)	do_action('shopp_confirm_order');
+
+		} elseif ( array_key_exists('shipmethod',$_POST) ) {
+
+			do_action('shopp_process_shipmethod');
+
+		}
+
 	}
 
 	/**

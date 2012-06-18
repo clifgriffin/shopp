@@ -155,7 +155,11 @@ abstract class GatewayFramework {
 	 *
 	 * @return boolean
 	 **/
-	function myorder () {
+	function myorder ($mine=false) {
+		if (true === $mine) {
+			$this->Order->processor($this->module);
+			return true;
+		}
 		return ($this->Order->processor() == $this->module);
 	}
 
