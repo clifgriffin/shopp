@@ -1397,7 +1397,7 @@ class OnSaleProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('On Sale','Shopp');
-		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.modified DESC');
+		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.post_modified DESC');
 	}
 
 }
