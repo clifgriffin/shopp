@@ -258,8 +258,9 @@ function slideshows () {
  * Generate a carousel (looping slider) of images
  **/
 function ShoppCarousel (element,duration) {
-	var $ = jqnc(),visible,spacing,
+	var $ = jqnc(),spacing,
 		_ = this,
+		visible=1,
 		carousel = $(element),
 		list = carousel.find('ul'),
 		items = list.find('> li');
@@ -267,7 +268,8 @@ function ShoppCarousel (element,duration) {
 	_.duration = (!duration)?800:duration;
 	_.cframe = carousel.find('div.frame');
 
-	visible = Math.floor(_.cframe.innerWidth() / items.outerWidth());
+	visible = Math.round(_.cframe.innerWidth() / items.outerWidth());
+	if (visible < 1) visible = 1;
 	spacing = Math.round(((_.cframe.innerWidth() % items.outerWidth())/items.length)/2);
 
 	items.css('margin','0 '+spacing+'px');
@@ -278,7 +280,11 @@ function ShoppCarousel (element,duration) {
 
 	// Fill in empty slots
 	if ((items.length % visible) != 0) {
-		list.append( new Array(visible - (items.length % visible)+1).join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>') );
+		debuglog(visible - (items.length % visible)+1);
+		list.append(
+			new Array(visible - (items.length % visible)+1)
+				.join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>')
+		);
 		items = list.find('> li');
 	}
 
