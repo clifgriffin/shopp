@@ -142,7 +142,7 @@ class Order {
 		// Handle remote transaction processing (priority 20)
 		// Needs to happen after the processor is selected in the session,
 		// but before gateway-order specific handlers are established
-		add_action('shopp_init',array($this,'remote'),20);
+		add_action('shopp_init',array($this,'txnupdates'),20);
 
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -170,15 +170,12 @@ class Order {
 	 *
 	 * @return void
 	 **/
-	function remote () {
+	function txnupdates () {
 
 		add_action('shopp_txn_update',create_function('',"status_header('200'); exit();"),101); // Default shopp_txn_update requests to HTTP status 200
 
 		if ( ! empty($_REQUEST['_txnupdate']) )
 			return do_action('shopp_txn_update');
-
-		if ( ! empty($_REQUEST['rmtpay']) )
-			return do_action('shopp_remote_payment');
 
 	}
 
@@ -191,6 +188,9 @@ class Order {
 	 * @return void
 	 **/
 	function request () {
+
+		if ( ! empty($_REQUEST['rmtpay']) )
+			return do_action('shopp_remote_payment');
 
 		if ( array_key_exists('checkout',$_POST) ) {
 
