@@ -280,11 +280,7 @@ function ShoppCarousel (element,duration) {
 
 	// Fill in empty slots
 	if ((items.length % visible) != 0) {
-		debuglog(visible - (items.length % visible)+1);
-		list.append(
-			new Array(visible - (items.length % visible)+1)
-				.join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>')
-		);
+		list.append( new Array(visible - (items.length % visible)+1).join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>') );
 		items = list.find('> li');
 	}
 
