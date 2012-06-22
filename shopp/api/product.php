@@ -1802,8 +1802,16 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		if ( isset($settings['fee']) ) $Price->shipfee = $settings['fee'];
 	}
 
-	if ( $save ) return $Price->save();
-	return $Price;
+	if ( $save === false ) return false;
+
+	// If the price updates successfully then update the dimensions also
+	if ( ($price = $Price->save()) !== false ) {
+		if ( ! empty($Price->settings) ) {
+			shopp_set_meta ( $variant, 'price', 'settings', $Price->settings );
+		}
+	}
+
+	return $price;
 }
 
 /**
