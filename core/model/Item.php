@@ -147,7 +147,7 @@ class Item {
 
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
-		$this->sale = str_true($Price->sale);
+		$this->sale = str_true($Product->sale);
 		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
 
 		$baseprice = ( $this->sale ? $Price->promoprice : $Price->price );
