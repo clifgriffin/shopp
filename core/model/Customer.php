@@ -323,7 +323,7 @@ class Customer extends DatabaseObject {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 		}
 
-		add_action('shopp_customer_update',$this);
+		do_action('shopp_customer_update',$this);
 
 		$this->save();
 		$this->load_info();
