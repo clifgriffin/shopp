@@ -199,7 +199,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$response = $this->DoExpressCheckoutPayment();
 		$status = $this->status[ $response->paymentinfo_0_paymentstatus ];
-
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." response: "._object_r($response),false,SHOPP_DEBUG_ERR);
 		new ShoppError("PayPal Express DoExpressCheckoutPayment STATUS: $response->paymentinfo_0_paymentstatus = $status",false,SHOPP_DEBUG_ERR);
 
 		$txnid = $response->paymentinfo_0_transactionid;
@@ -297,8 +297,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$_ = array_merge($_,$this->PaymentRequest());
 
-		$message = $this->encode($_);
-		$response = $this->send($message);
+		$response = $this->send($_);
 
 		if ( is_a($response,'ShoppError') ) return $response;
 
@@ -336,8 +335,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		// Get transaction details
 		$response = false;
 		for ($attempts = 0; $attempts < 2 && !$response; $attempts++) {
-			$message = $this->encode($_);
-			$response = $this->send($message);
+			$response = $this->send($_);
 		}
 
 		$fields = array(
@@ -399,14 +397,13 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_['TOKEN'] 							= $Order->token;
 		$_['PAYERID'] 							= $Order->payerid;
 		$_['BUTTONSOURCE']						= 'shopplugin.net[PPE]';
+		$_['PAYMENTREQUEST_0_NOTIFYURL']		= shoppurl(array('_txnupdate'=>'PPE'),'checkout');
 
 		// Transaction
 		$_ = array_merge($_,$this->PaymentRequest());
+		$response = $this->send($_);
 
-		$message = $this->encode($_);
-		$response = $this->send($message);
-
-		if (!$response) {
+		if ( is_a($response,'ShoppError') ) {
 			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));
 		}
@@ -450,8 +447,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_['REFUNDTYPE'] = $type;
 		if ( !empty($reason) ) $_['NOTE'] = $reason;
 
-		$message = $this->encode($_);
-		$response = $this->send($message);
+		$response = $this->send($_);
 
 		if ( SHOPP_DEBUG && 'Success' != $response->ack ) new ShoppError('In '.__FUNCTION__.': '.$response->debuglog, 'debug'.__FUNCTION__, SHOPP_DEBUG_ERR);
 
@@ -562,6 +558,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function ipn () {
+		if(SHOPP_DEBUG) new ShoppError("IPN message: "._object_r($_POST),false,SHOPP_DEBUG_ERR);
 
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
@@ -630,7 +627,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_ = array();
 		$_['cmd'] = '_notify-validate';
 
-		$message = $this->encode(array_merge($_POST,$_));
+		$message = array_merge($_POST,$_);
 		$response = $this->send($message);
 
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
@@ -647,7 +644,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	 * @return Object The response from the server or a ShoppError
 	 **/
 	function send ($message) {
-		if(SHOPP_DEBUG) new ShoppError('message: '._object_r($this->response($message)),false,SHOPP_DEBUG_ERR);
+		if(SHOPP_DEBUG) new ShoppError('message: '._object_r($message),false,SHOPP_DEBUG_ERR);
 		$response = parent::send($message,$this->apiurl());
 
 		if (!$response) return new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
