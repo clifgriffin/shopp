@@ -1766,6 +1766,7 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		$Price = new Price($variant);
 		if ( empty($Price->id) || $Price->context != $context ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such $context with id $variant.", __FUNCTION__, SHOPP_DEBUG_ERR);
+			return false;
 		}
 	}
 
@@ -1802,16 +1803,11 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		if ( isset($settings['fee']) ) $Price->shipfee = $settings['fee'];
 	}
 
-	if ( $save === false ) return false;
-
-	// If the price updates successfully then update the dimensions also
-	if ( ($price = $Price->save()) !== false ) {
-		if ( ! empty($Price->settings) ) {
-			shopp_set_meta ( $variant, 'price', 'settings', $Price->settings );
-		}
+	if ( $save ) {
+		return $Price->save() && shopp_set_meta ( $Price->id, 'price', 'settings', $Price->settings );
 	}
 
-	return $price;
+	return $Price;
 }
 
 /**
