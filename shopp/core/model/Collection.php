@@ -81,11 +81,6 @@ class ProductCollection implements Iterator {
 		if ( shopp_setting_enabled('inventory') && ((is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock))) )
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
-		// Check for inventory-based queries (for specialized cache support)
-		$wherescan = join('',$where);
-		if (strpos($wherescan,'s.inventory') !== false || strpos($wherescan,'s.stock') !== false)
-			$inventory = true;
-
 		if (str_true($published)) $where[] = "p.post_status='publish'";
 
 		// Sort Order
@@ -199,14 +194,6 @@ class ProductCollection implements Iterator {
 			if ($limited && false === strpos($limit,',')) $cache->total = $this->total = min($limit,$this->total);
 
 			wp_cache_set($cachehash,$cache,'shopp_collection');
-
-			if ($inventory) { // Keep track of inventory-based query caches
-				$caches = shopp_setting('shopp_inventory_collection_caches');
-				if (!is_array($caches)) $caches = array();
-				$caches[] = $cachehash;
-				shopp_set_setting('shopp_inventory_collection_caches',$caches);
-			}
-
 		}
 		if (false === $this->products) $this->products = array();
 
@@ -1397,7 +1384,7 @@ class OnSaleProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('On Sale','Shopp');
-		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.modified DESC');
+		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.post_modified DESC');
 	}
 
 }

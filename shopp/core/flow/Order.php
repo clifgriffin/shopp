@@ -97,6 +97,9 @@ class Order {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
 		$this->validated = false; // Reset the order validation flag
 
+		add_action('shopp_init',array($this,'updates'),20);
+		add_action('parse_request',array($this,'request'));
+
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
@@ -136,6 +139,11 @@ class Order {
 		// Schedule for after the gateways are loaded (priority 20)
 		add_action('shopp_init',array($this,'processor'),20);
 
+		// Handle remote transaction processing (priority 20)
+		// Needs to happen after the processor is selected in the session,
+		// but before gateway-order specific handlers are established
+		add_action('shopp_init',array($this,'txnupdates'),20);
+
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
@@ -150,6 +158,52 @@ class Order {
 
 		remove_action('shopp_process_order', array($this,'validate'),7);
 		remove_action('shopp_process_order', array($this,'submit'),100);
+	}
+
+	/**
+	 * Handles remote transaction update request flow control
+	 *
+	 * Moved from the Flow class in 1.2.3
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.3
+	 *
+	 * @return void
+	 **/
+	function txnupdates () {
+
+		add_action('shopp_txn_update',create_function('',"status_header('200'); exit();"),101); // Default shopp_txn_update requests to HTTP status 200
+
+		if ( ! empty($_REQUEST['_txnupdate']) )
+			return do_action('shopp_txn_update');
+
+	}
+
+	/**
+	 * Handles checkout request flow control
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.3
+	 *
+	 * @return void
+	 **/
+	function request () {
+
+		if ( ! empty($_REQUEST['rmtpay']) )
+			return do_action('shopp_remote_payment');
+
+		if ( array_key_exists('checkout',$_POST) ) {
+
+			$checkout = strtolower($_POST['checkout']);
+			if ('process' == $checkout) 		do_action('shopp_process_checkout');
+			elseif ('confirmed' == $checkout)	do_action('shopp_confirm_order');
+
+		} elseif ( array_key_exists('shipmethod',$_POST) ) {
+
+			do_action('shopp_process_shipmethod');
+
+		}
+
 	}
 
 	/**
@@ -347,8 +401,8 @@ class Order {
 	 * @return void
 	 **/
 	function checkout () {
-		global $Shopp;
 		$Shopping = ShoppShopping();
+		$Cart = $this->Cart;
 
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != 'process') return;
@@ -422,16 +476,16 @@ class Order {
 			}
 		}
 
-		if (!empty($this->Cart->shipped)) {
+		if (!empty($Cart->shipped)) {
 			if (empty($this->Shipping))
 				$this->Shipping = new ShippingAddress();
 
 			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod']) && isset($this->Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
-			else $this->Shipping->method = key($this->Cart->shipping);
+			if (!empty($_POST['shipmethod']) && isset($Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
+			else $this->Shipping->method = key($Cart->shipping);
 
-			if (isset($this->Cart->shipping[$this->Shipping->method]))
-				$this->Shipping->option = $this->Cart->shipping[$this->Shipping->method]->name;
+			if (isset($Cart->shipping[$this->Shipping->method]))
+				$this->Shipping->option = $Cart->shipping[$this->Shipping->method]->name;
 
 		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
 
@@ -452,11 +506,11 @@ class Order {
 			}
 		}
 
-		$freebie = $this->Cart->orderisfree();
-		$estimated = $this->Cart->Totals->total;
+		$freebie = $Cart->orderisfree();
+		$estimated = $Cart->Totals->total;
 
-		$this->Cart->changed(true);
-		$this->Cart->totals();
+		$Cart->changed(true);
+		$Cart->totals();
 
 		// Stop here if this is a shipping method update
 		if (isset($_POST['update-shipping'])) return;
@@ -464,24 +518,27 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
-		// If using shopp_checkout_processed for a payment gateway redirect action
-		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
-		do_action('shopp_checkout_processed');
-
 		// Catch originally free orders that get extra (shipping) costs added to them
-		if ($freebie && $this->Cart->Totals->total > 0) {
+		if ($freebie && !$Cart->orderisfree()) {
 
 			if ( ! (count($this->payoptions) == 1 // One paymethod
 					&& ( isset($this->payoptions[$this->paymethod]->cards) // Remote checkout
 						&& empty( $this->payoptions[$this->paymethod]->cards ) ) )
 				) {
-				new ShoppError(__('Payment information for this order is missing.','Shopp'),'checkout_no_paymethod');
+				new ShoppError(__('The order amount changed and requires that you select a payment method.','Shopp'),'checkout_no_paymethod');
 				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 			}
-		} elseif ($freebie) do_action('shopp_process_free_order');
+
+		}
+
+		// If using shopp_checkout_processed for a payment gateway redirect action
+		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
+		do_action('shopp_checkout_processed');
+
+		if ($Cart->orderisfree()) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
-		if (apply_filters('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
+		if (apply_filters('shopp_order_confirm_needed', ($estimated != $Cart->Totals->total || $this->confirm) ))
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 

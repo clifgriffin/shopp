@@ -437,6 +437,7 @@ class Service extends AdminController {
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 
+			$message = '';
 			if (!empty($_POST['message'])) {
 				$message = $_POST['message'];
 				$Purchase->message['note'] = $message;
@@ -459,7 +460,8 @@ class Service extends AdminController {
 					'txnid' => $Purchase->txnid,
 					'gateway' => $Gateway->module,
 					'reason' => $reason,
-					'user' => $user->ID
+					'user' => $user->ID,
+					'note' => $message
 				));
 			}
 
