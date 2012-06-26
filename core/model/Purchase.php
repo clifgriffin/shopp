@@ -488,6 +488,7 @@ class Purchase extends DatabaseObject {
 			$prefix.'state' => __('Billing State/Province','Shopp'),
 			$prefix.'country' => __('Billing Country','Shopp'),
 			$prefix.'postcode' => __('Billing Postal Code','Shopp'),
+			$prefix.'shipname' => __('Shipping Name','Shopp'),
 			$prefix.'shipaddress' => __('Shipping Street Address','Shopp'),
 			$prefix.'shipxaddress' => __('Shipping Street Address 2','Shopp'),
 			$prefix.'shipcity' => __('Shipping City','Shopp'),

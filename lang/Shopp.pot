@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-11 13:34-0500\n"
-"PO-Revision-Date: 2012-06-11 13:34-0500\n"
+"POT-Creation-Date: 2012-06-26 12:06-0500\n"
+"PO-Revision-Date: 2012-06-26 12:06-0500\n"
 "Last-Translator: Ingenesis Limited <shopp@ingenesis.net>\n"
 "Language-Team: Ingenesis Limited <storefront@shopplugin.net>\n"
 "MIME-Version: 1.0\n"
@@ -227,21 +227,21 @@ msgstr ""
 msgid "Checkout as a guest"
 msgstr ""
 
-#: ../shopp/api/theme/checkout.php:921
+#: ../shopp/api/theme/checkout.php:923
 #: ../shopp/api/theme/customer.php:505
 msgid "Residential shipping address"
 msgstr ""
 
-#: ../shopp/api/theme/checkout.php:942
+#: ../shopp/api/theme/checkout.php:944
 msgid "Same billing address"
 msgstr ""
 
-#: ../shopp/api/theme/checkout.php:955
+#: ../shopp/api/theme/checkout.php:957
 #: ../shopp/api/theme/customer.php:513
 msgid "Same shipping address"
 msgstr ""
 
-#: ../shopp/api/theme/checkout.php:1092
+#: ../shopp/api/theme/checkout.php:1094
 msgid "Submit Order"
 msgstr ""
 
@@ -294,7 +294,7 @@ msgid "You must select addon options for this item before you can add it to your
 msgstr ""
 
 #: ../shopp/api/theme/product.php:209
-#: ../shopp/api/theme/product.php:1081
+#: ../shopp/api/theme/product.php:1082
 msgid "Options"
 msgstr ""
 
@@ -306,7 +306,7 @@ msgstr ""
 msgid "Buy Now"
 msgstr ""
 
-#: ../shopp/api/theme/product.php:1072
+#: ../shopp/api/theme/product.php:1073
 msgid "You must select the options for this item before you can add it to your shopping cart."
 msgstr ""
 
@@ -1146,147 +1146,147 @@ msgstr ""
 msgid "The requested membership record does not exist."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:231
+#: ../shopp/core/flow/Order.php:285
 msgid "The payment method you selected is no longer available. Please choose another."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:476
-msgid "Payment information for this order is missing."
+#: ../shopp/core/flow/Order.php:528
+msgid "The order amount changed and requires that you select a payment method."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:674
+#: ../shopp/core/flow/Order.php:733
 msgid "Free Order"
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:762
+#: ../shopp/core/flow/Order.php:821
 msgid "The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:986
+#: ../shopp/core/flow/Order.php:1045
 msgid "You must provide your first name."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:989
+#: ../shopp/core/flow/Order.php:1048
 msgid "You must provide your last name."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:999
+#: ../shopp/core/flow/Order.php:1058
 msgid "You must provide a valid e-mail address."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1002
+#: ../shopp/core/flow/Order.php:1061
 msgid "You must agree to the terms of sale."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1010
+#: ../shopp/core/flow/Order.php:1069
 msgid "The login name you provided is not available.  Try logging in if you have previously created an account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1025
+#: ../shopp/core/flow/Order.php:1084
 msgid "A login is not available for creation with the information you provided. Please try a different email address or name, or try logging in if you previously created an account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1031
+#: ../shopp/core/flow/Order.php:1090
 msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1035
+#: ../shopp/core/flow/Order.php:1094
 msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1040
+#: ../shopp/core/flow/Order.php:1099
 msgid "You must enter a login name for your account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1047
+#: ../shopp/core/flow/Order.php:1106
 #, php-format
 msgid "The login name provided includes invalid characters: %s"
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1051
+#: ../shopp/core/flow/Order.php:1110
 msgid "The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1056
+#: ../shopp/core/flow/Order.php:1115
 msgid "You must provide a password for your account and confirm it to ensure correct spelling."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1059
+#: ../shopp/core/flow/Order.php:1118
 msgid "The passwords you entered do not match. Please re-enter your passwords."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1064
+#: ../shopp/core/flow/Order.php:1123
 msgid "You must enter a valid street address for your billing information."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1067
+#: ../shopp/core/flow/Order.php:1126
 msgid "You must enter a valid postal code for your billing information."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1070
+#: ../shopp/core/flow/Order.php:1129
 msgid "You must select a country for your billing information."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1077
+#: ../shopp/core/flow/Order.php:1136
 msgid "You did not provide a credit card number."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1080
+#: ../shopp/core/flow/Order.php:1139
 msgid "You did not select a credit card type."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1085
+#: ../shopp/core/flow/Order.php:1144
 msgid "The credit card number you provided is invalid."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1088
+#: ../shopp/core/flow/Order.php:1147
 msgid "You did not enter the month the credit card expires."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1091
+#: ../shopp/core/flow/Order.php:1150
 msgid "You did not enter the year the credit card expires."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1095
+#: ../shopp/core/flow/Order.php:1154
 msgid "The credit card expiration date you provided has already expired."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1098
+#: ../shopp/core/flow/Order.php:1157
 msgid "You did not enter the name on the credit card you provided."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1101
+#: ../shopp/core/flow/Order.php:1160
 msgid "You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1131
+#: ../shopp/core/flow/Order.php:1190
 msgid "There are no items in the cart."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1138
+#: ../shopp/core/flow/Order.php:1197
 #, php-format
 msgid "%s does not have sufficient stock to process order."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1155
+#: ../shopp/core/flow/Order.php:1214
 msgid "There is not enough customer information to process the order."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1171
+#: ../shopp/core/flow/Order.php:1230
 #, php-format
 msgid "The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1175
+#: ../shopp/core/flow/Order.php:1234
 #, php-format
 msgid "The order cannot be processed. The shipping rate service did not provide rates because of a problem and no other shipping is available to the address you provided. Please return to %scheckout%s and try again or contact the store administrator."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1184
+#: ../shopp/core/flow/Order.php:1243
 msgid "The shipping address information is incomplete. The order cannot be processed."
 msgstr ""
 
-#: ../shopp/core/flow/Order.php:1616
+#: ../shopp/core/flow/Order.php:1675
 #, php-format
 msgid "Purchase authed lock for order %s failed. Could not achieve a lock."
 msgstr ""
@@ -1434,11 +1434,11 @@ msgstr ""
 msgid "Marked Refunded"
 msgstr ""
 
-#: ../shopp/core/flow/Service.php:450
+#: ../shopp/core/flow/Service.php:451
 msgid "Marked Cancelled"
 msgstr ""
 
-#: ../shopp/core/flow/Service.php:527
+#: ../shopp/core/flow/Service.php:529
 msgid "All Orders"
 msgstr ""
 
@@ -1897,106 +1897,106 @@ msgstr ""
 msgid "The final page of the ordering process."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1381
+#: ../shopp/core/flow/Storefront.php:1388
 msgid "Order Lookup"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1427
+#: ../shopp/core/flow/Storefront.php:1434
 msgid "Enter an email address or login name"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1428
+#: ../shopp/core/flow/Storefront.php:1435
 msgid "Enter an email address"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1434
+#: ../shopp/core/flow/Storefront.php:1441
 msgid "There is no user registered with that email address."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1439
+#: ../shopp/core/flow/Storefront.php:1446
 msgid "There is no user registered with that login name."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1451
+#: ../shopp/core/flow/Storefront.php:1458
 #, php-format
 msgid "[%s] Password Recovery Request"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1458
+#: ../shopp/core/flow/Storefront.php:1465
 msgid "A request has been made to reset the password for the following site and account:"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1463
+#: ../shopp/core/flow/Storefront.php:1470
 #, php-format
 msgid "Email: %s"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1465
-#: ../shopp/core/flow/Storefront.php:1525
+#: ../shopp/core/flow/Storefront.php:1472
+#: ../shopp/core/flow/Storefront.php:1532
 #, php-format
 msgid "Login name: %s"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1467
+#: ../shopp/core/flow/Storefront.php:1474
 #, php-format
 msgid "Login: %s"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1470
+#: ../shopp/core/flow/Storefront.php:1477
 msgid "To reset your password visit the following address, otherwise just ignore this email and nothing will happen."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1476
-#: ../shopp/core/flow/Storefront.php:1533
+#: ../shopp/core/flow/Storefront.php:1483
+#: ../shopp/core/flow/Storefront.php:1540
 msgid "The e-mail could not be sent."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1479
+#: ../shopp/core/flow/Storefront.php:1486
 msgid "Check your email address for instructions on resetting the password for your account."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1492
-#: ../shopp/core/flow/Storefront.php:1496
+#: ../shopp/core/flow/Storefront.php:1499
+#: ../shopp/core/flow/Storefront.php:1503
 msgid "Invalid key"
-msgstr ""
-
-#: ../shopp/core/flow/Storefront.php:1514
-#, php-format
-msgid "[%s] New Password"
 msgstr ""
 
 #: ../shopp/core/flow/Storefront.php:1521
 #, php-format
+msgid "[%s] New Password"
+msgstr ""
+
+#: ../shopp/core/flow/Storefront.php:1528
+#, php-format
 msgid "Your new password for %s:"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1526
+#: ../shopp/core/flow/Storefront.php:1533
 #, php-format
 msgid "Password: %s"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1529
+#: ../shopp/core/flow/Storefront.php:1536
 msgid "Click here to login:"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1535
+#: ../shopp/core/flow/Storefront.php:1542
 msgid "Check your email address for your new password."
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1695
+#: ../shopp/core/flow/Storefront.php:1702
 msgid "We're Sorry!"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1710
+#: ../shopp/core/flow/Storefront.php:1717
 msgid "The store is currently down for maintenance.  We'll be back soon!"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1811
+#: ../shopp/core/flow/Storefront.php:1818
 msgid "Select an option"
 msgstr ""
 
-#: ../shopp/core/flow/Storefront.php:1815
-#: ../shopp/core/flow/Storefront.php:1818
+#: ../shopp/core/flow/Storefront.php:1822
+#: ../shopp/core/flow/Storefront.php:1825
 msgid "Select an add-on"
 msgstr ""
 
@@ -2273,242 +2273,242 @@ msgstr ""
 msgid "%s has already been applied."
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:328
-#: ../shopp/core/model/Collection.php:337
+#: ../shopp/core/model/Collection.php:315
+#: ../shopp/core/model/Collection.php:324
 msgid "from "
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:506
+#: ../shopp/core/model/Collection.php:493
 msgid "Catalog Groups"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:507
+#: ../shopp/core/model/Collection.php:494
 msgid "Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:508
+#: ../shopp/core/model/Collection.php:495
 msgid "Search Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:509
-#: ../shopp/core/model/Collection.php:737
-#: ../shopp/core/model/Collection.php:1305
+#: ../shopp/core/model/Collection.php:496
+#: ../shopp/core/model/Collection.php:724
+#: ../shopp/core/model/Collection.php:1292
 msgid "Popular"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:510
-#: ../shopp/core/model/Collection.php:738
-#: ../shopp/core/model/Collection.php:1306
+#: ../shopp/core/model/Collection.php:497
+#: ../shopp/core/model/Collection.php:725
+#: ../shopp/core/model/Collection.php:1293
 msgid "Show All"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:511
+#: ../shopp/core/model/Collection.php:498
 msgid "Parent Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:512
+#: ../shopp/core/model/Collection.php:499
 msgid "Parent Catalog Group:"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:513
+#: ../shopp/core/model/Collection.php:500
 msgid "Edit Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:514
+#: ../shopp/core/model/Collection.php:501
 msgid "Update Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:515
+#: ../shopp/core/model/Collection.php:502
 msgid "New Catalog Group"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:516
+#: ../shopp/core/model/Collection.php:503
 msgid "New Catalog Group Name"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:517
+#: ../shopp/core/model/Collection.php:504
 msgid "Separate catalog groups with commas"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:518
+#: ../shopp/core/model/Collection.php:505
 msgid "Add or remove catalog groups"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:519
+#: ../shopp/core/model/Collection.php:506
 msgid "Choose from the most used catalog groups"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:734
+#: ../shopp/core/model/Collection.php:721
 msgid "Catalog Categories"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:736
+#: ../shopp/core/model/Collection.php:723
 msgid "Search Categories"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:739
+#: ../shopp/core/model/Collection.php:726
 msgid "Parent Category"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:740
+#: ../shopp/core/model/Collection.php:727
 msgid "Parent Category:"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:741
+#: ../shopp/core/model/Collection.php:728
 msgid "Edit Category"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:742
+#: ../shopp/core/model/Collection.php:729
 msgid "Update Category"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:744
+#: ../shopp/core/model/Collection.php:731
 msgid "New Category Name"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:778
+#: ../shopp/core/model/Collection.php:765
 msgid "Price Filter"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:908
+#: ../shopp/core/model/Collection.php:895
 #, php-format
 msgid "Under %s"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:909
+#: ../shopp/core/model/Collection.php:896
 #, php-format
 msgid "%s and up"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:972
-#: ../shopp/core/model/Collection.php:1015
-#: ../shopp/core/model/Collection.php:1268
+#: ../shopp/core/model/Collection.php:959
+#: ../shopp/core/model/Collection.php:1002
+#: ../shopp/core/model/Collection.php:1255
 msgid "Under "
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:978
-#: ../shopp/core/model/Collection.php:1016
-#: ../shopp/core/model/Collection.php:1269
+#: ../shopp/core/model/Collection.php:965
+#: ../shopp/core/model/Collection.php:1003
+#: ../shopp/core/model/Collection.php:1256
 msgid "and up"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1240
+#: ../shopp/core/model/Collection.php:1227
 msgid "Recommended"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1242
+#: ../shopp/core/model/Collection.php:1229
 msgid "Price High to Low"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1243
+#: ../shopp/core/model/Collection.php:1230
 msgid "Price Low to High"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1244
+#: ../shopp/core/model/Collection.php:1231
 msgid "Newest to Oldest"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1245
+#: ../shopp/core/model/Collection.php:1232
 msgid "Oldest to Newest"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1246
+#: ../shopp/core/model/Collection.php:1233
 msgid "Random"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1302
+#: ../shopp/core/model/Collection.php:1289
 msgid "Catalog Tags"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1303
+#: ../shopp/core/model/Collection.php:1290
 msgid "Tag"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1304
+#: ../shopp/core/model/Collection.php:1291
 msgid "Search Tag"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1307
+#: ../shopp/core/model/Collection.php:1294
 msgid "Edit Tag"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1308
+#: ../shopp/core/model/Collection.php:1295
 msgid "Update Tag"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1309
+#: ../shopp/core/model/Collection.php:1296
 msgid "New Tag"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1310
+#: ../shopp/core/model/Collection.php:1297
 msgid "New Tag Name"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1311
+#: ../shopp/core/model/Collection.php:1298
 msgid "Separate tags with commas"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1312
+#: ../shopp/core/model/Collection.php:1299
 #, php-format
 msgid "Type a tag name and press tab %s to add it."
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1312
+#: ../shopp/core/model/Collection.php:1299
 msgid "tab key"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1313
+#: ../shopp/core/model/Collection.php:1300
 msgid "Type to search, or wait for popular tags&hellip;"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1362
+#: ../shopp/core/model/Collection.php:1349
 msgid "Catalog Products"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1374
+#: ../shopp/core/model/Collection.php:1361
 msgid "New Products"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1387
+#: ../shopp/core/model/Collection.php:1374
 msgid "Featured Products"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1412
+#: ../shopp/core/model/Collection.php:1399
 msgid "Bestsellers"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1510
+#: ../shopp/core/model/Collection.php:1497
 msgid "(no search terms)"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1511
+#: ../shopp/core/model/Collection.php:1498
 #, php-format
 msgid "Search Results for: %s"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1553
+#: ../shopp/core/model/Collection.php:1540
 #, php-format
 msgid "Products tagged \"%s\""
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1616
+#: ../shopp/core/model/Collection.php:1603
 msgid "Products related to"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1643
+#: ../shopp/core/model/Collection.php:1630
 msgid "Customers also bought&hellip;"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1670
+#: ../shopp/core/model/Collection.php:1657
 #, php-format
 msgid "Customers that bought \"%s\" also bought&hellip;"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1703
+#: ../shopp/core/model/Collection.php:1690
 msgid "Random Products"
 msgstr ""
 
-#: ../shopp/core/model/Collection.php:1728
+#: ../shopp/core/model/Collection.php:1715
 msgid "Recently Viewed"
 msgstr ""
 
@@ -2593,11 +2593,11 @@ msgstr ""
 msgid "Credit Card"
 msgstr ""
 
-#: ../shopp/core/model/Gateway.php:568
+#: ../shopp/core/model/Gateway.php:574
 msgid "Option Name"
 msgstr ""
 
-#: ../shopp/core/model/Gateway.php:581
+#: ../shopp/core/model/Gateway.php:587
 msgid "Save Changes"
 msgstr ""
 
@@ -4386,63 +4386,67 @@ msgstr ""
 msgid "Credit Card Holder's Name"
 msgstr ""
 
-#: ../shopp/core/model/Purchase.php:498
-msgid "Promotions Applied"
+#: ../shopp/core/model/Purchase.php:491
+msgid "Shipping Name"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:499
-msgid "Order Subtotal"
+msgid "Promotions Applied"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:500
-msgid "Order Discount"
+msgid "Order Subtotal"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:501
-msgid "Order Shipping Fees"
+msgid "Order Discount"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:502
-msgid "Order Taxes"
+msgid "Order Shipping Fees"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:503
-msgid "Order Total"
+msgid "Order Taxes"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:504
-msgid "Transaction Fees"
+msgid "Order Total"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:505
-msgid "Transaction ID"
+msgid "Transaction Fees"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:506
-msgid "Transaction Status"
+msgid "Transaction ID"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:507
-msgid "Payment Gateway"
+msgid "Transaction Status"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:508
-msgid "Order Status"
+msgid "Payment Gateway"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:509
-msgid "Order Data"
+msgid "Order Status"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:510
-msgid "Order Date"
+msgid "Order Data"
 msgstr ""
 
 #: ../shopp/core/model/Purchase.php:511
+msgid "Order Date"
+msgstr ""
+
+#: ../shopp/core/model/Purchase.php:512
 msgid "Order Last Updated"
 msgstr ""
 
-#: ../shopp/core/model/Purchase.php:831
+#: ../shopp/core/model/Purchase.php:832
 msgid "QuickBooks account name for transactions"
 msgstr ""
 
@@ -6910,17 +6914,17 @@ msgstr ""
 msgid "Use this area to provide your customers with instructions on how to make payments offline."
 msgstr ""
 
-#: ../shopp/gateways/PayPal/PayPalExpress.php:306
+#: ../shopp/gateways/PayPal/PayPalExpress.php:308
 #: ../shopp/gateways/PayPal/PayPalExpress.php:415
-#: ../shopp/gateways/PayPal/PayPalExpress.php:457
+#: ../shopp/gateways/PayPal/PayPalExpress.php:456
 msgid "The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed."
 msgstr ""
 
-#: ../shopp/gateways/PayPal/PayPalExpress.php:310
+#: ../shopp/gateways/PayPal/PayPalExpress.php:312
 msgid "The transaction failed because PayPal did not issue a payment token."
 msgstr ""
 
-#: ../shopp/gateways/PayPal/PayPalExpress.php:374
+#: ../shopp/gateways/PayPal/PayPalExpress.php:375
 msgid "The location you are purchasing from is outside of our market regions. This transaction cannot be processed."
 msgstr ""
 
@@ -6928,7 +6932,7 @@ msgstr ""
 msgid "No response was received from PayPal. The order cannot be processed."
 msgstr ""
 
-#: ../shopp/gateways/PayPal/PayPalExpress.php:540
+#: ../shopp/gateways/PayPal/PayPalExpress.php:539
 #: ../shopp/gateways/PayPal/PayPalStandard.php:532
 msgid "Shipping & Handling"
 msgstr ""
