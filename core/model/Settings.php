@@ -69,7 +69,7 @@ class Settings extends DatabaseObject {
 	function load ($name='',$arg2=false) {
 		$Setting = $this->setting();
 
-		$where = array("context='$Setting->context'","type='$Setting->type'");
+		$where = array("parent=0","context='$Setting->context'","type='$Setting->type'");
 		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
 		else {
 			if ($this->bootup) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
