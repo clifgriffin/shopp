@@ -507,9 +507,9 @@ class DB extends SingletonFramework {
  **/
 abstract class DatabaseObject implements Iterator {
 
-	private $_position = 0;
-	private $_properties = array();
-	private $_ignores = array('_');
+	protected $_position = 0;
+	protected $_properties = array();
+	protected $_ignores = array('_');
 	protected $_map = array();
 
 	/**
