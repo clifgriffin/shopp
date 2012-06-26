@@ -113,7 +113,7 @@ abstract class MetasetObject extends DatabaseObject {
 	}
 
 	function load () {
-		$db = &DB::get();
+		$db = &DB::instance();
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;
