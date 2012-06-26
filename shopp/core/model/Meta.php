@@ -112,7 +112,7 @@ abstract class MetasetObject extends DatabaseObject {
 		$this->_properties = array_filter($properties,array('MetasetObject','_ignore_'));
 	}
 
-	function load ($arg1=false,$arg2=false) {
+	function load () {
 		$db = &DB::get();
 
 		$args = func_get_args();
