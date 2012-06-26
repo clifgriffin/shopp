@@ -66,8 +66,6 @@ class Flow {
 		$request = empty($wp->query_vars)?$_GET:$wp->query_vars;
 		$resource = isset($request['src']);
 
-		$this->transactions();
-
 		if ($resource) $this->resources($request);
 
 		if (defined('WP_ADMIN')) {
@@ -79,24 +77,6 @@ class Flow {
 			$controller = $this->Admin->controller(strtolower($request['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler('Storefront');
-	}
-
-	function transactions () {
-		add_action('shopp_txn_update',array($this,'txn_update'),101); // Default to HTTP status 200
-
-		if (!empty($_REQUEST['_txnupdate']))
-			return do_action('shopp_txn_update');
-
-		if (!empty($_REQUEST['rmtpay']))
-			return do_action('shopp_remote_payment');
-
-		if (isset($_POST['checkout'])) {
-			if ($_POST['checkout'] == "process") do_action('shopp_process_checkout');
-			if ($_POST['checkout'] == "confirmed") do_action('shopp_confirm_order');
-		} else {
-			if (!empty($_POST['shipmethod'])) do_action('shopp_process_shipmethod');
-		}
-
 	}
 
 	/**
@@ -218,11 +198,6 @@ class Flow {
 			) );
 		}
 
-	}
-
-	function txn_update () {
-		status_header('200');
-		exit();
 	}
 
 } // End class Flow

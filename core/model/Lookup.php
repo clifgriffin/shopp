@@ -549,7 +549,7 @@ class Lookup {
 		$_['US']['Midwest US']			= array('OH','IN','MI','IA','WI','MN','SD','ND','IL','MO','KS','NE');
 		$_['US']['South US'] 			= array('DE','DC','MD','VA','WV','NC','SC','GA','FL','AL','TN','MS','KY','LA','AR','OK','TX');
 		$_['US']['West US'] 			= array('MT','CO','WY','ID','UT','AZ','NM','NV','CA','OR','WA','HI','AK');
-		$_['US']['Continental US']	= array_merge($_['US']['Northeast US'],$_['US']['Midwest US'],$_['US']['South US'],$_['US']['West US']);
+		$_['US']['Continental US']		= array_merge($_['US']['Northeast US'],$_['US']['Midwest US'],$_['US']['South US'], array_diff($_['US']['West US'],array('HI','AK')) );
 
 		$_['USAF'] = array();
 		$_['USAF']['Americas'] = array('AA');

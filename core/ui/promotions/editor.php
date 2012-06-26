@@ -136,7 +136,7 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
 			"Customer type":{"logic":["boolean"],"value":"text","source":"shopp_customer_types"},
-			"Ship-to country":{"logic":["boolean"],"value":"text","source":"shopp_target_markets"},
+			"Ship-to country":{"logic":["boolean"],"value":"text","source":"shopp_target_markets","suggest":"alt"},
 			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 			"Promo code":{"logic":["boolean"],"value":"text"}
 		},
@@ -238,9 +238,10 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 				}
 			} else operation.hide();
 
+			if (!c['suggest']) c['suggest'] = 'text';
 			valuefield(c['value']).unbind('keydown').unbind('keypress').suggest(
 				suggurl+'&action=shopp_suggestions&s='+c['source'],
-				{ delay:500, minchars:2, format:'json' }
+				{ delay:500, minchars:2, format:'json', value:c['suggest'] }
 			);
 
 		}).change();

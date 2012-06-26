@@ -1162,12 +1162,19 @@ class StorefrontPage {
 		add_filter('the_content',array($this,'content'),20);
 		add_filter('the_excerpt',array($this,'content'),20);
 
+		add_filter('shopp_content_container_classes',array($this,'styleclass'));
+
 	}
 
 	function editlink ($link) {
 		$url = admin_url('admin.php');
 		if (!empty($this->edit)) $url = add_query_arg($this->edit,$url);
 		return $url;
+	}
+
+	function styleclass ($classes) {
+		$classes[] = $this->name;
+		return $classes;
 	}
 
 	function content ($content) {
