@@ -401,8 +401,8 @@ class Order {
 	 * @return void
 	 **/
 	function checkout () {
-		global $Shopp;
 		$Shopping = ShoppShopping();
+		$Cart = $this->Cart;
 
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != 'process') return;
@@ -476,16 +476,16 @@ class Order {
 			}
 		}
 
-		if (!empty($this->Cart->shipped)) {
+		if (!empty($Cart->shipped)) {
 			if (empty($this->Shipping))
 				$this->Shipping = new ShippingAddress();
 
 			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod']) && isset($this->Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
-			else $this->Shipping->method = key($this->Cart->shipping);
+			if (!empty($_POST['shipmethod']) && isset($Cart->shipping[$_POST['shipmethod']])) $this->Shipping->method = $_POST['shipmethod'];
+			else $this->Shipping->method = key($Cart->shipping);
 
-			if (isset($this->Cart->shipping[$this->Shipping->method]))
-				$this->Shipping->option = $this->Cart->shipping[$this->Shipping->method]->name;
+			if (isset($Cart->shipping[$this->Shipping->method]))
+				$this->Shipping->option = $Cart->shipping[$this->Shipping->method]->name;
 
 		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
 
@@ -506,11 +506,11 @@ class Order {
 			}
 		}
 
-		$freebie = $this->Cart->orderisfree();
-		$estimated = $this->Cart->Totals->total;
+		$freebie = $Cart->orderisfree();
+		$estimated = $Cart->Totals->total;
 
-		$this->Cart->changed(true);
-		$this->Cart->totals();
+		$Cart->changed(true);
+		$Cart->totals();
 
 		// Stop here if this is a shipping method update
 		if (isset($_POST['update-shipping'])) return;
@@ -518,24 +518,27 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
-		// If using shopp_checkout_processed for a payment gateway redirect action
-		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
-		do_action('shopp_checkout_processed');
-
 		// Catch originally free orders that get extra (shipping) costs added to them
-		if ($freebie && $this->Cart->Totals->total > 0) {
+		if ($freebie && !$Cart->orderisfree()) {
 
 			if ( ! (count($this->payoptions) == 1 // One paymethod
 					&& ( isset($this->payoptions[$this->paymethod]->cards) // Remote checkout
 						&& empty( $this->payoptions[$this->paymethod]->cards ) ) )
 				) {
-				new ShoppError(__('Payment information for this order is missing.','Shopp'),'checkout_no_paymethod');
+				new ShoppError(__('The order amount changed and requires that you select a payment method.','Shopp'),'checkout_no_paymethod');
 				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 			}
-		} elseif ($freebie) do_action('shopp_process_free_order');
+
+		}
+
+		// If using shopp_checkout_processed for a payment gateway redirect action
+		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
+		do_action('shopp_checkout_processed');
+
+		if ($Cart->orderisfree()) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
-		if (apply_filters('shopp_order_confirm_needed', ($estimated != $this->Cart->Totals->total || $this->confirm) ))
+		if (apply_filters('shopp_order_confirm_needed', ($estimated != $Cart->Totals->total || $this->confirm) ))
 			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 
