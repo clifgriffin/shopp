@@ -97,7 +97,6 @@ class Order {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
 		$this->validated = false; // Reset the order validation flag
 
-		add_action('shopp_init',array($this,'updates'),20);
 		add_action('parse_request',array($this,'request'));
 
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
