@@ -571,7 +571,7 @@ class Warehouse extends AdminController {
 		// Remove category column from the "trash" view
 		if ('trash' == $this->view) unset($columns['category']);
 
-		ShoppUI::register_column_headers('toplevel_page_shopp-products', $columns);
+		ShoppUI::register_column_headers('toplevel_page_shopp-products', apply_filters('shopp_manage_product_columns',$columns));
 	}
 
 	/**
