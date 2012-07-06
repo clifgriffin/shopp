@@ -46,134 +46,188 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php ShoppUI::print_column_headers('toplevel_page_shopp-products',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
 		</tfoot>
 	<?php if ($Products->size() > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
-		$hidden = get_hidden_columns('toplevel_page_shopp-products');
+		$columns = get_column_headers($this->screen);
+		$hidden = get_hidden_columns($this->screen);
 
 		$even = false;
 		foreach ($Products as $key => $Product):
 
-		$editor_url = remove_query_arg(array('s','cat','sl'),$url);
+			$editor_url = remove_query_arg(array('s','cat','sl'),$url);
+			$editurl = esc_url( add_query_arg( array('id'=>$Product->id,'view'=>null),$editor_url ) );
+			$trashurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'trash'),$editor_url ) );
+			$dupurl = esc_url( add_query_arg( array('duplicate'=>$Product->id), $editor_url ) );
+			$restoreurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'restore'),$editor_url ) );
+			$delurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'delete'),$editor_url ) );
+			$category_url = add_query_arg(array('page'=>$this->Admin->pagename('categories')),admin_url('admin.php'));
 
-		$editurl = esc_url( add_query_arg( array('id'=>$Product->id,'view'=>null),$editor_url ) );
-		$trashurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'trash'),$editor_url ) );
-		$dupurl = esc_url( add_query_arg( array('duplicate'=>$Product->id), $editor_url ) );
-		$restoreurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'restore'),$editor_url ) );
-		$delurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'delete'),$editor_url ) );
-		$category_url = add_query_arg(array('page'=>$this->Admin->pagename('categories')),admin_url('admin.php'));
 
-		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
-
-		$categories = array();
-		foreach ($Product->categories as $id => $category) {
-
-			$categories[] = sprintf( '<a href="%s">%s</a>',
-				esc_url( add_query_arg( array( 'id' => $category->term_id ), $category_url ) ),
-				esc_html( sanitize_term_field( 'name', $category->name, $category->term_id, 'category', 'display' ) )
-			);
-
-		}
 		?>
-		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Product->id; ?>' /></th>
-			<td class="name column-name">
-			<strong><?php if ($is_trash): ?><?php echo esc_html($ProductName); ?><?php else: ?><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'>
+			<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+		<?php
 
-			<?php $Image = reset($Product->images); if (!empty($Image)): ?>
-			<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(38,0,1); ?>" width="38" height="38" class="alignleft" />
-			<?php endif; ?>
-
-			<?php echo esc_html($ProductName); ?></a><?php endif; ?></strong>
-				<?php if ($is_trash): ?>
-					<div class="row-actions">
-						<span class='untrash'><a title="<?php _e('Restore','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $restoreurl; ?>"><?php _e('Restore','Shopp'); ?></a> | </span>
-						<span class='delete'><a title="<?php echo esc_attr(sprintf(__('Delete %s permanently','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete Permanently','Shopp'); ?></a></span>
-					</div>
-				<?php else: ?>
-				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
-					<span class='delete'><a class="delete" title="<?php echo esc_attr(sprintf(__('Move %s to the trash','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $trashurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Trash','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo $Product->tag('url'); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
-				</div>
-				<?php endif; ?>
-				</td>
-			<?php if (!$is_trash && !$is_bestselling): ?>
-			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo join(', ',$categories); ?></td>
-			<?php endif; ?>
-
-			<?php if ($is_bestselling): ?>
-			<td class="sold column-sold<?php echo in_array('sales',$hidden)?' hidden':''; ?>">
-				<?php echo $Product->sold; ?>
-			</td>
-			<td class="grossed column-grossed<?php echo in_array('sales',$hidden)?' hidden':''; ?>">
-				<?php echo money($Product->grossed); ?>
-			</td>
-			<?php endif; ?>
+			foreach ($columns as $column => $column_title) {
+				$classes = array($column,"column-$column");
+				if ( in_array($column,$hidden) ) $classes[] = 'hidden';
 
 
-			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; if ($Product->sale == 'on') echo " sale"?>"><?php
-				shopp($Product,'price');
-				if (str_true($Product->sale)) echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
-			?>
-			</td>
-
-			<?php if ('on' == shopp_setting('inventory')): ?>
-				<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>">
-					<?php // @todo Link inventory number to Inventory view while filtering for the product/variants
-					if ('on' == $Product->inventory) {
-						$stockclass = array('stock');
-						if (!empty($Product->lowstock) && 'none' != $Product->lowstock) $stockclass[] = "lowstock $Product->lowstock";
-					 	echo '<span class="'.join(' ',$stockclass).'">'.$Product->stock.'</span>';
-					}
+				switch ($column) {
+					case 'cb':
 					?>
-				</td>
-			<?php endif; ?>
+						<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Product->id; ?>' /></th>
+					<?php
+					break;
 
-			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>">
-				<button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button>
-			</td>
+					case 'name':
+						$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+						<strong><?php if ($is_trash): ?><?php echo esc_html($ProductName); ?><?php else: ?><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'>
 
-			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>">
-			<?php
+						<?php $Image = reset($Product->images); if (!empty($Image)): ?>
+						<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(38,0,1); ?>" width="38" height="38" class="alignleft" />
+						<?php endif; ?>
 
-			if ( '0' == $Product->publish) {
-				$t_time = $h_time = __('Unpublished');
-				$time_diff = 0;
-			} else {
-				$t_time = get_the_time(__('Y/m/d g:i:s A'));
-				$m_time = $Product->publish;
-				$h_time = date(__('Y/m/d'), $m_time);
-				$time_diff = current_time('timestamp') - $m_time;
+						<?php echo esc_html($ProductName); ?></a><?php endif; ?></strong>
+							<?php if ($is_trash): ?>
+								<div class="row-actions">
+									<span class='untrash'><a title="<?php _e('Restore','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $restoreurl; ?>"><?php _e('Restore','Shopp'); ?></a> | </span>
+									<span class='delete'><a title="<?php echo esc_attr(sprintf(__('Delete %s permanently','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete Permanently','Shopp'); ?></a></span>
+								</div>
+							<?php else: ?>
+							<div class="row-actions">
+								<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+								<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+								<span class='delete'><a class="delete" title="<?php echo esc_attr(sprintf(__('Move %s to the trash','Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $trashurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Trash','Shopp'); ?></a> | </span>
+								<span class='view'><a href="<?php echo $Product->tag('url'); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+							</div>
+							<?php endif; ?>
+							</td>
+					<?php
+					break;
 
-				if ( $time_diff > 0 && $time_diff < 86400 )
-					$h_time = sprintf( __('%s ago'), human_time_diff( $m_time, current_time('timestamp') ) );
+					case 'category':
+						$categories = array();
+						foreach ($Product->categories as $id => $category) {
+
+							$categories[] = sprintf( '<a href="%s">%s</a>',
+								esc_url( add_query_arg( array( 'id' => $category->term_id ), $category_url ) ),
+								esc_html( sanitize_term_field( 'name', $category->name, $category->term_id, 'category', 'display' ) )
+							);
+
+						}
+					?>
+						<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo join(', ',$categories); ?></td>
+					<?php
+					break;
+
+					case 'sold':
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+							<?php echo $Product->sold; ?>
+						</td>
+					<?php
+					break;
+
+					case 'gross':
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+							<?php echo money($Product->grossed); ?>
+						</td>
+					<?php
+					break;
+
+					case 'price':
+						if ( str_true($Product->sale) ) $classes[] = 'sale';
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php
+							shopp($Product,'price');
+							if ( str_true($Product->sale) ) echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
+						?>
+						</td>
+					<?php
+					break;
+
+					case 'inventory':
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+						<?php // @todo Link inventory number to Inventory view while filtering for the product/variants
+						if ( str_true($Product->inventory) ) {
+							$stockclass = array('stock');
+							if (!empty($Product->lowstock) && 'none' != $Product->lowstock) $stockclass[] = "lowstock $Product->lowstock";
+						 	echo '<span class="'.join(' ',$stockclass).'">'.$Product->stock.'</span>';
+						}
+						?>
+						</td>
+					<?php
+					break;
+
+					case 'featured':
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+							<button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo str_true($Product->featured) ? ' feature featured' : 'feature'; ?>">&nbsp;</button>
+						</td>
+					<?php
+					break;
+
+					case 'date':
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+					<?php
+						if ( '0' == $Product->publish) {
+							$t_time = $h_time = __('Unpublished');
+							$time_diff = 0;
+						} else {
+							$t_time = get_the_time(__('Y/m/d g:i:s A'));
+							$m_time = $Product->publish;
+							$h_time = date(__('Y/m/d'), $m_time);
+							$time_diff = current_time('timestamp') - $m_time;
+
+							if ( $time_diff > 0 && $time_diff < 86400 )
+								$h_time = sprintf( __('%s ago'), human_time_diff( $m_time, current_time('timestamp') ) );
+
+						}
+
+						echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr><br />';
+						if ( 'publish' == $Product->status ) {
+							_e('Published');
+						} elseif ( 'future' == $Product->status ) {
+							if ( $time_diff > 0 )
+								echo '<strong class="attention">' . __('Missed schedule') . '</strong>';
+							else
+								_e('Scheduled');
+						} else {
+							_e('Last Modified');
+						}
+
+						?>
+						</td>
+					<?php
+					break;
+
+					default:
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+					<?php
+						do_action( 'shopp_manage_product_custom_column', $column, $Product );
+						do_action( 'manage_'.Product::posttype().'_posts_custom_column', $column, $Product );
+					?>
+						</td>
+					<?php
+					break;
 
 			}
-
-			echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr><br />';
-			if ( 'publish' == $Product->status ) {
-				_e('Published');
-			} elseif ( 'future' == $Product->status ) {
-				if ( $time_diff > 0 )
-					echo '<strong class="attention">' . __('Missed schedule') . '</strong>';
-				else
-					_e('Scheduled');
-			} else {
-				_e('Last Modified');
-			}
-
-			?>
-			</td>
-
+		} /* $columns */
+		?>
 		</tr>
-		<?php endforeach; ?>
+		<?php endforeach; /* $Products */ ?>
 		</tbody>
 	<?php else: ?>
 		<tbody><tr><td colspan="6"><?php _e('No products found.','Shopp'); ?></td></tr></tbody>
