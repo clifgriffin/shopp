@@ -53,7 +53,7 @@ class ProductCollection implements Iterator {
 			'paged' => false,		// Entries per page to load
 			'nostock' => null,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
 			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
-			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
+			'published' => true,	// Load published or include unpublished products (string) 'on','off','yes','no'…
 			'ids' => false,			// Flag for loading product IDs only
 			'adjacent' => false,	//
 			'product' => false,		//
@@ -1492,6 +1492,8 @@ class SearchResults extends SmartCollection {
 			'order'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = array($pricematch);
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['published'])) $this->loading['published'] = $options['published'];
+		if (isset($options['paged'])) $this->loading['paged'] = $options['paged'];
 
 		// No search
 		if (empty($options['search'])) $options['search'] = __('(no search terms)','Shopp');
