@@ -282,7 +282,7 @@ class Warehouse extends AdminController {
 		$start = ($per_page * ($pagenum-1));
 
 		if (!empty($s)) {
-			$SearchResults = new SearchResults(array('search'=>$s,'load'=>array()));
+			$SearchResults = new SearchResults(array('search'=>$s,'published'=>'off','paged'=>-1));
 			$SearchResults->load();
 			$ids = array_keys($SearchResults->products);
 			$where[] = "p.ID IN (".join(',',$ids).")";
