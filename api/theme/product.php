@@ -1067,6 +1067,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'pricetags' => 'show',
 			'before_menu' => '',
 			'after_menu' => '',
+			'format' => '%l (%p)',
 			'label' => 'on',
 			'mode' => 'multiple',
 			'taxes' => null,
@@ -1084,20 +1085,34 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-			foreach ($O->prices as $pricetag) {
-				if ('variation' != $pricetag->context) continue;
+			foreach ($O->prices as $pricing) {
+				if ('variation' != $pricing->context) continue;
 
-				$taxrate = shopp_taxrate($taxes,$pricetag->tax);
+				$taxrate = shopp_taxrate($taxes,$pricing->tax);
 				if ( ! $taxes ) $taxrate = 0;
 
-				$currently = str_true($pricetag->sale)?$pricetag->promoprice:$pricetag->price;
-				$disabled = str_true($pricetag->inventory) && $pricetag->stock == 0?' disabled="disabled"':'';
+				$currently = str_true($pricing->sale)?$pricing->promoprice:$pricing->price;
+				$disabled = str_true($pricing->inventory) && $pricing->stock == 0?' disabled="disabled"':'';
 
 				if ($taxes && $taxrate > 0) $currently = $currently+($currently*$taxrate);
 
-				$price = '  ('.money($currently).')';
+				$discount = 100-round($pricing->promoprice*100/$pricing->price);
+				$_ = new StdClass();
+				if ($pricing->type != 'Donation')
+					$_->p = money($currently);
+				$_->l = $pricing->label;
+				$_->i = str_true($pricing->inventory);
+				if ($_->i) $_->s = $pricing->stock;
+				$_->u = $pricing->sku;
+				$_->tax = str_true($pricing->tax);
+				$_->t = $pricing->type;
+				if ($pricing->promoprice != $pricing->price)
+					$_->r = money($pricing->price);
+				if ($discount > 0)
+					$_->d = $discount;
+
 				if ('N/A' != $pricetag->type)
-					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
+					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.self::_variant_formatlabel($format,$_).'</option>'."\n";
 			}
 			$string .= '</select>';
 			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
@@ -1116,15 +1131,27 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {
+				$discount = 100-round($pricing->promoprice*100/$pricing->price);
 				$_ = new StdClass();
 				if ($pricing->type != 'Donation')
 					$_->p = (float)(str_true($pricing->sale) ? $pricing->promoprice : $pricing->price);
 				$_->i = str_true($pricing->inventory);
-				$_->s = $_->i ? $pricing->stock : false;
+				$_->s = $_->i ? (int)$pricing->stock : false;
+				$_->u = $pricing->sku;
 				$_->tax = str_true($pricing->tax);
 				$_->t = $pricing->type;
+				if ($pricing->promoprice != $pricing->price)
+					$_->r = $pricing->price;
+				if ($discount > 0)
+					$_->d = $discount;
 				$pricekeys[$key] = $_;
 			}
+
+			$jsoptions = array('prices'=> $pricekeys,'format' => $format);
+			if ( 'hide' == $options['disabled'] ) $jsoptions['disabled'] = false;
+			if ( 'hide' == $options['pricetags'] ) $jsoptions['pricetags'] = false;
+			if ( ! empty($taxrate) ) $jsoptions['taxrate'] = $taxrate;
+
 
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
@@ -1133,10 +1160,9 @@ $s.opdef = true;
 <?php if (!empty($options['required'])): ?>
 $s.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
-if ( ! pricetags ) var pricetags = new Array();
-pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
-new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo ".category-".ShoppCollection()->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
+new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_class,$O->id); ?>,<?php echo json_encode($jsoptions); ?>);
 <?php
+
 			$script = ob_get_contents();
 			ob_end_clean();
 
@@ -1157,6 +1183,25 @@ new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo "
 		}
 
 		return $string;
+	}
+
+	static function _variant_formatlabel ($format,$var) {
+		$v = get_object_vars($var);
+		$tokens = join('',array_keys($v));
+		$t = addslashes(serialize($v));
+		$p = '([^\s]*)';
+		$label = preg_replace_callback(
+			"/$p(%([a-zA-Z]))$p/",
+			create_function('$m','
+				$t = unserialize("'.$t.'");
+				if ( ! array_key_exists($m[3],$t) ) return "";
+				return $m[1].$t[ $m[3] ].$m[4];
+			'),
+			$format
+		);
+
+		return trim($label);
+
 	}
 
 	static function weight ($result, $options, $O) {

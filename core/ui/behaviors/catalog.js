@@ -18,6 +18,7 @@ function ProductOptionsMenus (target,settings) {
 		defaults = {
 			disabled:true,
 			pricetags:true,
+			format:'%l (%p)',
 			taxrate:0,
 			prices:{}
 		},
@@ -57,31 +58,40 @@ function ProductOptionsMenus (target,settings) {
 
 		$(current).children('option').each(function () {
 
-			var p,tax,optiontext,previoustag,pricetag="",
+			var tax,optiontext,previoustag,pricetag,f = false,
 				option = $(this),
+				o = {l:f,p:f,s:f,d:f,r:f,u:f}, // Option object
 				keys = selected.slice(),
 				price;
 			if (option.val() != "") {
+				if ( ! this._label) this._label = option.text(); // Save label in DOM element property for later reference
+				o.l = this._label;
 				keys.push(option.val());
 				price = settings.prices[xorkey(keys)] || settings.prices[xorkey(keys,'deprecated')];
 				if (price) {
 					if (price.p && settings.pricetags) {
-						p = new Number(price.p);
-						tax = price.tax?new Number(p*settings.taxrate):0;
-						pricetag = "  ("+asMoney(new Number(p+tax))+")";
+						pricetag = new Number(price.p);
+						tax = price.tax?new Number(pricetag*settings.taxrate):0;
+						o.p = asMoney(new Number(pricetag+tax));
 					}
-					optiontext = option.text();
-					previoustag = optiontext.lastIndexOf("(");
-					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
-					option.text(optiontext+pricetag);
+
 					if ($.browser.msie) option.css('color','#373737');
 					if ((price.i && price.s < 1) || price.t == 'N/A') {
 						if (option.attr('selected'))
 							option.parent().attr('selectedIndex',0);
 						if (!settings.disabled) option.remove();
 						else optionDisable(option);
-					} else option.removeAttr(disabled).show();
+					} else {
+						option.removeAttr(disabled).show();
+					}
+					if (price.i) {
+						o.s = price.s;
+						o.u = price.u;
+					}
 					if (price.t == 'N/A' && !settings.disabled) option.remove();
+
+					option.text( formatlabel(settings.format,o) );
+
 				} else {
 					if (!settings.disabled) option.remove();
 					else optionDisable(option);
@@ -118,6 +128,24 @@ function ProductOptionsMenus (target,settings) {
 			}
 		});
 	}
+
+	function formatlabel (f,v) {
+		var m = '([^ ]*)',
+			rescape = function (t) { return t.toString().replace(/[$]/g, "$$$$"); };
+
+		$.each(v,function (p) {
+			if (v && v[p] != undefined) {
+				var pattern = new RegExp('('+m+'%'+p+m+')');
+					label = "$2"+rescape(v[p])+"$3";
+				if (v[p] === false) label = "";
+				if (v[p] === "") label = "";
+				f = f.replace(pattern,label);
+			}
+
+		});
+		return f;
+	}
+
 
 }
 
