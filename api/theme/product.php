@@ -665,6 +665,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'value' => ''
 		);
 		$options = array_merge($defaults,$options);
+
+		// Ensure we have a title attribute (catalog.js depends on this)
+		$options['title'] = ($options['name'] !== false)
+			? $options['name']
+			: __('product input field', 'Shopp');
+
 		extract($options,EXTR_SKIP);
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
