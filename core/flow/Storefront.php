@@ -110,7 +110,8 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function request ( $wp_query = false ) {
-		return is_shopp_query($wp_query) && ! is_shopp_product($wp_query);
+		global $wp_the_query;
+		return ($wp_query === $wp_the_query) && is_shopp_query($wp_query) && ! is_shopp_product($wp_query);
 	}
 
 	/**
