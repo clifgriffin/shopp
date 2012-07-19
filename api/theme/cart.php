@@ -328,6 +328,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		else $selected = $base['country'];
 		$postcode = (str_true($postcode) || $O->showpostcode);
 
+		$button = isset($button) ? esc_attr($button) : __('Estimate Shipping & Taxes', 'Shopp');
+
 		$_[] = '<div class="'.$class.'">';
 		if (count($countries) > 1) {
 			$_[] = '<span>';
@@ -340,7 +342,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			$_[] = '<span>';
 			$_[] = '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
 			$_[] = '</span>';
-			$_[] = shopp('cart','get-update-button',array('value' => __('Estimate Shipping & Taxes','Shopp')));
+			$_[] = shopp('cart','get-update-button',array('value' => $button));
 		}
 
 		$_[] = '</div>';
