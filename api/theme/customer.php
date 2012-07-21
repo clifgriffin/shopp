@@ -390,8 +390,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function order_lookup ($result, $options, $O) {
-		if ('none' != shopp_setting('account_system')) return true;
-
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
 			ShoppPurchase( new Purchase((int)$_POST['purchaseid']) );
 			if (ShoppPurchase()->email == $_POST['email']) {
