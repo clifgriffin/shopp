@@ -662,7 +662,7 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
  * @return mixed one named order data value, or an array of data, false if no value can be found
  **/
 function shopp_order_data ( $order = false, $name = false ) {
-	if ( $Purchase = shopp_order_exists($order) && isset($Purchase->data) && is_array($Purchase->data) ) {
+	if ( ($Purchase = shopp_order_exists($order)) && isset($Purchase->data) && is_array($Purchase->data) ) {
 		if ( false === $name ) return $Purchase->data;
 		if ( isset($Purchase->data[$name]) ) return $Purchase->data[$name];
 	}
