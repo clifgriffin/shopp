@@ -80,8 +80,7 @@ class ShoppCartItemThemeAPI {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 			else return money($result);
 		}
-		if (!empty($result)) return $result;
-			return false;
+		return $result;
 	}
 
 	static function id ($result, $options, $O) { return $O->_id; }
