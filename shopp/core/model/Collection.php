@@ -102,7 +102,7 @@ class ProductCollection implements Iterator {
 				case 'title': $orderby = "p.post_title ASC"; break;
 				case 'recommended':
 				default:
-					if ($order === false) $orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC";
+					if ($order === false || 'recommended' == $ordering) $orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC";
 					else $orderby = $order;
 					break;
 			}
@@ -798,6 +798,7 @@ class ProductCategory extends ProductTaxonomy {
 		$where = array();
 		$filters = array();
 		$facets = array();
+		$numeric = array();
 		foreach ($this->filters as $filtered => $value) {
 			$Facet = $this->facets[ $filtered ];
 			if (empty($value)) continue;
@@ -816,6 +817,7 @@ class ProductCategory extends ProductTaxonomy {
 					if ($min > 0) $ranges[] = "numeral >= $min";
 					if ($max > 0) $ranges[] = "numeral <= $max";
 					// $filters[] = "(".join(' AND ',$ranges).")";
+					$numeric[] = DB::escape($name);
 					$facets[] = sprintf("name='%s' AND %s",DB::escape($name),join(' AND ',$ranges));
 					$filters[] = sprintf("FIND_IN_SET('%s',facets)",DB::escape($name));
 
@@ -832,7 +834,9 @@ class ProductCategory extends ProductTaxonomy {
 		$jointables = str_replace('p.ID','m.parent',join(' ',$joins)); // Rewrite the joins to use the spec table reference
 		$having = "HAVING ".join(' AND ',$filters);
 
-		$query = "SELECT m.parent,GROUP_CONCAT(m.name,IF(m.numeral>0,'','='),IF(m.numeral>0,'',m.value)) AS facets
+		$query = "SELECT m.parent,GROUP_CONCAT(m.name,
+			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'','='),
+			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'',m.value)) AS facets
 					FROM $spectable AS m $jointables
 					WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
 					GROUP BY m.parent
