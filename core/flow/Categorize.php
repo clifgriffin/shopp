@@ -184,7 +184,6 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function categories ($workflow=false) {
-		global $Shopp;
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
