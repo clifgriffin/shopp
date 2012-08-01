@@ -1,5 +1,5 @@
 <?php
-	$subs = apply_filters('shopp_categories_subsubsub',$subs);
+	$subs = apply_filters('shopp_categories_subsubsub',array());
 	if (empty($subs)) return;
 ?>
 <ul class="subsubsub"><?php
