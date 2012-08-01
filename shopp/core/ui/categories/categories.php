@@ -32,48 +32,101 @@
 		<tfoot>
 		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-categories',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Categories) > 0): ?>
+	<?php if (count($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
 		<?php
-		$hidden = array();
-		$hidden = get_hidden_columns('shopp_page_shopp-categories');
+		$columns = get_column_headers($this->screen);
+		$hidden = get_hidden_columns($this->screen);
 
 		$even = false;
 		foreach ($Categories as $Category):
-
-		$editurl = esc_url(add_query_arg(array_merge($_GET,
-			array('page'=>$this->Admin->pagename('categories'),
-					'id'=>$Category->id)),
-					admin_url('admin.php')));
-
-		$deleteurl = esc_url(add_query_arg(array_merge($_GET,
-			array('page'=>$this->Admin->pagename('categories'),
-					'delete[]'=>$Category->id,
-					'deleting'=>'category')),
-					admin_url('admin.php')));
-
-		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
-
 		?>
-		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
-			<td><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->level); echo esc_html($CategoryName); ?></a>
-				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;' href="<?php echo $deleteurl; ?>" rel="<?php echo $Category->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo shoppurl( '' == get_option('permalink_structure') ? array('s_cat'=>$Category->id) : "category/$Category->slug" ); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
-				</div>
-			</td>
-			<td class="slug column-slug<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->slug; ?></td>
-			<td width="5%" class="num products column-products<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->count; ?></td>
-			<td width="5%" class="num templates column-templates<?php echo in_array('templates',$hidden)?' hidden':''; ?>">
-				<div class="checkbox"><?php if (isset($Category->spectemplates) && 'on' == $Category->spectemplates): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
-			</td>
-			<td width="5%" class="num menus column-menus<?php echo in_array('menus',$hidden)?' hidden':''; ?>">
-				<div class="checkbox"><?php if (isset($Category->facetedmenus) && 'on' == $Category->facetedmenus): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
-			</td>
+			<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+		<?php
+		foreach ($columns as $column => $column_title) {
+			$classes = array($column,"column-$column");
+			if ( in_array($column,$hidden) ) $classes[] = 'hidden';
+
+			switch ($column) {
+				case 'cb':
+				?>
+					<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
+				<?php
+				break;
+
+				case 'name':
+					$editurl = esc_url(add_query_arg(array_merge($_GET,
+						array('page'=>$this->Admin->pagename('categories'),
+								'id'=>$Category->id)),
+								admin_url('admin.php')));
+
+					$deleteurl = esc_url(add_query_arg(array_merge($_GET,
+						array('page'=>$this->Admin->pagename('categories'),
+								'delete[]'=>$Category->id,
+								'deleting'=>'category')),
+								admin_url('admin.php')));
+
+					$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
+
+				?>
+					<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->level); echo esc_html($CategoryName); ?></a>
+						<div class="row-actions">
+							<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+							<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;' href="<?php echo $deleteurl; ?>" rel="<?php echo $Category->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
+							<span class='view'><a href="<?php shopp($Category,'url'); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+						</div>
+					</td>
+				<?php
+				break;
+
+				case 'slug':
+				?>
+					<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo $Category->slug; ?></td>
+				<?php
+				break;
+
+				case 'products':
+					$classes[] = 'num';
+				?>
+					<td width="5%" class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo $Category->count; ?></td>
+				<?php
+				break;
+
+				case 'templates':
+					$classes[] = 'num';
+				?>
+					<td width="5%" class="<?php echo esc_attr(join(' ',$classes)); ?>">
+						<div class="checkbox"><?php if (isset($Category->spectemplates) && 'on' == $Category->spectemplates): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+					</td>
+				<?php
+				break;
+
+				case 'menus':
+					$classes[] = 'num';
+				?>
+					<td width="5%" class="<?php echo esc_attr(join(' ',$classes)); ?>">
+			<div class="checkbox"><?php if (isset($Category->facetedmenus) && 'on' == $Category->facetedmenus): ?><div class="checked">&nbsp;</div><?php else: ?>&nbsp;<?php endif; ?></div>
+					</td>
+				<?php
+				break;
+
+				default:
+				?>
+					<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+				<?php
+					do_action( 'shopp_manage_categories_custom_column', $column, $Product );
+					do_action( 'manage_'.ProductCategory::$taxon.'_custom_column', $column, $Category );
+				?>
+					</td>
+				<?php
+				break;
+
+			}
+
+		} /* $columns */
+		?>
 		</tr>
-		<?php endforeach; ?>
+		<?php endforeach; /* $Categories */ ?>
 		</tbody>
 	<?php else: ?>
 		<tbody><tr><td colspan="6"><?php _e('No categories found.','Shopp'); ?></td></tr></tbody>
