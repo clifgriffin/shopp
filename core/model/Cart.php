@@ -187,10 +187,10 @@ class Cart {
 					$this->update($_REQUEST['item'],$_REQUEST['quantity']);
 				} elseif (!empty($_REQUEST['items'])) {
 					foreach ($_REQUEST['items'] as $id => $item) {
-						if (isset($item['quantity'])) {
-							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
-							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
-						    if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
+						if (array_key_exists('quantity', $item) && is_numeric($item['quantity'])) {
+							$item['quantity'] = absint($item['quantity']);
+							$this->update($id,$item['quantity']);
+							if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
 						}
 						if (isset($item['product']) && isset($item['price']) &&
 							$item['product'] == $this->contents[$id]->product &&
@@ -290,7 +290,7 @@ class Cart {
 	 * @return boolean
 	 **/
 	function remove ($item) {
-		array_splice($this->contents,$item,1);
+		unset($this->contents[$item]);
 		$this->changed(true);
 		return true;
 	}
