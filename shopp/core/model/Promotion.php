@@ -91,7 +91,8 @@ class Promotion extends DatabaseObject {
 
 		}
 
-		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
+		$operator = 'all' == strtolower($this->search)?' AND ': ' OR ';
+		if (!empty($where)) $where = "WHERE ".join($operator,$where);
 		else $where = false;
 
 		if (!empty($joins)) $joins = join(' ',$joins);
