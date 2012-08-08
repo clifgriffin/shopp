@@ -511,7 +511,7 @@ class ProductTaxonomy extends ProductCollection {
 		global $wpdb;
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 
-		$options['joins'][$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$options['joins'][$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id AND tr.term_taxonomy_id=$this->term_taxonomy_id)";
 		$options['joins'][$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$this->id)";
 
 		$loaded =  parent::load(apply_filters('shopp_taxonomy_load_options',$options));
