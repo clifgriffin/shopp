@@ -370,7 +370,7 @@ class Service extends AdminController {
 
 		if (!empty($_POST['edit-note'])) {
 			$noteid = key($_POST['note-editor']);
-			$Note = new MetaObject($noteid);
+			$Note = new MetaObject(array('id' => $noteid, 'type' => 'order_note'));
 			$Note->value->message = stripslashes($_POST['note-editor'][$noteid]);
 			$Note->save();
 		}
