@@ -366,15 +366,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function description ($result, $options, $O) {
-		// @deprecated filter hook, no longer needed
+		// @deprecated filter hook, no longer needed, use shopp_themeapi_product_description
 		$description = apply_filters('shopp_product_description',$O->description);
 		return $description;
 	}
 
 	static function found ($result, $options, $O) {
-		$Collection = ShoppCollection();
 		if (empty($O->id)) return false;
-		if (isset($Collection->products[$O->id])) return true;
+		// Prevent re-loading individual product data in category loops
+		if (shopp('collection.products','looping=true')) return true;
 		$loadable = array('prices','coverimages','images','specs','tags','categories','summary');
 		$defaults = array(
 			'load' => false
