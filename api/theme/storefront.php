@@ -299,13 +299,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function category ($result, $options, $O) {
 		global $Shopp;
 		$Storefront = ShoppStorefront();
-
+		$reset = null;
 		if (isset($options['name'])) ShoppCollection( new ProductCategory($options['name'],'name') );
 		else if (isset($options['slug'])) ShoppCollection( new ProductCategory($options['slug'],'slug') );
 		else if (isset($options['id'])) ShoppCollection( new ProductCategory($options['id']) );
 
 		if (isset($options['reset']))
-			return ( is_a($Storefront->Requested, 'ProductCollection') ? ( ShoppCollection($Storefront->Requested) ) : false );
+			return ( is_a($Storefront->Requested, 'ProductCollection') ? ( ShoppCollection($Storefront->Requested) ) : ShoppCollection($reset) );
 		if (isset($options['title'])) ShoppCollection()->name = $options['title'];
 		if (isset($options['show'])) ShoppCollection()->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) ShoppCollection()->loading['pagination'] = $options['pagination'];
