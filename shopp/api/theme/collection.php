@@ -505,6 +505,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function parent ($result, $options, $O) { return isset($O->parent) ? $O->parent : false;  }
 
 	static function products ($result, $options, $O) {
+		if ( isset($options['looping']) ) return isset($O->_product_loop);
+
 		$null = null;
 		if (!isset($O->_product_loop)) {
 			reset($O->products);
