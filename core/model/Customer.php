@@ -175,6 +175,8 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
 		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
 
+		$_[] = apply_filters('shopp_merchant_new_customer_notification',$_);
+
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
 		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the merchant.','new_account_email',SHOPP_DEBUG_ERR);
@@ -190,6 +192,8 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('Password: %s'), $this->password);
 		$_[] = '';
 		$_[] = shoppurl(false,'account',$Shopp->Gateways->secure);
+
+		$_[] = apply_filters('shopp_new_customer_notification',$_);
 
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
