@@ -1637,16 +1637,18 @@ function shopp_find_wpload () {
 		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
     } else {
         /* Last chance, do or die */
+		$filepath = sanitize_path($filepath);
         if (($pos = strpos($filepath, 'wp-content/plugins')) !== false)
             $wp_abspath = substr($filepath, 0, --$pos);
     }
 
-	$wp_load_file = sanitize_path($wp_abspath).'/'.$loadfile;
+	$wp_load_file = realpath(sanitize_path($wp_abspath).'/'.$loadfile);
 
 	if ( $wp_load_file !== false ) return $wp_load_file;
 	return false;
 
 }
+
 /**
  * Ties the key status and update key together
  *
