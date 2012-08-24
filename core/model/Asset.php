@@ -269,7 +269,7 @@ class ImageAsset extends FileAsset {
 
 		$message = rtrim(join(',',$args),',');
 
-		$validation = crc32($key.$this->id.','.$message);
+		$validation = sprintf('%u',crc32($key.$this->id.','.$message));
 		$message .= ",$validation";
 		return $message;
 	}
