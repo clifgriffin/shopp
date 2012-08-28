@@ -169,7 +169,7 @@ class ProductCollection implements Iterator {
 			$options['where'][] = $alphafilter;
 		}
 
-		$query = DB::select($options);
+		$query = DB::select( apply_filters('shopp_collection_query',$options) );
 
 		if ($debug) echo $query.BR.BR;
 
@@ -1519,6 +1519,71 @@ class SearchResults extends SmartCollection {
 		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$result);
 	}
 
+}
+
+class TaxonProducts extends SmartCollection {
+	static $_slug = "group";
+
+	function smart ($options=array()) {
+
+		$this->slug = self::$_slug;
+
+		$defaults = array(
+			'relation' => 'AND',
+			'field' => 'name',
+			'include_children' => true,
+			'operator' => 'IN',
+			'taxquery' => false
+		);
+		$options = array_merge($defaults,$options);
+		extract($options, EXTR_SKIP);
+
+		$relationships = array('AND','OR');
+		$relation = in_array($relation,$relationships)?$relation:$defaults['relation'];
+
+		$operators = array('IN','NOT IN','AND');
+		$operator = in_array($operator,$operators)?$operator:$defaults['operator'];
+
+
+		$settings = array(
+			'relation' => $relation,
+			'include_children' => $include_children,
+			'field' => $field,
+			'operator' => $operator
+		);
+
+		if (false === $taxquery) {
+			$taxquery = $settings;
+			// Parse taxonomy term options
+			foreach ($options['taxonomy'] as $i => $taxonomy)
+				$taxquery[ $i ]['taxonomy'] = $taxonomy;
+
+			foreach ($options['terms'] as $i => $terms) {
+				$taxquery[ $i ]['terms'] = explode(',',$terms);
+				$taxquery[ $i ]['field'] = $field;
+			}
+		} else $taxquery = array_merge($settings,$taxquery);
+
+		// $this->name = sprintf(__('Products tagged "%s"','Shopp'),$this->tag);
+		// $this->uri = urlencode($this->tag);
+
+		global $wpdb;
+ 		$WPTaxQuery = new WP_Tax_Query($taxquery);
+ 		$clauses = $WPTaxQuery->get_sql( $wpdb->posts, 'ID' );
+		$joins = array('taxquery' => self::transform($clauses['join']));
+		$where = array( self::transform($clauses['where']) );
+		$groupby = 'p.ID';
+		$this->loading = compact('columns','joins','where','groupby');
+		$this->loading['debug'] = true;
+
+	}
+
+	function transform ($sql) {
+		global $wpdb;
+		$sql = str_replace( $wpdb->posts.'.' ,'p.',$sql);
+		$sql = ltrim($sql,' AND ');
+		return $sql;
+	}
 }
 
 // @todo Document TagProducts
