@@ -310,6 +310,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (isset($options['show'])) ShoppCollection()->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) ShoppCollection()->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) ShoppCollection()->loading['order'] = $options['order'];
+		if (isset($options['taxquery'])) ShoppCollection()->loading['taxquery'] = $options['taxquery'];
 
 		if (isset($options['load'])) return true;
 		if (isset($options['controls']) && !value_is_true($options['controls']))
@@ -330,7 +331,9 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		$Shopp->Category = false; // Reset the current category
+		// Reset the current collection to previously requested collection or empty it
+		if ( is_a($Storefront->Requested, 'ProductCollection') ) ShoppCollection($Storefront->Requested);
+		else ShoppCollection($reset);
 
 		if (isset($options['wrap']) && str_true($options['wrap'])) $content = shoppdiv($content);
 

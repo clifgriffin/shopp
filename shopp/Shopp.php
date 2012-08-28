@@ -279,6 +279,7 @@ class Shopp {
 		shopp_register_collection('OnSaleProducts');
 		shopp_register_collection('BestsellerProducts');
 		shopp_register_collection('SearchResults');
+		shopp_register_collection('MixProducts');
 		shopp_register_collection('TagProducts');
 		shopp_register_collection('RelatedProducts');
 		shopp_register_collection('AlsoBoughtProducts');
