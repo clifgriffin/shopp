@@ -114,7 +114,7 @@
 				?>
 					<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 				<?php
-					do_action( 'shopp_manage_categories_custom_column', $column, $Product );
+					do_action( 'shopp_manage_categories_custom_column', $column, $Category );
 					do_action( 'manage_'.ProductCategory::$taxon.'_custom_column', $column, $Category );
 				?>
 					</td>
