@@ -59,6 +59,7 @@ class ProductCollection implements Iterator {
 			'product' => false,		//
 			'load' => array(),		// Product data to load
 			'inventory' => false,	// Flag for detecting inventory-based queries
+			'taxquery' => false,	// Cross taxonomy queries
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
@@ -82,6 +83,23 @@ class ProductCollection implements Iterator {
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
 
 		if (str_true($published)) $where[] = "p.post_status='publish'";
+
+		// Multiple taxonomy queries
+		if ( is_array($taxquery) ) {
+			$tqdefaults = array(
+				'relation' => 'AND',
+				'field' => 'name',
+				'include_children' => true,
+				'operator' => 'IN',
+			);
+			$taxquery = array_merge($tqdefaults,$taxquery);
+
+	 		$TQ = new WP_Tax_Query($taxquery);
+	 		$sql = $TQ->get_sql( $Processing->_table, 'ID' );
+			unset($TQ);
+			$joins['taxquery'] = self::taxquery( $sql['join'] );
+			$where[] = self::taxquery( $sql['where'] );
+		}
 
 		// Sort Order
 		if (!$orderby) {
@@ -405,6 +423,13 @@ class ProductCollection implements Iterator {
 			if (!empty($value)) echo "\t\t<$key$attrs>$value</$key>\n";
 			else echo "\t\t<$key$attrs />\n";
 		}
+	}
+
+	static private function taxquery ($sql) {
+		$tablename = WPShoppObject::tablename(Product::$table);
+		$sql = str_replace( $tablename.'.' ,'p.',$sql);
+		$sql = ltrim($sql,' AND ');
+		return $sql;
 	}
 
 	function worklist () {
@@ -1521,14 +1546,14 @@ class SearchResults extends SmartCollection {
 
 }
 
-class TaxonProducts extends SmartCollection {
-	static $_slug = "group";
+class MixProducts extends SmartCollection {
+	static $_slug = 'mixed';
 
 	function smart ($options=array()) {
-
-		$this->slug = self::$_slug;
+		$this->slug = $this->uri = self::$_slug;
 
 		$defaults = array(
+			'name' => __('Mixed Products','Shopp'),
 			'relation' => 'AND',
 			'field' => 'name',
 			'include_children' => true,
@@ -1564,26 +1589,11 @@ class TaxonProducts extends SmartCollection {
 			}
 		} else $taxquery = array_merge($settings,$taxquery);
 
-		// $this->name = sprintf(__('Products tagged "%s"','Shopp'),$this->tag);
-		// $this->uri = urlencode($this->tag);
-
-		global $wpdb;
- 		$WPTaxQuery = new WP_Tax_Query($taxquery);
- 		$clauses = $WPTaxQuery->get_sql( $wpdb->posts, 'ID' );
-		$joins = array('taxquery' => self::transform($clauses['join']));
-		$where = array( self::transform($clauses['where']) );
-		$groupby = 'p.ID';
-		$this->loading = compact('columns','joins','where','groupby');
+		$this->loading['taxquery'] = $taxquery;
 		$this->loading['debug'] = true;
 
 	}
 
-	function transform ($sql) {
-		global $wpdb;
-		$sql = str_replace( $wpdb->posts.'.' ,'p.',$sql);
-		$sql = ltrim($sql,' AND ');
-		return $sql;
-	}
 }
 
 // @todo Document TagProducts
