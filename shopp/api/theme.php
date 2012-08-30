@@ -105,15 +105,4 @@ function shopp () {
 
 }
 
-require('theme/cart.php');
-require('theme/cartitem.php');
-require('theme/shipping.php');
-require('theme/storefront.php');
-require('theme/collection.php');
-require('theme/product.php');
-require('theme/checkout.php');
-require('theme/purchase.php');
-require('theme/customer.php');
-require('theme/error.php');
-
 ?>
