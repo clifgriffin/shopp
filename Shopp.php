@@ -44,7 +44,7 @@ require('core/legacy.php');
 // Don't load Shopp if unsupported
 if (SHOPP_UNSUPPORTED) return;
 
-require('core/functions.php');
+require_once('core/functions.php');
 
 // Load core app helpers
 require_once('core/Framework.php');
@@ -316,6 +316,7 @@ class Shopp {
 		);
 
 		add_rewrite_rule(Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
+		add_rewrite_rule(Storefront::slug().'/api/(.*?)$', $path.'/remote.php?$1');
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -741,7 +742,7 @@ class Shopp {
 			return;
 		}
 
-     if ($addons) {
+	    if ($addons) {
 			// Addon update messages
 			foreach ($addons as $addon) {
 				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
@@ -750,7 +751,6 @@ class Shopp {
 						esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version) );
 
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
-
 			}
 		}
 
