@@ -869,13 +869,12 @@ class CartDiscounts {
 						}
 
 						if ( $Item->discounts ) $Discount->applied += $Item->discounts; // total line item discount
-						$sum[$id] = $Item->discounts;
+						$sum[$Discount->id.$id] = $Item->discounts;
 					}
 
 				}
-			} else {
-				$sum[] = $Discount->applied;
-			}
+			} else $sum[$Discount->id] = $Discount->applied;
+
 		}
 
 		$discount = array_sum($sum);
