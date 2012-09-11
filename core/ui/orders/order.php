@@ -30,18 +30,18 @@
 
 			</div>
 		</div>
-		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
 			<thead>
 			<tr>
-				<th scope="col" class="item"><?php _e('Items Ordered','Shopp'); ?></th>
+				<th scope="col" class="item"><?php _e('Items','Shopp'); ?></th>
 				<th scope="col"><?php _e('Quantity','Shopp'); ?></th>
 				<th scope="col" class="money"><?php _e('Item Price','Shopp'); ?></th>
 				<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
 			</tr>
 			</thead>
 			<tbody>
-			<?php
+			<?php if (sizeof($Purchase->purchased) > 0):
+
 				$even = false;
 				foreach ($Purchase->purchased as $id => $Item):
 					$taxrate = round($Item->unittax/$Item->unitprice,4);
@@ -112,12 +112,11 @@
 				<th scope="row" colspan="3" class="total"><?php _e('Total','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->total); ?></td>
 			</tr>
+			<?php else: ?>
+				<td colspan="4"><p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p></td>
+			<?php endif; ?>
 			</tbody>
 		</table>
-
-		<?php else: ?>
-			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
-		<?php endif; ?>
 
 		<div id="poststuff" class="poststuff">
 
