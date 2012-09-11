@@ -427,6 +427,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 .shopp #customer #post-body-content .postbox p { width:66%; }
 #customer-login .avatar { float: left; margin-right: 5px;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;overflow:hidden; }
+#order .avatar { float: left; margin-right: 8px;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;overflow:hidden; }
 #customer-login #pass-strength-result { line-height:20px;width:94%; }
 
 /** Image cropping UI **/
@@ -545,7 +546,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .misc-pub-section.controls { padding: 10px; }
 #order .status { font-size: 1.2em; }
 
-#order .shipment { width: 450px; margin: 6px auto 1.33em; }
+#order .shipment,
+#order .editaddress { width: 450px; margin: 6px auto 1.33em; }
 #order .refunding { margin: 6px 10px 1.33em; }
 #order .refunding label { font-weight: bold; }
 #order .refunding div { padding-bottom: 8px; }
@@ -555,6 +557,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .shipment div.delete { position: absolute; left: -2px; top: -2px; }
 #order .shipment .submit,
 #order .refunding .submit { margin-top: 2em; float: none; }
+.shopp #order .editaddress span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+
 
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
 .stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }

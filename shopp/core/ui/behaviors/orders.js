@@ -9,9 +9,10 @@ jQuery(document).ready( function($) {
 	$.template('shipment-ui',$('#shipment-ui'));
 	$.template('shipnotice-ui',$('#shipnotice-ui'));
 	$.template('refund-ui',$('#refund-ui'));
+	$.template('address-ui',$('#address-editor'));
 
 	var manager = $('#order-manage'),
-		headline = manager.find('div.headline'),
+		managerui = manager.find('div.manager-ui'),
 
 		cmo = '',
 		ctr = $.each(carriers,function (code,carrier) {
@@ -69,14 +70,13 @@ jQuery(document).ready( function($) {
 					});
 				});
 
-				ui.appendTo(headline);
-
+				managerui.empty().append(ui);
 		}),
 
 		refundbtn = $('#cancel-order, #refund-button').click(function (e) {
 			e.preventDefault();
 
-			var $this = $(this).hide(),
+			var $this = $(this).attr('disabled',true),
 				data = ('refund-button' == $this.attr('id') ?
 					{ action:'refund',title:$om.ro,cancel:$om.cancel,send:$om.stg,process:$om.pr,reason: $om.rr } :
 					{ action:'cancel',title:$om.co,cancel:$om.dnc,send:$om.stg,process:$om.co,reason: $om.rc,disable_amount: ' disabled="disabled"' }),
@@ -90,7 +90,7 @@ jQuery(document).ready( function($) {
 
 				});
 
-			ui.appendTo(headline);
+				managerui.empty().append(ui);
 		}),
 
 		printbtn = $('#print-button').click(function (e) {
@@ -104,7 +104,37 @@ jQuery(document).ready( function($) {
 				fw.print();
 			}
 			return false;
+		}),
+
+		editaddress = function (type) {
+			var $this = $(this),
+				data = $.parseJSON( $('#edit-'+type+'-address-data').val()),
+				ui = $.tmpl('address-ui',data),
+
+				cancel = ui.find('#cancel-edit-address').click(function (e) {
+					e.preventDefault();
+					ui.fadeRemove('fast',function () {
+						$this.show();
+					});
+
+				});
+
+			ui.find('#address-state-menu').html(data.statemenu);
+			ui.find('#address-country').upstate().html(data.countrymenu);
+
+			managerui.empty().append(ui);
+
+		},
+
+		billaddrctrls = $('#edit-billing-address, #order-billing address').click(function (e) {
+			editaddress('billing');
+		}),
+
+		billaddrctrls = $('#edit-shipping-address, #order-shipto address').click(function (e) {
+			editaddress('shipping');
 		});
+
+
 
 
 });
