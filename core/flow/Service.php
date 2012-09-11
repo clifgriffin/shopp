@@ -50,6 +50,8 @@ class Service extends AdminController {
 				'mc' => __('Mark Cancelled','Shopp'),
 				'stg' => __('Send to gateway','Shopp')
 			));
+			shopp_enqueue_script('address');
+			shopp_custom_script( 'address', 'var regions = '.json_encode(Lookup::country_zones()).';');
 
 			add_action('load-'.$this->screen,array($this,'workflow'));
 			add_action('load-'.$this->screen,array($this,'layout'));
@@ -471,6 +473,18 @@ class Service extends AdminController {
 			$Purchase->load_events();
 		}
 
+		if (isset($_POST['order-action']) && 'update-address' == $_POST['order-action']) {
+
+			if ( 'shipping' == $_POST['address']['type'] ) {
+				$shipping = array();
+				foreach($_POST['address'] as $name => $value) $shipping[ "ship$name" ] = $value;
+				$Purchase->updates($shipping);
+				$Purchase->shipname = $shipping['shipfirstname'].' '.$shipping['shiplastname'];
+			} else $Purchase->updates($_POST['address']);
+
+			$Purchase->save();
+		}
+
 		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
 			$user = wp_get_current_user();
 
@@ -486,6 +500,18 @@ class Service extends AdminController {
 
 		$base = shopp_setting('base_operations');
 		$targets = shopp_setting('target_markets');
+
+		$countries = array(''=>'&nbsp;');
+		$countrydata = Lookup::countries();
+		foreach ($countrydata as $iso => $c) {
+			if ($base['country'] == $iso) $base_region = $c['region'];
+			$countries[$iso] = $c['name'];
+		}
+		$Purchase->_countries = $countries;
+
+		$regions = Lookup::country_zones();
+		$Purchase->_billing_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Purchase->country]);
+		$Purchase->_shipping_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Purchase->shipcountry]);
 
 		$carriers_menu = $carriers_json = array();
 		$shipping_carriers = shopp_setting('shipping_carriers');

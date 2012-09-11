@@ -1,13 +1,17 @@
 /*!
- * account.js - Description
+ * address.js - Description
  * Copyright © 2012 by Ingenesis Limited. All rights reserved.
  * Licensed under the GPLv3 {@see license.txt}
  */
-jQuery(document).ready(function($) {
 
-	$('#billing-country,#shipping-country').change(function (e,init) {
-		var prefix = $(this).attr('id').split('-')[0],
-			country = $(this).val(),
+(function($) {
+
+jQuery.fn.upstate = function () {
+
+	$(this).change(function (e,init) {
+		var $this = $(this),
+			prefix = $this.attr('id').split('-')[0],
+			country = $this.val(),
 			state = $('#'+prefix+'-state'),
 			menu = $('#'+prefix+'-state-menu'),
 			options = '<option value=""></option>';
@@ -33,5 +37,15 @@ jQuery(document).ready(function($) {
 			if (!init) state.val('').focus();
 		}
 	}).trigger('change',[true]);
+
+	return $(this);
+
+};
+
+})(jQuery);
+
+
+jQuery(document).ready(function($) {
+	$('#billing-country,#shipping-country').upstate();
 
 });
