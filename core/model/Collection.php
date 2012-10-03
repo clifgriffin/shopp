@@ -933,10 +933,16 @@ class ProductCategory extends ProductTaxonomy {
 
 		}
 
+		// Identify facet menu types to treat numeric and string contexts properly @bug #2014
+		$custom = array();
+		foreach ($this->facets as $Facet)
+			if ('custom' == $Facet->type) $custom[] = DB::escape($Facet->name);
+
 		// Load spec aggregation data
 		$spectable = DatabaseObject::tablename(Spec::$table);
+
 		$query = "SELECT spec.name,spec.value,
-			IF(spec.numeral > 0,spec.name,spec.value) AS merge,
+			IF(0 >= FIND_IN_SET(spec.name,'".join(",",$custom)."'),IF(spec.numeral > 0,spec.name,spec.value),spec.value) AS merge,
 			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
 			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
