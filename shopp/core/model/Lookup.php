@@ -906,13 +906,14 @@ class Lookup {
 			'filesize_mismatch' => __('The size of the uploaded file does not match the size reported by the client. Something fishy going on?','Shopp')
 		);
 
+		$callhome_fail = __('Could not connect to the shopplugin.net server.','Shopp');
 		$_['callhome'] = array(
-			'fail' => __('Could not connect to the shopplugin.net server.','Shopp'),
+			'fail' => $callhome_fail,
 			'noresponse' => __('No response was sent back by the shopplugin.net server.','Shopp')." {$_['contact']['admin']}",
 			'http-unknown' => __('The connection to the shopplugin.net server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
-			'http-400' => $_['callhome']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
-			'http-401' => $_['callhome']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
-			'http-403' => $_['callhome']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-400' => $callhome_fail.__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $callhome_fail.__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $callhome_fail.__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
 			'http-404' => __('The requested resource does not exist on the shopplugin.net server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
 			'http-500' => __('The shopplugin.net server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
 			'http-501' => __('The shopplugin.net server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
@@ -922,14 +923,15 @@ class Lookup {
 			'http-505' => __("The shopplugin.net server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)"
 		);
 
+		$gateway_fail = __('Could not connect to the payment server.','Shopp');
 		$_['gateway'] = array(
 			'nogateways' => __('No payment system has been setup for the storefront.','Shopp')." {$_['contact']['admin']}",
-			'fail' => __('Could not connect to the payment server.','Shopp'),
+			'fail' => $gateway_fail,
 			'noresponse' => __('No response was sent back by the payment server.','Shopp')." {$_['contact']['admin']}",
 			'http-unknown' => __('The connection to the payment server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
-			'http-400' => $_['gateway']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
-			'http-401' => $_['gateway']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
-			'http-403' => $_['gateway']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-400' => $gateway_fail.__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $gateway_fail.__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $gateway_fail.__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
 			'http-404' => __('The requested resource does not exist on the payment server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
 			'http-500' => __('The payment server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
 			'http-501' => __('The payment server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
@@ -939,13 +941,14 @@ class Lookup {
 			'http-505' => __("The payment server doesn't support the connection protocol version used in the request.",'Shopp')." {$_['contact']['admin']} (HTTP 505)",
 		);
 
+		$shipping_fail = __('Could not connect to the shipping rates server.','Shopp');
 		$_['shipping'] = array(
-			'fail' => __('Could not connect to the shipping rates server.','Shopp'),
+			'fail' => $shipping_fail,
 			'noresponse' => __('No response was sent back by the shipping rates server.','Shopp')." {$_['contact']['admin']}",
 			'http-unknown' => __('The connection to the shipping rates server failed due to an unknown error.','Shopp')." {$_['contact']['admin']}",
-			'http-400' => $_['shipping']['fail'].__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
-			'http-401' => $_['shipping']['fail'].__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
-			'http-403' => $_['shipping']['fail'].__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
+			'http-400' => $shipping_fail.__("The server couldn't understand the request.",'Shopp')." {$_['contact']['admin']} (HTTP 400)",
+			'http-401' => $shipping_fail.__('The server requires login authentication and denied access.','Shopp')." {$_['contact']['admin']} (HTTP 401)",
+			'http-403' => $shipping_fail.__('The server refused the connection.','Shopp')." {$_['contact']['admin']} (HTTP 403)",
 			'http-404' => __('The requested resource does not exist on the shipping rates server.','Shopp')." {$_['contact']['admin']} (HTTP 404)",
 			'http-500' => __('The shipping rates server experienced an error and could not handle the request.','Shopp')." {$_['contact']['admin']} (HTTP 500)",
 			'http-501' => __('The shipping rates server does not support the method of the request.','Shopp')." {$_['contact']['admin']} (HTTP 501)",
