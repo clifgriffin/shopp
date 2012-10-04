@@ -97,7 +97,6 @@ class Order {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
 		$this->validated = false; // Reset the order validation flag
 
-		add_action('shopp_init',array($this,'updates'),20);
 		add_action('parse_request',array($this,'request'));
 
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
@@ -1470,7 +1469,7 @@ class OrderEventMessage extends MetaObject {
 			$OrderEventClass = get_class($this);
 		}
 		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
-		$Object = new $OrderEventClass();
+		$Object = new $OrderEventClass(false);
 		$Object->msgprops();
 		$Object->populate($record);
 		if (method_exists($Object,'expopulate'))
