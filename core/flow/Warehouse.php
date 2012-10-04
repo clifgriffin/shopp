@@ -299,6 +299,19 @@ class Warehouse extends AdminController {
 			}
 		}
 
+		// Detect custom taxonomies
+		$taxonomies = array_intersect(get_object_taxonomies(Product::$posttype),array_keys($_GET));
+		if ( ! empty($taxonomies) ) {
+			foreach ($taxonomies as $n => $taxonomy) {
+				global $wpdb;
+				$term = get_term_by('slug',$_GET[ $taxonomy ],$taxonomy);
+				if ( ! empty($term->term_id) ) {
+					$joins[$wpdb->term_relationships.'_'.$n] = "INNER JOIN $wpdb->term_relationships AS tr$n ON (p.ID=tr$n.object_id)";
+					$joins[$wpdb->term_taxonomy.'_'.$n] = "INNER JOIN $wpdb->term_taxonomy AS tt$n ON (tr$n.term_taxonomy_id=tt$n.term_taxonomy_id AND tt$n.term_id=$term->term_id)";
+				}
+			}
+		}
+
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
 			switch($sl) {
 				case "ns": $where[] = "s.inventory='off'"; break;
