@@ -410,9 +410,6 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_shipping')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-
-		global $Shopp;
-
 		$sub = 'settings';
 		if (shopp_setting_enabled('shipping')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
