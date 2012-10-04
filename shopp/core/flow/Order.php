@@ -1469,7 +1469,7 @@ class OrderEventMessage extends MetaObject {
 			$OrderEventClass = get_class($this);
 		}
 		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
-		$Object = new $OrderEventClass();
+		$Object = new $OrderEventClass(false);
 		$Object->msgprops();
 		$Object->populate($record);
 		if (method_exists($Object,'expopulate'))
