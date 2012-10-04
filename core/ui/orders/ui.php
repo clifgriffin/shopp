@@ -132,7 +132,6 @@ function manage_meta_box ($Purchase) {
 
 			if (isset($_POST['cancel-shipments']) && 'ship-notice' == $action) $action = false;
 			if (isset($_POST['cancel-refund']) && 'refund-order' == $action) $action = false;
-
 			if ('ship-notice' == $action) {
 				unset($_POST['cancel-order'],$_POST['refund-order']);
 				$default = array('tracking'=>'','carrier'=>'');
@@ -194,7 +193,7 @@ function manage_meta_box ($Purchase) {
 		</div>
 		<?php endif; ?>
 		&nbsp;
-		<?php if ($Purchase->shipable && 'ship-notice' != $action): ?>
+		<?php if ($Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
 		<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
 		<?php endif; ?>
 		<?php if (!$Purchase->captured && $Gateway && $Gateway->captures): ?>
