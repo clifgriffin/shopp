@@ -290,11 +290,13 @@ function manage_meta_box ($Purchase) {
 		</div>
 		<?php endif; ?>
 		&nbsp;
-		<?php if ($Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
-		<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
-		<?php endif; ?>
-		<?php if (!$Purchase->captured && $Gateway && $Gateway->captures): ?>
-		<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
+		<?php if ( $Purchase->authorized ): ?>
+			<?php if ( $Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
+			<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
+			<?php endif; ?>
+			<?php if ( ! $Purchase->captured && $Gateway && $Gateway->captures ): ?>
+			<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
+			<?php endif; ?>
 		<?php endif; ?>
 	</div>
 <?php endif; ?>
