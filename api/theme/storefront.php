@@ -550,8 +550,17 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 
 	static function has_categories ($result, $options, $O) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
-		if (empty($O->categories)) $O->load_categories(array('where'=>'true'),$showsmart);
-		if (count($O->categories) > 0) return true; else return false;
+		if ( empty($O->categories) ) $O->load_categories(array('where'=>'true'),$showsmart);
+		else { // Make sure each entry is a valid ProductCollection to prevent fatal errors @bug #2017
+			foreach ($O->categories as $id => $term) {
+				if (  $Category instanceof ProductCollection ) continue;
+				$ProductCategory = new ProductCategory();
+				$ProductCategory->populate($term);
+				$O->categories[$id] = $ProductCategory;
+			}
+			return true;
+		}
+		if ( count($O->categories) > 0 ) return true; else return false;
 	}
 
 	static function is_account ($result, $options, $O) { return is_account_page(); }
