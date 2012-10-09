@@ -292,7 +292,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			}
 
 			// Make this a required field
-			$options['class'] .= ( isset($options['class']) ? ", " : "" . "required" );
+			$options['required'] = true;
 
 			// disable this field automatically if no local jurisdictions apply to current country.zone
 			if ( empty($localities) ) $options['disabled'] = 'disabled';
