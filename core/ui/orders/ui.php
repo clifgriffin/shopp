@@ -211,6 +211,7 @@ function billto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
 	<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
+	<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
 	<?php echo esc_html($Purchase->address); ?><br />
 	<?php if (!empty($Purchase->xaddress)) echo esc_html($Purchase->xaddress)."<br />"; ?>
 	<?php echo esc_html("{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}") ?><br />
@@ -230,7 +231,6 @@ function shipto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
 		<address><big><?php echo esc_html($Purchase->shipname); ?></big><br />
-		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
 		<?php echo esc_html($Purchase->shipaddress); ?><br />
 		<?php if (!empty($Purchase->shipxaddress)) echo esc_html($Purchase->shipxaddress)."<br />"; ?>
 		<?php echo esc_html("{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}") ?><br />
