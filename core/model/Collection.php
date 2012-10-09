@@ -738,6 +738,10 @@ class ProductCategory extends ProductTaxonomy {
 		// $options['debug'] = true;
 		if ($this->filters) add_filter('shopp_taxonomy_load_options',array($this,'facetsql'));
 
+		// Include loading overrides (generally from the Theme API)
+		if ( ! empty($this->loading) && is_array($this->loading) )
+			$options = array_merge($options,$this->loading);
+
 		return parent::load($options);
 	}
 
