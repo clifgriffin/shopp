@@ -239,7 +239,7 @@ interface ShippingModule {
 	 * @param Order $Order A reference to the current Order object
 	 * @return array The modified $options list
 	 **/
-	public function calculate($options,$Order);
+	public function calculate(&$options,$Order);
 
 } // END interface ShippingModule
 
