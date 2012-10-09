@@ -340,41 +340,10 @@ class ShoppCartItemThemeAPI {
 	}
 
 	static function coverimage ($result, $options, $O) {
-		$defaults = array(
-			'class' => '',
-			'width' => 48,
-			'height' => 48,
-			'size' => false,
-			'fit' => false,
-			'sharpen' => false,
-			'quality' => false,
-			'bg' => false,
-			'alt' => false,
-			'title' => false
-		);
-
-		$options = array_merge($defaults,$options);
-		extract($options);
-
-		if ($O->image !== false) {
-			$img = $O->image;
-
-			if ($size !== false) $width = $height = $size;
-			$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
-			$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
-			$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
-			$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
-			$scaled = $img->scaled($width,$height,$scale);
-
-			$alt = empty($alt)?$img->alt:$alt;
-			$title = empty($title)?$img->title:$title;
-			$title = empty($title)?'':' title="'.esc_attr($title).'"';
-			$class = !empty($class)?' class="'.esc_attr($class).'"':'';
-
-			if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
-			$alt = esc_attr(!empty($img->alt)?$img->alt:$O->name);
-			return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
-		}
+		if ( false === $O->image ) return false;
+		$O->images = array($O->image);
+		$options['index'] = 0;
+		return ShoppCatalogThemeAPI::image($result, $options, $O);
 	}
 
 	static function _include_tax ($O) {
