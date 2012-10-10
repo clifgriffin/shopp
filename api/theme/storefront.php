@@ -463,10 +463,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 						$string = substr($string,0,-5);  // last </li> to re-open the entry
 					$active = '';
 
-					if (isset($Collection->uri) && !empty($parent->slug)
-							&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Collection->uri)) {
-						$active = ' active';
-					}
+					if ( $Collection->parent == $parent->id ) $active = ' active';
 
 					$subcategories = '<ul class="children'.$active.'">';
 					$string .= $subcategories;
@@ -494,9 +491,15 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$total = '';
 				if ( str_true($products) && $category->count > 0 ) $total = ' <span>('.$category->count.')</span>';
 
-				$current = '';
+				$classes = array();
 				if (isset($Collection->slug) && $Collection->slug == $category->slug)
-					$current = ' class="current"';
+					$classes[] = 'current';
+
+				if (isset($Collection->parent) && $Collection->parent == $category->id)
+					$classes[] = 'current-parent';
+
+				if ( empty($classes) ) $classes = '';
+				else $classes = ' class="'.join(' ',$classes).'"';
 
 				$listing = '';
 
@@ -508,7 +511,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 					$category->count > 0 ||
 					isset($category->smart) ||
 					$category->_children)
-					$string .= '<li'.$current.'>'.$listing.'</li>';
+					$string .= '<li'.$classes.'>'.$listing.'</li>';
 
 				$previous = &$category;
 				$depth = $category->level;
