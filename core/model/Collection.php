@@ -474,7 +474,7 @@ class ProductTaxonomy extends ProductCollection {
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
-			'update_count_callback' => '_update_post_term_count',
+			'update_count_callback' => array('ProductTaxonomy','recount'),
 			'capabilities' => array(
 				'manage_terms' => 'shopp_categories',
 				'edit_terms'   => 'shopp_categories',
@@ -690,6 +690,31 @@ class ProductTaxonomy extends ProductCollection {
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
 
 		return apply_filters('shopp_paged_link',$url);
+	}
+
+	static function recount ($terms, $taxonomy) {
+		global $wpdb;
+		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
+
+		foreach ( (array) $terms as $term ) {
+			$where = array(
+				"$wpdb->posts.ID = $wpdb->term_relationships.object_id",
+				"post_status='publish'",
+				"post_type='".Product::$posttype."'"
+			);
+
+			if ( shopp_setting_enabled('inventory') && !shopp_setting_enabled('outofstock_catalog') )
+				$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
+
+			$where[] = "term_taxonomy_id=".(int)$term;
+			$query = "SELECT COUNT(*) AS c FROM $wpdb->term_relationships, $wpdb->posts LEFT OUTER JOIN $summary_table AS s ON s.product=$wpdb->posts.ID WHERE ".join(' AND ',$where);
+			$count = (int) DB::query($query,'auto','col','c');
+
+			do_action( 'edit_term_taxonomy', $term, $taxonomy );
+			$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
+			do_action( 'edited_term_taxonomy', $term, $taxonomy );
+		}
+
 	}
 
 }
