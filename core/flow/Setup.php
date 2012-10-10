@@ -276,6 +276,8 @@ class Setup extends AdminController {
 		$builtin_path = SHOPP_PATH.'/templates';
 		$theme_path = sanitize_path(STYLESHEETPATH.'/shopp');
 
+		$term_recount = false;
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
 			$updated = __('Shopp presentation settings saved.','Shopp');
@@ -289,9 +291,21 @@ class Setup extends AdminController {
 
 			if (empty($_POST['settings']['catalog_pagination']))
 				$_POST['settings']['catalog_pagination'] = 0;
+
+			// Recount terms when this setting changes
+			if ( isset($_POST['settings']['outofstock_catalog']) &&
+				$_POST['settings']['outofstock_catalog'] != shopp_setting('outofstock_catalog')) {
+				$term_recount = true;
+			}
+
 			$this->settings_save();
 		}
 
+		if ($term_recount) {
+			$taxonomy = ProductCategory::$taxon;
+			$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'ids') );
+			wp_update_term_count_now( $terms, $taxonomy );
+		}
 
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
@@ -420,12 +434,25 @@ class Setup extends AdminController {
 
 			$_POST['settings']['order_shipfee'] = floatvalue($_POST['settings']['order_shipfee']);
 
+			// Recount terms when this setting changes
+			if ( isset($_POST['settings']['inventory']) &&
+				$_POST['settings']['inventory'] != shopp_setting('inventory')) {
+				$term_recount = true;
+			}
+
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
 		}
 
 		// Handle ship rates UI
 		if ('rates' == $sub && 'on' == shopp_setting('shipping')) return $this->shiprates();
+
+
+		if ($term_recount) {
+			$taxonomy = ProductCategory::$taxon;
+			$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'ids') );
+			wp_update_term_count_now( $terms, $taxonomy );
+		}
 
 		$base = shopp_setting('base_operations');
 		$regions = Lookup::regions();

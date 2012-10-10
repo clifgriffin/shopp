@@ -368,7 +368,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		$taxonomy = 'shopp_category';
+		$taxonomy = ProductCategory::$taxon;
 		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent','orderby'=>$orderby,'order'=>$order);
 
 		$baseparent = 0;
