@@ -480,7 +480,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults,$options);
 		extract($options);
-		return '<input type="submit" name="shopp_registration" value="'.esc_attr($label).'" />';
+
+		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
+
+		return '<input type="submit" name="shopp_registration" '.inputattrs($options,$submit_attrs).' />';
 	}
 
 	static function registration_errors ($result, $options, $O) {
