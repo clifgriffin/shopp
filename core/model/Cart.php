@@ -262,7 +262,8 @@ class Cart {
 		if ( ! $NewItem->valid() || ! $this->valid_add($NewItem) ) return false;
 
 		if (($item = $this->hasitem($NewItem)) !== false) {
-			$this->contents[$item]->add($quantity);
+			$NewItem = $this->contents[$item];
+			$NewItem->add($quantity);
 			$this->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
@@ -273,8 +274,8 @@ class Cart {
 		if (!$this->xitemstock($this->contents[$this->added]) )
 			return $this->remove($this->added); // Remove items if no cross-item stock available
 
-		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
-		$this->Added = &$NewItem;
+		do_action_ref_array('shopp_cart_add_item',array($NewItem));
+		$this->Added = $NewItem;
 
 		$this->changed(true);
 		return true;
