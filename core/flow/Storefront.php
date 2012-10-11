@@ -1413,6 +1413,9 @@ class AccountStorefrontPage extends StorefrontPage {
 			if ( $wp_the_query !== $wp_query || ! is_shopp_page('account') ) return $content;
 		}
 
+		$widget = ('widget' == $request);
+		if ($widget) $request = 'menu'; // Modify widget request to render the account menu
+
 		if ('none' == shopp_setting('account_system'))
 			return apply_filters('shopp_account_template',shopp('customer','get-order-lookup'));
 
@@ -1428,6 +1431,9 @@ class AccountStorefrontPage extends StorefrontPage {
 		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
+
+		// Suppress the #shopp div for sidebar widgets
+		if ($widget) $content = '<!-- <div id="shopp"> -->'.$content;
 
 		return apply_filters('shopp_account_template',$content);
 
