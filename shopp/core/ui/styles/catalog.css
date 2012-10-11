@@ -138,3 +138,6 @@
 /** Twenty-Ten Fixes **/
 #shopp h1,#shopp h2,#shopp h3,#shopp h4,#shopp h5,#shopp h6 { clear: none; }
 #shopp form table, #shopp form table td { border: none; }
+
+/** Account widget login **/
+#login.shopp ul li { list-style: none; }
