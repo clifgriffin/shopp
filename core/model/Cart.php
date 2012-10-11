@@ -390,6 +390,7 @@ class Cart {
 		if ($overage < $Item->quantity) {
 			new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
 			$Item->quantity -= $overage;
+			$Item->qtydelta -= $overage;
 			return true;
 		}
 
