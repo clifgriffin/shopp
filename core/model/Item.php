@@ -29,6 +29,7 @@ class Item {
 	var $data = array();		// Custom input data
 	var $processing = array();	// Per item order processing delays
 	var $quantity = 0;			// The selected quantity for the line item
+	var $qtydelta = 0;			// The change in quantity
 	var $addonsum = 0;			// The sum of selected addons
 	var $unitprice = 0;			// Per unit price
 	var $priced = 0;			// Per unit price after discounts are applied
@@ -282,7 +283,8 @@ class Item {
 	 * @return void
 	 **/
 	function quantity ($qty) {
-
+		$current = $this->quantity;
+		
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			if ( str_true($this->donation['min']) && floatvalue($qty) < $this->unitprice )
 				$this->unitprice = $this->unitprice;
@@ -309,7 +311,8 @@ class Item {
 				$this->quantity = $min;
 			}
 		}
-
+		
+		$this->qtydelta = $this->quantity-$current;
 		$this->retotal();
 	}
 
