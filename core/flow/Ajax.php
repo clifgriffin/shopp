@@ -299,10 +299,12 @@ class AjaxFlow {
 				$Indexer->index();
 				$indexed++;
 				echo '<script type="text/javascript">indexProgress = '.$indexed/(int)$total->products.';</script>'."\n";
-				@ob_flush();
-				@flush();
+				if ( ob_get_length() ) {
+					@ob_flush();
+					@flush();
+				}
 			}
-			@ob_end_flush();
+			if ( ob_get_length() ) @ob_end_flush();
 		}
 		exit();
 	}
