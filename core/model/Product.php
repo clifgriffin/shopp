@@ -77,7 +77,6 @@ class Product extends WPShoppObject {
 		$this->init(self::$table,$key);
 		$this->type = self::$posttype;
 		$this->load($id,$key);
-		add_action('shopp_save_product',array($this,'savepost'));
 	}
 
 	function save () {
@@ -87,6 +86,8 @@ class Product extends WPShoppObject {
 		$this->post_modified_gmt = current_time('timestamp')+$gmtoffset;
 		if (is_null($this->publish)) $this->post_date_gmt = $this->post_modified_gmt;
 		else $this->post_date_gmt = $this->publish+$gmtoffset;
+		if ( false === has_action('shopp_save_product',array($this,'savepost')))
+			add_action('shopp_save_product',array($this,'savepost'));
 		parent::save();
 	}
 
@@ -200,6 +201,9 @@ class Product extends WPShoppObject {
 			$this->resum();
 		}
 
+		// Refresh sales data before loading prices so that when resum/sumup happens the data is up-to-date
+		$this->load_sold($ids);
+
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,optionkey",'array',array($this,'pricing'));
 
@@ -212,9 +216,6 @@ class Product extends WPShoppObject {
 			// Sort by sort order then by the modified timestamp so the most recent changes are last and become the authoritative record
 			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
-
-		// Load product sales counts
-		$this->load_sold($ids);
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -685,6 +686,8 @@ class Product extends WPShoppObject {
 	/**
 	 * Resets summary data to intial values so summation is accurate
 	 *
+	 * We do not reset sales data here because it will also be refreshed
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
@@ -693,7 +696,7 @@ class Product extends WPShoppObject {
 	function resum () {
 		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
-		$this->stock = $this->stocked = $this->sold = 0;
+		$this->stock = $this->stocked = 0;
 		$this->maxprice = $this->minprice = false;
 		$this->min = $this->max = array();
 		$this->freeship = 'off';
