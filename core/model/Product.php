@@ -77,7 +77,6 @@ class Product extends WPShoppObject {
 		$this->init(self::$table,$key);
 		$this->type = self::$posttype;
 		$this->load($id,$key);
-		add_action('shopp_save_product',array($this,'savepost'));
 	}
 
 	function save () {
@@ -87,6 +86,8 @@ class Product extends WPShoppObject {
 		$this->post_modified_gmt = current_time('timestamp')+$gmtoffset;
 		if (is_null($this->publish)) $this->post_date_gmt = $this->post_modified_gmt;
 		else $this->post_date_gmt = $this->publish+$gmtoffset;
+		if ( false === has_action('shopp_save_product',array($this,'savepost')))
+			add_action('shopp_save_product',array($this,'savepost'));
 		parent::save();
 	}
 
