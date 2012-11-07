@@ -32,7 +32,7 @@ jQuery.fn.labelset = function (labels,template) {
 	for (var id in labels) {
 		$this.addLabel(id);
 	}
-	$this.find('li').show();
+	$this.find('li').css({display:'list-item'});
 
 	return $this;
 };
