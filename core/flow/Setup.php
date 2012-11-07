@@ -466,7 +466,7 @@ class Setup extends AdminController {
 		unset($countries,$regions);
 
 		$carrierdata = Lookup::shipcarriers();
-		$serviceareas = array('*',$base['country']);
+		$serviceareas = array('*',substr($base['country'],0,2));
 		foreach ($carrierdata as $c => $record) {
 			if (!in_array($record->areas,$serviceareas)) continue;
 			$carriers[$c] = $record->name;
