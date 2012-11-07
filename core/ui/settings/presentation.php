@@ -9,25 +9,25 @@
 
 		<table class="form-table">
 			<tr>
-				<th scope="row" valign="top"><label for="theme-templates"><?php _e('Theme Templates','Shopp'); ?></label></th>
+				<th scope="row" valign="top"><label for="theme-templates"><?php _e('Templates','Shopp'); ?></label></th>
 				<td>
 				<?php switch ($status) {
 					case "directory":?>
-					<input type="button" name="template_instructions" id="show-instructions" value="<?php _e('Use Custom Templates','Shopp'); ?>" class="button-secondary" />
+					<input type="button" name="template_instructions" id="show-instructions" value="<?php _e('Use custom Shopp content templates','Shopp'); ?>" class="button-secondary" />
 					<div id="template-instructions">
-					<p><?php _e('To customize shopping templates for your current WordPress theme:','Shopp'); ?></p>
+					<p><?php _e('To customize the Shopp content templates for your current WordPress theme:','Shopp'); ?></p>
 					<ol>
 						<li><?php _e('Create a directory in your active theme named <code>shopp</code>','Shopp'); ?></li>
 						<li><?php _e('Give your web server access to write to the <code>shopp</code> directory','Shopp'); ?></li>
 						<li><?php _e('Refresh this page for more instructions','Shopp'); ?></li>
 					</ol>
-					<p><a href="<?php echo SHOPP_DOCS; ?>Setting_Up_Theme_Templates" target="_blank"><?php _e('More help setting up theme templates','Shopp'); ?></a></p>
+					<p><a href="<?php echo SHOPP_DOCS; ?>/the-catalog/theme-templates/" target="_blank"><?php _e('More help setting up custom Shopp content templates','Shopp'); ?></a></p>
 					</div>
 						<?php
 						break;
 					case "permissions":?>
 					<p><?php _e('The <code>shopp</code> directory exists in your current WordPress theme, but is not writable.','Shopp'); ?></p>
-					<p><?php _e('You need to give <code>write</code> permissions to the <code>shopp</code> directory to continue.','Shopp'); ?> (<a href="<?php echo SHOPP_DOCS; ?>Giving_the_Web_Server_Write_Permisssions" target="_blank"><?php _e('Giving the Web Server Write Permisssions','Shopp'); ?></a>)</p>
+					<p><?php _e('You need to give <code>write</code> permissions to the <code>shopp</code> directory to continue.','Shopp'); ?> (<a href="<?php echo SHOPP_DOCS; ?>/giving-the-web-server-write-permisssions/" target="_blank"><?php _e('Giving the Web Server Write Permisssions','Shopp'); ?></a>)</p>
 						<?php
 						break;
 					case "incomplete":?>
@@ -36,12 +36,12 @@
 						<?php
 						break;
 					case "ready":?>
-						<input type="submit" name="install" value="<?php _e('Install Theme Templates','Shopp'); ?>" class="button-secondary" /><br />
-						<p><?php _e('Click this button to copy Shopp\'s builtin templates into your theme as a starting point for customization.','Shopp'); ?></p>
+						<input type="submit" name="install" value="<?php _e('Install Content Templates','Shopp'); ?>" class="button-secondary" /><br />
+						<p><?php _e("Click this button to copy Shopp's builtin templates into your theme as a starting point for customization.",'Shopp'); ?></p>
 						<?php
 						break;
 					default:?>
-					<input type="hidden" name="settings[theme_templates]" value="off" /><input type="checkbox" name="settings[theme_templates]" value="on" id="theme-templates"<?php if (shopp_setting('theme_templates') != "off") echo ' checked="checked"'?> /><label for="theme-templates"> <?php _e('Enable theme templates','Shopp'); ?></label><br />
+					<input type="hidden" name="settings[theme_templates]" value="off" /><input type="checkbox" name="settings[theme_templates]" value="on" id="theme-templates"<?php if (shopp_setting('theme_templates') != "off") echo ' checked="checked"'?> /><label for="theme-templates"> <?php _e('Enable theme content templates','Shopp'); ?></label><br />
 					<?php _e('Check this to use the templates installed in your currently active WordPress theme.','Shopp'); ?>
 						<?php
 				}
