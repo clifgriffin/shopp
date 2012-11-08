@@ -1364,6 +1364,7 @@ class ProductTag extends ProductTaxonomy {
 class SmartCollection extends ProductCollection {
 	static $taxon = 'shopp_collection';
 	static $namespace = 'collection';
+	static $_menu = true;
 	var $smart = true;
 	var $slug = false;
 	var $uri = false;
@@ -1483,6 +1484,7 @@ class BestsellerProducts extends SmartCollection {
 class SearchResults extends SmartCollection {
 	static $_slug = 'search-results';
 	static $_altslugs = array('search');
+	static $_menu = false;
 	var $search = false;
 
 	function __construct ($options=array()) {
@@ -1576,6 +1578,7 @@ class SearchResults extends SmartCollection {
 // @todo Document TagProducts
 class TagProducts extends SmartCollection {
 	static $_slug = "tag";
+	static $_menu = false;
 
 	function smart ($options=array()) {
 		if (!isset($options['tag'])) {
@@ -1614,6 +1617,7 @@ class TagProducts extends SmartCollection {
 // @todo Document ReleatedProducts
 class RelatedProducts extends SmartCollection {
 	static $_slug = "related";
+	static $_menu = false;
 	var $product = false;
 
 	function smart ($options=array()) {
@@ -1681,6 +1685,7 @@ class RelatedProducts extends SmartCollection {
 // @todo Document AlsoBoughtProducts
 class AlsoBoughtProducts extends SmartCollection {
 	static $_slug = "alsobought";
+	static $_menu = false;
 	var $product = false;
 
 	function smart ($options=array()) {
@@ -1781,6 +1786,7 @@ class ViewedProducts extends SmartCollection {
 // @todo Document PromoProducts
 class PromoProducts extends SmartCollection {
 	static $_slug = "promo";
+	static $_menu = false;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
