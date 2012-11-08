@@ -1002,7 +1002,7 @@ class AdminFlow extends FlowController {
 				<?php
 					$collections = $Shopp->Collections;
 					foreach ($collections as $slug => $CollectionClass):
-						if (!get_class_property($CollectionClass,'_auto')) continue;
+						if ( ! $CollectionClass::$_menu ) continue;
 						$Collection = new $CollectionClass();
 						$Collection->smart();
 						$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
