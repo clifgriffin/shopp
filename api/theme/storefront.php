@@ -507,7 +507,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$listing = '';
 
 				if (!empty($link) && ($category->count > 0 || isset($category->smart) || str_true($linkall)))
-					$listing = '<a href="'.$link.'"'.$current.'>'.esc_html($category->name).($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
+					$listing = '<a href="'.$link.'"'.$classes.'>'.esc_html($category->name).($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 				else $listing = $category->name;
 
 				if (str_true($showall) ||
@@ -583,55 +583,57 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 	static function is_taxonomy ($result, $options, $O) { return is_shopp_taxonomy(); }
 
 	static function orderby_list ($result, $options, $O) {
-		$Collection = ShoppCollection();
-		if (isset($Collection->controls)) return false;
-		if (isset($Collection->loading['order']) || isset($Collection->loading['sortorder'])) return false;
 
+		$Collection = ShoppCollection();
+		$Storefront = ShoppStorefront();
+
+		// Some internals can suppress this control
+		if ( isset($Collection->controls) ) return false;
+		if ( isset($Collection->loading['order']) || isset($Collection->loading['sortorder']) ) return false;
+
+		$defaultsort = array(
+			'title',
+			shopp_setting('default_product_order'),
+			isset($Storefront->browsing['sortorder']) ? $Storefront->browsing['sortorder'] : false
+		);
+		foreach ($defaultsort as $setting)
+			if ( ! empty($setting)) $default = $setting;
+
+		// Setup defaults
+		$options = wp_parse_args($options,array(
+			'dropdown' => false,
+			'default' => $default,
+			'title' => ''
+		));
+		extract($options,EXTR_SKIP);
+
+		// Get the sort option labels
 		$menuoptions = ProductCategory::sortoptions();
 		// Don't show custom product order for smart categories
 		if ($Collection->smart) unset($menuoptions['custom']);
 
-		$title = "";
-		$string = "";
-		$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
-		$default = shopp_setting('default_product_order');
-		if (empty($default)) $default = "title";
-
-		if (isset($options['default'])) $default = $options['default'];
-		if (isset($options['title'])) $title = $options['title'];
-
-		if (value_is_true($dropdown)) {
-			$Storefront = ShoppStorefront();
-			if (isset($Storefront->browsing['sortorder']))
-				$default = $Storefront->browsing['sortorder'];
-			$string .= $title;
-			$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Collection->slug.'-orderby-menu">';
+		$_ = array();
+		$request = $_SERVER['REQUEST_URI'];
+		if ( str_true($dropdown) ) {
+			$_[] = $title;
+			$_[] = '<form action="'.esc_url($request).'" method="get" id="shopp-'.$Collection->slug.'-orderby-menu">';
 			if ( '' == get_option('permalink_structure') ) {
 				foreach ($_GET as $key => $value)
-					if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
+					if ($key != 'sort') $_[] = '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 			}
-			$string .= '<select name="s_so" class="shopp-orderby-menu">';
-			$string .= menuoptions($menuoptions,$default,true);
-			$string .= '</select>';
-			$string .= '</form>';
+			$_[] = '<select name="sort" class="shopp-orderby-menu">';
+			$_[] = menuoptions($menuoptions,$default,true);
+			$_[] = '</select>';
+			$_[] = '</form>';
 		} else {
-			$link = "";
-			$query = "";
-			if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
-				list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
-			$query = $_GET;
-			unset($query['s_ob']);
-			$query = http_build_query($query);
-			if (!empty($query)) $query .= '&';
-
-			foreach($menuoptions as $value => $option) {
-				$label = $option;
-				$href = esc_url(add_query_arg(array('s_so' => $value),$link));
-				$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+			foreach($menuoptions as $value => $label) {
+				$href = esc_url(add_query_arg(array('sort' => $value),$request));
+				$class = ($default == $value?' class="current"':'');
+				$_[] = '<li><a href="'.$href.'"'.$class.'>'.$label.'</a></li>';
 			}
-
 		}
-		return $string;
+
+		return join('',$_);
 	}
 
 	static function product ($result, $options, $O) {
