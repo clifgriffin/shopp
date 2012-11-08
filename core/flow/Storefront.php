@@ -184,14 +184,11 @@ class Storefront extends FlowController {
 		$posttype 	= $wp_query->get('post_type');
 		$product 	= $wp_query->get(Product::$posttype);
 		$collection = $wp_query->get('shopp_collection');
-		$sortorder 	= $wp_query->get('s_so');
 		$searching 	= $wp_query->get('s_cs');
 		$search 	= $wp_query->get('s');
 
 		// Shopp requests are never automatic on the home page
 		$wp_query->is_home = false;
-
-		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
 		$catalog = Storefront::slug('catalog');
 
