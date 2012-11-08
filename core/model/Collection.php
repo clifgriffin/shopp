@@ -102,31 +102,48 @@ class ProductCollection implements Iterator {
 		}
 
 		// Sort Order
-		if (!$orderby) {
-			$defaultOrder = shopp_setting('default_product_order');
-			if (empty($defaultOrder)) $defaultOrder = '';
-			$ordering = isset($Storefront->browsing['sortorder'])?
-							$Storefront->browsing['sortorder']:$defaultOrder;
-			if ($order !== false) $ordering = $order;
-			switch ($ordering) {
-				case 'bestselling': $orderby = "s.sold DESC,p.post_title ASC"; break;
-				case 'highprice': $orderby = "maxprice DESC,p.post_title ASC"; break;
-				case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
-				case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
-				case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
-				case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
-				case 'chaos': $orderby = "RAND(".time().")"; break;
-				case 'reverse': $orderby = "p.post_title DESC"; break;
-				case 'title': $orderby = "p.post_title ASC"; break;
-				case 'recommended':
-				default:
-					if ($order === false || 'recommended' == $ordering) $orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC";
-					else $orderby = $order;
-					break;
-			}
+		if ( ! $orderby ) {
+
+			$titlesort = "p.post_title ASC";
+			$defaultsort = empty($order) ? $titlesort : $order;
+
+			// Define filterable built-in sort methods (you're welcome)
+			$sortmethods = apply_filters('shopp_collection_sort_methods',array(
+				'bestselling' => "s.sold DESC,$titlesort",
+				'highprice' => "maxprice DESC,$titlesort",
+				'lowprice' => "minprice ASC,$titlesort",
+				'newest' => "p.post_date DESC,$titlesort",
+				'oldest' => "p.post_date ASC,$titlesort",
+				'random' => "RAND(".crc32($Shopping->session).")",
+				'choas' => "RAND(".time().")",
+				'reverse' => "p.post_title DESC",
+				'title' => $titlesort,
+				'custom' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+				'recommended' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+				'default' => $defaultsort
+			));
+
+			// Handle valid user browsing sort change requests
+			if ( isset($_REQUEST['sort']) && !empty($_REQUEST['sort']) && array_key_exists(strtolower($_REQUEST['sort']),$sortmethods) )
+				$Storefront->browsing['sortorder'] = strtolower($_REQUEST['sort']);
+
+			// Collect sort setting sources (Shopp admin setting, User browsing setting, programmer specified setting)
+			$sortsettings = array(
+				shopp_setting('default_product_order'),
+				isset($Storefront->browsing['sortorder']) ? $Storefront->browsing['sortorder'] : false,
+				!empty($order) ? $order : false
+			);
+
+			// Go through setting sources to determine most applicable setting
+			$sorting = 'title';
+			foreach ($sortsettings as $setting)
+				if ( ! empty($setting) && isset($sortmethods[ strtolower($setting) ]) )
+					$sorting = strtolower($setting);
+
+			$orderby = $sortmethods[$sorting];
 		}
 
-		if (empty($orderby)) $orderby = 'p.post_title ASC';
+		if ( empty($orderby) ) $orderby = 'p.post_title ASC';
 
 		// Pagination
 		if (empty($limit)) {
