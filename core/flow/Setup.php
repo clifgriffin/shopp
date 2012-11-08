@@ -1235,7 +1235,7 @@ class Setup extends AdminController {
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			shopp_set_setting($setting,$value);
+			shopp_set_setting($setting,stripslashes_deep($value));
 	}
 
 } // END class Setup
