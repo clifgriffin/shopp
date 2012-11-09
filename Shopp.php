@@ -348,12 +348,9 @@ class Shopp {
 	 **/
 	function queryvars ($vars) {
 
-		// $vars[] = 's_pr';		// Shopp process parameter
 		$vars[] = 's_iid';			// Shopp image id
 		$vars[] = 's_cs';			// Catalog (search) flag
-		$vars[] = 's_so';			// Product sort order (product collections)
 		$vars[] = 's_ff';			// Category filters
-
 		$vars[] = 'src';			// Shopp resource
 		$vars[] = 'shopp_page';
 		$vars[] = 'shopp_download';
@@ -621,6 +618,7 @@ class Shopp {
 		);
 
 		$response = $this->callhome($request,$data);
+
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
 		unset($updates->response);
