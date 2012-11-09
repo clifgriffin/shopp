@@ -790,9 +790,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
-		if (!isset($O->_prices_loop)) reset($O->prices);
-		$variation = current($O->prices);
-		if ('Download' == $variation->type && shopp_setting_enabled('download_quantity')) return '';
+		$downloadonly = true;
+		foreach ($O->prices as $variant) if ('Download' != $variant->type && 'N/A' != $variant->type) $downloadonly = false;
+		if ($downloadonly && !shopp_setting_enabled('download_quantity')) return '';
+
 		$_ = array();
 
 		if ("before" == $labelpos) $_[] = $labeling;
