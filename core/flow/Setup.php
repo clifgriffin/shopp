@@ -245,6 +245,11 @@ class Setup extends AdminController {
 				$baseop['country'] = $country;
 				$baseop['zone'] = $zone;
 				$baseop['currency']['format'] = scan_money_format($baseop['currency']['format']);
+				if ( is_array($baseop['currency']['format']) ) {
+					$keys = array_keys($baseop['currency']['format']);
+					foreach ($keys as $key)
+						if (isset($baseop['currency'][$key])) $baseop['currency']['format'][$key] = $baseop['currency'][$key];
+				}
 
 				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
 					(in_array($country,Lookup::tax_inclusive_countries()) ? 'on' : 'off')
