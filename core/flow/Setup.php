@@ -800,6 +800,7 @@ class Setup extends AdminController {
 		if (isset($_POST['editing'])) {
 			// Resort taxes from generic to most specific
 			usort($rates,array($this,'taxrates_sorting'));
+			$rates = stripslashes_deep($rates);
 			shopp_set_setting('taxrates',$rates);
 		}
 		if (isset($_POST['addrate'])) $edit = count($rates);
