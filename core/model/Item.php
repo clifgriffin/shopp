@@ -284,7 +284,7 @@ class Item {
 	 **/
 	function quantity ($qty) {
 		$current = $this->quantity;
-		
+
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			if ( str_true($this->donation['min']) && floatvalue($qty) < $this->unitprice )
 				$this->unitprice = $this->unitprice;
@@ -293,7 +293,7 @@ class Item {
 			$qty = 1;
 		}
 
-		if ( in_array($this->type, array('Membership','Subscription')) || 'Download' == $this->type && shopp_setting_enabled('download_quantity') ) {
+		if ( in_array($this->type, array('Membership','Subscription')) || 'Download' == $this->type && !shopp_setting_enabled('download_quantity') ) {
 			return ($this->quantity = 1);
 		}
 
@@ -311,7 +311,7 @@ class Item {
 				$this->quantity = $min;
 			}
 		}
-		
+
 		$this->qtydelta = $this->quantity-$current;
 		$this->retotal();
 	}

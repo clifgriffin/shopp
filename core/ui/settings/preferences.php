@@ -129,7 +129,7 @@
 			<tr>
 				<th scope="row" valign="top"><label for="download-quantity"><?php _e('Download Quantity','Shopp'); ?></label></th>
 				<td><input type="hidden" name="settings[download_quantity]" value="off" />
-					<label for="download-quantity"><input type="checkbox" name="settings[download_quantity]" id="download-quantity" value="on" <?php echo (shopp_setting('download_quantity') == "on")?'checked="checked" ':'';?> /> <?php _e('Enable quantity selection for download products','Shopp'); ?></label></td>
+					<label for="download-quantity"><input type="checkbox" name="settings[download_quantity]" id="download-quantity" value="on" <?php echo (shopp_setting_enabled('download_quantity') ? 'checked="checked" ':'');?> /> <?php _e('Enable quantity selection for download products','Shopp'); ?></label></td>
 			</tr>
 		</table>
 
