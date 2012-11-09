@@ -128,8 +128,8 @@ class Cart {
 
 		}
 
-		if (!empty($_REQUEST['promocode'])) {
-			$this->promocode = esc_attr($_REQUEST['promocode']);
+		if ( ! empty($_REQUEST['promocode']) ) {
+			$this->promocode = esc_attr(trim($_REQUEST['promocode']));
 			$this->changed(true);
 		}
 
