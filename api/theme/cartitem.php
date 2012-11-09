@@ -121,7 +121,7 @@ class ShoppCartItemThemeAPI {
 		$result = $O->quantity;
 		if ($O->type == "Donation" && $O->donation['var'] == "on") return $result;
 		if ($O->type == "Subscription" || $O->type == "Membership") return $result;
-		if ('Download' == $O->type && shopp_setting_enabled('download_quantity')) return $result;
+		if ('Download' == $O->type && !shopp_setting_enabled('download_quantity')) return $result;
 		if (isset($options['input']) && $options['input'] == "menu") {
 			if (!isset($options['value'])) $options['value'] = $O->quantity;
 			if (!isset($options['options']))
