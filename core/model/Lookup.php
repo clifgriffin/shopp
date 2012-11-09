@@ -175,7 +175,7 @@ class Lookup {
 		$_['HM'] = array('name'=>__('Heard and McDonald Islands','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
 		$_['HN'] = array('name'=>__('Honduras','Shopp'),'currency'=>array('code'=>'HNL','format'=>'L #,###.##'),'units'=>'metric','region'=>1);
 		$_['HK'] = array('name'=>__('Hong Kong','Shopp'),'currency'=>array('code'=>'HKD','format'=>'$#,###.##'),'units'=>'metric','region'=>6);
-		$_['HU'] = array('name'=>__('Hungary','Shopp'),'currency'=>array('code'=>'HUF','format'=>'# ### ### Ft'),'units'=>'metric','region'=>3);
+		$_['HU'] = array('name'=>__('Hungary','Shopp'),'currency'=>array('code'=>'HUF','format'=>'# ### ### Ft','decimals'=>','),'units'=>'metric','region'=>3);
 		$_['IS'] = array('name'=>__('Iceland','Shopp'),'currency'=>array('code'=>'ISK','format'=>'#.###.### kr.'),'units'=>'metric','region'=>3);
 		$_['IN'] = array('name'=>__('India','Shopp'),'currency'=>array('code'=>'INR','format'=>'₨#,##,###.##'),'units'=>'metric','region'=>6);
 		$_['ID'] = array('name'=>__('Indonesia','Shopp'),'currency'=>array('code'=>'IDR','format'=>'Rp #.###,##'),'units'=>'metric','region'=>7);
