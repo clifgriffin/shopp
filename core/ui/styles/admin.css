@@ -383,9 +383,10 @@ span.indent { display: inline-block; width: 36px; }
 .shopp ul.category-tabs .new-category.tabs { background: #f9f9f9; }
 .shopp div.new-category { background: #f9f9f9; border: 1px solid #dfdfdf; border-top: none; border-bottom: none; padding: 10px 5px; margin: 0; line-height: 32px; }
 
-.shopp .new-category input,
+.shopp .new-category input[type=text],
 .shopp .new-category select { width:100%; }
 .shopp .new-category select { width:80%; }
+.shopp .new-category input[type=button] { font-size: 10px; }
 
 #product ul.category-tabs li.hide-if-no-js { display: none; }
 	
