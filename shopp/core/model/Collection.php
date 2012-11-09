@@ -1500,7 +1500,7 @@ class BestsellerProducts extends SmartCollection {
 	static function threshold () {
 		// Get mean sold for bestselling threshold
 		$summary = DatabaseObject::tablename(ProductSummary::$table);
-		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 < sold",'auto','col','threshold');
+		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold",'auto','col','threshold');
 	}
 
 }

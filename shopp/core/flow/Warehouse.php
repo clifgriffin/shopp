@@ -261,7 +261,7 @@ class Warehouse extends AdminController {
 			'drafts' => 	array('label' => __('Drafts','Shopp'),		'where'=>array("p.post_status='draft'")),
 			'onsale' => 	array('label' => __('On Sale','Shopp'),		'where'=>array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured' => 	array('label' => __('Featured','Shopp'),	'where'=>array("s.featured='on' AND p.post_status != 'trash'")),
-			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status!='trash'"),'order' => 'bestselling'),
+			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status!='trash'",BestsellerProducts::threshold()." < s.sold"),'order' => 'bestselling'),
 			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'")),
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status='trash'"))
 		);
@@ -338,16 +338,23 @@ class Warehouse extends AdminController {
 
 		$where = array_merge($where,$subs[$this->view]['where']);
 
+
 		$orderdirs = array('asc','desc');
 		if (in_array($order,$orderdirs)) $orderd = strtolower($order);
 		else $orderd = 'asc';
+
+		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
+
+
 		switch ($orderby) {
 			case 'name': $order = 'title'; if ('desc' == $orderd) $order = 'reverse'; break;
 			case 'price': $order = 'lowprice'; if ('desc' == $orderd) $order = 'highprice'; break;
 			case 'date': $order = 'newest'; if ('desc' == $orderd) $order = 'oldest'; break;
-		}
 
-		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
+			case 'sold': $ordercols = 's.sold '.$orderd; break;
+			case 'gross': $ordercols = 's.grossed '.$orderd; break;
+			case 'inventory': $ordercols = 's.stock '.$orderd; break;
+		}
 
 		if (in_array($this->view,array('onsale','featured','inventory')))
 			$joins[$ps] = "INNER JOIN $ps AS s ON p.ID=s.product";
@@ -362,6 +369,11 @@ class Warehouse extends AdminController {
 			'nostock' => true,
 			// 'debug' => true
 		);
+
+		if ( isset($ordercols) ) {
+			unset($loading['order']);
+			$loading['orderby'] = $ordercols;
+		}
 
 		if ($is_inventory) { // Override for inventory products
 			$where[] = "(pt.context='product' OR pt.context='variation') AND pt.type != 'N/A'";
