@@ -379,7 +379,7 @@ class Warehouse extends AdminController {
 			$where[] = "(pt.context='product' OR pt.context='variation') AND pt.type != 'N/A'";
 			$loading = array(
 				'columns' => "pt.id AS stockid,IF(pt.context='variation',CONCAT(p.post_title,': ',pt.label),p.post_title) AS post_title,pt.sku AS sku,pt.stock AS stock",
-				'joins' => array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),
+				'joins' => array_merge(array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),$joins),
 				'where' => $where,
 				'groupby' => 'pt.id',
 				'order' => 'p.ID,pt.sortorder',
