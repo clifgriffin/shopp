@@ -653,9 +653,15 @@ class PurchasesExport {
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 		$offset = ($this->set*$this->limit);
 
-		$c = 0; $columns = array();
-		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
-		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
+		$c = 0; $columns = array(); $purchasedcols = false;
+		foreach ($this->selected as $column) {
+			$columns[] = "$column AS col".$c++;
+			if ( false !== strpos('p.',$column) ) $purchasedcols = true;
+		}
+		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
+		else $FROM = "FROM $purchasetable AS o";
+
+		$query = "SELECT ".join(",",$columns)." $FROM $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
 		$this->data = DB::query($query,'array');
 	}
 
