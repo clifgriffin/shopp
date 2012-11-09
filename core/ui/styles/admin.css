@@ -39,7 +39,7 @@ th.textright { text-align: right; }
 .shopp .column-recurring,
 .shopp .column-refunds { text-align: center; }
 
-.saletag { white-space: nowrap; margin-left: 3px; background: url('../icons/saletag.svg') no-repeat; padding: 2px 3px 1px 3px; color: #fff; font-family: sans-serif; font-size: 9px; text-transform: uppercase; font-weight: bold; -o-background-size: 100% 100%; -webkit-background-size: 100%; -moz-background-size: 100% 100%; background-size: 100% 100%; line-height: 16px; vertical-align: top; }
+.saletag { display: inline-block; white-space: nowrap; background: url('../icons/saletag.svg') no-repeat center left; margin-left: 3px; padding: 1px 3px 0px 0px; color: #fff; font-family: sans-serif; font-size: 9px; text-transform: uppercase; font-weight: bold; -o-background-size: cover; -webkit-background-size: cover; -moz-background-size: cover; background-size: cover; line-height: 12px; vertical-align: top; }
 .saletag:before { content: "\00a0\00a0"; }
 
 span.stock { padding: 0px 3px 1px; }
