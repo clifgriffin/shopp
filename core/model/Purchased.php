@@ -25,8 +25,11 @@ class Purchased extends DatabaseObject {
 
 		$this->price = $Item->option->id;
 
-		if ( ! empty($this->download) ) $this->keygen();
-		$this->download = (int)$this->download->id; // Convert download property to integer ID
+		// Generate download link for downloadables
+		if ( 'Download' == $Item->type && ! empty($this->download) ) {
+			$this->keygen();
+			$this->download = (int)$this->download->id; // Convert download property to integer ID
+		}
 
 		$this->addons = 'no';
 		if (empty($Item->addons) || !is_array($Item->addons)) return true;
