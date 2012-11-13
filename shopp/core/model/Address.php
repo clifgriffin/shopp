@@ -44,10 +44,9 @@ class Address extends DatabaseObject {
 	 * @return void
 	 **/
 	function load ($id=false,$key=false) {
-		$type = $this->type; 	// Keep track of the record type
+		if ( ! empty($this->type) ) $id = array($key => $id,'type' => $this->type);
 		parent::load($id,$key);
 		$this->locate();
-		$this->type = $type;	// Restore this record type
 	}
 
 	/**
