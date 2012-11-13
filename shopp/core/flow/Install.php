@@ -199,7 +199,10 @@ class ShoppInstallation extends FlowController {
 			if (!empty($error)) $this->error('dbprivileges');
 		}
 
-		require(ABSPATH.'wp-admin/includes/upgrade.php');
+		// Make sure dbDelta() is available
+		if ( ! function_exists('dbDelta') )
+			require(ABSPATH.'wp-admin/includes/upgrade.php');
+		
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-upgrade');
 
