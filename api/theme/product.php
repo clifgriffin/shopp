@@ -302,12 +302,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string .= '<input type="hidden" name="products['.$O->id.'][product]" value="'.$O->id.'" />';
 
-		if ( ! str_true($O->variants) && ! empty($O->prices) ) {
+		if ( ! str_true($O->variants) && ! empty($O->prices) ) { // If variants are off, locate the default price line
 			foreach ($O->prices as $price) {
 				if ('product' == $price->context) {
 					$default = $price; break;
 				}
 			}
+			if ('N/A' == $default->type) return false; // Disable add to cart if the default price is disabled
 			$string .= '<input type="hidden" name="products['.$O->id.'][price]" value="'.$default->id.'" />';
 		}
 
