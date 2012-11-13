@@ -814,15 +814,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'">';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
-				$selection = (isset($O->quantity))?$O->quantity:1;
 				if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
 					if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 					$amount = money($amount);
-					$selection = $variation->price;
+					$value = $variation->price;
 				} else {
 					if (str_true($O->inventory) && $amount > $O->max['stock']) continue;
 				}
-				$selected = ($qty==$selection)?' selected="selected"':'';
+				$selected = ($qty == $value ? ' selected="selected"' : '');
 				$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
 			}
 			$_[] = '</select>';
