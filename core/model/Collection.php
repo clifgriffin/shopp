@@ -1686,7 +1686,20 @@ class TagProducts extends SmartCollection {
 		$groupby = 'p.ID';
 		$order = 'score DESC';
 		$this->loading = compact('columns','joins','where','groupby','order');
+	}
 
+	function pagelink ($page) {
+		$termurl = get_term_link($this->tag,ProductTag::$taxon);
+
+		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
+		$prettyurl = trailingslashit($termurl).($page > 1 || $alpha?"page/$page":"");
+
+		$queryvars = array($this->taxonomy=>$this->slug);
+		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
+
+		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
+
+		return apply_filters('shopp_paged_link',$url);
 	}
 }
 
