@@ -305,19 +305,26 @@ class Shopp {
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
 	 * @return array Rewrite rules
 	 **/
-	function rewrites ($wp_rewrite_rules) {
-		if ('' == get_option('permalink_structure')) return $wp_rewrite_rules;
-		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
+  	function rewrites ($wp_rewrite_rules) {
+  		global $is_IIS;
+  		$structure = get_option('permalink_structure');
+  		if ('' == $structure) return $wp_rewrite_rules;
+  		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
 
-		$rules = array(
-			Storefront::slug().'/'.Storefront::slug('account').'/download/([a-f0-9]{40})/?$' // Download handling
-				=> 'index.php?src=download&shopp_download=$matches[1]',
-		);
+  		// Download URL rewrites
+  		$downloads = array(	Storefront::slug(),Storefront::slug('account'),'download','([a-f0-9]{40})','?$' );
+  		if ( $is_IIS && 0 === strpos($structure,'/index.php/') ) array_unshift($downloads,'index.php');
+  		$rules = array( join('/',$downloads)
+  				=> 'index.php?src=download&shopp_download=$matches[1]',
+  		);
 
-		add_rewrite_rule(Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
+  		// Image URL rewrite
+  		$images = array( Storefront::slug(),'images','(\d+)',"?\??(.*)$" );
+  		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
 
-		return $rules + $wp_rewrite_rules;
-	}
+  		return $rules + $wp_rewrite_rules;
+  	}
+
 
 	/**
 	 * Force rebuilding rewrite rules when necessary
