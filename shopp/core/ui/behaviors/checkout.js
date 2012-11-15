@@ -169,7 +169,7 @@ jQuery(document).ready(function () {
 	function paymethod_select (e) {
 		var $this = $(this),paymethod = $(this).val(),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
 
-		if (this != window && $this.attr && $this.attr('type') == "radio" && $this.attr('checked') == false) return;
+		if (this != window && $this.attr && 'radio' == $this.attr('type') && !$this.is(':checked')) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
 
 		checkoutButtons.hide();
