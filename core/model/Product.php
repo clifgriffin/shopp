@@ -205,7 +205,7 @@ class Product extends WPShoppObject {
 		$this->load_sold($ids);
 
 		$Object = new Price();
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,optionkey",'array',array($this,'pricing'));
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,sortorder",'array',array($this,'pricing'));
 
 		// Load price metadata that exists
 		if (!empty($this->priceid)) {
