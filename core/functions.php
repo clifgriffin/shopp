@@ -1895,9 +1895,14 @@ function shopp_template_url ($name) {
  * @return string The final URL
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
+	global $is_IIS;
 
 	$structure = get_option('permalink_structure');
 	$prettyurls = ('' != $structure);
+
+	// Support IIS index.php/ prefixed permalinks
+	if ( $is_IIS && 0 === strpos($structure,'/index.php/') )
+		$path[] = 'index.php';
 
 	$path[] = Storefront::slug('catalog');
 
