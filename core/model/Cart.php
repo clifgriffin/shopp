@@ -1404,7 +1404,7 @@ class CartTax {
 			} elseif (isset($setting['zone']) && !empty($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
 					$rate = $this->float($setting['rate']);
-			} elseif ($country == $setting['country']) {
+			} elseif ($country == $setting['country'] || '*' == $setting['country']) {
 				$rate = $this->float($setting['rate']);
 			}
 
@@ -1426,7 +1426,6 @@ class CartTax {
 				}
 				if ($setting['logic'] == "all" && $matches == count($setting['rules'])) $applies = true;
 				if ($setting['logic'] == "any" && $matches > 0) $applies = true;
-
 				if (!$applies) continue;
 			}
 			// Grab the global setting if found
