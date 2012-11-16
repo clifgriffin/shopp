@@ -285,8 +285,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			$link = false;
 			if (isset($addon->value->download) && isset($addon->value->dkey)) {
 				$dkey = $addon->value->dkey;
-				$request = '' == get_option('permalink_structure')?"download/$dkey":array('shopp_download'=>$dkey);
-				$url = shoppurl($request,'catalog');
+				$request = '' == get_option('permalink_structure')?array('src'=>'download','shopp_download'=>$dkey):"download/$dkey";
+				$url = shoppurl($request,'account');
 				$link = '<br /><a href="'.$url.'">'.$download.'</a>';
 			}
 
