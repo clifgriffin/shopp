@@ -23,7 +23,7 @@ class OrderRates extends ShippingFramework implements ShippingModule {
 
 	function calcitem ($id,$Item) { /* Not implemented */  }
 
-	function calculate ($options,$Order) {
+	function calculate (&$options,$Order) {
 
 		foreach ($this->methods as $slug => $method) {
 

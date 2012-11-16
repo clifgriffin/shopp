@@ -22,7 +22,7 @@ class PercentageAmount extends ShippingFramework implements ShippingModule {
 		return __('Percentage Rate Tiers','Shopp');
 	}
 
-	function calculate ($options,$Order) {
+	function calculate (&$options,$Order) {
 
 		foreach ($this->methods as $slug => $method) {
 

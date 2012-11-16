@@ -30,7 +30,7 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 		$this->weight += $Item->weight*$Item->quantity;
 	}
 
-	function calculate ($options,$Order) {
+	function calculate (&$options,$Order) {
 
 		foreach ($this->methods as $slug => $method) {
 
