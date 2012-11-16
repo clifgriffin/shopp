@@ -1023,6 +1023,13 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$page = current($Storefront->menus);
 		if (array_key_exists('url',$options)) return add_query_arg($page->request,'',shoppurl(false,'account'));
 		if (array_key_exists('action',$options)) return $page->request;
+		if (array_key_exists('classes',$options)) {
+			$classes = array($page->request);
+			if ($Storefront->account['request'] == $page->request) $classes[] = 'current';
+			return join(' ',$classes);
+		}
+		if (array_key_exists('current',$options) && $Storefront->account['request'] == $page->request)
+			return true;
 		return $page->label;
 	}
 
