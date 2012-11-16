@@ -590,7 +590,7 @@ class Product extends WPShoppObject {
 		}
 
 		// Determine savings ranges
-		if (str_true($price->sale)) {
+		if (str_true($target->sale)) {
 
 			if ( ! isset($target->min['saved']) || $target->min['saved'] === false ) {
 				$target->min['saved'] = $price->price;
