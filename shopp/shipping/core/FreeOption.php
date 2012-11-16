@@ -23,7 +23,7 @@ class FreeOption extends ShippingFramework implements ShippingModule {
 	function init () {}
 	function calcitem ($id,$Item) {}
 
-	function calculate ($options,$Order) {
+	function calculate (&$options,$Order) {
 
 		foreach ($this->methods as $slug => $method) {
 			$amount = $this->tablerate($method['table']);
