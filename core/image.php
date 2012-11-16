@@ -15,6 +15,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 chdir(dirname(__FILE__));
 
+// Create a "stub" global Shopp object for use by Asset objects (as the $Shopp
+// global will not otherwise be present for them to populate)
+if (!isset($GLOBALS['Shopp'])) $GLOBALS['Shopp'] = new stdClass;
+
 if (!class_exists('SingletonFramework')) require(realpath('Framework.php'));
 if (!class_exists('DB')) require(realpath('DB.php'));
 if (!function_exists('shopp_find_wpload')) require(realpath('functions.php'));
