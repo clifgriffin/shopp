@@ -1127,6 +1127,9 @@ class Order {
 		if (apply_filters('shopp_billing_country_required',empty($this->Billing->country)))
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
 
+		if (apply_filters('shopp_billing_locale_required',isset($_POST['billing']['locale']) && empty($_POST['billing']['locale'])))
+			return new ShoppError(__('You must select a local jursidiction for tax purposes.','Shopp'),'cart_validation');
+
 		// Skip validating payment details for purchases not requiring a
 		// payment (credit) card including free orders, remote checkout systems, etc
 		if (!$this->paycard()) return apply_filters('shopp_validate_checkout',true);
