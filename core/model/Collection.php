@@ -1458,7 +1458,7 @@ class BestsellerProducts extends SmartCollection {
 		if (isset($options['range']) && is_array($options['range']) && 2 == count($options['range'])) {
 			$start = $options['range'][0];
 			$end = $options['range'][1];
-			if (!$end) $end = current_time('timestamp');
+			if (!$end) $end = current_time('mysql');
 			$purchased = DatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
