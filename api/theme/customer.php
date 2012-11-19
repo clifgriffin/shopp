@@ -1,13 +1,13 @@
 <?php
 /**
-* ShoppCustomerThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppCustomerThemeAPI
-*
-**/
+ * ShoppCustomerThemeAPI - Provided theme api tags.
+ *
+ * @version 1.0
+ * @since 1.2
+ * @package shopp
+ * @subpackage ShoppCustomerThemeAPI
+ *
+ **/
 
 class ShoppCustomerThemeAPI implements ShoppAPI {
 	static $register = array(
@@ -73,6 +73,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		'shippingstate' => 'shipping_state',
 		'shippingxaddress' => 'shipping_xaddress',
 		'submitlogin' => 'submit_login',
+		'type' => 'type',
 		'loginbutton' => 'submit_login',
 		'url' => 'url',
 		'wpusercreated' => 'wpuser_created'
@@ -145,7 +146,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$countries = shopp_setting('target_markets');
 
 		$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
-	 	$output .= menuoptions($countries,$options['selected'],true);
+		$output .= menuoptions($countries,$options['selected'],true);
 		$output .= '</select>';
 		return $output;
 	}
@@ -183,7 +184,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			$label = (!empty($options['label']))?$options['label']:'';
 			$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
 			$output .= '<option value="" selected="selected">'.$label.'</option>';
-		 	$output .= menuoptions($states,$options['selected'],true);
+			$output .= menuoptions($states,$options['selected'],true);
 			$output .= '</select>';
 		} else if ($options['type'] == "menu") {
 			$options['disabled'] = 'disabled';
@@ -232,8 +233,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
 		if (array_key_exists('url',$options))
 			$string .= shoppurl( ('' == get_option('permalink_structure') ?
-							array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey),
-							'account');
+					array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey),
+				'account');
 		return $string;
 	}
 
@@ -453,7 +454,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$Storefront = ShoppStorefront();
 		if (!isset($Storefront->_purchases_loop)) {
 			reset($Storefront->purchases);
- 			ShoppPurchase( current($Storefront->purchases) );
+			ShoppPurchase( current($Storefront->purchases) );
 			$Storefront->_purchases_loop = true;
 		} else {
 			ShoppPurchase( next($Storefront->purchases) );
@@ -469,7 +470,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	static function recover_button ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
-			return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
+		return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 	}
 
 	static function recover_url ($result, $options, $O) { return add_query_arg('recover','',shoppurl(false,'account')); }
@@ -556,7 +557,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$countries = shopp_setting('target_markets');
 
 		$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
-	 	$output .= menuoptions($countries,$options['selected'],true);
+		$output .= menuoptions($countries,$options['selected'],true);
 		$output .= '</select>';
 		return $output;
 	}
@@ -593,7 +594,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			$label = (!empty($options['label']))?$options['label']:'';
 			$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
 			$output .= '<option value="" selected="selected">'.$label.'</option>';
-		 	$output .= menuoptions($states,$options['selected'],true);
+			$output .= menuoptions($states,$options['selected'],true);
 			$output .= '</select>';
 		} else if ($options['type'] == "menu") {
 			$options['disabled'] = 'disabled';
@@ -612,7 +613,6 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function submit_login ($result, $options, $O) {
-
 		if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 		$string = "";
 		$id = "submit-login";
@@ -628,6 +628,18 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
+	/**
+	 * Returns the customer type string. Optional parameter "placeholder" can be used to
+	 * specify a string to return should the type field be empty:
+	 *
+	 *  shopp('customer.type', 'placeholder=Regular Customer')
+	 */
+	public static function type ($result, $options, $O) {
+		$type = $O->type;
+		if (empty($type) && isset($options['placeholder'])) $type = $options['placeholder'];
+		return esc_html($type);
+	}
+
 	static function url ($result, $options, $O) {
 		global $Shopp;
 		return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure);
@@ -636,12 +648,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	static function wpuser_created ($result, $options, $O) { return $O->newuser; }
 
 	/*************
-	* DEPRECATED *
-	**************/
+	 * DEPRECATED *
+	 **************/
 
 	/**
-	* @deprecated Replaced by shopp('storefront','account-menu')
-	**/
+	 * @deprecated Replaced by shopp('storefront','account-menu')
+	 **/
 	static function menu ($result, $options, $O) {
 		return ShoppCatalogThemeAPI::account_menu($result,$options,$O);
 	}
