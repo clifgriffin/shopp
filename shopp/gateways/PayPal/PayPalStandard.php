@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis, John Dillick
- * @version 1.2.1
+ * @version 1.2.2
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * @since 1.2
@@ -410,8 +410,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['custom']				= $Shopping->session;
 
 		// Options
-		if ($this->settings['pdtverify'] == "on")
-			$_['return']			= shoppurl(array('rmtpay'=>'PPS'),'checkout',false);
+		if ( str_true($this->settings['pdtverify']) )
+			$_['return']			= apply_filters( 'shopp_paypalstandard_returnurl', shoppurl(array('rmtpay'=>'PPS','utm_nooverride'=>'1'),'checkout',false) );
 		else $_['return']				= shoppurl(false,'thanks');
 
 		$_['cancel_return']			= shoppurl(false,'cart');
