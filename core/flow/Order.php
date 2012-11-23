@@ -1164,7 +1164,6 @@ class Order {
 		return apply_filters('shopp_validate_checkout',true);
 	}
 
-
 	function validate () {
 		if (apply_filters('shopp_valid_order',$this->isvalid())) return true;
 		shopp_redirect( shoppurl(false,'checkout',$this->security()), true );

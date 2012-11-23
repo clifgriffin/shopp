@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.2.4
+Version: 1.2.5
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2.4');
+	define('SHOPP_VERSION','1.2.5');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
@@ -207,9 +207,13 @@ class Shopp {
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
 		add_action('load-plugins.php',array($this,'updates'));
+		add_action('load-update.php', array($this,'updates'));
+		add_action('load-update-core.php',array($this,'updates'));
+		add_action('wp_update_plugins',array($this,'updates'));
+
         add_action('shopp_check_updates', array($this, 'updates'));
 
-		if (!wp_next_scheduled('shopp_check_updates'))
+		if ( ! wp_next_scheduled('shopp_check_updates') )
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
 	}
@@ -599,6 +603,19 @@ class Shopp {
 			&& 'deactivate' == $_GET['action']) return array();
 
 		$updates = new StdClass();
+		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
+		else $plugin_updates = get_transient('update_plugins');
+
+		switch ( current_filter() ) {
+			case 'load-update-core.php': $timeout = 60; break; // 1 minute
+			case 'load-plugins.php': // 1 hour
+			case 'load-update.php': $timeout = 3600; break;
+			default: $timeout = 43200; // 12 hours
+		}
+
+		$justchecked = isset( $plugin_updates->last_checked_shopp ) && $timeout > ( time() - $plugin_updates->last_checked_shopp );
+		$changed = isset($plugin_updates->response[SHOPP_PLUGINFILE]);
+		if ( $justchecked && ! $changed ) return;
 
 		$addons = array_merge(
 			$this->Gateways->checksums(),
@@ -640,18 +657,17 @@ class Shopp {
 		if (isset($response->id))
 			$updates->response[SHOPP_PLUGINFILE] = $response;
 
-		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
-		else $plugin_updates = get_transient('update_plugins');
-
 		if (isset($updates->response)) {
 			shopp_set_setting('updates',$updates);
 
 			// Add Shopp to the WP plugin update notification count
-			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
+			if ( isset($updates->response[SHOPP_PLUGINFILE]) )
+				$plugin_updates->response[SHOPP_PLUGINFILE] = $updates->response[SHOPP_PLUGINFILE];
 
 		} else unset($plugin_updates->response[SHOPP_PLUGINFILE]); // No updates, remove Shopp from the plugin update count
 
-		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
+		$plugin_updates->last_checked_shopp = time();
+		if ( function_exists('set_site_transient') ) set_site_transient('update_plugins',$plugin_updates);
 		else set_transient('update_plugins',$plugin_updates);
 
 		return $updates;
