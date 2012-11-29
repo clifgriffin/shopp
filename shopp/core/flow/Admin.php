@@ -53,6 +53,7 @@ class AdminFlow extends FlowController {
 		'main'=>'shopp_menu',
 		'orders'=>'shopp_orders',
 		'customers'=>'shopp_customers',
+		'reports'=>'shopp_financials',
 		'memberships'=>'shopp_products',
 		'products'=>'shopp_products',
 		'categories'=>'shopp_categories',
@@ -96,6 +97,8 @@ class AdminFlow extends FlowController {
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
+		$this->addpage('reports',__('Reports','Shopp'),'Report','Reports');
+
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
 
