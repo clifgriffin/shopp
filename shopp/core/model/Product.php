@@ -201,6 +201,10 @@ class Product extends WPShoppObject {
 			$this->resum();
 		}
 
+		// Load product sales counts
+		// Must come before pricing so that the summary updates will include new sold/grossed amounts
+		$this->load_sold($ids);
+
 		$Object = new Price();
 		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,sortorder",'array',array($this,'pricing'));
 
@@ -213,9 +217,6 @@ class Product extends WPShoppObject {
 			// Sort by sort order then by the modified timestamp so the most recent changes are last and become the authoritative record
 			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
-
-		// Load product sales counts
-		$this->load_sold($ids);
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -694,7 +695,7 @@ class Product extends WPShoppObject {
 	function resum () {
 		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
-		$this->stock = $this->stocked = $this->sold = 0;
+		$this->stock = $this->stocked = 0;
 		$this->maxprice = $this->minprice = false;
 		$this->min = $this->max = array();
 		$this->freeship = 'off';
