@@ -280,6 +280,15 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('labelset', '/ui/behaviors/labelset.js', array('jquery','jquery-tmpl'), '20110508');
 	$scripts->add_data('labelset', 'group', 1);
 
+	$scripts->add('flot', '/ui/behaviors/flot/jquery.flot.js', array('jquery'), '20121130');
+	$scripts->add_data('flot', 'group', 1);
+
+	$scripts->add('flot-grow', '/ui/behaviors/flot/jquery.flot.grow.js', array('flot'), '20121130');
+	$scripts->add_data('flot-grow', 'group', 1);
+
+	$scripts->add('reports', '/ui/behaviors/reports.js', array('flot'), '201211301');
+	$scripts->add_data('reports', 'group', 1);
+
 }
 
 /**

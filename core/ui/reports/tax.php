@@ -1,6 +1,6 @@
 <?php
 
-class SalesReport extends ShoppReportFramework implements ShoppReport {
+class TaxReport extends ShoppReportFramework implements ShoppReport {
 
 	function query () {
 		global $bbdb;
@@ -18,15 +18,11 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		$purchased_table = DatabaseObject::tablename('purchased');
 		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as ts,
-							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) as subtotal,
-							SUM(o.tax) as tax,
-							SUM(o.shipping) as shipping,
-							SUM(o.discount) as discounts,
-							SUM(o.total) as total,
-							AVG(o.total) AS avgorder,
-							AVG(p.unitprice) AS avgitem
+							SUM(IF(p.unittax > 0,p.total,0)) AS taxable,
+							AVG(p.unittax/p.unitprice) AS rate,
+							SUM(o.tax) as tax
 					FROM $purchased_table AS p
 					LEFT JOIN $orders_table AS o ON p.purchase=o.id
 					WHERE $where
@@ -36,12 +32,29 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 	}
 
+	function columns () {
+		ShoppUI::register_column_headers($this->screen, array(
+			'period'=>__('Period','Shopp'),
+			'numorders'=>__('# of Orders','Shopp'),
+			'subtotal'=>__('Subtotal','Shopp'),
+			'taxable'=>__('Taxable Amount','Shopp'),
+			'rate'=>__('Tax Rate','Shopp'),
+			'tax'=>__('Total Tax','Shopp')
+		) );
+	}
+
 	function setup () {
 		extract($this->options, EXTR_SKIP);
 
+		$this->screen = $screen;
+
 		$this->Chart = new ShoppReportChart();
 		$Chart = $this->Chart;
-		$Chart->series(0,__('Orders','Shopp'));
+		$Chart->series(0,__('Taxable','Shopp'));
+		$Chart->series(1,__('Total Tax','Shopp'));
+		$Chart->settings(array(
+			'yaxis' => array('tickFormatter' => 'asMoney')
+		));
 
 		// Post processing for stats to fill in date ranges
 		$data =& $this->data;
@@ -87,24 +100,10 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 			}
 			$s->ts = $ts;
 
-			$Chart->data(0,$s->ts,(int)$s->orders);
+			$Chart->data(0,$s->ts,(int)$s->taxable);
+			$Chart->data(1,$s->ts,(int)$s->tax);
 		}
 
-	}
-
-	function columns () {
-		ShoppUI::register_column_headers($this->screen,array(
-			'period'=>__('Period','Shopp'),
-			'numorders'=>__('# of Orders','Shopp'),
-			'items'=>__('Items Ordered','Shopp'),
-			'subtotal'=>__('Subtotal','Shopp'),
-			'tax'=>__('Tax','Shopp'),
-			'shipping'=>__('Shipping','Shopp'),
-			'discounts'=>__('Discounts','Shopp'),
-			'total'=>__('Total','Shopp'),
-			'orderavg'=>__('Average Order','Shopp'),
-			'itemavg'=>__('Average Items','Shopp')
-		));
 	}
 
 	function period ($data,$column,$coltitle) {
@@ -120,20 +119,13 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 	function numorders ($data) { echo $data->orders; }
 
-	function items ($data) { echo $data->items; }
-
 	function subtotal ($data) { echo money($data->subtotal); }
+
+	function taxable ($data) { echo money($data->taxable); }
 
 	function tax ($data) { echo money($data->tax); }
 
-	function shipping ($data) { echo money($data->shipping); }
+	function rate ($data) { echo percentage($data->rate*100); }
 
-	function discounts ($data) { echo money($data->discounts); }
-
-	function total ($data) { echo money($data->total); }
-
-	function orderavg ($data) { echo money($data->avgorder); }
-
-	function itemavg ($data) { echo money($data->avgitem); }
 
 }

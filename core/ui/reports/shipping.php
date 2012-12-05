@@ -1,6 +1,6 @@
 <?php
 
-class SalesReport extends ShoppReportFramework implements ShoppReport {
+class ShippingReport extends ShoppReportFramework implements ShoppReport {
 
 	function query () {
 		global $bbdb;
@@ -8,7 +8,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		$data =& $this->data;
 
 		$where = array();
-
+		$where[] = "p.type = 'Shipped'";
 		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
 		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
 
@@ -20,13 +20,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 							UNIX_TIMESTAMP(o.created) as ts,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
-							SUM(o.subtotal) as subtotal,
-							SUM(o.tax) as tax,
-							SUM(o.shipping) as shipping,
-							SUM(o.discount) as discounts,
-							SUM(o.total) as total,
-							AVG(o.total) AS avgorder,
-							AVG(p.unitprice) AS avgitem
+							SUM(o.shipping) as shipping
 					FROM $purchased_table AS p
 					LEFT JOIN $orders_table AS o ON p.purchase=o.id
 					WHERE $where
@@ -41,7 +35,10 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 		$this->Chart = new ShoppReportChart();
 		$Chart = $this->Chart;
-		$Chart->series(0,__('Orders','Shopp'));
+		$Chart->series(0,__('Shipping','Shopp'));
+		$Chart->settings(array(
+			'yaxis' => array('tickFormatter' => 'asMoney')
+		));
 
 		// Post processing for stats to fill in date ranges
 		$data =& $this->data;
@@ -87,24 +84,19 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 			}
 			$s->ts = $ts;
 
-			$Chart->data(0,$s->ts,(int)$s->orders);
+			$Chart->data(0,$s->ts,(int)$s->shipping);
 		}
 
 	}
 
 	function columns () {
-		ShoppUI::register_column_headers($this->screen,array(
+		ShoppUI::register_column_headers($this->screen, array(
 			'period'=>__('Period','Shopp'),
 			'numorders'=>__('# of Orders','Shopp'),
 			'items'=>__('Items Ordered','Shopp'),
 			'subtotal'=>__('Subtotal','Shopp'),
-			'tax'=>__('Tax','Shopp'),
-			'shipping'=>__('Shipping','Shopp'),
-			'discounts'=>__('Discounts','Shopp'),
-			'total'=>__('Total','Shopp'),
-			'orderavg'=>__('Average Order','Shopp'),
-			'itemavg'=>__('Average Items','Shopp')
-		));
+			'shipping'=>__('Shipping','Shopp')
+		) );
 	}
 
 	function period ($data,$column,$coltitle) {
