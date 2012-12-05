@@ -326,13 +326,21 @@ jQuery.fn.PopupCalendar = function (settings) {
 			pad = 6;
 		}
 
-		$this.css({left:pos.left,top:pos.top+input.outerHeight(true)+pad });
+		// // requires jquery.dimension plugin
+		// var offset = $input.offset();
+		// $results.css({
+		// 	top: (offset.top + input.offsetHeight) + 'px',
+		// 	left: offset.left + 'px'
+		// });
+		$this.css({left:pos.left+'px',top:(pos.top+input.outerHeight(true))+'px' });
 
 		if (m_input !== false && (y_input.val()+m_input.val()+d_input.val() != '')) {
 			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
 		}
 
 		inputs.focus(function (e) {
+			var p = $(this).offset();
+			$this.css({left:p.left+'px',top:p.top+'px' });
 			_.show();
 			_.focused = $(this);
 		}).click(function () {

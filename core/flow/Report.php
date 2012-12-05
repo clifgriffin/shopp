@@ -26,8 +26,6 @@ class Report extends AdminController {
 
 	private $view = 'dashboard';
 
-	private $ranges = array();		// Stat range menu
-	private $scales = array();		// Stat time scales
 	private $defaults = array();	// Default request options
 	private $options = array();		// Processed options
 	private $Report = false;
@@ -41,39 +39,18 @@ class Report extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		$this->ranges = array(
-			'today' => __('Today','HelpDesk'),
-			'week' => __('This Week','HelpDesk'),
-			'month' => __('This Month','HelpDesk'),
-			'year' => __('This Year','HelpDesk'),
-			'quarter' => __('This Quarter','HelpDesk'),
-			'yesterday' => __('Yesterday','HelpDesk'),
-			'lastweek' => __('Last Week','HelpDesk'),
-			'last30' => __('Last 30 Days','HelpDesk'),
-			'last90' => __('Last 3 Months','HelpDesk'),
-			'lastmonth' => __('Last Month','HelpDesk'),
-			'lastquarter' => __('Last Quarter','HelpDesk'),
-			'lastyear' => __('Last Year','HelpDesk'),
-			'custom' => __('Custom Dates','HelpDesk')
-		);
-
-		$this->scales = array(
-			__('Day','HelpDesk'),
-			__('Week','HelpDesk'),
-			__('Month','HelpDesk'),
-			__('Year','HelpDesk')
-		);
-
 		$this->reports = array(
-			'sales' => array('SalesReport',__('Sales Report','Shopp')),
-			'products' => array('ProductsReport',__('Products Report','Shopp')),
+			'sales' => array( 'class' => 'SalesReport', 'name' => __('Sales Report','Shopp'), 'label' => __('Sales','Shopp') ),
+			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
+			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
+			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
 		);
 
 		$this->defaults = array(
 			'start' => date('n/j/Y',mktime(0,0,0,11,1)),
 			'end' => date('n/j/Y',mktime(23,59,59)),
 			'range' => '',
-			'scale' => 'Day',
+			'scale' => 'day',
 			'op' => 'day',
 			'report' => 'overall',
 			'per_page' => 100
@@ -83,6 +60,9 @@ class Report extends AdminController {
 		add_action('load-'.$this->screen,array($this,'loader'));
 
 		shopp_enqueue_script('calendar');
+		shopp_enqueue_script('flot');
+		shopp_enqueue_script('flot-grow');
+		shopp_enqueue_script('reports');
 
 		do_action('shopp_order_admin_scripts');
 	}
@@ -113,7 +93,7 @@ class Report extends AdminController {
 		$options['op'] = $options['scale'];
 
 		if ($daterange <= 86400) {
-			$options['scale'] = 'Day';
+			$options['scale'] = 'day';
 			$options['op'] = 'hour';
 		}
 
@@ -139,22 +119,20 @@ class Report extends AdminController {
 		$reports = $this->reports;
 
 		// Load the report
-		$report = isset($_GET['report']) ? $_GET['report'] : 'products';
+		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
 		if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
 
 		require(SHOPP_ADMIN_PATH."/reports/$report.php");
-		$ReportClass = $reports[$report][0];
+		$ReportClass = $reports[$report]['class'];
 		$Report = new $ReportClass($this->options);
 		$Report->query();
-		$Report->parse();
-		$Report->init();
+		$Report->setup();
 		$this->Report = $Report;
 
 		$num_pages = ceil($Report->total / $per_page );
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Report->total, $num_pages, $per_page );
 
 	}
-
 
 	/**
 	 * admin
@@ -163,13 +141,6 @@ class Report extends AdminController {
 	 * @author Jonathan Davis
 	 **/
 	function admin () {
-
-		$this->report();
-
-	}
-
-	function report () {
-
 		if ( ! current_user_can('shopp_financials') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
@@ -185,7 +156,9 @@ class Report extends AdminController {
 			's' => '',
 			'range' => '',
 			'startdate' => '',
-			'enddate' => ''
+			'enddate' => '',
+			'report' => 'sales',
+			'scale' => 'day'
 		);
 
 		$args = array_merge($defaults,$_GET);
@@ -238,45 +211,35 @@ class Report extends AdminController {
 		if (empty($selected)) $selected = array_keys($columns);
 
 		$Report = $this->Report;
+		$report_title = isset($this->reports[ $report ])? $this->reports[ $report ]['name'] : __('Report','Shopp');
 		include(SHOPP_ADMIN_PATH."/reports/reports.php");
 	}
 
-
 } // end class Report
-
 
 interface ShoppReport {
 	public function query();
-	public function parse();
+	public function setup();
 	public function table();
-
 }
 
 class ShoppReportFramework {
-	var $screen = false;
-	var $options = array();
-	var $data = array();
-	var $report = array();
-	var $chart = array();
-	var $chartop = array(
-		'grid' => array('hoverable' => true),
-		'series' => array('lines' => array('show' => true),'points'=>array('show' => true)),
-		'xaxis' => array(
-			'mode' => 'time',
-			'timeformat' => '%m/%d/%y',
-			'tickSize' => array(1,'day'),
-			'twelveHourClock' => true
-		),
-		// 'colors' => array('#A6CEE3', '#1F78B4', '#B2DF8A', '#33A02C', '#FB9A99', '#E31A1C', '#FDBF6F', '#FF7F00', '#CAB2D6', '#6A3D9A', '#FFFF99')
-		// 'colors' => array('#A6CEE3','#1F78B4','#B2DF8A','#33A02C','#FB9A99','#E31A1C','#FDBF6F','#FF7F00','#CAB2D6','#6A3D9A')
-		// 'colors' => array('#008116','#005a67','#629c00','#a80c00','#a85100','#8a0046','#740066')
+	var $screen = false;		// The current WP screen
+	var $Chart = false;			// The report chart (if any)
 
-	);
-
+	var $options = array();		// Options for the report
+	var $data = array();		// The raw data from the query
+	var $report = array();		// The processed report data
 	var $daterange = false;
 
 	function __construct ($request = array()) {
 		$this->options = $request;
+
+		$this->screen = $this->options['screen'];
+
+		add_action('shopp_report_filter_controls',array($this,'filters'));
+		add_action("manage_{$this->screen}_columns",array($this,'columns'));
+		add_action("manage_{$this->screen}_sortable_columns",array($this,'sortcolumns'));
 	}
 
 	function timecolumn ($column) {
@@ -329,47 +292,12 @@ class ShoppReportFramework {
 		}
 	}
 
-	function chartaxis ($options,$range,$scale='day') {
-		switch (strtolower($scale)) {
-			case 'hour':
-				$options['timeformat'] = '%h%p';
-				$options['tickSize'] = array(2,'hour');
-				break;
-			case 'day':
-				$tickscale = ceil($range / 10);
-				$options['tickSize'] = array($tickscale,'day');
-				$options['timeformat'] = '%b %d';
-				break;
-			case 'week':
-				$tickscale = ceil($range/10)*7;
-				$options['tickSize'] = array($tickscale,'day');
-				$options['minTickSize'] = array(7,'day');
-				$options['timeformat'] = '%b %d';
-				break;
-			case 'month':
-				$tickscale = ceil($range / 10);
-				$options['tickSize'] = array($tickscale,'month');
-				$options['timeformat'] = '%b %y';
-				break;
-			case 'year':
-				$options['tickSize'] = array(12,'month');
-				$options['minTickSize'] = array(12,'month');
-				$options['timeformat'] = '%y';
-				break;
-		}
+	function columns () { ShoppUI::register_column_headers($this->screen,array()); }
 
-		return $options;
-	}
+	function sortcolumns () { return array(); }
 
-	function chart ($report,$ts,$value) {
-		$tzoffset = date('Z');
-
-		if (isset($this->chart[$report]))
-			$this->chart[$report]['data'][] = array(($ts+$tzoffset)*1000,$value);
-	}
-
-		function table () {
-			if (empty($this->report)) return;
+	function table () {
+		if ( $this->Chart ) $this->Chart->render();
 	?>
 			<table class="widefat" cellspacing="0">
 				<thead>
@@ -378,7 +306,7 @@ class ShoppReportFramework {
 				<tfoot>
 				<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
 				</tfoot>
-			<?php if (count($this->report) >  0): ?>
+			<?php if ( false !== $this->report && count($this->report) > 0 ): ?>
 				<tbody id="report" class="list stats">
 				<?php
 				$columns = get_column_headers($this->screen);
@@ -409,11 +337,192 @@ class ShoppReportFramework {
 				<?php endforeach; /* $Products */ ?>
 				</tbody>
 			<?php else: ?>
-				<tbody><tr><td colspan="6"><?php _e('No report data available.','Shopp'); ?></td></tr></tbody>
+				<tbody><tr><td colspan="<?php echo count(get_column_headers($this->screen)); ?>"><?php _e('No report data available.','Shopp'); ?></td></tr></tbody>
 			<?php endif; ?>
 			</table>
-
 	<?php
+	}
+
+	function filters () {
+		self::rangefilter();
+		self::scalefilter();
+		self::filterbutton();
+	}
+
+	protected static function rangefilter () { ?>
+		<select name="range" id="range">
+			<?php
+				$start = $_GET['start'];
+				$end = $_GET['end'];
+				$range = isset($_GET['range']) ? $_GET['range'] : 'all';
+				$ranges = array(
+					'today' => __('Today','HelpDesk'),
+					'week' => __('This Week','HelpDesk'),
+					'month' => __('This Month','HelpDesk'),
+					'year' => __('This Year','HelpDesk'),
+					'quarter' => __('This Quarter','HelpDesk'),
+					'yesterday' => __('Yesterday','HelpDesk'),
+					'lastweek' => __('Last Week','HelpDesk'),
+					'last30' => __('Last 30 Days','HelpDesk'),
+					'last90' => __('Last 3 Months','HelpDesk'),
+					'lastmonth' => __('Last Month','HelpDesk'),
+					'lastquarter' => __('Last Quarter','HelpDesk'),
+					'lastyear' => __('Last Year','HelpDesk'),
+					'custom' => __('Custom Dates','HelpDesk')
+				);
+				echo menuoptions($ranges,$range,true);
+			?>
+		</select>
+		<div id="dates" class="hide-if-js">
+			<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo esc_attr($start); ?>" size="10" class="search-input selectall" /></div>
+			<small>to</small>
+			<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo esc_attr($end); ?>" size="10" class="search-input selectall" /></div>
+		</div>
+<?php
+	}
+
+	protected static function scalefilter () { ?>
+
+		<select name="scale" id="scale">
+		<?php
+		$scale = isset($_GET['scale']) ? $_GET['scale'] : 'day';
+		$scales = array(
+			'hour' => __('By Hour','Shopp'),
+			'day' => __('By Day','Shopp'),
+			'week' => __('By Week','Shopp'),
+			'month' => __('By Month','Shopp')
+		);
+
+		echo menuoptions($scales,$scale,true);
+		?>
+		</select>
+
+<?php
+	}
+
+	protected static function filterbutton () {
+		?><button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button><?php
+	}
+
+	protected function chart ($report,$x,$y) {
+		$this->Chart->data($report,$x,$y);
+	}
+
+} // End class ShoppReportFramework
+
+class ShoppReportChart {
+	var $data = array();
+	var $chart = array();
+
+	var $options = array(
+		'series' => array(
+			'lines' => array('show' => true,'fill'=>true,'lineWidth'=>3),
+			'points' => array('show' => true),
+			'shadowSize' => 0
+		),
+		'xaxis' => array(
+			'color' => '#545454',
+			'tickColor' => '#fff',
+			'position' => 'top',
+			'mode' => 'time',
+			'timeformat' => '%m/%d/%y',
+			'tickSize' => array(1,'day'),
+			'twelveHourClock' => true
+		),
+		'yaxis' => array(
+			'position' => 'right',
+			'autoscaleMargin' => 0.02,
+		),
+		'legend' => array(
+			'show' => false
+		),
+		'grid' => array(
+			'show' => true,
+			'hoverable' => true,
+			'borderWidth' => 0,
+			'borderColor' => '#000',
+			'minBorderMargin' => 10,
+			'labelMargin' => 10,
+			'markingsColor' => '#f7f7f7'
+         ),
+		// Solarized Color Palette
+		'colors' => array('#618C03','#1C63A8','#1F756B','#896204','#cb4b16','#A90007','#A9195F','#4B4B9A'),
+	);
+
+	function settings ($options) {
+		foreach ($options as $setting => $settings)
+			$this->options[$setting] = wp_parse_args($settings,$this->options[$setting]);
+	}
+
+	function timeaxis ($axis,$range,$scale='day') {
+		if ( ! isset($this->options[ $axis ])) return;
+
+		$options = array();
+		switch (strtolower($scale)) {
+			case 'hour':
+				$options['timeformat'] = '%h%p';
+				$options['tickSize'] = array(2,'hour');
+				break;
+			case 'day':
+				$tickscale = ceil($range / 10);
+				$options['tickSize'] = array($tickscale,'day');
+				$options['timeformat'] = '%b %d';
+				break;
+			case 'week':
+				$tickscale = ceil($range/10)*7;
+				$options['tickSize'] = array($tickscale,'day');
+				$options['minTickSize'] = array(7,'day');
+				$options['timeformat'] = '%b %d';
+				break;
+			case 'month':
+				$tickscale = ceil($range / 10);
+				$options['tickSize'] = array($tickscale,'month');
+				$options['timeformat'] = '%b %y';
+				break;
+			case 'year':
+				$options['tickSize'] = array(12,'month');
+				$options['minTickSize'] = array(12,'month');
+				$options['timeformat'] = '%y';
+				break;
 		}
 
-}
+		$this->options[ $axis ] = wp_parse_args($options,$this->options[ $axis ]);
+	}
+
+	function series ($id,$label) {
+		$this->data[$id] = array(
+			'label' => $label,
+			'data' => array(),
+			'grow' => array(
+				'active' => true,
+				'stepMode' => 'linear',
+				'stepDelay' => false,
+				'steps' => 25,
+				'stepDirection' => 'up'
+			)
+		);
+	}
+
+	function data ($series,$x,$y) {
+		$tzoffset = date('Z');
+
+		if ( isset($this->data[$series]) )
+			$this->data[$series]['data'][] = array(($x+$tzoffset)*1000,$y);
+
+
+		$this->datapoints = max( $this->datapoints, count($this->data[$series]['data']) );
+	}
+
+	function render () {
+		if (count($this->data[0]['data']) > 75) $this->options['series']['points'] = false; ?>
+		<script type="text/javascript">
+		var d = <?php echo json_encode($this->data); ?>,
+			co = <?php echo json_encode($this->options); ?>;
+		</script>
+
+		<div id="chart"></div>
+		<div id="chart-legend"></div>
+<?php
+	}
+
+} // End class ShoppReportChart
