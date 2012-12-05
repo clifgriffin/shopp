@@ -20,7 +20,7 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 							UNIX_TIMESTAMP(o.created) as ts,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
-							SUM(o.shipping) as shipping
+							SUM(o.freight) as shipping
 					FROM $purchased_table AS p
 					LEFT JOIN $orders_table AS o ON p.purchase=o.id
 					WHERE $where

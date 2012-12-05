@@ -7,10 +7,12 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		extract($this->options, EXTR_SKIP);
 		$data =& $this->data;
 
+
 		$where = array();
 
-		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
-		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
+		$tzoffset = date('Z')/3600;
+		$where[] = "$starts < UNIX_TIMESTAMP(o.created)+$tzoffset";
+		$where[] = "$ends > UNIX_TIMESTAMP(o.created)+$tzoffset";
 
 		$where = join(" AND ",$where);
 
@@ -33,13 +35,13 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as ts,
 							CONCAT(p.post_title,' ',pr.label) AS product,
-							COUNT(DISTINCT o.id) AS orders,
-							s.sold AS sold,
-							s.grossed AS grossed
+							COUNT(DISTINCT o.id) AS sold,
+							COUNT(DISTINCT o.purchase) AS orders,
+							SUM(o.total) AS grossed
 					FROM $purchased_table AS o
-					LEFT OUTER JOIN $summary_table AS s ON s.product=o.product
-					LEFT OUTER JOIN $product_table AS p ON p.ID=o.product
-					LEFT OUTER JOIN $price_table AS pr ON pr.product=o.product
+					JOIN $summary_table AS s ON s.product=o.product
+					JOIN $product_table AS p ON p.ID=o.product
+					JOIN $price_table AS pr ON pr.id=o.price
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
 

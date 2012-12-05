@@ -163,6 +163,10 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .search-select-results .suggest-select { background: #21759B; color: #fff; cursor: pointer; }
 .search-select-results .suggest-select .suggest-match { background: none; }
 
+/** Reports **/
+#chart { width: 100%; height: 200px; margin: 2em 0; }
+#chart .tickLabel { font-size: 1.3em; }
+
 
 /** Membership Editor **/
 #membership .panel { margin-bottom: 20px; }

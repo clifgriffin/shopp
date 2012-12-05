@@ -20,15 +20,15 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 							UNIX_TIMESTAMP(o.created) as ts,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
-							SUM(o.subtotal) as subtotal,
-							SUM(o.tax) as tax,
-							SUM(o.shipping) as shipping,
-							SUM(o.discount) as discounts,
-							SUM(o.total) as total,
-							AVG(o.total) AS avgorder,
-							AVG(p.unitprice) AS avgitem
-					FROM $purchased_table AS p
-					LEFT JOIN $orders_table AS o ON p.purchase=o.id
+							SUM(o.subtotal)*(COUNT(DISTINCT o.id)/COUNT(*)) as subtotal,
+							SUM(o.tax)*(COUNT(DISTINCT o.id)/COUNT(*)) as tax,
+							SUM(o.freight)*(COUNT(DISTINCT o.id)/COUNT(*)) as shipping,
+							SUM(o.discount)*(COUNT(DISTINCT o.id)/COUNT(*)) as discounts,
+							SUM(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) as total,
+							AVG(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) AS avgorder,
+							AVG(p.unitprice)*(COUNT(DISTINCT o.id)/COUNT(*)) AS avgitem
+					FROM $orders_table AS o
+					LEFT OUTER JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
 
