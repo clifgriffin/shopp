@@ -17,7 +17,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 		$orders_table = DatabaseObject::tablename('purchase');
 		$purchased_table = DatabaseObject::tablename('purchased');
 		$query = "SELECT CONCAT($id) AS id,
-							UNIX_TIMESTAMP(o.created) as ts,
+							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) as subtotal,
 							SUM(IF(p.unittax > 0,p.total,0)) AS taxable,
@@ -33,14 +33,14 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 	}
 
 	function columns () {
-		ShoppUI::register_column_headers($this->screen, array(
+		return array(
 			'period'=>__('Period','Shopp'),
-			'numorders'=>__('# of Orders','Shopp'),
+			'orders'=>__('Orders','Shopp'),
 			'subtotal'=>__('Subtotal','Shopp'),
 			'taxable'=>__('Taxable Amount','Shopp'),
 			'rate'=>__('Tax Rate','Shopp'),
 			'tax'=>__('Total Tax','Shopp')
-		) );
+		);
 	}
 
 	function setup () {
@@ -98,34 +98,24 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 				foreach ( $props as $property => $value)
 					$s->$property = $value;
 			}
-			$s->ts = $ts;
+			$s->period = $ts;
 
-			$Chart->data(0,$s->ts,(int)$s->taxable);
-			$Chart->data(1,$s->ts,(int)$s->tax);
+			$Chart->data(0,$s->period,(int)$s->taxable);
+			$Chart->data(1,$s->period,(int)$s->tax);
 		}
 
 	}
 
-	function period ($data,$column,$coltitle) {
-		switch (strtolower($this->options['op'])) {
-			case 'hour': echo date('ga',$data->ts); break;
-			case 'day': echo date('l, F j, Y',$data->ts); break;
-			case 'week': echo $this->weekrange($data->ts); break;
-			case 'month': echo date('F Y',$data->ts); break;
-			case 'year': echo date('Y',$data->ts); break;
-			default: echo $data->ts; break;
-		}
-	}
+	static function orders ($data) { return intval($data->orders); }
 
-	function numorders ($data) { echo $data->orders; }
+	static function subtotal ($data) { return money($data->subtotal); }
 
-	function subtotal ($data) { echo money($data->subtotal); }
+	static function taxable ($data) { return money($data->taxable); }
 
-	function taxable ($data) { echo money($data->taxable); }
+	static function tax ($data) { return money($data->tax); }
 
-	function tax ($data) { echo money($data->tax); }
+	static function rate ($data) { return percentage($data->rate*100); }
 
-	function rate ($data) { echo percentage($data->rate*100); }
 
 
 }
