@@ -39,25 +39,7 @@ class Report extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		$this->reports = array(
-			'sales' => array( 'class' => 'SalesReport', 'name' => __('Sales Report','Shopp'), 'label' => __('Sales','Shopp') ),
-			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
-			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
-			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
-		);
-
-		$this->defaults = array(
-			'start' => date('n/j/Y',mktime(0,0,0,11,1)),
-			'end' => date('n/j/Y',mktime(23,59,59)),
-			'range' => '',
-			'scale' => 'day',
-			'op' => 'day',
-			'report' => 'overall',
-			'per_page' => 100
-		);
-
-		add_action('load-'.$this->screen,array($this,'request'));
-		add_action('load-'.$this->screen,array($this,'loader'));
+		add_action('load-'.$this->screen,array($this,'load'));
 
 		shopp_enqueue_script('calendar');
 		shopp_enqueue_script('flot');
@@ -67,12 +49,31 @@ class Report extends AdminController {
 		do_action('shopp_order_admin_scripts');
 	}
 
+	static function reports () {
+		return apply_filters('shopp_reports',array(
+			'sales' => array( 'class' => 'SalesReport', 'name' => __('Sales Report','Shopp'), 'label' => __('Sales','Shopp') ),
+			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
+			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
+			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
+		));
+	}
+
 	function request () {
+		$defaults = array(
+			'start' => date('n/j/Y',mktime(0,0,0,11,1)),
+			'end' => date('n/j/Y',mktime(23,59,59)),
+			'range' => '',
+			'scale' => 'day',
+			'op' => 'day',
+			'report' => 'sales',
+			'paged' => 1,
+			'per_page' => 100,
+			'num_pages' => 1
+		);
 
 		$today = mktime(23,59,59);
 
-		$this->options = array_merge($this->defaults,$_GET);
-		$options =& $this->options;
+		$options = wp_parse_args($_GET,$defaults);
 
 		if (!empty($options['start'])) {
 			$startdate = $options['start'];
@@ -90,18 +91,12 @@ class Report extends AdminController {
 
 		$daterange = $options['ends'] - $options['starts'];
 
-		$options['op'] = $options['scale'];
-
-		if ($daterange <= 86400) {
-			$options['scale'] = 'day';
-			$options['op'] = 'hour';
-		}
-
-		$options['op'] = strtolower($options['op']);
+		if ( $daterange <= 86400 ) $_GET['scale'] = $options['scale'] = 'hour';
 
 		$options['daterange'] = $daterange;
 		$options['screen'] = $this->screen;
 
+		return $options;
 	}
 
 	/**
@@ -112,25 +107,26 @@ class Report extends AdminController {
 	 *
 	 * @return void
 	 **/
-	function loader () {
+	function load () {
 		if ( ! current_user_can('shopp_financials') ) return;
-		extract($options);
+		$this->options = self::request();
+		extract($this->options,EXTR_SKIP);
 
-		$reports = $this->reports;
+		$reports = self::reports();
 
 		// Load the report
 		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
 		if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
-
 		require(SHOPP_ADMIN_PATH."/reports/$report.php");
+
 		$ReportClass = $reports[$report]['class'];
 		$Report = new $ReportClass($this->options);
+		$this->Report = $Report;
 		$Report->query();
 		$Report->setup();
-		$this->Report = $Report;
 
-		$num_pages = ceil($Report->total / $per_page );
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Report->total, $num_pages, $per_page );
+		// Reset pagination
+		$_GET['paged'] = $this->options['paged'] = min($paged,$Report->pagination());
 
 	}
 
@@ -144,39 +140,10 @@ class Report extends AdminController {
 		if ( ! current_user_can('shopp_financials') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		global $Shopp;
+		extract($this->options, EXTR_SKIP);
 
-		$defaults = array(
-			'page' => false,
-			'update' => false,
-			'newstatus' => false,
-			'paged' => 1,
-			'per_page' => 20,
-			'status' => false,
-			's' => '',
-			'range' => '',
-			'startdate' => '',
-			'enddate' => '',
-			'report' => 'sales',
-			'scale' => 'day'
-		);
-
-		$args = array_merge($defaults,$_GET);
-		extract($args, EXTR_SKIP);
-
-		$s = stripslashes($s);
-
-		$statusLabels = shopp_setting('order_status');
-		if (empty($statusLabels)) $statusLabels = array('');
-		$txnstatus_labels = Lookup::txnstatus_labels();
-
-		$Purchase = new Purchase();
-
-		$Orders = $this->orders;
-		$ordercount = $this->ordercount;
-		$num_pages = ceil($ordercount->total / $per_page);
-
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $ordercount->total, $num_pages, $per_page );
+		$Report = $this->Report;
+		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Report->total, $Report->pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
@@ -192,7 +159,6 @@ class Report extends AdminController {
 			'lastmonth' => __('Last Month','Shopp'),
 			'lastquarter' => __('Last Quarter','Shopp'),
 			'lastyear' => __('Last Year','Shopp'),
-			'lastexport' => __('Last Export','Shopp'),
 			'custom' => __('Custom Dates','Shopp')
 			);
 
@@ -200,18 +166,18 @@ class Report extends AdminController {
 			'tab' => __('Tab-separated.txt','Shopp'),
 			'csv' => __('Comma-separated.csv','Shopp'),
 			'xls' => __('Microsoft&reg; Excel.xls','Shopp'),
-			'iif' => __('Intuit&reg; QuickBooks.iif','Shopp')
 			);
 
-		$formatPref = shopp_setting('purchaselog_format');
-		if (!$formatPref) $formatPref = 'tab';
+		$format = shopp_setting('report_format');
+		if ( ! $format ) $format = 'tab';
 
 		$columns = array_merge(Purchase::exportcolumns(),Purchased::exportcolumns());
 		$selected = shopp_setting('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
-		$Report = $this->Report;
-		$report_title = isset($this->reports[ $report ])? $this->reports[ $report ]['name'] : __('Report','Shopp');
+		$reports = self::reports();
+
+		$report_title = isset($reports[ $report ])? $reports[ $report ]['name'] : __('Report','Shopp');
 		include(SHOPP_ADMIN_PATH."/reports/reports.php");
 	}
 
@@ -223,23 +189,30 @@ interface ShoppReport {
 	public function table();
 }
 
-class ShoppReportFramework {
+abstract class ShoppReportFramework {
 	var $screen = false;		// The current WP screen
 	var $Chart = false;			// The report chart (if any)
 
 	var $options = array();		// Options for the report
 	var $data = array();		// The raw data from the query
 	var $report = array();		// The processed report data
+	var $total = 0;				// Total number of records in the report
+	var $pages = 1;				// Number of pages for the report
 	var $daterange = false;
 
 	function __construct ($request = array()) {
 		$this->options = $request;
-
 		$this->screen = $this->options['screen'];
 
 		add_action('shopp_report_filter_controls',array($this,'filters'));
-		add_action("manage_{$this->screen}_columns",array($this,'columns'));
+		add_action("manage_{$this->screen}_columns",array($this,'screencolumns'));
 		add_action("manage_{$this->screen}_sortable_columns",array($this,'sortcolumns'));
+	}
+
+	function pagination () {
+		extract($this->options,EXTR_SKIP);
+		$this->pages = ceil($this->total / $per_page);
+		$_GET['paged'] = $this->options['paged'] = min($paged,$this->pages);
 	}
 
 	function timecolumn ($column) {
@@ -255,12 +228,12 @@ class ShoppReportFramework {
 		return $_;
 	}
 
-	function weekrange ($ts) {
+	function weekrange ( $ts, $formats=array('F j','F j Y') ) {
 		$weekday = date('w',$ts);
 		$startweek = $ts-($weekday*86400);
 		$endweek = $startweek+(6*86400);
 
-		return sprintf('%s - %s',date('F j',$startweek),date('F j Y',$endweek));
+		return sprintf('%s - %s',date($formats[0],$startweek),date($formats[1],$endweek));
 	}
 
 	function range ($starts,$ends,$scale='day') {
@@ -292,12 +265,48 @@ class ShoppReportFramework {
 		}
 	}
 
-	function columns () { ShoppUI::register_column_headers($this->screen,array()); }
+	function columns () { return array(); }
+
+	function screencolumns () { ShoppUI::register_column_headers($this->screen,$this->columns()); }
 
 	function sortcolumns () { return array(); }
 
+	function value ($value) {
+		echo $value;
+	}
+
+	static function period ($data,$column,$title,$options) {
+		switch (strtolower($options['scale'])) {
+			case 'hour': echo date('ga',$data->period); break;
+			case 'day': echo date('l, F j, Y',$data->period); break;
+			case 'week': echo $this->weekrange($data->period); break;
+			case 'month': echo date('F Y',$data->period); break;
+			case 'year': echo date('Y',$data->period); break;
+			default: echo $data->period; break;
+		}
+	}
+
+	static function export_period ($data,$column,$title,$options) {
+		$date_format = get_option('date_format');
+		$time_format = get_option('time_format');
+		$datetime = "$date_format $time_format";
+
+		switch (strtolower($options['scale'])) {
+			case 'day': echo date($date_format,$data->period); break;
+			case 'week': echo $this->weekrange($data->period,array($format,$format)); break;
+			default: echo date($datetime,$data->period); break;
+		}
+	}
+
 	function table () {
+		extract($this->options,EXTR_SKIP);
 		if ( $this->Chart ) $this->Chart->render();
+
+		// Get only the records for this page
+		$beginning = (int)($paged-1)*$per_page;
+		$report = array_slice($this->report,$beginning,$beginning+$per_page,true);
+		unset($this->report); // Free memory
+
 	?>
 			<table class="widefat" cellspacing="0">
 				<thead>
@@ -306,16 +315,16 @@ class ShoppReportFramework {
 				<tfoot>
 				<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
 				</tfoot>
-			<?php if ( false !== $this->report && count($this->report) > 0 ): ?>
+			<?php if ( false !== $report && count($report) > 0 ): ?>
 				<tbody id="report" class="list stats">
 				<?php
 				$columns = get_column_headers($this->screen);
 				$hidden = get_hidden_columns($this->screen);
 
 				$even = false;
-				$count = 0;
-				foreach ($this->report as $i => $data):
-					if ($count++ > $this->options['per_page']) break;
+				$records = 0;
+				while (list($id,$data) = each($report)):
+					if ($records++ > $per_page) break;
 				?>
 					<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 				<?php
@@ -324,8 +333,8 @@ class ShoppReportFramework {
 						$classes = array($column,"column-$column");
 						if ( in_array($column,$hidden) ) $classes[] = 'hidden';
 
-						if ( method_exists($this,$column)): ?>
-							<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php call_user_func(array($this,$column),$data,$column,$column_title); ?></td>
+						if ( method_exists(get_class($this),$column)): ?>
+							<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo call_user_func(array(get_class($this),$column),$data,$column,$column_title,$this->options); ?></td>
 						<?php else: ?>
 							<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 							<?php do_action( 'shopp_manage_report_custom_column', $column, $column_title, $data );	?>
@@ -334,7 +343,7 @@ class ShoppReportFramework {
 				} /* $columns */
 				?>
 				</tr>
-				<?php endforeach; /* $Products */ ?>
+				<?php endwhile; /* records */ ?>
 				</tbody>
 			<?php else: ?>
 				<tbody><tr><td colspan="<?php echo count(get_column_headers($this->screen)); ?>"><?php _e('No report data available.','Shopp'); ?></td></tr></tbody>
@@ -493,7 +502,7 @@ class ShoppReportChart {
 		$this->data[$id] = array(
 			'label' => $label,
 			'data' => array(),
-			'grow' => array(
+			'grow' => array(				// Enables grow animation
 				'active' => true,
 				'stepMode' => 'linear',
 				'stepDelay' => false,
@@ -526,3 +535,244 @@ class ShoppReportChart {
 	}
 
 } // End class ShoppReportChart
+
+abstract class ShoppReportExportFramework {
+
+	var $ReportClass = '';
+	var $columns = array();
+	var $headings = true;
+	var $data = false;
+
+	var $recordstart = true;
+	var $content_type = "text/plain";
+	var $extension = "txt";
+	var $set = 0;
+	var $limit = 1024;
+
+	function __construct ( $Report ) {
+
+		$this->ReportClass = get_class($Report);
+		$this->options = $Report->options;
+
+		$Report->query();
+		$Report->setup();
+
+		$this->columns = $Report->columns();
+		$this->data = $Report->report;
+		$this->records = $Report->total;
+
+		$report = $this->options['report'];
+
+		$settings = shopp_setting("{$report}_report_export");
+
+		$this->headings = str_true($settings['headers']);
+		$this->selected = $settings['columns'];
+
+	}
+
+	// function query () {	}
+
+	/**
+	 * Generates the output for the exported report
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	function output () {
+		if ( empty($this->data) ) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
+
+		$sitename = get_bloginfo('name');
+		$report = $this->options['report'];
+		$reports = Report::reports();
+		$name = $reports[$report]['name'];
+
+		header("Content-type: $this->content_type; charset=UTF-8");
+		header("Content-Disposition: attachment; filename=\"$sitename $name.$this->extension\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+
+		$this->begin();
+		if ($this->headings) $this->heading();
+		$this->records();
+		$this->end();
+	}
+
+	/**
+	 * Outputs the beginning of file marker (BOF)
+	 *
+	 * Can be used to include a byte order marker (BOM) that sets the endianess of the data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function begin () { }
+
+	/**
+	 * Outputs the column headers when enabled
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function heading () {
+		foreach ($this->selected as $name)
+			$this->export($this->columns[$name]);
+		$this->record();
+	}
+
+	/**
+	 * Outputs each of the record parts
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function records () {
+		$options = array('scale' => $this->scale);
+		// @todo Add batch export to reduce memory footprint and add scalability to report exports
+		// while (!empty($this->data)) {
+		foreach ($this->data as $key => $record) {
+			foreach ($this->selected as $column) {
+				$title = $this->columns[$column];
+				$columns = get_object_vars($record);
+				$value = isset($columns[ $column ]) ? ShoppReportExportFramework::parse( $columns[ $column ] ) : false;
+				if ( method_exists($this->ReportClass,"export_$column") )
+					$value = call_user_func(array($this->ReportClass,"export_$column"),$record,$column,$title,$this->options);
+				elseif ( method_exists($this->ReportClass,$column) )
+					$value = call_user_func(array($this->ReportClass,$column),$record,$column,$title,$this->options);
+				$this->export($value);
+			}
+			$this->record();
+		}
+		// 	$this->set++;
+		// 	$this->query();
+		// }
+	}
+
+	/**
+	 * Parses column data and normalizes non-standard data
+	 *
+	 * Non-standard data refers to binary or serialized object strings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param mixed $column A record value of any type
+	 * @return string The normalized string column data
+	 **/
+	static function parse ( $column ) {
+		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
+			$list = unserialize($column);
+			$column = "";
+			foreach ($list as $name => $value)
+				$column .= (empty($column)?"":";")."$name:$value";
+		}
+		return $column;
+	}
+
+	/**
+	 * Outputs the end of file marker (EOF)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function end () { }
+
+	/**
+	 * Outputs each individual value in a record
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function export ($value) {
+		echo ($this->recordstart?"":"\t").$value;
+		$this->recordstart = false;
+	}
+
+	/**
+	 * Outputs the end of record marker (EOR)
+	 *
+	 * @author Jonathan Davis
+	 * @since
+	 *
+	 * @return void Description...
+	 **/
+	function record () {
+		echo "\n";
+		$this->recordstart = true;
+	}
+
+} // End class ShoppReportExportFramework
+
+class ShoppReportTabExport extends ShoppReportExportFramework {
+
+	function __construct( $Report ) {
+		parent::__construct( $Report );
+		$this->output();
+	}
+
+}
+
+class ShoppReportCSVExport extends ShoppReportExportFramework {
+	function __construct ($Report) {
+		parent::__construct($Report);
+		$this->content_type = "text/csv";
+		$this->extension = "csv";
+		$this->output();
+	}
+
+	function export ($value) {
+		$value = str_replace('"','""',$value);
+		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
+		echo ($this->recordstart?"":",").$value;
+		$this->recordstart = false;
+	}
+
+}
+
+class ShoppReportXLSExport extends ShoppReportExportFramework {
+	function __construct ($Report) {
+		parent::__construct($Report);
+		$this->content_type = "application/vnd.ms-excel";
+		$this->extension = "xls";
+		$this->c = 0; $this->r = 0;
+		$this->output();
+	}
+
+	function begin () {
+		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
+	}
+
+	function end () {
+		echo pack("ss", 0x0A, 0x00);
+	}
+
+	function export ($value) {
+		if (preg_match('/^[\d\.]+$/',$value)) {
+		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
+			echo pack("d", $value);
+		} else {
+			$l = strlen($value);
+			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
+			echo $value;
+		}
+		$this->c++;
+	}
+
+	function record () {
+		$this->c = 0;
+		$this->r++;
+	}
+}
+

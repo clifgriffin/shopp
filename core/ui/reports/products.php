@@ -7,7 +7,6 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		extract($this->options, EXTR_SKIP);
 		$data =& $this->data;
 
-
 		$where = array();
 
 		$tzoffset = date('Z')/3600;
@@ -33,7 +32,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 		$price_table = DatabaseObject::tablename('price');
 		$query = "SELECT CONCAT($id) AS id,
-							UNIX_TIMESTAMP(o.created) as ts,
+							UNIX_TIMESTAMP(o.created) as period,
 							CONCAT(p.post_title,' ',pr.label) AS product,
 							COUNT(DISTINCT o.id) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
@@ -92,51 +91,28 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 	}
 
 	function columns () {
-		ShoppUI::register_column_headers($this->screen, array(
+		return array(
 			'product'=>__('Product','Shopp'),
-			'numorders'=>__('# of Orders','Shopp'),
-			'sold'=>__('Items Ordered','Shopp'),
+			'orders'=>__('Orders','Shopp'),
+			'sold'=>__('Items','Shopp'),
 			'grossed'=>__('Grossed','Shopp')
-		) );
+		);
 	}
 
 	function sortcolumns () {
 		return array(
-			'numorders'=>'orders',
+			'orders'=>'orders',
 			'sold'=>'sold',
 			'grossed'=>'grossed'
 		);
 	}
 
-	function period ($data,$column,$coltitle) {
-		switch (strtolower($this->options['op'])) {
-			case 'hour': echo date('ga',$data->ts); break;
-			case 'day': echo date('l, F j, Y',$data->ts); break;
-			case 'week': echo $this->weekrange($data->ts); break;
-			case 'month': echo date('F Y',$data->ts); break;
-			case 'year': echo date('Y',$data->ts); break;
-			default: echo $data->ts; break;
-		}
-	}
+	static function product ($data) { return $data->product; }
 
-	function product ($data) { echo $data->product; }
+	static function orders ($data) { return intval($data->orders); }
 
-	function numorders ($data) { echo $data->orders; }
+	static function sold ($data) { return intval($data->sold); }
 
-	function sold ($data) { echo $data->sold; }
-
-	function grossed ($data) { echo money($data->grossed); }
-
-	function tax ($data) { echo money($data->tax); }
-
-	function shipping ($data) { echo money($data->shipping); }
-
-	function discounts ($data) { echo money($data->discounts); }
-
-	function total ($data) { echo money($data->total); }
-
-	function orderavg ($data) { echo money($data->avgorder); }
-
-	function itemavg ($data) { echo money($data->avgitem); }
+	static function grossed ($data) { return money($data->grossed); }
 
 }

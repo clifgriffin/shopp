@@ -34,8 +34,9 @@ class Resources {
 		if (defined('WP_ADMIN') && is_user_logged_in()) {
 			add_action('shopp_resource_help',array(&$this,'help'));
 			if (current_user_can('shopp_financials')) {
-				add_action('shopp_resource_export_purchases',array(&$this,'export_purchases'));
-				add_action('shopp_resource_export_customers',array(&$this,'export_customers'));
+				add_action('shopp_resource_export_reports',array($this,'export_reports'));
+				add_action('shopp_resource_export_purchases',array($this,'export_purchases'));
+				add_action('shopp_resource_export_customers',array($this,'export_customers'));
 			}
 		}
 
@@ -73,6 +74,45 @@ class Resources {
 			case "xls": new PurchasesXLSExport(); break;
 			case "iif": new PurchasesIIFExport(); break;
 			default: new PurchasesTabExport();
+		}
+		exit();
+
+	}
+
+	/**
+	 * Delivers order export files to the browser
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function export_reports () {
+		if (!current_user_can('shopp_financials') || !current_user_can('shopp_export_orders')) exit();
+
+		require(SHOPP_FLOW_PATH.'/Report.php');
+		$reports = Report::reports();
+
+		// Load the report
+		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
+		if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
+
+		require(SHOPP_ADMIN_PATH."/reports/$report.php");
+		$ReportClass = $reports[$report]['class'];
+
+		if ( ! isset($_POST['settings']["{$report}_report_export"]) ) {
+			$_POST['settings']["{$report}_report_export"]['columns'] = array_keys($Report->columns);
+			$_POST['settings']["{$report}_report_export"]['headers'] = "on";
+		}
+		shopp_set_formsettings(); // Save workflow setting
+
+		$format = shopp_setting('report_export_format');
+		$Report = new $ReportClass(Report::request($_GET));
+
+		switch ($format) {
+			case "csv": new ShoppReportCSVExport($Report); break;
+			case "xls": new ShoppReportXLSExport($Report); break;
+			default: new ShoppReportTabExport($Report);
 		}
 		exit();
 

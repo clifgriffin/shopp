@@ -2,8 +2,22 @@
 
 class SalesReport extends ShoppReportFramework implements ShoppReport {
 
+	function columns () {
+		return array(
+			'period'=>__('Period','Shopp'),
+			'orders'=>__('Orders','Shopp'),
+			'items'=>__('Items','Shopp'),
+			'subtotal'=>__('Subtotal','Shopp'),
+			'tax'=>__('Tax','Shopp'),
+			'shipping'=>__('Shipping','Shopp'),
+			'discounts'=>__('Discounts','Shopp'),
+			'total'=>__('Total','Shopp'),
+			'orderavg'=>__('Average Order','Shopp'),
+			'itemavg'=>__('Average Items','Shopp')
+		);
+	}
+
 	function query () {
-		global $bbdb;
 		extract($this->options, EXTR_SKIP);
 		$data =& $this->data;
 
@@ -17,7 +31,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		$orders_table = DatabaseObject::tablename('purchase');
 		$purchased_table = DatabaseObject::tablename('purchased');
 		$query = "SELECT CONCAT($id) AS id,
-							UNIX_TIMESTAMP(o.created) as ts,
+							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal)*(COUNT(DISTINCT o.id)/COUNT(*)) as subtotal,
@@ -25,15 +39,13 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 							SUM(o.freight)*(COUNT(DISTINCT o.id)/COUNT(*)) as shipping,
 							SUM(o.discount)*(COUNT(DISTINCT o.id)/COUNT(*)) as discounts,
 							SUM(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) as total,
-							AVG(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) AS avgorder,
-							AVG(p.unitprice)*(COUNT(DISTINCT o.id)/COUNT(*)) AS avgitem
+							AVG(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) AS orderavg,
+							AVG(p.unitprice)*(COUNT(DISTINCT o.id)/COUNT(*)) AS itemavg
 					FROM $orders_table AS o
 					LEFT OUTER JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
-
 		$data = DB::query($query,'array','index','id');
-
 	}
 
 	function setup () {
@@ -57,7 +69,6 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 		foreach ($stats as $i => &$s) {
 			$s = new StdClass();
-			$s->ts = $s->orders = $s->items = 0;
 
 			$index = $i;
 			switch (strtolower($scale)) {
@@ -85,55 +96,30 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 				foreach ( $props as $property => $value)
 					$s->$property = $value;
 			}
-			$s->ts = $ts;
 
-			$Chart->data(0,$s->ts,(int)$s->orders);
+			$s->period = $ts;
+
+			$Chart->data(0,$s->period,(int)$s->orders);
 		}
 
 	}
 
-	function columns () {
-		ShoppUI::register_column_headers($this->screen,array(
-			'period'=>__('Period','Shopp'),
-			'numorders'=>__('# of Orders','Shopp'),
-			'items'=>__('Items Ordered','Shopp'),
-			'subtotal'=>__('Subtotal','Shopp'),
-			'tax'=>__('Tax','Shopp'),
-			'shipping'=>__('Shipping','Shopp'),
-			'discounts'=>__('Discounts','Shopp'),
-			'total'=>__('Total','Shopp'),
-			'orderavg'=>__('Average Order','Shopp'),
-			'itemavg'=>__('Average Items','Shopp')
-		));
-	}
+	static function orders ($data) { return intval($data->orders); }
 
-	function period ($data,$column,$coltitle) {
-		switch (strtolower($this->options['op'])) {
-			case 'hour': echo date('ga',$data->ts); break;
-			case 'day': echo date('l, F j, Y',$data->ts); break;
-			case 'week': echo $this->weekrange($data->ts); break;
-			case 'month': echo date('F Y',$data->ts); break;
-			case 'year': echo date('Y',$data->ts); break;
-			default: echo $data->ts; break;
-		}
-	}
+	static function items ($data) { return intval($data->items); }
 
-	function numorders ($data) { echo $data->orders; }
+	static function subtotal ($data) { return money($data->subtotal); }
 
-	function items ($data) { echo $data->items; }
+	static function tax ($data) { return money($data->tax); }
 
-	function subtotal ($data) { echo money($data->subtotal); }
+	static function shipping ($data) { return money($data->shipping); }
 
-	function tax ($data) { echo money($data->tax); }
+	static function discounts ($data) { return money($data->discounts); }
 
-	function shipping ($data) { echo money($data->shipping); }
+	static function total ($data) { return money($data->total); }
 
-	function discounts ($data) { echo money($data->discounts); }
+	static function orderavg ($data) { return money($data->orderavg); }
 
-	function total ($data) { echo money($data->total); }
-
-	function orderavg ($data) { echo money($data->avgorder); }
-
-	function itemavg ($data) { echo money($data->avgitem); }
+	static function itemavg ($data) { return money($data->itemavg); }
 
 }
