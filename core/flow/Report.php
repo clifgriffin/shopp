@@ -217,7 +217,7 @@ abstract class ShoppReportFramework {
 	function timecolumn ($column) {
 		$tzoffset = date('Z')/3600;
 		$column = "CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00')";
-		switch (strtolower($this->options['op'])) {
+		switch (strtolower($this->options['scale'])) {
 			case 'hour':	$_ = "HOUR($column)"; break;
 			case 'week':	$_ = "WEEK($column,3),' ',YEAR($column)"; break;
 			case 'month':	$_ = "MONTH($column),' ',YEAR($column)"; break;
@@ -225,14 +225,6 @@ abstract class ShoppReportFramework {
 			default:		$_ = "DAY($column),' ',MONTH($column),' ',YEAR($column)";
 		}
 		return $_;
-	}
-
-	function weekrange ( $ts, $formats=array('F j','F j Y') ) {
-		$weekday = date('w',$ts);
-		$startweek = $ts-($weekday*86400);
-		$endweek = $startweek+(6*86400);
-
-		return sprintf('%s - %s',date($formats[0],$startweek),date($formats[1],$endweek));
 	}
 
 	function range ($starts,$ends,$scale='day') {
@@ -278,12 +270,21 @@ abstract class ShoppReportFramework {
 		switch (strtolower($options['scale'])) {
 			case 'hour': echo date('ga',$data->period); break;
 			case 'day': echo date('l, F j, Y',$data->period); break;
-			case 'week': echo $this->weekrange($data->period); break;
+			case 'week': echo ShoppReportFramework::weekrange($data->period); break;
 			case 'month': echo date('F Y',$data->period); break;
 			case 'year': echo date('Y',$data->period); break;
 			default: echo $data->period; break;
 		}
 	}
+
+	static function weekrange ( $ts, $formats=array('F j','F j Y') ) {
+		$weekday = date('w',$ts);
+		$startweek = $ts-($weekday*86400);
+		$endweek = $startweek+(6*86400);
+
+		return sprintf('%s - %s',date($formats[0],$startweek),date($formats[1],$endweek));
+	}
+
 
 	static function export_period ($data,$column,$title,$options) {
 		$date_format = get_option('date_format');
