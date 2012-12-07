@@ -42,8 +42,6 @@ class Report extends AdminController {
 		add_action('load-'.$this->screen,array($this,'load'));
 
 		shopp_enqueue_script('calendar');
-		shopp_enqueue_script('flot');
-		shopp_enqueue_script('flot-grow');
 		shopp_enqueue_script('reports');
 
 		do_action('shopp_order_admin_scripts');
@@ -55,6 +53,7 @@ class Report extends AdminController {
 			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
 			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
 			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
+			'locations' => array( 'class' => 'LocationsReport', 'name' => __('Locations Report','Shopp'), 'label' => __('Locations','Shopp') ),
 		));
 	}
 
@@ -458,6 +457,11 @@ class ShoppReportChart {
 		'colors' => array('#618C03','#1C63A8','#1F756B','#896204','#cb4b16','#A90007','#A9195F','#4B4B9A'),
 	);
 
+	function __construct () {
+		shopp_enqueue_script('flot');
+		shopp_enqueue_script('flot-grow');
+	}
+
 	function settings ($options) {
 		foreach ($options as $setting => $settings)
 			$this->options[$setting] = wp_parse_args($settings,$this->options[$setting]);
@@ -529,7 +533,7 @@ class ShoppReportChart {
 			co = <?php echo json_encode($this->options); ?>;
 		</script>
 
-		<div id="chart"></div>
+		<div id="chart" class="flot"></div>
 		<div id="chart-legend"></div>
 <?php
 	}

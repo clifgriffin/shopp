@@ -166,7 +166,11 @@ div.comment-item:hover .row-actions { visibility:visible; }
 /** Reports **/
 #chart { width: 100%; height: 200px; margin: 2em 0; }
 #chart .tickLabel { font-size: 1.3em; }
-
+#map { width: 100%; height: 500px; margin: 2em 0; }
+.jvectormap-label { position:absolute;display:none;border:1px solid #dfdfdf;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;background:#fff;color:white;color:#444;font-family:Arial,Helvetica,sans-serif;font-size:1em;padding:3px; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777')"; -moz-box-shadow: 1px 2px 3px #777; -webkit-box-shadow: 1px 2px 3px #777; box-shadow: 1px 2px 3px #777;  }
+.jvectormap-zoomin,.jvectormap-zoomout { position:absolute;left:10px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;background:#fff;padding:3px;color:white;width:10px;height:10px;cursor:pointer;line-height:10px;text-align:center; border:1px solid #dfdfdf;color:#444; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777')"; -moz-box-shadow: 1px 2px 3px #777; -webkit-box-shadow: 1px 2px 3px #777; box-shadow: 1px 2px 3px #777; }
+.jvectormap-zoomin { top:10px; }
+.jvectormap-zoomout { top:30px; }
 
 /** Membership Editor **/
 #membership .panel { margin-bottom: 20px; }
@@ -472,7 +476,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .cart .buttons td { text-align:right; }
 #order .cart .remove { font-size:12px; }
 #order .cart tr.totals th,.cart tr.totals td { padding:7px 7px 5px; }
-#order .totals th { text-align:right; }
+#order .totals .label { text-align:right; font-weight: bold; }
 #order .shipping .method { color: #777; }
 
 #order .button-secondary.cancel:hover,
