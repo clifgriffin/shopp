@@ -24,7 +24,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 							AVG(p.unittax/p.unitprice) AS rate,
 							SUM(o.tax) as tax
 					FROM $purchased_table AS p
-					LEFT JOIN $orders_table AS o ON p.purchase=o.id
+					JOIN $orders_table AS o ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
 
@@ -98,6 +98,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 				foreach ( $props as $property => $value)
 					$s->$property = $value;
 			}
+
 			$s->period = $ts;
 
 			$Chart->data(0,$s->period,(int)$s->taxable);
