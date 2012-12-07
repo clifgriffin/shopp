@@ -19,7 +19,6 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 	function query () {
 		extract($this->options, EXTR_SKIP);
-		$data =& $this->data;
 
 		$where = array();
 
@@ -45,7 +44,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 					LEFT OUTER JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
-		$data = DB::query($query,'array','index','id');
+		$this->data = DB::query($query,'array','index','id');
 	}
 
 	function setup () {
@@ -93,12 +92,11 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 			if (isset($data[$index])) {
 				$props = get_object_vars($data[$index]);
-				foreach ( $props as $property => $value)
+				foreach ( $props as $property => $value) {
 					$s->$property = $value;
+				}
 			}
-
 			$s->period = $ts;
-
 			$Chart->data(0,$s->period,(int)$s->orders);
 		}
 
