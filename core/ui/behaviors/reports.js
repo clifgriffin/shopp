@@ -1,7 +1,6 @@
 jQuery(document).ready( function() {
 	var $=jqnc(),plot,previousPoint = null;
 
-
 	function formatDate (e) {
 		if (this.value == "") match = false;
 		if (this.value.match(/^(\d{6,8})/))
@@ -33,11 +32,6 @@ jQuery(document).ready( function() {
 		});
 
 	range.change(function () {
-		// if (this.selectedIndex == 0) {
-		// 	start.val(''); end.val('');
-		// 	$('#dates').hide();
-		// 	return;
-		// } else $('#dates').show();
 		var today = new Date(),
 			startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
 			enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
@@ -119,13 +113,33 @@ jQuery(document).ready( function() {
         return markings;
     }
 
-	co.grid.markings = weekendAreas;
-
 	function plotChart (series) {
+		if ( !co ) return;
+		co.grid.markings = weekendAreas;
 		if ('asMoney' == co.yaxis.tickFormatter) co.yaxis.tickFormatter = asMoney;
 		if ('asMoney' == co.xaxis.tickFormatter) co.xaxis.tickFormatter = asMoney;
 		if ( series[0] && series[0]['data'].length > 0)
 			$.plot($('#chart'), series, co);
+	}
+
+	function mapChart (data) {
+		$('#map').vectorMap({
+		    map: 'world_mill_en',
+		    series: {
+		      regions: [{
+		        values: data,
+		        scale: ['#E9FFBA', '#618C03'],
+		        normalizeFunction: 'polynomial'
+		      }]
+		    },
+		    onRegionLabelShow: function(e, el, code) {
+		      el.html('<strong>'+asMoney(data[code])+'</strong> '+el.html());
+		    },
+			backgroundColor: 'transparent',
+			regionStyle: {
+				initial: { fill: '#d2d2d2' }
+			}
+		});
 	}
 
     function showTooltip(x, y, contents) {
@@ -165,6 +179,15 @@ jQuery(document).ready( function() {
         }
     });
 
-	plotChart(d,co);
+	if ( $('#chart').length > 0 ) plotChart(d); // Flot
+	if ( $('#map').length > 0 ) mapChart(d);	// Map
+
+	$('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
+	$('#selectall_columns').change(function () {
+		if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
+		else $('#export-columns input').not(this).attr('checked',false);
+	});
+	$('input.current-page').unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });
+
 
 });

@@ -286,7 +286,13 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('flot-grow', '/ui/behaviors/flot/jquery.flot.grow.js', array('flot'), '20121130');
 	$scripts->add_data('flot-grow', 'group', 1);
 
-	$scripts->add('reports', '/ui/behaviors/reports.js', array('flot'), '201211301');
+	$scripts->add('jvectormap', '/ui/behaviors/jvectormap.js', array('jquery'), '20121212');
+	$scripts->add_data('jvectormap', 'group', 1);
+
+	$scripts->add('worldmap', '/ui/behaviors/worldmap.js', array('jvectormap'), '20121212');
+	$scripts->add_data('worldmap', 'group', 1);
+
+	$scripts->add('reports', '/ui/behaviors/reports.js', array(), '20121212');
 	$scripts->add_data('reports', 'group', 1);
 
 }
