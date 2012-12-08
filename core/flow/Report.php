@@ -39,31 +39,45 @@ class Report extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		add_action('load-'.$this->screen,array($this,'load'));
-
 		shopp_enqueue_script('calendar');
 		shopp_enqueue_script('reports');
 
-		do_action('shopp_order_admin_scripts');
+		add_action('load-'.$this->screen,array($this,'loader'));
 	}
 
+	/**
+	 * Provides a list of available reports
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array List of reports
+	 **/
 	static function reports () {
 		return apply_filters('shopp_reports',array(
 			'sales' => array( 'class' => 'SalesReport', 'name' => __('Sales Report','Shopp'), 'label' => __('Sales','Shopp') ),
 			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
 			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
+			'discounts' => array( 'class' => 'DiscountsReport', 'name' => __('Discounts Report','Shopp'), 'label' => __('Discounts','Shopp') ),
 			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
 			'locations' => array( 'class' => 'LocationsReport', 'name' => __('Locations Report','Shopp'), 'label' => __('Locations','Shopp') ),
 		));
 	}
 
-	function request () {
+	/**
+	 * Parses the request for options
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array The defined request options
+	 **/
+	static function request () {
 		$defaults = array(
 			'start' => date('n/j/Y',mktime(0,0,0,11,1)),
 			'end' => date('n/j/Y',mktime(23,59,59)),
 			'range' => '',
 			'scale' => 'day',
-			'op' => 'day',
 			'report' => 'sales',
 			'paged' => 1,
 			'per_page' => 100,
@@ -93,47 +107,64 @@ class Report extends AdminController {
 		if ( $daterange <= 86400 ) $_GET['scale'] = $options['scale'] = 'hour';
 
 		$options['daterange'] = $daterange;
-		$options['screen'] = $this->screen;
+
+		$screen = get_current_screen();
+		$options['screen'] = $screen->id;
 
 		return $options;
 	}
 
 	/**
-	 * Handles orders list loading
+	 * Handles report loading
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.2.1
+	 * @since 1.3
 	 *
-	 * @return void
+	 * @return Report The loaded Report object
 	 **/
-	function load () {
-		if ( ! current_user_can('shopp_financials') ) return;
-		$this->options = self::request();
-		extract($this->options,EXTR_SKIP);
+	static function load () {
+		$options = self::request();
+		extract($options,EXTR_SKIP);
 
 		$reports = self::reports();
 
 		// Load the report
 		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
-		if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
-		require(SHOPP_ADMIN_PATH."/reports/$report.php");
+
+		if ( ! class_exists($reports[$report]['class']) ) { // Class is not loaded, scan built-in reports
+			if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
+			require(SHOPP_ADMIN_PATH."/reports/$report.php");
+		}
 
 		$ReportClass = $reports[$report]['class'];
-		$Report = new $ReportClass($this->options);
-		$this->Report = $Report;
-		$Report->query();
-		$Report->setup();
+		$Report = new $ReportClass($options);
+		$Report->load();
 
-		// Reset pagination
-		$_GET['paged'] = $this->options['paged'] = min($paged,$Report->pagination());
+		return $Report;
 
 	}
 
 	/**
-	 * admin
+	 * Loads the report for the report admin screen
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
 	 *
 	 * @return void
+	 **/
+	function loader () {
+		if ( ! current_user_can('shopp_financials') ) return;
+		$this->options = self::request();
+		$this->Report = self::load();
+	}
+
+	/**
+	 * Renders the admin screen
+	 *
 	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
 	 **/
 	function admin () {
 		if ( ! current_user_can('shopp_financials') )
@@ -182,19 +213,44 @@ class Report extends AdminController {
 
 } // end class Report
 
+
+/**
+ * Defines the required interfaces for a report class
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package reports
+ **/
 interface ShoppReport {
 	public function query();
 	public function setup();
 	public function table();
 }
 
+/**
+ * ShoppReportFramework
+ *
+ * Provides the base functionality needed to rapidly build reports
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package reports
+ **/
 abstract class ShoppReportFramework {
+
+	// Settings
+	var $periods = false;		// A time period series report
+
+
 	var $screen = false;		// The current WP screen
 	var $Chart = false;			// The report chart (if any)
 
+
 	var $options = array();		// Options for the report
-	var $data = array();		// The raw data from the query
-	var $report = array();		// The processed report data
+	var $data = array();		// The processed report data
+
+
+	var $range = false;			// Range of values in the report
 	var $total = 0;				// Total number of records in the report
 	var $pages = 1;				// Number of pages for the report
 	var $daterange = false;
@@ -208,12 +264,161 @@ abstract class ShoppReportFramework {
 		add_action("manage_{$this->screen}_sortable_columns",array($this,'sortcolumns'));
 	}
 
+	/**
+	 * Load the report data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function load () {
+		extract($this->options);
+
+		// Map out time period based reports with index matching keys and period values
+		if ($this->periods) $this->timereport($starts,$ends,$scale);
+
+		$this->setup();
+
+		$query = $this->query();
+		if ( empty($query) ) return;
+		$loaded = DB::query( $query, 'array', array($this,'process') );
+
+		if ( $this->periods ) {
+			if ( $this->Chart ) {
+				foreach ($this->data as $index => $record) {
+					foreach ($this->chartseries as $series => $column) {
+						$this->chartdata($series,$record->period,$record->$column);
+					}
+				}
+			}
+		} else {
+			$this->data = $loaded;
+			$this->total = count($loaded);
+		}
+
+	}
+
+	/**
+	 * Processes loaded records into report data, and if necessary sends it to a chart series
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $records A reference to the working result record set
+	 * @param object $record Loaded record from the query
+	 * @return void
+	 **/
+	function process (&$records,&$record,$Object=false,$index='id',$collate=false) {
+		$index = isset($record->$index) ? $record->$index : '!NO_INDEX!';
+
+		if ( $this->periods && isset($this->data[$index]) ) {
+			$record->period = $this->data[$index]->period;
+			$this->data[$index] = $record;
+			return;
+		}
+
+		if ($collate) {
+			if (!isset($records[$index])) $records[$index] = $record;
+			$records[$index][] = $record;
+			return;
+		}
+
+		$id = count($records);
+		$records[$index] = $record;
+
+		$this->chartseries(false,array('index' => $id,'record'=>$record));
+	}
+
+	/**
+	 * Calculates the number of pages needed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	function pagination () {
 		extract($this->options,EXTR_SKIP);
 		$this->pages = ceil($this->total / $per_page);
 		$_GET['paged'] = $this->options['paged'] = min($paged,$this->pages);
 	}
 
+	/**
+	 * Initializes a time period report
+	 *
+	 * This maps out a list of calendar dates with periodical timestamps
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $starts Starting timestamp
+	 * @param int $ends Ending timestamp
+	 * @param string $scale Scale of periods (hour, day, week, month, year)
+	 * @return void
+	 **/
+	function timereport ($starts,$ends,$scale) {
+		$this->total = $this->range($starts,$ends,$scale);
+		$i = 0;
+		while ($i < $this->total) {
+			$record = new StdClass();
+			list ($index,$record->period) = self::timeindex($i++,$starts,$scale);
+			$this->data[$index] = $record;
+		}
+	}
+
+	/**
+	 * Generates a timestamp with a date index value
+	 *
+	 * Timestamps are generated for each period based on the starting date and scale provided.
+	 * The date index value is generated to match the query datetime id columns generated
+	 * by the timecolumn() method below.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $i The period iteration
+	 * @param int $starts The starting timestamp
+	 * @param string $scale Scale of periods (hour, day, week, month, year)
+	 * @return array The date index and timestamp pair
+	 **/
+	static function timeindex ( $i, $starts, $scale ) {
+		$month = date('n',$starts); $day = date('j',$starts); $year = date('Y',$starts);
+		$index = $i;
+		switch (strtolower($scale)) {
+			case 'hour': $ts = mktime($i,0,0,$month,$day,$year); break;
+			case 'week':
+				$ts = mktime(0,0,0,$month,$day+($i*7),$year);
+				$index = sprintf('%s %s',(int)date('W',$ts),date('Y',$ts));
+				break;
+			case 'month':
+				$ts = mktime(0,0,0,$month+$i,1,$year);
+				$index = sprintf('%s %s',date('n',$ts),date('Y',$ts));
+				break;
+			case 'year':
+				$ts = mktime(0,0,0,1,1,$year+$i);
+				$index = sprintf('%s',date('Y',$ts));
+				break;
+			default:
+				$ts = mktime(0,0,0,$month,$day+$i,$year);
+				$index = sprintf('%s %s %s',date('j',$ts),date('n',$ts),date('Y',$ts));
+				break;
+		}
+
+		return array($index,$ts);
+	}
+
+	/**
+	 * Builds a date index SQL column
+	 *
+	 * This creates the SQL statement fragment for requesting a column that matches the
+	 * date indexes generated by the timeindex() method above.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string Date index column SQL statement
+	 **/
 	function timecolumn ($column) {
 		$tzoffset = date('Z')/3600;
 		$column = "CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00')";
@@ -227,6 +432,17 @@ abstract class ShoppReportFramework {
 		return $_;
 	}
 
+	/**
+	 * Determines the range of periods between two dates for a given scale
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $starts The starting timestamp
+	 * @param int $ends The ending timestamp
+	 * @param string $scale Scale of periods (hour, day, week, month, year)
+	 * @return int The number of periods
+	 **/
 	function range ($starts,$ends,$scale='day') {
 		$oneday = 86400;
 		$years = date('Y',$ends)-date('Y',$starts);
@@ -256,16 +472,38 @@ abstract class ShoppReportFramework {
 		}
 	}
 
-	function columns () { return array(); }
+	/**
+	 * Builds a readable week range string
+	 *
+	 * Example: December 1 - December 7 2008
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $ts A weekday timestamp
+	 * @param array $formats The starting and ending date() formats
+	 * @return string Formatted week range label
+	 **/
+	static function weekrange ( $ts, $formats=array('F j','F j Y') ) {
+		$weekday = date('w',$ts);
+		$startweek = $ts-($weekday*86400);
+		$endweek = $startweek+(6*86400);
 
-	function screencolumns () { ShoppUI::register_column_headers($this->screen,$this->columns()); }
-
-	function sortcolumns () { return array(); }
-
-	function value ($value) {
-		echo $value;
+		return sprintf('%s - %s',date($formats[0],$startweek),date($formats[1],$endweek));
 	}
 
+	/**
+	 * Standard renderer for period columns
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param object $data The source data record
+	 * @param string $column The column key name
+	 * @param string $title The column title label
+	 * @param array $options The options for this report
+	 * @return void
+	 **/
 	static function period ($data,$column,$title,$options) {
 		switch (strtolower($options['scale'])) {
 			case 'hour': echo date('ga',$data->period); break;
@@ -277,15 +515,18 @@ abstract class ShoppReportFramework {
 		}
 	}
 
-	static function weekrange ( $ts, $formats=array('F j','F j Y') ) {
-		$weekday = date('w',$ts);
-		$startweek = $ts-($weekday*86400);
-		$endweek = $startweek+(6*86400);
-
-		return sprintf('%s - %s',date($formats[0],$startweek),date($formats[1],$endweek));
-	}
-
-
+	/**
+	 * Standard export renderer for period columns
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param object $data The source data record
+	 * @param string $column The column key name
+	 * @param string $title The column title label
+	 * @param array $options The options for this report
+	 * @return void
+	 **/
 	static function export_period ($data,$column,$title,$options) {
 		$date_format = get_option('date_format');
 		$time_format = get_option('time_format');
@@ -293,19 +534,86 @@ abstract class ShoppReportFramework {
 
 		switch (strtolower($options['scale'])) {
 			case 'day': echo date($date_format,$data->period); break;
-			case 'week': echo $this->weekrange($data->period,array($format,$format)); break;
+			case 'week': echo ShoppReportFramework::weekrange($data->period,array($date_format,$date_format)); break;
 			default: echo date($datetime,$data->period); break;
 		}
 	}
 
+	/**
+	 * Returns a list of columns for this report
+	 *
+	 * This method is a placehoder. Columns should be specified in the concrete report subclass.
+	 *
+	 * The array should be defined as an associative array with column keys as the array key and
+	 * a translatable column title as the value:
+	 *
+	 * array('orders' => __('Orders','Shopp'));
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array The list of column keys and column title labels
+	 **/
+	function columns () { return array(); }
+
+	/**
+	 * Registers the report columns to the WP screen
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function screencolumns () { ShoppUI::register_column_headers($this->screen,$this->columns()); }
+
+	/**
+	 * Specifies columns that are sortable
+	 *
+	 * This method is a placehoder. Columns should be specified in the concrete report subclass.
+	 *
+	 * The array should be defined as an associative array with column keys as the array key
+	 * and the value:
+	 *
+	 * array('orders' => 'orders');
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array The list of column keys identifying sortable columns
+	 **/
+	function sortcolumns () { return array(); }
+
+	/**
+	 * Default column value renderer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $value The value to be rendered
+	 * @return void
+	 **/
+	function value ($value) {
+		echo trim($value);
+	}
+
+	/**
+	 * Renders the report table to the WP admin screen
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	function table () {
 		extract($this->options,EXTR_SKIP);
-		if ( $this->Chart ) $this->Chart->render();
 
+		if ( $this->Chart ) $this->Chart->render();
 		// Get only the records for this page
 		$beginning = (int)($paged-1)*$per_page;
-		$report = array_slice($this->report,$beginning,$beginning+$per_page,true);
-		unset($this->report); // Free memory
+
+		$report = array_values($this->data);
+		$report = array_slice($report, $beginning, $beginning+$per_page, true );
+		unset($this->data); // Free memory
 
 	?>
 			<table class="widefat" cellspacing="0">
@@ -352,12 +660,28 @@ abstract class ShoppReportFramework {
 	<?php
 	}
 
+	/**
+	 * Renders the filter controls to the WP admin screen
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	function filters () {
 		self::rangefilter();
 		self::scalefilter();
 		self::filterbutton();
 	}
 
+	/**
+	 * Renders the date range filter control elements
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	protected static function rangefilter () { ?>
 		<select name="range" id="range">
 			<?php
@@ -390,6 +714,14 @@ abstract class ShoppReportFramework {
 <?php
 	}
 
+	/**
+	 * Renders the date scale filter control element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	protected static function scalefilter () { ?>
 
 		<select name="scale" id="scale">
@@ -409,22 +741,95 @@ abstract class ShoppReportFramework {
 <?php
 	}
 
+	/**
+	 * Renders the filter button element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	protected static function filterbutton () {
 		?><button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button><?php
 	}
 
-	protected function chart ($report,$x,$y) {
-		$this->Chart->data($report,$x,$y);
+	/**
+	 * Creates a chart for this report
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	protected function initchart () {
+		$this->Chart = new ShoppReportChart();
+		if ($this->periods)	$this->Chart->timeaxis('xaxis',$this->total,$this->options['scale']);
 	}
+
+	/**
+	 * Sets chart options
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $options The options to set
+	 * @return void
+	 **/
+	protected function setchart ($options = array() ) {
+		if ( ! $this->Chart ) $this->initchart();
+		$this->Chart->settings($options);
+	}
+
+	/**
+	 * Sets chart data for a data series from the report
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $series The index of the series to set the data for
+	 * @param scalar $x The value for the X-axis
+	 * @param scalar $y The value for the Y-axis
+	 * @return void
+	 **/
+	protected function chartdata ($series,$x,$y) {
+		$this->Chart->data($series,$x,$y,$this->periods);
+	}
+
+	/**
+	 * Sets up a chart series
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $label The label to use for the series (if none, use boolean false)
+	 * @param array $options The series settings (and possible the data)
+	 * @return void
+	 **/
+	protected function chartseries ( $label, $options = array() ) {
+		if ( ! $this->Chart ) $this->initchart();
+		if ( isset($options['column']) ) $this->chartseries[] = $options['column'];	// Register the column to the data series index
+		$this->Chart->series($label,$options);										// Initialize the series in the chart
+	}
+
 
 } // End class ShoppReportFramework
 
+/**
+ * ShoppReportChart
+ *
+ * An interface for creating charts using the Flot charting engine.
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package reports
+ **/
 class ShoppReportChart {
-	var $data = array();
-	var $chart = array();
+
+	private $data = array();
 
 	var $options = array(
 		'series' => array(
+			'limit' => 20,	// Limit the number of series
 			'lines' => array('show' => true,'fill'=>true,'lineWidth'=>3),
 			'points' => array('show' => true),
 			'shadowSize' => 0
@@ -458,16 +863,46 @@ class ShoppReportChart {
 		'colors' => array('#618C03','#1C63A8','#1F756B','#896204','#cb4b16','#A90007','#A9195F','#4B4B9A'),
 	);
 
+	/**
+	 * Constructor
+	 *
+	 * Includes the client-side libraries needed for rendering the chart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	function __construct () {
 		shopp_enqueue_script('flot');
 		shopp_enqueue_script('flot-grow');
 	}
 
+	/**
+	 * An interface for setting options on the chart instance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $options An associative array of the options to set
+	 * @return void
+	 **/
 	function settings ($options) {
 		foreach ($options as $setting => $settings)
 			$this->options[$setting] = wp_parse_args($settings,$this->options[$setting]);
 	}
 
+	/**
+	 * Sets up an axis for time period charts
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $axis The axis to setup (xaxis, yaxis)
+	 * @param int $range The number of periods on the axis
+	 * @param string $scale Scale of periods (hour, day, week, month, year)
+	 * @return void
+	 **/
 	function timeaxis ($axis,$range,$scale='day') {
 		if ( ! isset($this->options[ $axis ])) return;
 
@@ -503,8 +938,19 @@ class ShoppReportChart {
 		$this->options[ $axis ] = wp_parse_args($options,$this->options[ $axis ]);
 	}
 
-	function series ($id,$label) {
-		$this->data[$id] = array(
+	/**
+	 * Sets up a data series for the chart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $label The label to use (if any)
+	 * @param array $options Associative array of setting options
+	 * @return void
+	 **/
+	function series ( $label, $options=array() ) {
+		if ( count($this->data) > $this->options['series']['limit']) return;
+		$defaults = array(
 			'label' => $label,
 			'data' => array(),
 			'grow' => array(				// Enables grow animation
@@ -515,20 +961,51 @@ class ShoppReportChart {
 				'stepDirection' => 'up'
 			)
 		);
+
+		$settings = wp_parse_args($options,$defaults);
+
+		$this->data[] = $settings;
 	}
 
-	function data ($series,$x,$y) {
-		$tzoffset = date('Z');
+	/**
+	 * Sets the data for a series
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $series The index number of the series to set data for
+	 * @param scalar $x The data for the X-axis
+	 * @param scalar $y The data for the Y-axis
+	 * @param boolean $periods Settings flag for specified time period data
+	 * @return void
+	 **/
+	function data ($series,$x,$y,$periods=false) {
+		if ( ! isset($this->data[$series]) ) return;
 
-		if ( isset($this->data[$series]) )
-			$this->data[$series]['data'][] = array(($x+$tzoffset)*1000,$y);
+		if ( $periods ) {
+			$tzoffset = date('Z');
+			$x = ($x+$tzoffset)*1000;
+		}
 
+		$this->data[$series]['data'][] = array($x,$y);
 
 		$this->datapoints = max( $this->datapoints, count($this->data[$series]['data']) );
 	}
 
+	/**
+	 * Renders the chart
+	 *
+	 * Outputs the markup elements for the chart canvas and sends the data to the client-side environment.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	function render () {
-		if (count($this->data[0]['data']) > 75) $this->options['series']['points'] = false; ?>
+		if ($this->datapoints > 75) $this->options['series']['points'] = false;
+
+		?>
 		<script type="text/javascript">
 		var d = <?php echo json_encode($this->data); ?>,
 			co = <?php echo json_encode($this->options); ?>;
@@ -541,6 +1018,15 @@ class ShoppReportChart {
 
 } // End class ShoppReportChart
 
+/**
+ * ShoppReportExportFramework
+ *
+ * Provides the base functionality for exporting a report
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package reports
+ **/
 abstract class ShoppReportExportFramework {
 
 	var $ReportClass = '';
@@ -559,11 +1045,10 @@ abstract class ShoppReportExportFramework {
 		$this->ReportClass = get_class($Report);
 		$this->options = $Report->options;
 
-		$Report->query();
-		$Report->setup();
+		$Report->load();
 
 		$this->columns = $Report->columns();
-		$this->data = $Report->report;
+		$this->data = $Report->data;
 		$this->records = $Report->total;
 
 		$report = $this->options['report'];
@@ -575,15 +1060,13 @@ abstract class ShoppReportExportFramework {
 
 	}
 
-	// function query () {	}
-
 	/**
 	 * Generates the output for the exported report
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function output () {
 		if ( empty($this->data) ) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
@@ -594,10 +1077,10 @@ abstract class ShoppReportExportFramework {
 		$name = $reports[$report]['name'];
 
 		header("Content-type: $this->content_type; charset=UTF-8");
-		header("Content-Disposition: attachment; filename=\"$sitename $name.$this->extension\"");
-		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-		header("Cache-Control: maxage=1");
-		header("Pragma: public");
+		// header("Content-Disposition: attachment; filename=\"$sitename $name.$this->extension\"");
+		// header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		// header("Cache-Control: maxage=1");
+		// header("Pragma: public");
 
 		$this->begin();
 		if ($this->headings) $this->heading();
@@ -720,6 +1203,16 @@ abstract class ShoppReportExportFramework {
 
 } // End class ShoppReportExportFramework
 
+/**
+ * ShoppReportTabExport
+ *
+ * Concrete implementation of the export framework to export report data in
+ * tab-delimmited file format.
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package report
+ **/
 class ShoppReportTabExport extends ShoppReportExportFramework {
 
 	function __construct( $Report ) {
@@ -729,7 +1222,17 @@ class ShoppReportTabExport extends ShoppReportExportFramework {
 
 }
 
+/**
+ * ShoppReportCSVExport
+ *
+ * Exports report data into comma-separated values (CSV) file format.
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package report
+ **/
 class ShoppReportCSVExport extends ShoppReportExportFramework {
+
 	function __construct ($Report) {
 		parent::__construct($Report);
 		$this->content_type = "text/csv";
@@ -746,7 +1249,17 @@ class ShoppReportCSVExport extends ShoppReportExportFramework {
 
 }
 
+/**
+ * ShoppReportXLSExport
+ *
+ * Exports report data into Microsoft Excel file format
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package report
+ **/
 class ShoppReportXLSExport extends ShoppReportExportFramework {
+
 	function __construct ($Report) {
 		parent::__construct($Report);
 		$this->content_type = "application/vnd.ms-excel";
@@ -779,5 +1292,5 @@ class ShoppReportXLSExport extends ShoppReportExportFramework {
 		$this->c = 0;
 		$this->r++;
 	}
-}
 
+}
