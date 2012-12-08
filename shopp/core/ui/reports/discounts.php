@@ -1,6 +1,6 @@
 <?php
 
-class ShippingReport extends ShoppReportFramework implements ShoppReport {
+class DiscountsReport extends ShoppReportFramework implements ShoppReport {
 
 	var $periods = true;
 
@@ -9,14 +9,12 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 			'yaxis' => array('tickFormatter' => 'asMoney')
 		));
 
-		$this->chartseries( __('Shipping','Shopp'), array('column' => 'shipping') );
+		$this->chartseries( __('Discounts','Shopp'), array('column' => 'discounts') );
 	}
 
 	function query () {
-		extract($this->options, EXTR_SKIP);
-
+		extract($this->options,EXTR_SKIP);
 		$where = array();
-		$where[] = "p.type = 'Shipped'";
 		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
 		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
 
@@ -28,12 +26,11 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
-							SUM(o.freight) as shipping
+							SUM(o.discount) as discounts
 					FROM $purchased_table AS p
 					LEFT JOIN $orders_table AS o ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
-
 		return $query;
 	}
 
@@ -43,7 +40,7 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 			'orders'=>__('Orders','Shopp'),
 			'items'=>__('Items','Shopp'),
 			'subtotal'=>__('Subtotal','Shopp'),
-			'shipping'=>__('Shipping','Shopp')
+			'discounts'=>__('Discounts','Shopp')
 		);
 	}
 
@@ -53,6 +50,6 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 
 	static function subtotal ($data) { return money($data->subtotal); }
 
-	static function shipping ($data) { return money($data->shipping); }
+	static function discounts ($data) { return money($data->discounts); }
 
 }

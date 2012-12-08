@@ -2,10 +2,17 @@
 
 class LocationsReport extends ShoppReportFramework implements ShoppReport {
 
+	var $map = array();
+
+	function setup () {
+
+		shopp_enqueue_script('jvectormap');
+		shopp_enqueue_script('worldmap');
+
+	}
+
 	function query () {
-		global $bbdb;
 		extract($this->options, EXTR_SKIP);
-		$data =& $this->data;
 
 		$where = array();
 
@@ -42,33 +49,18 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
 
-		$data = DB::query($query,'array','index','id');
+		return $query;
 	}
 
-	function setup () {
-
-		shopp_enqueue_script('jvectormap');
-		shopp_enqueue_script('worldmap');
-
-		extract($this->options, EXTR_SKIP);
-
-		// Post processing for stats to fill in date ranges
-		$this->report = $this->data;
-		$this->data = array();
-
-		$month = date('n',$starts); $day = date('j',$starts); $year = date('Y',$starts);
-
-		foreach ($this->report as $i => $data)
-			$this->data[$data->country] = $data->grossed;
-
-		$this->total = count($this->report);
-
+	function chartseries ( $label, $options = array() ) {
+		extract($options);
+		$this->map[$record->country] = $record->grossed;
 	}
 
 	function table () { ?>
 		<div id="map"></div>
 		<script type="text/javascript">
-		var d = <?php echo json_encode($this->data); ?>;
+		var d = <?php echo json_encode($this->map); ?>;
 		</script>
 <?php
 		parent::table();

@@ -92,13 +92,7 @@ class Resources {
 
 		require(SHOPP_FLOW_PATH.'/Report.php');
 		$reports = Report::reports();
-
-		// Load the report
-		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
-		if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
-
-		require(SHOPP_ADMIN_PATH."/reports/$report.php");
-		$ReportClass = $reports[$report]['class'];
+		$Report = Report::load();
 
 		if ( ! isset($_POST['settings']["{$report}_report_export"]) ) {
 			$_POST['settings']["{$report}_report_export"]['columns'] = array_keys($Report->columns);
@@ -107,7 +101,6 @@ class Resources {
 		shopp_set_formsettings(); // Save workflow setting
 
 		$format = shopp_setting('report_export_format');
-		$Report = new $ReportClass(Report::request($_GET));
 
 		switch ($format) {
 			case "csv": new ShoppReportCSVExport($Report); break;

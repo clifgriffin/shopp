@@ -2,10 +2,16 @@
 
 class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
+	function setup () {
+		$this->setchart(array(
+			'series' => array('bars' => array('show' => true,'lineWidth'=>0,'fill'=>true,'barWidth' => 0.75),'points'=>array('show'=>false),'lines'=>array('show'=>false)),
+			'xaxis' => array('show' => false),
+			'yaxis' => array('tickFormatter' => 'asMoney')
+		));
+	}
+
 	function query () {
-		global $bbdb;
 		extract($this->options, EXTR_SKIP);
-		$data =& $this->data;
 
 		$where = array();
 
@@ -32,7 +38,6 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 		$price_table = DatabaseObject::tablename('price');
 		$query = "SELECT CONCAT($id) AS id,
-							UNIX_TIMESTAMP(o.created) as period,
 							CONCAT(p.post_title,' ',pr.label) AS product,
 							COUNT(DISTINCT o.id) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
@@ -44,46 +49,14 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
 
-		$data = DB::query($query,'array','index','id');
+		return $query;
 	}
 
-	function setup () {
-		extract($this->options, EXTR_SKIP);
-
-		$this->Chart = new ShoppReportChart();
-		$Chart = $this->Chart;
-		$Chart->settings(array(
-			'series' => array('bars' => array('show' => true,'lineWidth'=>0,'fill'=>true,'barWidth' => 0.75),'points'=>array('show'=>false)),
-			'xaxis' => array('show' => false),
-			'yaxis' => array('tickFormatter' => 'asMoney')
-		));
-
-		// Post processing for stats to fill in date ranges
-		$data =& $this->data;
-		$stats =& $this->report;
-
-		$month = date('n',$starts); $day = date('j',$starts); $year = date('Y',$starts);
-
-		$range = $this->range($starts,$ends,$op);
-		$this->total = count($data);
-		$stats = $data;
-
-		$i = 0;
-		foreach ($stats as $id => &$s) {
-			$s->product = str_replace(__('Price & Delivery','Shopp'),'',$s->product);
-			if ($i > 20) continue;
-			$Chart->options['colors'][$i] = '#1C63A8'; // Set all bars to blue
-			$this->chart($i++,$s->product,(int)$s->grossed);
-		}
-
+	function chartseries ($label,$options = array() ) {
+		if ( ! $this->Chart ) $this->initchart();
+		extract($options);
+		$this->Chart->series($record->product,array( 'color' => '#1C63A8','data'=>array( array($index,$record->grossed) ) ));
 	}
-
-	function chart ($series,$x,$y) {
-		$Chart = $this->Chart;
-		$Chart->data[$series]['label'] = $x;
-		$Chart->data[$series]['data'][] = array($series,$y);
-	}
-
 
 	function filters () {
 		ShoppReportFramework::rangefilter();
@@ -107,7 +80,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		);
 	}
 
-	static function product ($data) { return $data->product; }
+	static function product ($data) { return trim($data->product); }
 
 	static function orders ($data) { return intval($data->orders); }
 
