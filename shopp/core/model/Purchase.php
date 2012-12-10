@@ -32,7 +32,7 @@ class Purchase extends DatabaseObject {
 	var $shipped = false;
 	var $stocked = false;
 
-	function Purchase ($id=false,$key=false) {
+	function __construct ($id=false,$key=false) {
 
 		$this->init(self::$table);
 		if (!$id) return true;
@@ -580,7 +580,7 @@ class PurchasesExport {
 	var $set = 0;
 	var $limit = 1024;
 
-	function PurchasesExport () {
+	function __construct () {
 		global $Shopp;
 
 		$this->purchase_cols = Purchase::exportcolumns();
@@ -656,7 +656,7 @@ class PurchasesExport {
 		$c = 0; $columns = array(); $purchasedcols = false;
 		foreach ($this->selected as $column) {
 			$columns[] = "$column AS col".$c++;
-			if ( false !== strpos('p.',$column) ) $purchasedcols = true;
+			if ( false !== strpos($column,'p.') ) $purchasedcols = true;
 		}
 		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
 		else $FROM = "FROM $purchasetable AS o";
