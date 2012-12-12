@@ -127,11 +127,15 @@ jQuery(document).ready( function($) {
 		},
 
 		billaddrctrls = $('#edit-billing-address, #order-billing address').click(function (e) {
+			e.preventDefault();
 			editaddress('billing');
+			return false;
 		}),
 
 		billaddrctrls = $('#edit-shipping-address, #order-shipto address').click(function (e) {
+			e.preventDefault();
 			editaddress('shipping');
+			return false;
 		});
 
 
