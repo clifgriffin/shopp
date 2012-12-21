@@ -79,6 +79,7 @@ abstract class GatewayFramework {
 	var $session = false;		// The current shopping session ID
 	var $Order = false;			// The current customer's Order
 	var $baseop = false; 		// Base of operation setting
+	var $currency = false;		// The base of operations currency code
 	var $precision = 2;			// Currency precision
 	var $decimals = '.';		// Default decimal separator
 	var $thousands = '';		// Default thousands separator
@@ -111,6 +112,7 @@ abstract class GatewayFramework {
 		if ( $this->soap && ! class_exists('nusoap_base') ) require_once(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$this->baseop = shopp_setting('base_operations');
+		$this->currency = $this->baseop['currency']['code'];
 		$this->precision = $this->baseop['currency']['format']['precision'];
 
 		$this->_loadcards();
@@ -692,7 +694,6 @@ class FreeOrder extends GatewayFramework {
 	}
 
 } // END class FreeOrder
-
 
 /**
  * PayCard class
