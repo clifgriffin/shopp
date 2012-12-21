@@ -10,6 +10,9 @@ jQuery(document).ready( function($) {
 	$.template('shipnotice-ui',$('#shipnotice-ui'));
 	$.template('refund-ui',$('#refund-ui'));
 	$.template('address-ui',$('#address-editor'));
+	$.template('customer-ui',$('#customer-editor'));
+	$.template('customer-select',$('#customer-selector'));
+	$.template('change-customer',$('#change-customer-ui'));
 
 	var manager = $('#order-manage'),
 		managerui = manager.find('div.manager-ui'),
@@ -108,13 +111,16 @@ jQuery(document).ready( function($) {
 
 		editaddress = function (type) {
 			var $this = $(this),
-				data = $.parseJSON( $('#edit-'+type+'-address-data').val()),
+				data = address[ type ],
 				ui = $.tmpl('address-ui',data),
+				editorui = $('#'+type+'-address-editor'),
+				display = $('#order-'+type+' .display'),
 
 				cancel = ui.find('#cancel-edit-address').click(function (e) {
 					e.preventDefault();
 					ui.fadeRemove('fast',function () {
 						$this.show();
+						display.show();
 					});
 
 				});
@@ -122,7 +128,8 @@ jQuery(document).ready( function($) {
 			ui.find('#address-state-menu').html(data.statemenu);
 			ui.find('#address-country').upstate().html(data.countrymenu);
 
-			managerui.empty().append(ui);
+			display.hide();
+			editorui.hide().empty().append(ui).slideDown('fast');
 
 		},
 
@@ -136,9 +143,42 @@ jQuery(document).ready( function($) {
 			e.preventDefault();
 			editaddress('shipping');
 			return false;
+		}),
+
+		editcustomer = $('#edit-customer').click(function (e) {
+			e.preventDefault();
+			var $this = $(this),
+				ui = $.tmpl('customer-ui',customer),
+				editorui = $('#customer-editor-form'),
+				display = $('#order-contact .display'),
+				panel = $('#order-contact .inside'),
+				cancel = function (e) {
+					e.preventDefault();
+					ui.fadeRemove('fast',function () {
+						$this.show();
+						display.show();
+					});
+				},
+				change = ui.find('#change-customer').click(function (e) {
+					e.preventDefault();
+					editorui.hide();
+					ui = $.tmpl('change-customer');
+					var changeui = $('#change-customer-editor').empty().append(ui).slideDown('fast');
+
+					var results = changeui.find('#customer-search-results').hide(),
+						changebutton = changeui.find('.change-button').hide(),
+						cancelchange = $('#cancel-change-customer').hide(),
+						editcancel = ui.find('#cancel-edit-customer').click(cancel),
+						searching = $('#customer-search').submit(function (e) {
+							$('#change-customer').hide();
+							cancelchange.show().click(cancel);
+							results.show();
+						});
+				}),
+				caneledit = ui.find('#cancel-edit-customer').click(cancel);
+
+			display.hide();
+			editorui.hide().empty().append(ui).slideDown('fast');
+			return false;
 		});
-
-
-
-
 });

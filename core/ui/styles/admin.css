@@ -517,17 +517,11 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes .notemeta { padding-bottom: 1em; }
 
 #order .meta-boxes address { white-space: normal; width: inherit; }
-#order-contact .customer { background: url('../icons/customer.png') no-repeat -8px -5px;padding-left:24px;line-height:18px; }
-#order-contact p a { display: inline-block; }
-#order-contact .customer {  }
-
-#order-contact .company 	{ background-position: -8px -36px; }
-#order-contact .email 		{ background-position: -8px -68px; }
-#order-contact .phone 		{ background-position: -8px -100px; }
-#order-contact .marketing 	{ background-position: -8px -132px; }
+#order-contact a { text-decoration: none; }
+#order-contact .fn { font-weight: bold; font-size: 1.125em; }
+#order-contact .org { white-space: nowrap; }
 #order-contact .nomarketing { background-position: -8px -164px; }
 
-#order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
 
 #order #order-status p { margin:0;padding:0; }
@@ -556,7 +550,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .status { font-size: 1.2em; }
 
 #order .shipment,
-#order .editaddress { width: 450px; margin: 6px auto 1.33em; }
 #order .refunding { margin: 6px 10px 1.33em; }
 #order .refunding label { font-weight: bold; }
 #order .refunding div { padding-bottom: 8px; }
@@ -566,8 +559,17 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .shipment div.delete { position: absolute; left: -2px; top: -2px; }
 #order .shipment .submit,
 #order .refunding .submit { margin-top: 2em; float: none; }
-.shopp #order .editaddress span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
-
+#order .editor p { padding-right: 1px; }
+#order .editor input[type=text] { width: 100%; }
+#order .editor input[type=text] { width: 100%; }
+#order .editor .inline-fields span { width: 47%; }
+#order .editor .inline-fields select { width: 108px; }
+.shopp #order .editor span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+#order .display .button-edit { font-size: 0.916em; font-family: sans-serif; padding-left: 0.833em; padding-right: 0.833em; position: absolute; right: 0; display: none; }
+#order .inside .display { position: realtive; }
+#order .inside .display:hover .button-edit { display: block; }
+#order .update-customer .loginname { display: none; }
+#customer-select-search { height: 300px; }
 
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
 .stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }
@@ -695,6 +697,25 @@ tr.inline-edit-row td  { padding: 10px; }
 
 .inline-edit-row span { display: inline-block; }
 
+#order-contact iframe { width: 100%; }
+#customer-select { background: #f5f5f5; width: 236px; min-width: 236px; }
+#customer-select input[type=search] { width: 99%; border-color: #dfdfdf; }
+#customer-select ul { background: none; list-style: none; padding-left: 0; }
+#customer-select .avatar { float: left; margin-right: 5px; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px; }
+#customer-select li { overflow: hidden; }
+#customer-select ul a { width: 228px; display: inline-block; padding: 3px; clear: both; border: 1px solid #dfdfdf; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px; 
+	background: #f3f3f3;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#fefefe), to(#f4f4f4));
+	background-image: -webkit-linear-gradient(top, #fefefe, #f4f4f4);
+	background-image:    -moz-linear-gradient(top, #fefefe, #f4f4f4);
+	background-image:      -o-linear-gradient(top, #fefefe, #f4f4f4);
+	background-image:   linear-gradient(to bottom, #fefefe, #f4f4f4);
+	border-color: #bbb;
+ 	color: #333;
+	text-shadow: 0 1px 0 #fff;
+	text-decoration: none; 
+}
+#customer-select ul a:hover { background: #fff; cursor: pointer; }
 
 /** General Overrides **/
 .shopp .hidden,

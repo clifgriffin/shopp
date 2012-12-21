@@ -117,7 +117,7 @@ class Service extends AdminController {
 
 		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('orders'))),admin_url('admin.php'));
 
-		if ($page == "shopp-orders"
+		if ( $page == "shopp-orders"
 						&& !empty($deleting)
 						&& !empty($selected)
 						&& is_array($selected)
@@ -328,6 +328,12 @@ class Service extends AdminController {
 	function layout () {
 		global $Shopp;
 		$Admin =& $Shopp->Flow->Admin;
+		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
+			'items' => __('Items','Shopp'),
+			'qty' => __('Quantity','Shopp'),
+			'price' => __('Price','Shopp'),
+			'total' => __('Total','Shopp')
+		)));
 		include(SHOPP_ADMIN_PATH."/orders/events.php");
 		include(SHOPP_ADMIN_PATH."/orders/ui.php");
 		do_action('shopp_order_manager_layout');
@@ -483,6 +489,36 @@ class Service extends AdminController {
 			} else $Purchase->updates($_POST['address']);
 
 			$Purchase->save();
+		}
+
+		if ( isset($_POST['order-action']) && 'update-customer' == $_POST['order-action'] && ! empty($_POST['customer'])) {
+			$Purchase->updates($_POST['customer']);
+			$Purchase->save();
+		}
+
+		if ( isset($_POST['cancel-edit-customer']) ){
+			unset($_POST['order-action'],$_POST['edit-customer'],$_POST['select-customer']);
+		}
+
+		if ( isset($_POST['order-action']) && 'new-customer' == $_POST['order-action'] && ! empty($_POST['customer']) && ! isset($_POST['cancel-edit-customer'])) {
+			$Customer = new Customer();
+			$Customer->updates($_POST['customer']);
+			$Customer->password = wp_generate_password(12,true);
+			if ( 'wordpress' == shopp_setting('account_system') ) $Customer->create_wpuser();
+			else unset($_POST['loginname']);
+			$Customer->save();
+			if ( (int)$Customer->id > 0 ) {
+				$Purchase->copydata($Customer);
+				$Purchase->save();
+			} else $this->notice(__('An unknown error occured. The customer could not be created.','Shopp'),'error');
+		}
+
+		if ( isset($_GET['order-action']) && 'change-customer' == $_GET['order-action'] && ! empty($_GET['customerid'])) {
+			$Customer = new Customer((int)$_GET['customerid']);
+			if ( (int)$Customer->id > 0) {
+				$Purchase->copydata($Customer);
+				$Purchase->save();
+			} else $this->notice(__('The selected customer was not found.','Shopp'),'error');
 		}
 
 		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
