@@ -34,29 +34,29 @@ function shopp_orders ( $from = false, $to = false, $items = true, $customers = 
 	$where = array();
 	if ( $from ) {
 		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $from) )
-			$where[] = "AND '$from' < created";
+			$where[] = "'$from' < created";
 		else if ( is_int($from) )
-			$where[] = "AND FROM_UNIXTIME($from) < created";
+			$where[] = "FROM_UNIXTIME($from) < created";
 	}
 
 	if ( $to ) {
 		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $to) )
-			$where[] = "AND '$to' >= created";
+			$where[] = "'$to' >= created";
 		else if ( is_int($from) )
-			$where[] = "AND FROM_UNIXTIME($to) >= created";
+			$where[] = "FROM_UNIXTIME($to) >= created";
 	}
 
 	if ( ! empty($customers) ) {
 		$set = db::escape(implode(',',$customers));
-		$where[] = "AND 0 < FIND_IN_SET(customer,'".$set."')";
+		$where[] = "0 < FIND_IN_SET(customer,'".$set."')";
 	}
 
-	$where = implode(' ', $where);
+	$where = empty($where)?'':'WHERE '.implode(' AND ', $where);
 
-	if ( $limit && is_int($limit) ) $limit = " LIMIT $limit";
+	if ( (int)$limit > 0 ) $limit = " LIMIT $limit";
+	else $limit = '';
 
-	$query = "SELECT * FROM $pt WHERE 1 $where ORDER BY id ".('DESC' == $order ? "DESC" : "ASC").$limit;
-
+	$query = "SELECT * FROM $pt $where ORDER BY id ".('DESC' == $order ? "DESC" : "ASC").$limit;
 	$orders = DB::query($query, false, '_shopp_order_purchase');
 	if ( $items ) $orders = DB::query("SELECT * FROM $pd AS pd WHERE 0 < FIND_IN_SET(pd.purchase,'".implode(",", array_keys($orders))."')", false, '_shopp_order_purchased', $orders);
 
