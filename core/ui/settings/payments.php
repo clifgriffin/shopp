@@ -33,10 +33,7 @@
 				'${cancel_href}' => $this->url,
 				'${instance}' => $id
 			);
-			$editor = str_replace(array_keys($template_data),$template_data,$editor);
-			$editor = preg_replace('/\${\w+}/','',$editor);
-
-			echo $editor;
+			echo ShoppUI::template($editor,$template_data);
 		}
 
 		if (count($gateways) == 0 && !$edit): ?>
@@ -85,10 +82,9 @@
 				// Handle payment data value substitution for multi-instance payment systems
 				foreach ($payment as $name => $value)
 					$template_data['${'.$name.'}'] = $value;
-				$editor = str_replace(array_keys($template_data),$template_data,$editor);
-				$editor = preg_replace('/\${\w+}/','',$editor);
 
-				echo $editor;
+				echo ShoppUI::template($editor,$template_data);
+
 				if ( $edit == $slug ) continue;
 			}
 
