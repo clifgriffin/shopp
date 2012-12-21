@@ -68,6 +68,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_update_inventory',array($this,'update_inventory'));
 		add_action('wp_ajax_shopp_import_file',array($this,'import_file'));
 		add_action('wp_ajax_shopp_storage_suggestions',array($this,'storage_suggestions'),11);
+		add_action('wp_ajax_shopp_select_customer',array($this,'select_customer'));
 		add_action('wp_ajax_shopp_suggestions',array($this,'suggestions'));
 		add_action('wp_ajax_shopp_verify_file',array($this,'verify_file'));
 		add_action('wp_ajax_shopp_gateway',array($this,'gateway_ajax'));
@@ -452,6 +453,107 @@ class AjaxFlow {
 			exit();
 		}
 
+	}
+
+	function select_customer () {
+		// check_admin_referer('wp_ajax_shopp_select_customer');
+		$defaults = array(
+			'page' => false,
+			'paged' => 1,
+			'per_page' => 7,
+			'status' => false,
+			's' => ''
+		);
+
+		$args = wp_parse_args($_REQUEST,$defaults);
+		extract($args, EXTR_SKIP);
+
+		if ( ! empty($s) ) {
+			$s = stripslashes($s);
+			$search = DB::escape($s);
+			$where = array();
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER)) {
+				foreach ($props as $search) {
+					$keyword = !empty($search[2])?$search[2]:$search[3];
+					switch(strtolower($search[1])) {
+						case "company": $where[] = "c.company LIKE '%$keyword%'"; break;
+						case "login": $where[] = "u.user_login LIKE '%$keyword%'"; break;
+						case "address": $where[] = "(b.address LIKE '%$keyword%' OR b.xaddress='%$keyword%')"; break;
+						case "city": $where[] = "b.city LIKE '%$keyword%'"; break;
+						case "province":
+						case "state": $where[] = "b.state='$keyword'"; break;
+						case "zip":
+						case "zipcode":
+						case "postcode": $where[] = "b.postcode='$keyword'"; break;
+						case "country": $where[] = "b.country='$keyword'"; break;
+					}
+				}
+			} elseif (strpos($s,'@') !== false) {
+				 $where[] = "c.email LIKE '%$search%'";
+			} elseif (is_numeric($s)) {
+				$where[] = "c.phone='$search'";
+			} else $where[] = "(CONCAT(c.firstname,' ',c.lastname) LIKE '%$search%' OR c.company LIKE '%$s%')";
+
+			$pagenum = absint( $paged );
+			if ( empty($pagenum) ) $pagenum = 1;
+			$index = ($per_page * ($pagenum-1));
+
+			$customer_table = DatabaseObject::tablename(Customer::$table);
+			$billing_table = DatabaseObject::tablename(BillingAddress::$table);
+			$purchase_table = DatabaseObject::tablename(Purchase::$table);
+			global $wpdb;
+			$users_table = $wpdb->users;
+
+			$select = array(
+				'columns' => 'SQL_CALC_FOUND_ROWS c.*,city,state,country,user_login',
+				'table' => "$customer_table as c",
+				'joins' => array(
+						$billing_table => "LEFT JOIN $billing_table AS b ON b.customer=c.id AND b.type='billing'",
+						$users_table => "LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND (c.wpuser IS NULL OR c.wpuser != 0)"
+					),
+				'where' => $where,
+				'groupby' => "c.id",
+				'orderby' => "c.created DESC",
+				'limit' => "$index,$per_page"
+			);
+			$query = DB::select($select);
+
+		}
+		// if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
+
+		$Customers = DB::query($query,'array','index','id');
+		$url = admin_url('admin-ajax.php');
+		?>
+		<html>
+		<head>
+			<link rel="stylesheet" id="wp-admin"  href="<?php echo admin_url('css/wp-admin.css'); ?>" type="text/css" media="all" />
+			<link rel="stylesheet" id="shopp-admin"  href="<?php echo SHOPP_ADMIN_URI.'/styles/admin.css'; ?>" type="text/css" media="all" />
+		</head>
+		<body id="customer-select">
+		<?php
+		if ( ! empty($Customers) ): ?>
+		<ul>
+			<?php foreach ($Customers as $Customer): ?>
+			<li><a href="<?php echo add_query_arg(array('order-action'=>'change-customer','page'=>$_GET['page'],'id'=>(int)$_GET['id'],'customerid'=>$Customer->id),admin_url('admin.php')); ?>" target="_parent">
+			<?php
+			$wp_user = get_userdata($Customer->wpuser);
+			$userlink = add_query_arg('user_id',$Customer->wpuser,admin_url('user-edit.php'));
+ 			echo get_avatar( $Customer->wpuser, 48 );
+			?>
+			<?php echo "<strong>$Customer->firstname $Customer->lastname</strong>"; ?><?php if (!empty($Customer->company)) echo ", $Customer->company"; ?>
+			<?php if (!empty($Customer->email)) echo "<br />$Customer->email"; ?>
+			<?php if (!empty($Customer->phone)) echo "<br />$Customer->phone"; ?>
+			</a>
+			</li>
+			<?php endforeach; ?>
+		</ul>
+		<?php else: ?>
+		<?php _e('No customers found.','Shopp'); ?>
+		<?php endif; ?>
+		</body>
+		</html>
+		<?php
+		exit();
 	}
 
 	function upload_local_taxes () {

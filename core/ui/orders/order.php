@@ -1,18 +1,17 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Order','Shopp'); ?></h2>
+	<h2><?php printf(__('Order #%d','Shopp'),(int)$Purchase->id); ?></h2>
 
-	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	<?php $this->notices(); ?>
 
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
 
-	<form action="<?php echo esc_url(add_query_arg(array('id'=>$Purchase->id),$this->url)); ?>" method="post" id="order-updates">
 	<div id="order">
 		<div class="title">
 			<div id="titlewrap">
-				<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
+				<span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
 
 				<div class="alignright">
 
@@ -30,7 +29,7 @@
 
 			</div>
 		</div>
-
+		<form action="<?php echo AdminController::url(array('id'=>$Purchase->id)); ?>" method="post" id="order-updates">
 		<table class="widefat" cellspacing="0">
 			<thead>
 				<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
@@ -38,12 +37,12 @@
 			<tfoot>
 			<?php $colspan = count(get_column_headers($this->screen))-1; ?>
 			<tr class="totals">
-				<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
+				<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 				<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 			</tr>
 			<?php if ($Purchase->discount > 0): ?>
 			<tr class="totals">
-				<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
+				<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>££¡™
 				<td class="money">-<?php echo money($Purchase->discount); ?>
 					<?php if (!empty($Purchase->promos)): ?>
 					<ul class="promos">
@@ -165,97 +164,7 @@
 				<?php endforeach; ?>
 			<?php endif; ?>
 		</table>
-
-		<?php /*
-		<table class="widefat" cellspacing="0">
-			<thead>
-			<tr>
-				<th scope="col" class="item"><?php _e('Items','Shopp'); ?></th>
-				<th scope="col"><?php _e('Quantity','Shopp'); ?></th>
-				<th scope="col" class="money"><?php _e('Item Price','Shopp'); ?></th>
-				<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
-			</tr>
-			</thead>
-			<tbody>
-			<?php if (sizeof($Purchase->purchased) > 0):
-
-				$even = false;
-				foreach ($Purchase->purchased as $id => $Item):
-					$taxrate = round($Item->unittax/$Item->unitprice,4);
-			?>
-				<tr<?php if ($even) echo ' class="alternate"'; $even = !$even; ?>>
-					<td>
-						<a href="<?php echo add_query_arg(array('page' => 'shopp-products','id' => $Item->product),admin_url('admin.php')); ?>"><?php echo $Item->name; ?>
-						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?></a>
-						<?php if (is_array($Item->data) || !empty($Item->sku) || !empty($Item->addons)): ?>
-						<ul>
-						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
-
-						<?php if (isset($Item->addons) && isset($Item->addons->meta)): ?>
-							<?php foreach ((array)$Item->addons->meta as $id => $addon):
-								if ($Purchase->taxing == "inclusive")
-									$addonprice = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
-								else $addonprice = $addon->value->unitprice;
-
-								?>
-								<li><small><?php echo apply_filters('shopp_purchased_addon_name',$addon->name); ?><?php if (!empty($addon->value->sku)) echo apply_filters('shopp_purchased_addon_sku',' [SKU: '.$addon->value->sku.']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice',money($addonprice)); ?></strong></small></li>
-							<?php endforeach; ?>
-						<?php endif; ?>
-						<?php foreach ($Item->data as $name => $value): ?>
-							<li><small><?php echo apply_filters('shopp_purchased_data_name',$name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value',$value); ?></strong></small></li>
-						<?php endforeach; ?>
-						<?php endif; ?>
-						<?php do_action_ref_array('shopp_after_purchased_data',array(&$Item,&$Purchase)); ?>
-						</ul>
-					</td>
-					<td><?php echo $Item->quantity; ?></td>
-					<td class="money"><?php $amount = $Item->unitprice+($Purchase->taxing == 'inclusive'?$Item->unittax:0);
-						echo money($amount); ?></td>
-					<td class="money total"><?php $amount = $Item->total+($Purchase->taxing == 'inclusive'?$Item->unittax*$Item->quantity:0);
-						echo money($amount); ?></td>
-				</tr>
-			<?php endforeach; ?>
-			<tr class="totals">
-				<th scope="row" colspan="3" class="total"><?php _e('Subtotal','Shopp'); ?></th>
-				<td class="money"><?php echo money($Purchase->subtotal); ?></td>
-			</tr>
-			<?php if ($Purchase->discount > 0): ?>
-			<tr class="totals">
-				<th scope="row" colspan="3" class="total"><?php _e('Discount','Shopp'); ?></th>
-				<td class="money">-<?php echo money($Purchase->discount); ?>
-					<?php if (!empty($Purchase->promos)): ?>
-					<ul class="promos">
-					<?php foreach ($Purchase->promos as $pid => $promo): ?>
-						<li><small><a href="?page=shopp-promotions&amp;id=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
-					<?php endforeach; ?>
-					</ul>
-					<?php endif; ?>
-					</td>
-			</tr>
-			<?php endif; ?>
-			<?php if ($Purchase->freight > 0): ?>
-			<tr class="totals">
-				<th scope="row" colspan="3" class="total shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></th>
-				<td class="money"><?php echo money($Purchase->freight); ?></td>
-			</tr>
-			<?php endif; ?>
-			<?php if ($Purchase->tax > 0): ?>
-			<tr class="totals">
-				<th scope="row" colspan="3" class="total"><?php _e('Tax','Shopp'); ?></th>
-				<td class="money"><?php echo money($Purchase->tax); ?></td>
-			</tr>
-			<?php endif; ?>
-			<tr class="totals total">
-				<th scope="row" colspan="3" class="total"><?php _e('Total','Shopp'); ?></th>
-				<td class="money"><?php echo money($Purchase->total); ?></td>
-			</tr>
-			<?php else: ?>
-				<td colspan="4"><p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p></td>
-			<?php endif; ?>
-			</tbody>
-		</table>
-
-		*/ ?>
+		</form>
 
 		<div id="poststuff" class="poststuff">
 
@@ -277,7 +186,6 @@
 		<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 		</div>
 	</div>
-	</form>
 
 </div>
 
