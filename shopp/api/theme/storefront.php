@@ -173,7 +173,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if ('' != get_option('permalink_structure')) $src = trailingslashit($src).$img->filename;
 
 		if ($size != "original")
-			$src = add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$src);
+			$src = $img->resized_url($width, $height, $scale, $sharpen, $quality, $fill);
 
 		switch (strtolower($property)) {
 			case "id": return $img->id; break;

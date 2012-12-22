@@ -30,6 +30,7 @@ class FileAsset extends MetaObject {
 	var $type = 'asset';
 	var $_xcols = array('mime','size','storage','uri');
 
+
 	function __construct ($id=false) {
 		$this->init(self::$table);
 		$this->extensions();
@@ -178,6 +179,171 @@ class ImageAsset extends FileAsset {
 	var $filename;
 	var $type = 'image';
 
+    // Direct URL support
+    public $direct_url = '';
+    protected $is_directly_accessible = null;
+    protected $base_dir ='';
+    protected $base_url = '';
+
+
+
+    /**
+     * Determines if the (original) image is directly accessible. This method must be called and a
+     * (bool) true result obtained before trying to access the direct_url property.
+     *
+     * Where direct image URLs are undesirable, SHOPP_DIRECT_IMG_MODE should be defined
+     * as false.
+     *
+     * @return bool
+     */
+    public function directly_accessible() {
+        // Only determine this once then save the result
+        if ($this->is_directly_accessible === null) {
+            if (defined('SHOPP_DIRECT_IMG_MODE') && !SHOPP_DIRECT_IMG_MODE) // Direct mode can be disallowed
+                $this->is_directly_accessible = false;
+
+            if ($this->determine_base_url()) {
+                $this->set_direct_url();
+                $this->is_directly_accessible = true;
+            }
+            else $this->is_directly_accessible = false;
+        }
+        // Return the saved result
+        return $this->is_directly_accessible;
+    }
+
+
+    /**
+     * Tries to determine the URL of image assets stored using FSStorage.
+     * Returns (bool) true on success, otherwise false.
+     *
+     * @return bool
+     */
+    public function determine_base_url() {
+        // Allow the base URL to be provided from within a theme/plugin
+        $this->base_url = apply_filters('shopp_direct_img_base', '');
+
+        // Otherwise try to form the base storage URL
+        if (empty($this->base_url)) {
+            $storage = shopp_setting('FSStorage');
+            if (empty($storage) || !isset($storage['path']['image']))
+                return false;
+
+            $this->base_dir = trailingslashit($storage['path']['image']);
+            $this->base_url = $this->find_public_url($this->base_dir);
+        }
+
+        if (empty($this->base_url)) return false;
+        return true;
+    }
+
+
+    /**
+     * Tries to find the public URL for Shopp product images stored using the
+     * FSStorage engine. Not bulletproof, it assumes that either the directory
+     * is subordinate to ABSPATH or is anyway relative to wp-content.
+     *
+     * @param string $storagepath
+     * @return string
+     */
+    protected function find_public_url($storage_path) {
+        $wp_url = get_option('siteurl');
+        $wp_dir = trim(ABSPATH, '/');
+        $storage_dir = trim($storage_path, '/');
+
+        $wp_dir = explode('/', $wp_dir);
+        $storage_dir = explode('/', $storage_dir);
+
+        // Determine if the storage path leads to a WP sub-directory
+        for ($segment = 0; $segment < count($wp_dir); $segment++)
+            if ($wp_dir[$segment] !== $storage_dir[$segment])
+                // Bad match? Check if we have a relative-to-wp-content path instead
+                return $this->relative_path_or_false($storage_path);
+
+        // Supposing the image directory isn't the WP root, append the trailing component
+        if (count($storage_dir) > count($wp_dir))
+            $trailing_component = join('/', array_slice($storage_dir, count($wp_dir)));
+
+        // Under normal circumstances we now have the public URL for the image dir
+        if (isset($trailing_component)) $public_url = trailingslashit($wp_url).$trailing_component;
+        else $public_url = $wp_url;
+
+        return trailingslashit($public_url);
+    }
+
+
+
+    /**
+     * Tests if the path leads to a real directory that is subordinate to the
+     * wp-content dir, or returns bool false.
+     */
+    protected function relative_path_or_false($path) {
+        $path = trim($path, '/');
+        $wp_content = trailingslashit(WP_CONTENT_DIR);
+        $path = $wp_content.$path;
+
+        if (is_dir($path)) return trailingslashit(WP_CONTENT_URL).$path;
+        return false;
+    }
+
+
+    /**
+     * Combines the object's base_url and uri properties (uri is dynamically assigned)
+     * into a single directly accessible URL.
+     */
+    protected function set_direct_url() {
+        if (property_exists($this, 'uri')) $this->direct_url = $this->base_url.$this->uri;
+    }
+
+
+    /**
+     * Returns a URL for a resized image.
+     *
+     * If direct mode is enabled (which it is by
+     * default) and the image is already cached to the file system then a URL for that
+     * file will be returned.
+     *
+     * In all other cases a Shopp Image Server URL will be returned.
+     *
+     * @param $width
+     * @param $height
+     * @param $scale
+     * @param $sharpen
+     * @param $quality
+     * @param $fill
+     * @return string
+     */
+    public function resized_url($width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false) {
+        $size_query = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
+
+        $accessible = $this->directly_accessible();
+
+        if ($this->directly_accessible()) {
+            $size = $this->cache_filename_params($size_query);
+            $path = "cache_{$size}_{$this->uri}";
+
+            // Final check: the cached image may not exist in this size
+            if (file_exists($this->base_dir.$path))
+                return $this->base_url.$path;
+        }
+        return add_query_string($size_query, shoppurl($this->id, 'images'));
+    }
+
+
+    /**
+     * Takes the comma separated output of the resizing() method and returns the
+     * equivalent filename component.
+     *
+     * @param $size_query
+     * @return string
+     */
+    protected function cache_filename_params($size_query) {
+        $size_query = explode(',', $size_query);
+        array_pop($size_query); // Lop off the validation variable
+        return implode('_', $size_query);
+    }
+
+
 	function output ($headers=true) {
 
 		if ($headers) {
@@ -253,16 +419,22 @@ class ImageAsset extends FileAsset {
 		return $d;
 	}
 
-	/**
-	 * Generate a resizing request message
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
+    /**
+     * Generate a resizing request message
+     *
+     * @author Jonathan Davis
+     * @since 1.1
+     *
+     * @param $width
+     * @param $height
+     * @param bool $scale
+     * @param bool $sharpen
+     * @param bool $quality
+     * @param bool $fill
+     * @return void
+     */
 	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false,$fill=false) {
-		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
+		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') ? SECRET_AUTH_KEY : DB_PASSWORD;
 		$args = func_get_args();
 
 		if ($args[1] == 0) $args[1] = $args[0];
@@ -768,10 +940,10 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	function checkbox ($column=0,$attributes=array()) {
+	function checkbox ($column = 0, $attributes = array()) {
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
-		parent::checkbox($column,$attributes,$options);
+		parent::checkbox($column, $attributes);
 	}
 
 	/**
@@ -786,7 +958,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	function menu ($column=0,$attributes=array(),$options=array()) {
+	function menu ($column = 0, $attributes = array(), $options = array()) {
 		$attributes['title'] = '${'.$attributes['name'].'}';
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
@@ -805,7 +977,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	function multimenu ($column=0,$attributes=array(),$options=array()) {
+	function multimenu ($column = 0, $attributes = array(), $options = array()) {
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
 		parent::multimenu($column,$attributes,$options);
@@ -822,7 +994,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	function input ($column=0,$attributes=array()) {
+	function input ($column = 0, $attributes = array()) {
  		if (isset($attributes['name'])) {
 			$name = $attributes['name'];
 			$attributes['value'] = '${'.$name.'}';

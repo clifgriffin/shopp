@@ -1962,6 +1962,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	return apply_filters('shopp_url',$url);
 }
 
+
 /**
  * Recursively sorts a heirarchical tree of data
  *
