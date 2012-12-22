@@ -470,8 +470,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ($p_size > 0)
 			$_width = $_height = $p_size;
 
-		$width = $p_width > 0?$p_width:$_width;
-		$height = $p_height > 0?$p_height:$_height;
+		$width = $p_width > 0 ? $p_width : $_width;
+		$height = $p_height > 0 ? $p_height : $_height;
 
 		$preview_width = $width;
 
@@ -482,29 +482,28 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$maxwidth = $maxheight = 0;
 
 		foreach ($O->images as $img) {
-			$scale = $p_fit?false:array_search($p_fit,$img->_scaling);
-			$scaled = $img->scaled($width,$height,$scale);
-			$maxwidth = max($maxwidth,$scaled['width']);
-			$maxheight = max($maxheight,$scaled['height']);
+			$scale = $p_fit ? false : array_search($p_fit, $img->_scaling);
+			$scaled = $img->scaled($width, $height, $scale);
+			$maxwidth = max($maxwidth, $scaled['width']);
+			$maxheight = max($maxheight, $scaled['height']);
 		}
 
 		if ($maxwidth == 0) $maxwidth = $width;
 		if ($maxheight == 0) $maxheight = $height;
 
-		$p_link = value_is_true($p_link);
+		$p_link = str_true($p_link);
 
 		// Setup preview images
 		foreach ($O->images as $img) {
-
-
-			$scale = $p_fit?array_search($p_fit,$img->_scaling):false;
-			$sharpen = $p_sharpen?min($p_sharpen,$img->_sharpen):false;
-			$quality = $p_quality?min($p_quality,$img->_quality):false;
-			$fill = $p_bg?hexdec(ltrim($p_bg,'#')):false;
+			$scale = $p_fit ? array_search($p_fit, $img->_scaling) : false;
+			$sharpen = $p_sharpen ? min($p_sharpen, $img->_sharpen) : false;
+			$quality = $p_quality ? min($p_quality, $img->_quality) : false;
+			$fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
 			if ('transparent' == strtolower($p_bg)) $fill = -1;
-			$scaled = $img->scaled($width,$height,$scale);
+			$scaled = $img->scaled($width, $height, $scale);
 
 			if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
+
 				$href = shoppurl('' != get_option('permalink_structure')?trailingslashit('000'):'000','images');
 				$previews .= '<li'.(($firstPreview)?' class="fill"':'').'>';
 				$previews .= '<img src="'.add_query_string("$maxwidth,$maxheight",$href).'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
@@ -515,10 +514,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 
-			$href = shoppurl('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
+            if ($img->directly_accessible()) $href = $img->direct_url;
+			else $href = shoppurl('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
+
 			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').''.$title.'>';
 			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
-			$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+			$previews .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 			if ($p_link) $previews .= '</a>';
 			$previews .= '</li>';
 			$firstPreview = false;
@@ -555,7 +556,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 				$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':'').'">';
-				$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+				$thumbs .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 				$thumbs .= '</li>'."\n";
 				$firstThumb = false;
 			}
