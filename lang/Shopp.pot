@@ -7271,7 +7271,7 @@ msgstr ""
 
 #: ../shopp/templates/account-profile.php:69
 #: ../shopp/templates/checkout.php:73
-msgid "State/Provice/Region billing address"
+msgid "State/Province/Region billing address"
 msgstr ""
 
 #: ../shopp/templates/account-profile.php:73
