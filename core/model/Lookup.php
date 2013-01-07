@@ -90,7 +90,7 @@ class Lookup {
 		$_['AR'] = array('name'=>__('Argentina','Shopp'),'currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>2);
 		$_['AM'] = array('name'=>__('Armenia','Shopp'),'currency'=>array('code'=>'AMD','format'=>'####,## Դրամ'),'units'=>'metric','region'=>6);
 		$_['AW'] = array('name'=>__('Aruba','Shopp'),'currency'=>array('code'=>'AWG','format'=>'ƒ#,###.##'),'units'=>'metric','region'=>2);
-		$_['AU'] = array('name'=>__('Australia','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$#,###.##'),'units'=>'metric','region'=>7);
+		$_['AU'] = array('name'=>__('Australia','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$#,###.##'),'units'=>'metric', 'region'=>7);
 		$_['AT'] = array('name'=>__('Austria','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['AZ'] = array('name'=>__('Azerbaijan','Shopp'),'currency'=>array('code'=>'AZN','format'=>'man. #.###,##'),'units'=>'metric','region'=>6);
 		$_['BD'] = array('name'=>__('Bangladesh','Shopp'),'currency'=>array('code'=>'BDT','format'=>'#,###.##৳'),'units'=>'metric','region'=>6);
