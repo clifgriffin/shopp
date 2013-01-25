@@ -18,8 +18,8 @@
  **/
 class ShoppAdmin extends FlowController {
 
-	var $Pages = array();	// List of admin pages
-	var $Menus = array();	// List of initialized WordPress menus
+	private $Pages = array();	// List of admin pages
+	private $Menus = array();	// List of initialized WordPress menus
 	var $Ajax = array();	// List of AJAX controllers
 	var $MainMenu = false;
 	var $Page = false;
@@ -131,8 +131,9 @@ class ShoppAdmin extends FlowController {
 		wp_enqueue_style('shopp.menu',SHOPP_ADMIN_URI.'/styles/menu.css',array(),SHOPP_VERSION,'screen');
 
 		// Set the currently requested page and menu
-		if (isset($_GET['page'])) $page = strtolower($_GET['page']);
+		if ( isset($_GET['page']) && false !== strpos($_GET['page'],basename(SHOPP_PATH)) ) $page = $_GET['page'];
 		else return;
+
 		if (isset($this->Pages[$page])) $this->Page = $this->Pages[$page];
 		if (isset($this->Menus[$page])) $this->Menu = $this->Menus[$page];
 
@@ -185,8 +186,8 @@ class ShoppAdmin extends FlowController {
 	 * @return void
 	 **/
 	function addpage ($name,$label,$controller,$doc=false,$parent=false) {
-		$page = basename(SHOPP_PATH)."-$name";
-		if (!empty($parent)) $parent = basename(SHOPP_PATH)."-$parent";
+		$page = $this->pagename($name);
+		if (!empty($parent)) $parent = $this->pagename($parent);
 		$this->Pages[$page] = new ShoppAdminPage($name,$page,$label,$controller,$doc,$parent);
 	}
 
@@ -237,7 +238,7 @@ class ShoppAdmin extends FlowController {
 			$label,										// Page title
 			$label,										// Menu title
 			$access,									// Access level
-			basename(SHOPP_PATH).'-'.$page,				// Page
+			$this->pagename($page),						// Page
 			array(&$Shopp->Flow,'parse'),				// Handler
 			SHOPP_ADMIN_URI.'/icons/clear.png',			// Icon
 			$position									// Menu position
@@ -305,7 +306,7 @@ class ShoppAdmin extends FlowController {
 	 * @return string The fully qualified resource name for the admin page
 	 **/
 	function pagename ($page) {
-		return basename(SHOPP_PATH)."-$page";
+		return "shopp-$page";
 	}
 
 	/**
@@ -320,6 +321,7 @@ class ShoppAdmin extends FlowController {
 	function controller ($page=false) {
 		if (!$page && isset($this->Page->controller)) return $this->Page->controller;
 		if (isset($this->Pages[$page])) return $this->Pages[$page]->controller;
+		$screen = get_current_screen();
 		return false;
 	}
 
@@ -1145,8 +1147,12 @@ class ShoppAdmin extends FlowController {
 
 	}
 
+	static function screen () {
+		return get_current_screen()->id;
+	}
 
-} // END class AdminFlow
+
+} // END class ShoppAdmin
 
 /**
  * ShoppAdminPage class
@@ -1158,6 +1164,7 @@ class ShoppAdmin extends FlowController {
  * @package admin
  **/
 class ShoppAdminPage {
+
 	var $label = "";
 	var $controller = "";
 	var $doc = false;

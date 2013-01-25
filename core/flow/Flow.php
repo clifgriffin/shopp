@@ -41,18 +41,24 @@ class ShoppFlow {
 	 * @return void
 	 **/
 	function __construct () {
-		register_deactivation_hook(SHOPP_PLUGINFILE, array($this, 'deactivate'));
-		register_activation_hook(SHOPP_PLUGINFILE, array($this, 'activate'));
-		if (defined('DOING_AJAX')) add_action('admin_init',array($this,'ajax'));
 
+		// Plugin activation & deactivation
+		register_deactivation_hook( SHOPP_PLUGINFILE, array($this, 'deactivate') );
+		register_activation_hook( SHOPP_PLUGINFILE, array($this, 'activate') );
+
+		// Handle AJAX requests
+		add_action( 'admin_init', array($this,'ajax') );
+
+		// Boot up the menus & admin bar
 		add_action( 'admin_menu', array($this,'menu') );
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
 		// Handle automatic updates
 		add_action('update-custom_shopp',array($this,'update'));
 
-		if (defined('WP_ADMIN')) add_action('admin_init',array($this,'parse'));
-		else add_action('parse_request',array($this,'parse'));
+		// Parse the request
+		if ( defined('WP_ADMIN') ) add_action( 'current_screen', array($this,'parse') );
+		else add_action( 'parse_request', array($this,'parse') );
 	}
 
 	/**
@@ -62,20 +68,20 @@ class ShoppFlow {
 	 *
 	 * @return boolean
 	 **/
-	function parse ($wp) {
-		$request = empty($wp->query_vars)?$_GET:$wp->query_vars;
-		$resource = isset($request['src']);
+	function parse ( $request = false ) {
+		if ( is_a($request,'WP') ) $request = empty($wp->query_vars)?$_GET:$wp->query_vars;
+		else $request = $_GET;
 
-		if ($resource) $this->resources($request);
+		if ( isset($request['src']) ) $this->resources($request);
 
-		if (defined('WP_ADMIN')) {
-			if (!isset($_GET['page'])) return;
-			if ($this->Admin === false) {
-				require(SHOPP_FLOW_PATH."/Admin.php");
-				$this->Admin = new AdminFlow();
+		if ( defined('WP_ADMIN') ) {
+			if ( ! isset($_GET['page']) ) return;
+			if ( false === $this->Admin) {
+				require(SHOPP_FLOW_PATH.'/Admin.php');
 				$this->Admin = new ShoppAdmin();
 			}
 			$controller = $this->Admin->controller(strtolower($request['page']));
+
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler('Storefront');
 	}
@@ -89,9 +95,9 @@ class ShoppFlow {
 	 * @return void
 	 **/
 	function handler ($controller) {
-		if (!$controller) return false;
+		if ( ! $controller ) return false;
 		if ( is_a($this->Controller,$controller) ) return true; // Already initialized
-		if (!class_exists($controller))	require(SHOPP_FLOW_PATH."/$controller.php");
+		if ( ! class_exists($controller) ) require(SHOPP_FLOW_PATH."/$controller.php");
 
 		$this->Controller = new $controller();
 		do_action('shopp_'.strtolower($controller).'_init');
@@ -106,8 +112,8 @@ class ShoppFlow {
 	 * @return void
 	 **/
 	function admin () {
-		if (!defined('WP_ADMIN')) return false;
-		$controller = $this->Admin->controller(strtolower($_GET['page']));
+		if ( ! defined('WP_ADMIN') ) return false;
+		$controller = $this->Admin->controller($_GET['page']);
 		$this->handler($controller);
 		$this->Controller->admin();
 		return true;
@@ -121,6 +127,7 @@ class ShoppFlow {
 	 * @return void
 	 **/
 	function menu () {
+		if ( ! defined('WP_ADMIN') ) return false;
 		require(SHOPP_FLOW_PATH.'/Admin.php');
 		$this->Admin = new ShoppAdmin;
 		$this->Admin->menus();
@@ -133,8 +140,8 @@ class ShoppFlow {
 	}
 
 	function resources ($request) {
-		require(SHOPP_FLOW_PATH."/Resources.php");
-		$this->Controller = new Resources($request);
+		require(SHOPP_FLOW_PATH.'/Resources.php');
+		$this->Controller = new ShoppResources($request);
 	}
 
 	/**
@@ -246,8 +253,10 @@ abstract class FlowController  {
  **/
 abstract class AdminController extends FlowController {
 
+
 	var $Admin = false;
 	var $url;
+	var $screen;
 
 	private $notices = array();
 
@@ -263,12 +272,16 @@ abstract class AdminController extends FlowController {
 		// parent::__construct();
 		global $Shopp;
 		if (!empty($Shopp->Flow->Admin)) $this->Admin = &$Shopp->Flow->Admin;
+		$screen = get_current_screen();
+
+		$this->screen = $screen->id;
+
 		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
 
 		add_action('shopp_admin_notices',array($this,'notices'));
 	}
 
-	function notice ($message,$style='updated',$priority=10) {
+	function notice ( $message, $style='updated', $priority = 10 ) {
 		$notice = new StdClass();
 		$notice->message = $message;
 		$notice->style = $style;
@@ -308,6 +321,13 @@ function &ShoppStorefront () {
 	if (!isset($Shopp->Flow) || !is_object($Shopp->Flow->Controller)) return $false;
 	if (get_class($Shopp->Flow->Controller) != "Storefront") return $false;
 	return $Shopp->Flow->Controller;
+}
+
+function &ShoppAdmin() {
+	global $Shopp;
+	$false = false;
+	if ( ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Admin) || empty($Shopp->Flow->Admin) ) return $false;
+	return $Shopp->Flow->Admin;
 }
 
 add_filter('shopp_update_key','shopp_keybind');
