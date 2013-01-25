@@ -53,15 +53,15 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('toplevel_page_shopp-orders'); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen()); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen(),false); ?></tr>
 		</tfoot>
 	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
-			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
+			$hidden = get_hidden_columns(ShoppAdmin()->screen());
 
 			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
 
@@ -153,10 +153,8 @@
 <script type="text/javascript">
 var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('purchaselog_lastexport')); ?>);
 
-jQuery(document).ready( function() {
-var $=jqnc();
+jQuery(document).ready( function($) {
 
-pagenow = 'toplevel_page_shopp-orders';
 columns.init(pagenow);
 
 $('#selectall').change( function() {
