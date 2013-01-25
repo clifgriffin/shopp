@@ -1,11 +1,11 @@
 <?php
 /**
- * Flow
+ * ShoppFlow
  *
  * Super controller for handling low level request processing
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.3
  * @copyright Ingenesis Limited, January 6, 2010
  * @package shopp
  * @subpackage shopp
@@ -20,13 +20,13 @@ if (isset($_GET['sjsl']))
 	require(dirname(dirname(__FILE__)).'/scripts.php');
 
 /**
- * Flow
+ * ShoppFlow
  *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  **/
-class Flow {
+class ShoppFlow {
 
 	var $Controller = false;
 	var $Admin = false;
@@ -73,6 +73,7 @@ class Flow {
 			if ($this->Admin === false) {
 				require(SHOPP_FLOW_PATH."/Admin.php");
 				$this->Admin = new AdminFlow();
+				$this->Admin = new ShoppAdmin();
 			}
 			$controller = $this->Admin->controller(strtolower($request['page']));
 			if (!empty($controller)) $this->handler($controller);
@@ -120,15 +121,15 @@ class Flow {
 	 * @return void
 	 **/
 	function menu () {
-		require(SHOPP_FLOW_PATH."/Admin.php");
-		$this->Admin = new AdminFlow();
+		require(SHOPP_FLOW_PATH.'/Admin.php');
+		$this->Admin = new ShoppAdmin;
 		$this->Admin->menus();
 	}
 
 	function ajax () {
-		if (!isset($_REQUEST['action']) || !defined('DOING_AJAX')) return;
-		require(SHOPP_FLOW_PATH."/Ajax.php");
-		$this->Ajax = new AjaxFlow();
+		if ( ! isset($_REQUEST['action']) || ! defined('DOING_AJAX') ) return;
+		require(SHOPP_FLOW_PATH.'/Ajax.php');
+		$this->Ajax = new ShoppAjax;
 	}
 
 	function resources ($request) {

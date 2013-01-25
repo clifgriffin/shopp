@@ -181,7 +181,7 @@ class Shopp {
 		ShoppErrorNotification();
 
 		// Initialize application control processing
-		$this->Flow = new Flow();
+		$this->Flow = new ShoppFlow;
 
 		// Init old properties for legacy add-on module compatibility
 		$this->Shopping = ShoppShopping();

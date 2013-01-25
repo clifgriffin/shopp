@@ -1,6 +1,6 @@
 <?php
 /**
- * AdminFlow
+ * ShoppAdmin
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -10,13 +10,13 @@
  **/
 
 /**
- * AdminFlow
+ * ShoppAdmin
  *
  * @author Jonathan Davis
  * @package admin
  * @since 1.1
  **/
-class AdminFlow extends FlowController {
+class ShoppAdmin extends FlowController {
 
 	var $Pages = array();	// List of admin pages
 	var $Menus = array();	// List of initialized WordPress menus
