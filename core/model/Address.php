@@ -44,7 +44,11 @@ class Address extends DatabaseObject {
 	 * @return void
 	 **/
 	function load ($id=false,$key=false) {
-		if ( ! empty($this->type) ) $id = array($key => $id,'type' => $this->type);
+		// We want $id to be an array of the pattern [key => $key, type => $type]
+		// if it isn't already like that, then make it so
+		if ( !empty($this->type) && !is_array($id) && !isset($id['type']) ) {
+			$id = array($key => $id,'type' => $this->type);
+		}
 		parent::load($id,$key);
 		$this->locate();
 	}
