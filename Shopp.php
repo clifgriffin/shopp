@@ -455,7 +455,7 @@ class Shopp {
 		));
 
 		// Admin only - unsaved changes warning is currently disabled
-		if (defined('WP_ADMIN')) $base['UNSAVED_CHANGES_WARNING'] = __('There are unsaved changes that will be lost if you continue.','Shopp');
+		// if (defined('WP_ADMIN')) $base['UNSAVED_CHANGES_WARNING'] = __('There are unsaved changes that will be lost if you continue.','Shopp');
 
 		$defaults = apply_filters('shopp_js_settings',array_merge($currency,$base));
 		shopp_localize_script('shopp','$s',$defaults);
