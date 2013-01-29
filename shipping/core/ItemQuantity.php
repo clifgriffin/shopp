@@ -11,7 +11,7 @@
  * @since 1.2
  * @subpackage ItemQuantity
  *
- * $Id$
+ * $Id: ItemQuantity.php 3383 2012-11-16 18:29:19Z jond $
  **/
 
 class ItemQuantity extends ShippingFramework implements ShippingModule {
