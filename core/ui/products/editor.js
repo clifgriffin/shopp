@@ -5,37 +5,38 @@
  **/
 
 var Pricelines = new Pricelines(),
- 	productOptions = new Array(),
- 	productAddons = new Array(),
- 	optionMenus = new Array(),
- 	addonGroups = new Array(),
- 	addonOptionsGroup = new Array(),
- 	selectedMenuOption = false,
- 	detailsidx = 1,
- 	variationsidx = 1,
- 	addon_group_idx = 1,
- 	addonsidx = 1,
- 	optionsidx = 1,
- 	pricingidx = 1,
- 	fileUploader = false,
- 	changes = false,
- 	saving = false,
- 	flashUploader = false,
+	productOptions = new Array(),
+	productAddons = new Array(),
+	optionMenus = new Array(),
+	addonGroups = new Array(),
+	addonOptionsGroup = new Array(),
+	selectedMenuOption = false,
+	detailsidx = 1,
+	variationsidx = 1,
+	addon_group_idx = 1,
+	addonsidx = 1,
+	optionsidx = 1,
+	pricingidx = 1,
+	fileUploader = false,
+	changes = false,
+	saving = false,
+	flashUploader = false,
 	template = false,
- 	fileUploads = false;
+	fileUploads = false;
 
 jQuery(document).ready(function($) {
 	var title = $('#title'),
 		titlePrompt = $('#title-prompt-text'),
-		publishfields = $('.publishdate');
+		publishfields = $('.publishdate'),
+		changesMade = false;
 
 	// Give the product name initial focus
 	title.bind('focus keydown',function () {
 		titlePrompt.hide();
 	}).blur(function () {
-		if (title.val() == '') titlePrompt.show();
-		else titlePrompt.hide();
-	});
+			if (title.val() == '') titlePrompt.show();
+			else titlePrompt.hide();
+		});
 
 	if (!product) {
 		title.focus();
@@ -130,6 +131,21 @@ jQuery(document).ready(function($) {
 	});
 
 	$('#prices-loading').remove();
+
+	// Try to detect if changes are made to any fields on the page - other than the MCE editor,
+	// we'll deal with that using TinyMCE's isDirty() function
+	$("input").on("change", function() {
+		changesMade = true;
+		$(this).off("change"); // We don't need this anymore
+	});
+
+	// Confirm navigation dialog (avoid people accidentally losing work upon navigation)
+	window.onbeforeunload = function() {
+		var editor = typeof(tinymce) != 'undefined' ? tinymce.activeEditor : false;
+		if (changesMade || (editor && editor.isDirty() && !editor.isHidden()) )
+			return $msg.confirm;
+	}
+
 });
 
 function categories () {
@@ -169,20 +185,20 @@ function categories () {
 				}
 			};
 
-			$('#' + taxonomy + '-checklist').wpList({
-				alt: '',
-				response: taxonomy + '-ajax-response',
-				addBefore: catAddBefore,
-				addAfter: catAddAfter
-			});
+		$('#' + taxonomy + '-checklist').wpList({
+			alt: '',
+			response: taxonomy + '-ajax-response',
+			addBefore: catAddBefore,
+			addAfter: catAddAfter
+		});
 
-			tabui.find('li.tabs a').click();
+		tabui.find('li.tabs a').click();
 
-			$('#' + taxonomy + '-checklist li.popular-category :checkbox, #' + taxonomy + '-checklist-pop :checkbox').live( 'click', function(){
-				var t = $(this), c = t.is(':checked'), id = t.val();
-				if ( id && t.parents('#taxonomy-'+taxonomy).length )
-					$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).attr( 'checked', c );
-			});
+		$('#' + taxonomy + '-checklist li.popular-category :checkbox, #' + taxonomy + '-checklist-pop :checkbox').live( 'click', function(){
+			var t = $(this), c = t.is(':checked'), id = t.val();
+			if ( id && t.parents('#taxonomy-'+taxonomy).length )
+				$('#in-' + taxonomy + '-' + id + ', #in-popular-' + taxonomy + '-' + id).attr( 'checked', c );
+		});
 
 	});
 
