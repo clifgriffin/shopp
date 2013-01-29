@@ -449,6 +449,11 @@ class Shopp {
 			'sat' => __('Sat','Shopp')
 		));
 
+		// Product editor: unsaved changes warning
+		shopp_localize_script('product-editor', '$msg', array(
+			'confirm' => __('The changes you made will be lost if you navigate away from this page.', 'Shopp')
+		));
+
 		// Admin only - unsaved changes warning is currently disabled
 		// if (defined('WP_ADMIN')) $base['UNSAVED_CHANGES_WARNING'] = __('There are unsaved changes that will be lost if you continue.','Shopp');
 
