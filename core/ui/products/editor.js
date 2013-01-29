@@ -130,6 +130,20 @@ jQuery(document).ready(function($) {
 	});
 
 	$('#prices-loading').remove();
+
+	// Try to detect if changes are made to any fields on the page - other than the MCE editor,
+	// we'll deal with that using TinyMCE's isDirty() function
+	$("input").on("change", function() {
+		changesMade = true;
+		$(this).off("change"); // We don't need this anymore
+	});
+
+	// Confirm navigation dialog (avoid people accidentally losing work upon navigation)
+	window.onbeforeunload = function() {
+		var editor = typeof(tinymce) != 'undefined' ? tinymce.activeEditor : false;
+		if (changesMade || (editor && editor.isDirty() && !editor.isHidden()) )
+			return $msg.confirm;
+	}
 });
 
 function categories () {
