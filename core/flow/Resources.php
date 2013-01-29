@@ -11,8 +11,7 @@
  * @package shopp
  * @subpackage resources
  **/
-
-class ShoppResources {
+class Resources {
 	var $request = array();
 
 	/**
@@ -268,4 +267,6 @@ class ShoppResources {
 		exit();
 	}
 
-} // END class ShoppResources
+} // END class Resources
+
+?>
