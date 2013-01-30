@@ -241,7 +241,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$pricing = array();
 			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "addon") continue;
-				$pricing[$pricetag->optionkey] = $pricetag;
+				$pricing[$pricetag->options] = $pricetag;
 			}
 
 			foreach ($addons as $id => $menu) {
@@ -255,7 +255,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
 
 				foreach ($menu['options'] as $key => $option) {
-					$pricetag = $pricing[ $O->optionkey(array($option['id'])) ];
+					$pricetag = $pricing[$option['id']];
 
 					if (!is_null($taxes))
 						$taxrate = shopp_taxrate(str_true($taxes),$pricetag->tax,$O);
@@ -470,8 +470,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ($p_size > 0)
 			$_width = $_height = $p_size;
 
-		$width = $p_width > 0?$p_width:$_width;
-		$height = $p_height > 0?$p_height:$_height;
+		$width = $p_width > 0 ? $p_width : $_width;
+		$height = $p_height > 0 ? $p_height : $_height;
 
 		$preview_width = $width;
 
@@ -482,29 +482,28 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$maxwidth = $maxheight = 0;
 
 		foreach ($O->images as $img) {
-			$scale = $p_fit?false:array_search($p_fit,$img->_scaling);
-			$scaled = $img->scaled($width,$height,$scale);
-			$maxwidth = max($maxwidth,$scaled['width']);
-			$maxheight = max($maxheight,$scaled['height']);
+			$scale = $p_fit ? false : array_search($p_fit, $img->_scaling);
+			$scaled = $img->scaled($width, $height, $scale);
+			$maxwidth = max($maxwidth, $scaled['width']);
+			$maxheight = max($maxheight, $scaled['height']);
 		}
 
 		if ($maxwidth == 0) $maxwidth = $width;
 		if ($maxheight == 0) $maxheight = $height;
 
-		$p_link = value_is_true($p_link);
+		$p_link = str_true($p_link);
 
 		// Setup preview images
 		foreach ($O->images as $img) {
-
-
-			$scale = $p_fit?array_search($p_fit,$img->_scaling):false;
-			$sharpen = $p_sharpen?min($p_sharpen,$img->_sharpen):false;
-			$quality = $p_quality?min($p_quality,$img->_quality):false;
-			$fill = $p_bg?hexdec(ltrim($p_bg,'#')):false;
+			$scale = $p_fit ? array_search($p_fit, $img->_scaling) : false;
+			$sharpen = $p_sharpen ? min($p_sharpen, $img->_sharpen) : false;
+			$quality = $p_quality ? min($p_quality, $img->_quality) : false;
+			$fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
 			if ('transparent' == strtolower($p_bg)) $fill = -1;
-			$scaled = $img->scaled($width,$height,$scale);
+			$scaled = $img->scaled($width, $height, $scale);
 
 			if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
+
 				$href = shoppurl('' != get_option('permalink_structure')?trailingslashit('000'):'000','images');
 				$previews .= '<li'.(($firstPreview)?' class="fill"':'').'>';
 				$previews .= '<img src="'.add_query_string("$maxwidth,$maxheight",$href).'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
@@ -515,10 +514,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 
-			$href = shoppurl('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
+            if ($img->directly_accessible()) $href = $img->direct_url;
+			else $href = shoppurl('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
+
 			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').''.$title.'>';
 			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
-			$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+			$previews .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 			if ($p_link) $previews .= '</a>';
 			$previews .= '</li>';
 			$firstPreview = false;
@@ -555,7 +556,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 				$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':'').'">';
-				$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+				$thumbs .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 				$thumbs .= '</li>'."\n";
 				$firstThumb = false;
 			}
@@ -1074,6 +1075,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'pricetags' => 'show',
 			'before_menu' => '',
 			'after_menu' => '',
+			'format' => '%l (%p)',
 			'label' => 'on',
 			'mode' => 'multiple',
 			'taxes' => null,
@@ -1091,20 +1093,34 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$string .= '<select name="products['.$O->id.'][price]" id="product-options'.$O->id.'">';
 			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-			foreach ($O->prices as $pricetag) {
-				if ('variation' != $pricetag->context) continue;
+			foreach ($O->prices as $pricing) {
+				if ('variation' != $pricing->context) continue;
 
-				$taxrate = shopp_taxrate($taxes,$pricetag->tax);
+				$taxrate = shopp_taxrate($taxes,$pricing->tax);
 				if ( ! $taxes ) $taxrate = 0;
 
-				$currently = str_true($pricetag->sale)?$pricetag->promoprice:$pricetag->price;
-				$disabled = str_true($pricetag->inventory) && $pricetag->stock == 0?' disabled="disabled"':'';
+				$currently = str_true($pricing->sale)?$pricing->promoprice:$pricing->price;
+				$disabled = str_true($pricing->inventory) && $pricing->stock == 0?' disabled="disabled"':'';
 
 				if ($taxes && $taxrate > 0) $currently = $currently+($currently*$taxrate);
 
-				$price = '  ('.money($currently).')';
+				$discount = 100-round($pricing->promoprice*100/$pricing->price);
+				$_ = new StdClass();
+				if ($pricing->type != 'Donation')
+					$_->p = money($currently);
+				$_->l = $pricing->label;
+				$_->i = str_true($pricing->inventory);
+				if ($_->i) $_->s = $pricing->stock;
+				$_->u = $pricing->sku;
+				$_->tax = str_true($pricing->tax);
+				$_->t = $pricing->type;
+				if ($pricing->promoprice != $pricing->price)
+					$_->r = money($pricing->price);
+				if ($discount > 0)
+					$_->d = $discount;
+
 				if ('N/A' != $pricetag->type)
-					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
+					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.self::_variant_formatlabel($format,$_).'</option>'."\n";
 			}
 			$string .= '</select>';
 			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
@@ -1123,15 +1139,27 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {
+				$discount = 100-round($pricing->promoprice*100/$pricing->price);
 				$_ = new StdClass();
 				if ($pricing->type != 'Donation')
 					$_->p = (float)(str_true($pricing->sale) ? $pricing->promoprice : $pricing->price);
 				$_->i = str_true($pricing->inventory);
-				$_->s = $_->i ? $pricing->stock : false;
+				$_->s = $_->i ? (int)$pricing->stock : false;
+				$_->u = $pricing->sku;
 				$_->tax = str_true($pricing->tax);
 				$_->t = $pricing->type;
+				if ($pricing->promoprice != $pricing->price)
+					$_->r = $pricing->price;
+				if ($discount > 0)
+					$_->d = $discount;
 				$pricekeys[$key] = $_;
 			}
+
+			$jsoptions = array('prices'=> $pricekeys,'format' => $format);
+			if ( 'hide' == $options['disabled'] ) $jsoptions['disabled'] = false;
+			if ( 'hide' == $options['pricetags'] ) $jsoptions['pricetags'] = false;
+			if ( ! empty($taxrate) ) $jsoptions['taxrate'] = $taxrate;
+
 
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
@@ -1140,10 +1168,9 @@ $s.opdef = true;
 <?php if (!empty($options['required'])): ?>
 $s.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
-if ( ! pricetags ) var pricetags = new Array();
-pricetags[<?php echo $O->id; ?>] = <?php echo json_encode($pricekeys); ?>;
-new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo ".category-".ShoppCollection()->slug; ?>.product<?php echo $O->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $O->id; ?>]});
+new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_class,$O->id); ?>,<?php echo json_encode($jsoptions); ?>);
 <?php
+
 			$script = ob_get_contents();
 			ob_end_clean();
 
@@ -1164,6 +1191,25 @@ new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo "
 		}
 
 		return $string;
+	}
+
+	static function _variant_formatlabel ($format,$var) {
+		$v = get_object_vars($var);
+		$tokens = join('',array_keys($v));
+		$t = addslashes(serialize($v));
+		$p = '([^\s]*)';
+		$label = preg_replace_callback(
+			"/$p(%([a-zA-Z]))$p/",
+			create_function('$m','
+				$t = unserialize("'.$t.'");
+				if ( ! array_key_exists($m[3],$t) ) return "";
+				return $m[1].$t[ $m[3] ].$m[4];
+			'),
+			$format
+		);
+
+		return trim($label);
+
 	}
 
 	static function weight ($result, $options, $O) {
@@ -1203,3 +1249,5 @@ new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo "
 	}
 
 }
+
+?>
