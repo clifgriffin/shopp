@@ -241,7 +241,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$pricing = array();
 			foreach ($O->prices as $pricetag) {
 				if ($pricetag->context != "addon") continue;
-				$pricing[$pricetag->options] = $pricetag;
+				$pricing[$pricetag->optionkey] = $pricetag;
 			}
 
 			foreach ($addons as $id => $menu) {
@@ -255,7 +255,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				if (!empty($defaults)) $_[] = '<option value="">'.$defaults.'</option>';
 
 				foreach ($menu['options'] as $key => $option) {
-					$pricetag = $pricing[$option['id']];
+					$pricetag = $pricing[ $O->optionkey(array($option['id'])) ];
 
 					if (!is_null($taxes))
 						$taxrate = shopp_taxrate(str_true($taxes),$pricetag->tax,$O);
