@@ -19,7 +19,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		$id = $this->timecolumn('o.created');
 		$orders_table = DatabaseObject::tablename('purchase');
 		$purchased_table = DatabaseObject::tablename('purchased');
-		return "SELECT CONCAT($id) AS id,
+		$query ="SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
@@ -34,6 +34,8 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 					LEFT OUTER JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
+
+		return $query;
 
 	}
 
