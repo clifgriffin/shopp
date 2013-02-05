@@ -27,7 +27,9 @@
 			<?php echo menuoptions($actions_menu,false,true); ?>
 		</select>
 		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
-		&nbsp;
+		</div>
+
+		<div class="alignleft actions">
 		<?php echo $categories_menu; ?>
 		<?php echo $inventory_menu; ?>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
