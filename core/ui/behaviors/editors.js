@@ -965,6 +965,7 @@ function ImageUploads (id,type) {
 					deleteImages = $('#deleteImages'),
 					deleting = deleteImages.val();
 				deleteImages.val(deleting == ""?imgid:deleting+','+imgid);
+				$('#confirm-delete-images').show();
 				button.parent().fadeOut(500,function() {
 					$(this).remove();
 				});
