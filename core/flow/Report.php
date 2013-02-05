@@ -458,7 +458,9 @@ abstract class ShoppReportFramework {
 
 				$starts_week = (int)date('W',$startweekdate);
 				$ends_week =  (int)date('W',$endweekdate);
-				if ($starts_week > $ends_week) $starts_week -= 52;
+				if ($starts_week < 0) $starts_week += 52;
+				elseif ($starts_week > $ends_week) $starts_week -= 52;
+
 				return ($years*52)+$ends_week - $starts_week;
 			case 'month':
 				$starts_month = date('n',$starts);
