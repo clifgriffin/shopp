@@ -297,6 +297,8 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 
 #lightbox div.progress { margin:40px 0 0 10px; }
 
+.shopp .notice {-webkit-border-radius:3px;border-radius:3px;border:1px solid #e6db55;background-color:#ffffe0;margin: 5px 0 15px;padding: 0 0.6em; }
+
 #wpcontent .form-table select.scrolling { height:auto; }
 
 .shopp .postbox label { font-size:11px;line-height:20px; }
@@ -660,6 +662,7 @@ div.storage-settings { clear:both;margin-top:8px; }
 #debug.shopp h3 { font:bold 15px/1 "Lucida Grande",monospace; }
 
 /** Calendar **/
+.shopp #dates { display: inline-block; }
 .calendar { display:none; }
 .calendar-wrap { display:inline;position:relative;overflow:visible; }
 .calendar { position:absolute;z-index:10;top:18px;left:0;width:185px;background:white;border:1px solid #dfdfdf;padding:5px;font-size:11px;filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=0, Color='#fff');-ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=0, Color='#fff')";-moz-box-shadow: 0 0 1px #fff;-webkit-box-shadow: 0 0 1px #fff;box-shadow: 0 0 1px #fff;}
