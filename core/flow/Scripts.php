@@ -108,6 +108,7 @@ class ShoppScripts extends WP_Scripts {
 		if ( !empty($this->print_html) )
 			echo $this->print_html;
 	}
+
 	function print_scripts_l10n( $handle, $echo = true ) {
 		if ( empty($this->registered[$handle]->extra['l10n']) || empty($this->registered[$handle]->extra['l10n'][0]) || !is_array($this->registered[$handle]->extra['l10n'][1]) )
 			return false;
@@ -140,11 +141,24 @@ class ShoppScripts extends WP_Scripts {
 	}
 
 
-	function all_deps( $handles, $recursion = false, $group = false ) {
+	function all_deps ( $handles, $recursion = false, $group = false ) {
 		$r = parent::all_deps( $handles, $recursion );
 		if ( !$recursion )
 			$this->to_do = apply_filters( 'shopp_print_scripts_array', $this->to_do );
 		return $r;
+	}
+
+	function add ( $handle, $src, $deps = array(), $ver = false, $args = null ) {
+
+		$debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;	// Determine if we are debugging the scripts
+		$extension = '.js';									// Use .js extension for script files
+		$suffix = '.min';									// Use .min for suffix
+
+		// Add the suffix when not debugging and the suffix isn't already used (the file is not available unminified)
+		if ( ! $debug && false === strpos( $src, $suffix . $extension ) )
+			$src = str_replace($extension, $suffix . $extension, $src);
+
+		return parent::add( $handle, $src, $deps, $ver, $args);
 	}
 
 	function wp_dependencies () {
@@ -185,12 +199,10 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->default_version = mktime(false,false,false,1,1,2010);
 	$scripts->default_dirs = array('/ui/behaviors/','/ui/products');
 
-	// $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '_dev' : '';
-
 	$scripts->add('shopp', '/ui/behaviors/shopp.js', array('jquery'), '20100101');
 	$scripts->add_data('shopp', 'group', 1);
 
-	$scripts->add('jquery-tmpl', '/ui/behaviors/jquery/jquery.tmpl.js', array('jquery'), '20110401');
+	$scripts->add('jquery-tmpl', '/ui/behaviors/jquery/jquery.tmpl.min.js', array('jquery'), '20110401');
 	$scripts->add_data('jquery-tmpl', 'group', 1);
 
 	$scripts->add('address', '/ui/behaviors/address.js', array('jquery','shopp'), '20100101');
@@ -208,7 +220,7 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('checkout', '/ui/behaviors/checkout.js', array('jquery','shopp'), '20100101');
 	$scripts->add_data('checkout', 'group', 1);
 
-	$scripts->add('colorbox', '/ui/behaviors/colorbox.js', array('jquery'), '20100101');
+	$scripts->add('colorbox', '/ui/behaviors/colorbox.min.js', array('jquery'), '20100101');
 	$scripts->add_data('colorbox', 'group', 1);
 
 	$scripts->add('ocupload', '/ui/behaviors/ocupload.js', array('jquery'), '20100101');
@@ -259,13 +271,13 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('system', '/ui/behaviors/system.js', array('jquery'), '20120307');
 	$scripts->add_data('system', 'group', 1);
 
-	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.js', array(), '2202');
+	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.min.js', array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);
 
-	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.js', array(), '2202');
+	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.min.js', array(), '2202');
 	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
 
-	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.js', array('jquery','shopp-swfobject'), '2202');
+	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.min.js', array('jquery','shopp-swfobject'), '2202');
 	$scripts->add_data('swfupload', 'group', 1);
 
 	$scripts->add('suggest', '/ui/behaviors/suggest.js', array('jquery'), '20110330');
@@ -280,16 +292,16 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('labelset', '/ui/behaviors/labelset.js', array('jquery','jquery-tmpl'), '20110508');
 	$scripts->add_data('labelset', 'group', 1);
 
-	$scripts->add('flot', '/ui/behaviors/flot/jquery.flot.js', array('jquery'), '20121130');
+	$scripts->add('flot', '/ui/behaviors/flot/jquery.flot.min.js', array('jquery'), '20121130');
 	$scripts->add_data('flot', 'group', 1);
 
-	$scripts->add('flot-grow', '/ui/behaviors/flot/jquery.flot.grow.js', array('flot'), '20121130');
+	$scripts->add('flot-grow', '/ui/behaviors/flot/jquery.flot.grow.min.js', array('flot'), '20121130');
 	$scripts->add_data('flot-grow', 'group', 1);
 
-	$scripts->add('jvectormap', '/ui/behaviors/jvectormap.js', array('jquery'), '20121212');
+	$scripts->add('jvectormap', '/ui/behaviors/jvectormap.min.js', array('jquery'), '20121212');
 	$scripts->add_data('jvectormap', 'group', 1);
 
-	$scripts->add('worldmap', '/ui/behaviors/worldmap.js', array('jvectormap'), '20121212');
+	$scripts->add('worldmap', '/ui/behaviors/worldmap.min.js', array('jvectormap'), '20121212');
 	$scripts->add_data('worldmap', 'group', 1);
 
 	$scripts->add('reports', '/ui/behaviors/reports.js', array(), '20121212');
