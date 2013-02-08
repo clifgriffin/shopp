@@ -270,6 +270,7 @@ if (!function_exists('shopp_suhosin_warning')) {
  **/
 if (!function_exists('shopp_prereqs')) {
 	function shopp_prereqs () {
+		if ( defined('SHOPP_UNSUPPORTED') ) return;
 		$activation = false;
 		if ( isset($_GET['action']) && isset($_GET['plugin']) ) {
 			$activation = ('activate' == $_GET['action']);
