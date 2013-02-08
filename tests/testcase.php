@@ -1,24 +1,9 @@
-#!/usr/bin/php -q
 <?php
-/**
- * ShoppTests
- *
- *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited,  6 October, 2009
- * @package
- **/
 
-/**
- * Initialize
- **/
-
-require('PHPUnit/Autoload.php');
-require('xHTMLvalidator.php');
+require 'xHTMLvalidator.php';
 
 // Abstraction Layer
-class ShoppTestCase extends PHPUnit_Framework_TestCase {
+class ShoppTestCase extends WP_UnitTestCase {
 
 
 	protected $backupGlobals = FALSE;
@@ -26,6 +11,8 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	var $shopp_settings = array(); // testing settings, so tests can play nice
 
 	function setUp() {
+		parent::setUp();
+
 		// error types taken from PHPUnit_Framework_TestResult::run
 		$this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
 		$this->_old_handler = set_error_handler(array(&$this, '_error_handler'));
@@ -34,11 +21,12 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		}
 
 		set_time_limit($this->_time_limit);
-		$db =& DB::get();
-		if (!$db->dbh) $db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
+		// $db =& DB::get();
+		// if (!$db->dbh) $db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
 	}
 
 	function tearDown() {
+		parent::tearDown();
 		global $Shopp;
 		// $Shopp->Catalog = false;
 		// $Shopp->Category = false;
@@ -95,6 +83,8 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
 } // end ShoppTestCase class
 
+
+/*
 function shopp_run_tests($classes, $classname='') {
 	$suite = new PHPUnit_Framework_TestSuite();
 	foreach ($classes as $testcase)
@@ -178,5 +168,4 @@ $tests = get_all_test_cases();
 
 list ($result, $printer) = shopp_run_tests($tests);
 shopptests_print_result($printer,$result);
-
-?>
+*/
