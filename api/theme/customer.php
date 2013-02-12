@@ -287,6 +287,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	static function has_downloads ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
+		if (!empty($Storefront->downloads))
+			reset($Storefront->downloads);
 		return (!empty($Storefront->downloads));
 	}
 
@@ -312,6 +314,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
 
 		if (empty($Storefront->purchases)) $O->load_orders($filters);
+		reset($Storefront->purchases);
 		return (!empty($Storefront->purchases));
 	}
 

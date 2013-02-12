@@ -572,15 +572,17 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	static function has_addons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
+	static function has_addons ($result, $options, $O) { reset($O->prices); return (str_true($O->addons) && !empty($O->options['a'])); }
 
 	static function has_categories ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
+		reset($O->categories);
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
 	static function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_data(array('images'));
+		reset($O->images);
 		return (!empty($O->images));
 	}
 
@@ -588,12 +590,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	static function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
+		reset($O->specs);
 		if (count($O->specs) > 0) return true;
 		else return false;
 	}
 
 	static function has_tags ($result, $options, $O) {
 		if (empty($O->tags)) $O->load_data(array('tags'));
+		reset($O->tags);
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
@@ -607,6 +611,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (empty($O->prices)) $load[] = 'prices';
 		if (!empty($load)) $O->load_data($load);
 
+		reset($O->prices);
 		return (!empty($O->options['v']) || !empty($O->options));
 
 	}

@@ -561,9 +561,11 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$ProductCategory->populate($term);
 				$O->categories[$id] = $ProductCategory;
 			}
+			reset($O->categories);
 			return true;
 		}
-		if ( count($O->categories) > 0 ) return true; else return false;
+		reset($O->categories);
+		return ( count($O->categories) > 0 );
 	}
 
 	static function is_account ($result, $options, $O) { return is_account_page(); }

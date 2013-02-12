@@ -147,15 +147,15 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	static function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
 
-	static function has_downloads ($result, $options, $O) { return $O->downloads(); }
+	static function has_downloads ($result, $options, $O) { reset($O->downloads); return $O->downloads(); }
 
-	static function has_items ($result, $options, $O) { return (count($O->contents) > 0); }
+	static function has_items ($result, $options, $O) { reset($O->contents); return (count($O->contents) > 0); }
 
-	static function has_promos ($result, $options, $O) { return (count($O->discounts) > 0);  }
+	static function has_promos ($result, $options, $O) { reset($O->discounts); return (count($O->discounts) > 0);  }
 
 	static function has_ship_costs ($result, $options, $O) { return ($O->Totals->shipping > 0); }
 
-	static function has_shipped ($result, $options, $O) { return $O->shipped();	}
+	static function has_shipped ($result, $options, $O) { reset($O->shipped); return $O->shipped();	}
 
 	static function has_shipping_methods ($result, $options, $O) {
 		return apply_filters('shopp_shipping_hasestimates',
