@@ -278,6 +278,13 @@ class Promotion extends DatabaseObject {
 	    )";
 	}
 
+	/**
+	 * Duplicates a promotion
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 **/
 	function duplicate () {
 		$Promotion = new Promotion();
 		$Promotion->copydata($this);
@@ -287,6 +294,7 @@ class Promotion extends DatabaseObject {
 		$Promotion->created = null;
 		$Promotion->modified = null;
 		$Promotion->save();
+		return $Promotion;
 	}
 
 	/**
