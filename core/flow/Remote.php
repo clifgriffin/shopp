@@ -421,4 +421,8 @@ class ShoppRESTService extends ShoppRemoteAPIServiceFramework {
 		return self::call($response,$resource,$query);
 	}
 
+	static public function post ($response,$resource,$query) {
+		return self::call($response,"add-$resource",$query);
+	}
+
 }
