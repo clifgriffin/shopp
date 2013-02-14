@@ -27,12 +27,16 @@
 #shopp div.hidden,
 #shopp select.hidden { display: none; }
 
-
 #shopp .frame { border: none; }
 
-#shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
-#shopp .products ul li { display: block; float: left; border: none; }
+#shopp .products, #shopp .products ul { position: relative; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+#shopp .products li.product { float: left; position: relative; }
+#shopp .products li.product.first { clear: both; }
+
+/* Deprecated row class support */
+#shopp .products ul li.product { display: block; float: left; border: none; }
 #shopp .products li.row { display: block; width: 100%; }
+
 #shopp .products .frame { text-align: center; overflow: hidden; }
 #shopp .products .frame img { display: inline; }
 
@@ -75,21 +79,85 @@
 .shopp.tagcloud { padding: 0; width: 100%; }
 #shopp .tagcloud li,
 .shopp.tagcloud li { display: inline; margin-right: 10px; line-height: 1.2; padding: 0; background-image: none; }
-.shopp.tagcloud li.level-1 { font-size: 30px; }
-.shopp.tagcloud li.level-2 { font-size: 24px; }
-.shopp.tagcloud li.level-3 { font-size: 20px; }
-.shopp.tagcloud li.level-4 { font-size: 18px; }
-.shopp.tagcloud li.level-5 { font-size: 14px; }
-.shopp.tagcloud li.level-6 { font-size: 12px; }
-.shopp.tagcloud li.level-7 { font-size: 11px; }
+.shopp.tagcloud li.level-1 { font-size: 2em; }
+.shopp.tagcloud li.level-2 { font-size: 1.5em; }
+.shopp.tagcloud li.level-3 { font-size: 1.25em; }
+.shopp.tagcloud li.level-4 { font-size: 1em; }
+.shopp.tagcloud li.level-5 { font-size: 0.875em; }
+.shopp.tagcloud li.level-6 { font-size: 0.75em; }
+.shopp.tagcloud li.level-7 { font-size: 0.688em; }
 
 /** Categories **/
 #shopp .category { position: relative; }
 .content #shopp .views li,
 #shopp .views li { display: inline; margin: 0; padding: 0; }
 
-#shopp .views .grid { width: 15px; height: 15px; background: url('../../../core/ui/icons/grid.png') no-repeat 50% 50%; }
-#shopp .views .list { width: 15px; height: 15px; background: url('../../../core/ui/icons/list.png') no-repeat 50% 50%; }
+#shopp .views button { 
+	 font-size: 100%;
+	 display: inline-block;
+     padding: 3px;
+     overflow: hidden;
+     position: relative;
+
+     border: 1px solid #aaa;
+     white-space: nowrap;
+     line-height: 1em;
+     color: #444;
+     text-decoration: none;
+
+     -webkit-box-sizing: border-box; /* webkit */
+      -khtml-box-sizing: border-box; /* konqueror */
+        -moz-box-sizing: border-box; /* firefox */
+         -ms-box-sizing: border-box; /* ie */
+             box-sizing: border-box; /* css3 */
+			 
+     -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+             border-radius: 4px;
+
+     -webkit-background-clip: padding-box;
+        -moz-background-clip: padding;
+             background-clip: padding-box;
+
+     -webkit-touch-callout: none;
+       -webkit-user-select: none;
+        -khtml-user-select: none;
+          -moz-user-select: none;
+           -ms-user-select: none;
+               user-select: none;
+
+     background-color: #fff;
+	 background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjUuMjVweCIgaGVpZ2h0PSIyMy43NXB4IiB2aWV3Qm94PSIwIDAgMjUuMjUgMjMuNzUiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDI1LjI1IDIzLjc1IiB4bWw6c3BhY2U9InByZXNlcnZlIj48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzFfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjEyLjYyNSIgeTE9IjAiIHgyPSIxMi42MjUiIHkyPSIyNC41ODE1Ij48c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRkZGRkYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiNGMUYwRjAiLz48L2xpbmVhckdyYWRpZW50PjxyZWN0IGZpbGw9InVybCgjU1ZHSURfMV8pIiB3aWR0aD0iMjUuMjUiIGhlaWdodD0iMjMuNzUiLz48cmVjdCB5PSIxMS44NzUiIGZpbGw9IiNFREVERUUiIHdpZHRoPSIyNS4yNSIgaGVpZ2h0PSIxMS44NzUiLz48L3N2Zz4=);
+	 background-size: 100%;
+	 background-position: bottom center;
+	 background-repeat: repeat-x;
+
+	 vertical-align: bottom;
+	 
+}
+#shopp .views button:active {
+    border: 1px solid #5897fb;
+    outline: none;
+
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, white), color-stop(0.9, #ededee));
+    background-image: -webkit-linear-gradient(center bottom, white 0%, #ededee 90%);
+    background-image: -moz-linear-gradient(center bottom, white 0%, #ededee 90%);
+    background-image: -o-linear-gradient(bottom, white 0%, #ededee 90%);
+    background-image: -ms-linear-gradient(top, #ffffff 0%,white 90%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ededee', endColorstr='#ffffff',GradientType=0 );
+    background-image: linear-gradient(top, #ffffff 0%,#ededee 90%);
+	
+    -webkit-box-shadow: 0 0 5px rgba(0,0,0,.3);
+       -moz-box-shadow: 0 0 5px rgba(0,0,0,.3);
+         -o-box-shadow: 0 0 5px rgba(0,0,0,.3);
+            box-shadow: 0 0 5px rgba(0,0,0,.3);
+	
+}
+#shopp .views button > span { display: block; width: 0.875em; height: 0.875em; background-size: cover; }
+#shopp .views .grid > span { background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjE2cHgiIGhlaWdodD0iMTZweCIgdmlld0JveD0iMCAwIDE2IDE2IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxNiAxNiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZD0iTTYuODUyLDUuNzA1YzAsMC43ODgtMC42MTQsMS40MjctMS4zNzEsMS40MjdoLTQuMTFDMC42MTQsNy4xMzIsMCw2LjQ5MywwLDUuNzA1VjEuNDI2QzAsMC42MzksMC42MTQsMCwxLjM3MSwwaDQuMTEgYzAuNzU3LDAsMS4zNzEsMC42MzksMS4zNzEsMS40MjZWNS43MDV6Ii8+PHBhdGggZD0iTTE2LDUuNzA1YzAsMC43ODgtMC42MTQsMS40MjctMS4zNywxLjQyN2gtNC4xMTFjLTAuNzU2LDAtMS4zNy0wLjYzOS0xLjM3LTEuNDI3VjEuNDI2QzkuMTQ4LDAuNjM5LDkuNzYzLDAsMTAuNTE5LDAgaDQuMTExQzE1LjM4NiwwLDE2LDAuNjM5LDE2LDEuNDI2VjUuNzA1eiIvPjxwYXRoIGQ9Ik02Ljg1MiwxNC41NzNDNi44NTIsMTUuMzYsNi4yMzgsMTYsNS40ODEsMTZoLTQuMTFDMC42MTQsMTYsMCwxNS4zNiwwLDE0LjU3M3YtNC4yNzdjMC0wLjc4OCwwLjYxNC0xLjQyOCwxLjM3MS0xLjQyOCBoNC4xMWMwLjc1NywwLDEuMzcxLDAuNjQsMS4zNzEsMS40MjhWMTQuNTczeiIvPjxwYXRoIGQ9Ik0xNiwxNC41NzNDMTYsMTUuMzYsMTUuMzg2LDE2LDE0LjYzLDE2aC00LjExMWMtMC43NTYsMC0xLjM3LTAuNjQtMS4zNy0xLjQyN3YtNC4yNzdjMC0wLjc4OCwwLjYxNC0xLjQyOCwxLjM3LTEuNDI4IGg0LjExMWMwLjc1NiwwLDEuMzcsMC42NCwxLjM3LDEuNDI4VjE0LjU3M3oiLz48L3N2Zz4K) no-repeat center center; }
+#shopp .views .list > span { background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMTZweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMTYgMTYiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDE2IDE2IiB4bWw6c3BhY2U9InByZXNlcnZlIj48cGF0aCBkPSJNMTYsMS4yOTJjMCwwLjY5OC0wLjQ2MiwxLjI2NC0xLjAzMSwxLjI2NEgxLjAzMUMwLjQ2MiwyLjU1NSwwLDEuOTg5LDAsMS4yOTJsMCwwYzAtMC42OTgsMC40NjItMS4yNjQsMS4wMzEtMS4yNjRoMTMuOTM4IEMxNS41MzgsMC4wMjgsMTYsMC41OTMsMTYsMS4yOTJMMTYsMS4yOTJ6Ii8+PHBhdGggZD0iTTE2LDUuNjljMCwwLjY5OC0wLjQ2MiwxLjI2NC0xLjAzMSwxLjI2NEgxLjAzMUMwLjQ2Miw2Ljk1NCwwLDYuMzg4LDAsNS42OWwwLDBjMC0wLjY5OCwwLjQ2Mi0xLjI2NCwxLjAzMS0xLjI2NGgxMy45MzggQzE1LjUzOCw0LjQyNywxNiw0Ljk5MywxNiw1LjY5TDE2LDUuNjl6Ii8+PHBhdGggZD0iTTE2LDEwLjE4M2MwLDAuNjk4LTAuNDYyLDEuMjY0LTEuMDMxLDEuMjY0SDEuMDMxQzAuNDYyLDExLjQ0NywwLDEwLjg4MSwwLDEwLjE4M2wwLDBjMC0wLjY5OCwwLjQ2Mi0xLjI2NCwxLjAzMS0xLjI2NCBoMTMuOTM4QzE1LjUzOCw4LjkxOSwxNiw5LjQ4NSwxNiwxMC4xODNMMTYsMTAuMTgzeiIvPjxwYXRoIGQ9Ik0xNiwxNC43NjRjMCwwLjY5OC0wLjQ2MiwxLjI2NC0xLjAzMSwxLjI2NEgxLjAzMUMwLjQ2MiwxNi4wMjgsMCwxNS40NjIsMCwxNC43NjRsMCwwQzAsMTQuMDY2LDAuNDYyLDEzLjUsMS4wMzEsMTMuNSBoMTMuOTM4QzE1LjUzOCwxMy41LDE2LDE0LjA2NiwxNiwxNC43NjRMMTYsMTQuNzY0eiIvPjwvc3ZnPg==) no-repeat center center; }
+
+#shopp .category section.controls { margin: 1em 0; clear: both; }
 
 #shopp .category ul { margin: 0; padding: 0; }
 #shopp.catalog .category .products li,
@@ -97,7 +165,6 @@
 #shopp.catalog .carousel .frame li { margin: 0; padding: 0; }
 
 #shopp.catalog .listview form { margin: 0; padding: 0; }
-
 
 /** Product Page Gallery **/
 #shopp form.product label { clear: none; display: inline; }

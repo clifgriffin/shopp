@@ -6,13 +6,14 @@
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ ** http://shopplugin.com/docs/the-catalog/theme-templates/
  **
  **/
 ?>
-<?php shopp('checkout','cart-summary'); ?>
 
-<form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp" id="checkout">
-	<?php shopp('checkout','function','value=confirmed'); ?>
-	<p class="submit"><?php shopp('checkout','confirm-button','value='.__('Confirm Order','Shopp')); ?></p>
+<?php shopp( 'checkout.cart-summary' ); ?>
+
+<form action="<?php shopp( 'checkout.url' ); ?>" method="post" class="shopp" id="checkout">
+	<?php shopp( 'checkout.function', 'value=confirmed' ); ?>
+	<p class="submit"><?php shopp( 'checkout.confirm-button', 'value=' . __( 'Confirm Order', 'Shopp') ); ?></p>
 </form>
