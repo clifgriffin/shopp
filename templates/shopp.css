@@ -31,7 +31,7 @@
 #shopp .category .subcategories { padding: 10px 0; margin-bottom: 10px; }
 #shopp .category .subcategories ul { padding: 10px 0 0 20px; margin-bottom: 10px; }
 #shopp .category .subcategories li { display: inline-block; margin-right: 20px; vertical-align: top; }
-
+#shopp form.category-list-menu .subcategories { padding: auto; }
 #shopp .slideshow,
 #shopp .carousel { margin: 20px 0; overflow: hidden; }
 
