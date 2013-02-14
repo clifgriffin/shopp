@@ -6,8 +6,9 @@
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ ** http://shopplugin.com/docs/the-catalog/theme-templates/
  **
  **/
 ?>
-<?php shopp('catalog','catalog-products'); ?>
+
+<?php shopp( 'catalog.catalog-products' ); ?>
