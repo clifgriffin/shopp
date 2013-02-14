@@ -67,6 +67,7 @@ class ShoppRemoteAPIServer {
 		if ( ! apply_filters('shopp_remoteapi_client_access',$allow,$resource,$service) )
 			do_action('shopp_remoteapi_forbidden');
 
+
 		// Call the service handler for the request method
 		if ( in_array( $method, self::$methods) )
 			$response = apply_filters('shopp_remoteapi_service_'.join( '_', array($service,$method) ),$response,$resource,$query);
@@ -233,12 +234,17 @@ if ( !isset( $HTTP_RAW_POST_DATA ) ) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$resource = $_SERVER['QUERY_STRING'];
-$query = false;
-if (false !== strpos($resource,'?'))
-	list($resource,$query) = explode('?',$resource);
-$resource = explode('/',$resource);
+$resource = false;
+$query = $_SERVER['QUERY_STRING'];
+
+if (false !== strpos($query,'&'))
+	$query = explode('&',$query);
+
+$resource = explode('/',array_shift($query));
 $service = array_shift($resource);
+$querystring = join('&',$query);
+$query = array();
+wp_parse_str($querystring,$query);
 
 /** Here we go! **/
 ShoppRemoteAPIServer::start($service,$resource,$query,$method);
