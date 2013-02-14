@@ -389,6 +389,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$O->collections($showsmart);
 		$categories = $O->categories;
 
+		if (empty($categories)) return '';
+
 		$string = "";
 		if ($depth > 0) $level = $depth;
 		$levellimit = $level;
@@ -400,7 +402,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (str_true($dropdown)) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
 			$string .= $title;
-			$string .= '<form action="/" method="get"><select name="shopp_cats" '.$classes.'>';
+			$string .= '<form action="/" method="get" class="category-list-menu"><select name="shopp_cats" '.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
 			foreach ($categories as &$category) {
 				$link = $padding = $total = '';
@@ -528,7 +530,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 			if ($wraplist) $string .= '</ul>';
 		}
-		return $string;
+		return $before.$string.$after;
 		break;
 	}
 
@@ -945,8 +947,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$string = "";
 		$string .= '<ul class="views">';
 		if (isset($options['label'])) $string .= '<li>'.$options['label'].'</li>';
-		$string .= '<li><button type="button" class="grid"></button></li>';
-		$string .= '<li><button type="button" class="list"></button></li>';
+		$string .= '<li><button type="button" class="grid"><span></span></button></li>';
+		$string .= '<li><button type="button" class="list"><span></span></button></li>';
 		$string .= '</ul>';
 		return $string;
 	}

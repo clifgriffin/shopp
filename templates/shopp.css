@@ -22,9 +22,9 @@
 
 .categories ul li a.current { font-weight: bold; }
 #shopp .category { position: relative; }
-#shopp .views { display: inline; position: absolute; right: 0; top: 0; }
-#shopp .views button { border: 1px solid transparent; background: none; cursor: pointer; padding: 2px; margin-bottom: -3px; }
-#shopp .views button.hover { background-color: #ebebeb; border: 1px solid #777; }
+#shopp .views { display: inline; }
+/*#shopp .views button { border: 1px solid transparent; background: none; cursor: pointer; padding: 2px; margin-bottom: -3px;  }
+#shopp .views button.hover { background-color: #ebebeb; border: 1px solid #777; }*/
 #shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
 
@@ -68,8 +68,9 @@
 #shopp.list ul.products li .details { float: left; width: 65%; }
 #shopp.list ul.products li .listview { display: block; }
 
-#shopp ul.breadcrumb { margin: 10px 0; }
+#shopp ul.breadcrumb { margin: 10px 0; display: inline; }
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
+#shopp .category-list-menu { display: inline; }
 
 #shopp ul.categories { float: left; margin-right: 20px; }
 
