@@ -52,6 +52,7 @@ class Storefront extends FlowController {
 		// Setup WP_Query overrides
 		add_action('parse_query', array($this, 'query'));
 		add_filter('posts_request', array($this, 'noquery'),10,2);
+		add_filter('posts_request', array($this, 'pageonfront'),10,2);
 		add_filter('posts_results', array($this, 'found'),10,2);
 		add_filter('the_posts', array($this, 'posts'),10,2);
 
@@ -123,6 +124,22 @@ class Storefront extends FlowController {
 	 **/
 	function noquery ($request,$wp_query) {
 		if ( $this->request($wp_query) ) return false;
+		return $request;
+	}
+
+	function pageonfront ($request,$wp_query) {
+		if ( CatalogStorefrontPage::frontid() == get_option('page_on_front')) {
+			$pages = Storefront::pages_settings();
+
+			// Overrides to enforce page behavior
+			$wp_query->set('shopp_page',$pages['catalog']['slug']);
+			$wp_query->is_page = true;
+			$wp_query->is_singular = true;
+			$wp_query->post_count = true;
+			$wp_query->shopp_page = true;
+			$wp_query->is_archive = false;
+			$request = str_replace('.ID = shopp','.ID = NULL',$request);
+		}
 		return $request;
 	}
 
@@ -1253,6 +1270,10 @@ class CatalogStorefrontPage extends StorefrontPage {
 
 		return apply_filters('shopp_catalog_template',$content);
 
+	}
+
+	static function frontid () {
+		return '83104111112112';
 	}
 
 }
