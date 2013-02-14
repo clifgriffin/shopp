@@ -6,13 +6,14 @@
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ ** http://shopplugin.com/docs/the-catalog/theme-templates/
  **
  **/
 ?>
+
 <div class="shopp shopp-errors">
-	<h3><?php _e('Errors','Shopp'); ?></h3>
+	<h3><?php _e( 'Errors', 'Shopp' ); ?></h3>
 	<ul>
-		<?php shopp('storefront','errors'); ?>
+		<?php shopp( 'storefront.errors' ); ?>
 	</ul>
 </div>
