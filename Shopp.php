@@ -29,7 +29,7 @@ Author URI: http://ingenesis.net
 if (!defined('SHOPP_VERSION'))
 	define('SHOPP_VERSION','1.3dev');
 if (!defined('SHOPP_REVISION'))
-	define('SHOPP_REVISION','$Rev$');
+	define('SHOPP_REVISION','$Rev: 3380 $');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
 	define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 if (!defined('SHOPP_HOME'))
@@ -181,7 +181,7 @@ class Shopp {
 		ShoppErrorNotification();
 
 		// Initialize application control processing
-		$this->Flow = new ShoppFlow;
+		$this->Flow = new Flow();
 
 		// Init old properties for legacy add-on module compatibility
 		$this->Shopping = ShoppShopping();
@@ -204,10 +204,10 @@ class Shopp {
 		add_filter('wp_list_pages',array($this,'secure_links'));
 
 		// Plugin management
-        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
-        add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
+		add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
+		add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
 		add_action('load-plugins.php',array($this,'updates'));
-        add_action('shopp_check_updates', array($this, 'updates'));
+		add_action('shopp_check_updates', array($this, 'updates'));
 
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
@@ -264,7 +264,7 @@ class Shopp {
 	function pages () {
 		$var = "shopp_page"; $pages = array();
 		$settings = Storefront::pages_settings();
- 		$structure = get_option('permalink_structure');
+		$structure = get_option('permalink_structure');
 		$catalog = array_shift($settings);
 
 		foreach ($settings as $page) $pages[] = $page['slug'];
@@ -306,25 +306,25 @@ class Shopp {
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
 	 * @return array Rewrite rules
 	 **/
- 	function rewrites ($wp_rewrite_rules) {
- 		global $is_IIS;
- 		$structure = get_option('permalink_structure');
- 		if ('' == $structure) return $wp_rewrite_rules;
- 		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
+	function rewrites ($wp_rewrite_rules) {
+		global $is_IIS;
+		$structure = get_option('permalink_structure');
+		if ('' == $structure) return $wp_rewrite_rules;
+		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
 
- 		// Download URL rewrites
- 		$downloads = array(	Storefront::slug(),Storefront::slug('account'),'download','([a-f0-9]{40})','?$' );
- 		if ( $is_IIS && 0 === strpos($structure,'/index.php/') ) array_unshift($downloads,'index.php');
- 		$rules = array( join('/',$downloads)
- 				=> 'index.php?src=download&shopp_download=$matches[1]',
- 		);
+		// Download URL rewrites
+		$downloads = array(	Storefront::slug(),Storefront::slug('account'),'download','([a-f0-9]{40})','?$' );
+		if ( $is_IIS && 0 === strpos($structure,'/index.php/') ) array_unshift($downloads,'index.php');
+		$rules = array( join('/',$downloads)
+		=> 'index.php?src=download&shopp_download=$matches[1]',
+		);
 
- 		// Image URL rewrite
- 		$images = array( Storefront::slug(),'images','(\d+)',"?\??(.*)$" );
- 		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
+		// Image URL rewrite
+		$images = array( Storefront::slug(),'images','(\d+)',"?\??(.*)$" );
+		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
 
- 		return $rules + $wp_rewrite_rules;
- 	}
+		return $rules + $wp_rewrite_rules;
+	}
 
 	/**
 	 * Force rebuilding rewrite rules when necessary
@@ -721,20 +721,20 @@ class Shopp {
 
 
 		if (!empty($core)	// Core update available
-				&& isset($core->new_version)	// New version info available
-				&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
-			) {
+			&& isset($core->new_version)	// New version info available
+			&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
+		) {
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin='.($core->slug).'&core='.($core->new_version).'&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
 			if (!$activated) { // Key not active
 				$update_url = $store_url;
 				$message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.','Shopp'),
-							$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
+					$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
 
 				shopp_set_setting('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.'),
-								$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
+				$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
@@ -750,13 +750,13 @@ class Shopp {
 			return;
 		}
 
-	    if ($addons) {
+		if ($addons) {
 			// Addon update messages
 			foreach ($addons as $addon) {
 				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
 				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
 				$message = sprintf(__('There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.','Shopp'),
-						esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version) );
+					esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version) );
 
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			}

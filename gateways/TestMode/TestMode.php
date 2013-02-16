@@ -9,7 +9,7 @@
  * @since 1.1
  * @subpackage TestMode
  *
- * $Id$
+ * $Id: TestMode.php 2993 2012-03-14 20:01:46Z jdillick $
  **/
 
 class TestMode extends GatewayFramework {
