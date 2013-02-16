@@ -145,7 +145,6 @@ jQuery(document).ready(function($) {
 		if (changesMade || (editor && editor.isDirty() && !editor.isHidden()) )
 			return $msg.confirm;
 	}
-
 });
 
 function categories () {
