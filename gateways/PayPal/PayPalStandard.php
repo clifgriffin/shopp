@@ -10,7 +10,7 @@
  * @since 1.2
  * @subpackage PayPalStandard
  *
- * $Id$
+ * $Id: PayPalStandard.php 3394 2012-11-20 19:31:28Z jond $
  **/
 
 class PayPalStandard extends GatewayFramework implements GatewayModule {

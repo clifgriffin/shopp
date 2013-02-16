@@ -11,7 +11,7 @@
  * @since 1.2
  * @subpackage OrderWeight
  *
- * $Id$
+ * $Id: OrderWeight.php 3383 2012-11-16 18:29:19Z jond $
  **/
 
 class OrderWeight extends ShippingFramework implements ShippingModule {
