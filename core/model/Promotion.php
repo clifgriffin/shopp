@@ -32,14 +32,13 @@ class Promotion extends DatabaseObject {
 		"Customer type" => "text"
 	);
 
-	function Promotion ($id=false) {
+	function __construct ($id=false) {
 		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}
 
 	function catalog_discounts () {
-		$db = DB::get();
 
 		$product_table = WPDatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
@@ -425,5 +424,3 @@ class Promotion extends DatabaseObject {
 
 
 } // END clas Promotion
-
-?>
