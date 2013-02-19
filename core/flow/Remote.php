@@ -387,7 +387,7 @@ class ShoppRESTService extends ShoppRemoteAPIServiceFramework {
 	 * Cleans up Shopp DatabaseObject internal meta data
 	 *
 	 * Shopp DatabaseObject uses internal object instance properties as stateful
-	 * information for the object's methods. When retrieving these objects over
+	 * information for the object's methods. When retrieving theses objects over
 	 * the Remote API, this information is unnecessary wire weight and provides
 	 * no functional support for the remote system.
 	 *
