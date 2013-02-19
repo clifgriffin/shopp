@@ -75,7 +75,9 @@ class Item {
 		$args = func_get_args();
 		if ( empty($args) ) return;
 
-		$this->load($Product, $pricing, $category, $data, $addons);
+		if ( get_class($Product) == 'Purchased' ) $this->load_purchased($Product);
+		else $this->load($Product, $pricing, $category, $data, $addons);
+
 	}
 
 	/**
@@ -225,6 +227,19 @@ class Item {
 				if (isset($Product->maxprocess)) $this->processing['max'] = $Product->maxprocess;
 			}
 
+		}
+
+	}
+
+	function load_purchased ( $Purchased ) {
+
+		$this->load(new Product($Purchased->product),$Purchased->price,false);
+
+		// Copy matching properties
+		$properties = get_object_vars($Purchased);
+		foreach((array)$properties as $property => $value) {
+			if ( property_exists($this,$property) )
+					$this->{$property} = DB::clean($value);
 		}
 
 	}
@@ -823,5 +838,3 @@ class Item {
 	}
 
 } // END class Item
-
-?>

@@ -3,6 +3,8 @@ function manage_meta_box ($Purchase) {
 	$Gateway = $Purchase->gateway();
 
 ?>
+<form action="<?php echo AdminController::url(array('page'=>$page,'id'=>$Purchase->id)); ?>" method="post">
+
 <?php if ($Purchase->shipable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
@@ -248,6 +250,7 @@ function manage_meta_box ($Purchase) {
 		<?php endif; ?>
 	</div>
 <?php endif; ?>
+</form>
 <?php
 }
 add_meta_box('order-manage', __('Management','Shopp').$Admin->boxhelp('order-manager-manage'), 'manage_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
@@ -667,5 +670,3 @@ function notes_meta_box ($Purchase) {
 <?php
 }
 add_meta_box('order-notes', __('Notes','Shopp').$Admin->boxhelp('order-manager-notes'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-
-?>
