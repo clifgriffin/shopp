@@ -1168,7 +1168,7 @@ class StorefrontPage {
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
-		add_filter('wp_title',array($this,'wp_title'),10,3);
+		add_filter('wp_title',array($this,'wp_title'),1,3);
 		add_filter('single_post_title',array($this,'title'));
 
 		add_filter('the_title',array($this,'title'));
@@ -1203,7 +1203,7 @@ class StorefrontPage {
 	 *
 	 * @return string The page title
 	 **/
-	function title ($title) {
+	function title ( $title = '' ) {
 		global $wp_query,$wp_the_query;
 		if ( $wp_the_query !== $wp_query) return $title;
 		if ( empty($title) ) return apply_filters('shopp_'.$this->name.'_pagetitle',$this->title);
@@ -1903,5 +1903,3 @@ class StorefrontDashboardPage {
 	}
 
 } // END class StorefrontDashboardPage
-
-?>
