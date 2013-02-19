@@ -116,12 +116,12 @@ class Shopp {
 	var $_debug;
 
 	function __construct () {
-		if (WP_DEBUG) {
+
+		if ( WP_DEBUG ) {
 			$this->_debug = new StdClass();
-			if (function_exists('memory_get_peak_usage'))
+			if ( function_exists('memory_get_peak_usage') )
 				$this->_debug->memory = memory_get_peak_usage(true);
-			if (function_exists('memory_get_usage'))
-				$this->_debug->memory = memory_get_usage(true);
+			else $this->_debug->memory = memory_get_usage(true);
 		}
 
 		// Determine system and URI paths
