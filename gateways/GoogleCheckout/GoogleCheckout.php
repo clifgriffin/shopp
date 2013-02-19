@@ -10,7 +10,7 @@
  * @since 1.2
  * @subpackage GoogleCheckout
  *
- * $Id: GoogleCheckout.php 3119 2012-04-25 13:22:14Z jdillick $
+ * $Id$
  **/
 
 class GoogleCheckout extends GatewayFramework implements GatewayModule {

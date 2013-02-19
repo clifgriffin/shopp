@@ -20,7 +20,6 @@
  **/
 class Service extends AdminController {
 
-	var $screen = 'toplevel_page_shopp-orders';
 	var $orders = array();
 	var $ordercount = false;
 
@@ -59,7 +58,7 @@ class Service extends AdminController {
 
 		} else {
 			add_action('load-'.$this->screen,array($this,'loader'));
-			add_action('admin_print_scripts',array($this,'columns'));
+			add_action('load-'.$this->screen,array($this,'columns'));
 		}
 		do_action('shopp_order_admin_scripts');
 	}
@@ -290,7 +289,7 @@ class Service extends AdminController {
 
 		$Gateways = array_merge($Shopp->Gateways->modules,array('FreeOrder' => $Shopp->Gateways->freeorder));
 
-		include(SHOPP_ADMIN_PATH."/orders/orders.php");
+		include(SHOPP_ADMIN_PATH.'/orders/orders.php');
 	}
 
 	/**
@@ -305,13 +304,13 @@ class Service extends AdminController {
 	function columns () {
 		shopp_enqueue_script('calendar');
 		register_column_headers($this->screen, array(
-			'cb'=>'<input type="checkbox" />',
-			'order'=>__('Order','Shopp'),
-			'name'=>__('Name','Shopp'),
-			'destination'=>__('Destination','Shopp'),
-			'txn'=>__('Transaction','Shopp'),
-			'date'=>__('Date','Shopp'),
-			'total'=>__('Total','Shopp'))
+			'cb'          => '<input type="checkbox" />',
+			'order'       => __('Order','Shopp'),
+			'name'        => __('Name','Shopp'),
+			'destination' => __('Destination','Shopp'),
+			'txn'         => __('Transaction','Shopp'),
+			'date'        => __('Date','Shopp'),
+			'total'       => __('Total','Shopp'))
 		);
 	}
 
@@ -330,12 +329,12 @@ class Service extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
 			'items' => __('Items','Shopp'),
-			'qty' => __('Quantity','Shopp'),
+			'qty'   => __('Quantity','Shopp'),
 			'price' => __('Price','Shopp'),
 			'total' => __('Total','Shopp')
 		)));
-		include(SHOPP_ADMIN_PATH."/orders/events.php");
-		include(SHOPP_ADMIN_PATH."/orders/ui.php");
+		include(SHOPP_ADMIN_PATH.'/orders/events.php');
+		include(SHOPP_ADMIN_PATH.'/orders/ui.php');
 		do_action('shopp_order_manager_layout');
 	}
 

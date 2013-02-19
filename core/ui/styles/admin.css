@@ -589,6 +589,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 .shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
+.shopp .filtering select { float: none; display:inline-block; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
 

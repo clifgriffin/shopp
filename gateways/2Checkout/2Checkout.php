@@ -10,7 +10,7 @@
  * @since 1.1
  * @subpackage _2Checkout
  *
- * $Id: 2Checkout.php 2721 2011-12-20 02:53:52Z jond $
+ * $Id$
  **/
 
 class _2Checkout extends GatewayFramework implements GatewayModule {
