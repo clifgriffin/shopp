@@ -185,7 +185,7 @@ class ModuleFile {
 		if (empty($this->version) || empty($this->since) || empty($this->subpackage))
 			return new ShoppError(sprintf(
 				__('%s could not be loaded because the file descriptors are incomplete.','Shopp'),
-				$this->name),
+				basename($this->file)),
 				'addon_missing_meta',SHOPP_ADDON_ERR);
 
 		if (!defined('SHOPP_VERSION')) return true;
@@ -597,5 +597,3 @@ class ModuleSettingsUI {
 	}
 
 } // END class ModuleSettingsUI
-
-?>
