@@ -1001,7 +1001,17 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			'onCleanup' => false,		// Callback that fires at the start of the close process.
 			'onClosed' => false			// Callback that fires once ColorBox is closed.
 		);
+
+		// Identify boolean values
+		$booleans = array();
+		foreach ($defaults as $name => $value)
+			if ( is_bool($value) ) $booleans[] = $name;
+
 		$options = array_diff($options, $defaults);
+
+		// Convert strings to booleans
+		foreach ($options as $name => &$value)
+			if ( in_array($name,$booleans) ) $value = str_true($value);
 
 		$js = 'var cbo = '.json_encode($options).';';
 		add_storefrontjs($js,true);
