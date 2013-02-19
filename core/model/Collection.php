@@ -115,7 +115,7 @@ class ProductCollection implements Iterator {
 				'newest' => "p.post_date DESC,$titlesort",
 				'oldest' => "p.post_date ASC,$titlesort",
 				'random' => "RAND(".crc32($Shopping->session).")",
-				'choas' => "RAND(".time().")",
+				'chaos' => "RAND(".time().")",
 				'reverse' => "p.post_title DESC",
 				'title' => $titlesort,
 				'custom' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
@@ -1890,5 +1890,3 @@ class PromoProducts extends SmartCollection {
 	}
 
 }
-
-?>
