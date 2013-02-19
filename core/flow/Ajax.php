@@ -13,16 +13,16 @@
  **/
 
 /**
- * AjaxFlow
+ * ShoppAjax
  *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  **/
-class AjaxFlow {
+class ShoppAjax {
 
 	/**
-	 * Ajax constructor
+	 * ShoppAjax constructor
 	 *
 	 * @author Jonathan Davis
 	 *
@@ -32,8 +32,8 @@ class AjaxFlow {
 
 		if (isset($_POST['action']) && 'add-menu-item' == $_POST['action']) {
 			// Boot the Admin controller to handle AJAX added WP nav menu items
-			if (!class_exists('AdminFlow')) require(SHOPP_FLOW_PATH."/Admin.php");
-			new AdminFlow();
+			if (!class_exists('ShoppAdmin')) require(SHOPP_FLOW_PATH."/Admin.php");
+			new ShoppAdmin();
 		}
 
 		// Flash uploads require unprivileged access
@@ -803,6 +803,4 @@ class AjaxFlow {
 		?></ol></body></html><?php exit();
 	}
 
-} // END class AjaxFlow
-
-?>
+} // END class ShoppAjax

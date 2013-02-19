@@ -11,7 +11,7 @@
  * @since 1.2
  * @subpackage OrderAmount
  *
- * $Id: OrderAmount.php 3383 2012-11-16 18:29:19Z jond $
+ * $Id$
  **/
 
 class OrderAmount extends ShippingFramework implements ShippingModule {

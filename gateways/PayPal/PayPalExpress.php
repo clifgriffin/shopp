@@ -10,7 +10,7 @@
  * @since 1.2
  * @subpackage PayPalExpress
  *
- * $Id: PayPalExpress.php 3276 2012-06-25 20:01:40Z jdillick $
+ * $Id$
  **/
 
 class PayPalExpress extends GatewayFramework implements GatewayModule {

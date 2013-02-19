@@ -25,24 +25,25 @@
 	<?php endif; ?>
 
 	<div class="tablenav">
-		<div class="alignleft actions inline">
+		<div class="alignleft actions">
 		<?php if (current_user_can('shopp_delete_orders')): ?><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
+		</div>
+		<div class="alignleft actions">
 			<select name="newstatus">
 				<?php echo menuoptions($statusLabels,false,true); ?>
 			</select>
 			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
-			<div class="filtering">
+		</div>
+		
+		<div class="alignleft actions filtering">
 				<select name="range" id="range">
 					<?php echo menuoptions($ranges,$range,true); ?>
-				</select>
-				<div id="dates" class="hide-if-js">
-					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
+				</select><div id="dates" class="hide-if-js"><div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
 					<small>to</small>
 					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
 				</div>
 				<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
-			</div>
-			</div>
+		</div>
 
 			<?php $ListTable->pagination('top'); ?>
 
@@ -52,15 +53,15 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('toplevel_page_shopp-orders'); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen()); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen(),false); ?></tr>
 		</tfoot>
 	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
-			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
+			$hidden = get_hidden_columns(ShoppAdmin()->screen());
 
 			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
 
@@ -152,10 +153,8 @@
 <script type="text/javascript">
 var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('purchaselog_lastexport')); ?>);
 
-jQuery(document).ready( function() {
-var $=jqnc();
+jQuery(document).ready( function($) {
 
-pagenow = 'toplevel_page_shopp-orders';
 columns.init(pagenow);
 
 $('#selectall').change( function() {
@@ -208,9 +207,9 @@ var range = $('#range'),
 range.change(function () {
 	if (this.selectedIndex == 0) {
 		start.val(''); end.val('');
-		$('#dates').hide();
+		$('#dates').css('display','none');
 		return;
-	} else $('#dates').show();
+	} else $('#dates').css('display','inline-block');
 	var today = new Date(),
 		startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
 		enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
