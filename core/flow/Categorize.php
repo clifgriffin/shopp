@@ -278,14 +278,14 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
-		ShoppUI::register_column_headers($this->screen, array(
+		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_manage_category_columns',array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'slug'=>__('Slug','Shopp'),
 			'products'=>__('Products','Shopp'),
 			'templates'=>__('Templates','Shopp'),
 			'menus'=>__('Menus','Shopp'))
-		);
+		));
 	}
 
 	/**
@@ -545,5 +545,3 @@ class Categorize extends AdminController {
 
 
 } // END class Categorize
-
-?>
