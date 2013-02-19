@@ -3,7 +3,7 @@
 Plugin Name: Shopp
 Version: 1.3dev
 Description: Bolt-on ecommerce solution for WordPress
-Plugin URI: http://shopplugin.net
+Plugin URI: http://shopplugin.com
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
@@ -26,18 +26,16 @@ Author URI: http://ingenesis.net
 
 */
 
-if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.3dev');
-if (!defined('SHOPP_REVISION'))
-	define('SHOPP_REVISION','$Rev$');
-if (!defined('SHOPP_GATEWAY_USERAGENT'))
-	define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
-if (!defined('SHOPP_HOME'))
-	define('SHOPP_HOME','https://shopplugin.net/');
-if (!defined('SHOPP_CUSTOMERS'))
-	define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
-if (!defined('SHOPP_DOCS'))
-	define('SHOPP_DOCS','http://docs.shopplugin.net/');
+if ( ! defined('SHOPP_VERSION') )
+	define( 'SHOPP_VERSION', '1.3dev' );
+if ( ! defined('SHOPP_GATEWAY_USERAGENT') )
+	define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION );
+if ( ! defined('SHOPP_HOME') )
+	define( 'SHOPP_HOME', 'https://shopplugin.com/' );
+if ( ! defined('SHOPP_CUSTOMERS') )
+	define( 'SHOPP_CUSTOMERS', 'http://customers.shopplugin.com/');
+if ( ! defined('SHOPP_DOCS') )
+	define( 'SHOPP_DOCS', SHOPP_HOME.'docs/' );
 
 require('core/legacy.php');
 
@@ -786,4 +784,3 @@ class Shopp {
 	}
 
 } // END class Shopp
-?>
