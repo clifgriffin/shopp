@@ -27,7 +27,8 @@ class ShoppProductWidget extends WP_Widget {
 		$title = $before_title.$options['title'].$after_title;
 		unset($options['title']);
 
-		$content = shopp('catalog','get-sideproduct',$options);
+		$content = shopp('storefront','get-sideproduct',$options);
+
 		if (empty($content)) return false;
 		echo $before_widget.$title.$content.$after_widget;
     }
@@ -106,4 +107,3 @@ class ShoppProductWidget extends WP_Widget {
 register_widget('ShoppProductWidget');
 
 }
-?>
