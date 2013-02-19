@@ -1211,13 +1211,15 @@ class StorefrontPage {
 	}
 
 	function wp_title ( $title, $sep="&mdash;", $placement='' ) {
-		$_ = array(false, $this->title($title));
+		$_ = array($this->title($title));
 
 		if ( 'right' == $placement ) $_ = array_reverse($_);
 
 		$_ = apply_filters('shopp_document_titles',$_);
+
 		$sep = trim($sep);
 		if ( empty($sep) ) $sep = "&mdash;";
+
 		return join(" $sep ",$_);
 	}
 
