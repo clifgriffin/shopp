@@ -726,8 +726,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function quantity ($result, $options, $O) {
-		if (!shopp_setting_enabled('shopping_cart')) return '';
-		if ($O->outofstock) return '';
+		if ( ! shopp_setting_enabled('shopping_cart') ) return '';
+		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return '';
 
 		$inputs = array('text','menu');
 		$defaults = array(
@@ -740,14 +740,20 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults,$options);
 		$_options = $options;
-		extract($options);
+		extract($_options);
 
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
-		if (!isset($O->_prices_loop)) reset($O->prices);
-		$variation = current($O->prices);
-		if ('Download' == $variation->type && shopp_setting_enabled('download_quantity')) return '';
+		if ( ! shopp_setting_enabled('download_quantity') && ! empty($O->prices) ) {
+			$downloadonly = true;
+			foreach ( $O->prices as $variant ) {
+				if ( 'Download' != $variant->type && 'N/A' != $variant->type )
+					$downloadonly = false;
+			}
+			if ( $downloadonly ) return '';
+		}
+
 		$_ = array();
 
 		if ("before" == $labelpos) $_[] = $labeling;
@@ -768,15 +774,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'">';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
-				$selection = (isset($O->quantity))?$O->quantity:1;
 				if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
 					if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 					$amount = money($amount);
-					$selection = $variation->price;
+					$value = $variation->price;
 				} else {
 					if (str_true($O->inventory) && $amount > $O->max['stock']) continue;
 				}
-				$selected = ($qty==$selection)?' selected="selected"':'';
+				$selected = ($qty == $value ? ' selected="selected"' : '');
 				$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
 			}
 			$_[] = '</select>';
