@@ -778,7 +778,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function quantity ($result, $options, $O) {
-		if (!shopp_setting_enabled('shopping_cart')) return '';
+		if ( ! shopp_setting_enabled('shopping_cart') ) return '';
 		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return '';
 
 		$inputs = array('text','menu');
@@ -792,14 +792,19 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults,$options);
 		$_options = $options;
-		extract($options);
+		extract($_options);
 
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
-		$downloadonly = true;
-		foreach ($O->prices as $variant) if ('Download' != $variant->type && 'N/A' != $variant->type) $downloadonly = false;
-		if ($downloadonly && !shopp_setting_enabled('download_quantity')) return '';
+		if ( ! shopp_setting_enabled('download_quantity') && ! empty($O->prices) ) {
+			$downloadonly = true;
+			foreach ( $O->prices as $variant ) {
+				if ( 'Download' != $variant->type && 'N/A' != $variant->type )
+					$downloadonly = false;
+			}
+			if ( $downloadonly ) return '';
+		}
 
 		$_ = array();
 
