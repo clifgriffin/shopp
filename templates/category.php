@@ -11,11 +11,11 @@
  **/
 ?>
 
-<?php if ( shopp( 'category.hasproducts', 'load=coverimages' ) ) : ?>
+<?php if ( shopp( 'collection.hasproducts', 'load=coverimages' ) ) : ?>
 	<div class="category">
 		<section class="navigation controls">
 			<?php shopp( 'catalog.breadcrumb', array( 'separator' => '&nbsp;/ ' ) ); ?>
-			<?php shopp( 'category.subcategory-list', array( 'dropdown' => true,
+			<?php shopp( 'collection.subcategory-list', array( 'dropdown' => true,
 															 'hierarchy' => true,
 															 'showall' => true,
 															 'class' => 'subcategories',
@@ -29,12 +29,12 @@
 
 		<section class="view controls">
 			<?php shopp( 'catalog.views', 'label=' . __( 'Views: ', 'Shopp' ) ); ?>
-			<?php shopp( 'category.pagination', 'show=10&before=<div class="alignright">' ); ?>
+			<?php shopp( 'collection.pagination', 'show=10&before=<div class="alignright">' ); ?>
 		</section>
 
 		<ul class="products">
-			<?php while( shopp( 'category.products' ) ) : ?>
-				<li class="product<?php if ( shopp('category.row') ) echo ' first'; ?>" itemscope itemtype="http://schema.org/Product">
+			<?php while( shopp( 'collection.products' ) ) : ?>
+				<li class="product<?php if ( shopp('collection.row') ) echo ' first'; ?>" itemscope itemtype="http://schema.org/Product">
 				<div class="frame">
 					<a href="<?php shopp( 'product.url' ); ?>" itemprop="url"><?php shopp( 'product.coverimage', 'setting=thumbnails&itemprop=image' ); ?></a>
 					<div class="details">
@@ -59,14 +59,14 @@
 		</ul>
 
 		<div class="alignright">
-			<?php shopp( 'category.pagination', 'show=10' ); ?>
+			<?php shopp( 'collection.pagination', 'show=10' ); ?>
 		</div>
 	</div>
 
 <?php else : ?>
 	<?php if ( ! shopp( 'catalog.is-landing' ) ) : ?>
 		<?php shopp( 'catalog.breadcrumb' ); ?>
-		<h3><?php shopp( 'category.name' ); ?></h3>
+		<h3><?php shopp( 'collection.name' ); ?></h3>
 		<p><?php _e( 'No products were found.', 'Shopp' ); ?></p>
 	<?php endif; ?>
 <?php endif; ?>
