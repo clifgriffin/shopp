@@ -66,7 +66,9 @@ require('core/model/API.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
 
+require('core/model/Events.php');
 require('core/model/Cart.php');
+require('core/model/Totals.php');
 require('core/model/Asset.php');
 require('core/model/Catalog.php');
 require('core/model/Purchase.php');
