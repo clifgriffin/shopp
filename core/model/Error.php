@@ -289,20 +289,25 @@ class ShoppError {
 		$this->debug = $debug[1];
 
 		// Handle template errors
-		if (isset($this->debug['class']) && $this->debug['class'] == "ShoppErrors")
+		if ( isset($this->debug['class']) && 'ShoppErrors' == $this->debug['class'] )
 			$this->debug = $debug[2];
 
 		if (isset($data['file'])) $this->debug['file'] = $data['file'];
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
+
+		// Add broad typehinting support for primitives
+		if ( isset($data['phperror']) && $this->typehint($data['phperror'],$message,$this->debug) ) return;
+
 		unset($this->debug['object'],$this->debug['args']);
 
-		$this->source = "Shopp";
+		$this->source = 'Shopp';
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
-			$this->source = "PHP ".$php[$this->data['phperror']];
+			$this->source = 'PHP ' . $php[$this->data['phperror']];
 
 		$Errors = ShoppErrors();
-		if (!empty($Errors)) $Errors->add($this);
+
+		if ( ! empty($Errors) ) $Errors->add($this);
 	}
 
 	/**
@@ -326,7 +331,7 @@ class ShoppError {
 	 * @return boolean True for blank error messages
 	 **/
 	function blank () {
-		return (join('',$this->messages) == "");
+		return ( '' == join('',$this->messages) );
 	}
 
 	/**
@@ -351,6 +356,34 @@ class ShoppError {
 			if (!empty($Errors->errors)) $Errors->remove($this);
 		}
 		return $string;
+	}
+
+	private static function typehint ($level, $message, $debug) {
+		$pattern = '/^Argument (\d)+ passed to (?:(\w+)::)?(\w+)\(\) must be an instance of (\w+), (\w+) given/';
+
+		$typehints = array(
+			'boolean'   => 'is_bool',
+			'integer'   => 'is_int',
+			'float'     => 'is_float',
+			'string'    => 'is_string',
+			'resource'  => 'is_resource'
+		);
+
+		if ( E_RECOVERABLE_ERROR == $level && preg_match( $pattern, $message, $matches ) ) {
+
+			list($matched, $index, $class, $function, $hint, $type) = $matches;
+
+			if ( isset($typehints[$hint]) ) {
+				if ($debug['function'] == $function) {
+					$argument = $debug['args'][$index - 1];
+
+					if ( call_user_func($typehints[$hint],$argument) ) return true;
+				}
+			}
+
+		}
+
+		return false;
 	}
 
 }
@@ -606,6 +639,10 @@ function ShoppErrorLogging () {
 
 function ShoppErrorNotification () {
 	return ShoppErrorNotification::instance();
+}
+
+function ShoppErrorTypehints () {
+	return ShoppErrorTypehints::instance();
 }
 
 /**
