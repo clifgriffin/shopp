@@ -468,7 +468,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 						$string = substr($string,0,-5);  // last </li> to re-open the entry
 					$active = '';
 
-					if ( $Collection->parent == $parent->id ) $active = ' active';
+
+					if ( $Collection && $Collection->parent == $parent->id ) $active = ' active';
 
 					$subcategories = '<ul class="children'.$active.'">';
 					$string .= $subcategories;

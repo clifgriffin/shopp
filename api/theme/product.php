@@ -743,14 +743,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if (!is_null($taxes)) $taxes = str_true($taxes);
+		if ( ! is_null($taxes) ) $taxes = str_true($taxes);
 
-		if (!str_true($O->sale)) $property = 'price';
-		$min = $O->min[$property];
-		$mintax = $O->min[$property.'_tax']; // flag to apply tax to min price (from summary)
+		if ( ! str_true($O->sale) ) $property = 'price';
 
-		$max = $O->max[$property];
-		$maxtax = $O->max[$property.'_tax']; // flag to apply tax to max price (from summary)
+		$min = isset($O->min[ $property ]) ? $O->min[ $property ] : false;
+		$mintax = isset($O->min[ $property . '_tax' ]) ? $O->min[ $property . '_tax' ] : false; // flag to apply tax to min price (from summary)
+
+		$max = isset($O->max[ $property ]) ? $O->max[ $property ] : false;
+		$maxtax = isset($O->max[ $property . '_tax' ]) ? $O->max[ $property . '_tax' ] : false; // flag to apply tax to max price (from summary)
 
 		$taxrate = shopp_taxrate($taxes,$mintax,$O);
 
@@ -797,6 +798,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
+
+		if ( ! isset($O->_prices_loop) ) reset($O->prices);
+		$variation = current($O->prices);
+
 		if ( ! shopp_setting_enabled('download_quantity') && ! empty($O->prices) ) {
 			$downloadonly = true;
 			foreach ( $O->prices as $variant ) {
@@ -805,6 +810,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 			if ( $downloadonly ) return '';
 		}
+
 
 		$_ = array();
 
@@ -826,7 +832,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'">';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
-				if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+				if ( $variation && 'Donation' == $variation->type && str_true($variation->donation['var']) ) {
 					if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 					$amount = money($amount);
 					$value = $variation->price;
@@ -838,7 +844,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 			$_[] = '</select>';
 		} elseif (valid_input($input)) {
-			if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+			if (  $variation && 'Donation' == $variation->type && str_true($variation->donation['var']) ) {
 				if ($variation->donation['min']) $_options['value'] = $variation->price;
 				$_options['class'] .= " currency";
 			}
@@ -1171,6 +1177,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if ( ! empty($taxrate) ) $jsoptions['taxrate'] = $taxrate;
 
 
+			$collection_class = ShoppCollection() && isset(ShoppCollection()->slug) ? 'category-' . ShoppCollection()->slug : '';
+
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
 $s.opdef = true;
@@ -1189,8 +1197,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_
 			foreach ($menuoptions as $id => $menu) {
 				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-				$category_class = isset(ShoppCollection()->slug)?'category-'.ShoppCollection()->slug:'';
-				$string .= '<select name="products['.$O->id.'][options][]" class="'.$category_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
+				$string .= '<select name="products['.$O->id.'][options][]" class="'.$collection_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
 				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 				foreach ($menu['options'] as $key => $option)
 					$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";

@@ -141,7 +141,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return self::image($result, $options, $O);
 	}
 
-	static function description ($result, $options, $O) { return $O->description;  }
+	static function description ($result, $options, $O) { return isset($O->description) ? $O->description : '';  }
 
 
 	static function is_facet_filtered ($result, $options, $O) {
