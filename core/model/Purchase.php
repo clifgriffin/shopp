@@ -60,7 +60,7 @@ class Purchase extends DatabaseObject {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ('Shipped' == $purchase->type) $this->shipable = true;
 			if ( str_true($purchase->inventory) ) $this->stocked = true;
-			$purchase->data = unserialize($purchase->data);
+			if ( is_string($purchase->data) ) $purchase->data = unserialize($purchase->data);
 			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
