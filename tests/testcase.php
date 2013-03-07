@@ -21,8 +21,6 @@ class ShoppTestCase extends WP_UnitTestCase {
 		}
 
 		set_time_limit($this->_time_limit);
-		// $db =& DB::get();
-		// if (!$db->dbh) $db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
 	}
 
 	function tearDown() {

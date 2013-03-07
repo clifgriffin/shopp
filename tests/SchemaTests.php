@@ -43,6 +43,10 @@ class SchemaTests extends ShoppTestCase {
 
 		$this->AssertTrue($checks);
 	}
+
+	function test_barrys_sanity() {
+		$this->assertTrue(true);
+	}
 }
 
 ?>
