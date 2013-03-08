@@ -17,6 +17,29 @@ interface ShoppAPI {
 	static function _apicontext(); // returns the correct contextual object, if possible
 }
 
+final class ShoppDeveloperAPI {
+
+	// Load public development API
+	static function load ( $basepath ) {
+
+		require_once "$basepath/api/core.php";
+		require_once "$basepath/api/theme.php";
+		require_once "$basepath/api/remote.php";
+		require_once "$basepath/api/script.php";
+
+		require_once "$basepath/api/asset.php";
+		require_once "$basepath/api/cart.php";
+		require_once "$basepath/api/collection.php";
+		require_once "$basepath/api/customer.php";
+		require_once "$basepath/api/meta.php";
+		require_once "$basepath/api/order.php";
+		require_once "$basepath/api/product.php";
+		require_once "$basepath/api/settings.php";
+
+	}
+
+}
+
 /**
  * ShoppAPILoader
  *

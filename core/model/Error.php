@@ -1,6 +1,7 @@
 <?php
 /**
  * Error.php
+ *
  * Error management system for Shopp
  *
  * @author Jonathan Davis
@@ -10,6 +11,11 @@
  * @package shopp
  * @subpackage errors
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+// Automatically set debugging from system setting
+define('SHOPP_DEBUG', (shopp_setting('error_logging') == 2048) );
 
 define('SHOPP_ERR',1);			// Shopper visible general Shopp/shopping errors
 define('SHOPP_TRXN_ERR',2);		// Transaction errors (third-party service errors)

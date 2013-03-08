@@ -180,10 +180,7 @@ class ShoppKit {
 		}
 
 		// If not already in place, setup default system email filters
-		if (!class_exists('ShoppEmailDefaultFilters')) {
-			require(SHOPP_MODEL_PATH.'/Email.php');
-			new ShoppEmailDefaultFilters();
-		}
+		new ShoppEmailDefaultFilters();
 
 		// Message filters first
 		$headers = apply_filters('shopp_email_headers',$headers,$message);
