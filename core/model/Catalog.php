@@ -12,10 +12,7 @@
  * @subpackage Catalog
  **/
 
-require("Product.php");
-require("Collection.php");
-
-class Catalog {
+ class Catalog {
 	static $table = "catalog";
 
 	var $categories = array();

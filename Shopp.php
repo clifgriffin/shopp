@@ -26,6 +26,8 @@ Author URI: http://ingenesis.net
 
 */
 
+defined( 'WPINC' ) || header('HTTP/1.1 403') & exit; // Prevent direct access to the file
+
 if ( ! defined('SHOPP_VERSION') )
 	define( 'SHOPP_VERSION', '1.3dev' );
 if ( ! defined('SHOPP_GATEWAY_USERAGENT') )
@@ -37,54 +39,12 @@ if ( ! defined('SHOPP_CUSTOMERS') )
 if ( ! defined('SHOPP_DOCS') )
 	define( 'SHOPP_DOCS', SHOPP_HOME.'docs/' );
 
-require('core/legacy.php');
+include 'core/legacy.php';
 
 // Don't load Shopp if unsupported
-if (SHOPP_UNSUPPORTED) return;
+if ( SHOPP_UNSUPPORTED ) return;
 
-require_once('core/functions.php');
-
-// Load core app helpers
-require_once('core/Framework.php');
-require_once('core/DB.php');
-require_once('core/model/Settings.php');
-require_once('core/model/Error.php');
-require_once('core/model/Meta.php');
-
-// Load super controllers
-require('core/flow/Flow.php');
-require('core/flow/Storefront.php');
-require('core/flow/Login.php');
-require('core/flow/Scripts.php');
-require('core/flow/Order.php');
-
-// Load frameworks & Shopp-managed data model objects
-require('core/model/Modules.php');
-require('core/model/Gateway.php');
-require('core/model/Shipping.php');
-require('core/model/API.php');
-require('core/model/Lookup.php');
-require('core/model/Shopping.php');
-
-require('core/model/Events.php');
-require('core/model/Cart.php');
-require('core/model/Totals.php');
-require('core/model/Asset.php');
-require('core/model/Catalog.php');
-require('core/model/Purchase.php');
-require('core/model/Customer.php');
-
-// Load public development API
-require('api/core.php');
-require('api/theme.php');
-require('api/asset.php');
-require('api/cart.php');
-require('api/collection.php');
-require('api/customer.php');
-require('api/meta.php');
-require('api/order.php');
-require('api/settings.php');
-require('api/product.php');
+require 'core/functions.php';
 
 // Start up the core
 $Shopp = new Shopp();
@@ -99,35 +59,29 @@ do_action('shopp_loaded');
  **/
 class Shopp {
 
-	var $Settings;			// Shopp settings registry
-	var $Flow;				// Controller routing
-	var $Catalog;			// The main catalog
-	var $Category;			// Current category
-	var $Product;			// Current product
-	var $Purchase; 			// Currently requested order receipt
-	var $Shopping; 			// The shopping session
-	var $Errors;			// Error system
-	var $Order;				// The current session Order
-	var $Promotions;		// Active promotions registry
-	var $Collections;		// Collections registry
-	var $Gateways;			// Gateway modules
-	var $Shipping;			// Shipping modules
-	var $APIs;				// Loaded API modules
-	var $Storage;			// Storage engine modules
+	public $Settings;			// Shopp settings registry
+	public $Flow;				// Controller routing
+	public $Catalog;			// The main catalog
+	public $Category;			// Current category
+	public $Product;			// Current product
+	public $Purchase; 			// Currently requested order receipt
+	public $Shopping; 			// The shopping session
+	public $Errors;				// Error system
+	public $Order;				// The current session Order
+	public $Promotions;			// Active promotions registry
+	public $Collections;		// Collections registry
+	public $Gateways;			// Gateway modules
+	public $Shipping;			// Shipping modules
+	public $APIs;				// Loaded API modules
+	public $Storage;			// Storage engine modules
 
-	var $_debug;
+	static $_memory;
 
 	function __construct () {
 
-		if ( WP_DEBUG ) {
-			$this->_debug = new StdClass();
-			if ( function_exists('memory_get_peak_usage') )
-				$this->_debug->memory = memory_get_peak_usage(true);
-			else $this->_debug->memory = memory_get_usage(true);
-		}
+		if ( WP_DEBUG ) self::$_memory = memory_get_peak_usage(true);
 
 		// Determine system and URI paths
-
 		$path = sanitize_path(dirname(__FILE__));
 		$file = basename(__FILE__);
 		$directory = basename($path);
@@ -135,6 +89,7 @@ class Shopp {
 		$languages_path = array($directory,'lang');
 		load_plugin_textdomain('Shopp',false,sanitize_path(join('/',$languages_path)));
 
+		// Find plugin relative URLs
 		$uri = WP_PLUGIN_URL."/$directory";
 		$wpadmin_url = admin_url();
 
@@ -143,39 +98,42 @@ class Shopp {
 			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
 		}
 
-		if (!defined('BR')) define('BR','<br />');
+		if ( ! defined('BR') ) define('BR','<br />');
 
 		// Overrideable config macros
-		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
-		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
-		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
-		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
-		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
-		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
-		if (!defined('SHOPP_TEMP_PATH')) define('SHOPP_TEMP_PATH',sys_get_temp_dir());
-		if (!defined('SHOPP_NAMESPACE_TAXONOMIES')) define('SHOPP_NAMESPACE_TAXONOMIES',true);
+		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL',false);
+		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS',false);
+		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT',7200);
+		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG',false);
+		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT',10);
+		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT',10);
+		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH',sys_get_temp_dir());
+		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);
 
-		// Settings & Paths
-		define('SHOPP_DEBUG',(shopp_setting('error_logging') == 2048));
-		define('SHOPP_PATH',$path);
-		define('SHOPP_DIR',$directory);
-		define('SHOPP_PLUGINURI',$uri);
-		define('SHOPP_WPADMIN_URL',$wpadmin_url);
-		define('SHOPP_PLUGINFILE',"$directory/$file");
+		// Paths
+		define('SHOPP_PATH', $path);
+		define('SHOPP_DIR', $directory);
+		define('SHOPP_PLUGINURI', $uri);
+		define('SHOPP_WPADMIN_URL', $wpadmin_url);
+		define('SHOPP_PLUGINFILE', "$directory/$file");
 
-		define('SHOPP_ADMIN_DIR','/core/ui');
-		define('SHOPP_ADMIN_PATH',SHOPP_PATH.SHOPP_ADMIN_DIR);
-		define('SHOPP_ADMIN_URI',SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
-		define('SHOPP_ICONS_URI',SHOPP_ADMIN_URI.'/icons');
-		define('SHOPP_FLOW_PATH',SHOPP_PATH.'/core/flow');
-		define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
-		define('SHOPP_GATEWAYS',SHOPP_PATH.'/gateways');
-		define('SHOPP_SHIPPING',SHOPP_PATH.'/shipping');
-		define('SHOPP_STORAGE',SHOPP_PATH.'/storage');
-		define('SHOPP_THEME_APIS',SHOPP_PATH.'/api/theme');
-		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
+		define('SHOPP_ADMIN_DIR', '/core/ui');
+		define('SHOPP_ADMIN_PATH', SHOPP_PATH.SHOPP_ADMIN_DIR);
+		define('SHOPP_ADMIN_URI', SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
+		define('SHOPP_ICONS_URI', SHOPP_ADMIN_URI.'/icons');
+		define('SHOPP_FLOW_PATH', SHOPP_PATH.'/core/flow');
+		define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
+		define('SHOPP_GATEWAYS', SHOPP_PATH.'/gateways');
+		define('SHOPP_SHIPPING', SHOPP_PATH.'/shipping');
+		define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
+		define('SHOPP_THEME_APIS', SHOPP_PATH.'/api/theme');
+		define('SHOPP_DBSCHEMA', SHOPP_MODEL_PATH.'/schema.sql');
 
-		// Error singletons
+		// Autoload system
+		require "$path/core/flow/Loader.php";
+		ShoppDeveloperAPI::load( sanitize_path(dirname(__FILE__)) );
+
+		// Error system
 		ShoppErrors();
 		ShoppErrorLogging();
 		ShoppErrorNotification();
