@@ -10,6 +10,8 @@
  * @package shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures
@@ -283,17 +285,11 @@ if (!function_exists('shopp_prereqs')) {
 		$errors = array();
 
 		// Check PHP version
-		if (version_compare(PHP_VERSION, '5.0','<')) array_push($errors,'phpversion','php5');
-		if (version_compare(PHP_VERSION, '5.1.3','==')) array_push($errors,'phpversion','php513');
+		if (version_compare(PHP_VERSION, '5.2.4','<')) array_push($errors,'phpversion','php524');
 
 		// Check WordPress version
-		if (version_compare(get_bloginfo('version'),'3.1','<'))
-			array_push($errors,'wpversion','wp31');
-
-		// Check for cURL
-		$curl_func = array('curl_init','curl_setopt','curl_exec','curl_close');
-		$curl_support = array_filter($curl_func,'function_exists');
-		if (count($curl_func) != count($curl_support)) $errors[] = 'curl';
+		if (version_compare(get_bloginfo('version'),'3.5','<'))
+			array_push($errors,'wpversion','wp35');
 
 		// Check for GD
 		if (!function_exists("gd_info")) $errors[] = 'gd';
@@ -311,11 +307,9 @@ if (!function_exists('shopp_prereqs')) {
 			'header' => __('Shopp Activation Error','Shopp'),
 			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
 			'phpversion' => sprintf(__('Your server is running PHP %s!','Shopp'),PHP_VERSION),
-			'php5' => __('Shopp requires PHP 5.0+.','Shopp'),
-			'php513' => __('Shopp will not work with PHP 5.1.3 because of a critical bug in that version.','Shopp'),
+			'php5' => __('Shopp requires PHP 5.2.4+.','Shopp'),
 			'wpversion' => sprintf(__('This site is running WordPress %s!','Shopp'),get_bloginfo('version')),
-			'wp31' => __('Shopp requires WordPress 3.1+.','Shopp'),
-			'curl' => __('Your server does not have cURL support available! Shopp requires the cURL library for server-to-server communication.','Shopp'),
+			'wp35' => __('Shopp requires WordPress 3.5.','Shopp'),
 			'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.','Shopp'),
 			'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.','Shopp'),
 			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'Requirements">','</a>'),
