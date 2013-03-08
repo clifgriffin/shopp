@@ -292,16 +292,4 @@ class Settings extends DatabaseObject {
 
 } // END class Settings
 
-/**
- * Helper to access the Shopp settings registry
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @return void Description...
- **/
-function &ShoppSettings () {
-	return Settings::instance();
-}
-
 ?>

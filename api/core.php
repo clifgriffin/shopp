@@ -113,6 +113,60 @@ function &ShoppOrder ( &$Object = false ) {
 
 
 /**
+ * Helper to access the Shopp settings registry
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ *
+ * @return void Description...
+ **/
+function &ShoppSettings () {
+	return Settings::instance();
+}
+
+function ShoppShopping() {
+	return Shopping::instance();
+}
+
+/**
+ * Helper to access the error system
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ *
+ * @return void Description...
+ **/
+function ShoppErrors () {
+	return ShoppErrors::instance();
+}
+
+function ShoppErrorLogging () {
+	return ShoppErrorLogging::instance();
+}
+
+function ShoppErrorNotification () {
+	return ShoppErrorNotification::instance();
+}
+
+function ShoppErrorTypehints () {
+	return ShoppErrorTypehints::instance();
+}
+
+/**
+ * Detects ShoppError objects
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ *
+ * @param object $e The object to test
+ * @return boolean True if the object is a ShoppError
+ **/
+function is_shopperror ($e) {
+	return (get_class($e) == "ShoppError");
+}
+
+
+/**
  * Determines if the requested page is a catalog page
  *
  * Returns true for the catalog front page, Shopp taxonomy (categories, tags) pages,

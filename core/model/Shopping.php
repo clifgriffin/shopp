@@ -200,9 +200,3 @@ class ShoppingObject {
 	}
 
 }
-
-function ShoppShopping() {
-	return Shopping::instance();
-}
-
-?>
