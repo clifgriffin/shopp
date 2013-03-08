@@ -202,28 +202,15 @@ class Shopp {
 	}
 
 	/**
-	 * Initializes theme widgets
+	 * Sets up permalink handling for Storefront pages
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.0
+	 * @since 1.2
 	 *
 	 * @return void
 	 **/
-	function widgets () {
-		global $wp_version;
-		include('core/ui/widgets/account.php');
-		include('core/ui/widgets/cart.php');
-		include('core/ui/widgets/categories.php');
-		include('core/ui/widgets/facetedmenu.php');
-		include('core/ui/widgets/product.php');
-		include('core/ui/widgets/search.php');
-		include('core/ui/widgets/section.php');
-		include('core/ui/widgets/shoppers.php');
-		include('core/ui/widgets/tagcloud.php');
-	}
-
 	function pages () {
-		$var = "shopp_page"; $pages = array();
+		$var = 'shopp_page'; $pages = array();
 		$settings = Storefront::pages_settings();
  		$structure = get_option('permalink_structure');
 		$catalog = array_shift($settings);
@@ -233,7 +220,9 @@ class Shopp {
 		add_permastruct($var, "{$catalog['slug']}/%$var%", false);
 	}
 
+
 	function collections () {
+
 		shopp_register_collection('CatalogProducts');
 		shopp_register_collection('NewProducts');
 		shopp_register_collection('FeaturedProducts');
@@ -247,6 +236,7 @@ class Shopp {
 		shopp_register_collection('ViewedProducts');
 		shopp_register_collection('RandomProducts');
 		shopp_register_collection('PromoProducts');
+
 	}
 
 	function taxonomies () {
@@ -256,6 +246,29 @@ class Shopp {
 
 	function products () {
 		WPShoppObject::register('Product',Storefront::slug());
+	}
+
+	/**
+	 * Registers theme widgets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.3
+	 *
+	 * @return void
+	 **/
+	function widgets () {
+
+		register_widget('ShoppAccountWidget');
+		register_widget('ShoppCartWidget');
+		register_widget('ShoppCategoriesWidget');
+		register_widget('ShoppFacetedMenuWidget');
+		register_widget('ShoppProductWidget');
+		register_widget('ShoppSearchWidget');
+		register_widget('ShoppCategorySectionWidget');
+		register_widget('ShoppShoppersWidget');
+		register_widget('ShoppTagCloudWidget');
+
 	}
 
 	/**
