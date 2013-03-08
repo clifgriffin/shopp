@@ -373,7 +373,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 **/
 	static function image ($result, $options, $O) {
 		if (!self::has_images($result, $options, $O)) return '';
-		return ShoppCatalogThemeAPI::image($result, $options, $O);
+		return ShoppStorefrontThemeAPI::image($result, $options, $O);
 	}
 
 	static function images ($result, $options, $O) {
@@ -543,7 +543,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function section_list ($result, $options, $O) {
 		if (!isset($O->id) || empty($O->id)) return false;
 		$options['section'] = true;
-		return ShoppCatalogThemeAPI::category_list($result, $options, $O);
+		return ShoppStorefrontThemeAPI::category_list($result, $options, $O);
 	}
 
 	static function slideshow ($result, $options, $O) {
@@ -616,7 +616,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (!isset($O->id) || empty($O->id)) return false;
 		$options['childof'] = $O->id;
 		$options['default'] = __('Select a sub-category&hellip;','Shopp');
-		return ShoppCatalogThemeAPI::category_list($result, $options, $O);
+		return ShoppStorefrontThemeAPI::category_list($result, $options, $O);
 	}
 
 	static function total ($result, $options, $O) { return $O->loaded?$O->total:false; }
