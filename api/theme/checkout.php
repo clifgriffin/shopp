@@ -566,7 +566,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function error ($result, $options, $O) {
-		return ShoppCatalogThemeAPI::errors($result,$options,$O);
+		return ShoppStorefrontThemeAPI::errors($result,$options,$O);
 	}
 
 	static function first_name ($result, $options, $O) {

@@ -1,17 +1,17 @@
 <?php
 /**
-* ShoppCatalogThemeAPI - Provided theme api tags.
+* ShoppStorefrontThemeAPI - Provided theme api tags.
 *
 * @version 1.0
 * @since 1.2
 * @package shopp
-* @subpackage ShoppCatalogThemeAPI
+* @subpackage ShoppStorefrontThemeAPI
 *
 **/
 
-add_filter('shopp_themeapi_context_name', array('ShoppCatalogThemeAPI', '_context_name'));
+add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
-class ShoppCatalogThemeAPI implements ShoppAPI {
+class ShoppStorefrontThemeAPI implements ShoppAPI {
 	static $context = 'Catalog'; // @todo transition to Storefront
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',

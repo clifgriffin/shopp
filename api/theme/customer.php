@@ -658,7 +658,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * @deprecated Replaced by shopp('storefront','account-menu')
 	 **/
 	static function menu ($result, $options, $O) {
-		return ShoppCatalogThemeAPI::account_menu($result,$options,$O);
+		return ShoppStorefrontThemeAPI::account_menu($result,$options,$O);
 	}
 
 	/**
@@ -673,7 +673,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * @deprecated Replaced by shopp('storefront','account-menuitem')
 	 **/
 	static function management ($result, $options, $O) {
-		return ShoppCatalogThemeAPI::account_menuitem($result,$options,$O);
+		return ShoppStorefrontThemeAPI::account_menuitem($result,$options,$O);
 	}
 
 }
