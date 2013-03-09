@@ -6,57 +6,67 @@
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ ** http://shopplugin.com/docs/the-catalog/theme-templates/
  **
  **/
 ?>
-<?php if(shopp('category','hasproducts','load=coverimages')): ?>
+
+<?php if ( shopp( 'collection.hasproducts', 'load=coverimages' ) ) : ?>
 	<div class="category">
-	<?php shopp('catalog','breadcrumb'); ?>
+		<section class="navigation controls">
+			<?php shopp( 'catalog.breadcrumb', array( 'separator' => '&nbsp;/ ' ) ); ?>
+			<?php shopp( 'collection.subcategory-list', array( 'dropdown' => true,
+															 'hierarchy' => true,
+															 'showall' => true,
+															 'class' => 'subcategories',
+															 'before' => '&nbsp;/ ' )
+			);?>
 
-	<h3><?php shopp('category','name'); ?></h3>
-	<?php shopp('catalog','views','label='.__('Views: ','Shopp')); ?>
+			<div class="alignright">
+				<?php shopp( 'catalog.orderby-list', 'dropdown=on' ); ?>
+			</div>
+		</section>
 
-	<div><?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories&dropdown=1'); ?></div>
+		<section class="view controls">
+			<?php shopp( 'catalog.views', 'label=' . __( 'Views: ', 'Shopp' ) ); ?>
+			<?php shopp( 'collection.pagination', 'show=10&before=<div class="alignright">' ); ?>
+		</section>
 
-	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
-	<div class="alignright"><?php shopp('category','pagination','show=10'); ?></div>
-
-	<ul class="products">
-		<li class="row"><ul>
-		<?php while(shopp('category','products')): ?>
-		<?php if(shopp('category','row')): ?></ul></li><li class="row"><ul><?php endif; ?>
-			<li class="product">
+		<ul class="products">
+			<?php while( shopp( 'collection.products' ) ) : ?>
+				<li class="product<?php if ( shopp('collection.row') ) echo ' first'; ?>" itemscope itemtype="http://schema.org/Product">
 				<div class="frame">
-				<a href="<?php shopp('product','url'); ?>"><?php shopp('product','coverimage','setting=thumbnails'); ?></a>
+					<a href="<?php shopp( 'product.url' ); ?>" itemprop="url"><?php shopp( 'product.coverimage', 'setting=thumbnails&itemprop=image' ); ?></a>
 					<div class="details">
-					<h4 class="name"><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h4>
-					<p class="price"><?php shopp('product','saleprice','starting='.__('from','Shopp')); ?> </p>
-					<?php if (shopp('product','has-savings')): ?>
-						<p class="savings"><?php _e('Save ','Shopp'); ?><?php shopp('product','savings','show=percent'); ?></p>
-					<?php endif; ?>
+						<h4 class="name">
+							<a href="<?php shopp( 'product.url' ); ?>"><span itemprop="name"><?php shopp( 'product.name' ); ?></span></a>
+						</h4>
+						<p class="price" itemscope itemtype="http://schema.org/Offer"><span itemprop="price"><?php shopp( 'product.saleprice', 'starting=' . __( 'from', 'Shopp' ) ); ?></span></p>
+						<?php if ( shopp( 'product.has-savings' ) ) : ?>
+							<p class="savings"><?php _e( 'Save ', 'Shopp' ); ?><?php shopp( 'product.savings', 'show=percent' ); ?></p>
+						<?php endif; ?>
 
 						<div class="listview">
-						<p><?php shopp('product','summary'); ?></p>
-						<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
-						<?php shopp('product','addtocart'); ?>
-						</form>
+							<p><span itemprop="description"><?php shopp( 'product.summary' ); ?></span></p>
+							<form action="<?php shopp( 'cart.url' ); ?>" method="post" class="shopp product">
+								<?php shopp( 'product.addtocart' ); ?>
+							</form>
 						</div>
 					</div>
-
 				</div>
 			</li>
-		<?php endwhile; ?>
-		</ul></li>
-	</ul>
+			<?php endwhile; ?>
+		</ul>
 
-	<div class="alignright"><?php shopp('category','pagination','show=10'); ?></div>
-
+		<div class="alignright">
+			<?php shopp( 'collection.pagination', 'show=10' ); ?>
+		</div>
 	</div>
-<?php else: ?>
-	<?php if (!shopp('catalog','is-landing')): ?>
-	<?php shopp('catalog','breadcrumb'); ?>
-	<h3><?php shopp('category','name'); ?></h3>
-	<p><?php _e('No products were found.','Shopp'); ?></p>
+
+<?php else : ?>
+	<?php if ( ! shopp( 'catalog.is-landing' ) ) : ?>
+		<?php shopp( 'catalog.breadcrumb' ); ?>
+		<h3><?php shopp( 'collection.name' ); ?></h3>
+		<p><?php _e( 'No products were found.', 'Shopp' ); ?></p>
 	<?php endif; ?>
 <?php endif; ?>

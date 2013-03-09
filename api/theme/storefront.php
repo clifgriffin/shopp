@@ -1,17 +1,17 @@
 <?php
 /**
-* ShoppCatalogThemeAPI - Provided theme api tags.
+* ShoppStorefrontThemeAPI - Provided theme api tags.
 *
 * @version 1.0
 * @since 1.2
 * @package shopp
-* @subpackage ShoppCatalogThemeAPI
+* @subpackage ShoppStorefrontThemeAPI
 *
 **/
 
-add_filter('shopp_themeapi_context_name', array('ShoppCatalogThemeAPI', '_context_name'));
+add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
-class ShoppCatalogThemeAPI implements ShoppAPI {
+class ShoppStorefrontThemeAPI implements ShoppAPI {
 	static $context = 'Catalog'; // @todo transition to Storefront
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',
@@ -389,6 +389,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			$O->collections($showsmart);
 		$categories = $O->categories;
 
+		if (empty($categories)) return '';
+
 		$string = "";
 		if ($depth > 0) $level = $depth;
 		$levellimit = $level;
@@ -400,7 +402,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		if (str_true($dropdown)) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
 			$string .= $title;
-			$string .= '<form action="/" method="get"><select name="shopp_cats" '.$classes.'>';
+			$string .= '<form action="/" method="get" class="category-list-menu"><select name="shopp_cats" '.$classes.'>';
 			$string .= '<option value="">'.$default.'</option>';
 			foreach ($categories as &$category) {
 				$link = $padding = $total = '';
@@ -466,7 +468,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 						$string = substr($string,0,-5);  // last </li> to re-open the entry
 					$active = '';
 
-					if ( $Collection->parent == $parent->id ) $active = ' active';
+
+					if ( $Collection && $Collection->parent == $parent->id ) $active = ' active';
 
 					$subcategories = '<ul class="children'.$active.'">';
 					$string .= $subcategories;
@@ -528,7 +531,7 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				}
 			if ($wraplist) $string .= '</ul>';
 		}
-		return $string;
+		return $before.$string.$after;
 		break;
 	}
 
@@ -561,9 +564,11 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 				$ProductCategory->populate($term);
 				$O->categories[$id] = $ProductCategory;
 			}
+			reset($O->categories);
 			return true;
 		}
-		if ( count($O->categories) > 0 ) return true; else return false;
+		reset($O->categories);
+		return ( count($O->categories) > 0 );
 	}
 
 	static function is_account ($result, $options, $O) { return is_account_page(); }
@@ -943,8 +948,8 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 		$string = "";
 		$string .= '<ul class="views">';
 		if (isset($options['label'])) $string .= '<li>'.$options['label'].'</li>';
-		$string .= '<li><button type="button" class="grid"></button></li>';
-		$string .= '<li><button type="button" class="list"></button></li>';
+		$string .= '<li><button type="button" class="grid"><span></span></button></li>';
+		$string .= '<li><button type="button" class="list"><span></span></button></li>';
 		$string .= '</ul>';
 		return $string;
 	}
@@ -997,7 +1002,17 @@ class ShoppCatalogThemeAPI implements ShoppAPI {
 			'onCleanup' => false,		// Callback that fires at the start of the close process.
 			'onClosed' => false			// Callback that fires once ColorBox is closed.
 		);
+
+		// Identify boolean values
+		$booleans = array();
+		foreach ($defaults as $name => $value)
+			if ( is_bool($value) ) $booleans[] = $name;
+
 		$options = array_diff($options, $defaults);
+
+		// Convert strings to booleans
+		foreach ($options as $name => &$value)
+			if ( in_array($name,$booleans) ) $value = str_true($value);
 
 		$js = 'var cbo = '.json_encode($options).';';
 		add_storefrontjs($js,true);

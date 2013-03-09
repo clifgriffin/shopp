@@ -23,7 +23,7 @@ class ShoppAdmin extends FlowController {
 	var $Ajax = array();	// List of AJAX controllers
 	var $MainMenu = false;
 	var $Page = false;
-	var $Menu = false;
+
 
 	/**
 	 * Initialize the capabilities, mapping to pages
@@ -94,6 +94,9 @@ class ShoppAdmin extends FlowController {
 		add_action('load-nav-menus.php',array($this,'navmenus'));
 		add_action('wp_setup_nav_menu_item',array($this,'navmenu_setup'));
 
+		add_filter('wp_dropdown_pages', array($this, 'storefront_pages'));
+
+
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
@@ -137,6 +140,25 @@ class ShoppAdmin extends FlowController {
 		if (isset($this->Pages[$page])) $this->Page = $this->Pages[$page];
 		if (isset($this->Menus[$page])) $this->Menu = $this->Menus[$page];
 
+	}
+
+	function storefront_pages ($menu) {
+		$pages = Storefront::pages_settings();
+		$catalog = $pages['catalog'];
+		$shoppid = CatalogStorefrontPage::frontid(); // uses impossibly long number ("Shopp" in decimal)
+
+		$id = "<select name='page_on_front' id='page_on_front'>\n";
+		if ( false === strpos($menu,$id) ) return $menu;
+		$token = '<option value="0">&mdash; Select &mdash;</option>';
+
+		if ( $shoppid == get_option('page_on_front') ) $selected = ' selected="selected"';
+		$storefront = '<optgroup label="' . __('Shopp','Shopp') . '"><option value="' . $shoppid . '"' . $selected . '>' . esc_html($catalog['title']) . '</option></optgroup><optgroup label="' . __('WordPress') . '">';
+
+		$newmenu = str_replace($token,$token.$storefront,$menu);
+
+		$token = '</select>';
+		$newmenu = str_replace($token,'</optgroup>'.$token,$newmenu);
+		return $newmenu;
 	}
 
 	/**

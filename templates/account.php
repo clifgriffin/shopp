@@ -6,14 +6,15 @@
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ ** http://shopplugin.com/docs/the-catalog/theme-templates/
  **
  **/
 ?>
+
 <ul class="shopp account">
-<?php while (shopp('storefront','account-menu')): ?>
-	<li>
-		<a href="<?php shopp('storefront','account-menuitem','url'); ?>"><?php shopp('storefront','account-menuitem'); ?></a>
-	</li>
-<?php endwhile; ?>
+	<?php while( shopp( 'storefront.account-menu' ) ) : ?>
+		<li>
+			<a href="<?php shopp( 'storefront.account-menuitem', 'url' ); ?>"><?php shopp( 'storefront.account-menuitem' ); ?></a>
+		</li>
+	<?php endwhile; ?>
 </ul>

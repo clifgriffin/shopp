@@ -20,6 +20,7 @@
  **/
 class Service extends AdminController {
 
+	var $screen = 'toplevel_page_shopp-orders';
 	var $orders = array();
 	var $ordercount = false;
 
@@ -58,7 +59,7 @@ class Service extends AdminController {
 
 		} else {
 			add_action('load-'.$this->screen,array($this,'loader'));
-			add_action('load-'.$this->screen,array($this,'columns'));
+			add_action('admin_print_scripts',array($this,'columns'));
 		}
 		do_action('shopp_order_admin_scripts');
 	}
@@ -289,7 +290,7 @@ class Service extends AdminController {
 
 		$Gateways = array_merge($Shopp->Gateways->modules,array('FreeOrder' => $Shopp->Gateways->freeorder));
 
-		include(SHOPP_ADMIN_PATH.'/orders/orders.php');
+		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}
 
 	/**
@@ -304,13 +305,13 @@ class Service extends AdminController {
 	function columns () {
 		shopp_enqueue_script('calendar');
 		register_column_headers($this->screen, array(
-			'cb'          => '<input type="checkbox" />',
-			'order'       => __('Order','Shopp'),
-			'name'        => __('Name','Shopp'),
-			'destination' => __('Destination','Shopp'),
-			'txn'         => __('Transaction','Shopp'),
-			'date'        => __('Date','Shopp'),
-			'total'       => __('Total','Shopp'))
+			'cb'=>'<input type="checkbox" />',
+			'order'=>__('Order','Shopp'),
+			'name'=>__('Name','Shopp'),
+			'destination'=>__('Destination','Shopp'),
+			'txn'=>__('Transaction','Shopp'),
+			'date'=>__('Date','Shopp'),
+			'total'=>__('Total','Shopp'))
 		);
 	}
 
@@ -329,12 +330,12 @@ class Service extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
 			'items' => __('Items','Shopp'),
-			'qty'   => __('Quantity','Shopp'),
+			'qty' => __('Quantity','Shopp'),
 			'price' => __('Price','Shopp'),
 			'total' => __('Total','Shopp')
 		)));
-		include(SHOPP_ADMIN_PATH.'/orders/events.php');
-		include(SHOPP_ADMIN_PATH.'/orders/ui.php');
+		include(SHOPP_ADMIN_PATH."/orders/events.php");
+		include(SHOPP_ADMIN_PATH."/orders/ui.php");
 		do_action('shopp_order_manager_layout');
 	}
 
@@ -520,6 +521,40 @@ class Service extends AdminController {
 			} else $this->notice(__('The selected customer was not found.','Shopp'),'error');
 		}
 
+		if ( isset($_POST['save-item']) && ! empty($_POST['lineid']) ) {
+
+			// Create a cart representation of the order to recalculate order totals
+			$Cart = new Cart();
+			foreach ($Purchase->purchased as $OrderItem) {
+				$CartItem = new Item($OrderItem);
+				$Cart->contents[$OrderItem->id] = $CartItem;
+			}
+
+			$purchasedid = (int)$_POST['lineid'];
+			$Purchased = $Purchase->purchased[$purchasedid];
+			if ( $Purchased->id ) {
+
+				$override_total = ( floatvalue($_POST['total']) != $Purchased->total ); // Override total
+
+				$Item = $Cart->contents[$purchasedid];
+				$Item->quantity($_POST['quantity']);
+				$Item->unitprice = floatvalue($_POST['unitprice']);
+				$Item->retotal();
+				$Purchased->quantity = $Item->quantity;
+				$Purchased->unitprice = $Item->unitprice;
+				$Purchased->unittax = $Item->unittax;
+				$Purchased->total = $Item->total;
+				if ( $override_total ) $Purchased->total = floatvalue($_POST['total']);
+				$Purchased->save();
+			}
+
+			$Cart->retotal = true;
+			$Cart->totals();
+			$Purchase->copydata($Cart->Totals);
+			$Purchase->save();
+
+		}
+
 		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
 			$user = wp_get_current_user();
 
@@ -619,5 +654,3 @@ class Service extends AdminController {
 	}
 
 } // END class Service
-
-?>

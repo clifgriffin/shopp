@@ -69,7 +69,7 @@ class ShoppFlow {
 	 * @return boolean
 	 **/
 	function parse ( $request = false ) {
-		if ( is_a($request,'WP') ) $request = empty($wp->query_vars)?$_GET:$wp->query_vars;
+		if ( is_a($request,'WP') ) $request = empty($request->query_vars) ? $_GET : $request->query_vars;
 		else $request = $_GET;
 
 		if ( isset($request['src']) ) $this->resources($request);

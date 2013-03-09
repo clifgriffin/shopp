@@ -566,7 +566,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function error ($result, $options, $O) {
-		return ShoppCatalogThemeAPI::errors($result,$options,$O);
+		return ShoppStorefrontThemeAPI::errors($result,$options,$O);
 	}
 
 	static function first_name ($result, $options, $O) {
@@ -638,7 +638,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	static function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
+	static function has_data ($result, $options, $O) { reset($O->data); return (is_array($O->data) && count($O->data) > 0); }
 
 	static function last_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";

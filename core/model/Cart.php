@@ -1229,7 +1229,7 @@ class CartShipping {
 		// Initialize shipping modules
 		do_action('shopp_calculate_shipping_init');
 
-		$this->Cart->processing = array();
+		$this->Cart->processing = array( 'min' => 0, 'max' => 0 );
 		foreach ($this->Cart->shipped as $id => &$Item) {
 			if ($Item->freeshipping) continue;
 			// Calculate any product-specific shipping fee markups
@@ -1544,5 +1544,3 @@ class ShippingOption {
 	}
 
 } // END class ShippingOption
-
-?>

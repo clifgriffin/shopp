@@ -39,7 +39,7 @@ function shopp_register_collection ( $name = '' ) {
 
 	$apicall = create_function ('$result, $options, $O',
 		'ShoppCollection( new '.$name.'($options) );
-		return ShoppCatalogThemeAPI::category($result, $options, $O);'
+		return ShoppStorefrontThemeAPI::category($result, $options, $O);'
 	);
 
 	$slugs = array($slug);

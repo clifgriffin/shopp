@@ -141,7 +141,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return self::image($result, $options, $O);
 	}
 
-	static function description ($result, $options, $O) { return $O->description;  }
+	static function description ($result, $options, $O) { return isset($O->description) ? $O->description : '';  }
 
 
 	static function is_facet_filtered ($result, $options, $O) {
@@ -335,6 +335,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function has_categories ($result, $options, $O) {
 		if (empty($O->children) && method_exists($O, 'load_children')) $O->load_children();
+		reset($O->children);
 		return (!empty($O->children));
 	}
 
@@ -351,6 +352,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function has_images ($result, $options, $O) {
 		if ( ! is_a($O, 'ProductCategory') ) return false;
 		if (empty($O->images)) $O->load_images();
+		reset($O->images);
 		if (empty($O->images)) return false;
 		return true;
 	}
@@ -371,7 +373,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 **/
 	static function image ($result, $options, $O) {
 		if (!self::has_images($result, $options, $O)) return '';
-		return ShoppCatalogThemeAPI::image($result, $options, $O);
+		return ShoppStorefrontThemeAPI::image($result, $options, $O);
 	}
 
 	static function images ($result, $options, $O) {
@@ -541,7 +543,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	static function section_list ($result, $options, $O) {
 		if (!isset($O->id) || empty($O->id)) return false;
 		$options['section'] = true;
-		return ShoppCatalogThemeAPI::category_list($result, $options, $O);
+		return ShoppStorefrontThemeAPI::category_list($result, $options, $O);
 	}
 
 	static function slideshow ($result, $options, $O) {
@@ -614,7 +616,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (!isset($O->id) || empty($O->id)) return false;
 		$options['childof'] = $O->id;
 		$options['default'] = __('Select a sub-category&hellip;','Shopp');
-		return ShoppCatalogThemeAPI::category_list($result, $options, $O);
+		return ShoppStorefrontThemeAPI::category_list($result, $options, $O);
 	}
 
 	static function total ($result, $options, $O) { return $O->loaded?$O->total:false; }

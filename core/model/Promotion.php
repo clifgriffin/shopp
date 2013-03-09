@@ -32,14 +32,13 @@ class Promotion extends DatabaseObject {
 		"Customer type" => "text"
 	);
 
-	function Promotion ($id=false) {
+	function __construct ($id=false) {
 		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}
 
 	function catalog_discounts () {
-		$db = DB::get();
 
 		$product_table = WPDatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
@@ -126,7 +125,7 @@ class Promotion extends DatabaseObject {
 		$Collection->load( array('load'=>array('prices'),'pagination' => false) );
 	}
 
-	function uncatalog_discounts ($pricetags) {
+	function uncatalog_discounts ( $pricetags ) {
 		$_table = DatabaseObject::tablename(Price::$table);
 		if (empty($pricetags)) return;
 
@@ -137,6 +136,25 @@ class Promotion extends DatabaseObject {
 			array_splice($promos,($offset-1),1);
 			DB::query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
 		}
+	}
+
+	/**
+	 * Finds all price records that have the specified list of discounts applied to them
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.4
+	 *
+	 * @param array $ids List of promotion IDs
+	 * @return array List of price record IDs
+	 **/
+	static function discounted_prices ( $ids ) {
+		$where = array();
+		foreach ($ids as $id)
+			$where[$id] = "0 < FIND_IN_SET($id,discounts)";
+
+		$query = "SELECT id FROM $price_table WHERE ".join(" OR ",$where);
+		$pricetags = DB::query($query,'array');
+		return (array)$pricetags;
 	}
 
 	/**
@@ -278,6 +296,14 @@ class Promotion extends DatabaseObject {
 	    )";
 	}
 
+	/**
+	 * Duplicates a promotion
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return Promotion The newly created Promotion object
+	 **/
 	function duplicate () {
 		$Promotion = new Promotion();
 		$Promotion->copydata($this);
@@ -287,6 +313,7 @@ class Promotion extends DatabaseObject {
 		$Promotion->created = null;
 		$Promotion->modified = null;
 		$Promotion->save();
+		return $Promotion;
 	}
 
 	/**
@@ -339,8 +366,13 @@ class Promotion extends DatabaseObject {
 	 **/
 	static function deleteset ($ids) {
 		if (empty($ids) || !is_array($ids)) return false;
+
+		$prices = self::discounted_prices($ids);				// Get the discounted price records
+		$this->uncatalog_discounts($prices);					// Remove the deleted price discounts
+
 		$table = DatabaseObject::tablename(self::$table);
-		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")");
+		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")"); // Delete the promotions
+
 		return true;
 	}
 
@@ -392,5 +424,3 @@ class Promotion extends DatabaseObject {
 
 
 } // END clas Promotion
-
-?>

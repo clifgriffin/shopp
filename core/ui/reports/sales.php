@@ -5,7 +5,10 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 	var $periods = true;
 
 	function setup () {
-		$this->chartseries( __('Orders','Shopp'), array('column' => 'orders') );
+		$this->setchart(array(
+			'yaxis' => array('tickFormatter' => 'asMoney')
+		));
+		$this->chartseries( __('Total','Shopp'), array('column' => 'total') );
 	}
 
 	function query () {

@@ -187,16 +187,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function gateway ($result, $options, $O) { return $O->gateway; }
 
-	static function has_data ($result, $options, $O) { return (is_array($O->data) && count($O->data) > 0); }
+	static function has_data ($result, $options, $O) { reset($O->data); return (is_array($O->data) && count($O->data) > 0); }
 
 	static function has_discount ($result, $options, $O) { return ($O->discount > 0); }
 
-	static function has_downloads ($result, $options, $O) { return ($O->downloads); }
+	static function has_downloads ($result, $options, $O) { reset($O->downloads); return ($O->downloads); }
 
 	static function has_freight ($result, $options, $O) { return (!empty($O->shipmethod) || $O->freight > 0); }
 
 	static function has_items ($result, $options, $O) {
 		if (empty($O->purchased)) $O->load_purchased();
+		reset($O->purchased);
 		return (count($O->purchased) > 0);
 	}
 
@@ -320,11 +321,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function item_has_addons ($result, $options, $O) {
 		$item = current($O->purchased);
+		reset($item->addons);
 		return (count($item->addons) > 0);
 	}
 
 	static function item_has_inputs ($result, $options, $O) {
 		$item = current($O->purchased);
+		reset($item->data);
 		return (count($item->data) > 0);
 	}
 

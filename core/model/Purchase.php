@@ -53,14 +53,14 @@ class Purchase extends DatabaseObject {
 		$table = DatabaseObject::tablename(Purchased::$table);
 		$meta = DatabaseObject::tablename(MetaObject::$table);
 		$price = DatabaseObject::tablename(Price::$table);
-
+		$Purchased = new Purchased();
 		if (empty($this->id)) return false;
-		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",'array','index','id');
+		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",'array',array($Purchased,'loader'));
 		foreach ( $this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ('Shipped' == $purchase->type) $this->shipable = true;
 			if ( str_true($purchase->inventory) ) $this->stocked = true;
-			$purchase->data = unserialize($purchase->data);
+			if ( is_string($purchase->data) ) $purchase->data = unserialize($purchase->data);
 			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
@@ -864,5 +864,3 @@ foreach ($updates as $event) // Scheduled before default actions so updates are 
 
 // Handle unstock event
 add_action('shopp_unstock_order_event', array('Purchase','unstock'));
-
-?>

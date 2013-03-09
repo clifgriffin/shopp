@@ -374,6 +374,7 @@ class ShoppRESTService extends ShoppRemoteAPIServiceFramework {
 	function __construct() {
 		parent::__construct();
 		add_filter('shopp_remoteapi_service_rest_get',array(__CLASS__,'get'),10,3);
+		add_filter('shopp_remoteapi_service_rest',array(__CLASS__,'simplify'),10,3);
 		add_filter('shopp_remoteapi_service_rest',array(__CLASS__,'encode'),10,3);
 	}
 
@@ -382,8 +383,46 @@ class ShoppRESTService extends ShoppRemoteAPIServiceFramework {
 		return json_encode($response);
 	}
 
+	/**
+	 * Cleans up Shopp DatabaseObject internal meta data
+	 *
+	 * Shopp DatabaseObject uses internal object instance properties as stateful
+	 * information for the object's methods. When retrieving theses objects over
+	 * the Remote API, this information is unnecessary wire weight and provides
+	 * no functional support for the remote system.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param mixed $entry The current response entries to be encoded
+	 * @return string The simplified object data
+	 **/
+	static public function simplify ($entry) {
+
+		$array = false;
+		if ( is_object($entry) ) $array = get_object_vars($entry);
+		elseif ( is_array($entry) ) $array = $entry;
+
+		// Recursively simplify entries in arrays or object properties
+		if ( is_array($array) ) {
+			foreach ($array as $id => $record)
+				$array[$id] = self::simplify($record);
+			$entry = $array;
+		}
+
+		// If this is a DatabaseObject, use the json method to strip out the internal object meta
+		if ( is_subclass_of($entry,'DatabaseObject',false) )
+			$entry = $entry->json();
+
+		return $entry;
+	}
+
 	static public function get ($response,$resource,$query) {
 		return self::call($response,$resource,$query);
+	}
+
+	static public function post ($response,$resource,$query) {
+		return self::call($response,"add-$resource",$query);
 	}
 
 }

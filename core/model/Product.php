@@ -12,9 +12,6 @@
  * @subpackage products
  **/
 
-require("Price.php");
-require("Promotion.php");
-
 class Product extends WPShoppObject {
 	static $table = 'posts';
 	static $_taxonomies = array(

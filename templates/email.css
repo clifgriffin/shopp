@@ -22,8 +22,11 @@ p { margin-bottom: 24px; }
 .order th { font-weight: bold; text-align: left; }
 .order .item { width: 50%; }
 .order td.qty { text-align: center; }
+
 .order .money,
 .order .total,
 .order .buttons td { text-align: right; }
 .order .remove { font-size: 12px; }
-.order tr.totals th,.order tr.totals td { padding: 10px 0 0 0; }
+
+.order tr.totals th,
+.order tr.totals td { padding: 10px 0 0 0; }

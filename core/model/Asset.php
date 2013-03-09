@@ -562,13 +562,13 @@ class DownloadAsset extends FileAsset {
 			$this->purchased = $Purchased->id;
 		} else {
 			// Handle purchased line-item meta downloads (addon downloads)
-			$MetaDownload = new MetaObject(array(
+			$this->load(array(
 				'context' => 'purchased',
 				'type' => 'download',
 				'name' => $key
 			));
-			$this->load($MetaDownload->value);
-			$this->purchased = $MetaDownload->parent;
+			$this->expopulate();
+			$this->purchased = $this->parent;
 		}
 
 		$this->etag = $key;
@@ -1163,5 +1163,3 @@ class ImageSettings extends RegistryManager {
 
 
 } // END class ImageSettings
-
-?>

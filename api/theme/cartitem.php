@@ -191,7 +191,7 @@ class ShoppCartItemThemeAPI {
 		return $result;
 	}
 
-	static function has_addons ($result, $options, $O) { return (count($O->addons) > 0); }
+	static function has_addons ($result, $options, $O) { reset($O->addons); return (count($O->addons) > 0); }
 
 	static function addons ($result, $options, $O) {
 		if (!isset($O->_addons_loop)) {
@@ -277,7 +277,7 @@ class ShoppCartItemThemeAPI {
 		return $result;
 	}
 
-	static function has_inputs ($result, $options, $O) { return (count($O->data) > 0); }
+	static function has_inputs ($result, $options, $O) { reset($O->data); return (count($O->data) > 0); }
 
 	static function in_category ($result, $options, $O) {
 		if (empty($O->categories)) return false;
@@ -343,7 +343,7 @@ class ShoppCartItemThemeAPI {
 		if ( false === $O->image ) return false;
 		$O->images = array($O->image);
 		$options['index'] = 0;
-		return ShoppCatalogThemeAPI::image($result, $options, $O);
+		return ShoppStorefrontThemeAPI::image($result, $options, $O);
 	}
 
 	static function _include_tax ($O) {

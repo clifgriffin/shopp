@@ -60,7 +60,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		return $Order->Cart;
 	}
 
-	static function has_options ($result, $options, $O) { return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
+	static function has_options ($result, $options, $O) { reset($O->shipping); return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
 
 	static function option_selector ($result, $options, $O) {
 		global $Shopp;

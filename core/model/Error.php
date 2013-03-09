@@ -1,6 +1,7 @@
 <?php
 /**
  * Error.php
+ *
  * Error management system for Shopp
  *
  * @author Jonathan Davis
@@ -10,6 +11,11 @@
  * @package shopp
  * @subpackage errors
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+// Automatically set debugging from system setting
+define('SHOPP_DEBUG', (shopp_setting('error_logging') == 2048) );
 
 define('SHOPP_ERR',1);			// Shopper visible general Shopp/shopping errors
 define('SHOPP_TRXN_ERR',2);		// Transaction errors (third-party service errors)
@@ -289,20 +295,25 @@ class ShoppError {
 		$this->debug = $debug[1];
 
 		// Handle template errors
-		if (isset($this->debug['class']) && $this->debug['class'] == "ShoppErrors")
+		if ( isset($this->debug['class']) && 'ShoppErrors' == $this->debug['class'] )
 			$this->debug = $debug[2];
 
 		if (isset($data['file'])) $this->debug['file'] = $data['file'];
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
+
+		// Add broad typehinting support for primitives
+		if ( isset($data['phperror']) && $this->typehint($data['phperror'],$message,$this->debug) ) return;
+
 		unset($this->debug['object'],$this->debug['args']);
 
-		$this->source = "Shopp";
+		$this->source = 'Shopp';
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
-			$this->source = "PHP ".$php[$this->data['phperror']];
+			$this->source = 'PHP ' . $php[$this->data['phperror']];
 
 		$Errors = ShoppErrors();
-		if (!empty($Errors)) $Errors->add($this);
+
+		if ( ! empty($Errors) ) $Errors->add($this);
 	}
 
 	/**
@@ -326,7 +337,7 @@ class ShoppError {
 	 * @return boolean True for blank error messages
 	 **/
 	function blank () {
-		return (join('',$this->messages) == "");
+		return ( '' == join('',$this->messages) );
 	}
 
 	/**
@@ -351,6 +362,34 @@ class ShoppError {
 			if (!empty($Errors->errors)) $Errors->remove($this);
 		}
 		return $string;
+	}
+
+	private static function typehint ($level, $message, $debug) {
+		$pattern = '/^Argument (\d)+ passed to (?:(\w+)::)?(\w+)\(\) must be an instance of (\w+), (\w+) given/';
+
+		$typehints = array(
+			'boolean'   => 'is_bool',
+			'integer'   => 'is_int',
+			'float'     => 'is_float',
+			'string'    => 'is_string',
+			'resource'  => 'is_resource'
+		);
+
+		if ( E_RECOVERABLE_ERROR == $level && preg_match( $pattern, $message, $matches ) ) {
+
+			list($matched, $index, $class, $function, $hint, $type) = $matches;
+
+			if ( isset($typehints[$hint]) ) {
+				if ($debug['function'] == $function) {
+					$argument = $debug['args'][$index - 1];
+
+					if ( call_user_func($typehints[$hint],$argument) ) return true;
+				}
+			}
+
+		}
+
+		return false;
 	}
 
 }
@@ -587,38 +626,3 @@ class CallbackSubscription {
 	}
 
 }
-
-/**
- * Helper to access the error system
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @return void Description...
- **/
-function ShoppErrors () {
-	return ShoppErrors::instance();
-}
-
-function ShoppErrorLogging () {
-	return ShoppErrorLogging::instance();
-}
-
-function ShoppErrorNotification () {
-	return ShoppErrorNotification::instance();
-}
-
-/**
- * Detects ShoppError objects
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @param object $e The object to test
- * @return boolean True if the object is a ShoppError
- **/
-function is_shopperror ($e) {
-	return (get_class($e) == "ShoppError");
-}
-
-?>

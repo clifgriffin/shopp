@@ -572,15 +572,17 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	static function has_addons ($result, $options, $O) { return ($O->addons == "on" && !empty($O->options['a'])); }
+	static function has_addons ($result, $options, $O) { reset($O->prices); return (str_true($O->addons) && !empty($O->options['a'])); }
 
 	static function has_categories ($result, $options, $O) {
 		if (empty($O->categories)) $O->load_data(array('categories'));
+		reset($O->categories);
 		if (count($O->categories) > 0) return true; else return false;
 	}
 
 	static function has_images ($result, $options, $O) {
 		if (empty($O->images)) $O->load_data(array('images'));
+		reset($O->images);
 		return (!empty($O->images));
 	}
 
@@ -588,12 +590,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	static function has_specs ($result, $options, $O) {
 		if (empty($O->specs)) $O->load_data(array('specs'));
+		reset($O->specs);
 		if (count($O->specs) > 0) return true;
 		else return false;
 	}
 
 	static function has_tags ($result, $options, $O) {
 		if (empty($O->tags)) $O->load_data(array('tags'));
+		reset($O->tags);
 		if (count($O->tags) > 0) return true; else return false;
 	}
 
@@ -607,6 +611,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (empty($O->prices)) $load[] = 'prices';
 		if (!empty($load)) $O->load_data($load);
 
+		reset($O->prices);
 		return (!empty($O->options['v']) || !empty($O->options));
 
 	}
@@ -624,7 +629,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 **/
 	static function image ($result, $options, $O) {
 		if (!self::has_images($result, $options, $O)) return '';
-		return ShoppCatalogThemeAPI::image($result, $options, $O);
+		return ShoppStorefrontThemeAPI::image($result, $options, $O);
 	}
 
 	static function images ($result, $options, $O) {
@@ -738,14 +743,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if (!is_null($taxes)) $taxes = str_true($taxes);
+		if ( ! is_null($taxes) ) $taxes = str_true($taxes);
 
-		if (!str_true($O->sale)) $property = 'price';
-		$min = $O->min[$property];
-		$mintax = $O->min[$property.'_tax']; // flag to apply tax to min price (from summary)
+		if ( ! str_true($O->sale) ) $property = 'price';
 
-		$max = $O->max[$property];
-		$maxtax = $O->max[$property.'_tax']; // flag to apply tax to max price (from summary)
+		$min = isset($O->min[ $property ]) ? $O->min[ $property ] : false;
+		$mintax = isset($O->min[ $property . '_tax' ]) ? $O->min[ $property . '_tax' ] : false; // flag to apply tax to min price (from summary)
+
+		$max = isset($O->max[ $property ]) ? $O->max[ $property ] : false;
+		$maxtax = isset($O->max[ $property . '_tax' ]) ? $O->max[ $property . '_tax' ] : false; // flag to apply tax to max price (from summary)
 
 		$taxrate = shopp_taxrate($taxes,$mintax,$O);
 
@@ -773,7 +779,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function quantity ($result, $options, $O) {
-		if (!shopp_setting_enabled('shopping_cart')) return '';
+		if ( ! shopp_setting_enabled('shopping_cart') ) return '';
 		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return '';
 
 		$inputs = array('text','menu');
@@ -787,14 +793,24 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults,$options);
 		$_options = $options;
-		extract($options);
+		extract($_options);
 
 		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 		$labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
-		$downloadonly = true;
-		foreach ($O->prices as $variant) if ('Download' != $variant->type && 'N/A' != $variant->type) $downloadonly = false;
-		if ($downloadonly && !shopp_setting_enabled('download_quantity')) return '';
+
+		if ( ! isset($O->_prices_loop) ) reset($O->prices);
+		$variation = current($O->prices);
+
+		if ( ! shopp_setting_enabled('download_quantity') && ! empty($O->prices) ) {
+			$downloadonly = true;
+			foreach ( $O->prices as $variant ) {
+				if ( 'Download' != $variant->type && 'N/A' != $variant->type )
+					$downloadonly = false;
+			}
+			if ( $downloadonly ) return '';
+		}
+
 
 		$_ = array();
 
@@ -816,7 +832,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'">';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
-				if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+				if ( $variation && 'Donation' == $variation->type && str_true($variation->donation['var']) ) {
 					if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 					$amount = money($amount);
 					$value = $variation->price;
@@ -828,7 +844,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 			$_[] = '</select>';
 		} elseif (valid_input($input)) {
-			if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+			if (  $variation && 'Donation' == $variation->type && str_true($variation->donation['var']) ) {
 				if ($variation->donation['min']) $_options['value'] = $variation->price;
 				$_options['class'] .= " currency";
 			}
@@ -1161,6 +1177,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if ( ! empty($taxrate) ) $jsoptions['taxrate'] = $taxrate;
 
 
+			$collection_class = ShoppCollection() && isset(ShoppCollection()->slug) ? 'category-' . ShoppCollection()->slug : '';
+
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
 $s.opdef = true;
@@ -1179,8 +1197,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_
 			foreach ($menuoptions as $id => $menu) {
 				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-				$category_class = isset(ShoppCollection()->slug)?'category-'.ShoppCollection()->slug:'';
-				$string .= '<select name="products['.$O->id.'][options][]" class="'.$category_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
+				$string .= '<select name="products['.$O->id.'][options][]" class="'.$collection_class.' product'.$O->id.' options" id="options-'.$menu['id'].'">';
 				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 				foreach ($menu['options'] as $key => $option)
 					$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
