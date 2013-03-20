@@ -380,7 +380,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 	return count($O->contents);
 	}
 
-	static function total_promos ($result, $options, $O) { return count($O->discounts); }
+	static function total_promos ($result, $options, $O) {
+		return count($O->discounts);
+	}
 
 	static function total_quantity ($result, $options, $O) {
 	 	return $O->Totals->quantity;

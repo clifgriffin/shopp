@@ -462,7 +462,11 @@ class DB extends SingletonFramework {
 	 **/
 	function loaddata ($queries) {
 		$queries = explode(";\n", $queries);
-		array_pop($queries);
+
+		// Check if the final query is empty (and remove if so)
+		$last_query = trim($queries[count($queries) - 1]);
+		if (empty($last_query)) array_pop($queries);
+
 		foreach ($queries as $query) if (!empty($query)) DB::query($query);
 		return true;
 	}

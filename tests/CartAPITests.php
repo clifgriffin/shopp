@@ -357,7 +357,7 @@ class CartAPITests extends ShoppTestCase {
 		$Product = shopp_product('code-is-poetry-t-shirt','slug');
 		shopp_add_cart_product($Product->id,1);
 
-		$_REQUEST['promocode'] = '2percent';
+		$_REQUEST['promocode'] = '2Percent';
 		ShoppOrder()->Cart->request();
 		ShoppOrder()->Cart->totals();
 

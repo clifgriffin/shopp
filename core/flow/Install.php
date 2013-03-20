@@ -142,7 +142,6 @@ class ShoppInstallation extends FlowController {
 
 		DB::loaddata($schema);
 		unset($schema);
-
 	}
 
 	/**
