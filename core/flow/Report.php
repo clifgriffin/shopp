@@ -637,6 +637,53 @@ abstract class ShoppReportFramework {
 	}
 
 	/**
+	 * Specifies the scores to be added to the scoreboard
+	 *
+	 * This method is a placeholder. Scores should be specified in the concrete report subclass.
+	 *
+	 * The array should be defined as an associative array with the translateable label as keys and the
+	 * score as the value:
+	 *
+	 * array(__('Total','Shopp') => $this->totals->total);
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	function scores () {
+		return array();
+	}
+
+	/**
+	 * Renders the scoreboard
+	 *
+	 * @author Jonathan Davis
+	 * @since 13
+	 *
+	 * @return void
+	 **/
+	function scoreboard () {
+		$scores = $this->scores();
+		?>
+		<table class="scoreboard">
+			<tr>
+				<?php foreach ($scores as $label => $score): ?>
+				<td>
+					<label><?php echo $label; ?></label>
+					<big><?php echo $score; ?></big>
+				</td>
+				<?php endforeach; ?>
+			</tr>
+		</table>
+		<?php
+	}
+
+	function chart () {
+		if ( $this->Chart ) $this->Chart->render();
+	}
+
+	/**
 	 * Renders the report table to the WP admin screen
 	 *
 	 * @author Jonathan Davis
@@ -647,7 +694,6 @@ abstract class ShoppReportFramework {
 	function table () {
 		extract($this->options,EXTR_SKIP);
 
-		if ( $this->Chart ) $this->Chart->render();
 		// Get only the records for this page
 		$beginning = (int)($paged-1)*$per_page;
 
