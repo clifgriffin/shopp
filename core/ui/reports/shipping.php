@@ -17,8 +17,8 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = array();
 		$where[] = "p.type = 'Shipped'";
-		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
-		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
 
 		$where = join(" AND ",$where);
 		$id = $this->timecolumn('o.created');

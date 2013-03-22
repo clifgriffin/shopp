@@ -16,9 +16,8 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = array();
 
-		$tzoffset = date('Z')/3600;
-		$where[] = "$starts < UNIX_TIMESTAMP(o.created)+$tzoffset";
-		$where[] = "$ends > UNIX_TIMESTAMP(o.created)+$tzoffset";
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
 
 		$where = join(" AND ",$where);
 

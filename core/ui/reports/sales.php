@@ -15,14 +15,14 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
-		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
-		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
 		$where = join(" AND ",$where);
 
 		$id = $this->timecolumn('o.created');
 		$orders_table = DatabaseObject::tablename('purchase');
 		$purchased_table = DatabaseObject::tablename('purchased');
-		return "SELECT CONCAT($id) AS id,
+		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT p.id) AS items,
 							COUNT(DISTINCT o.id) AS orders,
@@ -38,6 +38,8 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 					WHERE $where
 					GROUP BY CONCAT($id)";
 
+		return $query;
+
 	}
 
 	function columns () {
@@ -52,6 +54,14 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 			'total'=>__('Total','Shopp'),
 			'orderavg'=>__('Average Order','Shopp'),
 			'itemavg'=>__('Average Items','Shopp')
+		);
+	}
+
+	function scores () {
+		return array(
+			__('Total','Shopp') => money($this->totals->total),
+			__('Orders','Shopp') => intval($this->totals->orders),
+			__('Average Order','Shopp') => money($this->totals->total/$this->totals->orders)
 		);
 	}
 

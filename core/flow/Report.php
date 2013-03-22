@@ -453,6 +453,20 @@ abstract class ShoppReportFramework {
 	}
 
 	/**
+	 * Gets the timezone-offset corrected unix_timestamp value for a MySQL column
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $column The column name
+	 * @return string The UNIX_TIMESTAMP SQL column fragment
+	 **/
+	static function unixtime ( string $column ) {
+		$tzoffset = date('Z')/3600;
+		return "UNIX_TIMESTAMP(CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00'))";
+	}
+
+	/**
 	 * Determines the range of periods between two dates for a given scale
 	 *
 	 * @author Jonathan Davis
