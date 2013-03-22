@@ -1,0 +1,6 @@
+gateways/*
+!gateways/core/*
+shipping/*
+!shipping/core/*
+storage/*
+!storage/core/*
