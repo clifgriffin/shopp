@@ -148,11 +148,6 @@ class Report extends AdminController {
 		// Load the report
 		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
 
-		if ( ! class_exists($reports[$report]['class']) ) { // Class is not loaded, scan built-in reports
-			if ( ! file_exists(SHOPP_ADMIN_PATH."/reports/$report.php") ) wp_die("The requested report does not exist.");
-			require(SHOPP_ADMIN_PATH."/reports/$report.php");
-		}
-
 		$ReportClass = $reports[$report]['class'];
 		$Report = new $ReportClass($options);
 		$Report->load();
@@ -256,22 +251,22 @@ interface ShoppReport {
 abstract class ShoppReportFramework {
 
 	// Settings
-	var $periods = false;		// A time period series report
+	public $periods = false;		// A time period series report
 
 
-	var $screen = false;		// The current WP screen
-	var $Chart = false;			// The report chart (if any)
+	public $screen = false;			// The current WP screen
+	public $Chart = false;			// The report chart (if any)
 
 
-	var $options = array();		// Options for the report
-	var $data = array();		// The processed report data
+	public $options = array();		// Options for the report
+	public $data = array();			// The processed report data
 	public $totals = false;			// The processed totals for the report
 
 
-	var $range = false;			// Range of values in the report
-	var $total = 0;				// Total number of records in the report
-	var $pages = 1;				// Number of pages for the report
-	var $daterange = false;
+	public $range = false;			// Range of values in the report
+	public $total = 0;				// Total number of records in the report
+	public $pages = 1;				// Number of pages for the report
+	public $daterange = false;
 
 	function __construct ($request = array()) {
 		$this->options = $request;
@@ -444,7 +439,7 @@ abstract class ShoppReportFramework {
 	 *
 	 * @return string Date index column SQL statement
 	 **/
-	function timecolumn ($column) {
+	function timecolumn ( string $column ) {
 		$tzoffset = date('Z')/3600;
 		$column = "CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00')";
 		switch (strtolower($this->options['scale'])) {
@@ -468,7 +463,7 @@ abstract class ShoppReportFramework {
 	 * @param string $scale Scale of periods (hour, day, week, month, year)
 	 * @return int The number of periods
 	 **/
-	function range ($starts,$ends,$scale='day') {
+	function range ( int $starts, int $ends, $scale = 'day') {
 		$oneday = 86400;
 		$years = date('Y',$ends)-date('Y',$starts);
 		switch (strtolower($scale)) {
@@ -511,7 +506,7 @@ abstract class ShoppReportFramework {
 	 * @param array $formats The starting and ending date() formats
 	 * @return string Formatted week range label
 	 **/
-	static function weekrange ( $ts, $formats=array('F j','F j Y') ) {
+	static function weekrange ( int $ts, $formats=array('F j','F j Y') ) {
 		$weekday = date('w',$ts);
 		$startweek = $ts-($weekday*86400);
 		$endweek = $startweek+(6*86400);
