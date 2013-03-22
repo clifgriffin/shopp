@@ -943,7 +943,7 @@ class ShoppReportChart {
 			'markingsColor' => '#f7f7f7'
          ),
 		// Solarized Color Palette
-		'colors' => array('#618C03','#1C63A8','#1F756B','#896204','#cb4b16','#A90007','#A9195F','#4B4B9A'),
+		'colors' => array('#1C63A8','#618C03','#1C63A8','#1F756B','#896204','#CB4B16','#A90007','#A9195F','#4B4B9A'),
 	);
 
 	/**
