@@ -42,6 +42,7 @@ class Report extends AdminController {
 		shopp_enqueue_script('calendar');
 		shopp_enqueue_script('reports');
 
+		add_filter('shopp_reports',array($this,'xreports'));
 		add_action('load-'.$this->screen,array($this,'loader'));
 	}
 
@@ -59,9 +60,25 @@ class Report extends AdminController {
 			'tax' => array( 'class' => 'TaxReport', 'name' => __('Tax Report','Shopp'), 'label' => __('Taxes','Shopp') ),
 			'shipping' => array( 'class' => 'ShippingReport', 'name' => __('Shipping Report','Shopp'), 'label' => __('Shipping','Shopp') ),
 			'discounts' => array( 'class' => 'DiscountsReport', 'name' => __('Discounts Report','Shopp'), 'label' => __('Discounts','Shopp') ),
-			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
+			'customers' => array( 'class' => 'CustomersReport', 'name' => __('Customers Report','Shopp'), 'label' => __('Customers','Shopp') ),
 			'locations' => array( 'class' => 'LocationsReport', 'name' => __('Locations Report','Shopp'), 'label' => __('Locations','Shopp') ),
+			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
 		));
+	}
+
+	/**
+	 * Registers extra conditional reports
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $reports The list of registered reports
+	 * @return array The modified list of registered reports
+	 **/
+	static function xreports ($reports) {
+		if ( shopp_setting_enabled('inventory') )
+			$reports['inventory'] = array( 'class' => 'InventoryReport', 'name' => __('Inventory Report','Shopp'), 'label' => __('Inventory','Shopp') );
+		return $reports;
 	}
 
 	/**
