@@ -15,8 +15,8 @@ class DiscountsReport extends ShoppReportFramework implements ShoppReport {
 	function query () {
 		extract($this->options,EXTR_SKIP);
 		$where = array();
-		$where[] = "$starts < UNIX_TIMESTAMP(o.created)";
-		$where[] = "$ends > UNIX_TIMESTAMP(o.created)";
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
 
 		$where = join(" AND ",$where);
 		$id = $this->timecolumn('o.created');
