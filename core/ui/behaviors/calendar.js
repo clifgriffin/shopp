@@ -317,7 +317,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 	};
 
 
-	if (input !== false) {
+	if ( ! input) {
 		pos = input.offset();
 		pad = 0; // Padding offset
 
