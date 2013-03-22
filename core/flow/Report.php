@@ -265,6 +265,7 @@ abstract class ShoppReportFramework {
 
 	var $options = array();		// Options for the report
 	var $data = array();		// The processed report data
+	public $totals = false;			// The processed totals for the report
 
 
 	var $range = false;			// Range of values in the report
@@ -275,6 +276,7 @@ abstract class ShoppReportFramework {
 	function __construct ($request = array()) {
 		$this->options = $request;
 		$this->screen = $this->options['screen'];
+		$this->totals = new StdClass();
 
 		add_action('shopp_report_filter_controls',array($this,'filters'));
 		add_action("manage_{$this->screen}_columns",array($this,'screencolumns'));
@@ -301,13 +303,10 @@ abstract class ShoppReportFramework {
 		if ( empty($query) ) return;
 		$loaded = DB::query( $query, 'array', array($this,'process') );
 
-		if ( $this->periods ) {
-			if ( $this->Chart ) {
-				foreach ($this->data as $index => $record) {
-					foreach ($this->chartseries as $series => $column) {
-						$this->chartdata($series,$record->period,$record->$column);
-					}
-				}
+		if ( $this->periods && $this->Chart ) {
+			foreach ($this->data as $index => $record) {
+				foreach ($this->chartseries as $series => $column)
+					$this->chartdata($series,$record->period,$record->$column);
 			}
 		} else {
 			$this->data = $loaded;
@@ -329,9 +328,18 @@ abstract class ShoppReportFramework {
 	function process (&$records,&$record,$Object=false,$index='id',$collate=false) {
 		$index = isset($record->$index) ? $record->$index : '!NO_INDEX!';
 
+		$columns = get_object_vars($record);
+		foreach ($columns as $column => $value) {
+			if ( (int)$value > 0 || (float)$value > 0 ) {
+				if ( ! isset($this->totals->$column) ) $this->totals->$column = 0;
+				$this->totals->$column += $value;
+			}
+		}
+
 		if ( $this->periods && isset($this->data[$index]) ) {
 			$record->period = $this->data[$index]->period;
 			$this->data[$index] = $record;
+
 			return;
 		}
 
@@ -524,6 +532,10 @@ abstract class ShoppReportFramework {
 	 * @return void
 	 **/
 	static function period ($data,$column,$title,$options) {
+
+		if ( __('Total','Shopp') == $data->period ) { echo __('Total','Shopp'); return; }
+		if ( __('Average','Shopp') == $data->period ) { echo __('Average','Shopp'); return; }
+
 		switch (strtolower($options['scale'])) {
 			case 'hour': echo date('ga',$data->period); break;
 			case 'day': echo date('l, F j, Y',$data->period); break;
@@ -639,9 +651,6 @@ abstract class ShoppReportFramework {
 				<thead>
 				<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 				</thead>
-				<tfoot>
-				<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
-				</tfoot>
 			<?php if ( false !== $report && count($report) > 0 ): ?>
 				<tbody id="report" class="list stats">
 				<?php
@@ -653,7 +662,7 @@ abstract class ShoppReportFramework {
 				while (list($id,$data) = each($report)):
 					if ($records++ > $per_page) break;
 				?>
-					<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+					<tr<?php if ( ! $even ) echo " class='alternate'"; $even = ! $even; ?>>
 				<?php
 
 					foreach ($columns as $column => $column_title) {
@@ -661,7 +670,7 @@ abstract class ShoppReportFramework {
 						if ( in_array($column,$hidden) ) $classes[] = 'hidden';
 
 						if ( method_exists(get_class($this),$column)): ?>
-							<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo call_user_func(array(get_class($this),$column),$data,$column,$column_title,$this->options); ?></td>
+							<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo call_user_func(array(self,$column),$data,$column,$column_title,$this->options); ?></td>
 						<?php else: ?>
 							<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 							<?php do_action( 'shopp_manage_report_custom_column', $column, $column_title, $data );	?>
@@ -671,10 +680,56 @@ abstract class ShoppReportFramework {
 				?>
 				</tr>
 				<?php endwhile; /* records */ ?>
+
+				<tr class="summary average">
+					<?php
+					$averages = clone $this->totals;
+					$first = true;
+					foreach ($columns as $column => $column_title):
+						if ( $first ) {
+							$averages->$column = __('Average','Shopp');
+							$first = false;
+						} else $averages->$column = ($averages->$column / $this->total);
+						$classes = array($column,"column-$column");
+						if ( in_array($column,$hidden) ) $classes[] = 'hidden';
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+							<?php
+								if ( method_exists(get_class($this),$column) )
+									echo call_user_func(array(self,$column),$averages,$column,$column_title,$this->options);
+								else do_action( 'shopp_manage_report_custom_column_average', $column, $column_title, $data );
+							?>
+						</td>
+					<?php endforeach; ?>
+				</tr>
+				<tr class="summary total">
+					<?php
+					$first = true;
+					foreach ($columns as $column => $column_title):
+						if ( $first ) {
+							$this->totals->$column = __('Total','Shopp');
+							$first = false;
+						}
+						$classes = array($column,"column-$column");
+						if ( in_array($column,$hidden) ) $classes[] = 'hidden';
+					?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+							<?php
+								if ( method_exists(get_class($this),$column) )
+									echo call_user_func(array(self,$column),$this->totals,$column,$column_title,$this->options);
+								else do_action( 'shopp_manage_report_custom_column_total', $column, $column_title, $data );
+							?>
+						</td>
+					<?php endforeach; ?>
+				</tr>
+
 				</tbody>
 			<?php else: ?>
 				<tbody><tr><td colspan="<?php echo count(get_column_headers($this->screen)); ?>"><?php _e('No report data available.','Shopp'); ?></td></tr></tbody>
 			<?php endif; ?>
+			<tfoot>
+			<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
+			</tfoot>
 			</table>
 	<?php
 	}
