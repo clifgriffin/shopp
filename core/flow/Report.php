@@ -791,7 +791,7 @@ abstract class ShoppReportFramework {
 		</select>
 		<div id="dates" class="hide-if-js">
 			<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo esc_attr($start); ?>" size="10" class="search-input selectall" /></div>
-			<small>to</small>
+			<small><?php _e('to','Shopp'); ?></small>
 			<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo esc_attr($end); ?>" size="10" class="search-input selectall" /></div>
 		</div>
 <?php
