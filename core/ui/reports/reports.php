@@ -4,7 +4,7 @@
 
 	<?php do_action('shopp_admin_notices'); ?>
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="report" method="get">
 	<?php include("navigation.php"); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
@@ -25,6 +25,10 @@
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
+
+	<?php $Report->chart(); ?>
+
+	<?php $Report->scoreboard(); ?>
 
 	<?php $Report->table(); ?>
 
