@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @version 1.2
  **/
 class DB extends SingletonFramework {
-	static $version = 1149;	// Database schema version
+	static $version = 1150;	// Database schema version
 
 	protected static $instance;
 
@@ -1079,19 +1079,19 @@ class WPShoppObject extends WPDatabaseObject {
  **/
 abstract class SessionObject {
 
-	var $_table;
-	var $session;
-	var $ip;
-	var $data;
-	var $created;
-	var $modified;
-	var $path;
+	public $_table;
+	public $session;
+	public $ip;
+	public $data;
+	public $stash = 0;
+	public $created;
+	public $modified;
+	public $path = '';
 
-	var $secure = false;
-
+	public $secure = false;
 
 	function __construct () {
-		if (!defined('SHOPP_SECURE_KEY'))
+		if ( ! defined('SHOPP_SECURE_KEY') )
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 
 		// Close out any early session calls
@@ -1112,12 +1112,12 @@ abstract class SessionObject {
 	 **/
 	function handling () {
 		return session_set_save_handler(
-			array( &$this, 'open' ),	// Open
-			array( &$this, 'close' ),	// Close
-			array( &$this, 'load' ),	// Read
-			array( &$this, 'save' ),	// Write
-			array( &$this, 'unload' ),	// Destroy
-			array( &$this, 'trash' )	// Garbage Collection
+			array( $this, 'open' ),		// Open
+			array( $this, 'close' ),	// Close
+			array( $this, 'load' ),		// Read
+			array( $this, 'save' ),		// Write
+			array( $this, 'unload' ),	// Destroy
+			array( $this, 'clean' )		// Garbage Collection
 		);
 	}
 
@@ -1131,11 +1131,15 @@ abstract class SessionObject {
 	 **/
 	function open ($path,$name) {
 		$this->path = $path;
-		if (empty($this->path)) $this->path = sanitize_path(realpath(SHOPP_TEMP_PATH));
-		$this->trash();	// Clear out any residual session information before loading new data
-		if (empty($this->session)) $this->session = session_id();	// Grab our session id
+		if ( empty($this->path) ) $this->path = sanitize_path(realpath(SHOPP_TEMP_PATH));
+        if ( ! is_dir($this->path) ) mkdir($this->path, 0777);
+
+		if ( empty($this->session) ) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
-		if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $this->securekey();
+
+		$this->clean();	// Clean up abandoned sessions
+
+		if ( ! isset($_COOKIE[ SHOPP_SECURE_KEY ]) ) $this->securekey();
 		return true;
 	}
 
@@ -1160,14 +1164,17 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function load ($id) {
-		if (is_robot() || empty($this->session)) return true;
+		if ( is_robot() || empty($this->session) ) return true;
 
 		$loaded = false;
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
-		if ($result = DB::query($query)) {
-			if (substr($result->data,0,1) == "!") {
+
+		if ( $result = DB::query($query) ) {
+			if ( '!' == substr($result->data,0,1) ) {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
-				if (empty($key) && !is_ssl()) shopp_redirect(force_ssl(raw_request_url(),true));
+
+				if ( empty($key) && ! is_ssl() ) shopp_redirect( force_ssl(raw_request_url(),true) );
+
 				$readable = DB::query("SELECT AES_DECRYPT('".
 										mysql_real_escape_string(
 											base64_decode(
@@ -1179,6 +1186,7 @@ abstract class SessionObject {
 			}
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
+			$this->stash = $result->stash;
 			$this->created = DB::mktime($result->created);
 			$this->modified = DB::mktime($result->modified);
 			$loaded = true;
@@ -1186,14 +1194,15 @@ abstract class SessionObject {
 			do_action('shopp_session_loaded');
 		} else {
 			$now = current_time('mysql');
-			if (!empty($this->session))
+			if ( ! empty($this->session) )
 				DB::query("INSERT INTO $this->_table (session, ip, data, created, modified)
 							VALUES ('$this->session','$this->ip','','$now','$now')");
 		}
+
 		do_action('shopp_session_load');
 
 		// Read standard session data
-		if (@file_exists("$this->path/sess_$id"))
+		if ( @file_exists("$this->path/sess_$id") )
 			return (string) @file_get_contents("$this->path/sess_$id");
 
 		return $loaded;
@@ -1209,9 +1218,14 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function unload () {
-		if(empty($this->session)) return false;
-		if (!DB::query("DELETE FROM $this->_table WHERE session='$this->session'"))
+		if( empty($this->session) ) return false;
+
+		if ( ! DB::query("DELETE FROM $this->_table WHERE session='$this->session'") )
 			trigger_error("Could not clear session data.");
+
+		// Handle clean-up of file storage sessions
+        if ( file_exists("$this->path/sess_$id") ) unlink($file);
+
 		unset($this->session,$this->ip,$this->data);
 		return true;
 	}
@@ -1229,7 +1243,7 @@ abstract class SessionObject {
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
 
-		$data = DB::escape(addslashes(serialize($this->data)));
+		$data = DB::escape( addslashes(serialize($this->data)) );
 
 		if ($this->secured() && is_ssl()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
@@ -1243,20 +1257,15 @@ abstract class SessionObject {
 		}
 
 		$now = current_time('mysql');
-		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified='$now' WHERE session='$this->session'";
+		$query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 		if (!DB::query($query))
 			trigger_error("Could not save session updates to the database.");
 
 		do_action('shopp_session_saved');
 
 		// Save standard session data for compatibility
-		if (!empty($session)) {
-			if ($sf = fopen("$this->path/sess_$id","w")) {
-				$result = fwrite($sf, $session);
-				fclose($sf);
-				return $result;
-			} return false;
-		}
+		if ( ! empty($session) )
+			return false === file_put_contents("$this->path/sess_$id",$session) ? false : true;
 
 		return true;
 	}
@@ -1265,18 +1274,27 @@ abstract class SessionObject {
 	 * Garbage collection routine for cleaning up old and expired
 	 * sessions.
 	 *
+	 * 1.3 Added support for shopping session cold storage
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @version 1.3
 	 *
 	 * @return boolean
 	 **/
-	function trash () {
-		if (empty($this->session)) return false;
+	function clean ( $lifetime = false ) {
+		if ( empty($this->session) ) return false;
 
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$now = current_time('mysql');
-		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)"))
+
+		if ( ! DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
 			trigger_error("Could not delete cached session data.");
+
+		// Garbage collection for file-system sessions
+        foreach (glob("$this->path/sess_*") as $file)
+            if ( filemtime($file) + $lifetime < time() && file_exists($file) ) unlink($file);
+
 		return true;
 	}
 
@@ -1288,13 +1306,15 @@ abstract class SessionObject {
 	 *
 	 * @return boolean
 	 **/
-	function secured ($setting=null) {
-		if (is_null($setting)) return $this->secure;
+	function secured ( $setting = null ) {
+		if ( is_null($setting) ) return $this->secure;
 		$this->secure = ($setting);
+
 		if (SHOPP_DEBUG) {
 			if ($this->secure) new ShoppError('Switching the session to secure mode.',false,SHOPP_DEBUG_ERR);
 			else new ShoppError('Switching the session to unsecure mode.',false,SHOPP_DEBUG_ERR);
 		}
+
 		return $this->secure;
 	}
 
@@ -1307,20 +1327,21 @@ abstract class SessionObject {
 	 * @return string
 	 **/
 	function securekey () {
-		if (!is_ssl()) return false;
-		$expiration = time()+SHOPP_SESSION_TIMEOUT;
-		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
-		else $key = md5(serialize($this->data).time());
+		if ( ! is_ssl() ) return false;
+
+		$expiration = time() + SHOPP_SESSION_TIMEOUT;
+		if ( defined('SECRET_AUTH_KEY') && '' != SECRET_AUTH_KEY ) $key = SECRET_AUTH_KEY;
+		else $key = md5( serialize($this->data) . time() );
 		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
+
 		$success = false;
 		if ( version_compare(phpversion(), '5.2.0', 'ge') )
 			$success = setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
 		else $success = setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
-		if ($success) return $content;
+
+		if ( $success ) return $content;
 		else return false;
 	}
 
 
 } // END class SessionObject
-
-?>
