@@ -1309,7 +1309,7 @@ if(!function_exists('sanitize_path')){
 	 **/
 	function sanitize_path ($path) {
 		return str_replace('\\', '/', $path);
-	}
+	};
 }
 
 /**
