@@ -173,8 +173,8 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .jvectormap-zoomout { top:30px; }
 #report .summary td { font-weight: bold; }
 #report .scoreboard { width: 100%; text-align: center; overflow: hidden; margin-bottom: 20px; padding: 0; }
-.shopp #report td span { color:#777; }
-.shopp #report .scoreboard td { line-height: 3em; border-left: 1px solid #dfdfdf; padding: 0 3em; margin: 0; }
+#report td span { color:#777; }
+#report .scoreboard td { line-height: 3em; border-left: 1px solid #dfdfdf; padding: 0 3em; margin: 0; }
 #report .scoreboard td:first-child { border-left: none; }
 #report .scoreboard big { font-size: 3em; display: block; }
 #report .scoreboard label { display: block; }
@@ -462,6 +462,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .orders.list .status { font-weight: bold; }
 .orders.list .voided .order,
 .orders.list .voided .total { text-decoration: line-through; }
+
+#orders .summary li { display: inline; margin-right: 20px; font-size: 14px; }
 
 #order { position:relative; }
 #order .title { margin: 1em 0; line-height: 140%; }
