@@ -295,7 +295,7 @@ $ShoppLoader->map(array(
     'objectmeta' => '/model/Meta.php',
     'onsaleproducts' => '/model/Collection.php',
     'order' => '/flow/Order.php',
-    'orderamount' => '/model/Totals.php',
+    'ordertotalamount' => '/model/Totals.php',
     'orderamountaccountcredit' => '/model/Totals.php',
     'orderamountcredit' => '/model/Totals.php',
     'orderamountdebit' => '/model/Totals.php',
