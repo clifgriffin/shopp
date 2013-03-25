@@ -101,14 +101,15 @@ class Shopp {
 		if ( ! defined('BR') ) define('BR','<br />');
 
 		// Overrideable config macros
-		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL',false);
-		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS',false);
-		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT',7200);
-		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG',false);
-		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT',10);
-		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT',10);
-		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH',sys_get_temp_dir());
-		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);
+		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL',false);					// Require SSL to protect transactions, overrideable for development
+		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS',false);		// Require payment capture granting access to downloads
+		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT',7200);			// Sessions live for 2 hours
+		if ( ! defined('SHOPP_CART_EXPIRES') )			define('SHOPP_CART_EXPIRES',1209600);			// Carts are stashed for up to 2 weeks
+		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG',false);				// Debugging queries is disabled by default
+		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT',10);				// Gateway connections timeout after 10 seconds
+		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT',10);			// Shipping provider connections timeout after 10 seconds
+		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH',sys_get_temp_dir());	// Use the system defined temporary directory
+		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
 
 		// Paths
 		define('SHOPP_PATH', $path);
