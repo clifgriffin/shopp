@@ -17,7 +17,7 @@
 	</p>
 
 	<?php if (current_user_can('shopp_financials')): ?>
-	<ul id="report">
+	<ul class="summary">
 		<li><strong><?php echo $ordercount->total; ?></strong> <span><?php _e('Orders','Shopp'); ?></span></li>
 		<li><strong><?php echo money($ordercount->sales); ?></strong> <span><?php _e('Total Sales','Shopp'); ?></span></li>
 		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span><?php _e('Average Sale','Shopp'); ?></span></li>
