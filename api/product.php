@@ -13,6 +13,8 @@
 * @subpackage shopp
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_add_product - comprehensive product creation through product api.  This function will do everything needed for creating a product
  * except attach product images and products.  That is done in the asset api. :)  You should be able to build an importer from another system using this function.
@@ -2270,5 +2272,3 @@ function shopp_product_addon_set_donation ( $addon = false, $settings = array() 
 function shopp_product_addon_set_subscription ( $addon = false, $settings = array() ) {
 	return shopp_product_variant_set_subscription ( $addon, $settings, 'addon' );
 }
-
-?>

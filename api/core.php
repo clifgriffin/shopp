@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppProduct - get and set the global Product object
  *
@@ -408,5 +410,3 @@ function is_shopp_product ( $wp_query = false ) {
 	$product = $wp_query->get(Product::$posttype);
 	return (bool) $product;
 }
-
-?>

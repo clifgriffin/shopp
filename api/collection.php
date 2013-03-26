@@ -11,6 +11,8 @@
  * @subpackage Collection
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Registers a smart collection of products
  *
@@ -611,6 +613,3 @@ function shopp_product_categories_count ( $product ) {
 
 	return count($terms);
 }
-
-
-?>
