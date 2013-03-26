@@ -15,6 +15,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppLoader {
 
+	private static $instance;				// Singleton instance
+
 	protected static $classmap = array();	// A map of class names to files
 	protected static $basepath = '';		// Tracks the base path of files in the classmap
 
@@ -27,10 +29,18 @@ class ShoppLoader {
 	 * @param string $path The base path for this loader to use
 	 * @return void
 	 **/
-	public function __construct ( $path ) {
-		self::$basepath = realpath($path);
-
+	private function __construct () {
 		spl_autoload_register(array($this,'load'));
+	}
+
+	static public function &instance () {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
+	}
+
+	static public function basepath ( $path ) {
+		self::$basepath = realpath($path);
 	}
 
 	/**
@@ -87,7 +97,7 @@ class ShoppLoader {
 	public function load ( $class ) {
 
 		if ( $this->classmap($class) ) return true;
-		if ( $this->scanner($class) ) return true;
+		elseif ( SHOPP_DEBUG && $this->scanner($class) ) return true;
 
 		return false;
 	}
@@ -119,6 +129,7 @@ class ShoppLoader {
 	 * @return boolean True if succesful, false otherwise
 	 **/
 	protected function scanner ( $class, $path = '' ) {
+		error_log("Had to scan for $class : ".debug_caller());
 		$discovered = array();	// Track the classes not in the map
 
 		if ( empty($path) ) $path = self::$basepath;
@@ -186,8 +197,13 @@ class ShoppLoader {
 
 }
 
-$ShoppLoader = new ShoppLoader( "$path/core" );
-$ShoppLoader->map(array(
+function &ShoppLoader ( $path = '' ) {
+	if ( ! empty($path) ) ShoppLoader::basepath($path);
+	return ShoppLoader::instance();
+}
+
+ShoppLoader("$path/core");
+ShoppLoader()->map(array(
     'account' => '/flow/Account.php',
     'accountstorefrontpage' => '/flow/Storefront.php',
     'address' => '/model/Address.php',

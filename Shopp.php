@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-defined( 'WPINC' ) || header('HTTP/1.1 403') & exit; // Prevent direct access to the file
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 if ( ! defined('SHOPP_VERSION') )
 	define( 'SHOPP_VERSION', '1.3dev' );
@@ -132,7 +132,7 @@ class Shopp {
 
 		// Autoload system
 		require "$path/core/flow/Loader.php";
-		ShoppDeveloperAPI::load( sanitize_path(dirname(__FILE__)) );
+		ShoppDeveloperAPI::load( $path );
 
 		// Error system
 		ShoppErrors();
