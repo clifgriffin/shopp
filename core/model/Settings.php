@@ -237,11 +237,10 @@ class Settings extends DatabaseObject {
 	function restore ($value) {
 		if (!is_string($value)) return $value;
 		// Return unserialized, if serialized value
-		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) {
+		if ( is_serialized($value) ) {
 			$restored = unserialize($value);
-			if (!empty($restored)) return $restored;
-			$restored = unserialize(stripslashes($value));
-			if ($restored !== false) return $restored;
+			if ( empty($restored) ) $restored = unserialize( stripslashes($value) );
+			if ( false !== $restored ) return $restored;
 		}
 		return $value;
 	}
