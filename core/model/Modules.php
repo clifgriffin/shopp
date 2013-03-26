@@ -73,12 +73,18 @@ abstract class ModuleLoader {
 
 		foreach ($activate as $module) {
 			// Module isn't available, skip it
-			if (!isset($this->modules[$module])) continue;
-			// Load the file
-			$this->active[$module] = $this->modules[$module]->load();
-			if (function_exists('do_action_ref_array')) do_action_ref_array('shopp_module_loaded',array($module));
+			if ( ! isset($this->modules[$module]) ) continue;
+
+			$ModuleFile = $this->modules[$module];
+			ShoppLoader()->add($module,$ModuleFile->file);
+			$this->active[$module] = $ModuleFile->load();
+
+			if ( function_exists('do_action_ref_array') )
+				do_action_ref_array('shopp_module_loaded',array($module));
 		}
-		if (function_exists('do_action')) do_action('shopp_'.strtolower(get_class($this)).'_loaded');
+
+		if ( function_exists('do_action') )
+			do_action('shopp_'.strtolower(get_class($this)).'_loaded');
 	}
 
 	/**
@@ -168,8 +174,7 @@ class ModuleFile {
 	 * @return void
 	 **/
 	function load () {
-		if (!$this->addon) return;
-		if (!class_exists($this->subpackage)) include($this->file);
+		if ( ! $this->addon ) return;
 		return new $this->subpackage();
 	}
 
