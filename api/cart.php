@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_add_cart_variant - add a product to the cart by variant id
  *
@@ -237,5 +239,3 @@ function shopp_cart_item_addons ($item) {}
 
 // todo: implement shopp_cart_item_addons_count in plugin api
 function shopp_cart_item_addons_count ($item) {}
-
-?>

@@ -11,6 +11,8 @@
  * @subpackage Theme
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Defines the shopp() 'tag' handler for complete template customization
  *
@@ -104,5 +106,3 @@ function shopp () {
 	return true;
 
 }
-
-?>

@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_product_meta - get a product meta entry by product id, type, and name
  *
@@ -324,6 +326,3 @@ function shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 
 	}
 
 }
-
-
-?>

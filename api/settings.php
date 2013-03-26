@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_setting - returns a named Shopp setting
  *
@@ -156,5 +158,3 @@ function shopp_set_image_setting ($name,$settings = array()) {
 	$ImageSetting->save();
 	return true;
 }
-
-?>

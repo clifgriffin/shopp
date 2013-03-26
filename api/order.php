@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_orders - get a list of purchases
  *
@@ -833,5 +835,3 @@ function shopp_add_order_event ( $order = false, $type = false, $message = array
 
 	return OrderEvent::add($order,$type,$message);
 }
-
-?>
