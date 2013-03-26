@@ -13,6 +13,8 @@
  * @subpackage scripts
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Scripts
  *
@@ -21,7 +23,7 @@
  * @package shopp
  **/
 /** From BackPress */
-if (!class_exists('WP_Scripts')) {
+if ( ! class_exists('WP_Scripts') ) {
 	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
 	require( ABSPATH . WPINC . '/class.wp-scripts.php' );
 }
@@ -192,7 +194,7 @@ function shopp_default_scripts (&$scripts) {
 
 	$script = basename(__FILE__);
 	$schema = ( !empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off' ) ? 'https://' : 'http://';
-	if (defined('SHOPP_PLUGINURI')) $url = SHOPP_PLUGINURI.'/core'.'/';
+	if ( defined('SHOPP_PLUGINURI') ) $url = SHOPP_PLUGINURI.'/core'.'/';
 	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 
 	$scripts->base_url = $url;
@@ -310,5 +312,3 @@ function shopp_default_scripts (&$scripts) {
 }
 
 add_action('shopp_default_scripts', 'shopp_default_scripts');
-
-?>
