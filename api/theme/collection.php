@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 add_filter('shopp_themeapi_context_name', array('ShoppCollectionThemeAPI', '_context_name'));
 
 // Default text filters for category/collection Theme API tags
@@ -635,5 +637,3 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 }
-
-?>

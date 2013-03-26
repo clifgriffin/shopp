@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Provides functionality for the shopp('error') tags
  *
@@ -64,5 +66,3 @@ class ShoppErrorThemeAPI implements ShoppAPI {
 
 	static function debug ($result, $options, $O) { if (empty($options)) return false; new ShoppError(key($options),'template_error',SHOPP_DEBUG_ERR); }
 }
-
-?>
