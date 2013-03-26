@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 // Default text filters for product Theme API tags
 add_filter('shopp_themeapi_product_name','convert_chars');
 add_filter('shopp_themeapi_product_summary','convert_chars');
@@ -1266,5 +1268,3 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_
 	}
 
 }
-
-?>

@@ -9,6 +9,8 @@
  *
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 class ShoppCustomerThemeAPI implements ShoppAPI {
 	static $register = array(
 		'accounts' => 'accounts',
@@ -677,5 +679,3 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 }
-
-?>

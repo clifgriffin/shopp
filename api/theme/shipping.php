@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Provides shopp('shipping') theme API functionality
  *
@@ -210,5 +212,3 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	}
 
 }
-
-?>

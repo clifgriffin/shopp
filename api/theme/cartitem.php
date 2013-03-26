@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Provides support for the shopp('cartitem') tags
  *
@@ -356,5 +358,3 @@ class ShoppCartItemThemeAPI {
 	}
 
 }
-
-?>

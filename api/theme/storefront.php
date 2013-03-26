@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
 class ShoppStorefrontThemeAPI implements ShoppAPI {
@@ -1050,8 +1052,3 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 
 }
-
-
-
-
-?>
