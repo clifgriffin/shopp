@@ -603,16 +603,16 @@ function file_mimetype ($file,$name=false) {
 			$f = finfo_open(FILEINFO_MIME);
 			list($mime,$charset) = explode(";",finfo_file($f, $file));
 			finfo_close($f);
-			new ShoppError('File mimetype detection (finfo_open): '.$mime,false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (finfo_open): ' . $mime);
 			if (!empty($mime)) return $mime;
 		} elseif (class_exists('finfo')) {
 			// Or class
 			$f = new finfo(FILEINFO_MIME);
-			new ShoppError('File mimetype detection (finfo class): '.$f->file($file),false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (finfo class): ' . $f->file($file));
 			return $f->file($file);
 		} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {
 			// Try with magic-mime if available
-			new ShoppError('File mimetype detection (mime_content_type()): '.$mime,false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (mime_content_type()): ' . $mime);
 			return $mime;
 		}
 	}
@@ -1524,7 +1524,7 @@ function shopp_email ($template,$data=array()) {
 		ob_end_clean();
 
 		if (empty($template))
-			return new ShoppError(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
+			return shopp_add_error(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
 
 	}
 
@@ -1775,7 +1775,7 @@ function shopp_parse_options ($options) {
  * @return void
  **/
 function shopp_redirect ($uri,$exit=true,$status=302) {
-	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
+	shopp_debug("Redirecting to: $uri");
 	wp_redirect($uri,$status);
 	if ($exit) exit();
 }

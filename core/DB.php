@@ -13,9 +13,9 @@
  * @subpackage db
  **/
 
-define("AS_ARRAY",false); // @deprecated
-if (!defined('SHOPP_DBPREFIX')) define('SHOPP_DBPREFIX','shopp_');
-if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
+define('AS_ARRAY',false); // @deprecated
+if ( ! defined('SHOPP_DBPREFIX') ) define('SHOPP_DBPREFIX','shopp_');
+if ( ! defined('SHOPP_QUERY_DEBUG') ) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
 if (ini_get('zend.ze1_compatibility_mode'))
@@ -249,7 +249,7 @@ class DB extends SingletonFramework {
 
 		// Error handling
 		if ($db->dbh && $error = mysql_error($db->dbh)) {
-			if (class_exists('ShoppError')) new ShoppError(sprintf('Query failed: %s - DB Query: %s',$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
+			shopp_add_error( sprintf('Query failed: %s - DB Query: %s', $error, str_replace("\n","",$query) ), SHOPP_DB_ERR);
 			return false;
 		}
 
@@ -311,9 +311,7 @@ class DB extends SingletonFramework {
 		$options = array_merge($defaults,$options);
 		extract ($options);
 
-		if (class_exists('ShoppErrors')) { // Log errors if error system is available
-			if (empty($table)) return new ShoppError('No table specified for SELECT query.','db_select_sql',SHOPP_ADMIN_ERR);
-		}
+		if (empty($table)) return shopp_add_error('No table specified for SELECT query.',SHOPP_DB_ERR);
 
 		$useindex 	= empty($useindex)?'':"FORCE INDEX($useindex)";
 		$joins 		= empty($joins)?'':"\n\t\t".join("\n\t\t",$joins);
@@ -1248,7 +1246,7 @@ abstract class SessionObject {
 		if ($this->secured() && is_ssl()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
 			if (!empty($key) && $key !== false) {
-				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
+				shopp_debug('Cart saving in secure mode!');
 				$secure = DB::query("SELECT AES_ENCRYPT('$data','$key') AS data");
 				$data = "!".base64_encode($secure->data);
 			} else {
@@ -1310,10 +1308,7 @@ abstract class SessionObject {
 		if ( is_null($setting) ) return $this->secure;
 		$this->secure = ($setting);
 
-		if (SHOPP_DEBUG) {
-			if ($this->secure) new ShoppError('Switching the session to secure mode.',false,SHOPP_DEBUG_ERR);
-			else new ShoppError('Switching the session to unsecure mode.',false,SHOPP_DEBUG_ERR);
-		}
+		shopp_debug( $this->secure ? 'Switching the session to secure mode.' : 'Switching the session to unsecure mode.' );
 
 		return $this->secure;
 	}

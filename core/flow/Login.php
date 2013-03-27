@@ -98,7 +98,7 @@ class Login {
 					else $mode = "loginname";
 					$loginname = $_POST['account-login'];
 				} else {
-					new ShoppError(__('You must provide a valid login name or email address to proceed.'), 'missing_account', SHOPP_AUTH_ERR);
+					shopp_add_error( __('You must provide a valid login name or email address to proceed.'), SHOPP_AUTH_ERR );
 				}
 
 				if ($loginname) {

@@ -168,14 +168,14 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 			// Read incoming request data
 			$data = trim(file_get_contents('php://input'));
-			if(SHOPP_DEBUG) new ShoppError($data,'google_incoming_request',SHOPP_DEBUG_ERR);
+			shopp_debug($data);
 
 			// Handle notifications
 			$XML = new xmlQuery($data);
 			$type = $XML->context();
-			if(SHOPP_DEBUG) new ShoppError("google checkout notification type $type",false,SHOPP_DEBUG_ERR);
+			shopp_debug("google checkout notification type $type");
 			if ( $type === false ) {
-				if(SHOPP_DEBUG) new ShoppError('Unable to determine context of request.','google_checkout_unknown_notification',SHOPP_DEBUG_ERR);
+				shopp_debug('Unable to determine context of request.');
 				return;
 			}
 			$serial = $XML->attr($type,'serial-number');
@@ -224,7 +224,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * Sends an acknowledgement message back to Google to confirm the notification
 	 * was received and processed */
 	function acknowledge ($serial) {
-		if(SHOPP_DEBUG) new ShoppError("Sending ack to google on serial $serial.",false,SHOPP_DEBUG_ERR);
+		shopp_debug("Sending ack to google on serial $serial.");
 		header('HTTP/1.1 200 OK');
 		$_ = array("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		$_[] .= '<notification-acknowledgment xmlns="'.$this->urls['schema'].'" serial-number="'.$serial.'"/>';
@@ -265,7 +265,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					if ( 'Shipped' == $Item->type ) $_[] = '<item-weight unit="LB" value="'.($Item->weight > 0 ? number_format(convert_unit($Item->weight,'lb'),2,'.','') : 0).'" />';
 
 					if ( 'Subscription' == $Item->type ) {
-						if(SHOPP_DEBUG) new ShoppError("Item $i: "._object_r($Item),'google_checkout_item_'.$i,SHOPP_DEBUG_ERR);
+						shopp_debug("Item $i: "._object_r($Item));
 						$trial_item = array();
 						$recurring = $Item->option->recurring;
 
@@ -483,7 +483,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$_[] = '</checkout-shopping-cart>';
 		$request = join("\n", apply_filters('shopp_googlecheckout_build_request', $_));
 
-		if(SHOPP_DEBUG) new ShoppError($request,'googlecheckout_build_request',SHOPP_DEBUG_ERR);
+		shopp_debug($request);
 		return $request;
 	}
 
@@ -658,7 +658,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * @return int|bool false if no purchase meta record exists associated with the session id, purchase id on successful recurring lookup
 	 **/
 	function is_recurring ( $sessionid ) {
-		if(SHOPP_DEBUG) new ShoppError("Possible recurring payment for $sessionid", false, SHOPP_DEBUG_ERR);
+		shopp_debug("Possible recurring payment for $sessionid");
 
 		// try to find order number for original order
 		$Meta = new MetaObject();
@@ -704,9 +704,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$cvn = $risk->content('cvn-response');
 		$eligible = $risk->content('eligible-for-protection');
 
-		if(SHOPP_DEBUG) new ShoppError("avs-response on order $order: $avs",false,SHOPP_DEBUG_ERR);
-		if(SHOPP_DEBUG) new ShoppError("cvn-response on order $order: $cvn",false,SHOPP_DEBUG_ERR);
-		if(SHOPP_DEBUG) new ShoppError("eligible-for-protection on order $order: $eligible",false,SHOPP_DEBUG_ERR);
+		shopp_debug("avs-response on order $order: $avs");
+		shopp_debug("cvn-response on order $order: $cvn");
+		shopp_debug("eligible-for-protection on order $order: $eligible");
 
 		if ( ! $order && ! $txnid ) {
 			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
@@ -1121,8 +1121,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		// Calculate shipping options
 		$Shipping = new CartShipping();
 		$previous_options = $Shipping->options();
-		if(SHOPP_DEBUG) new ShoppError("previous_options: "._object_r($previous_options),false,SHOPP_DEBUG_ERR);
-		if(SHOPP_DEBUG) new ShoppError("google_methods: "._object_r($google_methods),false,SHOPP_DEBUG_ERR);
+		shopp_debug("previous_options: "._object_r($previous_options));
+		shopp_debug("google_methods: "._object_r($google_methods));
 
 		// Calculate all shipping methods for every potential address google returns
 		// Really Google? You're just gonna send all the possible shipping addresses for that customer every time?
@@ -1135,7 +1135,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 			$Shipping->calculate();
 			$current_options = $Shipping->options;
-			if(SHOPP_DEBUG) new ShoppError("current_options: "._object_r($current_options),false,SHOPP_DEBUG_ERR);
+			shopp_debug("current_options: "._object_r($current_options));
 
 			$options[$address_id] = array();
 			foreach ( $current_options as $option )

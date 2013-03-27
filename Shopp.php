@@ -196,8 +196,9 @@ class Shopp {
 		$this->APIs = new ShoppAPIModules();
 		$this->Collections = array();
 
-		if ( ! $Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
-		if (SHOPP_DEBUG) new ShoppError('Session started '.str_repeat('-',64),'shopp_session_debug',SHOPP_DEBUG_ERR);
+		if ( ! $Shopping->handlers)
+			shopp_add_error(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),SHOPP_ADMIN_ERR);
+		shopp_debug( 'Session started '.str_repeat('-',64) );
 
 		new Login();
 		do_action('shopp_init');
@@ -504,17 +505,18 @@ class Shopp {
 			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
 			$errors = join(' ',$errors);
 
-			new ShoppError($this->name.": ".Lookup::errors('callhome','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",'gateway_comm_err',SHOPP_COMM_ERR);
+			shopp_add_error($this->name.": ".Lookup::errors('callhome','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",SHOPP_COMM_ERR);
+
 			return false;
 		} elseif (empty($result) || !isset($result['response'])) {
-			new ShoppError($this->name.": ".Lookup::errors('callhome','noresponse'),'callhome_comm_err',SHOPP_COMM_ERR);
+			shopp_add_error($this->name.": ".Lookup::errors('callhome','noresponse'),SHOPP_COMM_ERR);
 			return false;
 		} else extract($result);
 
 		if (isset($response['code']) && 200 != $response['code']) {
 			$error = Lookup::errors('callhome','http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
-			new ShoppError($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
+			shopp_add_error($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
 			return $body;
 		}
 

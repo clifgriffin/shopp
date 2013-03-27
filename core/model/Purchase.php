@@ -450,11 +450,11 @@ class Purchase extends DatabaseObject {
 
 		// Send the email
 		if (shopp_email($template,$this->message)) {
-			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
+			shopp_debug('A purchase notification was sent to: '.$this->message['to']);
 			return true;
 		}
 
-		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
+		shopp_debug('A purchase notification FAILED to be sent to: '.$this->message['to']);
 		return false;
 	}
 

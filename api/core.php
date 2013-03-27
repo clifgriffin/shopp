@@ -295,7 +295,7 @@ function is_shopp_search ( $wp_query = false ) {
  **/
 function is_shopp_page ( $page = false, $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	if (empty($wp_query->query_vars)) new ShoppError('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.','doing_it_wrong',SHOPP_DEBUG_ERR);
+	if (empty($wp_query->query_vars)) shopp_debug('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.');
 	$is_shopp_page = false;
 	$pages = Storefront::pages_settings();
 

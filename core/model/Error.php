@@ -75,10 +75,8 @@ class ShoppErrors {
 	}
 
 	function init () {
-		// ShoppingObject::store('errors', $this->errors);
-		foreach( $this->errors as $index => $error ) {
+		foreach( $this->errors as $index => $error )
 			if ( $error->remove ) unset($this->errors[$index]);
-		}
 	}
 
 	public static function instance () {

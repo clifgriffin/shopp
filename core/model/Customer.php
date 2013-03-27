@@ -179,7 +179,7 @@ class Customer extends DatabaseObject {
 
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
-		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the merchant.','new_account_email',SHOPP_DEBUG_ERR);
+		else shopp_debug('A new account notification e-mail was sent to the merchant.');
 		if (empty($this->password)) return;
 
 		$_ = array();
@@ -197,7 +197,7 @@ class Customer extends DatabaseObject {
 
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
-		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the customer.','new_account_email',SHOPP_DEBUG_ERR);
+		else shopp_debug('Successfully created the WordPress user for the Shopp account.');
 	}
 
 	function load_downloads () {
@@ -297,7 +297,7 @@ class Customer extends DatabaseObject {
 		}
 
 		$this->password = "";
-		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
+		shopp_debug('Successfully created the WordPress user for the Shopp account.');
 
 		$this->newuser = true;
 

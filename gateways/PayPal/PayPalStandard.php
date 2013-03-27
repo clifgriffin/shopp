@@ -598,7 +598,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function remote () {
 		if ( 'PPS' != $_REQUEST['rmtpay'] || ! isset($_REQUEST['tx']) ) return; // not PDT message
 
-		if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_REQUEST),false,SHOPP_DEBUG_ERR);
+		shopp_debug('Processing PDT packet: '._object_r($_REQUEST));
 
 		// Verify the message is authentically from PayPal
 		$authentic = false;
@@ -647,11 +647,11 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			// if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
 			// if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
 
-			if(SHOPP_DEBUG) new ShoppError('PDT to response protocol: '._object_r($this->response),false,SHOPP_DEBUG_ERR);
+			shopp_debug('PDT to response protocol: '._object_r($this->response));
 
 			// only permit purchase creation on unathenticated status
 			if ( ! $authentic ) {
-				if(SHOPP_DEBUG) new ShoppError('PDT response was not authenticated.  Downgrading status to Pending.',false,SHOPP_DEBUG_ERR);
+				shopp_debug('PDT response was not authenticated.  Downgrading status to Pending.');
 				$this->response->status = 'Pending';
 				$this->response->event = 'purchase';
 			}
@@ -688,7 +688,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		// Cancel processing if this is not a PayPal IPN message (invalid)
 		if ( ! isset($_POST['txn_type']) || ! in_array($_POST['txn_type'], array_keys($this->txn_types)) ) {
-			if(SHOPP_DEBUG) new ShoppError('Not a PayPal IPN message. Missing or invalid txn_type.','paypal_ipn_invalid',SHOPP_DEBUG_ERR);
+			shopp_debug('Not a PayPal IPN message. Missing or invalid txn_type.');
 			return false;
 		}
 
@@ -708,7 +708,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		// No transaction target: invalid IPN, silently ignore the message
 		if ( ! $txnid ) {
-			if(SHOPP_DEBUG) new ShoppError("Invalid IPN request.  Missing txn_id or parent_txn_id.",'paypal_ipn_invalid',SHOPP_DEBUG_ERR);
+			shopp_debug("Invalid IPN request.  Missing txn_id or parent_txn_id.");
 			return;
 		}
 
@@ -717,7 +717,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$txnid,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
 			return false;
 		}
-		if(SHOPP_DEBUG) new ShoppError('IPN: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
+		shopp_debug('IPN: '._object_r($_POST));
 
 		// IPN data into response object
 		$fees = 0;
@@ -744,7 +744,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
 		if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
 
-		if(SHOPP_DEBUG) new ShoppError('IPN to response protocol: '._object_r($this->response),false,SHOPP_DEBUG_ERR);
+		shopp_debug('IPN to response protocol: '._object_r($this->response));
 
 		$Purchase = new Purchase( $txnid, 'txnid' );
 		// create new purchase by IPN
@@ -755,7 +755,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$txnid),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
 				die('PayPal IPN failed.');
 			}
-			if(SHOPP_DEBUG) new ShoppError('preparing to load session '.$_POST['custom'],false,SHOPP_DEBUG_ERR);
+			shopp_debug('preparing to load session '.$_POST['custom']);
 			add_filter('shopp_agent_is_robot', array($this, 'is_robot_override'));
 
 			// load the desired session, which leaves the previous/defunct Order object intact
@@ -878,7 +878,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$message = $this->encode(array_merge($_POST,$_));
 		$response = $this->send($message);
 
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verification response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
+		shopp_debug('PayPal IPN notification verification response received: '.$response);
 
 		return ('VERIFIED' == $response);
 
