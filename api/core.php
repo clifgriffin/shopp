@@ -154,6 +154,10 @@ function ShoppErrorTypehints () {
 	return ShoppErrorTypehints::instance();
 }
 
+function ShoppErrorStorefrontNotices () {
+	return ShoppErrorStorefrontNotices::instance();
+}
+
 /**
  * Detects ShoppError objects
  *

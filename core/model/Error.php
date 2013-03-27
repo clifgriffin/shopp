@@ -44,9 +44,9 @@ define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
 class ShoppErrors {
 	private static $instance;
 
-	var $errors = array();				// Error message registry
-	var $notifications;					// Notification subscription registry
-	var $reporting = SHOPP_ALL_ERR;		// level of reporting
+	public $errors = array();				// Error message registry
+	public $notifications;					// Notification subscription registry
+	public $reporting = SHOPP_ALL_ERR;		// level of reporting
 
 	/**
 	 * Setup error system and PHP error capture
@@ -75,7 +75,7 @@ class ShoppErrors {
 	}
 
 	function init () {
-		ShoppingObject::store('errors', $this->errors);
+		// ShoppingObject::store('errors', $this->errors);
 		foreach( $this->errors as $index => $error ) {
 			if ( $error->remove ) unset($this->errors[$index]);
 		}
@@ -249,12 +249,12 @@ class ShoppErrors {
  **/
 class ShoppError {
 
-	var $code;
-	var $source;
-	var $messages;
-	var $level;
-	var $data = array();
-	var $remove = false;
+	public $code;
+	public $source;
+	public $messages;
+	public $level;
+	public $data = array();
+	public $remove = false;
 
 	/**
 	 * Creates and registers a new error
@@ -310,8 +310,6 @@ class ShoppError {
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
 			$this->source = 'PHP ' . $php[$this->data['phperror']];
-
-		$Errors = ShoppErrors();
 
 		if ( ! empty($Errors) ) $Errors->add($this);
 	}
@@ -409,11 +407,11 @@ class ShoppErrorLogging {
 
 	private static $instance;
 
-	var $dir;
-	var $file = "shopp_debug.log";
-	var $logfile;
-	var $log;
-	var $loglevel = 0;
+	public $dir;
+	public $file = 'shopp_debug.log';
+	public $logfile;
+	public $log;
+	public $loglevel = 0;
 
 	/**
 	 * Setup for error logging
@@ -538,8 +536,8 @@ class ShoppErrorLogging {
  **/
 class ShoppErrorNotification {
 	private static $instance;
-	var $recipients;	// Recipient addresses to send to
-	var $types=0;		// Error types to send
+	public $recipients;	// Recipient addresses to send to
+	public $types=0;		// Error types to send
 
 	/**
 	 * Relays triggered errors to email messages
@@ -609,9 +607,66 @@ class ShoppErrorNotification {
 
 }
 
+class ShoppErrorStorefrontNotices implements Iterator {
+
+	private static $instance;
+	private $position = 0;
+
+	public $notices = array();
+
+	public static function instance() {
+		if ( ! self::$instance )
+			self::$instance = new self();
+		return self::$instance;
+	}
+
+	private function __construct ($recipients='',$types=array()) {
+		add_action('init', array(&$this, 'init'), 5);
+		ShoppErrors()->notifications->subscribe($this,'notice');
+	}
+
+	public function init () {
+		ShoppingObject::store('notices', $this->notices);
+	}
+
+	public function notice ( $Error ) {
+		if ( $Error->level > SHOPP_STOCK_ERR ) return;
+		$this->notices += $Error->messages;
+	}
+
+	public function exist () {
+		return ! empty($this->notices);
+	}
+
+	public function message () {
+		return array_shift($this->notices);
+	}
+
+	public function current () {
+		return $this->notices[ $this->position ];
+	}
+
+	public function key () {
+		return $this->position;
+	}
+
+	public function next () {
+		++$this->position;
+	}
+
+	public function rewind () {
+		$this->position = 0;
+	}
+
+	public function valid () {
+        return isset($this->notices[$this->position]);
+	}
+
+}
+
 class CallbackSubscription {
 
-	var $subscribers = array();
+	public $subscribers = array();
 
 	function subscribe ($target,$method) {
 		if (!isset($this->subscribers[get_class($target)]))

@@ -138,6 +138,7 @@ class Shopp {
 		ShoppErrors();
 		ShoppErrorLogging();
 		ShoppErrorNotification();
+		ShoppErrorStorefrontNotices();
 
 		// Initialize application control processing
 		$this->Flow = new ShoppFlow();
