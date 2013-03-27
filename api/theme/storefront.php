@@ -129,7 +129,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ($id !== false) {
 			if (isset($O->images[$id])) $img = $O->images[$id];
 			else {
-				new ShoppError(sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				shopp_debug( sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id) );
 				return '';
 			}
 		}
@@ -140,7 +140,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
 				$img = $O->images[$keys[$index]];
 			else {
-				new ShoppError(sprintf('No %s image exists at the specified index position %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				shopp_debug( sprintf('No %s image exists at the specified index position %s.',get_class($O),$id) );
 				return '';
 			}
 		}
@@ -538,9 +538,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function errors ($result, $options, $O) {
-		$Errors = ShoppErrors();
-		if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
-		$errors = $Errors->get(SHOPP_COMM_ERR);
+
+		$Errors = ShoppErrorStorefrontNotices();
+		if ( ! $Errors->exist() ) return false;
+
 		$defaults = array(
 			'before' => '<li>',
 			'after' => '</li>'
@@ -548,9 +549,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$result = "";
-		foreach ( (array) $errors as $error )
-			if ( is_a($error, 'ShoppError') && ! $error->blank() ) $result .= $before.$error->message(true).$after;
+		$result = '';
+		while ( $Errors->exist() )
+			$result .=  $before . $Errors->message() . $after;
+
 		return $result;
 	}
 

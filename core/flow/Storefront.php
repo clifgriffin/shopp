@@ -1263,7 +1263,7 @@ class CatalogStorefrontPage extends StorefrontPage {
 		if ( $wp_the_query !== $wp_query || ! is_catalog_frontpage() ) return $content;
 
 		global $Shopp,$wp,$wp_query;
-		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
+		shopp_debug('Displaying catalog page request: '.$_SERVER['REQUEST_URI']);
 
 		ob_start();
 		locate_shopp_template(array('catalog.php'),true);

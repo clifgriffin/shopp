@@ -199,7 +199,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$response = $this->DoExpressCheckoutPayment();
 		$status = $this->status[ $response->paymentinfo_0_paymentstatus ];
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." response: "._object_r($response),false,SHOPP_DEBUG_ERR);
+		shopp_debug($1);
 		new ShoppError("PayPal Express DoExpressCheckoutPayment STATUS: $response->paymentinfo_0_paymentstatus = $status",false,SHOPP_DEBUG_ERR);
 
 		$txnid = $response->paymentinfo_0_transactionid;
@@ -558,7 +558,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	function ipn () {
-		if(SHOPP_DEBUG) new ShoppError("IPN message: "._object_r($_POST),false,SHOPP_DEBUG_ERR);
+		shopp_debug("IPN message: "._object_r($_POST));
 
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
@@ -608,7 +608,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 				)); break;
 		}
 
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
+		shopp_debug('PayPal IPN update processed for transaction: '.$target);
 
 		die('PayPal IPN update processed.');
 	}
@@ -630,7 +630,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$message = array_merge($_POST,$_);
 		$response = $this->send($message);
 
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
+		shopp_debug('PayPal IPN notification verfication response received: '.$response);
 
 		return ('VERIFIED' == $response);
 	}
@@ -644,7 +644,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	 * @return Object The response from the server or a ShoppError
 	 **/
 	function send ($message) {
-		if(SHOPP_DEBUG) new ShoppError('message: '._object_r($message),false,SHOPP_DEBUG_ERR);
+		shopp_debug('message: '._object_r($message));
 		$response = parent::send($message,$this->apiurl());
 
 		if (!$response) return new ShoppError($this->name.": ".Lookup::errors('gateway','noresponse'),'gateway_comm_err',SHOPP_COMM_ERR);
@@ -704,7 +704,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 			$i++;
 		}
-		if(SHOPP_DEBUG) new ShoppError(_object_r($_),false,SHOPP_DEBUG_ERR);
+		shopp_debug(_object_r($_));
 
 		return $_;
 	}

@@ -59,7 +59,7 @@ function shopp_product_has_meta ( $product = false, $name = false, $type = 'meta
  **/
 function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
 	if ( ! $product ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__.' failed: product id required', 'shopp_product_meta_list', SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__.' failed: product id required');
 		return false;
 	}
 	$metas = shopp_product_meta ( $product, false, $type );
@@ -87,7 +87,7 @@ function shopp_product_meta_list ( $product = false, $type = 'meta' ) {
  **/
 function shopp_product_meta_count ( $product = false, $type = 'meta' ) {
 	if ( ! $product ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__.' failed: product id required', 'shopp_product_meta_count', SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__.' failed: product id required');
 		return false;
 	}
 	$meta = shopp_product_meta ( $product, false, $type );
@@ -124,7 +124,7 @@ function shopp_set_product_meta ( $product = false, $name = false, $value = fals
  **/
 function shopp_rmv_product_meta ( $product = false, $name = false, $type = 'meta') {
 	if ( ! $product && ! $name ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__.' failed: product and name parameters required.',__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__.' failed: product and name parameters required.');
 		return false;
 	}
 	return shopp_rmv_meta ( $product, 'product', $name, $type );
@@ -157,7 +157,7 @@ function shopp_meta ( $id = false, $context = false, $name = false, $type = 'met
 	$values = array();
 
 	if ( ! ( $id || $context || $name ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__.' failed: No parameters specified.', 'shopp_meta',SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__.' failed: No parameters specified.');
 		return;
 	}
 
@@ -167,7 +167,7 @@ function shopp_meta ( $id = false, $context = false, $name = false, $type = 'met
 		$meta->load($id);
 
 		if ( empty($meta->id) ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such meta with id $id or missing context.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			shopp_debug(__FUNCTION__ . " failed: No such meta with id $id or missing context.");
 		}
 
 		return $meta->value;
@@ -237,7 +237,7 @@ function shopp_meta_exists ( $name = false, $context = false, $type = 'meta' ) {
  **/
 function shopp_set_meta ( $id = false, $context = false, $name = false, $value = false, $type = 'meta', $valuetype = 'value' ) {
 	if ( ! ( $id || $id && $context ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Must specify at least a meta id or parent id and context.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Must specify at least a meta id or parent id and context.");
 		return false;
 	}
 
@@ -258,7 +258,7 @@ function shopp_set_meta ( $id = false, $context = false, $name = false, $value =
 			$meta->save();
 			return true;
 		} else {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No metadata with id $id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			shopp_debug(__FUNCTION__ . " failed: No metadata with id $id.");
 			return false;
 		}
 	}
@@ -271,7 +271,7 @@ function shopp_set_meta ( $id = false, $context = false, $name = false, $value =
 		$meta->save();
 		return true;
 	}
-	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__.' failed: id, context, type, and name are required parameters for this context.',__FUNCTION__,SHOPP_DEBUG_ERR);
+	shopp_debug(__FUNCTION__.' failed: id, context, type, and name are required parameters for this context.');
 	return false;
 }
 
@@ -289,7 +289,7 @@ function shopp_set_meta ( $id = false, $context = false, $name = false, $value =
  **/
 function shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 'meta' ) {
 	if ( ! ( $id || $id && $context ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Must specify at least a meta id or parent id and context.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Must specify at least a meta id or parent id and context.");
 		return false;
 	}
 

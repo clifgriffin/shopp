@@ -406,7 +406,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 				ob_end_clean();
 				return apply_filters('shopp_order_lookup',$content);
 			} else {
-				new ShoppError(__('No order could be found with that information.','Shopp'),'',SHOPP_AUTH_ERR);
+				shopp_add_error( __('No order could be found with that information.','Shopp'), SHOPP_AUTH_ERR );
 			}
 		}
 

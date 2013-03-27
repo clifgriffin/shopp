@@ -20,6 +20,8 @@ class ShoppLoader {
 	protected static $classmap = array();	// A map of class names to files
 	protected static $basepath = '';		// Tracks the base path of files in the classmap
 
+	private static $excludes = array('wp_atom_server');
+
 	/**
 	 * Setup the loader and register the autoloader
 	 *
@@ -96,7 +98,8 @@ class ShoppLoader {
 	 **/
 	public function load ( $class ) {
 
-		if ( $this->classmap($class) ) return true;
+		if ( $this->excluded($class) ) return true;
+		elseif ( $this->classmap($class) ) return true;
 		elseif ( SHOPP_DEBUG && $this->scanner($class) ) return true;
 
 		return false;
@@ -116,6 +119,11 @@ class ShoppLoader {
 		if ( isset(self::$classmap[ $classname ]) )
 			return (1 == require self::$classmap[ $classname ]);
 		return false;
+	}
+
+	protected function excluded ( $class ) {
+		$classname = strtolower($class);
+		return in_array($classname,self::$excludes);
 	}
 
 	/**
@@ -415,6 +423,7 @@ ShoppLoader()->map(array(
     'shopperror' => '/model/Error.php',
     'shopperrorlogging' => '/model/Error.php',
     'shopperrornotification' => '/model/Error.php',
+	'shopperrorstorefrontnotices' => '/model/Error.php',
     'shopperrors' => '/model/Error.php',
     'shoppfacetedmenuwidget' => '/ui/widgets/facetedmenu.php',
     'shoppflow' => '/flow/Flow.php',

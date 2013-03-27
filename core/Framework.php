@@ -383,7 +383,7 @@ class ShoppKit {
 	 * @return void
 	 **/
 	function shopp_redirect ($uri,$exit=true,$status=302) {
-		if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
+		shopp_debug("Redirecting to: $uri");
 		wp_redirect($uri,$status);
 		if ($exit) exit();
 	}
