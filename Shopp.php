@@ -1,141 +1,80 @@
 <?php
-/*
-Plugin Name: Shopp
-Version: 1.3dev
-Description: Bolt-on ecommerce solution for WordPress
-Plugin URI: http://shopplugin.com
-Author: Ingenesis Limited
-Author URI: http://ingenesis.net
-
-	Portions created by Ingenesis Limited are Copyright © 2008-2011 by Ingenesis Limited
-
-	This file is part of Shopp.
-
-	Shopp is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	Shopp is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+/**
+ * Plugin Name: Shopp
+ * Plugin URI: http://shopplugin.com
+ * Description: An ecommerce framework for WordPress.
+ * Version: 1.3dev
+ * Author: Ingenesis Limited
+ * Author URI: http://ingenesis.net
+ * Requires at least: 3.5
+ * Tested up to: 3.5.2
+ *
+ *    Portions created by Ingenesis Limited are Copyright © 2008-2013 by Ingenesis Limited
+ *
+ *    This file is part of Shopp.
+ *
+ *    Shopp is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    Shopp is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-if ( ! defined('SHOPP_VERSION') )
-	define( 'SHOPP_VERSION', '1.3dev' );
-if ( ! defined('SHOPP_GATEWAY_USERAGENT') )
-	define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION );
-if ( ! defined('SHOPP_HOME') )
-	define( 'SHOPP_HOME', 'https://shopplugin.com/' );
-if ( ! defined('SHOPP_CUSTOMERS') )
-	define( 'SHOPP_CUSTOMERS', 'http://customers.shopplugin.com/');
-if ( ! defined('SHOPP_DOCS') )
-	define( 'SHOPP_DOCS', SHOPP_HOME.'docs/' );
-
-include 'core/legacy.php';
-
-// Don't load Shopp if unsupported
-if ( SHOPP_UNSUPPORTED ) return;
-
-require 'core/functions.php';
+if ( Shopp::services() || Shopp::unsupported() ) return; // Prevent loading the plugin
 
 // Start up the core
 $Shopp = new Shopp();
 do_action('shopp_loaded');
 
 /**
- * Shopp class
+ * Shopp core plugin management class
  *
  * @author Jonathan Davis
- * @package shopp
  * @since 1.0
+ * @package shopp
  **/
 class Shopp {
 
-	public $Settings;			// Shopp settings registry
-	public $Flow;				// Controller routing
-	public $Catalog;			// The main catalog
-	public $Category;			// Current category
-	public $Product;			// Current product
-	public $Purchase; 			// Currently requested order receipt
-	public $Shopping; 			// The shopping session
-	public $Errors;				// Error system
-	public $Order;				// The current session Order
-	public $Promotions;			// Active promotions registry
-	public $Collections;		// Collections registry
-	public $Gateways;			// Gateway modules
-	public $Shipping;			// Shipping modules
-	public $APIs;				// Loaded API modules
-	public $Storage;			// Storage engine modules
+	const VERSION = '1.3dev';
 
-	static $_memory;
+	public $Settings;		// @deprecated Shopp settings registry
+	public $Flow;			// @deprecated Controller routing
+	public $Catalog;		// @deprecated The main catalog
+	public $Category;		// @deprecated Current category
+	public $Product;		// @deprecated Current product
+	public $Purchase; 		// @deprecated Currently requested order receipt
+	public $Shopping; 		// @deprecated The shopping session
+	public $Errors;			// @deprecated Error system
+	public $Order;			// @deprecated The current session Order
+	public $Promotions;		// @deprecated Active promotions registry
+	public $Collections;	// @deprecated Collections registry
+	public $Gateways;		// @deprecated Gateway modules
+	public $Shipping;		// @deprecated Shipping modules
+	public $APIs;			// @deprecated Loaded API modules
+	public $Storage;		// @deprecated Storage engine modules
 
 	function __construct () {
 
-		if ( WP_DEBUG ) self::$_memory = memory_get_peak_usage(true);
-
-		// Determine system and URI paths
-		$path = sanitize_path(dirname(__FILE__));
-		$file = basename(__FILE__);
-		$directory = basename($path);
-
-		$languages_path = array($directory,'lang');
-		load_plugin_textdomain('Shopp',false,sanitize_path(join('/',$languages_path)));
-
-		// Find plugin relative URLs
-		$uri = WP_PLUGIN_URL."/$directory";
-		$wpadmin_url = admin_url();
-
-		if ($this->secure = is_ssl()) {
-			$uri = str_replace('http://','https://',$uri);
-			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
-		}
-
-		if ( ! defined('BR') ) define('BR','<br />');
-
-		// Overrideable config macros
-		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL',false);					// Require SSL to protect transactions, overrideable for development
-		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS',false);		// Require payment capture granting access to downloads
-		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT',7200);			// Sessions live for 2 hours
-		if ( ! defined('SHOPP_CART_EXPIRES') )			define('SHOPP_CART_EXPIRES',1209600);			// Carts are stashed for up to 2 weeks
-		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG',false);				// Debugging queries is disabled by default
-		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT',10);				// Gateway connections timeout after 10 seconds
-		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT',10);			// Shipping provider connections timeout after 10 seconds
-		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH',sys_get_temp_dir());	// Use the system defined temporary directory
-		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
 		// Autoload system
 		require 'core/Loader.php';
 		ShoppLoader::includes();
 
-		// Paths
-		define('SHOPP_PATH', $path);
-		define('SHOPP_DIR', $directory);
-		define('SHOPP_PLUGINURI', $uri);
-		define('SHOPP_WPADMIN_URL', $wpadmin_url);
-		define('SHOPP_PLUGINFILE', "$directory/$file");
+		$this->constants();	// Setup Shopp constants
+		$this->paths();		// Determine Shopp paths
 
-		define('SHOPP_ADMIN_DIR', '/core/ui');
-		define('SHOPP_ADMIN_PATH', SHOPP_PATH.SHOPP_ADMIN_DIR);
-		define('SHOPP_ADMIN_URI', SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
-		define('SHOPP_ICONS_URI', SHOPP_ADMIN_URI.'/icons');
-		define('SHOPP_FLOW_PATH', SHOPP_PATH.'/core/flow');
-		define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
-		define('SHOPP_GATEWAYS', SHOPP_PATH.'/gateways');
-		define('SHOPP_SHIPPING', SHOPP_PATH.'/shipping');
-		define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
-		define('SHOPP_THEME_APIS', SHOPP_PATH.'/api/theme');
-		define('SHOPP_DBSCHEMA', SHOPP_MODEL_PATH.'/schema.sql');
+		load_plugin_textdomain( 'Shopp', false, SHOPP_DIR . '/lang' );
 
-		// Autoload system
-		require "$path/core/flow/Loader.php";
-		ShoppDeveloperAPI::load( $path );
+		ShoppDeveloperAPI::load( SHOPP_PATH );
 
 		// Error system
 		ShoppErrors();
@@ -146,10 +85,11 @@ class Shopp {
 		// Initialize application control processing
 		$this->Flow = new ShoppFlow();
 
-		// Init old properties for legacy add-on module compatibility
+		// Init deprecated properties for legacy add-on module compatibility
 		$this->Shopping = ShoppShopping();
 		$this->Settings = ShoppSettings();
 
+		// Hooks
 		add_action('init', array($this,'init'));
 
 		// Core WP integration
@@ -164,11 +104,10 @@ class Shopp {
 
 		// Theme integration
 		add_action('widgets_init', array($this, 'widgets'));
-		add_filter('wp_list_pages',array($this,'secure_links'));
 
 		// Plugin management
 		add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
-		add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
+		add_action('install_plugins_pre_plugin-information', array('ShoppCore', 'changelog'));
 		add_action('load-plugins.php',array($this,'updates'));
 		add_action('load-update.php', array($this,'updates'));
 		add_action('load-update-core.php',array($this,'updates'));
@@ -179,6 +118,7 @@ class Shopp {
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
 	}
+
 
 	/**
 	 * Initializes the Shopp runtime environment
@@ -199,12 +139,58 @@ class Shopp {
 		$this->APIs = new ShoppAPIModules();
 		$this->Collections = array();
 
-		if ( ! $Shopping->handlers)
-			shopp_add_error(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),SHOPP_ADMIN_ERR);
-		shopp_debug( 'Session started '.str_repeat('-',64) );
-
 		new Login();
 		do_action('shopp_init');
+	}
+
+	function constants () {
+		if ( ! defined('SHOPP_VERSION') )				define( 'SHOPP_VERSION', self::VERSION );
+		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION );
+		if ( ! defined('SHOPP_HOME') )					define( 'SHOPP_HOME', 'https://shopplugin.com/' );
+		if ( ! defined('SHOPP_CUSTOMERS') )				define( 'SHOPP_CUSTOMERS', 'http://customers.shopplugin.com/');
+		if ( ! defined('SHOPP_DOCS') )					define( 'SHOPP_DOCS', SHOPP_HOME.'docs/' );
+
+		// Helper for line break output
+		if ( ! defined('BR') ) 							define('BR','<br />');
+
+		// Overrideable config macros
+		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL',false);					// Require SSL to protect transactions, overrideable for development
+		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS',false);		// Require payment capture granting access to downloads
+		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT',7200);			// Sessions live for 2 hours
+		if ( ! defined('SHOPP_CART_EXPIRES') )			define('SHOPP_CART_EXPIRES',1209600);			// Carts are stashed for up to 2 weeks
+		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG',false);				// Debugging queries is disabled by default
+		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT',10);				// Gateway connections timeout after 10 seconds
+		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT',10);			// Shipping provider connections timeout after 10 seconds
+		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH',sys_get_temp_dir());	// Use the system defined temporary directory
+		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
+	}
+
+	function paths () {
+
+		$path = sanitize_path(dirname(__FILE__));
+		$file = basename(__FILE__);
+		$directory = basename($path);
+
+		// Paths
+		define('SHOPP_PATH', $path );
+		define('SHOPP_DIR', $directory );
+		define('SHOPP_PLUGINFILE', "$directory/$file" );
+		define('SHOPP_PLUGINURI', set_url_scheme(WP_PLUGIN_URL . "/$directory") );
+
+		define('SHOPP_WPADMIN_URL', admin_url() ); // @deprecated, use admin_url() instead
+
+		define('SHOPP_ADMIN_DIR', '/core/ui');
+		define('SHOPP_ADMIN_PATH', SHOPP_PATH . SHOPP_ADMIN_DIR);
+		define('SHOPP_ADMIN_URI', SHOPP_PLUGINURI . SHOPP_ADMIN_DIR);
+		define('SHOPP_ICONS_URI', SHOPP_ADMIN_URI.'/icons');
+		define('SHOPP_FLOW_PATH', SHOPP_PATH.'/core/flow');
+		define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
+		define('SHOPP_GATEWAYS', SHOPP_PATH.'/gateways');
+		define('SHOPP_SHIPPING', SHOPP_PATH.'/shipping');
+		define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
+		define('SHOPP_THEME_APIS', SHOPP_PATH.'/api/theme');
+		define('SHOPP_DBSCHEMA', SHOPP_MODEL_PATH.'/schema.sql');
+
 	}
 
 	/**
@@ -344,222 +330,108 @@ class Shopp {
 	}
 
 	/**
-	 * @see Shopping::session()
-	 * @deprecated Moved to Shopping::recession() static call
-	 **/
-	function resession ( $session = false ) {
-		Shopping::resession($session);
-	}
-
-	/**
-	 * Provides the JavaScript environment with Shopp settings
+	 * Handles request services like the image server and script server
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
-	 * @todo Move Shopp::settingsjs predefined to Scripts.php
+	 * @since 1.3
 	 *
-	 * @return void
+	 * @return boolean The service load status
 	 **/
-	function settingsjs () {
-		$baseop = shopp_setting('base_operations');
+	static function services () {
 
-		$currency = array();
-		$base = array();
-		if (isset($baseop['currency']['format']['decimals'])) {
-			$settings = &$baseop['currency']['format'];
-			$currency = array(
-				// Currency formatting
-				'cp' => $settings['cpos'],
-				'c' =>  $settings['currency'],
-				'p' =>  $settings['precision'],
-				't' =>  $settings['thousands'],
-				'd' =>  $settings['decimals']
-			);
-			if (isset($settings['grouping']))
-				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
+		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
-		}
-		if (!is_admin()) $base = array('nocache' => is_shopp_page('account'));
+		// Image Server request handling
+		if ( isset($_GET['siid']) || (false !== strpos($_SERVER['REQUEST_URI'],'/images/') && sscanf($_SERVER['REQUEST_URI'],'%s/images/%d/')) )
+			return require 'core/image.php';
 
-		// Validation alerts
-		shopp_localize_script('catalog', '$cv', array(
-			'field' => __('Your %s is required.','Shopp'),
-			'email' => __('The e-mail address you provided does not appear to be a valid address.','Shopp'),
-			'minlen' => __('The %s you entered is too short. It must be at least %d characters long.','Shopp'),
-			'pwdmm' => __('The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.','Shopp'),
-			'chkbox' => __('%s must be checked before you can proceed.','Shopp')
-		));
-
-		// Checkout page settings & localization
-		shopp_localize_script('checkout','$co', array(
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'loginname' => __('You did not enter a login.','Shopp'),
-			'loginpwd' => __('You did not enter a password to login with.','Shopp'),
-		));
-
-		// Validation alerts
-		shopp_localize_script('cart', '$ct', array(
-			'items' => __('Items','Shopp'),
-			'total' => __('Total','Shopp'),
-		));
-
-		// Calendar localization
-		shopp_localize_script('calendar','$cal',array(
-			// Month names
-			'jan' => __('January','Shopp'),
-			'feb' => __('February','Shopp'),
-			'mar' => __('March','Shopp'),
-			'apr' => __('April','Shopp'),
-			'may' => __('May','Shopp'),
-			'jun' => __('June','Shopp'),
-			'jul' => __('July','Shopp'),
-			'aug' => __('August','Shopp'),
-			'sep' => __('September','Shopp'),
-			'oct' => __('October','Shopp'),
-			'nov' => __('November','Shopp'),
-			'dec' => __('December','Shopp'),
-
-			// Weekday names
-			'sun' => __('Sun','Shopp'),
-			'mon' => __('Mon','Shopp'),
-			'tue' => __('Tue','Shopp'),
-			'wed' => __('Wed','Shopp'),
-			'thu' => __('Thu','Shopp'),
-			'fri' => __('Fri','Shopp'),
-			'sat' => __('Sat','Shopp')
-		));
-
-		// Product editor: unsaved changes warning
-		shopp_localize_script('product-editor', '$msg', array(
-			'confirm' => __('The changes you made will be lost if you navigate away from this page.', 'Shopp')
-		));
-
-		$defaults = apply_filters('shopp_js_settings',array_merge($currency,$base));
-		shopp_localize_script('shopp','$s',$defaults);
+		// Script Server request handling
+		if ( isset($_GET['sjsl']) )
+			return require 'core/scripts.php';
 	}
 
 	/**
-	 * Filters the WP page list transforming unsecured URLs to secure URLs
+	 * Detects if Shopp is unsupported in the current hosting environment
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void
+	 * @return boolean True if requirements are missing, false if no errors were detected
 	 **/
-	function secure_links ($linklist) {
-		if (!$this->Gateways->secure) return $linklist;
-		$hrefs = array(
-			'checkout' => shoppurl(false,'checkout'),
-			'account' => shoppurl(false,'account')
-		);
-		if (empty($this->Gateways->active)) return str_replace($hrefs['checkout'],shoppurl(false,'cart'),$linklist);
-
-		foreach ($hrefs as $href) {
-			$secure_href = str_replace("http://","https://",$href);
-			$linklist = str_replace($href,$secure_href,$linklist);
-		}
-		return $linklist;
-	}
-
-	/**
-	 * Communicates with the Shopp update service server
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param array $request (optional) A list of request variables to send
-	 * @param array $data (optional) A list of data variables to send
-	 * @param array $options (optional)
-	 * @return string The response from the server
-	 **/
-	function callhome ($request=array(),$data=array(),$options=array()) {
-		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
-		$data = http_build_query($data,'','&');
-
-		$defaults = array(
-			'method' => 'POST',
-			'timeout' => 20,
-			'redirection' => 7,
-			'httpversion' => '1.0',
-			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
-			'blocking' => true,
-			'headers' => array(),
-			'cookies' => array(),
-			'body' => $data,
-			'compress' => false,
-			'decompress' => true,
-			'sslverify' => false
-		);
-		$params = array_merge($defaults,$options);
-
-		$URL = SHOPP_HOME."?$query";
-
-		$connection = new WP_Http();
-		$result = $connection->request($URL,$params);
-		extract($result);
-
-		if (isset($response['code']) && 200 != $response['code']) { // Fail, fallback to http instead
-			$URL = str_replace('https://', 'http://', $URL);
-			$connection = new WP_Http();
-			$result = $connection->request($URL,$params);
+	static function unsupported () {
+		$activation = false;
+		if ( isset($_GET['action']) && isset($_GET['plugin']) ) {
+			$activation = ('activate' == $_GET['action']);
+			if ($activation) {
+				$plugin = $_GET['plugin'];
+				if (function_exists('check_admin_referer'))
+					check_admin_referer('activate-plugin_' . $plugin);
+			}
 		}
 
-		if (is_wp_error($result)) {
-			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
-			$errors = join(' ',$errors);
+		$errors = array();
 
-			shopp_add_error($this->name.": ".Lookup::errors('callhome','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",SHOPP_COMM_ERR);
+		// Check PHP version
+		if ( version_compare(PHP_VERSION, '5.2.4','<') ) array_push($errors,'phpversion','php524');
 
+		// Check WordPress version
+		if ( version_compare(get_bloginfo('version'),'3.5','<') )
+			array_push($errors,'wpversion','wp35');
+
+		// Check for GD
+		if ( ! function_exists('gd_info') ) $errors[] = 'gd';
+		elseif ( ! array_keys( gd_info(), array('JPG Support','JPEG Support')) ) $errors[] = 'jpgsupport';
+
+		if ( empty($errors) ) {
+			if ( ! defined('SHOPP_UNSUPPORTED') ) define('SHOPP_UNSUPPORTED',false);
 			return false;
-		} elseif (empty($result) || !isset($result['response'])) {
-			shopp_add_error($this->name.": ".Lookup::errors('callhome','noresponse'),SHOPP_COMM_ERR);
-			return false;
-		} else extract($result);
-
-		if (isset($response['code']) && 200 != $response['code']) {
-			$error = Lookup::errors('callhome','http-'.$response['code']);
-			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
-			shopp_add_error($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
-			return $body;
 		}
 
-		return $body;
+		$plugin_path = dirname(__FILE__);
+		// Manually load text domain for translated activation errors
+		$languages_path = str_replace('\\', '/', $plugin_path.'/lang');
+		load_plugin_textdomain('Shopp',false,$languages_path);
 
-	}
+		// Define translated messages
+		$_ = array(
+			'header' => __('Shopp Activation Error','Shopp'),
+			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
+			'phpversion' => sprintf(__('Your server is running PHP %s!','Shopp'),PHP_VERSION),
+			'php524' => __('Shopp requires PHP 5.2.4+.','Shopp'),
+			'wpversion' => sprintf(__('This site is running WordPress %s!','Shopp'),get_bloginfo('version')),
+			'wp35' => __('Shopp requires WordPress 3.5.','Shopp'),
+			'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.','Shopp'),
+			'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.','Shopp'),
+			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'Requirements">','</a>'),
+			'continue' => __('Return to Plugins page')
+		);
 
-	function key ($action,$key) {
-		$actions = array('deactivate','activate');
-		if (!in_array($action,$actions)) $action = reset($actions);
-		$action = "$action-key";
-
-		$request = array( 'ShoppServerRequest' => $action,'key' => $key,'site' => get_bloginfo('siteurl') );
-		$response = Shopp::callhome($request);
-		$result = json_decode($response);
-
-		$result = apply_filters('shopp_update_key',$result);
-
-		shopp_set_setting( 'updatekey',$result );
-
-		return $response;
-	}
-
-	static function keysetting () {
-		$updatekey = shopp_setting('updatekey');
-
-		// @legacy
-		if (is_array($updatekey)) {
-			$keys = array('s','k','t');
-			return array_combine(array_slice($keys,0,count($updatekey)),$updatekey);
+		if ( $activation ) {
+			$string = '<h1>'.$_['header'].'</h1><p>'.$_['intro'].'</h1></p><ul>';
+			foreach ((array)$errors as $error) if (isset($_[$error])) $string .= "<li>{$_[$error]}</li>";
+			$string .= '</ul><p>'.$_['nextstep'].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$_['continue'].'</a></p>';
+			wp_die($string);
 		}
 
-		$data = base64_decode($updatekey);
-		if (empty($data)) return false;
-		return unpack(Lookup::keyformat(),$data);
-	}
+		if ( ! function_exists('deactivate_plugins') )
+			require( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-	static function activated () {
-		$key = self::keysetting();
-		return ('1' == $key['s']);
+		$plugin = basename($plugin_path).__FILE__;
+		deactivate_plugins($plugin,true);
+
+		$phperror = '';
+		if ( is_array($errors) && ! empty($errors) ) {
+			foreach ( $errors as $error ) {
+				if ( isset($_[$error]) )
+					$phperror .= $_[$error].' ';
+				trigger_error($phperror,E_USER_WARNING);
+			}
+		}
+
+		if ( ! defined('SHOPP_UNSUPPORTED') )
+			define('SHOPP_UNSUPPORTED',true);
+
+		return true;
 	}
 
 	/**
@@ -573,7 +445,7 @@ class Shopp {
 	function updates () {
 
 		global $pagenow;
-		if (defined('WP_ADMIN')
+		if ( is_admin()
 			&& 'plugins.php' == $pagenow
 			&& isset($_GET['action'])
 			&& 'deactivate' == $_GET['action']) return array();
@@ -599,7 +471,7 @@ class Shopp {
 			$this->Storage->checksums()
 		);
 
-		$request = array("ShoppServerRequest" => "update-check");
+		$request = array('ShoppServerRequest' => 'update-check');
 		/**
 		 * Update checks collect environment details for faster support service only,
 		 * none of it is linked to personally identifiable information.
@@ -618,7 +490,7 @@ class Shopp {
 			'agent' => $_SERVER['HTTP_USER_AGENT']
 		);
 
-		$response = $this->callhome($request,$data);
+		$response = Shopp::callhome($request,$data);
 
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
@@ -658,34 +530,20 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	/**
-	 * Loads the change log for an available update
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function changelog () {
-		if ('shopp' != $_REQUEST['plugin']) return;
+	static function changelog () {
+		if ( 'shopp' != $_REQUEST['plugin'] ) return;
 
 		$request = array('ShoppServerRequest' => 'changelog');
-		if (isset($_GET['core']) && !empty($_GET['core']))
+		if ( isset($_GET['core']) && ! empty($_GET['core']) )
 			$request['core'] = $_GET['core'];
-		if (isset($_GET['addon']) && !empty($_GET['addon']))
+		if ( isset($_GET['addon']) && ! empty($_GET['addon']) )
 			$request['addons'] = $_GET['addon'];
-		$data = array();
-		$response = $this->callhome($request,$data);
 
-		echo '<html><head>';
-		echo '<link rel="stylesheet" href="'.admin_url().'/css/install.css" type="text/css" />';
-		echo '<link rel="stylesheet" href="'.SHOPP_ADMIN_URI.'/styles/admin.css" type="text/css" />';
-		echo '</head>';
-		echo '<body id="error-page" class="shopp-update">';
-		echo $response;
-		echo "</body>";
-		echo '</html>';
-		exit();
+		$data = array();
+		$response = Shopp::callhome($request,$data);
+
+		include SHOPP_ADMIN_PATH.'/help/changelog.php';
+		exit;
 	}
 
 	/**
@@ -709,15 +567,14 @@ class Shopp {
 		$store_url = SHOPP_HOME.'store/';
 		$account_url = SHOPP_HOME.'store/account/';
 
-
-		if (!empty($core)	// Core update available
+		if ( ! empty($core)	// Core update available
 				&& isset($core->new_version)	// New version info available
 				&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
 			) {
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin='.($core->slug).'&core='.($core->new_version).'&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
-			if (!$activated) { // Key not active
+			if ( ! $activated ) { // Key not active
 				$update_url = $store_url;
 				$message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.','Shopp'),
 							$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
@@ -731,7 +588,7 @@ class Shopp {
 			return;
 		}
 
-		if (!$activated) { // No update available, key not active
+		if ( ! $activated ) { // No update available, key not active
 			$message = sprintf(__('Please activate a valid %1$s access key for automatic updates and official support services. %2$s Find your %1$s access key %4$s or %3$s purchase a new key at the Shopp Store. %4$s','Shopp'), $plugin_name, '<a href="'.$account_url.'" target="_blank">', '<a href="'.$store_url.'" target="_blank">','</a>');
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
@@ -740,9 +597,9 @@ class Shopp {
 			return;
 		}
 
-	    if ($addons) {
+	    if ( $addons ) {
 			// Addon update messages
-			foreach ($addons as $addon) {
+			foreach ( $addons as $addon ) {
 				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
 				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
 				$message = sprintf(__('There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.','Shopp'),
@@ -765,14 +622,116 @@ class Shopp {
 	static function maintenance () {
 
 		$db_version = intval(shopp_setting('db_version'));
-		return ( !ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
+		return ( ! ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
 
 		// Settings unavailable
-		if (!ShoppSettings()->available() || !shopp_setting('shopp_setup') != "completed")
+		if (!ShoppSettings()->available() || ! shopp_setting('shopp_setup') != "completed")
 			return false;
 
 		shopp_set_setting('maintenance','on');
 		return true;
+	}
+
+	/**
+	 * Communicates with the Shopp update service server
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param array $request (optional) A list of request variables to send
+	 * @param array $data (optional) A list of data variables to send
+	 * @param array $options (optional)
+	 * @return string The response from the server
+	 **/
+	static function callhome ($request=array(),$data=array(),$options=array()) {
+		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
+		$data = http_build_query($data,'','&');
+
+		$defaults = array(
+			'method' => 'POST',
+			'timeout' => 20,
+			'redirection' => 7,
+			'httpversion' => '1.0',
+			'user-agent' => SHOPP_GATEWAY_USERAGENT.'; '.get_bloginfo( 'url' ),
+			'blocking' => true,
+			'headers' => array(),
+			'cookies' => array(),
+			'body' => $data,
+			'compress' => false,
+			'decompress' => true,
+			'sslverify' => false
+		);
+		$params = array_merge($defaults,$options);
+
+		$URL = SHOPP_HOME . "?$query";
+
+		$connection = new WP_Http();
+		$result = $connection->request($URL,$params);
+		extract($result);
+
+		if ( isset($response['code']) && 200 != $response['code'] ) { // Fail, fallback to http instead
+			$URL = str_replace('https://', 'http://', $URL);
+			$connection = new WP_Http();
+			$result = $connection->request($URL,$params);
+			extract($result);
+		}
+
+		if ( is_wp_error($result) ) {
+			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
+			$errors = join(' ',$errors);
+
+			shopp_add_error("Shopp: ".Lookup::errors('callhome','fail')." $errors ".Lookup::errors('contact','admin')." (WP_HTTP)",SHOPP_COMM_ERR);
+
+			return false;
+		} elseif ( empty($result) || !isset($result['response']) ) {
+			shopp_add_error("Shopp: ".Lookup::errors('callhome','noresponse'),SHOPP_COMM_ERR);
+			return false;
+		} else extract($result);
+
+		if ( isset($response['code']) && 200 != $response['code'] ) {
+			$error = Lookup::errors('callhome','http-'.$response['code']);
+			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
+			shopp_add_error("Shopp: $error",'callhome_comm_err',SHOPP_COMM_ERR);
+			return $body;
+		}
+
+		return $body;
+
+	}
+
+	static function key ($action,$key) {
+		$actions = array('deactivate','activate');
+		if (!in_array($action,$actions)) $action = reset($actions);
+		$action = "$action-key";
+
+		$request = array( 'ShoppServerRequest' => $action,'key' => $key,'site' => get_bloginfo('siteurl') );
+		$response = Shopp::callhome($request);
+		$result = json_decode($response);
+
+		$result = apply_filters('shopp_update_key',$result);
+
+		shopp_set_setting( 'updatekey',$result );
+
+		return $response;
+	}
+
+	static function keysetting () {
+		$updatekey = shopp_setting('updatekey');
+
+		// @legacy
+		if (is_array($updatekey)) {
+			$keys = array('s','k','t');
+			return array_combine(array_slice($keys,0,count($updatekey)),$updatekey);
+		}
+
+		$data = base64_decode($updatekey);
+		if (empty($data)) return false;
+		return unpack(Lookup::keyformat(),$data);
+	}
+
+	static function activated () {
+		$key = Shopp::keysetting();
+		return ('1' == $key['s']);
 	}
 
 } // END class Shopp

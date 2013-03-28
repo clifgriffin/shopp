@@ -11,14 +11,6 @@
  * @subpackage shopp
  **/
 
-// Image Server request handling
-if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
-	require(dirname(dirname(__FILE__)).'/image.php');
-
-// Script Server request handling
-if (isset($_GET['sjsl']))
-	require(dirname(dirname(__FILE__)).'/scripts.php');
-
 /**
  * ShoppFlow
  *
@@ -332,5 +324,3 @@ function &ShoppAdmin() {
 
 add_filter('shopp_update_key','shopp_keybind');
 add_filter('shopp_update_key','base64_encode');
-
-?>
