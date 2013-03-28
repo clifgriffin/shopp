@@ -43,7 +43,7 @@ abstract class ModuleLoader {
 
 		$path = $this->path;
 		$files = array();
-		find_files(".php",$path,$path,$files);
+		self::find_files('.php',$path,$path,$files);
 		if (empty($files)) return $files;
 
 		foreach ($files as $file) {
@@ -100,6 +100,42 @@ abstract class ModuleLoader {
 		foreach ($this->modules as $module) $hashes[] = md5_file($module->file);
 		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
 		return $hashes;
+	}
+
+	/**
+	 * Finds files of a specific extension
+	 *
+	 * Recursively searches directories and one-level deep of sub-directories for
+	 * files with a specific extension
+	 *
+	 * NOTE: Files are saved to the $found parameter, an array passed by
+	 * reference, not a returned value
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param string $extension File extension to search for
+	 * @param string $directory Starting directory
+	 * @param string $root Starting directory reference
+	 * @param string &$found List of files found
+	 * @return boolean Returns true if files are found
+	 **/
+	static function find_files ($extension, $directory, $root, &$found) {
+		if (is_dir($directory)) {
+
+			$Directory = @dir($directory);
+			if ($Directory) {
+				while (( $file = $Directory->read() ) !== false) {
+					if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
+					if (is_dir($directory.DIRECTORY_SEPARATOR.$file) && $directory == $root)		// Scan one deep more than root
+						self::find_files($extension,$directory.DIRECTORY_SEPARATOR.$file,$root, $found);	// but avoid recursive scans
+					if (substr($file,strlen($extension)*-1) == $extension)
+						$found[] = substr($directory,strlen($root)).DIRECTORY_SEPARATOR.$file;		// Add the file to the found list
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 
 
