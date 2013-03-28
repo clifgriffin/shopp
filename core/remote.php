@@ -220,19 +220,14 @@ if (!function_exists('shopp_prereqs')) {
 	}
 }
 
-require(realpath('../core/functions.php'));
+if ( ! defined('SHORTINIT')) define('SHORTINIT',true);
+require 'Loader.php';
 
 // Bootstrap WordPress environment
-if (!defined('ABSPATH') && $loadfile = shopp_find_wpload())
+if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
 	require($loadfile);
 
 /** Server **/
-// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-// but we can do it ourself.
-if ( !isset( $HTTP_RAW_POST_DATA ) ) {
-	$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
-}
-
 $method = $_SERVER['REQUEST_METHOD'];
 $resource = false;
 $query = $_SERVER['QUERY_STRING'];
