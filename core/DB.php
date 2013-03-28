@@ -1096,7 +1096,9 @@ abstract class SessionObject {
 		// Close out any early session calls
 		if(session_id()) session_write_close();
 
-		$this->handlers = $this->handling();
+		if ( ! $this->handling() )
+			trigger_error('The session handlers could not be initialized.',E_USER_NOTICE);
+		else shopp_debug( 'Session started '.str_repeat('-',64) );
 
 		register_shutdown_function('session_write_close');
 	}
