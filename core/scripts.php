@@ -60,6 +60,7 @@ if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
 
 if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
 
+date_default_timezone_set('UTC');
 
 $ShoppScripts = new ShoppScripts();
 shopp_default_scripts($ShoppScripts);
