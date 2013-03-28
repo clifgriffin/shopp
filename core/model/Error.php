@@ -42,6 +42,7 @@ define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
  * @subpackage errors
  **/
 class ShoppErrors {
+
 	private static $instance;
 
 	public $errors = array();				// Error message registry
@@ -59,19 +60,17 @@ class ShoppErrors {
 	function __construct ($level = SHOPP_ALL_ERR) {
 		$error_logging = shopp_setting('error_logging');
 		if ( $error_logging ) $level = $error_logging;
+		$debugging = (defined('WP_DEBUG') && WP_DEBUG);
 
-		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
-		if ($level > $this->reporting) $this->reporting = $level;
+		if ( $debugging ) $this->reporting = SHOPP_DEBUG_ERR;
+		if ( $level > $this->reporting ) $this->reporting = $level;
 
-		$this->notifications = new CallbackSubscription();
-
-		$types = E_ALL;// ^ E_NOTICE;
-		if (defined('WP_DEBUG') && WP_DEBUG) $types = E_ALL;
 		// Handle PHP errors
 		if ($this->reporting >= SHOPP_PHP_ERR)
-			set_error_handler(array($this,'php'),$types);
+			set_error_handler(array($this,'php'),E_ALL);
 
 		add_action('init', array(&$this, 'init'), 5);
+		do_action('shopp_errors_init');
 	}
 
 	function init () {
@@ -101,7 +100,8 @@ class ShoppErrors {
 	function add ($ShoppError) {
 		if (isset($ShoppError->code)) $this->errors[$ShoppError->code] = $ShoppError;
 		else $this->errors[] = $ShoppError;
-		$this->notifications->send($ShoppError);
+		do_action('shopp_error',$ShoppError);
+		// $this->notifications->send($ShoppError);
 	}
 
 	/**
@@ -430,8 +430,10 @@ class ShoppErrorLogging {
 		$sub = (!empty($path)?"_".sanitize_title_with_dashes($path):'');
 		$this->logfile = trailingslashit($this->dir).$siteurl['host'].$sub."_".$this->file;
 
-		$Errors = &ShoppErrors();
-		$Errors->notifications->subscribe($this,'log');
+		add_action('shopp_error',array($this,'log'));
+
+		// $Errors = &ShoppErrors();
+		// $Errors->notifications->subscribe($this,'log');
 	}
 
 	public static function instance() {
@@ -554,8 +556,8 @@ class ShoppErrorNotification {
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;
 		foreach ((array)$types as $type) $this->types += $type;
-		$Errors = ShoppErrors();
-		$Errors->notifications->subscribe($this,'notify');
+
+		add_action('shopp_error',array($this,'notify'));
 	}
 
 	public static function instance() {
@@ -612,15 +614,15 @@ class ShoppErrorStorefrontNotices implements Iterator {
 
 	public $notices = array();
 
+	private function __construct ($recipients='',$types=array()) {
+		add_action('init', array(&$this, 'init'), 5);
+		add_action('shopp_error',array($this,'notice'));
+	}
+
 	public static function instance() {
 		if ( ! self::$instance )
 			self::$instance = new self();
 		return self::$instance;
-	}
-
-	private function __construct ($recipients='',$types=array()) {
-		add_action('init', array(&$this, 'init'), 5);
-		ShoppErrors()->notifications->subscribe($this,'notice');
 	}
 
 	public function init () {
@@ -658,24 +660,6 @@ class ShoppErrorStorefrontNotices implements Iterator {
 
 	public function valid () {
         return isset($this->notices[$this->position]);
-	}
-
-}
-
-class CallbackSubscription {
-
-	public $subscribers = array();
-
-	function subscribe ($target,$method) {
-		if (!isset($this->subscribers[get_class($target)]))
-			$this->subscribers[get_class($target)] = array(&$target,$method);
-	}
-
-	function send () {
-		$args = func_get_args();
-		foreach ($this->subscribers as $callback) {
-			call_user_func_array($callback,$args);
-		}
 	}
 
 }
