@@ -199,7 +199,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$response = $this->DoExpressCheckoutPayment();
 		$status = $this->status[ $response->paymentinfo_0_paymentstatus ];
-		shopp_debug($1);
+
 		new ShoppError("PayPal Express DoExpressCheckoutPayment STATUS: $response->paymentinfo_0_paymentstatus = $status",false,SHOPP_DEBUG_ERR);
 
 		$txnid = $response->paymentinfo_0_transactionid;
