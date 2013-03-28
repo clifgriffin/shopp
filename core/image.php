@@ -13,7 +13,9 @@
 // Reduce image display issues by hiding warnings/notices
 ini_set('display_errors',0);
 
-$path = realpath( dirname(dirname(__FILE__)) );
+define('SHORTINIT',true);
+
+$path = ImageServer::path();
 
 // Create a "stub" global Shopp object for use by Asset objects (as the $Shopp
 // global will not otherwise be present for them to populate)
@@ -67,15 +69,15 @@ class ImageServer {
 	var $Image = false;
 
 	function __construct () {
-		global $path,$Shopp;
-		if (!defined('SHOPP_PATH'))
-			define('SHOPP_PATH', sanitize_path($path) );
-		if (!defined('SHOPP_MODEL_PATH'))
-			define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
-		if (!defined('SHOPP_STORAGE'))
-			define("SHOPP_STORAGE",SHOPP_PATH."/storage");
-		$Shopp->Storage = new StorageEngines();
+		global $Shopp;
+		if ( ! defined('SHOPP_PATH') )
+				define('SHOPP_PATH', self::path() );
+		if ( ! defined('SHOPP_MODEL_PATH') )
+				define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
+		if ( ! defined('SHOPP_STORAGE') )
+				define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
 
+		$Shopp->Storage = new StorageEngines();
 
 		$this->request();
 		$this->settings();
@@ -83,6 +85,11 @@ class ImageServer {
 			$this->render();
 		else $this->error();
 
+	}
+
+	static function path () {
+
+		return str_replace('\\','/', realpath( dirname(dirname(__FILE__)) ) );
 	}
 
 	/**
