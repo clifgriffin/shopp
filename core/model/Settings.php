@@ -39,6 +39,15 @@ class Settings extends DatabaseObject {
 	function __construct () {
 		$this->_table = $this->tablename(self::$table);
 		$this->bootup = Shopp::is_activating();
+		if ($this->bootup) add_action('shopp_init', array($this, 'bootup_finished'));
+	}
+
+	/**
+	 * Once Shopp has init'd this will take us back out of bootup mode and allow access to the
+	 * db.
+	 */
+	public function bootup_finished() {
+		$this->bootup = false;
 	}
 
 	static function &instance () {
