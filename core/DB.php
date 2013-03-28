@@ -13,6 +13,8 @@
  * @subpackage db
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 define('AS_ARRAY',false); // @deprecated
 if ( ! defined('SHOPP_DBPREFIX') ) define('SHOPP_DBPREFIX','shopp_');
 if ( ! defined('SHOPP_QUERY_DEBUG') ) define('SHOPP_QUERY_DEBUG',false);
