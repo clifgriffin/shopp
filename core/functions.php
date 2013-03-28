@@ -10,7 +10,6 @@
  * @package shopp
  **/
 
-shopp_default_timezone();
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
@@ -344,8 +343,6 @@ function remove_class_actions ( $tags = false, $class = 'stdClass', $priority = 
 	}
 	return;
 }
-
-
 
 /**
  * Determines the currency format to use
@@ -1469,19 +1466,6 @@ function shopp_daytimes () {
 		$total += $i*$periods[$p];
 	}
 	return ceil($total/$periods['d']).'d';
-}
-
-/**
- * Sets the default timezone based on the WordPress option (if available)
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @return void
- **/
-function shopp_default_timezone () {
-	if (function_exists('date_default_timezone_set'))
-		date_default_timezone_set('UTC');
 }
 
 /**
