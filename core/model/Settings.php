@@ -38,6 +38,7 @@ class Settings extends DatabaseObject {
 	 **/
 	function __construct () {
 		$this->_table = $this->tablename(self::$table);
+		$this->bootup = Shopp::is_activating();
 	}
 
 	static function &instance () {
