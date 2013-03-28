@@ -13,7 +13,9 @@
  * @subpackage FSStorage
  **/
 
-if (!defined('WP_CONTENT_DIR')) define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+if ( ! defined('WP_CONTENT_DIR') ) define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
 
 /**
  * FSStorage
@@ -65,17 +67,17 @@ class FSStorage extends StorageModule implements StorageEngine {
 			case 'upload':
 
 				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
-				elseif (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
+				elseif (move_uploaded_file($data,self::sanitize($this->path.'/'.$asset->filename))) return $asset->filename;
 				else $error = "$this->module: Could not move the uploaded file to the storage repository.";
 				$buffer = ob_get_contents();
 				break;
 			case 'file':
 				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
-				elseif (copy($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
+				elseif (copy($data,self::sanitize($this->path.'/'.$asset->filename))) return $asset->filename;
 				else $error = "$this->module: Could not move the file to the storage repository.";
 				break;
 			default:
-				if (file_put_contents(sanitize_path($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
+				if (file_put_contents(self::sanitize($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
 				else $error = "$this->module: Could store the file data.";
 		}
 
@@ -87,23 +89,23 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 
 	function exists ($uri) {
-		$filepath = sanitize_path($this->path."/".$uri);
+		$filepath = self::sanitize($this->path."/".$uri);
 		return (file_exists($filepath) && is_readable($filepath));
 	}
 
 	function load ($uri) {
-		return file_get_contents(sanitize_path($this->path.'/'.$uri));
+		return file_get_contents(self::sanitize($this->path.'/'.$uri));
 	}
 
 	function meta ($uri=false,$null=false) {
 		$_ = array();
-		$_['size'] = filesize(sanitize_path($this->path.'/'.$uri));
-		$_['mime'] = file_mimetype(sanitize_path($this->path.'/'.$uri));
+		$_['size'] = filesize(self::sanitize($this->path.'/'.$uri));
+		$_['mime'] = file_mimetype(self::sanitize($this->path.'/'.$uri));
 		return $_;
 	}
 
 	function output ($uri,$etag=false) {
-		$filepath = sanitize_path($this->path.'/'.$uri);
+		$filepath = self::sanitize($this->path.'/'.$uri);
 
 		if ($this->context == "download") {
 			if (!is_file($filepath)) {
@@ -178,7 +180,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		foreach ($this->settings['path'] as $method => &$path) {
 			$error = false;
 			$path = stripslashes($path);
-			$p = sanitize_path(realpath($path));
+			$p = self::sanitize(realpath($path));
 
 				if	(empty($path)) continue;
 			elseif	(!file_exists($p)) $error = __("The path does not exist.","Shopp");
@@ -220,7 +222,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']))
 			return;
 
-		$query = sanitize_path($url['path']);
+		$query = self::sanitize($url['path']);
 		$search = basename($query);
 		if (strlen($search) < 3) return;
 
@@ -253,7 +255,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		if (!$this->handles('download')) return $uri;
 
 		$this->context('download');
-		$path = trailingslashit(sanitize_path($this->path));
+		$path = trailingslashit(self::sanitize($this->path));
 
 		$url = $path.$uri;
 		if (!file_exists($url)) die('NULL');
@@ -263,6 +265,8 @@ class FSStorage extends StorageModule implements StorageEngine {
 		die('OK');
 	}
 
-} // END class FSStorage
+	static private function sanitize ( $path ) {
+		return str_replace('\\', '/', realpath($path));
+	}
 
-?>
+} // END class FSStorage
