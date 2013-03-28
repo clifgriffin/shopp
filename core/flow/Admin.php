@@ -9,6 +9,8 @@
  * @subpackage admin
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppAdmin
  *
@@ -361,7 +363,6 @@ class ShoppAdmin extends FlowController {
 		$this->admin_css();
 
 		shopp_enqueue_script('shopp');
-		add_action('shopp_print_scripts',array(&$Shopp,'settingsjs'),100);
 
 		$settings = array_filter(array_keys($this->Pages),array($this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');
@@ -1335,4 +1336,3 @@ class ShoppAdminListTable extends WP_List_Table {
 	}
 
 }
-?>
