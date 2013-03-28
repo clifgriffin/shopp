@@ -399,7 +399,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$Shopping = ShoppShopping();
 		$Order = ShoppOrder();
 		$Customer = $Order->Customer;
-		$Shipping =
 
 		$_ = array();
 
@@ -510,8 +509,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		} else {
 
 			// Line Items
+			$id = 0;
 			foreach($Order->Cart->contents as $i => $Item) {
-				$id=$i+1;
+				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
 				$_['amount_'.$id]			= $this->amount($Item->unitprice);
