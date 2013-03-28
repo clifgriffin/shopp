@@ -19,8 +19,14 @@ $path = realpath( dirname(dirname(__FILE__)) );
 // global will not otherwise be present for them to populate)
 if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 
-//
-if ( ! function_exists('shopp_find_wpload') ) require "$path/core/functions.php";
+// Setup autoloader and Developer API
+require 'Loader.php';
+
+// Barebones bootstrap (say that 5x fast) for WordPress
+if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload()) {
+	require($loadfile);
+	global $table_prefix;
+}
 
 // Stub i18n for compatibility
 if (!function_exists('__')) {
@@ -30,15 +36,6 @@ if (!function_exists('__')) {
 	}
 }
 
-// Barebones bootstrap (say that 5x fast) for WordPress
-if ( ! defined('ABSPATH') && $loadfile = shopp_find_wpload()) {
-	define('SHORTINIT',true);
-	require($loadfile);
-	global $table_prefix;
-}
-
-// Setup autoloader and Developer API
-require "$path/core/flow/Loader.php";
 ShoppDeveloperAPI::load( $path, array('core','settings') );
 
 // Start the server

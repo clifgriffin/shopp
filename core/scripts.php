@@ -52,14 +52,14 @@ function get_file($path) {
 	return @file_get_contents($path);
 }
 
-if ( ! function_exists('shopp_find_wpload') ) require('functions.php');
+if ( ! defined('SHORTINIT')) define('SHORTINIT',true);
+require 'Loader.php';
 
-if ( ! defined('ABSPATH') && $loadfile = shopp_find_wpload() )
+if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
 	define('ABSPATH',dirname($loadfile).'/');
 
 if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
 
-require 'flow/Scripts.php';
 
 $ShoppScripts = new ShoppScripts();
 shopp_default_scripts($ShoppScripts);
