@@ -63,14 +63,15 @@ class Shopp {
 	public $APIs;			// @deprecated Loaded API modules
 	public $Storage;		// @deprecated Storage engine modules
 
+
 	function __construct () {
 
 		// Autoload system
 		require 'core/Loader.php';
 		ShoppLoader::includes();
 
-		$this->constants();	// Setup Shopp constants
-		$this->paths();		// Determine Shopp paths
+		$this->constants();			// Setup Shopp constants
+		$this->paths();				// Determine Shopp paths
 
 		load_plugin_textdomain( 'Shopp', false, SHOPP_DIR . '/lang' );
 
@@ -129,6 +130,7 @@ class Shopp {
 	 * @return void
 	 **/
 	function init () {
+		$this->bootstrapmode = false;
 		$Shopping = ShoppShopping();
 
 		$this->Order = ShoppingObject::__new('Order');
@@ -192,6 +194,19 @@ class Shopp {
 		define('SHOPP_DBSCHEMA', SHOPP_MODEL_PATH.'/schema.sql');
 
 	}
+
+
+	/**
+	 * Check if we are in the early stages of activation (ie, potentially before the schema
+	 * has been established).
+	 */
+	protected function bootstrapcheck() {
+		global $action, $plugin;
+
+		if ($action === 'activate' && $plugin === SHOPP_PLUGINFILE)
+			$this->bootstrapmode = true;
+	}
+
 
 	/**
 	 * Sets up permalink handling for Storefront pages
@@ -611,6 +626,7 @@ class Shopp {
 
 	}
 
+
 	/**
 	 * Detect if the Shopp installation needs maintenance
 	 *
@@ -732,6 +748,16 @@ class Shopp {
 	static function activated () {
 		$key = Shopp::keysetting();
 		return ('1' == $key['s']);
+	}
+
+	/**
+	 * Indicates if Shopp is being activated.
+	 *
+	 * @return bool
+	 */
+	public static function is_activating() {
+		global $action, $plugin;
+		return ( ($action === 'activate' || $action === 'error_scrape') && $plugin === SHOPP_PLUGINFILE);
 	}
 
 } // END class Shopp
