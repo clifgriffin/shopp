@@ -20,7 +20,7 @@ if ( ! defined('SHOPP_DBPREFIX') ) define('SHOPP_DBPREFIX','shopp_');
 if ( ! defined('SHOPP_QUERY_DEBUG') ) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
-if (ini_get('zend.ze1_compatibility_mode'))
+if ( ini_get('zend.ze1_compatibility_mode') )
 	ini_set('zend.ze1_compatibility_mode','Off');
 
 /**
@@ -44,11 +44,10 @@ class DB extends SingletonFramework {
 		'date' 		=> array('date', 'time', 'year')
 	);
 
-	var $results = array();
-	var $queries = array();
-	var $dbh = false;
-	var $table_prefix = '';
-	var $found = false;
+	public $results = array();
+	public $queries = array();
+	public $found = false;
+	public $dbh = false;
 
 	/**
 	 * Initializes the DB object
@@ -62,11 +61,12 @@ class DB extends SingletonFramework {
 	 **/
 	protected function __construct () {
 		global $wpdb;
-		if (isset($wpdb->dbh)) {
+
+		if ( isset($wpdb->dbh) ) {
 			$this->dbh = $wpdb->dbh;
-			$this->table_prefix = $wpdb->get_blog_prefix();
 			$this->mysql = mysql_get_server_info();
 		}
+
 	}
 
 	/**
@@ -86,7 +86,7 @@ class DB extends SingletonFramework {
 	}
 
 	static function &instance () {
-		if (!self::$instance instanceof self)
+		if ( ! self::$instance instanceof self )
 			self::$instance = new self;
 		return self::$instance;
 	}
@@ -105,7 +105,7 @@ class DB extends SingletonFramework {
 	 **/
 	function connect ($user, $password, $database, $host) {
 		$this->dbh = @mysql_connect($host, $user, $password);
-		if (!$this->dbh) trigger_error("Could not connect to the database server '$host'.");
+		if ( ! $this->dbh ) trigger_error("Could not connect to the database server '$host'.");
 		else $this->db($database);
 	}
 
@@ -118,15 +118,15 @@ class DB extends SingletonFramework {
 	 * @return boolean
 	 **/
 	function reconnect () {
-		if (mysql_ping($this->dbh)) return true;
+		if ( mysql_ping($this->dbh) ) return true;
 
 		@mysql_close($this->dbh);
 		$this->connect(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
-		if ($this->dbh) {
+		if ( $this->dbh ) {
 			global $wpdb;
 			$wpdb->dbh = $this->dbh;
 		}
-		return ($this->dbh);
+		return ! empty($this->dbh);
 	}
 
 	/**
@@ -139,15 +139,22 @@ class DB extends SingletonFramework {
 	 * @return void
 	 **/
 	function db ($database) {
-		if(!@mysql_select_db($database,$this->dbh))
+		if( ! @mysql_select_db($database,$this->dbh) )
 			trigger_error("Could not select the '$database' database.");
 	}
 
+	/**
+	 * Determines if a table exists in the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return boolean True if the table exists, otherwise false
+	 **/
 	function hastable ($table) {
-		$db = self::instance();
 		$table = DB::escape($table);
 		$result = DB::query("SHOW TABLES FROM ".DB_NAME." LIKE '$table'",'auto','col');
-		return !empty($result);
+		return ! empty($result);
 	}
 
 	/**
@@ -212,6 +219,14 @@ class DB extends SingletonFramework {
 		return $data;
 	}
 
+	/**
+	 * Determines the calling stack of functions or class/methods of a query for debugging
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string The call stack
+	 **/
 	static function caller () {
 		$backtrace  = debug_backtrace();
 		$stack = array();
@@ -222,7 +237,6 @@ class DB extends SingletonFramework {
 				: $caller['function'];
 
 		return join( ', ', $stack );
-
 	}
 
 	/**
@@ -298,7 +312,16 @@ class DB extends SingletonFramework {
 		}
 	}
 
-	static function select ($options=array()) {
+	/**
+	 * Builds a select query from an array of query fragments
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $options The SQL fragments
+	 * @return string The complete SELECT SQL statement
+	 **/
+	static function select ( $options=array() ) {
 		$defaults = array(
 			'columns' => '*',
 			'useindex' => '',
@@ -326,6 +349,14 @@ class DB extends SingletonFramework {
 		return "SELECT $columns\n\tFROM $table $useindex $joins $where $groupby $having $orderby $limit";
 	}
 
+	/**
+	 * Provides the number of records found in the last query
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return int The number of records found
+	 **/
 	static function found () {
 		$db = DB::instance();
 		$found = $db->found;
@@ -402,11 +433,11 @@ class DB extends SingletonFramework {
 
 					$data[$property] = "'$value'";
 					break;
-				case "int":
 				case "float":
 					// Sanitize without rounding to protect precision
-					$value = floatvalue($value,false);
-
+					if ( function_exists('floatvalue') ) $value = floatvalue($value,false);
+					else $value = floatval($value);
+				case "int":
 					// Normalize for MySQL float representations (@see bug #853)
 					// Force formating with full stop (.) decimals
 					// Trim excess 0's followed by trimming (.) when there is no fractional value
@@ -417,7 +448,6 @@ class DB extends SingletonFramework {
 
 					// Special exception for id fields
 					if ($property == "id" && empty($value)) $data[$property] = "NULL";
-
 					break;
 				default:
 					// Anything not needing processing
