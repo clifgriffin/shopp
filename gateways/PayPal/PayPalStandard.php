@@ -399,7 +399,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$Shopping = ShoppShopping();
 		$Order = ShoppOrder();
 		$Customer = $Order->Customer;
-		$Shipping =
 
 		$_ = array();
 
