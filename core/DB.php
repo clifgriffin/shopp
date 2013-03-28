@@ -727,7 +727,8 @@ abstract class DatabaseObject implements Iterator {
 	 * @return string The full, prefixed table name
 	 **/
 	static function tablename ($table) {
-		return  DB::instance()->table_prefix.SHOPP_DBPREFIX.$table;
+		global $wpdb;
+		return $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table;
 	}
 
 	/**
@@ -1007,8 +1008,8 @@ class WPDatabaseObject extends DatabaseObject {
 	 * @return string The full, prefixed table name
 	 **/
 	static function tablename ($table) {
-		global $table_prefix;
-		return $table_prefix.$table;
+		global $wpdb;
+		return $wpdb->get_blog_prefix() . $table;
 	}
 
 	/**
