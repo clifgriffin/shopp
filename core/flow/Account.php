@@ -11,9 +11,9 @@
  * @subpackage shopp
  **/
 
-class Account extends AdminController {
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-	var $screen = 'shopp_page_shopp-customers';
+class Account extends AdminController {
 
 	/**
 	 * Account constructor
@@ -23,7 +23,8 @@ class Account extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		if (!empty($_GET['id'])) {
+
+		if ( ! empty($_GET['id']) ) {
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('password-strength-meter');
 			shopp_enqueue_script('suggest');
@@ -41,7 +42,7 @@ class Account extends AdminController {
 	 * @return void
 	 **/
 	function admin () {
-		if (!empty($_GET['id'])) $this->editor();
+		if ( ! empty($_GET['id']) ) $this->editor();
 		else $this->customers();
 	}
 
@@ -352,5 +353,3 @@ class Account extends AdminController {
 
 
 } // END class Account
-
-?>
