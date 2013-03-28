@@ -11,6 +11,7 @@
  **/
 
 shopp_default_timezone();
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
  * Converts timestamps to formatted localized date/time strings
@@ -2037,4 +2038,83 @@ function valid_input ($type) {
 	return false;
 }
 
-?>
+if ( ! function_exists('get_class_property') ) {
+	/**
+	 * Gets the property of an uninstantiated class
+	 *
+	 * Provides support for getting a property of an uninstantiated
+	 * class by dynamic name.  As of PHP 5.3.0 this function is no
+	 * longer necessary as you can simply reference as $Classname::$property
+	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.3.0
+	 *
+	 * @param string $classname Name of the class
+	 * @param string $property Name of the property
+	 * @return mixed Value of the property
+	 **/
+	function get_class_property ($classname, $property) {
+	  if( ! class_exists($classname,false) ) return;
+	  if( ! property_exists($classname, $property) ) return;
+
+	  $vars = get_class_vars($classname);
+	  return $vars[$property];
+	}
+}
+
+if ( defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT ) {
+	/**
+	 * Converts legacy Shopp proxy config macros to WP_HTTP_Proxy config macros
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @deprecated SHOPP_PROXY_CONNECT
+	 * @deprecated SHOPP_PROXY_SERVER
+	 * @deprecated SHOPP_PROXY_USERPWD
+	 *
+	 * @return void
+	 **/
+	function shopp_convert_proxy_config () {
+		if ( ! defined('SHOPP_PROXY_SERVER') || ! defined('SHOPP_PROXY_USERPWD') ) return;
+
+		$host = SHOPP_PROXY_SERVER;
+		$user = SHOPP_PROXY_USERPWD;
+
+		if ( false !== strpos($host,':') ) list($host,$port) = explode(':',$host);
+		if ( false !== strpos($user,':') ) list($user,$pwd) = explode(':',$user);
+
+		if ( ! defined('WP_PROXY_HOST') )				define('WP_PROXY_HOST',$host);
+		if ( ! defined('WP_PROXY_PORT') && $port )		define('WP_PROXY_PORT',$port);
+		if ( ! defined('WP_PROXY_USERNAME') )			define('WP_PROXY_USERNAME',$user);
+		if ( ! defined('WP_PROXY_PASSWORD') && $pwd )	define('WP_PROXY_PASSWORD',$pwd);
+	}
+	shopp_convert_proxy_config();
+}
+
+if ( ! function_exists('shopp_suhosin_warning') ) {
+	/**
+	 * Detect Suhosin enabled with problematic settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function shopp_suhosin_warning () {
+
+		return ( // Is Suhosin loaded or available?
+				(extension_loaded('Suhosin') || (defined('SUHOSIN_PATCH') && SUHOSIN_PATCH))
+				&& // Are the known problem settings defined?
+				(
+					@ini_get('suhosin.max_array_index_length') > 0 && @ini_get('suhosin.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_array_index_length') > 0 && @ini_get('suhosin.post.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_totalname_length') > 0 && @ini_get('suhosin.post.max_totalname_length') < 65535
+					&& @ini_get('suhosin.post.max_vars') > 0 && @ini_get('suhosin.post.max_vars') < 1024
+					&& @ini_get('suhosin.request.max_array_index_length') > 0 && @ini_get('suhosin.request.max_array_index_length') < 256
+					&& @ini_get('suhosin.request.max_totalname_length') > 0 && @ini_get('suhosin.request.max_totalname_length') < 65535
+					&& @ini_get('suhosin.request.max_vars') > 0 && @ini_get('suhosin.request.max_vars') < 1024
+				)
+		);
+	}
+}
