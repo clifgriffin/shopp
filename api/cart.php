@@ -120,6 +120,24 @@ function shopp_rmv_cart_item ( $item = false ) {
 }
 
 /**
+ * Update the quantity of a specific product (in the cart)
+ *
+ * @author Hiranthi Molhoek-Herlaar, Jonathan Davis
+ *
+ * @param int $item Index of the item in Cart contents
+ * @param int $quantity New quantity to update the item to, defaults to 1
+ **/
+function shopp_set_cart_item_quantity ( $item = false, $quantity = 1 ) {
+	if ( false === $item ) {
+		shopp_debug(__FUNCTION__ . ' failed: Missing item parameter.');
+		return false;
+	}
+
+    $Order = ShoppOrder();
+    return $Order->Cart->update($item, $quantity);
+}
+
+/**
  * shopp_cart_items - get a list of the items in the cart
  *
  * @author John Dillick
