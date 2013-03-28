@@ -471,7 +471,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 					$active = '';
 
 
-					if ( $Collection && $Collection->parent == $parent->id ) $active = ' active';
+					if ( $Collection && property_exists($Collection,'parent') && $Collection->parent == $parent->id ) $active = ' active';
 
 					$subcategories = '<ul class="children'.$active.'">';
 					$string .= $subcategories;
