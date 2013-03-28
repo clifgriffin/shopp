@@ -11,7 +11,7 @@
  * @subpackage autoload
  **/
 
-defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+( defined( 'WPINC' ) || defined('SHORTINIT') ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppLoader {
 
@@ -20,7 +20,7 @@ class ShoppLoader {
 	protected static $classmap = array();	// A map of class names to files
 	protected static $basepath = '';		// Tracks the base path of files in the classmap
 
-	private static $excludes = array('wp_atom_server');
+	private static $excludes = array();
 
 	/**
 	 * Setup the loader and register the autoloader
@@ -36,13 +36,17 @@ class ShoppLoader {
 	}
 
 	static public function &instance () {
-		if (!self::$instance instanceof self)
+		if ( ! self::$instance instanceof self )
 			self::$instance = new self;
 		return self::$instance;
 	}
 
 	static public function basepath ( $path ) {
-		self::$basepath = realpath($path);
+		self::$basepath = self::sanitize($path);
+	}
+
+	static private function sanitize ( $path ) {
+		return str_replace('\\', '/', realpath($path));
 	}
 
 	/**
@@ -100,7 +104,7 @@ class ShoppLoader {
 
 		if ( $this->excluded($class) ) return true;
 		elseif ( $this->classmap($class) ) return true;
-		elseif ( SHOPP_DEBUG && $this->scanner($class) ) return true;
+		elseif ( defined('SHOPP_DEBUG') && SHOPP_DEBUG && $this->scanner($class) ) return true;
 
 		return false;
 	}
@@ -123,7 +127,8 @@ class ShoppLoader {
 
 	protected function excluded ( $class ) {
 		$classname = strtolower($class);
-		return in_array($classname,self::$excludes);
+		// Ignore WordPress classes prefixed with wp_, and anything in the excludes list
+		return ( 'wp_' == substr($classname,0,2) ) || in_array($classname,self::$excludes);
 	}
 
 	/**
@@ -137,7 +142,6 @@ class ShoppLoader {
 	 * @return boolean True if succesful, false otherwise
 	 **/
 	protected function scanner ( $class, $path = '' ) {
-		error_log("Had to scan for $class : ".debug_caller());
 		$discovered = array();	// Track the classes not in the map
 
 		if ( empty($path) ) $path = self::$basepath;
@@ -203,14 +207,65 @@ class ShoppLoader {
 		fclose($file);
 	}
 
+	static function includes () {
+		require 'functions.php';
+	}
+
+	static function find_wpload () {
+		global $table_prefix;
+
+		$loadfile = 'wp-load.php';
+		$wp_abspath = false;
+
+		$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
+		$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
+		$rootpath = array_diff($syspath,$uripath);
+		$root = '/'.join('/',$rootpath);
+
+		$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
+
+		if ( file_exists(self::sanitize($root).'/'.$loadfile))
+			$wp_abspath = $root;
+
+		if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
+			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
+			// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
+			// and SHOPP_ABSPATH used on webserver site config
+			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
+
+		} elseif ( strpos($filepath, $root) !== false ) {
+			// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
+			$fullpath = explode ('/', self::sanitize($filepath) );
+			while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
+				if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
+					$wp_abspath = join('/',$fullpath);
+			}
+
+		} elseif ( file_exists(self::sanitize($root).'/'.$loadfile) ) {
+			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
+		} elseif ( file_exists(self::sanitize(dirname($root)).'/'.$loadfile) ) {
+			$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
+	    } else {
+	        /* Last chance, do or die */
+			$filepath = self::sanitize($filepath);
+	        if ( false !== ($pos = strpos($filepath, 'wp-content/plugins')) )
+	            $wp_abspath = substr($filepath, 0, --$pos);
+	    }
+
+		$wp_load_file = self::sanitize($wp_abspath) . "/$loadfile";
+
+		if ( $wp_load_file !== false ) return $wp_load_file;
+		return false;
+
+	}
+
 }
 
-function &ShoppLoader ( $path = '' ) {
-	if ( ! empty($path) ) ShoppLoader::basepath($path);
+function &ShoppLoader () {
 	return ShoppLoader::instance();
 }
 
-ShoppLoader("$path/core");
+ShoppLoader()->basepath( dirname(__FILE__) );
 ShoppLoader()->map(array(
     'account' => '/flow/Account.php',
     'accountstorefrontpage' => '/flow/Storefront.php',
@@ -229,7 +284,6 @@ ShoppLoader()->map(array(
     'bestsellerproducts' => '/model/Collection.php',
     'billingaddress' => '/model/Address.php',
     'booleanparser' => '/model/Search.php',
-    'callbacksubscription' => '/model/Error.php',
     'capturedorderevent' => '/model/Events.php',
     'capturedordereventrenderer' => '/ui/orders/events.php',
     'capturefailorderevent' => '/model/Events.php',
@@ -430,8 +484,7 @@ ShoppLoader()->map(array(
     'shopping' => '/model/Shopping.php',
     'shoppingobject' => '/model/Shopping.php',
     'shoppinstallation' => '/flow/Install.php',
-    'shoppkit' => '/Framework.php',
-    'shopploader' => '/flow/Loader.php',
+	'shopploader' => 'Loader.php',
     'shoppproductwidget' => '/ui/widgets/product.php',
     'shoppremoteapifile' => '/model/API.php',
     'shoppremoteapimodules' => '/model/API.php',
@@ -469,6 +522,7 @@ ShoppLoader()->map(array(
     'storefrontdashboardpage' => '/flow/Storefront.php',
     'storefrontpage' => '/flow/Storefront.php',
     'storefrontshortcodes' => '/flow/Storefront.php',
+    'subscriberframework' => '/model/Framework.php',
     'tagproducts' => '/model/Collection.php',
     'taxreport' => '/ui/reports/tax.php',
     'templateshippingui' => '/model/Shipping.php',
