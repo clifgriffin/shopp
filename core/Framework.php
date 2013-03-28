@@ -13,6 +13,7 @@
  * @subpackage framework
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
  * Implements a Registry pattern with internal iteration support
@@ -150,6 +151,24 @@ class AutoObjectFramework {
 		foreach ($inputs as $name => $value)
 			if (property_exists($this,$name))
 				$this->$name = $value;
+	}
+
+}
+
+class SubscriberFramework {
+
+	private $subscribers = array();
+
+	function subscribe ($target,$method) {
+		if ( ! isset($this->subscribers[get_class($target)]))
+			$this->subscribers[get_class($target)] = array(&$target,$method);
+	}
+
+	function send () {
+		$args = func_get_args();
+		foreach ($this->subscribers as $callback) {
+			call_user_func_array($callback,$args);
+		}
 	}
 
 }
