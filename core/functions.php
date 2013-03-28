@@ -1507,62 +1507,6 @@ function shopp_email ($template,$data=array()) {
 }
 
 /**
- * Locate the WordPress bootstrap file
- *
- * @author Jonathan Davis
- * @since 1.2
- *
- * @return string Absolute path to wp-load.php
- **/
-function shopp_find_wpload () {
-	global $table_prefix;
-
-	$loadfile = 'wp-load.php';
-	$wp_abspath = false;
-
-	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
-	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
-	$rootpath = array_diff($syspath,$uripath);
-	$root = '/'.join('/',$rootpath);
-
-	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
-
-	if ( file_exists(sanitize_path($root).'/'.$loadfile))
-		$wp_abspath = $root;
-
-	if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
-		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
-		// and SHOPP_ABSPATH used on webserver site config
-		$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
-
-	} elseif ( strpos($filepath, $root) !== false ) {
-		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
-		$fullpath = explode ('/', sanitize_path($filepath) );
-		while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
-			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
-				$wp_abspath = join('/',$fullpath);
-		}
-
-	} elseif ( file_exists(sanitize_path($root).'/'.$loadfile) ) {
-		$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$loadfile) ) {
-		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
-    } else {
-        /* Last chance, do or die */
-		$filepath = sanitize_path($filepath);
-        if (($pos = strpos($filepath, 'wp-content/plugins')) !== false)
-            $wp_abspath = substr($filepath, 0, --$pos);
-    }
-
-	$wp_load_file = realpath(sanitize_path($wp_abspath).'/'.$loadfile);
-
-	if ( $wp_load_file !== false ) return $wp_load_file;
-	return false;
-
-}
-
-/**
  * Ties the key status and update key together
  *
  * @author Jonathan Davis
