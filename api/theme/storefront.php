@@ -337,7 +337,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( is_a($Storefront->Requested, 'ProductCollection') ) ShoppCollection($Storefront->Requested);
 		else ShoppCollection($reset);
 
-		if (isset($options['wrap']) && str_true($options['wrap'])) $content = shoppdiv($content);
+		if (isset($options['wrap']) && str_true($options['wrap'])) $content = Storefront::wrapper($content);
 
 		return $content;
 	}

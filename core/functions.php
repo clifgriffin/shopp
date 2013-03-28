@@ -1380,43 +1380,10 @@ function get_wp_query_var ($key) {
 /**
  * Wraps mark-up in a #shopp container, if needed
  *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @param string $string The content markup to be wrapped
- * @param array $classes CSS classes to add to the container
- * @return string The wrapped markup
+ * @deprecated Use Storefront::wrapper() instead
  **/
 function shoppdiv ($string) {
-
-	$classes = array();
-
-	$views = array('list','grid');
-	$view = shopp_setting('default_catalog_view');
-	if (empty($view)) $view = 'grid';
-
-	// Handle catalog view style cookie preference
-	if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
-	if (in_array($view,$views)) $classes[] = $view;
-
-	// Add collection slug
-	$Collection = ShoppCollection();
-	if (!empty($Collection))
-		if ($category = shopp('collection','get-slug')) $classes[] = $category;
-
-	// Add product id & slug classes
-	$Product = ShoppProduct();
-	if (!empty($Product)) {
-		if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
-		if ($product = shopp('product','get-slug')) $classes[] = $product;
-	}
-
-	$classes = apply_filters('shopp_content_container_classes',$classes);
-	$classes = esc_attr(join(' ',$classes));
-
-	if (false === strpos($string,'<div id="shopp"'))
-		return '<div id="shopp"'.(!empty($classes)?' class="'.$classes.'"':'').'>'.$string.'</div>';
-	return $string;
+	return Storefront::wrapper($string);
 }
 
 function shopp_daytimes () {
