@@ -356,8 +356,11 @@ class Shopp {
 
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
-		// Image Server request handling
-		if ( isset($_GET['siid']) || (false !== strpos($_SERVER['REQUEST_URI'],'/images/') && sscanf($_SERVER['REQUEST_URI'],'%s/images/%d/')) )
+		// Image Server: has the server loaded already?
+		if (defined('SHOPP_IMGSERVER_LOADED')) return true;
+
+		// Image Server: is the server still to load?
+		if ( isset($_GET['siid']) || (false !== strpos($_SERVER['REQUEST_URI'],'/images/') && sscanf($_SERVER['REQUEST_URI'],'%s/images/%d/')))
 			return require 'core/image.php';
 
 		// Script Server request handling

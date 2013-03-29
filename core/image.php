@@ -14,6 +14,7 @@
 ini_set('display_errors',0);
 
 define('SHORTINIT',true);
+define('SHOPP_IMGSERVER_LOADED', true);
 
 $path = ImageServer::path();
 
@@ -21,7 +22,12 @@ $path = ImageServer::path();
 // global will not otherwise be present for them to populate)
 if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 
-// Setup autoloader and Developer API
+// Make core Shopp functionality available
+define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
+require "$path/core/functions.php";
+require "$path/Shopp.php";
+
+// Developer API and core functions
 require 'Loader.php';
 
 // Barebones bootstrap (say that 5x fast) for WordPress
