@@ -511,7 +511,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 			// Line Items
 			foreach($Order->Cart->contents as $i => $Item) {
-				$id=$i+1;
+				$id=$i++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
 				$_['amount_'.$id]			= $this->amount($Item->unitprice);
