@@ -11,6 +11,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppFlow
  *
@@ -20,10 +22,10 @@
  **/
 class ShoppFlow {
 
-	var $Controller = false;
-	var $Admin = false;
-	var $Installer = false;
-	var $Logins = false;
+	public $Controller = false;
+	public $Admin = false;
+	public $Installer = false;
+	public $Logins = false;
 
 	/**
 	 * Flow constructor
@@ -246,9 +248,9 @@ abstract class FlowController  {
 abstract class AdminController extends FlowController {
 
 
-	var $Admin = false;
-	var $url;
-	var $screen;
+	public $Admin = false;
+	public $url;
+	public $screen;
 
 	private $notices = array();
 
