@@ -259,6 +259,16 @@ class ShoppLoader {
 
 	}
 
+	/**
+	 * Indicates if Shopp is being activated. This can be useful for systems such as the Settings object
+	 * which will wish to avoid database operations before the schema is available, etc.
+	 *
+	 * @return bool
+	 */
+	public static function is_activating() {
+		global $action, $plugin;
+		return ( ($action === 'activate' || $action === 'error_scrape') && $plugin === SHOPP_PLUGINFILE);
+	}
 }
 
 function &ShoppLoader () {

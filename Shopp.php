@@ -353,13 +353,9 @@ class Shopp {
 	 * @return boolean The service load status
 	 **/
 	static function services () {
-
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
-		// Image Server: has the server loaded already?
-		if (defined('SHOPP_IMGSERVER_LOADED')) return true;
-
-		// Image Server: is the server still to load?
+		// Image Server request handling
 		if ( isset($_GET['siid']) || (false !== strpos($_SERVER['REQUEST_URI'],'/images/') && sscanf($_SERVER['REQUEST_URI'],'%s/images/%d/')))
 			return require 'core/image.php';
 
@@ -751,16 +747,6 @@ class Shopp {
 	static function activated () {
 		$key = Shopp::keysetting();
 		return ('1' == $key['s']);
-	}
-
-	/**
-	 * Indicates if Shopp is being activated.
-	 *
-	 * @return bool
-	 */
-	public static function is_activating() {
-		global $action, $plugin;
-		return ( ($action === 'activate' || $action === 'error_scrape') && $plugin === SHOPP_PLUGINFILE);
 	}
 
 } // END class Shopp

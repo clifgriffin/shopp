@@ -25,7 +25,6 @@ if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 // Make core Shopp functionality available
 define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
 require "$path/core/functions.php";
-require "$path/Shopp.php";
 
 // Developer API and core functions
 require 'Loader.php';

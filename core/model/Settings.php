@@ -33,12 +33,10 @@ class Settings extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 *
-	 * @return void
 	 **/
 	function __construct () {
 		$this->_table = $this->tablename(self::$table);
-		$this->bootup = Shopp::is_activating();
+		$this->bootup = ShoppLoader::is_activating();
 		if ($this->bootup) add_action('shopp_init', array($this, 'bootup_finished'));
 	}
 
