@@ -11,6 +11,7 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
  * ShoppInstallation
@@ -20,7 +21,7 @@
  **/
 class ShoppInstallation extends FlowController {
 
-	var $errors = array();
+	public $errors = array();
 
 	/**
 	 * Install constructor
@@ -202,7 +203,7 @@ class ShoppInstallation extends FlowController {
 		// Make sure dbDelta() is available
 		if ( ! function_exists('dbDelta') )
 			require(ABSPATH.'wp-admin/includes/upgrade.php');
-		
+
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-upgrade');
 
@@ -1301,9 +1302,9 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
  **/
 class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
-	var $addon = false;
-	var $addons_dir = false;
-	var $destination = false;
+	public $addon = false;
+	public $addons_dir = false;
+	public $destination = false;
 
 	function upgrade_strings () {
 		$this->strings['up_to_date'] = __('The add-on is at the latest version.','Shopp');
