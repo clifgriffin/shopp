@@ -441,7 +441,7 @@ class DB extends SingletonFramework {
 					// Normalize for MySQL float representations (@see bug #853)
 					// Force formating with full stop (.) decimals
 					// Trim excess 0's followed by trimming (.) when there is no fractional value
-					$value = rtrim(rtrim(number_format($value,6,'.',''),'0'),'.');
+					$value = rtrim(rtrim(number_format((float)$value,6,'.',''),'0'),'.');
 
 					$data[$property] = "'$value'";
 					if (empty($value)) $data[$property] = "'0'";
