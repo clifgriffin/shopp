@@ -222,7 +222,7 @@ class ShoppErrors {
 	 * @param int $line The line number the error occurred at in the file
 	 * @return boolean
 	 **/
-	function php ($number, $message, $file, $line) {
+	static function php ($number, $message, $file, $line) {
 		if (strpos($file,SHOPP_PATH) === false) return true;
 		$debug = '';
 		if (SHOPP_DEBUG) $debug = sprintf(" [%s, line %d]", basename($file),$line);
