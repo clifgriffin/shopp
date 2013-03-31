@@ -22,7 +22,8 @@ var Pricelines = new Pricelines(),
  	saving = false,
  	flashUploader = false,
 	template = false,
- 	fileUploads = false;
+ 	fileUploads = false,
+	changesMade = false;
 
 jQuery(document).ready(function($) {
 	var title = $('#title'),
@@ -140,7 +141,7 @@ jQuery(document).ready(function($) {
 
 	// Confirm navigation dialog (avoid people accidentally losing work upon navigation)
 	window.onbeforeunload = function() {
-		var editor = typeof(tinymce) != 'undefined' ? tinymce.activeEditor : false;
+		var editor = (typeof(tinymce) != 'undefined') ? tinymce.activeEditor : false;
 		if (changesMade || (editor && editor.isDirty() && !editor.isHidden()) )
 			return $msg.confirm;
 	}
