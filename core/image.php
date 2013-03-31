@@ -11,24 +11,44 @@
  **/
 
 // Reduce image display issues by hiding warnings/notices
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
+ini_set('display_errors',0);
 
-chdir(dirname(__FILE__));
+define('SHORTINIT',true);
+define('SHOPP_IMGSERVER_LOADED', true);
+
+$path = ImageServer::path();
 
 // Create a "stub" global Shopp object for use by Asset objects (as the $Shopp
 // global will not otherwise be present for them to populate)
-if (!isset($GLOBALS['Shopp'])) $GLOBALS['Shopp'] = new stdClass;
+if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 
-if (!class_exists('SingletonFramework')) require(realpath('Framework.php'));
-if (!class_exists('DB')) require(realpath('DB.php'));
-if (!function_exists('shopp_find_wpload')) require(realpath('functions.php'));
-if (!class_exists('ShoppErrors')) require('model/Error.php');
-if (!class_exists('Settings')) require('model/Settings.php');
-if (!class_exists('ModuleLoader')) require('model/Modules.php');
+// Make core Shopp functionality available
+define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
+require "$path/core/functions.php";
+require "$path/Shopp.php";
 
-if (!class_exists('MetaObject')) require('model/Meta.php');
-if (!class_exists('ImageAsset')) require('model/Asset.php');
-if (!function_exists('shopp_setting')) require(realpath('../api/settings.php'));
+// Developer API and core functions
+require 'Loader.php';
+
+// Barebones bootstrap (say that 5x fast) for WordPress
+if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload()) {
+	require($loadfile);
+	global $table_prefix;
+}
+
+// Stub i18n for compatibility
+if (!function_exists('__')) {
+	// Localization API is not available at this point
+	function __ ($string,$domain=false) {
+		return $string;
+	}
+}
+
+ShoppDeveloperAPI::load( $path, array('core','settings') );
+
+// Start the server
+new ImageServer();
+exit;
 
 /**
  * ImageServer class
@@ -55,14 +75,15 @@ class ImageServer {
 	var $Image = false;
 
 	function __construct () {
-		if (!defined('SHOPP_PATH'))
-			define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
-		if (!defined('SHOPP_MODEL_PATH'))
-			define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
-		if (!defined('SHOPP_STORAGE'))
-			define("SHOPP_STORAGE",SHOPP_PATH."/storage");
-		if (!defined('SHOPP_QUERY_DEBUG'))
-			define('SHOPP_QUERY_DEBUG',true);
+		global $Shopp;
+		if ( ! defined('SHOPP_PATH') )
+				define('SHOPP_PATH', self::path() );
+		if ( ! defined('SHOPP_MODEL_PATH') )
+				define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
+		if ( ! defined('SHOPP_STORAGE') )
+				define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
+
+		$Shopp->Storage = new StorageEngines();
 
 		$this->request();
 		$this->settings();
@@ -70,6 +91,11 @@ class ImageServer {
 			$this->render();
 		else $this->error();
 
+	}
+
+	static function path () {
+
+		return str_replace('\\','/', realpath( dirname(dirname(__FILE__)) ) );
 	}
 
 	/**
@@ -96,14 +122,14 @@ class ImageServer {
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg)
-			if ('' != $arg) $this->{$this->args[$index]} = intval($arg);
+			if ( '' != $arg ) $this->{$this->args[$index]} = intval($arg);
 
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
 		$this->scale = $this->scaling[$this->scale];
 
 		// Handle clear image requests (used in product gallery to reserve DOM dimensions)
-		if ('000' == substr($this->request,0,3)) $this->clearpng();
+		if ( '000' === substr($this->request,0,3) ) $this->clearpng();
 	}
 
 	/**
@@ -152,8 +178,6 @@ class ImageServer {
 			die('');
 		}
 
-		if (!class_exists('ImageProcessor'))
-			require(SHOPP_MODEL_PATH."/Image.php");
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
 		$alpha = ('image/png' == $this->Image->mime);
@@ -199,13 +223,15 @@ class ImageServer {
 	 **/
 	function render () {
 
+		// Show the not found image if the image is not found
 		$found = $this->Image->found();
-		if (!$found) return $this->error();
+		if ( ! $found ) return $this->error();
 
-		if (is_array($found) && isset($found['redirect'])) {
-			$this->Image->output(false);
-		} else $this->Image->output();
-		exit();
+		// Handle image redirects (for cloud storage engines)
+		$headers = ! ( is_array($found) && isset($found['redirect']) );
+
+		// Output the image
+		$this->Image->output($headers);
 	}
 
 	/**
@@ -244,8 +270,6 @@ class ImageServer {
 	 * @return void Description...
 	 **/
 	function clearpng () {
-		if (!class_exists('ImageProcessor'))
-			require(SHOPP_MODEL_PATH.'/Image.php');
 		$max = 1920;
 		$this->width = min($max,$this->width);
 		$this->height = min($max,$this->height);
@@ -264,26 +288,4 @@ class ImageServer {
 		ShoppSettings();
 	}
 
-} // end ImageServer class
-
-/**
- * Stub for compatibility
- **/
-if (!function_exists('__')) {
-	// Localization API is not available at this point
-	function __ ($string,$domain=false) {
-		return $string;
-	}
 }
-
-// Barebones bootstrap (say that 5x fast) for WordPress
-if (!defined('ABSPATH') && $loadfile = shopp_find_wpload()) {
-	define('SHORTINIT',true);
-	require($loadfile);
-	global $table_prefix;
-}
-
-// Start the server
-new ImageServer();
-
-?>

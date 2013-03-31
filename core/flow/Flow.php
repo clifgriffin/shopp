@@ -11,13 +11,7 @@
  * @subpackage shopp
  **/
 
-// Image Server request handling
-if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
-	require(dirname(dirname(__FILE__)).'/image.php');
-
-// Script Server request handling
-if (isset($_GET['sjsl']))
-	require(dirname(dirname(__FILE__)).'/scripts.php');
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
  * ShoppFlow
@@ -28,10 +22,10 @@ if (isset($_GET['sjsl']))
  **/
 class ShoppFlow {
 
-	var $Controller = false;
-	var $Admin = false;
-	var $Installer = false;
-	var $Logins = false;
+	public $Controller = false;
+	public $Admin = false;
+	public $Installer = false;
+	public $Logins = false;
 
 	/**
 	 * Flow constructor
@@ -254,9 +248,9 @@ abstract class FlowController  {
 abstract class AdminController extends FlowController {
 
 
-	var $Admin = false;
-	var $url;
-	var $screen;
+	public $Admin = false;
+	public $url;
+	public $screen;
 
 	private $notices = array();
 
@@ -332,5 +326,3 @@ function &ShoppAdmin() {
 
 add_filter('shopp_update_key','shopp_keybind');
 add_filter('shopp_update_key','base64_encode');
-
-?>

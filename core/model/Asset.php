@@ -121,13 +121,13 @@ class FileAsset extends MetaObject {
 	 **/
 	function &_engine () {
 		global $Shopp;
-		if (!isset($Shopp->Storage)) $Shopp->Storage = new StorageEngines();
+		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines();
 
-		if (!empty($this->storage)) {
+		if ( ! empty($this->storage) ) {
 			// Use the storage engine setting of the asset
-			if (isset($Shopp->Storage->active[$this->storage])) {
+			if ( isset($Shopp->Storage->active[$this->storage]) ) {
 				$Engine = $Shopp->Storage->active[$this->storage];
-			} else if (isset($Shopp->Storage->modules[$this->storage])) {
+			} elseif ( isset($Shopp->Storage->modules[$this->storage]) ) {
 				$Module = new ModuleFile(SHOPP_STORAGE,$Shopp->Storage->modules[$this->storage]->filename);
 				$Engine = $Module->load();
 			}
@@ -137,7 +137,7 @@ class FileAsset extends MetaObject {
 			$this->storage = $engine;
 			$Engine = $Shopp->Storage->active[$engine];
 		}
-		if (!empty($Engine)) $Engine->context($this->type);
+		if ( ! empty($Engine) ) $Engine->context($this->type);
 
 		return $Engine;
 	}

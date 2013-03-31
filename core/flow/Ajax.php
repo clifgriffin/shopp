@@ -12,6 +12,8 @@
  * @subpackage ajax
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppAjax
  *
@@ -202,40 +204,48 @@ class ShoppAjax {
 
 	}
 
+	/**
+	 * Handles Product/Category slug editor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
 	function edit_slug () {
 		check_admin_referer('wp_ajax_shopp_edit_slug');
 
 		$defaults = array(
 			'slug' => false,
 			'type' => false,
-			'id' => false
+			'id' => false,
+			'title' => false,
 		);
 		$p = array_merge($defaults,$_POST);
 		extract($p);
 
-		if (!$slug) die('-1');
+		if ( false === $slug || false === $id) die('-1');
 
-		switch ($type) {
-			case "category":
+		switch ( $type ) {
+			case 'category':
 				$Category = new ProductCategory($_POST['id']);
-				if ($slug == $Category->slug) die('-1');
+				if ( $slug == $Category->slug ) die('-1');
 				$term = get_term($Category->id,$Category->taxonomy);
-				$slug = wp_unique_term_slug(sanitize_title_with_dashes($slug),$term);
-				if ($slug == $Category->slug) die('-1');
-				$Category->slug = $slug;
+				$Category->slug = wp_unique_term_slug(sanitize_title_with_dashes($title),$term);
+				if ( $slug == $Category->slug ) die('-1');
 				$Category->save();
 				echo apply_filters('editable_slug',$Category->slug);
 				break;
-			case "product":
+			case 'product':
 				$Product = new Product($_POST['id']);
 				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
-
-				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, $Product->status, Product::posttype(), 0);
+				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($title), $Product->id, $Product->status, Product::posttype(), 0);
+				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
 				$Product->save();
 				echo apply_filters('editable_slug',$Product->slug);
 				break;
 		}
-		exit();
+		exit;
 	}
 
 	function shipping_costs () {

@@ -831,7 +831,7 @@ class Order {
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
 		ShoppPurchase( $Purchase );
 
-		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
+		shopp_debug('Purchase '.$Purchase->id.' was successfully saved to the database.');
 
 		// Start the transaction processing events
 		do_action('shopp_purchase_order_created',$Purchase);
@@ -878,7 +878,7 @@ class Order {
 		// New customer, save hashed password
 		if (!$this->Customer->exists()) {
 			$this->Customer->id = false;
-			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
+			shopp_debug('Creating new Shopp customer record');
 			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
 			if (!$this->guest && 'shopp' == shopp_setting('account_system')) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
@@ -1086,7 +1086,7 @@ class Order {
 				if(apply_filters('shopp_login_required',!isset($_POST['loginname'])))
 					return new ShoppError(__('A login is not available for creation with the information you provided. Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
 			}
-			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['loginname'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);
+			shopp_debug('Login set to '. $_POST['loginname'] . ' for WordPress account creation.');
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if ( $this->guest && ! empty($ExistingCustomer->id) ) $this->Customer->id = $ExistingCustomer->id;
 			if ( apply_filters('shopp_email_exists', !$this->guest && (email_exists($_POST['email']) || !empty($ExistingCustomer->id))) )
@@ -1189,7 +1189,7 @@ class Order {
 		$errors = 0;
 		$valid = true;
 
-		if (SHOPP_DEBUG) new ShoppError('Validating order data for processing',false,SHOPP_DEBUG_ERR);
+		shopp_debug('Validating order data for processing');
 
 		if (empty($Cart->contents)) {
 			$valid = apply_filters('shopp_ordering_empty_cart',false);

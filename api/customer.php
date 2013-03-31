@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_customer - get customer information
  *
@@ -32,7 +34,7 @@ function shopp_customer ( $customer = false, $key = 'customer' ) {
 
 	if ( 'wpuser' == $key ) {
 		if ( 'wordpress' != shopp_setting('account_system') ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer $customer could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			shopp_debug(__FUNCTION__ . " failed: Customer $customer could not be found.");
 			return false;
 		}
 		$Customer = new Customer($customer, 'wpuser');
@@ -43,7 +45,7 @@ function shopp_customer ( $customer = false, $key = 'customer' ) {
 	}
 
 	if ( ! $Customer->id ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer $customer could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Customer $customer could not be found.");
 		return false;
 	}
 
@@ -66,7 +68,7 @@ function shopp_customer ( $customer = false, $key = 'customer' ) {
  **/
 function shopp_customer_exists ( $customer = false, $key = 'customer' ) {
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: customer parameter required.");
 		return false;
 	}
 	$Customer = shopp_customer($customer, $key);
@@ -130,7 +132,7 @@ function shopp_customer_marketing_list ( $exclude = false ) {
  **/
 function shopp_add_customer (  $data = array() ) {
 	if ( empty($data) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_add_customer - no customer data supplied.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug("shopp_add_customer - no customer data supplied.");
 		return false;
 	}
 
@@ -141,11 +143,11 @@ function shopp_add_customer (  $data = array() ) {
 	if ( isset($data['wpuser']) ) {
 		$c = new Customer($data['wpuser'], 'wpuser');
 		if ( $c->id ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer with WordPress user id {$data['wpuser']} already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			shopp_debug(__FUNCTION__ . " failed: Customer with WordPress user id {$data['wpuser']} already exists.");
 			return false;
 		}
 	} else if ( "wordpress" == shopp_setting('account_system') ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Wordpress account id must by specified in data array with key wpuser.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Wordpress account id must by specified in data array with key wpuser.");
 		return false;
 	}
 
@@ -153,17 +155,17 @@ function shopp_add_customer (  $data = array() ) {
 	if ( isset($data['email']) ) {
 		$c = new Customer($data['email'], 'email');
 		if ( $c->id ) {
-			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer with email {$data['email']} already exists.",__FUNCTION__,SHOPP_DEBUG_ERR);
+			shopp_debug(__FUNCTION__ . " failed: Customer with email {$data['email']} already exists.");
 			return false;
 		}
 	} else {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Email address must by specified in data array with key email.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Email address must by specified in data array with key email.");
 		return false;
 	}
 
 	// handle missing first or last name
 	if ( ! isset($data['firstname']) || ! isset($data['lastname']) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_add_customer failure: Data array missing firstname or lastname.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug("shopp_add_customer failure: Data array missing firstname or lastname.");
 		return false;
 	}
 
@@ -173,8 +175,8 @@ function shopp_add_customer (  $data = array() ) {
 
 	foreach ( $data as $key => $value ) {
 		if ( in_array($key, $map) ) $Customer->{$key} = $value;
-		else if( SHOPP_DEBUG && ! in_array( $key, array_keys($address_map) ) )
-			new ShoppError("shopp_add_customer notice: Invalid customer data $key",__FUNCTION__,SHOPP_DEBUG_ERR);
+		elseif( SHOPP_DEBUG && ! in_array( $key, array_keys($address_map) ) )
+			shopp_debug("shopp_add_customer notice: Invalid customer data $key");
 		if ( in_array( $key, array_keys($address_map) ) ) {
 			$type = ( 's' == substr($key, 0, 1) ? 'shipping' : 'billing' );
 			${$type}[$address_map[$key]] = $value;
@@ -183,7 +185,7 @@ function shopp_add_customer (  $data = array() ) {
 
 	$Customer->save();
 	if ( ! $Customer->id ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Could not create customer.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Could not create customer.");
 		return false;
 	}
 	if ( ! empty($shipping) ) shopp_add_customer_address( $Customer->id, $shipping, 'shipping' );
@@ -210,12 +212,12 @@ function shopp_set_customer_address ( $customer = false, $data = false, $type = 
  **/
 function shopp_add_customer_address (  $customer = false, $data = false, $type = 'billing' ) {
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Customer id required.");
 		return false;
 	}
 
 	if ( empty($data) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: data array is empty",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: data array is empty");
 		return false;
 	}
 
@@ -259,7 +261,7 @@ function shopp_add_customer_address (  $customer = false, $data = false, $type =
 		}
 	}
 
-	if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: one or more addresses did not validate.",__FUNCTION__,SHOPP_DEBUG_ERR);
+	shopp_debug(__FUNCTION__ . " failed: one or more addresses did not validate.");
 	return false;
 }
 
@@ -274,13 +276,13 @@ function shopp_add_customer_address (  $customer = false, $data = false, $type =
  **/
 function shopp_rmv_customer (  $customer = false ) {
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Customer id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Customer id required.");
 		return false;
 	}
 
 	$Customer = new Customer($customer);
 	if ( empty($Customer->id) ) {
-		if(SHOPP_DEBUG) new ShoppError("shopp_rmv_customer notice: No such customer with id $customer",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug("shopp_rmv_customer notice: No such customer with id $customer");
 		return false;
 	}
 
@@ -312,7 +314,7 @@ function shopp_rmv_customer (  $customer = false ) {
  **/
 function shopp_address (  $id = false, $type = 'billing' ) {
 	if ( ! $id ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing id parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Missing id parameter.");
 		return false;
 	}
 
@@ -328,7 +330,7 @@ function shopp_address (  $id = false, $type = 'billing' ) {
 	}
 
 	if ( empty($Address->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such address with id $address.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: No such address with id $address.");
 		return false;
 	}
 
@@ -346,7 +348,7 @@ function shopp_address (  $id = false, $type = 'billing' ) {
  **/
 function shopp_customer_address_count (  $customer = false ) {
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: customer id required.");
 		return false;
 	}
 	$table = DatabaseObject::tablename(Address::$table);
@@ -366,7 +368,7 @@ function shopp_customer_address_count (  $customer = false ) {
  **/
 function shopp_customer_addresses (  $customer = false ) {
 	if ( ! $customer ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: customer id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: customer id required.");
 		return false;
 	}
 
@@ -387,13 +389,13 @@ function shopp_customer_addresses (  $customer = false ) {
  **/
 function shopp_rmv_customer_address (  $address = false ) {
 	if ( ! $address ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing address id parameter.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Missing address id parameter.");
 		return false;
 	}
 	$Address = new Address($address);
 
 	if ( empty($Address->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such address with id $address.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: No such address with id $address.");
 		return false;
 	}
 

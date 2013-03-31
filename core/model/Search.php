@@ -13,6 +13,8 @@
  * @subpackage search
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * IndexProduct class
  *
@@ -25,9 +27,9 @@
  **/
 class IndexProduct {
 
-	var $Product = false;
-	var $properties = array(
-		"name","prices","summary","description","specs","categories","tags"
+	public $Product = false;
+	public $properties = array(
+		'name','prices','summary','description','specs','categories','tags'
 	);
 
 	/**
@@ -166,7 +168,7 @@ class ContentIndex extends DatabaseObject {
 
 } // END class ContentIndex
 
-if (!class_exists('SearchParser')):
+if ( ! class_exists('SearchParser',false) ):
 /**
  * SearchParser class
  *
@@ -228,7 +230,7 @@ class SearchParser extends SearchTextFilters {
 }
 endif;
 
-if (!class_exists('BooleanParser')):
+if ( ! class_exists('BooleanParser',false) ):
 /**
  * BooleanParser class
  *
@@ -263,7 +265,7 @@ class BooleanParser extends SearchTextFilters {
 }
 endif;
 
-if (!class_exists('ShortwordParser')):
+if ( ! class_exists('ShortwordParser',false) ):
 /**
  * ShortwordParser class
  *
@@ -297,7 +299,7 @@ class ShortwordParser extends SearchTextFilters {
 }
 endif;
 
-if (!class_exists('ContentParser')):
+if ( ! class_exists('ContentParser',false) ):
 class ContentParser extends SearchTextFilters {
 
 	/**
@@ -912,5 +914,3 @@ class PorterStemmer {
     }
 
 } // END class PorterStemmer
-
-?>

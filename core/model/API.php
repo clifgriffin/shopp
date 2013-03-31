@@ -19,23 +19,32 @@ interface ShoppAPI {
 
 final class ShoppDeveloperAPI {
 
+	static $core = array(
+		'core', 'theme', 'remote', 'script',
+		'asset', 'cart', 'collection', 'customer',
+		'meta', 'order', 'product', 'settings'
+	);
+
 	// Load public development API
-	static function load ( $basepath ) {
+	static function load ( $basepath, $load = array() ) {
+		$path = realpath("$basepath/api");
 
-		require_once "$basepath/api/core.php";
-		require_once "$basepath/api/theme.php";
-		require_once "$basepath/api/remote.php";
-		require_once "$basepath/api/script.php";
+		$custom = apply_filters('shopp_developerapi_files',array());
 
-		require_once "$basepath/api/asset.php";
-		require_once "$basepath/api/cart.php";
-		require_once "$basepath/api/collection.php";
-		require_once "$basepath/api/customer.php";
-		require_once "$basepath/api/meta.php";
-		require_once "$basepath/api/order.php";
-		require_once "$basepath/api/product.php";
-		require_once "$basepath/api/settings.php";
+		// Add custom Developer API files to core
+		$files = array_merge(self::$core,$custom);
 
+		// Make sure requested APIs exist
+		$apis = array_intersect($files,$load);
+
+		// If requested APIs are empty, use defaults instead
+		if ( empty($apis) ) $apis = $files;
+
+		foreach ( $apis as $api ) {
+			if ( false === strpos($api,'.php') )
+				require "$path/$api.php";
+			else include $api;
+		}
 	}
 
 }
@@ -62,7 +71,7 @@ class ShoppAPIModules extends ModuleLoader {
 		$this->path = SHOPP_THEME_APIS;
 
 		$this->installed(); // Find modules
-		$this->load(true); 	// Load all
+		$this->load(true);  // Load all
 
 	}
 
@@ -147,7 +156,7 @@ class ShoppRemoteAPIModules extends ModuleLoader {
 		$this->path = SHOPP_REMOTE_APIS;
 
 		$this->installed(); // Find modules
-		$this->load(true); 	// Load all
+		$this->load(true);  // Load all
 
 	}
 
@@ -167,6 +176,3 @@ class ShoppRemoteAPIFile extends ModuleFile {
 	}
 
 }
-
-
-?>

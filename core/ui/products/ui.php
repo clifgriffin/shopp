@@ -129,7 +129,7 @@ function shopp_categories_meta_box ($Product,$options) {
 </div><?php
 }
 
-function shopp_tags_meta_box ($Product) {
+function shopp_tags_meta_box ($Product, $options) {
 	$defaults = array('taxonomy' => 'shopp_tag');
 	if ( !isset($options['args']) || !is_array($options['args']) ) $options = array();
 	else $options = $options['args'];

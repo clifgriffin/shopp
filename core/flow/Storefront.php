@@ -66,18 +66,19 @@ class Storefront extends FlowController {
 		add_action('wp', array($this, 'behaviors'));
 
 		add_filter('wp_get_nav_menu_items', array($this,'menulinks'), 10, 2);
+		add_filter('wp_list_pages', array($this,'securelinks'));
 
-		add_filter('shopp_order_lookup','shoppdiv');
-		add_filter('shopp_order_confirmation','shoppdiv');
-		add_filter('shopp_errors_page','shoppdiv');
-		add_filter('shopp_catalog_template','shoppdiv');
-		add_filter('shopp_cart_template','shoppdiv');
-		add_filter('shopp_checkout_page','shoppdiv');
-		add_filter('shopp_account_template','shoppdiv');
-		add_filter('shopp_category_template','shoppdiv');
-		add_filter('shopp_order_receipt','shoppdiv');
-		add_filter('shopp_account_manager','shoppdiv');
-		add_filter('shopp_account_vieworder','shoppdiv');
+		add_filter('shopp_order_lookup',array('Storefront','wrapper'));
+		add_filter('shopp_order_confirmation',array('Storefront','wrapper'));
+		add_filter('shopp_errors_page',array('Storefront','wrapper'));
+		add_filter('shopp_catalog_template',array('Storefront','wrapper'));
+		add_filter('shopp_cart_template',array('Storefront','wrapper'));
+		add_filter('shopp_checkout_page',array('Storefront','wrapper'));
+		add_filter('shopp_account_template',array('Storefront','wrapper'));
+		add_filter('shopp_category_template',array('Storefront','wrapper'));
+		add_filter('shopp_order_receipt',array('Storefront','wrapper'));
+		add_filter('shopp_account_manager',array('Storefront','wrapper'));
+		add_filter('shopp_account_vieworder',array('Storefront','wrapper'));
 
 		add_filter('the_content',array($this,'autowrap'),99);
 
@@ -595,8 +596,6 @@ class Storefront extends FlowController {
 			if (is_shopp_page('catalog'))
 				shopp_custom_script('catalog',"var pricetags = {};\n");
 
-			add_action('wp_head', array(&$Shopp, 'settingsjs'));
-
 		}
 
 		if ('checkout' == $page) {
@@ -880,6 +879,33 @@ class Storefront extends FlowController {
 	}
 
 	/**
+	 * Filters the WP page list transforming unsecured URLs to secure URLs
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	function securelinks ($items) {
+		global $Shopp;
+		if ( ! $Shopp->Gateways->secure ) return $items;
+
+		$hrefs = array(
+			'checkout' => shoppurl(false,'checkout'),
+			'account' => shoppurl(false,'account')
+		);
+
+		if ( empty($Shopp->Gateways->active) )
+			return str_replace($hrefs['checkout'],shoppurl(false,'cart'),$items);
+
+		foreach ($hrefs as $href) {
+			$secure_href = str_replace('http://','https://',$href);
+			$items = str_replace($href,$secure_href,$items);
+		}
+		return $items;
+	}
+
+	/**
 	 * Handles shopping cart requests
 	 *
 	 * @author Jonathan Davis
@@ -1037,7 +1063,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['category'] = array('StorefrontShortcodes','collection');
 
 		foreach ($this->shortcodes as $name => &$callback)
-			if (shopp_setting('maintenance') == 'on' || !ShoppSettings()->available() || Shopp::maintenance())
+			if (shopp_setting('maintenance') == 'on' || ! ShoppSettings()->available() || Shopp::maintenance())
 				add_shortcode($name,array('','maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 
@@ -1045,7 +1071,49 @@ class Storefront extends FlowController {
 
 	function autowrap ($content) {
 		if ( ! in_array(get_the_ID(),$this->shortcoded) ) return $content;
-		return shoppdiv($content);
+		return Storefront::wrapper($content);
+	}
+
+	/**
+	 * Wraps mark-up in a #shopp container, if needed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param string $string The content markup to be wrapped
+	 * @param array $classes CSS classes to add to the container
+	 * @return string The wrapped markup
+	 **/
+	static function wrapper ($string) {
+
+		$classes = array();
+
+		$views = array('list','grid');
+		$view = shopp_setting('default_catalog_view');
+		if (empty($view)) $view = 'grid';
+
+		// Handle catalog view style cookie preference
+		if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
+		if (in_array($view,$views)) $classes[] = $view;
+
+		// Add collection slug
+		$Collection = ShoppCollection();
+		if (!empty($Collection))
+			if ($category = shopp('collection','get-slug')) $classes[] = $category;
+
+		// Add product id & slug classes
+		$Product = ShoppProduct();
+		if (!empty($Product)) {
+			if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
+			if ($product = shopp('product','get-slug')) $classes[] = $product;
+		}
+
+		$classes = apply_filters('shopp_content_container_classes',$classes);
+		$classes = esc_attr(join(' ',$classes));
+
+		if (false === strpos($string,'<div id="shopp"'))
+			return '<div id="shopp"'.(!empty($classes)?' class="'.$classes.'"':'').'>'.$string.'</div>';
+		return $string;
 	}
 
 	/**
@@ -1263,7 +1331,7 @@ class CatalogStorefrontPage extends StorefrontPage {
 		if ( $wp_the_query !== $wp_query || ! is_catalog_frontpage() ) return $content;
 
 		global $Shopp,$wp,$wp_query;
-		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
+		shopp_debug('Displaying catalog page request: '.$_SERVER['REQUEST_URI']);
 
 		ob_start();
 		locate_shopp_template(array('catalog.php'),true);
@@ -1329,7 +1397,7 @@ class ProductStorefrontPage extends StorefrontPage {
 		locate_shopp_template($templates,true);
 		$content = ob_get_contents();
 		ob_end_clean();
-		return shoppdiv($content);
+		return Storefront::wrapper($content);
 	}
 
 }

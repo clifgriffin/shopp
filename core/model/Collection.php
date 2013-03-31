@@ -1523,8 +1523,6 @@ class SearchResults extends SmartCollection {
 
 		// $this->loading['debug'] = true;
 		// Load search engine components
-		if (!class_exists('SearchParser'))
-			require(SHOPP_MODEL_PATH.'/Search.php');
 		new SearchParser();
 		new BooleanParser();
 		new ShortwordParser();

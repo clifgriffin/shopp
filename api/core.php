@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppProduct - get and set the global Product object
  *
@@ -152,6 +154,10 @@ function ShoppErrorTypehints () {
 	return ShoppErrorTypehints::instance();
 }
 
+function ShoppErrorStorefrontNotices () {
+	return ShoppErrorStorefrontNotices::instance();
+}
+
 /**
  * Detects ShoppError objects
  *
@@ -289,7 +295,7 @@ function is_shopp_search ( $wp_query = false ) {
  **/
 function is_shopp_page ( $page = false, $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	if (empty($wp_query->query_vars)) new ShoppError('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.','doing_it_wrong',SHOPP_DEBUG_ERR);
+	if (empty($wp_query->query_vars)) shopp_debug('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.');
 	$is_shopp_page = false;
 	$pages = Storefront::pages_settings();
 
@@ -409,4 +415,16 @@ function is_shopp_product ( $wp_query = false ) {
 	return (bool) $product;
 }
 
-?>
+function shopp_add_error ( string $message, integer $level ) {
+	return new ShoppError( $message, false, $level );
+}
+
+function shopp_add_notice ( string $message ) {
+	return shopp_add_error($message,SHOPP_ERR);
+}
+
+function shopp_debug ( string $message, $backtrace = false ) {
+	if ( ! SHOPP_DEBUG ) return false;
+	if ( $backtrace ) $callstack = debug_caller();
+	return shopp_add_error( $message . $backtrace, SHOPP_DEBUG_ERR );
+}

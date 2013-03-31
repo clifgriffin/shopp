@@ -13,10 +13,19 @@
  * @subpackage scripts
  **/
 
-$load = isset($_GET['load'])?$_GET['load']:$_GET['sjsl'];
+$queryvars = array('load','sjsl');
+
+foreach ($queryvars as $var) {
+	if ( isset($_GET[ $var ]) ) {
+		$load = $_GET[ $var ];
+		break;
+	}
+}
+
 $load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
 $load = explode(',', $load);
-if (empty($load)) exit();
+
+if ( empty($load) ) exit();
 
 /**
  * @ignore
@@ -43,16 +52,15 @@ function get_file($path) {
 	return @file_get_contents($path);
 }
 
-if (!function_exists('shopp_find_wpload'))
-	require('functions.php');
+if ( ! defined('SHORTINIT')) define('SHORTINIT',true);
+require 'Loader.php';
 
-if (!defined('ABSPATH')) {
-	$loadfile = shopp_find_wpload();
+if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
 	define('ABSPATH',dirname($loadfile).'/');
-}
 
-if (!defined('WPINC')) define('WPINC', 'wp-includes');
-require('flow/Scripts.php');
+if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
+
+date_default_timezone_set('UTC');
 
 $ShoppScripts = new ShoppScripts();
 shopp_default_scripts($ShoppScripts);
@@ -63,7 +71,7 @@ $expires_offset = 31536000;
 $out = '';
 
 foreach( $load as $handle ) {
-	if ( !array_key_exists($handle, $ShoppScripts->registered) )
+	if ( ! isset( $ShoppScripts->registered[ $handle ] ) )
 		continue;
 
 	$path = dirname(__FILE__) . $ShoppScripts->registered[$handle]->src;
@@ -86,6 +94,4 @@ if ( $compress && ! ini_get('zlib.output_compression') && 'ob_gzhandler' != ini_
 }
 
 echo $out;
-exit();
-
-?>
+exit;

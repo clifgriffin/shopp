@@ -171,6 +171,13 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .jvectormap-zoomin,.jvectormap-zoomout { position:absolute;left:10px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;background:#fff;padding:3px;color:white;width:10px;height:10px;cursor:pointer;line-height:10px;text-align:center; border:1px solid #dfdfdf;color:#444; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=1px, OffY=2px, Color='#777')"; -moz-box-shadow: 1px 2px 3px #777; -webkit-box-shadow: 1px 2px 3px #777; box-shadow: 1px 2px 3px #777; }
 .jvectormap-zoomin { top:10px; }
 .jvectormap-zoomout { top:30px; }
+#report .summary td { font-weight: bold; }
+#report .scoreboard { width: 100%; text-align: center; overflow: hidden; margin-bottom: 20px; padding: 0; }
+#report td span { color:#777; }
+#report .scoreboard td { line-height: 3em; border-left: 1px solid #dfdfdf; padding: 0 3em; margin: 0; }
+#report .scoreboard td:first-child { border-left: none; }
+#report .scoreboard big { font-size: 3em; display: block; }
+#report .scoreboard label { display: block; }
 
 /** Membership Editor **/
 #membership .panel { margin-bottom: 20px; }
@@ -456,6 +463,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .orders.list .voided .order,
 .orders.list .voided .total { text-decoration: line-through; }
 
+#orders .summary li { display: inline; margin-right: 20px; font-size: 14px; }
+
 #order { position:relative; }
 #order .title { margin: 1em 0; line-height: 140%; }
 #order address { font-style:normal; }
@@ -590,8 +599,6 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
 .shopp .filtering select { float: none; display:inline-block; }
-.shopp #report li { display:inline;margin-right:20px; }
-.shopp #report li span { color:#777; }
 
 /* Table list settings */
 .shopp-settings .unit { white-space: nowrap; }

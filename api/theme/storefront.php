@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
 class ShoppStorefrontThemeAPI implements ShoppAPI {
@@ -127,7 +129,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ($id !== false) {
 			if (isset($O->images[$id])) $img = $O->images[$id];
 			else {
-				new ShoppError(sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				shopp_debug( sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id) );
 				return '';
 			}
 		}
@@ -138,7 +140,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
 				$img = $O->images[$keys[$index]];
 			else {
-				new ShoppError(sprintf('No %s image exists at the specified index position %s.',get_class($O),$id),'',SHOPP_DEBUG_ERR);
+				shopp_debug( sprintf('No %s image exists at the specified index position %s.',get_class($O),$id) );
 				return '';
 			}
 		}
@@ -335,7 +337,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( is_a($Storefront->Requested, 'ProductCollection') ) ShoppCollection($Storefront->Requested);
 		else ShoppCollection($reset);
 
-		if (isset($options['wrap']) && str_true($options['wrap'])) $content = shoppdiv($content);
+		if (isset($options['wrap']) && str_true($options['wrap'])) $content = Storefront::wrapper($content);
 
 		return $content;
 	}
@@ -469,7 +471,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 					$active = '';
 
 
-					if ( $Collection && $Collection->parent == $parent->id ) $active = ' active';
+					if ( $Collection && property_exists($Collection,'parent') && $Collection->parent == $parent->id ) $active = ' active';
 
 					$subcategories = '<ul class="children'.$active.'">';
 					$string .= $subcategories;
@@ -536,9 +538,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function errors ($result, $options, $O) {
-		$Errors = ShoppErrors();
-		if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
-		$errors = $Errors->get(SHOPP_COMM_ERR);
+
+		$Errors = ShoppErrorStorefrontNotices();
+		if ( ! $Errors->exist() ) return false;
+
 		$defaults = array(
 			'before' => '<li>',
 			'after' => '</li>'
@@ -546,9 +549,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$result = "";
-		foreach ( (array) $errors as $error )
-			if ( is_a($error, 'ShoppError') && ! $error->blank() ) $result .= $before.$error->message(true).$after;
+		$result = '';
+		while ( $Errors->exist() )
+			$result .=  $before . $Errors->message() . $after;
+
 		return $result;
 	}
 
@@ -1050,8 +1054,3 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 
 }
-
-
-
-
-?>

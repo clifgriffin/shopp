@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 // Default text filters for product Theme API tags
 add_filter('shopp_themeapi_product_name','convert_chars');
 add_filter('shopp_themeapi_product_summary','convert_chars');
@@ -375,7 +377,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	static function found ($result, $options, $O) {
 		if (empty($O->id)) return false;
 		// Prevent re-loading individual product data in category loops
-		if (shopp('collection.products','looping=true')) return true;
+		if ( ShoppCollection() && shopp('collection.products','looping=true') ) return true;
 		$loadable = array('prices','coverimages','images','specs','tags','categories','summary');
 		$defaults = array(
 			'load' => false
@@ -1266,5 +1268,3 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_
 	}
 
 }
-
-?>

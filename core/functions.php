@@ -10,7 +10,7 @@
  * @package shopp
  **/
 
-shopp_default_timezone();
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
  * Converts timestamps to formatted localized date/time strings
@@ -344,8 +344,6 @@ function remove_class_actions ( $tags = false, $class = 'stdClass', $priority = 
 	return;
 }
 
-
-
 /**
  * Determines the currency format to use
  *
@@ -550,42 +548,6 @@ function find_filepath ($filename, $directory, $root, &$found) {
 }
 
 /**
- * Finds files of a specific extension
- *
- * Recursively searches directories and one-level deep of sub-directories for
- * files with a specific extension
- *
- * NOTE: Files are saved to the $found parameter, an array passed by
- * reference, not a returned value
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @param string $extension File extension to search for
- * @param string $directory Starting directory
- * @param string $root Starting directory reference
- * @param string &$found List of files found
- * @return boolean Returns true if files are found
- **/
-function find_files ($extension, $directory, $root, &$found) {
-	if (is_dir($directory)) {
-
-		$Directory = @dir($directory);
-		if ($Directory) {
-			while (( $file = $Directory->read() ) !== false) {
-				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
-				if (is_dir($directory.DIRECTORY_SEPARATOR.$file) && $directory == $root)		// Scan one deep more than root
-					find_files($extension,$directory.DIRECTORY_SEPARATOR.$file,$root, $found);	// but avoid recursive scans
-				if (substr($file,strlen($extension)*-1) == $extension)
-					$found[] = substr($directory,strlen($root)).DIRECTORY_SEPARATOR.$file;		// Add the file to the found list
-			}
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
  * Determines the mimetype of a file
  *
  * @author Jonathan Davis
@@ -603,16 +565,16 @@ function file_mimetype ($file,$name=false) {
 			$f = finfo_open(FILEINFO_MIME);
 			list($mime,$charset) = explode(";",finfo_file($f, $file));
 			finfo_close($f);
-			new ShoppError('File mimetype detection (finfo_open): '.$mime,false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (finfo_open): ' . $mime);
 			if (!empty($mime)) return $mime;
 		} elseif (class_exists('finfo')) {
 			// Or class
 			$f = new finfo(FILEINFO_MIME);
-			new ShoppError('File mimetype detection (finfo class): '.$f->file($file),false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (finfo class): ' . $f->file($file));
 			return $f->file($file);
 		} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {
 			// Try with magic-mime if available
-			new ShoppError('File mimetype detection (mime_content_type()): '.$mime,false,SHOPP_DEBUG_ERR);
+			shopp_debug('File mimetype detection (mime_content_type()): ' . $mime);
 			return $mime;
 		}
 	}
@@ -1309,7 +1271,7 @@ if(!function_exists('sanitize_path')){
 	 **/
 	function sanitize_path ($path) {
 		return str_replace('\\', '/', $path);
-	}
+	};
 }
 
 /**
@@ -1418,43 +1380,10 @@ function get_wp_query_var ($key) {
 /**
  * Wraps mark-up in a #shopp container, if needed
  *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @param string $string The content markup to be wrapped
- * @param array $classes CSS classes to add to the container
- * @return string The wrapped markup
+ * @deprecated Use Storefront::wrapper() instead
  **/
 function shoppdiv ($string) {
-
-	$classes = array();
-
-	$views = array('list','grid');
-	$view = shopp_setting('default_catalog_view');
-	if (empty($view)) $view = 'grid';
-
-	// Handle catalog view style cookie preference
-	if (isset($_COOKIE['shopp_catalog_view'])) $view = $_COOKIE['shopp_catalog_view'];
-	if (in_array($view,$views)) $classes[] = $view;
-
-	// Add collection slug
-	$Collection = ShoppCollection();
-	if (!empty($Collection))
-		if ($category = shopp('collection','get-slug')) $classes[] = $category;
-
-	// Add product id & slug classes
-	$Product = ShoppProduct();
-	if (!empty($Product)) {
-		if ($productid = shopp('product','get-id')) $classes[] = 'product-'.$productid;
-		if ($product = shopp('product','get-slug')) $classes[] = $product;
-	}
-
-	$classes = apply_filters('shopp_content_container_classes',$classes);
-	$classes = esc_attr(join(' ',$classes));
-
-	if (false === strpos($string,'<div id="shopp"'))
-		return '<div id="shopp"'.(!empty($classes)?' class="'.$classes.'"':'').'>'.$string.'</div>';
-	return $string;
+	return Storefront::wrapper($string);
 }
 
 function shopp_daytimes () {
@@ -1468,19 +1397,6 @@ function shopp_daytimes () {
 		$total += $i*$periods[$p];
 	}
 	return ceil($total/$periods['d']).'d';
-}
-
-/**
- * Sets the default timezone based on the WordPress option (if available)
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @return void
- **/
-function shopp_default_timezone () {
-	if (function_exists('date_default_timezone_set'))
-		date_default_timezone_set('UTC');
 }
 
 /**
@@ -1524,7 +1440,7 @@ function shopp_email ($template,$data=array()) {
 		ob_end_clean();
 
 		if (empty($template))
-			return new ShoppError(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
+			return shopp_add_error(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
 
 	}
 
@@ -1588,62 +1504,6 @@ function shopp_email ($template,$data=array()) {
 
 	echo "\nMessage:\n$message\n";
 	exit();
-}
-
-/**
- * Locate the WordPress bootstrap file
- *
- * @author Jonathan Davis
- * @since 1.2
- *
- * @return string Absolute path to wp-load.php
- **/
-function shopp_find_wpload () {
-	global $table_prefix;
-
-	$loadfile = 'wp-load.php';
-	$wp_abspath = false;
-
-	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
-	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
-	$rootpath = array_diff($syspath,$uripath);
-	$root = '/'.join('/',$rootpath);
-
-	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
-
-	if ( file_exists(sanitize_path($root).'/'.$loadfile))
-		$wp_abspath = $root;
-
-	if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
-		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
-		// and SHOPP_ABSPATH used on webserver site config
-		$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
-
-	} elseif ( strpos($filepath, $root) !== false ) {
-		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
-		$fullpath = explode ('/', sanitize_path($filepath) );
-		while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
-			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
-				$wp_abspath = join('/',$fullpath);
-		}
-
-	} elseif ( file_exists(sanitize_path($root).'/'.$loadfile) ) {
-		$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$loadfile) ) {
-		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
-    } else {
-        /* Last chance, do or die */
-		$filepath = sanitize_path($filepath);
-        if (($pos = strpos($filepath, 'wp-content/plugins')) !== false)
-            $wp_abspath = substr($filepath, 0, --$pos);
-    }
-
-	$wp_load_file = realpath(sanitize_path($wp_abspath).'/'.$loadfile);
-
-	if ( $wp_load_file !== false ) return $wp_load_file;
-	return false;
-
 }
 
 /**
@@ -1775,7 +1635,7 @@ function shopp_parse_options ($options) {
  * @return void
  **/
 function shopp_redirect ($uri,$exit=true,$status=302) {
-	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
+	shopp_debug("Redirecting to: $uri");
 	wp_redirect($uri,$status);
 	if ($exit) exit();
 }
@@ -2037,4 +1897,83 @@ function valid_input ($type) {
 	return false;
 }
 
-?>
+if ( ! function_exists('get_class_property') ) {
+	/**
+	 * Gets the property of an uninstantiated class
+	 *
+	 * Provides support for getting a property of an uninstantiated
+	 * class by dynamic name.  As of PHP 5.3.0 this function is no
+	 * longer necessary as you can simply reference as $Classname::$property
+	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.3.0
+	 *
+	 * @param string $classname Name of the class
+	 * @param string $property Name of the property
+	 * @return mixed Value of the property
+	 **/
+	function get_class_property ($classname, $property) {
+	  if( ! class_exists($classname,false) ) return;
+	  if( ! property_exists($classname, $property) ) return;
+
+	  $vars = get_class_vars($classname);
+	  return $vars[$property];
+	}
+}
+
+if ( defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT ) {
+	/**
+	 * Converts legacy Shopp proxy config macros to WP_HTTP_Proxy config macros
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @deprecated SHOPP_PROXY_CONNECT
+	 * @deprecated SHOPP_PROXY_SERVER
+	 * @deprecated SHOPP_PROXY_USERPWD
+	 *
+	 * @return void
+	 **/
+	function shopp_convert_proxy_config () {
+		if ( ! defined('SHOPP_PROXY_SERVER') || ! defined('SHOPP_PROXY_USERPWD') ) return;
+
+		$host = SHOPP_PROXY_SERVER;
+		$user = SHOPP_PROXY_USERPWD;
+
+		if ( false !== strpos($host,':') ) list($host,$port) = explode(':',$host);
+		if ( false !== strpos($user,':') ) list($user,$pwd) = explode(':',$user);
+
+		if ( ! defined('WP_PROXY_HOST') )				define('WP_PROXY_HOST',$host);
+		if ( ! defined('WP_PROXY_PORT') && $port )		define('WP_PROXY_PORT',$port);
+		if ( ! defined('WP_PROXY_USERNAME') )			define('WP_PROXY_USERNAME',$user);
+		if ( ! defined('WP_PROXY_PASSWORD') && $pwd )	define('WP_PROXY_PASSWORD',$pwd);
+	}
+	shopp_convert_proxy_config();
+}
+
+if ( ! function_exists('shopp_suhosin_warning') ) {
+	/**
+	 * Detect Suhosin enabled with problematic settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
+	function shopp_suhosin_warning () {
+
+		return ( // Is Suhosin loaded or available?
+				(extension_loaded('Suhosin') || (defined('SUHOSIN_PATCH') && SUHOSIN_PATCH))
+				&& // Are the known problem settings defined?
+				(
+					@ini_get('suhosin.max_array_index_length') > 0 && @ini_get('suhosin.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_array_index_length') > 0 && @ini_get('suhosin.post.max_array_index_length') < 256
+					&& @ini_get('suhosin.post.max_totalname_length') > 0 && @ini_get('suhosin.post.max_totalname_length') < 65535
+					&& @ini_get('suhosin.post.max_vars') > 0 && @ini_get('suhosin.post.max_vars') < 1024
+					&& @ini_get('suhosin.request.max_array_index_length') > 0 && @ini_get('suhosin.request.max_array_index_length') < 256
+					&& @ini_get('suhosin.request.max_totalname_length') > 0 && @ini_get('suhosin.request.max_totalname_length') < 65535
+					&& @ini_get('suhosin.request.max_vars') > 0 && @ini_get('suhosin.request.max_vars') < 1024
+				)
+		);
+	}
+}

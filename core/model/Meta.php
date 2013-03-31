@@ -12,6 +12,8 @@
  * @subpackage meta
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * MetaObject
  *
@@ -21,10 +23,10 @@
  * @subpackage meta
  **/
 class MetaObject extends DatabaseObject {
-	static $table = "meta";
+	static $table = 'meta';
 
-	var $context = 'product';
-	var $type = 'meta';
+	public $context = 'product';
+	public $type = 'meta';
 
 	/**
 	 * Meta constructor
@@ -91,14 +93,14 @@ class MetaObject extends DatabaseObject {
 abstract class MetasetObject extends DatabaseObject {
 	static $table = 'meta';
 
-	var $_table = false;	// Fully qualified table name
-	var $_loaded = false;	// If the record is successfully loaded
-	var $_meta = array();	// The meta record definitions
-	var $_context = 'meta';	// The meta context
-	var $_parent = 0;		// Linking reference to the root record
-	var $_type = false;		// Type (class) of object
+	public $_table = false;	// Fully qualified table name
+	public $_loaded = false;	// If the record is successfully loaded
+	public $_meta = array();	// The meta record definitions
+	public $_context = 'meta';	// The meta context
+	public $_parent = 0;		// Linking reference to the root record
+	public $_type = false;		// Type (class) of object
 
-	var $id = false;		// The root record for the set
+	public $id = false;		// The root record for the set
 
 	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
@@ -217,9 +219,9 @@ abstract class MetasetObject extends DatabaseObject {
 class ObjectMeta {
 	static $table = "meta";
 
-	var $_loaded = false;
-	var $meta = array();
-	var $named = array();
+	public $_loaded = false;
+	public $meta = array();
+	public $named = array();
 
 	function __construct ($parent=false,$context='product',$type=false,$sort='sortorder') {
 		$this->_table = DatabaseObject::tablename(self::$table);
@@ -266,5 +268,3 @@ class ObjectMeta {
 	}
 
 }
-
-?>

@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_setting - returns a named Shopp setting
  *
@@ -26,7 +28,7 @@ function shopp_setting ( $name ) {
 	$setting = null;
 
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Setting name parameter required.");
 		return false;
 	}
 
@@ -61,7 +63,7 @@ function shopp_setting_enabled ( $name ) {
  **/
 function shopp_set_setting ( $name, $value ) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Setting name parameter required.");
 		return false;
 	}
 
@@ -80,7 +82,7 @@ function shopp_set_setting ( $name, $value ) {
  **/
 function shopp_rmv_setting ($name) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Setting name parameter required.");
 		return false;
 	}
 	return ShoppSettings()->delete($name);
@@ -98,7 +100,7 @@ function shopp_rmv_setting ($name) {
  **/
 function shopp_set_formsettings () {
 	if (empty($_POST['settings']) || !is_array($_POST['settings'])) {
-		if (SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Setting name parameter required.");
 		return false;
 	}
 	ShoppSettings()->saveform();
@@ -126,7 +128,7 @@ function shopp_set_formsettings () {
  **/
 function shopp_set_image_setting ($name,$settings = array()) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Setting name parameter required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Setting name parameter required.");
 		return false;
 	}
 
@@ -156,5 +158,3 @@ function shopp_set_image_setting ($name,$settings = array()) {
 	$ImageSetting->save();
 	return true;
 }
-
-?>

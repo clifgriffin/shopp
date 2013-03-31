@@ -11,10 +11,11 @@
  * @subpackage categories
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 class Categorize extends AdminController {
 
-	var $screen = 'shopp_page_shopp-categories';
-	var $worklist = array();
+	public $worklist = array();
 
 	/**
 	 * Categorize constructor

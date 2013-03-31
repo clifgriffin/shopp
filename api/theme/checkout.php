@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 // Default text filters for checkout Theme API tags
 add_filter('shopp_checkout_clickwrap_terms', 'wptexturize');
 add_filter('shopp_checkout_clickwrap_terms', 'convert_chars');
@@ -1129,5 +1131,3 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 }
-
-?>

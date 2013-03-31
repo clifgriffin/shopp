@@ -9,6 +9,8 @@
 *
 **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 add_filter('shopp_themeapi_context_name', array('ShoppCollectionThemeAPI', '_context_name'));
 
 // Default text filters for category/collection Theme API tags
@@ -341,8 +343,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function has_faceted_menu ($result, $options, $O) {
 		if ( ! is_a($O, 'ProductCategory') ) return false;
-		if (empty($O->meta)) $O->load_meta();
-		if ('on' == $O->facetedmenus) {
+		if ( empty($O->meta) ) $O->load_meta();
+		if ( property_exists($O,'facetedmenus') && str_true($O->facetedmenus) ) {
 			$O->load_facets();
 			return true;
 		}
@@ -623,7 +625,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function url ($result, $options, $O) {
 		global $ShoppTaxonomies;
-		if ( $O->id && isset($O->taxonomy) && ! in_array($O->taxonomy, array_keys($ShoppTaxonomies)) )
+		if ( property_exists($O,'id') && $O->id && isset($O->taxonomy) && ! in_array($O->taxonomy, array_keys($ShoppTaxonomies)) )
 			return get_term_link( (int) $O->id, $O->taxonomy);
 
 		$namespace = get_class_property( get_class($O) ,'namespace');
@@ -635,5 +637,3 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 }
-
-?>

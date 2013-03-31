@@ -30,6 +30,7 @@
  * @since 1.1
  **/
 class Shopping extends SessionObject {
+
 	private static $instance;
 
 	/**
@@ -70,6 +71,7 @@ class Shopping extends SessionObject {
 	 **/
 	function init () {
 		@session_start();
+		add_action('shopp_cart_updated',array($this,'savecart'));
 	}
 
 	/**
@@ -130,6 +132,33 @@ class Shopping extends SessionObject {
 		do_action('shopp_reset_session'); // Deprecated
 		do_action('shopp_resession');
 		return true;
+	}
+
+	function clean ( $lifetime = false ) {
+		if ( empty($this->session) ) return false;
+
+		$timeout = SHOPP_SESSION_TIMEOUT;
+		$expired = SHOPP_CART_EXPIRES;
+		$now = current_time('mysql');
+
+		$meta_table = DatabaseObject::tablename('meta');
+
+		DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified)
+					SELECT 'shopping','session',session,data,created,modified FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified) AND stash=1");
+
+		DB::query("DELETE LOW_PRIORITY FROM $meta_table WHERE context='shopping' AND type='session' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
+
+		return parent::clean($lifetime);
+
+	}
+
+	function stashing ( $stashing = null ) {
+		if ( is_bool($stashing) ) $this->stash = $stashing ? 1 : 0;
+		return ( 1 === $this->stash );
+	}
+
+	function savecart ( $Cart ) {
+		$this->stashing( ! empty($Cart->contents) );
 	}
 
 } // END class Shopping

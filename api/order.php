@@ -13,6 +13,8 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * shopp_orders - get a list of purchases
  *
@@ -127,7 +129,7 @@ function shopp_order_count ($from = false, $to = false) {
  **/
 function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",false,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid or missing customer id.");
 		return false;
 	}
 
@@ -153,7 +155,7 @@ function shopp_recent_orders ($time = 1, $period = 'day') {
 	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
 
 	if ( ! in_array($period, $periods) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid period $period.  Use one of (".implode(", ", $periods).")",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__." failed: Invalid period $period.  Use one of (".implode(", ", $periods).")");
 		return false;
 	}
 
@@ -177,14 +179,14 @@ function shopp_recent_orders ($time = 1, $period = 'day') {
  **/
 function shopp_recent_customer_orders ($customer = false, $time = 1, $period = 'day') {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",false,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid or missing customer id.");
 		return false;
 	}
 
 	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
 
 	if ( ! in_array($period, $periods) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid period $period.  Use one of (".implode(", ", $periods).")",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__." failed: Invalid period $period.  Use one of (".implode(", ", $periods).")");
 		return false;
 	}
 
@@ -221,7 +223,7 @@ function shopp_last_order () {
  **/
 function shopp_last_customer_order ( $customer = false ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing customer id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid or missing customer id.");
 		return false;
 	}
 	$orders = shopp_orders ( false, false, true, array($customer), 1);
@@ -242,7 +244,7 @@ function shopp_last_customer_order ( $customer = false ) {
  **/
 function shopp_order ( $id = false, $by = 'id' ) {
 	if ( ! $id || ! $Purchase = shopp_order_exists($id, $by) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid or missing order id.");
 		return false;
 	}
 
@@ -394,12 +396,12 @@ function shopp_order_exists ( $id = false, $by = 'id' ) {
 function shopp_add_order ( $customer = false ) {
 	// check customer
 	if ( ! $Customer = shopp_customer( (int) $customer) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid customer.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid customer.");
 		return false;
 	}
 
 	if ( ! shopp_cart_items_count() ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No items in cart.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: No items in cart.");
 		return false;
 	}
 
@@ -473,7 +475,7 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 		);
 
 	if ( ! $Purchase = shopp_order_exists($order) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid order id.");
 		return false;
 	}
 
@@ -609,7 +611,7 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
 
 	$DL = new ProductDownload($download);
 	if ( empty($DL->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid or missing download asset id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid or missing download asset id.");
 		return false;
 	}
 
@@ -684,7 +686,7 @@ function shopp_order_data ( $order = false, $name = false ) {
  **/
 function shopp_set_order_data ( $order = false, $name = false, $value = false ) {
 	if ( ! ( $Purchase = shopp_order_exists($order) ) || ! $name ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Order id and name parameters are required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Order id and name parameters are required.");
 		return false;
 	}
 
@@ -709,7 +711,7 @@ function shopp_set_order_data ( $order = false, $name = false, $value = false ) 
  **/
 function shopp_rmv_order_data ( $order = false, $name = false ) {
 	if ( ! $order || ! ( $Purchase = shopp_order_exists($order) ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Order id parameter is required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Order id parameter is required.");
 		return false;
 	}
 	if ( ! $name ) $Purchase->data = array();
@@ -822,16 +824,14 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
  **/
 function shopp_add_order_event ( $order = false, $type = false, $message = array() ) {
 	if ( false !== $order && ! shopp_order_exists($order) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." '$type' failed: Invalid order id.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " '$type' failed: Invalid order id.");
 		return false;
 	}
 
 	if ( ! $type || ! OrderEvent::handler($type)) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Missing or invalid order event type",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Missing or invalid order event type");
 		return false;
 	}
 
 	return OrderEvent::add($order,$type,$message);
 }
-
-?>

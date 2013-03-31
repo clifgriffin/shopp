@@ -9,6 +9,8 @@
  * @subpackage admin
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * ShoppAdmin
  *
@@ -20,9 +22,9 @@ class ShoppAdmin extends FlowController {
 
 	private $Pages = array();	// List of admin pages
 	private $Menus = array();	// List of initialized WordPress menus
-	var $Ajax = array();	// List of AJAX controllers
-	var $MainMenu = false;
-	var $Page = false;
+	public $Ajax = array();	// List of AJAX controllers
+	public $MainMenu = false;
+	public $Page = false;
 
 
 	/**
@@ -47,9 +49,9 @@ class ShoppAdmin extends FlowController {
 	 * shopp_customers
 	 * shopp_menu
 	 *
-	 * @var $caps
+	 * @public $caps
 	 **/
-	var $caps = array(
+	public $caps = array(
 		'main'=>'shopp_menu',
 		'orders'=>'shopp_orders',
 		'customers'=>'shopp_customers',
@@ -361,7 +363,6 @@ class ShoppAdmin extends FlowController {
 		$this->admin_css();
 
 		shopp_enqueue_script('shopp');
-		add_action('shopp_print_scripts',array(&$Shopp,'settingsjs'),100);
 
 		$settings = array_filter(array_keys($this->Pages),array($this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');
@@ -676,8 +677,7 @@ class ShoppAdmin extends FlowController {
 		<?php endif; ?>
 		</tbody></table></div>
 		<script type="text/javascript">
-		jQuery(document).ready( function() {
-			var $=jQuery.noConflict();
+		jQuery(document).ready( function($) {
 			$('#shopp-stats-range').change(function () {
 				$(this).parents('form').submit();
 			});
@@ -1187,10 +1187,10 @@ class ShoppAdmin extends FlowController {
  **/
 class ShoppAdminPage {
 
-	var $label = "";
-	var $controller = "";
-	var $doc = false;
-	var $parent = false;
+	public $label = "";
+	public $controller = "";
+	public $doc = false;
+	public $parent = false;
 
 	function __construct ($name,$page,$label,$controller,$doc=false,$parent=false) {
 		$this->name = $name;
@@ -1272,9 +1272,9 @@ class ShoppUI {
 
 
 class ShoppAdminListTable extends WP_List_Table {
-	var $_screen;
-	var $_columns;
-	var $_sortable;
+	public $_screen;
+	public $_columns;
+	public $_sortable;
 
 	function __construct ( $screen, $columns = array()) {
 		if ( is_string( $screen ) )
@@ -1335,4 +1335,3 @@ class ShoppAdminListTable extends WP_List_Table {
 	}
 
 }
-?>

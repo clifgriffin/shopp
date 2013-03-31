@@ -1256,10 +1256,11 @@ function SlugEditor (id,type) {
 			editbs.hide();
 			editorbs.show();
 			save.unbind('click').click(function() {
-				var slug = editor.children('input').val();
+				var slug = editor.children('input').val(),
+					title = $('#title').val();
 
 				$.post(editslug_url+'&action=shopp_edit_slug',
-					{ 'id':id, 'type':type, 'slug':slug },
+					{ 'id':id, 'type':type, 'slug':slug, 'title':title },
 					function (data) {
 						editor.html(revert_editor);
 						if (data != -1) {

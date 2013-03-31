@@ -11,6 +11,8 @@
  * @subpackage Collection
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Registers a smart collection of products
  *
@@ -22,7 +24,7 @@
  **/
 function shopp_register_collection ( $name = '' ) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Collection name required.", __FUNCTION__ ,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Collection name required.");
 		return false;
 	}
 
@@ -87,7 +89,7 @@ function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
  **/
 function shopp_add_product_category ( $name = '', $description = '', $parent = false ) {
 	if ( empty($name) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Category name required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Category name required.");
 		return false;
 	}
 
@@ -123,7 +125,7 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
  **/
 function shopp_product_category ( $cat = false, $options = array() ) {
 	if ( ! $cat ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Category id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Category id required.");
 		return false;
 	}
 
@@ -151,7 +153,7 @@ function shopp_product_category ( $cat = false, $options = array() ) {
  **/
 function shopp_rmv_product_category ( $id = false ) {
 	if ( ! $id ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Category id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Category id required.");
 		return false;
 	}
 	$Category = new ProductCategory($id);
@@ -172,7 +174,7 @@ function shopp_rmv_product_category ( $id = false ) {
  **/
 function shopp_product_tag ( $tag = false, $options = array() ) {
 	if ( ! $tag ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Tag id or string required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Tag id or string required.");
 		return false;
 	}
 
@@ -197,7 +199,7 @@ function shopp_product_tag ( $tag = false, $options = array() ) {
  **/
 function shopp_add_product_tag ( $tag = '' ) {
 	if ( ! $tag  ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Tag name required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Tag name required.");
 		return false;
 	}
 	$Tag = new ProductTag( array('name'=>$tag) );
@@ -219,7 +221,7 @@ function shopp_add_product_tag ( $tag = '' ) {
  **/
 function shopp_rmv_product_tag ( $tag = '' ) {
 	if ( ! $tag ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Tag name or id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Tag name or id required.");
 		return false;
 	}
 
@@ -245,11 +247,11 @@ function shopp_rmv_product_tag ( $tag = '' ) {
  **/
 function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category', $parent = false ) {
 	if ( ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $taxonomy not a shopp product taxonomy.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $taxonomy not a shopp product taxonomy.");
 		return false;
 	}
 	if ( ! $term ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: term required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: term required.");
 		return false;
 	}
 
@@ -286,7 +288,7 @@ function shopp_product_term ( $term = false, $taxonomy = 'shopp_category', $opti
 	global $ShoppTaxonomies;
 
 	if ( ! $term ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Term id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Term id required.");
 		return false;
 	}
 
@@ -320,11 +322,11 @@ function shopp_product_term ( $term = false, $taxonomy = 'shopp_category', $opti
  **/
 function shopp_rmv_product_term ( $term = '', $taxonomy = 'shopp_category' ) {
 	if ( ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $taxonomy not a shopp product taxonomy.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $taxonomy not a shopp product taxonomy.");
 		return false;
 	}
 	if ( ! $term ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: term required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: term required.");
 		return false;
 	}
 
@@ -450,7 +452,7 @@ function shopp_category_products ( $category = 0, $options = array() ) {
 	$options = wp_parse_args($options, $defaults);
 
 	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $category not a valid Shopp product category.");
 		return false;
 	}
 
@@ -478,7 +480,7 @@ function shopp_tag_products ( $tag = false, $options = array() ) {
 	$options = wp_parse_args($options, $defaults);
 
 	if ( ! $term = term_exists( $tag, ProductTag::$taxon ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $tag not a valid Shopp product tag.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $tag not a valid Shopp product tag.");
 		return false;
 	}
 
@@ -508,12 +510,12 @@ function shopp_term_products ( $term = false, $taxonomy = 'shopp_category', $opt
 	$options = wp_parse_args($options, $defaults);
 
 	if ( ! taxonomy_exists( $taxonomy ) || ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid Shopp taxonomy $taxonomy.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid Shopp taxonomy $taxonomy.");
 		return false;
 	}
 
 	if ( ! $term = term_exists( $term, $taxonomy ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $term not a valid Shopp $taxonomy term.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $term not a valid Shopp $taxonomy term.");
 		return false;
 	}
 
@@ -561,7 +563,7 @@ function shopp_catalog_count ( $status = 'publish' ) {
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
 	if ( ! $category || ! ( $Category = new ProductCategory( (int) $category) ) || $category != $Category->id ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $category not a valid Shopp product category.");
 		return false;
 	}
 
@@ -583,7 +585,7 @@ function shopp_category_count (	$category = 0, $children = false ) {
  **/
 function shopp_subcategory_count ( $category = 0 ) {
 	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: $category not a valid Shopp product category.");
 		return false;
 	}
 
@@ -604,13 +606,10 @@ function shopp_subcategory_count ( $category = 0 ) {
 function shopp_product_categories_count ( $product ) {
 	$Product = new Product( $product );
 	if ( empty($Product->id) ) {
-		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid product $product.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		shopp_debug(__FUNCTION__ . " failed: Invalid product $product.");
 		return false;
 	}
 	$terms = wp_get_post_terms( $product, ProductCategory::$taxon, array());
 
 	return count($terms);
 }
-
-
-?>

@@ -1,14 +1,13 @@
 <?php
 
-class LocationsReport extends ShoppReportFramework implements ShoppReport {
-
-	var $map = array();
+class CustomersReport extends ShoppReportFramework implements ShoppReport {
 
 	function setup () {
-
-		shopp_enqueue_script('jvectormap');
-		shopp_enqueue_script('worldmap');
-
+		$this->setchart(array(
+			'series' => array('bars' => array('show' => true,'lineWidth'=>0,'fill'=>true,'barWidth' => 0.75),'points'=>array('show'=>false),'lines'=>array('show'=>false)),
+			'xaxis' => array('show' => false),
+			'yaxis' => array('tickFormatter' => 'asMoney')
+		));
 	}
 
 	function query () {
@@ -32,37 +31,29 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		}
 		$ordercols = "$ordercols $orderd";
 
-		$id = "o.country";
-		$orders_table = DatabaseObject::tablename('purchase');
+		$id = 'c.id';
+		$purchase_table = DatabaseObject::tablename('purchase');
 		$purchased_table = DatabaseObject::tablename('purchased');
-		$product_table = WPDatabaseObject::tablename(Product::$table);
-		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
-		$price_table = DatabaseObject::tablename('price');
-		$query = "SELECT CONCAT($id) AS id,
-							o.country AS country,
+		$customer_table = DatabaseObject::tablename('customer');
+
+		$query = "SELECT $id AS id,
+							CONCAT(c.firstname,' ',c.lastname) AS customer,
+							COUNT(DISTINCT p.id) AS sold,
 							COUNT(DISTINCT o.id) AS orders,
-							COUNT(DISTINCT p.id) AS items,
 							SUM(o.total) AS grossed
-					FROM $orders_table AS o
+					FROM $customer_table as c
+					JOIN $purchase_table AS o ON c.id=o.customer
 					JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
-					GROUP BY CONCAT($id) ORDER BY $ordercols";
+					GROUP BY $id ORDER BY $ordercols";
 
 		return $query;
 	}
 
-	function chartseries ( $label, $options = array() ) {
+	function chartseries ($label,$options = array() ) {
+		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
-		$this->map[$record->country] = $record->grossed;
-	}
-
-	function table () { ?>
-		<div id="map"></div>
-		<script type="text/javascript">
-		var d = <?php echo json_encode($this->map); ?>;
-		</script>
-<?php
-		parent::table();
+		$this->Chart->series($record->customer,array( 'color' => '#1C63A8','data'=>array( array($index,$record->grossed) ) ));
 	}
 
 	function filters () {
@@ -72,26 +63,26 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 
 	function columns () {
 		return array(
-			'country'=>__('Country','Shopp'),
+			'customer'=>__('Customer','Shopp'),
 			'orders'=>__('Orders','Shopp'),
-			'items'=>__('Items','Shopp'),
+			'sold'=>__('Items','Shopp'),
 			'grossed'=>__('Grossed','Shopp')
 		);
 	}
 
 	function sortcolumns () {
 		return array(
-			'orders'=>__('Orders','Shopp'),
-			'items'=>__('Items','Shopp'),
-			'grossed'=>__('Grossed','Shopp')
+			'orders'=>'orders',
+			'sold'=>'sold',
+			'grossed'=>'grossed'
 		);
 	}
 
-	static function country ($data) { $countries = Lookup::countries(); return $countries[$data->country]['name']; }
+	static function customer ($data) { return trim($data->customer); }
 
 	static function orders ($data) { return intval($data->orders); }
 
-	static function items ($data) { return intval($data->items); }
+	static function sold ($data) { return intval($data->sold); }
 
 	static function grossed ($data) { return money($data->grossed); }
 

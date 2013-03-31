@@ -2,29 +2,26 @@
 	<div class="icon32"></div>
 	<h2>Shopp</h2>
 
-
 	<h3><?php _e('Database Upgrade Required','Shopp'); ?></h3>
-	<p>Shopp has been updated!  Your storefront has been automatically switched to maintenance mode.</p>
+	<p><?php _e('Shopp has been updated! Your storefront has been automatically switched to maintenance mode.','Shopp'); ?></p>
 
-	<p>Before you can continue, we need to upgrade your database to the newest format.</p>
+	<p><?php _e('Before you can use Shopp, your database needs upgraded to the newest version.','Shopp'); ?></p>
 
 	<?php if (current_user_can('activate_plugins')): ?>
 
-		<div class="error">Be sure to backup your database to prevent a loss of data.</div>
+		<div class="error"><p><?php _e('Be sure to backup your database to prevent a loss of data.','Shopp'); ?></p></div>
 
-		<p>To upgrade, you simply need to re-activate Shopp:</p>
+		<p><?php _e('To upgrade, you simply need to reactivate Shopp:','Shopp'); ?></p>
 	  	<ul>
-			<li>Click the <strong>Continue&hellip;</strong> button below to de-activate Shopp</li>
-			<li>In the WordPress plugin manager, click the <strong>Activate</strong> link for Shopp to re-activate and upgrade your Shopp database.</p>
+			<li><?php printf( __('Click the %s button below to deactivate Shopp','Shopp'), '<strong>' . __('Continue&hellip;','Shopp') . '</strong>' ); ?></li>
+			<li><?php printf( __('In the WordPress plugin manager, click the %sActivate%s link for Shopp to reactivate and upgrade your Shopp database','Shopp'), '<strong>','</strong>' ); ?></p>
 		</ul>
 
-		<div class="alignright"><br />
 		<?php
 			$plugin_file = basename(SHOPP_PATH).'/Shopp.php';
 			$deactivate = wp_nonce_url("plugins.php?action=deactivate&amp;plugin=$plugin_file&amp;plugin_status=recent&amp;paged=1","deactivate-plugin_$plugin_file");
 		?>
-		<a href="<?php echo $deactivate; ?>" class="button-primary">Continue...</a>
-		</div>
+		<p><a href="<?php echo $deactivate; ?>" class="button-secondary"><?php _e('Continue&hellip;','Shopp'); ?></a></p>
 
 	<?php else: ?>
 		<?php if (isset($_GET['_shopp_upgrade_notice'])): ?>

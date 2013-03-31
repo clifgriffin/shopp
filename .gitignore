@@ -1,2 +1,8 @@
+gateways/*
+!gateways/core/*
+shipping/*
+!shipping/core/*
+storage/*
+!storage/core/*
 .DS_Store
 "Icon\r"

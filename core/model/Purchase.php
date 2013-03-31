@@ -450,11 +450,11 @@ class Purchase extends DatabaseObject {
 
 		// Send the email
 		if (shopp_email($template,$this->message)) {
-			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
+			shopp_debug('A purchase notification was sent to: '.$this->message['to']);
 			return true;
 		}
 
-		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$this->message['to'],false,SHOPP_DEBUG_ERR);
+		shopp_debug('A purchase notification FAILED to be sent to: '.$this->message['to']);
 		return false;
 	}
 
@@ -730,14 +730,14 @@ class PurchasesExport {
 }
 
 class PurchasesTabExport extends PurchasesExport {
-	function PurchasesTabExport () {
+	function __construct () {
 		parent::PurchasesExport();
 		$this->output();
 	}
 }
 
 class PurchasesCSVExport extends PurchasesExport {
-	function PurchasesCSVExport () {
+	function __construct () {
 		parent::PurchasesExport();
 		$this->content_type = "text/csv";
 		$this->extension = "csv";
@@ -754,8 +754,8 @@ class PurchasesCSVExport extends PurchasesExport {
 }
 
 class PurchasesXLSExport extends PurchasesExport {
-	function PurchasesXLSExport () {
-		parent::PurchasesExport();
+	function __construct () {
+		parent::__construct();
 		$this->content_type = "application/vnd.ms-excel";
 		$this->extension = "xls";
 		$this->c = 0; $this->r = 0;
@@ -789,9 +789,9 @@ class PurchasesXLSExport extends PurchasesExport {
 }
 
 class PurchasesIIFExport extends PurchasesExport {
-	function PurchasesIIFExport () {
+	function __construct () {
 		global $Shopp;
-		parent::PurchasesExport();
+		parent::__construct();
 		$this->content_type = "application/qbooks";
 		$this->extension = "iif";
 		$account = shopp_setting('purchaselog_iifaccount');

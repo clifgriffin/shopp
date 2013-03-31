@@ -151,7 +151,7 @@ class OrderTotals extends RegistryManager {
 
 }
 
-abstract class OrderAmount {
+abstract class OrderTotalAmount {
 
 	// Define types
 	const DEBIT = 1;
@@ -192,7 +192,7 @@ abstract class OrderAmount {
 
 }
 
-class OrderTotal extends OrderAmount {
+class OrderTotal extends OrderTotalAmount {
 	protected $register = 'total';
 
 	public function label () {
@@ -201,11 +201,11 @@ class OrderTotal extends OrderAmount {
 
 }
 
-class OrderAmountDebit extends OrderAmount {
+class OrderAmountDebit extends OrderTotalAmount {
 	protected $column = OrderAmount::DEBIT;
 }
 
-class OrderAmountCredit extends OrderAmount {
+class OrderAmountCredit extends OrderTotalAmount {
 	protected $column = OrderAmount::CREDIT;
 }
 
