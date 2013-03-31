@@ -1146,10 +1146,7 @@ class Storefront extends FlowController {
 	static function pages_settings ($updates=false) {
 		$pages = self::default_pages();
 
-		$ShoppSettings = ShoppSettings();
-		if (!$ShoppSettings) $ShoppSettings = new Settings();
-
-		$settings = $ShoppSettings->get('storefront_pages');
+		$settings = shopp_setting('storefront_pages');
 		// @todo Check if slug is unique amongst shopp_product post type records to prevent namespace conflicts
 		foreach ($pages as $name => &$page) {
 			$page['name'] = $name;
