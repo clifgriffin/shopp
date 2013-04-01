@@ -61,16 +61,25 @@ foreach ( array_keys( $GLOBALS['wp_tests_options'] ) as $key ) {
 	tests_add_filter( 'pre_option_'.$key, 'wp_tests_options' );
 }
 
+// function shopp_tests_run () {
+// 	$GLOBALS['Shopp'] = new Shopp();
+// }
+
 // We want a clean Shopp installation
-function shopp_test_setup() {
+function shopp_tests_install () {
 	$Installation = new ShoppInstallation;
 	$Installation->install();
+}
+
+function shopp_test_setup() {
 	$Installation->setup();
 	$Installation->images();
 	$Installation->roles();
 }
 
-tests_add_filter('shopp_init', 'shopp_test_setup', 1);
+// tests_add_filter('muplugins_loaded','shopp_tests_run',100);
+tests_add_filter('plugins_loaded','shopp_tests_install');
+tests_add_filter('shopp_init', 'shopp_tests_setup', 1);
 
 // Load WordPress
 require_once ABSPATH . '/wp-settings.php';
@@ -126,6 +135,7 @@ class WP_PHPUnit_TextUI_Command extends PHPUnit_TextUI_Command {
 	}
 }
 new WP_PHPUnit_TextUI_Command( $_SERVER['argv'] );
+return;
 
 // Test data
 $productdefinitions = array(
