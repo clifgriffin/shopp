@@ -14,9 +14,9 @@ class ShoppTestCase extends WP_UnitTestCase {
 		parent::setUp();
 
 		// error types taken from PHPUnit_Framework_TestResult::run
-		$this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
-		$this->_old_handler = set_error_handler(array(&$this, '_error_handler'));
-		if (is_null($this->_old_handler)) {
+		$this->_phpunit_err_mask = E_STRICT;
+		$this->_old_handler = set_error_handler(array($this, '_error_handler'));
+		if ( is_null($this->_old_handler) ) {
 			restore_error_handler();
 		}
 
@@ -46,9 +46,35 @@ class ShoppTestCase extends WP_UnitTestCase {
 	 */
 	function _error_handler($errno, $errstr, $errfile, $errline) {
 		// @ in front of statement
-		if (error_reporting() == 0) {
+		if ( error_reporting() == 0 ) {
 			return;
 		}
+
+		$pattern = '/^Argument (\d)+ passed to (?:(\w+)::)?(\w+)\(\) must be an instance of (\w+), (\w+) given/';
+
+		$typehints = array(
+			'boolean'   => 'is_bool',
+			'integer'   => 'is_int',
+			'float'     => 'is_float',
+			'string'    => 'is_string',
+			'resource'  => 'is_resource'
+		);
+
+		if ( E_RECOVERABLE_ERROR == $errno && preg_match( $pattern, $errstr, $matches ) ) {
+
+			list($matched, $index, $class, $function, $hint, $type) = $matches;
+
+            list($null,$backtrace,) = debug_backtrace();
+
+			if ( isset($typehints[$hint]) ) {
+				if ($backtrace['function'] == $function) {
+					$argument = $backtrace['args'][$index - 1];
+
+					if ( call_user_func($typehints[$hint],$argument) ) return;
+				}
+			}
+		}
+
 		// notices and strict warnings are passed on to the phpunit error handler but don't trigger an exception
 		if ($errno | $this->_phpunit_err_mask) {
 			PHPUnit_Util_ErrorHandler::handleError($errno, $errstr, $errfile, $errline);
