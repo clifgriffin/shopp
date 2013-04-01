@@ -1236,16 +1236,26 @@ class StorefrontPage {
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
-		add_filter('wp_title',array($this,'wp_title'),1,3);
 		add_filter('single_post_title',array($this,'title'));
 
-		add_filter('the_title',array($this,'title'));
+		if (is_shopp_page() && is_page())
+			$this->set_post_property('post_title', $this->title());
 
 		add_filter('the_content',array($this,'content'),20);
 		add_filter('the_excerpt',array($this,'content'),20);
 
 		add_filter('shopp_content_container_classes',array($this,'styleclass'));
 
+	}
+
+	protected function set_post_property($property, $value) {
+		global $wp_query;
+
+		// Create a stub object if necessary
+		if (!is_object($wp_query->queried_object))
+			$wp_query->queried_object = new stdClass;
+
+		$wp_query->queried_object->$property = $value;
 	}
 
 	function editlink ($link) {
@@ -1259,7 +1269,7 @@ class StorefrontPage {
 		return $classes;
 	}
 
-	function content ($content) {
+	public function content ($content) {
 		return $content;
 	}
 
