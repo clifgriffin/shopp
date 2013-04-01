@@ -1,6 +1,6 @@
 <?php
 
-/* Path to the WordPress codebase you'd like to test. Add a backslash in the end. */
+/* Path to the WordPress codebase you'd like to test. Add a slash to the end. */
 define( 'ABSPATH', '/web/html/wordpress/shopptest/' );
 
 // Test with multisite enabled: (previously -m)

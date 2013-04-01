@@ -6,4 +6,4 @@ storage/*
 !storage/core/*
 .DS_Store
 "Icon\r"
-tests/wp-tests.config.php
+tests/wp-tests-config.php
