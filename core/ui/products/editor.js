@@ -23,7 +23,8 @@ var Pricelines = new Pricelines(),
  	flashUploader = false,
 	template = false,
  	fileUploads = false,
-	changesMade = false;
+	changesMade = false,
+	isSave = false;
 
 jQuery(document).ready(function($) {
 	var title = $('#title'),
@@ -139,10 +140,13 @@ jQuery(document).ready(function($) {
 		$(this).off("change"); // We don't need this anymore
 	});
 
+	// We don't need an AYS dialog when saving
+	$("input[name='save']").click(function() { isSave = true });
+
 	// Confirm navigation dialog (avoid people accidentally losing work upon navigation)
 	window.onbeforeunload = function() {
 		var editor = (typeof(tinymce) != 'undefined') ? tinymce.activeEditor : false;
-		if (changesMade || (editor && editor.isDirty() && !editor.isHidden()) )
+		if (!isSave && (changesMade || (editor && editor.isDirty() && !editor.isHidden())) )
 			return $msg.confirm;
 	}
 });
