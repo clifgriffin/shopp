@@ -27,10 +27,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-categories'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-categories',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
 		</tfoot>
 	<?php if (count($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
