@@ -4,7 +4,7 @@
  * Order totals calculator
  *
  * @author Jonathan Davis
- * @version 1.9
+ * @version 1.0
  * @copyright Ingenesis Limited, February 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
@@ -21,23 +21,26 @@
  * @version 1.0
  * @package ordertotals
  **/
-class OrderTotals extends RegistryManager {
+class OrderTotals extends ListFramework {
 
 	const TOTAL = 'total';
-	private $register = array( self::TOTAL => null );	// The main registry of entries
-	private $_list   = array( self::TOTAL => null );	// Aggregated sum entries
+	private $register = array( self::TOTAL => null );	// Registry of "register" entries
 
 	private $checks   = array();	// Track changes in the column registers
 
 	public function __construct () {
-		$this->_list['total'] = new OrderTotal( array('amount' => 0.0) );
+		$this->add('total', new OrderTotal( array('amount' => 0.0) ));
 	}
 
-	public function register ( OrderAmount $Entry ) {
-		$register = $Entry->register();
+	public function register ( OrderTotalAmount $Entry, $onremove = false ) {
+		$register = $Entry->register($this);
 		if ( ! isset($this->register[ $register ]) ) $this->register[ $register ] = array();
 
 		$this->register[ $register ][ $Entry->id() ] = $Entry;
+
+		// Register auto entry removal on dispatch of a given WP action
+		if ( ! empty($onremove) )
+			add_action($onremove, array($Entry,'remove') );
 
 		$this->total($register);
 	}
@@ -52,11 +55,33 @@ class OrderTotals extends RegistryManager {
 	 * @param string $id The entry identifier
 	 * @return OrderAmount The order amount entry
 	 **/
-	public function get ( string $register, string $id ) {
+	public function &entry ( string $register, string $id ) {
 		if ( ! isset($this->register[ $register ]) ) return false;
 		$Register = &$this->register[ $register ];
+
 		if ( ! isset($Register[$id]) ) return false;
 		return $Register[$id];
+	}
+
+	/**
+	 * Take off an OrderAmount entry from the register
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $register The register to find the entry in
+	 * @param string $id The entry identifier
+	 * @return boolean True if succesful, false otherwise
+	 **/
+	public function takeoff ( string $register, string $id ) {
+
+		if ( ! isset($this->register[ $register ]) ) return false;
+		$Register = &$this->register[ $register ];
+
+		if ( ! isset($Register[ $id ])) return false;
+
+		unset($Register[ $id ]);
+		return true;
 	}
 
 	/**
@@ -101,7 +126,9 @@ class OrderTotals extends RegistryManager {
 		if ( empty($register) ) $register = self::TOTAL;
 		if ( ! isset($this->register[ $register ]) ) return false;
 
-		$Total = &$this->_list[ $register ];
+		if ( $this->exists($register) ) $Total = &$this->get( $register ); // &$this->_list[ $register ];
+		else $Total = &$this->add( $register, false );
+
 		$Register = &$this->register[ $register ];
 
 		// Return the current total for the register if it hasn't changed
@@ -110,14 +137,17 @@ class OrderTotals extends RegistryManager {
 
 		// Calculate a new total amount for the register
 		$Total = new OrderTotal( array('amount' => 0.0) );
+		if ( empty($Register) ) return $Total->amount();
+
 		foreach ( $Register as $Entry) {
-			// Set the amount based on CREDIT or DEBIT column
-			$amount = OrderAmount::CREDIT == $Entry->column() ? $Entry->amount() * -1 : $Entry->amount();
+			$amount = $Entry->amount();
+			if ( OrderTotalAmount::CREDIT == $Entry->column() ) 	// Set the amount based on transaction column
+				$amount = $Entry->amount() * OrderTotalAmount::CREDIT;
 			$Total->amount( $Total->amount() + $amount );
 		}
 
-		// Return the newly calculated amount if this is the total register
-		if ( self::TOTAL == $register ) return $Total->amount();
+		// Do not include entry in grand total if it is not a balance adjusting register
+		if ( null === $Entry->column() ) return $Total->amount();
 
 		// For other registers, add or update that register's total entry for it in the totals register
 		$GrandTotal = &$this->register[ self::TOTAL ];
@@ -130,7 +160,7 @@ class OrderTotals extends RegistryManager {
 		if ( $this->changed('total') ) $this->total();
 
 		// Return the newly calculated amount
-		return $Total->amount();
+		return apply_filters( "shopp_ordertotals_{$register}_total", $Total->amount(), $Register );
 	}
 
 	/**
@@ -144,7 +174,7 @@ class OrderTotals extends RegistryManager {
 	 **/
 	private function changed ( string $register ) {
 		$check = isset($this->checks[ $register ]) ? $this->checks[$register] : 0;
-		$this->checks[$register] = crc32( serialize($this->register[$register]) );
+		$this->checks[$register] = hash('crc32b', serialize($this->register[$register]) );
 		if ( 0 == $check ) return true;
 		return ( $check != $this->checks[$register] );
 	}
@@ -153,7 +183,7 @@ class OrderTotals extends RegistryManager {
 
 abstract class OrderTotalAmount {
 
-	// Define types
+	// Transaction type constants
 	const DEBIT = 1;
 	const CREDIT = -1;
 
@@ -161,6 +191,7 @@ abstract class OrderTotalAmount {
 	protected $id = '';			// Identifier name/id
 	protected $column = null;	// A flag to determine the role of the amount
 	protected $amount = 0.0;	// The amount the amount type
+	protected $parent = false;	// The parent OrderTotals instance
 
 	public function __construct ( array $options = array() ) {
 		$this->populate($options);
@@ -173,11 +204,12 @@ abstract class OrderTotalAmount {
 
 	public function id () {
 		// Generate a quick checksum if no ID was given
-		if ( empty($this->id) ) $this->id = crc32(serialize($this));
+		if ( empty($this->id) ) $this->id = hash('crc32b',serialize($this));
 		return $this->id;
 	}
 
-	public function register () {
+	public function register ( OrderTotals $OrderTotals ) {
+		$this->parent = $OrderTotals;
 		return $this->register;
 	}
 
@@ -188,6 +220,12 @@ abstract class OrderTotalAmount {
 
 	public function column () {
 		return $this->column;
+	}
+
+	public function remove () {
+		var_dump(__METHOD__);
+		$OrderTotals = $this->parent;
+		$OrderTotals->takeoff($this->register,$this->id);
 	}
 
 }
@@ -202,11 +240,11 @@ class OrderTotal extends OrderTotalAmount {
 }
 
 class OrderAmountDebit extends OrderTotalAmount {
-	protected $column = OrderAmount::DEBIT;
+	protected $column = OrderTotalAmount::DEBIT;
 }
 
 class OrderAmountCredit extends OrderTotalAmount {
-	protected $column = OrderAmount::CREDIT;
+	protected $column = OrderTotalAmount::CREDIT;
 }
 
 class OrderAmountDiscount extends OrderAmountCredit {
@@ -246,9 +284,38 @@ class OrderAmountGiftCard extends OrderAmountCredit {
 
 class OrderAmountFee extends OrderAmountDebit {
 	protected $register = 'fee';
+	protected $quantity = 0;
 
 	public function label () {
 		return __('Fee','Shopp');
+	}
+}
+
+class OrderAmountItem  extends OrderAmountDebit {
+	protected $register = 'order';
+
+	public function __construct ( CartItem $Item ) {
+		$this->unit = &$Item->unitprice;
+		$this->amount = &$Item->total;
+		$this->id = $Item->fingerprint();
+	}
+
+	public function label () {
+		return __('Subtotal','Shopp');
+	}
+
+}
+
+class OrderAmountItemQuantity extends OrderTotalAmount {
+	protected $register = 'quantity';
+
+	public function __construct ( CartItem $Item ) {
+		$this->amount = &$Item->quantity;
+		$this->id = $Item->fingerprint();
+	}
+
+	public function label () {
+		return __('quantity','Shopp');
 	}
 }
 

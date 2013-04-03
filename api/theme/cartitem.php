@@ -67,10 +67,9 @@ class ShoppCartItemThemeAPI {
 
 		if (strtolower($object) != 'cartitem') return $Object; // not mine, do nothing
 		else {
-			$Order =& ShoppOrder();
-			$Cart =& $Order->Cart;
+			$Cart = ShoppOrder()->Cart;
 			$Item = false;
-			if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); return $Item; }
+			if (isset($Cart->_item_loop)) { $Item = $Cart->current(); $Item->_id = $Cart->key(); return $Item; }
 			elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); return $Item; }
 			elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); return $Item; }
 			return false;

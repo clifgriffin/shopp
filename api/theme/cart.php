@@ -151,7 +151,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	static function has_downloads ($result, $options, $O) { reset($O->downloads); return $O->downloads(); }
 
-	static function has_items ($result, $options, $O) { reset($O->contents); return (count($O->contents) > 0); }
+	static function has_items ($result, $options, $O) { $O->rewind(); return count($O) > 0; }
 
 	static function has_promos ($result, $options, $O) { reset($O->discounts); return (count($O->discounts) > 0);  }
 
@@ -169,20 +169,20 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	static function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
 
 	static function items ($result, $options, $O) {
-		if (!isset($O->_item_loop)) {
-			reset($O->contents);
+		if ( ! isset($O->_item_loop) ) {
+			$O->rewind();
 			$O->_item_loop = true;
-		} else next($O->contents);
+		} else $O->next();
 
-		if (current($O->contents)) return true;
+		if ( $O->valid() ) return true;
 		else {
 			unset($O->_item_loop);
-			reset($O->contents);
+			$O->rewind();
 			return false;
 		}
 	}
 
-	static function last_item ($result, $options, $O) { return $O->contents[$O->added]; }
+	static function last_item ($result, $options, $O) { return $O[$O->added]; }
 
 	static function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
@@ -300,11 +300,11 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 			else $result = $options['label'];
 		} else {
-			if ($O->Totals->shipping === null)
+			if ($O->Totals->total('shipping') === false)
 				return __("Enter Postal Code","Shopp");
 			elseif ($O->Totals->shipping === false)
 				return __("Not Available","Shopp");
-			else $result = $O->Totals->shipping;
+			else $result = $O->Totals->total('shipping');
 		}
 		return $result;
 	}
@@ -361,7 +361,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $content;
 	}
 
-	static function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
+	static function subtotal ($result, $options, $O) { return $O->Totals->total('order'); }
 
 	static function tax ($result, $options, $O) {
 		$defaults = array(
@@ -372,20 +372,20 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 		if (!empty($label)) return $label;
 
-		return $O->Totals->tax;
+		return $O->Totals->total('tax');
 
 	 }
 
-	static function total ($result, $options, $O) { return $O->Totals->total; }
+	static function total ($result, $options, $O) { return $O->Totals->total(); }
 
 	static function total_items ($result, $options, $O) {
-	 	return count($O->contents);
+	 	return count($O);
 	}
 
 	static function total_promos ($result, $options, $O) { return count($O->discounts); }
 
 	static function total_quantity ($result, $options, $O) {
-	 	return $O->Totals->quantity;
+	 	return $O->Totals->total('quantity');
 	}
 
 	static function update_button ($result, $options, $O) {

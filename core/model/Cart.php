@@ -14,33 +14,33 @@
 
 require('Item.php');
 
-class Cart {
+class ShoppCart extends ListFramework {
 
 	// properties
-	var $contents = array();	// The contents (Items) of the cart
-	var $shipped = array();		// Reference list of shipped Items
-	var $downloads = array();	// Reference list of digital Items
-	var $recurring = array();	// Reference list of recurring Items
-	var $discounts = array();	// List of promotional discounts applied
-	var $promocodes = array();	// List of promotional codes applied
-	var $shipping = array();	// List of shipping options
-	var $processing = array();	// Min-Max order processing timeframe
-	var $checksum = false;		// Cart contents checksum to track changes
+	public $contents = array();		// The contents (Items) of the cart
+	public $shipped = array();		// Reference list of shipped Items
+	public $downloads = array();	// Reference list of digital Items
+	public $recurring = array();	// Reference list of recurring Items
+	public $discounts = array();	// List of promotional discounts applied
+	public $promocodes = array();	// List of promotional codes applied
+	public $shipping = array();		// List of shipping options
+	public $processing = array();	// Min-Max order processing timeframe
+	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
-	var $Added = false;			// Last Item added
-	var $Totals = false;		// Cart Totals data structure
+	public $Added = false;			// Last Item added
+	public $Totals = false;			// Cart OrderTotals system
 
-	var $freeship = false;
-	var $showpostcode = false;	// Flag to show postcode field in shipping estimator
+	public $freeship = false;
+	public $showpostcode = false;	// Flag to show postcode field in shipping estimator
 
 	// Internal properties
-	var $changed = false;		// Flag when Cart updates and needs retotaled
-	var $added = false;			// The index of the last item added
+	public $changed = false;		// Flag when Cart updates and needs retotaled
+	public $added = false;			// The index of the last item added
 
-	var $runaway = 0;
-	var $retotal = false;
-	var $handlers = false;
+	public $runaway = 0;
+	public $retotal = false;
+	public $handlers = false;
 
 	/**
 	 * Cart constructor
@@ -51,7 +51,6 @@ class Cart {
 	 * @return void
 	 **/
 	function __construct () {
-		$this->Totals = new CartTotals();	// Initialize aggregate total data
 		$this->listeners();					// Establish our command listeners
 	}
 
@@ -171,13 +170,13 @@ class Cart {
 
 					if (!empty($Product->id)) {
 						if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
-						else $result = $this->add($quantity,$Product,$pricing,$category,$data,$addons);
+						else $result = $this->additem($quantity,$Product,$pricing,$category,$data,$addons);
 					}
 				}
 
 				break;
 			case "remove":
-				if (!empty($this->contents)) $this->remove(key($_REQUEST['remove']));
+				$this->removeitem(key($_REQUEST['remove']));
 				break;
 			case "empty":
 				$this->clear();
@@ -241,7 +240,6 @@ class Cart {
 		exit();
 	}
 
-
 	/**
 	 * Adds a product as an item to the cart
 	 *
@@ -255,24 +253,23 @@ class Cart {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	function add ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
+	function additem ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
 
 		$NewItem = new Item($Product,$Price,$category,$data,$addons);
 
-		if ( ! $NewItem->valid() || ! $this->valid_add($NewItem) ) return false;
+		if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 
-		if (($item = $this->hasitem($NewItem)) !== false) {
-			$NewItem = $this->contents[$item];
+		$id = $NewItem->fingerprint();
+		if ( $this->exists($id) ) {
 			$NewItem->add($quantity);
-			$this->added = $item;
+			$this->added($id);
 		} else {
 			$NewItem->quantity($quantity);
-			$this->contents[] = $NewItem;
-			$this->added = count($this->contents)-1;
+			$this->add($id,$NewItem);
 		}
 
-		if (!$this->xitemstock($this->contents[$this->added]) )
-			return $this->remove($this->added); // Remove items if no cross-item stock available
+		if ( ! $this->xitemstock($this->added()) )
+			return $this->remove($this->added()); // Remove items if no cross-item stock available
 
 		do_action_ref_array('shopp_cart_add_item',array($NewItem));
 		$this->Added = $NewItem;
@@ -290,10 +287,10 @@ class Cart {
 	 * @param int $item Index of the item in the Cart contents
 	 * @return boolean
 	 **/
-	function remove ($item) {
-		unset($this->contents[$item]);
-		$this->changed(true);
-		return true;
+	function removeitem ( scalar $id ) {
+		$Item = $this->get($id);
+		do_action_ref_array('shopp_cart_remove_item',array($Item));
+		$this->remove($id);
 	}
 
 	/**
@@ -334,7 +331,7 @@ class Cart {
 	 * @param Item $Item the item being added
 	 * @return bool true if the item can be added, false if it would be improper.
 	 **/
-	function valid_add ( $Item ) {
+	function addable ( $Item ) {
 		$allowed = true;
 
 		// Subscription products must be alone in the cart
@@ -464,7 +461,7 @@ class Cart {
 	 * @param Item $NewItem The new Item object to look for
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
-	function hasitem($NewItem) {
+	function hasitem ($NewItem) {
 		// Find matching item fingerprints
 		foreach ($this->contents as $i => $Item)
 			if ($Item->fingerprint() === $NewItem->fingerprint()) return $i;
@@ -513,7 +510,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function totals () {
+	private function totals_deprecated () {
 		if (!($this->retotal || $this->changed())) return true;
 
 		$checksum = array();
@@ -583,6 +580,56 @@ class Cart {
 
 	}
 
+	function totals () {
+		// Setup totals counter
+		if ( false === $this->Totals ) $this->Totals = new OrderTotals();
+
+		$Totals = $this->Totals;
+		$Discounts = new CartDiscounts();
+
+		// Free shipping until costs are assessed
+		$this->freeshipping = true;
+
+		// Identify downloadable products
+		$this->downloads();
+
+		// If no items are shipped, free shipping is disabled
+		if ( ! $this->shipped() ) $this->freeshipping = false;
+		foreach ( $this as $Item ) {
+			if ( ! is_a($Item,'Item') ) continue;
+
+			$Item->discount = 0;
+			$Item->retotal();
+
+			$Totals->register( new OrderAmountItemQuantity($Item), 'shopp_cart_remove_item' );
+			$Totals->register( new OrderAmountItem($Item), 'shopp_cart_remove_item' );
+
+			if (!$Item->freeshipping) $this->freeshipping = false;
+		}
+
+		$Shipping = new CartShipping();
+		if ( $this->changed() ) {
+			// Only fully recalculate shipping costs
+			// if the cart contents have changed
+			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate()) ) );
+
+			// Save the generated shipping options
+			$this->shipping = $Shipping->options();
+
+		} else $Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->selected()) ));
+
+		// Calculate discounts
+		$Totals->register( new OrderAmountDiscount( array('id' => 'cart', 'amount' => $Discounts->calculate()) ) );
+
+		// Calculate taxes
+		$Tax = new CartTax();
+		$Totals->register( new OrderAmountTax( array('id' => 'cart', 'amount' => $Tax->calculate(), 'rate' => $Tax->rate()) ));
+
+		// print_r($Totals);
+		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );
+
+	}
+
 	/**
 	 * Determines if the current order has no cost
 	 *
@@ -605,9 +652,8 @@ class Cart {
 	 * @return boolean True if there are shipped items in the cart
 	 **/
 	function shipped () {
-		return $this->_typeitems('shipped');
+		return $this->filteritems('shipped');
 	}
-
 
 	/**
 	 * Finds downloadable items in the cart and builds a reference list
@@ -618,7 +664,7 @@ class Cart {
 	 * @return boolean True if there are shipped items in the cart
 	 **/
 	function downloads () {
-		return $this->_typeitems('downloads');
+		return $this->filteritems('download');
 	}
 
 	/**
@@ -630,57 +676,20 @@ class Cart {
 	 * @return boolean True if there are recurring payment items in the cart
 	 **/
 	function recurring () {
-		return $this->_typeitems('recurring');
+		return $this->filteritems('recurring');
 	}
 
-	private function _typeitems ($type) {
+	private function filteritems ($type) {
 		$types = array('shipped','downloads','recurring');
-		if (!in_array($type,$types)) return false;
-
-		$filter = "_filter_$type";
-		$items = array_filter($this->contents,array(&$this,$filter));
+		if ( ! in_array($type,$types) ) return false;
 
 		$this->$type = array();
-		foreach ($items as $key => $item)
-			$this->{$type}[$key] =& $this->contents[$key];
+		foreach ($this as $key => $item) {
+			if ( ! $item->$type ) continue;
+			$this->{$type}[$key] = $item;
+		}
 
-		return (!empty($this->$type));
-	}
-
-	/**
-	 * Helper method to identify shipped items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_shipped ($item) {
-		return ($item->shipped);
-	}
-
-	/**
-	 * Helper method to identify digital items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_downloads ($item) {
-		return ($item->download);
-	}
-
-	/**
-	 * Helper method to identify recurring payment items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_recurring ($item) {
-		return ($item->recurring);
+		return ! empty($this->$type);
 	}
 
 } // END class Cart
@@ -694,19 +703,19 @@ class Cart {
  * @package shopp
  * @subpackage cart
  **/
-class CartTotals {
-
-	var $taxrates = array();	// List of tax figures (rates and amounts)
-	var $quantity = 0;			// Total quantity of items in the cart
-	var $subtotal = 0;			// Subtotal of item totals
-	var $discount = 0;			// Subtotal of cart discounts
-	var $itemsd = 0;			// Subtotal of cart item discounts
-	var $shipping = 0;			// Subtotal of shipping costs for items
-	var $taxed = 0;				// Subtotal of taxable item totals
-	var $tax = 0;				// Subtotal of item taxes
-	var $total = 0;				// Grand total
-
-} // END class CartTotals
+// class CartTotals {
+//
+// 	var $taxrates = array();	// List of tax figures (rates and amounts)
+// 	var $quantity = 0;			// Total quantity of items in the cart
+// 	var $subtotal = 0;			// Subtotal of item totals
+// 	var $discount = 0;			// Subtotal of cart discounts
+// 	var $itemsd = 0;			// Subtotal of cart item discounts
+// 	var $shipping = 0;			// Subtotal of shipping costs for items
+// 	var $taxed = 0;				// Subtotal of taxable item totals
+// 	var $tax = 0;				// Subtotal of item taxes
+// 	var $total = 0;				// Grand total
+//
+// } // END class CartTotals
 
 /**
  * CartPromotions class
@@ -853,13 +862,15 @@ class CartDiscounts {
 	function calculate () {
 		$this->applypromos();
 
+		$Cart = ShoppOrder()->Cart;
+
 		$sum = array();
-		foreach ($this->Cart->discounts as $Discount) {
+		foreach ($Cart->discounts as $Discount) {
 			if (isset($Discount->items) && !empty($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
 
-					if (isset($this->Cart->contents[$id])) {
-						$Item = $this->Cart->contents[$id];
+					if (isset($Cart->contents[$id])) {
+						$Item = $Cart->contents[$id];
 
 						if (shopp_setting_enabled('tax_inclusive') && 'Buy X Get Y Free' == $Discount->type) {
 							// Specialized line item for inclusive tax model buy X get Y free discounts [bug #806]
@@ -880,6 +891,11 @@ class CartDiscounts {
 		}
 
 		$discount = array_sum($sum);
+
+		// Prevent the total of all discounts from being greater than the order subtotal
+		if ( $discount > $Cart->Totals->total('order') )
+			$discount = $Cart->Totals->total('order');
+
 		return $discount;
 	}
 

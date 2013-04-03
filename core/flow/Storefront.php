@@ -914,8 +914,6 @@ class Storefront extends FlowController {
 	 * @return void Description...
 	 **/
 	function cart () {
-		global $Shopp;
-		$Cart = $Shopp->Order->Cart;
 		if (isset($_REQUEST['shopping']) && strtolower($_REQUEST['shopping']) == "reset") {
 			$Shopping = ShoppShopping();
 			$Shopping->reset();
@@ -927,13 +925,14 @@ class Storefront extends FlowController {
 		do_action('shopp_cart_request');
 
 		if (isset($_REQUEST['ajax'])) {
+			$Cart = ShoppOrder()->Cart;
 			$Cart->totals();
 			$Cart->ajax();
 		}
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": shopp_redirect(shoppurl(false,$redirect,$Shopp->Order->security())); break;
+			case 'checkout': shopp_redirect(shoppurl(false,$redirect,ShoppOrder()->security())); break;
 			default:
 				if (!empty($_REQUEST['redirect']))
 					shopp_safe_redirect($_REQUEST['redirect']);

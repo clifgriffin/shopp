@@ -16,25 +16,33 @@
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
- * Implements a Registry pattern with internal iteration support
+ * Implements a list manager with internal iteration support
  *
  * @author Jonathan Davis
  * @since 1.2
  * @package shopp
  **/
-class RegistryManager implements Iterator {
+class ListFramework implements Iterator {
 
 	private $_list = array();
 	private $_keys = array();
-	private $_false = false;
+	private $_added = '';
+	private $_position = 0;
+	private static $_false = false;
 
-	public function __construct() {
-        $this->_position = 0;
+	public function &add ( scalar $key, $entry ) {
+		$this->_list[$key] = $entry;
+		$this->_added = $key;
+		$this->rekey();
+		return $this->get($key);
 	}
 
-	public function add ($key,$entry) {
-		$this->_list[$key] = $entry;
-		$this->rekey();
+	public function added ( $key = false ) {
+		if ( false !== $key && $this->exists($key) )
+			$this->_added = $key;
+		if ( $this->exists($this->_added) )
+			return $this->get($this->_added);
+		return false;
 	}
 
 	public function populate ($records) {
@@ -43,14 +51,15 @@ class RegistryManager implements Iterator {
 	}
 
 	public function update ($key,$entry) {
-		if (!$this->exists($key)) return false;
-		$entry = array_merge($this->_list[$key],$entry);
-		$this->_list[$key] = $entry;
+		if ( ! $this->exists($key) ) return false;
+		if ( is_array($this->_list[$key]) && is_array($entry) )
+			$entry = array_merge($this->_list[$key],$entry);
+		else $this->_list[$key] = $entry;
 	}
 
 	public function &get ($key) {
-		if ($this->exists($key)) return $this->_list[$key];
-		else return $_false;
+		if ( $this->exists($key) ) return $this->_list[$key];
+		else return $this->_false;
 	}
 
 	public function exists ($key) {
@@ -58,7 +67,7 @@ class RegistryManager implements Iterator {
 	}
 
 	public function remove ($key) {
-		if (!$this->exists($key)) return false;
+		if ( ! $this->exists($key) ) return false;
 		unset($this->_list[$key]);
 		$this->rekey();
 	}
@@ -67,27 +76,38 @@ class RegistryManager implements Iterator {
 		$this->_keys = array_keys($this->_list);
 	}
 
-
-	function current () {
-		return $this->_list[ $this->keys[$this->_position] ];
+	public function keyin ( $position = false ) {
+		if ( false !== $position && isset($this->_keys[ (int)$position ]) )
+			return $this->_keys[ (int)$position ];
+		return $this->key();
 	}
 
-	function key () {
-		return $this->keys[$this->_position];
+	public function &current () {
+		if ( $this->valid() )
+			return $this->_list[ $this->_keys[$this->_position] ];
+		return $this->_false;
 	}
 
-	function next () {
+	public function key ( ) {
+		if ( isset($this->_keys[ $this->_position ]) )
+			return $this->_keys[ $this->_position ];
+		return false;
+	}
+
+	public function next () {
 		++$this->_position;
+		return $this->current();
 	}
 
-	function rewind () {
+	public function rewind () {
 		$this->_position = 0;
+		return $this->current();
 	}
 
-	function valid () {
+	public function valid () {
 		return (
 			array_key_exists($this->_position,$this->_keys)
-			&& array_key_exists($this->keys[$this->_position],$this->_list)
+			&& array_key_exists($this->_keys[$this->_position],$this->_list)
 		);
 	}
 

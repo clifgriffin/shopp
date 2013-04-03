@@ -279,10 +279,10 @@ class Item {
 	 * @return string
 	 **/
 	function fingerprint () {
-		$_  = array($this->product,$this->priceline);
-		if (!empty($this->addons))	$_[] = serialize($this->addons);
-		if (!empty($this->data))	$_[] = serialize($this->data);
-		return crc32(join('',$_));
+		$_  = $this->product.$this->priceline;
+		if ( ! empty($this->addons) )	$_ .= serialize($this->addons);
+		if ( ! empty($this->data) )		$_ .= serialize($this->data);
+		return hash('crc32',$_);
 	}
 
 	/**
@@ -805,7 +805,6 @@ class Item {
 	 **/
 	function retotal () {
 		$this->taxrate = shopp_taxrate(true,$this->istaxed,$this);
-
 		$this->priced = ($this->unitprice-$this->discount); // discounted unit price
 		$this->discounts = ($this->discount*$this->quantity); // total item discount figure
 
