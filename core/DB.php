@@ -46,8 +46,8 @@ class DB extends SingletonFramework {
 
 	public $results = array();
 	public $queries = array();
-	public $found = false;
 	public $dbh = false;
+	public $found = false;
 
 	/**
 	 * Initializes the DB object
@@ -89,6 +89,11 @@ class DB extends SingletonFramework {
 		if ( ! self::$instance instanceof self )
 			self::$instance = new self;
 		return self::$instance;
+	}
+
+	static function table_prefix () {
+		global $wpdb;
+		return $wpdb->get_blog_prefix();
 	}
 
 	/**
@@ -761,6 +766,7 @@ abstract class DatabaseObject implements Iterator {
 	static function tablename ($table) {
 		global $wpdb;
 		return $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table;
+		return $wpdb->get_blog_prefix().SHOPP_DBPREFIX.$table;
 	}
 
 	/**
