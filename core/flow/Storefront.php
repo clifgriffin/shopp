@@ -1334,6 +1334,15 @@ class StorefrontPage {
  * @package shopp
  **/
 class CatalogStorefrontPage extends StorefrontPage {
+	public function __construct($options = array()) {
+		parent::__construct($options);
+
+		// Uniquely the catalog storefront is both a Shopp storefront page and a post type
+		// archive and so an extra step is needed when setting up the post title
+		$labels = new stdClass;
+		$labels->name = $this->title();
+		$this->set_post_property('labels', $labels);
+	}
 
 	function content ($content) {
 		global $wp_query,$wp_the_query;
