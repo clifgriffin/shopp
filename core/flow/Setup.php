@@ -25,7 +25,7 @@ class Setup extends AdminController {
 	/**
 	 * Setup constructor
 	 *
-	 * @return void
+	 * @return voidtax
 	 * @author Jonathan Davis
 	 **/
 	function __construct () {
@@ -798,7 +798,7 @@ class Setup extends AdminController {
 		}
 
 		if (isset($_POST['editing'])) {
-			// Resort taxes from generic to most specific
+			// Re-sort taxes from generic to most specific
 			usort($rates,array($this,'taxrates_sorting'));
 			$rates = stripslashes_deep($rates);
 			shopp_set_setting('taxrates',$rates);
@@ -823,7 +823,7 @@ class Setup extends AdminController {
 	 * @since 1.2
 	 *
 	 * @param array $rates The tax rate settings to sort
-	 * @return void
+	 * @return int The sorting value
 	 **/
 	function taxrates_sorting ($a, $b) {
 
@@ -844,7 +844,7 @@ class Setup extends AdminController {
 			if ('*' != $rate['country']) $score++;
 		}
 
-		if ($scoring['a'] < $scoring['b']) return 1;
+		if ($scoring['a'] > $scoring['b']) return 1;
 		else return -1;
 
 	}

@@ -5,58 +5,63 @@
  * Cart line items generated from product/price objects
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 28 March, 2008
+ * @version 1.3
+ * @copyright Ingenesis Limited, April, 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  * @since 1.0
  * @subpackage cart
  **/
-class Item {
-	var $api = 'cartitem';		// Theme API name
-	var $product = false;		// The source product ID
-	var $priceline = false;		// The source price ID
-	var $category = false;		// The breadcrumb category
-	var $sku = false;			// The SKU of the product/price combination
-	var $type = false;			// The type of the product price object
-	var $name = false;			// The name of the source product
-	var $description = false;	// Short description from the product summary
-	var $option = false;		// The option ID of the price object
-	var $variant = array();		// The selected variant
-	var $variants = array();	// The available variants
-	var $addons = array();		// The addons added to the item
-	var $image = false;			// The cover image for the product
-	var $data = array();		// Custom input data
-	var $processing = array();	// Per item order processing delays
-	var $quantity = 0;			// The selected quantity for the line item
-	var $qtydelta = 0;			// The change in quantity
-	var $addonsum = 0;			// The sum of selected addons
-	var $unitprice = 0;			// Per unit price
-	var $priced = 0;			// Per unit price after discounts are applied
-	var $totald = 0;			// Total price after discounts
-	var $subprice = 0;			// Regular price for subscription payments
-	var $unittax = 0;			// Per unit tax amount
-	var $pricedtax = 0;			// Per unit tax amount after discounts are applied
-	var $tax = 0;				// Sum of the per unit tax amount for the line item
-	var $taxrate = 0;			// Tax rate for the item
-	var $taxable = array();		// Per unit taxable amounts (baseprice & add-ons that are taxed)
-	var $total = 0;				// Total cost of the line item (unitprice x quantity)
-	var $discount = 0;			// Discount applied to each unit
-	var $discounts = 0;			// Sum of per unit discounts (discount for the line)
-	var $weight = 0;			// Unit weight of the line item (unit weight)
-	var $length = 0;			// Unit length of the line item (unit length)
-	var $width = 0;				// Unit width of the line item (unit width)
-	var $height = 0;			// Unit height of the line item (unit height)
-	var $shipfee = 0;			// Shipping fees for each unit of the line item
-	var $download = false;		// Download ID of the asset from the selected price object
-	var $shipping = false;		// Shipping setting of the selected price object
-	var $recurring = false;		// Recurring flag when the item requires recurring billing
-	var $shipped = false;		// Shipped flag when the item needs shipped
-	var $inventory = false;		// Inventory setting of the selected price object
-	var $istaxed = false;		// Taxable setting of the selected price object
-	var $excludetax = false;	// Exclude tax in price renderings
-	var $freeshipping = false;	// Free shipping status of the selected price object
-	var $packaging = false;		// Should the item be packaged separately
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+class ShoppCartItem {
+
+	public $api = 'cartitem';		// Theme API name
+	public $product = false;		// The source product ID
+	public $priceline = false;		// The source price ID
+	public $category = false;		// The breadcrumb category
+	public $sku = false;			// The SKU of the product/price combination
+	public $type = false;			// The type of the product price object
+	public $name = false;			// The name of the source product
+	public $description = false;	// Short description from the product summary
+	public $option = false;			// The option ID of the price object
+	public $variant = array();		// The selected variant
+	public $variants = array();		// The available variants
+	public $addons = array();		// The addons added to the item
+	public $image = false;			// The cover image for the product
+	public $data = array();			// Custom input data
+	public $processing = array();	// Per item order processing delays
+	public $quantity = 0;			// The selected quantity for the line item
+	public $qtydelta = 0;			// The change in quantity
+	public $addonsum = 0;			// The sum of selected addons
+	public $unitprice = 0;			// Per unit price
+	public $priced = 0;				// Per unit price after discounts are applied
+	public $totald = 0;				// Total price after discounts
+	public $subprice = 0;			// Regular price for subscription payments
+	public $unittax = 0;			// Per unit tax amount
+	public $pricedtax = 0;			// Per unit tax amount after discounts are applied
+	public $tax = 0;				// Sum of the per unit tax amount for the line item
+	public $taxes = array();		// A list of taxes that apply
+	public $taxrate = 0;			// Tax rate for the item
+	public $taxable = array();		// Per unit taxable amounts (baseprice & add-ons that are taxed)
+	public $total = 0;				// Total cost of the line item (unitprice x quantity)
+	public $discount = 0;			// Discount applied to each unit
+	public $discounts = 0;			// Sum of per unit discounts (discount for the line)
+	public $weight = 0;				// Unit weight of the line item (unit weight)
+	public $length = 0;				// Unit length of the line item (unit length)
+	public $width = 0;				// Unit width of the line item (unit width)
+	public $height = 0;				// Unit height of the line item (unit height)
+	public $shipfee = 0;			// Shipping fees for each unit of the line item
+	public $download = false;		// Download ID of the asset from the selected price object
+	public $shipping = false;		// Shipping setting of the selected price object
+	public $recurring = false;		// Recurring flag when the item requires recurring billing
+	public $shipped = false;		// Shipped flag when the item needs shipped
+	public $inventory = false;		// Inventory setting of the selected price object
+	public $istaxed = false;		// Taxable setting of the selected price object
+	public $includetax = false;		// Taxes are incuded in the price
+	public $freeshipping = false;	// Free shipping status of the selected price object
+	public $packaging = false;		// Should the item be packaged separately
 
 	/**
 	 * Constructs a line item from a Product object and identified price object
@@ -71,7 +76,7 @@ class Item {
 	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	function __construct ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
+	public function __construct ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
 		$args = func_get_args();
 		if ( empty($args) ) return;
 
@@ -95,7 +100,7 @@ class Item {
 	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	function load ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
+	public function load ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
 		$Product->load_data();
 
 		// If option ids are passed, lookup by option key, otherwise by id
@@ -159,7 +164,9 @@ class Item {
 		if (shopp_setting_enabled('taxes')) {
 			if (str_true($Price->tax)) $this->taxable[] = $baseprice;
 			$this->istaxed = ( $this->taxable > 0 );
-			if (isset($Product->excludetax)) $this->excludetax = str_true($Product->excludetax);
+			$this->includetax = shopp_setting_enabled('tax_inclusive');
+			if ( isset($Product->excludetax) && str_true($Product->excludetax) )
+				$this->includetax = false;
 		}
 
 		if ( 'Donation' == $this->type )
@@ -229,9 +236,11 @@ class Item {
 
 		}
 
+		add_action('shopp_cart_item_total',array($this,'totals'));
+
 	}
 
-	function load_purchased ( $Purchased ) {
+	public function load_purchased ( $Purchased ) {
 
 		$this->load(new Product($Purchased->product),$Purchased->price,false);
 
@@ -255,7 +264,7 @@ class Item {
 	 *
 	 * @return boolean
 	 **/
-	function valid () {
+	public function valid () {
 		// no product or no price specified
 		if ( ! $this->product || ! $this->priceline ) {
 			new ShoppError(__('The product could not be added to the cart because it could not be found.','Shopp'),'cart_item_invalid',SHOPP_ERR);
@@ -278,11 +287,11 @@ class Item {
 	 *
 	 * @return string
 	 **/
-	function fingerprint () {
+	public function fingerprint () {
 		$_  = $this->product.$this->priceline;
 		if ( ! empty($this->addons) )	$_ .= serialize($this->addons);
 		if ( ! empty($this->data) )		$_ .= serialize($this->data);
-		return hash('crc32',$_);
+		return __CLASS__ . '_' . hash('crc32',$_);
 	}
 
 	/**
@@ -297,8 +306,9 @@ class Item {
 	 * @param int $qty The quantity to set the line item to
 	 * @return void
 	 **/
-	function quantity ($qty) {
+	public function quantity ( $qty = false ) {
 		$current = $this->quantity;
+		if ( false === $qty ) return $current;
 
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			if ( str_true($this->donation['min']) && floatvalue($qty) < $this->unitprice )
@@ -328,7 +338,7 @@ class Item {
 		}
 
 		$this->qtydelta = $this->quantity-$current;
-		$this->retotal();
+		$this->totals();
 	}
 
 	/**
@@ -339,7 +349,7 @@ class Item {
 	 *
 	 * @return void
 	 **/
-	function add ($qty) {
+	public function add ($qty) {
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			$qty = floatvalue($qty);
 			$this->quantity = $this->unitprice;
@@ -357,7 +367,7 @@ class Item {
 	 * @param float $taxrate (optional) The tax rate to apply to pricing information
 	 * @return string
 	 **/
-	function options ($selection = '') {
+	public function options ($selection = '') {
 		if (empty($this->variants)) return '';
 
 		$string = '';
@@ -391,7 +401,7 @@ class Item {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	function variants ($prices) {
+	public function variants ($prices) {
 		foreach ($prices as $price)	{
 			if ('N/A' == $price->type || 'variation' != $price->context) continue;
 			$pricing = $this->mapprice($price);
@@ -408,7 +418,7 @@ class Item {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	function addons (&$sum,$addons,$prices,$property='pricing') {
+	public function addons (&$sum,$addons,$prices,$property='pricing') {
 		foreach ($prices as $p)	{
 			if ('N/A' == $p->type || 'addon' != $p->context) continue;
 			$pricing = $this->mapprice($p);
@@ -448,7 +458,7 @@ class Item {
 	 * @param Object $price Price object to minimize
 	 * @return object An Item variant object
 	 **/
-	function mapprice ($price) {
+	public function mapprice ($price) {
 		$map = array(
 			'id','type','label','sale','promoprice','price',
 			'tax','inventory','stock','sku','options','dimensions',
@@ -471,7 +481,7 @@ class Item {
 	 * @param array $items List of objects with a name property to grab
 	 * @return array List of names
 	 **/
-	function namelist ($items) {
+	public function namelist ($items) {
 		$list = array();
 		foreach ($items as $item) $list[$item->id] = $item->name;
 		return $list;
@@ -485,7 +495,7 @@ class Item {
 	 *
 	 * @return void
 	 **/
-	function recurrences () {
+	public function recurrences () {
 		if (empty($this->option->recurring)) return;
 
 		// if free subscription, don't process as subscription
@@ -568,7 +578,7 @@ class Item {
 	 *
 	 * @return void
 	 **/
-	function unstock () {
+	public function unstock () {
 		// no inventory tracking system wide
 		if ( ! shopp_setting_enabled('inventory') ) return;
 
@@ -616,7 +626,7 @@ class Item {
 	 *
 	 * @return boolean
 	 **/
-	function instock ( $qty = false ) {
+	public function instock ( $qty = false ) {
 		if ( ! shopp_setting_enabled('inventory') ) return true;
 
 		if ( ! $this->inventory ) {
@@ -648,7 +658,7 @@ class Item {
 	 *
 	 * @return int The amount of stock available
 	 **/
-	function getstock () {
+	public function getstock () {
 		$stock = apply_filters('shopp_cartitem_stock',false,$this);
 		if ($stock !== false) return $stock;
 
@@ -678,12 +688,12 @@ class Item {
 	 *
 	 * @return bool true if recurring, false otherwise
 	 **/
-	function is_recurring () {
+	public function is_recurring () {
 		$recurring = ($this->recurring && ! empty($this->option) && ! empty($this->option->recurring));
 		return apply_filters('shopp_cartitem_recurring', $recurring, $this);
 	}
 
-	function has_recurring () {
+	public function has_recurring () {
 		return (! empty($this->option) && ! empty($this->option->recurring));
 	}
 
@@ -697,7 +707,7 @@ class Item {
 	 *
 	 * @return bool true if recurring and has trial, false otherwise
 	 **/
-	function has_trial () {
+	public function has_trial () {
 		$trial = false;
 		if ( $this->is_recurring() && str_true($this->option->recurring['trial']) ) $trial = true;
 		return apply_filters('shopp_cartitem_hastrial', $trial, $this);
@@ -713,7 +723,7 @@ class Item {
 	 *
 	 * @return mixed false if no trial, array of trial interval (interval), trial period (period), and trial price (price) if set
 	 **/
-	function trial () {
+	public function trial () {
 		$trial = false;
 
 		if ( $this->has_trial() ) {
@@ -737,7 +747,7 @@ class Item {
 	 *
 	 * @return mixed false if not a recurring item, array of interval (interval), period (period), and number of cycles (cycles) if set.
 	 **/
-	function recurring () {
+	public function recurring () {
 		$recurring = false;
 
 		if ( $this->is_recurring() ) {
@@ -761,7 +771,7 @@ class Item {
 	 * @param array $rule A structured rule array
 	 * @return boolean
 	 **/
-	function match ($rule) {
+	public function match ($rule) {
 		extract($rule);
 
 		switch($property) {
@@ -786,7 +796,8 @@ class Item {
 		return Promotion::match_rule($subject,$logic,$value,$property);
 	}
 
-	function taxrule ($rule) {
+	// @deprecated
+	public function taxrule ($rule) {
 		switch ($rule['p']) {
 			case 'product-name': return ($rule['v'] == $this->name); break;
 			case 'product-tags': return (in_array($rule['v'],$this->tags)); break;
@@ -803,21 +814,40 @@ class Item {
 	 *
 	 * @return void
 	 **/
-	function retotal () {
-		$this->taxrate = shopp_taxrate(true,$this->istaxed,$this);
-		$this->priced = ($this->unitprice-$this->discount); // discounted unit price
-		$this->discounts = ($this->discount*$this->quantity); // total item discount figure
+	public function totals () {
 
-		if ($this->istaxed) {
-			 // Distribute discounts across taxable amounts using weighted averages
-			$_ = array();
-			foreach ($this->taxable as $amount)
-				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
-			$taxable = array_sum($_);
+		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
+		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
 
-			$this->unittax = ($taxable*$this->taxrate); // unit tax figure
-			$this->pricedtax = ($taxable*$this->taxrate); // discounted unit tax
-			$this->tax = ($this->pricedtax*$this->quantity); // total discounted tax amount
+
+		// Discounts should be applied to products pre-tax when taxes are excluded from the price
+
+		// Discounts are calculated after taxes when taxes are included in the price (inclusive taxes)
+
+
+		if ( $this->istaxed ) {
+			$Tax = ShoppOrder()->Tax;
+
+			$taxable = $this->unitprice;
+
+			if ( ! $this->includetax ) {
+	   			// Distribute discounts across taxable amounts using weighted averages
+	   			$_ = array();
+	   			foreach ($this->taxable as $amount)
+	   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
+	   			$taxable = array_sum($_);
+			}
+
+			$this->taxes = $Tax->rates($this);
+			$this->unittax = $Tax->calculate($taxable,$this->taxes);
+			$this->tax = $Tax->total($this->quantity,$this->taxes);
+
+			// echo "Taxable: $taxable\n";
+			// print_r($this->taxes);
+			// exit;
+			// $this->unittax = ($taxable*$this->taxrate);				// unit tax figure
+			// $this->pricedtax = ($taxable*$this->taxrate);			// discounted unit tax
+			// $this->tax = ( $this->pricedtax*$this->quantity );		// total discounted tax amount
 		}
 
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
@@ -837,3 +867,8 @@ class Item {
 	}
 
 } // END class Item
+
+if ( ! class_exists('Item',false) ) {
+	class Item extends ShoppCartItem {
+	}
+}

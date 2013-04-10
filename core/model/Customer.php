@@ -348,13 +348,6 @@ class Customer extends DatabaseObject {
 
 	}
 
-	function taxrule ($rule) {
-		switch ($rule['p']) {
-			case "customer-type": return ($rule['v'] == $this->type); break;
-		}
-		return false;
-	}
-
 	function exportcolumns () {
 		$prefix = "c.";
 		return array(

@@ -32,15 +32,22 @@ class OrderTotals extends ListFramework {
 		$this->add('total', new OrderTotal( array('amount' => 0.0) ));
 	}
 
-	public function register ( OrderTotalAmount $Entry, $onremove = false ) {
+	/**
+	 * Add a new register entry
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param OrderTotalAmount $Entry A new OrderTotalAmount class entry object
+	 * @return void
+	 **/
+	public function register ( OrderTotalAmount $Entry ) {
 		$register = $Entry->register($this);
+
 		if ( ! isset($this->register[ $register ]) ) $this->register[ $register ] = array();
-
-		$this->register[ $register ][ $Entry->id() ] = $Entry;
-
-		// Register auto entry removal on dispatch of a given WP action
-		if ( ! empty($onremove) )
-			add_action($onremove, array($Entry,'remove') );
+		if ( ! isset($this->register[ $register ][ $Entry->id() ]) )
+			$this->register[ $register ][ $Entry->id() ] = $Entry;
+		else $this->register[ $register ][ $Entry->id() ]->update($Entry);
 
 		$this->total($register);
 	}
@@ -181,74 +188,271 @@ class OrderTotals extends ListFramework {
 
 }
 
+
+/**
+ * Central registration system for order total "registers"
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
+class OrderTotalRegisters {
+
+	private static $instance;
+	private static $handlers = array();
+
+	/**
+	 * Provides access to the singleton instance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return OrderTotalsRegisters
+	 **/
+	static public function instance () {
+		if ( ! self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
+	}
+
+	/**
+	 * Adds registration for a new order total register and its handler class
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $class The name of the register amount handling class
+	 * @return void
+	 **/
+ 	static public function register ( string $class ) {
+ 		$_this = self::instance();
+		$register = get_class_property($class,'register');
+ 		$_this->handlers[ $register ] = $class;
+ 	}
+
+	/**
+	 * Gets the class handle for a given register
+	 *
+	 * @author Jonathan Davis
+	 * @since
+	 *
+	 * @param string $register The register name
+	 * @return string The class name of the handler
+	 **/
+ 	static private function handler ( string $register ) {
+ 		$_this = self::instance();
+ 		if ( isset($_this->handlers[ $register ]) )
+ 			return $_this->handlers[ $register ];
+		return false;
+ 	}
+
+	/**
+	 * Adds a new amount
+	 *
+	 * @author Jonathan Davis
+	 * @since
+	 *
+	 * @param string $register The register to add an amount
+	 * @param array $message The amount options
+	 * @return OrderTotalAmount An constructed OrderTotalAmount object
+	 **/
+ 	static public function add ( OrderTotals $Totals, string $register, array $options = array() ) {
+ 		$_this = self::instance();
+		$RegisterClass = $_this->handler($register);
+
+ 		if ( false === $RegisterClass )
+ 			return trigger_error(__CLASS__ . ' register "' . $register . '" does not exist.', E_USER_ERROR);
+
+		$Amount = new $RegisterClass($options);
+ 		if ( isset($Amount->_exception) ) return false;
+
+		$Totals->register($Amount);
+
+ 		return $Amount;
+ 	}
+
+}
+
+/**
+ * Provides the base functionality of order total amount objects
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 abstract class OrderTotalAmount {
 
 	// Transaction type constants
 	const DEBIT = 1;
 	const CREDIT = -1;
 
-	protected $register = '';	// Register name
-	protected $id = '';			// Identifier name/id
-	protected $column = null;	// A flag to determine the role of the amount
-	protected $amount = 0.0;	// The amount the amount type
-	protected $parent = false;	// The parent OrderTotals instance
+	static public $register = '';		// Register name
+	protected $id = '';					// Identifier name/id
+	protected $column = null;			// A flag to determine the role of the amount
+	protected $amount = 0.0;			// The amount the amount type
+	protected $parent = false;			// The parent OrderTotals instance
+
+	// protected $required = array('amount');
 
 	public function __construct ( array $options = array() ) {
+
+		// $properties = array_keys($options);
+		// $provided = array_intersect($this->required,$properties);
+
+		// if ($provided != $this->required) {
+		// 	trigger_error('The required options for this ' . __CLASS__ . ' were not provided: ' . join(',',array_diff($this->required,$provided)) );
+		// 	return $this->_exception = true;
+		// }
+
 		$this->populate($options);
 	}
 
-	protected function populate ($options) {
+	/**
+	 * Populates the object properties from a provided associative array of options
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $options An associative array to define construction of the object state
+	 * @return void
+	 **/
+	protected function populate ( array $options ) {
 		foreach ($options as $name => $value)
 			if ( isset($this->$name) ) $this->$name = $value;
 	}
 
+	/**
+	 * Default implementation to set an ID for the object with a fast checksum and return it
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string The object ID
+	 **/
 	public function id () {
 		// Generate a quick checksum if no ID was given
 		if ( empty($this->id) ) $this->id = hash('crc32b',serialize($this));
 		return $this->id;
 	}
 
+	/**
+	 * Provide the register this total belongs to and capture the parent OrderTotals controller
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param OrderTotals $OrderTotals The OrderTotals parent controller
+	 * @return string The totals "register" this object will belong to
+	 **/
 	public function register ( OrderTotals $OrderTotals ) {
 		$this->parent = $OrderTotals;
-		return $this->register;
+		$class = get_class($this);
+		return $class::$register; // @todo Test if this will cause problems in PHP 5.2.4 calling via magic method?
 	}
 
+	/**
+	 * Update this amount object from another OrderTotalAmount instance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param OrderTotalAmount $OrderTotalAmount The OrderTotalAmount object to update
+	 * @return void
+	 **/
+	public function update ( OrderTotalAmount $OrderTotalAmount ) {
+		$this->amount( $OrderTotalAmount->amount() );
+	}
+
+	/**
+	 * Updates or retrieves the amount
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param float $value The value of the amount
+	 * @return float The current amount
+	 **/
 	public function &amount ( float $value = null ) {
 		if ( ! is_null($value) ) $this->amount = $value;
-		return $this->amount;
+		$amount = (float)$this->amount;
+		return $amount;
 	}
 
+	/**
+	 * The amount adjustment column (DEBIT or CREDIT)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return int The transaction column
+	 **/
 	public function column () {
 		return $this->column;
 	}
 
+	/**
+	 * Removes this entry from the parent OrderTotals controller
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function remove () {
-		var_dump(__METHOD__);
 		$OrderTotals = $this->parent;
 		$OrderTotals->takeoff($this->register,$this->id);
 	}
 
 }
 
+/**
+ * Defines 'total' register entries
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderTotal extends OrderTotalAmount {
-	protected $register = 'total';
+	static public $register = 'total';
 
 	public function label () {
 		return __('Total','Shopp');
 	}
 
 }
+OrderTotalRegisters::register('OrderTotal');
 
+/**
+ * Intermediate class for debit column adjustment amounts
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountDebit extends OrderTotalAmount {
 	protected $column = OrderTotalAmount::DEBIT;
 }
 
+/**
+ * Intermediate class for credit column adjustment amounts
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountCredit extends OrderTotalAmount {
 	protected $column = OrderTotalAmount::CREDIT;
 }
 
+/**
+ * Defines a 'discount' amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountDiscount extends OrderAmountCredit {
-	protected $register = 'discount';
+	static public $register = 'discount';
 	protected $setting = false;	// The related discount/promo setting
 	protected $code = false;	// The code used
 
@@ -257,59 +461,180 @@ class OrderAmountDiscount extends OrderAmountCredit {
 	}
 
 }
+OrderTotalRegisters::register('OrderAmountDiscount');
 
+/**
+ * Defines a customer account credit amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountAccountCredit extends OrderAmountCredit {
-	protected $register = 'account';
+	static public $register = 'account';
 
 	public function label () {
 		return __('Credit','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountAccountCredit');
 
+/**
+ * Defines a gift certificate credit amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountGiftCertificate extends OrderAmountCredit {
-	protected $register = 'certificate';
+	static public $register = 'certificate';
 
 	public function label () {
 		return __('Gift Certificate','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountGiftCertificate');
 
+/**
+ * Defines a gift card credit amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountGiftCard extends OrderAmountCredit {
-	protected $register = 'giftcard';
+	static public $register = 'giftcard';
 
 	public function label () {
 		return __('Gift Card','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountGiftCard');
 
+/**
+ * Defines a generic fee amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountFee extends OrderAmountDebit {
-	protected $register = 'fee';
+	static public $register = 'fee';
 	protected $quantity = 0;
 
 	public function label () {
 		return __('Fee','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountFee');
 
-class OrderAmountItem  extends OrderAmountDebit {
-	protected $register = 'order';
+/**
+ * Defines a cart line item total amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
+class OrderAmountCartItem extends OrderAmountDebit {
+	static public $register = 'order';
 
-	public function __construct ( CartItem $Item ) {
+	protected $unit = 0;
+
+	/**
+	 * Constructs from a ShoppCartItem
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppCartItem $Item The Cart Item to construct from
+	 * @return void
+	 **/
+	public function __construct ( ShoppCartItem $Item ) {
 		$this->unit = &$Item->unitprice;
 		$this->amount = &$Item->total;
 		$this->id = $Item->fingerprint();
+
+		add_action('shopp_cart_remove_item',array($this,'remove'));
 	}
 
+	/**
+	 * Provides the label
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
 	public function label () {
 		return __('Subtotal','Shopp');
 	}
 
 }
+OrderTotalRegisters::register('OrderAmountItem');
 
-class OrderAmountItemQuantity extends OrderTotalAmount {
-	protected $register = 'quantity';
+/**
+ * Defines an item tax entry
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
+class OrderAmountItemTax extends OrderAmountDebit {
+	static public $register = 'tax';
 
-	public function __construct ( CartItem $Item ) {
+	protected $rate = 0.0;	// The applied rate
+	protected $items = array(); // Store the item tax amounts
+	protected $label = '';
+
+	public function __construct ( ShoppItemTax $Tax, string $itemid ) {
+		$this->items[ $itemid ] = $Tax->total;
+		$this->label = $Tax->label;
+		$this->rate = $Tax->rate;
+		$this->id = $Tax->label;
+		$this->amount = array_sum($this->items);
+		add_action('shopp_cart_remove_item',array($this,'removal'),10,2);
+	}
+
+	public function removal () {
+		list($id,$Item,) = func_get_args();
+
+		if ( empty($this->items) )
+			return parent::remove();
+
+		if ( isset($this->items[$id]) ) {
+			unset($this->items[ $id ]);
+			$this->total();
+		}
+	}
+
+	public function update ( OrderTotalAmount $Updates ) {
+		$this->items( $Updates->items() );
+		$this->total();
+	}
+
+	public function items ( array $items = null ) {
+		if ( isset($items) )
+			$this->items = array_merge($this->items,$items);
+		return $this->items;
+	}
+
+	public function total () {
+		$total = array_sum($this->items());
+		$this->amount( $total );
+	}
+
+	public function label () {
+		if ( empty($this->label) ) return __('Tax','Shopp');
+		return $this->label;
+	}
+
+}
+OrderTotalRegisters::register('OrderAmountItemTax');
+
+class OrderAmountCartItemQuantity extends OrderTotalAmount {
+	static public $register = 'quantity';
+
+	public function __construct ( ShoppCartItem $Item ) {
 		$this->amount = &$Item->quantity;
 		$this->id = $Item->fingerprint();
 	}
@@ -318,9 +643,17 @@ class OrderAmountItemQuantity extends OrderTotalAmount {
 		return __('quantity','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountItemQuantity');
 
+/**
+ * A generic tax amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountTax extends OrderAmountDebit {
-	protected $register = 'tax';
+	static public $register = 'tax';
 	protected $setting = false;	// The related tax setting
 	protected $rate = 0.0;	// The applied rate
 	protected $items = array();
@@ -329,9 +662,18 @@ class OrderAmountTax extends OrderAmountDebit {
 		return __('Tax','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountTax');
 
+/**
+ * Defines a shipping amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package ordertotals
+ **/
 class OrderAmountShipping extends OrderAmountDebit {
-	protected $register = 'shipping';
+
+	static public $register = 'shipping';
 	protected $setting = false;
 	protected $delivery = false;
 	protected $items = array();
@@ -340,3 +682,4 @@ class OrderAmountShipping extends OrderAmountDebit {
 		return __('Shipping','Shopp');
 	}
 }
+OrderTotalRegisters::register('OrderAmountShipping');

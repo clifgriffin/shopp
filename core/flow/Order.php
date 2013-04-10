@@ -12,6 +12,8 @@
  * @subpackage order
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Order
  *
@@ -26,6 +28,7 @@ class Order {
 	public $Shipping = false;			// The shipping address
 	public $Billing = false;			// The billing address
 	public $Cart = false;				// The shopping cart
+	public $Tax = false;
 	public $data = array();			// Extra/custom order data
 	public $payoptions = array();		// List of payment method options
 	public $paycards = array();		// List of accepted PayCards
@@ -56,13 +59,16 @@ class Order {
 	 **/
 	function __construct () {
 		$this->Cart = new ShoppCart;
+
 		$this->Customer = new Customer;
 
-		$this->Billing = new BillingAddress();
+		$this->Billing = new BillingAddress;
 		$this->Billing->locate();
 
-		$this->Shipping = new ShippingAddress();
+		$this->Shipping = new ShippingAddress;
 		$this->Shipping->locate();
+
+		$this->Tax = new ShoppTax;
 
 		$this->created = null;
 
