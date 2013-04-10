@@ -147,15 +147,28 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 	}
 
-	static function has_discount ($result, $options, $O) { return ($O->Totals->discount > 0); }
+	static function has_discount ($result, $options, $O) {
+		return ($O->Totals->discount > 0);
+	}
 
-	static function has_downloads ($result, $options, $O) { reset($O->downloads); return $O->downloads(); }
+	static function has_downloads ($result, $options, $O) {
+		reset($O->downloads);
+		return $O->downloads();
+	}
 
-	static function has_items ($result, $options, $O) { $O->rewind(); return count($O) > 0; }
+	static function has_items ($result, $options, $O) {
+		$O->rewind();
+		return $O->count() > 0;
+	}
 
-	static function has_promos ($result, $options, $O) { reset($O->discounts); return (count($O->discounts) > 0);  }
+	static function has_promos ($result, $options, $O) {
+		reset($O->discounts);
+		return (count($O->discounts) > 0);
+	}
 
-	static function has_ship_costs ($result, $options, $O) { return ($O->Totals->shipping > 0); }
+	static function has_ship_costs ($result, $options, $O) {
+		return ($O->Totals->shipping > 0);
+	}
 
 	static function has_shipped ($result, $options, $O) { reset($O->shipped); return $O->shipped();	}
 
