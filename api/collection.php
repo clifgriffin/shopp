@@ -30,9 +30,11 @@ function shopp_register_collection ( $name = '' ) {
 
 	global $Shopp;
 	if (empty($Shopp)) return;
+
+	$permastruct = SmartCollection::$taxon;
+
 	$slug = get_class_property($name,'_slug');
 	$Shopp->Collections[$slug] = $name;
-	$permastruct = SmartCollection::$taxon;
 
 	add_rewrite_tag("%$permastruct%",'collection/([^/]+)');
 	add_permastruct($permastruct, Storefront::slug()."/%shopp_collection%", false);
