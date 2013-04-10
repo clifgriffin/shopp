@@ -12,6 +12,8 @@
  * @subpackage order
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * Order
  *
@@ -22,30 +24,31 @@
  **/
 class Order {
 
-	var $Customer = false;			// The current customer
-	var $Shipping = false;			// The shipping address
-	var $Billing = false;			// The billing address
-	var $Cart = false;				// The shopping cart
-	var $data = array();			// Extra/custom order data
-	var $payoptions = array();		// List of payment method options
-	var $paycards = array();		// List of accepted PayCards
-	var $sameaddress = false;		// Toggle for copying a primary address to the secondary address
-	var $guest = false;				// Flag for guest checkout
+	public $Customer = false;			// The current customer
+	public $Shipping = false;			// The shipping address
+	public $Billing = false;			// The billing address
+	public $Cart = false;				// The shopping cart
+	public $Tax = false;
+	public $data = array();			// Extra/custom order data
+	public $payoptions = array();		// List of payment method options
+	public $paycards = array();		// List of accepted PayCards
+	public $sameaddress = false;		// Toggle for copying a primary address to the secondary address
+	public $guest = false;				// Flag for guest checkout
 
-	var $processor = false;			// The payment processor module name
-	var $paymethod = false;			// The selected payment method
+	public $processor = false;			// The payment processor module name
+	public $paymethod = false;			// The selected payment method
 
 	// Post processing properties
-	var $inprogress = false;		// Generated purchase ID
-	var $purchase = false;			// Purchase ID of the finalized sale
-	var $gateway = false;			// Proper name of the gateway used to process the order
-	var $txnid = false;				// The transaction ID reported by the gateway
-	var $txnstatus = 'PENDING';		// Status of the payment
+	public $inprogress = false;		// Generated purchase ID
+	public $purchase = false;			// Purchase ID of the finalized sale
+	public $gateway = false;			// Proper name of the gateway used to process the order
+	public $txnid = false;				// The transaction ID reported by the gateway
+	public $txnstatus = 'PENDING';		// Status of the payment
 
 	// Processing control properties
-	var $confirm = false;			// Flag to confirm order or not
-	var $confirmed = false;			// Confirmed by the shopper for processing
-	var $validated = false;			// The pre-processing order validation flag
+	public $confirm = false;			// Flag to confirm order or not
+	public $confirmed = false;			// Confirmed by the shopper for processing
+	public $validated = false;			// The pre-processing order validation flag
 
 	/**
 	 * Order constructor
@@ -55,14 +58,17 @@ class Order {
 	 * @return void
 	 **/
 	function __construct () {
-		$this->Cart = new Cart();
-		$this->Customer = new Customer();
+		$this->Cart = new ShoppCart;
 
-		$this->Billing = new BillingAddress();
+		$this->Customer = new Customer;
+
+		$this->Billing = new BillingAddress;
 		$this->Billing->locate();
 
-		$this->Shipping = new ShippingAddress();
+		$this->Shipping = new ShippingAddress;
 		$this->Shipping->locate();
+
+		$this->Tax = new ShoppTax;
 
 		$this->created = null;
 

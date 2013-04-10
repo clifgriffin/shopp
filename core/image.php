@@ -13,7 +13,7 @@
 // Reduce image display issues by hiding warnings/notices
 ini_set('display_errors',0);
 
-define('SHORTINIT',true);
+if ( ! defined('SHORTINIT') ) define('SHORTINIT',true);
 define('SHOPP_IMGSERVER_LOADED', true);
 
 $path = ImageServer::path();
@@ -23,7 +23,7 @@ $path = ImageServer::path();
 if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 
 // Make core Shopp functionality available
-define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
+if ( ! defined('WPINC') ) define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
 require "$path/core/functions.php";
 
 // Developer API and core functions

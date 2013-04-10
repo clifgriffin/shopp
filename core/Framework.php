@@ -16,41 +16,51 @@
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
- * Implements a Registry pattern with internal iteration support
+ * Implements a list manager with internal iteration support
  *
  * @author Jonathan Davis
  * @since 1.2
  * @package shopp
  **/
-class RegistryManager implements Iterator {
+class ListFramework implements Iterator {
 
 	private $_list = array();
-	private $_keys = array();
+	private $_added = null;
 	private $_false = false;
 
-	public function __construct() {
-        $this->_position = 0;
-	}
-
-	public function add ($key,$entry) {
+	public function &add ( string $key, $entry ) {
 		$this->_list[$key] = $entry;
-		$this->rekey();
+		$this->_added = $key;
+		return $this->get($key);
 	}
 
-	public function populate ($records) {
+	public function added ( string $key = null ) {
+		if ( ! is_null($key) && $this->exists($key) )
+			$this->_added = $key;
+		if ( $this->exists($this->_added) )
+			return $this->get($this->_added);
+		return false;
+	}
+
+	public function populate ( array $records ) {
 		$this->_list = $records;
-		$this->rekey();
 	}
 
-	public function update ($key,$entry) {
-		if (!$this->exists($key)) return false;
-		$entry = array_merge($this->_list[$key],$entry);
-		$this->_list[$key] = $entry;
+	public function update ( string $key, $entry ) {
+		if ( ! $this->exists($key) ) return false;
+		if ( is_array($this->_list[$key]) && is_array($entry) )
+			$entry = array_merge($this->_list[$key],$entry);
+		else $this->_list[$key] = $entry;
+	}
+
+	public function count () {
+		return count($this->_list);
 	}
 
 	public function &get ($key) {
-		if ($this->exists($key)) return $this->_list[$key];
-		else return $_false;
+		if ( $this->exists($key) )
+			return $this->_list[$key];
+		else return $this->_false;
 	}
 
 	public function exists ($key) {
@@ -58,37 +68,35 @@ class RegistryManager implements Iterator {
 	}
 
 	public function remove ($key) {
-		if (!$this->exists($key)) return false;
-		unset($this->_list[$key]);
-		$this->rekey();
+		if ( $this->exists($key) ) {
+			unset($this->_list[$key]);
+			return true;
+		}
+		return false;
 	}
 
-	private function rekey () {
-		$this->_keys = array_keys($this->_list);
+	public function keylist () {
+		print_r(array_keys($this->_list));
 	}
 
-
-	function current () {
-		return $this->_list[ $this->keys[$this->_position] ];
+	public function current () {
+		return current($this->_list);
 	}
 
-	function key () {
-		return $this->keys[$this->_position];
+	public function key ( ) {
+		return key($this->_list);
 	}
 
-	function next () {
-		++$this->_position;
+	public function next () {
+		return next($this->_list);
 	}
 
-	function rewind () {
-		$this->_position = 0;
+	public function rewind () {
+		return reset($this->_list);
 	}
 
-	function valid () {
-		return (
-			array_key_exists($this->_position,$this->_keys)
-			&& array_key_exists($this->keys[$this->_position],$this->_list)
-		);
+	public function valid () {
+		return null !== $this->key();
 	}
 
 }

@@ -78,7 +78,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 				break;
 			default:
 				if (file_put_contents(self::sanitize($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
-				else $error = "$this->module: Could store the file data.";
+				else $error = "$this->module: Could not store the file data.";
 		}
 
 		if ( $error ) {
@@ -266,7 +266,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 
 	static private function sanitize ( $path ) {
-		return str_replace('\\', '/', realpath($path));
+		return str_replace('\\', '/', $path);
 	}
 
 } // END class FSStorage

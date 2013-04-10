@@ -427,7 +427,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	static function card_required ($result, $options, $O) {
 		global $Shopp;
-		if ($O->Cart->Totals->total == 0) return false;
+		if ($O->Cart->Totals->total() == 0) return false;
 		foreach ($Shopp->Gateways->active as $gateway)
 			if (!empty($gateway->cards)) return true;
 		return false;

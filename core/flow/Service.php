@@ -524,7 +524,7 @@ class Service extends AdminController {
 		if ( isset($_POST['save-item']) && ! empty($_POST['lineid']) ) {
 
 			// Create a cart representation of the order to recalculate order totals
-			$Cart = new Cart();
+			$Cart = new ShoppCart();
 			foreach ($Purchase->purchased as $OrderItem) {
 				$CartItem = new Item($OrderItem);
 				$Cart->contents[$OrderItem->id] = $CartItem;

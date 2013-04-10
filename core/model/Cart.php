@@ -12,35 +12,41 @@
  * @subpackage cart
  **/
 
-require('Item.php');
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-class Cart {
+/**
+ * The Shopp shopping cart
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package 
+ **/
+class ShoppCart extends ListFramework {
 
 	// properties
-	var $contents = array();	// The contents (Items) of the cart
-	var $shipped = array();		// Reference list of shipped Items
-	var $downloads = array();	// Reference list of digital Items
-	var $recurring = array();	// Reference list of recurring Items
-	var $discounts = array();	// List of promotional discounts applied
-	var $promocodes = array();	// List of promotional codes applied
-	var $shipping = array();	// List of shipping options
-	var $processing = array();	// Min-Max order processing timeframe
-	var $checksum = false;		// Cart contents checksum to track changes
+	public $shipped = array();		// Reference list of shipped Items
+	public $downloads = array();	// Reference list of digital Items
+	public $recurring = array();	// Reference list of recurring Items
+	public $discounts = array();	// List of promotional discounts applied
+	public $promocodes = array();	// List of promotional codes applied
+	public $shipping = array();		// List of shipping options
+	public $processing = array();	// Min-Max order processing timeframe
+	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
-	var $Added = false;			// Last Item added
-	var $Totals = false;		// Cart Totals data structure
+	public $Added = false;			// Last Item added
+	public $Totals = false;			// Cart OrderTotals system
 
-	var $freeship = false;
-	var $showpostcode = false;	// Flag to show postcode field in shipping estimator
+	public $freeship = false;
+	public $showpostcode = false;	// Flag to show postcode field in shipping estimator
 
 	// Internal properties
-	var $changed = false;		// Flag when Cart updates and needs retotaled
-	var $added = false;			// The index of the last item added
+	public $changed = false;		// Flag when Cart updates and needs retotaled
+	public $added = false;			// The index of the last item added
 
-	var $runaway = 0;
-	var $retotal = false;
-	var $handlers = false;
+	public $runaway = 0;
+	public $retotal = false;
+	public $handlers = false;
 
 	/**
 	 * Cart constructor
@@ -50,8 +56,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
-		$this->Totals = new CartTotals();	// Initialize aggregate total data
+	public function __construct () {
 		$this->listeners();					// Establish our command listeners
 	}
 
@@ -63,7 +68,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function __wakeup () {
+	public function __wakeup () {
 		$this->listeners();
 	}
 
@@ -75,7 +80,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function listeners () {
+	public function listeners () {
 		add_action('parse_request',array($this,'totals'),99);
 		add_action('shopp_cart_request',array($this,'request'));
 		add_action('shopp_session_reset',array($this,'clear'));
@@ -93,11 +98,11 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function request () {
+	public function request () {
 
-		if (isset($_REQUEST['checkout'])) shopp_redirect(shoppurl(false,'checkout',ShoppOrder()->security()));
+		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', ShoppOrder()->security()) );
 
-		if (isset($_REQUEST['shopping'])) shopp_redirect(shoppurl());
+		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
 
 		// @todo Replace with full CartItem/Purchased syncing after order submission
 		if ( ShoppOrder()->inprogress ) {
@@ -118,12 +123,13 @@ class Cart {
 		}
 
 
-		if (isset($_REQUEST['shipping'])) {
-			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
+		if ( isset($_REQUEST['shipping']) ) {
+			if ( ! empty($_REQUEST['shipping']['postcode']) ) // Protect input field from XSS
 				$_REQUEST['shipping']['postcode'] = esc_attr($_REQUEST['shipping']['postcode']);
 
-			do_action_ref_array('shopp_update_destination',array($_REQUEST['shipping']));
-			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
+			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
+
+			if ( ! empty($_REQUEST['shipping']['country']) || ! empty($_REQUEST['shipping']['postcode']) )
 				$this->changed(true);
 
 		}
@@ -133,12 +139,14 @@ class Cart {
 			$this->changed(true);
 		}
 
-		if (!isset($_REQUEST['cart'])) $_REQUEST['cart'] = false;
-		if (isset($_REQUEST['remove'])) $_REQUEST['cart'] = "remove";
-		if (isset($_REQUEST['update'])) $_REQUEST['cart'] = "update";
-		if (isset($_REQUEST['empty'])) $_REQUEST['cart'] = "empty";
 
-		if (!isset($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
+
+		if ( ! isset($_REQUEST['cart']) ) $_REQUEST['cart'] = false;
+		if ( isset($_REQUEST['remove']) ) $_REQUEST['cart'] = 'remove';
+		if ( isset($_REQUEST['update']) ) $_REQUEST['cart'] = 'update';
+		if ( isset($_REQUEST['empty']) )  $_REQUEST['cart'] = 'empty';
+
+		if ( ! isset($_REQUEST['quantity']) ) $_REQUEST['quantity'] = 1;
 
 		switch($_REQUEST['cart']) {
 			case "add":
@@ -171,13 +179,13 @@ class Cart {
 
 					if (!empty($Product->id)) {
 						if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
-						else $result = $this->add($quantity,$Product,$pricing,$category,$data,$addons);
+						else $result = $this->additem($quantity,$Product,$pricing,$category,$data,$addons);
 					}
 				}
 
 				break;
 			case "remove":
-				if (!empty($this->contents)) $this->remove(key($_REQUEST['remove']));
+				$this->removeitem(key($_REQUEST['remove']));
 				break;
 			case "empty":
 				$this->clear();
@@ -213,7 +221,7 @@ class Cart {
 	 *
 	 * @return string JSON response
 	 **/
-	function ajax () {
+	public function ajax () {
 
 		if ('html' == strtolower($_REQUEST['response'])) {
 			echo shopp('cart','get-sidecart');
@@ -234,13 +242,12 @@ class Cart {
 		}
 		if (isset($this->added))
 			$AjaxCart->Item = clone($this->Added);
-		else $AjaxCart->Item = new Item();
+		else $AjaxCart->Item = new ShoppCartItem();
 		unset($AjaxCart->Item->options);
 
 		echo json_encode($AjaxCart);
 		exit();
 	}
-
 
 	/**
 	 * Adds a product as an item to the cart
@@ -255,24 +262,23 @@ class Cart {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	function add ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
+	public function additem ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
 
-		$NewItem = new Item($Product,$Price,$category,$data,$addons);
+		$NewItem = new ShoppCartItem($Product,$Price,$category,$data,$addons);
 
-		if ( ! $NewItem->valid() || ! $this->valid_add($NewItem) ) return false;
+		if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 
-		if (($item = $this->hasitem($NewItem)) !== false) {
-			$NewItem = $this->contents[$item];
+		$id = $NewItem->fingerprint();
+		if ( $this->exists($id) ) {
 			$NewItem->add($quantity);
-			$this->added = $item;
+			$this->added($id);
 		} else {
 			$NewItem->quantity($quantity);
-			$this->contents[] = $NewItem;
-			$this->added = count($this->contents)-1;
+			$this->add($id,$NewItem);
 		}
 
-		if (!$this->xitemstock($this->contents[$this->added]) )
-			return $this->remove($this->added); // Remove items if no cross-item stock available
+		if ( ! $this->xitemstock($this->added()) )
+			return $this->remove($this->added()); // Remove items if no cross-item stock available
 
 		do_action_ref_array('shopp_cart_add_item',array($NewItem));
 		$this->Added = $NewItem;
@@ -290,10 +296,10 @@ class Cart {
 	 * @param int $item Index of the item in the Cart contents
 	 * @return boolean
 	 **/
-	function remove ($item) {
-		unset($this->contents[$item]);
-		$this->changed(true);
-		return true;
+	public function removeitem ( scalar $id ) {
+		$Item = $this->get($id);
+		do_action_ref_array('shopp_cart_remove_item',array($Item->fingerprint(),$Item));
+		$this->remove($id);
 	}
 
 	/**
@@ -306,16 +312,19 @@ class Cart {
 	 * @param int $quantity New quantity to update the item to
 	 * @return boolean
 	 **/
-	function update ($item,$quantity) {
-		if (empty($this->contents)) return false;
-		if ($quantity == 0) return $this->remove($item);
+	public function update ($item,$quantity) {
+		if ( 0 == $this->count() ) return false;
+		if ( 0 == $quantity ) return $this->remove($item);
 
-		if ( isset($this->contents[$item]) ) {
-			$updated = ($quantity != $this->contents[$item]->quantity);
+		if ( $this->exists($item) ) {
 
-			$this->contents[$item]->quantity($quantity);
-			if ($this->contents[$item]->quantity == 0) $this->remove($item);
-			if ($updated && !$this->xitemstock($this->contents[$item]) )
+			$Item = $this->get($item);
+			$updated = ($quantity != $Item->quantity);
+			$Item->quantity($quantity);
+
+			if ( 0 == $Item->quantity() ) $this->remove($item);
+
+			if ( $updated && ! $this->xitemstock($Item) )
 				$this->remove($item); // Remove items if no cross-item stock available
 
 			$this->changed(true);
@@ -334,7 +343,7 @@ class Cart {
 	 * @param Item $Item the item being added
 	 * @return bool true if the item can be added, false if it would be improper.
 	 **/
-	function valid_add ( $Item ) {
+	public function addable ( $Item ) {
 		$allowed = true;
 
 		// Subscription products must be alone in the cart
@@ -359,7 +368,7 @@ class Cart {
 	 * @param int|CartItem $item The index of an item in the cart or a cart Item
 	 * @return boolean
 	 **/
-	function xitemstock ( Item $Item ) {
+	public function xitemstock ( Item $Item ) {
 		if ( ! shopp_setting_enabled('inventory') ) return true;
 
 		// Build a cross-product map of the total quantity of ordered products to known stock levels
@@ -407,7 +416,7 @@ class Cart {
 	 *
 	 * @return boolean
 	 **/
-	function clear () {
+	public function clear () {
 		$this->contents = array();
 		$this->promocodes = array();
 		$this->discounts = array();
@@ -427,7 +436,7 @@ class Cart {
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
 	 * @return boolean
 	 **/
-	function change ($item,&$Product,$pricing,$addons=array()) {
+	public function change ($item,&$Product,$pricing,$addons=array()) {
 		// Don't change anything if everything is the same
 		if ($this->contents[$item]->product == $Product->id &&
 				$this->contents[$item]->price == $pricing) return true;
@@ -449,7 +458,7 @@ class Cart {
 		$data = $this->contents[$item]->data;
 		$addons = array();
 		foreach ($this->contents[$item]->addons as $addon) $addons[] = $addon->options;
-		$this->contents[$item] = new Item($Product,$pricing,$category,$data,$addons);
+		$this->contents[$item] = new ShoppCartItem($Product,$pricing,$category,$data,$addons);
 		$this->contents[$item]->quantity($qty);
 
 		return $this->changed(true);
@@ -464,7 +473,7 @@ class Cart {
 	 * @param Item $NewItem The new Item object to look for
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
-	function hasitem($NewItem) {
+	public function hasitem ($NewItem) {
 		// Find matching item fingerprints
 		foreach ($this->contents as $i => $Item)
 			if ($Item->fingerprint() === $NewItem->fingerprint()) return $i;
@@ -483,7 +492,7 @@ class Cart {
 	 * @param boolean $changed (optional) Used to set the changed flag
 	 * @return boolean
 	 **/
-	function changed ($changed=false) {
+	public function changed ($changed=false) {
 		if ($changed) $this->changed = true;
 		else return $this->changed;
 	}
@@ -496,7 +505,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function retotal () {
+	public function retotal () {
 		$this->retotal = true;
 		$this->totals();
 	}
@@ -513,7 +522,7 @@ class Cart {
 	 *
 	 * @return void
 	 **/
-	function totals () {
+	private function totals_deprecated () {
 		if (!($this->retotal || $this->changed())) return true;
 
 		$checksum = array();
@@ -584,6 +593,67 @@ class Cart {
 	}
 
 	/**
+	 * Calculates the order Totals
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public function totals () {
+		// Setup totals counter
+		if ( false === $this->Totals ) $this->Totals = new OrderTotals();
+
+		$Totals = $this->Totals;
+
+		$Discounts = new CartDiscounts();
+
+		// Free shipping until costs are assessed
+		$this->freeshipping = true;
+
+		// Identify downloadable products
+		$downloads = $this->downloads();
+		$shipped = $this->shipped();
+
+		// If no items are shipped, free shipping is disabled
+		if ( empty($shipped) ) $this->freeshipping = false;
+
+		// Set the taxable address address
+		ShoppOrder()->Tax->address( ShoppOrder()->Billing, ShoppOrder()->Shipping, ! empty($shipped)  );
+
+		foreach ( $this as $id => $Item ) {
+
+			do_action('shopp_cart_item_totals',$Item);
+
+			$Totals->register( new OrderAmountCartItemQuantity($Item) );
+			$Totals->register( new OrderAmountCartItem($Item) );
+
+			foreach ( $Item->taxes as $taxid => $Tax )
+				$Totals->register( new OrderAmountItemTax( $Tax, $id ) );
+
+			if ( ! $Item->freeshipping) $this->freeshipping = false;
+		}
+
+		$Shipping = new CartShipping();
+		if ( $this->changed() ) {
+			// Only fully recalculate shipping costs
+			// if the cart contents have changed
+			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate()) ) );
+
+			// Save the generated shipping options
+			$this->shipping = $Shipping->options();
+
+		} else $Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->selected()) ));
+
+		// @todo Clean up discount calculations
+		// Calculate discounts
+		$Totals->register( new OrderAmountDiscount( array('id' => 'cart', 'amount' => $Discounts->calculate()) ) );
+
+		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );
+
+	}
+
+	/**
 	 * Determines if the current order has no cost
 	 *
 	 * @author Jonathan Davis
@@ -591,8 +661,8 @@ class Cart {
 	 *
 	 * @return boolean True if the entire order is free
 	 **/
-	function orderisfree() {
-		$status = (count($this->contents) > 0 && floatvalue($this->Totals->total) == 0);
+	public function orderisfree() {
+		$status = ($this->count() > 0 && floatvalue($this->Totals->total) == 0);
 		return apply_filters('shopp_free_order',$status);
 	}
 
@@ -604,10 +674,9 @@ class Cart {
 	 *
 	 * @return boolean True if there are shipped items in the cart
 	 **/
-	function shipped () {
-		return $this->_typeitems('shipped');
+	public function shipped () {
+		return $this->filteritems('shipped');
 	}
-
 
 	/**
 	 * Finds downloadable items in the cart and builds a reference list
@@ -617,8 +686,8 @@ class Cart {
 	 *
 	 * @return boolean True if there are shipped items in the cart
 	 **/
-	function downloads () {
-		return $this->_typeitems('downloads');
+	public function downloads () {
+		return $this->filteritems('download');
 	}
 
 	/**
@@ -629,58 +698,21 @@ class Cart {
 	 *
 	 * @return boolean True if there are recurring payment items in the cart
 	 **/
-	function recurring () {
-		return $this->_typeitems('recurring');
+	public function recurring () {
+		return $this->filteritems('recurring');
 	}
 
-	private function _typeitems ($type) {
+	private function filteritems ($type) {
 		$types = array('shipped','downloads','recurring');
-		if (!in_array($type,$types)) return false;
-
-		$filter = "_filter_$type";
-		$items = array_filter($this->contents,array(&$this,$filter));
+		if ( ! in_array($type,$types) ) return false;
 
 		$this->$type = array();
-		foreach ($items as $key => $item)
-			$this->{$type}[$key] =& $this->contents[$key];
+		foreach ($this as $key => $item) {
+			if ( ! $item->$type ) continue;
+			$this->{$type}[$key] = $item;
+		}
 
-		return (!empty($this->$type));
-	}
-
-	/**
-	 * Helper method to identify shipped items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_shipped ($item) {
-		return ($item->shipped);
-	}
-
-	/**
-	 * Helper method to identify digital items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_downloads ($item) {
-		return ($item->download);
-	}
-
-	/**
-	 * Helper method to identify recurring payment items in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return boolean
-	 **/
-	private function _filter_recurring ($item) {
-		return ($item->recurring);
+		return ! empty($this->$type);
 	}
 
 } // END class Cart
@@ -689,6 +721,7 @@ class Cart {
 /**
  * Provides a data structure template for Cart totals
  *
+ * @deprecated Replaced by the OrderTotals system
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
@@ -696,15 +729,15 @@ class Cart {
  **/
 class CartTotals {
 
-	var $taxrates = array();	// List of tax figures (rates and amounts)
-	var $quantity = 0;			// Total quantity of items in the cart
-	var $subtotal = 0;			// Subtotal of item totals
-	var $discount = 0;			// Subtotal of cart discounts
-	var $itemsd = 0;			// Subtotal of cart item discounts
-	var $shipping = 0;			// Subtotal of shipping costs for items
-	var $taxed = 0;				// Subtotal of taxable item totals
-	var $tax = 0;				// Subtotal of item taxes
-	var $total = 0;				// Grand total
+	public $taxrates = array();		// List of tax figures (rates and amounts)
+	public $quantity = 0;			// Total quantity of items in the cart
+	public $subtotal = 0;			// Subtotal of item totals
+	public $discount = 0;			// Subtotal of cart discounts
+	public $itemsd = 0;				// Subtotal of cart item discounts
+	public $shipping = 0;			// Subtotal of shipping costs for items
+	public $taxed = 0;				// Subtotal of taxable item totals
+	public $tax = 0;				// Subtotal of item taxes
+	public $total = 0;				// Grand total
 
 } // END class CartTotals
 
@@ -721,7 +754,7 @@ class CartTotals {
  **/
 class CartPromotions {
 
-	var $promotions = array();
+	public $promotions = array();
 
 	/**
 	 * OrderPromotions constructor
@@ -731,7 +764,7 @@ class CartPromotions {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		$this->load();
 	}
 
@@ -743,7 +776,7 @@ class CartPromotions {
 	 *
 	 * @return void
 	 **/
-	function load () {
+	public function load () {
 
 		// Already loaded
 		if (!empty($this->promotions)) return true;
@@ -778,7 +811,7 @@ class CartPromotions {
 	 *
 	 * @return void
 	 **/
-	function reload () {
+	public function reload () {
 		$this->promotions = array();	// Wipe loaded promotions
 		$this->load();					// Re-load active promotions
 	}
@@ -791,12 +824,11 @@ class CartPromotions {
 	 *
 	 * @return boolean
 	 **/
-	function available () {
+	public function available () {
 		return (!empty($this->promotions));
 	}
 
 } // END class CartPromotions
-
 
 /**
  * CartDiscounts class
@@ -811,16 +843,16 @@ class CartPromotions {
 class CartDiscounts {
 
 	// Registries
-	var $Cart = false;
-	var $promos = array();
+	public $Cart = false;
+	public $promos = array();
 
 	// Settings
-	var $limit = 0;
+	public $limit = 0;
 
 	// Internals
-	var $itemprops = array('Any item name','Any item quantity','Any item amount');
-	var $cartitemprops = array('Name','Category','Tag name','Variation','Input name','Input value','Quantity','Unit price','Total price','Discount amount');
-	var $matched = array();
+	public $itemprops = array('Any item name','Any item quantity','Any item amount');
+	public $cartitemprops = array('Name','Category','Tag name','Variation','Input name','Input value','Quantity','Unit price','Total price','Discount amount');
+	public $matched = array();
 
 	/**
 	 * Initializes discount calculations
@@ -830,7 +862,7 @@ class CartDiscounts {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		global $Shopp;
 		$this->limit = shopp_setting('promo_limit');
 		$baseop = shopp_setting('base_operations');
@@ -850,16 +882,18 @@ class CartDiscounts {
 	 *
 	 * @return float The total discount amount
 	 **/
-	function calculate () {
+	public function calculate () {
 		$this->applypromos();
 
+		$Cart = ShoppOrder()->Cart;
+
 		$sum = array();
-		foreach ($this->Cart->discounts as $Discount) {
+		foreach ($Cart->discounts as $Discount) {
 			if (isset($Discount->items) && !empty($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
 
-					if (isset($this->Cart->contents[$id])) {
-						$Item = $this->Cart->contents[$id];
+					if (isset($Cart->contents[$id])) {
+						$Item = $Cart->contents[$id];
 
 						if (shopp_setting_enabled('tax_inclusive') && 'Buy X Get Y Free' == $Discount->type) {
 							// Specialized line item for inclusive tax model buy X get Y free discounts [bug #806]
@@ -880,6 +914,11 @@ class CartDiscounts {
 		}
 
 		$discount = array_sum($sum);
+
+		// Prevent the total of all discounts from being greater than the order subtotal
+		if ( $discount > $Cart->Totals->total('order') )
+			$discount = $Cart->Totals->total('order');
+
 		return $discount;
 	}
 
@@ -894,7 +933,7 @@ class CartDiscounts {
 	 *
 	 * @return void
 	 **/
-	function applypromos () {
+	public function applypromos () {
 
 		usort($this->promos,array(&$this,'_active_discounts'));
 
@@ -1010,7 +1049,7 @@ class CartDiscounts {
 	 * @param float $discount The calculated discount amount
 	 * @return void
 	 **/
-	function discount ($promo,$discount) {
+	public function discount ($promo,$discount) {
 
 		$promo->applied = 0;		// Track total discount applied by the promo
 		$promo->items = array();	// Track the cart items the rule applies to
@@ -1095,13 +1134,12 @@ class CartDiscounts {
 	 * @param int $id The promo id to remove
 	 * @return boolean True if successfully removed
 	 **/
-	function remove ($id) {
+	public function remove ($id) {
 		if (!isset($this->Cart->discounts[$id])) return false;
 
 		unset($this->Cart->discounts[$id]);
 		return true;
 	}
-
 
 	/**
 	 * Matches a Promo Code rule to a code submitted from the shopping cart
@@ -1112,7 +1150,7 @@ class CartDiscounts {
 	 * @param array $rule The promo code rule
 	 * @return boolean
 	 **/
-	function promocode ($rule) {
+	public function promocode ($rule) {
 		extract($rule);
 		$promocode = strtolower($value);
 
@@ -1140,7 +1178,7 @@ class CartDiscounts {
 	 *
 	 * @return void
 	 **/
-	function _active_discounts ($a,$b) {
+	public function _active_discounts ($a,$b) {
 		$_ =& $this->Cart->discounts;
 		return (isset($_[$a->id]) && !isset($_[$b->id]))?-1:1;
 	}
@@ -1154,7 +1192,7 @@ class CartDiscounts {
 	 * @param array $rule The rule to test
 	 * @return boolean
 	 **/
-	function _filter_promocode_rule ($rule) {
+	public function _filter_promocode_rule ($rule) {
 		return (isset($rule['property']) && $rule['property'] == "Promo code");
 	}
 
@@ -1173,11 +1211,11 @@ class CartDiscounts {
  **/
 class CartShipping {
 
-	var $options = array();
-	var $modules = false;
-	var $disabled = false;
-	var $fees = 0;
-	var $handling = 0;
+	public $options = array();
+	public $modules = false;
+	public $disabled = false;
+	public $fees = 0;
+	public $handling = 0;
 
 	/**
 	 * CartShipping constructor
@@ -1187,7 +1225,7 @@ class CartShipping {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		global $Shopp;
 
 		$this->Cart = &$Shopp->Order->Cart;
@@ -1202,7 +1240,7 @@ class CartShipping {
 
 	}
 
-	function status () {
+	public function status () {
 		// If shipping is disabled, bail
 		if (!shopp_setting_enabled('shipping')) return false;
 		// If no shipped items, bail
@@ -1220,7 +1258,7 @@ class CartShipping {
 	 *
 	 * @return void
 	 **/
-	function calculate () {
+	public function calculate () {
 		global $Shopp;
 
 		$status = $this->status();
@@ -1295,7 +1333,7 @@ class CartShipping {
 	 *
 	 * @return array List of ShippingOption objects
 	 **/
-	function options () {
+	public function options () {
 		return $this->options;
 	}
 
@@ -1307,7 +1345,7 @@ class CartShipping {
 	 *
 	 * @return float The shipping amount
 	 **/
-	function selected () {
+	public function selected () {
 
 		$status = $this->status();
 		if ($status !== true) return $status;
@@ -1330,6 +1368,7 @@ class CartShipping {
  *
  * Handles tax calculations
  *
+ * @deprecated No longer used. Replaced by OrderTotals and ShoppTax
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
@@ -1337,10 +1376,10 @@ class CartShipping {
  **/
 class CartTax {
 
-	var $Order = false;
-	var $enabled = false;
-	var $shipping = false;
-	var $rates = array();
+	public $Order = false;
+	public $enabled = false;
+	public $shipping = false;
+	public $rates = array();
 
 	/**
 	 * CartTax constructor
@@ -1350,7 +1389,7 @@ class CartTax {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		global $Shopp;
 		$this->Order = ShoppOrder();
 		$base = shopp_setting('base_operations');
@@ -1369,7 +1408,7 @@ class CartTax {
 	 *
 	 * @return float The tax rate (or false if no rate applies)
 	 **/
-	function rate ($Item=false,$settings=false) {
+	public function rate ($Item=false,$settings=false) {
 		if (!$this->enabled) return false;
 		if (!is_array($this->rates)) return false;
 
@@ -1445,7 +1484,7 @@ class CartTax {
 		return false;
 	}
 
-	function float ($rate) {
+	public function float ($rate) {
 		$format = $this->format;
 		$format['precision'] = 3;
 		return floatvalue($rate,true,$format);
@@ -1459,7 +1498,7 @@ class CartTax {
 	 *
 	 * @return float Total tax amount
 	 **/
-	function calculate () {
+	public function calculate () {
 		$Totals =& $this->Order->Cart->Totals;
 
 		$tiers = array();
@@ -1498,12 +1537,12 @@ class CartTax {
  **/
 class ShippingOption {
 
-	var $name;				// Name of the shipping option
-	var $slug;				// URL-safe name of the shipping option @since 1.2
-	var $amount;			// Amount (cost) of the shipping option
-	var $delivery;			// Estimated delivery of the shipping option
-	var $estimate;			// Include option in estimate
-	var $items = array();	// Item shipping rates for this shipping option
+	public $name;				// Name of the shipping option
+	public $slug;				// URL-safe name of the shipping option @since 1.2
+	public $amount;			// Amount (cost) of the shipping option
+	public $delivery;			// Estimated delivery of the shipping option
+	public $estimate;			// Include option in estimate
+	public $items = array();	// Item shipping rates for this shipping option
 
 	/**
 	 * Builds a shipping option from a configured/calculated
@@ -1528,7 +1567,7 @@ class ShippingOption {
 	 * @param boolean $estimate Flag to be included/excluded from estimates
 	 * @return void
 	 **/
-	function __construct ($rate,$estimate=true) {
+	public function __construct ($rate,$estimate=true) {
 
 		if (!isset($rate['slug'])) // Fire off an error if the slug is not provided
 			return ( ! new ShoppError('A slug (string) property is required in the rate parameter when constructing a new ShippingOption','shopp_dev_err',SHOPP_DEBUG_ERR) );
@@ -1544,3 +1583,8 @@ class ShippingOption {
 	}
 
 } // END class ShippingOption
+
+if ( ! class_exists('Cart',false) ) {
+	class Cart extends ShoppCart {
+	}
+}
