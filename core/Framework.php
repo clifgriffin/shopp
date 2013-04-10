@@ -25,40 +25,41 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ListFramework implements Iterator {
 
 	private $_list = array();
-	private $_keys = array();
-	private $_added = '';
-	private $_position = 0;
-	private static $_false = false;
+	private $_added = null;
+	private $_false = false;
 
-	public function &add ( scalar $key, $entry ) {
+	public function &add ( string $key, $entry ) {
 		$this->_list[$key] = $entry;
 		$this->_added = $key;
-		$this->rekey();
 		return $this->get($key);
 	}
 
-	public function added ( $key = false ) {
-		if ( false !== $key && $this->exists($key) )
+	public function added ( string $key = null ) {
+		if ( ! is_null($key) && $this->exists($key) )
 			$this->_added = $key;
 		if ( $this->exists($this->_added) )
 			return $this->get($this->_added);
 		return false;
 	}
 
-	public function populate ($records) {
+	public function populate ( array $records ) {
 		$this->_list = $records;
-		$this->rekey();
 	}
 
-	public function update ($key,$entry) {
+	public function update ( string $key, $entry ) {
 		if ( ! $this->exists($key) ) return false;
 		if ( is_array($this->_list[$key]) && is_array($entry) )
 			$entry = array_merge($this->_list[$key],$entry);
 		else $this->_list[$key] = $entry;
 	}
 
+	public function count () {
+		return count($this->_list);
+	}
+
 	public function &get ($key) {
-		if ( $this->exists($key) ) return $this->_list[$key];
+		if ( $this->exists($key) )
+			return $this->_list[$key];
 		else return $this->_false;
 	}
 
@@ -67,48 +68,35 @@ class ListFramework implements Iterator {
 	}
 
 	public function remove ($key) {
-		if ( ! $this->exists($key) ) return false;
-		unset($this->_list[$key]);
-		$this->rekey();
-	}
-
-	private function rekey () {
-		$this->_keys = array_keys($this->_list);
-	}
-
-	public function keyin ( $position = false ) {
-		if ( false !== $position && isset($this->_keys[ (int)$position ]) )
-			return $this->_keys[ (int)$position ];
-		return $this->key();
-	}
-
-	public function &current () {
-		if ( $this->valid() )
-			return $this->_list[ $this->_keys[$this->_position] ];
-		return $this->_false;
-	}
-
-	public function key ( ) {
-		if ( isset($this->_keys[ $this->_position ]) )
-			return $this->_keys[ $this->_position ];
+		if ( $this->exists($key) ) {
+			unset($this->_list[$key]);
+			return true;
+		}
 		return false;
 	}
 
+	public function keylist () {
+		print_r(array_keys($this->_list));
+	}
+
+	public function current () {
+		return current($this->_list);
+	}
+
+	public function key ( ) {
+		return key($this->_list);
+	}
+
 	public function next () {
-		++$this->_position;
-		return $this->current();
+		return next($this->_list);
 	}
 
 	public function rewind () {
-		$this->_position = 0;
-		return $this->current();
+		return reset($this->_list);
 	}
 
 	public function valid () {
-		return (
-			array_key_exists($this->_position,$this->_keys)
-			&& array_key_exists($this->_keys[$this->_position],$this->_list)
-		);
+		return null !== $this->key();
 	}
 
 }
