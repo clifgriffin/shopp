@@ -5,25 +5,35 @@
  * Library product collection models
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, May  5, 2011
+ * @version 1.3
+ * @copyright Ingenesis Limited, April 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package Shopp
  * @since 1.0
- * @subpackage Collection
+ * @subpackage collections
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+/**
+ * Defines base functionality for ProductCollection classes
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package collections
+ **/
 class ProductCollection implements Iterator {
-	var $api = 'collection';
-	var $loaded = false;
-	var $paged = false;
-	var $pages = 1;
-	var $pagination = false;
-	var $tag = false;
-	var $smart = false;
-	var $filters = false;
-	var $products = array();
-	var $total = 0;
+
+	public $api = 'collection';
+	public $loaded = false;
+	public $paged = false;
+	public $pages = 1;
+	public $pagination = false;
+	public $tag = false;
+	public $smart = false;
+	public $filters = false;
+	public $products = array();
+	public $total = 0;
 
 	private $_keys = array();
 	private $_position = array();
@@ -484,7 +494,13 @@ class ProductCollection implements Iterator {
 
 $ShoppTaxonomies = array();
 
-// @todo Document ProductTaxonomy
+/**
+ * Defines a WordPress taxonomy based Shopp ProductCollection
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package collections
+ **/
 class ProductTaxonomy extends ProductCollection {
 	static $taxon = 'shopp_group';
 	static $namespace = 'group';
@@ -492,10 +508,10 @@ class ProductTaxonomy extends ProductCollection {
 
 	protected $context = 'group';
 
-	var $api = 'taxonomy';
-	var $id = false;
-	var $meta = array();
-	var $images = array();
+	public $api = 'taxonomy';
+	public $id = false;
+	public $meta = array();
+	public $images = array();
 
 	function __construct ($id=false,$key='id') {
 		if (!$id) return;
@@ -761,19 +777,25 @@ class ProductTaxonomy extends ProductCollection {
 
 }
 
-// @todo Document ProductCategory
+/**
+ * Defines a Shopp product category collection
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package collection
+ **/
 class ProductCategory extends ProductTaxonomy {
 	static $taxon = 'shopp_category';
 	static $namespace = 'category';
 	static $hierarchical = true;
 
 	protected $context = 'category';
-	var $api = 'category';
-	var $facets = array();
-	var $filters = array();
+	public $api = 'category';
+	public $facets = array();
+	public $filters = array();
 
-	var $children = array();
-	var $child = false;
+	public $children = array();
+	public $child = false;
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
@@ -1317,17 +1339,24 @@ class ProductCategory extends ProductTaxonomy {
 
 } // END class ProductCategory
 
+/**
+ * Defines a product category facet entry
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class ProductCategoryFacet {
 
-	var $name;	// Display name
-	var $slug;	// Sanitized name
-	var $type;
-	var $link;	// Link to remove facet
-	// var $min;	// Min numeral val
-	// var $max;	// Max numeral val
-	// var $avg;	// Avg numeral val
+	public $name;	// Display name
+	public $slug;	// Sanitized name
+	public $type;
+	public $link;	// Link to remove facet
+	// public $min;	// Min numeral val
+	// public $max;	// Max numeral val
+	// public $avg;	// Avg numeral val
 
-	var $filters = array();
+	public $filters = array();
 
 	static function range_labels ($range) {
 
@@ -1341,24 +1370,37 @@ class ProductCategoryFacet {
 
 }
 
+/**
+ * Defines a structured container for facet filters (applied filters)
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class ProductCategoryFacetFilter {
 
-	var $label; // Display name
-	var $param;	// Santized name
-	var $count = 0;	// Product count
+	public $label; // Display name
+	public $param;	// Santized name
+	public $count = 0;	// Product count
 
 }
 
-
-// @todo Document ProductTag
+/**
+ * Defines a Shopp product tag collection
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class ProductTag extends ProductTaxonomy {
+
 	static $taxon = 'shopp_tag';
 	static $namespace = 'tag';
 	static $hierarchical = false;
 
 	protected $context = 'tag';
 
-	var $api = 'category';
+	public $api = 'category';
 
 	function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
@@ -1385,16 +1427,25 @@ class ProductTag extends ProductTaxonomy {
 
 }
 
-// @todo Document SmartCollection
+/**
+ * Defines the base functionality for a Shopp "smart collection"
+ *
+ * Smart collections are pre-programmed collections that use designer queries
+ * to create a grouping of products dynamically.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class SmartCollection extends ProductCollection {
 	static $taxon = 'shopp_collection';
 	static $namespace = 'collection';
 	static $_menu = true;
-	var $smart = true;
-	var $slug = false;
-	var $uri = false;
-	var $name = false;
-	var $loading = array();
+	public $smart = true;
+	public $slug = false;
+	public $uri = false;
+	public $name = false;
+	public $loading = array();
 
 	function __construct ($options=array()) {
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
@@ -1422,9 +1473,15 @@ class SmartCollection extends ProductCollection {
 
 }
 
-// @todo Document CatalogProducts
+/**
+ * A smart collection for **all** published products in the catalog
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class CatalogProducts extends SmartCollection {
-	static $_slug = "catalog";
+	static $_slug = 'catalog';
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1434,9 +1491,23 @@ class CatalogProducts extends SmartCollection {
 
 }
 
-// @todo Document NewProducts
+/**
+ * A smart collection to get the newest products.
+ *
+ * @todo Setup a threshold cutoff date query
+ *
+ * This smart collection really just uses sort order to force sorting products
+ * newest to oldest. Ideally we would set a time limit as a threshold cutoff.
+ * The problem is that the timeframes for adding new products to catalog vary
+ * wildly and there is no way to know how often that might happen from store
+ * to store.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class NewProducts extends SmartCollection {
-	static $_slug = "new";
+	static $_slug = 'new';
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1447,7 +1518,13 @@ class NewProducts extends SmartCollection {
 
 }
 
-// @todo Document FeaturedProducts
+/**
+ * A smart collection to group products that are marked as a **featured** product
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class FeaturedProducts extends SmartCollection {
 	static $_slug = 'featured';
 
@@ -1459,7 +1536,18 @@ class FeaturedProducts extends SmartCollection {
 
 }
 
-// @todo Document OnSaleProducts
+/**
+ * A smart collection to group products that are on sale
+ *
+ * This collection will collect products that have a sale price that is enabled
+ * in the product editor or products that have a catalog discount applied to them
+ * because the product summary system will detect the sale price and force on the
+ * on sale flag.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class OnSaleProducts extends SmartCollection {
 	static $_slug = 'onsale';
 
@@ -1471,7 +1559,22 @@ class OnSaleProducts extends SmartCollection {
 
 }
 
-// @todo Document BestsellerProducts
+/**
+ * A smart collection that uses past purchase data to group popular selling products
+ *
+ * By default this collection will use a sales threshold determine by the mean average
+ * product sold of all products in the catalog (derived from the cached summary `sold` column).
+ * Any product above that average will appear in the collection.
+ *
+ * Alternatively, a range option can be provided with a start and/or end date range.
+ * The date range option must be provided as an array. If the second element of the
+ * array (the end date) is not provided, the current timestamp will be used. Dates should be
+ * provided in a 'YYYY-MM-DD HH:MM:SS' format date('Y-m-d H:i:s')
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class BestsellerProducts extends SmartCollection {
 	static $_slug = "bestsellers";
 	static $_altslugs = array('bestsellers','bestseller','bestselling');
@@ -1480,7 +1583,7 @@ class BestsellerProducts extends SmartCollection {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('Bestsellers','Shopp');
 
-		if (isset($options['range']) && is_array($options['range']) && 2 == count($options['range'])) {
+		if ( isset($options['range']) && is_array($options['range']) ) {
 			$start = $options['range'][0];
 			$end = $options['range'][1];
 			if (!$end) $end = current_time('timestamp');
@@ -1505,12 +1608,24 @@ class BestsellerProducts extends SmartCollection {
 
 }
 
-// @todo Document SearchResults
+/**
+ * A smart collection for search results
+ *
+ * The Shopp search engine uses a smart collection to carry out grouping
+ * product search result hits. It is designed to use the Shopp product index
+ * and includes advanced functionality for query parsing, and result scoring
+ * for complete control of search precision (relevant results) and
+ * recall (quantity of results).
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class SearchResults extends SmartCollection {
 	static $_slug = 'search-results';
 	static $_altslugs = array('search');
 	static $_menu = false;
-	var $search = false;
+	public $search = false;
 
 	function __construct ($options=array()) {
 		parent::__construct($options);
@@ -1598,6 +1713,16 @@ class SearchResults extends SmartCollection {
 
 }
 
+
+/**
+ * A smart collection for grouping products using multiple WordPress taxonomies
+ *
+ * @todo Move support for this to the ProductCollection/ProductTaxonomy class
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class MixProducts extends SmartCollection {
 	static $_slug = 'mixed';
 	static $_menu = false;
@@ -1649,7 +1774,13 @@ class MixProducts extends SmartCollection {
 
 }
 
-// @todo Document TagProducts
+/**
+ * A smart collection to get products that have all of the
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class TagProducts extends SmartCollection {
 	static $_slug = "tag";
 	static $_menu = false;
@@ -1701,11 +1832,22 @@ class TagProducts extends SmartCollection {
 	}
 }
 
-// @todo Document ReleatedProducts
+/**
+ * A smart collection that groups related products by scoring the number of tags shared across products
+ *
+ * This collection works very differently than the TagProducts collection. TagProducts finds products by
+ * tags that you provide. RelatedProducts finds products using tags of a product that you provide.
+ * The other difference is that RelatedProducts will score the results so that products that have more
+ * tags in common with the provided product will be scored with higher relavancy and shown first.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class RelatedProducts extends SmartCollection {
 	static $_slug = "related";
 	static $_menu = false;
-	var $product = false;
+	public $product = false;
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
@@ -1769,11 +1911,21 @@ class RelatedProducts extends SmartCollection {
 
 }
 
-// @todo Document AlsoBoughtProducts
+/**
+ * A smart collection for products bought by other customers similar to a given product
+ *
+ * This uses an advanced algorithm known as the Pearson correlation coefficient to
+ * find relevant relationships between the given product and products purchased
+ * by other customers. {@see http://en.wikipedia.org/wiki/Pearson_correlation_coefficient}
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class AlsoBoughtProducts extends SmartCollection {
 	static $_slug = "alsobought";
 	static $_menu = false;
-	var $product = false;
+	public $product = false;
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
@@ -1806,8 +1958,7 @@ class AlsoBoughtProducts extends SmartCollection {
 		if (empty($this->product->id)) return ($this->loading = compact('where'));
 		$this->name = sprintf(__('Customers that bought "%s" also bought&hellip;','Shopp'),$this->product->name);
 
- 		// Pearson correlation coefficient
-		// @todo Add WP_Cache support
+		// @todo Add WP_Cache support since this is a pretty expensive query
 		$purchased = DatabaseObject::tablename(Purchased::$table);
 		$matches = DB::query("SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
 						FROM (
@@ -1831,30 +1982,56 @@ class AlsoBoughtProducts extends SmartCollection {
 
 }
 
-// @todo Document RandomProducts
+/**
+ * A smart collection for getting random products from the catalog
+ *
+ * It's important to note that the randomization is locked to each browsing session.
+ * That means that the randomness is generated at the beginning of the session, and
+ * each time the collection is viewed the random order will remain in the same state
+ * of randomness for each page load. This is useful for showing a random set of products
+ * but allowing pagination to not repeat products, which would happen for a random set
+ * of products each page load. If you're after that, use the 'chaos' sort order on
+ * the CatalogProducts collection.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class RandomProducts extends SmartCollection {
 	static $_slug = "random";
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("Random Products","Shopp");
+		$this->name = __('Random Products','Shopp');
+
+		if ( isset($options['order']) && 'chaos' == strtolower($options['order']) )
+
 		$this->loading = array('order'=>'random');
 
-		if (isset($options['exclude'])) {
+		if ( isset($options['exclude']) ) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
-			if (in_array('current-product',$excludes) &&
-				isset(ShoppProduct()->id)) $where[] = '(p.id != '.ShoppProduct()->id.')';
-			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
-			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
+			if ( in_array('current-product',$excludes) &&
+				isset(ShoppProduct()->id) ) $where[] = '(p.id != '.ShoppProduct()->id.')';
+			if ( in_array('featured',$excludes) ) $where[] = "(p.featured='off')";
+			if ( in_array('onsale',$excludes) ) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
 		}
 
-		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+		if ( isset($options['columns']) ) $this->loading['columns'] = $options['columns'];
 	}
 }
 
-// @todo Document ViewedProducts
+/**
+ * A smart collection that groups products the visitor has recently viewed
+ *
+ * A product is considered viewed when the product page is loaded. Up to 25 recently viewed products
+ * are kept in the session. The total kept can be adjusted using the shopp_recently_viewed_limit filter hook.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class ViewedProducts extends SmartCollection {
 	static $_slug = "viewed";
 
@@ -1870,7 +2047,13 @@ class ViewedProducts extends SmartCollection {
 	}
 }
 
-// @todo Document PromoProducts
+/**
+ * A smart collection that dynamically builds groups of products based on a catalog promotion.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package collections
+ **/
 class PromoProducts extends SmartCollection {
 	static $_slug = "promo";
 	static $_menu = false;
