@@ -574,8 +574,10 @@ class ShoppErrorNotification {
 		$this->recipients = $recipients;
 		foreach ((array)$types as $type) $this->types += $type;
 
-		$Errors = ShoppErrors();
-		$Errors->notifications->subscribe($this,'notify');
+		add_action('shopp_error',array($this,'notify'));
+
+		// $Errors = ShoppErrors();
+		// $Errors->notifications->subscribe($this,'notify');
 	}
 
 	/**
