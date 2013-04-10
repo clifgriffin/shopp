@@ -5,19 +5,21 @@
  * Catalog navigational experience data manager
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.3
  * @since 1.0
- * @copyright Ingenesis Limited, 24 June, 2010
+ * @copyright Ingenesis Limited, April 2013
  * @package Shopp
- * @subpackage Catalog
+ * @subpackage catalog
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  class Catalog {
 	static $table = "catalog";
 
-	var $categories = array();
-	var $outofstock = false;
-	var $type = false; 			// @deprecated
+	public $categories = array();
+	public $outofstock = false;
+	public $type = false; 			// @deprecated
 
 	function __construct () {
 		$this->outofstock = (shopp_setting('outofstock_catalog') == "on");
@@ -136,5 +138,3 @@
 	}
 
 } // END class Catalog
-
-?>

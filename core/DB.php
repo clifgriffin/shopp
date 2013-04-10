@@ -173,7 +173,7 @@ class DB extends SingletonFramework {
 	 **/
 	static function mktime ($datetime) {
 		$h = $mn = $s = 0;
-		list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,"%d-%d-%d %d:%d:%d");
+		list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,'%d-%d-%d %d:%d:%d');
 		if (max($Y, $M, $D, $h, $mn, $s) == 0) return 0;
 		return mktime($h, $mn, $s, $M, $D, $Y);
 	}
@@ -188,7 +188,7 @@ class DB extends SingletonFramework {
 	 * @return string An SQL datetime formatted string
 	 **/
 	static function mkdatetime ($timestamp) {
-		return date("Y-m-d H:i:s",$timestamp);
+		return date('Y-m-d H:i:s',$timestamp);
 	}
 
 	/**
