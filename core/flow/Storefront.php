@@ -129,17 +129,22 @@ class Storefront extends FlowController {
 	}
 
 	function pageonfront ($request,$wp_query) {
-		if ( CatalogStorefrontPage::frontid() == get_option('page_on_front')) {
-			$pages = Storefront::pages_settings();
 
-			// Overrides to enforce page behavior
-			$wp_query->set('shopp_page',$pages['catalog']['slug']);
-			$wp_query->is_page = true;
-			$wp_query->is_singular = true;
-			$wp_query->post_count = true;
-			$wp_query->shopp_page = true;
-			$wp_query->is_archive = false;
-			$request = str_replace('.ID = shopp','.ID = NULL',$request);
+		if ( CatalogStorefrontPage::frontid() == get_option('page_on_front') ) {
+
+			// @todo Detect when the catalog page is directly accessed by slug and redirect it to website root when it is set to page on front
+
+			if ( CatalogStorefrontPage::frontid() == $wp_query->get('page_id') ) {
+				// Overrides to enforce page behavior
+				$wp_query->set('shopp_page',self::slug('catalog'));
+				$wp_query->is_page = true;
+				$wp_query->is_singular = true;
+				$wp_query->post_count = true;
+				$wp_query->shopp_page = true;
+				$wp_query->is_archive = false;
+				$request = str_replace('.ID = shopp','.ID = NULL',$request);
+			}
+
 		}
 		return $request;
 	}
@@ -211,7 +216,7 @@ class Storefront extends FlowController {
 		$catalog = Storefront::slug('catalog');
 
 		// Detect catalog page requests
-		if (is_archive() && $posttype == Product::$posttype && '' == $product.$collection.$page.$search) {
+		if ( is_archive() && $posttype == Product::$posttype && '' == $product.$collection.$page.$search ) {
 			$page = $catalog;
 			$wp_query->set('shopp_page',$page);
 		}
@@ -400,7 +405,6 @@ class Storefront extends FlowController {
 		// Get the requested storefront page identifier from the slug
 		$page = self::slugpage( get_query_var('shopp_page') );
 		if ( empty($page) ) return $template;
-
 
 		// Load the request Storefront page settings
 		$pages = self::pages_settings();
@@ -1251,7 +1255,7 @@ class StorefrontPage {
 		global $wp_query;
 
 		// Create a stub object if necessary
-		if (!is_object($wp_query->queried_object))
+		if ( ! is_object($wp_query->queried_object) )
 			$wp_query->queried_object = new stdClass;
 
 		$wp_query->queried_object->$property = $value;
