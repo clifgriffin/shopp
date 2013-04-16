@@ -36,7 +36,7 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if ($s && $s.d !== '' && $s.d !== undefined)
+	if ($s && $s.d !== undefined)
 		return {	// from base of operations setting
 			cpos:$s.cp,
 			currency:$s.c,
