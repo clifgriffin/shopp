@@ -26,7 +26,6 @@ class ListFramework implements Iterator {
 
 	private $_list = array();
 	private $_added = null;
-	private $_false = false;
 
 	public function &add ( string $key, $entry ) {
 		$this->_list[$key] = $entry;
@@ -57,10 +56,16 @@ class ListFramework implements Iterator {
 		return count($this->_list);
 	}
 
+	public function clear () {
+		$this->list = array();
+		$this->_added = null;
+	}
+
 	public function &get ($key) {
+		$false = false;
 		if ( $this->exists($key) )
 			return $this->_list[$key];
-		else return $this->_false;
+		else return $false;
 	}
 
 	public function exists ($key) {
@@ -75,8 +80,8 @@ class ListFramework implements Iterator {
 		return false;
 	}
 
-	public function keylist () {
-		print_r(array_keys($this->_list));
+	public function keys () {
+		return array_keys($this->_list);
 	}
 
 	public function current () {

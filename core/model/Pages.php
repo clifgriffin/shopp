@@ -86,7 +86,7 @@ class ShoppPages extends ListFramework {
 	}
 
 	public function names () {
-		return $this->keylist();
+		return $this->keys();
 	}
 
 	public function slugs () {
