@@ -217,16 +217,17 @@ class Shopp {
 	 * @return void
 	 **/
 	function pages () {
-		$var = 'shopp_page'; $pages = array();
-		$settings = Storefront::pages_settings();
- 		$structure = get_option('permalink_structure');
-		$catalog = array_shift($settings);
 
-		foreach ($settings as $page) $pages[] = $page['slug'];
-		add_rewrite_tag("%$var%", '('.join('|',$pages).')');
-		add_permastruct($var, "{$catalog['slug']}/%$var%", false);
+		shopp_register_page( 'ShoppCatalogPage' );
+		shopp_register_page( 'ShoppAccountPage' );
+		shopp_register_page( 'ShoppCartPage' );
+		shopp_register_page( 'ShoppCheckoutPage' );
+		shopp_register_page( 'ShoppConfirmPage' );
+		shopp_register_page( 'ShoppThanksPage' );
+
+		do_action( 'shopp_init_storefront_pages' );
+
 	}
-
 
 	function collections () {
 
@@ -294,14 +295,15 @@ class Shopp {
  		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
 
  		// Download URL rewrites
- 		$downloads = array(	Storefront::slug(),Storefront::slug('account'),'download','([a-f0-9]{40})','?$' );
+		$AccountPage = ShoppPages()->get('account');
+ 		$downloads = array( ShoppPages()->baseslug(), $AccountPage->slug(), 'download', '([a-f0-9]{40})', '?$' );
  		if ( $is_IIS && 0 === strpos($structure,'/index.php/') ) array_unshift($downloads,'index.php');
  		$rules = array( join('/',$downloads)
  				=> 'index.php?src=download&shopp_download=$matches[1]',
  		);
 
  		// Image URL rewrite
- 		$images = array( Storefront::slug(),'images','(\d+)',"?\??(.*)$" );
+ 		$images = array( ShoppPages()->baseslug(), 'images', '(\d+)', "?\??(.*)$" );
  		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
 
  		return $rules + $wp_rewrite_rules;

@@ -216,60 +216,70 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$linked = $before.'%2$s<a href="%3$s">%1$s</a>'.$after;
 		$list = $before.'%2$s<strong>%1$s</strong>'.$after;
 
+		$CatalogPage = shopp_get_page('catalog');
+
 		$Storefront = ShoppStorefront();
-		$pages = Storefront::pages_settings();
 
-		// store front page
-		$breadcrumb = array($pages['catalog']['title'] => shoppurl(false,'catalog'));
+		// Add the Store front page (aka catalog page)
+		$breadcrumb = array( $CatalogPage->title() => shoppurl(false, 'catalog') );
 
-		if (is_account_page()) {
-			$breadcrumb += array($pages['account']['title'] => shoppurl(false,'account'));
+		if ( is_account_page() ) {
+			$Page = shopp_get_page('account');
+
+			$breadcrumb += array($Page->title() => shoppurl(false, 'account'));
 
 			$request = $Storefront->account['request'];
 			if (isset($Storefront->dashboard[$request]))
-				$breadcrumb += array($Storefront->dashboard[$request]->label => shoppurl(false,'account'));
+				$breadcrumb += array($Storefront->dashboard[$request]->label => shoppurl(false, 'account'));
 
-		} elseif (is_cart_page()) {
-			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
-		} elseif (is_checkout_page()) {
-			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
-			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
-		} elseif (is_confirm_page()) {
-			$breadcrumb += array($pages['cart']['title'] => shoppurl(false,'cart'));
-			$breadcrumb += array($pages['checkout']['title'] => shoppurl(false,'checkout'));
-			$breadcrumb += array($pages['confirm']['title'] => shoppurl(false,'confirm'));
-		} elseif (is_thanks_page()) {
-			$breadcrumb += array($pages['thanks']['title'] => shoppurl(false,'thanks'));
-		} elseif (is_shopp_taxonomy()) {
+		} elseif ( is_cart_page() ) {
+			$Page = shopp_get_page('cart');
+			$breadcrumb += array($Page->title() => shoppurl(false, 'cart'));
+		} elseif ( is_checkout_page() ) {
+			$Cart = shopp_get_page('cart');
+			$Checkout = shopp_get_page('checkout');
+			$breadcrumb += array($Cart->title() => shoppurl(false, 'cart'));
+			$breadcrumb += array($Checkout->title() => shoppurl(false, 'checkout'));
+		} elseif ( is_confirm_page() ) {
+			$Cart = shopp_get_page('cart');
+			$Checkout = shopp_get_page('checkout');
+			$Confirm = shopp_get_page('confirm');
+			$breadcrumb += array($Cart->title() => shoppurl(false, 'cart'));
+			$breadcrumb += array($Checkout->title() => shoppurl(false, 'checkout'));
+			$breadcrumb += array($Confirm->title() => shoppurl(false, 'confirm'));
+		} elseif ( is_thanks_page() ) {
+			$Page = shopp_get_page('thanks');
+			$breadcrumb += array($Page->title() => shoppurl(false, 'thanks'));
+		} elseif ( is_shopp_taxonomy() ) {
 			$taxonomy = ShoppCollection()->taxonomy;
-			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id,$taxonomy));
+			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id, $taxonomy));
 			foreach ($ancestors as $ancestor) {
-				$term = get_term($ancestor,$taxonomy);
-				$breadcrumb[ $term->name ] = get_term_link($term->slug,$taxonomy);
+				$term = get_term($ancestor, $taxonomy);
+				$breadcrumb[ $term->name ] = get_term_link($term->slug, $taxonomy);
 			}
-			$breadcrumb[ shopp('collection','get-name') ] = shopp('collection','get-url');
-		} elseif (is_shopp_collection()) {
+			$breadcrumb[ shopp('collection', 'get-name') ] = shopp('collection', 'get-url');
+		} elseif ( is_shopp_collection() ) {
 			// collections
-			$breadcrumb[ ShoppCollection()->name ] = shopp('collection','get-url');
-		} elseif (is_shopp_product()) {
-			$categories = get_the_terms(ShoppProduct()->id,ProductCategory::$taxon);
+			$breadcrumb[ ShoppCollection()->name ] = shopp('collection', 'get-url');
+		} elseif ( is_shopp_product() ) {
+			$categories = get_the_terms(ShoppProduct()->id, ProductCategory::$taxon);
 			if ( $categories ) {
 				$term = array_shift($categories);
-				$ancestors = array_reverse(get_ancestors($term->term_id,ProductCategory::$taxon));
+				$ancestors = array_reverse(get_ancestors($term->term_id, ProductCategory::$taxon));
 				foreach ($ancestors as $ancestor) {
-					$parent_term = get_term($ancestor,ProductCategory::$taxon);
-					$breadcrumb[ $parent_term->name ] = get_term_link($parent_term->slug,ProductCategory::$taxon);
+					$parent_term = get_term($ancestor, ProductCategory::$taxon);
+					$breadcrumb[ $parent_term->name ] = get_term_link($parent_term->slug, ProductCategory::$taxon);
 				}
-				$breadcrumb[ $term->name ] = get_term_link($term->slug,$term->taxonomy);
+				$breadcrumb[ $term->name ] = get_term_link($term->slug, $term->taxonomy);
 			}
-			$breadcrumb[ shopp('product','get-name') ] = shopp('product','get-url');
+			$breadcrumb[ shopp('product.get-name') ] = shopp('product.get-url');
 		}
 
 		$names = array_keys($breadcrumb);
 		$last = end($names);
 		$trail = '';
-		foreach ($breadcrumb as $name => $link)
-			$trail .= sprintf(($last == $name?$list:$linked),$name,(empty($trail)?'':$separator),$link);
+		foreach ( $breadcrumb as $name => $link )
+			$trail .= sprintf(($last == $name?$list:$linked), $name, (empty($trail)?'':$separator), $link);
 
 		return $wrap.$trail.$endwrap;
 	}

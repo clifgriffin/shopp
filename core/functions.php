@@ -1761,7 +1761,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	if ( $is_IIS && 0 === strpos($structure,'/index.php/') )
 		$path[] = 'index.php';
 
-	$path[] = Storefront::slug('catalog');
+	$path[] = ShoppPages()->baseslug();
 
 	// Build request path based on Storefront shopp_page requested
 	if ('images' == $page) {
@@ -1769,8 +1769,10 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		if (!$prettyurls) $request = array('siid'=>$request);
 	} else {
 		if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
-		if (false !== $page)
-			$page_slug = Storefront::slug($page);
+		if (false !== $page) {
+			$Page = ShoppPages()->get($page);
+			$page_slug = $Page->slug();
+		}
 		if ($page != 'catalog') {
 			if (!empty($page_slug)) $path[] = $page_slug;
 		}

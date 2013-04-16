@@ -1022,10 +1022,12 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (!empty($_POST['save'])) {
+		if ( ! empty($_POST['save']) ) {
 			check_admin_referer('shopp-settings-pages');
-			$catalog_slug = Storefront::slug();
-			$_POST['settings']['storefront_pages'] = Storefront::pages_settings($_POST['settings']['storefront_pages']);
+
+			$CatalogPage = ShoppPages()->get('catalog');
+			$defaults = ShoppPages()->settings();
+			$_POST['settings']['storefront_pages'] = array_merge($defaults,$_POST['settings']['storefront_pages']);
 			$this->settings_save();
 
 			// Re-register page, collection, taxonomies and product rewrites
@@ -1038,11 +1040,11 @@ class Setup extends AdminController {
 
 			// If the catalog slug changes
 			// $hardflush is false (soft flush... plenty of fiber, no .htaccess update needed)
-			$hardflush = ($catalog_slug != Storefront::slug());
+			$hardflush = ( ShoppPages()->baseslug() != $catalog_slug );
 			flush_rewrite_rules($hardflush);
 		}
 
-		$pages = Storefront::pages_settings();
+		$pages = ShoppPages()->settings();
 		include(SHOPP_ADMIN_PATH.'/settings/pages.php');
 
 	}

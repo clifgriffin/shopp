@@ -23,35 +23,35 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @return void
  **/
 function shopp_register_collection ( $name = '' ) {
+
 	if ( empty($name) ) {
 		shopp_debug(__FUNCTION__ . " failed: Collection name required.");
 		return false;
 	}
 
 	global $Shopp;
-	if (empty($Shopp)) return;
+	if ( empty($Shopp) ) return;
 
 	$permastruct = SmartCollection::$taxon;
-
-	$slug = get_class_property($name,'_slug');
+	$slug = get_class_property($name, '_slug');
 	$Shopp->Collections[$slug] = $name;
 
-	add_rewrite_tag("%$permastruct%",'collection/([^/]+)');
-	add_permastruct($permastruct, Storefront::slug()."/%shopp_collection%", false);
+	add_rewrite_tag( "%$permastruct%", 'collection/([^/]+)' );
+	add_permastruct( $permastruct, ShoppPages()->baseslug() . '/%shopp_collection%', false );
 
-	add_filter($permastruct.'_rewrite_rules',array('ProductCollection','pagerewrites'));
+	add_filter( $permastruct . '_rewrite_rules', 'ProductCollection::pagerewrites' );
 
-	$apicall = create_function ('$result, $options, $O',
+	$apicall = create_function ( '$result, $options, $O',
 		'ShoppCollection( new '.$name.'($options) );
 		return ShoppStorefrontThemeAPI::category($result, $options, $O);'
 	);
 
 	$slugs = array($slug);
-	$altslugs = get_class_property($name,'_altslugs');
-	if (is_array($altslugs)) $slugs = array_merge($slugs,$altslugs);
+	$altslugs = get_class_property($name, '_altslugs');
+	if ( is_array($altslugs) ) $slugs = array_merge($slugs, $altslugs);
 
-	foreach ($slugs as $collection) {
-		$collection = str_replace(array('-','_'),'',$collection); // Sanitize slugs
+	foreach ( (array)$slugs as $collection) {
+		$collection = str_replace( array('-','_'), '', $collection ); // Sanitize slugs
 		// @deprecated Remove the catalog-products tag in favor of catalog-collection
 		add_filter( 'shopp_themeapi_catalog_'.$collection.'products', $apicall, 10, 3 );
 		add_filter( 'shopp_themeapi_catalog_'.$collection.'collection', $apicall, 10, 3 );
@@ -72,9 +72,10 @@ function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
 	$taxonomy = sanitize_key($taxonomy);
 	$rewrite_slug = $taxonomy;
 	$taxonomy = "shopp_$taxonomy";
-	if (isset($args['rewrite']) && isset($args['rewrite']['slug'])) $rewrite_slug = $args['rewrite']['slug'];
-	if (!isset($args['rewrite'])) $args['rewrite'] = array();
-	$args['rewrite']['slug'] = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$rewrite_slug : $rewrite_slug;
+	if ( isset($args['rewrite'] ) && isset($args['rewrite']['slug']) ) $rewrite_slug = $args['rewrite']['slug'];
+	if ( ! isset($args['rewrite']) ) $args['rewrite'] = array();
+
+	$args['rewrite']['slug'] = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug().'/'.$rewrite_slug : $rewrite_slug;
 	register_taxonomy($taxonomy,Product::$posttype,$args);
 }
 

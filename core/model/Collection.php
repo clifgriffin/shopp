@@ -525,7 +525,7 @@ class ProductTaxonomy extends ProductCollection {
 		$namespace = get_class_property($class,'namespace');
 		$taxonomy = get_class_property($class,'taxon');
 		$hierarchical = get_class_property($class,'hierarchical');
-		$slug = SHOPP_NAMESPACE_TAXONOMIES ? Storefront::slug().'/'.$namespace : $namespace;
+		$slug = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug().'/'.$namespace : $namespace;
 		register_taxonomy($taxonomy,array(Product::$posttype), array(
 			'hierarchical' => $hierarchical,
 			'labels' => call_user_func(array($class,'labels'),$class),
@@ -1438,9 +1438,11 @@ class ProductTag extends ProductTaxonomy {
  * @package collections
  **/
 class SmartCollection extends ProductCollection {
+
 	static $taxon = 'shopp_collection';
 	static $namespace = 'collection';
 	static $_menu = true;
+
 	public $smart = true;
 	public $slug = false;
 	public $uri = false;

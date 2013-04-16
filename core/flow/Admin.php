@@ -145,16 +145,15 @@ class ShoppAdmin extends FlowController {
 	}
 
 	function storefront_pages ($menu) {
-		$pages = Storefront::pages_settings();
-		$catalog = $pages['catalog'];
-		$shoppid = CatalogStorefrontPage::frontid(); // uses impossibly long number ("Shopp" in decimal)
+		$CatalogPage = ShoppPages()->get('catalog');
+		$shoppid = ShoppCatalogPage::frontid(); // uses impossibly long number ("Shopp" in decimal)
 
 		$id = "<select name='page_on_front' id='page_on_front'>\n";
 		if ( false === strpos($menu,$id) ) return $menu;
 		$token = '<option value="0">&mdash; Select &mdash;</option>';
 
 		if ( $shoppid == get_option('page_on_front') ) $selected = ' selected="selected"';
-		$storefront = '<optgroup label="' . __('Shopp','Shopp') . '"><option value="' . $shoppid . '"' . $selected . '>' . esc_html($catalog['title']) . '</option></optgroup><optgroup label="' . __('WordPress') . '">';
+		$storefront = '<optgroup label="' . __('Shopp','Shopp') . '"><option value="' . $shoppid . '"' . $selected . '>' . esc_html($CatalogPage->title()) . '</option></optgroup><optgroup label="' . __('WordPress') . '">';
 
 		$newmenu = str_replace($token,$token.$storefront,$menu);
 
@@ -342,7 +341,7 @@ class ShoppAdmin extends FlowController {
 	 * @param string $page (optional) The fully qualified reference name for the page
 	 * @return string|boolean The name of the controller or false if not available
 	 **/
-	function controller ($page=false) {
+	function controller ( $page = false ) {
 		if (!$page && isset($this->Page->controller)) return $this->Page->controller;
 		if (isset($this->Pages[$page])) return $this->Pages[$page]->controller;
 		$screen = get_current_screen();
@@ -975,7 +974,7 @@ class ShoppAdmin extends FlowController {
 
 	function navmenus () {
 		if (isset($_REQUEST['add-shopp-menu-item']) && isset($_REQUEST['menu-item'])) {
-			$pages = Storefront::pages_settings();
+			// $pages = Storefront::pages_settings();
 
 			$nav_menu_selected_id = isset( $_REQUEST['menu'] ) ? (int) $_REQUEST['menu'] : 0;
 
@@ -984,12 +983,14 @@ class ShoppAdmin extends FlowController {
 
 				$requested = $item['menu-item-shopp-page'];
 
+				$Page = ShoppPages()->get($requested);
+
 				$menuitem = &$_REQUEST['menu-item'][$key];
 				$menuitem['menu-item-db-id'] = 0;
 				$menuitem['menu-item-object-id'] = $requested;
 				$menuitem['menu-item-object'] = $requested;
-				$menuitem['menu-item-type'] = 'shopp_page';
-				$menuitem['menu-item-title'] = $pages[$requested]['title'];
+				$menuitem['menu-item-type'] = ShoppPages::QUERYVAR;
+				$menuitem['menu-item-title'] = $Page->title();
 			}
 
 		}
@@ -1093,7 +1094,7 @@ class ShoppAdmin extends FlowController {
 				</span>
 
 				<span class="add-to-menu">
-					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<span class="spinner"></span>
 					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-collections-menu-item" />
 				</span>
 			</p>
@@ -1123,21 +1124,20 @@ class ShoppAdmin extends FlowController {
 				<ul class="categorychecklist form-no-clear">
 
 				<?php
-					$pages = Storefront::pages_settings();
-					foreach ($pages as $pagetype => $page):
+					foreach (ShoppPages() as $name => $Page):
 						$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
 				?>
 					<li>
 						<label class="menu-item-title">
 						<input type="checkbox" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-shopp-page]" value="<?php echo $pagetype; ?>" class="menu-item-checkbox" /> <?php
-							echo esc_html( $page['title'] );
+							echo esc_html( $Page->title() );
 						?></label>
 						<input type="hidden" class="menu-item-db-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-db-id]" value="0" />
-						<input type="hidden" class="menu-item-object-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object-id]" value="<?php echo $pagetype; ?>" />
-						<input type="hidden" class="menu-item-object" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object]" value="<?php echo $pagetype; ?>" />
+						<input type="hidden" class="menu-item-object-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object-id]" value="<?php echo $name; ?>" />
+						<input type="hidden" class="menu-item-object" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-object]" value="<?php echo $name; ?>" />
 						<input type="hidden" class="menu-item-parent-id" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-parent-id]" value="0">
-						<input type="hidden" class="menu-item-type" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" value="shopp_page" />
-						<input type="hidden" class="menu-item-title" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]" value="<?php echo $page['title']; ?>" />
+						<input type="hidden" class="menu-item-type" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" value="<?php ShoppPages::QUERYVAR; ?>" />
+						<input type="hidden" class="menu-item-title" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-title]" value="<?php echo $Page->title(); ?>" />
 
 					</li>
 				<?php endforeach; ?>
@@ -1159,7 +1159,7 @@ class ShoppAdmin extends FlowController {
 				</span>
 
 				<span class="add-to-menu">
-					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<span class="spinner"></span>
 					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
 				</span>
 			</p>

@@ -49,7 +49,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppAccountWidget') ) {
 
 
 			remove_filter('shopp_show_account_errors',array($this,'showerrors'));
-			$Page = new AccountStorefrontPage();
+			$Page = new ShoppAccountPage();
 
 			$menu = $Page->content('','widget');
 			echo $before_widget.$title.$menu.$after_widget;
