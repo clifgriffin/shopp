@@ -158,6 +158,18 @@ function ShoppErrorStorefrontNotices () {
 	return ShoppErrorStorefrontNotices::instance();
 }
 
+function ShoppPages () {
+	return ShoppPages::instance();
+}
+
+function shopp_get_page ( string $pagename ) {
+	return ShoppPages()->get($pagename);
+}
+
+function shopp_register_page ( string $classname ) {
+	ShoppPages()->register($classname);
+}
+
 /**
  * Detects ShoppError objects
  *
