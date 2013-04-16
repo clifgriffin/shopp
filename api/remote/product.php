@@ -35,7 +35,6 @@ class ShoppProductRemoteAPI {
 	}
 
 	static function specs ($result,$resource,$options) {
-		print_r($resource);
 		list($request,$id) = $resource;
  		return shopp_product_specs($id);
 	}

@@ -63,7 +63,6 @@ class Shopp {
 	public $APIs;			// @deprecated Loaded API modules
 	public $Storage;		// @deprecated Storage engine modules
 
-
 	function __construct () {
 
 		// Autoload system
@@ -107,13 +106,14 @@ class Shopp {
 		add_action('widgets_init', array($this, 'widgets'));
 
 		// Plugin management
-		add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
+		add_action('after_plugin_row_' . SHOPP_PLUGINFILE, array($this, 'status'), 10, 2);
 		add_action('install_plugins_pre_plugin-information', array('ShoppCore', 'changelog'));
-		add_action('load-plugins.php',array($this,'updates'));
-		add_action('load-update.php', array($this,'updates'));
-		add_action('load-update-core.php',array($this,'updates'));
-		add_action('wp_update_plugins',array($this,'updates'));
-		add_action('shopp_check_updates', array($this, 'updates'));
+
+		$updates = array(
+			'load-plugins', 'load-update.php','load-update-core.php', 'wp_update_plugins', 'shopp_check_updates'
+		);
+		foreach ( $updates as $action )
+			add_action( $action, array($this, 'updates') );
 
 		if ( ! wp_next_scheduled('shopp_check_updates') )
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
@@ -231,29 +231,29 @@ class Shopp {
 
 	function collections () {
 
-		shopp_register_collection('CatalogProducts');
-		shopp_register_collection('NewProducts');
-		shopp_register_collection('FeaturedProducts');
-		shopp_register_collection('OnSaleProducts');
-		shopp_register_collection('BestsellerProducts');
-		shopp_register_collection('SearchResults');
-		shopp_register_collection('MixProducts');
-		shopp_register_collection('TagProducts');
-		shopp_register_collection('RelatedProducts');
-		shopp_register_collection('AlsoBoughtProducts');
-		shopp_register_collection('ViewedProducts');
-		shopp_register_collection('RandomProducts');
-		shopp_register_collection('PromoProducts');
+		shopp_register_collection( 'CatalogProducts' );
+		shopp_register_collection( 'NewProducts' );
+		shopp_register_collection( 'FeaturedProducts' );
+		shopp_register_collection( 'OnSaleProducts' );
+		shopp_register_collection( 'BestsellerProducts' );
+		shopp_register_collection( 'SearchResults' );
+		shopp_register_collection( 'MixProducts' );
+		shopp_register_collection( 'TagProducts' );
+		shopp_register_collection( 'RelatedProducts' );
+		shopp_register_collection( 'AlsoBoughtProducts' );
+		shopp_register_collection( 'ViewedProducts' );
+		shopp_register_collection( 'RandomProducts' );
+		shopp_register_collection( 'PromoProducts' );
 
 	}
 
 	function taxonomies () {
-		ProductTaxonomy::register('ProductCategory');
-		ProductTaxonomy::register('ProductTag');
+		ProductTaxonomy::register( 'ProductCategory' );
+		ProductTaxonomy::register( 'ProductTag' );
 	}
 
 	function products () {
-		WPShoppObject::register('Product',Storefront::slug());
+		WPShoppObject::register( 'Product', ShoppPages()->baseslug() );
 	}
 
 	/**
@@ -267,15 +267,15 @@ class Shopp {
 	 **/
 	function widgets () {
 
-		register_widget('ShoppAccountWidget');
-		register_widget('ShoppCartWidget');
-		register_widget('ShoppCategoriesWidget');
-		register_widget('ShoppFacetedMenuWidget');
-		register_widget('ShoppProductWidget');
-		register_widget('ShoppSearchWidget');
-		register_widget('ShoppCategorySectionWidget');
-		register_widget('ShoppShoppersWidget');
-		register_widget('ShoppTagCloudWidget');
+		register_widget( 'ShoppAccountWidget' );
+		register_widget( 'ShoppCartWidget' );
+		register_widget( 'ShoppCategoriesWidget' );
+		register_widget( 'ShoppFacetedMenuWidget' );
+		register_widget( 'ShoppProductWidget' );
+		register_widget( 'ShoppSearchWidget' );
+		register_widget( 'ShoppCategorySectionWidget' );
+		register_widget( 'ShoppShoppersWidget' );
+		register_widget( 'ShoppTagCloudWidget' );
 
 	}
 
@@ -305,6 +305,8 @@ class Shopp {
  		// Image URL rewrite
  		$images = array( ShoppPages()->baseslug(), 'images', '(\d+)', "?\??(.*)$" );
  		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
+
+		// print_r($rules + $wp_rewrite_rules);
 
  		return $rules + $wp_rewrite_rules;
  	}

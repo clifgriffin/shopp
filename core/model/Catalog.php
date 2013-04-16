@@ -15,11 +15,9 @@
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  class Catalog {
-	static $table = "catalog";
 
 	public $categories = array();
 	public $outofstock = false;
-	public $type = false; 			// @deprecated
 
 	function __construct () {
 		$this->outofstock = (shopp_setting('outofstock_catalog') == "on");

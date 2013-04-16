@@ -42,7 +42,7 @@ class Login {
 				add_action('shopp_logout','wp_logout',1);
 				break;
 		}
-
+	
 		$this->process();
 
 	}

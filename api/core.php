@@ -24,10 +24,10 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param Product (optional) $Object the product object to set to the global context.
  * @return mixed if the global Product context isn't set, bool false will be returned, otherwise the global Product object will be returned
  **/
-function &ShoppProduct ( &$Object = false ) {
+function ShoppProduct ( $Object = false ) {
 	global $Shopp; $false = false;
-	if (empty($Shopp)) return $false;
-	if ($Object !== false) $Shopp->Product = $Object;
+	if ( empty($Shopp) ) return false;
+	if ( false !== $Object ) $Shopp->Product = $Object;
 	return $Shopp->Product;
 }
 
@@ -40,11 +40,10 @@ function &ShoppProduct ( &$Object = false ) {
  * @param Customer $Object (optional) the specified Customer object
  * @return Customer the current global customer object
  **/
-function &ShoppCustomer ( &$Object = false ) {
-	$Order = &ShoppOrder();
-	if ( $Object && is_a($Object, 'Customer') ) {
+function ShoppCustomer ( $Object = false ) {
+	$Order = ShoppOrder();
+	if ( $Object && is_a($Object, 'Customer') )
 		$Order->Customer = $Object;
-	}
 	return $Order->Customer;
 }
 
@@ -57,10 +56,10 @@ function &ShoppCustomer ( &$Object = false ) {
  * @param Collection (optional) $Object the Collection object to set to the global context.
  * @return mixed if the global Collection context isn't set, bool false will be returned, otherwise the global Collection object will be returned
  **/
-function &ShoppCollection ( &$Object = false ) {
-	global $Shopp; $false = false;
-	if (empty($Shopp)) return $false;
-	if ($Object !== false) $Shopp->Category = $Object;
+function ShoppCollection ( $Object = false ) {
+	global $Shopp;
+	if ( empty($Shopp) ) return false;
+	if ( false !== $Object ) $Shopp->Category = $Object;
 	return $Shopp->Category;
 }
 
@@ -73,12 +72,11 @@ function &ShoppCollection ( &$Object = false ) {
  * @param Catalog (optional) $Object the Catalog object to set to the global context.
  * @return mixed if the global Catalog context isn't set, bool false will be returned, otherwise the global Catalog object will be returned
  **/
-function &ShoppCatalog ( &$Object = false ) {
-	global $Shopp; $false = false;
-	if (empty($Shopp)) return $false;
-	if ($Object !== false) $Shopp->Catalog = $Object;
+function ShoppCatalog ( $Object = false ) {
+	global $Shopp;
+	if ( empty($Shopp) ) return false;
+	if ( false !== $Object ) $Shopp->Catalog = $Object;
 	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new Catalog();
-
 	return $Shopp->Catalog;
 }
 
@@ -91,7 +89,7 @@ function &ShoppCatalog ( &$Object = false ) {
  * @param Purchase (optional) $Object the Catalog object to set to the global context.
  * @return mixed if the global Purchase context isn't set, bool false will be returned, otherwise the global Purchase object will be returned
  **/
-function &ShoppPurchase ( &$Object = false ) {
+function ShoppPurchase ( $Object = false ) {
 	global $Shopp; $false = false;
 	if (empty($Shopp)) return $false;
 	if ($Object !== false) $Shopp->Purchase = $Object;
@@ -106,7 +104,7 @@ function &ShoppPurchase ( &$Object = false ) {
  *
  * @return Order
  **/
-function &ShoppOrder ( &$Object = false ) {
+function ShoppOrder ( $Object = false ) {
 	global $Shopp; $false = false;
 	if (empty($Shopp)) return $false;
 	if ($Object !== false) $Shopp->Order = $Object;
@@ -122,7 +120,7 @@ function &ShoppOrder ( &$Object = false ) {
  *
  * @return void Description...
  **/
-function &ShoppSettings () {
+function ShoppSettings () {
 	return Settings::instance();
 }
 
@@ -180,9 +178,8 @@ function shopp_register_page ( string $classname ) {
  * @return boolean True if the object is a ShoppError
  **/
 function is_shopperror ($e) {
-	return (get_class($e) == "ShoppError");
+	return ( get_class($e) == 'ShoppError' );
 }
-
 
 /**
  * Determines if the requested page is a catalog page
@@ -301,29 +298,26 @@ function is_shopp_search ( $wp_query = false ) {
  * @author Jonathan Davis, John Dillick
  * @since 1.0
  *
- * @param string $page (optional) System page name ID for the correct Storefront page @see Storefront::default_pages()
- * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @param string $page (optional) System page name ID for the correct Storefront page {@see ShoppPages class}
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the provided WP_Query object
  * @return boolean
  **/
 function is_shopp_page ( $page = false, $wp_query = false ) {
-	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	if (empty($wp_query->query_vars)) shopp_debug('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.');
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query = $wp_the_query; }
+	if ( empty($wp_query->query_vars) ) shopp_debug('Conditional is_shopp_page functions do not work before the WordPress query is run. Before then, they always return false.');
+
 	$is_shopp_page = false;
-	$pages = Storefront::pages_settings();
+	$Page = ShoppPages()->requested();
 
-	// Check for Shopp custom posttype/taxonomy requests
-	if ( 'catalog' == $page ||  ! $page ) {
-		if ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) ) $is_shopp_page = true;
+	if ( false === $page ) { // Check if the current request is a shopp page request
+		// Product and collection pages are considered a Shopp page request
+		if ( is_shopp_product($wp_query) || $wp_query->get('post_type') == Product::$posttype ) $is_shopp_page = true;
+		if ( is_shopp_collection($wp_query) ) $is_shopp_page = true;
+		if ( false !== $Page ) $is_shopp_page = true;
 
-		$slug = $wp_query->get('shopp_page');
-		if ( $slug && $pages['catalog']['slug'] == $slug ) $is_shopp_page = true;
-		if ( ! $is_shopp_page && ! $slug && Product::$posttype == $wp_query->get('post_type') ) $is_shopp_page = true;
+	} elseif ( false !== $Page ) { // Check if the given shopp page name is the current request
+		if ( $Page->name() == $page ) $is_shopp_page = true;
 	}
-
-	// Detect if the requested page is a Storefront page
-	$slugpage = $wp_query->get('shopp_page');
-	if ( ! $page && $slugpage ) $page = Storefront::slugpage($slugpage);
-	if ( isset( $pages[ $page ] ) && $pages[ $page ]['slug'] == $slugpage ) $is_shopp_page = true;
 
 	return $is_shopp_page;
 }
@@ -336,7 +330,7 @@ function is_shopp_page ( $page = false, $wp_query = false ) {
  * @since 1.2.1
  *
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
- * @param string $page (optional) System page name ID for the correct Storefront page @see Storefront::default_pages()
+ * @param string $page (optional) System page name ID for the correct Storefront page {@see ShoppPages class}
  * @return bool
  **/
 function is_shopp_query ( $wp_query = false, $page = false ) {
@@ -359,8 +353,7 @@ function is_shopp_query ( $wp_query = false, $page = false ) {
  * @return boolean
  **/
 function is_shopp_collection ( $wp_query = false ) {
-	if ( is_shopp_smart_collection($wp_query) || is_shopp_taxonomy($wp_query) || is_shopp_search($wp_query) ) return true;
-	return false;
+	return is_shopp_smart_collection($wp_query) || is_shopp_taxonomy($wp_query) || is_shopp_search($wp_query);
 }
 
 /**
@@ -403,7 +396,7 @@ function is_shopp_smart_collection ( $wp_query = false ) {
  * @return boolean
  **/
 function is_shopp_taxonomy ( $wp_query = false ) {
-	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query = $wp_the_query; }
 
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
 	foreach ( $taxonomies as $taxonomy ) {

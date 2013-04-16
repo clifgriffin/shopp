@@ -12,6 +12,9 @@
  * @since 1.0
  * @subpackage settings
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 class Settings extends DatabaseObject {
 
 	static $table = 'meta';			// Base settings table name
@@ -22,7 +25,7 @@ class Settings extends DatabaseObject {
 	private $loaded = false;		// Flag when settings are successfully loaded
 	private $bootup = false;		// Load process in progress
 
-	var $_table;					// Settings runtime table name
+	public $_table;					// Settings runtime table name
 
 	/**
 	 * Settings object constructor
@@ -34,7 +37,7 @@ class Settings extends DatabaseObject {
 	 * @since 1.0
 	 * @version 1.1
 	 **/
-	function __construct () {
+	public function __construct () {
 		$this->_table = $this->tablename(self::$table);
 		$this->bootup = ShoppLoader::is_activating();
 		if ($this->bootup) add_action('shopp_init', array($this, 'bootup_finished'));
@@ -48,8 +51,8 @@ class Settings extends DatabaseObject {
 		$this->bootup = false;
 	}
 
-	static function &instance () {
-		if (!self::$instance instanceof self)
+	static function instance () {
+		if ( ! self::$instance instanceof self )
 			self::$instance = new self;
 		return self::$instance;
 	}
@@ -62,7 +65,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	function available () {
+	public function available () {
 		return ($this->loaded && !empty($this->registry));
 	}
 
@@ -74,7 +77,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	function load ($name='',$arg2=false) {
+	public function load ($name='',$arg2=false) {
 		$Setting = $this->setting();
 
 		$where = array("parent=0","context='$Setting->context'","type='$Setting->type'");
@@ -94,7 +97,7 @@ class Settings extends DatabaseObject {
 		return ($this->loaded = true);
 	}
 
-	function register (&$records,$record) {
+	public function register (&$records,$record) {
 		$records[$record->name] = $this->restore($record->value);
 	}
 
@@ -108,7 +111,7 @@ class Settings extends DatabaseObject {
 	 * @param mixed $value Value of the setting
 	 * @return boolean
 	 **/
-	function add ($name, $value) {
+	public function add ($name, $value) {
 		$Setting = $this->setting();
 		$Setting->name = $name;
 		$Setting->value = DB::clean($value);
@@ -131,7 +134,7 @@ class Settings extends DatabaseObject {
 	 * @param mixed $value Value of the setting to update
 	 * @return boolean
 	 **/
-	function update ($name,$value) {
+	public function update ($name,$value) {
 
 		if ($this->get($name) == $value) return true;
 
@@ -161,13 +164,15 @@ class Settings extends DatabaseObject {
 	 * @param mixed $value Value of the setting
 	 * @return void
 	 **/
-	function save ($name=false,$value=false) {
-		if (empty($name)) return false;
+	public function save ($name=false,$value=false) {
+
+		if ( empty($name) ) return false;
+
 		// Update or Insert as needed
 		if ( is_null($this->get($name)) ) $this->add($name,$value);
 		else $this->update($name,$value);
-	}
 
+	}
 
 	/**
 	 * Save a setting to the database if it does not already exist
@@ -179,7 +184,7 @@ class Settings extends DatabaseObject {
 	 * @param mixed $value Value of the setting
 	 * @return void
 	 **/
-	function setup ($name,$value) {
+	public function setup ($name,$value) {
 		if (is_null($this->get($name))) $this->add($name,$value);
 	}
 
@@ -192,7 +197,7 @@ class Settings extends DatabaseObject {
 	 * @param string $name Name of the setting to remove
 	 * @return boolean
 	 **/
-	function delete ($name=false) {
+	public function delete ($name=false) {
 		$null = null;
 		if (empty($name)) return false;
 		$Setting = $this->setting();
@@ -210,27 +215,34 @@ class Settings extends DatabaseObject {
 	 * Get a specific setting from the registry
 	 *
 	 * If no setting is available in the registry, try
-	 * loading from the database.
+	 * loading it directly from the database.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
+	 * @param string $name The name of the setting
 	 * @return mixed The value of the setting
 	 **/
-	function &get ($name) {
-		$null = null; if ($this->bootup) return $null; // Prevent infinite loop of DOOM!
+	public function &get ( $name ) {
 
-		if (!$this->available()) $this->load();
+		$null = null;
 
-		if (array_key_exists($name,$this->registry)) return $this->registry[$name];
-		else $this->load($name);
+		if ( $this->bootup ) // Prevent infinite loop of DOOM!
+			return $null;
 
-		if (isset($this->registry[$name])) return $this->registry[$name];
+		if ( ! $this->available() )
+			$this->load();
 
-		// Return false and add an entry to the registry
-		// to avoid repeat database queries
-		$this->registry[$name] = $null;
-		return $this->registry[$name];
+		if ( ! array_key_exists($name,$this->registry) )
+			$this->load($name);
+
+		if ( ! isset($this->registry[$name]) )	// Return null and add an entry to the registry
+			$this->registry[$name] = $null;		// to avoid repeat database queries
+
+		$setting = apply_filters( 'shopp_get_setting', $this->registry[$name], $name);
+
+		return $setting;
+
 	}
 
 	/**
@@ -242,8 +254,8 @@ class Settings extends DatabaseObject {
 	 * @param string $value A value to restore if necessary
 	 * @return mixed
 	 **/
-	function restore ($value) {
-		if (!is_string($value)) return $value;
+	public function restore ($value) {
+		if ( ! is_string($value) ) return $value;
 		// Return unserialized, if serialized value
 		if ( is_serialized($value) ) {
 			$restored = unserialize($value);
@@ -261,7 +273,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return object
 	 **/
-	function setting () {
+	public function setting () {
 		$setting = new stdClass();
 		$setting->_datatypes = array(   'context' => 'string', 'type' => 'string',
 										'name' => 'string', 'value' => 'string',
@@ -283,13 +295,13 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function saveform () {
+	public function saveform () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
 			$this->save($setting,$value);
 	}
 
-	function legacy ($name) {
+	public function legacy ($name) {
 		$table = DatabaseObject::tablename('setting');
 		if ($result = DB::query("SELECT value FROM $table WHERE name='$name'",'object'))
 			return $result->value;
