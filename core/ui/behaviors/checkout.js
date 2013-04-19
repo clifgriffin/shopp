@@ -6,14 +6,14 @@
 
 jQuery(document).ready(function () {
 	var $ = jqnc(),login=false,
-		sameaddr = $('.sameaddress'),
+		/*sameaddr = $('.sameaddress'),*/
 		submitLogin = $('#submit-login-checkout'),
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),
 		guest = $('#guest-checkout'),
 		checkoutForm = $('#checkout.shopp'),
-		shipFields = $('#shipping-address-fields'),
-		billFields = $('#billing-address-fields'),
+		/*shipFields = $('#shipping-address-fields'),
+		billFields = $('#billing-address-fields'),*/
 		paymethods = $('#checkout.shopp [name=paymethod]'),
 		localeMenu = $('#billing-locale'),
 		billCard = $('#billing-card'),
@@ -98,7 +98,7 @@ jQuery(document).ready(function () {
 		}
 	});
 
-	$('#firstname,#lastname').change(function () {
+	/*$('#firstname,#lastname').change(function () {
 		$('#billing-name,#shipping-name').val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
 	});
 
@@ -121,7 +121,7 @@ jQuery(document).ready(function () {
 		if (sc.is(':visible')) sc.trigger('change.localemenu',[init]);
 		if (refocus) alt.find('input:first').focus();
 	}).trigger('change',[true])
-			.click(function () { $(this).change(); }); // For IE compatibility;
+			.click(function () { $(this).change(); }); // For IE compatibility;*/
 
 	guest.change(function(e) {
 		var passwords = checkoutForm.find('input.passwords'),labels = [];

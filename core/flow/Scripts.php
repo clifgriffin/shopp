@@ -207,7 +207,7 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('jquery-tmpl', '/ui/behaviors/jquery/jquery.tmpl.min.js', array('jquery'), '20110401');
 	$scripts->add_data('jquery-tmpl', 'group', 1);
 
-	$scripts->add('address', '/ui/behaviors/address.js', array('jquery','shopp'), '20100101');
+	$scripts->add('address', '/ui/behaviors/address.js', array('shopp'), '20100101');
 	$scripts->add_data('address', 'group', 1);
 
 	$scripts->add('cart', '/ui/behaviors/cart.js', array('jquery','shopp'), '20100101');
