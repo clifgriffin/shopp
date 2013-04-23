@@ -29,6 +29,7 @@ class Order {
 	public $Billing = false;			// The billing address
 	public $Cart = false;				// The shopping cart
 	public $Tax = false;				// The tax calculator
+	public $Shiprates = false;			// The shipping service rates calculator
 	public $data = array();			// Extra/custom order data
 	public $payoptions = array();		// List of payment method options
 	public $paycards = array();		// List of accepted PayCards
@@ -58,6 +59,7 @@ class Order {
 	 * @return void
 	 **/
 	function __construct () {
+
 		$this->Cart = new ShoppCart;
 
 		$this->Customer = new Customer;
@@ -69,6 +71,7 @@ class Order {
 		$this->Shipping->locate();
 
 		$this->Tax = new ShoppTax;
+		$this->Shiprates = new ShoppShiprates;
 
 		$this->created = null;
 
@@ -103,7 +106,7 @@ class Order {
 		$this->confirm = (shopp_setting('order_confirmation') == 'always');
 		$this->validated = false; // Reset the order validation flag
 
-		add_action('parse_request',array($this,'request'));
+		add_action('parse_request', array($this, 'request'));
 
 		add_action('shopp_process_shipmethod', array($this,'shipmethod'));
 		add_action('shopp_process_checkout', array($this,'checkout'));
@@ -521,10 +524,11 @@ class Order {
 			}
 		}
 
-		$freebie = $Cart->orderisfree();
-		$estimated = $Cart->Totals->total;
+		do_action('shopp_update_destination');
 
-		$Cart->changed(true);
+		$freebie = $Cart->orderisfree();
+		$estimated = $Cart->Totals->total('total');
+
 		$Cart->totals();
 
 		// Stop here if this is a shipping method update
@@ -1203,7 +1207,7 @@ class Order {
 
 		shopp_debug('Validating order data for processing');
 
-		if (empty($Cart->contents)) {
+		if ( 0 == $Cart->count() ) {
 			$valid = apply_filters('shopp_ordering_empty_cart',false);
 			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR));
 		}

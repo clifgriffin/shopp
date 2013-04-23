@@ -249,16 +249,17 @@ class ShoppAjax {
 	}
 
 	function shipping_costs () {
-		if (!isset($_GET['method'])) return;
-		$Order =& ShoppOrder();
+		if ( ! isset($_GET['method']) ) return;
+		$Order = ShoppOrder();
 
-		if ( $_GET['method'] == $Order->Shipping->method || ! isset($Order->Cart->shipping[$_GET['method']]) ) return;
+		$Shiprates = $Order->Shiprates;
+		$selected = $Shiprates->selected();
 
-		$Order->Shipping->method = $_GET['method'];
-		$Order->Shipping->option = $Order->Cart->shipping[$_GET['method']]->name;
-		$Order->Cart->retotal = true;
-		$Order->Cart->totals();
-		echo json_encode($Order->Cart->Totals);
+		if ( ! $selected || $_GET['method'] == $selected->slug ) return;
+
+		$Shiprates->selected( $_GET['method'] );
+
+		echo (string)$Order->Cart->totals();
 		exit();
 	}
 

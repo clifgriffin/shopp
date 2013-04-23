@@ -19,26 +19,22 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package 
+ * @package
  **/
 class ShoppCart extends ListFramework {
 
 	// properties
-	public $shipped = array();		// Reference list of shipped Items
+	public $shipped = array();		// Reference list of shippable Items
 	public $downloads = array();	// Reference list of digital Items
 	public $recurring = array();	// Reference list of recurring Items
 	public $discounts = array();	// List of promotional discounts applied
 	public $promocodes = array();	// List of promotional codes applied
-	public $shipping = array();		// List of shipping options
 	public $processing = array();	// Min-Max order processing timeframe
 	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
 	public $Added = false;			// Last Item added
 	public $Totals = false;			// Cart OrderTotals system
-
-	public $freeship = false;
-	public $showpostcode = false;	// Flag to show postcode field in shipping estimator
 
 	// Internal properties
 	public $changed = false;		// Flag when Cart updates and needs retotaled
@@ -81,13 +77,16 @@ class ShoppCart extends ListFramework {
 	 * @return void
 	 **/
 	public function listeners () {
-		add_action('parse_request',array($this,'totals'),99);
-		add_action('shopp_cart_request',array($this,'request'));
-		add_action('shopp_session_reset',array($this,'clear'));
+		add_action('shopp_cart_request', array($this, 'request') );
+		add_action('shopp_cart_updated', array($this, 'totals'), 100 );
+		add_action('shopp_session_reset', array($this, 'clear') );
+
+		add_action('shopp_cart_item_totals', array($this, 'processtime') );
+		add_action('shopp_init', array($this, 'tracking'));
 
 		// Recalculate cart based on logins (for customer type discounts)
-		add_action('shopp_login',array($this,'changed'));
-		add_action('shopp_logged_out',array($this,'retotal'));
+		add_action('shopp_login', array($this, 'total'));
+		add_action('shopp_logged_out', array($this, 'total'));
 	}
 
 	/**
@@ -129,17 +128,10 @@ class ShoppCart extends ListFramework {
 
 			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
 
-			if ( ! empty($_REQUEST['shipping']['country']) || ! empty($_REQUEST['shipping']['postcode']) )
-				$this->changed(true);
-
 		}
 
-		if ( ! empty($_REQUEST['promocode']) ) {
+		if ( ! empty($_REQUEST['promocode']) )
 			$this->promocode = esc_attr(trim($_REQUEST['promocode']));
-			$this->changed(true);
-		}
-
-
 
 		if ( ! isset($_REQUEST['cart']) ) $_REQUEST['cart'] = false;
 		if ( isset($_REQUEST['remove']) ) $_REQUEST['cart'] = 'remove';
@@ -210,7 +202,8 @@ class ShoppCart extends ListFramework {
 				}
 		}
 
-		do_action('shopp_cart_updated',$this);
+		do_action('shopp_cart_updated', $this);
+
 	}
 
 	/**
@@ -283,7 +276,6 @@ class ShoppCart extends ListFramework {
 		do_action_ref_array('shopp_cart_add_item',array($NewItem));
 		$this->Added = $NewItem;
 
-		$this->changed(true);
 		return true;
 	}
 
@@ -327,7 +319,6 @@ class ShoppCart extends ListFramework {
 			if ( $updated && ! $this->xitemstock($Item) )
 				$this->remove($item); // Remove items if no cross-item stock available
 
-			$this->changed(true);
 		}
 
 		return true;
@@ -421,7 +412,6 @@ class ShoppCart extends ListFramework {
 		$this->promocodes = array();
 		$this->discounts = array();
 		if (isset($this->promocode)) unset($this->promocode);
-		$this->changed(true);
 		return true;
 	}
 
@@ -448,7 +438,6 @@ class ShoppCart extends ListFramework {
 			if ($thisitem->product == $Product->id && $thisitem->price == $pricing) {
 				$this->update($id,$thisitem->quantity+$this->contents[$item]->quantity);
 				$this->remove($item);
-				return $this->changed(true);
 			}
 		}
 
@@ -461,7 +450,7 @@ class ShoppCart extends ListFramework {
 		$this->contents[$item] = new ShoppCartItem($Product,$pricing,$category,$data,$addons);
 		$this->contents[$item]->quantity($qty);
 
-		return $this->changed(true);
+		return true;
 	}
 
 	/**
@@ -481,115 +470,54 @@ class ShoppCart extends ListFramework {
 	}
 
 	/**
-	 * Determines if the cart has changed and needs retotaled
+	 * Determines the order processing timeframes
 	 *
-	 * Set the cart as changed by specifying a changed value or
-	 * get the current changed flag.
 	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param boolean $changed (optional) Used to set the changed flag
-	 * @return boolean
 	 **/
-	public function changed ($changed=false) {
-		if ($changed) $this->changed = true;
-		else return $this->changed;
+	public function processtime ( ShoppCartItem $Item ) {
+			$this->processing['min'] = ShippingFramework::daytimes($this->processing['min'],$Item->processing['min']);
+			$this->processing['max'] = ShippingFramework::daytimes($this->processing['max'],$Item->processing['max']);
+	}
+
+	public function tracking () {
+
+		global $Shopp;
+		$Order = ShoppOrder();
+
+		$ShippingAddress = $Order->Shipping;
+		$Shiprates = $Order->Shiprates;
+		$ShippingModules = $Shopp->Shipping;
+
+		// Tell Shiprates to track changes for this data...
+		$Shiprates->track('shipcountry', $ShippingAddress->country);
+		$Shiprates->track('shipstate', $ShippingAddress->Shipping->state);
+		$Shiprates->track('shippostcode', $ShippingAddress->Shipping->postcode);
+
+		$shipped = $this->shipped();
+		$Shiprates->track('items', $this->shipped );
+
+		$Shiprates->track('modules', $ShippingModules->active);
+		$Shiprates->track('postcodes', $ShippingModules->postcodes);
+		$Shiprates->track('realtime', $ShippingModules->realtime);
+
+		// Have Shiprates calculate item fees
+		add_action( 'shopp_cart_item_totals', array($this, 'shipitems') );
+
 	}
 
 	/**
-	 * Forces the cart to recalculate totals
+	 * Calculate shippable item fees
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.2.1
+	 * @since 1.3
 	 *
 	 * @return void
 	 **/
-	public function retotal () {
-		$this->retotal = true;
-		$this->totals();
-	}
+	public function shipitems ( ShoppCartItem $Item ) {
+		$Shiprates = ShoppOrder()->Shiprates;
 
-	/**
-	 * Calculates aggregated total amounts
-	 *
-	 * Iterates over the cart items in the contents of the cart
-	 * to calculate aggregated total amounts including the
-	 * subtotal, shipping, tax, discounts and grand total
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @return void
-	 **/
-	private function totals_deprecated () {
-		if (!($this->retotal || $this->changed())) return true;
-
-		$checksum = array();
-		$Totals = new CartTotals();
-		$this->Totals = &$Totals;
-
-		// Setup discount calculator
-		$Discounts = new CartDiscounts();
-
-		// Free shipping until costs are assessed
-		$this->freeshipping = true;
-
-		// Identify downloadable products
-		$this->downloads();
-
-		// If no items are shipped, free shipping is disabled
-		if (!$this->shipped()) $this->freeshipping = false;
-
-		foreach ($this->contents as $key => $Item) {
-			// Reinitialize item discount amounts
-			$Item->discount = 0;
-			$Item->retotal();
-
-			// Build item checksum strings
-			$checksum[] = $Item->quantity.':'.$Item->fingerprint();
-
-			$Totals->quantity += $Item->quantity;
-			$Totals->subtotal +=  $Item->total;
-
-
-			// Item does not have free shipping,
-			// so the cart shouldn't have free shipping
-			if (!$Item->freeshipping) $this->freeshipping = false;
-		}
-
-		$this->checksum = md5(join(',',$checksum));
-
-		// Calculate Shipping
-		$Shipping = new CartShipping();
-		if ($this->changed()) {
-			// Only fully recalculate shipping costs
-			// if the cart contents have changed
-			$Totals->shipping = $Shipping->calculate();
-
-			// Save the generated shipping options
-			$this->shipping = $Shipping->options();
-
-		} else $Totals->shipping = $Shipping->selected();
-
-		// Calculate discounts
-		$Totals->discount = $Discounts->calculate();
-		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
-
-		// Calculate taxes
-		$Tax = new CartTax();
-		$Totals->taxrate = $Tax->rate();
-		$Totals->tax = $Tax->calculate();
-
-		// Calculate final totals
-		$amounts = array($Totals->subtotal,$Totals->discount*-1,$Totals->shipping,$Totals->tax);
-		$amounts = array_map('roundprice',$amounts);
-		$Totals->total = array_sum($amounts);
-
-		do_action_ref_array('shopp_cart_retotal',array(&$this->Totals));
-		$this->changed = false;
-		$this->retotal = false;
-
+		$ShippableItem = new ShoppShippableItem($Item);
+		$Shiprates->itemfees($ShippableItem);
 	}
 
 	/**
@@ -598,30 +526,27 @@ class ShoppCart extends ListFramework {
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	public function totals () {
+
 		// Setup totals counter
 		if ( false === $this->Totals ) $this->Totals = new OrderTotals();
 
 		$Totals = $this->Totals;
 
-		$Discounts = new CartDiscounts();
+		do_action('shopp_cart_totals_init', $Totals);
 
-		// Free shipping until costs are assessed
-		$this->freeshipping = true;
+		$Discounts = new CartDiscounts();
+		$Shipping = ShoppOrder()->Shiprates;
 
 		// Identify downloadable products
 		$downloads = $this->downloads();
 		$shipped = $this->shipped();
 
-		// If no items are shipped, free shipping is disabled
-		if ( empty($shipped) ) $this->freeshipping = false;
-
+		do_action('shopp_cart_item_totals', $Item);
 
 		foreach ( $this as $id => $Item ) {
-
-			do_action('shopp_cart_item_totals',$Item);
 
 			$Totals->register( new OrderAmountCartItemQuantity($Item) );
 			$Totals->register( new OrderAmountCartItem($Item) );
@@ -629,19 +554,12 @@ class ShoppCart extends ListFramework {
 			foreach ( $Item->taxes as $taxid => $Tax )
 				$Totals->register( new OrderAmountItemTax( $Tax, $id ) );
 
-			if ( ! $Item->freeshipping) $this->freeshipping = false;
 		}
 
-		$Shipping = new CartShipping();
-		if ( $this->changed() ) {
-			// Only fully recalculate shipping costs
-			// if the cart contents have changed
-			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate()) ) );
+		$Shipping->free($shipfree);
+		$Shipping->calculate();
 
-			// Save the generated shipping options
-			$this->shipping = $Shipping->options();
-
-		} else $Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->selected()) ));
+		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
 
 		// @todo Clean up discount calculations
 		// Calculate discounts
@@ -649,6 +567,7 @@ class ShoppCart extends ListFramework {
 
 		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );
 
+		return $Totals;
 	}
 
 	/**
@@ -660,8 +579,8 @@ class ShoppCart extends ListFramework {
 	 * @return boolean True if the entire order is free
 	 **/
 	public function orderisfree() {
-		$status = ($this->count() > 0 && floatvalue($this->Totals->total) == 0);
-		return apply_filters('shopp_free_order',$status);
+		$status = ($this->count() > 0 && $this->Totals->total() == 0);
+		return apply_filters('shopp_free_order', $status);
 	}
 
 	/**
@@ -1013,8 +932,7 @@ class CartDiscounts {
 					if ($promo->target == "Cart") {
 						$discount = 0;
 						$promo->freeshipping = $this->Cart->Totals->shipping;
-						$this->Cart->freeshipping = true;
-						$this->Cart->Totals->shipping = 0;
+						$this->Cart->shipfree = true;
 					}
 					break;
 			}

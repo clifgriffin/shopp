@@ -173,10 +173,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	static function has_shipped ($result, $options, $O) { reset($O->shipped); return $O->shipped();	}
 
 	static function has_shipping_methods ($result, $options, $O) {
-		return apply_filters('shopp_shipping_hasestimates',
-							( shopp_setting_enabled('shipping') && !empty($O->shipping) ),
-							$O->shipping
-		);
+		return ShoppShippingThemeAPI::has_options($result, $options, $O);
 	}
 
 	static function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }

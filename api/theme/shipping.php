@@ -18,6 +18,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  * @author Jonathan Davis, John Dillick
  * @since 1.2
+ * @version 1.3
  *
  **/
 class ShoppShippingThemeAPI implements ShoppAPI {
@@ -49,54 +50,56 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	/**
 	 * _setobject - returns the global context object used in the shopp('cart') call
 	 *
-	 * @author John Dillick
+	 * @author John Dillick, Jonathan Davis
 	 * @since 1.2
+	 * @version 1.3
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
-		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Cart) && 'shipping' == strtolower($object) )
-			return $Object->Cart;
+		if ( is_object($Object) && is_a($Object, 'Order') && isset($Object->Shiprates) && 'shipping' == strtolower($object) )
+			return $Object->Shiprates;
 		else if ( strtolower($object) != 'shipping' ) return $Object; // not mine, do nothing
 
-		$Order =& ShoppOrder();
-		return $Order->Cart;
+		return ShoppOrder()->Shiprates;
 	}
 
-	static function has_options ($result, $options, $O) { reset($O->shipping); return apply_filters('shopp_shipping_hasestimates',!empty($O->shipping));  }
+	static function has_options ($result, $options, $O) {
+		$Shiprates = ShoppOrder()->Shiprates;
+		return apply_filters('shopp_shipping_hasestimates', $Shiprates->exist(), $Shiprates );
+	}
 
 	static function option_selector ($result, $options, $O) {
-		global $Shopp;
-		$method = current($O->shipping);
 
 		$checked = '';
-		if ((isset($Shopp->Order->Shipping->method) &&
-			$Shopp->Order->Shipping->method == $method->slug))
-				$checked = ' checked="checked"';
+		$selected = $O->selected();
+		$option = $O->current();
 
-		$result = '<input type="radio" name="shipmethod" value="'.esc_attr($method->slug).'" class="shopp shipmethod" '.$checked.' />';
+		if ( $selected->slug == $option->slug )
+			$checked = ' checked="checked"';
+
+		$result = '<input type="radio" name="shipmethod" value="' . esc_attr($option->slug) . '" class="shopp shipmethod" ' . $checked . ' />';
 		return $result;
 	}
 
 	static function option_selected ($result, $options, $O) {
-		global $Shopp;
-		$method = current($O->shipping);
-		return ((isset($Shopp->Order->Shipping->method) &&
-			$Shopp->Order->Shipping->method == $method->slug));
+		$option = $O->current();
+		$selected = $O->selected();
+		return ( $selected->slug == $option->slug );
 	}
 
 	static function option_slug ($result, $options, $O) {
-		$option = current($O->shipping);
+		$option = $O->current();
 		return $option->slug;
 	}
 
 	static function option_cost ($result, $options, $O) {
-		$option = current($O->shipping);
+		$option = $O->current();
 		return money($option->amount);
 	}
 
 	static function option_delivery ($result, $options, $O) {
-		$option = current($O->shipping);
-		if (!$option->delivery) return "";
+		$option = $O->current();
+		if ( ! $option->delivery ) return "";
 		return self::_delivery_format($option->delivery, $options);
 	}
 
@@ -118,10 +121,10 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 
 		$result = "";
 		for ( $i = 0; $i < count($estimates); $i++ ) {
-			list ( $interval, $p ) = sscanf($estimates[$i],'%d%s');
-			if (empty($interval)) $interval = 1;
-			if (empty($p)) $p = 'd';
-			if (!empty($result)) $result .= $dateseparator;
+			list ( $interval, $p ) = sscanf($estimates[$i], '%d%s');
+			if ( empty($interval) ) $interval = 1;
+			if ( empty($p) ) $p = 'd';
+			if ( ! empty($result) ) $result .= $dateseparator;
 			$result .= _d( $dateformat, current_time('timestamp') + $interval * $periods[$p] );
 		}
 		return $result;
@@ -129,6 +132,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 
 	static function option_menu ($result, $options, $O) {
 		$Order = ShoppOrder();
+		$Shiprates = $Order->Shiprates;
 
 		$defaults = array(
 			'difference' => true,
@@ -145,11 +149,10 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 		if ( ! empty($class) ) $classes = $class.' '.$classes;
 
 		$_ = array();
-		$selected_option = false;
-		if ( isset($Order->Shipping->method) ) $selected_option = $O->shipping[$Order->Shipping->method];
+		$selected_option = $Shiprates->selected();
 
 		$_[] = '<select name="shipmethod" class="'.$classes.'">';
-		foreach ( $O->shipping as $method ) {
+		foreach ( $O as $method ) {
 			$cost = money($method->amount);
 			$delivery = false;
 			if ( str_true($times) && ! empty($method->delivery) ) {
@@ -163,33 +166,34 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 
 			$selected = $selected_option && $selected_option->slug == $method->slug ?' selected="selected"' : false;
 
-			$_[] = '<option value="'.esc_attr($method->slug).'"'.$selected.'>'.$method->name.' ( '.$delivery.$cost.' )</option>';
+			$_[] = '<option value="' . esc_attr($method->slug) . '"' . $selected . '>' . $method->name . ' ( ' . $delivery.$cost . ' )</option>';
 		}
 		$_[] = '</select>';
 		return join("",$_);
 	}
 
 	static function option_name ($result, $options, $O) {
-		$option = current($O->shipping);
+		$option = $O->current();
 		return $option->name;
 	}
 
 	static function options ($result, $options, $O) {
-		if (!isset($O->sclooping)) $O->sclooping = false;
-		if (!$O->sclooping) {
-			reset($O->shipping);
-			$O->sclooping = true;
-		} else next($O->shipping);
+		if ( ! isset($O->_looping) ) {
+			$O->rewind();
+			$O->_looping = true;
+		} else $O->next();
 
-		if (current($O->shipping) !== false) return true;
+		if ( $O->valid() ) return true;
 		else {
-			$O->sclooping = false;
-			reset($O->shipping);
+			unset($O->_looping);
+			$O->rewind();
 			return false;
 		}
 	}
 
-	static function url ($result, $options, $O) { return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart'); }
+	static function url ($result, $options, $O) {
+		return is_shopp_page('checkout') ? shoppurl(false, 'confirm-order') : shoppurl(false, 'cart');
+	}
 
 	/**
 	 * Displays an update button for shipping method form if JavaScript is disabled
@@ -201,14 +205,14 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 **/
 	static function update_button ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
-		$stdclasses = "update-button hide-if-js";
+		$stdclasses = 'update-button hide-if-js';
 		$defaults = array(
 			'value' => __('Update Shipping','Shopp'),
 			'class' => ''
 		);
-		$options = array_merge($defaults,$options);
+		$options = array_merge($defaults, $options);
 		$options['class'] .= " $stdclasses";
-		return '<input type="submit" name="update-shipping"'.inputattrs($options,$submit_attrs).' />';
+		return '<input type="submit" name="update-shipping"' . inputattrs($options, $submit_attrs) . ' />';
 	}
 
 }
