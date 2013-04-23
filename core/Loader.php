@@ -521,6 +521,7 @@ ShoppLoader()->map(array(
     'shoppscripts' => '/flow/Scripts.php',
     'shoppsearchwidget' => '/ui/widgets/search.php',
     'shoppshopperswidget' => '/ui/widgets/shoppers.php',
+    'shoppshiprates' => '/model/Shiprates.php',
     'shopptax' => '/model/Tax.php',
 	'shopptaxableitem' => '/model/Tax.php',
     'shopptagcloudwidget' => '/ui/widgets/tagcloud.php',
