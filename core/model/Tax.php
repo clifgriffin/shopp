@@ -60,7 +60,7 @@ class ShoppTax {
 	 * @return void
 	 **/
 	public function item ( $Item ) {
-		$this->Item = new ShoppTaxableItem($Item);
+		return new ShoppTaxableItem($Item);
 	}
 
 	/**
@@ -121,9 +121,9 @@ class ShoppTax {
 	 * @param Object $Item A taxable item object
 	 * @return array The list of applicable tax rates as ShoppItemTax entries for a given item
 	 **/
-	public function rates ( $Item = null ) {
+	public function rates ( ShoppTaxableItem $Item = null ) {
 
-		if ( isset($Item) ) $this->item($Item);
+		if ( isset($Item) ) $this->Item = $Item;
 
 		$settings = $this->settings();
 
@@ -144,6 +144,7 @@ class ShoppTax {
 		}
 
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
+
 		return apply_filters( 'shopp_tax_rates', $rates );
 	}
 
