@@ -28,7 +28,7 @@ class Order {
 	public $Shipping = false;			// The shipping address
 	public $Billing = false;			// The billing address
 	public $Cart = false;				// The shopping cart
-	public $Tax = false;
+	public $Tax = false;				// The tax calculator
 	public $data = array();			// Extra/custom order data
 	public $payoptions = array();		// List of payment method options
 	public $paycards = array();		// List of accepted PayCards
@@ -109,13 +109,14 @@ class Order {
 		add_action('shopp_process_checkout', array($this,'checkout'));
 		add_action('shopp_confirm_order', array($this,'confirmed'));
 
-
 		// Order processing
 		add_action('shopp_process_order', array($this,'validate'),7);
 		add_action('shopp_process_order', array($this,'submit'),100);
 
 		add_action('shopp_process_free_order',array($this,'freebie'));
+
 		add_action('shopp_update_destination',array($this->Shipping,'locate'));
+		add_action('shopp_update_destination', array($this, 'taxaddress'));
 
 		add_action('shopp_purchase_order_event',array($this,'purchase'));
 		add_action('shopp_purchase_order_created',array($this,'invoice'));
@@ -396,6 +397,11 @@ class Order {
 
 		$this->Cart->retotal = true;
 		$this->Cart->totals();
+	}
+
+	function taxaddress () {
+		// Set the taxable address address
+		$this->Tax->address( $this->Billing, $this->Shipping, $this->Cart->shipped() );
 	}
 
 	/**

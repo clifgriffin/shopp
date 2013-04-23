@@ -618,8 +618,6 @@ class ShoppCart extends ListFramework {
 		// If no items are shipped, free shipping is disabled
 		if ( empty($shipped) ) $this->freeshipping = false;
 
-		// Set the taxable address address
-		ShoppOrder()->Tax->address( ShoppOrder()->Billing, ShoppOrder()->Shipping, ! empty($shipped)  );
 
 		foreach ( $this as $id => $Item ) {
 
