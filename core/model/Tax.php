@@ -223,7 +223,7 @@ class ShoppTax {
 	public function address ( BillingAddress $Billing, ShippingAddress $Shipping = null, $shipped = false ) {
 
 		$Address = $Billing;
-		if ( $shipped && null !== $Shipping && shopp_setting_enabled('tax_destination') ) // @todo add setting for "Apply tax to the shipping address"
+		if ( $shipped && null !== $Shipping || shopp_setting_enabled('tax_destination') ) // @todo add setting for "Apply tax to the shipping address"
 			$Address = $Shipping;
 
 		$country = $Address->country;
@@ -234,6 +234,7 @@ class ShoppTax {
 		if ( isset($Billing->locale) ) $locale = $Billing->locale;
 
 		$this->address = array_merge(apply_filters('shopp_taxable_address',compact('country','zone','locale')));
+
 		return $this->address;
 	}
 
