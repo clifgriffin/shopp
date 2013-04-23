@@ -1524,67 +1524,21 @@ class CartTax {
 
 } // END class CartTax
 
-/**
- * ShippingOption class
- *
- * A data structure for order shipping options
- *
- * @author Jonathan Davis
- * @since 1.1
- * @version 1.2
- * @package shopp
- * @subpackage cart
- **/
-class ShippingOption {
-
-	public $name;				// Name of the shipping option
-	public $slug;				// URL-safe name of the shipping option @since 1.2
-	public $amount;			// Amount (cost) of the shipping option
-	public $delivery;			// Estimated delivery of the shipping option
-	public $estimate;			// Include option in estimate
-	public $items = array();	// Item shipping rates for this shipping option
-
-	/**
-	 * Builds a shipping option from a configured/calculated
-	 * shipping rate array
-	 *
-	 * Example:
-	 * new ShippingOption(array(
-	 * 		'name' => 'Name of Shipping Rate Method',
-	 * 		'slug' => 'rate-method-slug',
-	 * 		'amount' => 0.99,
-	 * 		'delivery' => '1d-2d',
-	 * 		'items' => array(
-	 * 			0 => 0.99,
-	 * 			1 => 0.50
-	 * 		)
-	 * ));
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param array $rate The calculated shipping rate
-	 * @param boolean $estimate Flag to be included/excluded from estimates
-	 * @return void
-	 **/
-	public function __construct ($rate,$estimate=true) {
-
-		if (!isset($rate['slug'])) // Fire off an error if the slug is not provided
-			return ( ! new ShoppError('A slug (string) property is required in the rate parameter when constructing a new ShippingOption','shopp_dev_err',SHOPP_DEBUG_ERR) );
-
-		$this->name = $rate['name'];
-		$this->slug = $rate['slug'];
-		$this->amount = $rate['amount'];
-		$this->estimate = $estimate;
-		if (!empty($rate['delivery']))
-			$this->delivery = $rate['delivery'];
-		if (!empty($rate['items']))
-			$this->items = $rate['items'];
-	}
-
-} // END class ShippingOption
 
 if ( ! class_exists('Cart',false) ) {
 	class Cart extends ShoppCart {
+
+		/**
+		 * @deprecated Stubbed for backwards-compatibility
+		 **/
+		public function changed ( $changed = false ) {
+		}
+
+		/**
+		 * @deprecated Stubbed for backwards-compatibility
+		 **/
+		public function retotal () {
+		}
+
 	}
 }
