@@ -78,7 +78,9 @@
 							${errors}
 							<ul>${localrates}</ul>
 							<div class="upload">
-								<?php // @todo Add help icon to link to documentation ?>
+								<?php
+								// @todo Add help icon to link to documentation
+								?>
 								<h3><?php _e('Upload Local Tax Rates'); ?></h3>
 								<input type="hidden" name="MAX_FILE_SIZE" value="1048576" />
 								<input type="file" name="ratefile" class="hide-if-js" />
