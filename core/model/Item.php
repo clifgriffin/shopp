@@ -83,6 +83,11 @@ class ShoppCartItem {
 		if ( get_class($Product) == 'Purchased' ) $this->load_purchased($Product);
 		else $this->load($Product, $pricing, $category, $data, $addons);
 
+
+	}
+
+	public function __wakeup () {
+		add_action('shopp_cart_item_totals', array($this, 'totals'));
 	}
 
 	/**
@@ -236,8 +241,6 @@ class ShoppCartItem {
 
 		}
 
-		add_action('shopp_cart_item_total',array($this,'totals'));
-
 	}
 
 	public function load_purchased ( $Purchased ) {
@@ -338,7 +341,7 @@ class ShoppCartItem {
 		}
 
 		$this->qtydelta = $this->quantity-$current;
-		$this->totals();
+		if ( 0 != $this->qtydelta ) $this->totals();
 	}
 
 	/**
