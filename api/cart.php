@@ -86,7 +86,6 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
 	}
 
 	$added = $Order->Cart->add($quantity, $Product, $variant, false, $data);
-	$Order->Cart->changed(true);
 	$Order->Cart->totals();
 	return $added;
 }
@@ -114,7 +113,6 @@ function shopp_rmv_cart_item ( $item = false ) {
 		return false;
 	}
 	$remove = $Order->Cart->remove($item);
-	$Order->Cart->changed(true);
 	$Order->Cart->totals();
 	return $remove;
 }
@@ -217,7 +215,6 @@ function shopp_add_cart_promocode ($code = false) {
 
 	$Cart = ShoppOrder()->Cart;
 	$Cart->promocode = esc_attr($code);
-	$Cart->changed(true);
 	$Cart->totals();
 }
 
