@@ -42,7 +42,8 @@ class ListFramework implements Iterator {
 	}
 
 	public function populate ( array $records ) {
-		$this->_list = $records;
+		$this->_list = array_merge($this->_list,$records);
+	}
 
 	public function sort ( callable $callback = null ) {
 		if ( is_null($callback) ) ksort($this->_list);
