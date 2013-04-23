@@ -43,6 +43,10 @@ class ListFramework implements Iterator {
 
 	public function populate ( array $records ) {
 		$this->_list = $records;
+
+	public function sort ( callable $callback = null ) {
+		if ( is_null($callback) ) ksort($this->_list);
+		uksort($this->_list,$callback);
 	}
 
 	public function update ( string $key, $entry ) {
