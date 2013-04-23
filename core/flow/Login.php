@@ -43,8 +43,7 @@ class Login {
 				break;
 		}
 	
-		$this->process();
-
+		add_action('shopp_init', array($this, 'process'));
 	}
 
 	/**
