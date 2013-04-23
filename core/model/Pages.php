@@ -222,7 +222,7 @@ class ShoppPage {
 		// Setup labels
 		$labels = new stdClass;
 		$labels->name = $this->title();
-		$this->labels = $labels;
+		$stub->labels = $labels;
 
 		$wp_query->queried_object = $stub;
 		$wp_query->posts = array($stub);
