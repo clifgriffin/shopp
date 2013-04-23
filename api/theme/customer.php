@@ -161,39 +161,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function billing_state ($result, $options, $O) {
-		$base = shopp_setting('base_operations');
-		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
-
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return ShoppOrder()->Billing->state;
-		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty(ShoppOrder()->Billing->state)) {
-			$options['selected'] = ShoppOrder()->Billing->state;
-			$options['value'] = ShoppOrder()->Billing->state;
-		}
-		if (empty($options['type'])) $options['type'] = "menu";
-		$countries = Lookup::countries();
-
-		$output = false;
-		$country = $base['country'];
-		if (!empty(ShoppOrder()->Billing->country))
-			$country = ShoppOrder()->Billing->country;
-		if (!array_key_exists($country,$countries)) $country = key($countries);
-
-		$regions = Lookup::country_zones();
-		$states = $regions[$country];
-		if (is_array($states) && $options['type'] == "menu") {
-			$label = (!empty($options['label']))?$options['label']:'';
-			$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
-			$output .= '<option value="" selected="selected">'.$label.'</option>';
-		 	$output .= menuoptions($states,$options['selected'],true);
-			$output .= '</select>';
-		} else if ($options['type'] == "menu") {
-			$options['disabled'] = 'disabled';
-			$options['class'] = ($options['class']?" ":null).'unavailable';
-			$label = (!empty($options['label']))?$options['label']:'';
-			$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';
-		} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
-		return $output;
+		return ShoppCheckoutThemeAPI::billing_state($result, $options, $O);
 	}
 
 	static function billing_xaddress ($result, $options, $O) {
