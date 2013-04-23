@@ -382,7 +382,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 		if (!empty($label)) return $label;
 
-		return $O->Totals->total('tax');
+		return (float)$O->Totals->total('tax');
 
 	 }
 
