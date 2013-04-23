@@ -6,14 +6,12 @@
 
 jQuery(document).ready(function () {
 	var $ = jqnc(),login=false,
-		/*sameaddr = $('.sameaddress'),*/
+		sameaddr = $('.sameaddress'),
 		submitLogin = $('#submit-login-checkout'),
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),
 		guest = $('#guest-checkout'),
 		checkoutForm = $('#checkout.shopp'),
-		/*shipFields = $('#shipping-address-fields'),
-		billFields = $('#billing-address-fields'),*/
 		paymethods = $('#checkout.shopp [name=paymethod]'),
 		localeMenu = $('#billing-locale'),
 		billCard = $('#billing-card'),
