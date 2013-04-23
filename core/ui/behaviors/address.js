@@ -62,10 +62,6 @@ jQuery(document).ready(function($) {
 			prime = 'billing' == sameaddr.val() ? shipFields : billFields,
 			alt   = 'shipping' == sameaddr.val() ? shipFields : billFields;
 
-		console.log(sameaddr.val());
-		console.log(prime);
-		console.log(alt);
-
 		if (sameaddr.is(':checked')) {
 			prime.removeClass('half');
 			alt.hide().find('.required').setDisabled(true);
