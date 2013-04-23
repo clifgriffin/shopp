@@ -303,8 +303,6 @@ abstract class ShippingFramework {
 		$this->base = shopp_setting('base_operations');
 		$this->units = shopp_setting('weight_unit');
 
-		if ($this->postcode) $Order->Cart->showpostcode = true;
-
 		if ( $this->xml && ! class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
 		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
