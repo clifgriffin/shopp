@@ -41,6 +41,14 @@
 
 	};
 
+	$.fn.setDisabled = function (setting) {
+		$(this).each(function () {
+			if (setting) $(this).attr('disabled',true).addClass('disabled');
+			else $(this).attr('disabled',false).removeClass('disabled');
+		});
+		return $(this);
+	};
+
 })(jQuery);
 
 
@@ -51,7 +59,7 @@ jQuery(document).ready(function($) {
 
 	// Update name fields
 	$('#firstname,#lastname').change(function () {
-		$('#billing-name,#shipping-name').val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
+		$('#billing-name,#shipping-name').val(String($('#firstname').val()+" "+$('#lastname').val()).trim());
 	});
 
 	// Toggle same shipping address
