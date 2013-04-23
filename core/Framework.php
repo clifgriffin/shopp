@@ -57,7 +57,7 @@ class ListFramework implements Iterator {
 	}
 
 	public function clear () {
-		$this->list = array();
+		$this->_list = array();
 		$this->_added = null;
 	}
 
@@ -102,6 +102,10 @@ class ListFramework implements Iterator {
 
 	public function valid () {
 		return null !== $this->key();
+	}
+
+	public function __toString () {
+		return json_encode($this->_list);
 	}
 
 }

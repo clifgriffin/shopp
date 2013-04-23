@@ -186,6 +186,14 @@ class OrderTotals extends ListFramework {
 		return ( $check != $this->checks[$register] );
 	}
 
+	public function __toString () {
+		$data = array();
+		foreach ( $this as $id => $entry )
+			$data[$id] = (string)$entry;
+
+		return json_encode($data);
+	}
+
 }
 
 
@@ -331,7 +339,7 @@ abstract class OrderTotalAmount {
 	 **/
 	public function id () {
 		// Generate a quick checksum if no ID was given
-		if ( empty($this->id) ) $this->id = hash('crc32b',serialize($this));
+		if ( empty($this->id) ) $this->id = hash('crc32b', serialize($this));
 		return $this->id;
 	}
 
@@ -400,7 +408,11 @@ abstract class OrderTotalAmount {
 	 **/
 	public function remove () {
 		$OrderTotals = $this->parent;
-		$OrderTotals->takeoff($this->register,$this->id);
+		$OrderTotals->takeoff($this->register, $this->id);
+	}
+
+	public function __toString () {
+		return (string)$this->amount();
 	}
 
 }
