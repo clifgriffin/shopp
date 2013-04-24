@@ -50,7 +50,10 @@
 					</div>
 				</div>
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
-				<?php the_editor($Product->description,'content','Description', false); ?>
+				<?php
+					$media_buttons = ( defined('SHOPP_EDITOR_MEDIA_BTNS') && SHOPP_EDITOR_MEDIA_BTNS );
+					wp_editor($Product->description, 'content', array( 'media_buttons' => $media_buttons ));
+				?>
 				</div>
 			<?php
 			do_meta_boxes(get_current_screen()->id, 'normal', $Product);
