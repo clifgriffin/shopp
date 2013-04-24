@@ -103,6 +103,7 @@ class Shopp {
 		add_filter('query_vars', array($this,'queryvars'));
 
 		// Theme integration
+		add_action('shopp_init', array($this, 'theme_functions'));
 		add_action('widgets_init', array($this, 'widgets'));
 
 		// Plugin management
@@ -277,6 +278,17 @@ class Shopp {
 		register_widget( 'ShoppShoppersWidget' );
 		register_widget( 'ShoppTagCloudWidget' );
 
+	}
+
+	/**
+	 * If theme content templates are enabled, checks for and includes a functions.php file (if present).
+	 * This allows developers to add Shopp-specific presentation logic with the added convenience of knowing
+	 * that shopp_init has run.
+	 */
+	public function theme_functions () {
+		if (shopp_setting('theme_templates') !== 'on') return;
+		$functions = locate_shopp_template(array('functions.php'));
+		if (!empty($functions)) include $functions;
 	}
 
 	/**
