@@ -11,6 +11,8 @@
  * @subpackage gateways
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 /**
  * GatewayModule interface
  *
@@ -342,27 +344,6 @@ abstract class GatewayFramework {
 			'txnid' => '',
 			'gateway' => $this->module
 		));
-	}
-
-	function legacysale ($Event) {
-		$Order = ShoppOrder();
-		if (empty($Order->txnid)) return new ShoppError(sprintf('Order failure. %s did not provide a transaction ID.',$Order->processor()),'shopp_order_transaction',SHOPP_DEBUG_ERR);
-
-		$OrderTotals = $Order->Cart->Totals;
-		$Paymethod = $Order->paymethod();
-		$Billing = $Order->Billing;
-
-		shopp_add_order_event($Event->order,'authed',array(
-			'txnid' => $Order->txnid,
-			'amount' => (float)$OrderTotals->total,
-			'fees' => (float)$Order->fees,
-			'gateway' => $Paymethod->processor,
-			'paymethod' => $Paymethod->label,
-			'paytype' => $Billing->cardtype,
-			'payid' => $Billing->card,
-			'captured' => ('sale' == $Event->name)
-		));
-
 	}
 
 	/**
