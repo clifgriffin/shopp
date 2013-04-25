@@ -182,32 +182,33 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	static function billing_card_type ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $O->Billing->cardtype;
-		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
-		if (!isset($options['selected'])) $options['selected'] = false;
-		if (!empty($O->Billing->cardtype))
+		if ( ! isset($options['mode']) ) $options['mode'] = "input";
+		if ( 'value' == $options['mode']) return $O->Billing->cardtype;
+		$options['class'] = isset($options['class']) ? $options['class'] . ' paycard' : 'paycard';
+		if ( ! isset($options['selected']) ) $options['selected'] = false;
+		if ( ! empty($O->Billing->cardtype) )
 			$options['selected'] = $O->Billing->cardtype;
 
 		$cards = array();
-		foreach ($O->paycards as $paycard) {
+		$accepted = $O->Payments->accepted();
+		foreach ( $accepted as $paycard ) {
 			// Convert full card type names to card type symbols
-			if ($options['selected'] == $paycard->name) $options['selected'] = $paycard->symbol;
+			if ( $options['selected'] == $paycard->name ) $options['selected'] = $paycard->symbol;
 			$cards[$paycard->symbol] = $paycard->name;
 		}
 
-		$label = (!empty($options['label']))?$options['label']:'';
-		$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
-		$output .= '<option value="">'.$label.'</option>';
-	 	$output .= menuoptions($cards,$options['selected'],true);
+		$label = ( ! empty($options['label']) ) ? $options['label'] : '';
+		$output = '<select name="billing[cardtype]" id="billing-cardtype" ' . inputattrs($options, $select_attrs) . '>';
+		$output .= '<option value="">' . $label . '</option>';
+	 	$output .= menuoptions($cards,$options['selected'], true);
 		$output .= '</select>';
 
 		$js = array();
 		$js[] = "var paycards = {};";
-		foreach ($O->paycards as $handle => $paycard) {
-			$js[] = "paycards['".$handle."'] = ".json_encode($paycard).";";
+		foreach ($accepted as $slug => $paycard) {
+			$js[] = "paycards['" . $slug . "'] = " . json_encode($paycard) . ";";
 		}
-		add_storefrontjs(join("",$js), true);
+		add_storefrontjs(join("", $js), true);
 
 		return $output;
 	}
@@ -475,7 +476,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$return = '<a href="'.shoppurl(false,'checkout',$O->security()).'"'.inputattrs($options,array('class')).'>'.
 						$options['errorlabel'].'</a>';
 
-		if (!$O->validated) $markup = $return;
+		if ( ! $O->isvalid() ) $markup = $return;
 		else $markup = $button;
 		return apply_filters('shopp_checkout_confirm_button',$markup,$options,$submit_attrs);
 	}
@@ -580,6 +581,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function checkout_function ($result, $options, $O) {
+		$Payments = $O->Payments;
 		$defaults = array(
 			'updating' => '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />'
 		);
@@ -588,18 +590,18 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$regions = Lookup::country_zones();
 		$base = shopp_setting('base_operations');
 
-		$js = "var regions=".json_encode($regions).",".
-				  "c_upd='".$updating."',".
-				  "d_pm='".sanitize_title_with_dashes($O->paymethod)."',".
+		$js = "var regions=" . json_encode($regions) . "," .
+				  "c_upd='" . $updating . "'," .
+				  "d_pm='" . $Payments->selected()->slug . "'," .
 				  "pm_cards={};";
 
-		foreach ($O->payoptions as $handle => $option) {
+		foreach ($Payments as $slug => $option) {
 			if (empty($option->cards)) continue;
-			$js .= "pm_cards['".$handle."'] = ".json_encode($option->cards).";";
+			$js .= "pm_cards['" . $slug . "'] = " . json_encode($option->cards) . ";";
 		}
 		add_storefrontjs($js,true);
 
-		if (!empty($options['value'])) $value = $options['value'];
+		if ( ! empty($options['value']) ) $value = $options['value'];
 		else $value = 'process';
 		$output = '
 <script type="text/javascript">
@@ -610,8 +612,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 <div><input id="shopp-checkout-function" type="hidden" name="checkout" value="'.$value.'" /></div>
 		';
 
-		if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
-		else $output = apply_filters('shopp_checkout_form',$output);
+		if ( 'confirmed' == $value ) $output = apply_filters('shopp_confirm_form', $output);
+		else $output = apply_filters('shopp_checkout_form', $output);
 		return $output;
 	}
 
@@ -865,12 +867,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$payoptions = array_diff($payoptions,$excludes);
 		$paymethod = current($payoptions);
 
-		if ($default !== false && !isset($O->_paymethod_selected)) {
+		if ($default !== false && ! $O->Payments->userset() ) {
 			$default = sanitize_title_with_dashes($default);
 			if (in_array($default,$payoptions)) $paymethod = $default;
 		}
 
-		if ( ( ! isset($O->_paymethod_selected) || ! $O->_paymethod_selected ) && $O->paymethod != $paymethod ) {
+		if ( ! $O->Payments->userset() && $O->paymethod != $paymethod ) {
 			$O->paymethod = $paymethod;
 			$processor = $O->payoptions[$O->paymethod]->processor;
 			if (!empty($processor)) $O->processor($processor);

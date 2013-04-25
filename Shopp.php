@@ -134,7 +134,7 @@ class Shopp {
 		$this->bootstrapmode = false;
 		$Shopping = ShoppShopping();
 
-		$this->Order = ShoppingObject::__new('Order');
+		$this->Order = new ShoppOrder();
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
