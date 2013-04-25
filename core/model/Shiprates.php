@@ -23,8 +23,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppShiprates extends ListFramework {
 
-	// pri $services = array();		// The generated shipping method options
-
 	private $selected = false;		// The currently selected shipping method
 	private $fees = 0;				// Merchant shipping fees
 	private $track = array();		// modules register properties for the change checksum hash
@@ -33,6 +31,21 @@ class ShoppShiprates extends ListFramework {
 	private $free = false;			// Free shipping
 	private $realtime = false;		// Flag for when realtime shipping systems are enabled
 
+	/**
+	 * Determines if the shipping system is disabled
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public function disabled () {
+
+		// If shipping is disabled
+		if ( ! shopp_setting_enabled('shipping') ) return true;
+
+		return false;
+	}
 
 	/**
 	 * Returns the currently selected shiprate service
@@ -95,6 +108,10 @@ class ShoppShiprates extends ListFramework {
 		if ( isset($free) )
 			$this->free = $free;
 		return $this->free;
+	}
+
+	public function realtime () {
+		return $this->realtime;
 	}
 
 	/**
@@ -251,25 +268,10 @@ class ShoppShiprates extends ListFramework {
 	 * @return boolean True if the current request is the same as the prior request
 	 **/
 	private function requested () {
-		$request = hash('crc32b', serialize($this->track));
+		if ( is_string($this->track) ) $request = $this->track;
+		else $request = hash('crc32b', serialize($this->track));
 		if ( $this->request == $request ) return true;
 		$this->request = $request;
-		return false;
-	}
-
-	/**
-	 * Determines if the shipping system is disabled
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return void Description...
-	 **/
-	private function disabled () {
-
-		// If shipping is disabled
-		if ( ! shopp_setting_enabled('shipping') ) return true;
-
 		return false;
 	}
 

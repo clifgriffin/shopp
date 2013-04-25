@@ -326,7 +326,7 @@ class ShoppCartItem {
 		}
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
-		$this->quantity = $qty;
+		$this->quantity = (int)$qty;
 
 		if ( ! $this->instock($qty) ) {
 			$levels = array($this->option->stock);
@@ -841,9 +841,9 @@ class ShoppCartItem {
 	   			$taxable = array_sum($_);
 			}
 
-			$this->taxes = $Tax->rates($this);
-			$this->unittax = $Tax->calculate($taxable,$this->taxes);
-			$this->tax = $Tax->total($this->quantity,$this->taxes);
+			$this->taxes = $Tax->rates( $Tax->item($this) );
+			$this->unittax = $Tax->calculate($taxable, $this->taxes);
+			$this->tax = $Tax->total((int)$this->quantity, $this->taxes);
 
 			// echo "Taxable: $taxable\n";
 			// print_r($this->taxes);

@@ -297,7 +297,7 @@ class ShoppTax {
 	 * @param array $rates the list of applicable ShoppItemTax entries
 	 * @return float $total
 	 **/
-	public function total ( int $quantity, array &$taxes ) {
+	public function total ( integer $quantity, array &$taxes ) {
 
 		$total = 0;
 		foreach ( $taxes as $label => &$taxrate ) {

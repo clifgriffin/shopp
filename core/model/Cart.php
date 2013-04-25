@@ -29,7 +29,9 @@ class ShoppCart extends ListFramework {
 	public $recurring = array();	// Reference list of recurring Items
 	public $discounts = array();	// List of promotional discounts applied
 	public $promocodes = array();	// List of promotional codes applied
-	public $processing = array();	// Min-Max order processing timeframe
+	public $processing = array(		// Min-Max order processing timeframe
+		'min' => 0, 'max' => 0
+	);
 	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
@@ -81,7 +83,7 @@ class ShoppCart extends ListFramework {
 		add_action('shopp_cart_updated', array($this, 'totals'), 100 );
 		add_action('shopp_session_reset', array($this, 'clear') );
 
-		add_action('shopp_cart_item_totals', array($this, 'processtime') );
+		add_action('shopp_cart_item_retotal', array($this, 'processtime') );
 		add_action('shopp_init', array($this, 'tracking'));
 
 		// Recalculate cart based on logins (for customer type discounts)
@@ -359,12 +361,12 @@ class ShoppCart extends ListFramework {
 	 * @param int|CartItem $item The index of an item in the cart or a cart Item
 	 * @return boolean
 	 **/
-	public function xitemstock ( Item $Item ) {
+	public function xitemstock ( ShoppCartItem $Item ) {
 		if ( ! shopp_setting_enabled('inventory') ) return true;
 
 		// Build a cross-product map of the total quantity of ordered products to known stock levels
 		$order = array();
-		foreach ($this->contents as $index => $cartitem) {
+		foreach ($this as $index => $cartitem) {
 			if ( ! $cartitem->inventory ) continue;
 
 			if ( isset($order[$cartitem->priceline]) ) $ordered = $order[$cartitem->priceline];
@@ -475,7 +477,11 @@ class ShoppCart extends ListFramework {
 	 *
 	 **/
 	public function processtime ( ShoppCartItem $Item ) {
+
+		if ( isset($Item->processing['min']) )
 			$this->processing['min'] = ShippingFramework::daytimes($this->processing['min'],$Item->processing['min']);
+
+		if ( isset($Item->processing['max']) )
 			$this->processing['max'] = ShippingFramework::daytimes($this->processing['max'],$Item->processing['max']);
 	}
 
@@ -501,7 +507,7 @@ class ShoppCart extends ListFramework {
 		$Shiprates->track('realtime', $ShippingModules->realtime);
 
 		// Have Shiprates calculate item fees
-		add_action( 'shopp_cart_item_totals', array($this, 'shipitems') );
+		add_action( 'shopp_cart_item_retotal', array($this, 'shipitems') );
 
 	}
 
@@ -544,7 +550,7 @@ class ShoppCart extends ListFramework {
 		$downloads = $this->downloads();
 		$shipped = $this->shipped();
 
-		do_action('shopp_cart_item_totals', $Item);
+		do_action('shopp_cart_item_totals');
 
 		foreach ( $this as $id => $Item ) {
 
@@ -556,7 +562,8 @@ class ShoppCart extends ListFramework {
 
 		}
 
-		$Shipping->free($shipfree);
+		// @todo handle free shipping??
+		// $Shipping->free($shipfree);
 		$Shipping->calculate();
 
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );

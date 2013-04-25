@@ -1989,6 +1989,7 @@ class ShippingPackage implements ShippingPackageInterface {
 } // end class ShippingPackage
 
 class ShippingPackageItem {
+
 	public $index = false;	// Item index in Cart
 	public $fingerprint; 	// Item fingerprint
 	public $quantity;		// Item quantity

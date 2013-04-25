@@ -186,6 +186,10 @@ class OrderTotals extends ListFramework {
 		return ( $check != $this->checks[$register] );
 	}
 
+	public function data () {
+		return json_decode((string)$this);
+	}
+
 	public function __toString () {
 		$data = array();
 		foreach ( $this as $id => $entry )
