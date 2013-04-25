@@ -420,7 +420,8 @@ function is_shopp_product ( $wp_query = false ) {
 	return (bool) $product;
 }
 
-function shopp_add_error ( string $message, integer $level ) {
+function shopp_add_error ( string $message, integer $level = null ) {
+	if ( is_null($level) ) $level = SHOPP_ERR;
 	return new ShoppError( $message, false, $level );
 }
 
