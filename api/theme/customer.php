@@ -158,7 +158,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function billing_state ($result, $options, $O) {
-		return ShoppCheckoutThemeAPI::billing_state($result,$options,ShoppOrder());
+		return ShoppCheckoutThemeAPI::billing_state($result, $options, $O);
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
@@ -499,6 +499,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	static function registration_form ($result, $options, $O) {
 		$regions = Lookup::country_zones();
 		add_storefrontjs("var regions = ".json_encode($regions).";",true);
+		shopp_enqueue_script('address');
 		return $_SERVER['REQUEST_URI'];
 	}
 
@@ -514,8 +515,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$label = __("Same shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		$checked = ' checked="checked"';
-		if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
-		$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+		if (isset($options['checked']) && !str_true($options['checked'])) $checked = '';
+		$class = trim($options['class']).' sameaddress ';
+		$output = '<label for="same-shipping"><input type="checkbox" name="sameaddress" value="shipping" id="same-address-shipping" class="'.$class.'" '.$checked.' /> '.$label.'</label>';
 		return $output;
 	}
 

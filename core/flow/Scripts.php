@@ -205,7 +205,10 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('calendar', '/ui/behaviors/calendar.js', array('jquery','shopp'), '20100101');
 	$scripts->add_data('calendar', 'group', 1);
 
-	$scripts->add('checkout', '/ui/behaviors/checkout.js', array('jquery','shopp'), '20100101');
+	$scripts->add('checkout', '/ui/behaviors/checkout.js', array('jquery', 'shopp'), '20100101');
+	$scripts->add_data('checkout', 'group', 1);
+
+	$scripts->add('address', '/ui/behaviors/address.js', array('shopp'), '20100101');
 	$scripts->add_data('checkout', 'group', 1);
 
 	$scripts->add('colorbox', '/ui/behaviors/colorbox.js', array('jquery'), '20100101');
