@@ -1,8 +1,9 @@
 	<div class="wrap shopp">
-		<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 		<div class="icon32"></div>
 		<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
+
+		<?php do_action('shopp_admin_notice'); ?>
 
 		<div id="ajax-response"></div>
 		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',admin_url('admin.php')); ?>" method="post">
@@ -135,7 +136,7 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
 			"Customer type":{"logic":["boolean"],"value":"text","source":"shopp_customer_types"},
-			"Ship-to country":{"logic":["boolean"],"value":"text","source":"shopp_target_markets"},
+			"Ship-to country":{"logic":["boolean"],"value":"text","source":"shopp_target_markets","suggest":"alt"},
 			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 			"Promo code":{"logic":["boolean"],"value":"text"}
 		},
@@ -237,9 +238,10 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 				}
 			} else operation.hide();
 
+			if (!c['suggest']) c['suggest'] = 'text';
 			valuefield(c['value']).unbind('keydown').unbind('keypress').suggest(
 				suggurl+'&action=shopp_suggestions&s='+c['source'],
-				{ delay:500, minchars:2, format:'json' }
+				{ delay:500, minchars:2, format:'json', value:c['suggest'] }
 			);
 
 		}).change();

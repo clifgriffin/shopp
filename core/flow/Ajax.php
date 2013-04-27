@@ -241,9 +241,10 @@ class AjaxFlow {
 		if (!isset($_GET['method'])) return;
 		$Order =& ShoppOrder();
 
-		if ($_GET['method'] == $Order->Shipping->method) return;
+		if ( $_GET['method'] == $Order->Shipping->method || ! isset($Order->Cart->shipping[$_GET['method']]) ) return;
 
 		$Order->Shipping->method = $_GET['method'];
+		$Order->Shipping->option = $Order->Cart->shipping[$_GET['method']]->name;
 		$Order->Cart->retotal = true;
 		$Order->Cart->totals();
 		echo json_encode($Order->Cart->Totals);
@@ -285,8 +286,7 @@ class AjaxFlow {
 		$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
 		if (empty($total->products)) die('-1');
 
-		echo str_repeat(' ',1024);
-		echo '<script type="text/javascript">var indexProgress = 0;</script>'."\n";
+		echo str_pad('<html><body><script type="text/javascript">var indexProgress = 0;</script>'."\n",2048,' ');
 		@ob_flush();
 		@flush();
 		set_time_limit(0); // Prevent timeouts
@@ -297,11 +297,14 @@ class AjaxFlow {
 				$Indexer = new IndexProduct($id);
 				$Indexer->index();
 				$indexed++;
-				echo '<script type="text/javascript">indexProgress = '.$indexed/(int)$total->products.';</script>'."\n";
-				@ob_flush();
-				@flush();
+				echo str_pad('<script type="text/javascript">indexProgress = '.$indexed/(int)$total->products.';</script>'."\n",2048,' ');
+				if ( ob_get_length() ) {
+					@ob_flush();
+					@flush();
+				}
 			}
-			@ob_end_flush();
+			echo str_pad('</body><html>'."\n",2048,' ');
+			if ( ob_get_length() ) @ob_end_flush();
 		}
 		exit();
 	}

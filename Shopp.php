@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.2
+Version: 1.2.5
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -27,7 +27,7 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2');
+	define('SHOPP_VERSION','1.2.5');
 if (!defined('SHOPP_REVISION'))
 	define('SHOPP_REVISION','$Rev$');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
@@ -207,9 +207,13 @@ class Shopp {
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array($this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array($this, 'changelog'));
 		add_action('load-plugins.php',array($this,'updates'));
+		add_action('load-update.php', array($this,'updates'));
+		add_action('load-update-core.php',array($this,'updates'));
+		add_action('wp_update_plugins',array($this,'updates'));
+
         add_action('shopp_check_updates', array($this, 'updates'));
 
-		if (!wp_next_scheduled('shopp_check_updates'))
+		if ( ! wp_next_scheduled('shopp_check_updates') )
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
 	}
@@ -305,19 +309,26 @@ class Shopp {
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
 	 * @return array Rewrite rules
 	 **/
-	function rewrites ($wp_rewrite_rules) {
-		if ('' == get_option('permalink_structure')) return $wp_rewrite_rules;
-		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
+  	function rewrites ($wp_rewrite_rules) {
+  		global $is_IIS;
+  		$structure = get_option('permalink_structure');
+  		if ('' == $structure) return $wp_rewrite_rules;
+  		$path = str_replace('%2F','/',urlencode(join('/',array(PLUGINDIR,SHOPP_DIR,'core'))));
 
-		$rules = array(
-			Storefront::slug().'/'.Storefront::slug('account').'/download/([a-f0-9]{40})/?$' // Download handling
-				=> 'index.php?src=download&shopp_download=$matches[1]',
-		);
+  		// Download URL rewrites
+  		$downloads = array(	Storefront::slug(),Storefront::slug('account'),'download','([a-f0-9]{40})','?$' );
+  		if ( $is_IIS && 0 === strpos($structure,'/index.php/') ) array_unshift($downloads,'index.php');
+  		$rules = array( join('/',$downloads)
+  				=> 'index.php?src=download&shopp_download=$matches[1]',
+  		);
 
-		add_rewrite_rule(Storefront::slug().'/images/(\d+)/?\??(.*)$', $path.'/image.php?siid=$1&$2');
+  		// Image URL rewrite
+  		$images = array( Storefront::slug(),'images','(\d+)',"?\??(.*)$" );
+  		add_rewrite_rule(join('/',$images), $path.'/image.php?siid=$1&$2');
 
-		return $rules + $wp_rewrite_rules;
-	}
+  		return $rules + $wp_rewrite_rules;
+  	}
+
 
 	/**
 	 * Force rebuilding rewrite rules when necessary
@@ -380,6 +391,7 @@ class Shopp {
 		$baseop = shopp_setting('base_operations');
 
 		$currency = array();
+		$base = array();
 		if (isset($baseop['currency']['format']['decimals'])) {
 			$settings = &$baseop['currency']['format'];
 			$currency = array(
@@ -390,12 +402,11 @@ class Shopp {
 				't' =>  $settings['thousands'],
 				'd' =>  $settings['decimals']
 			);
-
 			if (isset($settings['grouping']))
 				$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 
 		}
-		$base = array('nocache' => is_shopp_page('account'));
+		if (!is_admin()) $base = array('nocache' => is_shopp_page('account'));
 
 		// Validation alerts
 		shopp_localize_script('catalog', '$cv', array(
@@ -532,8 +543,8 @@ class Shopp {
 		if (isset($response['code']) && 200 != $response['code']) {
 			$error = Lookup::errors('callhome','http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('callhome','http-unkonwn');
-			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
-			return false;
+			new ShoppError($this->name.": $error",'callhome_comm_err',SHOPP_COMM_ERR);
+			return $body;
 		}
 
 		return $body;
@@ -592,6 +603,19 @@ class Shopp {
 			&& 'deactivate' == $_GET['action']) return array();
 
 		$updates = new StdClass();
+		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
+		else $plugin_updates = get_transient('update_plugins');
+
+		switch ( current_filter() ) {
+			case 'load-update-core.php': $timeout = 60; break; // 1 minute
+			case 'load-plugins.php': // 1 hour
+			case 'load-update.php': $timeout = 3600; break;
+			default: $timeout = 43200; // 12 hours
+		}
+
+		$justchecked = isset( $plugin_updates->last_checked_shopp ) && $timeout > ( time() - $plugin_updates->last_checked_shopp );
+		$changed = isset($plugin_updates->response[SHOPP_PLUGINFILE]);
+		if ( $justchecked && ! $changed ) return;
 
 		$addons = array_merge(
 			$this->Gateways->checksums(),
@@ -600,6 +624,10 @@ class Shopp {
 		);
 
 		$request = array("ShoppServerRequest" => "update-check");
+		/**
+		 * Update checks collect environment details for faster support service only,
+		 * none of it is linked to personally identifiable information.
+		 **/
 		$data = array(
 			'core' => SHOPP_VERSION,
 			'addons' => join("-",$addons),
@@ -609,6 +637,7 @@ class Shopp {
 			'php' => phpversion(),
 			'uploadmax' => ini_get('upload_max_filesize'),
 			'postmax' => ini_get('post_max_size'),
+			'memlimit' => ini_get('memory_limit'),
 			'server' => $_SERVER['SERVER_SOFTWARE'],
 			'agent' => $_SERVER['HTTP_USER_AGENT']
 		);
@@ -616,8 +645,9 @@ class Shopp {
 		$response = $this->callhome($request,$data);
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
-
 		unset($updates->response);
+
+		if (isset($response->key) && !str_true($response->key)) shopp_set_setting( 'updatekey', array(0) );
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
@@ -627,18 +657,17 @@ class Shopp {
 		if (isset($response->id))
 			$updates->response[SHOPP_PLUGINFILE] = $response;
 
-		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
-		else $plugin_updates = get_transient('update_plugins');
-
 		if (isset($updates->response)) {
 			shopp_set_setting('updates',$updates);
 
 			// Add Shopp to the WP plugin update notification count
-			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
+			if ( isset($updates->response[SHOPP_PLUGINFILE]) )
+				$plugin_updates->response[SHOPP_PLUGINFILE] = $updates->response[SHOPP_PLUGINFILE];
 
 		} else unset($plugin_updates->response[SHOPP_PLUGINFILE]); // No updates, remove Shopp from the plugin update count
 
-		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
+		$plugin_updates->last_checked_shopp = time();
+		if ( function_exists('set_site_transient') ) set_site_transient('update_plugins',$plugin_updates);
 		else set_transient('update_plugins',$plugin_updates);
 
 		return $updates;
@@ -750,14 +779,17 @@ class Shopp {
 	}
 
 	/**
-	 * Detect if this Shopp installation needs maintenance
+	 * Detect if the Shopp installation needs maintenance
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return boolean
 	 **/
-	function maintenance () {
+	static function maintenance () {
+		$db_version = intval(shopp_setting('db_version'));
+		return ( !ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
+
 		// Settings unavailable
 		if (!ShoppSettings()->available() || !shopp_setting('shopp_setup') != "completed")
 			return false;

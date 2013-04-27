@@ -13,6 +13,7 @@
  * @subpackage cart
  **/
 class Item {
+	var $api = 'cartitem';		// Theme API name
 	var $product = false;		// The source product ID
 	var $priceline = false;		// The source price ID
 	var $category = false;		// The breadcrumb category
@@ -28,10 +29,12 @@ class Item {
 	var $data = array();		// Custom input data
 	var $processing = array();	// Per item order processing delays
 	var $quantity = 0;			// The selected quantity for the line item
+	var $qtydelta = 0;			// The change in quantity
 	var $addonsum = 0;			// The sum of selected addons
 	var $unitprice = 0;			// Per unit price
 	var $priced = 0;			// Per unit price after discounts are applied
 	var $totald = 0;			// Total price after discounts
+	var $subprice = 0;			// Regular price for subscription payments
 	var $unittax = 0;			// Per unit tax amount
 	var $pricedtax = 0;			// Per unit tax amount after discounts are applied
 	var $tax = 0;				// Sum of the per unit tax amount for the line item
@@ -94,16 +97,32 @@ class Item {
 		$Product->load_data();
 
 		// If option ids are passed, lookup by option key, otherwise by id
-		if ( is_array($pricing) ) {
-			$Price = $Product->pricekey[$Product->optionkey($pricing)];
-			if ( empty($Price) ) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
-		} elseif ( false !== $pricing ) {
+		if ( is_array($pricing) && ! empty($pricing) ) {
+			$optionkey = $Product->optionkey($pricing);
+			if ( ! isset($Product->pricekey[$optionkey]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
+			if ( isset($Product->pricekey[$optionkey]) ) $Price = $Product->pricekey[$optionkey];
+		} elseif ( $pricing ) {
 			$Price = $Product->priceid[$pricing];
-		} else {
+		}
+
+		// Find single product priceline
+		if ( ! $Price && ! str_true($Product->variants) ) {
 			foreach ( $Product->prices as &$Price ) {
-				if ( $Price->type != 'N/A' && ( ! $Price->stocked || $Price->stocked && $Price->stock > 0 ) ) break;
+				$stock = true;
+				if ( str_true($Price->inventory) && 1 > $Price->stock ) $stock = false;
+				if ( 'product' == $Price->context && 'N/A' != $Price->type && $stock ) break;
 			}
 		}
+
+		// Find first available variant priceline
+		if ( ! $Price && str_true($Product->variants) ) {
+			foreach ( $Product->prices as &$Price ) {
+				$stock = true;
+				if ( str_true($Price->inventory) && 1 > $Price->stock ) $stock = false;
+				if ( 'variation' == $Price->context && 'N/A' != $Price->type && $stock ) break;
+			}
+		}
+
 		if ( isset($Product->id) ) $this->product = $Product->id;
 		if ( isset($Price->id) ) $this->priceline = $Price->id;
 
@@ -129,7 +148,7 @@ class Item {
 
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
-		$this->sale = str_true($Price->sale);
+		$this->sale = str_true($Product->sale);
 		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
 
 		$baseprice = ( $this->sale ? $Price->promoprice : $Price->price );
@@ -147,7 +166,16 @@ class Item {
 		$this->inventory = str_true($Price->inventory) && shopp_setting_enabled('inventory');
 
 		$this->data = stripslashes_deep(esc_attrs($data));
-		$this->recurrences();
+
+		// Handle Recurrences
+		if ($this->has_recurring()) {
+			$this->subprice = $this->unitprice;
+			$this->recurrences();
+			if ( $this->is_recurring() && $this->has_trial() ) {
+				$trial = $this->trial();
+				$this->unitprice = $trial['price'];
+			}
+		}
 
 		// Map out the selected menu name and option
 		if ( str_true($Product->variants) ) {
@@ -255,6 +283,7 @@ class Item {
 	 * @return void
 	 **/
 	function quantity ($qty) {
+		$current = $this->quantity;
 
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			if ( str_true($this->donation['min']) && floatvalue($qty) < $this->unitprice )
@@ -264,7 +293,7 @@ class Item {
 			$qty = 1;
 		}
 
-		if ( in_array($this->type, array('Membership','Subscription')) || 'Download' == $this->type && shopp_setting_enabled('download_quantity') ) {
+		if ( in_array($this->type, array('Membership','Subscription')) || 'Download' == $this->type && !shopp_setting_enabled('download_quantity') ) {
 			return ($this->quantity = 1);
 		}
 
@@ -283,6 +312,7 @@ class Item {
 			}
 		}
 
+		$this->qtydelta = $this->quantity-$current;
 		$this->retotal();
 	}
 
@@ -444,8 +474,7 @@ class Item {
 		if (empty($this->option->recurring)) return;
 
 		// if free subscription, don't process as subscription
-		if ( 0 == $this->unitprice ) return;
-
+		if ( 0 == $this->option->promoprice ) return;
 		extract($this->option->recurring);
 
 		$term_labels = array(
@@ -505,7 +534,7 @@ class Item {
 
 		// pick singular or plural translation
 		$subscription_label = translate_nooped_plural($subscription_label, $interval);
-		$subscription_label = sprintf($subscription_label, money($this->unitprice), $interval);
+		$subscription_label = sprintf($subscription_label, money($this->subprice), $interval);
 
 		// pick rebilling label and translate if plurals
 		$rebill_label = sprintf(translate_nooped_plural($rebill_labels[1], $cycles, 'Shopp'), $cycles);
@@ -637,6 +666,10 @@ class Item {
 	function is_recurring () {
 		$recurring = ($this->recurring && ! empty($this->option) && ! empty($this->option->recurring));
 		return apply_filters('shopp_cartitem_recurring', $recurring, $this);
+	}
+
+	function has_recurring () {
+		return (! empty($this->option) && ! empty($this->option->recurring));
 	}
 
 	/**
@@ -775,6 +808,15 @@ class Item {
 
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
 		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
+
+		if ($this->is_recurring()) {
+			$this->subprice = $this->priced;
+			if ($this->has_trial()) {
+				$this->subprice = ($this->option->promoprice-$this->discount);
+				$this->discounts = 0;
+				$this->recurrences();
+			}
+		}
 
 		do_action('shopp_cart_item_retotal',$this);
 

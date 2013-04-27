@@ -66,8 +66,6 @@ class Flow {
 		$request = empty($wp->query_vars)?$_GET:$wp->query_vars;
 		$resource = isset($request['src']);
 
-		$this->transactions();
-
 		if ($resource) $this->resources($request);
 
 		if (defined('WP_ADMIN')) {
@@ -81,24 +79,6 @@ class Flow {
 		} else $this->handler('Storefront');
 	}
 
-	function transactions () {
-		add_action('shopp_txn_update',array($this,'txn_update'),101); // Default to HTTP status 200
-
-		if (!empty($_REQUEST['_txnupdate']))
-			return do_action('shopp_txn_update');
-
-		if (!empty($_REQUEST['rmtpay']))
-			return do_action('shopp_remote_payment');
-
-		if (isset($_POST['checkout'])) {
-			if ($_POST['checkout'] == "process") do_action('shopp_process_checkout');
-			if ($_POST['checkout'] == "confirmed") do_action('shopp_confirm_order');
-		} else {
-			if (!empty($_POST['shipmethod'])) do_action('shopp_process_shipmethod');
-		}
-
-	}
-
 	/**
 	 * Loads a specified flow controller
 	 *
@@ -109,8 +89,9 @@ class Flow {
 	 **/
 	function handler ($controller) {
 		if (!$controller) return false;
-		if (!class_exists($controller))
-			require(SHOPP_FLOW_PATH."/$controller.php");
+		if ( is_a($this->Controller,$controller) ) return true; // Already initialized
+		if (!class_exists($controller))	require(SHOPP_FLOW_PATH."/$controller.php");
+
 		$this->Controller = new $controller();
 		do_action('shopp_'.strtolower($controller).'_init');
 		return true;
@@ -219,11 +200,6 @@ class Flow {
 
 	}
 
-	function txn_update () {
-		status_header('200');
-		exit();
-	}
-
 } // End class Flow
 
 /**
@@ -271,6 +247,9 @@ abstract class AdminController extends FlowController {
 
 	var $Admin = false;
 	var $url;
+
+	private $notices = array();
+
 	/**
 	 * AdminController constructor
 	 *
@@ -284,6 +263,27 @@ abstract class AdminController extends FlowController {
 		global $Shopp;
 		if (!empty($Shopp->Flow->Admin)) $this->Admin = &$Shopp->Flow->Admin;
 		$this->url = add_query_arg(array('page'=>esc_attr($_GET['page'])),admin_url('admin.php'));
+
+		add_action('shopp_admin_notices',array($this,'notices'));
+	}
+
+	function notice ($message,$style='updated',$priority=10) {
+		$notice = new StdClass();
+		$notice->message = $message;
+		$notice->style = $style;
+		array_splice($this->notices,$priority,0,array($notice));
+	}
+
+	function notices () {
+		if (empty($this->notices)) return;
+		$markup = array();
+		foreach ($this->notices as $notice) {
+			$markup[] = '<div class="'.$notice->style.' below-h2">';
+			$markup[] = '<p>'.$notice->message.'</p>';
+			$markup[] = '</div>';
+		}
+		if ( ! empty($markup) ) echo join('',$markup);
+		$this->notices = array(); // Reset output buffer
 	}
 
 }

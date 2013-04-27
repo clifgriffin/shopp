@@ -125,6 +125,9 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_add_product_1386 () {
+		$Product = shopp_product('This is a book','name');
+		if ( ! empty($Product->id) ) $Product->delete();
+
 		$Product = shopp_add_product( array(
 		    'name' => 'This is a book',
 		    'publish' => array(
@@ -171,6 +174,64 @@ class ProductDevAPITests extends ShoppTestCase
 		    )
 		));
 		$this->AssertTrue( (bool) $Product );
+		$this->AssertEquals( 1, count($Product->prices) );
+	}
+
+	function test_shopp_add_product_1525 () {
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'0.00',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'3',
+					'sku'=>'BE_0001_NI_11,5'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'3.25',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'0',
+					'sku'=>'BE_0002_NI_10'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
+		$args = array(
+			'name' => 'Beugel',
+			'publish' => array('flag'=>true),
+			'single'=>array(
+				'type'=>'Shipped',
+				'price'=>'2.00',
+				'taxed'=>true,
+				'inventory'=>array(
+					'flag'=>true,
+					'stock'=>'5',
+					'sku'=>'BE_0003_GO_14'
+				)
+			)
+		);
+
+		$Product = shopp_add_product($args);
+		$this->AssertEquals( 1, count($Product->prices) );
+
 	}
 
 	function test_shopp_product () {
@@ -217,23 +278,23 @@ class ProductDevAPITests extends ShoppTestCase
 	}
 
 	function test_shopp_product_variants () {
-		$Product = shopp_product('Bones - Season 4', 'name');
+		$Product = shopp_product('Code Is Poetry T-Shirt', 'name');
 		$variations = shopp_product_variants($Product->id);
 
-		$this->assertEquals(2, count($variations));
+		$this->assertEquals(5, count($variations));
 		$Price = reset($variations);
-		$this->assertEquals('Widescreen', $Price->label);
-		$this->assertEquals(77011, $Price->optionkey);
-		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.86, $Price->saleprice);
-		$this->assertEquals(34.86, $Price->promoprice);
+		$this->assertEquals('Small', $Price->label);
+		$this->assertEquals(7001, $Price->optionkey);
+		$this->assertEquals(9.01, $Price->price);
+		$this->assertEquals(0, $Price->saleprice);
+		$this->assertEquals(9.01, $Price->promoprice);
 
 		$Price = next($variations);
-		$this->assertEquals('Full-Screen', $Price->label);
-		$this->assertEquals(84012, $Price->optionkey);
-		$this->assertEquals(59.98, $Price->price);
-		$this->assertEquals(34.86, $Price->saleprice);
-		$this->assertEquals(34.86, $Price->promoprice);
+		$this->assertEquals('Medium', $Price->label);
+		$this->assertEquals(14002, $Price->optionkey);
+		$this->assertEquals(9.89, $Price->price);
+		$this->assertEquals(0, $Price->saleprice);
+		$this->assertEquals(9.89, $Price->promoprice);
 
 	}
 
@@ -701,6 +762,47 @@ class ProductDevAPITests extends ShoppTestCase
 					$this->AssertTrue(false);
 			}
 		}
+	}
+
+	function test_shopp_product_variant_set_shipping_1883 () {
+		$data = array(
+			'name' => "Product Dev API Bug 1883",
+			'publish' => array( 'flag' => true ),
+			'description' => "Product Dev API Bug 1883",
+			'packaging' => true
+		);
+		$data['single'] = array(
+			'type' => 'Shipped',
+			'price' => 41.00
+		);
+		$Bug1883 = shopp_add_product($data);
+		$priceid = reset($Bug1883->prices)->id;
+
+		$shipping = array('weight'=>5, 'length'=>6, 'width'=>7, 'height'=>8);
+		$result = shopp_product_variant_set_shipping( $priceid, true, $shipping, 'product');
+
+		$this->AssertTrue( (bool) $result );
+
+		$settings = shopp_meta($priceid, 'price', 'settings');
+		$this->AssertTrue(!empty($settings) && !empty($settings['dimensions']));
+		$dims = $settings['dimensions'];
+
+		$this->AssertEquals(5, $dims['weight']);
+		$this->AssertEquals(6, $dims['length']);
+		$this->AssertEquals(7, $dims['width']);
+		$this->AssertEquals(8, $dims['height']);
+
+		$shipping = array('weight'=>50, 'length'=>60, 'width'=>70, 'height'=>80);
+		$Price = shopp_product_variant_set_shipping( new Price($priceid), true, $shipping, 'product');
+
+		$this->AssertTrue( is_object($Price) && is_a($Price, 'Price') );
+		$this->AssertTrue(!empty($Price->settings) && !empty($Price->settings['dimensions']));
+		$dims = $Price->settings['dimensions'];
+
+		$this->AssertEquals(50, $dims['weight']);
+		$this->AssertEquals(60, $dims['length']);
+		$this->AssertEquals(70, $dims['width']);
+		$this->AssertEquals(80, $dims['height']);
 	}
 
 	function test_shopp_product_variant_set_taxed() {

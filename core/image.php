@@ -77,11 +77,14 @@ class ImageServer {
 	 * @return void
 	 **/
 	function request () {
-		foreach ($_GET as $key => $value) {
-			if ($key == "siid") $this->request = $value;
-			if (isset($key) && empty($value))
-				$this->parameters = explode(',',$key);
+
+		if ( isset($_GET['siid']) ) $this->request = $_GET['siid'];
+
+		foreach ($_GET as $arg => $v) {
+			if (false !== strpos($arg,',')) {
+				$this->parameters = explode(',',$arg);
 				$this->valid = array_pop($this->parameters);
+			}
 		}
 
 		// Handle pretty permalinks
@@ -140,7 +143,7 @@ class ImageServer {
 	function resize () {
 		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
 		$message = $this->Image->id.','.implode(',',$this->parameters);
-		if ($this->valid != crc32($key.$message)) {
+		if ($this->valid != sprintf('%u',crc32($key.$message))) {
 			header("HTTP/1.1 404 Not Found");
 			die('');
 		}
@@ -154,7 +157,7 @@ class ImageServer {
 		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha,$this->fill);
 
 		// Post sharpen
-		if ($this->sharpen !== false)
+		if (!$alpha && $this->sharpen !== false)
 			$Resized->UnsharpMask($this->sharpen);
 
 		$ResizedImage = new ImageAsset();

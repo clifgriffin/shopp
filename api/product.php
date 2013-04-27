@@ -139,7 +139,7 @@ function shopp_add_product ( $data = array() ) {
 	}
 
 	$subjects = array();
-	$Product->prices = $prices = array();
+	$prices = array();
 
 	// Create Prices
 	if ( isset($data['single']) ) {
@@ -149,7 +149,11 @@ function shopp_add_product ( $data = array() ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: variants menu is empty.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
-		$prices = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'], false );
+		$new_variants = shopp_product_set_variant_options ( $Product->id, $data['variants']['menu'], false );
+
+		$pricekeys = $prices = array();
+		foreach ( $new_variants as $Price ) $prices[$Price->id] = $pricekeys[$Price->optionkey] = $Price;
+
 		if ( ! $prices ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to set variant options.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
@@ -165,7 +169,7 @@ function shopp_add_product ( $data = array() ) {
 	$Price->product = $Product->id;
 	if ( isset($subjects['variants']) ) $Price->type = 'N/A'; // disabled
 	$Price->save();
-	$prices[] = $Price;
+	$prices[$Price->id] = $productprice = $Price;
 
 	// Create Addons
 	if ( isset($data['addons']) ) {
@@ -174,18 +178,20 @@ function shopp_add_product ( $data = array() ) {
 			return false;
 		}
 
-		$addon_prices = shopp_product_set_addon_options ( $Product->id, $data['addons']['menu'], false );
+		$new_addons = shopp_product_set_addon_options ( $Product->id, $data['addons']['menu'], false );
+		$addon_prices = array();
+		foreach ( $new_addons as $Addon ) $addon_prices[$Addon->id] = $Addon;
+
 		if ( ! $addon_prices ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Unable to set addon options.",__FUNCTION__,SHOPP_DEBUG_ERR);
 			return false;
 		}
 
-		$prices = array_merge($prices, $addon_prices);
+		$prices = $prices + $addon_prices;
 		$subjects['addons'] = $data['addons'];
 	}
 
 	$contexts = array( 'addons' => 'addon', 'product' => 'product', 'variants' => 'variant' );
-
 	foreach ( $subjects as $pricetype => $variants ) {
 
 		// apply settings for each priceline
@@ -194,7 +200,7 @@ function shopp_add_product ( $data = array() ) {
 
 			$price = null;
 			if ( 'product' == $pricetype ) {
-				$price = 0;
+				$price = $productprice->id;
 			} else {
 				// 'option' => 'array',	// array option example: Color=>Blue, Size=>Small
 				if ( ! isset($variant['option']) || empty($variant['option']) ) {
@@ -202,16 +208,20 @@ function shopp_add_product ( $data = array() ) {
 					return false;
 				}
 
-				$optionkey = $Product->optionmap( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon'), 'optionkey' );
-
-				// Find the correct Price
-				foreach ( $prices as $index => $Price ) {
-					if ( $Price->context != ('variants' == $pricetype ? 'variation' : 'addon') ) continue;
-					if ( $Price->optionkey == $optionkey ) $price = $index;
+				list( $optionkey, $options, $label, $mapping ) = $Product->optionmap( $variant['option'], $variants['menu'], ('variants' == $pricetype ? 'variant' : 'addon') );
+				if ( 'variants' == $pricetype && isset($pricekeys[$optionkey]) ) $price = $pricekeys[$optionkey]->id;
+				else {
+					// Find the correct Price
+					foreach ( $addon_prices as $index => $Price ) {
+						if ( $Price->options == $options && $Price->label == $label ) {
+							$price = $index;
+							break;
+						}
+					}
 				}
 			}
 
-			if ( null === $price ) {
+			if ( null === $price || ! isset($prices[$price]) ) {
 				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Variant $key not valid for this option set.",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
 			}
@@ -701,23 +711,28 @@ function shopp_product_variant ( $variant = false, $pricetype = 'variant' ) {
 					$menu[$key][] = $option['name'];
 				}
 			}
-			$optionkey = $Product->optionmap( $variant['option'], $menu , $pricetype, 'optionkey' );
-			if ( ! $optionkey ) {
+
+			list( $optionkey, $options, $label, $mapping ) = $Product->optionmap( $variant['option'], $menu , $pricetype );
+			if ( 'variation' == $pricetype && ! isset($Product->pricekey[$optionkey]) || ! $options ) {
 				if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Invalid option.",__FUNCTION__,SHOPP_DEBUG_ERR);
 				return false;
 			}
 
-			// Find the option
-			foreach ( $Product->prices as $price ) {
-				if ( $price->context == $pricetype && $price->optionkey == $optionkey ) {
-					$Price = new Price();
-					$Price->populate($price);
-					$Price->load_settings();
-					$Price->load_download();
-					break;
+			if ( 'variation' == $pricetype ) $price = $Product->pricekey[$optionkey];
+			else {
+				// Find the option
+				foreach ( $Product->prices as $price ) {
+					if ( $price->context == $pricetype && $price->options == $options ) {
+						break;
+					}
 				}
 			}
-		} // end if producttype
+			$Price = new Price;
+			$Price->populate($price);
+			$Price->load_settings();
+			$Price->load_download();
+
+		} // end if product type / addon/variants type
 	}
 	if ( ! isset($Price) ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product, Variant, or Addon Price object could not be found.",__FUNCTION__,SHOPP_DEBUG_ERR);
@@ -1751,6 +1766,7 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		$Price = new Price($variant);
 		if ( empty($Price->id) || $Price->context != $context ) {
 			if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: No such $context with id $variant.", __FUNCTION__, SHOPP_DEBUG_ERR);
+			return false;
 		}
 	}
 
@@ -1787,7 +1803,10 @@ function shopp_product_variant_set_shipping ( $variant = false, $flag = false, $
 		if ( isset($settings['fee']) ) $Price->shipfee = $settings['fee'];
 	}
 
-	if ( $save ) return $Price->save();
+	if ( $save ) {
+		return $Price->save() && shopp_set_meta ( $Price->id, 'price', 'settings', $Price->settings );
+	}
+
 	return $Price;
 }
 
@@ -2073,6 +2092,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array(),
 			$Price->context = 'addon';
 			list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($addon, $options, 'addon');
 			$Price->save();
+			shopp_set_meta ( $Price->id, 'price', 'options', $Price->options );
 			$prices[] = $Price;
 		}
 	}

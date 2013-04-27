@@ -41,6 +41,8 @@ class Warehouse extends AdminController {
 			$this->view = $_GET['view'];
 
 		if (!empty($_GET['id'])) {
+		 	get_current_screen()->post_type = Product::$posttype;
+
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
@@ -184,7 +186,7 @@ class Warehouse extends AdminController {
 		if ($save) {
 			wp_cache_delete('shopp_product_subcounts');
 			$this->save($Shopp->Product);
-			$this->Notice = sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>');
+			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );
 
 			// Workflow handler
 			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
@@ -259,7 +261,7 @@ class Warehouse extends AdminController {
 			'drafts' => 	array('label' => __('Drafts','Shopp'),		'where'=>array("p.post_status='draft'")),
 			'onsale' => 	array('label' => __('On Sale','Shopp'),		'where'=>array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured' => 	array('label' => __('Featured','Shopp'),	'where'=>array("s.featured='on' AND p.post_status != 'trash'")),
-			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status!='trash'"),'order' => 'bestselling'),
+			'bestselling'=> array('label' => __('Bestselling','Shopp'),	'where'=>array("p.post_status!='trash'",BestsellerProducts::threshold()." < s.sold"),'order' => 'bestselling'),
 			'inventory' => 	array('label' => __('Inventory','Shopp'),	'where'=>array("s.inventory='on' AND p.post_status != 'trash'")),
 			'trash' => 		array('label' => __('Trash','Shopp'),		'where'=>array("p.post_status='trash'"))
 		);
@@ -280,7 +282,7 @@ class Warehouse extends AdminController {
 		$start = ($per_page * ($pagenum-1));
 
 		if (!empty($s)) {
-			$SearchResults = new SearchResults(array('search'=>$s,'load'=>array()));
+			$SearchResults = new SearchResults(array('search'=>$s,'published'=>'off','paged'=>-1));
 			$SearchResults->load();
 			$ids = array_keys($SearchResults->products);
 			$where[] = "p.ID IN (".join(',',$ids).")";
@@ -290,6 +292,24 @@ class Warehouse extends AdminController {
 			global $wpdb;
 			$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 			$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$cat)";
+			if (-1 == $cat) {
+				unset($joins[$wpdb->term_taxonomy]);
+				$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+				$where[] = 'tr.object_id IS NULL';
+			}
+		}
+
+		// Detect custom taxonomies
+		$taxonomies = array_intersect(get_object_taxonomies(Product::$posttype),array_keys($_GET));
+		if ( ! empty($taxonomies) ) {
+			foreach ($taxonomies as $n => $taxonomy) {
+				global $wpdb;
+				$term = get_term_by('slug',$_GET[ $taxonomy ],$taxonomy);
+				if ( ! empty($term->term_id) ) {
+					$joins[$wpdb->term_relationships.'_'.$n] = "INNER JOIN $wpdb->term_relationships AS tr$n ON (p.ID=tr$n.object_id)";
+					$joins[$wpdb->term_taxonomy.'_'.$n] = "INNER JOIN $wpdb->term_taxonomy AS tt$n ON (tr$n.term_taxonomy_id=tt$n.term_taxonomy_id AND tt$n.term_id=$term->term_id)";
+				}
+			}
 		}
 
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
@@ -308,7 +328,7 @@ class Warehouse extends AdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		if (shopp_setting_enabled('tax_inclusive') && !$Product->excludetax) $taxrate = shopp_taxrate();
+		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
@@ -318,16 +338,23 @@ class Warehouse extends AdminController {
 
 		$where = array_merge($where,$subs[$this->view]['where']);
 
+
 		$orderdirs = array('asc','desc');
 		if (in_array($order,$orderdirs)) $orderd = strtolower($order);
 		else $orderd = 'asc';
+
+		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
+
+
 		switch ($orderby) {
 			case 'name': $order = 'title'; if ('desc' == $orderd) $order = 'reverse'; break;
 			case 'price': $order = 'lowprice'; if ('desc' == $orderd) $order = 'highprice'; break;
 			case 'date': $order = 'newest'; if ('desc' == $orderd) $order = 'oldest'; break;
-		}
 
-		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
+			case 'sold': $ordercols = 's.sold '.$orderd; break;
+			case 'gross': $ordercols = 's.grossed '.$orderd; break;
+			case 'inventory': $ordercols = 's.stock '.$orderd; break;
+		}
 
 		if (in_array($this->view,array('onsale','featured','inventory')))
 			$joins[$ps] = "INNER JOIN $ps AS s ON p.ID=s.product";
@@ -343,11 +370,16 @@ class Warehouse extends AdminController {
 			// 'debug' => true
 		);
 
+		if ( isset($ordercols) ) {
+			unset($loading['order']);
+			$loading['orderby'] = $ordercols;
+		}
+
 		if ($is_inventory) { // Override for inventory products
 			$where[] = "(pt.context='product' OR pt.context='variation') AND pt.type != 'N/A'";
 			$loading = array(
 				'columns' => "pt.id AS stockid,IF(pt.context='variation',CONCAT(p.post_title,': ',pt.label),p.post_title) AS post_title,pt.sku AS sku,pt.stock AS stock",
-				'joins' => array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),
+				'joins' => array_merge(array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"),$joins),
 				'where' => $where,
 				'groupby' => 'pt.id',
 				'order' => 'p.ID,pt.sortorder',
@@ -635,6 +667,25 @@ class Warehouse extends AdminController {
 		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
 		$post_type = Product::posttype();
 
+		// For inclusive taxes, add tax to base product price (so tax is part of the price)
+		// This has to take place outside of Product::pricing() so that the summary system
+		// doesn't cache the results causing strange/unexpected price jumps
+		if ( shopp_setting_enabled('tax_inclusive') && !str_true($Product->excludetax) ) {
+			foreach ($Product->prices as &$price) {
+				$Taxes = new CartTax();
+				$taxrate = $Taxes->rate($Product);
+				$price->price += $price->price*$taxrate;
+				$price->saleprice += $price->saleprice*$taxrate;
+			}
+		}
+
+		do_action('add_meta_boxes', Product::$posttype, $Product);
+		do_action('add_meta_boxes_'.Product::$posttype, $Product);
+
+		do_action('do_meta_boxes', Product::$posttype, 'normal', $Product);
+		do_action('do_meta_boxes', Product::$posttype, 'advanced', $Product);
+		do_action('do_meta_boxes', Product::$posttype, 'side', $Product);
+
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 	}
 
@@ -875,8 +926,10 @@ class Warehouse extends AdminController {
 		// Save any meta data
 		if (isset($_POST['meta']) && is_array($_POST['meta'])) {
 			foreach ($_POST['meta'] as $name => $value) {
-				if (isset($Product->meta[$name])) $Meta = $Product->meta[$name];
-				else $Meta = new MetaObject(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>$name));
+				if (isset($Product->meta[$name])) {
+					$Meta = $Product->meta[$name];
+					if (is_array($Meta)) $Meta = reset($Product->meta[$name]);
+				} else $Meta = new MetaObject(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>$name));
 				$Meta->parent = $Product->id;
 				$Meta->name = $name;
 				$Meta->value = $value;
@@ -926,6 +979,10 @@ class Warehouse extends AdminController {
 			$File->name = $File->filename = $filetype['proper_filename'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
+
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+
 		$File->save();
 
 		do_action('add_product_download',$File,$_FILES['Filedata']);
@@ -984,6 +1041,9 @@ class Warehouse extends AdminController {
 		if ( ! $Image->unique() ) die(json_encode(array("error" => __('The image already exists, but a new filename could not be generated.','Shopp'))));
 
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
+		$Error = ShoppErrors()->code('storage_engine_save');
+		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+
 		$Image->save();
 
 		if (empty($Image->id))
@@ -1001,12 +1061,23 @@ class Warehouse extends AdminController {
 	function category ($id) {
 		global $wpdb;
 		$p = "$wpdb->posts AS p";
+		$where = array();
 		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
 		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$id)";
 
+		if (-1 == $id) {
+			$joins[$wpdb->term_relationships] = "LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+			unset($joins[$wpdb->term_taxonomy]);
+			$where[] = 'tr.object_id IS NULL';
+			$where[] = "p.post_status='publish'";
+			$where[] = "p.post_type='shopp_product'";
+		}
+
+		$where = empty($where) ? '' : ' WHERE '.join(' AND ',$where);
+
 		if ('catalog-products' == $id)
-			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p ORDER BY name ASC",'array','col','name','id');
-		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins)." ORDER BY name ASC",'array','col','name','id');
+			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p $where ORDER BY name ASC",'array','col','name','id');
+		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins).$where." ORDER BY name ASC",'array','col','name','id');
 
 		return menuoptions($products,0,true);
 	}

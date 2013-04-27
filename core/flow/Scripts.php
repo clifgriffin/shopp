@@ -193,6 +193,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('jquery-tmpl', '/ui/behaviors/jquery/jquery.tmpl.js', array('jquery'), '20110401');
 	$scripts->add_data('jquery-tmpl', 'group', 1);
 
+	$scripts->add('address', '/ui/behaviors/address.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('address', 'group', 1);
+
 	$scripts->add('cart', '/ui/behaviors/cart.js', array('jquery','shopp'), '20100101');
 	$scripts->add_data('cart', 'group', 1);
 
@@ -252,6 +255,9 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('imageset', '/ui/behaviors/imageset.js', array('jquery'), '20110518');
 	$scripts->add_data('imageset', 'group', 1);
+
+	$scripts->add('system', '/ui/behaviors/system.js', array('jquery'), '20120307');
+	$scripts->add_data('system', 'group', 1);
 
 	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.js', array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);

@@ -19,12 +19,16 @@ jQuery(document).ready(function () {
 		billCard = $('#billing-card'),
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
+		checkoutButton = $('.payoption-'+d_pm),
+		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = $('#checkout.shopp li.locale');
 
 	// No payment option selectors found, use default when on checkout page only
 	if (checkoutForm.find('input[name=checkout]').val() == "process") {
-		if (paymethods.length == 0) paymethod_select(false,d_pm);
-		else paymethods.change(paymethod_select).change();
+		checkoutButtons.hide();
+		if (checkoutButton.length == 0) checkoutButton = $('.payoption-0');
+		checkoutButton.show();
+		paymethods.change(paymethod_select).change();
 	}
 
 	// Validate paycard number before submit
@@ -37,8 +41,9 @@ jQuery(document).ready(function () {
 
 	// Enable/disable the extra card security fields when needed
 	billCardtype.change(function () {
-		var cardtype = billCardtype.val(),
-			card = paycards[cardtype.toLowerCase()];
+
+		var cardtype = new String( billCardtype.val() ).toLowerCase(),
+			card = paycards[cardtype];
 
 		$('.paycard.xcsc').attr('disabled',true).addClass('disabled');
 		if (!card || !card['inputs']) return;
@@ -51,64 +56,23 @@ jQuery(document).ready(function () {
 
 	if (localeMenu.children().size() == 0) localeFields.hide();
 
-	$.fn.setDisabled = function (setting) {
-		$(this).each(function () {
-			if (setting) $(this).attr('disabled',true).addClass('disabled');
-			else $(this).attr('disabled',false).removeClass('disabled');
-		});
-		return $(this);
-	};
-
-	submitLogin.click(function () { login=true; });
-	checkoutForm.unbind('submit.validate').submit(function () {
-		if (login) {
-			if (accountLogin.val() == "") {
-				alert($co.loginname);
-				accountLogin.focus();
-				login=false;
-				return false;
-			}
-			if (passwordLogin.val() == "") {
-				alert($co.loginpwd);
-				passwordLogin.focus();
-				login=false;
-				return false;
-			}
-			$('#process-login').val('true');
-			return true;
-		}
-
-		if (validate(this)) return true;
-		else return false;
-	});
-
-	$('#billing-country,#shipping-country').change(function (e,init) {
-		var prefix = $(this).attr('id').split('-')[0],
-			country = $(this).val(),
-			state = $('#'+prefix+'-state'),
-			menu = $('#'+prefix+'-state-menu'),
-			options = '<option value=""></option>';
-
-		if (menu.length == 0) return true;
-		if (menu.hasClass('hidden')) menu.removeClass('hidden').hide();
-
-		if (regions[country] || (init && menu.find('option').length > 1)) {
-			state.setDisabled(true).hide();
-			if (regions[country]) {
-				$.each(regions[country], function (value,label) {
-					options += '<option value="'+value+'">'+label+'</option>';
+	submitLogin.click(function (e) {
+		checkoutForm.unbind('submit.validate').bind('submit.validlogin',function (e) {
+			var error = false;
+			if ('' == passwordLogin.val()) error = [$co.loginpwd,passwordLogin];
+			if ('' == accountLogin.val()) error = [$co.loginname,accountLogin];
+			if (error) {
+				e.preventDefault();
+				checkoutForm.unbind('submit.validlogin').bind('submit.validate',function (e) {
+					return validate(this);
 				});
-				if (!init) menu.empty().append(options).setDisabled(false).show().focus();
+				alert(error[0]);
+				error[1].focus().addClass('error');
+				return false;
 			}
-			menu.setDisabled(false).show();
-			$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
-		} else {
-			menu.empty().setDisabled(true).hide();
-			state.setDisabled(false).show();
-			$('label[for='+menu.attr('id')+']').attr('for',state.attr('id'));
-			if (!init) state.val('').focus();
-		}
-	}).trigger('change',[true]);
+			checkoutProcess.val('login');
+		});
+ 	});
 
 	// Locale Menu
 	$('#billing-country, .billing-state, #shipping-country, .shipping-state').bind('change.localemenu',function (e, init) {
@@ -134,6 +98,9 @@ jQuery(document).ready(function () {
 		}
 	});
 
+	$('#firstname,#lastname').change(function () {
+		$('#billing-name,#shipping-name').val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
+	});
 
 	sameaddr.change(function (e,init) {
 		var refocus = false,
@@ -147,7 +114,7 @@ jQuery(document).ready(function () {
 			alt.hide().find('.required').setDisabled(true);
 		} else {
 			prime.addClass('half');
-			alt.show().find('.disabled').setDisabled(false);
+			alt.show().find('.disabled:not(._important)').setDisabled(false);
 			if (!init) refocus = true;
 		}
 		if (bc.is(':visible')) bc.trigger('change.localemenu',[init]);
@@ -199,11 +166,10 @@ jQuery(document).ready(function () {
 		$(document).trigger('shopp_paymethod',[paymethods.val()]);
 	});
 
-	function paymethod_select (e,paymethod) {
-		if (!paymethod) paymethod = $(this).val();
-		var $this = $(this),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
+	function paymethod_select (e) {
+		var $this = $(this),paymethod = $(this).val(),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
 
-		if (this != window && $this.attr && $this.attr('type') == "radio" && $this.attr('checked') == false) return;
+		if (this != window && $this.attr && 'radio' == $this.attr('type') && !$this.is(':checked')) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
 
 		checkoutButtons.hide();

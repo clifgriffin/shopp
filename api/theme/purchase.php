@@ -244,7 +244,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 				if ( isset($options['linktext']) && $options['linktext'] != '' ) $label = $options['linktext'];
 
 				$dkey = $addon->value->dkey;
-				$request = '' == get_option('permalink_structure')?"download/$dkey":array('s_dl'=>$dkey);
+				$request = '' == get_option('permalink_structure')?"download/$dkey":array('shopp_download'=>$dkey);
 				$url = shoppurl($request,'catalog');
 
 				$link = '<a href="'.$url.'">'.$label.'</a>';
@@ -285,8 +285,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			$link = false;
 			if (isset($addon->value->download) && isset($addon->value->dkey)) {
 				$dkey = $addon->value->dkey;
-				$request = '' == get_option('permalink_structure')?"download/$dkey":array('s_dl'=>$dkey);
-				$url = shoppurl($request,'catalog');
+				$request = '' == get_option('permalink_structure')?array('src'=>'download','shopp_download'=>$dkey):"download/$dkey";
+				$url = shoppurl($request,'account');
 				$link = '<br /><a href="'.$url.'">'.$download.'</a>';
 			}
 
@@ -313,7 +313,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
 		$classes = "";
 		if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
-		$request = '' == get_option('permalink_structure') ? array('src'=>'download','s_dl'=>$item->dkey) : "download/$item->dkey";
+		$request = '' == get_option('permalink_structure') ? array('src'=>'download','shopp_download'=>$item->dkey) : "download/$item->dkey";
 		$url = shoppurl($request,'account');
 		return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>';
 	}
@@ -446,7 +446,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function paid ($result, $options, $O) { return in_array($O->txnstatus,array('authed','captured')); }
+	static function paid ($result, $options, $O) { return in_array($O->txnstatus,array('captured')); }
 
 	static function payment ($result, $options, $O) {
 		$labels = Lookup::txnstatus_labels();
@@ -511,7 +511,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function state ($result, $options, $O) {
 		$state = esc_html($O->state);
-		if (strlen($O->state > 2)) return $state;
+		if (strlen($O->state) > 2) return $state;
 		$regions = Lookup::country_zones();
 
 		if (isset($regions[$O->country])) {

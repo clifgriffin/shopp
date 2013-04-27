@@ -2,11 +2,12 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
+	<?php do_action('shopp_admin_notices'); ?>
+
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
 	<?php include("navigation.php"); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
-		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
 	<div class="clear"></div>
 
@@ -56,7 +57,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Orders) > 0): ?>
+	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
 			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
@@ -116,7 +117,7 @@
 	<div class="tablenav">
 		<?php if (current_user_can('shopp_financials') && current_user_can('shopp_export_orders')): ?>
 		<div class="alignleft actions">
-			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_purchases')),admin_url("admin.php"))); ?>" id="log" method="post">
+			<form action="<?php echo esc_url( add_query_arg(urlencode_deep(array_merge(stripslashes_deep($_GET),array('src'=>'export_purchases'))),admin_url('admin.php')) ); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
@@ -136,7 +137,7 @@
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select>
 			</div>
-			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
+			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"<?php if (count($Orders) < 1) echo ' disabled="disabled"'; ?>><?php _e('Download','Shopp'); ?></button>
 			<div class="clear"></div>
 			</form>
 		</div>

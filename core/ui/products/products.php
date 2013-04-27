@@ -3,7 +3,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Products','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
 
-	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	<?php do_action('shopp_admin_notice'); ?>
 
 	<form action="<?php echo esc_url($url); ?>" method="get" id="products-manager">
 	<?php include('navigation.php'); ?>
@@ -119,10 +119,8 @@
 
 
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; if ($Product->sale == 'on') echo " sale"?>"><?php
-				if (!str_true($Product->variants)) echo money($Product->minprice);
-				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
-				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
-				if ($Product->sale == 'on') echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
+				shopp($Product,'price');
+				if (str_true($Product->sale)) echo '<span class="saletag">'.__('On Sale','Shopp').'</span>';
 			?>
 			</td>
 
@@ -151,17 +149,15 @@
 			} else {
 				$t_time = get_the_time(__('Y/m/d g:i:s A'));
 				$m_time = $Product->publish;
-				$time = get_post_time('G', true, $Product->id);
-				$time_diff = time() - $time;
+				$h_time = date(__('Y/m/d'), $m_time);
+				$time_diff = current_time('timestamp') - $m_time;
 
 				if ( $time_diff > 0 && $time_diff < 86400 )
-					$h_time = sprintf( __('%s ago'), human_time_diff( $time ) );
-				else
-					$h_time = date(__('Y/m/d'), $m_time);
+					$h_time = sprintf( __('%s ago'), human_time_diff( $m_time, current_time('timestamp') ) );
+
 			}
 
-				echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr>';
-			echo '<br />';
+			echo '<abbr title="' . $t_time . '">' . apply_filters('shopp_product_date_column_time', $h_time, $Product) . '</abbr><br />';
 			if ( 'publish' == $Product->status ) {
 				_e('Published');
 			} elseif ( 'future' == $Product->status ) {

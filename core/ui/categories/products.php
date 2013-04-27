@@ -1,12 +1,13 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
 	<h2><?php printf(__('Arrange Products for "%s"','Shopp'),$CategoryProducts->name); ?></h2>
-	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
+
+	<?php do_action('shopp_admin_notice'); ?>
 
 	<form action="" id="products" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
-		<input type="hidden" name="category" id="category-id" value="<?php echo $id; ?>" />
+		<input type="hidden" name="category" id="category-id" value="<?php echo $CategoryProducts->term_taxonomy_id; ?>" />
 	</div>
 
 	<div class="tablenav">

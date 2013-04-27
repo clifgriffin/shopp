@@ -58,6 +58,8 @@ class Product extends WPShoppObject {
 		'post_date_gmt' => 'post_date_gmt',
 		'post_modified_gmt' => 'post_modified_gmt',
 		'post_content_filtered' => 'post_content_filtered',
+		'comment_status' => 'comment_status',
+		'ping_status' => 'ping_status',
 		'to_ping' => 'to_ping',
 		'pinged' => 'pinged'
 	);
@@ -75,7 +77,6 @@ class Product extends WPShoppObject {
 		$this->init(self::$table,$key);
 		$this->type = self::$posttype;
 		$this->load($id,$key);
-		add_action('shopp_save_product',array($this,'savepost'));
 	}
 
 	function save () {
@@ -85,6 +86,8 @@ class Product extends WPShoppObject {
 		$this->post_modified_gmt = current_time('timestamp')+$gmtoffset;
 		if (is_null($this->publish)) $this->post_date_gmt = $this->post_modified_gmt;
 		else $this->post_date_gmt = $this->publish+$gmtoffset;
+		if ( false === has_action('shopp_save_product',array($this,'savepost')))
+			add_action('shopp_save_product',array($this,'savepost'));
 		parent::save();
 	}
 
@@ -189,14 +192,20 @@ class Product extends WPShoppObject {
 	function load_prices ($ids) {
 		if ( empty($ids) ) return;
 
+		// Reset price property
+		$this->prices = array();
+
 		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
 		if (!empty($this->id) && $this->id == $ids) {
 			$this->load_summary($ids);
 			$this->resum();
 		}
 
+		// Refresh sales data before loading prices so that when resum/sumup happens the data is up-to-date
+		$this->load_sold($ids);
+
 		$Object = new Price();
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,sortorder",'array',array($this,'pricing'));
 
 		// Load price metadata that exists
 		if (!empty($this->priceid)) {
@@ -204,11 +213,9 @@ class Product extends WPShoppObject {
 			$Object->prices = $this->priceid;
 			$Object->products = ( isset($this->products) && !empty($this->products) )?$this->products:$this;
 			$ObjectMeta = new ObjectMeta();
-			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder",'array',array($Object,'metaloader'),'parent','metatype','name',false);
+			// Sort by sort order then by the modified timestamp so the most recent changes are last and become the authoritative record
+			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified",'array',array($Object,'metaloader'),'parent','metatype','name',false);
 		}
-
-		// Load product sales counts
-		$this->load_sold($ids);
 
 		if ( isset($this->products) && !empty($this->products) ) {
 			if (!isset($this->_last_product)) $this->_last_product = false;
@@ -486,7 +493,7 @@ class Product extends WPShoppObject {
 		$this->checksum = md5($this->checksum);
 
 		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
-		if (str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
+		if (shopp_setting_enabled('inventory') && str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
 	}
 
 	/**
@@ -519,31 +526,19 @@ class Product extends WPShoppObject {
 			$this->_last_product = $price->product;
 		} else $target = &$this;
 
+		// Skip calulating variant pricing when variants are not enabled for the product
+		if (!( isset($target->variants) && str_true($target->variants) ) && 'variation' == $price->context) return;
+
 		$target->prices[] = $price;
-
-		$variations = ((isset($target->variants) && $target->variants == 'on')
-							|| ($price->type != 'N/A' && $price->context == 'variation'));
-
-		$freeshipping = true;
 
 		// Force to floats
 		$price->price = (float)$price->price;
 		$price->saleprice = (float)$price->saleprice;
 		$price->shipfee = (float)$price->shipfee;
-		$price->promoprice = (float)$price->promoprice;
+		$price->promoprice = (float)str_true($price->sale)?$price->saleprice:$price->price;
 
 		// Build secondary lookup table using the price id as the key
 		$target->priceid[$price->id] = $price;
-
-		if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-		if ( isset($options['taxes']) && str_true($options['taxes']) && str_true($price->tax) ) {
-			if ( shopp_setting_enabled('tax_inclusive') && !str_true($target->excludetax)) {
-				$Taxes = new CartTax();
-				$taxrate = $Taxes->rate($target);
-				$price->price += $price->price*$taxrate;
-				$price->saleprice += $price->saleprice*$taxrate;
-			}
-		}
 
 		// Set promoprice before data aggregation
 		if (str_true($price->sale)) $price->promoprice = $price->saleprice;
@@ -563,17 +558,17 @@ class Product extends WPShoppObject {
 			$target->lowstock($price->stock,$price->stocked);
 		}
 
-		if (!isset($price->freeshipping) || !$price->freeshipping || str_true($price->shipping))
-			$freeshipping = false;
+		$freeshipping = false;
+		if (!str_true($price->shipping)) $freeshipping = true;
 
 		// Calculate catalog discounts if not already calculated
-		if (empty($price->promoprice)) {
-			$pricetag = str_true($price->sale)?$price->saleprice:$price->price;
-			if (!empty($price->discounts)) $price->promoprice = Promotion::pricing($pricetag,$price->discounts);
-			else $price->promoprice = $pricetag;
+		if (!empty($price->discounts)) {
+			$discount = Promotion::pricing($price->promoprice,$price->discounts);
+			if ($discount->freeship) $freeshipping = true;
+			$price->promoprice = $discount->pricetag;
 		}
 
-		if ($price->promoprice < $price->price) $price->sale = $target->sale = 'on';
+		if ($price->promoprice < $price->price) $target->sale = 'on';
 
 		// Grab price and saleprice ranges (minimum - maximum)
 		if (!$price->price) $price->price = 0;
@@ -595,7 +590,7 @@ class Product extends WPShoppObject {
 		}
 
 		// Determine savings ranges
-		if (str_true($price->sale)) {
+		if (str_true($target->sale)) {
 
 			if ( ! isset($target->min['saved']) || $target->min['saved'] === false ) {
 				$target->min['saved'] = $price->price;
@@ -619,8 +614,9 @@ class Product extends WPShoppObject {
 			}
 		}
 
-		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
-		$target->freeship = $freeshipping?'on':'off';
+		if ( shopp_setting_enabled('inventory') && str_true($target->inventory) ) $target->outofstock = ($target->stock <= 0);
+		if ( $freeshipping ) $target->freeship = 'on';
+
 	}
 
 	/**
@@ -690,6 +686,8 @@ class Product extends WPShoppObject {
 	/**
 	 * Resets summary data to intial values so summation is accurate
 	 *
+	 * We do not reset sales data here because it will also be refreshed
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
@@ -698,9 +696,10 @@ class Product extends WPShoppObject {
 	function resum () {
 		$this->lowstock = 'none';
 		$this->sale = $this->inventory = 'off';
-		$this->stock = $this->stocked = $this->sold = 0;
+		$this->stock = $this->stocked = 0;
 		$this->maxprice = $this->minprice = false;
 		$this->min = $this->max = array();
+		$this->freeship = 'off';
 		foreach ( ProductSummary::$_ranges as $index ) {
 			$this->min[$index] = false;
 			$this->max[$index] = false;
@@ -822,20 +821,36 @@ class Product extends WPShoppObject {
 		$selection = array();
 		$mapping = array();
 		$count = 1;
+
+		// get saved product options
+		$poptions = array();
+		$pkey = 'addon' == $type ? 'a' : 'v';
+		if ( isset($this->options[$pkey]) ) $poptions = $this->options[$pkey];
+
 		foreach ( $menus as $menuname => $options ) {
+
+			// get saved product menu
+			$pmenu = array();
+			foreach ( $poptions as $pmenu ) if ( $pmenu['name'] == $menuname ) break;
+
 			$mapping[$menuname] = array();
 			foreach ( $options as $option ) {
-				$mapping[$menuname][$option] = $count++;
+
+				// get save option id
+				$poption = array();
+				if ( isset($pmenu['options']) ) foreach ( $pmenu['options'] as $poption )
+					if ( $poption['name'] == $option ) break;
+
+				$id = isset($poption['id']) ? $poption['id'] : $count++;
+				$mapping[$menuname][$option] = $id;
 			}
 		}
-
 		if ( 'addon' == $type) {
 			$type = key($variant);
 			$option = current($variant);
 
 			$selection[] = $mapping[$type][$option];
 			if ( 'optionkey' == $return ) return $this->optionkey($selection);
-
 			return array( $this->optionkey($selection), $selection[0], $option, $mapping );
 		}
 
@@ -990,7 +1005,7 @@ class Product extends WPShoppObject {
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		global $wpdb;
-		$tbale = $wpdb->term_relationships;
+		$table = $wpdb->term_relationships;
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE object_id='$id'");
 
 		// Delete prices
@@ -1059,10 +1074,22 @@ class Product extends WPShoppObject {
 
 		// Copy prices
 		foreach ($this->prices as $price) {
+
 			$Price = new Price();
 			$Price->copydata($price);
 			$Price->product = $this->id;
 			$Price->save();
+
+			// Copy Price record meta entries
+			$meta = array('donation','recurring','membership','dimensions');
+			$priceline['settings'] = array();
+			$settings = array();
+			foreach ($meta as $name)
+				if ( isset($price->$name) ) $settings[$name] = $price->$name;
+
+			shopp_set_meta($Price->id,'price','settings',$settings);
+			shopp_set_meta($Price->id,'price','options',$price->options);
+
 		}
 
 		// Copy taxonomy assignments

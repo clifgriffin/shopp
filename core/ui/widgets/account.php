@@ -37,10 +37,10 @@ class ShoppAccountWidget extends WP_Widget {
 		$title = $before_title.$title.$after_title;
 
 
-		remove_filter('shopp_show_account_errors',array(&$this,'showerrors'));
+		remove_filter('shopp_show_account_errors',array($this,'showerrors'));
+		$Page = new AccountStorefrontPage();
 
-		$Storefront = ShoppStorefront();
-		$menu = $Storefront->account_page('','menu');
+		$menu = $Page->content('','widget');
 		echo $before_widget.$title.$menu.$after_widget;
 
     }

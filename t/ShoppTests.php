@@ -166,9 +166,6 @@ system('mysql -u '.DB_USER.' --password='.DB_PASSWORD.' '.DB_NAME.' < '.SHOPP_SQ
 require(ABSPATH.'wp-settings.php');
 add_action('shopp_init',create_function('','error_reporting(0); ini_set("display_errors",false);'));
 
-global $Shopp;
-$db = DB::get();
-
 if (defined('SHOPP_IMAGES_PATH')) shopp_set_setting('image_path', SHOPP_IMAGES_PATH);
 if (defined('SHOPP_PRODUCTS_PATH')) shopp_set_setting('products_path', SHOPP_PRODUCTS_PATH);
 if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');

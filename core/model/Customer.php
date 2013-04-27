@@ -175,6 +175,8 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
 		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
 
+		$_[] = apply_filters('shopp_merchant_new_customer_notification',$_);
+
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
 		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the merchant.','new_account_email',SHOPP_DEBUG_ERR);
@@ -190,6 +192,8 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('Password: %s'), $this->password);
 		$_[] = '';
 		$_[] = shoppurl(false,'account',$Shopp->Gateways->secure);
+
+		$_[] = apply_filters('shopp_new_customer_notification',$_);
 
 		if (!shopp_email(join("\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
@@ -230,7 +234,7 @@ class Customer extends DatabaseObject {
 		$request = false; $id = false;
 		$Storefront = ShoppStorefront();
 
-		if (isset($Storefront->account)) extract($Storefront->account);
+		if (isset($Storefront->account)) extract((array)$Storefront->account);
 		else {
 			if (isset($_GET['acct'])) $request = $_GET['acct'];
 			if (isset($_GET['id'])) $id = (int)$_GET['id'];
@@ -312,11 +316,8 @@ class Customer extends DatabaseObject {
 		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
 
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-
 		$this->updates($_POST);
 		if (isset($_POST['info'])) $this->info = $_POST['info'];
-		$this->save();
-		$this->load_info();
 
 		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 			$this->password = wp_hash_password($_POST['password']);
@@ -326,11 +327,17 @@ class Customer extends DatabaseObject {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 		}
 
+		do_action('shopp_customer_update',$this);
+
+		$this->save();
+		$this->load_info();
+
 		$addresses = array('Billing'=>'BillingAddress','Shipping'=>'ShippingAddress');
 		foreach ($addresses as $Address => $class) {
 			$type = strtolower($Address);
 			if (isset($_POST[$type]) && !empty($_POST[$type])) {
 				$Updated = new $class($this->id,'customer');
+				$Updated->customer = $this->id;
 				$Updated->updates($_POST[$type]);
 				$Updated->save();
 				ShoppOrder()->$Address = $Updated;

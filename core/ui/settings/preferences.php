@@ -86,8 +86,8 @@
 
 			<tr>
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th>
-				<td><input type="radio" name="settings[order_confirmation]" value="ontax" id="order_confirmation_ontax"<?php if(shopp_setting('order_confirmation') == "ontax") echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show for taxed orders only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if(shopp_setting('order_confirmation') == "always") echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders','Shopp') ?></label></td>
+				<td><input type="radio" name="settings[order_confirmation]" value="" id="order_confirmation_ontax"<?php if ( 'always' != shopp_setting('order_confirmation') ) echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show only when the order total changes','Shopp'); ?></label><br />
+					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if ( 'always' == shopp_setting('order_confirmation') ) echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders','Shopp') ?></label></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th>
@@ -129,7 +129,7 @@
 			<tr>
 				<th scope="row" valign="top"><label for="download-quantity"><?php _e('Download Quantity','Shopp'); ?></label></th>
 				<td><input type="hidden" name="settings[download_quantity]" value="off" />
-					<label for="download-quantity"><input type="checkbox" name="settings[download_quantity]" id="download-quantity" value="on" <?php echo (shopp_setting('download_quantity') == "on")?'checked="checked" ':'';?> /> <?php _e('Enable quantity selection for download products','Shopp'); ?></label></td>
+					<label for="download-quantity"><input type="checkbox" name="settings[download_quantity]" id="download-quantity" value="on" <?php echo (shopp_setting_enabled('download_quantity') ? 'checked="checked" ':'');?> /> <?php _e('Enable quantity selection for download products','Shopp'); ?></label></td>
 			</tr>
 		</table>
 

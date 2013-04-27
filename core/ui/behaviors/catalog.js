@@ -75,7 +75,7 @@ function ProductOptionsMenus (target,settings) {
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 					option.text(optiontext+pricetag);
 					if ($.browser.msie) option.css('color','#373737');
-					if ((price.i && !price.s) || price.t == 'N/A') {
+					if ((price.i && price.s < 1) || price.t == 'N/A') {
 						if (option.attr('selected'))
 							option.parent().attr('selectedIndex',0);
 						if (!settings.disabled) option.remove();
@@ -92,6 +92,7 @@ function ProductOptionsMenus (target,settings) {
 
 	// Magic key generator
 	function xorkey (ids,deprecated) {
+		if (!(ids instanceof Array)) ids = [ids];
 		for (var key=0,i=0,mod=deprecated?101:7001; i < ids.length; i++)
 			key = key ^ (ids[i]*mod);
 		return key;
@@ -257,8 +258,9 @@ function slideshows () {
  * Generate a carousel (looping slider) of images
  **/
 function ShoppCarousel (element,duration) {
-	var $ = jqnc(),visible,spacing,
+	var $ = jqnc(),spacing,
 		_ = this,
+		visible=1,
 		carousel = $(element),
 		list = carousel.find('ul'),
 		items = list.find('> li');
@@ -266,7 +268,8 @@ function ShoppCarousel (element,duration) {
 	_.duration = (!duration)?800:duration;
 	_.cframe = carousel.find('div.frame');
 
-	visible = Math.floor(_.cframe.innerWidth() / items.outerWidth());
+	visible = Math.round(_.cframe.innerWidth() / items.outerWidth());
+	if (visible < 1) visible = 1;
 	spacing = Math.round(((_.cframe.innerWidth() % items.outerWidth())/items.length)/2);
 
 	items.css('margin','0 '+spacing+'px');
@@ -348,7 +351,9 @@ function validate (form) {
 		required = 'required',
 		title = 'title';
 
-	$.each(inputs,function (id,field) {
+	$.fn.reverse = (typeof []._reverse == 'undefined') ? [].reverse : []._reverse; // For Prototype-compatibility #1854
+
+	$.each(inputs.reverse(),function (id,field) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
 

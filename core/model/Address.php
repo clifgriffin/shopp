@@ -44,6 +44,7 @@ class Address extends DatabaseObject {
 	 * @return void
 	 **/
 	function load ($id=false,$key=false) {
+		if ( ! empty($this->type) ) $id = array($key => $id,'type' => $this->type);
 		parent::load($id,$key);
 		$this->locate();
 	}
@@ -138,6 +139,7 @@ class BillingAddress extends Address {
 	 **/
 	function __construct ($id=false,$key='customer') {
 		$this->init(self::$table);
+		if ( ! $id ) return;
 		$this->load(array($key => $id,'type' => 'billing'));
 		$this->type = 'billing';
 	}
@@ -183,6 +185,7 @@ class ShippingAddress extends Address {
 	 **/
 	function __construct ($id=false,$key='customer') {
 		$this->init(self::$table);
+		if ( ! $id ) return;
 		$this->load(array($key => $id,'type' => 'shipping'));
 		$this->type = 'shipping';
 	}

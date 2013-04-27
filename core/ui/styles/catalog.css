@@ -55,7 +55,7 @@
 #shopp form ul li input,
 #shopp form ul li select { margin: 0 0 5px 0; }
 #shopp form ul li div input,
-#shopp form ul li div select { width: 100%; }
+#shopp form ul li div select { width: 100%; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
 #shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
 #shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 #shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
@@ -107,7 +107,7 @@
 #shopp .gallery ul li:before { content: ""; }
 #shopp .gallery li a { margin: 0; padding: 0; float: none; }
 #shopp .gallery .previews { position: relative;  margin: 0 !important; overflow: hidden; }
-#shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+#shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; min-width: 100%; }
 #shopp .gallery .previews li.fill { position: relative; }
 #shopp .gallery .previews li.fill img { margin: 0; padding: 0; }
 #shopp .gallery .previews li.active { visibility: visible; }
@@ -138,3 +138,6 @@
 /** Twenty-Ten Fixes **/
 #shopp h1,#shopp h2,#shopp h3,#shopp h4,#shopp h5,#shopp h6 { clear: none; }
 #shopp form table, #shopp form table td { border: none; }
+
+/** Account widget login **/
+#login.shopp ul li { list-style: none; }

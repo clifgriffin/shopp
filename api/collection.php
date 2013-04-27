@@ -97,7 +97,7 @@ function shopp_add_product_category ( $name = '', $description = '', $parent = f
 
 	$term = wp_insert_term($name, ProductCategory::$taxon, $args);
 
-	if ( $term && isset($term['term_id']) ) {
+	if ( ! is_wp_error($term) && isset($term['term_id']) ) {
 		$hierarchy = _get_term_hierarchy(ProductCategory::$taxon);
 		if ( $parent && (! in_array($parent, array_keys($hierarchy)) || ! in_array($term['term_id'], $hierarchy[$parent]) ) ) {
 			// update hierarchy if necessary
@@ -560,24 +560,16 @@ function shopp_catalog_count ( $status = 'publish' ) {
  * @return int number of products in the category
  **/
 function shopp_category_count (	$category = 0, $children = false ) {
-	if ( ! term_exists( (int) $category, ProductCategory::$taxon ) ) {
+	if ( ! $category || ! ( $Category = new ProductCategory( (int) $category) ) || $category != $Category->id ) {
 		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: $category not a valid Shopp product category.",__FUNCTION__,SHOPP_DEBUG_ERR);
 		return false;
 	}
 
-	$args = array( 	'post_type' => Product::$posttype,
-					'suppress_filters' => true,
-					'tax_query' => array(
-							array( 	'taxonomy' => ProductCategory::$taxon,
-									'terms' => array($category),
-									'include_children' => $children
-									)
-					)
-				);
-	$Q = new WP_Query( $args );
+	$count = $Category->count;
+	if ( $children )
+		foreach( shopp_subcategories($category) as $cat ) $count += $cat->count;
 
-	return $Q->found_posts;
-
+	return $count;
 }
 
 /**

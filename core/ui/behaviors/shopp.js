@@ -36,7 +36,7 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if ($s && $s.d !== undefined)
+	if ($s && $s.d !== '' && $s.d !== undefined)
 		return {	// from base of operations setting
 			cpos:$s.cp,
 			currency:$s.c,
@@ -230,6 +230,15 @@ jQuery.fn.clickSubmit = function () {
 	var $this = jQuery(this);
 	$this.click(function () {
 		jQuery(this).closest('form').submit();
+	});
+	return this;
+};
+
+jQuery.fn.setDisabled = function (setting) {
+	var $this = jQuery(this);
+	$this.each(function () {
+		if (setting) $this.attr('disabled',true).addClass('disabled');
+		else $this.attr('disabled',false).removeClass('disabled');
 	});
 	return this;
 };

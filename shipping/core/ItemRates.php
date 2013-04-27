@@ -27,7 +27,7 @@ class ItemRates extends ShippingFramework implements ShippingModule {
 		if (!$Item->freeshipping) $this->items += $Item->quantity;
 	}
 
-	function calculate ($options,$Order) {
+	function calculate (&$options,$Order) {
 
 		foreach ($this->methods as $slug => $method) {
 

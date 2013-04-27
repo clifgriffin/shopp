@@ -25,8 +25,11 @@ class Purchased extends DatabaseObject {
 
 		$this->price = $Item->option->id;
 
-		if ( ! empty($this->download) ) $this->keygen();
-		$this->download = (int)$this->download->id; // Convert download property to integer ID
+		// Generate download link for downloadables
+		if ( 'Download' == $Item->type && ! empty($this->download) ) {
+			$this->keygen();
+			$this->download = (int)$this->download->id; // Convert download property to integer ID
+		}
 
 		$this->addons = 'no';
 		if (empty($Item->addons) || !is_array($Item->addons)) return true;
@@ -88,6 +91,12 @@ class Purchased extends DatabaseObject {
 		}
 
 		$this->addons = $addons; // restore addons model
+	}
+
+	function delete () {
+		$table = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchased'");
+		parent::delete();
 	}
 
 	function keygen () {

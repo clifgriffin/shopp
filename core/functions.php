@@ -1593,6 +1593,14 @@ function shopp_email ($template,$data=array()) {
 	exit();
 }
 
+/**
+ * Locate the WordPress bootstrap file
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return string Absolute path to wp-load.php
+ **/
 function shopp_find_wpload () {
 	global $table_prefix;
 
@@ -1627,9 +1635,14 @@ function shopp_find_wpload () {
 		$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
 	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$loadfile) ) {
 		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
-	}
+    } else {
+        /* Last chance, do or die */
+		$filepath = sanitize_path($filepath);
+        if (($pos = strpos($filepath, 'wp-content/plugins')) !== false)
+            $wp_abspath = substr($filepath, 0, --$pos);
+    }
 
-	$wp_load_file = sanitize_path($wp_abspath).'/'.$loadfile;
+	$wp_load_file = realpath(sanitize_path($wp_abspath).'/'.$loadfile);
 
 	if ( $wp_load_file !== false ) return $wp_load_file;
 	return false;
@@ -1766,7 +1779,6 @@ function shopp_parse_options ($options) {
  **/
 function shopp_redirect ($uri,$exit=true,$status=302) {
 	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
-	header('Content-Length: 0');
 	wp_redirect($uri,$status);
 	if ($exit) exit();
 }
@@ -1858,7 +1870,7 @@ function shopp_template_url ($name) {
 	$themepath = get_stylesheet_directory();
 	$themeuri = get_stylesheet_directory_uri();
 	$builtin = SHOPP_PLUGINURI.'/templates';
-	$template = shopp_template_prefix('');
+	$template = rtrim(shopp_template_prefix(''),'/');
 
 	$path = "$themepath/$template";
 
@@ -1883,9 +1895,14 @@ function shopp_template_url ($name) {
  * @return string The final URL
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
+	global $is_IIS;
 
 	$structure = get_option('permalink_structure');
 	$prettyurls = ('' != $structure);
+
+	// Support IIS index.php/ prefixed permalinks
+	if ( $is_IIS && 0 === strpos($structure,'/index.php/') )
+		$path[] = 'index.php';
 
 	$path[] = Storefront::slug('catalog');
 
@@ -1994,7 +2011,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
  * @param array $istrue A list strings that are true
  * @return boolean The boolean value of the provided text
  **/
-function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on') ) {
+function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on','open') ) {
 	if (is_array($string)) return false;
 	if (is_bool($string)) return $string;
 	return in_array(strtolower($string),$istrue);

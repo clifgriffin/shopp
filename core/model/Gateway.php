@@ -115,10 +115,7 @@ abstract class GatewayFramework {
 
 		$this->_loadcards();
 
-		// @deprecated
-		if ($this->myorder() && method_exists($this,'actions'))
-			$this->actions();
-
+		add_action('shopp_init',array($this,'myactions'),30);
 		$gateway = sanitize_key($this->module);
 		add_action('shopp_'.$gateway.'_refunded',array($this,'cancelorder'));
 
@@ -126,6 +123,11 @@ abstract class GatewayFramework {
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "auth";'));
 		elseif ($this->saleonly)
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "sale";'));
+	}
+
+	function myactions () {
+		if ($this->myorder() && method_exists($this,'actions'))
+			$this->actions();
 	}
 
 	/**
@@ -153,7 +155,11 @@ abstract class GatewayFramework {
 	 *
 	 * @return boolean
 	 **/
-	function myorder () {
+	function myorder ($mine=false) {
+		if (true === $mine) {
+			$this->Order->processor($this->module);
+			return true;
+		}
 		return ($this->Order->processor() == $this->module);
 	}
 
@@ -301,11 +307,12 @@ abstract class GatewayFramework {
 	 * @return string Formatted amount
 	 **/
 	function amount ($amount,$format=array()) {
+
 		if (is_string($amount)) {
 			$Totals = ShoppOrder()->Cart->Totals;
 			if (!isset($Totals->$amount)) return false;
 			$amount = $Totals->$amount;
-		} elseif ( ! ( is_int($amount) && is_float($amount) ) ) return false;
+		} elseif ( ! ( is_int($amount) || is_float($amount) ) ) return $amount;
 
 		$defaults = array(
 			'precision' => $this->precision,
@@ -621,6 +628,11 @@ class GatewaySettingsUI extends ModuleSettingsUI {
 		}
 		return $attributes;
 	}
+
+	function behaviors ($script) {
+		shopp_custom_script('payments',$script);
+	}
+
 
 }
 

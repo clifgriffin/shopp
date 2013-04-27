@@ -43,7 +43,7 @@ jQuery(document).ready(function($) {
 	}
 
 	// Init postboxes for the editor
-	postboxes.add_postbox_toggles('shopp_page_shopp-products');
+	postboxes.add_postbox_toggles(screenid);
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 
@@ -208,9 +208,7 @@ function categories () {
 
 		// Load category variation option templates
 		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (t) {
-			debuglog(t);
-			debuglog((t && t.options && t.prices));
-			if (!(t && t.options && t.prices)) return true;
+			if ( ! (t && (t.options && t.prices) && (t.options.length > 0 || t.prices.length > 0))) return true;
 
 			var variant_setting = $('#variations-setting'),
 				options = !t.options.v?t.options:t.options.v,

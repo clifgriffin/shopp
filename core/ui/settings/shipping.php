@@ -26,7 +26,7 @@
 				<div id="carriers" class="multiple-select">
 					<ul>
 						<li<?php $even = true;
-						$classes[] = 'odd hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall"  id="selectall" /><label for="selectall"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
+						$classes[] = 'odd hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall"  id="selectall" /><label for="selectall"><strong><?php _e('Select All','Shopp'); ?></strong></label><input type="hidden" name="settings[shipping_carriers]" value="off" /></li>
 						<?php
 							foreach ($carriers as $code => $carrier):
 								$classes = array();
@@ -52,7 +52,7 @@
 				<th scope="row" valign="top"><label for="packaging"><?php _e('Package Limit','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[shipping_package_weight_limit]" id="packaging_weight_limit">
-						<?php echo menuoptions(apply_filters('shopp_package_weight_limits', array('-1'=>'∞',10,20,30,40,50,60,70,80,90,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800)),
+						<?php echo menuoptions(apply_filters('shopp_package_weight_limits', array('-1'=>'∞','10'=>10,'20'=>20,'30'=>30,'40'=>40,'50'=>50,'60'=>60,'70'=>70,'80'=>80,'90'=>90,'100'=>100,'150'=>150,'200'=>200,'250'=>250,'300'=>300,'350'=>350,'400'=>400,'450'=>450,'500'=>500,'550'=>550,'600'=>600,'650'=>650,'700'=>700,'750'=>750,'800'=>800)),
 								shopp_setting('shipping_package_weight_limit'),true); ?>
 				</select><br />
 				<?php _e('The maximum weight allowed for a package.','Shopp'); ?></td>

@@ -18,7 +18,6 @@ class Purchase extends DatabaseObject {
 	var $columns = array();
 	var $message = array();
 	var $data = array();
-	var $downloads = false;
 
 	// Balances
 	var $invoiced = false;		// Amount invoiced
@@ -28,8 +27,10 @@ class Purchase extends DatabaseObject {
 	var $voided = false;		// Order cancelled prior to capture
 	var $balance = 0;			// Current balance
 
+	var $downloads = false;
 	var $shipable = false;
 	var $shipped = false;
+	var $stocked = false;
 
 	function Purchase ($id=false,$key=false) {
 
@@ -51,15 +52,24 @@ class Purchase extends DatabaseObject {
 
 		$table = DatabaseObject::tablename(Purchased::$table);
 		$meta = DatabaseObject::tablename(MetaObject::$table);
+		$price = DatabaseObject::tablename(Price::$table);
+
 		if (empty($this->id)) return false;
-		$this->purchased = DB::query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
-		foreach ($this->purchased as &$purchase) {
+		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",'array','index','id');
+		foreach ( $this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ('Shipped' == $purchase->type) $this->shipable = true;
+			if ( str_true($purchase->inventory) ) $this->stocked = true;
 			$purchase->data = unserialize($purchase->data);
 			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
+				foreach ( $purchase->addons->meta as $Addon ) {
+					$addon = $Addon->value;
+					if ( 'Download' == $addon->type ) $this->downloads = true;
+					if ( 'Shipped' == $addon->type ) $this->shipable = true;
+					if ( str_true($addon->inventory) ) $this->stocked = true;
+				}
 			}
 		}
 
@@ -81,7 +91,7 @@ class Purchase extends DatabaseObject {
 				case 'authed': $this->authorized += $Event->amount; break;
 				case 'captured': $this->captured += $Event->amount; break;
 				case 'refunded': $this->refunded += $Event->amount; break;
-				case 'voided': $this->voided = true; $Event->amount = $this->balance; $Event->credit = true; break;
+				case 'voided': $Event->amount = $this->balance; $this->voided += $Event->amount; $Event->credit = true; break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
 			if (isset($Event->transactional)) {
@@ -100,6 +110,96 @@ class Purchase extends DatabaseObject {
 			}
 		}
 
+	}
+
+	/**
+	 * Detects when the purchase has been voided
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
+	function isrefunded () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->refunded == $this->captured);
+	}
+
+	/**
+	 * Detects when the purchase has been voided
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
+	function isvoid () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->voided >= $this->invoiced);
+	}
+
+	/**
+	 * Detects when the purchase has been paid in full
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.2
+	 *
+	 * @return boolean
+	 **/
+	function ispaid () {
+		if (empty($this->events)) $this->load_events();
+		return ($this->captured == $this->total);
+	}
+
+	static function unstock ( UnstockOrderEvent $Event ) {
+		if (empty($Event->order)) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
+
+		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
+		$Purchase = ShoppPurchase();
+		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id) {
+			$Purchase = new Purchase($Event->order);
+		}
+
+		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
+
+		$allocated = array();
+		foreach ( $Purchase->purchased as $Purchased ) {
+			if ( is_a($Purchased->addons,'ObjectMeta') && ! empty($Purchased->addons->meta) ) {
+				foreach ( $Purchased->addons->meta as $index => $Addon ) {
+					if ( ! str_true($Addon->value->inventory) ) continue;
+
+					$allocated[$Addon->value->id] = new PurchaseStockAllocation(array(
+						'purchased' => $Purchased->id,
+						'addon' => $index,
+						'sku' => $Addon->value->sku,
+						'price' => $Addon->value->id,
+						'quantity' => $Purchased->quantity
+					));
+
+				}
+			}
+			if ( ! str_true($Purchased->inventory) ) continue;
+
+			$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
+				'purchased' => $Purchased->id,
+				'sku' => $Purchased->sku,
+				'price' => $Purchased->price,
+				'quantity' => $Purchased->quantity
+			));
+		}
+
+		if ( ! empty($allocated) ) {
+			$pricetable = DatabaseObject::tablename(Price::$table);
+			$prices = array();
+			foreach ( $allocated as $id => $PSA )
+				$prices[$PSA->price] = isset($prices[$PSA->price]) ? $prices[$PSA->price] + $PSA->quantity : $PSA->quantity;
+
+			foreach ( $prices as $price => $qty )
+				DB::query("UPDATE $pricetable SET stock=stock-".(int)$qty." WHERE id='$price' LIMIT 1");
+
+			$Event->unstocked($allocated);
+		}
 	}
 
 	/**
@@ -131,9 +231,20 @@ class Purchase extends DatabaseObject {
 		// Set transaction status from event name
 		$txnstatus = $Event->name;
 
+		if ( 'refunded' == $txnstatus) { // Determine if this is fully refunded (previous refunds + this refund amount)
+			if (empty($Purchase->events)) $Purchase->load_events(); // Not refunded if less than captured, so don't update txnstatus
+			if ($Purchase->refunded+$Event->amount < $Purchase->captured) $txnstatus = false;
+		}
+		if ( 'voided' == $txnstatus) { // Determine if the transaction has been cancelled
+			if (empty($Purchase->events)) $Purchase->load_events();
+			if ($Purchase->captured) $txnstatus = false; // If previously captured, don't mark voided
+		}
+
+		if ( 'shipped' == $txnstatus) $txnstatus = false; // 'shipped' is not a valid txnstatus
+
 		// Set order workflow status from status label mapping
-		$labels = shopp_setting('order_status');
-		$events = shopp_setting('order_states');
+		$labels = (array)shopp_setting('order_status');
+		$events = (array)shopp_setting('order_states');
 		$key = array_search($Event->name,$events);
 		if (false !== $key && isset($labels[$key])) $status = (int)$key;
 
@@ -193,8 +304,7 @@ class Purchase extends DatabaseObject {
 		$defaults = array('note');
 
 		$this->message['event'] = $Event;
-		$this->message['note'] = &$Event->note;
-
+		if (!empty($Event->note)) $this->message['note'] = &$Event->note;
 
 		// Generic filter hook for specifying global email messages
 		$messages = apply_filters('shopp_order_event_emails',array(
@@ -378,6 +488,7 @@ class Purchase extends DatabaseObject {
 			$prefix.'state' => __('Billing State/Province','Shopp'),
 			$prefix.'country' => __('Billing Country','Shopp'),
 			$prefix.'postcode' => __('Billing Postal Code','Shopp'),
+			$prefix.'shipname' => __('Shipping Name','Shopp'),
 			$prefix.'shipaddress' => __('Shipping Street Address','Shopp'),
 			$prefix.'shipxaddress' => __('Shipping Street Address 2','Shopp'),
 			$prefix.'shipcity' => __('Shipping City','Shopp'),
@@ -425,7 +536,33 @@ class Purchase extends DatabaseObject {
 		if ($new && !empty($this->id)) $this->listeners();
 	}
 
+	function delete () {
+		$table = DatabaseObject::tablename(MetaObject::$table);
+		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchase'");
+		parent::delete();
+	}
+
+	function delete_purchased () {
+		if (empty($this->purchased)) $this->load_purchased();
+		foreach ($this->purchased as $item) {
+			$Purchased = new Purchased();
+			$Purchased->populate($item);
+			$Purchased->delete();
+		}
+	}
+
+
 } // end Purchase class
+
+class PurchaseStockAllocation extends AutoObjectFramework {
+
+	var $purchased = 0; // purchased id
+	var $addon = false;	// index of addons
+	var $sku = '';		// sku
+	var $price = 0; 	// price id
+	var $quantity = 0;	// quantity
+
+}
 
 class PurchasesExport {
 	var $sitename = "";
@@ -459,38 +596,79 @@ class PurchasesExport {
 	}
 
 	function query ($request=array()) {
-		$db =& DB::get();
-		if (empty($request)) $request = $_GET;
+		$defaults = array(
+			'status' => false,
+			's' => false,
+			'start' => false,
+			'end' => false
+		);
+		$request = array_merge($defaults,$_GET);
+		extract($request);
 
-		if (!empty($request['start'])) {
-			list($month,$day,$year) = explode("/",$request['start']);
-			$starts = mktime(0,0,0,$month,$day,$year);
+
+		if (!empty($start)) {
+			list($month,$day,$year) = explode('/',$start);
+			$start = mktime(0,0,0,$month,$day,$year);
 		}
 
-		if (!empty($request['end'])) {
-			list($month,$day,$year) = explode("/",$request['end']);
-			$ends = mktime(0,0,0,$month,$day,$year);
+		if (!empty($end)) {
+			list($month,$day,$year) = explode('/',$end);
+			$end = mktime(23,59,59,$month,$day,$year);
 		}
 
-		$where = "WHERE o.id IS NOT NULL AND p.id IS NOT NULL ";
-		if (isset($request['status']) && !empty($request['status'])) $where .= "AND status='{$request['status']}'";
-		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
-		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(o.created) >= $starts AND UNIX_TIMESTAMP(o.created) <= $ends)";
+		$where = array();
+		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
+		if (!empty($s)) {
+			$s = stripslashes($s);
+			$search = array();
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
+				foreach ($props as $query) {
+					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
+					switch(strtolower($query[1])) {
+						case "txn": 		$search[] = "txnid='$keyword'"; break;
+						case "company":		$search[] = "company LIKE '%$keyword%'"; break;
+						case "gateway":		$search[] = "gateway LIKE '%$keyword%'"; break;
+						case "cardtype":	$search[] = "cardtype LIKE '%$keyword%'"; break;
+						case "address": 	$search[] = "(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
+						case "city": 		$search[] = "city LIKE '%$keyword%'"; break;
+						case "province":
+						case "state": 		$search[] = "state='$keyword'"; break;
+						case "zip":
+						case "zipcode":
+						case "postcode":	$search[] = "postcode='$keyword'"; break;
+						case "country": 	$search[] = "country='$keyword'"; break;
+					}
+				}
+				if (empty($search)) $search[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				$where[] = "(".join(' OR ',$search).")";
+			} elseif (strpos($s,'@') !== false) {
+				 $where[] = "email='".DB::escape($s)."'";
+			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
+		}
+		if (!empty($start) && !empty($end)) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
+		if (!empty($customer)) $where[] = "customer=".intval($customer);
+		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 		$offset = ($this->set*$this->limit);
 
-		$c = 0; $columns = array();
-		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
-		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
-		$this->data = $db->query($query,AS_ARRAY);
+		$c = 0; $columns = array(); $purchasedcols = false;
+		foreach ($this->selected as $column) {
+			$columns[] = "$column AS col".$c++;
+			if ( false !== strpos('p.',$column) ) $purchasedcols = true;
+		}
+		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
+		else $FROM = "FROM $purchasetable AS o";
+
+		$query = "SELECT ".join(",",$columns)." $FROM $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
+		$this->data = DB::query($query,'array');
 	}
 
 	// Implement for exporting all the data
 	function output () {
 		if (!$this->data) $this->query();
-		if (!$this->data) return false;
+		if (!$this->data) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");
@@ -680,9 +858,11 @@ class PurchasesIIFExport extends PurchasesExport {
 }
 
 // Automatically update the orders from order events
-$updates = array('invoiced','authed','captured','refunded','voided');
+$updates = array('invoiced','authed','captured','shipped','refunded','voided');
 foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
 	add_action( 'shopp_'.$event.'_order_event', array('Purchase','status_event'), 5 );
 
+// Handle unstock event
+add_action('shopp_unstock_order_event', array('Purchase','unstock'));
 
 ?>

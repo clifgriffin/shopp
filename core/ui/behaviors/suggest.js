@@ -289,7 +289,9 @@
 					$input.val( $currentVal + $currentResult.text() + options.multipleSep);
 					$input.focus();
 				} else {
-					$input.val($currentResult.text()).attr('alt',$currentResult.attr('alt'));
+					if ('alt' == options.value) {
+						$input.val($currentResult.attr('alt'));
+					} else $input.val($currentResult.text()).attr('alt',$currentResult.attr('alt'));
 				}
 				$results.hide();
 
@@ -349,6 +351,7 @@
 		options.delimiter = options.delimiter || '\n';
 		options.format = options.format || 'string';
 		options.label = options.label || false;
+		options.value = options.value || 'text';
 		options.onSelect = options.onSelect || false;
 		options.autoSelect = options.autoSelect || false;
 		options.maxCacheSize = options.maxCacheSize || 65536;

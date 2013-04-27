@@ -138,7 +138,7 @@ class Categorize extends AdminController {
 
 		if ($save) {
 			$this->save($Shopp->Category);
-			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
+			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Category->name).'</strong>') );
 
 			// Workflow handler
 			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
@@ -206,6 +206,8 @@ class Categorize extends AdminController {
 		$paged = absint( $paged );
 		$start = ($per_page * ($paged-1));
 		$end = $start + $per_page;
+
+		$url = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('categories'))),admin_url('admin.php'));
 
 		$taxonomy = 'shopp_category';
 
@@ -323,7 +325,6 @@ class Categorize extends AdminController {
 	 **/
 	function editor () {
 		global $Shopp,$CategoryImages;
-		$db = DB::get();
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -334,13 +335,8 @@ class Categorize extends AdminController {
 		$Category->load_images();
 
 		$Price = new Price();
-		$priceTypes = array(
-			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
-			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
-			array('value'=>'Download','label'=>__('Download','Shopp')),
-			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'N/A','label'=>__('N/A','Shopp'))
-		);
+		$priceTypes = Price::types();
+		$billPeriods = Price::periods();
 
 		// Build permalink for slug editor
 		$permalink = trailingslashit(shoppurl())."category/";
@@ -362,6 +358,13 @@ class Categorize extends AdminController {
 			"next" => __('Edit Next','Shopp'),
 			"previous" => __('Edit Previous','Shopp')
 			);
+
+		do_action('add_meta_boxes', ProductCategory::$taxon, $Category);
+		do_action('add_meta_boxes_'.ProductCategory::$taxon, $Category);
+
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'normal', $Category);
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'advanced', $Category);
+		do_action('do_meta_boxes', ProductCategory::$taxon, 'side', $Category);
 
 		include(SHOPP_ADMIN_PATH."/categories/category.php");
 	}

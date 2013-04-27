@@ -43,6 +43,10 @@ class FSStorage extends StorageModule implements StorageEngine {
 	function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
  		add_filter('shopp_verify_stored_file',array(&$this,'verify'));
+
+		// Override access checks when resuming a previous download
+		if (isset($_SERVER['HTTP_RANGE']) && !empty($_SERVER['HTTP_RANGE']))
+			add_filter('shopp_download_forbidden',create_function('$a','return false;'));
 	}
 
 	function context ($context) {
@@ -54,22 +58,32 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 	function save ($asset,$data,$type='binary') {
 
-		if ($type == "upload") { // $data is an uploaded temp file path, just move the file
-			error_reporting(E_ALL);
-			ini_set( 'display_errors', 1 );
-			ini_set( 'log_errors', 1 );
+		$error = false;
+		if (empty($data)) $error = "$this->module: There is no file data to store.";
 
-			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
-			if (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
-			else die("$this->module: Could not move the uploaded file to the storage repository.");
-		} elseif ($type == "file") { // $data is a file path, just copy the file
-			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
-			if (copy($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
-			else die("$this->module: Could not move the file to the storage repository.");
+		switch ($type) {
+			case 'upload':
+
+				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
+				elseif (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
+				else $error = "$this->module: Could not move the uploaded file to the storage repository.";
+				$buffer = ob_get_contents();
+				break;
+			case 'file':
+				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
+				elseif (copy($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
+				else $error = "$this->module: Could not move the file to the storage repository.";
+				break;
+			default:
+				if (file_put_contents(sanitize_path($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
+				else $error = "$this->module: Could store the file data.";
 		}
 
-		if (file_put_contents(sanitize_path($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
-		else return false;
+		if ( $error ) {
+			$error = new ShoppError($error,'storage_engine_save',SHOPP_ADMIN_ERR);
+			return $error;
+		}
+
 	}
 
 	function exists ($uri) {
@@ -131,12 +145,24 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 			$file = fopen($filepath, 'rb');
 			fseek($file, $start);
-			$packet = 1024*1024;
-			while(!feof($file)) {
-				if (connection_status() !== 0) return false;
-				$buffer = fread($file,$packet);
-				if (!empty($buffer)) echo $buffer;
-				ob_flush(); flush();
+
+			// Detmerine memory available for optimum packet size
+			$packet = $limit = $memory = ini_get('memory_limit');
+			switch ($limit{0}) {
+			    case 'G': case 'g': $limit *= 1073741824; break;
+			    case 'M': case 'm': $limit *= 1048576; break;
+			    case 'K': case 'k': $limit *= 1024; break;
+			}
+			$memory = $limit - memory_get_usage(true);
+
+			// Use 90% of availble memory for read buffer size, 4K minimum (less chunks, less overhead, faster throughput)
+			$packet = max(4096,apply_filters('shopp_fsstorage_download_read_buffer',floor($memory*0.9)));
+
+			while(!feof($file) && connection_status() == 0) {
+				$buffer = fread($file, $packet);
+				echo $buffer;	// Output
+				unset($buffer); // Free memory immediately
+ 				flush();		// Flush output to web server
 			}
 			fclose($file);
 		} else readfile($filepath);
@@ -165,6 +191,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		}
 
+		if ( ! isset($this->settings['path'][$context]) ) $this->settings['path'][$context] = false;
 		$this->ui[$context]->text(0,array(
 			'name' => 'path',
 			'value' => $this->settings['path'][$context],

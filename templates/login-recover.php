@@ -15,7 +15,6 @@
 
 <ul>
 	<li><h3><?php _e('Recover your password','Shopp'); ?></h3></li>
-	<li><?php shopp('customer','login-errors'); ?></li>
 	<li>
 	<span><?php shopp('customer','account-login','size=20&title='.__('Login','Shopp')); ?><label for="login"><?php shopp('customer','login-label'); ?></label></span>
 	<span><?php shopp('customer','recover-button'); ?></span>

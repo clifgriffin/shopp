@@ -25,6 +25,7 @@ class Cart {
 	var $promocodes = array();	// List of promotional codes applied
 	var $shipping = array();	// List of shipping options
 	var $processing = array();	// Min-Max order processing timeframe
+	var $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
 	var $Added = false;			// Last Item added
@@ -75,9 +76,13 @@ class Cart {
 	 * @return void
 	 **/
 	function listeners () {
-		add_action('parse_request',array(&$this,'totals'),99);
-		add_action('shopp_cart_request',array(&$this,'request'));
-		add_action('shopp_session_reset',array(&$this,'clear'));
+		add_action('parse_request',array($this,'totals'),99);
+		add_action('shopp_cart_request',array($this,'request'));
+		add_action('shopp_session_reset',array($this,'clear'));
+
+		// Recalculate cart based on logins (for customer type discounts)
+		add_action('shopp_login',array($this,'changed'));
+		add_action('shopp_logged_out',array($this,'retotal'));
 	}
 
 	/**
@@ -89,11 +94,29 @@ class Cart {
 	 * @return void
 	 **/
 	function request () {
-		global $Shopp;
 
-		if (isset($_REQUEST['checkout'])) shopp_redirect(shoppurl(false,'checkout',$Shopp->Order->security()));
+		if (isset($_REQUEST['checkout'])) shopp_redirect(shoppurl(false,'checkout',ShoppOrder()->security()));
 
 		if (isset($_REQUEST['shopping'])) shopp_redirect(shoppurl());
+
+		// @todo Replace with full CartItem/Purchased syncing after order submission
+		if ( ShoppOrder()->inprogress ) {
+
+			// This is a temporary measure for 1.2.1 to prevent changes to the order after an order has been
+			// submitted for processing. It prevents situations where items in the cart are added, removed or changed
+			// but are not recorded in Purchased item records for the Purchase. We try to give the customer options in the
+			// error message to either fix errors in the checkout form to complete the order as is, or start a new order.
+			// This is a interim attempt to reduce abandonment in a very unlikely situation to begin with.
+
+			new ShoppError(sprintf(
+				__('The shopping cart cannot be changed because it has already been submitted for processing. Please correct problems in %1$scheckout%3$s or %2$sstart a new order%3$s.','Shopp'),
+				'<a href="'.shopp('checkout','get-url').'">',
+				'<a href="'.add_query_arg('shopping','reset',shopp('storefront','get-url')).'">',
+				'</a>'
+			),'order_inprogress',SHOPP_ERR);
+			return false;
+		}
+
 
 		if (isset($_REQUEST['shipping'])) {
 			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
@@ -103,11 +126,10 @@ class Cart {
 			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
 				$this->changed(true);
 
-
 		}
 
-		if (!empty($_REQUEST['promocode'])) {
-			$this->promocode = esc_attr($_REQUEST['promocode']);
+		if ( ! empty($_REQUEST['promocode']) ) {
+			$this->promocode = esc_attr(trim($_REQUEST['promocode']));
 			$this->changed(true);
 		}
 
@@ -121,7 +143,7 @@ class Cart {
 		switch($_REQUEST['cart']) {
 			case "add":
 				$products = array(); // List of products to add
-				if (isset($_REQUEST['product'])) $products[] = $_REQUEST['product'];
+				if (isset($_REQUEST['product'])) $products[$_REQUEST['product']] = array('product' => $_REQUEST['product']);
 				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products']))
 					$products = array_merge($products,$_REQUEST['products']);
 
@@ -165,10 +187,10 @@ class Cart {
 					$this->update($_REQUEST['item'],$_REQUEST['quantity']);
 				} elseif (!empty($_REQUEST['items'])) {
 					foreach ($_REQUEST['items'] as $id => $item) {
-						if (isset($item['quantity'])) {
-							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
-							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
-						    if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
+						if (array_key_exists('quantity', $item) && is_numeric($item['quantity'])) {
+							$item['quantity'] = absint($item['quantity']);
+							$this->update($id,$item['quantity']);
+							if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
 						}
 						if (isset($item['product']) && isset($item['price']) &&
 							$item['product'] == $this->contents[$id]->product &&
@@ -240,7 +262,8 @@ class Cart {
 		if ( ! $NewItem->valid() || ! $this->valid_add($NewItem) ) return false;
 
 		if (($item = $this->hasitem($NewItem)) !== false) {
-			$this->contents[$item]->add($quantity);
+			$NewItem = $this->contents[$item];
+			$NewItem->add($quantity);
 			$this->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
@@ -248,10 +271,56 @@ class Cart {
 			$this->added = count($this->contents)-1;
 		}
 
-		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
-		$this->Added = &$NewItem;
+		if (!$this->xitemstock($this->contents[$this->added]) )
+			return $this->remove($this->added); // Remove items if no cross-item stock available
+
+		do_action_ref_array('shopp_cart_add_item',array($NewItem));
+		$this->Added = $NewItem;
 
 		$this->changed(true);
+		return true;
+	}
+
+	/**
+	 * Removes an item from the cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param int $item Index of the item in the Cart contents
+	 * @return boolean
+	 **/
+	function remove ($item) {
+		unset($this->contents[$item]);
+		$this->changed(true);
+		return true;
+	}
+
+	/**
+	 * Changes the quantity of an item in the cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param int $item Index of the item in the Cart contents
+	 * @param int $quantity New quantity to update the item to
+	 * @return boolean
+	 **/
+	function update ($item,$quantity) {
+		if (empty($this->contents)) return false;
+		if ($quantity == 0) return $this->remove($item);
+
+		if ( isset($this->contents[$item]) ) {
+			$updated = ($quantity != $this->contents[$item]->quantity);
+
+			$this->contents[$item]->quantity($quantity);
+			if ($this->contents[$item]->quantity == 0) $this->remove($item);
+			if ($updated && !$this->xitemstock($this->contents[$item]) )
+				$this->remove($item); // Remove items if no cross-item stock available
+
+			$this->changed(true);
+		}
+
 		return true;
 	}
 
@@ -277,43 +346,58 @@ class Cart {
 		return true;
 	}
 
-
 	/**
-	 * Removes an item from the cart
+	 * Validates stock levels for cross-item quantities
+	 *
+	 * This function handles the case where the stock of an product variant is
+	 * checked across items where an the variant may exist across several line items
+	 * because of either add-ons or custom product inputs. {@see issue #1681}
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.0
+	 * @since 1.2.2
 	 *
-	 * @param int $item Index of the item in the Cart contents
+	 * @param int|CartItem $item The index of an item in the cart or a cart Item
 	 * @return boolean
 	 **/
-	function remove ($item) {
-		array_splice($this->contents,$item,1);
-		$this->changed(true);
-		return true;
-	}
+	function xitemstock ( Item $Item ) {
+		if ( ! shopp_setting_enabled('inventory') ) return true;
 
-	/**
-	 * Changes the quantity of an item in the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param int $item Index of the item in the Cart contents
-	 * @param int $quantity New quantity to update the item to
-	 * @return boolean
-	 **/
-	function update ($item,$quantity) {
-		if (empty($this->contents)) return false;
-		if ($quantity == 0) return $this->remove($item);
-		elseif (isset($this->contents[$item])) {
-			$this->contents[$item]->quantity($quantity);
-			if ($this->contents[$item]->quantity == 0) $this->remove($item);
-			$this->changed(true);
+		// Build a cross-product map of the total quantity of ordered products to known stock levels
+		$order = array();
+		foreach ($this->contents as $index => $cartitem) {
+			if ( ! $cartitem->inventory ) continue;
+
+			if ( isset($order[$cartitem->priceline]) ) $ordered = $order[$cartitem->priceline];
+			else {
+				$ordered = new StdClass();
+				$ordered->stock = $cartitem->option->stock;
+				$ordered->quantity = 0;
+				$order[$cartitem->priceline] = $ordered;
+			}
+
+			$ordered->quantity += $cartitem->quantity;
 		}
-		return true;
-	}
 
+		// Item doesn't exist in the cart (at all) so automatically validate
+		if (!isset($order[ $Item->priceline ])) return true;
+		else $ordered = $order[ $Item->priceline ];
+
+		$overage = $ordered->quantity - $ordered->stock;
+
+		if ($overage < 1) return true; // No overage, the item is valid
+
+		// Reduce ordered amount or remove item with error
+		if ($overage < $Item->quantity) {
+			new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
+			$Item->quantity -= $overage;
+			$Item->qtydelta -= $overage;
+			return true;
+		}
+
+		new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
+		return false;
+
+	}
 
 	/**
 	 * Empties the contents of the cart
@@ -405,6 +489,19 @@ class Cart {
 	}
 
 	/**
+	 * Forces the cart to recalculate totals
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.1
+	 *
+	 * @return void
+	 **/
+	function retotal () {
+		$this->retotal = true;
+		$this->totals();
+	}
+
+	/**
 	 * Calculates aggregated total amounts
 	 *
 	 * Iterates over the cart items in the contents of the cart
@@ -419,6 +516,7 @@ class Cart {
 	function totals () {
 		if (!($this->retotal || $this->changed())) return true;
 
+		$checksum = array();
 		$Totals = new CartTotals();
 		$this->Totals = &$Totals;
 
@@ -435,18 +533,23 @@ class Cart {
 		if (!$this->shipped()) $this->freeshipping = false;
 
 		foreach ($this->contents as $key => $Item) {
+			// Reinitialize item discount amounts
+			$Item->discount = 0;
 			$Item->retotal();
+
+			// Build item checksum strings
+			$checksum[] = $Item->quantity.':'.$Item->fingerprint();
 
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
-			// Reinitialize item discount amounts
-			$Item->discount = 0;
 
 			// Item does not have free shipping,
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $this->freeshipping = false;
 		}
+
+		$this->checksum = md5(join(',',$checksum));
 
 		// Calculate Shipping
 		$Shipping = new CartShipping();
@@ -529,7 +632,6 @@ class Cart {
 	function recurring () {
 		return $this->_typeitems('recurring');
 	}
-
 
 	private function _typeitems ($type) {
 		$types = array('shipped','downloads','recurring');
@@ -769,13 +871,12 @@ class CartDiscounts {
 						}
 
 						if ( $Item->discounts ) $Discount->applied += $Item->discounts; // total line item discount
-						$sum[$id] = $Item->discounts;
+						$sum[$Discount->id.$id] = $Item->discounts;
 					}
 
 				}
-			} else {
-				$sum[] = $Discount->applied;
-			}
+			} else $sum[$Discount->id] = $Discount->applied;
+
 		}
 
 		$discount = array_sum($sum);
@@ -1155,6 +1256,8 @@ class CartShipping {
 			if (empty($this->options)) return false; // Still no rates, bail
 		}
 
+		uksort($this->options,array('self','sort'));
+
 		// Determine the lowest cost estimate
 		$estimate = false;
 		foreach ($this->options as $name => $option) {
@@ -1170,10 +1273,12 @@ class CartShipping {
 				$estimate = $option;
 		}
 
+
 		// Always return the selected shipping option if a valid/available method has been set
-		if (empty($this->Shipping->method)
-			|| !isset($this->options[$this->Shipping->method]))
+		if (empty($this->Shipping->method) || !isset($this->options[$this->Shipping->method])) {
 				$this->Shipping->method = $estimate->slug;
+				$this->Shipping->option = $estimate->name;
+		}
 
 		$amount = $this->options[$this->Shipping->method]->amount;
 		$this->Cart->freeshipping = ($amount == 0);
@@ -1213,6 +1318,11 @@ class CartShipping {
 		return $method->amount;
 	}
 
+	static function sort ($a,$b) {
+		if ($a->amount == $b->amount) return 0;
+		return ($a->amount < $b->amount) ? -1 : 1;
+	}
+
 } // END class CartShipping
 
 /**
@@ -1242,7 +1352,7 @@ class CartTax {
 	 **/
 	function __construct () {
 		global $Shopp;
-		$this->Order = &ShoppOrder();
+		$this->Order = ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
 		$this->inclusive = shopp_setting_enabled('tax_inclusive');
@@ -1267,7 +1377,7 @@ class CartTax {
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
 		$country = $zone = $locale = $global = false;
-		if (defined('WP_ADMIN')) { // Always use the base of operations in the admin
+		if ( is_admin() && !defined('DOING_AJAX') ) { // Always use the base of operations in the admin
 			$base = shopp_setting('base_operations');
 			$country = apply_filters('shopp_admin_tax_country',$base['country']);
 			$zone = apply_filters('shopp_admin_tax_zone', (isset($base['zone'])?$base['zone']:false) );
@@ -1294,7 +1404,7 @@ class CartTax {
 			} elseif (isset($setting['zone']) && !empty($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
 					$rate = $this->float($setting['rate']);
-			} elseif ($country == $setting['country']) {
+			} elseif ($country == $setting['country'] || '*' == $setting['country']) {
 				$rate = $this->float($setting['rate']);
 			}
 
@@ -1316,7 +1426,6 @@ class CartTax {
 				}
 				if ($setting['logic'] == "all" && $matches == count($setting['rules'])) $applies = true;
 				if ($setting['logic'] == "any" && $matches > 0) $applies = true;
-
 				if (!$applies) continue;
 			}
 			// Grab the global setting if found

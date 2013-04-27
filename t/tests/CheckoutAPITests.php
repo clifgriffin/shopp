@@ -127,12 +127,6 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'hidden','name' => 'process-login','id' => 'process-login','value' => 'false')
-		);
-		$this->assertTag($expected,$actual,"++ $actual",true);
-
-		$expected = array(
-			'tag' => 'input',
 			'attributes' => array('type' => 'submit','name' => 'submit-login','id' => 'submit-login')
 		);
 		$this->assertTag($expected,$actual,"++ $actual",true);

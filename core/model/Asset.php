@@ -269,7 +269,7 @@ class ImageAsset extends FileAsset {
 
 		$message = rtrim(join(',',$args),',');
 
-		$validation = crc32($key.$this->id.','.$message);
+		$validation = sprintf('%u',crc32($key.$this->id.','.$message));
 		$message .= ",$validation";
 		return $message;
 	}
@@ -414,24 +414,37 @@ class DownloadAsset extends FileAsset {
 
 		add_action('shopp_download_success',array($this,'downloaded'));
 
-		if (!isset($found['redirect'])) {
-			// Close the session in case of long download
-			@session_write_close();
-
-			// Don't want interference from the server
-		    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
-		    @ini_set('zlib.output_compression', 0);
-
-			set_time_limit(0);	// Don't timeout on long downloads
-			// ob_end_clean();		// End any automatic output buffering
-
-			header('Pragma: public');
-			header('Cache-Control: maxage=1');
-			header('Content-type: application/octet-stream');
-			header('Content-Disposition: attachment; filename="'.$this->name.'"');
-			header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
+		// send immediately if the storage engine is redirecting
+		if ( isset($found['redirect']) ) {
+			$this->send();
+			exit();
 		}
-		$this->send();
+
+		// Close the session in case of long download
+		@session_write_close();
+
+		// Don't want interference from the server
+	    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
+	    @ini_set('zlib.output_compression', 0);
+
+		set_time_limit(0);	// Don't timeout on long downloads
+
+		// Use HTTP/1.0 Expires to support bad browsers (trivia: timestamp used is the Shopp 1.0 release date)
+		header('Expires: '.date('D, d M Y H:i:s O',1230648947));
+
+		header('Cache-Control: maxage=0, no-cache, must-revalidate');
+		header('Content-type: application/octet-stream');
+		header("Content-Transfer-Encoding: binary");
+		header('Content-Disposition: attachment; filename="'.$this->name.'"');
+		header('Content-Description: Delivered by WordPress/Shopp '.SHOPP_VERSION);
+
+		ignore_user_abort(true);
+		ob_end_flush(); // Don't use the PHP output buffer
+
+		$this->send();	// Send the file data using the storage engine
+
+ 		flush(); // Flush output to browser (to poll for connection)
+		if (connection_aborted()) return new ShoppError(__('Connection broken. Download attempt failed.','Shopp'),'download_failure',SHOPP_COMM_ERR);
 
 		return true;
 	}
@@ -446,7 +459,6 @@ class DownloadAsset extends FileAsset {
 		$Engine = $this->_engine();
 		$Engine->output($this->uri,$this->etag);
 	}
-
 
 }
 
@@ -775,6 +787,7 @@ class StorageSettingsUI extends ModuleSettingsUI {
 	 * @return void
 	 **/
 	function menu ($column=0,$attributes=array(),$options=array()) {
+		$attributes['title'] = '${'.$attributes['name'].'}';
  		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
 		parent::menu($column,$attributes,$options);
@@ -860,11 +873,15 @@ class StorageSettingsUI extends ModuleSettingsUI {
 		parent::button($column,$attributes);
 	}
 
+	function behaviors ($script) {
+		shopp_custom_script('system-settings',$script);
+	}
+
 }
 
 
 // Prevent loading image setting classes when run in image server script context
-if ( !class_exists('RegistryFramework') ) return;
+if ( !class_exists('RegistryManager') ) return;
 
 class ImageSetting extends MetaObject {
 

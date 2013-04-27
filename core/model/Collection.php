@@ -53,7 +53,7 @@ class ProductCollection implements Iterator {
 			'paged' => false,		// Entries per page to load
 			'nostock' => null,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
 			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
-			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
+			'published' => true,	// Load published or include unpublished products (string) 'on','off','yes','no'…
 			'ids' => false,			// Flag for loading product IDs only
 			'adjacent' => false,	//
 			'product' => false,		//
@@ -78,40 +78,54 @@ class ProductCollection implements Iterator {
 		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
 
 		// Inventory filtering
-		if ( (is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock)) )
+		if ( shopp_setting_enabled('inventory') && ((is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock))) )
 			$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
-
-		// Check for inventory-based queries (for specialized cache support)
-		$wherescan = join('',$where);
-		if (strpos($wherescan,'s.inventory') !== false || strpos($wherescan,'s.stock') !== false)
-			$inventory = true;
 
 		if (str_true($published)) $where[] = "p.post_status='publish'";
 
 		// Sort Order
-		if (!$orderby) {
-			$defaultOrder = shopp_setting('default_product_order');
-			if (empty($defaultOrder)) $defaultOrder = '';
-			$ordering = isset($Storefront->browsing['sortorder'])?
-							$Storefront->browsing['sortorder']:$defaultOrder;
-			if ($order !== false) $ordering = $order;
-			switch ($ordering) {
-				case 'bestselling': $orderby = "s.sold DESC,p.post_title ASC"; break;
-				case 'highprice': $orderby = "maxprice DESC,p.post_title ASC"; break;
-				case 'lowprice': $orderby = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
-				case 'newest': $orderby = "p.post_date DESC,p.post_title ASC"; break;
-				case 'oldest': $orderby = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
-				case 'random': $orderby = "RAND(".crc32($Shopping->session).")"; break;
-				case 'chaos': $orderby = "RAND(".time().")"; break;
-				case 'reverse': $orderby = "p.post_title DESC"; break;
-				case 'title': $orderby = "p.post_title ASC"; break;
-				case 'recommended':
-				default:
-					$orderby = (is_subclass_of($this,'ProductTaxonomy'))?"tr.term_order ASC,p.post_title ASC":"p.post_title ASC"; break;
-			}
+		if ( ! $orderby ) {
+
+			$titlesort = "p.post_title ASC";
+			$defaultsort = empty($order) ? $titlesort : $order;
+
+			// Define filterable built-in sort methods (you're welcome)
+			$sortmethods = apply_filters('shopp_collection_sort_methods',array(
+				'bestselling' => "s.sold DESC,$titlesort",
+				'highprice' => "maxprice DESC,$titlesort",
+				'lowprice' => "minprice ASC,$titlesort",
+				'newest' => "p.post_date DESC,$titlesort",
+				'oldest' => "p.post_date ASC,$titlesort",
+				'random' => "RAND(".crc32($Shopping->session).")",
+				'choas' => "RAND(".time().")",
+				'reverse' => "p.post_title DESC",
+				'title' => $titlesort,
+				'custom' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+				'recommended' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+				'default' => $defaultsort
+			));
+
+			// Handle valid user browsing sort change requests
+			if ( isset($_REQUEST['sort']) && !empty($_REQUEST['sort']) && array_key_exists(strtolower($_REQUEST['sort']),$sortmethods) )
+				$Storefront->browsing['sortorder'] = strtolower($_REQUEST['sort']);
+
+			// Collect sort setting sources (Shopp admin setting, User browsing setting, programmer specified setting)
+			$sortsettings = array(
+				shopp_setting('default_product_order'),
+				isset($Storefront->browsing['sortorder']) ? $Storefront->browsing['sortorder'] : false,
+				!empty($order) ? $order : false
+			);
+
+			// Go through setting sources to determine most applicable setting
+			$sorting = 'title';
+			foreach ($sortsettings as $setting)
+				if ( ! empty($setting) && isset($sortmethods[ strtolower($setting) ]) )
+					$sorting = strtolower($setting);
+
+			$orderby = $sortmethods[$sorting];
 		}
 
-		if (empty($orderby)) $orderby = 'p.post_title ASC';
+		if ( empty($orderby) ) $orderby = 'p.post_title ASC';
 
 		// Pagination
 		if (empty($limit)) {
@@ -122,7 +136,8 @@ class ProductCollection implements Iterator {
 
 				$limit = "$start,$this->pagination";
 			} else $limit = $hardlimit;
-		}
+			$limited = false;	// Flag that the result set does not have forced limits
+		} else $limited = true; // The result set has forced limits
 
 		// Core query components
 
@@ -188,17 +203,14 @@ class ProductCollection implements Iterator {
 
 			if ($ids) $cache->products = $this->products = DB::query($query,'array','col','ID');
 			else $cache->products = $this->products = DB::query($query,'array',array($Processing,'loader'));
+
 			$cache->total = $this->total = DB::found();
 
+			// If running a limited set, the reported total found should not exceed the limit (but can because of SQL_CALC_FOUND_ROWS)
+			// Don't use the limit if it is offset
+			if ($limited && false === strpos($limit,',')) $cache->total = $this->total = min($limit,$this->total);
+
 			wp_cache_set($cachehash,$cache,'shopp_collection');
-
-			if ($inventory) { // Keep track of inventory-based query caches
-				$caches = shopp_setting('shopp_inventory_collection_caches');
-				if (!is_array($caches)) $caches = array();
-				$caches[] = $cachehash;
-				shopp_set_setting('shopp_inventory_collection_caches',$caches);
-			}
-
 		}
 		if (false === $this->products) $this->products = array();
 
@@ -285,7 +297,7 @@ class ProductCollection implements Iterator {
 			if (!$this->products) $page = 1;
 			else $page = $this->page + 1;
 			if ($this->pages > 0 && $page > $this->pages) return false;
-			$this->load( array('load'=>array('prices','specs','coverimages'), 'paged'=>$paged, 'page' => $page) );
+			$this->load( array('load'=>array('prices','specs','categories','coverimages'), 'paged'=>$paged, 'page' => $page) );
 			$loop = shopp($this,'products');
 			$product = ShoppProduct();
 			if (!$product) return false; // No products, bail
@@ -343,12 +355,23 @@ class ProductCollection implements Iterator {
 
 		if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 		$item['g:condition'] = 'new';
-		$item['g:availability'] = $product->outofstock?'out of stock':'in stock';
+		$item['g:availability'] = shopp_setting_enabled('inventory') && $product->outofstock?'out of stock':'in stock';
 
 		$price = floatvalue(str_true($product->sale)?$product->min['saleprice']:$product->min['price']);
 		if (!empty($price))	{
 			$item['g:price'] = $price;
 			$item['g:price_type'] = "starting";
+		}
+
+		// Include product_type using Shopp category taxonomies
+		foreach ($product->categories as $category) {
+			$ancestry = array($category->name);
+			$ancestors = get_ancestors($category->term_id,$category->taxonomy);
+			foreach ((array)$ancestors as $ancestor) {
+				$term = get_term($ancestor,$category->taxonomy);
+				if ($term) array_unshift($ancestry,$term->name);
+			}
+			$item['g:product_type['.$category->term_id.']'] = join(' > ',$ancestry);
 		}
 
 		$brand = shopp($product,'get-spec','name=Brand');
@@ -385,6 +408,7 @@ class ProductCollection implements Iterator {
 
 	function feeditem ($item) {
 		foreach ($item as $key => $value) {
+			$key = preg_replace('/\[\d+\]$/','',$key); // Remove duplicate tag identifiers
 			$attrs = '';
 			if (is_array($value)) {
 				$rss = $value;
@@ -467,7 +491,13 @@ class ProductTaxonomy extends ProductCollection {
 			'show_ui' => true,
 			'query_var' => true,
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
-			'update_count_callback' => '_update_post_term_count'
+			'update_count_callback' => array('ProductTaxonomy','recount'),
+			'capabilities' => array(
+				'manage_terms' => 'shopp_categories',
+				'edit_terms'   => 'shopp_categories',
+				'delete_terms' => 'shopp_categories',
+				'assign_terms' => 'shopp_categories',
+			)
 		));
 
 		add_filter($taxonomy.'_rewrite_rules',array('ProductCollection','pagerewrites'));
@@ -498,7 +528,7 @@ class ProductTaxonomy extends ProductCollection {
 		global $wpdb;
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 
-		$options['joins'][$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$options['joins'][$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id AND tr.term_taxonomy_id=$this->term_taxonomy_id)";
 		$options['joins'][$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id AND tt.term_id=$this->id)";
 
 		$loaded =  parent::load(apply_filters('shopp_taxonomy_load_options',$options));
@@ -580,6 +610,8 @@ class ProductTaxonomy extends ProductCollection {
 	function save () {
 		$properties = array('name'=>null,'slug'=>null,'description'=>null,'parent'=>null);
 		$updates = array_intersect_key(get_object_vars($this),$properties);
+
+		remove_filter('pre_term_description','wp_filter_kses'); // Allow HTML in category descriptions
 
 		if ($this->id) wp_update_term($this->id,$this->taxonomy,$updates);
 		else list($this->id, $this->term_taxonomy_id) = array_values(wp_insert_term($this->name, $this->taxonomy, $updates));
@@ -677,6 +709,31 @@ class ProductTaxonomy extends ProductCollection {
 		return apply_filters('shopp_paged_link',$url);
 	}
 
+	static function recount ($terms, $taxonomy) {
+		global $wpdb;
+		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
+
+		foreach ( (array) $terms as $term ) {
+			$where = array(
+				"$wpdb->posts.ID = $wpdb->term_relationships.object_id",
+				"post_status='publish'",
+				"post_type='".Product::$posttype."'"
+			);
+
+			if ( shopp_setting_enabled('inventory') && !shopp_setting_enabled('outofstock_catalog') )
+				$where[] = "( s.inventory='off' OR (s.inventory='on' AND s.stock > 0) )";
+
+			$where[] = "term_taxonomy_id=".(int)$term;
+			$query = "SELECT COUNT(*) AS c FROM $wpdb->term_relationships, $wpdb->posts LEFT OUTER JOIN $summary_table AS s ON s.product=$wpdb->posts.ID WHERE ".join(' AND ',$where);
+			$count = (int) DB::query($query,'auto','col','c');
+
+			do_action( 'edit_term_taxonomy', $term, $taxonomy );
+			$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
+			do_action( 'edited_term_taxonomy', $term, $taxonomy );
+		}
+
+	}
+
 }
 
 // @todo Document ProductCategory
@@ -723,6 +780,10 @@ class ProductCategory extends ProductTaxonomy {
 		// $options['debug'] = true;
 		if ($this->filters) add_filter('shopp_taxonomy_load_options',array($this,'facetsql'));
 
+		// Include loading overrides (generally from the Theme API)
+		if ( ! empty($this->loading) && is_array($this->loading) )
+			$options = array_merge($options,$this->loading);
+
 		return parent::load($options);
 	}
 
@@ -732,7 +793,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	function filters () {
 		if ('off' == $this->facetedmenus) return;
@@ -740,22 +801,21 @@ class ProductCategory extends ProductTaxonomy {
 		if (!$Storefront) return;
 
 		if (!empty($this->facets)) return;
+		$specs = $this->specs;
 
 		$this->facets = array();
 		if (isset($Storefront->browsing[$this->slug]))
 			$this->filters = $Storefront->browsing[$this->slug];
 
-		$specs = array();
 		if ('disabled' != $this->pricerange) {
-			$specs = $this->specs;
-			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'facetedmenu' => $this->pricerange));
+			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'slug'=> 'price','facetedmenu' => $this->pricerange));
 		}
 
 		foreach ($specs as $spec) {
 			if (!isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu']) continue;
 
-			$slug = sanitize_title_with_dashes($spec['name']);
-			if ('price-filter' == $slug) $slug = 'price';
+			if (isset($spec['slug'])) $slug = $spec['slug'];
+			else $slug = sanitize_title_with_dashes($spec['name']);
 			$selected = isset($_GET[$slug]) && str_true(get_query_var('s_ff')) ? $_GET[$slug] : false;
 
 			$Facet = new ProductCategoryFacet();
@@ -784,6 +844,7 @@ class ProductCategory extends ProductTaxonomy {
 		$where = array();
 		$filters = array();
 		$facets = array();
+		$numeric = array();
 		foreach ($this->filters as $filtered => $value) {
 			$Facet = $this->facets[ $filtered ];
 			if (empty($value)) continue;
@@ -802,6 +863,7 @@ class ProductCategory extends ProductTaxonomy {
 					if ($min > 0) $ranges[] = "numeral >= $min";
 					if ($max > 0) $ranges[] = "numeral <= $max";
 					// $filters[] = "(".join(' AND ',$ranges).")";
+					$numeric[] = DB::escape($name);
 					$facets[] = sprintf("name='%s' AND %s",DB::escape($name),join(' AND ',$ranges));
 					$filters[] = sprintf("FIND_IN_SET('%s',facets)",DB::escape($name));
 
@@ -818,7 +880,9 @@ class ProductCategory extends ProductTaxonomy {
 		$jointables = str_replace('p.ID','m.parent',join(' ',$joins)); // Rewrite the joins to use the spec table reference
 		$having = "HAVING ".join(' AND ',$filters);
 
-		$query = "SELECT m.parent,GROUP_CONCAT(m.name,IF(m.numeral>0,'','='),IF(m.numeral>0,'',m.value)) AS facets
+		$query = "SELECT m.parent,GROUP_CONCAT(m.name,
+			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'','='),
+			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'',m.value)) AS facets
 					FROM $spectable AS m $jointables
 					WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
 					GROUP BY m.parent
@@ -845,7 +909,6 @@ class ProductCategory extends ProductTaxonomy {
 		if ('off' == $this->facetedmenus) return;
 		$output = '';
 		$this->filters();
-
 		$Storefront = ShoppStorefront();
 		if (!$Storefront) return;
 		$CategoryFilters =& $Storefront->browsing[$this->slug];
@@ -858,7 +921,7 @@ class ProductCategory extends ProductTaxonomy {
 		// Load price facet filters first
 		if ('disabled' != $this->pricerange && isset($this->facets['price'])) {
 			$Facet = $this->facets['price'];
-			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
 			if (!$this->loaded) $this->load();
 			if ('auto' == $this->pricerange) $ranges = auto_ranges($this->pricing->average,$this->pricing->max,$this->pricing->min);
@@ -891,10 +954,16 @@ class ProductCategory extends ProductTaxonomy {
 
 		}
 
+		// Identify facet menu types to treat numeric and string contexts properly @bug #2014
+		$custom = array();
+		foreach ($this->facets as $Facet)
+			if ('custom' == $Facet->type) $custom[] = DB::escape($Facet->name);
+
 		// Load spec aggregation data
 		$spectable = DatabaseObject::tablename(Spec::$table);
+
 		$query = "SELECT spec.name,spec.value,
-			IF(spec.numeral > 0,spec.name,spec.value) AS merge,
+			IF(0 >= FIND_IN_SET(spec.name,'".join(",",$custom)."'),IF(spec.numeral > 0,spec.name,spec.value),spec.value) AS merge,
 			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
 			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
@@ -906,7 +975,7 @@ class ProductCategory extends ProductTaxonomy {
 			$slug = sanitize_title_with_dashes($spec['name']);
 			if (!isset($this->facets[ $slug ])) continue;
 			$Facet = &$this->facets[ $slug ];
-			$Facet->link = add_query_arg(array('s_ff'=>'on',$Facet->slug => ''),shopp('category','get-url'));
+			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
 			// For custom menu presets
 
@@ -1295,6 +1364,7 @@ class ProductTag extends ProductTaxonomy {
 class SmartCollection extends ProductCollection {
 	static $taxon = 'shopp_collection';
 	static $namespace = 'collection';
+	static $_menu = true;
 	var $smart = true;
 	var $slug = false;
 	var $uri = false;
@@ -1371,7 +1441,7 @@ class OnSaleProducts extends SmartCollection {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __('On Sale','Shopp');
-		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.modified DESC');
+		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.post_modified DESC');
 	}
 
 }
@@ -1388,11 +1458,11 @@ class BestsellerProducts extends SmartCollection {
 		if (isset($options['range']) && is_array($options['range']) && 2 == count($options['range'])) {
 			$start = $options['range'][0];
 			$end = $options['range'][1];
-			if (!$end) $end = current_time('timestamp');
+			if (!$end) $end = current_time('mysql');
 			$purchased = DatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
-			$this->loading['where'] = array("UNIX_TIMESTAMP(pur.created) BETWEEN $start AND $end");
+			$this->loading['where'] = array("pur.created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'");
 			$this->loading['orderby'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {
@@ -1405,7 +1475,7 @@ class BestsellerProducts extends SmartCollection {
 	static function threshold () {
 		// Get mean sold for bestselling threshold
 		$summary = DatabaseObject::tablename(ProductSummary::$table);
-		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 < sold",'auto','col','threshold');
+		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold",'auto','col','threshold');
 	}
 
 }
@@ -1414,6 +1484,7 @@ class BestsellerProducts extends SmartCollection {
 class SearchResults extends SmartCollection {
 	static $_slug = 'search-results';
 	static $_altslugs = array('search');
+	static $_menu = false;
 	var $search = false;
 
 	function __construct ($options=array()) {
@@ -1479,6 +1550,8 @@ class SearchResults extends SmartCollection {
 			'order'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = array($pricematch);
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['published'])) $this->loading['published'] = $options['published'];
+		if (isset($options['paged'])) $this->loading['paged'] = $options['paged'];
 
 		// No search
 		if (empty($options['search'])) $options['search'] = __('(no search terms)','Shopp');
@@ -1489,7 +1562,7 @@ class SearchResults extends SmartCollection {
 	function pagelink ($page) {
 		$link = parent::pagelink($page);
 
-		return add_query_arg(array('s'=>$this->search,'s_cs'=>1),$link);
+		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$link);
 	}
 
 	function permalink ($result, $options, $O) {
@@ -1505,6 +1578,7 @@ class SearchResults extends SmartCollection {
 // @todo Document TagProducts
 class TagProducts extends SmartCollection {
 	static $_slug = "tag";
+	static $_menu = false;
 
 	function smart ($options=array()) {
 		if (!isset($options['tag'])) {
@@ -1536,13 +1610,27 @@ class TagProducts extends SmartCollection {
 		$groupby = 'p.ID';
 		$order = 'score DESC';
 		$this->loading = compact('columns','joins','where','groupby','order');
+	}
 
+	function pagelink ($page) {
+		$termurl = get_term_link($this->tag,ProductTag::$taxon);
+
+		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
+		$prettyurl = trailingslashit($termurl).($page > 1 || $alpha?"page/$page":"");
+
+		$queryvars = array($this->taxonomy=>$this->slug);
+		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
+
+		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
+
+		return apply_filters('shopp_paged_link',$url);
 	}
 }
 
 // @todo Document ReleatedProducts
 class RelatedProducts extends SmartCollection {
 	static $_slug = "related";
+	static $_menu = false;
 	var $product = false;
 
 	function smart ($options=array()) {
@@ -1610,12 +1698,13 @@ class RelatedProducts extends SmartCollection {
 // @todo Document AlsoBoughtProducts
 class AlsoBoughtProducts extends SmartCollection {
 	static $_slug = "alsobought";
+	static $_menu = false;
 	var $product = false;
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
 		$this->name = __('Customers also bought&hellip;','Shopp');
-		$this->uri = urlencode($slug);
+		$this->uri = urlencode($this->slug);
 		$this->controls = false;
 
 		$where = array("true=false");
@@ -1676,6 +1765,7 @@ class RandomProducts extends SmartCollection {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Random Products","Shopp");
 		$this->loading = array('order'=>'random');
+
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
@@ -1685,6 +1775,7 @@ class RandomProducts extends SmartCollection {
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = $where;
 		}
+
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }
@@ -1708,6 +1799,7 @@ class ViewedProducts extends SmartCollection {
 // @todo Document PromoProducts
 class PromoProducts extends SmartCollection {
 	static $_slug = "promo";
+	static $_menu = false;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;

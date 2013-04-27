@@ -3,7 +3,7 @@ function manage_meta_box ($Purchase) {
 	$Gateway = $Purchase->gateway();
 
 ?>
-<?php if ($Purchase->shipable && !$Purchase->shipped): ?>
+<?php if ($Purchase->shipable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <li class="inline-fields">
@@ -43,7 +43,7 @@ function manage_meta_box ($Purchase) {
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
+<?php if (!$Purchase->isvoid()): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -74,8 +74,8 @@ function manage_meta_box ($Purchase) {
 			<input type="submit" id="cancel-refund" name="cancel-refund" value="${cancel}" class="button-secondary" />
 			<div class="alignright">
 			<span class="mark-status">
-				<input type="hidden" name="mark" value="off" />
-				<label title="<?php printf(__('Force the order status without processing through %s','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="mark" value="on" />&nbsp;${mark}</label>
+				<input type="hidden" name="send" value="off" />
+				<label title="<?php printf(__('Enable to process through the payment gateway (%s) and set the Shopp payment status. Disable to update only the Shopp payment status.','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="send" value="on" <?php if ($Gateway && $Gateway->refunds) echo ' checked="checked"'; ?>/>&nbsp;${send}</label>
 			</span>
 
 			<input type="submit" name="process-refund" value="${process}" class="button-primary" />
@@ -132,7 +132,6 @@ function manage_meta_box ($Purchase) {
 
 			if (isset($_POST['cancel-shipments']) && 'ship-notice' == $action) $action = false;
 			if (isset($_POST['cancel-refund']) && 'refund-order' == $action) $action = false;
-
 			if ('ship-notice' == $action) {
 				unset($_POST['cancel-order'],$_POST['refund-order']);
 				$default = array('tracking'=>'','carrier'=>'');
@@ -158,7 +157,7 @@ function manage_meta_box ($Purchase) {
 					'${action}' => 'refund',
 					'${title}' => __('Refund Order','Shopp'),
 					'${reason}' => __('Reason for refund','Shopp'),
-					'${mark}' => __('Mark Refunded','Shopp'),
+					'${send}' => __('Send to gateway','Shopp'),
 					'${cancel}' => __('Cancel Refund','Shopp'),
 					'${process}' => __('Process Refund','Shopp')
 				);
@@ -169,7 +168,7 @@ function manage_meta_box ($Purchase) {
 						'${disable_amount}' =>  ' disabled="disabled"',
 						'${title}' => __('Cancel Order','Shopp'),
 						'${reason}' => __('Reason for cancellation','Shopp'),
-						'${mark}' => __('Mark Cancelled','Shopp'),
+						'${send}' => __('Send to gateway','Shopp'),
 						'${cancel}' => __('Do Not Cancel','Shopp'),
 						'${process}' => __('Cancel Order','Shopp')
 					);
@@ -180,9 +179,9 @@ function manage_meta_box ($Purchase) {
 		?>
 	</div>
 </div>
-<?php if (!($Purchase->voided && $Purchase->refunded)): ?>
+<?php if (!($Purchase->isvoid() && $Purchase->refunded)): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->voided && $Gateway && $Gateway->refunds): ?>
+		<?php if (!$Purchase->isvoid()): ?>
 		<div class="alignleft">
 			<?php if (!$Purchase->captured): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />
@@ -194,11 +193,13 @@ function manage_meta_box ($Purchase) {
 		</div>
 		<?php endif; ?>
 		&nbsp;
-		<?php if ($Purchase->shipable && !$Purchase->shipped && 'ship-notice' != $action): ?>
-		<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
-		<?php endif; ?>
-		<?php if (!$Purchase->captured && $Gateway && $Gateway->captures): ?>
-		<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
+		<?php if ( $Purchase->authorized ): ?>
+			<?php if ( $Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
+			<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
+			<?php endif; ?>
+			<?php if ( ! $Purchase->captured && $Gateway && $Gateway->captures ): ?>
+			<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
+			<?php endif; ?>
 		<?php endif; ?>
 	</div>
 <?php endif; ?>
@@ -210,6 +211,7 @@ function billto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
 	<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
+	<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
 	<?php echo esc_html($Purchase->address); ?><br />
 	<?php if (!empty($Purchase->xaddress)) echo esc_html($Purchase->xaddress)."<br />"; ?>
 	<?php echo esc_html("{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}") ?><br />
@@ -229,7 +231,6 @@ function shipto_meta_box ($Purchase) {
 	$targets = shopp_setting('target_markets');
 ?>
 		<address><big><?php echo esc_html($Purchase->shipname); ?></big><br />
-		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
 		<?php echo esc_html($Purchase->shipaddress); ?><br />
 		<?php if (!empty($Purchase->shipxaddress)) echo esc_html($Purchase->shipxaddress)."<br />"; ?>
 		<?php echo esc_html("{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}") ?><br />

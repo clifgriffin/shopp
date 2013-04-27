@@ -29,7 +29,7 @@
 		<table border="0" cellpadding="4" cellspacing="0">
 		<tr>
 		<th nowrap="nowrap"><label for="category-menu"><?php _e('Category', 'Shopp'); ?></label></th>
-		<td><?php wp_dropdown_categories( array( 'id' => 'category-menu','taxonomy' => ProductCategory::$taxon, 'hide_empty' => 0, 'name' => ProductCategory::$taxon, 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => __('Select a category&hellip;','Shopp'), 'tab_index' => 1 ) ); ?></td>
+		<td><?php wp_dropdown_categories( array( 'id' => 'category-menu','taxonomy' => ProductCategory::$taxon, 'hide_empty' => 0, 'name' => ProductCategory::$taxon, 'orderby' => 'name', 'hierarchical' => 1, 'show_option_all' => __('Select a category&hellip;','Shopp'), 'show_option_none' => __('Uncategorized','Shopp'), 'tab_index' => 1 ) ); ?></td>
 		</tr>
 		<tr id="product-selector">
 		<th nowrap="nowrap"><label for="product-menu"><?php _e('Product', 'Shopp'); ?></label></th>
@@ -115,7 +115,7 @@ class ShoppTMCELoader {
 		if (is_int($path)) return !($error = self::errors($path));
 		$wpadmin = $path.'wp-admin/admin.php';
 		if (!file_exists($wpadmin)) return !($error = self::errors(2));
-		define('WP_ADMIN',false);
+		define('WP_ADMIN',true);
 		return $wpadmin;
 	}
 

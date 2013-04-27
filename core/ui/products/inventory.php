@@ -2,7 +2,8 @@
 
 	<div class="icon32"></div>
 	<h2><?php _e('Inventory','Shopp'); ?></h2>
-	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+
+	<?php do_action('shopp_admin_notice'); ?>
 
 	<form action="" method="get">
 	<?php include("navigation.php"); ?>

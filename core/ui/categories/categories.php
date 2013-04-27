@@ -1,9 +1,11 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
 	<h2><?php _e('Categories','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Category','Shopp'); ?></a></h2>
-	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
-	<form action="" id="categories" method="get">
+	<?php do_action('shopp_admin_notice'); ?>
+
+	<form action="<?php echo esc_url($url); ?>" id="categories" method="get">
+	<?php include('navigation.php'); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
 	</div>
