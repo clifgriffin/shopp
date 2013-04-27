@@ -1066,7 +1066,7 @@ class AdminFlow extends FlowController {
 				</span>
 
 				<span class="add-to-menu">
-					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<span class="spinner"></span>
 					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-collections-menu-item" />
 				</span>
 			</p>
@@ -1132,7 +1132,7 @@ class AdminFlow extends FlowController {
 				</span>
 
 				<span class="add-to-menu">
-					<img class="waiting" src="<?php echo esc_url( admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
+					<span class="spinner"></span>
 					<input type="submit"<?php disabled( $nav_menu_selected_id, 0 ); ?> class="button-secondary submit-add-to-menu" value="<?php esc_attr_e('Add to Menu'); ?>" name="add-shopp-menu-item" id="submit-shopp-pages-menu-item" />
 				</span>
 			</p>
