@@ -1195,7 +1195,7 @@ class StorefrontPage {
 	}
 
 	function wp_title ( $title, $sep="&mdash;", $placement='' ) {
-		$_ = array(false, $this->title());
+		$_ = array(false, $this->title($title));
 
 		if ( 'right' == $placement ) $_ = array_reverse($_);
 
