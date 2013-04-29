@@ -579,8 +579,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	static function has_images ($result, $options, $O) {
-		if (empty($O->images)) $O->load_data(array('images'));
-		return (!empty($O->images));
+		if ( empty($O->images) ) $O->load_data( array('images') );
+		reset($O->images);
+		return ( ! empty($O->images) );
 	}
 
 	static function has_savings ($result, $options, $O) { return (str_true($O->sale) && $O->min['saved'] > 0); }
@@ -622,7 +623,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * @return string
 	 **/
 	static function image ($result, $options, $O) {
-		if (!self::has_images($result, $options, $O)) return '';
+		if ( empty($O->images) ) $O->load_data( array('images') );
 		return ShoppCatalogThemeAPI::image($result, $options, $O);
 	}
 
