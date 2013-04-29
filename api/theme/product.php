@@ -630,7 +630,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * @return string
 	 **/
 	static function image ($result, $options, $O) {
-		if (!self::has_images($result, $options, $O)) return '';
+		if ( empty($O->images) ) $O->load_data( array('images') );
 		return ShoppStorefrontThemeAPI::image($result, $options, $O);
 	}
 
