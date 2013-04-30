@@ -254,12 +254,15 @@ class Purchase extends DatabaseObject {
 		$updates = compact('txnstatus','txnid','status');
 		$updates = array_filter($updates);
 
-		$data = array_map(create_function('$v','return "\'".DB::escape($v)."\'";'),$updates);
+		$data = DB::escape($updates);
 		$dataset = DatabaseObject::dataset($data);
 
-		$table = DatabaseObject::tablename(self::$table);
-		$query = "UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1";
-		DB::query($query);
+		if ( ! empty($dataset) ) {
+			$table = DatabaseObject::tablename(self::$table);
+			$query = "UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1";
+			DB::query($query);
+		}
+
 		$Purchase->updates($updates);
 	}
 
