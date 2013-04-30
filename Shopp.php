@@ -46,6 +46,7 @@ do_action('shopp_loaded');
 class Shopp {
 
 	const VERSION = '1.3dev';
+	const CODENAME = 'Mars';
 
 	public $Settings;		// @deprecated Shopp settings registry
 	public $Flow;			// @deprecated Controller routing
