@@ -143,7 +143,7 @@ class Shopp {
 		$this->APIs = new ShoppAPIModules();
 		$this->Collections = array();
 
-		new Login();
+		new ShoppLogin();
 		do_action('shopp_init');
 	}
 
