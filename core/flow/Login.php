@@ -56,7 +56,10 @@ class Login {
 	 **/
 	function process () {
 
-		if (isset($_POST['shopp_registration'])) $this->registration();
+		if ( ShoppRegistration::submitted() ) {
+			new ShoppRegistration();
+			add_action('shopp_customer_registered', array($this, 'login'));
+		}
 
 		if (isset($_REQUEST['acct']) && $_REQUEST['acct'] == "logout" || isset($_REQUEST['logout'])) {
 			// Set the last logged out action to save the session and redirect to remove the logout request
@@ -79,7 +82,7 @@ class Login {
 			}
 		}
 
-		if ( !isset($_POST['submit-login']) ) return false;
+		if ( ! self::submitted() ) return false;
 
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
