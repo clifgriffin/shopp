@@ -564,12 +564,14 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function success () {
-		$this->purchase = $this->inprogress;
-		$this->inprogress = false;
+		$purchase = $this->inprogress;
+
 		do_action('shopp_order_success',ShoppPurchase());
 
 		Shopping::resession();
 
+		$this->purchase = $purchase;
+		$this->inprogress = false;
 		if ($this->purchase !== false)
 			shopp_redirect(shoppurl(false,'thanks'));
 	}
