@@ -401,7 +401,7 @@ class DB extends SingletonFramework {
 	 * @param DatabaseObject $Object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
-	static function prepare ($Object,$mapping = array()) {
+	static function prepare ( $Object, array $mapping = array() ) {
 		$data = array();
 
 		// Go through each data property of the object
@@ -897,11 +897,11 @@ abstract class DatabaseObject implements Iterator {
 	 * @param array $data The prepared data
 	 * @return string The query fragment of column value updates
 	 **/
-	static function dataset ($data) {
+	static function dataset ( array $data ) {
 		$sets = array();
-		foreach($data as $property => $value)
+		foreach ( $data as $property => $value )
 			$sets[] = "$property=$value";
-		return join(',',$sets);
+		return join(',', $sets);
 	}
 
 	/**
@@ -913,11 +913,11 @@ abstract class DatabaseObject implements Iterator {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @param string $data The array of updated values
+	 * @param array $data The array of updated values
 	 * @param array $ignores (optional) A list of properties to skip updating
 	 * @return void
 	 **/
-	function updates ($data,$ignores = array()) {
+	function updates ( array $data, array $ignores = array() ) {
 		if (!is_array($data)) return;
 		foreach ($data as $key => $value) {
 			if (!is_null($value)

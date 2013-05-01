@@ -74,20 +74,6 @@ class ShoppOrder {
 		// Set locking timeout for concurrency operation protection
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
-
-		$this->listeners();
-	}
-
-	/**
-	 * Establish event listeners
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function listeners () {
-
 		add_action('parse_request', array($this, 'request'));
 
 		// Order processing
@@ -217,29 +203,6 @@ class ShoppOrder {
 	}
 
 	/**
-	 * Fires an unstock order event for a purchase to deduct stock from inventory
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2.1
-	 *
-	 * @return void
-	 **/
-	public function unstock ( AuthedOrderEvent $Event ) {
-		if ( ! shopp_setting_enabled('inventory') ) return false;
-
-		$Purchase = ShoppPurchase();
-		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id)
-			$Purchase = new Purchase($Event->order);
-
-		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load purchased
-		if ( in_array('unstock', array_keys($Purchase->events)) ) return true; // Unstock already occurred, do nothing
-		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
-		if ( ! $Purchase->stocked ) return false;
-
-		shopp_add_order_event($Purchase->id,'unstock');
-	}
-
-	/**
 	 * Marks an order as captured
 	 *
 	 * @author Jonathan Davis
@@ -317,9 +280,9 @@ class ShoppOrder {
 	 **/
 	public function auth ($Purchase) {
 
-		add_action('shopp_authed_order_event',array($this,'notify'));
-		add_action('shopp_authed_order_event',array($this,'accounts'));
-		add_action('shopp_authed_order_event',array($this,'success'));
+		add_action('shopp_authed_order_event', array($this, 'notify'));
+		add_action('shopp_authed_order_event', array($this, 'accounts'));
+		add_action('shopp_authed_order_event', array($this, 'success'));
 
 		shopp_add_order_event($Purchase->id,'auth',array(
 			'gateway' => $Purchase->gateway,
@@ -338,9 +301,9 @@ class ShoppOrder {
 	 **/
 	public function sale ($Purchase) {
 
-		add_action('shopp_captured_order_event',array($this,'notify'));
-		add_action('shopp_captured_order_event',array($this,'accounts'));
-		add_action('shopp_captured_order_event',array($this,'success'));
+		add_action('shopp_captured_order_event', array($this, 'notify'));
+		add_action('shopp_captured_order_event', array($this, 'accounts'));
+		add_action('shopp_captured_order_event', array($this, 'success'));
 
 		shopp_add_order_event($Purchase->id,'sale',array(
 			'gateway' => $Purchase->gateway,
@@ -356,8 +319,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function freebie ($free) {
-		// if (!$free) return $free;
+	public function freebie () {
 
 		$this->Payments->processor('FreeOrder');
 		$this->Billing->cardtype = __('Free Order','Shopp');
@@ -377,8 +339,10 @@ class ShoppOrder {
 		$Shopping = ShoppShopping();
 
 		// No auth message, bail
-		if (empty($Event))
-			return (!$error = new ShoppError('Order failure: An empty order event message was received by the order processor.','shopp_order_failure',SHOPP_DEBUG_ERR));
+		if ( empty($Event) ) {
+			shopp_debug('Order failure: An empty order event message was received by the order processor.');
+			return;
+		}
 
 		// Copy details from Auth message
 		$this->txnstatus = $Event->name;
@@ -386,8 +350,6 @@ class ShoppOrder {
 
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
-
-		$base = shopp_setting('base_operations');
 
 		$promos = array();
 		foreach ($this->Cart->discounts as &$promo) {
@@ -398,7 +360,6 @@ class ShoppOrder {
 		if (empty($this->inprogress)) {
 			$Purchase = new Purchase();	// Create a new order
 		} else { // Handle updates to an existing order from checkout reprocessing
-			$updates = true;
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
 			else $Purchase = new Purchase($this->inprogress);
 			$changed = ($this->checksum != $this->Cart->checksum); // Detect changes to the cart
@@ -448,7 +409,7 @@ class ShoppOrder {
 
 		// Catch Purchase record save errors
 		if ( empty($Purchase->id) ) {
-			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
+			shopp_add_error( __('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp') );
 			return;
 		}
 
@@ -572,6 +533,7 @@ class ShoppOrder {
 
 		$this->purchase = $purchase;
 		$this->inprogress = false;
+
 		if ($this->purchase !== false)
 			shopp_redirect(shoppurl(false,'thanks'));
 	}
@@ -634,13 +596,13 @@ class ShoppOrder {
 		$valid_shipping = true;
 		if ( $Cart->shipped() && shopp_setting_enabled('shipping') ) {
 			if ( empty($Shipping->address) )
-				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address', false);
 			if ( empty($Shipping->country) )
-				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_country',false);
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_country', false);
 			if ( empty($Shipping->postcode) )
-				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode', false);
 
-			if ( ! $Shiprates->free() && false === $Cart->Totals->total('shipping') ) {
+			if ( 0 === $Shiprates->count() && ! $Shiprates->free() ) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 
 				$message = __('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', 'Shopp');
@@ -702,11 +664,11 @@ class ShoppOrder {
 
 		$this->Cart->clear();
 
-		$data = array();
+		$this->data = array();
 
-		$inprogress = false;
-		$purchase = false;
-		$txnid = false;
+		$this->inprogress = false;
+		$this->purchase = false;
+		$this->txnid = false;
 
 	}
 

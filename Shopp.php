@@ -32,7 +32,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 if ( Shopp::services() || Shopp::unsupported() ) return; // Prevent loading the plugin
 
-// Start up the core
+/* Start the core */
 $Shopp = new Shopp();
 do_action('shopp_loaded');
 
@@ -64,7 +64,7 @@ class Shopp {
 	public $APIs;			// @deprecated Loaded API modules
 	public $Storage;		// @deprecated Storage engine modules
 
-	function __construct () {
+	public function __construct () {
 
 		// Autoload system
 		require 'core/Loader.php';
@@ -121,7 +121,6 @@ class Shopp {
 
 	}
 
-
 	/**
 	 * Initializes the Shopp runtime environment
 	 *
@@ -130,23 +129,29 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	function init () {
-		$this->bootstrapmode = false;
-		$Shopping = ShoppShopping();
+	public function init () {
 
+		$this->Collections = array();
 		$this->Order = new ShoppOrder();
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
 		$this->APIs = new ShoppAPIModules();
-		$this->Collections = array();
 
 		new ShoppLogin();
 		do_action('shopp_init');
 	}
 
-	function constants () {
+	/**
+	 * Setup configurable constants
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function constants () {
 		if ( ! defined('SHOPP_VERSION') )				define( 'SHOPP_VERSION', self::VERSION );
 		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION );
 		if ( ! defined('SHOPP_HOME') )					define( 'SHOPP_HOME', 'https://shopplugin.com/' );
@@ -168,7 +173,15 @@ class Shopp {
 		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES',true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
 	}
 
-	function paths () {
+	/**
+	 * Setup path related constants
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function paths () {
 
 		$path = sanitize_path(dirname(__FILE__));
 		$file = basename(__FILE__);
@@ -196,19 +209,6 @@ class Shopp {
 
 	}
 
-
-	/**
-	 * Check if we are in the early stages of activation (ie, potentially before the schema
-	 * has been established).
-	 */
-	protected function bootstrapcheck() {
-		global $action, $plugin;
-
-		if ($action === 'activate' && $plugin === SHOPP_PLUGINFILE)
-			$this->bootstrapmode = true;
-	}
-
-
 	/**
 	 * Sets up permalink handling for Storefront pages
 	 *
@@ -217,7 +217,7 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	function pages () {
+	public function pages () {
 
 		shopp_register_page( 'ShoppCatalogPage' );
 		shopp_register_page( 'ShoppAccountPage' );
@@ -230,7 +230,15 @@ class Shopp {
 
 	}
 
-	function collections () {
+	/**
+	 * Register smart collections
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function collections () {
 
 		shopp_register_collection( 'CatalogProducts' );
 		shopp_register_collection( 'NewProducts' );
@@ -248,12 +256,28 @@ class Shopp {
 
 	}
 
-	function taxonomies () {
+	/**
+	 * Register custom taxonomies
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public function taxonomies () {
 		ProductTaxonomy::register( 'ProductCategory' );
 		ProductTaxonomy::register( 'ProductTag' );
 	}
 
-	function products () {
+	/**
+	 * Register the product custom post type
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function products () {
 		WPShoppObject::register( 'Product', ShoppPages()->baseslug() );
 	}
 
@@ -266,7 +290,7 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	function widgets () {
+	public function widgets () {
 
 		register_widget( 'ShoppAccountWidget' );
 		register_widget( 'ShoppCartWidget' );
@@ -289,7 +313,7 @@ class Shopp {
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
 	 * @return array Rewrite rules
 	 **/
- 	function rewrites ($wp_rewrite_rules) {
+ 	public function rewrites ($wp_rewrite_rules) {
  		global $is_IIS;
  		$structure = get_option('permalink_structure');
  		if ('' == $structure) return $wp_rewrite_rules;
@@ -320,7 +344,7 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	function rebuild () {
+	public function rebuild () {
 		if ( ! shopp_setting_enabled('rebuild_rewrites') ) return;
 
 		flush_rewrite_rules();
@@ -337,7 +361,7 @@ class Shopp {
 	 * @param array $vars The current list of handled WordPress query vars
 	 * @return array Augmented list of query vars including Shopp vars
 	 **/
-	function queryvars ($vars) {
+	public function queryvars ($vars) {
 
 		$vars[] = 's_iid';			// Shopp image id
 		$vars[] = 's_cs';			// Catalog (search) flag
@@ -357,7 +381,7 @@ class Shopp {
 	 *
 	 * @return boolean The service load status
 	 **/
-	static function services () {
+	public static function services () {
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
 		// Image Server request handling
@@ -377,7 +401,7 @@ class Shopp {
 	 *
 	 * @return boolean True if requirements are missing, false if no errors were detected
 	 **/
-	static function unsupported () {
+	public static function unsupported () {
 		$activation = false;
 		if ( isset($_GET['action']) && isset($_GET['plugin']) ) {
 			$activation = ('activate' == $_GET['action']);
@@ -461,7 +485,7 @@ class Shopp {
 	 *
 	 * @return array List of available updates
 	 **/
-	function updates () {
+	public function updates () {
 
 		global $pagenow;
 		if ( is_admin()
@@ -549,7 +573,7 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	static function changelog () {
+	public static function changelog () {
 		if ( 'shopp' != $_REQUEST['plugin'] ) return;
 
 		$request = array('ShoppServerRequest' => 'changelog');
@@ -573,7 +597,7 @@ class Shopp {
 	 *
 	 * @return void
 	 **/
-	function status () {
+	public function status () {
 		$updates = shopp_setting('updates');
 		$keysetting = Shopp::keysetting();
 		$key = $keysetting['k'];
@@ -639,7 +663,7 @@ class Shopp {
 	 *
 	 * @return boolean
 	 **/
-	static function maintenance () {
+	public static function maintenance () {
 
 		$db_version = intval(shopp_setting('db_version'));
 		return ( ! ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
@@ -663,7 +687,7 @@ class Shopp {
 	 * @param array $options (optional)
 	 * @return string The response from the server
 	 **/
-	static function callhome ($request=array(),$data=array(),$options=array()) {
+	public static function callhome ($request=array(),$data=array(),$options=array()) {
 		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
 		$data = http_build_query($data,'','&');
 
@@ -719,37 +743,61 @@ class Shopp {
 
 	}
 
-	static function key ($action,$key) {
-		$actions = array('deactivate','activate');
-		if (!in_array($action,$actions)) $action = reset($actions);
+	/**
+	 * Activates or deactivates a support key
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return stdClass The server response
+	 **/
+	public static function key ($action,$key) {
+		$actions = array('deactivate', 'activate');
+		if (!in_array($action, $actions)) $action = reset($actions);
 		$action = "$action-key";
 
-		$request = array( 'ShoppServerRequest' => $action,'key' => $key,'site' => get_bloginfo('siteurl') );
+		$request = array( 'ShoppServerRequest' => $action, 'key' => $key, 'site' => get_bloginfo('siteurl') );
 		$response = Shopp::callhome($request);
 		$result = json_decode($response);
 
-		$result = apply_filters('shopp_update_key',$result);
+		$result = apply_filters('shopp_update_key', $result);
 
-		shopp_set_setting( 'updatekey',$result );
+		shopp_set_setting( 'updatekey', $result );
 
 		return $response;
 	}
 
-	static function keysetting () {
+	/**
+	 * Loads the key setting
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return key data
+	 **/
+	public static function keysetting () {
 		$updatekey = shopp_setting('updatekey');
 
-		// @legacy
-		if (is_array($updatekey)) {
-			$keys = array('s','k','t');
-			return array_combine(array_slice($keys,0,count($updatekey)),$updatekey);
+		// @deprecated Will be removed eventually
+		if ( is_array($updatekey) ) {
+			$keys = array('s', 'k', 't');
+			return array_combine(array_slice($keys, 0, count($updatekey)), $updatekey);
 		}
 
 		$data = base64_decode($updatekey);
-		if (empty($data)) return false;
+		if ( empty($data) ) return false;
 		return unpack(Lookup::keyformat(),$data);
 	}
 
-	static function activated () {
+	/**
+	 * Determines if the support key is activated
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if activated, false otherwise
+	 **/
+	public static function activated () {
 		$key = Shopp::keysetting();
 		return ('1' == $key['s']);
 	}

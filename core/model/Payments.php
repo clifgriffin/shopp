@@ -24,10 +24,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppPayments extends ListFramework {
 
-	private $options = array();
 	private $cards = array();
 	private $processors = array();
-
 	private $selected = false;
 	private $userset = false;
 	private $secure = false;
@@ -41,8 +39,6 @@ class ShoppPayments extends ListFramework {
 	 * @return void
 	 **/
 	public function options () {
-
-		$modules = $this->modules();
 
 		$options = array();
 		$accepted = array();
@@ -176,7 +172,6 @@ class ShoppPayments extends ListFramework {
 	private static function freeorder () {
 		global $Shopp;
 		$Module = $Shopp->Gateways->freeorder;
-		$slug = sanitize_title_with_dashes($Module->name);
 		return new ShoppPaymentOption(
 			'freeorder',
 			$Module->name,
