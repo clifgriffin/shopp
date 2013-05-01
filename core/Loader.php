@@ -142,15 +142,11 @@ class ShoppLoader {
 	 * @return boolean True if succesful, false otherwise
 	 **/
 	protected function scanner ( $class, $path = '' ) {
-		$discovered = array();	// Track the classes not in the map
 
 		if ( empty($path) ) $path = self::$basepath;
 		$objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator( $path ), RecursiveIteratorIterator::SELF_FIRST);
-		foreach( $objects as $name => $object ) {
-
+		foreach( $objects as $name => $object )
 			$this->scanfile( $name, $path );
-
-		} // endforeach;
 
 		if ( $this->classmap($class) ) return true;
 		return false;
@@ -212,23 +208,23 @@ class ShoppLoader {
 	}
 
 	static function find_wpload () {
-		global $table_prefix;
 
+		$configfile = 'wp-config.php';
 		$loadfile = 'wp-load.php';
 		$wp_abspath = false;
 
-		$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
-		$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
-		$rootpath = array_diff($syspath,$uripath);
-		$root = '/'.join('/',$rootpath);
+		$syspath = explode('/', $_SERVER['SCRIPT_FILENAME']);
+		$uripath = explode('/', $_SERVER['SCRIPT_NAME']);
+		$rootpath = array_diff($syspath, $uripath);
+		$root = '/' . join('/', $rootpath);
 
-		$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
+		$filepath = dirname( ! empty($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : __FILE__ );
 
-		if ( file_exists(self::sanitize($root).'/'.$loadfile))
+		if ( file_exists(self::sanitize($root) . '/' . $loadfile))
 			$wp_abspath = $root;
 
 		if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
-			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
+			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']) . '/' . $configfile) ) {
 			// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
 			// and SHOPP_ABSPATH used on webserver site config
 			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
@@ -236,14 +232,14 @@ class ShoppLoader {
 		} elseif ( strpos($filepath, $root) !== false ) {
 			// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
 			$fullpath = explode ('/', self::sanitize($filepath) );
-			while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
-				if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
-					$wp_abspath = join('/',$fullpath);
+			while ( ! $wp_abspath && null !== array_pop($fullpath) ) {
+				if (file_exists( sanitize_path(join('/', $fullpath)) . '/' . $loadfile ))
+					$wp_abspath = join('/', $fullpath);
 			}
 
 		} elseif ( file_exists(self::sanitize($root).'/'.$loadfile) ) {
 			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-		} elseif ( file_exists(self::sanitize(dirname($root)).'/'.$loadfile) ) {
+		} elseif ( file_exists(self::sanitize(dirname($root)) . '/' . $loadfile) ) {
 			$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
 	    } else {
 	        /* Last chance, do or die */
@@ -265,7 +261,7 @@ class ShoppLoader {
 	 *
 	 * @return bool
 	 */
-	public static function is_activating() {
+	public static function is_activating () {
 		global $action, $plugin;
 		return ( ($action === 'activate' || $action === 'error_scrape') && $plugin === SHOPP_PLUGINFILE);
 	}
@@ -350,7 +346,6 @@ ShoppLoader()->map(array(
 	'item' => '/model/Item.php',
 	'listframework' => '/Framework.php',
 	'locationsreport' => '/ui/reports/locations.php',
-	'login' => '/flow/Login.php',
 	'lookup' => '/model/Lookup.php',
 	'memberaccess' => '/model/Membership.php',
 	'membercontent' => '/model/Membership.php',
@@ -496,11 +491,13 @@ ShoppLoader()->map(array(
 	'shopperrorstorefrontnotices' => '/model/Error.php',
 	'shoppfacetedmenuwidget' => '/ui/widgets/facetedmenu.php',
 	'shoppflow' => '/flow/Flow.php',
+	'shoppformvalidation' => '/model/Validation.php',
 	'shopping' => '/model/Shopping.php',
 	'shoppingobject' => '/model/Shopping.php',
 	'shoppinstallation' => '/flow/Install.php',
 	'shoppitemtax' => '/model/Tax.php',
 	'shopploader' => 'Loader.php',
+	'shopplogin' => '/flow/Login.php',
 	'shoppmaintenancepage' => '/model/Pages.php',
 	'shopporder' => '/flow/Order.php',
 	'shopppage' => '/model/Pages.php',
@@ -509,6 +506,7 @@ ShoppLoader()->map(array(
 	'shopppayments' => '/model/Payments.php',
 	'shoppproductpage' => '/model/Pages.php',
 	'shoppproductwidget' => '/ui/widgets/product.php',
+	'shoppregistration' => '/model/Registration.php',
 	'shoppremoteapifile' => '/model/API.php',
 	'shoppremoteapimodules' => '/model/API.php',
 	'shoppremoteapiserver' => '/remote.php',
