@@ -234,7 +234,7 @@ class Setup extends AdminController {
 		if (!empty($_POST['activation'])) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
 
 		// Save settings
-		if (!empty($_POST['save']) && isset($_POST['settings'])) {
+		if ( ! empty($_POST['save']) && isset($_POST['settings'])) {
 			check_admin_referer('shopp-settings-general');
 
 			if (isset($_POST['settings']['base_operations'])) {
@@ -246,9 +246,9 @@ class Setup extends AdminController {
 				$baseop['zone'] = $zone;
 				$baseop['currency']['format'] = scan_money_format($baseop['currency']['format']);
 				if ( is_array($baseop['currency']['format']) ) {
-					$keys = array_keys($baseop['currency']['format']);
-					foreach ($keys as $key)
-						if (isset($baseop['currency'][$key])) $baseop['currency']['format'][$key] = $baseop['currency'][$key];
+					$fields = array_keys($baseop['currency']['format']);
+					foreach ($fields as $field)
+						if (isset($baseop['currency'][$field])) $baseop['currency']['format'][$field] = $baseop['currency'][$field];
 				}
 
 				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
