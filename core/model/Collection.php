@@ -606,6 +606,7 @@ class ProductTaxonomy extends ProductCollection {
 			$this->{$var} = $value;
 
 		$this->id = $this->term_id;
+		$this->term_taxonomy_id = $this->term_taxonomy_id;
 	}
 
 	function load_meta () {

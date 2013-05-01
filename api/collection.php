@@ -524,6 +524,7 @@ function shopp_term_products ( $term = false, $taxonomy = 'shopp_category', $opt
 
 	$Tax = new ProductTaxonomy();
 	$Tax->id = $term['term_id'];
+	$Tax->term_taxonomy_id = $term['term_taxonomy_id'];
 	$Tax->taxonomy = $taxonomy;
 	$Tax->load( $options );
 
