@@ -73,6 +73,24 @@ class ShoppAPIModules extends ModuleLoader {
 		$this->installed(); // Find modules
 		$this->load(true);  // Load all
 
+		add_action('shopp_init', 'self::functions');
+	}
+
+	/**
+	 * Loads the theme templates `shopp/functions.php` if present
+	 *
+	 * If theme content templates are enabled, checks for and includes a functions.php file (if present).
+	 * This allows developers to add Shopp-specific presentation logic with the added convenience of knowing
+	 * that shopp_init has run.
+	 *
+	 * @author Barry Hughes
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public static function functions () {
+		if ( shopp_setting_enabled('theme_templates') ) return;
+		$functions = locate_shopp_template( array('functions.php'), true );
 	}
 
 } // END class ShoppAPILoader
