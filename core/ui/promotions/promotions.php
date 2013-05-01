@@ -43,15 +43,15 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-promotions'); ?></tr>
+		<tr><?php print_column_headers($this->screen); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-promotions',false); ?></tr>
+		<tr><?php print_column_headers($this->screen,false); ?></tr>
 		</tfoot>
 	<?php if (sizeof($Promotions) > 0): ?>
 		<tbody class="list promotions">
 		<?php
-			$hidden = get_hidden_columns('shopp_page_shopp-promotions');
+			$hidden = get_hidden_columns($this->screen);
 
 			$even = false;
 			foreach ($Promotions as $Promotion):

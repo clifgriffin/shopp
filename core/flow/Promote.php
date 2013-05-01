@@ -20,7 +20,6 @@
 class Promote extends AdminController {
 
 	var $Notice = false;
-	var $screen = 'shopp_page_shopp-promotions';
 
 	/**
 	 * Promote constructor
