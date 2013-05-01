@@ -148,7 +148,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function has_discount ($result, $options, $O) {
-		return ($O->Totals->discount > 0);
+		return ($O->Totals->total('discount') > 0);
 	}
 
 	static function has_downloads ($result, $options, $O) {
