@@ -494,36 +494,7 @@ class ShoppOrder {
 	 **/
 	public function accounts ($Event) {
 
-		// WordPress account integration used, customer has no wp user
-		if (!$this->guest) {
-			if ('wordpress' == shopp_setting('account_system') && empty($this->Customer->wpuser)) {
-				if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
-				else $this->Customer->create_wpuser(); // not logged in, create new account
-			}
-		}
-
-		// New customer, save hashed password
-		if (!$this->Customer->exists()) {
-			$this->Customer->id = false;
-			shopp_debug('Creating new Shopp customer record');
-			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
-			if (!$this->guest && 'shopp' == shopp_setting('account_system')) $this->Customer->notification();
-			$this->Customer->password = wp_hash_password($this->Customer->password);
-		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
-
-		$this->Customer->save();
-
-		// Update billing address
-		if (!empty($this->Billing->address)) {
-			$this->Billing->customer = $this->Customer->id;
-			$this->Billing->save();
-		}
-
-		// Update shipping address
-		if (!empty($this->Shipping->address)) {
-			$this->Shipping->customer = $this->Customer->id;
-			$this->Shipping->save();
-		}
+		$this->Checkout->registration();
 
 		// Update Purchase with link to created customer record
 		if ( ! empty($this->Customer->id) ) {
@@ -536,7 +507,6 @@ class ShoppOrder {
 			$Purchase->billing = $this->Billing->id;
 			$Purchase->shipping = $this->Shipping->id;
 			$Purchase->save();
-
 		}
 
 	}
