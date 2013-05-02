@@ -122,19 +122,16 @@ class ShoppFlow {
 	 **/
 	function menu () {
 		if ( ! defined('WP_ADMIN') ) return false;
-		require(SHOPP_FLOW_PATH.'/Admin.php');
 		$this->Admin = new ShoppAdmin;
 		$this->Admin->menus();
 	}
 
 	function ajax () {
 		if ( ! isset($_REQUEST['action']) || ! defined('DOING_AJAX') ) return;
-		require(SHOPP_FLOW_PATH.'/Ajax.php');
 		$this->Ajax = new ShoppAjax;
 	}
 
 	function resources ($request) {
-		require(SHOPP_FLOW_PATH.'/Resources.php');
 		$this->Controller = new ShoppResources($request);
 	}
 
