@@ -73,7 +73,7 @@ class ShoppAPIModules extends ModuleLoader {
 		$this->installed(); // Find modules
 		$this->load(true);  // Load all
 
-		add_action('shopp_init', 'self::functions');
+		add_action('shopp_init', __CLASS__ . '::functions');
 	}
 
 	/**
@@ -89,8 +89,8 @@ class ShoppAPIModules extends ModuleLoader {
 	 * @return void
 	 **/
 	public static function functions () {
-		if ( shopp_setting_enabled('theme_templates') ) return;
-		$functions = locate_shopp_template( array('functions.php'), true );
+		if ( ! shopp_setting_enabled('theme_templates') ) return;
+		locate_shopp_template( array('functions.php'), true );
 	}
 
 } // END class ShoppAPILoader
