@@ -97,19 +97,21 @@ class Account extends AdminController {
 		$updated = false;
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-customer');
+			$wp_integration = ('wordpress' === shopp_setting( 'account_system' ));
 
-			if ($_POST['id'] != "new") {
+			if ($_POST['id'] !== 'new') {
 				$Customer = new Customer($_POST['id']);
 				$Billing = new BillingAddress($Customer->id);
 				$Shipping = new ShippingAddress($Customer->id);
 			} else $Customer = new Customer();
 
 			if (!empty($Customer->wpuser)) $user = get_user_by('id',$Customer->wpuser);
+			$new_customer = empty( $Customer->id );
 
 			$Customer->updates($_POST);
 
 			// Reassign WordPress login
-			if ('wordpress' == shopp_setting('account_system') && !empty($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login) {
+			if ($wp_integration && !empty($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login) {
 				$newlogin = get_user_by('login',$_POST['userlogin']);
 				if (!empty($newlogin->ID)) {
 					if (DB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
@@ -126,8 +128,33 @@ class Account extends AdminController {
 					if (!empty($Customer->wpuser)) wp_set_password($_POST['new-password'], $Customer->wpuser);
 				}
 
-			$Customer->info = false; // No longer used from DB
-			$Customer->save();
+			$valid_email = filter_var( $_POST['email'], FILTER_VALIDATE_EMAIL );
+			$password = !empty( $_POST['new_password'] );
+
+			if ($wp_integration && $new_customer && $valid_email && $password) {
+				$Customer->loginname = $_POST['userlogin'];
+				$Customer->email = $_POST['email'];
+				$Customer->firstname = $_POST['firstname'];
+				$Customer->lastname = $_POST['lastname'];
+
+				$return = $Customer->create_wpuser();
+
+				if ( $return ) {
+					$updated = sprintf( __( 'The Shopp and WordPress accounts have been created with the username "%s".', 'Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+				} else {
+					$updated = sprintf( __( 'Could not create a WordPress account for customer "%s".','Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+				}
+			}
+			elseif ($new_customer && ( !$valid_email || !$password ) ) {
+				$updated = __( 'Could not create new user. You must enter a valid email address and a password first.', 'Shopp' );
+				$no_save = true;
+			}
+
+			if ( !isset( $new_save ) ) {
+				$Customer->info = false; // No longer used from DB
+				$Customer->save();
+			}
+
 
 			if (isset($_POST['info']) && !empty($_POST['info'])) {
 				foreach ((array)$_POST['info'] as $id => $info) {
