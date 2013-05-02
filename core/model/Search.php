@@ -41,7 +41,6 @@ class IndexProduct {
 	function __construct ($id) {
 		$this->Product = new Product($id);
 		$this->Product->load_data(array('prices','specs','categories','tags'));
-		wp_cache_reset();
 	}
 
 	/**
