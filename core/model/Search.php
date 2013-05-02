@@ -20,8 +20,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  * Generates a set of indexes for all Product property data
  *
- * @author Jonathan since
- * @Davis 1.1
+ * @author Jonathan Davis
+ * @since 1.1
  * @package shopp
  * @subpackage search
  **/
