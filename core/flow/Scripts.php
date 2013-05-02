@@ -279,6 +279,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.min.js', array(), '2202');
 	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
 
+	$scripts->add('spin', '/ui/behaviors/spin.js', array('jquery'), '20130101');
+	$scripts->add_data('spin', 'group', 1);
+
 	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.min.js', array('jquery','shopp-swfobject'), '2202');
 	$scripts->add_data('swfupload', 'group', 1);
 

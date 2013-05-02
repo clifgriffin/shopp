@@ -114,6 +114,7 @@ class Setup extends AdminController {
 
 				break;
 			case 'settings':
+				shopp_enqueue_script('spin');
 				shopp_enqueue_script('setup');
 
 				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
@@ -140,7 +141,8 @@ class Setup extends AdminController {
 				$l10n = array(
 					'activate_button' => __('Activate Key','Shopp'),
 					'deactivate_button' => __('De-activate Key','Shopp'),
-					'connecting' => __('Connecting','Shopp')
+					'connecting' => __('Connecting','Shopp'),
+					'fail' => __('Sorry!','Shopp')
 
 				);
 				$l10n = array_merge($l10n,$this->keystatus);
