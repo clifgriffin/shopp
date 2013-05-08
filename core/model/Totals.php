@@ -594,6 +594,41 @@ class OrderAmountCartItem extends OrderAmountDebit {
 }
 OrderTotalRegisters::register('OrderAmountItem');
 
+class OrderAmountItemDiscounts extends OrderAmountDebit {
+
+	static public $register = 'discount';
+
+	/**
+	 * Constructs from a ShoppCartItem
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppCartItem $Item The Cart Item to construct from
+	 * @return void
+	 **/
+	public function __construct ( ShoppOrderDiscount $Discount ) {
+		$this->amount = $Discount->amount();
+		$this->id = $Discount->promo;
+
+		add_action('shopp_cart_remove_item',array($this,'remove'));
+	}
+
+	/**
+	 * Provides the label
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return strin
+	 **/
+	public function label () {
+		return __('Discounts','Shopp');
+	}
+
+}
+OrderTotalRegisters::register('OrderAmountItemDiscounts');
+
 /**
  * Defines an item tax entry
  *
@@ -614,7 +649,8 @@ class OrderAmountItemTax extends OrderAmountDebit {
 		$this->rate = $Tax->rate;
 		$this->id = $Tax->label;
 		$this->amount = array_sum($this->items);
-		add_action('shopp_cart_remove_item',array($this,'removal'),10,2);
+
+		add_action('shopp_cart_remove_item',array($this,'remove'));
 	}
 
 	public function removal () {
@@ -659,6 +695,9 @@ class OrderAmountCartItemQuantity extends OrderTotalAmount {
 	public function __construct ( ShoppCartItem $Item ) {
 		$this->amount = &$Item->quantity;
 		$this->id = $Item->fingerprint();
+
+		add_action('shopp_cart_remove_item',array($this,'remove'));
+
 	}
 
 	public function label () {
