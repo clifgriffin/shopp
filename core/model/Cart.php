@@ -101,110 +101,104 @@ class ShoppCart extends ListFramework {
 	 **/
 	public function request () {
 
-		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', ShoppOrder()->security()) );
+		$command = 'update'; // Default command
+		$commands = array('add', 'empty', 'update', 'remove');
 
-		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
+		$request = isset($_REQUEST['cart']) ? strtolower($_REQUEST['cart']) : false;
 
-		// @todo Replace with full CartItem/Purchased syncing after order submission
-		if ( ShoppOrder()->inprogress ) {
+		if ( in_array( $request, $commands) )
+			$command = $request;
 
-			// This is a temporary measure for 1.2.1 to prevent changes to the order after an order has been
-			// submitted for processing. It prevents situations where items in the cart are added, removed or changed
-			// but are not recorded in Purchased item records for the Purchase. We try to give the customer options in the
-			// error message to either fix errors in the checkout form to complete the order as is, or start a new order.
-			// This is a interim attempt to reduce abandonment in a very unlikely situation to begin with.
+		$allowed = array(
+			'quantity' => 1,
+			'product' => false,
+			'products' => array(),
+			'item' => false,
+			'items' => array(),
+			'remove' => array()
+		);
+		$request = array_intersect_key($_REQUEST,$allowed); // Filter for allowed arguments
+		$request = array_merge($allowed, $request);			// Merge to defaults
 
-			new ShoppError(sprintf(
-				__('The shopping cart cannot be changed because it has already been submitted for processing. Please correct problems in %1$scheckout%3$s or %2$sstart a new order%3$s.','Shopp'),
-				'<a href="'.shopp('checkout','get-url').'">',
-				'<a href="'.add_query_arg('shopping','reset',shopp('storefront','get-url')).'">',
-				'</a>'
-			),'order_inprogress',SHOPP_ERR);
-			return false;
-		}
+		extract($request, EXTR_SKIP);
 
+		switch( $command ) {
+			case 'empty': $this->clear(); break;
+			case 'remove': $this->removeitem( key($remove) ); break;
+			case 'add':
 
-		if ( isset($_REQUEST['shipping']) ) {
-			if ( ! empty($_REQUEST['shipping']['postcode']) ) // Protect input field from XSS
-				$_REQUEST['shipping']['postcode'] = esc_attr($_REQUEST['shipping']['postcode']);
+				if ( false !== $product )
+					$products[ $product ] = array('product' => $product);
 
-			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
-
-		}
-
-		if ( ! empty($_REQUEST['promocode']) )
-			$this->promocode = esc_attr(trim($_REQUEST['promocode']));
-
-		if ( ! isset($_REQUEST['cart']) ) $_REQUEST['cart'] = false;
-		if ( isset($_REQUEST['remove']) ) $_REQUEST['cart'] = 'remove';
-		if ( isset($_REQUEST['update']) ) $_REQUEST['cart'] = 'update';
-		if ( isset($_REQUEST['empty']) )  $_REQUEST['cart'] = 'empty';
-
-		if ( ! isset($_REQUEST['quantity']) ) $_REQUEST['quantity'] = 1;
-
-		switch($_REQUEST['cart']) {
-			case "add":
-				$products = array(); // List of products to add
-				if (isset($_REQUEST['product'])) $products[$_REQUEST['product']] = array('product' => $_REQUEST['product']);
-				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products']))
-					$products = array_merge($products,$_REQUEST['products']);
-
-				if (empty($products)) break;
-
-				foreach ($products as $id => $product) {
-					if (isset($product['quantity']) && $product['quantity'] == '0') continue;
-					$quantity = ( ! isset($product['quantity']) ||
-									( empty($product['quantity']) && $product['quantity'] !== 0 )
-								) ? 1 : $product['quantity']; // Add 1 by default
-					$Product = new Product($product['product']);
-					$pricing = false;
-
-					if (!empty($product['options'][0])) $pricing = $product['options'];
-					elseif (isset($product['price'])) $pricing = $product['price'];
-
-					$category = false;
-					if (!empty($product['category'])) $category = $product['category'];
-
-					$data = array();
-					if (!empty($product['data'])) $data = $product['data'];
-
-					$addons = array();
-					if (isset($product['addons'])) $addons = $product['addons'];
-
-					if (!empty($Product->id)) {
-						if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
-						else $result = $this->additem($quantity,$Product,$pricing,$category,$data,$addons);
-					}
+				if ( apply_filters('shopp_cart_add_request', ! empty($products) && is_array($products)) ) {
+					foreach ( $products as $product )
+						$this->addrequest($product);
 				}
 
-				break;
-			case "remove":
-				$this->removeitem(key($_REQUEST['remove']));
-				break;
-			case "empty":
-				$this->clear();
 				break;
 			default:
-				if (isset($_REQUEST['item']) && isset($_REQUEST['quantity'])) {
-					$this->update($_REQUEST['item'],$_REQUEST['quantity']);
-				} elseif (!empty($_REQUEST['items'])) {
-					foreach ($_REQUEST['items'] as $id => $item) {
-						if (array_key_exists('quantity', $item) && is_numeric($item['quantity'])) {
-							$item['quantity'] = absint($item['quantity']);
-							$this->update($id,$item['quantity']);
-							if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
-						}
-						if (isset($item['product']) && isset($item['price']) &&
-							$item['product'] == $this->contents[$id]->product &&
-							$item['price'] != $this->contents[$id]->priceline) {
-							$Product = new Product($item['product']);
-							$this->change($id,$Product,$item['price']);
-						}
-					}
+
+				if ( false !== $item && $this->exists($item) )
+					$items[ $item ] = array('quantity' => $quantity);
+
+				if ( apply_filters('shopp_cart_remove_request', ! empty($remove) && is_array($remove)) ) {
+					foreach ( $remove as $id => $value )
+						$this->rmvitem($id);
 				}
+
+				if ( apply_filters('shopp_cart_update_request', ! empty($items) && is_array($items)) ) {
+					foreach ( $items as $id => $item )
+						$this->updates($id,$item);
+				}
+
 		}
 
 		do_action('shopp_cart_updated', $this);
+
+	}
+
+	private function addrequest ( array $request ) {
+
+		$defaults = array(
+			'quantity' => 1,
+			'product' => false,
+			'price' => false,
+			'category' => false,
+			'item' => false,
+			'options' => array(),
+			'data' => array(),
+			'addons' => array()
+		);
+		$request = array_merge($defaults, $request);
+		extract($request, EXTR_SKIP);
+
+		if ( '0' == $quantity ) return;
+
+		$Product = new Product( (int)$product );
+		if ( isset($options[0]) && ! empty($options[0]) ) $price = $options;
+
+		if ( ! empty($Product->id) ) {
+			if ( false !== $item )
+				$result = $this->change($item, $Product, $price);
+			else
+				$result = $this->additem($quantity, $Product, $price, $category, $data, $addons);
+		}
+
+	}
+
+	private function updates ( $item, array $request ) {
+		$CartItem = $this->get($item);
+		$defaults = array(
+			'quantity' => 1,
+			'product' => false,
+			'price' => false
+		);
+		$request = array_merge($defaults, $request);
+		extract($request, EXTR_SKIP);
+
+		if ( $product == $CartItem->product && false !== $price && $price != $CartItem->priceline)
+			$this->change($item,$product,$price);
+		else $this->setitem($item,$quantity);
 
 	}
 
@@ -230,7 +224,7 @@ class ShoppCart extends ListFramework {
 		$AjaxCart->imguri = '' != get_option('permalink_structure')?trailingslashit(shoppurl('images')):shoppurl().'&siid=';
 		$AjaxCart->Totals = clone($this->Totals);
 		$AjaxCart->Contents = array();
-		foreach($this->contents as $Item) {
+		foreach( $this as $Item ) {
 			$CartItem = clone($Item);
 			unset($CartItem->options);
 			$AjaxCart->Contents[] = $CartItem;
@@ -258,22 +252,23 @@ class ShoppCart extends ListFramework {
 	 * @return boolean
 	 **/
 	public function additem ($quantity=1,&$Product,&$Price,$category=false,$data=array(),$addons=array()) {
-
 		$NewItem = new ShoppCartItem($Product,$Price,$category,$data,$addons);
 
 		if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 
 		$id = $NewItem->fingerprint();
+
 		if ( $this->exists($id) ) {
-			$NewItem->add($quantity);
+			$Item = $this->get($id);
+			$Item->add($quantity);
 			$this->added($id);
 		} else {
 			$NewItem->quantity($quantity);
 			$this->add($id,$NewItem);
 		}
 
-		if ( ! $this->xitemstock($this->added()) )
-			return $this->remove($this->added()); // Remove items if no cross-item stock available
+		if ( ! $this->xitemstock( $this->added() ) )
+			return $this->remove( $this->added() ); // Remove items if no cross-item stock available
 
 		do_action_ref_array('shopp_cart_add_item',array($NewItem));
 		$this->Added = $NewItem;
@@ -290,7 +285,7 @@ class ShoppCart extends ListFramework {
 	 * @param int $item Index of the item in the Cart contents
 	 * @return boolean
 	 **/
-	public function removeitem ( scalar $id ) {
+	public function rmvitem ( scalar $id ) {
 		$Item = $this->get($id);
 		do_action_ref_array('shopp_cart_remove_item',array($Item->fingerprint(),$Item));
 		$this->remove($id);
@@ -306,7 +301,8 @@ class ShoppCart extends ListFramework {
 	 * @param int $quantity New quantity to update the item to
 	 * @return boolean
 	 **/
-	public function update ($item,$quantity) {
+	public function setitem ($item,$quantity) {
+
 		if ( 0 == $this->count() ) return false;
 		if ( 0 == $quantity ) return $this->remove($item);
 
@@ -340,7 +336,7 @@ class ShoppCart extends ListFramework {
 		$allowed = true;
 
 		// Subscription products must be alone in the cart
-		if ( 'Subscription' == $Item->type && ! empty($this->contents) || $this->recurring() ) {
+		if ( 'Subscription' == $Item->type && $this->count() > 0 || $this->recurring() ) {
 			new ShoppError(__('A subscription must be purchased separately. Complete your current transaction and try again.','Shopp'),'cart_valid_add_failed',SHOPP_ERR);
 			return false;
 		}
@@ -410,7 +406,7 @@ class ShoppCart extends ListFramework {
 	 * @return boolean
 	 **/
 	public function clear () {
-		$this->contents = array();
+		parent::clear();
 		$this->promocodes = array();
 		$this->discounts = array();
 		if (isset($this->promocode)) unset($this->promocode);
@@ -428,29 +424,36 @@ class ShoppCart extends ListFramework {
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
 	 * @return boolean
 	 **/
-	public function change ($item,&$Product,$pricing,$addons=array()) {
+	public function change ( string $item, integer $product, integer $pricing, array $addons = array() ) {
+
 		// Don't change anything if everything is the same
-		if ($this->contents[$item]->product == $Product->id &&
-				$this->contents[$item]->price == $pricing) return true;
+		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->price == $pricing) )
+			return true;
 
 		// If the updated product and price variation match
 		// add the updated quantity of this item to the other item
 		// and remove this one
-		foreach ($this->contents as $id => $thisitem) {
-			if ($thisitem->product == $Product->id && $thisitem->price == $pricing) {
-				$this->update($id,$thisitem->quantity+$this->contents[$item]->quantity);
+
+		foreach ( $this as $id => $thisitem ) {
+			if ($thisitem->product == $product && $thisitem->price == $pricing) {
+				$this->update($id,$thisitem->quantity+$this->get($item)->quantity);
 				$this->remove($item);
 			}
 		}
 
-		// No existing item, so change this one
-		$qty = $this->contents[$item]->quantity;
-		$category = $this->contents[$item]->category;
-		$data = $this->contents[$item]->data;
+		// Maintain item state, change variant
+		$Item = $this->get($item);
+		$qty = $Item->quantity;
+		$category = $Item->category;
+		$data = $Item->data;
 		$addons = array();
-		foreach ($this->contents[$item]->addons as $addon) $addons[] = $addon->options;
-		$this->contents[$item] = new ShoppCartItem($Product,$pricing,$category,$data,$addons);
-		$this->contents[$item]->quantity($qty);
+		foreach ($Item->addons as $addon)
+			$addons[] = $addon->options;
+
+		$UpdatedItem = new ShoppCartItem(new Product($product),$pricing,$category,$data,$addons);
+		$UpdatedItem->quantity($qty);
+
+		parent::update($item,$UpdatedItem);
 
 		return true;
 	}
@@ -464,9 +467,9 @@ class ShoppCart extends ListFramework {
 	 * @param Item $NewItem The new Item object to look for
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
-	public function hasitem ($NewItem) {
+	public function hasitem ( ShoppCartItem $NewItem ) {
 		// Find matching item fingerprints
-		foreach ($this->contents as $i => $Item)
+		foreach ( $this as $i => $Item )
 			if ($Item->fingerprint() === $NewItem->fingerprint()) return $i;
 		return false;
 	}
@@ -565,7 +568,6 @@ class ShoppCart extends ListFramework {
 		// @todo handle free shipping??
 		// $Shipping->free($shipfree);
 		$Shipping->calculate();
-
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
 
 		// Calculate discounts
