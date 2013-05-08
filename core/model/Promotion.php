@@ -368,7 +368,12 @@ class Promotion extends DatabaseObject {
 		if (empty($ids) || !is_array($ids)) return false;
 
 		$prices = self::discounted_prices($ids);				// Get the discounted price records
-		$this->uncatalog_discounts($prices);					// Remove the deleted price discounts
+
+		foreach ( $ids as $id ) {
+			$Promo = new Promotion($id);
+			if ( 'Catalog' == $Promo->target)
+				$Promo->uncatalog_discounts($prices);				// Remove the deleted price discounts
+		}
 
 		$table = DatabaseObject::tablename(self::$table);
 		DB::query("DELETE FROM $table WHERE id IN (".join(',',$ids).")"); // Delete the promotions
