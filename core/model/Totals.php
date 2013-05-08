@@ -386,7 +386,7 @@ abstract class OrderTotalAmount {
 	 **/
 	public function &amount ( float $value = null ) {
 		if ( ! is_null($value) ) $this->amount = $value;
-		$amount = (float)$this->amount;
+		$amount = (float)round($this->amount, $this->precision());
 		return $amount;
 	}
 
@@ -417,6 +417,11 @@ abstract class OrderTotalAmount {
 
 	public function __toString () {
 		return (string)$this->amount();
+	}
+
+	private function precision () {
+		$format = currency_format();
+		return $format['precision'];
 	}
 
 }
@@ -469,6 +474,7 @@ class OrderAmountCredit extends OrderTotalAmount {
  **/
 class OrderAmountDiscount extends OrderAmountCredit {
 	static public $register = 'discount';
+
 	protected $setting = false;	// The related discount/promo setting
 	protected $code = false;	// The code used
 
