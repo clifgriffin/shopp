@@ -30,6 +30,9 @@ class ShoppOrder {
 	public $Cart = false;				// The shopping cart
 	public $Tax = false;				// The tax calculator
 	public $Shiprates = false;			// The shipping service rates calculator
+	public $Discounts = false;			// The discount manager
+
+	public $Promotions = false;			// The promotions loader
 	public $Payments = false;			// The payments manager
 	public $Checkout = false;			// The checkout processor
 
@@ -61,6 +64,7 @@ class ShoppOrder {
 
 		$this->Tax = ShoppingObject::__new( 'ShoppTax' );
 		$this->Shiprates = ShoppingObject::__new( 'ShoppShiprates' );
+		$this->Discounts = ShoppingObject::__new( 'ShoppDiscounts' );
 
 		// Store order custom data and post processing data
 		ShoppingObject::store('data',$this->data);
@@ -68,6 +72,7 @@ class ShoppOrder {
 		ShoppingObject::store('purchase',$this->purchase);
 		ShoppingObject::store('txnid',$this->txnid);
 
+		$this->Promotions = new ShoppPromotions;
 		$this->Payments = new ShoppPayments;
 		$this->Checkout = new ShoppCheckout;
 
@@ -75,6 +80,7 @@ class ShoppOrder {
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
 		add_action('parse_request', array($this, 'request'));
+		add_action('parse_request', array($this->Discounts, 'request'));
 
 		// Order processing
 		add_action('shopp_process_order', array($this, 'validate'), 7);
@@ -128,13 +134,17 @@ class ShoppOrder {
 	 **/
 	public function request () {
 
+		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', $this->security()) );
+
+		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
+
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
 		if ( array_key_exists('checkout', $_POST) ) {
 
 			$checkout = strtolower($_POST['checkout']);
-			switch ($checkout) {
+			switch ( $checkout ) {
 				case 'process':		do_action('shopp_process_checkout'); break;
 				case 'confirmed':	do_action('shopp_confirm_order'); break;
 			}
@@ -142,6 +152,10 @@ class ShoppOrder {
 		} elseif ( array_key_exists('shipmethod', $_POST) ) {
 
 			do_action('shopp_process_shipmethod');
+
+		} elseif ( isset($_REQUEST['shipping']) ) {
+
+			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
 
 		}
 

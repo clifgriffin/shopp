@@ -543,8 +543,8 @@ class ShoppCart extends ListFramework {
 
 		do_action('shopp_cart_totals_init', $Totals);
 
-		$Discounts = new CartDiscounts();
 		$Shipping = ShoppOrder()->Shiprates;
+		$Discounts = ShoppOrder()->Discounts;
 
 		// Identify downloadable products
 		$downloads = $this->downloads();
@@ -568,9 +568,8 @@ class ShoppCart extends ListFramework {
 
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
 
-		// @todo Clean up discount calculations
 		// Calculate discounts
-		$Totals->register( new OrderAmountDiscount( array('id' => 'cart', 'amount' => $Discounts->calculate()) ) );
+		$Totals->register( new OrderAmountDiscount( array('id' => 'cart', 'amount' => $Discounts->amount() ) ) );
 
 		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );
 
