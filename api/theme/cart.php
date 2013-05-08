@@ -103,7 +103,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	static function discount ($result, $options, $O) { return $O->Totals->discount; }
+	static function discount ($result, $options, $O) {
+		return abs($O->Totals->total('discount'));
+	}
 
 	static function discounts ($result, $options, $O) {
 		if (!isset($O->_promo_looping)) {
@@ -148,7 +150,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function has_discount ($result, $options, $O) {
-		return ($O->Totals->total('discount') > 0);
+		return (abs($O->Totals->total('discount')) > 0);
 	}
 
 	static function has_downloads ($result, $options, $O) {
@@ -162,8 +164,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function has_promos ($result, $options, $O) {
-		reset($O->discounts);
-		return (count($O->discounts) > 0);
+		ShoppOrder()->reset();
+		return (ShoppOrder()->Discounts->count() > 0);
 	}
 
 	static function has_ship_costs ($result, $options, $O) {
@@ -202,69 +204,75 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function promocode ($result, $options, $O) {
-		global $Shopp;
 
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
+
 		// Skip if no promotions exist
-		if (!$Shopp->Promotions->available()) return false;
-		// Skip if the promo limit has been reached
-		if (shopp_setting('promo_limit') > 0 &&
-			count($O->discounts) >= shopp_setting('promo_limit')) return false;
-		if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
-		$result = '<ul><li>';
-		$ShoppErrors = ShoppErrors();
-		if ($ShoppErrors->exist()) {
-			$result .= '<p class="error">';
-			$errors = $ShoppErrors->source('CartDiscounts');
-			foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message(true,false);
-			$result .= '</p>';
+		if ( ! ShoppOrder()->Promotions->available() ) return false;
+
+		// // Skip if the promo limit has been reached
+		if ( shopp_setting('promo_limit') > 0
+				&& ShoppOrder()->Discounts->count() >= shopp_setting('promo_limit') ) return false;
+		if ( ! isset($options['value']) ) $options['value'] = __('Apply Promo Code', 'Shopp');
+
+		$result = '<div class="applycode">';
+
+		$Errors = ShoppErrorStorefrontNotices();
+
+		$defaults = array(
+			'before' => '<p class="error">',
+			'after' => '</p>'
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
+		if ( $Errors->exist() ) {
+			while ( $Errors->exist() )
+				$result .=  $before . $Errors->message() . $after;
 		}
 
 		$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
 		$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
-		$result .= '</li></ul>';
+		$result .= '</div>';
 		return $result;
 	}
 
 	static function promo_discount ($result, $options, $O) {
-		$discount = current($O->discounts);
-		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
-		if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
-		else $options['label'] = ' '.$options['label'];
-		$string = false;
-		if (!empty($options['before'])) $string = $options['before'];
+		$Discount = ShoppOrder()->Discounts->current();
+		if ($Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
 
-		switch($discount->type) {
-			case "Free Shipping": $string .= money((float)$discount->freeshipping).$options['label']; break;
-			case "Percentage Off": $string .= percentage((float)$discount->discount,array('precision' => 0)).$options['label']; break;
-			case "Amount Off": $string .= money((float)$discount->discount).$options['label']; break;
-			case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
+		if ( ! isset($options['label']) ) $options['label'] = ' ' . __('Off!','Shopp');
+		else $options['label'] = ' ' . $options['label'];
+		$string = false;
+		if ( ! empty($options['before']) ) $string = $options['before'];
+
+		switch ( $Discount->type() ) {
+			case ShoppOrderDiscount::SHIP_FREE: $string .= money($Discount->amount()) . $options['label']; break;
+			case ShoppOrderDiscount::PERCENT_OFF: $string .= percentage($Discount->discount(), array('precision' => 0)) . $options['label']; break;
+			case ShoppOrderDiscount::AMOUNT_OFF: $string .= money($Discount->discount()) . $options['label']; break;
+			case ShoppOrderDiscount::BOGOF: list($buy, $get) = $Discount->discount(); $string .= sprintf(__('Buy %s get %s free', 'Shopp'), $buy, $get); break;
 		}
-		if (!empty($options['after'])) $string .= $options['after'];
+		if ( ! empty($options['after']) ) $string .= $options['after'];
 
 		return $string;
 	}
 
 	static function promo_name ($result, $options, $O) {
-		$discount = current($O->discounts);
-		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
-		return $discount->name;
+		$Discount = ShoppOrder()->Discounts->current();
+		if ($Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
+		return $Discount->name();
 	}
 
 	static function promos ($result, $options, $O) {
-		if (!isset($O->_promo_looping)) {
-			reset($O->discounts);
-			$O->_promo_looping = true;
-		} else next($O->discounts);
+		$O = ShoppOrder()->Discounts;
+		if ( ! isset($O->_looping) ) {
+			$O->rewind();
+			$O->_looping = true;
+		} else $O->next();
 
-		$discount = current($O->discounts);
-		while ($discount && empty($discount->applied) && !$discount->freeshipping)
-			$discount = next($O->discounts);
-
-		if (current($O->discounts)) return true;
+		if ( $O->valid() ) return true;
 		else {
-			unset($O->_promo_looping);
-			reset($O->discounts);
+			unset($O->_looping);
+			$O->rewind();
 			return false;
 		}
 	}
