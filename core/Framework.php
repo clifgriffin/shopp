@@ -52,9 +52,10 @@ class ListFramework implements Iterator {
 
 	public function update ( string $key, $entry ) {
 		if ( ! $this->exists($key) ) return false;
-		if ( is_array($this->_list[$key]) && is_array($entry) )
+		if ( is_array($this->_list[ $key ]) && is_array($entry) )
 			$entry = array_merge($this->_list[$key],$entry);
-		else $this->_list[$key] = $entry;
+		$this->_list[ $key ] = $entry;
+		return true;
 	}
 
 	public function count () {
