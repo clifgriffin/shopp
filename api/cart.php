@@ -199,7 +199,6 @@ function shopp_cart_item ( $item = false ) {
  **/
 function shopp_empty_cart () {
 	ShoppOrder()->Cart->clear();
-	ShoppOrder()->Cart->totals();
 }
 
 /**
