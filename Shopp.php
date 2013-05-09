@@ -150,7 +150,6 @@ class Shopp {
 
 		$this->Collections = array();
 		$this->Order = new ShoppOrder();
-		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
