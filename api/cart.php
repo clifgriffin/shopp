@@ -159,7 +159,7 @@ function shopp_cart_items () {
  * @return void Description...
  **/
 function shopp_cart_items_count () {
-	return count( ShoppOrder()->Cart->contents );
+	return ShoppOrder()->Cart->count();
 }
 
 /**
