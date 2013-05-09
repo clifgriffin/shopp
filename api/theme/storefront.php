@@ -54,13 +54,13 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 	);
 
-	static function _apicontext () { return 'catalog'; }
+	static function _apicontext () { return 'storefront'; }
 
 	static function _context_name ( $name ) {
 		switch ( $name ) {
 			case 'storefront':
 			case 'catalog':
-			return 'catalog';
+			return 'storefront';
 			break;
 		}
 		return $name;
