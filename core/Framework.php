@@ -127,12 +127,12 @@ class SingletonFramework {
 
 	// @todo Requires Late-Static Binding in PHP 5.3 before extending the framework for instance return method to work
 
-	// protected static $instance;
+	// protected static $object;
 
-	// public static function instance () {
-	// 	if (!self::$instance instanceof self)
-	// 		self::$instance = new self;
-	// 	return self::$instance;
+	// public static function object () {
+	// 	if ( ! self::$object instanceof self)
+	// 		self::$object = new self;
+	// 	return self::$object;
 	// }
 
 	/**
