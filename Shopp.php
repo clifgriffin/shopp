@@ -33,8 +33,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 if ( Shopp::services() || Shopp::unsupported() ) return; // Prevent loading the plugin
 
 /* Start the core */
-$Shopp = new Shopp();
-do_action('shopp_loaded');
+$Shopp = Shopp::object();
 
 /**
  * Shopp core plugin management class
@@ -47,6 +46,8 @@ class Shopp {
 
 	const VERSION = '1.3dev';
 	const CODENAME = 'Mars';
+
+	private static $object = false;
 
 	public $Settings;		// @deprecated Shopp settings registry
 	public $Flow;			// @deprecated Controller routing
@@ -64,7 +65,7 @@ class Shopp {
 	public $APIs;			// @deprecated Loaded API modules
 	public $Storage;		// @deprecated Storage engine modules
 
-	public function __construct () {
+	private function __construct () {
 
 		// Autoload system
 		require 'core/Loader.php';
@@ -119,6 +120,22 @@ class Shopp {
 		if ( ! wp_next_scheduled('shopp_check_updates') )
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
+	}
+
+	/**
+	 * Singleton accessor method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return Shopp Provides the running Shopp object
+	 **/
+	public static function object () {
+		if ( ! self::$object instanceof self ) {
+			self::$object = new self;
+			do_action('shopp_loaded');
+		}
+		return self::$object;
 	}
 
 	/**
