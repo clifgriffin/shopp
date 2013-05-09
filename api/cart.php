@@ -144,7 +144,10 @@ function shopp_set_cart_item_quantity ( $item = false, $quantity = 1 ) {
  * @return array list of items in the cart
  **/
 function shopp_cart_items () {
-	return ShoppOrder()->Cart->contents;
+	$Items = array();
+	foreach ( ShoppOrder()->Cart as $id => $Item )
+		$Items[$id] = $Item;
+	return $Items;
 }
 
 /**
