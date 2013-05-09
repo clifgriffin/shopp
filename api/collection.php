@@ -29,33 +29,33 @@ function shopp_register_collection ( $name = '' ) {
 		return false;
 	}
 
-	global $Shopp;
-	if ( empty($Shopp) ) return;
-
+	$Shopp = Shopp::object();
+	$namespace = apply_filters('shopp_smart_collections_slug', SmartCollection::$namespace);
 	$permastruct = SmartCollection::$taxon;
-	$slug = get_class_property($name, '_slug');
+
+	$slugs = SmartCollection::slugs($name);
+	$slug = $slugs[0];
 	$Shopp->Collections[$slug] = $name;
 
-	add_rewrite_tag( "%$permastruct%", 'collection/([^/]+)' );
+	do_action('shopp_register_collection', $name, $slug);
+	$slugs = SmartCollection::slugs($name);
+
+	add_rewrite_tag( "%$permastruct%", "$namespace/([^/]+)" );
 	add_permastruct( $permastruct, ShoppPages()->baseslug() . '/%shopp_collection%', false );
 
 	add_filter( $permastruct . '_rewrite_rules', 'ProductCollection::pagerewrites' );
 
 	$apicall = create_function ( '$result, $options, $O',
-		'ShoppCollection( new '.$name.'($options) );
+		'ShoppCollection( new ' . $name . '($options) );
 		return ShoppStorefrontThemeAPI::category($result, $options, $O);'
 	);
 
-	$slugs = array($slug);
-	$altslugs = get_class_property($name, '_altslugs');
-	if ( is_array($altslugs) ) $slugs = array_merge($slugs, $altslugs);
-
 	foreach ( (array)$slugs as $collection) {
-		$collection = str_replace( array('-','_'), '', $collection ); // Sanitize slugs
-		// @deprecated Remove the catalog-products tag in favor of catalog-collection
-		add_filter( 'shopp_themeapi_catalog_'.$collection.'products', $apicall, 10, 3 );
-		add_filter( 'shopp_themeapi_catalog_'.$collection.'collection', $apicall, 10, 3 );
+		$collection = str_replace(array('-','_'), '', $collection); // Sanitize slugs
+		add_filter( 'shopp_themeapi_storefront_' . $collection . 'products', $apicall, 10, 3 ); // @deprecated
+		add_filter( 'shopp_themeapi_storefront_' . $collection . 'collection', $apicall, 10, 3 );
 	}
+
 }
 
 /**

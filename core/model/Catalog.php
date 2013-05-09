@@ -59,7 +59,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	 * @return void
 	 **/
 	function collections ($method="after") {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		foreach ($Shopp->Collections as $Collection) {
 			$auto = get_class_property($Collection,'_auto');
 			if (!$auto) continue;
@@ -103,17 +103,20 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
 	 * @return object The loaded Category object
 	 **/
-	static function load_collection ($slug,$options=array()) {
-		global $Shopp;
-		foreach ($Shopp->Collections as $Collection) {
-			$Collection_slug = get_class_property($Collection,'_slug');
-			if ($slug == $Collection_slug)
+	static function load_collection ( string $slug, array $options = array() ) {
+		$Shopp = Shopp::object();
+
+		foreach ( (array)$Shopp->Collections as $Collection ) {
+			$slugs = SmartCollection::slugs($Collection);
+			if ( in_array($slug, $slugs) ) {
 				return new $Collection($options);
+			}
+
 		}
 
-		$key = "id";
-		if (!preg_match("/^\d+$/",$slug)) $key = "slug";
-		return new ProductCategory($slug,$key);
+		$key = 'id';
+		if ( ! preg_match('/^\d+$/', $slug) ) $key = 'slug';
+		return new ProductCategory($slug, $key);
 
 	}
 

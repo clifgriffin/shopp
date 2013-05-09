@@ -375,13 +375,13 @@ function is_shopp_smart_collection ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 
 	$slug = $wp_query->get('shopp_collection');
-	if (empty($slug)) return false;
+	if ( empty($slug) ) return false;
 
-	global $Shopp;
-	foreach ($Shopp->Collections as $Collection) {
-		$Collection_slug = get_class_property($Collection,'_slug');
+	$Shopp = Shopp::object();
 
-		if ($slug == $Collection_slug) return true;
+	foreach ( (array)$Shopp->Collections as $Collection ) {
+		$slugs = SmartCollection::slugs($Collection);
+		if ( in_array($slug, $slugs) ) return true;
 	}
 	return false;
 }
