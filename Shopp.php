@@ -78,11 +78,8 @@ class Shopp {
 
 		ShoppDeveloperAPI::load( SHOPP_PATH );
 
-		// Error system
+		// Initialize error system
 		ShoppErrors();
-		ShoppErrorLogging();
-		ShoppErrorNotification();
-		ShoppErrorStorefrontNotices();
 
 		// Initialize application control processing
 		$this->Flow = new ShoppFlow();
