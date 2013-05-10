@@ -14,13 +14,13 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
- class Catalog {
+class ShoppCatalog {
 
 	public $categories = array();
 	public $outofstock = false;
 
-	function __construct () {
-		$this->outofstock = (shopp_setting('outofstock_catalog') == "on");
+	public function __construct () {
+		$this->outofstock = shopp_setting_enabled('outofstock_catalog');
 	}
 
 	/**
@@ -35,7 +35,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	 * @param boolean $results (optional) Return the raw structure of results without aggregate processing
 	 * @return boolean|object True when categories are loaded and processed, object of results when $results is set
 	 **/
-	function load_categories ($loading=array(),$showsmart=false,$results=false) {
+	public function load_categories ( array $loading = array(), $showsmart = false, $results = false) {
 
 		$terms = get_terms(ProductCategory::$taxon);
 		foreach ($terms as $term)
@@ -58,15 +58,15 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	 * @param string $method Add smart categories 'before' the list of the loaded categores or 'after' (defaults after)
 	 * @return void
 	 **/
-	function collections ($method="after") {
+	public function collections ( $method = 'after' ) {
 		$Shopp = Shopp::object();
-		foreach ($Shopp->Collections as $Collection) {
-			$auto = get_class_property($Collection,'_auto');
-			if (!$auto) continue;
-			$category = new $Collection(array("noload" => true));
+		foreach ( $Shopp->Collections as $Collection ) {
+			$auto = get_class_property($Collection, '_auto');
+			if ( ! $auto ) continue;
+			$category = new $Collection( array('noload' => true) );
 			switch($method) {
-				case "before": array_unshift($this->categories,$category); break;
-				default: array_push($this->categories,$category);
+				case 'before': array_unshift($this->categories, $category); break;
+				default: array_push($this->categories, $category);
 			}
 		}
 	}
@@ -81,14 +81,13 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	 * @param array $limits Query limits in the format of [offset,count]
 	 * @return boolean True when tags are loaded
 	 **/
-	function load_tags ($limits=false) {
-		$db = DB::get();
+	public function load_tags ( array $limits = array() ) {
 
-		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
-		else $limit = "";
+		if ( ! empty($limits) ) $limit = " LIMIT {$limits[0]},{$limits[1]}";
+		else $limit = '';
 
 		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.taxonomy='$taxonomy' GROUP BY t.id ORDER BY t.name ASC$limit";
-		$this->tags = $db->query($query,AS_ARRAY);
+		$this->tags = DB::query($query,'array');
 		return true;
 	}
 
@@ -111,7 +110,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 			if ( in_array($slug, $slugs) ) {
 				return new $Collection($options);
 			}
-
 		}
 
 		$key = 'id';
@@ -120,22 +118,4 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 	}
 
-	/**
-	 * shopp('catalog','...') tags
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @version 1.2
-	 * @see api/theme/catalog.php
-	 * @deprecated Retained for compatibilty
-	 *
-	 * @param string $property The property to handle
-	 * @param array $options (optional) The tag options to process
-	 * @return mixed
-	 **/
-	function tag ($property,$options=array()) {
-		$options = array_merge( array('return' => true),shopp_parse_options($options) );
-		return shopp($this,$property,$options);
-	}
-
-} // END class Catalog
+}
