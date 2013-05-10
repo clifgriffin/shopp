@@ -65,11 +65,11 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function activate () {
 
-		// If no settings are available, no tables exist,
-		// so this is a new install
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
-		if (!$db_version) $this->install();
+		// If the database schema version number is not available,
+		// No tables exist, so this is a new install
+
+		if ( 0 === ShoppSettings::dbversion() )
+			$this->install();
 
 		// Force the Shopp init action to register needed taxonomies & CPTs
 		do_action('shopp_init');
@@ -154,12 +154,11 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function upgrades () {
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+	public function upgrades () {
+		$installed = ShoppSettings::dbversion();
 
 		// No upgrades required
-		if ($db_version == DB::$version) return;
+		if ( $installed == DB::$version ) return;
 
 		shopp_set_setting('shopp_setup','');
 		shopp_set_setting('maintenance','on');
@@ -589,8 +588,7 @@ class ShoppInstallation extends FlowController {
 		global $wpdb;
 		$db =& DB::get();
 
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+		$db_version = ShoppSettings::dbversion();
 
 		// Clear the shopping session table
 		$shopping_table = DatabaseObject::tablename('shopping');
