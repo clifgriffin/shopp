@@ -41,14 +41,15 @@ class ShoppSettings extends DatabaseObject {
 	private function __construct () {
 		$this->_table = $this->tablename(self::$table);
 		$this->bootup = ShoppLoader::is_activating();
-		if ($this->bootup) add_action('shopp_init', array($this, 'bootup_finished'));
+
+		if ( $this->bootup ) add_action('shopp_init', array($this, 'bootup_finished'));
 	}
 
 	/**
 	 * Once Shopp has init'd this will take us back out of bootup mode and allow access to the
 	 * db.
 	 */
-	public function bootup_finished() {
+	public function bootup_finished () {
 		$this->bootup = false;
 	}
 
@@ -78,21 +79,22 @@ class ShoppSettings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	public function load ($name='',$arg2=false) {
-		$Setting = $this->setting();
+	public function load ( $name = '', $arg2 = false ) {
 
-		$where = array("parent=0","context='$Setting->context'","type='$Setting->type'");
-		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		if ( ! empty($name) ) $where[] = "name='" . DB::clean($name) . "'";
 		else {
 			if ($this->bootup) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
 			$this->bootup = true;
 		}
 
+		$Setting = $this->setting();
+		$where = array("parent=0", "context='$Setting->context'", "type='$Setting->type'");
 		$where = join(' AND ',$where);
-		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where",'array',array(&$this,'register'));
 
-		if (!is_array($settings) || count($settings) == 0) return false;
-		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
+		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where", 'array', array($this, 'register'));
+
+		if ( ! is_array($settings) || count($settings) == 0 ) return false;
+		if ( ! empty($settings) ) $this->registry = array_merge($this->registry, $settings);
 
 		$this->bootup = false;
 		return ($this->loaded = true);
@@ -119,7 +121,7 @@ class ShoppSettings extends DatabaseObject {
 
 		$data = DB::prepare($Setting);
 		$dataset = DatabaseObject::dataset($data);
-		if (DB::query("INSERT $this->_table SET $dataset"))
+		if ( DB::query("INSERT $this->_table SET $dataset") )
 		 	$this->registry[$name] = $this->restore(DB::clean($value));
 		else return false;
 		return true;
@@ -228,8 +230,9 @@ class ShoppSettings extends DatabaseObject {
 
 		$null = null;
 
-		if ( $this->bootup ) // Prevent infinite loop of DOOM!
+		if ( $this->bootup ) {// Prevent infinite loop of DOOM!
 			return $null;
+		}
 
 		if ( ! $this->available() )
 			$this->load();
@@ -276,9 +279,9 @@ class ShoppSettings extends DatabaseObject {
 	 **/
 	public function setting () {
 		$setting = new stdClass();
-		$setting->_datatypes = array(   'context' => 'string', 'type' => 'string',
-										'name' => 'string', 'value' => 'string',
-										'created' => 'date', 'modified' => 'date');
+		$setting->_datatypes = array( 'context' => 'string', 'type' => 'string',
+									  'name' => 'string', 'value' => 'string',
+									  'created' => 'date', 'modified' => 'date' );
 		$setting->context = 'shopp';
 		$setting->type = 'setting';
 		$setting->name = null;
@@ -297,19 +300,34 @@ class ShoppSettings extends DatabaseObject {
 	 * @return void
 	 **/
 	public function saveform () {
-		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
+		if ( empty($_POST['settings']) || ! is_array($_POST['settings']) ) return false;
 		foreach ($_POST['settings'] as $setting => $value)
-			$this->save($setting,$value);
+			$this->save($setting, $value);
 	}
 
-	public function legacy ($name) {
-		$table = DatabaseObject::tablename('setting');
-		if ($result = DB::query("SELECT value FROM $table WHERE name='$name'",'object'))
-			return $result->value;
-		return false;
-	}
+	/**
+	 * Provides the installed database schema version from the database (if available)
+	 *
+	 * Queries the database to get the installed database version number. If not available,
+	 * also checks the legacy
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $legacy Set to anything but boolean false to attempt to lookup the version from the pre-1.2 settings table
+	 * @return integer The installed database schema version number (0 means not installed)
+	 **/
+	public static function dbversion ( $legacy = false ) {
 
+		$source = $legacy ? 'setting' : self::$table;
+		$table = DatabaseObject::tablename($source);
+		$version = DB::query("SELECT value FROM $table WHERE name='db_version'", 'col');
+
+		// Try again using the legacy table
+		if ( false === $version && false === $legacy ) $version = self::dbversion('legacy');
+
+	 	ShoppSettings()->registry[$name] = (int)$version;
+		return (int)$version;
+	}
 
 } // END class Settings
-
-?>
