@@ -171,7 +171,7 @@ class ShoppAjax {
 		check_admin_referer('wp_ajax_shopp_add_category');
 		if (empty($_GET['name'])) die(0);
 
-		$Catalog = new Catalog();
+		$Catalog = new ShoppCatalog();
 		$Catalog->load_categories();
 
 		$Category = new ProductCategory();
@@ -745,7 +745,7 @@ class ShoppAjax {
 		$filters['columns'] = 'cat.'.join(',cat.',$columns);
 		$filters['parent'] = $parent;
 
-		$Catalog = new Catalog();
+		$Catalog = new ShoppCatalog();
 		$Catalog->outofstock = true;
 		$Catalog->load_categories($filters);
 
