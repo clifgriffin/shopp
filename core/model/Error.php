@@ -40,7 +40,7 @@ define('SHOPP_DEBUG_ERR', 2048); // Debug-only (for logging)
  **/
 class ShoppErrors {
 
-	private static $instance;
+	private static $object;
 
 	public $errors = array();				// Error message registry
 	public $notifications;					// Notification subscription registry
@@ -75,15 +75,15 @@ class ShoppErrors {
 		do_action('shopp_errors_init');
 	}
 
-	function init () {
-		foreach( $this->errors as $index => $error )
-			if ( $error->remove ) unset($this->errors[$index]);
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self();
+		return self::$object;
 	}
 
-	public static function instance () {
-		if ( ! self::$instance instanceof self )
-			self::$instance = new self();
-		return self::$instance;
+	public function init () {
+		foreach( $this->errors as $index => $error )
+			if ( $error->remove ) unset($this->errors[$index]);
 	}
 
 	function set_loglevel () {
@@ -234,8 +234,7 @@ class ShoppErrors {
 		return true;
 	}
 
-} //end ShoppErrors
-
+} // end ShoppErrors
 
 /**
  * ShoppError class
@@ -405,7 +404,7 @@ class ShoppError {
  **/
 class ShoppErrorLogging {
 
-	private static $instance;
+	private static $object;
 
 	public $dir;
 	public $file = 'shopp_debug.log';
@@ -421,9 +420,8 @@ class ShoppErrorLogging {
 	 *
 	 * @return void
 	 **/
-	function __construct ($loglevel=0) {
-		$loglevelsetting = shopp_setting('error_logging');
-		$this->loglevel = $loglevelsetting ? $loglevelsetting : $loglevel;
+	private function __construct () {
+		$this->loglevel = shopp_setting('error_logging');
 
 		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : sys_get_temp_dir();
 		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
@@ -438,10 +436,18 @@ class ShoppErrorLogging {
 		// $Errors->notifications->subscribe($this,'log');
 	}
 
-	public static function instance() {
-		if ( ! self::$instance )
-			self::$instance = new self();
-		return self::$instance;
+	/**
+	 * The singleton access method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return ShoppErrorLogging
+	 **/
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
 	function set_loglevel() {
@@ -524,6 +530,7 @@ class ShoppErrorLogging {
 	}
 
 }
+add_action('shopp_errors_init', 'ShoppErrorLogging::object');
 
 /**
  * ShoppErrorNotification class
@@ -537,9 +544,11 @@ class ShoppErrorLogging {
  * @subpackage errors
  **/
 class ShoppErrorNotification {
-	private static $instance;
 	public $recipients;	// Recipient addresses to send to
 	public $types=0;		// Error types to send
+
+	private static $object = false;
+
 
 	/**
 	 * Relays triggered errors to email messages
@@ -551,7 +560,8 @@ class ShoppErrorNotification {
 	 * @param array $types The types of errors to report
 	 * @return void
 	 **/
-	function __construct ($recipients='',$types=array()) {
+	private function __construct () {
+
 		$recipients = shopp_setting('merchant_email');
 		$types = shopp_setting('error_notifications');
 
@@ -562,10 +572,10 @@ class ShoppErrorNotification {
 		add_action('shopp_error',array($this,'notify'));
 	}
 
-	public static function instance() {
-		if ( ! self::$instance )
-			self::$instance = new self();
-		return self::$instance;
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
 	function set_notifications () {
@@ -610,23 +620,25 @@ class ShoppErrorNotification {
 	}
 
 }
+add_action('shopp_errors_init', 'ShoppErrorNotification::object');
 
 class ShoppErrorStorefrontNotices implements Iterator {
 
-	private static $instance;
+	private static $object;
+
 	private $position = 0;
 
 	public $notices = array();
 
-	private function __construct ($recipients='',$types=array()) {
-		add_action('init', array(&$this, 'init'), 5);
-		add_action('shopp_error',array($this,'notice'));
+	private function __construct () {
+		add_action('init', array($this, 'init'), 5);
+		add_action('shopp_error', array($this, 'notice'));
 	}
 
-	public static function instance() {
-		if ( ! self::$instance )
-			self::$instance = new self();
-		return self::$instance;
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
 	public function init () {
@@ -663,7 +675,8 @@ class ShoppErrorStorefrontNotices implements Iterator {
 	}
 
 	public function valid () {
-        return isset($this->notices[$this->position]);
+        return isset($this->notices[ $this->position ]);
 	}
 
 }
+add_action('shopp_errors_init', 'ShoppErrorStorefrontNotices::object');
