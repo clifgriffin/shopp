@@ -19,7 +19,8 @@ class ShoppSettings extends DatabaseObject {
 
 	static $table = 'meta';			// Base settings table name
 
-	private static $instance;
+	private static $object;			// Keep private reference to running object
+
 	private $registry = array();	// Registry of setting objects
 	private $installed = false;		// Flag when database tables don't exist
 	private $loaded = false;		// Flag when settings are successfully loaded
@@ -51,10 +52,10 @@ class ShoppSettings extends DatabaseObject {
 		$this->bootup = false;
 	}
 
-	static function instance () {
-		if ( ! self::$instance instanceof self )
-			self::$instance = new self;
-		return self::$instance;
+	static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
 	/**
