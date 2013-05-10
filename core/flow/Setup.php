@@ -1150,22 +1150,22 @@ class Setup extends AdminController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Storage = $Shopp->Storage;
 		$Storage->settings();	// Load all installed storage engines for settings UIs
 
-		if (!empty($_POST['save'])) {
+		if ( ! empty($_POST['save']) ) {
 			check_admin_referer('shopp-settings-system');
 
-			if (!isset($_POST['settings']['error_notifications']))
+			if ( ! isset($_POST['settings']['error_notifications']) )
 				$_POST['settings']['error_notifications'] = array();
 
 			$this->settings_save();
 
 			// Reinitialize Error System
-			ShoppErrors()->set_loglevel();
-			ShoppErrorLogging()->set_loglevel();
-			ShoppErrorNotification()->set_notifications();
+			ShoppErrors()->reporting( (int)shopp_setting('error_logging') );
+			ShoppErrorLogging()->loglevel( (int)shopp_setting('error_logging') );
+			ShoppErrorNotification()->setup();
 
 			// Re-initialize Storage Engines with new settings
 			$Storage->settings();
