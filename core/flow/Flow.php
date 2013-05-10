@@ -157,11 +157,11 @@ class ShoppFlow {
 	}
 
 	function installation () {
-		if (!defined('WP_ADMIN')) return;
-		if ($this->Installer !== false) return;
+		if ( ! defined('WP_ADMIN') ) return;
+		if ( false !== $this->Installer ) return;
 
-		require(SHOPP_FLOW_PATH."/Install.php");
-		if (!$this->Installer) $this->Installer = new ShoppInstallation();
+		if ( ! $this->Installer )
+			$this->Installer = new ShoppInstallation();
 	}
 
 	function update () {
