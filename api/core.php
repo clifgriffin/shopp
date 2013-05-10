@@ -123,7 +123,7 @@ function ShoppSettings () {
 }
 
 function ShoppShopping() {
-	return Shopping::instance();
+	return Shopping::object();
 }
 
 /**
