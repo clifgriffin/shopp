@@ -14,20 +14,17 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-// Automatically set debugging from system setting
-define('SHOPP_DEBUG', (shopp_setting('error_logging') == 2048) );
-
-define('SHOPP_ERR',1);			// Shopper visible general Shopp/shopping errors
-define('SHOPP_TRXN_ERR',2);		// Transaction errors (third-party service errors)
-define('SHOPP_AUTH_ERR',4);		// Authorization errors (login, credential problems)
-define('SHOPP_COMM_ERR',8);		// Communication errors (connectivity)
-define('SHOPP_STOCK_ERR',16);	// Inventory-related warnings (low stock, out-of-stock)
-define('SHOPP_ADDON_ERR',32);	// Shopp module errors (bad descriptors, core version requriements)
-define('SHOPP_ADMIN_ERR',64);	// Admin errors (for logging)
-define('SHOPP_DB_ERR',128);		// DB errors (for logging)
-define('SHOPP_PHP_ERR',256);	// PHP errors (for logging)
-define('SHOPP_ALL_ERR',1024);	// All errors (for logging)
-define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
+define('SHOPP_ERR', 1);          // Shopper visible general Shopp/shopping errors
+define('SHOPP_TRXN_ERR', 2);     // Transaction errors (third-party service errors)
+define('SHOPP_AUTH_ERR', 4);     // Authorization errors (login, credential problems)
+define('SHOPP_COMM_ERR', 8);     // Communication errors (connectivity)
+define('SHOPP_STOCK_ERR', 16);   // Inventory-related warnings (low stock, out-of-stock)
+define('SHOPP_ADDON_ERR', 32);   // Shopp module errors (bad descriptors, core version requriements)
+define('SHOPP_ADMIN_ERR', 64);   // Admin errors (for logging)
+define('SHOPP_DB_ERR', 128);     // DB errors (for logging)
+define('SHOPP_PHP_ERR', 256);    // PHP errors (for logging)
+define('SHOPP_ALL_ERR', 1024);   // All errors (for logging)
+define('SHOPP_DEBUG_ERR', 2048); // Debug-only (for logging)
 
 /**
  * ShoppErrors class
@@ -58,18 +55,23 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
+
+		// Handle PHP errors as early as possible (for scalar type hinting support)
+		set_error_handler(array($this, 'php'), E_ALL);
+
 		$error_logging = shopp_setting('error_logging');
+
+		// Automatically set debugging from system setting
+		if ( ! defined('SHOPP_DEBUG') )
+			define('SHOPP_DEBUG', ( SHOPP_DEBUG_ERR == $error_logging ) );
+
 		if ( $error_logging ) $level = $error_logging;
-		$debugging = (defined('WP_DEBUG') && WP_DEBUG);
+		$debugging = ( defined('WP_DEBUG') && WP_DEBUG );
 
 		if ( $debugging ) $this->reporting = SHOPP_DEBUG_ERR;
 		if ( $level > $this->reporting ) $this->reporting = $level;
 
-		// Handle PHP errors
-		if ($this->reporting >= SHOPP_PHP_ERR)
-			set_error_handler(array($this,'php'),E_ALL);
-
-		add_action('init', array(&$this, 'init'), 5);
+		add_action('init', array($this, 'init'), 5);
 		do_action('shopp_errors_init');
 	}
 
