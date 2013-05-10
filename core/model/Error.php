@@ -42,9 +42,8 @@ class ShoppErrors {
 
 	private static $object;
 
-	public $errors = array();				// Error message registry
-	public $notifications;					// Notification subscription registry
-	public $reporting = SHOPP_ALL_ERR;		// level of reporting
+	private $errors = array();				// Error message registry
+	private $reporting = SHOPP_ALL_ERR;		// level of reporting
 
 	/**
 	 * Setup error system and PHP error capture
@@ -54,7 +53,7 @@ class ShoppErrors {
 	 *
 	 * @return void
 	 **/
-	function __construct ($level = SHOPP_ALL_ERR) {
+	private function __construct ( $level = SHOPP_ALL_ERR ) {
 
 		// Handle PHP errors as early as possible (for scalar type hinting support)
 		set_error_handler(array($this, 'php'), E_ALL);
@@ -86,8 +85,9 @@ class ShoppErrors {
 			if ( $error->remove ) unset($this->errors[$index]);
 	}
 
-	function set_loglevel () {
-		$this->reporting = shopp_setting('error_logging');
+	public function reporting ( integer $reporting = null ) {
+		if ( isset($reporting) ) $this->reporting = $reporting;
+		return $this->reporting;
 	}
 
 	/**
@@ -99,11 +99,11 @@ class ShoppErrors {
 	 * @param ShoppError $ShoppError The ShoppError object to add
 	 * @return void
 	 **/
-	function add ($ShoppError) {
-		if (isset($ShoppError->code)) $this->errors[$ShoppError->code] = $ShoppError;
+	public function add ( ShoppError $ShoppError ) {
+		if ( isset($ShoppError->code) ) $this->errors[ $ShoppError->code ] = $ShoppError;
 		else $this->errors[] = $ShoppError;
-		do_action('shopp_error',$ShoppError);
-		// $this->notifications->send($ShoppError);
+
+		do_action('shopp_error', $ShoppError);
 	}
 
 	/**
@@ -115,10 +115,13 @@ class ShoppErrors {
 	 * @param int $level The maximum error level
 	 * @return array A list of errors
 	 **/
-	function get ($level=SHOPP_DEBUG_ERR) {
+	public function get ( integer $level = null ) {
+		if ( is_null($level) ) $level = SHOPP_DEBUG_ERR;
+
 		$errors = array();
-		foreach ($this->errors as &$error)
-			if ($error->level <= $level) $errors[] = &$error;
+		foreach ( (array)$this->errors as $error )
+			if ( $error->level <= $level ) $errors[] = $error;
+
 		return $errors;
 	}
 
@@ -131,10 +134,12 @@ class ShoppErrors {
 	 * @param int $level The level of errors to retrieve
 	 * @return array A list of errors
 	 **/
-	function level ($level=SHOPP_ALL_ERR) {
+	public function level ( integer $level = null ) {
+		if ( is_null($level) ) $level = SHOPP_ALL_ERR;
+
 		$errors = array();
-		foreach ($this->errors as &$error)
-			if ($error->level == $level) $errors[] = &$error;
+		foreach ( (array)$this->errors as $error)
+			if ( $error->level == $level ) $errors[] = $error;
 		return $errors;
 	}
 
@@ -147,9 +152,9 @@ class ShoppErrors {
 	 * @param string $code The name of the error code
 	 * @return ShoppError The error object
 	 **/
-	function code ($code) {
-		if (!empty($code) && isset($this->errors[$code]))
-			return $this->errors[$code];
+	public function code ( string $code ) {
+		if ( ! empty($code) && isset($this->errors[ $code ]) )
+			return $this->errors[ $code ];
 	}
 
 	/**
@@ -158,14 +163,15 @@ class ShoppErrors {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @param string $source The source object of errors
+	 * @param string $source The class name of the originating object of errors
 	 * @return array A list of errors
 	 **/
-	function source ($source) {
-		if (empty($source)) return array();
+	public function source ( string $source ) {
+		if ( empty($source) ) return array();
+
 		$errors = array();
-		foreach ($this->errors as &$error)
-			if ($error->source == $source) $errors[] = &$error;
+		foreach ( (array)$this->errors as $error )
+			if ( $error->source == $source ) $errors[] = $error;
 		return $errors;
 	}
 
@@ -178,10 +184,12 @@ class ShoppErrors {
 	 * @param int $level The maximum level to look for errors in
 	 * @return void Description...
 	 **/
-	function exist ($level=SHOPP_DEBUG_ERR) {
+	public function exist ( integer $level = null ) {
+		if ( is_null($level) ) $level = SHOPP_DEBUG_ERR;
+
 		$errors = array();
-		foreach ($this->errors as &$error)
-			if ($error->level <= $level) $errors[] = &$error;
+		foreach ( (array)$this->errors as $error )
+			if ( $error->level <= $level ) $errors[] = $error;
 		return (count($errors) > 0);
 	}
 
@@ -194,9 +202,9 @@ class ShoppErrors {
 	 * @param ShoppError $error The ShoppError object to remove
 	 * @return boolean True when removed, false if removal failed
 	 **/
-	function remove ($error) {
-		if (!isset($this->errors[$error->code])) return false;
-		$this->errors[$error->code]->remove = true;
+	public function remove ( ShoppError $Error ) {
+		if ( ! isset($this->errors[ $Error->code ]) ) return false;
+		$this->errors[ $Error->code ]->remove = true;
 		return true;
 	}
 
@@ -208,7 +216,7 @@ class ShoppErrors {
 	 *
 	 * @return void
 	 **/
-	function reset () {
+	public function reset () {
 		$this->errors = array();
 	}
 
@@ -224,13 +232,18 @@ class ShoppErrors {
 	 * @param int $line The line number the error occurred at in the file
 	 * @return boolean
 	 **/
-	function php ($number, $message, $file, $line) {
-		if (strpos($file,SHOPP_PATH) === false) return true;
+	public function php ( $number, $message, $file, $line ) {
+		if ( false === strpos($file, SHOPP_PATH) ) return true;
+
 		$debug = '';
-		if (SHOPP_DEBUG) $debug = sprintf(" [%s, line %d]", basename($file),$line);
-		new ShoppError($message.$debug,'php_error',SHOPP_PHP_ERR,
-			array('file'=>$file,'line'=>$line,'phperror'=>$number));
-		if ($number == E_USER_ERROR) return false; // Always show fatal errors
+		if ( defined('SHOPP_DEBUG') && SHOPP_DEBUG )
+			$debug = sprintf(" [%s, line %d]", basename($file), $line);
+
+		new ShoppError($message . $debug, 'php_error', SHOPP_PHP_ERR,
+			array('file' => $file, 'line' => $line, 'phperror' => $number)
+		);
+
+		if ( E_USER_ERROR == $number ) return false; // Always show fatal errors
 		return true;
 	}
 
@@ -263,12 +276,11 @@ class ShoppError {
 	 *
 	 * @return void Description...
 	 **/
-	function __construct ($message='',$code='',$level=SHOPP_ERR,$data='') {
+	public function __construct ( $message = '', $code = '', $level = SHOPP_ERR, $data = '' ) {
 		$Errors = ShoppErrors();
 
-		if (!is_a($Errors,'ShoppErrors')) return;
-		if ($level > $Errors->reporting) return;
-		if (empty($message)) return;
+		if ( $level > $Errors->reporting() ) return;
+		if ( empty($message) ) return;
 
 		$php = array(
 			1		=> 'ERROR',
@@ -301,28 +313,16 @@ class ShoppError {
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
 
 		// Add broad typehinting support for primitives
-		if ( isset($data['phperror']) && $this->typehint($data['phperror'],$message,$this->debug) ) return;
+		if ( isset($data['phperror']) && $this->typehint($data['phperror'], $message, $this->debug) ) return;
 
-		unset($this->debug['object'],$this->debug['args']);
+		unset($this->debug['object'], $this->debug['args']);
 
 		$this->source = 'Shopp';
-		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
-		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
+		if ( isset($this->debug['class']) ) $this->source = $this->debug['class'];
+		if ( isset($this->data['phperror']) && isset($php[$this->data['phperror']]) )
 			$this->source = 'PHP ' . $php[$this->data['phperror']];
 
 		if ( ! empty($Errors) ) $Errors->add($this);
-	}
-
-	/**
-	 * Prevent excess data from being stored in the session
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	function __sleep () {
-		return array('remove','code','source','messages','level');
 	}
 
 	/**
@@ -333,8 +333,8 @@ class ShoppError {
 	 *
 	 * @return boolean True for blank error messages
 	 **/
-	function blank () {
-		return ( '' == join('',$this->messages) );
+	public function blank () {
+		return ( '' == join('', $this->messages) );
 	}
 
 	/**
@@ -348,12 +348,12 @@ class ShoppError {
 	 * @param string $delimiter The delimeter used to join multiple error messages
 	 * @return string A collection of concatenated error messages
 	 **/
-	function message ($remove=false,$source=false,$delimiter="\n") {
+	public function message ($remove=false, $source=false, $delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
 		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) &&
 			!empty($this->source) && $source) $string .= "$this->source: ";
-		$string .= join($delimiter,$this->messages);
+		$string .= join($delimiter, $this->messages);
 		if ($remove) {
 			$Errors = ShoppErrors();
 			if (!empty($Errors->errors)) $Errors->remove($this);
@@ -380,7 +380,7 @@ class ShoppError {
 				if ($debug['function'] == $function) {
 					$argument = $debug['args'][$index - 1];
 
-					if ( call_user_func($typehints[$hint],$argument) ) return true;
+					if ( call_user_func($typehints[$hint], $argument) ) return true;
 				}
 			}
 
@@ -404,10 +404,10 @@ class ShoppError {
  **/
 class ShoppErrorLogging {
 
+	const FILENAME = 'shopp_debug.log';
 	private static $object;
 
 	public $dir;
-	public $file = 'shopp_debug.log';
 	public $logfile;
 	public $log;
 	public $loglevel = 0;
@@ -427,13 +427,10 @@ class ShoppErrorLogging {
 		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
 
 		$siteurl = parse_url(get_bloginfo('siteurl'));
-		$sub = (!empty($path)?"_".sanitize_title_with_dashes($path):'');
-		$this->logfile = trailingslashit($this->dir).$siteurl['host'].$sub."_".$this->file;
+		$sub = ! empty($path) ? '_' . sanitize_title_with_dashes($path) : '';
+		$this->logfile = trailingslashit($this->dir) . $siteurl['host'] . $sub . '_' . self::FILENAME;
 
-		add_action('shopp_error',array($this,'log'));
-
-		// $Errors = &ShoppErrors();
-		// $Errors->notifications->subscribe($this,'log');
+		add_action('shopp_error', array($this, 'log'));
 	}
 
 	/**
@@ -450,8 +447,17 @@ class ShoppErrorLogging {
 		return self::$object;
 	}
 
-	function set_loglevel() {
-		$this->loglevel = shopp_setting('error_logging');
+	/**
+	 * Set or get the current log level for the error logging system
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return integer The logging level
+	 **/
+	public function loglevel ( integer $level = null ) {
+		if ( isset($level) ) $this->loglevel = $level;
+		return $this->loglevel;
 	}
 
 	/**
@@ -463,16 +469,16 @@ class ShoppErrorLogging {
 	 * @param ShoppError $error The error object to log
 	 * @return void
 	 **/
-	function log ($error) {
-		if ($error->level > $this->loglevel) return;
-		$debug = "";
-		if (isset($error->debug['file'])) {
-			$debug = sprintf("[%s, line %d]", basename($error->debug['file']),$error->debug['line']);
-			$debug = " ".apply_filters('shopp_error_message_debugdata',$debug,$error->debug);
+	public function log ($error) {
+		if ( $error->level > $this->loglevel ) return;
+		$debug = '';
+		if ( isset($error->debug['file']) ) {
+			$debug = sprintf('[%s, line %d]', basename($error->debug['file']), $error->debug['line']);
+			$debug = ' ' . apply_filters('shopp_error_message_debugdata', $debug, $error->debug);
 		}
-		$message = date("Y-m-d H:i:s",time())." - ".$error->message(false,true)."$debug\n";
-		error_log($message,3,$this->logfile);
-		error_log($error->message(false,true));
+		$message = date("Y-m-d H:i:s", time())." - ".$error->message(false, true)."$debug\n";
+		error_log($message, 3, $this->logfile);		// Log to Shopp error log file
+		error_log($error->message(false, true));	// Log to PHP error log file
 	}
 
 	/**
@@ -483,9 +489,9 @@ class ShoppErrorLogging {
 	 *
 	 * @return void
 	 **/
-	function reset () {
-		$this->log = fopen($this->logfile,'w');
-		fwrite($this->log,'');
+	public function reset () {
+		$this->log = fopen($this->logfile, 'w');
+		fwrite($this->log, '');
 		fclose($this->log);
 	}
 
@@ -500,32 +506,33 @@ class ShoppErrorLogging {
 	 * @param int $buffer Buffer size in bytes to handle each iteration
 	 * @return array List of log file lines
 	 **/
-	function tail($lines=100,$buffer=4096) {
-		if (!file_exists($this->logfile)) return;
+	public function tail( $lines = 100, $buffer = 4096 ) {
+
+		if ( ! file_exists($this->logfile) ) return;
 		$f = fopen($this->logfile, 'rb');
 
 		// Start at the end
 		fseek($f, -1, SEEK_END);
 
 		// Take into acount files that don't end with a blank line
-		if("\n" != fread($f, 1)) $lines--;
+		if( "\n" != fread($f, 1) ) $lines--;
 
 		// Start reading
 		$output = $chunk = '';
-		while(ftell($f) > 0 && $lines >= 0) {
+		while( ftell($f) > 0 && $lines >= 0 ) {
 			$seek = min(ftell($f), $buffer);				// Figure out how far to go back
 			fseek($f, -$seek, SEEK_CUR);					// Jump back from the current position
 			$output = ($chunk = fread($f, $seek)).$output;	// Read a buffer chunk and prepend it to our output
-			fseek($f, -strlen($chunk), SEEK_CUR);// Jump back to where we started reading
+			fseek($f, -strlen($chunk), SEEK_CUR);			// Jump back to where we started reading
 			$lines -= substr_count($chunk, "\n");			// Decrease our line counter
 		}
 		fclose($f);
 
 		// Handle over-reading because of buffer size
-		while ($lines++ < 0)
+		while ( $lines++ < 0 )
 			$output = substr($output, strpos($output, "\n") + 1);
 
-		return explode("\n",trim($output));
+		return explode("\n", trim($output));
 
 	}
 
@@ -544,11 +551,11 @@ add_action('shopp_errors_init', 'ShoppErrorLogging::object');
  * @subpackage errors
  **/
 class ShoppErrorNotification {
-	public $recipients;	// Recipient addresses to send to
-	public $types=0;		// Error types to send
 
 	private static $object = false;
 
+	public $recipients;		// Recipient addresses to send to
+	public $types = 0;		// Error types to send
 
 	/**
 	 * Relays triggered errors to email messages
@@ -565,11 +572,12 @@ class ShoppErrorNotification {
 		$recipients = shopp_setting('merchant_email');
 		$types = shopp_setting('error_notifications');
 
-		if (empty($recipients)) return;
+		if ( empty($recipients) ) return;
 		$this->recipients = $recipients;
-		foreach ((array)$types as $type) $this->types += $type;
+		foreach ( (array)$types as $type )
+			$this->types += $type;
 
-		add_action('shopp_error',array($this,'notify'));
+		add_action('shopp_error', array($this, 'notify'));
 	}
 
 	public static function object () {
@@ -578,18 +586,16 @@ class ShoppErrorNotification {
 		return self::$object;
 	}
 
-	function set_notifications () {
+	public function setup () {
 		$recipients = shopp_setting('merchant_email');
 		$types = shopp_setting('error_notifications');
 
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;
-		foreach ((array)$types as $type) $this->types += $type;
+		foreach ( (array)$types as $type )
+			$this->types += $type;
 
-		add_action('shopp_error',array($this,'notify'));
-
-		// $Errors = ShoppErrors();
-		// $Errors->notifications->subscribe($this,'notify');
+		add_action('shopp_error', array($this, 'notify'));
 	}
 
 	/**
@@ -601,22 +607,24 @@ class ShoppErrorNotification {
 	 * @param ShoppError $error The error object
 	 * @return void
 	 **/
-	function notify ($error) {
-		if (!($error->level & $this->types)) return;
+	public function notify ( $error ) {
+		if ( ! ($error->level && $this->types) ) return;
+
 		$url = parse_url(get_bloginfo('url'));
+
 		$_ = array();
-		$_[] = 'From: "'.get_bloginfo('sitename').'" <shopp@'.$url['host'].'>';
-		$_[] = 'To: '.$this->recipients;
-		$_[] = 'Subject: '.__('Shopp Notification','Shopp');
+		$_[] = 'From: "' . get_bloginfo('sitename') . '" <shopp@' . $url['host'] . '>';
+		$_[] = 'To: ' . $this->recipients;
+		$_[] = 'Subject: ' . __('Shopp Notification', 'Shopp');
 		$_[] = '';
-		$_[] = __('This is an automated notification message generated by the Shopp installation at '.get_bloginfo('url').'.','Shopp');
+		$_[] = __('This is an automated notification message generated by the Shopp installation at ' . get_bloginfo('url') . '.', 'Shopp');
 		$_[] = '';
 		$_[] = $error->message();
 		$_[] = '';
-		if (isset($error->debug['file']) && defined('WP_DEBUG'))
-			$_[] = 'DEBUG: '.basename($error->debug['file']).', line '.$error->debug['line'].'';
+		if ( isset($error->debug['file']) && defined('WP_DEBUG') )
+			$_[] = 'DEBUG: ' . basename($error->debug['file']) . ', line ' . $error->debug['line'];
 
-		shopp_email(join("\n",$_));
+		shopp_email( join("\n", $_) );
 	}
 
 }
