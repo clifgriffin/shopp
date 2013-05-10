@@ -18,17 +18,25 @@ class ShoppPages extends ListFramework {
 
 	const QUERYVAR = 'shopp_page';
 
-	private static $instance;
+	private static $object;
 	private $slugs = array();
 
 	private function __construct () {
 		add_action('shopp_init_storefront_pages', 'ShoppPages::permalinks' );
 	}
 
-	public static function instance () {
-		if ( ! self::$instance instanceof self )
-			self::$instance = new self();
-		return self::$instance;
+	/**
+	 * Singleton access method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return ShoppPages The running ShoppPages object
+	 **/
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self();
+		return self::$object;
 	}
 
 	public function register ( string $StorefrontPageClass ) {
