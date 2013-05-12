@@ -789,7 +789,7 @@ function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {
 		$allowed = array('autocomplete','accesskey','alt','checked','class','disabled','format',
-			'minlength','maxlength','readonly','required','size','src','tabindex','cols','rows',
+			'minlength','maxlength','placeholder','readonly','required','size','src','tabindex','cols','rows',
 			'title','value');
 	}
 	$string = "";
