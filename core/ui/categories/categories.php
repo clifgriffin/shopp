@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<h2><?php _e('Categories','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Category','Shopp'); ?></a></h2>
+	<h2><?php _e('Categories','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class=" add-new-h2"><?php _e('New Category','Shopp'); ?></a></h2>
 
 	<?php do_action('shopp_admin_notice'); ?>
 
@@ -16,11 +16,17 @@
 	</p>
 
 	<div class="tablenav">
+
 		<div class="alignleft actions">
-			<button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
+		<select name="action" id="actions">
+			<option value="" selected="selected"><?php _e('Bulk Actions&hellip;','Shopp'); ?></option>
+			<?php echo menuoptions(array( 'delete' => __('Delete') ), false, true); ?>
+		</select>
+		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" name="apply" id="apply" class="button-secondary action" />
 		</div>
 
 		<?php $ListTable->pagination( 'top' ); ?>
+
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -49,7 +55,7 @@
 		$deleteurl = esc_url(add_query_arg(array_merge($_GET,
 			array('page'=>$this->Admin->pagename('categories'),
 					'delete[]'=>$Category->id,
-					'deleting'=>'category')),
+					'apply'=>'category')),
 					admin_url('admin.php')));
 
 		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
@@ -101,7 +107,7 @@ jQuery(document).ready( function() {
 	$('a.submitdelete').click(function () {
 		if (confirm("<?php _e('You are about to delete this category!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#categories');
-			$('<input type="hidden" name="deleting" />').val('category').appendTo('#categories');
+			$('<input type="hidden" name="apply" value="category" />').appendTo('#categories');
 			$('#categories').submit();
 			return false;
 		} else return false;

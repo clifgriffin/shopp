@@ -326,7 +326,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 			pad = 6;
 		}
 
-		$this.css({left:pos.left,top:pos.top+input.outerHeight(true)+pad });
+		$this.css({left:pos.left+'px',top:(pos.top+input.outerHeight(true)+pad)+'px' });
 
 		if (m_input !== false && (y_input.val()+m_input.val()+d_input.val() != '')) {
 			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());

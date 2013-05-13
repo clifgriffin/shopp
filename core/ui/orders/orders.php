@@ -25,24 +25,25 @@
 	<?php endif; ?>
 
 	<div class="tablenav">
-		<div class="alignleft actions inline">
+		<div class="alignleft actions">
 		<?php if (current_user_can('shopp_delete_orders')): ?><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
+		</div>
+		<div class="alignleft actions">
 			<select name="newstatus">
 				<?php echo menuoptions($statusLabels,false,true); ?>
 			</select>
 			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
-			<div class="filtering">
+		</div>
+		
+		<div class="alignleft actions filtering">
 				<select name="range" id="range">
 					<?php echo menuoptions($ranges,$range,true); ?>
-				</select>
-				<div id="dates" class="hide-if-js">
-					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
+				</select><div id="dates" class="hide-if-js"><div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
 					<small>to</small>
 					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
 				</div>
 				<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
-			</div>
-			</div>
+		</div>
 
 			<?php $ListTable->pagination('top'); ?>
 
@@ -208,9 +209,9 @@ var range = $('#range'),
 range.change(function () {
 	if (this.selectedIndex == 0) {
 		start.val(''); end.val('');
-		$('#dates').hide();
+		$('#dates').css('display','none');
 		return;
-	} else $('#dates').show();
+	} else $('#dates').css({display:'inline-block'});
 	var today = new Date(),
 		startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
 		enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());

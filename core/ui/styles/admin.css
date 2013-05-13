@@ -573,6 +573,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 .shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
+.shopp .filtering select { float: none; display:inline-block; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
 
@@ -646,6 +647,7 @@ div.storage-settings { clear:both;margin-top:8px; }
 #debug.shopp h3 { font:bold 15px/1 "Lucida Grande",monospace; }
 
 /** Calendar **/
+.shopp #dates { position: relative; display: inline-block; }
 .calendar { display:none; }
 .calendar-wrap { display:inline;position:relative;overflow:visible; }
 .calendar { position:absolute;z-index:10;top:18px;left:0;width:185px;background:white;border:1px solid #dfdfdf;padding:5px;font-size:11px;filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=0, Color='#fff');-ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=0, Color='#fff')";-moz-box-shadow: 0 0 1px #fff;-webkit-box-shadow: 0 0 1px #fff;box-shadow: 0 0 1px #fff;}

@@ -97,14 +97,14 @@ class Categorize extends AdminController {
 		global $Shopp;
 
 		$defaults = array(
+			'apply' => false,
 			'page' => false,
-			'deleting' => false,
 			'delete' => false,
 			'id' => false,
 			'save' => false,
 			'duplicate' => false,
 			'next' => false
-			);
+		);
 		$args = array_merge($defaults,$_REQUEST);
 		extract($args,EXTR_SKIP);
 
@@ -114,17 +114,14 @@ class Categorize extends AdminController {
 
 		$adminurl = admin_url('admin.php');
 
-		if ($page == $this->Admin->pagename('categories')
-				&& !empty($deleting)
-				&& !empty($delete)
-				&& is_array($delete)) {
-
-			foreach($delete as $deletion) {
+		if ( $page == $this->Admin->pagename('categories') && false !== $apply && ! empty($delete) ) {
+			var_dump('here');
+			foreach( (array)$delete as $deletion ) {
 				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;
 				$Category->delete();
 			}
-			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'apply'=>null)),$adminurl));
 			shopp_redirect($redirect);
 		}
 
