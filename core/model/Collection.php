@@ -25,6 +25,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ProductCollection implements Iterator {
 
 	public $api = 'collection';
+	public $slug = false;
 	public $loaded = false;
 	public $paged = false;
 	public $pages = 1;
@@ -38,9 +39,10 @@ class ProductCollection implements Iterator {
 	private $_keys = array();
 	private $_position = array();
 
-	function load ($options=array()) {
+	public function load ( array $options = array() ) {
 
-		$slug = isset($this->slug) ? $this->slug : sanitize_key(get_class($this));
+		$thisclass = get_class($this);
+		$slug = isset($this->slug) ? $this->slug : sanitize_key($thisclass);
 
 		$Storefront = ShoppStorefront();
 		$Shopping = ShoppShopping();
@@ -73,7 +75,7 @@ class ProductCollection implements Iterator {
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults,$options);
-		$loading = apply_filters("shopp_{$slug}_collection_load_options",$loading);
+		$loading = apply_filters("shopp_{$slug}_collection_load_options", $loading);
 		extract($loading);
 
 		// Setup pagination
@@ -86,7 +88,7 @@ class ProductCollection implements Iterator {
 		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
 
 		// Enforce the where parameter as an array
-		if (!is_array($where)) return new ShoppError('The "where" parameter for ProductCollection loading must be formatted as an array.','shopp_collection_load',SHOPP_DEBUG_ERR);
+		if ( ! is_array($where) ) return shopp_debug('The "where" parameter for ' . __METHOD__ .' must be formatted as an array.');
 
 		// Inventory filtering
 		if ( shopp_setting_enabled('inventory') && ((is_null($nostock) && !shopp_setting_enabled('outofstock_catalog')) || (!is_null($nostock) && !str_true($nostock))) )
@@ -264,7 +266,7 @@ class ProductCollection implements Iterator {
 		return ($this->size() > 0);
 	}
 
-	function pagelink ($page) {
+	public function pagelink ($page) {
 		$prettyurls = ( '' != get_option('permalink_structure') );
 
 		$alpha = (false !== preg_match('/([a-z]|0\-9)/',$page));
@@ -282,7 +284,7 @@ class ProductCollection implements Iterator {
 	}
 
 	// Add alpha-pagination support to category/collection pagination rules
-	function pagerewrites ($rewrites) {
+	public function pagerewrites ($rewrites) {
 		$rules = array_keys($rewrites);
 		$queries = array_values($rewrites);
 
@@ -293,7 +295,7 @@ class ProductCollection implements Iterator {
 		return array_combine($rules,$queries);
 	}
 
-	function alphatable (&$records,&$record) {
+	public function alphatable (&$records,&$record) {
 		if (is_numeric($record->letter)) $this->alpha['0-9'] += $record->total;
 		elseif (isset($this->alpha[ strtoupper($record->letter) ])) $this->alpha[ strtoupper($record->letter) ] = $record->total;
 	}
@@ -311,7 +313,7 @@ class ProductCollection implements Iterator {
 	 *
 	 * @return string A feed item record
 	 **/
-	function feed () {
+	public function feed () {
 		$paged = 100; // Buffer 100 products at a time.
 		$loop = false;
 
@@ -434,7 +436,7 @@ class ProductCollection implements Iterator {
 		return apply_filters('shopp_rss_item',$item,$product);
 	}
 
-	function feeditem ($item) {
+	public function feeditem ($item) {
 		foreach ($item as $key => $value) {
 			$key = preg_replace('/\[\d+\]$/','',$key); // Remove duplicate tag identifiers
 			$attrs = '';
@@ -459,34 +461,34 @@ class ProductCollection implements Iterator {
 		return $sql;
 	}
 
-	function worklist () {
+	public function worklist () {
 		return $this->products;
 	}
 
-	function size () {
+	public function size () {
 		return count($this->products);
 	}
 
 	/** Iterator implementation **/
 
-	function current () {
+	public function current () {
 		return $this->products[ $this->_keys[$this->_position] ];
 	}
 
-	function key () {
+	public function key () {
 		return $this->_position;
 	}
 
-	function next () {
+	public function next () {
 		++$this->_position;
 	}
 
-	function rewind () {
+	public function rewind () {
 		$this->_position = 0;
 		$this->_keys = array_keys($this->products);
 	}
 
-	function valid () {
+	public function valid () {
 		return isset($this->_keys[$this->_position]) && isset($this->products[ $this->_keys[$this->_position] ]);
 	}
 
@@ -513,7 +515,7 @@ class ProductTaxonomy extends ProductCollection {
 	public $meta = array();
 	public $images = array();
 
-	function __construct ($id=false,$key='id') {
+	public function __construct ($id=false,$key='id') {
 		if (!$id) return;
 		if ('id' != $key) $this->loadby($id,$key);
 		else $this->load_term($id);
@@ -565,7 +567,7 @@ class ProductTaxonomy extends ProductCollection {
 		);
 	}
 
-	function load ($options=array()) {
+	public function load ($options=array()) {
 		global $wpdb;
 		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 
@@ -580,7 +582,7 @@ class ProductTaxonomy extends ProductCollection {
 		return $loaded;
 	}
 
-	function load_term ($id) {
+	public function load_term ($id) {
 		$term = get_term($id,$this->taxonomy);
 		if (empty($term->term_id)) return false;
 		$this->populate($term);
@@ -595,13 +597,13 @@ class ProductTaxonomy extends ProductCollection {
 	 * @param string $slug The slug name to load
 	 * @return boolean loaded successfully or not
 	 **/
-	function loadby ($id,$key='id') {
+	public function loadby ($id,$key='id') {
 		$term = get_term_by($key,$id,$this->taxonomy);
 		if (empty($term->term_id)) return false;
 		$this->populate($term);
 	}
 
-	function populate ($data) {
+	public function populate ($data) {
 		foreach(get_object_vars($data) as $var => $value)
 			$this->{$var} = $value;
 
@@ -609,13 +611,13 @@ class ProductTaxonomy extends ProductCollection {
 		$this->term_taxonomy_id = $this->term_taxonomy_id;
 	}
 
-	function load_meta () {
+	public function load_meta () {
 		if (empty($this->id)) return;
 		$meta = DatabaseObject::tablename(MetaObject::$table);
 		DB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'",'array',array($this,'metaloader'),'type');
 	}
 
-	function metaloader (&$records,&$record,$property=false) {
+	public function metaloader (&$records,&$record,$property=false) {
 		if (empty($record->name)) return;
 
 		$metamap = array(
@@ -649,7 +651,7 @@ class ProductTaxonomy extends ProductCollection {
 		$record = $Object;
 	}
 
-	function save () {
+	public function save () {
 		$properties = array('name'=>null,'slug'=>null,'description'=>null,'parent'=>null);
 		$updates = array_intersect_key(get_object_vars($this),$properties);
 
@@ -678,7 +680,7 @@ class ProductTaxonomy extends ProductCollection {
 		return true;
 	}
 
-	function delete () {
+	public function delete () {
 		if (!$this->id) return false;
 
 		// Remove WP taxonomy term
@@ -737,7 +739,7 @@ class ProductTaxonomy extends ProductCollection {
 		}
 	}
 
-	function pagelink ($page) {
+	public function pagelink ($page) {
 		$categoryurl = get_term_link($this->slug,$this->taxonomy);
 
 		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
@@ -798,7 +800,7 @@ class ProductCategory extends ProductTaxonomy {
 	public $children = array();
 	public $child = false;
 
-	function __construct ($id=false,$key='id',$taxonomy=false) {
+	public function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
 		parent::__construct($id,$key);
 		if (!empty($this->id)) $this->load_meta();
@@ -823,7 +825,7 @@ class ProductCategory extends ProductTaxonomy {
 		);
 	}
 
-	function load ($options = array()) {
+	public function load ($options = array()) {
 
 		// $options['debug'] = true;
 		if ($this->filters) add_filter('shopp_taxonomy_load_options',array($this,'facetsql'));
@@ -843,7 +845,7 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @return void
 	 **/
-	function filters () {
+	public function filters () {
 		if ('off' == $this->facetedmenus) return;
 		$Storefront = ShoppStorefront();
 		if (!$Storefront) return;
@@ -881,7 +883,7 @@ class ProductCategory extends ProductTaxonomy {
 		$Storefront->browsing[$this->slug] = $this->filters; // Save currently applied filters
 	}
 
-	function facetsql ($options) {
+	public function facetsql ($options) {
 		if (!$this->filters) return array();
 
 		$joins = $options['joins'];
@@ -953,7 +955,7 @@ class ProductCategory extends ProductTaxonomy {
 		return $options;
 	}
 
-	function load_facets () {
+	public function load_facets () {
 		if ('off' == $this->facetedmenus) return;
 		$output = '';
 		$this->filters();
@@ -1132,7 +1134,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param array $options Named array for WP get_terms
 	 * @return boolean successfully loaded or not
 	 **/
-	function load_children ( $options=array() ) {
+	public function load_children ( $options=array() ) {
 		if ( empty($this->id) ) return false;
 
 		$taxonomy = self::$taxon;
@@ -1161,7 +1163,7 @@ class ProductCategory extends ProductTaxonomy {
 	 *
 	 * @return boolean Successful load or not
 	 **/
-	function load_images () {
+	public function load_images () {
 
 		$ordering = shopp_setting('product_image_order');
 		$orderby = shopp_setting('product_image_orderby');
@@ -1234,7 +1236,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param int $next (optional) Which product to get (-1 for previous, defaults to 1 for next)
 	 * @return object The Product object
 	 **/
-	function adjacent_product($next=1) {
+	public function adjacent_product($next=1) {
 		global $Shopp;
 
 		if ($next < 0) $this->loading['adjacent'] = "previous";
@@ -1261,7 +1263,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param array $ordering List of image ids in order
 	 * @return boolean true on success
 	 **/
-	function save_imageorder ($ordering) {
+	public function save_imageorder ($ordering) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(CategoryImage::$table);
 		foreach ($ordering as $i => $id)
@@ -1279,7 +1281,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param array $images List of image ids
 	 * @return boolean true on successful update
 	 **/
-	function link_images ($images) {
+	public function link_images ($images) {
 		if (empty($images) || !is_array($images)) return false;
 
 		$db = DB::get();
@@ -1305,7 +1307,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param array $images List of image ids to delete
 	 * @return boolean true on success
 	 **/
-	function delete_images ($images) {
+	public function delete_images ($images) {
 		$db = &DB::get();
 		$imagetable = DatabaseObject::tablename(CategoryImage::$table);
 		$imagesets = "";
@@ -1403,7 +1405,7 @@ class ProductTag extends ProductTaxonomy {
 
 	public $api = 'category';
 
-	function __construct ($id=false,$key='id',$taxonomy=false) {
+	public function __construct ($id=false,$key='id',$taxonomy=false) {
 		$this->taxonomy = $taxonomy? $taxonomy : self::$taxon;
 		parent::__construct($id,$key);
 	}
@@ -1440,38 +1442,57 @@ class ProductTag extends ProductTaxonomy {
  **/
 class SmartCollection extends ProductCollection {
 
-	static $taxon = 'shopp_collection';
-	static $namespace = 'collection';
-	static $_menu = true;
+	public static $taxon = 'shopp_collection';
+	public static $namespace = 'collection';
+	public static $slugs = array();
+	public static $_menu = true;
 
 	public $smart = true;
-	public $slug = false;
 	public $uri = false;
+	public $slug = false;
 	public $name = false;
 	public $loading = array();
 
-	function __construct ($options=array()) {
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+	public function __construct ( array $options = array()) {
+
+		if ( isset($options['show']) )
+			$this->loading['limit'] = $options['show'];
+
+		if ( isset($options['pagination']) )
+			$this->loading['pagination'] = $options['pagination'];
+
 		$this->taxonomy = self::$taxon;
+
+		$thisclass = get_class($this);
+		$slugs = SmartCollection::slugs($thisclass);
+
+		$this->slug = $this->uri = $slugs[0];
+
 		$this->smart($options);
+
 	}
 
-	function load ($options=array()) {
-		$this->loading = array_merge($this->loading,$options);
+	public static function slugs ( string $class ) {
+		return apply_filters( 'shopp_' . strtolower($class) . '_collection_slugs', get_class_property($class, 'slugs') );
+	}
+
+	public function load ( array $options = array() ) {
+		$this->loading = array_merge($this->loading, $options);
 		parent::load($this->loading);
 	}
 
-	function register () {
+	public function register () {
 
-		if ('' == get_option('permalink_structure') ) return;
+		if ( '' == get_option('permalink_structure') ) return;
 
 		$args['rewrite'] = wp_parse_args($args['rewrite'], array(
 			'slug' => sanitize_title_with_dashes($taxonomy),
 			'with_front' => false,
 		));
+
 		add_rewrite_tag("%$taxonomy%", '([^/]+)', $args['query_var'] ? "{$args['query_var']}=" : "taxonomy=$taxonomy&term=");
 		add_permastruct($taxonomy, "{$args['rewrite']['slug']}/%$taxonomy%", $args['rewrite']['with_front']);
+
 	}
 
 }
@@ -1484,12 +1505,13 @@ class SmartCollection extends ProductCollection {
  * @package collections
  **/
 class CatalogProducts extends SmartCollection {
-	static $_slug = 'catalog';
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
-		$this->name = __('Catalog Products','Shopp');
-		if (isset($options['order'])) $this->loading['order'] = $options['order'];
+	public static $slugs = array('catalog');
+
+	public function smart ( array $options = array() ) {
+		$this->name = __('Catalog Products', 'Shopp');
+		if ( isset($options['order']) )
+			$this->loading['order'] = $options['order'];
 	}
 
 }
@@ -1510,13 +1532,14 @@ class CatalogProducts extends SmartCollection {
  * @package collections
  **/
 class NewProducts extends SmartCollection {
-	static $_slug = 'new';
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
-		$this->name = __('New Products','Shopp');
-		$this->loading = array('order'=>'newest');
-		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+	public static $slugs = array('new');
+
+	public function smart ( array $options = array() ) {
+		$this->name = __('New Products', 'Shopp');
+		$this->loading = array('order' => 'newest');
+		if ( isset($options['columns']) )
+			$this->loading['columns'] = $options['columns'];
 	}
 
 }
@@ -1529,12 +1552,15 @@ class NewProducts extends SmartCollection {
  * @package collections
  **/
 class FeaturedProducts extends SmartCollection {
-	static $_slug = 'featured';
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
+	public static $slugs = array('featured');
+
+	public function smart ( array $options = array() ) {
 		$this->name = __('Featured Products','Shopp');
-		$this->loading = array('where'=>array("s.featured='on'"),'order'=>'newest');
+		$this->loading = array(
+			'where' => array("s.featured='on'"),
+			'order'=>'newest'
+		);
 	}
 
 }
@@ -1552,12 +1578,15 @@ class FeaturedProducts extends SmartCollection {
  * @package collections
  **/
 class OnSaleProducts extends SmartCollection {
-	static $_slug = 'onsale';
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
+	public static $slugs = array('onsale');
+
+	public function smart ( array $options = array() ) {
 		$this->name = __('On Sale','Shopp');
-		$this->loading = array('where'=>array("s.sale='on'"),'order'=>'p.post_modified DESC');
+		$this->loading = array(
+			'where' => array("s.sale='on'"),
+			'order' => 'p.post_modified DESC'
+		);
 	}
 
 }
@@ -1579,12 +1608,11 @@ class OnSaleProducts extends SmartCollection {
  * @package collections
  **/
 class BestsellerProducts extends SmartCollection {
-	static $_slug = "bestsellers";
-	static $_altslugs = array('bestsellers','bestseller','bestselling');
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
-		$this->name = __('Bestsellers','Shopp');
+	public static $slugs = array('bestsellers', 'bestseller', 'bestselling');
+
+	public function smart ( array $options = array() ) {
+		$this->name = __('Bestsellers', 'Shopp');
 
 		if ( isset($options['range']) && is_array($options['range']) ) {
 			$start = $options['range'][0];
@@ -1606,7 +1634,7 @@ class BestsellerProducts extends SmartCollection {
 	static function threshold () {
 		// Get mean sold for bestselling threshold
 		$summary = DatabaseObject::tablename(ProductSummary::$table);
-		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold",'auto','col','threshold');
+		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold", 'auto', 'col', 'threshold');
 	}
 
 }
@@ -1625,19 +1653,19 @@ class BestsellerProducts extends SmartCollection {
  * @package collections
  **/
 class SearchResults extends SmartCollection {
-	static $_slug = 'search-results';
-	static $_altslugs = array('search');
-	static $_menu = false;
+
+	public static $slugs = array('search-results', 'search');
+
+	public static $_menu = false;
 	public $search = false;
 
-	function __construct ($options=array()) {
+	public function __construct ($options=array()) {
 		parent::__construct($options);
-		add_filter('shopp_themeapi_category_url',array($this,'permalink'),10,3);
+		add_filter('shopp_themeapi_category_url', array($this, 'permalink'), 10, 3);
 	}
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
-		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
+	public function smart ( array $options = array() ) {
+		$options['search'] = empty($options['search']) ? "" : stripslashes($options['search']);
 
 		// $this->loading['debug'] = true;
 		// Load search engine components
@@ -1700,13 +1728,13 @@ class SearchResults extends SmartCollection {
 
 	}
 
-	function pagelink ($page) {
+	public function pagelink ($page) {
 		$link = parent::pagelink($page);
 
 		return add_query_arg(array('s'=>urlencode($this->search),'s_cs'=>1),$link);
 	}
 
-	function permalink ($result, $options, $O) {
+	public function permalink ($result, $options, $O) {
 		if (get_class($this) != get_class($O)) return $result;
 		if (!isset($this->search) || !isset($O->search)) return $result;
 		if ($this->search != $O->search) return $result;
@@ -1727,11 +1755,11 @@ class SearchResults extends SmartCollection {
  * @package collections
  **/
 class MixProducts extends SmartCollection {
-	static $_slug = 'mixed';
-	static $_menu = false;
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
+	public static $slugs = array('mixed');
+	public static $_menu = false;
+
+	public function smart ( array $options = array() ) {
 
 		$defaults = array(
 			'name' => __('Mixed Products','Shopp'),
@@ -1785,16 +1813,16 @@ class MixProducts extends SmartCollection {
  * @package collections
  **/
 class TagProducts extends SmartCollection {
-	static $_slug = "tag";
+
+	public static $slugs = array('tag');
 	static $_menu = false;
 
-	function smart ($options=array()) {
+	public function smart ( array $options = array() ) {
 		if (!isset($options['tag'])) {
 			new ShoppError('No tag option provided for the requested TagProducts collection','doing_it_wrong',SHOPP_DEBUG_ERR);
 			return false;
 		}
 
-		$this->slug = self::$_slug;
 		$this->tag = stripslashes(urldecode($options['tag']));
 
 		$term = get_term_by('name',$this->tag,ProductTag::$taxon);
@@ -1820,7 +1848,7 @@ class TagProducts extends SmartCollection {
 		$this->loading = compact('columns','joins','where','groupby','order');
 	}
 
-	function pagelink ($page) {
+	public function pagelink ($page) {
 		$termurl = get_term_link($this->tag,ProductTag::$taxon);
 
 		$alpha = (false !== preg_match('/([A-Z]|0\-9)/',$page));
@@ -1848,12 +1876,12 @@ class TagProducts extends SmartCollection {
  * @package collections
  **/
 class RelatedProducts extends SmartCollection {
-	static $_slug = "related";
-	static $_menu = false;
+
+	public static $slugs = array('related');
+	public static $_menu = false;
 	public $product = false;
 
-	function smart ($options=array()) {
-		$this->slug = self::$_slug;
+	public function smart ( array $options = array() ) {
 		$where = array();
 		$scope = array();
 
@@ -1926,14 +1954,14 @@ class RelatedProducts extends SmartCollection {
  * @package collections
  **/
 class AlsoBoughtProducts extends SmartCollection {
-	static $_slug = "alsobought";
-	static $_menu = false;
+
+	public static $slugs = array('alsobought');
+
+	public static $_menu = false;
 	public $product = false;
 
-	function smart ($options=array()) {
-		$this->slug = self::$_slug;
+	public function smart ( array $options = array() ) {
 		$this->name = __('Customers also bought&hellip;','Shopp');
-		$this->uri = urlencode($this->slug);
 		$this->controls = false;
 
 		$where = array("true=false");
@@ -2001,10 +2029,10 @@ class AlsoBoughtProducts extends SmartCollection {
  * @package collections
  **/
 class RandomProducts extends SmartCollection {
-	static $_slug = "random";
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
+	public static $slugs = array('random');
+
+	public function smart ( array $options = array() ) {
 		$this->name = __('Random Products','Shopp');
 
 		if ( isset($options['order']) && 'chaos' == strtolower($options['order']) )
@@ -2036,17 +2064,17 @@ class RandomProducts extends SmartCollection {
  * @package collections
  **/
 class ViewedProducts extends SmartCollection {
-	static $_slug = "viewed";
 
-	function smart ($options=array()) {
+	public static $slugs = array('viewed');
+
+	public function smart ( array $options = array() ) {
 		$Storefront = ShoppStorefront();
-		$viewed = isset($Storefront->viewed)?array_filter($Storefront->viewed):array();
-		$this->slug = $this->uri = self::$_slug;
+		$viewed = isset($Storefront->viewed) ? array_filter($Storefront->viewed) : array();
 		$this->name = __('Recently Viewed','Shopp');
 		$this->loading = array();
-		if (empty($viewed)) $this->loading['where'] = 'true=false';
-		$this->loading['where'] = array("p.id IN (".join(',',$viewed).")");
-		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+		if ( empty($viewed) ) $this->loading['where'] = 'true=false';
+		$this->loading['where'] = array("p.id IN (" . join(',', $viewed) . ")");
+		if ( isset($options['columns']) ) $this->loading['columns'] = $options['columns'];
 	}
 }
 
@@ -2058,11 +2086,12 @@ class ViewedProducts extends SmartCollection {
  * @package collections
  **/
 class PromoProducts extends SmartCollection {
-	static $_slug = "promo";
-	static $_menu = false;
 
-	function smart ($options=array()) {
-		$this->slug = $this->uri = self::$_slug;
+	public static $slugs = array('promo');
+
+	public static $_menu = false;
+
+	public function smart ( array $options = array() ) {
 		$id = urldecode($options['id']);
 
 		$Promo = new Promotion($id);

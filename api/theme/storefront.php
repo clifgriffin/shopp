@@ -14,7 +14,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
 class ShoppStorefrontThemeAPI implements ShoppAPI {
-	static $context = 'Catalog'; // @todo transition to Storefront
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',
 		'businessname' => 'business_name',
@@ -54,13 +53,13 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 	);
 
-	static function _apicontext () { return 'catalog'; }
+	static function _apicontext () { return 'storefront'; }
 
 	static function _context_name ( $name ) {
 		switch ( $name ) {
 			case 'storefront':
 			case 'catalog':
-			return 'catalog';
+			return 'storefront';
 			break;
 		}
 		return $name;
@@ -74,7 +73,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 *
 	 **/
 	static function _setobject ($Object, $object) {
-		if ( is_object($Object) && is_a($Object, 'Catalog') ) return $Object;
+		if ( is_object($Object) && is_a($Object, 'ShoppCatalog') ) return $Object;
 
 		switch ( strtolower($object) ) {
 			case 'storefront':
@@ -309,7 +308,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function category ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Storefront = ShoppStorefront();
 		$reset = null;
 		if (isset($options['name'])) ShoppCollection( new ProductCategory($options['name'],'name') );
@@ -339,7 +338,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if (isset(ShoppCollection()->$property)) $id = ShoppCollection()->$property;
 			array_unshift($templates,'category-'.$id.'.php','collection-'.$id.'.php');
 		}
-		locate_shopp_template($templates,true);
+		locate_shopp_template($templates, true);
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -862,7 +861,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if (empty($options['category'])) return false;
 
 			if ( in_array($options['category'],array_keys($Shopp->Collections)) ) {
-				$Category = Catalog::load_collection($options['category'],$options);
+				$Category = ShoppCatalog::load_collection($options['category'],$options);
 				ShoppCollection($Category);
 			} elseif ( intval($options['category']) > 0) { // By ID
 				ShoppCollection( new ProductCategory($options['category']) );

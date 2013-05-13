@@ -30,6 +30,9 @@ class ShoppOrder {
 	public $Cart = false;				// The shopping cart
 	public $Tax = false;				// The tax calculator
 	public $Shiprates = false;			// The shipping service rates calculator
+	public $Discounts = false;			// The discount manager
+
+	public $Promotions = false;			// The promotions loader
 	public $Payments = false;			// The payments manager
 	public $Checkout = false;			// The checkout processor
 
@@ -61,6 +64,7 @@ class ShoppOrder {
 
 		$this->Tax = ShoppingObject::__new( 'ShoppTax' );
 		$this->Shiprates = ShoppingObject::__new( 'ShoppShiprates' );
+		$this->Discounts = ShoppingObject::__new( 'ShoppDiscounts' );
 
 		// Store order custom data and post processing data
 		ShoppingObject::store('data',$this->data);
@@ -68,6 +72,7 @@ class ShoppOrder {
 		ShoppingObject::store('purchase',$this->purchase);
 		ShoppingObject::store('txnid',$this->txnid);
 
+		$this->Promotions = new ShoppPromotions;
 		$this->Payments = new ShoppPayments;
 		$this->Checkout = new ShoppCheckout;
 
@@ -75,6 +80,7 @@ class ShoppOrder {
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
 		add_action('parse_request', array($this, 'request'));
+		add_action('parse_request', array($this->Discounts, 'request'));
 
 		// Order processing
 		add_action('shopp_process_order', array($this, 'validate'), 7);
@@ -128,13 +134,17 @@ class ShoppOrder {
 	 **/
 	public function request () {
 
+		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', $this->security()) );
+
+		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
+
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
 		if ( array_key_exists('checkout', $_POST) ) {
 
 			$checkout = strtolower($_POST['checkout']);
-			switch ($checkout) {
+			switch ( $checkout ) {
 				case 'process':		do_action('shopp_process_checkout'); break;
 				case 'confirmed':	do_action('shopp_confirm_order'); break;
 			}
@@ -142,6 +152,10 @@ class ShoppOrder {
 		} elseif ( array_key_exists('shipmethod', $_POST) ) {
 
 			do_action('shopp_process_shipmethod');
+
+		} elseif ( isset($_REQUEST['shipping']) ) {
+
+			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
 
 		}
 
@@ -565,14 +579,14 @@ class ShoppOrder {
 
 		if ( 0 == $Cart->count() ) {
 			$valid = apply_filters('shopp_ordering_empty_cart',false);
-			shopp_error(__('There are no items in the cart.', 'Shopp'), $errlevel);
+			shopp_add_error(__('There are no items in the cart.', 'Shopp'), $errlevel);
 		}
 
 		$stock = true;
 		foreach ( $Cart as $item ) {
 			if ( ! $item->instock() ){
 				$valid = apply_filters('shopp_ordering_items_outofstock',false);
-				shopp_error( sprintf(__('%s does not have sufficient stock to process order.', 'Shopp'),
+				shopp_add_error( sprintf(__('%s does not have sufficient stock to process order.', 'Shopp'),
 					$item->name . ( empty($item->option->label) ? '' : '(' . $item->option->label . ')' )
 				), $errlevel);
 				$stock = false;
@@ -589,7 +603,7 @@ class ShoppOrder {
 
 		if ( ! $valid_customer ) {
 			$valid = false;
-			shopp_error(__('There is not enough customer information to process the order.','Shopp'), $errlevel);
+			shopp_add_error(__('There is not enough customer information to process the order.','Shopp'), $errlevel);
 		}
 
 		// Check for shipped items but no Shipping information
@@ -610,14 +624,14 @@ class ShoppOrder {
 				if ( $Shiprates->realtime() )
 					$message = __('The order cannot be processed. The shipping rate service did not provide rates because of a problem and no other shipping is available to the address you provided. Please return to %scheckout%s and try again or contact the store administrator.', 'Shopp');
 
-				if ( ! $valid ) shopp_error( sprintf($message, '<a href="'.shoppurl(false,'checkout',$this->security()).'">', '</a>'), $errlevel );
+				if ( ! $valid ) shopp_add_error( sprintf($message, '<a href="'.shoppurl(false,'checkout',$this->security()).'">', '</a>'), $errlevel );
 			}
 
 		}
 
 		if ( ! $valid_shipping ) {
 			$valid = false;
-			shopp_error(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'), $errlevel);
+			shopp_add_error(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'), $errlevel);
 		}
 
 		return $valid;

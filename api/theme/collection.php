@@ -29,7 +29,6 @@ add_filter('shopp_themeapi_category_description', 'do_shortcode',11);
  *
  **/
 class ShoppCollectionThemeAPI implements ShoppAPI {
-	static $context = 'Category'; // @todo transition to Collection
 	static $register = array(
 		'carousel' => 'carousel',
 		'coverimage' => 'coverimage',
@@ -82,7 +81,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			case 'collection':
 			case 'category':
 			case 'subcategory':
-			return 'category';
+			return 'collection';
 			break;
 		}
 		return $name;
@@ -104,7 +103,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $Object;
 	}
 
-	static function _apicontext () { return "category"; }
+	static function _apicontext () { return 'collection'; }
 
 	static function carousel ($result, $options, $O) {
 		$options['load'] = array('images');

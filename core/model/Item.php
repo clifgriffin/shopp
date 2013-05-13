@@ -17,7 +17,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppCartItem {
 
-	public $api = 'cartitem';		// Theme API name
+	static $api = 'cartitem';		// Theme API name
+
 	public $product = false;		// The source product ID
 	public $priceline = false;		// The source price ID
 	public $category = false;		// The breadcrumb category
@@ -33,6 +34,7 @@ class ShoppCartItem {
 	public $data = array();			// Custom input data
 	public $processing = array();	// Per item order processing delays
 	public $quantity = 0;			// The selected quantity for the line item
+	public $bogof = false;			// The BOGOF discount
 	public $qtydelta = 0;			// The change in quantity
 	public $addonsum = 0;			// The sum of selected addons
 	public $unitprice = 0;			// Per unit price
@@ -88,6 +90,7 @@ class ShoppCartItem {
 
 	public function __wakeup () {
 		add_action('shopp_cart_item_totals', array($this, 'totals'));
+		add_action('shopp_reset_item_discounts', array($this, 'rediscount'));
 	}
 
 	/**
@@ -352,7 +355,7 @@ class ShoppCartItem {
 	 *
 	 * @return void
 	 **/
-	public function add ($qty) {
+	public function add ( $qty ) {
 		if ( $this->type == 'Donation' && str_true($this->donation['var']) ) {
 			$qty = floatvalue($qty);
 			$this->quantity = $this->unitprice;
@@ -822,35 +825,34 @@ class ShoppCartItem {
 		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
 		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
 
-
-		// Discounts should be applied to products pre-tax when taxes are excluded from the price
-
-		// Discounts are calculated after taxes when taxes are included in the price (inclusive taxes)
-
+		// Buy X Get Y Free (Buy 1 Get 1 Free or BOGOF) discounts
+		$bogof = 0;
+		if ( is_array($this->bogof) ) {
+			$bogof = array_sum($this->bogof);
+			$this->discounts += $bogof * $this->unitprice;
+		}
 
 		if ( $this->istaxed ) {
 			$Tax = ShoppOrder()->Tax;
 
-			$taxable = $this->unitprice;
-
-			if ( ! $this->includetax ) {
-	   			// Distribute discounts across taxable amounts using weighted averages
+			// Discounts are applied after tax when taxes are included in the price
+			if ( $this->includetax ) $taxable = $this->unitprice;
+			else {
+				// For exclusive taxes, discounts are applied before tax
+				// For all the price units, distribute discounts across taxable amounts using weighted averages
 	   			$_ = array();
 	   			foreach ($this->taxable as $amount)
 	   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
 	   			$taxable = array_sum($_);
+
+				$taxqty = $this->quantity;
+				if ( $bogof && $bogof != $this->quantity )
+					$taxqty -= $bogof;
 			}
 
 			$this->taxes = $Tax->rates( $Tax->item($this) );
 			$this->unittax = $Tax->calculate($taxable, $this->taxes);
-			$this->tax = $Tax->total((int)$this->quantity, $this->taxes);
-
-			// echo "Taxable: $taxable\n";
-			// print_r($this->taxes);
-			// exit;
-			// $this->unittax = ($taxable*$this->taxrate);				// unit tax figure
-			// $this->pricedtax = ($taxable*$this->taxrate);			// discounted unit tax
-			// $this->tax = ( $this->pricedtax*$this->quantity );		// total discounted tax amount
+			$this->tax = $Tax->total((int)$taxqty, $this->taxes);
 		}
 
 		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
@@ -865,8 +867,13 @@ class ShoppCartItem {
 			}
 		}
 
-		do_action('shopp_cart_item_retotal',$this);
+		do_action('shopp_cart_item_retotal', $this);
 
+	}
+
+	public function rediscount () {
+		$this->bogof = 0;
+		$this->discount = 0;
 	}
 
 } // END class Item

@@ -11,4 +11,4 @@
  **/
 ?>
 
-<?php shopp( 'catalog.catalog-products' ); ?>
+<?php shopp( 'storefront.catalog-products' ); ?>

@@ -131,14 +131,15 @@ class ShoppTax {
 		$i = 1;
 
 		foreach ($settings as $setting) {
-			if ( is_array($locals) && isset($locals[ $this->address['locale'] ]) )
-				$localrate = $locals[ $this->address['locale'] ];
+			$localrate = false;
+			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
+				$localrate = $setting['locals'][ $this->address['locale'] ];
 
 			// Add any local rate to the base rate, then divide by 100 to prepare the rate to be applied
 			$rate = ( self::float($setting['rate']) + self::float($localrate) ) / 100;
 
 			if ( isset($rates[ $setting['label'] ]))
-				$rates[ $setting['label'].' '.$i ] = new ShoppItemTax( $setting['label'].' '.$i++, $rate, 0.0, 0.0, $setting['compound']);
+				$rates[ $setting['label'] . ' ' . $i ] = new ShoppItemTax( $setting['label'].' '.$i++, $rate, 0.0, 0.0, $setting['compound']);
 			else $rates[ $setting['label'] ] = new ShoppItemTax( $setting['label'], $rate, 0.0, 0.0, $setting['compound']);
 
 		}

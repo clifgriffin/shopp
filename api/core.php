@@ -24,10 +24,10 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param Product (optional) $Object the product object to set to the global context.
  * @return mixed if the global Product context isn't set, bool false will be returned, otherwise the global Product object will be returned
  **/
-function ShoppProduct ( $Object = false ) {
-	global $Shopp; $false = false;
-	if ( empty($Shopp) ) return false;
-	if ( false !== $Object ) $Shopp->Product = $Object;
+function ShoppProduct ( Product $Object = null ) {
+	$Shopp = Shopp::object();
+	if ( isset($Object) )
+		$Shopp->Product = $Object;
 	return $Shopp->Product;
 }
 
@@ -56,10 +56,9 @@ function ShoppCustomer ( $Object = false ) {
  * @param Collection (optional) $Object the Collection object to set to the global context.
  * @return mixed if the global Collection context isn't set, bool false will be returned, otherwise the global Collection object will be returned
  **/
-function ShoppCollection ( $Object = false ) {
-	global $Shopp;
-	if ( empty($Shopp) ) return false;
-	if ( false !== $Object ) $Shopp->Category = $Object;
+function ShoppCollection ( ShoppCollection $Object = null ) {
+	$Shopp = Shopp::object();
+	if ( isset($Object) ) $Shopp->Category = $Object;
 	return $Shopp->Category;
 }
 
@@ -72,11 +71,10 @@ function ShoppCollection ( $Object = false ) {
  * @param Catalog (optional) $Object the Catalog object to set to the global context.
  * @return mixed if the global Catalog context isn't set, bool false will be returned, otherwise the global Catalog object will be returned
  **/
-function ShoppCatalog ( $Object = false ) {
-	global $Shopp;
-	if ( empty($Shopp) ) return false;
-	if ( false !== $Object ) $Shopp->Catalog = $Object;
-	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new Catalog();
+function ShoppCatalog ( ShoppCatalog $Object = null ) {
+	$Shopp = Shopp::object();
+	if ( isset($Object) ) $Shopp->Catalog = $Object;
+	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new ShoppCatalog();
 	return $Shopp->Catalog;
 }
 
@@ -118,14 +116,14 @@ function ShoppOrder ( $Object = false ) {
  * @author Jonathan Davis
  * @since 1.1
  *
- * @return void Description...
+ * @return ShoppSettings The ShoppSettings object
  **/
 function ShoppSettings () {
-	return Settings::instance();
+	return ShoppSettings::object();
 }
 
 function ShoppShopping() {
-	return Shopping::instance();
+	return Shopping::object();
 }
 
 /**
@@ -137,27 +135,23 @@ function ShoppShopping() {
  * @return void Description...
  **/
 function ShoppErrors () {
-	return ShoppErrors::instance();
+	return ShoppErrors::object();
 }
 
 function ShoppErrorLogging () {
-	return ShoppErrorLogging::instance();
+	return ShoppErrorLogging::object();
 }
 
 function ShoppErrorNotification () {
-	return ShoppErrorNotification::instance();
-}
-
-function ShoppErrorTypehints () {
-	return ShoppErrorTypehints::instance();
+	return ShoppErrorNotification::object();
 }
 
 function ShoppErrorStorefrontNotices () {
-	return ShoppErrorStorefrontNotices::instance();
+	return ShoppErrorStorefrontNotices::object();
 }
 
 function ShoppPages () {
-	return ShoppPages::instance();
+	return ShoppPages::object();
 }
 
 function shopp_get_page ( string $pagename ) {
@@ -375,13 +369,13 @@ function is_shopp_smart_collection ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 
 	$slug = $wp_query->get('shopp_collection');
-	if (empty($slug)) return false;
+	if ( empty($slug) ) return false;
 
-	global $Shopp;
-	foreach ($Shopp->Collections as $Collection) {
-		$Collection_slug = get_class_property($Collection,'_slug');
+	$Shopp = Shopp::object();
 
-		if ($slug == $Collection_slug) return true;
+	foreach ( (array)$Shopp->Collections as $Collection ) {
+		$slugs = SmartCollection::slugs($Collection);
+		if ( in_array($slug, $slugs) ) return true;
 	}
 	return false;
 }

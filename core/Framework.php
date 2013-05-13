@@ -52,9 +52,10 @@ class ListFramework implements Iterator {
 
 	public function update ( string $key, $entry ) {
 		if ( ! $this->exists($key) ) return false;
-		if ( is_array($this->_list[$key]) && is_array($entry) )
+		if ( is_array($this->_list[ $key ]) && is_array($entry) )
 			$entry = array_merge($this->_list[$key],$entry);
-		else $this->_list[$key] = $entry;
+		$this->_list[ $key ] = $entry;
+		return true;
 	}
 
 	public function count () {
@@ -126,12 +127,12 @@ class SingletonFramework {
 
 	// @todo Requires Late-Static Binding in PHP 5.3 before extending the framework for instance return method to work
 
-	// protected static $instance;
+	// protected static $object;
 
-	// public static function instance () {
-	// 	if (!self::$instance instanceof self)
-	// 		self::$instance = new self;
-	// 	return self::$instance;
+	// public static function object () {
+	// 	if ( ! self::$object instanceof self)
+	// 		self::$object = new self;
+	// 	return self::$object;
 	// }
 
 	/**

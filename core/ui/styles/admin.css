@@ -47,6 +47,8 @@ span.stock.lowstock { color: #fff; font-weight: bold; -moz-border-radius:3px;-kh
 span.lowstock.critical { background: #900; }
 span.lowstock.warning { background: #C60; }
 
+.connecting { display: inline-block; position: relative; }
+
 /** Inventory Manager **/
 #inventory-manager td.inventory { width: 60px; }
 #inventory-manager td.inventory input { text-align: right; }

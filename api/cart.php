@@ -144,7 +144,10 @@ function shopp_set_cart_item_quantity ( $item = false, $quantity = 1 ) {
  * @return array list of items in the cart
  **/
 function shopp_cart_items () {
-	return ShoppOrder()->Cart->contents;
+	$Items = array();
+	foreach ( ShoppOrder()->Cart as $id => $Item )
+		$Items[$id] = $Item;
+	return $Items;
 }
 
 /**
@@ -156,7 +159,7 @@ function shopp_cart_items () {
  * @return void Description...
  **/
 function shopp_cart_items_count () {
-	return count( ShoppOrder()->Cart->contents );
+	return ShoppOrder()->Cart->count();
 }
 
 /**
@@ -196,7 +199,6 @@ function shopp_cart_item ( $item = false ) {
  **/
 function shopp_empty_cart () {
 	ShoppOrder()->Cart->clear();
-	ShoppOrder()->Cart->totals();
 }
 
 /**

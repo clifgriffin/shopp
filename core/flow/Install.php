@@ -21,7 +21,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppInstallation extends FlowController {
 
-	public $errors = array();
+	static $errors = array();
+	static $nextstep = array();
 
 	/**
 	 * Install constructor
@@ -29,29 +30,30 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	function __construct () {
-		add_action('shopp_activate',array($this,'activate'));
-		add_action('shopp_deactivate',array($this,'deactivate'));
-		add_action('shopp_reinstall',array($this,'install'));
-		add_action('shopp_setup',array($this,'setup'));
-		add_action('shopp_setup',array($this,'images'));
-		add_action('shopp_setup',array($this,'roles'));
-		add_action('shopp_autoupdate',array($this,'update'));
+	public function __construct () {
 
-		$this->errors = array(
-			'header' => __('Shopp Activation Error','Shopp'),
+		add_action('shopp_activate',   array($this, 'activate'));
+		add_action('shopp_deactivate', array($this, 'deactivate'));
+		add_action('shopp_reinstall',  array($this, 'install'));
+		add_action('shopp_setup',      array($this, 'setup'));
+		add_action('shopp_setup',      array($this, 'images'));
+		add_action('shopp_setup',      array($this, 'roles'));
+		add_action('shopp_autoupdate', array($this, 'update'));
+
+		self::$errors = array(
+			'header' => __('Shopp Activation Error', 'Shopp'),
 			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
-			'dbprivileges' => __('Shopp cannot be installed because the database privileges do not allow Shopp to create new tables.','Shopp'),
-			'nodbschema-install' => sprintf(__('Could not install the Shopp database tables because the table definitions file is missing. (%s)','Shopp'),SHOPP_DBSCHEMA),
-			'nodbschema-upgrade' => sprintf(__('Could not upgrade the Shopp database tables because the table definitions file is missing. (%s)','Shopp'),SHOPP_DBSCHEMA),
-			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+			'dbprivileges' => __('Shopp cannot be installed because the database privileges do not allow Shopp to create new tables.', 'Shopp'),
+			'nodbschema-install' => sprintf(__('Could not install the Shopp database tables because the table definitions file is missing. (%s)', 'Shopp'), SHOPP_DBSCHEMA),
+			'nodbschema-upgrade' => sprintf(__('Could not upgrade the Shopp database tables because the table definitions file is missing. (%s)', 'Shopp'), SHOPP_DBSCHEMA),
+			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s', 'Shopp'), '<a href="' . SHOPP_DOCS . '">', '</a>'),
 			'continue' => __('Return to Plugins page')
 		);
 
-		$this->nextstep = array(
-			'dbprivileges' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
-			'nodbschema-install' => sprintf(__('For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
-			'nodbschema-upgrade' => sprintf(__('For more information about this error, see the %sShopp Documentation%s','Shopp'),'<a href="'.SHOPP_DOCS.'">','</a>'),
+		self::$nextstep = array(
+			'dbprivileges' => sprintf(__('Try contacting your web hosting provider or server administrator for help. For more information about this error, see the %sShopp Documentation%s', 'Shopp'), '<a href="' . SHOPP_DOCS . '">', '</a>'),
+			'nodbschema-install' => sprintf(__('For more information about this error, see the %sShopp Documentation%s', 'Shopp'), '<a href="' . SHOPP_DOCS . '">', '</a>'),
+			'nodbschema-upgrade' => sprintf(__('For more information about this error, see the %sShopp Documentation%s', 'Shopp'), '<a href="' . SHOPP_DOCS . '">', '</a>'),
 		);
 	}
 
@@ -63,13 +65,13 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function activate () {
+	public function activate () {
 
-		// If no settings are available, no tables exist,
-		// so this is a new install
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
-		if (!$db_version) $this->install();
+		// If the database schema version number is not available,
+		// No tables exist, so this is a new install
+
+		if ( 0 === ShoppSettings::dbversion() )
+			$this->install();
 
 		// Force the Shopp init action to register needed taxonomies & CPTs
 		do_action('shopp_init');
@@ -79,14 +81,14 @@ class ShoppInstallation extends FlowController {
 
 		do_action('shopp_setup');
 
-		if (ShoppSettings()->available() && shopp_setting('db_version'))
-			shopp_set_setting('maintenance','off');
+		if ( ShoppSettings()->available() && shopp_setting('db_version') )
+			shopp_set_setting('maintenance', 'off');
 
-		if (shopp_setting_enabled('show_welcome'))
-			shopp_set_setting('display_welcome','on');
+		if ( shopp_setting_enabled('show_welcome') )
+			shopp_set_setting('display_welcome', 'on');
 
 		shopp_set_setting('updates', false);
-		shopp_set_setting('rebuild_rewrites','on');
+		shopp_set_setting('rebuild_rewrites', 'on');
 
 		return true;
 	}
@@ -99,21 +101,21 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void Description...
 	 **/
-	function deactivate () {
+	public function deactivate () {
 		global $Shopp;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
-		remove_action('shopp_init', array($Shopp,'pages'));
-		remove_filter('rewrite_rules_array',array($Shopp,'rewrites'));
+		remove_action('shopp_init', array($Shopp, 'pages'));
+		remove_filter('rewrite_rules_array', array($Shopp, 'rewrites'));
 		flush_rewrite_rules();
 
-		shopp_set_setting('data_model','');
+		shopp_set_setting('data_model', '');
 
 		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
 		else $plugin_updates = get_transient('update_plugins');
 		unset($plugin_updates->response[SHOPP_PLUGINFILE]);
-		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
-		else set_transient('update_plugins',$plugin_updates);
+		if (function_exists('set_site_transient')) set_site_transient('update_plugins', $plugin_updates);
+		else set_transient('update_plugins', $plugin_updates);
 
 		return true;
 	}
@@ -126,14 +128,15 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function install () {
-		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
+	public function install () {
+		global $wpdb, $wp_rewrite, $wp_version, $table_prefix;
 
-		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-install');
+		if ( ! file_exists(SHOPP_DBSCHEMA) )
+			$this->error('nodbschema-install');
 
 		// Remove any old product post types and taxonomies to prevent duplication of irrelevant data
-		DB::query("DELETE FROM $wpdb->posts WHERE post_type='".Product::$posttype."'");
-		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='".ProductCategory::$taxon."' OR taxonomy='".ProductTag::$taxon."'");
+		DB::query("DELETE FROM $wpdb->posts WHERE post_type='" . Product::$posttype . "'");
+		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='" . ProductCategory::$taxon . "' OR taxonomy='" . ProductTag::$taxon . "'");
 
 		// Install tables
 		ob_start();
@@ -154,27 +157,26 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function upgrades () {
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+	public function upgrades () {
+		$installed = ShoppSettings::dbversion();
 
 		// No upgrades required
-		if ($db_version == DB::$version) return;
+		if ( $installed == DB::$version ) return;
 
-		shopp_set_setting('shopp_setup','');
-		shopp_set_setting('maintenance','on');
+		shopp_set_setting('shopp_setup', '');
+		shopp_set_setting('maintenance', 'on');
 
 		// Process any database schema changes
 		$this->upschema();
 
-		if ($db_version < 1100) $this->upgrade_110();
-		if ($db_version < 1200) $this->upgrade_120();
+		if ( $installed < 1100 ) $this->upgrade_110();
+		if ( $installed < 1200 ) $this->upgrade_120();
 
 		ShoppSettings()->save('db_version', DB::$version);
 
 	}
 
-	function error ($message) {
+	public function error ($message) {
 		$string = '<h1>'.$this->errors['header'].'</h1><p>'.$this->errors['intro'].'</h1></p><ul>';
 		if (isset($this->errors[$message])) $string .= "<li>{$this->errors[$message]}</li>";
 		$string .= '</ul><p>'.$this->nextstep[$message].'</p><p><a class="button" href="javascript:history.go(-1);">&larr; '.$this->errors['continue'].'</a></p>';
@@ -189,10 +191,10 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function upschema () {
+	public function upschema () {
 		// Test to ensure Shopp can create/drop tables
 		$testtable = 'shopp_db_permissions_test_'.time();
-		$tests = array("CREATE TABLE $testtable ( id INT )","DROP TABLE $testtable");
+		$tests = array("CREATE TABLE $testtable ( id INT )", "DROP TABLE $testtable");
 		foreach ($tests as $testquery) {
 			$db = DB::get();
 			DB::query($testquery);
@@ -214,14 +216,14 @@ class ShoppInstallation extends FlowController {
 
 		// Update the table schema
 		// Strip SQL comments
-		$schema = preg_replace('/--\s?(.*?)\n/',"\n",$schema);
-		$tables = preg_replace('/;\s+/',';',$schema);
+		$schema = preg_replace('/--\s?(.*?)\n/', "\n", $schema);
+		$tables = preg_replace('/;\s+/', ';', $schema);
 
 		ob_start(); // Suppress dbDelta errors
 		$changes = dbDelta($tables);
 		ob_end_clean();
 
-		shopp_set_setting('db_updates',$changes);
+		shopp_set_setting('db_updates', $changes);
 	}
 
 	/**
@@ -250,15 +252,15 @@ class ShoppInstallation extends FlowController {
 	 * @since 1.1
 	 *
 	 **/
-	function roles () {
+	public function roles () {
 		global $wp_roles; // WP_Roles roles container
 
 		if ( ! $wp_roles ) $wp_roles = new WP_Roles();
 
 		$shopp_roles = apply_filters('shopp_user_roles', array(
 			'administrator'		=>	'Administrator',
-			'shopp-merchant'	=>	__('Merchant','Shopp'),
-			'shopp-csr'			=>	__('Customer Service Rep','Shopp')
+			'shopp-merchant'	=>	__('Merchant', 'Shopp'),
+			'shopp-csr'			=>	__('Customer Service Rep', 'Shopp')
 		));
 
 		$caps['shopp-csr'] = array(
@@ -294,16 +296,16 @@ class ShoppInstallation extends FlowController {
 			if ( $wp_roles->is_role($role) ) {
 				foreach( $caps[$role] as $cap ) $wp_roles->add_cap($role, $cap, true);
 			} else {
-				$wp_roles->add_role($role, $display, array_combine($caps[$role],array_fill(0,count($caps[$role]),true)));
+				$wp_roles->add_role($role, $display, array_combine($caps[$role], array_fill(0, count($caps[$role]), true)));
 			}
 		}
 	}
 
-	function images () {
+	public function images () {
 		$settings = array(
-			'gallery-previews' => array('fit' => 'all','size' => 240,'quality' => 100),
-			'gallery-thumbnails' => array('fit' => 'all','size' => 64,'quality' => 100),
-			'thumbnails' => array('fit' => 'all','size' => 96,'quality' => 100)
+			'gallery-previews' => array('fit' => 'all', 'size' => 240, 'quality' => 100),
+			'gallery-thumbnails' => array('fit' => 'all', 'size' => 64, 'quality' => 100),
+			'thumbnails' => array('fit' => 'all', 'size' => 96, 'quality' => 100)
 		);
 
 		// Determine if any of the default settings exist to prevent overwriting changes
@@ -315,18 +317,18 @@ class ShoppInstallation extends FlowController {
 			'where' => array(
 				"type='$ImageSetting->type'",
 				"context='$ImageSetting->context'",
-				"name IN ('".join("','",$defaults)."')"
+				"name IN ('".join("', '", $defaults)."')"
 			),
 			'limit' => count($defaults)
 		);
 		$query = DB::select($options);
-		$existing = DB::query($query,'array','col','name');
+		$existing = DB::query($query, 'array', 'col', 'name');
 
 		// Get the settings that need setup
-		$setup = array_diff($defaults,$existing);
+		$setup = array_diff($defaults, $existing);
 
 		foreach ($setup as $setting)
-			shopp_set_image_setting($setting,$settings[ $setting ]);
+			shopp_set_image_setting($setting, $settings[ $setting ]);
 
 	}
 
@@ -338,67 +340,68 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function setup () {
+	public function setup () {
 
-		ShoppSettings()->setup('show_welcome','on');
-		ShoppSettings()->setup('display_welcome','on');
+		$Settings = ShoppSettings();
+
+		$Settings->setup('show_welcome', 'on');
+		$Settings->setup('display_welcome', 'on');
 
 		// General Settings
-		ShoppSettings()->setup('shipping','on');
-		ShoppSettings()->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));
-		ShoppSettings()->setup('shopp_setup','completed');
-		ShoppSettings()->setup('maintenance','off');
-		ShoppSettings()->setup('dashboard','on');
+		$Settings->setup('shipping', 'on');
+		$Settings->setup('order_status', array(__('Pending', 'Shopp'), __('Completed', 'Shopp')));
+		$Settings->setup('shopp_setup', 'completed');
+		$Settings->setup('maintenance', 'off');
+		$Settings->setup('dashboard', 'on');
 
 		// Preferences
-		ShoppSettings()->setup('order_confirmation','');
-		ShoppSettings()->setup('receipt_copy','1');
-		ShoppSettings()->setup('account_system','none');
-		ShoppSettings()->setup('shopping_cart','on');
-		ShoppSettings()->setup('cancel_reasons',array(
-			__('Not as described or expected','Shopp'),
-			__('Wrong size','Shopp'),
-			__('Found better prices elsewhere','Shopp'),
-			__('Product is missing parts','Shopp'),
-			__('Product is defective or damaged','Shopp'),
-			__('Took too long to deliver','Shopp'),
-			__('Item out of stock','Shopp'),
-			__('Customer request to cancel','Shopp'),
-			__('Item discontinued','Shopp'),
-			__('Other reason','Shopp')
+		$Settings->setup('order_confirmation', '');
+		$Settings->setup('receipt_copy', '1');
+		$Settings->setup('account_system', 'none');
+		$Settings->setup('shopping_cart', 'on');
+		$Settings->setup('cancel_reasons', array(
+			__('Not as described or expected', 'Shopp'),
+			__('Wrong size', 'Shopp'),
+			__('Found better prices elsewhere', 'Shopp'),
+			__('Product is missing parts', 'Shopp'),
+			__('Product is defective or damaged', 'Shopp'),
+			__('Took too long to deliver', 'Shopp'),
+			__('Item out of stock', 'Shopp'),
+			__('Customer request to cancel', 'Shopp'),
+			__('Item discontinued', 'Shopp'),
+			__('Other reason', 'Shopp')
 		));
 
 		// Shipping
-		ShoppSettings()->setup('active_shipping','');
-		ShoppSettings()->setup('shipping','');
-		ShoppSettings()->setup('inventory','');
-		ShoppSettings()->setup('shipping_packaging','like');
-		ShoppSettings()->setup('shipping_package_weight_limit','-1');
+		$Settings->setup('active_shipping', '');
+		$Settings->setup('shipping', '');
+		$Settings->setup('inventory', '');
+		$Settings->setup('shipping_packaging', 'like');
+		$Settings->setup('shipping_package_weight_limit', '-1');
 
 		// Taxes
-		ShoppSettings()->setup('tax_inclusive','');
-		ShoppSettings()->setup('taxes','');
-		ShoppSettings()->setup('taxrates','');
-		ShoppSettings()->setup('tax_shipping','');
+		$Settings->setup('tax_inclusive', '');
+		$Settings->setup('taxes', '');
+		$Settings->setup('taxrates', '');
+		$Settings->setup('tax_shipping', '');
 
 		// Presentation Settings
-		ShoppSettings()->setup('theme_templates','off');
-		ShoppSettings()->setup('row_products','3');
-		ShoppSettings()->setup('catalog_pagination','25');
-		ShoppSettings()->setup('default_product_order','title');
-		ShoppSettings()->setup('product_image_order','ASC');
-		ShoppSettings()->setup('product_image_orderby','sortorder');
+		$Settings->setup('theme_templates', 'off');
+		$Settings->setup('row_products', '3');
+		$Settings->setup('catalog_pagination', '25');
+		$Settings->setup('default_product_order', 'title');
+		$Settings->setup('product_image_order', 'ASC');
+		$Settings->setup('product_image_orderby', 'sortorder');
 
 		// System Settings
-		ShoppSettings()->setup('uploader_pref','flash');
-		ShoppSettings()->setup('script_loading','global');
-		ShoppSettings()->setup('script_server','plugin');
+		$Settings->setup('uploader_pref', 'flash');
+		$Settings->setup('script_loading', 'global');
+		$Settings->setup('script_server', 'plugin');
 
 		// Pre-inits
-		ShoppSettings()->setup('active_catalog_promos','');
+		$Settings->setup('active_catalog_promos', '');
 
-		ShoppSettings()->setup('version',SHOPP_VERSION);
-		ShoppSettings()->setup('db_version',DB::$version);
+		$Settings->setup('version', SHOPP_VERSION);
 
 		$this->images(); // Setup default image settings
 
@@ -412,8 +415,8 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function upgrade_110 () {
-		$db =& DB::get();
+	public function upgrade_110 () {
+		$db = DB::get();
 		$meta_table = DatabaseObject::tablename('meta');
 		$setting_table = DatabaseObject::tablename('setting');
 
@@ -426,27 +429,27 @@ class ShoppInstallation extends FlowController {
 
 		// Update Catalog
 		$catalog_table = DatabaseObject::tablename('catalog');
-		$db->query("UPDATE $catalog_table set parent=IF(category!=0,category,tag),type=IF(category!=0,'category','tag')");
+		$db->query("UPDATE $catalog_table set parent=IF(category!=0, category, tag), type=IF(category!=0, 'category', 'tag')");
 
 		// Update specs
 		$meta_table = DatabaseObject::tablename('meta');
 		$spec_table = DatabaseObject::tablename('spec');
 		$now = current_time('mysql');
-		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT product,'product','spec',name,content,numeral,sortorder,'$now','$now' FROM $spec_table");
+		$db->query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
+					SELECT product, 'product', 'spec', name, content, numeral, sortorder, '$now', '$now' FROM $spec_table");
 
 		// Update purchase table
 		$purchase_table = DatabaseObject::tablename('purchase');
-		$db->query("UPDATE $purchase_table SET txnid=transactionid,txnstatus=transtatus");
+		$db->query("UPDATE $purchase_table SET txnid=transactionid, txnstatus=transtatus");
 
 		// Update image assets
 		$meta_table = DatabaseObject::tablename('meta');
 		$asset_table = DatabaseObject::tablename('asset');
-		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-							SELECT parent,context,'image','processing',CONCAT_WS('::',id,name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='image'");
-		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='image' AND name='processing'",AS_ARRAY);
+		$db->query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
+							SELECT parent, context, 'image', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='image'");
+		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='image' AND name='processing'", AS_ARRAY);
 		foreach ($records as $r) {
-			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
 			if (isset($p['width'])) $value->width = $p['width'];
@@ -465,18 +468,18 @@ class ShoppInstallation extends FlowController {
 				$value->uri = $name;
 			}
 			$value = mysql_real_escape_string(serialize($value));
-			$db->query("UPDATE $meta_table set name='original',value='$value' WHERE id=$r->id");
+			$db->query("UPDATE $meta_table set name='original', value='$value' WHERE id=$r->id");
 		}
 
 		// Update product downloads
 		$meta_table = DatabaseObject::tablename('meta');
 		$asset_table = DatabaseObject::tablename('asset');
-		$query = "INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT parent,context,'download','processing',CONCAT_WS('::',id,name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='download' AND parent != 0";
+		$query = "INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
+					SELECT parent, context, 'download', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='download' AND parent != 0";
 		$db->query($query);
-		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='download' AND name='processing'",AS_ARRAY);
+		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='download' AND name='processing'", AS_ARRAY);
 		foreach ($records as $r) {
-			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
 			$value->filename = $name;
@@ -490,12 +493,12 @@ class ShoppInstallation extends FlowController {
 				$value->uri = $name;
 			}
 			$value = mysql_real_escape_string(serialize($value));
-			$db->query("UPDATE $meta_table set name='$name',value='$value' WHERE id=$r->id");
+			$db->query("UPDATE $meta_table set name='$name', value='$value' WHERE id=$r->id");
 		}
 
 		// Update promotions
 		$promo_table = DatabaseObject::tablename('promo');
-		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'",AS_ARRAY);
+		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'", AS_ARRAY);
 
 		$FSStorage = array('path' => array());
 		// Migrate Asset storage settings
@@ -504,16 +507,16 @@ class ShoppInstallation extends FlowController {
 			$image_storage = "FSStorage";
 			$FSStorage['path']['image'] = shopp_setting('image_path');
 		} else $image_storage = "DBStorage";
-		shopp_set_setting('image_storage',$image_storage);
+		shopp_set_setting('image_storage', $image_storage);
 
 		$product_storage = shopp_setting('product_storage_pref');
 		if ($product_storage == "fs") {
 			$product_storage = "FSStorage";
 			$FSStorage['path']['download'] = shopp_setting('products_path');
 		} else $product_storage = "DBStorage";
-		shopp_set_setting('product_storage',$product_storage);
+		shopp_set_setting('product_storage', $product_storage);
 
-		if (!empty($FSStorage['path'])) shopp_set_setting('FSStorage',$FSStorage);
+		if (!empty($FSStorage['path'])) shopp_set_setting('FSStorage', $FSStorage);
 
 		// Preserve payment settings
 
@@ -521,18 +524,18 @@ class ShoppInstallation extends FlowController {
 		$active_gateways = array(shopp_setting('payment_gateway'));
 		$xco_gateways = (array)shopp_setting('xco_gateways');
 		if (!empty($xco_gateways))
-			$active_gateways = array_merge($active_gateways,$xco_gateways);
+			$active_gateways = array_merge($active_gateways, $xco_gateways);
 
 		// Load 1.0 payment gateway settings for active gateways
 		$gateways = array();
 		foreach ($active_gateways as $reference) {
-			list($dir,$filename) = explode('/',$reference);
-			$gateways[] = preg_replace('/[^\w+]/','',substr($filename,0,strrpos($filename,'.')));
+			list($dir, $filename) = explode('/', $reference);
+			$gateways[] = preg_replace('/[^\w+]/', '', substr($filename, 0, strrpos($filename, '.')));
 		}
 
-		$where = "name like '%".join("%' OR name like '%",$gateways)."%'";
-		$query = "SELECT name,value FROM $setting_table WHERE $where";
-		$result = $db->query($query,AS_ARRAY);
+		$where = "name like '%".join("%' OR name like '%", $gateways)."%'";
+		$query = "SELECT name, value FROM $setting_table WHERE $where";
+		$result = $db->query($query, AS_ARRAY);
 		$paycards = Lookup::paycards();
 
 		// Convert settings to 1.1-compatible settings
@@ -542,7 +545,7 @@ class ShoppInstallation extends FlowController {
 			$setting = unserialize($_->value);	// Parse the settings
 
 			// Get rid of legacy settings
-			unset($setting['enabled'],$setting['path'],$setting['billing-required']);
+			unset($setting['enabled'], $setting['path'], $setting['billing-required']);
 
 			// Convert accepted payment cards
 			$accepted = array();
@@ -565,10 +568,10 @@ class ShoppInstallation extends FlowController {
 				}
 				$setting['cards'] = $accepted;
 			}
-			shopp_set_setting($_->name,$setting); // Save the gateway settings
+			shopp_set_setting($_->name, $setting); // Save the gateway settings
 		}
 		// Save the active gateways to populate the payment settings page
-		shopp_set_setting('active_gateways',join(',',$active_gateways));
+		shopp_set_setting('active_gateways', join(', ', $active_gateways));
 
 		// Preserve update key
 		$oldkey = shopp_setting('updatekey');
@@ -578,19 +581,17 @@ class ShoppInstallation extends FlowController {
 				$oldkey['key'],
 				$oldkey['type']
 			);
-			shopp_set_setting('updatekey',$newkey);
+			shopp_set_setting('updatekey', $newkey);
 		}
 
 		$this->roles(); // Setup Roles and Capabilities
 
 	}
 
-	function upgrade_120 () {
+	public function upgrade_120 () {
 		global $wpdb;
-		$db =& DB::get();
 
-		$db_version = intval(shopp_setting('db_version'));
-		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+		$db_version = ShoppSettings::dbversion();
 
 		// Clear the shopping session table
 		$shopping_table = DatabaseObject::tablename('shopping');
@@ -611,7 +612,7 @@ class ShoppInstallation extends FlowController {
 			$meta_table = DatabaseObject::tablename('meta');
 			$setting_table = DatabaseObject::tablename('setting');
 
-			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
+			DB::query("INSERT INTO $meta_table (context, type, name, value, created, modified) SELECT 'shopp', 'setting', name, value, created, modified FROM $setting_table");
 
 			// Clean up unnecessary duplicate settings
 			shopp_rmv_setting('data_model');
@@ -622,11 +623,11 @@ class ShoppInstallation extends FlowController {
 			// Re-load the Shopp settings registry
 			ShoppSettings()->load();
 
-			shopp_set_setting('maintenance','on');
+			shopp_set_setting('maintenance', 'on');
 			$db_version = intval(shopp_setting('db_version'));
 
 			// Force inventory in 1.2 on to mimic 1.1 behavior (inventory tracking always on)
-			shopp_set_setting('inventory','on');
+			shopp_set_setting('inventory', 'on');
 
 			// Convert Shopp 1.1.x shipping settings to Shopp 1.2-compatible settings
 			$active_shipping = array();
@@ -663,34 +664,34 @@ class ShoppInstallation extends FlowController {
 				$new = array();
 
 				$new['label'] = $old['name'];
-				list($new['mindelivery'],$new['maxdelivery']) = explode('-',$old['delivery']);
+				list($new['mindelivery'], $new['maxdelivery']) = explode('-', $old['delivery']);
 				$new['fallback'] = 'off'; // Not used in legacy settings
 
 				$oldkeys = array_keys($old);
 
-				$old_destinations = array_diff($oldkeys,array('name','delivery','method','max'));
+				$old_destinations = array_diff($oldkeys, array('name', 'delivery', 'method', 'max'));
 				$table = array();
 				foreach ($old_destinations as $old_dest) {
 					$_ = array();
 
 					if ('Worldwide' == $old_dest) $d = '*';
 
-					$region = array_search($old_dest,$regions);
+					$region = array_search($old_dest, $regions);
 					if (false !== $region) $d = "$region";
 
 					if (isset($countries[ $old_dest ])) {
 						$country = $countries[ $old_dest ];
 						$region =  $country['region'];
-						$d = "$region,$old_dest";
+						$d = "$region, $old_dest";
 					}
 					foreach ($areas as $countrykey => $countryarea) {
 						$areakeys = array_keys($countryarea);
-						$area = array_search($old_dest,$areakeys);
+						$area = array_search($old_dest, $areakeys);
 						if (false !== $area) {
 							$country = $countrykey;
 							$region = $countries[ $countrykey ]['region'];
 							$area = $areakeys[ $area ];
-							$d = "$region,$country,$area";
+							$d = "$region, $country, $area";
 							break;
 						}
 					}
@@ -701,8 +702,8 @@ class ShoppInstallation extends FlowController {
 						$_['tiers'] = array();
 						$prior = 1;
 						foreach ($old['max'] as $index => $oldthreshold) {
-							$tier = array('threshold' => 0,'rate' => 0);
-							if ( in_array($oldthreshold,array('+','>')))
+							$tier = array('threshold' => 0, 'rate' => 0);
+							if ( in_array($oldthreshold, array('+', '>')))
 								$tier['threshold'] = $prior+1;
 							elseif ( 1 == $oldthreshold )
 								$tier['threshold'] = 1;
@@ -716,11 +717,11 @@ class ShoppInstallation extends FlowController {
 					$table[] = $_;
 				}
 				$new['table'] = $table;
-				shopp_set_setting($setting_name,$new); // Save the converted settings
+				shopp_set_setting($setting_name, $new); // Save the converted settings
 
 			} // End foreach($shipping_rates) to convert old shipping calculator setting format
 
-			shopp_set_setting('active_shipping',$active_shipping); // Save the active shipping options
+			shopp_set_setting('active_shipping', $active_shipping); // Save the active shipping options
 
 		}
 
@@ -730,11 +731,11 @@ class ShoppInstallation extends FlowController {
 			$shipping_table = DatabaseObject::tablename('shipping');
 
 			// Move billing address data to the address table
-			DB::query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
-						SELECT customer,'billing',address,xaddress,city,state,country,postcode,created,modified FROM $billing_table");
+			DB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
+						SELECT customer, 'billing', address, xaddress, city, state, country, postcode, created, modified FROM $billing_table");
 
-			DB::query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
-						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
+			DB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
+						SELECT customer, 'shipping', address, xaddress, city, state, country, postcode, created, modified FROM $shipping_table");
 		}
 
 		// Migrate to WP custom posts & taxonomies
@@ -754,8 +755,8 @@ class ShoppInstallation extends FlowController {
 				$post_type = 'shopp_product';
 
 				// Create custom post types from products, temporarily use post_parent for link to original product entry
-				DB::query("INSERT INTO $wpdb->posts (post_type,post_name,post_title,post_excerpt,post_content,post_status,post_date,post_date_gmt,post_modified,post_modified_gmt,post_parent)
-							SELECT '$post_type',slug,name,summary,description,status,created,created,modified,modified,id FROM $product_table");
+				DB::query("INSERT INTO $wpdb->posts (post_type, post_name, post_title, post_excerpt, post_content, post_status, post_date, post_date_gmt, post_modified, post_modified_gmt, post_parent)
+							SELECT '$post_type', slug, name, summary, description, status, created, created, modified, modified, id FROM $product_table");
 
 				// Update purchased table product column with new Post ID so sold counts can be updated
 				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
@@ -766,14 +767,14 @@ class ShoppInstallation extends FlowController {
 				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
 
 				// Preliminary summary data
-				DB::query("INSERT INTO $summary_table (product,featured,variants,addons,modified)
+				DB::query("INSERT INTO $summary_table (product, featured, variants, addons, modified)
 						   SELECT wp.ID, p.featured, p.variations, p.addons, '0000-00-00 00:00:01'
 						   FROM $product_table AS p
 						   JOIN $wpdb->posts as wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
 
 				// Move product options column to meta setting
-				DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
-						SELECT wp.ID,'product','meta','options',options
+				DB::query("INSERT INTO $meta_table (parent, context, type, name, value)
+						SELECT wp.ID, 'product', 'meta', 'options', options
 						FROM $product_table AS p
 						JOIN $wpdb->posts AS wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
 
@@ -785,9 +786,9 @@ class ShoppInstallation extends FlowController {
 				// Copy categories and tags to WP taxonomies
 				$tag_current_table = $dev_migration?"$meta_table WHERE context='catalog' AND type='tag'":$tag_table;
 
-				$terms = DB::query("(SELECT id,'shopp_category' AS taxonomy,name,parent,description,slug FROM $category_table)
+				$terms = DB::query("(SELECT id, 'shopp_category' AS taxonomy, name, parent, description, slug FROM $category_table)
 											UNION
-										(SELECT id,'shopp_tag' AS taxonomy,name,0 AS parent,'' AS description,name AS slug FROM $tag_current_table) ORDER BY id",'array');
+										(SELECT id, 'shopp_tag' AS taxonomy, name, 0 AS parent, '' AS description, name AS slug FROM $tag_current_table) ORDER BY id", 'array');
 
 				// Prep category images for the move
 				$category_image_offset = 65535;
@@ -804,10 +805,10 @@ class ShoppInstallation extends FlowController {
 					$name = $term->name;
 					$parent = $term->parent;
 					$description = $term->description;
-					$slug = (strpos($term->slug,' ') === false)?$term->slug:sanitize_title_with_dashes($term->slug);
+					$slug = (strpos($term->slug, ' ') === false)?$term->slug:sanitize_title_with_dashes($term->slug);
 					$term_group = 0;
 
-					if ($exists = DB::query("SELECT term_id,term_group FROM $wpdb->terms WHERE slug = '$slug'",'array')) {
+					if ($exists = DB::query("SELECT term_id, term_group FROM $wpdb->terms WHERE slug = '$slug'", 'array')) {
 						$term_group = $exists[0]->term_group;
 						$id = $exists[0]->term_id;
 						$num = 2;
@@ -818,7 +819,7 @@ class ShoppInstallation extends FlowController {
 						$slug = $alternate;
 
 						if ( empty($term_group) ) {
-							$term_group = DB::query("SELECT MAX(term_group) AS term_group FROM $wpdb->terms GROUP BY term_group",'auto','col','term_group');
+							$term_group = DB::query("SELECT MAX(term_group) AS term_group FROM $wpdb->terms GROUP BY term_group", 'auto', 'col', 'term_group');
 							DB::query("UPDATE $wpdb->terms SET term_group='$term_group' WHERE term_id='$id'");
 						}
 					}
@@ -839,7 +840,7 @@ class ShoppInstallation extends FlowController {
 						}
 
 						if (!empty($children[$taxonomy][$term->id])) // If there are children already created for this term, update their parent to our new id
-							$wpdb->query( "UPDATE $wpdb->term_taxonomy SET parent=$term_id WHERE term_id IN (".join(',',$children[$taxonomy][$term->id]).")" );
+							$wpdb->query( "UPDATE $wpdb->term_taxonomy SET parent=$term_id WHERE term_id IN (".join(', ', $children[$taxonomy][$term->id]).")" );
 
 						// Associate the term to the proper taxonomy and parent terms
 						$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->term_taxonomy (term_id, taxonomy, description, parent, count) VALUES ( %d, %s, %s, %d, %d)", $term_id, $taxonomy, $description, $parent, 0) );
@@ -847,10 +848,10 @@ class ShoppInstallation extends FlowController {
 
 						if (!empty($term_id)) {
 							// Move category settings to meta
-							$metafields = array('spectemplate','facetedmenus','variations','pricerange','priceranges','specs','options','prices');
+							$metafields = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');
 							foreach ($metafields as $field)
-								DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
-											SELECT $term_id,'category','meta','$field',$field
+								DB::query("INSERT INTO $meta_table (parent, context, type, name, value)
+											SELECT $term_id, 'category', 'meta', '$field', $field
 											FROM $category_table
 											WHERE id=$term->id");
 
@@ -876,14 +877,14 @@ class ShoppInstallation extends FlowController {
 					'tag' => 'shopp_tag'
 				);
 
-				$cols = 'wp.ID AS product,c.parent,c.type';
+				$cols = 'wp.ID AS product, c.parent, c.type';
 				$where = "type='category' OR type='tag'";
 				if ($db_version >= 1125) {
-					$cols = 'wp.ID AS product,c.parent,c.taxonomy,c.type';
+					$cols = 'wp.ID AS product, c.parent, c.taxonomy, c.type';
 					$where = "taxonomy=0 OR taxonomy=1";
 				}
 
-				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where",'array');
+				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where", 'array');
 
 				foreach ((array)$rels as $r) {
 					$object_id = $r->product;
@@ -895,14 +896,14 @@ class ShoppInstallation extends FlowController {
 					$tt_id = $tt_ids[$taxonomy][$term_id];
 					if ( empty($tt_id) ) continue;
 
-					DB::query("INSERT $wpdb->term_relationships (object_id,term_taxonomy_id) VALUES ($object_id,$tt_id)");
+					DB::query("INSERT $wpdb->term_relationships (object_id, term_taxonomy_id) VALUES ($object_id, $tt_id)");
 				}
 
 				if (isset($tt_ids['shopp_category']))
-					wp_update_term_count_now($tt_ids['shopp_category'],'shopp_category');
+					wp_update_term_count_now($tt_ids['shopp_category'], 'shopp_category');
 
 				if (isset($tt_ids['shopp_tag']))
-					wp_update_term_count_now($tt_ids['shopp_tag'],'shopp_tag');
+					wp_update_term_count_now($tt_ids['shopp_tag'], 'shopp_tag');
 
 				// Clear custom post type parents
 				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
@@ -913,23 +914,23 @@ class ShoppInstallation extends FlowController {
 
 			// Ditch old WP pages for pseudorific new ones
 			$search = array();
-			$shortcodes = array('[catalog]','[cart]','[checkout]','[account]');
+			$shortcodes = array('[catalog]', '[cart]', '[checkout]', '[account]');
 			foreach ($shortcodes as $string) $search[] = "post_content LIKE '%$string%'";
-			$results = DB::query("SELECT ID,post_title AS title,post_name AS slug,post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ",$search).")",'array');
+			$results = DB::query("SELECT ID, post_title AS title, post_name AS slug, post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ", $search).")", 'array');
 
 			$pages = $trash = array();
 			foreach ($results as $post) {
 				$trash[] = $post->ID;
 				foreach ($shortcodes as $code) {
-					if (strpos($post->post_content,$code) === false) continue;
-					$pagename = trim($code,'[]');
-					$pages[$pagename] = array('title' => $post->title,'slug' => $post->slug);
+					if (strpos($post->post_content, $code) === false) continue;
+					$pagename = trim($code, '[]');
+					$pages[$pagename] = array('title' => $post->title, 'slug' => $post->slug);
 				} // end foreach $shortcodes
 			} // end foreach $results
 
-			shopp_set_setting('storefront_pages',$pages);
+			shopp_set_setting('storefront_pages', $pages);
 
-			DB::query("UPDATE $wpdb->posts SET post_name=CONCAT(post_name,'-deprecated'),post_status='trash' where ID IN (".join(',',$trash).")");
+			DB::query("UPDATE $wpdb->posts SET post_name=CONCAT(post_name, '-deprecated'), post_status='trash' where ID IN (".join(', ', $trash).")");
 		}
 
 		// Move needed price table columns to price meta records
@@ -938,21 +939,21 @@ class ShoppInstallation extends FlowController {
 			$price_table = DatabaseObject::tablename('price');
 
 			// Move 'options' to meta 'options' record
-			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
-						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
+			DB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
+						SELECT id, 'price', 'meta', 'options', options, created, modified FROM $price_table");
 
-			// Merge 'weight','dimensions' and 'donation' columns to a price 'settings' record
-			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
-							SELECT id,'price','meta','settings',
+			// Merge 'weight', 'dimensions' and 'donation' columns to a price 'settings' record
+			DB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
+							SELECT id, 'price', 'meta', 'settings',
 							CONCAT('a:2:{s:10:\"dimensions\";',
-								IF(weight = 0 AND dimensions = '0','a:0:{}',
+								IF(weight = 0 AND dimensions = '0', 'a:0:{}',
 									IF(dimensions = '0',
 										CONCAT(
-											'a:1:{s:6:\"weight\";s:',CHAR_LENGTH(weight),':\"', weight, '\";}'
+											'a:1:{s:6:\"weight\";s:', CHAR_LENGTH(weight), ':\"', weight, '\";}'
 										), dimensions
 									)
-								),'s:8:\"donation\";',IF(donation='','N;',donation),'}'
-							),created,modified FROM $price_table");
+								), 's:8:\"donation\";', IF(donation='', 'N;', donation), '}'
+							), created, modified FROM $price_table");
 
 		} // END if ($db_version <= 1135)
 
@@ -986,7 +987,7 @@ class ShoppInstallation extends FlowController {
 		if ($db_version <= 1149) {
 			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
 			if ('mass' == shopp_setting('shipping_packaging'))
-				shopp_set_setting('shipping_packaging','all');
+				shopp_set_setting('shipping_packaging', 'all');
 		}
 
 
@@ -1000,8 +1001,8 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function update () {
-		global $parent_file,$submenu_file;
+	public function update () {
+		global $parent_file, $submenu_file;
 
 		$plugin = isset($_REQUEST['plugin']) ? trim($_REQUEST['plugin']) : '';
 		$addon = isset($_REQUEST['addon']) ? trim($_REQUEST['addon']) : '';
@@ -1012,7 +1013,7 @@ class ShoppInstallation extends FlowController {
 
 		if (SHOPP_PLUGINFILE == $plugin) {
 			// check_admin_referer('upgrade-plugin_' . $plugin);
-			$title = __('Upgrade Shopp','Shopp');
+			$title = __('Upgrade Shopp', 'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
 			require(ABSPATH.'wp-admin/admin-header.php');
@@ -1026,7 +1027,7 @@ class ShoppInstallation extends FlowController {
 			include(ABSPATH.'/wp-admin/admin-footer.php');
 		} elseif ('gateway' == $type ) {
 			// check_admin_referer('upgrade-shopp-addon_' . $plugin);
-			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
+			$title = sprintf(__('Upgrade Shopp Add-on', 'Shopp'), 'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
 			require(ABSPATH.'wp-admin/admin-header.php');
@@ -1035,13 +1036,13 @@ class ShoppInstallation extends FlowController {
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
 
 			$upgrader = new ShoppAddon_Upgrader( new Shopp_Upgrader_Skin( compact('title', 'nonce', 'url', 'addon') ) );
-			$upgrader->upgrade($addon,'gateway');
+			$upgrader->upgrade($addon, 'gateway');
 
 			include(ABSPATH.'/wp-admin/admin-footer.php');
 
 		} elseif ('shipping' == $type ) {
 			// check_admin_referer('upgrade-shopp-addon_' . $plugin);
-			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
+			$title = sprintf(__('Upgrade Shopp Add-on', 'Shopp'), 'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
 			require(ABSPATH.'wp-admin/admin-header.php');
@@ -1050,12 +1051,12 @@ class ShoppInstallation extends FlowController {
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
 
 			$upgrader = new ShoppAddon_Upgrader( new Shopp_Upgrader_Skin( compact('title', 'nonce', 'url', 'addon') ) );
-			$upgrader->upgrade($addon,'shipping');
+			$upgrader->upgrade($addon, 'shipping');
 
 			include(ABSPATH.'/wp-admin/admin-footer.php');
 		} elseif ('storage' == $type ) {
 			// check_admin_referer('upgrade-shopp-addon_' . $plugin);
-			$title = sprintf(__('Upgrade Shopp Add-on','Shopp'),'Shopp');
+			$title = sprintf(__('Upgrade Shopp Add-on', 'Shopp'), 'Shopp');
 			$parent_file = 'plugins.php';
 			$submenu_file = 'plugins.php';
 			require(ABSPATH.'wp-admin/admin-header.php');
@@ -1064,7 +1065,7 @@ class ShoppInstallation extends FlowController {
 			$url = 'update.php?action=shopp&addon='.$addon.'&type='.$type;
 
 			$upgrader = new ShoppAddon_Upgrader( new Shopp_Upgrader_Skin( compact('title', 'nonce', 'url', 'addon') ) );
-			$upgrader->upgrade($addon,'storage');
+			$upgrader->upgrade($addon, 'storage');
 
 			include(ABSPATH.'/wp-admin/admin-footer.php');
 		}
@@ -1093,7 +1094,7 @@ if (!class_exists('Plugin_Upgrader'))
  **/
 class Shopp_Upgrader extends Plugin_Upgrader {
 
-	function download_package($package) {
+	public function download_package($package) {
 
 		if ( ! preg_match('!^(http|https|ftp)://!i', $package) && file_exists($package) ) //Local file or remote?
 			return $package; //must be a local file..
@@ -1104,9 +1105,9 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 		$this->skin->feedback('downloading_package', $package);
 
 		$key = Shopp::keysetting();
-		$vars = array('VERSION','KEY','URL');
-		$values = array(urlencode(SHOPP_VERSION),urlencode($key['k']),urlencode(get_bloginfo('siteurl')));
-		$package = str_replace($vars,$values,$package);
+		$vars = array('VERSION', 'KEY', 'URL');
+		$values = array(urlencode(SHOPP_VERSION), urlencode($key['k']), urlencode(get_bloginfo('siteurl')));
+		$package = str_replace($vars, $values, $package);
 
 		$download_file = $this->download_url($package);
 
@@ -1116,13 +1117,13 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 		return $download_file;
 	}
 
-	function download_url ( $url ) {
+	public function download_url ( $url ) {
 		//WARNING: The file is not automatically deleted, The script must unlink() the file.
 		if ( ! $url )
 			return new WP_Error('http_no_url', __('Invalid URL Provided'));
 
 		$request = parse_url($url);
-		parse_str($request['query'],$query);
+		parse_str($request['query'], $query);
 		$tmpfname = wp_tempnam($query['update'].".zip");
 		if ( ! $tmpfname )
 			return new WP_Error('http_no_file', __('Could not create Temporary file'));
@@ -1151,7 +1152,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 		return $tmpfname;
 	}
 
-	function unpack_package($package, $delete_package = true, $clear_working = true) {
+	public function unpack_package($package, $delete_package = true, $clear_working = true) {
 		global $wp_filesystem;
 
 		$this->skin->feedback('unpack_package');
@@ -1209,19 +1210,19 @@ class Shopp_Upgrader extends Plugin_Upgrader {
  **/
 class ShoppCore_Upgrader extends Shopp_Upgrader {
 
-	function upgrade_strings() {
-		$this->strings['up_to_date'] = __('Shopp is at the latest version.','Shopp');
-		$this->strings['no_package'] = __('Shopp upgrade package not available.','Shopp');
-		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'),SHOPP_HOME);
-		$this->strings['unpack_package'] = __('Unpacking the update.','Shopp');
-		$this->strings['deactivate_plugin'] = __('Deactivating Shopp.','Shopp');
-		$this->strings['remove_old'] = __('Removing the old version of Shopp.','Shopp');
-		$this->strings['remove_old_failed'] = __('Could not remove the old Shopp.','Shopp');
-		$this->strings['process_failed'] = __('Shopp upgrade Failed.','Shopp');
-		$this->strings['process_success'] = __('Shopp upgraded successfully.','Shopp');
+	public function upgrade_strings() {
+		$this->strings['up_to_date'] = __('Shopp is at the latest version.', 'Shopp');
+		$this->strings['no_package'] = __('Shopp upgrade package not available.', 'Shopp');
+		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'), SHOPP_HOME);
+		$this->strings['unpack_package'] = __('Unpacking the update.', 'Shopp');
+		$this->strings['deactivate_plugin'] = __('Deactivating Shopp.', 'Shopp');
+		$this->strings['remove_old'] = __('Removing the old version of Shopp.', 'Shopp');
+		$this->strings['remove_old_failed'] = __('Could not remove the old Shopp.', 'Shopp');
+		$this->strings['process_failed'] = __('Shopp upgrade Failed.', 'Shopp');
+		$this->strings['process_success'] = __('Shopp upgraded successfully.', 'Shopp');
 	}
 
-	function upgrade($plugin) {
+	public function upgrade($plugin) {
 		$this->init();
 		$this->upgrade_strings();
 
@@ -1241,7 +1242,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		add_filter('upgrader_clear_destination', array(&$this, 'delete_old_plugin'), 10, 4);
 
 		// Turn on Shopp's maintenance mode
-		shopp_set_setting('maintenance','on');
+		shopp_set_setting('maintenance', 'on');
 
 		$this->run(array(
 					'package' => $r->package,
@@ -1262,13 +1263,13 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Turn off Shopp's maintenance mode
-		shopp_set_setting('maintenance','off');
+		shopp_set_setting('maintenance', 'off');
 
 		// Force refresh of plugin update information
-		shopp_set_setting('updates',false);
+		shopp_set_setting('updates', false);
 	}
 
-	function addons ($return,$plugin) {
+	public function addons ($return, $plugin) {
 		$current = shopp_setting('updates');
 
 		if ( !isset( $current->response[ $plugin['plugin'].'/addons' ] ) ) return $return;
@@ -1276,11 +1277,11 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 
 		if (count($addons) > 0) {
 			$upgrader = new ShoppAddon_Upgrader( $this->skin );
-			$upgrader->addon_core_updates($addons,$this->working_dir);
+			$upgrader->addon_core_updates($addons, $this->working_dir);
 		}
 		$this->init(); // Get the current skin controller back for the core upgrader
 		$this->upgrade_strings(); // Reinstall our upgrade strings for core
-		$this->skin->feedback('<h4>'.__('Finishing Shopp upgrade...','Shopp').'</h4>');
+		$this->skin->feedback('<h4>'.__('Finishing Shopp upgrade...', 'Shopp').'</h4>');
 	}
 
 }
@@ -1306,20 +1307,20 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 	public $addons_dir = false;
 	public $destination = false;
 
-	function upgrade_strings () {
-		$this->strings['up_to_date'] = __('The add-on is at the latest version.','Shopp');
+	public function upgrade_strings () {
+		$this->strings['up_to_date'] = __('The add-on is at the latest version.', 'Shopp');
 		$this->strings['no_package'] = __('Upgrade package not available.');
-		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'),SHOPP_HOME);
+		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'), SHOPP_HOME);
 		$this->strings['unpack_package'] = __('Unpacking the update.');
-		$this->strings['deactivate_plugin'] = __('Deactivating the add-on.','Shopp');
-		$this->strings['remove_old'] = __('Removing the old version of the add-on.','Shopp');
-		$this->strings['remove_old_failed'] = __('Could not remove the old add-on.','Shopp');
-		$this->strings['process_failed'] = __('Add-on upgrade Failed.','Shopp');
-		$this->strings['process_success'] = __('Add-on upgraded successfully.','Shopp');
-		$this->strings['include_success'] = __('Add-on included successfully.','Shopp');
+		$this->strings['deactivate_plugin'] = __('Deactivating the add-on.', 'Shopp');
+		$this->strings['remove_old'] = __('Removing the old version of the add-on.', 'Shopp');
+		$this->strings['remove_old_failed'] = __('Could not remove the old add-on.', 'Shopp');
+		$this->strings['process_failed'] = __('Add-on upgrade Failed.', 'Shopp');
+		$this->strings['process_success'] = __('Add-on upgraded successfully.', 'Shopp');
+		$this->strings['include_success'] = __('Add-on included successfully.', 'Shopp');
 	}
 
-	function install ($package) {
+	public function install ($package) {
 
 		$this->init();
 		$this->install_strings();
@@ -1333,11 +1334,11 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 					));
 
 		// Force refresh of plugin update information
-		shopp_set_setting('updates',false);
+		shopp_set_setting('updates', false);
 
 	}
 
-	function addon_core_updates ($addons,$working_core) {
+	public function addon_core_updates ($addons, $working_core) {
 
 		$this->init();
 		$this->upgrade_strings();
@@ -1381,7 +1382,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 	}
 
-	function upgrade ($addon,$type) {
+	public function upgrade ($addon, $type) {
 		$this->init();
 		$this->upgrade_strings();
 
@@ -1423,10 +1424,10 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Force refresh of plugin update information
-		shopp_set_setting('updates',false);
+		shopp_set_setting('updates', false);
 	}
 
-	function run ($options) {
+	public function run ($options) {
 		global $wp_filesystem;
 		$defaults = array( 	'package' => '', //Please always pass this.
 							'destination' => '', //And this
@@ -1463,7 +1464,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		}
 
 		//Unzip's the file into a temporary directory
-		$working_dir = $this->unpack_package( $download,true,($with_core)?false:true );
+		$working_dir = $this->unpack_package( $download, true, ($with_core)?false:true );
 		if ( is_wp_error($working_dir) ) {
 			$this->skin->error($working_dir);
 			return $working_dir;
@@ -1506,7 +1507,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		return $result;
 	}
 
-	function plugin_info () {
+	public function plugin_info () {
 		if ( ! is_array($this->result) )
 			return false;
 		if ( empty($this->result['destination_name']) )
@@ -1521,7 +1522,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		return $this->result['destination_name'] . '/' . $pluginfiles[0];
 	}
 
-	function install_package ($args = array()) {
+	public function install_package ($args = array()) {
 		global $wp_filesystem;
 		$defaults = array( 'source' => '', 'destination' => '', //Please always pass these
 						'clear_destination' => false, 'clear_working' => false,
@@ -1567,8 +1568,8 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 		//Protection against deleting files in any important base directories.
 		if ((
-			in_array( $destination, array(ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes',SHOPP_GATEWAYS,SHOPP_SHIPPING,SHOPP_STORAGE) ) ||
-			in_array( basename($destination), array(basename(SHOPP_GATEWAYS),basename(SHOPP_SHIPPING),basename(SHOPP_STORAGE)) )
+			in_array( $destination, array(ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes', SHOPP_GATEWAYS, SHOPP_SHIPPING, SHOPP_STORAGE) ) ||
+			in_array( basename($destination), array(basename(SHOPP_GATEWAYS), basename(SHOPP_SHIPPING), basename(SHOPP_STORAGE)) )
 		) && $source_isdir) {
 			$remote_destination = trailingslashit($remote_destination) . trailingslashit(basename($source));
 			$destination = trailingslashit($destination) . trailingslashit(basename($source));
@@ -1631,7 +1632,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		return $this->result;
 	}
 
-	function source_selector ($source, $remote_source) {
+	public function source_selector ($source, $remote_source) {
 		global $wp_filesystem;
 
 		$source_files = array_keys( $wp_filesystem->dirlist($source) );
@@ -1640,10 +1641,10 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		return $source;
 	}
 
-	function destination_selector ($destination, $remote_destination) {
+	public function destination_selector ($destination, $remote_destination) {
 		global $wp_filesystem;
 
-		if (strpos(basename($destination),'.tmp') !== false)
+		if (strpos(basename($destination), '.tmp') !== false)
 			$destination = trailingslashit(dirname($destination));
 
 		return $destination;
@@ -1675,7 +1676,7 @@ class Shopp_Upgrader_Skin extends Plugin_Upgrader_Skin {
 	 *
 	 * @return void Description...
 	 **/
-	function header() {
+	public function header() {
 		if ( $this->done_header )
 			return;
 		$this->done_header = true;
@@ -1692,7 +1693,7 @@ class Shopp_Upgrader_Skin extends Plugin_Upgrader_Skin {
 	 *
 	 * @return void
 	 **/
-	function after() {
+	public function after() {
 		$this->feedback('<a href="' . admin_url('plugins.php') . '" title="' . esc_attr__('Return to Plugins page') . '" target="_parent" class="button-secondary">' . __('Return to Plugins page') . '</a>');
 	}
 

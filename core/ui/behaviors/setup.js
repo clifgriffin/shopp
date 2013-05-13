@@ -10,14 +10,23 @@ jQuery(document).ready(function ($) {
 		activationStatus = $('#activation-status'),
 
 		activationButton = $('#activation-button').click(function () {
-			$(this).val($sl.connecting).attr('disabled',true).addClass('updating');
-			if ($(this).hasClass('deactivation'))
-				$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
-			else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
+			var $this = $(this),
+				$parent = $this.parent(),
+				activate = act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),
+				deactivate = deact_key_url+'&action=shopp_deactivate_key',
+				request = activate;
+
+			$this.val($sl.connecting).attr('disabled',true).addClass('updating');
+			$parent.spin({ lines: 8, length: 2, width: 2, radius: 3, className: 'spin', left: '7px', color: '#444' });
+
+			if ( $(this).hasClass('deactivation') ) request = deactivate;
+			$.getJSON(request,activation).fail(failure).always(completed);
+
 		}).html(activated?$sl.deactivate_button:$sl.activate_button),
 
 		activation = function (response,success,request) {
 			var button = activationButton.attr('disabled',false).removeClass('updating'),
+				spinner = button.parent().spin(false),
 				keyin = $('#update-key'),
 				code = (response instanceof Array)?response[0]:false,
 				key = (response instanceof Array)?response[1]:false,
@@ -50,7 +59,19 @@ jQuery(document).ready(function ($) {
 				activationStatus.html($sl[code]?$sl[code]:'A problem with your WordPress install causing problems with activation/deactivation.').show();
 			} else activationStatus.addClass('activating').show();
 
-		};
+		},
+
+		failure = function (request,status) {
+			var code = 'k_1';
+			if ( 'parsererror' == status ) code = 'k_001';
+			activationStatus.html($sl[code]).addClass('activating').show();
+			activationButton.val($sl.fail);
+		},
+
+		completed = function (request,status) {
+			var button = activationButton.removeClass('updating'),
+				spinner = button.parent().spin(false);
+		}
 
 	if (activated) activation([1],'success');
 	else activationStatus.show();

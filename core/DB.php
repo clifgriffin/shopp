@@ -31,9 +31,10 @@ if ( ini_get('zend.ze1_compatibility_mode') )
  * @version 1.2
  **/
 class DB extends SingletonFramework {
+
 	static $version = 1150;	// Database schema version
 
-	protected static $instance;
+	protected static $object;
 
 	// Define datatypes for MySQL
 	private static $datatypes = array(
@@ -81,17 +82,17 @@ class DB extends SingletonFramework {
 	 *
 	 * @return DB Returns a reference to the DB object
 	 **/
-	static function &get () {
-		return self::instance();
+	public static function get () {
+		return self::object();
 	}
 
-	static function &instance () {
-		if ( ! self::$instance instanceof self )
-			self::$instance = new self;
-		return self::$instance;
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
-	static function table_prefix () {
+	public static function table_prefix () {
 		global $wpdb;
 		return $wpdb->get_blog_prefix();
 	}
@@ -108,7 +109,7 @@ class DB extends SingletonFramework {
 	 * @param string $host The host name of the server
 	 * @return void
 	 **/
-	function connect ($user, $password, $database, $host) {
+	public function connect ($user, $password, $database, $host) {
 		$this->dbh = @mysql_connect($host, $user, $password);
 		if ( ! $this->dbh ) trigger_error("Could not connect to the database server '$host'.");
 		else $this->db($database);
@@ -122,7 +123,7 @@ class DB extends SingletonFramework {
 	 *
 	 * @return boolean
 	 **/
-	function reconnect () {
+	public function reconnect () {
 		if ( mysql_ping($this->dbh) ) return true;
 
 		@mysql_close($this->dbh);
@@ -143,7 +144,7 @@ class DB extends SingletonFramework {
 	 * @param string $database The database name
 	 * @return void
 	 **/
-	function db ($database) {
+	public function db ($database) {
 		if( ! @mysql_select_db($database,$this->dbh) )
 			trigger_error("Could not select the '$database' database.");
 	}
@@ -156,7 +157,7 @@ class DB extends SingletonFramework {
 	 *
 	 * @return boolean True if the table exists, otherwise false
 	 **/
-	function hastable ($table) {
+	public function hastable ($table) {
 		$table = DB::escape($table);
 		$result = DB::query("SHOW TABLES FROM ".DB_NAME." LIKE '$table'",'auto','col');
 		return ! empty($result);
@@ -171,7 +172,7 @@ class DB extends SingletonFramework {
 	 * @param string $datetime A MySQL date time string
 	 * @return int A timestamp number usable by PHP date functions
 	 **/
-	static function mktime ($datetime) {
+	public static function mktime ($datetime) {
 		$h = $mn = $s = 0;
 		list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,'%d-%d-%d %d:%d:%d');
 		if (max($Y, $M, $D, $h, $mn, $s) == 0) return 0;
@@ -187,7 +188,7 @@ class DB extends SingletonFramework {
 	 * @param int $timestamp A timestamp number
 	 * @return string An SQL datetime formatted string
 	 **/
-	static function mkdatetime ($timestamp) {
+	public static function mkdatetime ($timestamp) {
 		return date('Y-m-d H:i:s',$timestamp);
 	}
 
@@ -200,7 +201,7 @@ class DB extends SingletonFramework {
 	 * @param string|array|object $data Data to be escaped
 	 * @return string Database-safe data
 	 **/
-	static function escape ($data) {
+	public static function escape ($data) {
 		// Prevent double escaping by stripping any existing escapes out
 		if (is_array($data)) array_map(array('DB','escape'), $data);
 		elseif (is_object($data)) {
@@ -218,7 +219,7 @@ class DB extends SingletonFramework {
 	 * @param string|array|object $data Data to be sanitized
 	 * @return string Cleaned up data
 	 **/
-	static function clean ($data) {
+	public static function clean ($data) {
 		if (is_array($data)) array_map(array('DB','clean'), $data);
 		if (is_string($data)) $data = rtrim($data);
 		return $data;
@@ -232,7 +233,7 @@ class DB extends SingletonFramework {
 	 *
 	 * @return string The call stack
 	 **/
-	static function caller () {
+	public static function caller () {
 		$backtrace  = debug_backtrace();
 		$stack = array();
 
@@ -254,8 +255,8 @@ class DB extends SingletonFramework {
 	 * @param boolean $output (optional) Return results as an object (default) or as an array of result rows
 	 * @return array|object The query results as an object or array of result rows
 	 **/
-	static function query ($query, $format='auto', $callback=false) {
-		$db = DB::instance();
+	public static function query ($query, $format='auto', $callback=false) {
+		$db = DB::get();
 		$args = func_get_args();
 		$args = (count($args) > 3)?array_slice($args,3):array();
 
@@ -326,7 +327,7 @@ class DB extends SingletonFramework {
 	 * @param array $options The SQL fragments
 	 * @return string The complete SELECT SQL statement
 	 **/
-	static function select ( $options=array() ) {
+	public static function select ( $options=array() ) {
 		$defaults = array(
 			'columns' => '*',
 			'useindex' => '',
@@ -362,8 +363,8 @@ class DB extends SingletonFramework {
 	 *
 	 * @return int The number of records found
 	 **/
-	static function found () {
-		$db = DB::instance();
+	public static function found () {
+		$db = DB::get();
 		$found = $db->found;
 		$db->found = false;
 		return $found;
@@ -378,7 +379,7 @@ class DB extends SingletonFramework {
 	 * @param string $type The SQL data type
 	 * @return string|boolean The primitive datatype or false if not found
 	 **/
-	static function datatype ($type) {
+	public static function datatype ($type) {
 		foreach((array)DB::$datatypes as $datatype => $patterns) {
 			foreach((array)$patterns as $pattern) {
 				if (strpos($type,$pattern) !== false) return $datatype;
@@ -401,7 +402,7 @@ class DB extends SingletonFramework {
 	 * @param DatabaseObject $Object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
-	static function prepare ( $Object, array $mapping = array() ) {
+	public static function prepare ( $Object, array $mapping = array() ) {
 		$data = array();
 
 		// Go through each data property of the object
@@ -475,7 +476,7 @@ class DB extends SingletonFramework {
 	 * @param string $column The column name to inspect
 	 * @return array List of values
 	 **/
-	static function column_options($table = null, $column = null) {
+	public static function column_options($table = null, $column = null) {
 		if ( ! ($table && $column)) return array();
 		$r = DB::query("SHOW COLUMNS FROM $table LIKE '$column'");
 		if ( strpos($r[0]->Type,"enum('") )
@@ -495,7 +496,7 @@ class DB extends SingletonFramework {
 	 * @param string $queries Long string of multiple queries
 	 * @return boolean
 	 **/
-	function loaddata ($queries) {
+	public function loaddata ($queries) {
 		$queries = explode(";\n", $queries);
 		array_pop($queries);
 		foreach ($queries as $query) if (!empty($query)) DB::query($query);

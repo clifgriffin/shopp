@@ -64,9 +64,6 @@
 	</div>
 
 <?php else : ?>
-	<?php if ( ! shopp( 'catalog.is-landing' ) ) : ?>
-		<?php shopp( 'catalog.breadcrumb' ); ?>
-		<h3><?php shopp( 'collection.name' ); ?></h3>
-		<p><?php _e( 'No products were found.', 'Shopp' ); ?></p>
-	<?php endif; ?>
+	<?php if ( ! shopp('storefront.is-landing') ) shopp( 'catalog.breadcrumb' ); ?>
+	<p class="notice"><?php _e( 'No products were found.', 'Shopp' ); ?></p>
 <?php endif; ?>

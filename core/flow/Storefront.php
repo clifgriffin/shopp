@@ -152,7 +152,10 @@ class Storefront extends FlowController {
 	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
 	 **/
 	public function posts ( array $posts, WP_Query $wp_query ) {
-		if ( $this->request($wp_query) && ! is_shopp_collection() ) {
+
+		if ( is_shopp_taxonomy($wp_query) ) return $posts;
+
+		if ( $this->request($wp_query) ) {
 			$StubPage = new ShoppPage();
 			return array( $StubPage->poststub() );
 		}
@@ -214,8 +217,8 @@ class Storefront extends FlowController {
 			foreach ( $taxonomies as $t ) {
 				if ( '' == $wp_query->get($t->query_var) ) continue;
 				$taxonomy = $wp_query->get($t->query_var);
-				if ( $t->hierarchical ) ShoppCollection( new ProductCategory($taxonomy,'slug',$t->name) );
-				else ShoppCollection( new ProductTag($taxonomy,'slug',$t->name) );
+				if ( $t->hierarchical ) ShoppCollection( new ProductCategory($taxonomy, 'slug', $t->name) );
+				else ShoppCollection( new ProductTag($taxonomy, 'slug', $t->name) );
 				$page = $catalog;
 			}
 		}
@@ -248,6 +251,7 @@ class Storefront extends FlowController {
 			$post_archive->post_title = ShoppCollection()->name; // Added so single_post_title will return the title properly
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
+
 		}
 
 		$Collection = ShoppCollection();
@@ -397,6 +401,10 @@ class Storefront extends FlowController {
 	 * @return string The output of the templates
 	 **/
 	public function pages ( string $template ) {
+		// Catch smart collection pages
+		if ( is_shopp_collection() )
+			return $this->collections($template);
+
 		// Get the requested storefront page identifier from the slug
 		$page = ShoppPages::request();
 		if ( empty($page) ) return $template;
@@ -603,6 +611,11 @@ class Storefront extends FlowController {
 			shopp_enqueue_script('address');
 			shopp_enqueue_script('checkout');
 		}
+
+		if ( is_confirm_page() ) {
+			shopp_enqueue_script('checkout');
+		}
+
 		if ( is_account_page() ) {
 			shopp_enqueue_script('address');
 			$regions = Lookup::country_zones();
@@ -867,6 +880,7 @@ class Storefront extends FlowController {
 	 * @return void Description...
 	 **/
 	public function cart () {
+
 		if ( isset($_REQUEST['shopping']) && 'reset' == strtolower($_REQUEST['shopping']) ) {
 			$Shopping = ShoppShopping();
 			$Shopping->reset();

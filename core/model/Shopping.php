@@ -31,7 +31,7 @@
  **/
 class Shopping extends SessionObject {
 
-	private static $instance;
+	private static $object;
 
 	/**
 	 * Shopping constructor
@@ -41,7 +41,7 @@ class Shopping extends SessionObject {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		// Set the database table to use
 		$this->_table = DatabaseObject::tablename('shopping');
 
@@ -53,10 +53,18 @@ class Shopping extends SessionObject {
 		add_action('init',array($this,'init'),2);
 	}
 
-	public static function instance () {
-		if ( ! self::$instance )
-			self::$instance = new self();
-		return self::$instance;
+	/**
+	 * The singleton access method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return Shopping
+	 **/
+	public static function object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
 
 	/**

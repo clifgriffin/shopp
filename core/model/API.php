@@ -13,8 +13,10 @@
  * @subpackage shopp
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 interface ShoppAPI {
-	static function _apicontext(); // returns the correct contextual object, if possible
+	public static function _apicontext(); // returns the correct contextual object, if possible
 }
 
 final class ShoppDeveloperAPI {
@@ -26,7 +28,7 @@ final class ShoppDeveloperAPI {
 	);
 
 	// Load public development API
-	static function load ( $basepath, $load = array() ) {
+	public static function load ( $basepath, $load = array() ) {
 		$path = realpath("$basepath/api");
 
 		$custom = apply_filters('shopp_developerapi_files',array());
@@ -67,7 +69,7 @@ class ShoppAPIModules extends ModuleLoader {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		$this->path = SHOPP_THEME_APIS;
 
 		$this->installed(); // Find modules
@@ -97,12 +99,12 @@ class ShoppAPIModules extends ModuleLoader {
 
 class ShoppAPIFile extends ModuleFile {
 
-	function load () {
-		require($this->file);
+	public function load () {
+		require $this->file;
 		$this->register();
 	}
 
-	function register () {
+	public function register () {
 		// Hook _context
 		$api = $this->subpackage;
 		$apicontext = call_user_func(array($api,'_apicontext'));
@@ -131,7 +133,7 @@ class ShoppAPIFile extends ModuleFile {
 
 	}
 
-	function setobject ($Object,$context) {
+	public function setobject ($Object,$context) {
 		if ( is_object($Object) ) return $Object;  // always use if first argument is an object
 
 		$api = $this->subpackage;
@@ -170,7 +172,7 @@ class ShoppRemoteAPIModules extends ModuleLoader {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
+	public function __construct () {
 		$this->path = SHOPP_REMOTE_APIS;
 
 		$this->installed(); // Find modules
@@ -182,15 +184,15 @@ class ShoppRemoteAPIModules extends ModuleLoader {
 
 class ShoppRemoteAPIFile extends ModuleFile {
 
-	function load () {
+	public function load () {
 		include_once($this->file);
 		$this->register();
 	}
 
-	function register () {
+	public function register () {
 		// Hook _context
 		$api = $this->subpackage;
-		if ( method_exists($api,'_register') ) call_user_func(array($api,'_register'));
+		if ( method_exists($api,'_register') ) call_user_func( array($api, '_register') );
 	}
 
 }
