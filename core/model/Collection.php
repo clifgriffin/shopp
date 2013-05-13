@@ -280,7 +280,7 @@ class ProductCollection implements Iterator {
 		$queryvars = array($this->taxonomy=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false) );
+		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false), $page );
 	}
 
 	// Add alpha-pagination support to category/collection pagination rules
@@ -750,7 +750,7 @@ class ProductTaxonomy extends ProductCollection {
 
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
 
-		return apply_filters('shopp_paged_link',$url);
+		return apply_filters('shopp_paged_link', $url, $page);
 	}
 
 	static function recount ($terms, $taxonomy) {
@@ -1859,7 +1859,7 @@ class TagProducts extends SmartCollection {
 
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
 
-		return apply_filters('shopp_paged_link',$url);
+		return apply_filters('shopp_paged_link', $url, $page);
 	}
 }
 
