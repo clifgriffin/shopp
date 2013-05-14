@@ -482,7 +482,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$maxwidth = $maxheight = 0;
 
 		foreach ($O->images as $img) {
-			$scale = $p_fit?false:array_search($p_fit,$img->_scaling);
+			$scale = $p_fit?array_search($p_fit,$img->_scaling):false;
 			$scaled = $img->scaled($width,$height,$scale);
 			$maxwidth = max($maxwidth,$scaled['width']);
 			$maxheight = max($maxheight,$scaled['height']);
