@@ -713,7 +713,7 @@ class PurchasesExport {
 			foreach ($list as $name => $value)
 				$column .= (empty($column)?"":";")."$name:$value";
 		}
-		return $column;
+		return $this->escape($column);
 	}
 
 	function end() {}
@@ -729,35 +729,57 @@ class PurchasesExport {
 		$this->recordstart = true;
 	}
 
-	function settings () {}
+	function settings () {
+		/** Placeholder **/
+	}
+
+	function escape ($value) {
+		return $value;
+	}
 
 }
 
 class PurchasesTabExport extends PurchasesExport {
+
 	function __construct () {
-		parent::PurchasesExport();
+		parent::__construct();
 		$this->output();
 	}
+
+	function escape ($value) {
+		$value = str_replace(array("\n", "\r"), ' ', $value); // No newlines
+		if ( false !== strpos($value, "\t") && false === strpos($value,'"') )	// Quote tabs
+			$value = '"' . $value . '"';
+		return $value;
+	}
+
 }
 
 class PurchasesCSVExport extends PurchasesExport {
+
 	function __construct () {
-		parent::PurchasesExport();
+		parent::__construct();
 		$this->content_type = "text/csv";
 		$this->extension = "csv";
 		$this->output();
 	}
 
 	function export ($value) {
-		$value = str_replace('"','""',$value);
-		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
 		echo ($this->recordstart?"":",").$value;
 		$this->recordstart = false;
+	}
+
+	function escape ($value) {
+		$value = str_replace('"','""',$value);
+		if ( preg_match('/^\s|[,"\n\r]|\s$/',$value) )
+			$value = '"'.$value.'"';
+		return $value;
 	}
 
 }
 
 class PurchasesXLSExport extends PurchasesExport {
+
 	function __construct () {
 		parent::__construct();
 		$this->content_type = "application/vnd.ms-excel";
