@@ -68,7 +68,7 @@ abstract class ModuleLoader {
 	 * @return void
 	 **/
 	function load ($all=false) {
-		if ($all) $activate = array_diff( array_keys($this->modules), $this->activated );
+		if ($all) $activate = array_keys($this->modules);
 		else $activate = $this->activated;
 
 		foreach ($activate as $module) {
