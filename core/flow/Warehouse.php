@@ -937,6 +937,8 @@ class Warehouse extends AdminController {
 			}
 		}
 
+		$Product->load_data(); // Reload data so everything is fresh for shopp_product_saved
+
 		do_action_ref_array('shopp_product_saved',array(&$Product));
 
 		unset($Product);
