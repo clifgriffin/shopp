@@ -82,7 +82,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	);
 
 
-	static function _apicontext () { return 'customer'; }
+	public static function _apicontext () { return 'customer'; }
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('customer') call
@@ -91,7 +91,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * @since 1.2
 	 *
 	 **/
-	static function _setobject ($Object, $object) {
+	public static function _setobject ($Object, $object) {
 		if ( is_object($Object) && is_a($Object, 'Customer') ) return $Object;
 
 		if ( strtolower($object) != 'customer' ) return $Object; // not mine, do nothing
@@ -101,25 +101,25 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return false;
 	}
 
-	static function account_login ($result, $options, $O) {
+	public static function account_login ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['account-login']))
 			$options['value'] = $_POST['account-login'];
 		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 	}
 
-	static function accounts ($result, $options, $O) { return shopp_setting('account_system'); }
+	public static function accounts ($result, $options, $O) { return shopp_setting('account_system'); }
 
-	static function account_url ($result, $options, $O) { return shoppurl(false,'account'); }
+	public static function account_url ($result, $options, $O) { return shoppurl(false,'account'); }
 
-	static function action ($result, $options, $O) {
+	public static function action ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		$request = false; $id = false;
 		if (isset($Storefront->account)) extract($Storefront->account);
 		return shoppurl(array($request=>''),'account');
 	}
 
-	static function billing_address ($result, $options, $O) {
+	public static function billing_address ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Billing->address;
 		if (!empty(ShoppOrder()->Billing->address))
@@ -127,7 +127,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 	}
 
-	static function billing_city ($result, $options, $O) {
+	public static function billing_city ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Billing->city;
 		if (!empty(ShoppOrder()->Billing->city))
@@ -135,7 +135,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 	}
 
-	static function billing_country ($result, $options, $O) {
+	public static function billing_country ($result, $options, $O) {
 		global $Shopp;
 
 		$base = shopp_setting('base_operations');
@@ -153,7 +153,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	static function billing_postcode ($result, $options, $O) {
+	public static function billing_postcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Billing->postcode;
 		if (!empty(ShoppOrder()->Billing->postcode))
@@ -162,7 +162,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 
-	static function billing_state ($result, $options, $O) {
+	public static function billing_state ($result, $options, $O) {
 		global $Shopp;
 		$base = shopp_setting('base_operations');
 		$countries = shopp_setting('target_markets');
@@ -207,7 +207,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	static function billing_xaddress ($result, $options, $O) {
+	public static function billing_xaddress ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Billing->xaddress;
 		if (!empty(ShoppOrder()->Billing->xaddress))
@@ -215,7 +215,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 	}
 
-	static function company ($result, $options, $O) {
+	public static function company ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->company;
 		if (!empty(ShoppOrder()->Customer->company))
@@ -223,13 +223,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="company" id="company" '.inputattrs($options).' />';
 	}
 
-	static function confirm_password ($result, $options, $O) {
+	public static function confirm_password ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		$options['value'] = "";
 		return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 	}
 
-	static function download ($result, $options, $O) {
+	public static function download ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		$download = current($Storefront->downloads);
 		$df = get_option('date_format');
@@ -252,7 +252,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $string;
 	}
 
-	static function downloads ($result, $options, $O) {
+	public static function downloads ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		if (empty($Storefront->downloads)) return false;
 		if (!isset($Storefront->_downloads_loop)) {
@@ -268,7 +268,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function email ($result, $options, $O) {
+	public static function email ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->email;
 		if (!empty(ShoppOrder()->Customer->email))
@@ -277,16 +277,16 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	// Disabled and Deprecated
-	static function errors ($result, $options, $O) {
+	public static function errors ($result, $options, $O) {
 		// Now handled in Storefront controller always.
 		return false;
 	}
-	static function errors_exist ($result, $options, $O) {
+	public static function errors_exist ($result, $options, $O) {
 		// Now handled in Storefront controller always.
 		return false;
 	}
 
-	static function first_name ($result, $options, $O) {
+	public static function first_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->firstname;
 		if (!empty(ShoppOrder()->Customer->firstname))
@@ -294,21 +294,21 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 	}
 
-	static function has_account ($result, $options, $O) {
+	public static function has_account ($result, $options, $O) {
 		$system = shopp_setting('account_system');
 		if ($system == "wordpress") return ($O->wpuser != 0);
 		elseif ($system == "shopp") return (!empty($O->password));
 		else return false;
 	}
 
-	static function has_downloads ($result, $options, $O) {
+	public static function has_downloads ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		if (!empty($Storefront->downloads))
 			reset($Storefront->downloads);
 		return (!empty($Storefront->downloads));
 	}
 
-	static function has_info ($result, $options, $O) {
+	public static function has_info ($result, $options, $O) {
 		if (!is_object($O->info) || empty($O->info->meta)) return false;
 		if (!isset($O->_info_looping)) {
 			reset($O->info->meta);
@@ -323,7 +323,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function has_purchases ($result, $options, $O) {
+	public static function has_purchases ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		$filters = array();
 		if (isset($options['daysago']))
@@ -334,7 +334,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return (!empty($Storefront->purchases));
 	}
 
-	static function info ($result, $options, $O) {
+	public static function info ($result, $options, $O) {
 		$defaults = array(
 			'mode' => 'input',
 			'type' => 'text',
@@ -364,7 +364,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
 	}
 
-	static function last_name ($result, $options, $O) {
+	public static function last_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->lastname;
 		if (!empty(ShoppOrder()->Customer->lastname))
@@ -372,9 +372,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
 	}
 
-	static function logged_in ($result, $options, $O) { return ShoppCustomer()->logged_in(); }
+	public static function logged_in ($result, $options, $O) { return ShoppCustomer()->logged_in(); }
 
-	static function login_label ($result, $options, $O) {
+	public static function login_label ($result, $options, $O) {
 		$accounts = shopp_setting('account_system');
 		$label = __('Email Address','Shopp');
 		if ($accounts == "wordpress") $label = __('Login Name','Shopp');
@@ -382,7 +382,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $label;
 	}
 
-	static function login_name ($result, $options, $O) {
+	public static function login_name ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->loginname;
@@ -391,7 +391,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
 	}
 
-	static function marketing ($result, $options, $O) {
+	public static function marketing ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->marketing;
 		if (!empty(ShoppOrder()->Customer->marketing))
@@ -406,15 +406,15 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 
-	static function not_logged_in ($result, $options, $O) {
+	public static function not_logged_in ($result, $options, $O) {
 		return (! ShoppCustomer()->logged_in() && shopp_setting('account_system') != "none");
 	}
 
-	static function order ($result, $options, $O) {
+	public static function order ($result, $options, $O) {
 		return shoppurl(array('orders'=>ShoppPurchase()->id),'account');
 	}
 
-	static function order_lookup ($result, $options, $O) {
+	public static function order_lookup ($result, $options, $O) {
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
 			ShoppPurchase( new Purchase((int)$_POST['purchaseid']) );
 			if (ShoppPurchase()->email == $_POST['email']) {
@@ -436,7 +436,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return apply_filters('shopp_order_lookup',$content);
 	}
 
-	static function password ($result, $options, $O) {
+	public static function password ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value")
@@ -446,20 +446,20 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 	}
 
-	static function password_changed ($result, $options, $O) {
+	public static function password_changed ($result, $options, $O) {
 		$change = (isset($O->_password_change) && $O->_password_change);
 		unset($O->_password_change);
 		return $change;
 	}
 
-	static function password_login ($result, $options, $O) {
+	public static function password_login ($result, $options, $O) {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if (!empty($_POST['password-login']))
 			$options['value'] = $_POST['password-login'];
 		return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
 	}
 
-	static function phone ($result, $options, $O) {
+	public static function phone ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Customer->phone;
 		if (!empty(ShoppOrder()->Customer->phone))
@@ -468,13 +468,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 
-	static function profile_saved ($result, $options, $O) {
+	public static function profile_saved ($result, $options, $O) {
 		$saved = (isset($O->_saved) && $O->_saved);
 		unset($O->_saved);
 		return $saved;
 	}
 
-	static function purchases ($result, $options, $O) {
+	public static function purchases ($result, $options, $O) {
 		$null = null;
 		$Storefront = ShoppStorefront();
 		if (!isset($Storefront->_purchases_loop)) {
@@ -493,14 +493,14 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function recover_button ($result, $options, $O) {
+	public static function recover_button ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
 		return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 	}
 
-	static function recover_url ($result, $options, $O) { return add_query_arg('recover','',shoppurl(false,'account')); }
+	public static function recover_url ($result, $options, $O) { return add_query_arg('recover','',shoppurl(false,'account')); }
 
-	static function register ($result, $options, $O) {
+	public static function register ($result, $options, $O) {
 		$defaults = array(
 			'label' => __('Register','Shopp')
 		);
@@ -512,7 +512,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="submit" name="shopp_registration" '.inputattrs($options,$submit_attrs).' />';
 	}
 
-	static function registration_errors ($result, $options, $O) {
+	public static function registration_errors ($result, $options, $O) {
 		$Errors =& ShoppErrors();
 		if (!$Errors->exist(SHOPP_ERR)) return false;
 		ob_start();
@@ -522,14 +522,14 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $markup;
 	}
 
-	static function registration_form ($result, $options, $O) {
+	public static function registration_form ($result, $options, $O) {
 		$regions = Lookup::country_zones();
 		add_storefrontjs("var regions = ".json_encode($regions).";",true);
 		shopp_enqueue_script('address');
 		return $_SERVER['REQUEST_URI'];
 	}
 
-	static function residential_shipping_address ($result, $options, $O) {
+	public static function residential_shipping_address ($result, $options, $O) {
 		$label = __("Residential shipping address","Shopp");
 		if (isset($options['label'])) $label = $options['label'];
 		if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
@@ -537,7 +537,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	static function same_shipping_address ($result, $options, $O) {
+	public static function same_shipping_address ($result, $options, $O) {
 		$allowed = array('class','checked');
 		$defaults = array(
 			'label' => __('Same shipping address','Shopp'),
@@ -570,18 +570,18 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	static function save_button ($result, $options, $O) {
+	public static function save_button ($result, $options, $O) {
 		if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
 		$result = '<input type="hidden" name="customer" value="true" />';
 		$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />';
 		return $result;
 	}
 
-	static function shipping ($result, $options, $O) {
+	public static function shipping ($result, $options, $O) {
 		return ShoppOrder()->Shipping;
 	}
 
-	static function shipping_address ($result, $options, $O) {
+	public static function shipping_address ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Shipping->address;
 		if (!empty(ShoppOrder()->Shipping->address))
@@ -589,7 +589,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 	}
 
-	static function shipping_city ($result, $options, $O) {
+	public static function shipping_city ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Shipping->city;
 		if (!empty(ShoppOrder()->Shipping->city))
@@ -597,7 +597,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 	}
 
-	static function shipping_country ($result, $options, $O) {
+	public static function shipping_country ($result, $options, $O) {
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
@@ -614,7 +614,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	static function shipping_postcode ($result, $options, $O) {
+	public static function shipping_postcode ($result, $options, $O) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return ShoppOrder()->Shipping->postcode;
 		if (!empty(ShoppOrder()->Shipping->postcode))
@@ -622,7 +622,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />';
 	}
 
-	static function shipping_state ($result, $options, $O) {
+	public static function shipping_state ($result, $options, $O) {
 		global $Shopp;
 
 		$base = shopp_setting('base_operations');
@@ -668,14 +668,15 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return $output;
 	}
 
-	static function shipping_xaddress ($result, $options, $O) {
-		if ( isset($options['mode']) && "value" == $options['mode'] ) return ShoppOrder()->Shipping->xaddress;
+	public static function shipping_xaddress ($result, $options, $O) {
+		if (!isset($options['mode'])) $options['mode'] = "input";
+		if ($options['mode'] == "value") return ShoppOrder()->Shipping->xaddress;
 		if (!empty(ShoppOrder()->Shipping->xaddress))
 			$options['value'] = ShoppOrder()->Shipping->xaddress;
 		return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 	}
 
-	static function submit_login ($result, $options, $O) {
+	public static function submit_login ($result, $options, $O) {
 		if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 		$string = "";
 		$id = "submit-login";
@@ -703,12 +704,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return esc_html($type);
 	}
 
-	static function url ($result, $options, $O) {
+	public static function url ($result, $options, $O) {
 		global $Shopp;
 		return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure);
 	}
 
-	static function wpuser_created ($result, $options, $O) { return $O->newuser; }
+	public static function wpuser_created ($result, $options, $O) { return $O->newuser; }
 
 	/*************
 	 * DEPRECATED *
@@ -717,14 +718,14 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	/**
 	 * @deprecated Replaced by shopp('storefront','account-menu')
 	 **/
-	static function menu ($result, $options, $O) {
+	public static function menu ($result, $options, $O) {
 		return ShoppStorefrontThemeAPI::account_menu($result,$options,$O);
 	}
 
 	/**
 	 * @deprecated No longer necessary
 	 **/
-	static function process ($result, $options, $O) {
+	public static function process ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		return $Storefront->account['request'];
 	}
@@ -732,7 +733,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	/**
 	 * @deprecated Replaced by shopp('storefront','account-menuitem')
 	 **/
-	static function management ($result, $options, $O) {
+	public static function management ($result, $options, $O) {
 		return ShoppStorefrontThemeAPI::account_menuitem($result,$options,$O);
 	}
 
