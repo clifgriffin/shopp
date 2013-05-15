@@ -1179,15 +1179,11 @@ function shopp_product_set_packaging ( $product = false, $flag = false ) {
 	}
 
 	return shopp_set_product_meta ( $product, 'packaging', $flag ? 'on' : 'off' );
-
 }
 
 /**
- * shopp_product_set_processing - @todo complete after processing implementation
  * shopp_product_set_processing - Enable the product processing timeframe settings and specify the minimum and maxiumm
  *
- * @author John Dillick
- * @since
  * The $minimum and $maximum fields accept timeframes specified as an integer number followed by the period unit abbreviation.
  * The supported abbreviations are:
  * 	- h	Hours
@@ -1200,13 +1196,11 @@ function shopp_product_set_packaging ( $product = false, $flag = false ) {
  * @author John Dillick, Jonathan Davis
  * @since 1.2.6
  *
- * @return void this function does nothing currently... just a stub
  * @param int $product (required) the product id
  * @param bool $flag True to set enable the order processing settings, false to disable order processing times
  * @param string $minimum (optional default:'') Set to the earliest possible processing time frame using the format described above
  * @return bool True on success, false on failure
  **/
-function shopp_product_set_processing ( $product, $flag, $settings ) {
 function shopp_product_set_processing ( $product, $flag, $minimum = '', $maximum = '' ) {
 	if ( false === $product ) {
 		shopp_debug(__FUNCTION__ . " failed: Product id required.");
@@ -1218,9 +1212,6 @@ function shopp_product_set_processing ( $product, $flag, $minimum = '', $maximum
 		shopp_debug(__FUNCTION__ . " failed: Product id $product not found.");
 		return false;
 	}
-	/*
-		TODO implement
-	*/
 
 	$settings = array(
 		'minprocess' => $minimum,
@@ -1237,6 +1228,34 @@ function shopp_product_set_processing ( $product, $flag, $minimum = '', $maximum
 	}
 
 	return shopp_set_product_meta ( $product, 'processing', $flag ? 'on' : 'off' );
+}
+
+/**
+ * shopp_product_set_exclude_taxes() - Set the exclude taxes setting for a give product
+ *
+ * Exclude taxes, unlike the priceline "Not Taxed" setting allows products to exclude taxes
+ * when Shopp is running in inclusive tax mode. This is not the same as Not Taxed because the
+ * taxes that apply to the product will apply after the price (excluded tax mode).
+ *
+ * @author Jonathan Davis
+ * @since 1.2.6
+ *
+ * @param int $product (required) the product id
+ * @param bool $flag Set to true to enable the Exclude Taxes setting for the product, false to disable it
+ * @return bool True on success, false on failure
+ **/
+function shopp_product_set_exclude_taxes ( $product, $flag ) {
+	if ( false === $product ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id required.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+	$Product = new Product($product);
+	if ( empty($Product->id) ) {
+		if(SHOPP_DEBUG) new ShoppError(__FUNCTION__." failed: Product id $product not found.",__FUNCTION__,SHOPP_DEBUG_ERR);
+		return false;
+	}
+
+	return shopp_set_product_meta ( $product, 'excludetax', $flag ? 'on' : 'off' );
 }
 
 // Non-variant setters
@@ -1266,7 +1285,7 @@ function shopp_product_set_type ( $product = false, $type = 'N/A' ) {
 		shopp_debug(__FUNCTION__ . " failed: Unable to load.");
 		return false;
 	}
-	return shopp_product_variant_set_type (  $Price->id, $type, 'product' );
+	return shopp_product_variant_set_type ( $Price->id, $type, 'product' );
 }
 
 /**
