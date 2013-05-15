@@ -387,7 +387,7 @@ class CustomersExport {
 	var $set = 0;
 	var $limit = 1024;
 
-	function CustomersExport () {
+	function __construct () {
 		global $Shopp;
 
 		$this->customer_cols = Customer::exportcolumns();
@@ -472,14 +472,15 @@ class CustomersExport {
 			foreach ($list as $name => $value)
 				$column .= (empty($column)?"":";")."$name:$value";
 		}
-		return $column;
+
+		return $this->escape($column);
 	}
 
 	function end() {}
 
 	// Implement for exporting a single value
 	function export ($value) {
-		echo ($this->recordstart?"":"\t").$value;
+		echo ($this->recordstart?"":"\t").$this->escape($value);
 		$this->recordstart = false;
 	}
 
@@ -488,35 +489,55 @@ class CustomersExport {
 		$this->recordstart = true;
 	}
 
+	function escape ($value) {
+		return $value;
+	}
+
 }
 
 class CustomersTabExport extends CustomersExport {
-	function CustomersTabExport () {
-		parent::CustomersExport();
+
+	function __construct () {
+		parent::__construct();
 		$this->output();
 	}
+
+	function escape ($value) {
+		$value = str_replace(array("\n", "\r"), ' ', $value); // No newlines
+		if ( false !== strpos($value, "\t") && false === strpos($value,'"') )	// Quote tabs
+			$value = '"' . $value . '"';
+		return $value;
+	}
+
 }
 
 class CustomersCSVExport extends CustomersExport {
-	function CustomersCSVExport () {
-		parent::CustomersExport();
+
+	function __construct () {
+		parent::__construct();
 		$this->content_type = "text/csv";
 		$this->extension = "csv";
 		$this->output();
 	}
 
 	function export ($value) {
-		$value = str_replace('"','""',$value);
-		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
 		echo ($this->recordstart?"":",").$value;
 		$this->recordstart = false;
+	}
+
+	function escape ($value) {
+		$value = str_replace('"','""',$value);
+		if ( preg_match('/^\s|[,"\n\r]|\s$/',$value) )
+			$value = '"'.$value.'"';
+		return $value;
 	}
 
 }
 
 class CustomersXLSExport extends CustomersExport {
-	function CustomersXLSExport () {
-		parent::CustomersExport();
+
+	function __construct () {
+		parent::__construct();
 		$this->content_type = "application/vnd.ms-excel";
 		$this->extension = "xls";
 		$this->c = 0; $this->r = 0;
