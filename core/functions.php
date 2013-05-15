@@ -177,18 +177,19 @@ function array_filter_keys ($array,$mask) {
  * @param int $min The minimum in the distribution
  * @return array A list of number ranges
  **/
-function auto_ranges ($avg,$max,$min) {
+function auto_ranges ($avg, $max, $min, $values) {
+
 	$ranges = array();
 	if ($avg == 0 || $max == 0) return $ranges;
 	$power = floor(log10($avg));
 	$scale = pow(10,$power);
-	$median = round($avg/$scale)*$scale;
+	$mean = round($avg/$scale)*$scale;
 	$range = $max-$min;
 
 	if ($range == 0) return $ranges;
-	$steps = floor($range/$scale);
-	if ($steps > 7) $steps = 7;
 
+	$steps = $values;
+	if ($steps > 7) $steps = 7;
 	elseif ($steps < 2) {
 		$scale = $scale/2;
 		$steps = ceil($range/$scale);
@@ -196,7 +197,7 @@ function auto_ranges ($avg,$max,$min) {
 		elseif ($steps < 2) $steps = 2;
 	}
 
-	$base = max($median-($scale*floor(($steps-1)/2)),$scale);
+	$base = max($mean-($scale*floor(($steps-1)/2)),$scale);
 
 	for ($i = 0; $i < $steps; $i++) {
 		$range = array("min" => 0,"max" => 0);
@@ -206,6 +207,7 @@ function auto_ranges ($avg,$max,$min) {
 		$ranges[] = $range;
 		if ($i > 0) $base += $scale;
 	}
+
 	return $ranges;
 }
 
