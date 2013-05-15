@@ -258,8 +258,9 @@ class Order {
 		// Setup default payment method if the current is not found in the active gateways or payment options
 		if ( false == $processor || !in_array($this->paymethod,array_keys($this->payoptions))) {
 			$default = reset($this->payoptions);
-			if (!empty($default)) $this->paymethod = key($this->payoptions);
-			$this->processor = $this->payoptions[$this->paymethod]->processor;
+			if ( ! empty($default) ) $this->paymethod = key($this->payoptions);
+			if ( isset($this->payoptions[ $this->paymethod ]) )
+				$this->processor = $this->payoptions[ $this->paymethod ]->processor;
 		}
 
 	}

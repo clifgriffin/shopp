@@ -100,8 +100,8 @@ class Address extends DatabaseObject {
 		}
 
 		$this->region = false;
-		if (isset($regions[$countries[$this->country]['region']]))
-			$this->region = $regions[$countries[$this->country]['region']];
+		if ( isset($countries[ $this->country ]) && isset($regions[ $countries[ $this->country ]['region'] ]) )
+			$this->region = $regions[ $countries[ $this->country ]['region'] ];
 
 	}
 
