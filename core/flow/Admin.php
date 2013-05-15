@@ -165,7 +165,9 @@ class AdminFlow extends FlowController {
 		if (Shopp::maintenance()) return;
 
 		// Add contextual help menus
-		foreach ($this->Menus as $pagename => $item) $this->help($pagename,$item);
+		foreach ($this->Menus as $pagename => $screen) {
+			add_action("load-$screen", array($this, 'help'));
+		}
 	}
 
 	/**
@@ -372,24 +374,40 @@ class AdminFlow extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function help ($pagename,$menu) {
-		global $Shopp;
+	function help () {
+
+		$screen = get_current_screen();
+		$pagename = array_search($screen->id, $this->Menus);
+
+		if ('orders' == $pagename) $pagename = 'shopp-orders';
+
 		if (!isset($this->Pages[$pagename])) return;
 		$page = $this->Pages[$pagename];
 		$url = SHOPP_DOCS.str_replace("+","_",urlencode($page->doc));
 		$link = htmlspecialchars($page->doc);
 		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
 
-		$target = substr($menu,strrpos($menu,'-')+1);
+		get_current_screen()->add_help_tab(array(
+			'id' => 'shopp-help',
+			'title' => __('Help'),
+			'content' => $content
+		));
+
+		$target = substr($pagename,strrpos($pagename,'-')+1);
 		if ($target == "orders" || $target == "customers") {
 			ob_start();
 			include(SHOPP_PATH."/core/ui/help/$target.php");
 			$help = ob_get_contents();
 			ob_end_clean();
-			$content .= $help;
+
+			get_current_screen()->add_help_tab(array(
+				'id' => 'shopp-help-'.$target,
+				'title' => __('Advanced Search','Shopp'),
+				'content' => $help
+			));
+
 		}
 
-		add_contextual_help($menu,$content);
 	}
 
 	/**
