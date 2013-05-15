@@ -651,7 +651,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param $id - A string containing the object's id value
 	 * @param $key - A string of the name of the db object's primary key
 	 **/
-	function load ($arg1=false,$arg2=false) {
+	function load () {
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 
