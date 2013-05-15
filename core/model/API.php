@@ -101,7 +101,7 @@ class ShoppAPIFile extends ModuleFile {
 
 	public function load () {
 		require $this->file;
-		$this->register();
+		add_action( 'shopp_init', array($this, 'register') );
 	}
 
 	public function register () {
@@ -117,9 +117,12 @@ class ShoppAPIFile extends ModuleFile {
 		$register = get_class_property($api,'register');
 		if (!empty($register)) {
 			foreach ( $register as $tag => $method ) {
-				if ( is_callable(array($api, $method)) ) {
-					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($api, $method), 9, 4 ); // general filter
-					else add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($api, $method), 9, 3 );
+				if ( strpos($method, '::') !== false ) list($apiclass, $method) = explode('::', $method);
+				else $apiclass = $api;
+
+ 				if ( is_callable( array($apiclass, $method) ) ) {
+					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($apiclass, $method), 9, 4 ); // general filter
+					else add_filter( 'shopp_themeapi_'.strtolower($apicontext.'_'.$tag), array($apiclass, $method), 9, 3 );
 				}
 			}
 			return;
