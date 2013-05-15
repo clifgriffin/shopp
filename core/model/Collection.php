@@ -924,34 +924,36 @@ class ProductCategory extends ProductTaxonomy {
 			$Facet = $this->facets['price'];
 			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
-			if (!$this->loaded) $this->load();
-			if ('auto' == $this->pricerange) $ranges = auto_ranges($this->pricing->average,$this->pricing->max,$this->pricing->min);
+			if ( ! $this->loaded ) $this->load();
+			if ('auto' == $this->pricerange) $ranges = auto_ranges($this->pricing->average, $this->pricing->max, $this->pricing->min, $this->pricing->uniques);
 			else $ranges = $this->priceranges;
 
-			$casewhen = '';
-			foreach ($ranges as $index => $r) {
-				$minprice = $r['max'] > 0?" AND minprice <= {$r['max']}":"";
-				$casewhen .= " WHEN (minprice >= {$r['min']}$minprice) THEN $index";
-			}
+			if ( ! empty($ranges) ) {
+				$casewhen = '';
+				foreach ($ranges as $index => $r) {
+					$minprice = $r['max'] > 0 ? " AND minprice <= {$r['max']}":"";
+					$casewhen .= " WHEN (minprice >= {$r['min']}$minprice) THEN $index";
+				}
 
-			$sumtable = DatabaseObject::tablename(ProductSummary::$table);
-			$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
-				FROM $sumtable
-				WHERE product IN ($ids) GROUP BY rangeid";
-			$counts = DB::query($query,'array','col','total','rangeid');
+				$sumtable = DatabaseObject::tablename(ProductSummary::$table);
+				$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+					FROM $sumtable
+					WHERE product IN ($ids) GROUP BY rangeid";
+				$counts = DB::query($query,'array','col','total','rangeid');
 
-			foreach ($ranges as $id => $range) {
-				if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
-				$label = money($range['min']).' &mdash; '.money($range['max']);
-				if ($range['min'] == 0) $label = sprintf(__('Under %s','Shopp'),money($range['max']));
-				if ($range['max'] == 0) $label = sprintf(__('%s and up','Shopp'),money($range['min']));
+				foreach ($ranges as $id => $range) {
+					if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
+					$label = money($range['min']).' &mdash; '.money($range['max']);
+					if ($range['min'] == 0) $label = sprintf(__('Under %s','Shopp'),money($range['max']));
+					if ($range['max'] == 0) $label = sprintf(__('%s and up','Shopp'),money($range['min']));
 
-				$FacetFilter = new ProductCategoryFacetFilter();
-				$FacetFilter->label = $label;
-				$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
-				$FacetFilter->count = $counts[$id];
-				$Facet->filters[$FacetFilter->param] = $FacetFilter;
-			}
+					$FacetFilter = new ProductCategoryFacetFilter();
+					$FacetFilter->label = $label;
+					$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
+					$FacetFilter->count = $counts[$id];
+					$Facet->filters[$FacetFilter->param] = $FacetFilter;
+				}
+			} // END !empty($ranges)
 
 		}
 
@@ -964,11 +966,10 @@ class ProductCategory extends ProductTaxonomy {
 		$spectable = DatabaseObject::tablename(Spec::$table);
 
 		$query = "SELECT spec.name,spec.value,
-			IF(0 >= FIND_IN_SET(spec.name,'".join(",",$custom)."'),IF(spec.numeral > 0,spec.name,spec.value),spec.value) AS merge,
+			IF(0 >= FIND_IN_SET(spec.name,'".join(",",$custom)."'),IF(spec.numeral > 0,spec.name,spec.value),spec.value) AS merge, count(DISTINCT spec.value) AS uniques,
 			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
 			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
-
 		$specdata = DB::query($query,'array','index','name',true);
 
 		foreach ($this->specs as $spec) {
@@ -1042,30 +1043,35 @@ class ProductCategory extends ProductTaxonomy {
 						if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$data->value,$matches))
 							$format = $matches[1].'%s'.$matches[3];
 
-						$ranges = auto_ranges($data->avg,$data->max,$data->min);
-						$casewhen = '';
-						foreach ($ranges as $index => $r)
-							$casewhen .= " WHEN (spec.numeral >= {$r['min']} AND spec.numeral <= {$r['max']}) THEN $index";
+						$ranges = auto_ranges($data->avg,$data->max,$data->min,$data->uniques);
 
-						$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
-							FROM $spectable AS spec
-							WHERE spec.parent IN ($ids) AND spec.name='$Facet->name' AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
-						$counts = DB::query($query,'array','col','total','rangeid');
+						if ( ! empty($ranges) ) {
+							$casewhen = '';
+							foreach ($ranges as $index => $r) {
+								$max = $r['max'] > 0 ? " AND spec.numeral <= {$r['max']}":"";
+								$casewhen .= " WHEN (spec.numeral >= {$r['min']}$max) THEN $index";
+							}
 
-						foreach ($ranges as $id => $range) {
-							if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
+							$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
+								FROM $spectable AS spec
+								WHERE spec.parent IN ($ids) AND spec.name='$Facet->name' AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
+							$counts = DB::query($query,'array','col','total','rangeid');
 
-							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-							if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
-							elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
+							foreach ($ranges as $id => $range) {
+								if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
 
-							$FacetFilter = new ProductCategoryFacetFilter();
-							$FacetFilter->label = $label;
-							$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
-							$FacetFilter->count = $counts[$id];
-							$Facet->filters[$FacetFilter->param] = $FacetFilter;
+								$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+								if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
+								elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
 
-						}
+								$FacetFilter = new ProductCategoryFacetFilter();
+								$FacetFilter->label = $label;
+								$FacetFilter->param = urlencode($range['min'].'-'.$range['max']);
+								$FacetFilter->count = $counts[$id];
+								$Facet->filters[$FacetFilter->param] = $FacetFilter;
+							}
+
+						} // END !empty($ranges)
 					}
 
 			} // END switch
@@ -1307,12 +1313,14 @@ class ProductCategoryFacet {
 
 	static function range_labels ($range) {
 
-		if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
+		if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$range,$matches)) {
 			$label = $matches[1].' &mdash; '.$matches[3];
 			if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
 			if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
+			$range = $label;
 		}
 
+		return $range;
 	}
 
 }
