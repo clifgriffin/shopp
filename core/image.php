@@ -85,14 +85,13 @@ class ImageServer {
 
 		if ( empty($this->request) ) return; // No valid image request, bail
 
-		// Handle clear image requests (used in product gallery to reserve DOM dimensions)
-		if ( '000' == substr($this->request, 0, 3) )
-			$this->clearpng();
+		$clearpng = ( '000' == substr($this->request, 0, 3) );
 
 		foreach ( $_GET as $arg => $v ) {
 			if ( false !== strpos($arg, ',') ) {
 				$this->parameters = explode(',', $arg);
-				$this->valid = array_pop($this->parameters);
+				if ( ! $clearpng )
+					$this->valid = array_pop($this->parameters);
 			}
 		}
 
@@ -103,6 +102,9 @@ class ImageServer {
 		if ( $this->width == 0 && $this->height > 0 ) $this->width = $this->height;
 
 		$this->scale = $this->scaling[ $this->scale ];
+
+		// Handle clear image requests (used in product gallery to reserve DOM dimensions)
+		if ( $clearpng ) $this->clearpng();
 
 	}
 
