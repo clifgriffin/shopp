@@ -169,7 +169,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	static function facet_filter ($result, $options, $O) {
 		if (!isset($O->_filters_loop)) return false;
-		return $O->facet->selected;
+		return ProductCategoryFacet::range_labels($O->facet->selected);
 	}
 
 	static function facet_menus ($result, $options, $O) {
