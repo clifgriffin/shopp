@@ -523,7 +523,7 @@ class DB extends SingletonFramework {
 		else $col = reset($columns); // No column specified, get first column
 		if ($index) {
 			if (isset($record->$index)) $id = $record->$index;
-			else $id = null;
+			else $id = 0;
 			if ($collate && !empty($id)) {
 				if (isset($records[$id])) $records[$id][] = $col;
 				else $records[$id] = array($col);
