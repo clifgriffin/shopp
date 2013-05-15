@@ -360,7 +360,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		} else $_[] = '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
 		if ($postcode) {
 			$_[] = '<span>';
-			$_[] = '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
+			$_[] = '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="' . $Shipping->postcode . '"' . inputattrs($options) . ' />&nbsp;';
 			$_[] = '</span>';
 			$_[] = shopp('cart','get-update-button',array('value' => $button));
 		}

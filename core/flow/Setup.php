@@ -937,9 +937,6 @@ class Setup extends AdminController {
 		if (!$active_gateways) $gateways = array();
 		else $gateways = explode(',',$active_gateways);
 
-		$Gateways->settings();	// Load all installed gateways for settings UIs
-		do_action('shopp_setup_payments_init');
-
 		if (!empty($_GET['delete'])) {
 			$delete = $_GET['delete'];
 			check_admin_referer('shopp_delete_gateway');
@@ -977,9 +974,11 @@ class Setup extends AdminController {
 			}
 
 			$this->settings_save();
-			$Gateways->settings();	// Load all installed gateways for settings UIs
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
+
+		$Gateways->settings();	// Load all installed gateways for settings UIs
+		do_action('shopp_setup_payments_init');
 
 		$installed = array();
 		foreach($Gateways->modules as $slug => $module)

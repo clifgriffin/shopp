@@ -280,7 +280,7 @@ class ProductCollection implements Iterator {
 		$queryvars = array($this->taxonomy=>$this->uri);
 		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
-		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false) );
+		return apply_filters('shopp_paged_link', shoppurl($prettyurls?user_trailingslashit($prettyurl):$queryvars, false), $page );
 	}
 
 	// Add alpha-pagination support to category/collection pagination rules
@@ -750,7 +750,7 @@ class ProductTaxonomy extends ProductCollection {
 
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
 
-		return apply_filters('shopp_paged_link',$url);
+		return apply_filters('shopp_paged_link', $url, $page);
 	}
 
 	static function recount ($terms, $taxonomy) {
@@ -1859,7 +1859,7 @@ class TagProducts extends SmartCollection {
 
 		$url = ( '' == get_option('permalink_structure') ? add_query_arg($queryvars,$categoryurl) : user_trailingslashit($prettyurl) );
 
-		return apply_filters('shopp_paged_link',$url);
+		return apply_filters('shopp_paged_link', $url, $page);
 	}
 }
 
@@ -1894,22 +1894,24 @@ class RelatedProducts extends SmartCollection {
 			$this->product = ShoppProduct();
 
 		// Or load a product specified
-		if (isset($options['product'])) {
-			if ($options['product'] == "recent-cartitem") 			// Use most recently added item in the cart
+		if ( isset($options['product']) ) {
+			if ( 'recent-cartitem' == $options['product'] ) {			// Use most recently added item in the cart
 				$this->product = new Product($Cart->Added->product);
-			elseif (preg_match('/^[\d+]$/',$options['product'])) 	// Load by specified id
-				$this->product = new Product($options['product']);
-			else $this->product = new Product($options['product'],'slug'); // Load by specified slug
+			} elseif ( intval($options['product']) > 0 ) { 	// Load by specified id
+				$this->product = new Product( intval($options['product']) );
+			} else {
+				$this->product = new Product($options['product'],'slug'); // Load by specified slug
+			}
 		}
 
-		if (isset($options['tagged'])) {
+		if ( isset($options['tagged']) ) {
 			$tagged = new ProductTag($options['tagged'],'name');
 			if (!empty($tagged->id)) $scope[] = $tagged->id;
 			$name = $tagged->name;
 			$slug = $tagged->slug;
 		}
 
-		if (!empty($this->product->id)) {
+		if ( ! empty($this->product->id) ) {
 			$name = $this->product->name;
 			$slug = $this->product->slug;
 			$where = array("p.id != {$this->product->id}");
@@ -1918,7 +1920,6 @@ class RelatedProducts extends SmartCollection {
 				$this->product->load_data(array('tags'));
 
 			if (!$scope) $scope = array_keys($this->product->tags);
-
 		}
 		if (empty($scope)) return false;
 

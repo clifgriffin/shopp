@@ -181,7 +181,7 @@ function shopp_cart_item ( $item = false ) {
 
 	$items = shopp_cart_items();
 
-	if ( $item < 0 || $item >= count($items) ) {
+	if ( ! array_key_exists($item, $items) ) {
 		shopp_debug(__FUNCTION__ . " failed: No such item $item");
 		return false;
 	}
