@@ -37,7 +37,7 @@
 		}
 
 		if (count($gateways) == 0 && !$edit): ?>
-			<tr id="no-payment-settings"><td colspan="6"><?php _e('No payment methods, yet.','Shopp'); ?></td></tr>
+			<tr id="no-payment-settings"><td colspan="7"><?php _e('No payment methods, yet.','Shopp'); ?></td></tr>
 		<?php
 		endif;
 
