@@ -932,50 +932,54 @@ class Setup extends AdminController {
 		$Gateways = $Shopp->Gateways;
 
 	 	$active_gateways = shopp_setting('active_gateways');
-		if (!$active_gateways) $gateways = array();
-		else $gateways = explode(',',$active_gateways);
+		if ( ! $active_gateways ) $gateways = array();
+		else $gateways = explode(',', $active_gateways);
 
-		if (!empty($_GET['delete'])) {
+		$Gateways->settings();	// Load all installed gateways for settings UIs
+
+		if ( ! empty($_GET['delete']) ) {
 			$delete = $_GET['delete'];
 			check_admin_referer('shopp_delete_gateway');
-			if (in_array($delete,$gateways))  {
-				$position = array_search($delete,$gateways);
-				array_splice($gateways,$position,1);
-				shopp_set_setting('active_gateways',join(',',$gateways));
+			if ( in_array($delete, $gateways) )  {
+				$position = array_search($delete, $gateways);
+				array_splice($gateways, $position, 1);
+				shopp_set_setting('active_gateways', join(',', $gateways));
 			}
 		}
 
-		if (!empty($_POST['save'])) {
+		if ( ! empty($_POST['save']) ) {
 			check_admin_referer('shopp-settings-payments');
 			do_action('shopp_save_payment_settings');
 
-			if (isset($_POST['gateway'])) {
+			if ( isset($_POST['gateway']) ) {
 				$gateway = $_POST['gateway'];
 
 				// Handle Multi-instance payment systems
 				$indexed = false;
-				if (preg_match('/\[(\d+)\]/',$gateway,$matched)) {
-					$indexed = '-'.$matched[1];
-					$gateway = str_replace($matched[0],'',$gateway);
-					if (isset($Gateways->active[ $gateway ])) {
+				if ( preg_match('/\[(\d+)\]/', $gateway, $matched) ) {
+
+					$indexed = '-' . $matched[1];
+					$gateway = str_replace($matched[0], '', $gateway);
+
+					if ( isset($Gateways->active[ $gateway ]) ) {
 						$Gateway = $Gateways->active[ $gateway ];
-						$_POST['settings'][$gateway] = $_POST['settings'][$gateway]+$Gateway->settings;
+						$_POST['settings'][$gateway] = array_merge($Gateway->settings,$_POST['settings'][ $gateway ]);
 					}
 				}
 
-				if ( !empty($gateway) && isset($Gateways->active[ $gateway ]) ) {
-					if ( !in_array($gateway.$indexed,$gateways) ) {
-						$gateways[] =  $gateway.$indexed;
-						shopp_set_setting('active_gateways',join(',',$gateways));
-					}
+				if ( ! empty($gateway) && isset($Gateways->active[ $gateway ])
+						&& ! in_array($gateway . $indexed, $gateways) ) {
+					$gateways[] =  $gateway . $indexed;
+					shopp_set_setting('active_gateways', join(',', $gateways));
 				}
-			}
+
+			} // END isset($_POST['gateway])
 
 			$this->settings_save();
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
-		$Gateways->settings();	// Load all installed gateways for settings UIs
+		$Gateways->settings();	// Reload all installed gateways for settings UIs
 		do_action('shopp_setup_payments_init');
 
 		$installed = array();
