@@ -1833,27 +1833,31 @@ class TagProducts extends SmartCollection {
 
 		$this->tag = stripslashes(urldecode($options['tag']));
 
+		$terms = array();
+
 		$term = get_term_by('name',$this->tag,ProductTag::$taxon);
 
-		$tagquery = "";
-		if (strpos($options['tag'],',') !== false) {
-			$tags = explode(",",$options['tag']);
-			foreach ($tags as $tag)
-				$tagquery .= empty($tagquery)?"tag.name='$tag'":" OR tag.name='$tag'";
-		} else $tagquery = "tag.name='{$this->tag}'";
+		$tagquery = '';
+		if ( false !== strpos($options['tag'], ',') ) {
+			$tags = explode(',', $options['tag']);
+			foreach ( $tags as $tag ) {
+				$term = get_term_by('name', $tag, ProductTag::$taxon);
+				$terms[] = $term->term_id;
+			}
+		} else $terms[] = $term->term_id;
 
-		$this->name = sprintf(__('Products tagged "%s"','Shopp'),$this->tag);
+		$this->name = sprintf(__('Products tagged "%s"','Shopp'), $this->tag);
 		$this->uri = urlencode($this->tag);
 
 		global $wpdb;
 		$joins = array();
-		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
-		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
-		$where = array("tt.term_id='$term->term_id'");
+		$joins[ $wpdb->term_relationships ] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$joins[ $wpdb->term_taxonomy ] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
+		$where = array("tt.term_id IN (" . join(',', $terms) . ")");
 		$columns = 'COUNT(p.ID) AS score';
 		$groupby = 'p.ID';
 		$order = 'score DESC';
-		$this->loading = compact('columns','joins','where','groupby','order');
+		$this->loading = compact('columns', 'joins', 'where', 'groupby', 'order');
 	}
 
 	public function pagelink ($page) {
