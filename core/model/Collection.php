@@ -120,19 +120,19 @@ class ProductCollection implements Iterator {
 			$defaultsort = empty($order) ? $titlesort : $order;
 
 			// Define filterable built-in sort methods (you're welcome)
-			$sortmethods = apply_filters('shopp_collection_sort_methods',array(
+			$sortmethods = apply_filters('shopp_collection_sort_methods', array(
 				'bestselling' => "s.sold DESC,$titlesort",
-				'highprice' => "maxprice DESC,$titlesort",
-				'lowprice' => "minprice ASC,$titlesort",
-				'newest' => "p.post_date DESC,$titlesort",
-				'oldest' => "p.post_date ASC,$titlesort",
-				'random' => "RAND(".crc32($Shopping->session).")",
-				'chaos' => "RAND(".time().")",
-				'reverse' => "p.post_title DESC",
-				'title' => $titlesort,
-				'custom' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+				'highprice'   => "maxprice DESC,$titlesort",
+				'lowprice'    => "minprice ASC,$titlesort",
+				'newest'      => "p.post_date DESC,$titlesort",
+				'oldest'      => "p.post_date ASC,$titlesort",
+				'random'      => "RAND(".crc32($Shopping->session).")",
+				'chaos'       => "RAND(".time().")",
+				'reverse'     => "p.post_title DESC",
+				'title'       => $titlesort,
+				'custom'      => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
 				'recommended' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
-				'default' => $defaultsort
+				'default'     => $defaultsort
 			));
 
 			// Handle valid user browsing sort change requests
