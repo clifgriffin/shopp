@@ -312,9 +312,14 @@ class Warehouse extends AdminController {
 			}
 		}
 
+		$where = $subs[$this->view]['where'];
+
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
 			switch($sl) {
-				case "ns": $where[] = "s.inventory='off'"; break;
+				case "ns":
+					foreach ($where as &$w) $w = str_replace("s.inventory='on'","s.inventory='off'",$w);
+					$where[] = "s.inventory='off'";
+					break;
 				case "oos":
 					$where[] = "(s.inventory='on' AND s.stock = 0)";
 					break;
@@ -335,9 +340,6 @@ class Warehouse extends AdminController {
 		$pd = WPDatabaseObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
 		$ps = DatabaseObject::tablename(ProductSummary::$table);
-
-		$where = array_merge($where,$subs[$this->view]['where']);
-
 
 		$orderdirs = array('asc','desc');
 		if (in_array($order,$orderdirs)) $orderd = strtolower($order);
@@ -386,6 +388,7 @@ class Warehouse extends AdminController {
 				'limit'=>"$start,$per_page",
 				'nostock' => true,
 				'published' => false,
+				// 'debug' => true
 			);
 		}
 
