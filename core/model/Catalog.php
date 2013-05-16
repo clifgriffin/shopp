@@ -61,17 +61,18 @@ class Catalog {
 	 * @param string $method Add smart categories 'before' the list of the loaded categores or 'after' (defaults after)
 	 * @return void
 	 **/
-	function collections ($method="after") {
+	function collections ( $method = "after" ) {
 		global $Shopp;
+
+		$collections = array();
 		foreach ($Shopp->Collections as $Collection) {
-			$auto = get_class_property($Collection,'_auto');
-			if (!$auto) continue;
-			$category = new $Collection(array("noload" => true));
-			switch($method) {
-				case "before": array_unshift($this->categories,$category); break;
-				default: array_push($this->categories,$category);
-			}
+			$menu = get_class_property($Collection,'_menu');
+			if (!$menu) continue;
+			$collections[] = new $Collection(array("noload" => true));
 		}
+
+		if ( 'before' == $method ) $this->categories = array_merge($collections,$this->categories);
+		else $this->categories = array_merge($this->categories, $collections);
 	}
 
 	/**
