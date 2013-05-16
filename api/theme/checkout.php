@@ -17,6 +17,11 @@ add_filter('shopp_checkout_clickwrap_terms', 'convert_chars');
 add_filter('shopp_checkout_clickwrap_terms', 'wpautop');
 add_filter('shopp_checkout_clickwrap_terms', 'do_shortcode', 11); // AFTER wpautop()
 
+add_filter('shopp_checkout_order_data', 'esc_html');
+add_filter('shopp_checkout_order_data', 'wptexturize');
+add_filter('shopp_checkout_order_data', 'convert_chars');
+add_filter('shopp_checkout_order_data', 'wpautop');
+
 /**
  * Provides shopp('checkout') theme API functionality
  *
@@ -612,7 +617,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		}
 
 		if (isset($O->data[$name])) $data = $O->data[$name];
-		if ($name && $mode == "value") return $data;
+		if ($name && $mode == "value") return apply_filters('shopp_checkout_order_data', $data);
 
 		if (!in_array($type,$allowed_types)) $type = 'hidden';
 		if (empty($title)) $title = $name;

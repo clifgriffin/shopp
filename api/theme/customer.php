@@ -11,6 +11,11 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
+add_filter('shopp_customer_info', 'esc_html');
+add_filter('shopp_customer_info', 'wptexturize');
+add_filter('shopp_customer_info', 'convert_chars');
+add_filter('shopp_customer_info', 'wpautop');
+
 class ShoppCustomerThemeAPI implements ShoppAPI {
 	static $register = array(
 		'accounts' => 'accounts',
@@ -351,7 +356,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		switch ($mode) {
 			case "name": return $info->name; break;
-			case "value": return $info->value; break;
+			case "value": return apply_filters('shopp_customer_info', $info->value); break;
 		}
 
 		if (!$name && !empty($info->name)) $options['name'] = $info->name;

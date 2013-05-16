@@ -11,6 +11,8 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
+add_filter('shopp_cartitem_input_data', 'wpautop');
+
 /**
  * Provides support for the shopp('cartitem') tags
  *
@@ -309,8 +311,8 @@ class ShoppCartItemThemeAPI {
 	static function input ($result, $options, $O) {
 		$data = current($O->data);
 		$name = key($O->data);
-		if (isset($options['name'])) return $name;
-		return $data;
+		if ( isset($options['name']) ) return $name;
+		return apply_filters('shopp_cartitem_input_data', $data);
 	}
 
 	static function inputs_list ($result, $options, $O) {
@@ -334,7 +336,7 @@ class ShoppCartItemThemeAPI {
 		foreach ($O->data as $name => $data) {
 			if (in_array($name,$exclude)) continue;
 			if (is_array($data)) $data = join($separator,$data);
-			$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+			$result .= '<li><strong>'.$name.'</strong>: ' . apply_filters('shopp_cartitem_input_data', $data) . '</li>';
 		}
 		$result .= '</ul>'.$after;
 		return $result;

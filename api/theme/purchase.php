@@ -11,6 +11,21 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
+add_filter('shopp_purchase_item_input_data','esc_html');
+add_filter('shopp_purchase_item_input_data', 'wptexturize');
+add_filter('shopp_purchase_item_input_data', 'convert_chars');
+add_filter('shopp_purchase_item_input_data', 'wpautop');
+
+add_filter('shopp_purchase_item_input_data','esc_html');
+add_filter('shopp_purchase_item_input_data', 'wptexturize');
+add_filter('shopp_purchase_item_input_data', 'convert_chars');
+add_filter('shopp_purchase_item_input_data', 'wpautop');
+
+add_filter('shopp_purchase_order_data', 'esc_html');
+add_filter('shopp_purchase_order_data', 'wptexturize');
+add_filter('shopp_purchase_order_data', 'convert_chars');
+add_filter('shopp_purchase_order_data', 'wpautop');
+
 /**
  * Provides shopp('purchase') theme API functionality
  *
@@ -139,7 +154,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$data = current($O->data);
 		$name = key($O->data);
 		if (isset($options['name'])) return esc_html($name);
-		return esc_html($data);
+		return apply_filters('shopp_purchase_order_data', $data);
 	}
 
 	static function date ($result, $options, $O) {
@@ -372,7 +387,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$result .= $before.'<ul'.$classes.'>';
 		foreach ($item->data as $name => $data) {
 			if (in_array($name,$excludes)) continue;
-			$result .= '<li><strong>'.esc_html($name).'</strong>: '.esc_html($data).'</li>';
+			$result .= '<li><strong>'.esc_html($name).'</strong>: '.apply_filters('shopp_purchase_item_input_data', $data).'</li>';
 		}
 		$result .= '</ul>'.$after;
 		return $result;
