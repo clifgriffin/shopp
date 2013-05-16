@@ -19,7 +19,7 @@ jQuery(document).ready(function () {
 		billCard = $('#billing-card'),
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
-		checkoutButton = $('.payoption-'+d_pm),
+		checkoutButton = $('.payoption-' + decodeURIComponent(d_pm)),
 		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = $('#checkout.shopp li.locale');
 
@@ -167,7 +167,7 @@ jQuery(document).ready(function () {
 	});
 
 	function paymethod_select (e) {
-		var $this = $(this),paymethod = $(this).val(),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
+		var $this = $(this),paymethod = decodeURIComponent($(this).val()),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
 
 		if (this != window && $this.attr && 'radio' == $this.attr('type') && !$this.is(':checked')) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
@@ -200,7 +200,7 @@ jQuery(document).ready(function () {
 		var v = billCard.val().replace(/\D/g,''),
 			paymethod = paymethods.filter(':checked').val()?paymethods.filter(':checked').val():paymethods.val(),
 			card = false;
-		if (!paymethod) paymethod = d_pm;
+		if (!paymethod) paymethod = decodeURIComponent(d_pm);
 		if (billCard.val().match(/(X)+\d{4}/)) return true; // If card is masked, skip validation
 		if (!pm_cards[paymethod]) return true; // The selected payment method does not have cards
 		$.each(pm_cards[paymethod], function (a,s) {
