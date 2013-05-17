@@ -26,11 +26,11 @@
 
 		<div class="alignleft actions">
 		<select name="status">
-			<option><?php _e('View All Promotions','Shopp'); ?></option>
+			<option value=""><?php _e('View All Promotions','Shopp'); ?></option>
 			<?php echo menuoptions($states,$status,true); ?>
 		</select>
 		<select name="type">
-			<option><?php _e('View All Types','Shopp'); ?></option>
+			<option value=""><?php _e('View All Types','Shopp'); ?></option>
 			<?php echo menuoptions($types,$type,true); ?>
 		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />

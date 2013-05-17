@@ -50,20 +50,18 @@ class Promote extends AdminController {
 
 		$url = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions')),admin_url('admin.php'));
 		$f = array('action','selected','s');
-		$url = remove_query_arg( $f, $url );
-		if ('shopp-promotions' == $page && $action !== false) {
+		if ('shopp-promotions' == $page && ! empty($action)) {
 			switch ( $action ) {
 				case 'enable': Promotion::enableset($selected); break;
 				case 'disable': Promotion::disableset($selected); break;
 				case 'delete': Promotion::deleteset($selected); break;
 				case 'duplicate': $P = new Promotion($selected[0]); $P->duplicate(); break;
 			}
+			$url = remove_query_arg( $f, $url );
 
 			wp_redirect($url);
 			exit();
-
 		}
-
 
 	}
 
