@@ -166,7 +166,7 @@ class ShoppCartItem {
 		$this->sale = str_true($Product->sale);
 		$this->freeshipping = ( isset($Price->freeshipping) ? $Price->freeshipping : false );
 
-		$baseprice = ( $this->sale ? $Price->promoprice : $Price->price );
+		$baseprice = roundprice( $this->sale ? $Price->promoprice : $Price->price );
 		$this->unitprice = $baseprice + $this->addonsum;
 
 		if (shopp_setting_enabled('taxes')) {
