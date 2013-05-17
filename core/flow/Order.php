@@ -133,11 +133,6 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function request () {
-
-		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', $this->security()) );
-
-		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
-
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
@@ -248,9 +243,9 @@ class ShoppOrder {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
-	 *
+	 * @param $Purchase
 	 * @return void
-	 **/
+	 */
 	public function process ( $Purchase ) {
 
 		$processing = 'sale'; 							// By default, process as a sale event

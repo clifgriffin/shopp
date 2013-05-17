@@ -880,7 +880,8 @@ class Storefront extends FlowController {
 	 * @return void Description...
 	 **/
 	public function cart () {
-
+		if ( isset($_REQUEST['checkout']) ) shopp_redirect( shoppurl(false, 'checkout', $this->security()) );
+		if ( isset($_REQUEST['shopping']) ) shopp_redirect( shoppurl() );
 		if ( isset($_REQUEST['shopping']) && 'reset' == strtolower($_REQUEST['shopping']) ) {
 			$Shopping = ShoppShopping();
 			$Shopping->reset();
