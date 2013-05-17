@@ -80,8 +80,8 @@ class ShoppCartItemThemeAPI {
 
 	static function _cartitem ($result, $options, $property, $O) {
 		if (is_float($result)) {
-			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-			else return money($result);
+			if (isset($options['currency']) && !str_true($options['currency'])) return $result;
+			else return money( roundprice($result) );
 		}
 		return $result;
 	}
