@@ -148,7 +148,8 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 			// Detmerine memory available for optimum packet size
 			$packet = $limit = $memory = ini_get('memory_limit');
-			switch ($limit{0}) {
+			sscanf($limit, '%d%s', $limit, $unit);
+			switch ($unit{0}) {
 			    case 'G': case 'g': $limit *= 1073741824; break;
 			    case 'M': case 'm': $limit *= 1048576; break;
 			    case 'K': case 'k': $limit *= 1024; break;
