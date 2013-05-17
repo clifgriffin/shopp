@@ -227,6 +227,7 @@ class ShoppPage {
 		$stub->comment_status = 'closed'; // Force comments closed
 		$stub->post_title = $this->title;
 		$stub->post_content = '';
+		$stub->post_type = ShoppPages::QUERYVAR;
 
 		// Setup labels
 		$labels = new stdClass;
