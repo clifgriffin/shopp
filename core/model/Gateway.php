@@ -326,6 +326,7 @@ abstract class GatewayFramework {
 		$format = array_merge($defaults,$format);
 		extract($format);
 
+		$amount = apply_filters('shopp_gateway_amount', $amount);
 		return number_format($amount,$precision,$decimals,$thousands);
 	}
 

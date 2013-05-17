@@ -1170,7 +1170,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$discount = 100-round($pricing->promoprice*100/$pricing->price);
 				$_ = new StdClass();
 				if ($pricing->type != 'Donation')
-					$_->p = (float)(str_true($pricing->sale) ? $pricing->promoprice : $pricing->price);
+					$_->p = (float)apply_filters('shopp_product_variant_price', (str_true($pricing->sale) ? $pricing->promoprice : $pricing->price) );
 				$_->i = str_true($pricing->inventory);
 				$_->s = $_->i ? (int)$pricing->stock : false;
 				$_->u = $pricing->sku;

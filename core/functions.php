@@ -1044,8 +1044,8 @@ function menuoptions ($list,$selected=null,$values=false,$extend=false) {
  * @return string The formatted amount
  **/
 function money ($amount,$format=false) {
-	$format = currency_format($format);
-	$number = numeric_format($amount, $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']);
+	$format = apply_filters('shopp_money_format', currency_format($format) );
+	$number = numeric_format(apply_filters('shopp_money_amount', $amount), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
 }
