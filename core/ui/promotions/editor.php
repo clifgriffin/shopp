@@ -120,7 +120,7 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 	conditions = {
 		"Catalog":{
 			"Name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
-			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_categories"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_category"},
 			"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
 			"Price":{"logic":["boolean","amount"],"value":"price"},
 			"Sale price":{"logic":["boolean","amount"],"value":"price"},
@@ -155,8 +155,8 @@ var currencyFormat = <?php $base = shopp_setting('base_operations'); echo json_e
 		},
 		"Cart Item Target":{
 			"Name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_products"},
-			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_categories"},
-			"Tag name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_tags"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_category"},
+			"Tag name":{"logic":["boolean","fuzzy"],"value":"text","source":"shopp_tag"},
 			"Variation":{"logic":["boolean","fuzzy"],"value":"text",},
 			"Input name":{"logic":["boolean","fuzzy"],"value":"text"},
 			"Input value":{"logic":["boolean","fuzzy"],"value":"text"},
