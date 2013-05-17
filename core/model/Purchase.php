@@ -135,7 +135,7 @@ class Purchase extends DatabaseObject {
 	 **/
 	function isvoid () {
 		if (empty($this->events)) $this->load_events();
-		return ($this->invoiced > 0 && $this->voided >= $this->invoiced);
+		return ($this->voided > 0 && $this->voided >= $this->invoiced);
 	}
 
 	/**
