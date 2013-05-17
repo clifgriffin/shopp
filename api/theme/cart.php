@@ -93,9 +93,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-
 		if ( str_true($number) ) return $result;
-		if ( str_true($money)  ) $result = money($result);
+		if ( str_true($money)  ) $result = money( roundprice($result) );
 		if ( str_true($wrap)   ) return '<span class="shopp-cart cart-'.strtolower($property).'">'.$result.'</span>';
 
 		return $result;
