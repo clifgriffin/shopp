@@ -193,7 +193,7 @@ function manage_meta_box ($Purchase) {
 		</div>
 		<?php endif; ?>
 		&nbsp;
-		<?php if ( $Purchase->authorized ): ?>
+		<?php if ( $Purchase->authorized || 0 == $Purchase->balance ): ?>
 			<?php if ( $Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
 			<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
 			<?php endif; ?>
