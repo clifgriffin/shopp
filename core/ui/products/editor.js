@@ -259,7 +259,7 @@ function tags () {
 			textarea = $this.find('.tags'),
 			tags = textarea.val().split(','),
 			selector = new SearchSelector({
-				source:'shopp_tags',
+				source:taxonomy,
 				parent:$this,
 				url:tagsugg_url,
 				fieldname:'tax_input['+taxonomy+']',

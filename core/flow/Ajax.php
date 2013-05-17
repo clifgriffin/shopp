@@ -313,11 +313,11 @@ class AjaxFlow {
 	function suggestions () {
 		check_admin_referer('wp_ajax_shopp_suggestions');
 
-		if (isset($_GET['t'])) {
+		if (isset($_GET['t'])) { // @legacy
 			switch($_GET['t']) {
 				case "product-name": $_GET['s'] = 'shopp_products'; break;
-				case "product-tags": $_GET['s'] = 'shopp_tags'; break;
-				case "product-category": $_GET['s'] = 'shopp_categories'; break;
+				case "product-tags": $_GET['s'] = 'shopp_tag'; break;
+				case "product-category": $_GET['s'] = 'shopp_category'; break;
 				case "customer-type": $_GET['s'] = 'shopp_customer_types'; break;
 			}
 		}
@@ -382,23 +382,6 @@ class AjaxFlow {
 					$table = $wpdb->posts;
 					$where[] = "post_type='".Product::$posttype."'";
 					break;
-				case 'shopp_categories':
-					$id = 't.term_id';
-					$name = 'name';
-					$table = "$wpdb->terms AS t";
-					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
-					$where[] = "tt.taxonomy = '".ProductCategory::$taxon."'";
-					break;
-				case 'shopp_tags':
-					$id = 't.term_id';
-					$name = 'name';
-					$table = "$wpdb->terms AS t";
-					$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
-					$where[] = "tt.taxonomy = 'shopp_tag'";
-					if ('shopp_popular_tags' == strtolower($q)) {
-						$q = ''; $orderlimit = "ORDER BY tt.count DESC LIMIT 15";
-					}
-					break;
 				case 'shopp_promotions':
 					$id = 'id';
 					$name = 'name';
@@ -439,9 +422,22 @@ class AjaxFlow {
 					echo json_encode($results);
 					exit();
 					break;
-
+				default:
+					if ( taxonomy_exists($_GET['s']) ) {
+						$taxonomy = $_GET['s'];
+						$id = 't.term_id';
+						$name = 'name';
+						$table = "$wpdb->terms AS t";
+						$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+						$where[] = "tt.taxonomy = '" . $taxonomy . "'";
+						if ( 'shopp_popular_tags' == strtolower($q) ) {
+							$q = ''; $orderlimit = "ORDER BY tt.count DESC LIMIT 15";
+						}
+					}
+					break;
 			}
-			if (!empty($q))
+
+			if ( ! empty($q) )
 				$where[] = "$name LIKE '%".DB::escape($q)."%'";
 			$where = join(' AND ',$where);
 			$joins = join(' ',$joins);
