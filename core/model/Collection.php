@@ -898,9 +898,9 @@ class ProductCategory extends ProductTaxonomy {
 			wp_cache_set($cachehash,$set,'shopp_collection_facet');
 		}
 
-		if (!empty($set)) {
-			$options['where'][] = "p.id IN (".join(',',$set).")";
-			unset($options['joins']);
+		if ( ! empty($set) ) {
+			$options['where'][] = "p.id IN (" . join(',', $set) . ")";
+			// unset($options['joins']);
 		}
 
 		return $options;
