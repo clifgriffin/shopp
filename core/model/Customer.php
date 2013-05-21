@@ -270,6 +270,10 @@ class Customer extends DatabaseObject {
 			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
 			return false;
 		}
+		if ( email_exists( $this->email ) ) {
+			new ShoppError(__('The email address is already registered to a user account. Please choose another email address.', 'Shopp'), 'login_exists',SHOPP_ERR);
+			return false;
+		}
 		if (username_exists($this->loginname)){
 			new ShoppError(__('The login name is already registered. Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
 			return false;
