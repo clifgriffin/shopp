@@ -1149,11 +1149,19 @@ class Product extends WPShoppObject {
 	 * @return boolean
 	 **/
 	static function publishset ($ids,$status) {
-		if (empty($ids) || !is_array($ids)) return false;
-		$settings = array('publish','draft','trash');
-		if (!in_array($status,$settings)) return false;
+
+		if ( empty($ids) || ! is_array($ids) ) return false;
+		$settings = array('publish', 'draft', 'trash');
+
+		if ( ! in_array($status, $settings) ) return false;
 		$table = WPShoppObject::tablename(self::$table);
-		DB::query("UPDATE $table SET post_status='$status' WHERE ID in (".join(',',$ids).")");
+
+		$time = current_time('timestamp');
+		$post_date_gmt = DB::mkdatetime($time + (get_option( 'gmt_offset' ) * 3600));
+		$post_date = DB::mkdatetime($time);
+
+		DB::query("UPDATE $table SET post_status='$status', post_date='$post_date', post_date_gmt='$post_date_gmt', post_modified='$post_date', post_modified_gmt='$post_date_gmt' WHERE ID in (" . join(',', $ids) . ")");
+
 		return true;
 	}
 
