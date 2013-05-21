@@ -739,6 +739,8 @@ class Warehouse extends AdminController {
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);
 		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, Product::posttype(), 0);
 
+		$Product->featured = 'off';
+
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('meta','categories','prices','tags'));
 
