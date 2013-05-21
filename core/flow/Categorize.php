@@ -115,7 +115,6 @@ class Categorize extends AdminController {
 		$adminurl = admin_url('admin.php');
 
 		if ( $page == $this->Admin->pagename('categories') && false !== $apply && ! empty($delete) ) {
-			var_dump('here');
 			foreach( (array)$delete as $deletion ) {
 				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;
