@@ -708,6 +708,7 @@ class Lookup {
 		$_['posten-norway'] = new ShippingCarrier(__('Posten Norway','Shopp'),'http://www.posten.no/','NO');
 		$_['posten-sweden'] = new ShippingCarrier(__('Posten Sweden','Shopp'),'http://www.posten.se/','NO');
 		$_['purolator'] = new ShippingCarrier(__('Purolator','Shopp'),'http://purolator.com/','CA','http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=%s');
+		$_['russian-post'] = new ShippingCarrier(__('Russian Post','Shopp'),'http://www.russianpost.ru/','RU','http://www.russianpost.ru/rp/servise/ru/home/postuslug/trackingpo');
 		$_['thailand-post'] = new ShippingCarrier(__('Thailand Post','Shopp'),'http://www.thailandpost.com/','NO');
 		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post','Shopp'),'http://www.nzpost.co.nz/','NZ','http://www.nzpost.co.nz/tools/tracking-new?trackid=%s','/[A-Z]{2}\d{9}[A-Z]{2}/i');
 
