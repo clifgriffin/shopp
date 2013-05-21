@@ -319,7 +319,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 
 	if (input !== false) {
 		pos = input.offset();
-		pad = 0; // Padding offset
+        pad =$('#wpadminbar').size() > 0 ? $('#wpadminbar').height() * -1 : 0;
 
 		if (pos.left+pos.top == 0) {
 			pos = input.parent().parent().css('display','block').offset();

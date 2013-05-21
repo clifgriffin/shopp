@@ -119,126 +119,124 @@
 <script type="text/javascript">
 var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('customerexport_lastexport')); ?>);
 
-jQuery(document).ready( function() {
-	var $=jqnc();
+jQuery(document).ready( function($) {
 
-$('#selectall').change( function() {
-	$('#customers-table th input').each( function () {
-		if (this.checked) this.checked = false;
-		else this.checked = true;
-	});
-});
+	columns.init(pagenow);
 
-$('#delete-button').click(function() {
-	if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected customers?','Shopp')); ?>")) return true;
-	else return false;
-});
-
-function formatDate (e) {
-	if (this.value == "") match = false;
-	if (this.value.match(/^(\d{6,8})/))
-		match = this.value.match(/(\d{1,2}?)(\d{1,2})(\d{4,4})$/);
-	else if (this.value.match(/^(\d{1,2}.{1}\d{1,2}.{1}\d{4})/))
-		match = this.value.match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
-	if (match) {
-		date = new Date(match[3],(match[1]-1),match[2]);
-		$(this).val((date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear());
-		range.val('custom');
-	}
-}
-
-var range = $('#range'),
-	start = $('#start').change(formatDate),
-	StartCalendar = $('<div id="start-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
-		scheduling:false,
-		input:start
-	}).bind('calendarSelect',function () {
-		range.val('custom');
-	}),
-	end = $('#end').change(formatDate),
-	EndCalendar = $('<div id="end-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
-		scheduling:true,
-		input:end,
-		scheduleAfter:StartCalendar
-	}).bind('calendarSelect',function () {
-		range.val('custom');
+	$('#selectall').change( function() {
+		$('#customers-table th input').each( function () {
+			if (this.checked) this.checked = false;
+			else this.checked = true;
+		});
 	});
 
-range.change(function () {
-	if (this.selectedIndex == 0) {
-		start.val(''); end.val('');
-		$('#dates').addClass('hidden');
-		return;
-	} else $('#dates').removeClass('hidden');
-	var today = new Date(),
-		startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
-		enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-	today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+	$('#delete-button').click(function() {
+		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected customers?','Shopp')); ?>")) return true;
+		else return false;
+	});
 
-	switch($(this).val()) {
-		case 'week':
-			startdate.setDate(today.getDate()-today.getDay());
-			enddate = new Date(startdate.getFullYear(),startdate.getMonth(),startdate.getDate()+6);
-			break;
-		case 'month':
-			startdate.setDate(1);
-			enddate = new Date(startdate.getFullYear(),startdate.getMonth()+1,0);
-			break;
-		case 'quarter':
-			quarter = Math.floor(today.getMonth()/3);
-			startdate = new Date(today.getFullYear(),today.getMonth()-(today.getMonth()%3),1);
-			enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
-			break;
-		case 'year':
-			startdate = new Date(today.getFullYear(),0,1);
-			enddate = new Date(today.getFullYear()+1,0,0);
-			break;
-		case 'yesterday':
-			startdate.setDate(today.getDate()-1);
-			enddate.setDate(today.getDate()-1);
-			break;
-		case 'lastweek':
-			startdate.setDate(today.getDate()-today.getDay()-7);
-			enddate.setDate((today.getDate()-today.getDay()+6)-7);
-			break;
-		case 'last30':
-			startdate.setDate(today.getDate()-30);
-			enddate.setDate(today.getDate());
-			break;
-		case 'last90':
-			startdate.setDate(today.getDate()-90);
-			enddate.setDate(today.getDate());
-			break;
-		case 'lastmonth':
-			startdate = new Date(today.getFullYear(),today.getMonth()-1,1);
-			enddate = new Date(today.getFullYear(),today.getMonth(),0);
-			break;
-		case 'lastquarter':
-			startdate = new Date(today.getFullYear(),(today.getMonth()-(today.getMonth()%3))-3,1);
-			enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
-			break;
-		case 'lastyear':
-			startdate = new Date(today.getFullYear()-1,0,1);
-			enddate = new Date(today.getFullYear(),0,0);
-			break;
-		case 'lastexport':
-			startdate = lastexport;
-			enddate = today;
-			break;
-		case 'custom': return; break;
+	$('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
+	$('#selectall_columns').change(function () {
+		if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
+		else $('#export-columns input').not(this).attr('checked',false);
+	});
+
+	function formatDate (e) {
+		if (this.value == "") match = false;
+		if (this.value.match(/^(\d{6,8})/))
+			match = this.value.match(/(\d{1,2}?)(\d{1,2})(\d{4,4})$/);
+		else if (this.value.match(/^(\d{1,2}.{1}\d{1,2}.{1}\d{4})/))
+			match = this.value.match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
+		if (match) {
+			date = new Date(match[3],(match[1]-1),match[2]);
+			$(this).val((date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear());
+			range.val('custom');
+		}
 	}
-	StartCalendar.select(startdate);
-	EndCalendar.select(enddate);
-}).change();
-
-$('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
-$('#selectall_columns').change(function () {
-	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
-	else $('#export-columns input').not(this).attr('checked',false);
-});
-
-pagenow = 'shopp_page_shopp-customers';
-columns.init(pagenow);
+	
+	var range = $('#range'),
+		start = $('#start').change(formatDate),
+		StartCalendar = $('<div id="start-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
+			scheduling:false,
+			input:start
+		}).bind('calendarSelect',function () {
+			range.val('custom');
+		}),
+		end = $('#end').change(formatDate),
+		EndCalendar = $('<div id="end-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
+			scheduling:true,
+			input:end,
+			scheduleAfter:StartCalendar
+		}).bind('calendarSelect',function () {
+			range.val('custom');
+		});
+	
+	range.change(function () {
+		if (this.selectedIndex == 0) {
+			start.val(''); end.val('');
+			$('#dates').css('display','none');
+			return;
+		} else $('#dates').css({display:'inline-block'});
+		var today = new Date(),
+			startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
+			enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+		today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+	
+		switch($(this).val()) {
+			case 'week':
+				startdate.setDate(today.getDate()-today.getDay());
+				enddate = new Date(startdate.getFullYear(),startdate.getMonth(),startdate.getDate()+6);
+				break;
+			case 'month':
+				startdate.setDate(1);
+				enddate = new Date(startdate.getFullYear(),startdate.getMonth()+1,0);
+				break;
+			case 'quarter':
+				quarter = Math.floor(today.getMonth()/3);
+				startdate = new Date(today.getFullYear(),today.getMonth()-(today.getMonth()%3),1);
+				enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
+				break;
+			case 'year':
+				startdate = new Date(today.getFullYear(),0,1);
+				enddate = new Date(today.getFullYear()+1,0,0);
+				break;
+			case 'yesterday':
+				startdate.setDate(today.getDate()-1);
+				enddate.setDate(today.getDate()-1);
+				break;
+			case 'lastweek':
+				startdate.setDate(today.getDate()-today.getDay()-7);
+				enddate.setDate((today.getDate()-today.getDay()+6)-7);
+				break;
+			case 'last30':
+				startdate.setDate(today.getDate()-30);
+				enddate.setDate(today.getDate());
+				break;
+			case 'last90':
+				startdate.setDate(today.getDate()-90);
+				enddate.setDate(today.getDate());
+				break;
+			case 'lastmonth':
+				startdate = new Date(today.getFullYear(),today.getMonth()-1,1);
+				enddate = new Date(today.getFullYear(),today.getMonth(),0);
+				break;
+			case 'lastquarter':
+				startdate = new Date(today.getFullYear(),(today.getMonth()-(today.getMonth()%3))-3,1);
+				enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
+				break;
+			case 'lastyear':
+				startdate = new Date(today.getFullYear()-1,0,1);
+				enddate = new Date(today.getFullYear(),0,0);
+				break;
+			case 'lastexport':
+				startdate = lastexport;
+				enddate = today;
+				break;
+			case 'custom': return; break;
+		}
+		StartCalendar.select(startdate);
+		EndCalendar.select(enddate);
+	}).change();
 
 });
 
