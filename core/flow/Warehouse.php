@@ -281,6 +281,8 @@ class Warehouse extends AdminController {
 		$pagenum = absint( $paged );
 		$start = ($per_page * ($pagenum-1));
 
+		$where = $subs[$this->view]['where'];
+
 		if (!empty($s)) {
 			$SearchResults = new SearchResults(array('search'=>$s,'published'=>'off','paged'=>-1));
 			$SearchResults->load();
@@ -311,8 +313,6 @@ class Warehouse extends AdminController {
 				}
 			}
 		}
-
-		$where = $subs[$this->view]['where'];
 
 		if ( ! empty($sl) && shopp_setting_enabled('inventory') ) {
 			switch($sl) {
