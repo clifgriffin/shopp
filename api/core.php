@@ -218,7 +218,7 @@ function is_thanks_page ( $wp_query = false ) {
  **/
 function is_shopp_search ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	return $wp_query->is_search() && $wp_query->get('s_cs');
+	return array_key_exists('s', $_REQUEST) && $wp_query->get('s_cs');
 }
 
 /**
