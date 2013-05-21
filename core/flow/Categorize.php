@@ -98,6 +98,7 @@ class Categorize extends AdminController {
 		global $Shopp;
 
 		$defaults = array(
+			'apply' => false,
 			'page' => false,
 			'deleting' => false,
 			'delete' => false,
@@ -115,17 +116,13 @@ class Categorize extends AdminController {
 
 		$adminurl = admin_url('admin.php');
 
-		if ($page == $this->Admin->pagename('categories')
-				&& !empty($deleting)
-				&& !empty($delete)
-				&& is_array($delete)) {
-
+		if ( $page == $this->Admin->pagename('categories') && false !== $apply && ! empty($delete) ) {
 			foreach($delete as $deletion) {
 				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;
 				$Category->delete();
 			}
-			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'apply'=>null)),$adminurl));
 			shopp_redirect($redirect);
 		}
 
@@ -279,14 +276,14 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
-		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_manage_category_columns',array(
+		ShoppUI::register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'slug'=>__('Slug','Shopp'),
 			'products'=>__('Products','Shopp'),
 			'templates'=>__('Templates','Shopp'),
 			'menus'=>__('Menus','Shopp'))
-		));
+		);
 	}
 
 	/**
