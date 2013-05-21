@@ -1016,19 +1016,24 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'onClosed' => false			// Callback that fires once ColorBox is closed.
 		);
 
-		// Identify boolean values
-		$booleans = array();
-		foreach ($defaults as $name => $value)
-			if ( is_bool($value) ) $booleans[] = $name;
+		$booleans = array('scalePhotos', 'scrolling', 'iframe', 'inline', 'photo', 'open', 'returnFocus', 'overlayClose', 'escKey', 'arrowKey', 'loop', 'slideshow', 'slideshowAuto');
 
-		$options = array_diff($options, $defaults);
+		// Map lowercase to proper-case option names
+		$map = array_combine(array_map('strtolower', array_keys($defaults)), array_keys($defaults));
+
+		// Get changed settings based on lower case
+		$options = array_intersect_key($options, $map);
+		$settings = array_intersect_key($map, $options);
+
+		// Remap to proper-case names
+		$options = array_combine($settings, $options);
 
 		// Convert strings to booleans
 		foreach ($options as $name => &$value)
-			if ( in_array($name,$booleans) ) $value = str_true($value);
+			if ( in_array($name, $booleans) ) $value = str_true($value);
 
 		$js = 'var cbo = '.json_encode($options).';';
-		add_storefrontjs($js,true);
+		add_storefrontjs($js, true);
 	}
 
 	static function account_menu ($result, $options, $O) {
