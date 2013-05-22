@@ -238,6 +238,11 @@ class PostcodeMapping {
 		$codemap =& $postcodes[$Address->country];
 		$state = isset($codemap[strtoupper($prefix)])?$codemap[$prefix]:false;
 
+		if ( is_array($state) ) { // Handle multiple states in the same postal code prefix. Props msigley
+			if ( in_array($Address->state, $state) ) $state = false; // Don't replace current state if it is in the postcode prefix
+			else $state = $state[0];
+		}
+
 		if (!$state) return;
 
 		$Address->state = $state;
