@@ -36,24 +36,26 @@ if (!Array.indexOf) {
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if ($s && $s.d !== undefined)
-		return {	// from base of operations setting
-			cpos:$s.cp,
-			currency:$s.c,
-			precision:parseInt($s.p,10),
-			decimals:$s.d,
-			thousands:$s.t,
-			grouping:$s.g
-		};
 
-	return {		// Default currency format
-		cpos:true,
-		currency:'$',
-		precision:2,
-		decimals:'.',
-		thousands:',',
-		grouping:[3]
-	};
+	var defaults = {
+			cpos:true,  currency:'$', precision:2, decimals:'.', thousands:',', grouping:[3]
+		},
+		map = {
+			cp:'cpos', c:'currency', p:'precision', d:'decimals', t:'thousands', g:'grouping'
+		},
+		settings = defaults;
+
+	jQuery.each(map, function (k, v) {
+		if ( $s[k] === undefined ) return;
+
+		if ( 'p' == k ) settings[v] = parseInt($s[k], 10);
+		else if ( 'cp' == k ) settings[v] = Boolean($s[k]);
+		else if ( 'g' == k ) settings[v] = $s[k].split(',');
+		else settings[v] = $s[k];
+	});
+
+	return settings;
+
 }
 
 /**
