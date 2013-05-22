@@ -907,20 +907,20 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'format' => 'list',
 			'link' => 'view'
 		);
-		$options = array_merge($defaults,$options);
+		$options = array_merge($defaults, $options);
 		extract($options);
 
 		$tags = get_terms( ProductTag::$taxon, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
 
-		if (empty($tags)) return false;
+		if ( empty($tags) ) return false;
 
 		$min = $max = false;
-		foreach ($tags as &$tag) {
-			$min = !$min?$tag->count:min($min,$tag->count);
-			$max = !$max?$tag->count:max($max,$tag->count);
+		foreach ( $tags as &$entry ) {
+			$min = ! $min ? $entry->count : min($min, $entry->count);
+			$max = ! $max ? $entry->count : max($max, $entry->count);
 
-			$link_function = ('edit' == $link?'get_edit_tag_link':'get_term_link');
-			$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxon);
+			$link_function = ( 'edit' == $link ? 'get_edit_tag_link' : 'get_term_link');
+			$entry->link = $link_function(intval($entry->term_id), ProductTag::$taxon);
 		}
 
 		// Sorting
@@ -930,22 +930,24 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if ( 'RAND' == $order ) shuffle($tags);
 			else {
 				if ( 'name' == $orderby )
-					uasort( $tags, create_function('$a, $b', 'return strnatcasecmp($a->name, $b->name);') );
+					usort( $tags, create_function('$a, $b', 'return strnatcasecmp($a->name, $b->name);') );
 				else
-					uasort( $tags, create_function('$a, $b', 'return ($a->count > $b->count);') );
+					usort( $tags, create_function('$a, $b', 'return ($a->count > $b->count);') );
 
 				if ( 'DESC' == $order ) $tags = array_reverse( $tags, true );
 			}
 		}
 
 		// Markup
-		if ('inline' == $format) $markup = '<div class="shopp tagcloud">';
-		if ('list' == $format) $markup = '<ul class="shopp tagcloud">';
-		foreach ((array)$tags as $tag) {
-			$level = floor((1-$tag->count/$max)*$levels)+1;
-			if ('list' == $format) $markup .= '<li class="level-'.$level.'">';
-			$markup .= '<a href="'.esc_url($tag->link).'" rel="tag">'.$tag->name.'</a>';
-			if ('list' == $format) $markup .= '</li> ';
+		if ( 'inline' == $format ) $markup = '<div class="shopp tagcloud">';
+		if ( 'list' == $format ) $markup = '<ul class="shopp tagcloud">';
+		foreach ( (array)$tags as $tag ) {
+
+			$level = floor( (1 - $tag->count / $max) * $levels )+1;
+			if ( 'list' == $format ) $markup .= '<li class="level-' . $level . '">';
+			$markup .= '<a href="' . esc_url($tag->link) . '" rel="tag">' . $tag->name . '</a>';
+			if ( 'list' == $format ) $markup .= '</li> ';
+
 		}
 		if ('list' == $format) $markup .= '</ul>';
 		if ('inline' == $format) $markup .= '</div>';
