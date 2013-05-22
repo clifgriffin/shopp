@@ -399,6 +399,7 @@ class Categorize extends AdminController {
 				$pricing['price'] = floatvalue($pricing['price'],false);
 				$pricing['saleprice'] = floatvalue($pricing['saleprice'],false);
 				$pricing['shipfee'] = floatvalue($pricing['shipfee'],false);
+				$pricing['dimensions'] = array_map('floatvalue',$pricing['dimensions']);
 			}
 		}
 
