@@ -675,6 +675,7 @@ class Warehouse extends AdminController {
 		// doesn't cache the results causing strange/unexpected price jumps
 		if ( shopp_setting_enabled('tax_inclusive') && !str_true($Product->excludetax) ) {
 			foreach ($Product->prices as &$price) {
+				if ( ! str_true($price->tax) ) continue;
 				$Taxes = new CartTax();
 				$taxrate = $Taxes->rate($Product);
 				$price->price += $price->price*$taxrate;
