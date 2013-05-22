@@ -893,6 +893,7 @@ class Storefront extends FlowController {
 			$Cart->totals();
 			$Cart->ajax();
 		}
+
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
@@ -902,6 +903,8 @@ class Storefront extends FlowController {
 					shopp_safe_redirect($_REQUEST['redirect']);
 				else shopp_redirect(shoppurl(false,'cart'));
 		}
+
+		exit;
 	}
 
 	/**
