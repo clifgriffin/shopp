@@ -392,11 +392,10 @@ function is_shopp_smart_collection ( $wp_query = false ) {
 function is_shopp_taxonomy ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query = $wp_the_query; }
 
+	$object = $wp_query->get_queried_object();
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
-	foreach ( $taxonomies as $taxonomy ) {
-		if ( $wp_query->is_tax($taxonomy) ) return true;
-	}
-	return false;
+
+	return in_array($object->taxonomy, $taxonomies);
 }
 
 /**
