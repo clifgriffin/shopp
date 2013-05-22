@@ -152,9 +152,9 @@ jQuery(document).ready(function($) {
 });
 
 function categories () {
-	jQuery('#product .category-metabox').each(function () {
-		var $=jqnc(),
-			$this = $(this),
+	var $=jqnc();
+	$('#product .category-metabox').each(function () {
+		var $this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
 			setting = taxonomy+'_tab',
 			addui = $this.find('div.new-category').hide(),
@@ -176,12 +176,14 @@ function categories () {
 				if ( !$('#new-'+taxonomy+'-name').val() )
 					return false;
 				s.data += '&' + $( ':checked', '#'+taxonomy+'-checklist' ).serialize();
+				$( '#' + taxonomy + '-add-submit' ).prop( 'disabled', true );
 				return s;
 			},
 
 			catAddAfter = function( r, s ) {
 				var sup, drop = $('#new'+taxonomy+'_parent');
 
+				$( '#' + taxonomy + '-add-submit' ).prop( 'disabled', false );
 				if ( 'undefined' != s.parsed.responses[0] && (sup = s.parsed.responses[0].supplemental.newcat_parent) ) {
 					drop.before(sup);
 					drop.remove();
@@ -206,9 +208,9 @@ function categories () {
 	});
 
 	// Handles toggling a category on/off when the category is pre-existing
-	jQuery('.category-metabox input[type=checkbox]').change(function () {
+	$('.category-metabox input[type=checkbox]').change(function () {
 		if (!this.checked) return true;
-		var $=jqnc(),id,details = new Array();
+		var id,details = new Array();
 
 		// Build current list of spec labels
 		$('#details-menu').children().children().find('input.label').each(function(id,item) {
@@ -266,14 +268,12 @@ function categories () {
 
 		});
 	});
-
-
 }
 
 function tags () {
-	jQuery('#product .tags-metabox').each(function () {
-		var $=jqnc(),
-			$this = $(this),
+	var $=jqnc();
+	$('#product .tags-metabox').each(function () {
+		var $this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
 			textarea = $this.find('.tags'),
 			tags = textarea.val().split(','),
