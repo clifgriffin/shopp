@@ -398,7 +398,7 @@ class Shopp {
 				// Currency formatting
 				'cp' => $settings['cpos'],
 				'c' =>  $settings['currency'],
-				'p' =>  $settings['precision'],
+				'p' =>  (int)$settings['precision'],
 				't' =>  $settings['thousands'],
 				'd' =>  $settings['decimals']
 			);
