@@ -151,6 +151,9 @@ class Storefront extends FlowController {
 	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
 	 **/
 	function posts ($posts, $wp_query) {
+
+		if ( is_shopp_taxonomy($wp_query) ) return $posts;
+
 		if ( $this->request($wp_query) ) {
 			$StubPage = new StorefrontPage();
 			return array($StubPage->poststub());
@@ -208,14 +211,13 @@ class Storefront extends FlowController {
 			$wp_query->query_vars['paged'] = strtoupper($wp_query->query['paged']);
 
 		// Handle Taxonomies
-		if (is_archive()) {
+		if ( is_archive() ) {
 			$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
 			foreach ( $taxonomies as $t ) {
 				if ($wp_query->get($t->query_var) == '') continue;
 				$taxonomy = $wp_query->get($t->query_var);
 				if ($t->hierarchical) ShoppCollection( new ProductCategory($taxonomy,'slug',$t->name) );
 				else ShoppCollection( new ProductTag($taxonomy,'slug',$t->name) );
-				$page = $catalog;
 			}
 		}
 
@@ -382,13 +384,12 @@ class Storefront extends FlowController {
 
 		// Get the requested storefront page identifier from the slug
 		$page = self::slugpage( get_query_var('shopp_page') );
-		if ( empty($page) ) return $template;
-
-
-		// Load the request Storefront page settings
-		$pages = self::pages_settings();
-		if ( ! isset($pages[$page]) ) return $template;
-		$settings = $pages[$page];
+		if ( ! empty($page) ) {
+			// Load the request Storefront page settings
+			$pages = self::pages_settings();
+			if ( ! isset($pages[$page]) ) return $template;
+			$settings = $pages[$page];
+		}
 
 		// Build the page
 		if ( is_shopp_collection() ) $StorefrontPage = 'CollectionStorefrontPage';
@@ -397,6 +398,8 @@ class Storefront extends FlowController {
 		if (Shopp::maintenance()) $StorefrontPage = 'MaintenanceStorefrontPage';
 
 		$this->Page = new $StorefrontPage($settings);
+		if ( 'CollectionStorefrontPage' != $StorefrontPage )
+			$this->Page->poststub();
 
 		// Send the template back to WordPress
 		return locate_template($this->Page->templates());
@@ -1160,7 +1163,6 @@ class StorefrontPage {
 		add_filter('get_edit_post_link',array($this,'editlink'));
 
 		// Page title has to be reprocessed
-		add_filter('wp_title',array($this,'wp_title'),10,3);
 		add_filter('single_post_title',array($this,'title'));
 
 		add_filter('the_title',array($this,'title'));
@@ -1202,17 +1204,6 @@ class StorefrontPage {
 		return $title;
 	}
 
-	function wp_title ( $title, $sep="&mdash;", $placement='' ) {
-		$_ = array(false, $this->title($title));
-
-		if ( 'right' == $placement ) $_ = array_reverse($_);
-
-		$_ = apply_filters('shopp_document_titles',$_);
-		$sep = trim($sep);
-		if ( empty($sep) ) $sep = "&mdash;";
-		return join(" $sep ",$_);
-	}
-
 	function templates () {
 		$templates = array('shopp.php','page.php');
 		if (!empty($this->name)) array_unshift($templates,"$this->name.php");
@@ -1224,12 +1215,19 @@ class StorefrontPage {
 		global $wp_query,$wp_the_query;
 		if ($wp_the_query !== $wp_query) return;
 
-		$stub = new WPDatabaseObject();
-		$stub->init('posts');
-		$stub->ID = -42; // 42, the answer to everything. Force the stub to an unusable post ID
+		$stub = new stdClass;
+		$stub->ID = 0;
 		$stub->comment_status = 'closed'; // Force comments closed
 		$stub->post_title = $this->title;
 		$stub->post_content = '';
+		$stub->post_type = 'shopp_page';
+
+		// Setup labels
+		$labels = new stdClass;
+		$labels->name = $this->title;
+		$stub->labels = $labels;
+
+		$wp_query->queried_object = $stub;
 		$wp_query->posts = array($stub);
 
 	}
@@ -1358,6 +1356,7 @@ class CollectionStorefrontPage extends StorefrontPage {
 			'edit' => $editlink,
 			'template' => 'shopp-collection.php',
 		);
+
 		parent::__construct($settings);
 
 	}
@@ -1891,5 +1890,3 @@ class StorefrontDashboardPage {
 	}
 
 } // END class StorefrontDashboardPage
-
-?>
