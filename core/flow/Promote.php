@@ -131,7 +131,7 @@ class Promote extends AdminController {
 
 			// $Promotion->reset_discounts();
 			if ($Promotion->target == "Catalog")
-				$Promotion->catalog_discounts();
+				$Promotion->catalog();
 
 			// Force reload of the session promotions to include any updates
 			$Shopp->Promotions->reload();
