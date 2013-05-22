@@ -108,15 +108,16 @@ function shopp_categories_meta_box ($Product,$options) {
 	</div>
 
 	<div id="<?php echo $taxonomy; ?>-all" class="multiple-select category-menu tabs-panel">
-		<ul id="<?php echo $taxonomy; ?>-checklist" class="list:<?php echo $taxonomy?> form-no-clear">
+		<ul id="<?php echo $taxonomy; ?>-checklist" data-wp-lists="list:<?php echo $taxonomy?>" class="list:<?php echo $taxonomy?> form-no-clear">
 		<?php wp_terms_checklist($Product->id, array( 'taxonomy' => $taxonomy, 'popular_cats' => $popular_ids) ) ?>
 		</ul>
 	</div>
 
-	<div id="new-<?php echo $taxonomy; ?>" class="new-category hide-if-no-js">
+	<div id="<?php echo $taxonomy; ?>-add" class="new-category hide-if-no-js">
 	<input type="text" name="new<?php echo $taxonomy; ?>" value="" id="new-<?php echo $taxonomy; ?>-name" /><br />
 	<?php wp_dropdown_categories( array( 'taxonomy' => $taxonomy, 'hide_empty' => 0, 'name' => 'new'.$taxonomy.'_parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => $tax->labels->parent_item.'&hellip;', 'tab_index' => 3 ) ); ?>
-	<input id="<?php echo $taxonomy; ?>-add-submit" type="button" value="<?php _e('Add','Shopp'); ?>" class="add:<?php echo $taxonomy ?>-checklist:taxonomy-<?php echo $taxonomy ?> button <?php echo $taxonomy ?>-add-submit" tabindex="3" />
+
+	<input type="button" id="<?php echo $taxonomy; ?>-add-submit" value="<?php _e('Add'); ?>" data-wp-lists="add:<?php echo $taxonomy ?>-checklist:<?php echo $taxonomy ?>-add" class="add:<?php echo $taxonomy ?>-checklist:taxonomy-<?php echo $taxonomy ?> button <?php echo $taxonomy ?>-add-submit" tabindex="3" />
 	<?php wp_nonce_field( 'add-'.$taxonomy, '_ajax_nonce-add-'.$taxonomy, false ); ?>
 	<span id="<?php echo $taxonomy; ?>-ajax-response"></span>
 	</div>
