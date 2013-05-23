@@ -164,6 +164,18 @@ abstract class GatewayFramework {
 	}
 
 	/**
+	 * Provides the currency code for use in gateway transactions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.6
+	 *
+	 * @return string The currency code
+	 **/
+	function currency () {
+		return apply_filters('shopp_gateway_currency', $this->currency);
+	}
+
+	/**
 	 * Generate a unique transaction ID using a timestamp
 	 *
 	 * @author Jonathan Davis
