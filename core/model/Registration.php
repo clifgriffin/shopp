@@ -169,7 +169,12 @@ class ShoppRegistration {
 		$BillingAddress = ShoppOrder()->Billing;
 		$ShippingAddress = ShoppOrder()->Shipping;
 
-		if ( ! $Customer->guest ) {
+
+		if ( $Customer->guest ) {
+
+			$Customer->type = __('Guest', 'Shopp');
+
+		} else {
 
 			// WordPress account integration used, customer has no wp user
 			if ( 'wordpress' == shopp_setting('account_system') && empty($Customer->wpuser) ) {
