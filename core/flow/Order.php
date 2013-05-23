@@ -865,8 +865,10 @@ class Order {
 	function accounts ($Event) {
 
 		// WordPress account integration used, customer has no wp user
-		if (!$this->guest) {
-			if ('wordpress' == shopp_setting('account_system') && empty($this->Customer->wpuser)) {
+		if ( $this->guest ) {
+			$this->Customer->type = __('Guest', 'Shopp');
+		} else {
+			if ( 'wordpress' == shopp_setting('account_system') && empty($this->Customer->wpuser) ) {
 				if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
 				else $this->Customer->create_wpuser(); // not logged in, create new account
 			}

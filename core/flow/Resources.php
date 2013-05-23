@@ -151,16 +151,21 @@ class Resources {
 				$forbidden = true;
 			}
 
-			// Account restriction checks
-			if ($accounts && !ShoppCustomer()->logged_in()) {
-				new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
-				$forbidden = true;
-			}
 
-			// File owner authorization check
-			if ($accounts && ShoppCustomer()->id != $Purchase->customer) {
-				new ShoppError(__('You are not authorized to download the requested file.','Shopp'),'shopp_download_unauthorized');
-				$forbidden = true;
+			if ( __('Guest','Shopp') != ShoppCustomer()->type ) {
+
+				// Account restriction checks
+				if ( $accounts && !ShoppCustomer()->logged_in() ) {
+					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
+					$forbidden = true;
+				}
+
+				// File owner authorization check
+				if ($accounts && ShoppCustomer()->id != $Purchase->customer) {
+					new ShoppError(__('You are not authorized to download the requested file.','Shopp'),'shopp_download_unauthorized');
+					$forbidden = true;
+				}
+
 			}
 
 			// Download limit checking
