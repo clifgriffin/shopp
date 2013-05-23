@@ -147,8 +147,11 @@ class Purchase extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function ispaid () {
-		if (empty($this->events)) $this->load_events();
-		return ($this->captured == $this->total);
+		if ( empty($this->events) ) $this->load_events();
+
+		$legacypaid = ( 0 == $this->captured && 'CHARGED' == $Purchase->txnstatus );
+
+		return ($this->captured == $this->total || $legacypaid);
 	}
 
 	static function unstock ( UnstockOrderEvent $Event ) {
