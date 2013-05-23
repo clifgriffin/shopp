@@ -163,9 +163,10 @@ class Purchase extends DatabaseObject {
 		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
 
+		$prices = array();
 		$allocated = array();
 		foreach ( $Purchase->purchased as $Purchased ) {
-			if ( is_a($Purchased->addons,'ObjectMeta') && ! empty($Purchased->addons->meta) ) {
+			if ( is_a($Purchased->addons, 'ObjectMeta') && ! empty($Purchased->addons->meta) ) {
 				foreach ( $Purchased->addons->meta as $index => $Addon ) {
 					if ( ! str_true($Addon->value->inventory) ) continue;
 
@@ -177,6 +178,10 @@ class Purchase extends DatabaseObject {
 						'quantity' => $Purchased->quantity
 					));
 
+					$prices[ $Addon->value->id ] = array(
+						$Purchased->name,
+						isset($prices[ $Addon->value->id ]) ? $prices[ $Addon->value->id ][1] + $Purchased->quantity : $Purchased->quantity
+					);
 				}
 			}
 			if ( ! str_true($Purchased->inventory) ) continue;
@@ -187,19 +192,31 @@ class Purchase extends DatabaseObject {
 				'price' => $Purchased->price,
 				'quantity' => $Purchased->quantity
 			));
+
+			$prices[ $Purchased->price ] = array(
+				$Purchased->name,
+				isset($prices[ $Purchased->price ]) ? $prices[ $Purchased->price ][1] + $Purchased->quantity : $Purchased->quantity
+			);
 		}
 
-		if ( ! empty($allocated) ) {
-			$pricetable = DatabaseObject::tablename(Price::$table);
-			$prices = array();
-			foreach ( $allocated as $id => $PSA )
-				$prices[$PSA->price] = isset($prices[$PSA->price]) ? $prices[$PSA->price] + $PSA->quantity : $PSA->quantity;
+		if ( empty($allocated) ) return;
 
-			foreach ( $prices as $price => $qty )
-				DB::query("UPDATE $pricetable SET stock=stock-".(int)$qty." WHERE id='$price' LIMIT 1");
+		$pricetable = DatabaseObject::tablename(Price::$table);
+		$lowlevel = shopp_setting('lowstock_level');
+		foreach ( $prices as $price => $data ) {
+			list($productname, $qty) = $data;
+			DB::query("UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
+			$inventory = DB::query("SELECT label, stock, stocked FROM $pricetable WHERE id='$price' LIMIT 1", 'auto');
 
-			$Event->unstocked($allocated);
+			$product = "$productname, $inventory->label";
+			if ( 0 == $inventory->stock ) {
+				new ShoppError(sprintf(__('%s is now out-of-stock!', 'Shopp'), $product), 'outofstock_warning', SHOPP_STOCK_ERR);
+			} elseif ( ($inventory->stock / $inventory->stocked * 100) <= $lowlevel ) {
+				new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.', 'Shopp'), $product), 'lowstock_warning', SHOPP_STOCK_ERR);
+			}
 		}
+
+		$Event->unstocked($allocated);
 	}
 
 	/**
