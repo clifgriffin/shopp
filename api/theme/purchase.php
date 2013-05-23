@@ -208,7 +208,9 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	static function has_downloads ($result, $options, $O) { return ($O->downloads); }
 
-	static function has_freight ($result, $options, $O) { return (!empty($O->shipmethod) || $O->freight > 0); }
+	static function has_freight ($result, $options, $O) {
+		return ( $O->shipable || ! empty($O->shipmethod) || $O->freight > 0 );
+	}
 
 	static function has_items ($result, $options, $O) {
 		if (empty($O->purchased)) $O->load_purchased();
