@@ -95,6 +95,7 @@ class ShoppRegistration {
 			'firstname' => $this->form('firstname'),
 			'lastname' => $this->form('lastname'),
 			'company' => $this->form('company'),
+			'email' => $this->form('email'),
 			'phone' => $this->form('phone'),
 			'info' => $this->form('info')
 		);
@@ -147,10 +148,10 @@ class ShoppRegistration {
 
 		// Prevent overwriting the card data when updating the BillingAddress
 		$ignore = array();
-		if ( ! empty($form['card']) && $form['card'] == substr($BillingAddress->card,-4) )
+		if ( ! empty($form['card']) && preg_replace('/[^\d]/','',$form['card']) == substr($BillingAddress->card,-4) )
 			$ignore[] = 'card';
 
-		$BillingAddress->updates($_POST['billing'],$ignore);
+		$BillingAddress->updates($form,$ignore);
 
 		// Handle same address copying
 		$copy = strtolower( $this->form('sameaddress') );

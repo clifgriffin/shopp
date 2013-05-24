@@ -703,10 +703,10 @@ class PayCard {
 		$this->inputs = $inputs;
 	}
 
-	function validate ($pan) {
-		$n = preg_replace('/\D/','',$pan);
-		if (strlen($pan) == 4) return true;
-		return ($this->match($n) && $this->checksum($n));
+	function validate ( $pan ) {
+		$n = preg_replace('/\D/', '', $pan);
+		if ( strlen($n) == 4 ) return true;
+		return ( $this->match($n) && $this->checksum($n) );
 	}
 
 	function match ($number) {

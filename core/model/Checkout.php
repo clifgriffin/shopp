@@ -64,10 +64,10 @@ class ShoppCheckout {
 
 		add_action('shopp_process_checkout', array($this, 'data'));
 		add_action('shopp_process_checkout', array($this, 'customer'));
+		add_action('shopp_process_checkout', array($this, 'payment'));
 		add_action('shopp_process_checkout', array($this, 'shipaddress'));
 		add_action('shopp_process_checkout', array($this, 'shipmethod'));
 		add_action('shopp_process_checkout', array($this, 'billaddress'));
-		add_action('shopp_process_checkout', array($this, 'payment'));
 		add_action('shopp_process_checkout', array($this, 'process'));
 
 		add_action('shopp_validate_checkout', 'ShoppFormValidation::names');
@@ -193,8 +193,8 @@ class ShoppCheckout {
 		$form['cardexpires'] = sprintf('%02d%02d', $form['cardexpires-mm'], $form['cardexpires-yy']);
 
 		if ( ! empty($form['cardexpires-mm']) && ! empty($form['cardexpires-yy'])) {
-			$exmm = preg_replace('/[^\d]/','',$form['cardexpires-mm']);
-			$exyy = preg_replace('/[^\d]/','',$form['cardexpires-yy']);
+			$exmm = preg_replace('/[^\d]/', '', $form['cardexpires-mm']);
+			$exyy = preg_replace('/[^\d]/', '', $form['cardexpires-yy']);
 			$Billing->cardexpires = mktime(0,0,0,$exmm,1,($exyy)+2000);
 		} else $Billing->cardexpires = 0;
 
