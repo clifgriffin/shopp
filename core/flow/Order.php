@@ -63,6 +63,8 @@ class ShoppOrder {
 		$this->Shipping->locate();
 
 		$this->Tax = ShoppingObject::__new( 'ShoppTax' );
+		$this->taxaddress();
+
 		$this->Shiprates = ShoppingObject::__new( 'ShoppShiprates' );
 		$this->Discounts = ShoppingObject::__new( 'ShoppDiscounts' );
 
