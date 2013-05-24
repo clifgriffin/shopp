@@ -458,7 +458,8 @@ class Setup extends AdminController {
 		if ($term_recount) {
 			$taxonomy = ProductCategory::$taxon;
 			$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'ids') );
-			wp_update_term_count_now( $terms, $taxonomy );
+			if ( ! empty($terms) )
+				wp_update_term_count_now( $terms, $taxonomy );
 		}
 
 		$base = shopp_setting('base_operations');
