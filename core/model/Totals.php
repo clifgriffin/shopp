@@ -24,9 +24,9 @@
 class OrderTotals extends ListFramework {
 
 	const TOTAL = 'total';
-	private $register = array( self::TOTAL => null );	// Registry of "register" entries
+	protected $register = array( self::TOTAL => null );	// Registry of "register" entries
 
-	private $checks   = array();	// Track changes in the column registers
+	protected $checks   = array();	// Track changes in the column registers
 
 	public function __construct () {
 		$this->add('total', new OrderTotal( array('amount' => 0.0) ));
@@ -196,6 +196,10 @@ class OrderTotals extends ListFramework {
 			$data[$id] = (string)$entry;
 
 		return json_encode($data);
+	}
+
+	public function __sleep () {
+		return array_keys( get_object_vars($this) );
 	}
 
 }

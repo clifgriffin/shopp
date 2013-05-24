@@ -24,8 +24,9 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ListFramework implements Iterator {
 
-	private $_list = array();
-	private $_added = null;
+	protected $_list = array();
+	protected $_added = null;
+	protected $_checks = 0;
 
 	public function &add ( string $key, $entry ) {
 		$this->_list[$key] = $entry;
@@ -114,7 +115,9 @@ class ListFramework implements Iterator {
 		return json_encode($this->_list);
 	}
 
-}
+	public function __sleep () {
+		return array('_added', '_checks', '_list');
+	}
 
 /**
  * Implements a Singleton pattern object

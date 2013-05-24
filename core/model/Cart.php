@@ -70,6 +70,11 @@ class ShoppCart extends ListFramework {
 		$this->listeners();
 	}
 
+	public function __sleep () {
+		$properties = array_keys( get_object_vars($this) );
+		return array_diff($properties, array('shipped', 'downloads', 'recurring', 'Added', 'retotal', 'promocodes',' discounts'));
+	}
+
 	/**
 	 * Listen for events to trigger cart functionality
 	 *
