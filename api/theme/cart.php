@@ -393,7 +393,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	 }
 
-	static function total ($result, $options, $O) { return $O->Totals->total(); }
+	static function total ($result, $options, $O) {
+		return $O->Totals->total();
+	}
 
 	static function total_items ($result, $options, $O) {
 	 	return count($O);

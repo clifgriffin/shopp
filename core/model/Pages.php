@@ -664,6 +664,7 @@ class ShoppThanksPage extends ShoppPage {
 	}
 
 	public function content ($content) {
+
 		global $wp_query, $wp_the_query;
 		// Make sure this is the main query and it is the thanks page
 		if ( $wp_the_query !== $wp_query || ! is_shopp_page('thanks') ) return $content;
