@@ -918,8 +918,8 @@ class ShoppPromotions extends ListFramework {
 	/**
 	 * Returns the status of loaded promotions.
 	 *
-	 * If this was called earlier in the session with a false result then the promotions will not be loaded on
-	 * subsequent occasions (for the lifetime of the session).
+	 * Calling this method causes promotions to be loaded from the db, unless it was called earlier in the session with
+	 * a negative result - in which case it will not cause further queries for the lifetime of the session.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
