@@ -477,7 +477,7 @@ class ShoppCart extends ListFramework {
 
 	public function tracking () {
 
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Order = ShoppOrder();
 
 		$ShippingAddress = $Order->Shipping;
@@ -496,24 +496,8 @@ class ShoppCart extends ListFramework {
 		$Shiprates->track('postcodes', $ShippingModules->postcodes);
 		$Shiprates->track('realtime', $ShippingModules->realtime);
 
-		// Have Shiprates calculate item fees
-		add_action( 'shopp_cart_item_retotal', array($this, 'shipitems') );
+		add_action('shopp_cart_item_totals', array($Shiprates, 'init'));
 
-	}
-
-	/**
-	 * Calculate shippable item fees
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	public function shipitems ( ShoppCartItem $Item ) {
-		$Shiprates = ShoppOrder()->Shiprates;
-
-		$ShippableItem = new ShoppShippableItem($Item);
-		$Shiprates->itemfees($ShippableItem);
 	}
 
 	/**
@@ -550,11 +534,12 @@ class ShoppCart extends ListFramework {
 			foreach ( $Item->taxes as $taxid => $Tax )
 				$Totals->register( new OrderAmountItemTax( $Tax, $id ) );
 
+			$Shipping->item( new ShoppShippableItem($Item) );
+
 		}
 
-		// @todo handle free shipping??
-		// $Shipping->free($shipfree);
 		$Shipping->calculate();
+
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
 
 		// Calculate discounts
