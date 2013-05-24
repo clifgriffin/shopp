@@ -119,6 +119,18 @@ class ListFramework implements Iterator {
 		return array('_added', '_checks', '_list');
 	}
 
+	public function changed () {
+
+		$lastcheck = $this->_checks; // Keep current checksum
+		$this->_checks = hash('crc32b', serialize($this->_list) );
+
+		if ( 0 == $lastcheck ) return true;
+		return ( $lastcheck != $this->_checks );
+
+	}
+
+} // END class ListFramework
+
 /**
  * Implements a Singleton pattern object
  *

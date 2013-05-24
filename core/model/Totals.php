@@ -179,7 +179,7 @@ class OrderTotals extends ListFramework {
 	 * @param string $register The name of the register to check
 	 * @return boolean True when the register has changed
 	 **/
-	private function changed ( string $register ) {
+	public function changed ( string $register ) {
 		$check = isset($this->checks[ $register ]) ? $this->checks[$register] : 0;
 		$this->checks[$register] = hash('crc32b', serialize($this->register[$register]) );
 		if ( 0 == $check ) return true;
