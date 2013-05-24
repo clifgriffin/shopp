@@ -536,17 +536,17 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function success () {
-		$purchase = $this->inprogress;
 
-		do_action('shopp_order_success',ShoppPurchase());
+		$this->purchase = $this->inprogress;
+		$this->inprogress = false;
+
+		do_action('shopp_order_success', ShoppPurchase());
 
 		Shopping::resession();
 
-		$this->purchase = $purchase;
-		$this->inprogress = false;
+		if ( false !== $this->purchase )
+			shopp_redirect( shoppurl(false, 'thanks') );
 
-		if ($this->purchase !== false)
-			shopp_redirect(shoppurl(false,'thanks'));
 	}
 
 	public function validate () {
@@ -676,9 +676,7 @@ class ShoppOrder {
 		$this->Cart->clear();
 
 		$this->data = array();
-
 		$this->inprogress = false;
-		$this->purchase = false;
 		$this->txnid = false;
 
 	}
