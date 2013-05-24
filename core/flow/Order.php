@@ -373,7 +373,7 @@ class ShoppOrder {
 		} else { // Handle updates to an existing order from checkout reprocessing
 			if ( !empty(ShoppPurchase()->id) ) $Purchase = ShoppPurchase();	// Update existing order
 			else $Purchase = new Purchase($this->inprogress);
-			$changed = ($this->checksum != $this->Cart->checksum); // Detect changes to the cart
+			$changed = $this->Cart->changed(); // Detect changes to the cart
 		}
 
 		// Capture early event transaction IDs
