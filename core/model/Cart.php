@@ -235,7 +235,7 @@ class ShoppCart extends ListFramework {
 			$AjaxCart->Contents[] = $CartItem;
 		}
 		if (isset($this->added))
-			$AjaxCart->Item = clone($this->Added);
+			$AjaxCart->Item = clone($this->added());
 		else $AjaxCart->Item = new ShoppCartItem();
 		unset($AjaxCart->Item->options);
 
@@ -276,7 +276,6 @@ class ShoppCart extends ListFramework {
 			return $this->remove( $this->added() ); // Remove items if no cross-item stock available
 
 		do_action_ref_array('shopp_cart_add_item',array($NewItem));
-		$this->Added = $NewItem;
 
 		return true;
 	}
