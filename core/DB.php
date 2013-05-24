@@ -1195,7 +1195,7 @@ class WPDatabaseObject extends DatabaseObject {
 	 * @param string $table The base table name
 	 * @return string The full, prefixed table name
 	 **/
-	static function tablename ($table) {
+	static function tablename ($table = '') {
 		global $wpdb;
 		return $wpdb->get_blog_prefix() . $table;
 	}
