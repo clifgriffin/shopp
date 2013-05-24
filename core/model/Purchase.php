@@ -55,11 +55,11 @@ class Purchase extends DatabaseObject {
 		$price = DatabaseObject::tablename(Price::$table);
 		$Purchased = new Purchased();
 		if (empty($this->id)) return false;
-		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",'array',array($Purchased,'loader'));
+		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id", 'array', array($Purchased, 'loader') );
 		foreach ( $this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			if ('Shipped' == $purchase->type) $this->shipable = true;
-			if ( str_true($purchase->inventory) ) $this->stocked = true;
+			if ( isset($purchase->inventory) && str_true($purchase->inventory) ) $this->stocked = true;
 			if ( is_string($purchase->data) ) $purchase->data = unserialize($purchase->data);
 			if ('yes' == $purchase->addons) {
 				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
