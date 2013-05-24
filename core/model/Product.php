@@ -1113,6 +1113,12 @@ class Product extends WPShoppObject {
 
 		// Re-summarize product pricing
 		$this->load_data(array('prices','summary'));
+
+		// Duplicate (WP) post meta data
+		foreach ( get_post_custom( $original ) as $key => $values ) {
+			foreach ( (array) $values as $value )
+				add_post_meta( $this->id, $key, $value );
+		}
 	}
 
 	/**
