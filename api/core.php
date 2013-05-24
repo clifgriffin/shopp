@@ -56,7 +56,7 @@ function ShoppCustomer ( $Object = false ) {
  * @param Collection (optional) $Object the Collection object to set to the global context.
  * @return mixed if the global Collection context isn't set, bool false will be returned, otherwise the global Collection object will be returned
  **/
-function ShoppCollection ( ShoppCollection $Object = null ) {
+function ShoppCollection ( ProductCollection $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) ) $Shopp->Category = $Object;
 	return $Shopp->Category;
@@ -395,7 +395,7 @@ function is_shopp_taxonomy ( $wp_query = false ) {
 	$object = $wp_query->get_queried_object();
 	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
 
-	return in_array($object->taxonomy, $taxonomies);
+	return isset($object->taxonomy) && in_array($object->taxonomy, $taxonomies);
 }
 
 /**

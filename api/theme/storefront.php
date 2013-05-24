@@ -128,7 +128,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ($id !== false) {
 			if (isset($O->images[$id])) $img = $O->images[$id];
 			else {
-				shopp_debug( sprintf('No %s image exists at with the specified database ID of %s.',get_class($O),$id) );
+				shopp_debug( sprintf('No %s image exists at with the specified database ID of %d.', get_class($O), $id) );
 				return '';
 			}
 		}
@@ -139,7 +139,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
 				$img = $O->images[$keys[$index]];
 			else {
-				shopp_debug( sprintf('No %s image exists at the specified index position %s.',get_class($O),$id) );
+				shopp_debug( sprintf('No %s image exists at the specified index position %d.', get_class($O), $id) );
 				return '';
 			}
 		}

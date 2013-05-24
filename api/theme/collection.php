@@ -518,7 +518,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$O->_rindex = false;
 			$O->_product_loop = true;
 		} else {
-			ShoppProduct(next($O->products));
+			if ( $Product = next($O->products) )
+				ShoppProduct($Product);
 			$O->_pindex++;
 		}
 
