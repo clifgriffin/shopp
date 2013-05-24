@@ -277,8 +277,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	static function promos_available ($result, $options, $O) {
-		global $Shopp;
-		if (!$Shopp->Promotions->available()) return false;
+		if (!ShoppOrder()->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
 		if (shopp_setting('promo_limit') > 0 &&
 			count($O->discounts) >= shopp_setting('promo_limit')) return false;

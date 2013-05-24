@@ -904,6 +904,17 @@ class ShoppPromotions extends ListFramework {
 
 	static $targets = array('Cart', 'Cart Item');
 
+	protected $loaded = false;
+	protected $promos = null;
+
+	/**
+	 * Detect if promotions exist and pre-load if so.
+	 */
+	public function __construct() {
+		ShoppingObject::store( 'promos', $this->promos );
+	}
+
+
 	/**
 	 * Returns the status of loaded promotions
 	 *
@@ -913,7 +924,11 @@ class ShoppPromotions extends ListFramework {
 	 * @return boolean True if there are promotions loaded, false otherwise
 	 **/
 	public function available () {
-		return ( $this->count() > 0 );
+		if ( null === $this->promos || true === $this->promos ) {
+			$this->load();
+			$this->promos = $this->count() > 0;
+		}
+		return $this->promos;
 	}
 
 	/**
@@ -926,8 +941,7 @@ class ShoppPromotions extends ListFramework {
 	 **/
 	public function load () {
 
-		// Don't hit the DB again if they're already loaded
-		if ( $this->available() ) return;
+		if ( $this->loaded ) return; // Don't load twice in one request
 
 		$table = DatabaseObject::tablename(Promotion::$table);
 		$where = array(
@@ -944,7 +958,7 @@ class ShoppPromotions extends ListFramework {
 		if ( 0 == count($loaded) ) return;
 
 		$this->populate($loaded);
-
+		$this->loaded = true;
 	}
 
 	/**
