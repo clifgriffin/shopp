@@ -42,7 +42,6 @@ class ShoppCart extends ListFramework {
 	public $changed = false;		// Flag when Cart updates and needs retotaled
 	public $added = false;			// The index of the last item added
 
-	public $runaway = 0;
 	public $retotal = false;
 	public $handlers = false;
 
@@ -399,22 +398,6 @@ class ShoppCart extends ListFramework {
 		new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
 		return false;
 
-	}
-
-	/**
-	 * Empties the contents of the cart
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @return boolean
-	 **/
-	public function clear () {
-		parent::clear();
-		$this->promocodes = array();
-		$this->discounts = array();
-		if (isset($this->promocode)) unset($this->promocode);
-		return true;
 	}
 
 	/**
@@ -1187,7 +1170,6 @@ class CartShipping {
 	 * @return void
 	 **/
 	public function calculate () {
-		global $Shopp;
 
 		$status = $this->status();
 		if ($status !== true) return $status;
