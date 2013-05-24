@@ -916,7 +916,8 @@ class ShoppPromotions extends ListFramework {
 
 
 	/**
-	 * Returns the status of loaded promotions
+	 * Returns the status of loaded promotions. If this was called earlier in the session with a false result then the
+	 * promotions will not be loaded on subsequent occasions (for the lifetime of the request).
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
