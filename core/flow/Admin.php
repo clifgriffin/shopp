@@ -738,7 +738,7 @@ class ShoppAdmin extends FlowController {
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 
-		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",AS_ARRAY);
+		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",'array');
 
 		if (!empty($Orders)) {
 		echo '<table class="widefat">';

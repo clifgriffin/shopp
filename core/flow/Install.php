@@ -447,7 +447,7 @@ class ShoppInstallation extends FlowController {
 		$asset_table = DatabaseObject::tablename('asset');
 		$db->query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
 							SELECT parent, context, 'image', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='image'");
-		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='image' AND name='processing'", AS_ARRAY);
+		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='image' AND name='processing'", 'array');
 		foreach ($records as $r) {
 			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
@@ -477,7 +477,7 @@ class ShoppInstallation extends FlowController {
 		$query = "INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
 					SELECT parent, context, 'download', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='download' AND parent != 0";
 		$db->query($query);
-		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='download' AND name='processing'", AS_ARRAY);
+		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='download' AND name='processing'", 'array');
 		foreach ($records as $r) {
 			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
@@ -498,7 +498,7 @@ class ShoppInstallation extends FlowController {
 
 		// Update promotions
 		$promo_table = DatabaseObject::tablename('promo');
-		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'", AS_ARRAY);
+		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'", 'array');
 
 		$FSStorage = array('path' => array());
 		// Migrate Asset storage settings
@@ -535,7 +535,7 @@ class ShoppInstallation extends FlowController {
 
 		$where = "name like '%".join("%' OR name like '%", $gateways)."%'";
 		$query = "SELECT name, value FROM $setting_table WHERE $where";
-		$result = $db->query($query, AS_ARRAY);
+		$result = $db->query($query, 'array');
 		$paycards = Lookup::paycards();
 
 		// Convert settings to 1.1-compatible settings

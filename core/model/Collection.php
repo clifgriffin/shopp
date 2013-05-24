@@ -1202,7 +1202,7 @@ class ProductCategory extends ProductTaxonomy {
 	// 				WHERE {$loading['where']}
 	// 				GROUP BY letter";
 	//
-	// 	$alpha = $db->query($ac,AS_ARRAY);
+	// 	$alpha = $db->query($ac,'array');
 	//
 	// 	$entry = new stdClass();
 	// 	$entry->letter = false;

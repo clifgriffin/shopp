@@ -1011,7 +1011,7 @@ class Product extends WPShoppObject {
 
 		// Delete images
 		$images = array();
-		$src = DB::query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",AS_ARRAY);
+		$src = DB::query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",'array');
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
 
