@@ -187,13 +187,13 @@ class OrderTotals extends ListFramework {
 	}
 
 	public function data () {
-		return json_decode((string)$this);
+		return json_decode( (string)$this );
 	}
 
 	public function __toString () {
-		$data = array();
+		$data = new StdClass();
 		foreach ( $this as $id => $entry )
-			$data[$id] = (string)$entry;
+			$data->$id = (string)$entry;
 
 		return json_encode($data);
 	}
