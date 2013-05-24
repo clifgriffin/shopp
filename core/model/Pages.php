@@ -567,7 +567,8 @@ class ShoppCheckoutPage extends ShoppPage {
 		do_action('shopp_init_checkout');
 
 		ob_start();
-		if ( $Errors->exist(SHOPP_COMM_ERR) )
+		$Errors = ShoppErrorStorefrontNotices();
+		if ( $Errors->exist() )
 			echo Storefront::errors();
 
 		ShoppStorefront()->checkout = true;
