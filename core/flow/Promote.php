@@ -133,9 +133,6 @@ class Promote extends AdminController {
 			if ($Promotion->target == "Catalog")
 				$Promotion->catalog();
 
-			// Force reload of the session promotions to include any updates
-			$Shopp->Promotions->reload();
-
 		}
 
 		$pagenum = absint( $paged );
