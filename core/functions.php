@@ -81,7 +81,7 @@ function _jse ( $text, $domain = 'default' ) {
  * @return string The object structure
  **/
 function _object_r ($object) {
-	global $Shopp;
+	$Shopp = Shopp::object();
 	ob_start();
 	print_r($object);
 	$result = ob_get_contents();

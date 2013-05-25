@@ -298,7 +298,7 @@ class Purchase extends DatabaseObject {
 	}
 
 	function gateway () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$processor = $this->gateway;
 		if ('FreeOrder' == $processor) return $Shopp->Gateways->freeorder;
@@ -605,7 +605,7 @@ class PurchasesExport {
 	var $limit = 1024;
 
 	function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$this->purchase_cols = Purchase::exportcolumns();
 		$this->purchased_cols = Purchased::exportcolumns();
@@ -836,7 +836,7 @@ class PurchasesXLSExport extends PurchasesExport {
 
 class PurchasesIIFExport extends PurchasesExport {
 	function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		parent::__construct();
 		$this->content_type = "application/qbooks";
 		$this->extension = "iif";
@@ -877,7 +877,7 @@ class PurchasesIIFExport extends PurchasesExport {
 	function record () { }
 
 	function settings () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		?>
 		<div id="iif-settings" class="hidden">
 			<input type="text" id="iif-account" name="settings[purchaselog_iifaccount]" value="<?php echo shopp_setting('purchaselog_iifaccount'); ?>" size="30"/><br />

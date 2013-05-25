@@ -118,7 +118,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function order () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
 
@@ -162,7 +162,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function notification () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
@@ -381,7 +381,7 @@ class CustomersExport {
 	var $limit = 1024;
 
 	function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$this->customer_cols = Customer::exportcolumns();
 		$this->billing_cols = BillingAddress::exportcolumns();

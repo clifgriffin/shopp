@@ -196,7 +196,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function breadcrumb ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$defaults = array(
 			'separator' => '&nbsp;&raquo; ',
@@ -655,7 +655,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function product ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Storefront = ShoppStorefront();
 
 		if (isset($options['name'])) ShoppProduct(new Product($options['name'],'name'));
@@ -826,7 +826,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	static function side_product ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$content = false;
 		$source = isset($options['source'])?$options['source']:'product';
@@ -958,7 +958,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	static function url ($result, $options, $O) { return shoppurl(false,'catalog'); }
 
 	static function views ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		if (isset($Shopp->Category->controls)) return false;
 		$string = "";
 		$string .= '<ul class="views">';

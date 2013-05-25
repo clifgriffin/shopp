@@ -153,7 +153,7 @@ class ShoppResources {
 	 * @return void
 	 **/
 	function download () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$download = $this->request['shopp_download'];
 		$Purchase = false;
 		$Purchased = false;

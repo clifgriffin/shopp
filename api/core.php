@@ -88,8 +88,8 @@ function ShoppCatalog ( ShoppCatalog $Object = null ) {
  * @return mixed if the global Purchase context isn't set, bool false will be returned, otherwise the global Purchase object will be returned
  **/
 function ShoppPurchase ( $Object = false ) {
-	global $Shopp; $false = false;
-	if (empty($Shopp)) return $false;
+	$Shopp = Shopp::object();
+	if (empty($Shopp)) return false;
 	if ($Object !== false) $Shopp->Purchase = $Object;
 	return $Shopp->Purchase;
 }
@@ -103,8 +103,8 @@ function ShoppPurchase ( $Object = false ) {
  * @return Order
  **/
 function ShoppOrder ( $Object = false ) {
-	global $Shopp; $false = false;
-	if (empty($Shopp)) return $false;
+	$Shopp = Shopp::object();
+	if (empty($Shopp)) return false;
 	if ($Object !== false) $Shopp->Order = $Object;
 	return $Shopp->Order;
 }

@@ -120,7 +120,7 @@ class FileAsset extends MetaObject {
 	 * @return void Description...
 	 **/
 	function &_engine () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines();
 
 		if ( ! empty($this->storage) ) {
@@ -681,7 +681,7 @@ class StorageEngines extends ModuleLoader {
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$this->activated = array();
 
@@ -841,7 +841,7 @@ abstract class StorageModule {
 	var $settings;
 
 	function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$this->module = get_class($this);
 		$this->settings = shopp_setting($this->module);
 	}

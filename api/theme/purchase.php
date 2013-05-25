@@ -506,7 +506,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	static function ship_city ($result, $options, $O) { return esc_html($O->shipcity); }
 
 	static function ship_country ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$countries = shopp_setting('target_markets');
 		return $countries[$O->shipcountry];
 	}
@@ -546,7 +546,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	static function status ($result, $options, $O) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$labels = shopp_setting('order_status');
 		if (empty($labels)) $labels = array('');
 		return $labels[$O->status];

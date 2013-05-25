@@ -227,7 +227,7 @@ class ShoppAdmin extends FlowController {
 	 * @param mixed $page ShoppAdminPage object
 	 **/
 	function addmenu ($page) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$name = $page->page;
 
 		$controller = array(&$Shopp->Flow,'admin');
@@ -459,7 +459,7 @@ class ShoppAdmin extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function welcome () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		if (shopp_setting('display_welcome') == "on" && empty($_POST['setup'])) {
 			include(SHOPP_ADMIN_PATH."/help/welcome.php");
 			return true;
@@ -474,7 +474,7 @@ class ShoppAdmin extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function reactivate () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		include(SHOPP_ADMIN_PATH."/help/reactivate.php");
 	}
 
@@ -545,7 +545,7 @@ class ShoppAdmin extends FlowController {
 	 * @return void
 	 **/
 	function stats_widget ($args=false) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$ranges = array(
 			'today' => __('Today','Shopp'),
@@ -715,7 +715,7 @@ class ShoppAdmin extends FlowController {
 	 * @return void
 	 **/
 	function orders_widget ($args=null) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$db = DB::get();
 		$defaults = array(
 			'before_widget' => '',

@@ -1243,7 +1243,7 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return object The Product object
 	 **/
 	public function adjacent_product($next=1) {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		if ($next < 0) $this->loading['adjacent'] = "previous";
 		else $this->loading['adjacent'] = "next";

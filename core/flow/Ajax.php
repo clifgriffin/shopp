@@ -601,7 +601,7 @@ class ShoppAjax {
 
 	function import_file () {
 		check_admin_referer('wp_ajax_shopp_import_file');
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Engine =& $Shopp->Storage->engines['download'];
 
 		$error = create_function('$s', 'die(json_encode(array("error" => $s)));');

@@ -349,7 +349,7 @@ class Setup extends AdminController {
 	}
 
 	function preferences () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$db =& DB::get();
 		if ( ! current_user_can('shopp_settings_checkout') )
@@ -493,7 +493,7 @@ class Setup extends AdminController {
 	}
 
 	function shiprates () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Shipping = $Shopp->Shipping;
 		$Shipping->settings(); // Load all installed shipping modules for settings UIs
 
@@ -931,7 +931,7 @@ class Setup extends AdminController {
 		if ( ! current_user_can('shopp_settings_payments') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Gateways = $Shopp->Gateways;
 
 	 	$active_gateways = shopp_setting('active_gateways');
@@ -1038,7 +1038,7 @@ class Setup extends AdminController {
 
 			// Re-register page, collection, taxonomies and product rewrites
 			// so that the new slugs work immediately
-			global $Shopp;
+			$Shopp = Shopp::object();
 			$Shopp->pages();
 			$Shopp->collections();
 			$Shopp->taxonomies();
@@ -1240,7 +1240,7 @@ class Setup extends AdminController {
 	}
 
 	function storage_ui () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$Shopp->Storage->settings();
 		$Shopp->Storage->ui();
 	}

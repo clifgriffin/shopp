@@ -102,7 +102,7 @@ class ShoppInstallation extends FlowController {
 	 * @return void Description...
 	 **/
 	public function deactivate () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		// Update rewrite rules (cleanup Shopp rewrites)
 		remove_action('shopp_init', array($Shopp, 'pages'));

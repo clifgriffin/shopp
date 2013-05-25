@@ -450,7 +450,7 @@ class GatewayModules extends ModuleLoader {
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$this->activated = array();
 		$gateways = explode(",",shopp_setting('active_gateways'));
 		$modules = array_keys($this->modules);

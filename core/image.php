@@ -74,7 +74,7 @@ class ImageServer {
 	var $Image = false;
 
 	function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		if ( ! defined('SHOPP_PATH') )
 				define('SHOPP_PATH', self::path() );
 		if ( ! defined('SHOPP_MODEL_PATH') )

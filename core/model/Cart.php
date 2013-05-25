@@ -760,7 +760,7 @@ class CartDiscounts {
 	 * @return void
 	 **/
 	public function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$this->limit = shopp_setting('promo_limit');
 		$baseop = shopp_setting('base_operations');
 		$this->precision = $baseop['currency']['format']['precision'];
@@ -1122,7 +1122,7 @@ class CartShipping {
 	 * @return void
 	 **/
 	public function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->modules = &$Shopp->Shipping->active;
@@ -1285,7 +1285,7 @@ class CartTax {
 	 * @return void
 	 **/
 	public function __construct () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 		$this->Order = ShoppOrder();
 		$base = shopp_setting('base_operations');
 		$this->format = $base['currency']['format'];
