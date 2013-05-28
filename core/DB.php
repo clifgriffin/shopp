@@ -633,6 +633,7 @@ abstract class DatabaseObject implements Iterator {
 	protected $_position = 0;
 	protected $_properties = array();
 	protected $_ignores = array('_');
+	protected $_key = '';
 	protected $_map = array();
 
 	/**
