@@ -21,7 +21,8 @@ class Customer extends DatabaseObject {
 	var $newuser = false;		// New WP user created flag
 	var $loginname = false;		// Account login name
 
-	function __construct ($id=false,$key=false) {
+	function __construct ( $id = false, $key = 'id' ) {
+		$this->_key = $key;
 		$this->init(self::$table);
 		$this->load($id,$key);
 		if (!empty($this->id)) $this->load_info();

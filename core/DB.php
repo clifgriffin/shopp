@@ -884,7 +884,7 @@ abstract class DatabaseObject implements Iterator {
 		$classhook = strtolower( get_class($this) );
 		$data = sDB::prepare($this, $this->_map);
 
-		$id = $this->{$this->_key};
+		$id = isset($this->{$this->_key}) ? $this->{$this->_key} : false;
 		if ( ! empty($this->_map) ) {
 			$remap = array_flip($this->_map);
 			if ( isset($remap[ $this->_key ]) )
@@ -944,7 +944,8 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	public function exists () {
 		$key = $this->_key;
-		$id = $this->{$this->_key};
+		if ( ! isset($this->$key) ) return false;
+		$id = $this->$key;
 		$r = sDB::query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
 		return ( ! empty($r->id) );
 	}
