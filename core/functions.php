@@ -1915,7 +1915,7 @@ function sprintf_gettext ( string $text, array $args, integer $parameters = null
 	if ( is_null($parameters) ) $parameters = 1;
 
 	if ( count($args) > $parameters ) {
-	    $args = array_slice($args, 2);
+	    $args = array_slice($args, $parameters);
 	  	return vsprintf($text, $args);
 	}
 
