@@ -1,39 +1,39 @@
 <?php
 
-$Overview = Shopp::__(
+$Overview = Shopp::_mx(
 
-'### Order Manager
+'### Orders Manager
 
 The order management system in Shopp gives you access to your store&apos;s order history and allows you to move orders through a custom order processing workflow. The order management screen is accessible by clicking the Shopp menu, or **Shopp** &rarr; **Orders** in the **WordPress Admin**.
 
 As orders are placed by customers, they will appear in your **Order Manager**. You can view orders in different order processing states using the **Order Status Menu**. The total number of orders for a status are listed beside the label. You can also filter orders by date ranges and searching.',
 
-'Orders Manager help tab', Markdownr::ON);
+'Orders Manager help tab');
 
-$Filtering = Shopp::__(
+$Filtering = Shopp::_mx(
 
 '### Filtering
 
 To filter orders by date, click the drop-down menu initially labelled **Show All Orders**. Selecting a date range option will reveal the start date and end date fields showing the exact date range for the chosen preset range. Click the **Filter** button to filter orders by the given date range.',
 
-'Orders Manager help tab', Markdownr::ON);
+'Orders Manager help tab');
 
 ob_start(); ?>
 <table border="0" class="advsearch">
 <tr><td><strong><?php Shopp::_e('Email'); ?>:</strong></td><td>help.desk@shopplugin.net</td></tr>
-<tr><td><strong><?php _e('Transaction ID','Shopp'); ?>:</strong></td><td>txn:95M27911DT480180V</td></tr>
-<tr><td><strong><?php _e('Gateway','Shopp'); ?>:</strong></td><td>gateway:"paypal express"<br />gateway:firstdata</td></tr>
-<tr><td><strong><?php _e('Credit Card Type','Shopp'); ?>:</strong></td><td>cardtype:visa</td></tr>
-<tr><td><strong><?php _e('Company','Shopp'); ?>:</strong></td><td>company:"Ingenesis Limited"<br />company:automattic</td></tr>
-<tr><td><strong><?php _e('Address (lines 1 or 2)','Shopp'); ?>:</strong></td><td>address:"1 main st"</td></tr>
-<tr><td><strong><?php _e('City','Shopp'); ?>:</strong></td><td>city:"san jose"<br />city:columbus</td></tr>
-<tr><td><strong><?php _e('State/Province','Shopp'); ?>:</strong></td><td>state:"new york"<br />province:ontario</td></tr>
-<tr><td><strong><?php _e('Zip/Postal Codes','Shopp'); ?>:</strong></td><td>zip:95131<br />postcode:M1P1C0</td></tr>
-<tr><td><strong><?php _e('Country','Shopp'); ?>:</strong></td><td>country:US</td></tr>
+<tr><td><strong><?php Shopp::_e('Transaction ID','Shopp'); ?>:</strong></td><td>txn:95M27911DT480180V</td></tr>
+<tr><td><strong><?php Shopp::_e('Gateway','Shopp'); ?>:</strong></td><td>gateway:"paypal express"<br />gateway:firstdata</td></tr>
+<tr><td><strong><?php Shopp::_e('Credit Card Type','Shopp'); ?>:</strong></td><td>cardtype:visa</td></tr>
+<tr><td><strong><?php Shopp::_e('Company','Shopp'); ?>:</strong></td><td>company:"Ingenesis Limited"<br />company:automattic</td></tr>
+<tr><td><strong><?php Shopp::_e('Address (lines 1 or 2)','Shopp'); ?>:</strong></td><td>address:"1 main st"</td></tr>
+<tr><td><strong><?php Shopp::_e('City','Shopp'); ?>:</strong></td><td>city:"san jose"<br />city:columbus</td></tr>
+<tr><td><strong><?php Shopp::_e('State/Province','Shopp'); ?>:</strong></td><td>state:"new york"<br />province:ontario</td></tr>
+<tr><td><strong><?php Shopp::_e('Zip/Postal Codes','Shopp'); ?>:</strong></td><td>zip:95131<br />postcode:M1P1C0</td></tr>
+<tr><td><strong><?php Shopp::_e('Country','Shopp'); ?>:</strong></td><td>country:US</td></tr>
 </table>
 <?php $table = ob_get_clean();
 
-$Search = Shopp::__(
+$Search = Shopp::_mx(
 
 '### Search
 
@@ -47,9 +47,9 @@ All of these advanced searches can be used:
 
 ',
 
-'Orders Manager help tab', Markdownr::ON) . $table;
+'Orders Manager help tab') . $table;
 
-$Exporting = Shopp::__(
+$Exporting = Shopp::_mx(
 '### Exporting
 
 Orders can be exported in a variety of formats with any number of order data columns needed.
@@ -69,9 +69,9 @@ When exporting to QuickBooks IIF format, enter the name of the QuickBooks accoun
 
 Using filtering and searching you can isolate specific orders to export. Additionally, using date range filtering you can set up periodic exporting. Shopp stores the end date of each export that has date range filters enabled. This allows selecting the Last Export option from the date range drop-down menu which will automatically set the start field to the end date of the last completed export, and the end date field will be set to today’s current date.',
 
-'Orders Manager help tab', Markdownr::ON);
+'Orders Manager help tab');
 
-$sidebar = sprintf( Shopp::__(
+$sidebar = Shopp::_mx(
 '**For more information:**
 
 [Shopp User Guide](%s)
@@ -80,14 +80,15 @@ $sidebar = sprintf( Shopp::__(
 
 [Shopp Support Help Desk](%s)',
 
-'Orders Manager help tab (sidebar)', Markdownr::ON),
+// Translators context
+'Orders Manager help tab (sidebar)',
 
-SHOPP_DOCS . 'orders-customers/managing-orders/',
-SHOPP_COMMUNITY . 'support/',
-SHOPP_SUPPORT . 'support/'
+// URL replacements
+ShoppSupport::DOCS . 'orders-customers/managing-orders/',
+ShoppSupport::FORUMS,
+ShoppSupport::SUPPORT
 
 );
-
 
 get_current_screen()->add_help_tab( array(
 	'id'      => 'overview',

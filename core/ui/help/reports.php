@@ -1,6 +1,6 @@
 <?php
 
-$Overview = Shopp::__(
+$Overview = Shopp::_mx(
 
 '### Reports
 
@@ -10,9 +10,9 @@ Shopp includes a several reports to help you keep tabs on your business. Learnin
 
 The sales report shows the total amount of sales for your store. It highlights sales in the currency amount of your store, but also includes other helpful information like number of orders and number of items per order.',
 
-'Reports help tab', Markdownr::ON);
+'Reports help tab');
 
-$Filtering = Shopp::__(
+$Filtering = Shopp::_mx(
 
 '### Filtering
 
@@ -35,9 +35,9 @@ The following time scales are available:
 - By Week
 - By Month',
 
-'Report help tab', Markdownr::ON);
+'Report help tab');
 
-$Exporting = Shopp::__(
+$Exporting = Shopp::_mx(
 '### Exporting
 
 Reports can be exported in a variety of formats with any of the columns from the report.
@@ -54,9 +54,9 @@ Enable the **Include column headings** option to include column names in the fir
 
 To download the export file, click the **Download** button.',
 
-'Reports help tab', Markdownr::ON);
+'Reports help tab');
 
-$sidebar = sprintf( Shopp::__(
+$sidebar = Shopp::_mx(
 
 '**For more information:**
 
@@ -66,11 +66,13 @@ $sidebar = sprintf( Shopp::__(
 
 [Shopp Support Help Desk](%s)',
 
-'Reports help tab (sidebar)', Markdownr::ON),
+// Translator context
+'Reports help tab (sidebar)',
 
-SHOPP_DOCS . 'reports/reports-overview/',
-SHOPP_COMMUNITY . 'support/',
-SHOPP_SUPPORT . 'support/'
+// Sidebar URL replacements
+ShoppSupport::DOCS . 'reports/',
+ShoppSupport::FORUMS,
+ShoppSupport::SUPPORT
 
 );
 

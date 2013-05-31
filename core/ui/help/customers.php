@@ -1,6 +1,6 @@
 <?php
 
-$Overview = Shopp::__(
+$Overview = Shopp::_mx(
 
 '### Customers Manager
 
@@ -10,15 +10,15 @@ When the account system is set to **No Accounts**, the customer manager will lis
 
 When using either of the account enabled modes (**Enable Account Logins** or **Enable Account Logins integrated with WordPress Users**) the customer records are listed as accounts that can be created, updated or deleted. Using an account login mode, each customer record can include multiple orders, and the number and gross sales of a customer&apos;s orders are including in the listing. To view a customer&apos;s orders, click the order totals. The order manager will be loaded with orders placed by the selected customer.',
 
-'Customers Manager help tab', Markdownr::ON);
+'Customers Manager help tab');
 
-$Filtering = Shopp::__(
+$Filtering = Shopp::_mx(
 
 '### Filtering
 
 Like the order manager, the customer manager allows filtering the customer list by date. To filter customers by date, click the drop-down menu labelled **Show All Customers**. Selecting a specific date range option will reveal start and end dates with the exact preset date range for the preset option selected from the menu. Click the **Filter** button to filter customers by the date range.',
 
-'Customers Manager help tab', Markdownr::ON);
+'Customers Manager help tab');
 
 ob_start(); ?>
 <table border="0" class="advsearch">
@@ -33,7 +33,7 @@ ob_start(); ?>
 </table>
 <?php $table = ob_get_clean();
 
-$Search = Shopp::__(
+$Search = Shopp::_mx(
 
 '### Search
 
@@ -47,9 +47,9 @@ All of these advanced searches can be used:
 
 ',
 
-'Customers Manager help tab', Markdownr::ON) . $table;
+'Customers Manager help tab') . $table;
 
-$Exporting = Shopp::__(
+$Exporting = Shopp::_mx(
 '### Exporting
 
 Customers can be exported in a variety of formats with any number of customer data columns needed.
@@ -66,9 +66,9 @@ For Tab-separated, comma-separated and Microsoft® Excel file formats select the
 
 Using filtering and searching you can isolate specific orders to export. Additionally, using date range filtering you can set up periodic exporting. Shopp stores the end date of each export that has date range filters enabled. This allows selecting the Last Export option from the date range drop-down menu which will automatically set the start field to the end date of the last completed export, and the end date field will be set to today’s current date.',
 
-'Customers Manager help tab', Markdownr::ON);
+'Customers Manager help tab');
 
-$sidebar = sprintf( Shopp::__(
+$sidebar = Shopp::_mx(
 '**For more information:**
 
 [Shopp User Guide](%s)
@@ -77,12 +77,13 @@ $sidebar = sprintf( Shopp::__(
 
 [Shopp Support Help Desk](%s)',
 
-'Customers Manager help tab (sidebar)', Markdownr::ON),
+// Translator context
+'Customers Manager help tab (sidebar)',
 
-SHOPP_DOCS . 'orders-customers/customer-manager/',
-SHOPP_COMMUNITY . 'support/',
-SHOPP_SUPPORT . 'support/'
-
+// Sidebar URL replacements
+ShoppSupport::DOCS . 'orders-customers/customer-manager/',
+ShoppSupport::FORUMS,
+ShoppSupport::SUPPORT
 );
 
 
