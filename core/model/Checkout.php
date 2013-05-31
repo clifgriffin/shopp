@@ -51,14 +51,12 @@ class ShoppCheckout {
 		$submitted = stripslashes_deep($_POST);				// Clean it up
 		$this->form = array_merge(self::$defaults, $submitted);	// Capture it
 
-		$this->Register = new ShoppRegistration();
-
 		$action = $this->form('checkout');
 
 		add_action('shopp_confirm_order', array($this, 'confirmed'));
 
 		if ( 'process' != $action) return;
-
+		$this->Register = new ShoppRegistration(true);
 
 		add_action('shopp_process_shipmethod', array($this, 'shipmethod'));
 
