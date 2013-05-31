@@ -534,6 +534,7 @@ ShoppLoader()->map(array(
 	'shoppshiprateservice' => '/model/Shiprates.php',
 	'shoppshopperswidget' => '/ui/widgets/shoppers.php',
 	'shoppshortcodes' => '/model/Pages.php',
+	'shoppsupport' => '/model/Support.php',
 	'shopptagcloudwidget' => '/ui/widgets/tagcloud.php',
 	'shopptax' => '/model/Tax.php',
 	'shopptaxableitem' => '/model/Tax.php',
