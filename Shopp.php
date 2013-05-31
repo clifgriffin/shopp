@@ -485,7 +485,7 @@ class Shopp {
 		return ( ! ShoppSettings()->available() || $db_version != DB::$version || shopp_setting_enabled('maintenance') );
 
 		// Settings unavailable
-		if (!ShoppSettings()->available() || ! shopp_setting('shopp_setup') != "completed")
+		if ( ! ShoppSettings()->available() || 'completed' != shopp_setting('shopp_setup') )
 			return false;
 
 		shopp_set_setting('maintenance', 'on');
@@ -501,18 +501,14 @@ class Shopp {
 	 *
 	 * @param string $text The text to translate
 	 * @param string $context An explination of how and where the text is used
-	 * @param boolean $markdown Process the string with Markdownr using the constant Markdownr::ON
 	 * @return string The translated text
 	 **/
-	public static function translate ( string $text, string $context = null, boolean $markdown = null ) {
+	public static function translate ( string $text, string $context = null ) {
 
 		$domain = __CLASS__;
 
 		if ( is_null($context) ) $string = translate( $text, $domain );
 		else $string = translate_with_gettext_context($text, $context, $domain);
-
-		// Enable Markdown rendering
-		if ( $markdown ) $string = new Markdownr($string);
 
 		return $string;
 
@@ -528,7 +524,11 @@ class Shopp {
 	 * @return string The translated text
 	 **/
 	public static function __ ( string $text ) {
-		return Shopp::translate($text);
+
+		$translated = Shopp::translate($text);
+		$args = func_get_args(); // Handle sprintf rendering
+		return sprintf_gettext($translated, $args, 1);
+
 	}
 
 	/**
@@ -541,7 +541,11 @@ class Shopp {
 	 * @return string The translated text
 	 **/
 	public static function _e ( string $text) {
-		echo Shopp::translate($text);
+
+		$translated = Shopp::translate($text);
+		$args = func_get_args(); // Handle sprintf rendering
+		echo sprintf_gettext($translated, $args, 1);
+
 	}
 
 	/**
@@ -555,7 +559,11 @@ class Shopp {
 	 * @return string The translated text
 	 **/
 	public static function _x ( string $text, string $context ) {
-		return Shopp::translate($text, $context);
+
+		$translated = Shopp::translate($text, $context);
+		$args = func_get_args(); // Handle sprintf rendering
+		return sprintf_gettext($translated, $args, 2);
+
 	}
 
 	/**
@@ -569,10 +577,11 @@ class Shopp {
 	 **/
 	public static function _m ( string $text ) {
 
+		$translated = Shopp::translate($text);
 		$args = func_get_args(); // Handle sprintf rendering
-		$text = sprintf_gettext($text, $args, 1);
+		$translated = sprintf_gettext($translated, $args, 1);
 
-		$Markdown = Shopp::translate($text, null, Markdownr::ON);
+		$Markdown = new Markdownr($translated);
 		return $Markdown->html();
 	}
 
@@ -587,11 +596,13 @@ class Shopp {
 	 **/
 	public static function _em ( string $text ) {
 
-		$args = func_get_args(); // Handle sprintf rendering
-		$text = sprintf_gettext($text, $args, 1);
+		$translated = Shopp::translate($text);
+		$args = func_get_args();
+		$translated = sprintf_gettext($translated, $args, 1);
 
-		$Markdown = Shopp::translate($text, null, Markdownr::ON);
+		$Markdown = new Markdownr($translated);
 		$Markdown->render();
+
 	}
 
 	/**
@@ -606,10 +617,11 @@ class Shopp {
 	 **/
 	public static function _mx ( string $text, string $context ) {
 
-		$args = func_get_args(); // Handle sprintf rendering
-		$text = sprintf_gettext($text, $args, 2);
+		$translated = Shopp::translate($text);
+		$args = func_get_args();
+		$translated = sprintf_gettext($translated, $args, 2);
 
-		$Markdown = Shopp::translate($text, $context, Markdownr::ON);
+		$Markdown = new Markdownr($translated);
 		return $Markdown->html();
 	}
 
@@ -625,11 +637,12 @@ class Shopp {
 	 **/
 	public static function _emx ( string $text, string $context ) {
 
-		$args = func_get_args(); // Handle sprintf rendering
-		$text = sprintf_gettext($text, $args, 2);
+		$translated = Shopp::translate($text);
+		$args = func_get_args();
+		$translated = sprintf_gettext($translated, $args, 2);
 
-		$Markdown = Shopp::translate($text, $context, Markdownr::ON);
-		return $Markdown->render();
+		$Markdown = new Markdownr($translated);
+		$Markdown->render();
 	}
 
 	// Deprecated properties
