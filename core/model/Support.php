@@ -130,15 +130,17 @@ class ShoppSupport {
 		if ( 'shopp' != $_REQUEST['plugin'] ) return;
 
 		$request = array('ShoppServerRequest' => 'changelog');
+
 		if ( isset($_GET['core']) && ! empty($_GET['core']) )
 			$request['core'] = $_GET['core'];
+
 		if ( isset($_GET['addon']) && ! empty($_GET['addon']) )
 			$request['addons'] = $_GET['addon'];
 
 		$data = array();
 		$response = ShoppSupport::callhome($request, $data);
 
-		include SHOPP_ADMIN_PATH.'/help/changelog.php';
+		include SHOPP_ADMIN_PATH . '/help/changelog.php';
 		exit;
 	}
 
@@ -155,29 +157,36 @@ class ShoppSupport {
 		$keysetting = ShoppSupport::key();
 		$key = $keysetting['k'];
 
-		$activated = ('1' == $keysetting['s']);
-		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
-		$addons = isset($updates->response[SHOPP_PLUGINFILE.'/addons'])?$updates->response[SHOPP_PLUGINFILE.'/addons']:false;
+		$activated = ShoppSupport::activated();
+		$core = isset($updates->response[ SHOPP_PLUGINFILE ]) ? $updates->response[ SHOPP_PLUGINFILE ] : false;
+		$addons = isset($updates->response[ SHOPP_PLUGINFILE . '/addons' ]) ? $updates->response[ SHOPP_PLUGINFILE . '/addons'] : false;
 
 		$plugin_name = 'Shopp';
-		$store_url = SHOPP_HOME.'store/';
-		$account_url = SHOPP_HOME.'store/account/';
+		$plugin_slug = strtolower($plugin_name);
+		$store_url = ShoppSupport::STORE;
+		$account_url = "$store_url/account/";
 
 		if ( ! empty($core)	// Core update available
 				&& isset($core->new_version)	// New version info available
 				&& version_compare($core->new_version, SHOPP_VERSION, '>') // New version is greater than current version
 			) {
-			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin='.($core->slug).'&core='.($core->new_version).'&TB_iframe=true&width=600&height=800');
-			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE, 'upgrade-plugin_shopp');
+			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin_slug . '&core=' . $core->new_version . '&TB_iframe=true&width=600&height=800');
+			$update_url = wp_nonce_url('update.php?action=shopp&plugin=' . SHOPP_PLUGINFILE, 'upgrade-plugin_shopp');
 
-			if ( ! $activated ) { // Key not active
+			if ( true || ! $activated ) { // Key not active
 				$update_url = $store_url;
-				$message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.', 'Shopp'),
-							$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
+				$message = Shopp::__(
+					'There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.',
+					$plugin_name, '<a href="' . $details_url . '" class="thickbox" title="' . esc_attr($plugin_name) . '">', '<a href="' . $update_url .'">', '</a>', $core->new_version
+				);
 
 				shopp_set_setting('updates', false);
-			} else $message = sprintf(__('There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.'),
-								$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version );
+			} else {
+				$message = Shopp::__(
+					'There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.',
+					$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version
+				);
+			}
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
@@ -185,7 +194,10 @@ class ShoppSupport {
 		}
 
 		if ( ! $activated ) { // No update available, key not active
-			$message = sprintf(__('Please activate a valid %1$s access key for automatic updates and official support services. %2$s Find your %1$s access key %4$s or %3$s purchase a new key at the Shopp Store. %4$s', 'Shopp'), $plugin_name, '<a href="'.$account_url.'" target="_blank">', '<a href="'.$store_url.'" target="_blank">', '</a>');
+			$message = Shopp::__(
+				'Please activate a valid %1$s access key for automatic updates and official support services. %2$s Find your %1$s access key %4$s or %3$s purchase a new key at the Shopp Store. %4$s',
+				$plugin_name, '<a href="'.$account_url.'" target="_blank">', '<a href="'.$store_url.'" target="_blank">', '</a>'
+			);
 
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			shopp_set_setting('updates', false);
@@ -198,8 +210,10 @@ class ShoppSupport {
 			foreach ( $addons as $addon ) {
 				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
 				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
-				$message = sprintf(__('There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.', 'Shopp'),
-						esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version) );
+				$message = Shopp::__(
+					'There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.',
+					esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version)
+				);
 
 				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			}
@@ -238,7 +252,7 @@ class ShoppSupport {
 		);
 		$params = array_merge($defaults, $options);
 
-		$URL = SHOPP_HOME . "?$query";
+		$URL = ShoppSupport::HOMEPAGE . "?$query";
 
 		$connection = new WP_Http();
 		$result = $connection->request($URL, $params);
@@ -276,11 +290,11 @@ class ShoppSupport {
 
 
 	public static function activate ( string $key ) {
-		return self::request('activate', $key);
+		return self::request($key, 'activate');
 	}
 
 	public static function deactivate ( string $key ) {
-		return self::request('deactivate', $key);
+		return self::request($key, 'deactivate');
 	}
 
 	/**
@@ -342,5 +356,4 @@ class ShoppSupport {
 		return ('1' == $key['s']);
 	}
 
-
-}
+} // END class ShoppSupport
