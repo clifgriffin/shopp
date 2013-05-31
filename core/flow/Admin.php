@@ -90,7 +90,7 @@ class ShoppAdmin extends FlowController {
 		add_action('load-plugins.php',array($this, 'pluginspage'));
 		add_action('switch_theme',array($this, 'themepath'));
 		add_filter('favorite_actions', array($this, 'favorites'));
-		add_filter('shopp_admin_boxhelp', array($this, 'keystatus'));
+		add_filter('shopp_admin_boxhelp', array($this, 'support'));
 		add_action('load-update.php', array($this, 'admin_css'));
 		add_action('admin_menu',array($this, 'taxonomies'),20);
 		add_action('load-nav-menus.php',array($this, 'navmenus')); // @todo redundant? (Check with JD)
@@ -861,16 +861,16 @@ class ShoppAdmin extends FlowController {
 	}
 
 	/**
-	 * Report the current status of the update key
+	 * Report the current status of Shopp support
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return boolean
 	 **/
-	function keystatus ($_=true) {
-		if (!Shopp::activated()) return false;
-		return $_;
+	function support ( $status = true ) {
+		if ( ! ShoppSupport::activated() ) return false;
+		return $status;
 	}
 
 	/**
