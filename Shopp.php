@@ -164,7 +164,8 @@ class Shopp {
 		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION );
 		if ( ! defined('SHOPP_HOME') )					define( 'SHOPP_HOME', 'https://shopplugin.com/' );
 		if ( ! defined('SHOPP_CUSTOMERS') )				define( 'SHOPP_CUSTOMERS', 'http://customers.shopplugin.com/');
-		if ( ! defined('SHOPP_DOCS') )					define( 'SHOPP_DOCS', SHOPP_HOME.'docs/' );
+		if ( ! defined('SHOPP_DOCS') )					define( 'SHOPP_DOCS', SHOPP_HOME . 'docs/' );
+		if ( ! defined('SHOPP_FORUMS') )				define( 'SHOPP_COMMUNITY', SHOPP_HOME . 'community/' );
 
 		// Helper for line break output
 		if ( ! defined('BR') ) 							define('BR', '<br />');
@@ -665,7 +666,6 @@ class Shopp {
 
 	}
 
-
 	/**
 	 * Detect if the Shopp installation needs maintenance
 	 *
@@ -811,6 +811,41 @@ class Shopp {
 	public static function activated () {
 		$key = Shopp::keysetting();
 		return ('1' == $key['s']);
+	}
+
+	public static function translate ( string $text, string $context = null, boolean $markdownify = null ) {
+
+		if ( is_null($context) ) $string = translate( $text, 'Shopp' );
+		else $string = translate_with_gettext_context($text, $context, 'Shopp');
+
+		if ( $markdownify ) $string = new Markdownr($string);
+		return $string;
+
+	}
+
+	/**
+	 * Shopp wrapper for gettext translation strings (with optional context support)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $text The text to translate
+	 * @param string $context An explination of how and where the text is used
+	 * @param boolean $markdownify Process the string with Markdownr
+	 * @return string The translated text
+	 **/
+	public static function __ ( string $text, string $context = null, boolean $markdownify = null ) {
+		$output = Shopp::translate($text, $context, $markdownify);
+
+		if ( $markdownify ) return $output->html();
+		else return $output;
+	}
+
+	public static function _e ( string $text, string $context = null, boolean $markdownify = null ) {
+		$output = Shopp::translate($text, $context, $markdownify);
+
+		if ( $markdownify ) $output->render();
+		else echo $output;
 	}
 
 } // END class Shopp
