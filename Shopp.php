@@ -446,16 +446,16 @@ class Shopp {
 
 		// Define translated messages
 		$_ = array(
-			'header' => __('Shopp Activation Error', 'Shopp'),
-			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
-			'phpversion' => sprintf(__('Your server is running PHP %s!', 'Shopp'), PHP_VERSION),
-			'php524' => __('Shopp requires PHP 5.2.4+.', 'Shopp'),
-			'wpversion' => sprintf(__('This site is running WordPress %s!', 'Shopp'), get_bloginfo('version')),
-			'wp35' => __('Shopp requires WordPress 3.5.', 'Shopp'),
-			'gdsupport' => __('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.', 'Shopp'),
-			'jpgsupport' => __('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.', 'Shopp'),
-			'nextstep' => sprintf(__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s', 'Shopp'), '<a href="'.SHOPP_DOCS.'Requirements">', '</a>'),
-			'continue' => __('Return to Plugins page')
+			'header' => Shopp::__('Shopp Activation Error', 'Shopp activation error'),
+			'intro' => Shopp::__('Sorry! Shopp cannot be activated for this WordPress install.', 'Shopp activation error'),
+			'phpversion' => sprintf(Shopp::__('Your server is running PHP %s!', 'Shopp activation error'), PHP_VERSION),
+			'php524' => Shopp::__('Shopp requires PHP 5.2.4+.', 'Shopp activation error'),
+			'wpversion' => sprintf(Shopp::__('This site is running WordPress %s!', 'Shopp activation error'), get_bloginfo('version')),
+			'wp35' => Shopp::__('Shopp requires WordPress 3.5.', 'Shopp activation error'),
+			'gdsupport' => Shopp::__('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.', 'Shopp activation error'),
+			'jpgsupport' => Shopp::__('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.', 'Shopp activation error'),
+			'nextstep' => sprintf(Shopp::__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s', 'Shopp activation error'), '<a href="'.SHOPP_DOCS.'Requirements">', '</a>'),
+			'continue' => Shopp::__('Return to Plugins page', 'Shopp activation error')
 		);
 
 		if ( $activation ) {
@@ -813,12 +813,23 @@ class Shopp {
 		return ('1' == $key['s']);
 	}
 
-	public static function translate ( string $text, string $context = null, boolean $markdownify = null ) {
+	/**
+	 * Shopp wrapper for gettext translation strings (with optional context and Markdown support)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $text The text to translate
+	 * @param string $context An explination of how and where the text is used
+	 * @param boolean $markdown Process the string with Markdownr
+	 * @return string The translated text
+	 **/
+	public static function translate ( string $text, string $context = null, boolean $markdown = null ) {
 
 		if ( is_null($context) ) $string = translate( $text, 'Shopp' );
 		else $string = translate_with_gettext_context($text, $context, 'Shopp');
 
-		if ( $markdownify ) $string = new Markdownr($string);
+		if ( $markdown ) $string = new Markdownr($string);
 		return $string;
 
 	}
@@ -831,20 +842,31 @@ class Shopp {
 	 *
 	 * @param string $text The text to translate
 	 * @param string $context An explination of how and where the text is used
-	 * @param boolean $markdownify Process the string with Markdownr
+	 * @param boolean $markdown Process the string with Markdownr
 	 * @return string The translated text
 	 **/
-	public static function __ ( string $text, string $context = null, boolean $markdownify = null ) {
-		$output = Shopp::translate($text, $context, $markdownify);
+	public static function __ ( string $text, string $context = null, boolean $markdown = null ) {
+		$output = Shopp::translate($text, $context, $markdown);
 
-		if ( $markdownify ) return $output->html();
+		if ( $markdown ) return $output->html();
 		else return $output;
 	}
 
-	public static function _e ( string $text, string $context = null, boolean $markdownify = null ) {
-		$output = Shopp::translate($text, $context, $markdownify);
+	/**
+	 * Shopp wrapper for gettext translation strings (with optional context support)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $text The text to translate
+	 * @param string $context An explination of how and where the text is used
+	 * @param boolean $markdown Process the string with Markdownr
+	 * @return string The translated text
+	 **/
+	public static function _e ( string $text, string $context = null, boolean $markdown = null ) {
+		$output = Shopp::translate($text, $context, $markdown);
 
-		if ( $markdownify ) $output->render();
+		if ( $markdown ) $output->render();
 		else echo $output;
 	}
 
