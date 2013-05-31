@@ -415,6 +415,11 @@ class ShoppAdmin extends FlowController {
 		$link = htmlspecialchars($page->doc);
 		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
 
+		$screenname = $this->Pages[$pagename]->name;
+
+		if ( file_exists(SHOPP_PATH . "/core/ui/help/$screenname.php") )
+			return include SHOPP_PATH . "/core/ui/help/$screenname.php";
+
 		get_current_screen()->add_help_tab(array(
 			'id' => 'shopp-help',
 			'title' => __('Help'),
