@@ -347,6 +347,7 @@ ShoppLoader()->map(array(
 	'listframework' => '/Framework.php',
 	'locationsreport' => '/ui/reports/locations.php',
 	'lookup' => '/model/Lookup.php',
+	'markdownr' => '/model/Markdownr.php',
 	'memberaccess' => '/model/Membership.php',
 	'membercontent' => '/model/Membership.php',
 	'memberplan' => '/model/Membership.php',
