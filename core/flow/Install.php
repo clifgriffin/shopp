@@ -1104,7 +1104,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		$this->skin->feedback('downloading_package', $package);
 
-		$key = Shopp::keysetting();
+		$key = ShoppSupport::key();
 		$vars = array('VERSION', 'KEY', 'URL');
 		$values = array(urlencode(SHOPP_VERSION), urlencode($key['k']), urlencode(get_bloginfo('siteurl')));
 		$package = str_replace($vars, $values, $package);

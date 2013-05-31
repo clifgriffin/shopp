@@ -120,7 +120,7 @@ class Setup extends AdminController {
 				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
 
 				$this->keystatus = array(
-					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="'.SHOPP_HOME.'store/'.'">','</a>'), // No key is activated yet
+					'ks_inactive' => sprintf(__('Activate your Shopp access key for automatic updates and official support services. If you don&apos;t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="' . ShoppSupport::STORE . '">','</a>'), // No key is activated yet
 					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'), 		// Cannot communicate with the server, config?, firewall?
 					'k_001' => __('The server is experiencing problems.','Shopp').$customer_service,			// The server did not provide a valid response? Uncovered maintenance?
 					'ks_1' => __('An unkown error occurred.','Shopp'),											// Absolutely no clue what happened
@@ -205,14 +205,14 @@ class Setup extends AdminController {
 		// Key activation
 		if (!empty($_POST['activation'])) {
 			check_admin_referer('shopp-settings-activation');
-			$sitekey = Shopp::keysetting();
+			$sitekey = ShoppSupport::key();
 			$key = $_POST['updatekey'];
 			if ($key == str_repeat('0',40)) $key = $sitekey['k'];
 			Shopp::key($_POST['activation'],$key);
 		}
 
-		$sitekey = Shopp::keysetting();
-		$activated = Shopp::activated();
+		$sitekey = ShoppSupport::key();
+		$activated = ShoppSupport::activated();
 		$key = $sitekey['k'];
 		$status = $sitekey['s'];
 
