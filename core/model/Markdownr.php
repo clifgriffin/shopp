@@ -10,9 +10,8 @@
  * @license (@see license.txt)
  * @package shopp
  * @since 1.3
- * @subpackage markdown
+ * @subpackage markdownr
  **/
-
 
 // @todo Add reference link scanner [label][reference] / [reference]: url
 
@@ -32,6 +31,17 @@ Markdownr::add( 'MarkdownrInlineLink' );
 Markdownr::add( 'MarkdownrAutoLink' );
 Markdownr::add( 'MarkdownrEmailLink' );
 
+/**
+ * Renders HTML from Markdown text
+ *
+ * $Markdown = new Markdown($text);
+ * $HTML = $Markdown->html();
+ * $Markdown->render(); // echo the HTML
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @package markdownr
+ **/
 class Markdownr {
 
 	const ON = true;
@@ -54,6 +64,15 @@ class Markdownr {
 
 	}
 
+	/**
+	 * Adds a parser to the Markdownr engine
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param string $classname The class name of a MarkdownrBlock or MarkdownrInline class
+	 * @return void
+	 **/
 	static function add ( string $classname ) {
 		self::$parsers[] = $classname;
 	}
@@ -680,22 +699,24 @@ class MarkdownrInline {
 		$token = $marks[0];
 
 		// Normalize the text to the first mark (default mark)
-		$text = str_replace($marks, $token, $text);
+		$search = str_replace($marks, $token, $text);
 
 		$strings = array();
-		$start = strpos($text, $token);
+		$start = strpos($search, $token);
 
 		while ( false !== $start ) {
-
 			$offset = $start + strlen($token);
 
 			// Capture the string to the next token
-			$end = strpos($text, $token, $offset);
+			$end = strpos($search, $token, $offset);
 			$length = $end - $offset;
 
-			if ( false === $end ) $length = strlen($text);
+			if ( false === $end ) { // No ending mark found
+				$length = 0; // Don't capture anything
+				$start = false;  // no start mark will be able to be found either, prevents infinite loops
+			}
 
-			$string = substr($text, $offset, $length);
+			$string = substr($search, $offset, $length);
 
 			// When tagged, capture the string
 			if ( false !== $string )
@@ -704,7 +725,7 @@ class MarkdownrInline {
 			// Find next string
 			if ( false !== $start ) {
 				$offset = $end + strlen($token);
-				$start = strpos($text, $token, $offset);
+				$start = strpos($search, $token, $offset);
 			}
 
 		}
@@ -883,6 +904,7 @@ class MarkdownrInlineLink extends MarkdownrInline {
 
 	public static $marks = array('[', ']', '(', ')');
 	protected $tag = 'a';
+	protected $nested = false;
 
 	public static function match ( array $marks, string $text ) {
 
@@ -906,8 +928,6 @@ class MarkdownrInlineLink extends MarkdownrInline {
 		$token = $marks[0];
 
 		$pos = strpos($text, $start[0]);
-
-		$tag = true; // First string captured in the loop is tagged
 
 		$strings = array();
 		while ( false !== $pos ) {
@@ -982,6 +1002,7 @@ class MarkdownrAutoLink extends MarkdownrInlineLink {
 
 	public static $marks = array('http://', 'https://', 'shttp://', 'ftp://', 'tftp://', 'file://', 'skype://', 'facetime://', 'git://', 'irc://', 'bitcoin://');
 	protected $tag = 'a';
+	protected $nested = false;
 
 	public static function match ( array $marks, string $text ) {
 		foreach ( self::$marks as $scheme ) {
@@ -1050,6 +1071,7 @@ class MarkdownrEmailLink extends MarkdownrInlineLink {
 
 	public static $marks = array('mailto:');
 	protected $tag = 'a';
+	protected $nested = false;
 
 	const RFC822_EMAIL = '([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d))*';
 
