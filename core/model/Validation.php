@@ -24,7 +24,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppFormValidation {
 
-	public static function names () {
+	public static function names ( $result ) {
 
 		if ( apply_filters('shopp_firstname_required', empty($_POST['firstname'])) )
 			return shopp_add_error( __('You must provide your first name.','Shopp') );
@@ -32,18 +32,18 @@ class ShoppFormValidation {
 		if ( apply_filters('shopp_lastname_required', empty($_POST['lastname'])) )
 			return shopp_add_error( __('You must provide your last name.','Shopp') );
 
-		return true;
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function email () {
+	public static function email ( $result ) {
 
 		if ( apply_filters('shopp_email_valid', ! preg_match('!^' . self::RFC822_EMAIL . '$!', $_POST['email'])) )
 			return shopp_add_error(__('You must provide a valid e-mail address.','Shopp'));
 
-		return true;
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function login () {
+	public static function login ( $result ) {
 		$Customer = ShoppOrder()->Customer;
 
 		if ( 'wordpress' == shopp_setting('account_system') && ! $Customer->logged_in() ) {
@@ -103,11 +103,10 @@ class ShoppFormValidation {
 				return shopp_add_error( __('The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp') );
 		}
 
-		return true;
-
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function passwords () {
+	public static function passwords ( $result ) {
 
 		if ( isset($_POST['password']) ) {
 
@@ -121,11 +120,10 @@ class ShoppFormValidation {
 
 		}
 
-		return true;
-
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function billaddress () {
+	public static function billaddress ( $result ) {
 
 		if ( apply_filters('shopp_billing_address_required', isset($_POST['billing']['address'])
 				&& ( empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4)) )
@@ -140,10 +138,10 @@ class ShoppFormValidation {
 		if ( apply_filters('shopp_billing_locale_required',isset($_POST['billing']['locale']) && empty($_POST['billing']['locale'])))
 			return shopp_add_error( __('You must select a local jursidiction for tax purposes.','Shopp') );
 
-		return true;
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function shipaddress () {
+	public static function shipaddress ( $result ) {
 
 		if ( apply_filters('shopp_shipping_address_required', isset($_POST['shipping']['address'])
 				&& ( empty($_POST['shipping']['address']) || strlen($_POST['shipping']['address']) < 4)) )
@@ -155,10 +153,10 @@ class ShoppFormValidation {
 		if ( apply_filters('shopp_shipping_country_required', isset($_POST['shipping']['country']) && empty($_POST['shipping']['country']) ))
 			return shopp_add_error( __('You must select a country for your shipping address.','Shopp') );
 
-		return true;
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
-	public static function paycard () {
+	public static function paycard ( $result ) {
 
 		if ( apply_filters('shopp_billing_card_required', isset($_POST['billing']['card']) && empty($_POST['billing']['card'])) )
 			return shopp_add_error( __('You did not provide a credit card number.','Shopp') );
@@ -189,7 +187,7 @@ class ShoppFormValidation {
 		if ( apply_filters('shopp_billing_cvv_required',strlen($_POST['billing']['cvv']) < 3) )
 			return shopp_add_error( __('You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card.','Shopp') );
 
-		return true;
+        return ( is_a($result, 'ShoppError') ) ? $result : true;
 	}
 
 	const RFC822_EMAIL = '([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d))*';

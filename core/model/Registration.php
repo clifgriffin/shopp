@@ -54,12 +54,12 @@ class ShoppRegistration {
 		add_action('parse_request', array($this, 'billaddress'));
 		add_action('parse_request', array($this, 'process'));
 
-		add_action('shopp_validate_registration', 'ShoppFormValidation::names');
-		add_action('shopp_validate_registration', 'ShoppFormValidation::email');
-		add_action('shopp_validate_registration', 'ShoppFormValidation::login');
-		add_action('shopp_validate_registration', 'ShoppFormValidation::passwords');
-		add_action('shopp_validate_registration', 'ShoppFormValidation::shipaddress');
-		add_action('shopp_validate_registration', 'ShoppFormValidation::billaddress');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::names');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::email');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::login');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::passwords');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::shipaddress');
+		add_filter('shopp_validate_registration', 'ShoppFormValidation::billaddress');
 
 	}
 

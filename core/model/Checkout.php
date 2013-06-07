@@ -68,12 +68,12 @@ class ShoppCheckout {
 		add_action('shopp_process_checkout', array($this, 'billaddress'));
 		add_action('shopp_process_checkout', array($this, 'process'));
 
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::names');
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::email');
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::login');
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::passwords');
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::billaddress');
-		add_action('shopp_validate_checkout', 'ShoppFormValidation::paycard');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::names');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::email');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::login');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::passwords');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::billaddress');
+		add_filter('shopp_validate_checkout', 'ShoppFormValidation::paycard');
 
 	}
 
