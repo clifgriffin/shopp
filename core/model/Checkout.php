@@ -56,7 +56,7 @@ class ShoppCheckout {
 		add_action('shopp_confirm_order', array($this, 'confirmed'));
 
 		if ( 'process' != $action) return;
-		$this->Register = new ShoppRegistration(true);
+		$this->Register = new ShoppRegistration();
 
 		add_action('shopp_process_shipmethod', array($this, 'shipmethod'));
 
@@ -278,11 +278,10 @@ class ShoppCheckout {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
-	 *
-	 * @return void
 	 **/
 	public function registration () {
-		return $this->Register->process();
+        add_filter('shopp_validate_registration', create_function('', 'return true') ); // Validation already conducted during the checkout process
+		$this->Register->process();
 	}
 
 	/**
