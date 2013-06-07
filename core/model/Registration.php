@@ -39,14 +39,14 @@ class ShoppRegistration {
 		'info' => array(),
 	);
 
-	public function __construct ( $must_setup = false ) {
+	public function __construct () {
 
 		$_POST = apply_filters('shopp_customer_registration',$_POST);
 
 		$submitted = stripslashes_deep($_POST);					// Clean it up
 		$this->form = array_merge(self::$defaults, $submitted);	// Capture it
 
-		if ( ! self::submitted() && ! $must_setup ) return;
+		if ( ! self::submitted() ) return;
 
 		add_action('parse_request', array($this, 'info'));
 		add_action('parse_request', array($this, 'customer'));
