@@ -170,19 +170,14 @@ class ShoppRegistration {
 		$BillingAddress = ShoppOrder()->Billing;
 		$ShippingAddress = ShoppOrder()->Shipping;
 
-
 		if ( $Customer->guest ) {
-
 			$Customer->type = __('Guest', 'Shopp');
-
 		} else {
-
 			// WordPress account integration used, customer has no wp user
 			if ( 'wordpress' == shopp_setting('account_system') && empty($Customer->wpuser) ) {
 				if ( $wpuser = get_current_user_id() ) $Customer->wpuser = $wpuser; // use logged in WordPress account
 				else $Customer->create_wpuser(); // not logged in, create new account
 			}
-
 		}
 
 		// New customer, save hashed password
@@ -211,9 +206,7 @@ class ShoppRegistration {
 		}
 
 		do_action('shopp_customer_registered', $Customer);
-
-		shopp_redirect( shoppurl(false, 'account') );
-
+        if ( apply_filters('shopp_registration_redirect', true) ) shopp_redirect( shoppurl(false, 'account') );
 	}
 
 }

@@ -280,7 +280,8 @@ class ShoppCheckout {
 	 * @since 1.3
 	 **/
 	public function registration () {
-        add_filter('shopp_validate_registration', create_function('', 'return true') ); // Validation already conducted during the checkout process
+        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
+        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
 		$this->Register->process();
 	}
 
