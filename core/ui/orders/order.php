@@ -178,8 +178,19 @@
 									$editurl = AdminController::url(array('id'=>$Purchase->id,'editline'=>$id));
 									?>
 										<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
-											<a href="<?php echo add_query_arg(array('page' => 'shopp-products','id' => $Item->product),admin_url('admin.php')); ?>"><?php echo $Item->name; ?>
-											<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?></a>
+											<a href="<?php echo add_query_arg(array('page' => 'shopp-products','id' => $Item->product),admin_url('admin.php')); ?>">
+                                                <?php
+                                                $Product = new Product($Item->product);
+                                                $Product->load_data( array('images') );
+                                                $Image = reset($Product->images);
+
+                                                if ( ! empty($Image) ) { ?>
+                                                    <img src="?siid=<?php echo $Image->id ?>&amp;<?php echo $Image->resizing(38, 0, 1) ?>" width="38" height="38" class="alignleft" />
+                                                <?php
+                                                }
+                                                echo $Item->name;
+											    if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
+                                            </a>
 											<div class="row-actions">
 												<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 												<span class='delete'><a href="<?php echo $trashurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span>

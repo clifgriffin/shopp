@@ -503,6 +503,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .meta-boxes { position:relative;margin-top:20px; }
 #order .meta-boxes .widefat { clear: none; }
 #order .column { position:relative; }
+#order .column-items img { margin-right: 3px; }
 #order .left-column {float:left;width:260px;display:inline;overflow:visible; }
 #order .right-column { width:100%;margin-left:-340px; display: inline;}
 #order #main-column { margin-left:280px; }
