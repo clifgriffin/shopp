@@ -102,7 +102,7 @@ class ShoppLogin {
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
 
-		if ( isset($_POST['account-login']) || empty($_POST['account-login']) )
+		if ( ! isset($_POST['account-login']) || empty($_POST['account-login']) )
 			return shopp_add_error( __('You must provide a valid login name or email address to proceed.','Shopp'), SHOPP_AUTH_ERR );
 
 		$mode = 'loginname';
