@@ -60,8 +60,13 @@ class ShoppCatalog {
 	 **/
 	public function collections ( $method = 'after' ) {
 		$Shopp = Shopp::object();
-		foreach ( $Shopp->Collections as $Collection ) {
-			$auto = get_class_property($Collection, '_auto');
+		$collections = $Shopp->Collections;
+
+		if ( 'before' == $method) krsort($collections);
+		else ksort($collections);
+
+		foreach ( $collections as $Collection ) {
+			$auto = get_class_property($Collection, '_menu');
 			if ( ! $auto ) continue;
 			$category = new $Collection( array('noload' => true) );
 			switch($method) {
