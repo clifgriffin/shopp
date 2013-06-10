@@ -298,7 +298,6 @@ class Customer extends DatabaseObject {
 			wp_new_user_notification( $wpuser, $this->password );
 		}
 
-		$this->password = "";
 		shopp_debug('Successfully created the WordPress user for the Shopp account.');
 
 		$this->newuser = true;

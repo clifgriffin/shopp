@@ -97,7 +97,8 @@ class ShoppRegistration {
 			'company' => $this->form('company'),
 			'email' => $this->form('email'),
 			'phone' => $this->form('phone'),
-			'info' => $this->form('info')
+			'info' => $this->form('info'),
+            'password' => $this->form('password')
 		);
 
 		// Remove invalid characters from the phone number
@@ -192,6 +193,7 @@ class ShoppRegistration {
 		} else unset($Customer->password); // Existing customer, do not overwrite password field!
 
 		$Customer->save();
+        $Customer->password = '';
 
 		// Update billing address
 		if ( ! empty($BillingAddress->address) ) {
