@@ -863,7 +863,7 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	public static function tablename ( $table = '' ) {
 		global $wpdb;
-		return $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table;
+		return apply_filters('shopp_table_name', $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table);
 	}
 
 	/**
