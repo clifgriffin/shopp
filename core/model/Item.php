@@ -790,14 +790,14 @@ class ShoppCartItem {
 			case 'Tag name': $subject = $this->tags; break;
 			case 'Variation': $subject = $this->option->label; break;
 
-			case 'Input name': 
+			case 'Input name':
 				foreach($this->data as $inputName=>$inputValue){
 					if (Promotion::match_rule($inputName, $logic, $value, $property)){
 						return true;
 					}
 				}
 				return false;
-			case 'Input value': 
+			case 'Input value':
 				foreach($this->data as $inputName=>$inputValue){
 					if (Promotion::match_rule($inputValue, $logic, $value, $property)){
 						return true;
@@ -833,6 +833,8 @@ class ShoppCartItem {
 	 * @return void
 	 **/
 	public function totals () {
+
+		do_action('shopp_cart_item_pretotal', $this);
 
 		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
 		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
