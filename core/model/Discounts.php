@@ -457,6 +457,9 @@ class ShoppDiscountRule {
 			case 'unit price':			$subject = (float)$Item->unitprice; break;
 			case 'variant':
 			case 'variation':			$subject = $Item->option->label; break;
+			case 'input name':			$subject = $Item->data; break;
+			case 'input value':			$subject = $Item->data; break;
+
 		}
 
 		return $this->evaluate($subject);
