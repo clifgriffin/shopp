@@ -10,20 +10,25 @@
  * @package shopp
  * @since 1.2
  * @subpackage OrderAmount
- *
- * $Id$
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class OrderAmount extends ShippingFramework implements ShippingModule {
 
-	function init () { /* Not implemented */ }
-	function calcitem ($id,$Item) { /* Not implemented */ }
-
-	function methods () {
-		return __('Order Amount Tiers','Shopp');
+	function init () {
+		/* Not implemented */
 	}
 
-	function calculate (&$options,$Order) {
+	function calcitem ( $id, $Item ) {
+		/* Not implemented */
+	}
+
+	function methods () {
+		return Shopp::__('Order Amount Tiers');
+	}
+
+	function calculate ( &$options, $Order ) {
 
 		foreach ($this->methods as $slug => $method) {
 
@@ -32,7 +37,7 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 
 			$amount = 0;
 			$tiers = array_reverse($tiers);
-			foreach ($tiers as $tier) {
+			foreach ( $tiers as $tier ) {
 				extract($tier);
 				$amount = floatvalue($rate);			// Capture the rate amount
 				if (floatvalue($Order->Cart->Totals->subtotal) >= floatvalue($threshold)) break;
@@ -46,7 +51,7 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 				'items' => false
 			);
 
-			$options[$slug] = new ShippingOption($rate);
+			$options[ $slug ] = new ShippingOption($rate);
 
 		}
 
@@ -56,7 +61,7 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 	function settings () {
 
 		$this->ui->tablerates(0,array(
-			'unit' => array(__('Order Amount','Shopp')),
+			'unit' => array( Shopp::__('Order Amount') ),
 			'table' => $this->settings['table'],
 			'threshold_class' => 'money',
 			'rate_class' => 'money'
@@ -64,6 +69,4 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 
 	}
 
-} // end flatrates class
-
-?>
+}
