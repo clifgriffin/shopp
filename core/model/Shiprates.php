@@ -297,7 +297,6 @@ class ShoppShiprates extends ListFramework {
 	 * @return boolean True if the current request is the same as the prior request
 	 **/
 	private function requested () {
-		var_dump(__METHOD__);
 		if ( is_string($this->track) ) $request = $this->track;
 		else $request = hash('crc32b', serialize($this->track));
 		if ( $this->request == $request ) return true;
