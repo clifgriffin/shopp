@@ -647,12 +647,12 @@ class OrderAmountItemTax extends OrderAmountDebit {
 	protected $items = array(); // Store the item tax amounts
 	protected $label = '';
 
-	public function __construct ( ShoppItemTax $Tax, string $itemid ) {
-		$this->items[ $itemid ] = $Tax->total;
-		$this->label = $Tax->label;
-		$this->rate = $Tax->rate;
-		$this->id = $Tax->label;
-		$this->amount = array_sum($this->items);
+	public function __construct ( ShoppItemTax &$Tax, string $itemid ) {
+		$this->items[ $itemid ] = &$Tax->total;
+		$this->label = &$Tax->label;
+		$this->rate = &$Tax->rate;
+		$this->id = &$Tax->label;
+		$this->amount = $this->total();
 
 		add_action('shopp_cart_remove_item',array($this,'remove'));
 	}
@@ -676,13 +676,16 @@ class OrderAmountItemTax extends OrderAmountDebit {
 
 	public function items ( array $items = null ) {
 		if ( isset($items) )
-			$this->items = array_merge($this->items,$items);
+			$this->items = array_merge($this->items, $items);
 		return $this->items;
 	}
 
 	public function total () {
-		$total = array_sum($this->items());
-		$this->amount( $total );
+		return array_sum($this->items());
+	}
+
+	public function &amount ( float $value = null ) {
+		return parent::amount($this->total());
 	}
 
 	public function label () {

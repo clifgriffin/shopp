@@ -89,8 +89,8 @@ class ShoppCartItem {
 	}
 
 	public function __wakeup () {
+		add_action('shopp_cart_item_totals', array($this, 'rediscount'));
 		add_action('shopp_cart_item_totals', array($this, 'totals'));
-		add_action('shopp_reset_item_discounts', array($this, 'rediscount'));
 	}
 
 	/**
@@ -849,33 +849,33 @@ class ShoppCartItem {
 		if ( $this->istaxed ) {
 			$Tax = ShoppOrder()->Tax;
 
-			// Discounts are applied after tax when taxes are included in the price
-			if ( $this->includetax ) $taxable = $this->unitprice;
-			else {
-				// For exclusive taxes, discounts are applied before tax
-				// For all the price units, distribute discounts across taxable amounts using weighted averages
-	   			$_ = array();
-	   			foreach ($this->taxable as $amount)
-	   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
-	   			$taxable = array_sum($_);
+			// For all the price units (base product and any addons),
+			// distribute discounts across taxable amounts using weighted averages
+   			$_ = array();
+			$taxable = 0;
+   			foreach ($this->taxable as $amount)
+   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
 
-				$taxqty = $this->quantity;
-				if ( $bogof && $bogof != $this->quantity )
-					$taxqty -= $bogof;
-			}
+   			$taxable = array_sum($_);
 
-			$this->taxes = $Tax->rates( $Tax->item($this) );
-			$this->unittax = $Tax->calculate($taxable, $this->taxes);
-			$this->tax = $Tax->total((int)$taxqty, $this->taxes);
+			$taxqty = $this->quantity;
+			if ( $bogof && $bogof != $this->quantity )
+				$taxqty -= $bogof;
+
+			$Tax->rates($this->taxes, $Tax->item($this) );
+
+			$this->unittax = $Tax->calculate($this->taxes, $taxable);
+			$this->tax = $Tax->total($this->taxes, (int)$taxqty);
+
 		}
 
-		$this->total = ($this->unitprice * $this->quantity); // total undiscounted, pre-tax line price
-		$this->totald = ($this->priced * $this->quantity); // total discounted, pre-tax line price
+		$this->total = ( $this->unitprice * $this->quantity ); // total undiscounted, pre-tax line price
+		$this->totald = ( $this->priced * $this->quantity ); // total discounted, pre-tax line price
 
-		if ($this->is_recurring()) {
+		if ( $this->is_recurring() ) {
 			$this->subprice = $this->priced;
-			if ($this->has_trial()) {
-				$this->subprice = ($this->option->promoprice-$this->discount);
+			if ( $this->has_trial() ) {
+				$this->subprice = ( $this->option->promoprice - $this->discount );
 				$this->discounts = 0;
 				$this->recurrences();
 			}

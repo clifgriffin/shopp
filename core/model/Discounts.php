@@ -51,8 +51,10 @@ class ShoppDiscounts extends ListFramework {
 		do_action('shopp_reset_item_discounts');
 
 		$discounts = array();
-		foreach ( $this as $Discount )
+		foreach ( $this as $Discount ) {
+			$Discount->calculate();
 			$discounts[] = $Discount->amount();
+		}
 		$amount = array_sum($discounts);
 
 		$Cart = ShoppOrder()->Cart->Totals;
@@ -650,7 +652,7 @@ class ShoppOrderDiscount {
 		$this->name($Promo->name);
 		$this->code($Promo->code);
 		$this->discount($Promo);
-		$this->amount();
+		$this->calculate();
 
 	}
 
@@ -685,7 +687,7 @@ class ShoppOrderDiscount {
 	}
 
 	/**
-	 * Calulate the total amount of the discount
+	 * Get the total amount of the discount
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
@@ -693,6 +695,10 @@ class ShoppOrderDiscount {
 	 * @return float The amount of th discount
 	 **/
 	public function amount () {
+		return (float)$this->amount;
+	}
+
+	public function calculate () {
 		$Items = ShoppOrder()->Cart;
 		$Cart = ShoppOrder()->Cart->Totals;
 
@@ -718,6 +724,7 @@ class ShoppOrderDiscount {
 				else $Item->discount += $unitdiscount;
 
 				$Item->totals();
+				$Cart->total('tax'); // Recalculate taxes
 
 				$discounts[] = $Item->discounts;
 			}
@@ -725,7 +732,6 @@ class ShoppOrderDiscount {
 			$this->amount = array_sum($discounts);
 		}
 
-		return (float)$this->amount;
 	}
 
 	/**

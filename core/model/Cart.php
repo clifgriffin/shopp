@@ -531,7 +531,7 @@ class ShoppCart extends ListFramework {
 			$Totals->register( new OrderAmountCartItemQuantity($Item) );
 			$Totals->register( new OrderAmountCartItem($Item) );
 
-			foreach ( $Item->taxes as $taxid => $Tax )
+			foreach ( $Item->taxes as $taxid => &$Tax )
 				$Totals->register( new OrderAmountItemTax( $Tax, $id ) );
 
 			$Shipping->item( new ShoppShippableItem($Item) );

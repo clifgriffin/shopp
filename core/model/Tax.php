@@ -88,7 +88,7 @@ class ShoppTax {
 				'logic' => 'any',
 				'rules' => array(),
 				'localrate' => 0,
-				'compound' => true,
+				'compound' => false,
 				'label' => __('Tax','Shopp')
 
 			);
@@ -121,15 +121,11 @@ class ShoppTax {
 	 * @param Object $Item A taxable item object
 	 * @return array The list of applicable tax rates as ShoppItemTax entries for a given item
 	 **/
-	public function rates ( ShoppTaxableItem $Item = null ) {
+	public function rates ( array &$rates, ShoppTaxableItem $Item = null  ) {
 
 		if ( isset($Item) ) $this->Item = $Item;
 
 		$settings = $this->settings();
-
-		$rates = array();
-		$i = 1;
-
 		foreach ($settings as $setting) {
 			$localrate = false;
 			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
@@ -138,15 +134,23 @@ class ShoppTax {
 			// Add any local rate to the base rate, then divide by 100 to prepare the rate to be applied
 			$rate = ( self::float($setting['rate']) + self::float($localrate) ) / 100;
 
-			if ( isset($rates[ $setting['label'] ]))
-				$rates[ $setting['label'] . ' ' . $i ] = new ShoppItemTax( $setting['label'].' '.$i++, $rate, 0.0, 0.0, $setting['compound']);
-			else $rates[ $setting['label'] ] = new ShoppItemTax( $setting['label'], $rate, 0.0, 0.0, $setting['compound']);
+			$key = hash('crc32b', $setting['label'] . $rate );
+			if ( ! isset($rates[ $key ]) ) $rates[ $key ] = new ShoppItemTax();
+			$ShoppItemTax = $rates[ $key ];
+
+			$ShoppItemTax->update(array(
+				'label' => $setting['label'],
+				'rate' => $rate,
+				'amount' => 0.00,
+				'total' => 0.00,
+				'compound' => $setting['compound']
+			));
 
 		}
 
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
+		$rates = apply_filters( 'shopp_tax_rates', $rates );
 
-		return apply_filters( 'shopp_tax_rates', $rates );
 	}
 
 	/**
@@ -263,10 +267,10 @@ class ShoppTax {
 	 *
 	 * @return void Description...
 	 **/
-	public function calculate ( float $taxable, array &$rates ) {
+	public function calculate ( array &$rates, float $taxable ) {
 
 		$compound = 0;
-		$tax = 0;
+		$total = 0;
 		foreach ($rates as $label => $taxrate) {
 
 			$tax = ( $taxable * $taxrate->rate );			// Tax amount
@@ -280,16 +284,16 @@ class ShoppTax {
 			}
 
 			$taxrate->amount += $tax;						// Capture the tax amount calculate for this taxrate
-			$tax += $tax;									// Sum all of the taxes to get the total tax for the item
+			$total += $tax;									// Sum all of the taxes to get the total tax for the item
 
 		}
 
-		return $tax;
+		return $total;
 
 	}
 
 	/**
-	 * Calcualtes the total tax amount factored by quantity for the given tax rates
+	 * Calculates the total tax amount factored by quantity for the given tax rates
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
@@ -298,7 +302,7 @@ class ShoppTax {
 	 * @param array $rates the list of applicable ShoppItemTax entries
 	 * @return float $total
 	 **/
-	public function total ( integer $quantity, array &$taxes ) {
+	public function total ( array &$taxes, integer $quantity ) {
 
 		$total = 0;
 		foreach ( $taxes as $label => &$taxrate ) {
@@ -423,9 +427,11 @@ class ShoppTaxableItem {
  * @package taxes
  **/
 class ShoppItemTax extends AutoObjectFramework {
+
 	public $label = '';
 	public $rate = 0.00;
 	public $amount = 0.00;
 	public $total = 0.00;
 	public $compound = false;
+
 }
