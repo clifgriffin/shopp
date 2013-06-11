@@ -98,9 +98,8 @@ abstract class GatewayFramework {
 	 * @return void
 	 **/
 	function __construct () {
-		$Shopping = ShoppShopping();
 
-		$this->session = $Shopping->session;
+		$this->session = ShoppShopping()->session;
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
 
@@ -176,7 +175,12 @@ abstract class GatewayFramework {
 	 * @return string The currency code
 	 **/
 	function currency () {
-		return apply_filters('shopp_gateway_currency', $this->currency);
+		$currency = 'USD'; // Default to USD
+
+		if ( ! empty($this->baseop) && isset($this->baseop['currency']) && isset($this->baseop['currency']['code']) )
+			$currency = $this->baseop['currency']['code'];
+
+		return apply_filters('shopp_gateway_currency', $currency);
 	}
 
 	/**
