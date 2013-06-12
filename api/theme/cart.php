@@ -59,7 +59,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'url' => 'url'
 	);
 
-	static function _apicontext () { return 'cart'; }
+	static function _apicontext () {
+		return 'cart';
+	}
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('cart') call
@@ -171,13 +173,18 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return ($O->Totals->shipping > 0);
 	}
 
-	static function has_shipped ($result, $options, $O) { reset($O->shipped); return $O->shipped();	}
+	static function has_shipped ($result, $options, $O) {
+		reset($O->shipped);
+		return $O->shipped();
+	}
 
 	static function has_shipping_methods ($result, $options, $O) {
 		return ShoppShippingThemeAPI::has_options($result, $options, $O);
 	}
 
-	static function has_taxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
+	static function has_taxes ($result, $options, $O) {
+		return ($O->Totals->tax > 0);
+	}
 
 	static function items ($result, $options, $O) {
 		if ( ! isset($O->_item_loop) ) {
@@ -193,9 +200,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 	}
 
-	static function last_item ($result, $options, $O) { return $O[$O->added]; }
+	static function last_item ($result, $options, $O) {
+		return $O[ $O->added ];
+	}
 
-	static function needs_shipped ($result, $options, $O) { return (!empty($O->shipped)); }
+	static function needs_shipped ($result, $options, $O) {
+		return ( ! empty($O->shipped) );
+	}
 
 	static function needs_shipping_estimates ($result, $options, $O) {
 		// Shipping must be enabled, without free shipping and shipped items must be present in the cart

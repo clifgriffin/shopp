@@ -308,19 +308,19 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	public static function has_downloads ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
-		if (!empty($Storefront->downloads))
+		if ( ! empty($Storefront->downloads) )
 			reset($Storefront->downloads);
-		return (!empty($Storefront->downloads));
+		return ( ! empty($Storefront->downloads) );
 	}
 
 	public static function has_info ($result, $options, $O) {
-		if (!is_object($O->info) || empty($O->info->meta)) return false;
-		if (!isset($O->_info_looping)) {
+		if ( ! is_object($O->info) || empty($O->info->meta) ) return false;
+		if ( ! isset($O->_info_looping) ) {
 			reset($O->info->meta);
 			$O->_info_looping = true;
 		} else next($O->info->meta);
 
-		if (current($O->info->meta) !== false) return true;
+		if ( current($O->info->meta) !== false ) return true;
 		else {
 			unset($O->_info_looping);
 			reset($O->info->meta);
@@ -331,12 +331,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	public static function has_purchases ($result, $options, $O) {
 		$Storefront = ShoppStorefront();
 		$filters = array();
-		if (isset($options['daysago']))
+		if ( isset($options['daysago']) )
 			$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
 
-		if (empty($Storefront->purchases)) $O->load_orders($filters);
+		if ( empty($Storefront->purchases) ) $O->load_orders($filters);
 		reset($Storefront->purchases);
-		return (!empty($Storefront->purchases));
+		return ( ! empty($Storefront->purchases) );
 	}
 
 	public static function info ($result, $options, $O) {

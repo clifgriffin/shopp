@@ -532,13 +532,10 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return join('',$_);
 	}
 
-	public static function has_data ($result, $options, $O) { reset($O->data); return (is_array($O->data) && count($O->data) > 0); }
-
-	/**
-	 * @since 1.0
-	 * @deprecated 1.1
-	 **/
-	public static function local_payment ($result, $options, $O) { return true; }
+	public static function has_data ($result, $options, $O) {
+		reset($O->data);
+		return ( is_array($O->data) && count($O->data) > 0 );
+	}
 
 	public static function clickwrap ($result, $options, $O) {
 		$modes = array('input','value');

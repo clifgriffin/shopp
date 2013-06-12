@@ -196,36 +196,55 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return '';
 	}
 
-	static function email_note ($result, $options, $O) { if (isset($O->message['note'])) return esc_html($O->message['note']); }
+	static function email_note ($result, $options, $O) {
+		if ( isset($O->message['note']) )
+			return esc_html($O->message['note']);
+	}
 
-	static function first_name ($result, $options, $O) { return esc_html($O->firstname); }
+	static function first_name ($result, $options, $O) {
+		return esc_html($O->firstname);
+	}
 
-	static function freight ($result, $options, $O) { return money($O->freight); }
+	static function freight ($result, $options, $O) {
+		return money($O->freight);
+	}
 
-	static function gateway ($result, $options, $O) { return $O->gateway; }
+	static function gateway ($result, $options, $O) {
+		return $O->gateway;
+	}
 
-	static function has_data ($result, $options, $O) { reset($O->data); return (is_array($O->data) && count($O->data) > 0); }
+	static function has_data ($result, $options, $O) {
+		reset($O->data);
+		return (is_array($O->data) && count($O->data) > 0);
+	}
 
-	static function has_discount ($result, $options, $O) { return ($O->discount > 0); }
+	static function has_discount ($result, $options, $O) {
+		return ($O->discount > 0);
+	}
 
-	static function has_downloads ($result, $options, $O) { reset($O->downloads); return ($O->downloads); }
+	static function has_downloads ($result, $options, $O) {
+		reset($O->downloads);
+		return ($O->downloads);
+	}
 
 	static function has_freight ($result, $options, $O) {
 		return ( $O->shipable || ! empty($O->shipmethod) || $O->freight > 0 );
 	}
 
 	static function has_items ($result, $options, $O) {
-		if (empty($O->purchased)) $O->load_purchased();
+		if ( empty($O->purchased) ) $O->load_purchased();
 		reset($O->purchased);
 		return (count($O->purchased) > 0);
 	}
 
 	static function has_promo ($result, $options, $O) {
-		if (empty($options['name'])) return false;
-		return (in_array($options['name'],$O->promos));
+		if ( empty($options['name']) ) return false;
+		return in_array($options['name'],$O->promos);
 	}
 
-	static function has_tax ($result, $options, $O) { return ($O->tax > 0)?true:false; }
+	static function has_tax ($result, $options, $O) {
+		return ( $O->tax > 0 );
+	}
 
 	static function id ($result, $options, $O) { return $O->id; }
 
@@ -347,7 +366,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	static function item_has_inputs ($result, $options, $O) {
 		$item = current($O->purchased);
 		reset($item->data);
-		return (count($item->data) > 0);
+		return ( count($item->data) > 0 );
 	}
 
 	static function item_id ($result, $options, $O) {

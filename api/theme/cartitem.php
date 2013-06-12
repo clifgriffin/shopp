@@ -282,7 +282,10 @@ class ShoppCartItemThemeAPI {
 		return $result;
 	}
 
-	static function has_inputs ($result, $options, $O) { reset($O->data); return (count($O->data) > 0); }
+	static function has_inputs ($result, $options, $O) {
+		reset($O->data);
+		return (count($O->data) > 0);
+	}
 
 	static function in_category ($result, $options, $O) {
 		if ( empty($O->categories) ) return false;

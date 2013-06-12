@@ -574,51 +574,79 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	static function has_addons ($result, $options, $O) { reset($O->prices); return (str_true($O->addons) && !empty($O->options['a'])); }
+	static function has_addons ($result, $options, $O) {
+		reset($O->prices);
+		return ( str_true($O->addons) && ! empty($O->options['a']) );
+	}
 
 	static function has_categories ($result, $options, $O) {
-		if (empty($O->categories)) $O->load_data(array('categories'));
+
+		if ( empty($O->categories) )
+			$O->load_data(array('categories'));
+
 		reset($O->categories);
-		if (count($O->categories) > 0) return true; else return false;
+
+		if ( count($O->categories) > 0 ) return true;
+		else return false;
+
 	}
 
 	static function has_images ($result, $options, $O) {
-		if (empty($O->images)) $O->load_data(array('images'));
+
+		if ( empty($O->images) )
+			$O->load_data(array('images'));
+
 		reset($O->images);
-		return (!empty($O->images));
+		return ( ! empty($O->images) );
+
 	}
 
-	static function has_savings ($result, $options, $O) { return (str_true($O->sale) && $O->min['saved'] > 0); }
+	static function has_savings ($result, $options, $O) {
+		return ( str_true($O->sale) && $O->min['saved'] > 0 );
+	}
 
 	static function has_specs ($result, $options, $O) {
-		if (empty($O->specs)) $O->load_data(array('specs'));
+
+		if ( empty($O->specs) )
+			$O->load_data(array('specs'));
+
 		reset($O->specs);
-		if (count($O->specs) > 0) return true;
+
+		if ( count($O->specs) > 0 ) return true;
 		else return false;
+
 	}
 
 	static function has_tags ($result, $options, $O) {
-		if (empty($O->tags)) $O->load_data(array('tags'));
+
+		if ( empty($O->tags) )
+			$O->load_data(array('tags'));
+
 		reset($O->tags);
-		if (count($O->tags) > 0) return true; else return false;
+
+		if ( count($O->tags) > 0 ) return true;
+		else return false;
+
 	}
 
 	static function has_variations ($result, $options, $O) {
 
-		if (! str_true($O->variants)) return false;
+		if ( ! str_true($O->variants) ) return false;
 
 		// Only load again if needed
 		$load = array();
-		if (empty($O->options)) $load[] = 'meta';
-		if (empty($O->prices)) $load[] = 'prices';
-		if (!empty($load)) $O->load_data($load);
+		if ( empty($O->options) ) $load[] = 'meta';
+		if ( empty($O->prices) ) $load[] = 'prices';
+		if ( ! empty($load) ) $O->load_data($load);
 
 		reset($O->prices);
-		return (!empty($O->options['v']) || !empty($O->options));
+		return ( ! empty($O->options['v']) || ! empty($O->options) );
 
 	}
 
-	static function id ($result, $options, $O) { return $O->id; }
+	static function id ($result, $options, $O) {
+		return $O->id;
+	}
 
 	/**
 	 * Renders a product image
