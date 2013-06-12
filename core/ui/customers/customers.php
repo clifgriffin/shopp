@@ -40,10 +40,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-customers'); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen()); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-customers',false); ?></tr>
+		<tr><?php print_column_headers(ShoppAdmin()->screen(), false); ?></tr>
 		</tfoot>
 	<?php if (count($Customers) > 0): ?>
 		<tbody id="customers-table" class="list orders">
@@ -153,7 +153,7 @@ jQuery(document).ready( function($) {
 			range.val('custom');
 		}
 	}
-	
+
 	var range = $('#range'),
 		start = $('#start').change(formatDate),
 		StartCalendar = $('<div id="start-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
@@ -170,7 +170,7 @@ jQuery(document).ready( function($) {
 		}).bind('calendarSelect',function () {
 			range.val('custom');
 		});
-	
+
 	range.change(function () {
 		if (this.selectedIndex == 0) {
 			start.val(''); end.val('');
@@ -181,7 +181,7 @@ jQuery(document).ready( function($) {
 			startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
 			enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
 		today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-	
+
 		switch($(this).val()) {
 			case 'week':
 				startdate.setDate(today.getDate()-today.getDay());

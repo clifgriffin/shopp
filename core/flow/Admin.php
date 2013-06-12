@@ -88,12 +88,14 @@ class ShoppAdmin extends FlowController {
 		add_action('wp_dashboard_setup', array($this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array($this, 'dashboard_css'));
 		add_action('admin_init', array($this, 'tinymce'));
-		add_action('load-plugins.php',array($this, 'pluginspage'));
-		add_action('switch_theme',array($this, 'themepath'));
+		add_action('load-plugins.php', array($this, 'pluginspage'));
+		add_action('switch_theme', array($this, 'themepath'));
 		add_filter('favorite_actions', array($this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array($this, 'support'));
 		add_action('load-update.php', array($this, 'admin_css'));
-		add_action('admin_menu',array($this, 'taxonomies'),20);
+		add_action('admin_menu', array($this, 'taxonomies'), 50);
+
+		// WordPress theme menus
 		add_action('load-nav-menus.php',array($this, 'navmenus'));
 		add_action('wp_update_nav_menu_item', array($this, 'navmenu_items'));
 		add_action('wp_setup_nav_menu_item',array($this, 'navmenu_setup'));
@@ -129,7 +131,7 @@ class ShoppAdmin extends FlowController {
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// Filter hook for adding/modifying Shopp admin menus
-		apply_filters('shopp_admin_menus',$this);
+		apply_filters('shopp_admin_menus', $this);
 		do_action('shopp_admin_menu'); // @deprecated
 
 		reset($this->Pages);
@@ -173,14 +175,15 @@ class ShoppAdmin extends FlowController {
 	 * @return void
 	 **/
 	function menus () {
-		global $Shopp,$menu;
+		global $menu;
+		$Shopp = Shopp::object();
 
 		$access = $this->caps['main'];
 		if (Shopp::maintenance()) $access = 'manage_options';
 
-		$this->topmenu('main','Shopp',$access,'orders',50);
-		$this->topmenu('catalog',__('Catalog','Shopp'),$access,'products',50);
-		$this->topmenu('setup',__('Setup','Shopp'),$access,'settings',50);
+		$this->topmenu('main', Shopp::__('Orders'), $access, 'orders', 50);
+		$this->topmenu('catalog', Shopp::__('Catalog'), $access, 'products', 50);
+		$this->topmenu('setup', Shopp::__('Shopp'), $access, 'settings', 50);
 
 		// Add after the Shopp menus to avoid being purged by the duplicate separator check
 		$menu[49] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
@@ -191,7 +194,7 @@ class ShoppAdmin extends FlowController {
 		// Add admin JavaScript & CSS
 		add_action('admin_enqueue_scripts', array($this, 'behaviors'),50);
 
-		if (Shopp::maintenance()) return;
+		if ( Shopp::maintenance() ) return;
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $screen) {
@@ -256,17 +259,18 @@ class ShoppAdmin extends FlowController {
 
 	}
 
-	function topmenu ($name,$label,$access,$page,$position=50) {
-		global $Shopp,$menu;
+	function topmenu ( $name, $label, $access, $page, $position = 50 ) {
+		global $menu;
+		$Shopp = Shopp::object();
 
-		while (isset($menu[$position])) $position++;
+		while ( isset($menu[ $position ]) ) $position++;
 
 		$this->Menus[$page] = add_menu_page(
 			$label,										// Page title
 			$label,										// Menu title
 			$access,									// Access level
 			$this->pagename($page),						// Page
-			array(&$Shopp->Flow,'parse'),				// Handler
+			array($Shopp->Flow, 'parse'),				// Handler
 			SHOPP_ADMIN_URI.'/icons/clear.png',			// Icon
 			$position									// Menu position
 		);
@@ -494,8 +498,8 @@ class ShoppAdmin extends FlowController {
 	 * @return array Modified actions list
 	 **/
 	function favorites ($actions) {
-		$key = esc_url(add_query_arg(array('page'=>$this->pagename('products'),'id'=>'new'),'admin.php'));
-	    $actions[$key] = array(__('New Product','Shopp'),8);
+		$key = esc_url(add_query_arg(array('page' => $this->pagename('products'), 'id' => 'new'), 'admin.php'));
+	    $actions[$key] = array(Shopp::__('New Product'), 8);
 		return $actions;
 	}
 
@@ -550,7 +554,7 @@ class ShoppAdmin extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function stats_widget ($args=false) {
+	function stats_widget ( $args = false ) {
 		$Shopp = Shopp::object();
 
 		$ranges = array(

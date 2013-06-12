@@ -44,7 +44,7 @@ class ShoppFlow {
 		add_action( 'admin_init', array($this,'ajax') );
 
 		// Boot up the menus & admin bar
-		add_action( 'admin_menu', array($this,'menu') );
+		add_action( 'admin_menu', array($this,'menu'), 50 );
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
 		// Handle automatic updates
