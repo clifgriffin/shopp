@@ -55,7 +55,8 @@
 		<td colspan="5"><input type="hidden" name="id" value="${id}" /><input type="hidden" name="editing" value="true" />
 		<table id="taxrate-editor">
 			<tr>
-			<td scope="row" valign="top" class="rate"><input type="text" name="settings[taxrates][${id}][rate]" id="tax-rate" value="${rate}" size="6" class="selectall" /><br /><label for="tax-rate"><?php _e('Tax Rate','Shopp'); ?></label></td>
+			<td scope="row" valign="top" class="rate"><input type="text" name="settings[taxrates][${id}][rate]" id="tax-rate" value="${rate}" size="6" class="selectall" /><br /><label for="tax-rate"><?php _e('Tax Rate','Shopp'); ?></label><br />
+			<input type="hidden" name="settings[taxrates][${id}][compound]" value="off" /><label><input type="checkbox" id="tax-compound" name="settings[taxrates][${id}][compound]" value="on" ${compounded} />&nbsp;<?php Shopp::_e('Compound'); ?></label></td>
 			<td scope="row" class="conditions">
 			<select name="settings[taxrates][${id}][country]" class="country">${countries}</select><select name="settings[taxrates][${id}][zone]" class="zone no-zones">${zones}</select>
 			<?php echo ShoppUI::button('add','addrule'); ?>
@@ -122,7 +123,8 @@
 					'zone' => false,
 					'rules' => array(),
 					'locals' => array(),
-					'haslocals' => false
+					'haslocals' => false,
+					'compound' => false
 				);
 				extract($defaults);
 				echo ShoppUI::template($editor,array(
@@ -134,7 +136,7 @@
 					'${haslocals}' => $haslocals,
 					'${localrates}' => join('',$localrates),
 					'${instructions}' => $localerror ? '<p class="error">'.$localerror.'</p>' : $instructions,
-					'${cancel_href}' => $this->url
+					'${compounded}' => str_true($compound) ? 'checked="checked"' : ''
 				));
 			}
 
@@ -201,6 +203,7 @@
 						'${haslocals}' => $haslocals,
 						'${localrates}' => join('',$localrates),
 						'${errors}' => $localerror ? '<p class="error">'.$localerror.'</p>' : '',
+						'${compounded}' => str_true($compound) ? 'checked="checked"' : '',
 						'${cancel_href}' => $this->url
 					);
 					if ($conditions) $data['no-conditions'] = '';

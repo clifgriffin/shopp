@@ -24,7 +24,7 @@ jQuery(document).ready( function($) {
 			row = $this.parents('tr').hide(),
 			setting = $.getQueryVar('id',$this.attr('href')),
 			settings = rates[setting]?rates[setting]:{},
-			data = $.extend({'id':setting?setting:ratesidx++,'rate':0,'country':false,'zone':false,'logic':'any','rules':[]},settings),
+			data = $.extend({'id':setting?setting:ratesidx++,'rate':0,'compound':'off','country':false,'zone':false,'logic':'any','rules':[]},settings),
 			ui = $.tmpl('editor',data),
 			conditionsui = ui.find('div.conditionals').hide().removeClass('no-conditions'),
 			rulesui = conditionsui.find('ul'),
@@ -41,6 +41,7 @@ jQuery(document).ready( function($) {
 			instructions = ui.find('p.instructions'),
 			cancel = ui.find('a.cancel'),
 			taxrate = ui.find('#tax-rate').change(function () { this.value = asPercent(this.value,false,4); }).change(),
+			compound = ui.find('#tax-compound').attr('checked', ('on' == data.compound) ),
 			addconditions = ui.find('button.add');
 
 		$this.rules = [];
