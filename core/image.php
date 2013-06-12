@@ -58,43 +58,34 @@ exit;
  **/
 class ImageServer {
 
-	var $caching = true;	// Set to false to force off image caching
+	private $caching = true;	// Set to false to force off image caching
 
-	var $request = false;
-	var $parameters = array();
-	var $args = array('width','height','scale','sharpen','quality','fill');
-	var $scaling = array('all','matte','crop','width','height');
-	var $width;
-	var $height;
-	var $scale = 0;
-	var $sharpen = 0;
-	var $quality = 80;
-	var $fill = false;
-	var $valid = false;
-	var $Image = false;
+	private $request = false;
+	private $parameters = array();
+	private $args = array('width','height','scale','sharpen','quality','fill');
+	private $scaling = array('all','matte','crop','width','height');
+	private $width;
+	private $height;
+	private $scale = 0;
+	private $sharpen = 0;
+	private $quality = 80;
+	private $fill = false;
+	private $valid = false;
+	private $Image = false;
 
 	function __construct () {
-		global $Shopp;
-		if ( ! defined('SHOPP_PATH') )
-			define('SHOPP_PATH', self::path() );
-		if ( ! defined('SHOPP_MODEL_PATH') )
-			define('SHOPP_MODEL_PATH', SHOPP_PATH.'/core/model');
-		if ( ! defined('SHOPP_STORAGE') )
-			define('SHOPP_STORAGE', SHOPP_PATH.'/storage');
 
-		$Shopp->Storage = new StorageEngines();
-
+		$this->setup();
 		$this->request();
-		$this->settings();
-		if ($this->load())
+
+		if ( $this->load() )
 			$this->render();
 		else $this->error();
 
 	}
 
 	static function path () {
-
-		return str_replace('\\','/', realpath( dirname(dirname(__FILE__)) ) );
+		return str_replace('\\', '/', realpath( dirname(dirname(__FILE__)) ) );
 	}
 
 	/**
@@ -115,20 +106,20 @@ class ImageServer {
 
 		$clearpng = ( '000' == substr($this->request, 0, 3) );
 
-		foreach ($_GET as $arg => $v) {
-			if (false !== strpos($arg,',')) {
-				$this->parameters = explode(',',$arg);
+		foreach ( $_GET as $arg => $v ) {
+			if ( false !== strpos($arg, ',') ) {
+				$this->parameters = explode(',', $arg);
 				if ( ! $clearpng )
 					$this->valid = array_pop($this->parameters);
 			}
 		}
 
 		// Handle pretty permalinks
-		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches))
+		if (preg_match('/\/images\/(\d+).*$/', $_SERVER['REQUEST_URI'], $matches))
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg)
-			if ( '' != $arg ) $this->{$this->args[$index]} = intval($arg);
+			if ( '' != $arg ) $this->{$this->args[ $index ]} = intval($arg);
 
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
@@ -149,14 +140,14 @@ class ImageServer {
 	 **/
 	function load () {
 
-		$cache = 'image_'.$this->request.($this->valid?'_'.$this->valid:'');
-		$cached = wp_cache_get($cache,'shopp_image');
+		$cache = 'image_' . $this->request . ($this->valid ? '_' . $this->valid : '');
+		$cached = wp_cache_get($cache, 'shopp_image');
 		if ($cached) return ($this->Image = $cached);
 
 		$this->Image = new ImageAsset($this->request);
-		if (max($this->width,$this->height) > 0) $this->loadsized();
+		if (max($this->width, $this->height) > 0) $this->loadsized();
 
-		wp_cache_set($cache,$this->Image,'shopp_image');
+		wp_cache_set($cache, $this->Image, 'shopp_image');
 
 		if (!empty($this->Image->id) || !empty($this->Image->data)) return true;
 		else return false;
@@ -256,11 +247,7 @@ class ImageServer {
 			$notfound = SHOPP_NOTFOUND_IMAGE;
 		if (!file_exists($notfound)) die('<h1>404 Not Found</h1>');
 		else {
-			header("Cache-Control: no-cache, must-revalidate");
-			header("Content-type: image/png");
-			header("Content-Disposition: inline; filename=".basename($notfound)."");
-			header("Content-Description: Delivered by WordPress/Shopp Image Server");
-			header("Content-length: ".@strlen($notfound));
+			$this->headers(basename($notfound), @strlen($notfound));
 			@readfile($notfound);
 		}
 		die();
@@ -284,16 +271,52 @@ class ImageServer {
 		$ImageData = new ImageProcessor(false,$this->width,$this->height);
 		$ImageData->canvas($this->width,$this->height,true);
 		$image = $ImageData->imagefile(100);
-		header("Cache-Control: no-cache, must-revalidate");
-		header("Content-type: image/png");
-		header("Content-Disposition: inline; filename=clear.png");
-		header("Content-Description: Delivered by WordPress/Shopp Image Server");
-		header("Content-length: ".@strlen($image));
+		$this->headers('clear.png', @strlen($image));
 		die($image);
 	}
 
-	function settings () {
+	/**
+	 * Outputs uniform image server headers
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $file The name of the file
+	 * @param int $length The size of the file in bytes (strlen)
+	 * @return void
+	 **/
+	function headers ( $file, $length ) {
+		header("Cache-Control: no-cache, must-revalidate");
+		header("Content-type: image/png");
+		header("Content-Disposition: inline; filename=$file");
+		header("Content-Description: Delivered by WordPress/Shopp Image Server");
+		header("Content-length: $length");
+	}
+
+	/**
+	 * Sets up the Shopp stub environment and ShoppSettings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 * @version 1.3
+	 *
+	 * @return void
+	 **/
+	function setup () {
+
+		global $Shopp;
+
+		if ( ! defined('SHOPP_PATH') )
+			define('SHOPP_PATH', self::path() );
+		if ( ! defined('SHOPP_MODEL_PATH') )
+			define('SHOPP_MODEL_PATH', SHOPP_PATH . '/core/model');
+		if ( ! defined('SHOPP_STORAGE') )
+			define('SHOPP_STORAGE', SHOPP_PATH . '/storage');
+
+		$Shopp->Storage = new StorageEngines();
+
 		ShoppSettings();
+
 	}
 
 }
