@@ -83,6 +83,7 @@ class ShoppAdmin extends FlowController {
 		parent::__construct();
 
 		$this->legacyupdate();
+
 		// Add Dashboard Widgets
 		add_action('wp_dashboard_setup', array($this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array($this, 'dashboard_css'));
@@ -93,7 +94,7 @@ class ShoppAdmin extends FlowController {
 		add_filter('shopp_admin_boxhelp', array($this, 'support'));
 		add_action('load-update.php', array($this, 'admin_css'));
 		add_action('admin_menu',array($this, 'taxonomies'),20);
-		add_action('load-nav-menus.php',array($this, 'navmenus')); // @todo redundant? (Check with JD)
+		add_action('load-nav-menus.php',array($this, 'navmenus'));
 		add_action('wp_update_nav_menu_item', array($this, 'navmenu_items'));
 		add_action('wp_setup_nav_menu_item',array($this, 'navmenu_setup'));
 
@@ -996,6 +997,14 @@ class ShoppAdmin extends FlowController {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
 
+	/**
+	 * Adds ShoppPages and SmartCollection support to WordPress theme menus system
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	function navmenus () {
 		if (isset($_REQUEST['add-shopp-menu-item']) && isset($_REQUEST['menu-item'])) {
 			// $pages = Storefront::pages_settings();
@@ -1022,18 +1031,37 @@ class ShoppAdmin extends FlowController {
 		add_meta_box( 'add-shopp-collections', __('Catalog Collections'), array($this,'shopp_collections_meta_box'), 'nav-menus', 'side', 'low' );
 	}
 
+	/**
+	 * Filters menu items to set the type labels shown for WordPress theme menus
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $menuitem The menu item object
+	 * @return object The menu item object
+	 **/
 	function navmenu_setup ($menuitem) {
-		if ('shopp_page' == $menuitem->type) {
-			$menuitem->type_label = 'Shopp';
+
+		switch ( $menuitem->type ) {
+			case 'shopp_page':       $menuitem->type_label = 'Shopp'; break;
+			case 'shopp_collection': $menuitem->type_label = 'Collection'; break;
+
 		}
-		if ('shopp_collection' == $menuitem->type) {
-			$menuitem->type_label = 'Collection';
-		}
+
 		return $menuitem;
 	}
 
+	/**
+	 * Registers the Shopp Collections meta box in the WordPress theme menus screen
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void Description...
+	 **/
 	function shopp_collections_meta_box () {
-		global $Shopp,$_nav_menu_placeholder, $nav_menu_selected_id;
+		global $_nav_menu_placeholder, $nav_menu_selected_id;
+		$Shopp = Shopp::object();
 
 		$removed_args = array(
 			'action',
@@ -1297,6 +1325,7 @@ class ShoppUI {
 
 
 class ShoppAdminListTable extends WP_List_Table {
+
 	public $_screen;
 	public $_columns;
 	public $_sortable;
