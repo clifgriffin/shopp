@@ -23,8 +23,9 @@ final class ShoppDeveloperAPI {
 
 	static $core = array(
 		'core', 'theme', 'remote', 'script',
-		'asset', 'cart', 'collection', 'customer',
-		'meta', 'order', 'product', 'settings'
+		'admin', 'asset', 'cart', 'collection',
+		'customer', 'meta', 'order', 'product',
+		'settings'
 	);
 
 	// Load public development API
