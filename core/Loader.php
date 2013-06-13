@@ -348,6 +348,31 @@ ShoppLoader()->map(array(
 	'locationsreport' => '/ui/reports/locations.php',
 	'lookup' => '/model/Lookup.php',
 	'markdownr' => '/model/Markdownr.php',
+
+	'markdownrblock' => '/model/Markdownr.php',
+	'markdownrparagraph' => '/model/Markdownr.php',
+	'markdownrhtml' => '/model/Markdownr.php',
+	'markdownrheader' => '/model/Markdownr.php',
+	'markdownrlist' => '/model/Markdownr.php',
+	'markdownrrule' => '/model/Markdownr.php',
+	'markdownrblockquote' => '/model/Markdownr.php',
+	'markdownrcode' => '/model/Markdownr.php',
+	'markdownrfencedcode' => '/model/Markdownr.php',
+	'markdownrinline' => '/model/Markdownr.php',
+	'markdownrem' => '/model/Markdownr.php',
+	'markdownrstrong' => '/model/Markdownr.php',
+	'markdownrhardbreaks' => '/model/Markdownr.php',
+	'markdownrinlinecode' => '/model/Markdownr.php',
+	'markdownrinlinelink' => '/model/Markdownr.php',
+	'markdownrautolink' => '/model/Markdownr.php',
+	'markdownremaillink' => '/model/Markdownr.php',
+
+
+
+
+
+
+
 	'memberaccess' => '/model/Membership.php',
 	'membercontent' => '/model/Membership.php',
 	'memberplan' => '/model/Membership.php',
@@ -438,6 +463,7 @@ ShoppLoader()->map(array(
 	'saleorderevent' => '/model/Events.php',
 	'saleordereventrenderer' => '/ui/orders/events.php',
 	'salesreport' => '/ui/reports/sales.php',
+	'sdb' => '/DB.php',
 	'searchparser' => '/model/Search.php',
 	'searchresults' => '/model/Collection.php',
 	'searchtextfilters' => '/model/Search.php',
