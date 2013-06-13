@@ -112,7 +112,10 @@ class Shopping extends SessionObject {
 	 *
 	 * @return boolean True on success
 	 **/
-	static function resession ($session=false) {
+	static function resession ( $session = false ) {
+
+		do_action('shopp_pre_resession', $session);
+
 		$Shopping = ShoppShopping();
 
 		// commit current session
@@ -137,7 +140,7 @@ class Shopping extends SessionObject {
 		$Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		$Shopping->init();
 
-		do_action('shopp_reset_session'); // Deprecated
+		do_action('shopp_reset_session'); // @deprecated do_action('shopp_reset_session')
 		do_action('shopp_resession');
 		return true;
 	}
