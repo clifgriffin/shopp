@@ -16,7 +16,6 @@ class Warehouse extends AdminController {
 	var $views = array('published','drafts','onsale','featured','bestselling','inventory','trash');
 	var $view = 'all';
 	var $worklist = array();
-	var $screen = 'toplevel_page_shopp-products';
 	var $products = array();
 	var $subs = array();
 
