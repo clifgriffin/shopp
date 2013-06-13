@@ -1,13 +1,13 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
-	<form action="<?php echo esc_url($this->url); ?>" id="taxrates" method="post" enctype="multipart/form-data" accept="text/plain,text/xml">
 	<div class="icon32"></div>
 	<h2><?php _e('Tax Rates','Shopp'); ?></h2>
 
 	<?php if (count(shopp_setting('target_markets')) == 0) echo '<div class="error"><p>'.__('No target markets have been selected in your store setup.','Shopp').'</p></div>'; ?>
 
 	<?php $this->taxes_menu(); ?>
+	<form action="<?php echo esc_url($this->url); ?>" id="taxrates" method="post" enctype="multipart/form-data" accept="text/plain,text/xml">
 
 	<div>
 		<?php wp_nonce_field('shopp-settings-taxrates'); ?>
@@ -73,19 +73,16 @@
 			</td>
 				<td>
 					<div class="local-rates panel subpanel no-local-rates">
-						<div class="label"><label><?php _e('Local Rates','Shopp'); ?> <span class="counter"></span><input type="hidden" name="settings[taxrates][${id}][haslocals]" value="${haslocals}" class="has-locals" /></label></div>
+						<div class="label"><label><?php _e('Local Rates','Shopp'); echo ShoppAdmin()->boxhelp('settings-taxes-localrates'); ?> <span class="counter"></span><input type="hidden" name="settings[taxrates][${id}][haslocals]" value="${haslocals}" class="has-locals" /></label></div>
 						<div class="ui">
-							<p class="instructions"><?php _e('No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.','Shopp'); ?></p>
+							<p class="instructions"><?php Shopp::_e('No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.'); ?></p>
 							${errors}
 							<ul>${localrates}</ul>
 							<div class="upload">
-								<?php
-								// @todo Add help icon to link to documentation
-								?>
-								<h3><?php _e('Upload Local Tax Rates'); ?></h3>
+								<h3><?php Shopp::_e('Upload Local Tax Rates'); ?></h3>
 								<input type="hidden" name="MAX_FILE_SIZE" value="1048576" />
 								<input type="file" name="ratefile" class="hide-if-js" />
-								<button type="submit" name="upload" class="button-secondary upload"><?php _e('Upload','Shopp'); ?></button>
+								<button type="submit" name="upload" class="button-secondary upload"><?php Shopp::_e('Upload'); ?></button>
 							</div>
 						</div>
 					</div>
@@ -94,10 +91,10 @@
 			<tr>
 				<td colspan="3">
 				<p class="textright">
-				<a href="<?php echo $this->url; ?>" class="button-secondary cancel alignleft"><?php _e('Cancel','Shopp'); ?></a>
-				<button type="submit" name="add-locals" class="button-secondary locals-toggle add-locals has-local-rates"><?php _e('Add Local Rates','Shopp'); ?></button>
-				<button type="submit" name="remove-locals" class="button-secondary locals-toggle rm-locals no-local-rates"><?php _e('Remove Local Rates','Shopp'); ?></button>
-				<input type="submit" class="button-primary" name="submit" value="<?php _e('Save Changes','Shopp'); ?>" />
+				<a href="<?php echo $this->url; ?>" class="button-secondary cancel alignleft"><?php Shopp::_e('Cancel'); ?></a>
+				<button type="submit" name="add-locals" class="button-secondary locals-toggle add-locals has-local-rates"><?php Shopp::_e('Add Local Rates'); ?></button>
+				<button type="submit" name="remove-locals" class="button-secondary locals-toggle rm-locals no-local-rates"><?php Shopp::_e('Remove Local Rates'); ?></button>
+				<input type="submit" class="button-primary" name="submit" value="<?php Shopp::_e('Save Changes'); ?>" />
 				</p>
 				</td>
 			</tr>
