@@ -332,6 +332,7 @@ class MarkdownrBlock {
 		$_ = array();		// Capture array
 		$blocks = array();	// Block capture array
 		$indent = false;	// Tracks indent indice
+		$indented = false;
 		$lines = explode(Markdownr::NEWLINE, $text);
 
 		foreach ( $lines as $i => $line ) {
@@ -378,7 +379,7 @@ class MarkdownrBlock {
 	}
 
 	public static function nestblock (&$blocks, $lines) {
-		if ( 1 == count($block) ) $blocks[] = $lines[0];
+		if ( 1 == count($blocks) ) $blocks[] = $lines[0];
 		else $blocks = array_merge($blocks, $lines);
 	}
 
@@ -426,8 +427,12 @@ class MarkdownrHeader extends MarkdownrBlock {
 	}
 
 	protected static function setext ( string $text ) {
+		if ( empty($text) ) return false;
 		$underlines = array_slice(self::$marks, 1, 2, true);
-		list($heading, $underline) = explode(Markdownr::NEWLINE, $text);
+		$parts = explode(Markdownr::NEWLINE, $text);
+		if ( count($parts) < 2 ) return false;
+		list($heading, $underline) = $parts;
+		if ( empty($underline) ) $underline = ' ';
 		if ( in_array($underline{0}, $underlines) && substr_count($underline, $underline{0}) > 1 )
 			return array_search($underline{0}, $underlines);
 		else return false;
@@ -920,7 +925,7 @@ class MarkdownrInlineLink extends MarkdownrInline {
 	}
 
 	public function scan ( string &$text ) {
-		$class = get_class($marks);
+		$class = get_class($this);
 		$marks = $class::$marks;
 
 		$start = array($marks[0],$marks[2]);
