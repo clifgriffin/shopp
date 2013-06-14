@@ -19,8 +19,8 @@
  **/
 class Setup extends AdminController {
 
-	var $screen = false;
 	var $url;
+	public $pagename = false;
 
 	/**
 	 * Setup constructor
@@ -32,8 +32,8 @@ class Setup extends AdminController {
 		parent::__construct();
 
 		$pages = explode('-',$_GET['page']);
-		$this->screen = end($pages);
-		switch ($this->screen) {
+		$this->pagename = end($pages);
+		switch ($this->pagename) {
 			case 'preferences':
 				shopp_enqueue_script('jquery-tmpl');
 				shopp_enqueue_script('labelset');
@@ -91,6 +91,8 @@ class Setup extends AdminController {
 				shopp_localize_script( 'payments', '$ps', array(
 					'confirm' => __('Are you sure you want to remove this payment system?','Shopp'),
 				));
+
+				add_action("load-$this->screen", array($this, 'payments_help'), 20);
 
 				$this->payments_ui();
 				break;
@@ -159,7 +161,7 @@ class Setup extends AdminController {
 	 * @author Jonathan Davis
 	 **/
 	function admin () {
-		switch($this->screen) {
+		switch($this->pagename) {
 			case 'catalog': 		$this->catalog(); break;
 			case 'cart': 			$this->cart(); break;
 			case 'payments': 		$this->payments(); break;
@@ -1009,6 +1011,11 @@ class Setup extends AdminController {
 
 		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));
 		include(SHOPP_ADMIN_PATH.'/settings/payments.php');
+	}
+	function payments_help () {
+		$Shopp = Shopp::object();
+		$Gateways = $Shopp->Gateways;
+		$Gateways->help();
 	}
 
 	function payments_ui () {

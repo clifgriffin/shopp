@@ -126,6 +126,7 @@ abstract class GatewayFramework {
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "auth";'));
 		elseif ($this->saleonly)
 			add_filter('shopp_purchase_order_'.$gateway.'_processing',create_function('','return "sale";'));
+
 	}
 
 	function myactions () {
@@ -522,6 +523,25 @@ class GatewayModules extends ModuleLoader {
 	 **/
 	function settings () {
 		$this->load(true);
+	}
+
+	/**
+	 * Registers gateway module help tabs
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	function help () {
+		foreach ($this->modules as $class => &$module) {
+			if ( ! method_exists($class,'help') ) continue;
+			get_current_screen()->add_help_tab( array(
+				'id'      => $class,
+				'title'   => $module->name,
+				'content' => $class::help()
+			));
+		}
 	}
 
 	/**

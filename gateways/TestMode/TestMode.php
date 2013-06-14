@@ -4,21 +4,21 @@
  *
  * @author Jonathan Davis
  * @version 1.2
- * @copyright Ingenesis Limited, 5 July, 2011
+ * @copyright Ingenesis Limited, July 2011
  * @package Shopp
  * @since 1.1
  * @subpackage TestMode
- *
- * $Id$
  **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class TestMode extends GatewayFramework {
 
-	var $secure = false;							// SSL not required
+	public $secure = false;							// SSL not required
 
-	var $refunds = true;
-	var $captures = true;
-	var $cards = array("visa","mc","disc","amex");	// Support cards
+	public $refunds = true;
+	public $captures = true;
+	public $cards = array("visa","mc","disc","amex");	// Support cards
 
 	/**
 	 * Setup the TestMode gateway
@@ -28,7 +28,7 @@ class TestMode extends GatewayFramework {
 	 *
 	 * @return void Description...
 	 **/
-	function __construct () {
+	public function __construct () {
 		parent::__construct();
 		$this->setup('cards','error');
 
@@ -51,7 +51,7 @@ class TestMode extends GatewayFramework {
 	 *
 	 * @return void
 	 **/
-	function process () {
+	public function process () {
 		// If the error option is checked, always generate an error
 		if (str_true($this->settings['error']))
 			return new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.","Shopp"),'test_mode_error',SHOPP_TRXN_ERR);
@@ -61,28 +61,28 @@ class TestMode extends GatewayFramework {
 		return true;
 	}
 
-	function sale (OrderEventMessage $Event) {
+	public function sale (OrderEventMessage $Event) {
 		$this->handler('authed',$Event);
 		$this->handler('captured',$Event);
 	}
 
-	function auth (OrderEventMessage $Event) {
+	public function auth (OrderEventMessage $Event) {
 		$this->handler('authed',$Event);
 	}
 
-	function capture (OrderEventMessage $Event) {
+	public function capture (OrderEventMessage $Event) {
 		$this->handler('captured',$Event);
 	}
 
-	function refund (OrderEventMessage $Event) {
+	public function refund (OrderEventMessage $Event) {
 		$this->handler('refunded',$Event);
 	}
 
-	function void (OrderEventMessage $Event) {
+	public function void (OrderEventMessage $Event) {
 		$this->handler('voided',$Event);
 	}
 
-	function handler ($type,$Event) {
+	public function handler ($type,$Event) {
 		if(!isset($Event->txnid)) $Event->txnid = time();
 		if (str_true($this->settings['error'])) {
 			new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.",'Shopp'),'testmode_error',SHOPP_TRXN_ERR);
@@ -118,7 +118,7 @@ class TestMode extends GatewayFramework {
 	 *
 	 * @return void
 	 **/
-	function settings () {
+	public function settings () {
 		$this->ui->checkbox(0,array(
 			'name' => 'error',
 			'label' => 'Always show an error',
@@ -126,6 +126,18 @@ class TestMode extends GatewayFramework {
 		));
 	}
 
-} // END class TestMode
+	public static function help () {
+		return Shopp::_m(
+'### Test Mode
 
-?>
+The Test Mode payment gateway provides a simple method for testing your WordPress/Shopp setup. With Test Mode set as your primary payment gateway, Shopp will process each checkout request as a normal order, but it will not verify any payment card information.
+
+Note: It is important to realize that the Test Mode payment gateway is different from the **Enable test mode** setting available on many of the other payment systems. As a payment gateway, it acts like a payment processor without verifying any payment information or processing any transfer of money.
+
+#### Test error response
+
+The Test Mode payment gateway module has one setting for toggling errors on or off. By default the Test Mode gateway treats every order as a success. Simply toggle on the Test error response setting and the Test Mode gateway will report an error for every order it processes.');
+
+	}
+
+}
