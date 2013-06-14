@@ -40,6 +40,7 @@ class Report extends AdminController {
 		parent::__construct();
 
 		shopp_enqueue_script('calendar');
+		shopp_enqueue_script('daterange');
 		shopp_enqueue_script('reports');
 
 		add_filter('shopp_reports',array($this,'xreports'));

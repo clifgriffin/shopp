@@ -304,6 +304,7 @@ class Account extends AdminController {
 	 **/
 	function columns () {
 		shopp_enqueue_script('calendar');
+		shopp_enqueue_script('daterange');
 		register_column_headers($this->screen, array(
 			'cb'=>'<input type="checkbox" />',
 			'customer-name'=>__('Name','Shopp'),

@@ -1,6 +1,6 @@
 /*!
  * calendar.js - Modal calendar date selector
- * Copyright © 2008-2010 by Ingenesis Limited
+ * Copyright © 2008-2013 by Ingenesis Limited
  * Licensed under the GPLv3 {@see license.txt}
  */
 jQuery.fn.PopupCalendar = function (settings) {
@@ -317,21 +317,15 @@ jQuery.fn.PopupCalendar = function (settings) {
 	};
 
 
-	if ( ! input) {
+	if ( input !== false ) {
 		pos = input.offset();
-        pad =$('#wpadminbar').size() > 0 ? $('#wpadminbar').height() * -1 : 0;
+        pad = $('#wpadminbar').size() > 0 ? $('#wpadminbar').height() * -1 : 0;
 
 		if (pos.left+pos.top == 0) {
 			pos = input.parent().parent().css('display','block').offset();
 			pad = 6;
 		}
 
-		// // requires jquery.dimension plugin
-		// var offset = $input.offset();
-		// $results.css({
-		// 	top: (offset.top + input.offsetHeight) + 'px',
-		// 	left: offset.left + 'px'
-		// });
 		$this.css({left:pos.left+'px',top:(pos.top+input.outerHeight(true))+'px' });
 
 		if (m_input !== false && (y_input.val()+m_input.val()+d_input.val() != '')) {

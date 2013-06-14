@@ -219,6 +219,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('calendar', '/ui/behaviors/calendar.js', array('jquery','shopp'), '20100101');
 	$scripts->add_data('calendar', 'group', 1);
 
+	$scripts->add('daterange', '/ui/behaviors/daterange.js', array('jquery','shopp', 'calendar'), '20100101');
+	$scripts->add_data('daterange', 'group', 1);
+
 	$scripts->add('checkout', '/ui/behaviors/checkout.js', array('jquery','shopp'), '20100101');
 	$scripts->add_data('checkout', 'group', 1);
 

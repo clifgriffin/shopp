@@ -48,7 +48,7 @@
 	<?php if (count($Customers) > 0): ?>
 		<tbody id="customers-table" class="list orders">
 		<?php
-			$hidden = get_hidden_columns('shopp_page_shopp-customers');
+			$hidden = get_hidden_columns(ShoppAdmin()->screen());
 
 			$even = false;
 			foreach ($Customers as $Customer):
@@ -57,11 +57,11 @@
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo esc_url( add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php'))); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
-			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>
+			<td class="customer-name column-customer-name"><a class='row-title' href='<?php echo esc_url( add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php'))); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
+			<td class="customer-login column-customer-login<?php echo in_array('customer-login',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>
 			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo esc_attr($Customer->email); ?>"><?php echo esc_html($Customer->email); ?></a></td>
 
-			<td class="location column-location<?php echo in_array('location',$hidden)?' hidden':''; ?>"><?php
+			<td class="customer-location column-customer-location<?php echo in_array('customer-location',$hidden)?' hidden':''; ?>"><?php
 				$location = '';
 				$location = $Customer->city;
 				if (!empty($location) && !empty($Customer->state)) $location .= ', ';
@@ -71,8 +71,8 @@
 				$location .= $Customer->country;
 				echo esc_html($location);
 				 ?></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><a href="<?php echo esc_url( add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php'))); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
-			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
+			<td class="customer-orders column-customer-orders<?php echo in_array('customer-orders',$hidden)?' hidden':''; ?>"><a href="<?php echo esc_url( add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php'))); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
+			<td class="customer-joined column-customer-joined<?php echo in_array('customer-joined',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
@@ -121,6 +121,8 @@ var lastexport = new Date(<?php echo date("Y,(n-1),j",shopp_setting('customerexp
 
 jQuery(document).ready( function($) {
 
+	new DateRange('#range', '#start', '#end', '#dates');
+
 	columns.init(pagenow);
 
 	$('#selectall').change( function() {
@@ -140,104 +142,6 @@ jQuery(document).ready( function($) {
 		if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
 		else $('#export-columns input').not(this).attr('checked',false);
 	});
-
-	function formatDate (e) {
-		if (this.value == "") match = false;
-		if (this.value.match(/^(\d{6,8})/))
-			match = this.value.match(/(\d{1,2}?)(\d{1,2})(\d{4,4})$/);
-		else if (this.value.match(/^(\d{1,2}.{1}\d{1,2}.{1}\d{4})/))
-			match = this.value.match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
-		if (match) {
-			date = new Date(match[3],(match[1]-1),match[2]);
-			$(this).val((date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear());
-			range.val('custom');
-		}
-	}
-
-	var range = $('#range'),
-		start = $('#start').change(formatDate),
-		StartCalendar = $('<div id="start-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
-			scheduling:false,
-			input:start
-		}).bind('calendarSelect',function () {
-			range.val('custom');
-		}),
-		end = $('#end').change(formatDate),
-		EndCalendar = $('<div id="end-calendar" class="calendar"></div>').appendTo('#wpwrap').PopupCalendar({
-			scheduling:true,
-			input:end,
-			scheduleAfter:StartCalendar
-		}).bind('calendarSelect',function () {
-			range.val('custom');
-		});
-
-	range.change(function () {
-		if (this.selectedIndex == 0) {
-			start.val(''); end.val('');
-			$('#dates').css('display','none');
-			return;
-		} else $('#dates').css({display:'inline-block'});
-		var today = new Date(),
-			startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
-			enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-		today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-
-		switch($(this).val()) {
-			case 'week':
-				startdate.setDate(today.getDate()-today.getDay());
-				enddate = new Date(startdate.getFullYear(),startdate.getMonth(),startdate.getDate()+6);
-				break;
-			case 'month':
-				startdate.setDate(1);
-				enddate = new Date(startdate.getFullYear(),startdate.getMonth()+1,0);
-				break;
-			case 'quarter':
-				quarter = Math.floor(today.getMonth()/3);
-				startdate = new Date(today.getFullYear(),today.getMonth()-(today.getMonth()%3),1);
-				enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
-				break;
-			case 'year':
-				startdate = new Date(today.getFullYear(),0,1);
-				enddate = new Date(today.getFullYear()+1,0,0);
-				break;
-			case 'yesterday':
-				startdate.setDate(today.getDate()-1);
-				enddate.setDate(today.getDate()-1);
-				break;
-			case 'lastweek':
-				startdate.setDate(today.getDate()-today.getDay()-7);
-				enddate.setDate((today.getDate()-today.getDay()+6)-7);
-				break;
-			case 'last30':
-				startdate.setDate(today.getDate()-30);
-				enddate.setDate(today.getDate());
-				break;
-			case 'last90':
-				startdate.setDate(today.getDate()-90);
-				enddate.setDate(today.getDate());
-				break;
-			case 'lastmonth':
-				startdate = new Date(today.getFullYear(),today.getMonth()-1,1);
-				enddate = new Date(today.getFullYear(),today.getMonth(),0);
-				break;
-			case 'lastquarter':
-				startdate = new Date(today.getFullYear(),(today.getMonth()-(today.getMonth()%3))-3,1);
-				enddate = new Date(today.getFullYear(),startdate.getMonth()+3,0);
-				break;
-			case 'lastyear':
-				startdate = new Date(today.getFullYear()-1,0,1);
-				enddate = new Date(today.getFullYear(),0,0);
-				break;
-			case 'lastexport':
-				startdate = lastexport;
-				enddate = today;
-				break;
-			case 'custom': return; break;
-		}
-		StartCalendar.select(startdate);
-		EndCalendar.select(enddate);
-	}).change();
-
 });
 
 </script>
