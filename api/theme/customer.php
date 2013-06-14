@@ -55,6 +55,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		'notloggedin' => 'not_logged_in',
 		'orderlookup' => 'order_lookup',
 		'password' => 'password',
+		'passwordchangefail' => 'password_change_fail',
 		'passwordchanged' => 'password_changed',
 		'passwordlogin' => 'password_login',
 		'phone' => 'phone',
@@ -453,6 +454,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	public static function password_changed ($result, $options, $O) {
 		$change = (isset($O->_password_change) && $O->_password_change);
+		unset($O->_password_change);
+		return $change;
+	}
+
+	public static function password_change_fail ($result, $options, $O) {
+		$change = (isset($O->_password_change) && !$O->_password_change);
 		unset($O->_password_change);
 		return $change;
 	}

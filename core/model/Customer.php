@@ -15,10 +15,11 @@
 class Customer extends DatabaseObject {
 	static $table = 'customer';
 
-	public $login = false;			// Login authenticated flag
-	public $info = false;			// Custom customer info fields
-	public $newuser = false;		// New WP user created flag
-	public $loginname = false;		// Account login name
+	public $login = false;			 // Login authenticated flag
+	public $info = false;			 // Custom customer info fields
+	public $newuser = false;		 // New WP user created flag
+	public $loginname = false;		 // Account login name
+	public $_password_change = null; // Password changed (true:successful false:failed null:unchanged)
 
 	public function __construct ( $id = false, $key = 'id' ) {
 		$this->init(self::$table);
@@ -326,6 +327,7 @@ class Customer extends DatabaseObject {
 			$this->_password_change = true;
 		} else {
 			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
+			$this->_password_change = false;
 		}
 
 		do_action('shopp_customer_update',$this);

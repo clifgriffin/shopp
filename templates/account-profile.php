@@ -17,7 +17,7 @@
 		<p class="success"><?php _e( 'Your password has been changed successfully.', 'Shopp' ); ?></p>
 	<?php endif; ?>
 	
-	<?php if ( shopp( 'customer.profile-saved' ) ) : ?>
+	<?php if ( shopp( 'customer.profile-saved' ) && shopp( 'customer.password-change-fail' ) ) : ?>
 		<p class="success"><?php _e( 'Your account has been updated.', 'Shopp' ); ?></p>
 	<?php endif; ?>
 	
