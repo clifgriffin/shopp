@@ -219,7 +219,7 @@ class Storefront extends FlowController {
 				$taxonomy = $wp_query->get($t->query_var);
 				if ( $t->hierarchical ) ShoppCollection( new ProductCategory($taxonomy, 'slug', $t->name) );
 				else ShoppCollection( new ProductTag($taxonomy, 'slug', $t->name) );
-				$page = $catalog;
+				$page = false;
 			}
 		}
 
@@ -241,7 +241,7 @@ class Storefront extends FlowController {
 				$collection = 'promo';
 			}
 
-			ShoppCollection( Catalog::load_collection($collection, $options) );
+			ShoppCollection( ShoppCatalog::load_collection($collection, $options) );
 			if ( ! is_feed() ) ShoppCollection()->load( array( 'load' => array('coverimages') ) );
 
 			// Provide a stub to the queried object for smart collections since WP has no parallel
