@@ -389,7 +389,7 @@ class Storefront extends FlowController {
 			$pages = self::pages_settings();
 			if ( ! isset($pages[$page]) ) return $template;
 			$settings = $pages[$page];
-		}
+		} else return $template;
 
 		// Build the page
 		if ( is_shopp_collection() ) $StorefrontPage = 'CollectionStorefrontPage';
