@@ -381,7 +381,9 @@ class Storefront extends FlowController {
 	 * @return string The output of the templates
 	 **/
 	function pages ($template) {
-
+	
+		if(!is_shopp_page()) return $template;
+		
 		// Get the requested storefront page identifier from the slug
 		$page = self::slugpage( get_query_var('shopp_page') );
 		if ( ! empty($page) ) {
@@ -389,7 +391,7 @@ class Storefront extends FlowController {
 			$pages = self::pages_settings();
 			if ( ! isset($pages[$page]) ) return $template;
 			$settings = $pages[$page];
-		} else return $template;
+		}
 
 		// Build the page
 		if ( is_shopp_collection() ) $StorefrontPage = 'CollectionStorefrontPage';
