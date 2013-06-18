@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.2.5
+Version: 1.2.6RC1
 Description: Bolt-on ecommerce solution for WordPress
-Plugin URI: http://shopplugin.net
+Plugin URI: http://shopplugin.com
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
@@ -27,17 +27,15 @@ Author URI: http://ingenesis.net
 */
 
 if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2.5');
-if (!defined('SHOPP_REVISION'))
-	define('SHOPP_REVISION','$Rev$');
+	define('SHOPP_VERSION','1.2.6RC1');
 if (!defined('SHOPP_GATEWAY_USERAGENT'))
 	define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 if (!defined('SHOPP_HOME'))
-	define('SHOPP_HOME','https://shopplugin.net/');
+	define('SHOPP_HOME','https://shopplugin.com/');
 if (!defined('SHOPP_CUSTOMERS'))
-	define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
+	define('SHOPP_CUSTOMERS','http://customers.shopplugin.com/');
 if (!defined('SHOPP_DOCS'))
-	define('SHOPP_DOCS','http://docs.shopplugin.net/');
+	define('SHOPP_DOCS','http://shopplugin.net/docs');
 
 require('core/legacy.php');
 
