@@ -347,7 +347,7 @@ function validate (form) {
 		passed = true,
 		passwords = [],
 		error = [],
-		inputs = $(form).find('input,select,textarea'),
+		inputs = $(form).find('input,select,textarea').not(":hidden"),
 		required = 'required',
 		title = 'title';
 
