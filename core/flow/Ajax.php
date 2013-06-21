@@ -238,10 +238,10 @@ class AjaxFlow {
 	}
 
 	function shipping_costs () {
-		if (!isset($_GET['method'])) return;
+		if (!isset($_GET['method'])) die(0);
 		$Order =& ShoppOrder();
 
-		if ( $_GET['method'] == $Order->Shipping->method || ! isset($Order->Cart->shipping[$_GET['method']]) ) return;
+		if ( $_GET['method'] == $Order->Shipping->method || ! isset($Order->Cart->shipping[$_GET['method']]) ) die(0);
 
 		$Order->Shipping->method = $_GET['method'];
 		$Order->Shipping->option = $Order->Cart->shipping[$_GET['method']]->name;

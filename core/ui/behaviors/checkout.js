@@ -144,21 +144,34 @@ jQuery(document).ready(function () {
 				spans = 'span'+prefix,
 				inputs = 'input'+prefix,
 				fields = ['shipping','tax','total'],
-				selectors = [];
+				selectors = [],
+				values = {},
+				retry = 0,
+				disableset = '.shopp .shipmethod, .payoption-button input',
+				$this = $(this),
+				send = function () {
+					$(disableset).attr('disabled',true);
+					$.getJSON($co.ajaxurl +"?action=shopp_ship_costs&method=" + $this.val(), function (r) {
+						if ( ! r && retry++ < 2 ) return setTimeout(send, 1000);
+						$(disableset).attr('disabled', false);
+						$.each(fields, function (i, name) {
+							if ( ! r || undefined == r[name] ) {
+								$(spans+name).html(values[name]);
+								return;
+							}
+							$(spans+name).html(asMoney(new Number(r[name])));
+							$(inputs+name).val(new Number(r[name]));
+						});
+					});
+				};
 
-			$.each(fields,function (i,name) { selectors.push(spans+name); });
+			$.each(fields, function (i, name) {
+				selectors.push(spans + name);
+				values[name] = $(spans + name).html();
+			});
 			if (!c_upd) c_upd = '?';
 			$(selectors.join(',')).html(c_upd);
-			$.getJSON($co.ajaxurl+"?action=shopp_ship_costs&method="+$(this).val(),
-				function (r) {
-
-					$.each(fields,function (i,name) {
-						$(spans+name).html(asMoney(new Number(r[name])));
-						$(inputs+name).val(new Number(r[name]));
-					});
-
-				}
-			);
+			send();
 		} else $(this).parents('form').submit();
 	});
 
