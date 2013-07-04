@@ -1165,8 +1165,8 @@ new ProductOptionsMenus('select<?php if (!empty(ShoppCollection()->slug)) echo "
 					$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
 
 				$string .= '</select>';
+				if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 			}
-			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 		}
 
 		return $string;
