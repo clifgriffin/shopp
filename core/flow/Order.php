@@ -1684,7 +1684,7 @@ class AuthedOrderEvent extends OrderEventMessage {
 		if ($locked == 1) return true;
 
 		new ShoppError(sprintf(__('Purchase authed lock for order %s failed. Could not achieve a lock.','Shopp'),$order),'order_txn_lock',SHOPP_TRXN_ERR);
-		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
+		shopp_redirect( shoppurl(false,'checkout', ShoppOrder()->security()) );
 
 	}
 
