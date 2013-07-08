@@ -215,6 +215,8 @@ class Order {
 	 **/
 	function payoptions () {
 
+		$this->freebie();
+
 		if ('FreeOrder' == $this->processor) return;
 
 		global $Shopp;
@@ -519,7 +521,7 @@ class Order {
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
 		// Catch originally free orders that get extra (shipping) costs added to them
-		if ($freebie && !$Cart->orderisfree()) {
+		if ($freebie && ! $Cart->orderisfree()) {
 
 			if ( ! (count($this->payoptions) == 1 // One paymethod
 					&& ( isset($this->payoptions[$this->paymethod]->cards) // Remote checkout
@@ -535,7 +537,7 @@ class Order {
 		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
 		do_action('shopp_checkout_processed');
 
-		if ($Cart->orderisfree()) do_action('shopp_process_free_order');
+		if ( $Cart->orderisfree() ) do_action('shopp_process_free_order');
 
 		// If the cart's total changes at all, confirm the order
 		if (apply_filters('shopp_order_confirm_needed', ($estimated != $Cart->Totals->total || $this->confirm) ))
@@ -722,11 +724,16 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @version 1.2.6
 	 *
-	 * @return void
+	 * @return boolean True when successful
 	 **/
-	function freebie ($free) {
-		// if (!$free) return $free;
+	function freebie () {
+
+		// If the order is not free, but the order processor is still set to free order,
+		// reset the processor to use the default
+		if ( ! $this->Cart->orderisfree() && 'FreeOrder' == $this->processor )
+			return $this->processor = false;
 
 		$this->processor = 'FreeOrder';
 		$this->processor($this->processor);
