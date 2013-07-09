@@ -35,6 +35,7 @@ class ShoppInstallation extends FlowController {
 		add_action('shopp_setup',array($this,'setup'));
 		add_action('shopp_setup',array($this,'images'));
 		add_action('shopp_setup',array($this,'roles'));
+		add_action('shopp_setup',array($this,'maintenance'));
 		add_action('shopp_autoupdate',array($this,'update'));
 
 		$this->errors = array(
@@ -401,6 +402,33 @@ class ShoppInstallation extends FlowController {
 
 		$this->images(); // Setup default image settings
 
+	}
+
+	/**
+	 * Post activation maintenance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2.6
+	 *
+	 * @return void
+	 **/
+	function maintenance () {
+		global $wpdb;
+
+		$db_version = intval(shopp_setting('db_version'));
+		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
+
+		if ( $db_version <= 1149 ) {
+			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
+			if ('mass' == shopp_setting('shipping_packaging'))
+				shopp_set_setting('shipping_packaging','all');
+
+			// Fix all product modified timestamps (for 1.2.6)
+			$post_type = 'shopp_product';
+			$post_modified = DB::mkdatetime( current_time('timestamp') );
+			$post_modified_gmt = DB::mkdatetime( current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600) );
+			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
+		}
 	}
 
 	/**
@@ -988,9 +1016,10 @@ class ShoppInstallation extends FlowController {
 				shopp_set_setting('shipping_packaging','all');
 
 			// Fix all product modified timestamps (for 1.2.6)
+			$post_type = 'shopp_product';
 			$post_modified = current_time('timestamp');
 			$post_modified_gmt = current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600);
-			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_modified='0000-00-00 00:00:00'");
+			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
 		}
 
 	}
