@@ -418,17 +418,11 @@ class ShoppInstallation extends FlowController {
 		$db_version = intval(shopp_setting('db_version'));
 		if (!$db_version) $db_version = intval(ShoppSettings()->legacy('db_version'));
 
-		if ( $db_version <= 1149 ) {
-			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
-			if ('mass' == shopp_setting('shipping_packaging'))
-				shopp_set_setting('shipping_packaging','all');
-
-			// Fix all product modified timestamps (for 1.2.6)
-			$post_type = 'shopp_product';
-			$post_modified = DB::mkdatetime( current_time('timestamp') );
-			$post_modified_gmt = DB::mkdatetime( current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600) );
-			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
-		}
+		// Fix all product modified timestamps (for 1.2.6)
+		$post_type = 'shopp_product';
+		$post_modified = DB::mkdatetime( current_time('timestamp') );
+		$post_modified_gmt = DB::mkdatetime( current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600) );
+		DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
 	}
 
 	/**
@@ -1014,12 +1008,6 @@ class ShoppInstallation extends FlowController {
 			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
 			if ('mass' == shopp_setting('shipping_packaging'))
 				shopp_set_setting('shipping_packaging','all');
-
-			// Fix all product modified timestamps (for 1.2.6)
-			$post_type = 'shopp_product';
-			$post_modified = current_time('timestamp');
-			$post_modified_gmt = current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600);
-			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
 		}
 
 	}
