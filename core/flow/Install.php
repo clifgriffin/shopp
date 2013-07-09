@@ -202,7 +202,7 @@ class ShoppInstallation extends FlowController {
 		// Make sure dbDelta() is available
 		if ( ! function_exists('dbDelta') )
 			require(ABSPATH.'wp-admin/includes/upgrade.php');
-		
+
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA)) $this->error('nodbschema-upgrade');
 
@@ -986,8 +986,12 @@ class ShoppInstallation extends FlowController {
 			// Set mass packaging setting to 'all' for current realtime shipping rates {@see bug #1835}
 			if ('mass' == shopp_setting('shipping_packaging'))
 				shopp_set_setting('shipping_packaging','all');
-		}
 
+			// Fix all product modified timestamps (for 1.2.6)
+			$post_modified = current_time('timestamp');
+			$post_modified_gmt = current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600);
+			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_modified='0000-00-00 00:00:00'");
+		}
 
 	}
 
