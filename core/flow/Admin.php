@@ -387,26 +387,34 @@ class AdminFlow extends FlowController {
 		$link = htmlspecialchars($page->doc);
 		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
 
-		get_current_screen()->add_help_tab(array(
-			'id' => 'shopp-help',
-			'title' => __('Help'),
-			'content' => $content
-		));
+		if ( method_exists($screen, 'add_help_tab') ) {
+			get_current_screen()->add_help_tab(array(
+				'id' => 'shopp-help',
+				'title' => __('Help'),
+				'content' => $content
+			));
+		}
 
-		$target = substr($pagename,strrpos($pagename,'-')+1);
+		$target = substr($pagename, strrpos($pagename,'-')+1);
 		if ($target == "orders" || $target == "customers") {
 			ob_start();
 			include(SHOPP_PATH."/core/ui/help/$target.php");
 			$help = ob_get_contents();
 			ob_end_clean();
+			$content .= $help;
 
-			get_current_screen()->add_help_tab(array(
-				'id' => 'shopp-help-'.$target,
-				'title' => __('Advanced Search','Shopp'),
-				'content' => $help
-			));
+			if ( method_exists($screen, 'add_help_tab') ) {
+				get_current_screen()->add_help_tab(array(
+					'id' => 'shopp-help-'.$target,
+					'title' => __('Advanced Search','Shopp'),
+					'content' => $help
+				));
+			}
 
 		}
+
+		if ( ! method_exists($screen, 'add_help_tab') )
+			add_contextual_help($screen->id, $content);
 
 	}
 
