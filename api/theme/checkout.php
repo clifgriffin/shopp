@@ -330,7 +330,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	static function billing_state ($result, $options, $O) {
-		global $Shopp;
 		$base = shopp_setting('base_operations');
 		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
