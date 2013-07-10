@@ -163,7 +163,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	static function billing_state ($result, $options, $O) {
-		return ShoppCheckoutThemeAPI::billing_state($result, $options, $O);
+		return ShoppCheckoutThemeAPI::billing_state($result, $options, ShoppOrder());
 		$base = shopp_setting('base_operations');
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
