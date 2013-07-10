@@ -705,7 +705,10 @@ class FreeOrder extends GatewayFramework {
 			'txnid' => time(),					// Transaction ID for the VOID event
 			'gateway' => $Event->gateway		// Gateway handler name (module name from @subpackage)
 		));
+	}
 
+	function settings () {
+		/* Stub */
 	}
 
 } // END class FreeOrder
