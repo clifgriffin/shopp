@@ -662,11 +662,11 @@ class PurchasesExport {
 						case "country": 	$search[] = "country='$keyword'"; break;
 					}
 				}
-				if (empty($search)) $search[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				if (empty($search)) $search[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 				$where[] = "(".join(' OR ',$search).")";
 			} elseif (strpos($s,'@') !== false) {
 				 $where[] = "email='".DB::escape($s)."'";
-			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
+			} else $where[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
 		}
 		if (!empty($start) && !empty($end)) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
@@ -679,7 +679,7 @@ class PurchasesExport {
 		$c = 0; $columns = array(); $purchasedcols = false;
 		foreach ($this->selected as $column) {
 			$columns[] = "$column AS col".$c++;
-			if ( false !== strpos('p.',$column) ) $purchasedcols = true;
+			if ( false !== strpos($column, 'p.') ) $purchasedcols = true;
 		}
 		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
 		else $FROM = "FROM $purchasetable AS o";
