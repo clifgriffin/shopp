@@ -44,9 +44,15 @@ class Address extends DatabaseObject {
 	 * @return void
 	 **/
 	function load ($id=false,$key=false) {
-		if ( ! empty($this->type) ) $id = array($key => $id,'type' => $this->type);
-		parent::load($id,$key);
+
+		if ( 'customer' == $key )
+			$loaded = parent::load( array('customer' => $id, 'type' => $this->type) );
+		else $loaded = parent::load($id, $key);
+
 		$this->locate();
+
+		return $loaded;
+
 	}
 
 	/**
@@ -128,22 +134,6 @@ class BillingAddress extends Address {
 	var $cardexpires = false;
 	var $cardholder = false;
 
-	/**
-	 * Billing constructor
-	 *
-	 * @author Jonathan Davis
-	 *
-	 * @param int $id The ID of the record
-	 * @param string $key The column name for the specified ID
-	 * @return void
-	 **/
-	function __construct ($id=false,$key='customer') {
-		$this->init(self::$table);
-		if ( ! $id ) return;
-		$this->load(array($key => $id,'type' => 'billing'));
-		$this->type = 'billing';
-	}
-
 	function exportcolumns () {
 		$prefix = "b.";
 		return array(
@@ -173,22 +163,6 @@ class ShippingAddress extends Address {
 	var $type = 'shipping';
 	var $method = false;
 	var $residential = "on";
-
-	/**
-	 * Shipping constructor
-	 *
-	 * @author Jonathan Davis
-	 *
-	 * @param int $id The ID of the record
-	 * @param string $key The column name for the specified ID
-	 * @return void
-	 **/
-	function __construct ($id=false,$key='customer') {
-		$this->init(self::$table);
-		if ( ! $id ) return;
-		$this->load(array($key => $id,'type' => 'shipping'));
-		$this->type = 'shipping';
-	}
 
 	/**
 	 * Registry of supported export fields
