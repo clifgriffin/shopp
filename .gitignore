@@ -1,0 +1,9 @@
+gateways/*
+!gateways/core/*
+shipping/*
+!shipping/core/*
+storage/*
+!storage/core/*
+tests/wp-tests-config.php
+tests/phpunit.xml
+tests/clover.xml
