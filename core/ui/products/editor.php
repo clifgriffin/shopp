@@ -117,7 +117,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	LINK_VARIATIONS = <?php _jse('Link Variations','Shopp'); ?>,
 	UNLINK_VARIATIONS = <?php _jse('Unlink Variations','Shopp'); ?>,
 	ADD_IMAGE_BUTTON_TEXT = <?php _jse('Add New Image','Shopp'); ?>,
-	UPLOAD_FILE_BUTTON_TEXT = <?php _jse('Upload&nbsp;File','Shopp'); ?>,
+	UPLOAD_FILE_BUTTON_TEXT = <?php _jse('Upload File','Shopp'); ?>,
 	SELECT_FILE_BUTTON_TEXT = <?php _jse('Select File','Shopp'); ?>,
 	SAVE_BUTTON_TEXT = <?php _jse('Save','Shopp'); ?>,
 	CANCEL_BUTTON_TEXT = <?php _jse('Cancel','Shopp'); ?>,
