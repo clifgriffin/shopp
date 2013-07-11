@@ -216,7 +216,6 @@ class Order {
 	function payoptions () {
 
 		$this->freebie();
-
 		if ('FreeOrder' == $this->processor) return;
 
 		global $Shopp;
@@ -730,14 +729,15 @@ class Order {
 	 **/
 	function freebie () {
 
-		// If the order is not free, but the order processor is still set to free order,
-		// reset the processor to use the default
-		if ( ! $this->Cart->orderisfree() && 'FreeOrder' == $this->processor )
+		if ( $this->Cart->orderisfree() ) {
+			$this->processor = 'FreeOrder';
+			$this->processor($this->processor);
+			$this->Billing->cardtype = __('Free Order','Shopp');
+		} elseif ( 'FreeOrder' == $this->processor ) {
+			// If the order is not free, but the order processor is still set to free order,
+			// reset the processor to use the default
 			return $this->processor = false;
-
-		$this->processor = 'FreeOrder';
-		$this->processor($this->processor);
-		$this->Billing->cardtype = __('Free Order','Shopp');
+		} else return false;
 
 		return true;
 	}
