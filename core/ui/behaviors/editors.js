@@ -748,7 +748,7 @@ function ImageUploads (id,type) {
 			sorting : false
 
 		},
-		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
+		prevent_swf_caching: true, // Prevents Flash caching issues in IE
 		debug: imageupload_debug
 
 	};
@@ -1087,15 +1087,15 @@ function FileUploader (button,defaultButton) {
 
 	_.swfu = false;
 	_.settings = {
-		button_text: '<span class="button">'+UPLOAD_FILE_BUTTON_TEXT+'</span>',
-		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
+		button_text: UPLOAD_FILE_BUTTON_TEXT,
+		button_text_style: '.buttonText {text-align:center;font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,_sans;font-size:9px;color:#333333;}',
 		button_text_top_padding: 3,
 		button_height: "22",
 		button_width: "100",
 		button_image_url: uidir+'/icons/buttons.png',
 		button_placeholder_id: button,
 		button_action: SWFUpload.BUTTON_ACTION.SELECT_FILE,
-		flash_url : uidir+'/behaviors/swfupload/swfupload.swf',
+		flash_url : uidir+'/behaviors/swfupload.swf',
 		upload_url : ajaxurl,
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
@@ -1119,7 +1119,7 @@ function FileUploader (button,defaultButton) {
 			targetLine : false,
 			progressBar : false
 		},
-		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
+		prevent_swf_caching: true, // Prevents Flash caching issues in IE
 		debug: fileupload_debug
 
 	};
