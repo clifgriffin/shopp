@@ -585,6 +585,18 @@
 		}
 	};
 
+	// Added by Jonathan Davis, Ingenesis Limited
+	publicMethod.hide = function () {
+		open = false;
+		$(document).unbind("keydown.cbox_close keydown.cbox_arrows");
+		$window.unbind('resize.'+prefix+' resize.cboxie6 scroll.cboxie6');
+		$overlay.css({cursor: 'auto'}).fadeOut('fast');
+
+		$loaded.css({'position':'absolute','left':'-9999em'});
+		$box.css({'opacity': 1,'left':'-9999em'});
+	};
+
+
 	publicMethod.prep = function (object) {
 		if (!open) {
 			return;
