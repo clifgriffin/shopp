@@ -73,7 +73,7 @@ function images_meta_box ($Category) {
 		<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 	</div>
 
-	<?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?>
+	<p><?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
 <?php
 }
 add_meta_box('category-images', __('Category Images','Shopp').$Admin->boxhelp('category-editor-images'), 'images_meta_box', 'shopp_page_shopp-category', 'normal', 'core');
