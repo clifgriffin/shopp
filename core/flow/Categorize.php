@@ -35,6 +35,8 @@ class Categorize extends AdminController {
 		if (!empty($_GET['id']) && !isset($_GET['a'])) {
 
 			wp_enqueue_script('postbox');
+			wp_enqueue_script('swfupload-all');
+
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
 				wp_enqueue_script('quicktags');
@@ -46,8 +48,6 @@ class Categorize extends AdminController {
 			shopp_enqueue_script('category-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
-			shopp_enqueue_script('swfupload');
-			shopp_enqueue_script('shopp-swfupload-queue');
 
 			do_action('shopp_category_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));

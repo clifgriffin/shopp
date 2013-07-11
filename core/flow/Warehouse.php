@@ -46,6 +46,8 @@ class Warehouse extends AdminController {
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
+			wp_enqueue_script('swfupload-all');
+
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
 				wp_enqueue_script('quicktags');
@@ -59,11 +61,9 @@ class Warehouse extends AdminController {
 			shopp_enqueue_script('product-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
-			shopp_enqueue_script('swfupload');
 			shopp_enqueue_script('jquery-tmpl');
 			shopp_enqueue_script('suggest');
 			shopp_enqueue_script('search-select');
-			shopp_enqueue_script('shopp-swfupload-queue');
 			do_action('shopp_product_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
 
