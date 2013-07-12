@@ -138,7 +138,7 @@ jQuery(document).ready(function () {
 
 	}).trigger('change');
 
-	$('.shopp .shipmethod').change(function () {
+	$('#shopp form').on('change', '.shipmethod', function () {
 		if ( $.inArray($('#checkout #shopp-checkout-function').val(), ['process','confirmed']) != -1 ) {
 			var prefix = '.shopp-cart.cart-',
 				spans = 'span'+prefix,
