@@ -275,6 +275,7 @@ class Purchase extends DatabaseObject {
 		$updates = array_filter($updates);
 
 		$data = DB::escape($updates);
+		$data = array_map(create_function('$value','return "\'$value\'";'),$data);
 		$dataset = DatabaseObject::dataset($data);
 
 		if ( ! empty($dataset) ) {
