@@ -152,7 +152,7 @@ class Storefront extends FlowController {
 	 **/
 	function posts ($posts, $wp_query) {
 
-		if ( is_shopp_taxonomy($wp_query) ) return $posts;
+		if ( is_shopp_taxonomy($wp_query) ) return array(true);
 
 		if ( $this->request($wp_query) ) {
 			$StubPage = new StorefrontPage();
@@ -381,9 +381,9 @@ class Storefront extends FlowController {
 	 * @return string The output of the templates
 	 **/
 	function pages ($template) {
-	
+
 		if(!is_shopp_page()) return $template;
-		
+
 		// Get the requested storefront page identifier from the slug
 		$page = self::slugpage( get_query_var('shopp_page') );
 		if ( ! empty($page) ) {
