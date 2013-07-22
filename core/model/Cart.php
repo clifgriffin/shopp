@@ -1035,12 +1035,19 @@ class CartDiscounts {
 						case "Amount Off": $discount = $promo->discount; break;
 						case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 						case "Buy X Get Y Free":
+
+							$buying = ($promo->buyqty + $promo->getqty );
+							$factor = ($Item->quantity / $buying);
+							if ( $Item->quantity % $buying ) $factor = (int)floor($factor);
+
 							// With inclusive tax model, the discount must be applied to the line item discounts [bug #806]
 							// The exclusive tax model needs a pre-tax unit price discount to avoid tax on the free item(s)
 							if (shopp_setting_enabled('tax_inclusive'))
-								$discount = $promo->getqty * ($Item->unitprice + $Item->unittax);
-							else $discount = $Item->unitprice*( $promo->getqty / ($promo->buyqty + $promo->getqty ));
+								$discount = $factor * ($Item->unitprice + $Item->unittax) / $Item->quantity;
+							else $discount = $Item->unitprice * $factor / $Item->quantity;
+
 							break;
+
 					}
 					$promo->items[$id] = $discount;
 				}
