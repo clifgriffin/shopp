@@ -1831,10 +1831,12 @@ class StorefrontShortcodes {
 			if (!isset($atts[$prop])) continue;
 			$Product = new Product($atts[ $prop ],$prop);
 		}
-
-		if (empty($Product->id)) return "";
-
-		ShoppProduct($Product);
+		
+		if ( ! empty($Product->id) ) {
+			ShoppProduct($Product);
+		} elseif ( empty( ShoppProduct()->id ) ) {
+			return "";
+		}
 
 		ob_start();
 		?>
