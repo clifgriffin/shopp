@@ -7,7 +7,7 @@ Plugin URI: http://shopplugin.com
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
-	Portions created by Ingenesis Limited are Copyright © 2008-2011 by Ingenesis Limited
+	Portions created by Ingenesis Limited are Copyright © 2008-2013 by Ingenesis Limited
 
 	This file is part of Shopp.
 
@@ -26,16 +26,16 @@ Author URI: http://ingenesis.net
 
 */
 
-if (!defined('SHOPP_VERSION'))
-	define('SHOPP_VERSION','1.2.9');
-if (!defined('SHOPP_GATEWAY_USERAGENT'))
-	define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
-if (!defined('SHOPP_HOME'))
-	define('SHOPP_HOME','https://shopplugin.com/');
-if (!defined('SHOPP_CUSTOMERS'))
-	define('SHOPP_CUSTOMERS','http://customers.shopplugin.com/');
-if (!defined('SHOPP_DOCS'))
-	define('SHOPP_DOCS','http://shopplugin.com/docs');
+if ( ! defined('SHOPP_VERSION') )
+	define('SHOPP_VERSION', '1.2.9');
+if ( ! defined('SHOPP_GATEWAY_USERAGENT') )
+	define('SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . SHOPP_VERSION);
+if ( ! defined('SHOPP_HOME') )
+	define('SHOPP_HOME', 'https://shopplugin.com/');
+if ( ! defined('SHOPP_CUSTOMERS') )
+	define('SHOPP_CUSTOMERS', 'http://customers.shopplugin.com/');
+if ( ! defined('SHOPP_DOCS') )
+	define('SHOPP_DOCS', 'http://shopplugin.com/docs');
 
 require('core/legacy.php');
 
