@@ -505,153 +505,139 @@ abstract class ShippingFramework {
 		return $column;
 	}
 
-	public function tablerate ($table) {
-		$Order = &ShoppOrder();
+	public function tablerate ( $table ) {
+		$Order = ShoppOrder();
 
-		$Address = &$Order->Shipping;
+		$Address = $Order->Shipping;
 		$countries = Lookup::countries();
 		$zones = Lookup::country_zones();
 
-		$target = array('region'=>false,'country'=>false,'area'=>false,'zone'=>false,'postcode'=>false);
+		$target = array('region' => false, 'country' => false, 'area' => false, 'zone' => false, 'postcode' => false);
 
 		// Prepare address for comparison
-		$target['region'] = (int)$countries[$Address->country]['region'];
+		$target['region'] = (int)$countries[ $Address->country ]['region'];
 		$target['country'] = $Address->country;
 
-		if (isset($Address->postcode) && !empty($Address->postcode)) {
+		if ( isset($Address->postcode) && ! empty($Address->postcode) ) {
 			$target['postcode'] = $Address->postcode;
 			$Address->postmap();
 		}
 
-		if (isset($Address->state) && !empty($Address->state)) {
+		if ( isset($Address->state) && ! empty($Address->state) ) {
 			$target['zone'] = $Address->state;
 
 			$areas = Lookup::country_areas();
-			if (isset($areas[$Address->country]) && !empty($areas[$Address->country])) {
+			if ( isset($areas[ $Address->country ]) && ! empty($areas[ $Address->country ]) ) {
 				$target['area'] = array();
-				foreach ($areas[$Address->country] as $areaname => $areazones) {
-					if (!in_array($Address->state,$areazones)) continue;
+				foreach ( $areas[ $Address->country ] as $areaname => $areazones ) {
+					if ( ! in_array($Address->state, $areazones) ) continue;
 					$target['area'][] = $areaname;
 				}
 				rsort($target['area']);
-				if (empty($target['area'])) $target['area'] = false;
+				if ( empty($target['area']) ) $target['area'] = false;
 			} else $target['area'] = $target['zone'];
 
 		}
 
 		// Sort table rules more specific to more generic matching
-		usort($table,array('ShippingFramework','_sorttable'));
+		usort($table, array('ShippingFramework', '_sorttable'));
 
-		// print_r($table);
-		// exit;
-
-		// echo '<pre>';
 		// Evaluate each destination rule
-		foreach ($table as $index => $rate) {
-			$r = Shopp::floatval(isset($rate['rate'])?$rate['rate']:0);
-			if (isset($rate['tiers'])) {
+		foreach ( $table as $index => $rate ) {
+			$r = Shopp::floatval(isset($rate['rate']) ? $rate['rate'] : 0);
+			if ( isset($rate['tiers']) ) {
 				$r = $rate['tiers'];
-				usort($r,array('ShippingFramework','_sorttier'));
+				usort($r, array('ShippingFramework', '_sorttier'));
 			}
 
-			$dr = strpos($rate['destination'],',') !== false ? explode(',',$rate['destination']) : array($rate['destination']);
+			$dr = strpos($rate['destination'], ',') !== false ? explode(',', $rate['destination']) : array($rate['destination']);
 			$k = array_keys( array_slice($target, 0, count($dr) ) );
 
-			$rule = array_combine($k,$dr);
-			if (isset($rate['postcode']) && !empty($rate['postcode']) && $rate['postcode'] != '*')
+			$rule = array_combine($k, $dr);
+			if ( isset($rate['postcode']) && ! empty($rate['postcode']) && '*' != $rate['postcode'] )
 				$rule['postcode'] = $rate['postcode'];
-			$match = array_intersect_key($target,$rule);
+			$match = array_intersect_key($target, $rule);
 
-			$d = array_diff($rule,$match);
-
-			// @todo remove table rule matching debug
-			// echo "***********************************\n";
-			// echo "MATCH: \n"; print_r($match); echo "\n\n";
-			// echo "RULE: \n"; print_r($rule); echo "\n\n";
-			// echo "DIFF: \n"; print_r($d); echo "\n\n";
+			$d = array_diff($rule, $match);
 
 			// Use the rate if the destination rule is for anywhere
-			if ($rule['region'] == '*') return $r;
+			if ( '*' == $rule['region'] ) return $r;
 
 			// Exact match FTW!
-			if (empty($d)) return $r;
+			if ( empty($d) ) return $r;
 
 			// Handle special case for area matching
-			if (!empty($d['area']) && is_array($match['area'])) {
+			if ( ! empty($d['area']) && is_array($match['area']) ) {
 				// Some countries can have multiple country areas
 				// the target address can match on (most specific matches first)
-				if (in_array($rule['area'],$match['area'])) unset($d['area']); // Clear excpetion to match
+				if ( in_array($rule['area'], $match['area']) ) unset($d['area']); // Clear excpetion to match
 			}
 
 			// Handle postcode matching
-			if (!empty($d['postcode'])) {
-				if (false !== strpos($rule['postcode'],','))
-					$postcodes = explode(',',$rule['postcode']);
+			if ( ! empty($d['postcode']) ) {
+				if ( false !== strpos($rule['postcode'], ',') )
+					$postcodes = explode(',', $rule['postcode']);
 				else $postcodes = array($rule['postcode']);
-				
+
 				//Exclusive rules need to be evaluated first
 				usort($postcodes, create_function(
 						'$a, $b',
-						'$a = ( "!" == $a{0} ); 
-						 $b = ( "!" == $b{0} ); 
-						 if ( $a == $b ) return 0; 
+						'$a = ( "!" == $a{0} );
+						 $b = ( "!" == $b{0} );
+						 if ( $a == $b ) return 0;
 						 return ( $a < $b ) ? -1 : 1;'
 				));
-				
+
 				$exclusions = 0;
-				foreach ($postcodes as $coderule) {
+				foreach ( $postcodes as $coderule ) {
 					$coderule = trim($coderule);
-					
-					//Determine if rule is exclusive
+
+					// Determine if rule is exclusive
 					$exclude = false;
-					if ('!' == substr($coderule, 0, 1) ) {
+					if ( '!' == substr($coderule, 0, 1) ) {
 						$exclude = true;
 						$exclusions++;
 						$coderule = substr($coderule, 1);
 					}
-					
+
 					// Match numeric postcode ranges (only works for pure numeric postcodes like US zip codes)
 					// Cannot be mixed with wildcard ranges (eg 55*-56* does not work, use 55000-56999)
-					if (false !== strpos($coderule,'-')) {
-						list($start,$end) = explode('-',$coderule);
-						if ($match['postcode'] >= $start && $match['postcode'] <= $end) {
-							if($exclude)
-								return false;
+					if ( false !== strpos($coderule,'-') ) {
+						list($start, $end) = explode('-', $coderule);
+						if ( $match['postcode'] >= $start && $match['postcode'] <= $end ) {
+							if ( $exclude ) return false;
 							unset($d['postcode']); // Clear exception to match
 						}
 						continue;
 					}
 
 					// Match wildcard postcode patterns
-					if (strpos($coderule,'*') !== false) {
-						$pattern = str_replace('*','(.+?)',$coderule);
-						if (preg_match("/^$pattern$/i",$match['postcode'])) {
-							if($exclude)
-								return false;
+					if ( false !== strpos($coderule, '*') ) {
+						$pattern = str_replace('*', '(.+?)', $coderule);
+						if ( preg_match("/^$pattern$/i", $match['postcode']) ) {
+							if ( $exclude ) return false;
 							unset($d['postcode']); // Clear exception to match
 						}
 						continue;
 					}
 
 					// Exact match
-					if ($coderule == $match['postcode']) {
-						if($exclude)
-							return false;
+					if ( $coderule == $match['postcode'] ) {
+						if ( $exclude ) return false;
 						unset($d['postcode']); // Clear exception to match
 						continue;
 					}
 
 				}
-				
-				if ($exclusions == count($postcodes))
+
+				if ( $exclusions == count($postcodes) )
 					unset($d['postcode']); //All of the rules were exclusive and passed, clear exception
 			}
 
 			// If exceptions were cleared, return the matching rate
-			if (empty($d)) return $r;
+			if ( empty($d) ) return $r;
 
 		}
-		// echo '</pre>';
 
 		// No matches found!?
 		return false;
