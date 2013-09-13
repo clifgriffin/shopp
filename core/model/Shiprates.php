@@ -250,6 +250,8 @@ class ShoppShiprates extends ListFramework {
 	 **/
 	private function modules () {
 
+		$Notices = ShoppErrorStorefrontNotices();
+		$notices = $Notices->count();
 		$services = array();
 
 		// Run shipping module aggregate shipping calculations
@@ -262,6 +264,10 @@ class ShoppShiprates extends ListFramework {
 		}
 
 		if ( empty($services) ) return false; // Still no rates, bail
+
+		// Suppress new errors from shipping systems if there are servicess available
+		$newnotices = $Notices->count() - $notices;
+		if ( $newnotices > 0 ) $Notices->rollback($newnotices);
 
 		$this->clear();
 		$this->populate($services);
