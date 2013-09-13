@@ -536,13 +536,13 @@ class ShoppCartPage extends ShoppPage {
 
 		ob_start();
 
-		if ( ShoppErrors()->exist(SHOPP_COMM_ERR) )
+		$Errors = ShoppErrorStorefrontNotices();
+		if ( $Errors->exist() )
 			echo ShoppStorefront::errors();
 
 		locate_shopp_template(array('cart.php'), true);
-		$content = ob_get_contents();
 
-		ob_end_clean();
+		$content = ob_get_clean();
 
 		return apply_filters('shopp_cart_template', $content);
 	}
@@ -582,19 +582,19 @@ class ShoppCheckoutPage extends ShoppPage {
 		$Errors = ShoppErrors();
 
 		do_action('shopp_init_checkout');
+		ShoppStorefront()->checkout = true;
 
 		ob_start();
+
 		$Errors = ShoppErrorStorefrontNotices();
 		if ( $Errors->exist() )
 			echo ShoppStorefront::errors();
 
-		ShoppStorefront()->checkout = true;
 		locate_shopp_template(array('checkout.php'), true);
+
+		$content = ob_get_clean();
+
 		ShoppStorefront()->checkout = false;
-
-		$content = ob_get_contents();
-
-		ob_end_clean();
 
 		return apply_filters('shopp_checkout_page', $content);
 	}
