@@ -63,7 +63,7 @@
 			$enableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'enable'), $url);
 			$disableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'disable'), $url);
 
-			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
+			$PromotionName = empty($Promotion->name)?'('.__('no discount name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Promotion->id; ?>' class="selected" /></th>

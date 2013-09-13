@@ -267,7 +267,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 	 */
 	protected function disabled_alert ( ShoppPromo $Promotion ) {
 		if ( 'enabled' === $Promotion->status || apply_filters('shopp_hide_disabled_promo_warning', false) ) return;
-		$this->notice(Shopp::__('This promotion is not currently enabled.'), 'notice', 20);
+		$this->notice(Shopp::__('This discount is not currently enabled.'), 'notice', 20);
 	}
 
 	public static function types () {
