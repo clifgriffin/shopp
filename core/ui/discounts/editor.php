@@ -117,7 +117,8 @@ var suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_sho
 		var valuefield = function (fieldtype) {
 			value.empty();
 			var name = (type=='cartitem')?'rules[item]['+i+'][value]':'rules['+i+'][value]';
-			field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
+			if (fieldtype == "number") field = $('<input type="number" name="'+name+'" class="selectall" size="5" />').appendTo(value);
+			else field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
 			if (fieldtype == "price") field.change(function () { this.value = asMoney(this.value); });
 			return field;
 		}

@@ -54,8 +54,8 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	public function requests () {
 
-		if ( isset($_REQUEST['promocode']) && ! empty($_REQUEST['promocode']) )
-			$this->request( trim($_REQUEST['promocode']) );
+		if ( isset($_REQUEST['discount']) && ! empty($_REQUEST['discount']) )
+			$this->request( trim($_REQUEST['discount']) );
 
 		if ( isset($_REQUEST['removecode']) && ! empty($_REQUEST['removecode']) )
 			$this->undiscount(trim($_REQUEST['removecode']));
@@ -128,10 +128,11 @@ class ShoppDiscounts extends ListFramework {
 		foreach ( $Promotions as $Promo ) {
 			$apply = false;
 
-			if ( $this->removed($Promo) ) break;
-
 			// Cancel matching if max number of discounts reached
 			if ( $this->maxed($Promo) ) break;
+
+			// Skip removed discounts
+			if ( $this->removed($Promo) ) continue;
 
 			$matches = 0;
 			$total = 0;
@@ -406,7 +407,6 @@ class ShoppDiscounts extends ListFramework {
 		return array('codes', 'removed', '_added', '_checks', '_list');
 	}
 
-
 }
 
 /**
@@ -500,6 +500,8 @@ class ShoppDiscountRule {
 			case 'promo code': 			return array($this, 'code');
 
 			case 'promo use count':		return $this->promo->uses;
+
+			case 'discounts applied':	return ShoppOrder()->Discounts->count();
 			case 'total quantity':		return $Cart->Totals->total('quantity');
 			case 'shipping amount':		return $Cart->Totals->total('shipping');
 			case 'subtotal amount':		return $Cart->Totals->total('order');

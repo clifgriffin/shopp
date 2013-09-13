@@ -328,6 +328,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 
 			'Promo code' => Shopp::__('Discount code'),
 			'Promo use count' => Shopp::__('Discount use count'),
+			'Discounts applied' => Shopp::__('Discounts applied'),
 
 			'Is equal to' => Shopp::__('Is equal to'),
 			'Is not equal to' => Shopp::__('Is not equal to'),
@@ -353,32 +354,34 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 				'Price' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Sale price' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Type' => array('logic' => array('boolean'), 'value' => 'text'),
-				'In stock' => array('logic' => array('boolean', 'amount'), 'value' => 'text')
+				'In stock' => array('logic' => array('boolean', 'amount'), 'value' => 'number')
 			),
 			'Cart' => array(
 				'Any item name' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text', 'source' => 'shopp_products'),
-				'Any item quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Any item quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Any item amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
-				'Total quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Total quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Shipping amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Subtotal amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Discount amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Customer type' => array('logic' => array('boolean'), 'value' => 'text', 'source' => 'shopp_customer_types'),
 				'Ship-to country' => array('logic' => array('boolean'), 'value' => 'text', 'source' => 'shopp_target_markets', 'suggest' => 'alt'),
-				'Promo use count' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Discounts applied' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
+				'Promo use count' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Promo code' => array('logic' => array('boolean'), 'value' => 'text')
 			),
 			'Cart Item' => array(
 				'Any item name' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text', 'source' => 'shopp_products'),
-				'Any item quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Any item quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Any item amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
-				'Total quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Total quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Shipping amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Subtotal amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Discount amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Customer type' => array('logic' => array('boolean'), 'value' => 'text', 'source' => 'shopp_customer_types'),
 				'Ship-to country' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text', 'source' => 'shopp_target_markets'),
-				'Promo use count' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Discounts applied' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
+				'Promo use count' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Promo code' => array('logic' => array('boolean'), 'value' => 'text')
 			),
 			'Cart Item Target' => array(
@@ -388,7 +391,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 				'Variation' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text',),
 				'Input name' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text'),
 				'Input value' => array('logic' => array('boolean', 'fuzzy'), 'value' => 'text'),
-				'Quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'text'),
+				'Quantity' => array('logic' => array('boolean', 'amount'), 'value' => 'number'),
 				'Unit price' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Total price' => array('logic' => array('boolean', 'amount'), 'value' => 'price'),
 				'Discount amount' => array('logic' => array('boolean', 'amount'), 'value' => 'price')

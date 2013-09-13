@@ -136,7 +136,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 				$result .=  $before . $Errors->message() . $after;
 		}
 
-		$result .= '<span><input type="text" id="discount-code" name="discountcode" value="" size="10" /></span>';
+		$result .= '<span><input type="text" id="discount-code" name="discount" value="" size="10" /></span>';
 		$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options, $submit_attrs).' /></span>';
 		$result .= '</div>';
 		return $result;
