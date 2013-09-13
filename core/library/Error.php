@@ -668,6 +668,10 @@ class ShoppErrorStorefrontNotices implements Iterator {
 		return array_shift($this->notices);
 	}
 
+	public function count () {
+		return count($this->notices);
+	}
+
 	public function current () {
 		return $this->notices[ $this->position ];
 	}
@@ -690,6 +694,10 @@ class ShoppErrorStorefrontNotices implements Iterator {
 
 	public function clear () {
 		$this->notices = array();
+	}
+
+	public function rollback ( $count ) {
+		$removed =  array_splice($this->notices, -$count);
 	}
 
 }
