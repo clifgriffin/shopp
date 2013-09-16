@@ -30,6 +30,7 @@ if ( ! class_exists('Promotion', false) ) { class Promotion extends ShoppPromo {
 if ( ! class_exists('Purchase', false) ) { class Purchase extends ShoppPurchase {} }
 if ( ! class_exists('Purchased', false) ) { class Purchased extends ShoppPurchased {} }
 if ( ! class_exists('Storefront', false) ) { class Storefront extends ShoppStorefront {} }
+if ( ! class_exists('DatabaseObject', false) ) { class DatabaseObject extends ShoppDatabaseObject {} }
 
 // The Cart class additionally needs stub methods for backwards compatibility
 if ( ! class_exists('Cart', false) ) {
