@@ -289,11 +289,11 @@ class CartAPITests extends ShoppTestCase {
 
 		$this->assertFalse(shopp('cart.haspromos'));
 
-		$_REQUEST['promocode'] = '2percent';
+		$_REQUEST['discount'] = '2percent';
 
 		$Discounts->requests();
 		$Cart->totals();
-		unset($_REQUEST['promocode']);
+		unset($_REQUEST['discount']);
 
 		$this->assertTrue(shopp('cart.haspromos'));
 	}
@@ -486,7 +486,7 @@ class CartAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'text', 'name' => 'discountcode', 'id' => 'discount-code')
+			'attributes' => array('type' => 'text', 'name' => 'discount', 'id' => 'discount-code')
 		);
 
 		$this->assertTag($expected, $actual, $actual, true);
