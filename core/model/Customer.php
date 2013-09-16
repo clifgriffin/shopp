@@ -28,8 +28,8 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	public $info = false;			// Custom customer info fields
 	public $loginname = false;		// Account login name
 
-	public $newuser = false;		// New WP user created flag
-	public $guest = false;          // Flag for guest customers
+	// public $newuser = false;		// New WP user created flag
+	// public $guest = false;          // Flag for guest customers
 
 	protected $session = 0;         // Tracks Customer session flags
 	protected $updates = 0;         // Tracks updated setting flags
@@ -59,7 +59,8 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	}
 
 	public function reset () {
-		$this->session = 0;
+		$this->flag(self::GUEST, false);
+		$this->flag(self::WPUSER, false);
 	}
 
 	public function listeners () {

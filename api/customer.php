@@ -130,7 +130,7 @@ function shopp_customer_marketing_list ( $exclude = false ) {
  * @param array $data data to create the new customer record from, including: wpuser, firstname, lastname, email, phone, company, marketing, type, saddress, sxaddress, scity, sstate, scountry, spostcode, sgeocode, residential, baddress, bxaddress, bcity, bstate, bcountry, bpostcode, bgeocode
  * @return bool|int returns false on failure, and the new customer id on success
  **/
-function shopp_add_customer (  $data = array() ) {
+function shopp_add_customer ( $data = array() ) {
 	if ( empty($data) ) {
 		shopp_debug("shopp_add_customer - no customer data supplied.");
 		return false;
@@ -193,6 +193,82 @@ function shopp_add_customer (  $data = array() ) {
 
 	return $Customer->id;
 } // end shopp_add_customer
+
+
+function shopp_set_customer ( $customer = false, $data = array() ) {
+
+	if ( ! $customer ) {
+		shopp_debug(__FUNCTION__ . " failed: customer parameter required.");
+		return false;
+	}
+
+	if ( empty($data) ) {
+		shopp_debug(__FUNCTION__ . " failed: no customer data supplied.");
+		return false;
+	}
+
+	$Customer = new ShoppCustomer($customer);
+	if ( empty($Customer->id) ) {
+		shopp_debug(__FUNCTION__ . " failed: No such customer with id $customer");
+		return false;
+	}
+
+	$map = array('wpuser', 'firstname', 'lastname', 'email', 'phone', 'company', 'marketing', 'type');
+	$address_map = array( 'saddress' => 'address', 'baddress' => 'address', 'sxaddress' => 'xaddress', 'bxaddress' => 'xaddress', 'scity' => 'city', 'bcity' => 'city', 'sstate' => 'state', 'bstate' => 'state', 'scountry' => 'country', 'bcountry' => 'country', 'spostcode' => 'postcode', 'bpostcode' => 'postcode', 'sgeocode' => 'geocode', 'bgeocode' => 'geocode', 'residential'=>'residential' );
+
+	// handle duplicate or missing wpuser
+	if ( isset($data['wpuser']) ) {
+		$c = new ShoppCustomer($data['wpuser'], 'wpuser');
+		if ( $c->id ) {
+			shopp_debug(__FUNCTION__ . " failed: Customer with WordPress user id {$data['wpuser']} already exists.");
+			return false;
+		}
+	} else if ( "wordpress" == shopp_setting('account_system') ) {
+		shopp_debug(__FUNCTION__ . " failed: Wordpress account id must by specified in data array with key wpuser.");
+		return false;
+	}
+
+	// handle duplicate or missing email address
+	if ( isset($data['email']) ) {
+		$c = new ShoppCustomer($data['email'], 'email');
+		if ( $c->id ) {
+			shopp_debug(__FUNCTION__ . " failed: Customer with email {$data['email']} already exists.");
+			return false;
+		}
+	} else {
+		shopp_debug(__FUNCTION__ . " failed: Email address must by specified in data array with key email.");
+		return false;
+	}
+
+	// handle missing first or last name
+	if ( ! isset($data['firstname']) || ! isset($data['lastname']) ) {
+		shopp_debug("shopp_add_customer failure: Data array missing firstname or lastname.");
+		return false;
+	}
+
+	$shipping = array();
+	$billing = array();
+
+	foreach ( $data as $key => $value ) {
+		if ( in_array($key, $map) ) $Customer->{$key} = $value;
+		elseif( SHOPP_DEBUG && ! in_array( $key, array_keys($address_map) ) )
+			shopp_debug("shopp_add_customer notice: Invalid customer data $key");
+		if ( in_array( $key, array_keys($address_map) ) ) {
+			$type = ( 's' == substr($key, 0, 1) ? 'shipping' : 'billing' );
+			${$type}[$address_map[$key]] = $value;
+		}
+	}
+
+	$Customer->save();
+	if ( ! $Customer->id ) {
+		shopp_debug(__FUNCTION__ . " failed: Could not create customer.");
+		return false;
+	}
+	if ( ! empty($shipping) ) shopp_add_customer_address( $Customer->id, $shipping, 'shipping' );
+	if ( ! empty($billing) ) shopp_add_customer_address( $Customer->id, $billing, 'billing' );
+
+	return $Customer->id;
+} // end shopp_set_customer
 
 // alias for shopp_add_customer_address
 function shopp_set_customer_address ( $customer = false, $data = false, $type = 'billing' ) {
