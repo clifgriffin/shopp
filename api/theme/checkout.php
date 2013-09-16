@@ -691,16 +691,15 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			'labelpos' => 'after',
 			'labeling' => false,
 			'type' => 'hidden',
+			'value' => $payoption->slug
 		);
 		$options = array_merge($defaults,$options);
-		extract($options);
+		extract($options, EXTR_SKIP);
 
-		if ( Shopp::str_true($return) ) return $payoption;
+		if ( Shopp::str_true($return) ) return $value;
 
 		$types = array('radio','checkbox','hidden');
 		if ( ! in_array($type, $types) ) $type = 'hidden';
-
-		if ( empty($options['value']) ) $options['value'] = key($O->payoptions);
 
 		$_ = array();
 		if ( Shopp::str_true($labeling) ) {
