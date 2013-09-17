@@ -86,6 +86,8 @@ class ShoppCartItem {
 		else $this->load($Product, $pricing, $category, $data, $addons);
 
 		$this->__wakeup();
+		$this->rediscount();
+		$this->totals();
 
 	}
 
