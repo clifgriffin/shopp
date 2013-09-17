@@ -16,7 +16,7 @@
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit;
 
 // Allow devs to stop these definitions from being loaded
-if ( defined('SHOPP_DISALLOW_DEPRECATED_CLASSES') && SHOPP_DISALLOW_DEPRECATED_CLASSES ) return;
+if ( defined('SHOPP_DEPRECATED_CLASSES') && false === SHOPP_DEPRECATED_CLASSES ) return;
 
 // Straightforward aliases for deprecated classes
 if ( ! class_exists('Address', false) ) { class Address extends ShoppAddress {} }
