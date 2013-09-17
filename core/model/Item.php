@@ -85,6 +85,7 @@ class ShoppCartItem {
 		if ( get_class($Product) == 'ShoppPurchased' ) $this->load_purchased($Product);
 		else $this->load($Product, $pricing, $category, $data, $addons);
 
+		$this->__wakeup();
 
 	}
 
