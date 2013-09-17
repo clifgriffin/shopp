@@ -121,17 +121,6 @@ class ShoppAdmin extends ShoppFlowController {
 		$this->addpage('customers', 			Shopp::__('Customers'),		'ShoppAdminAccount');
 		$this->addpage('reports',  				Shopp::__('Reports'),		'ShoppAdminReport');
 
-		// System tabs
-		$this->addpage('system', 				Shopp::__('System'),		'ShoppAdminSystem');
-		$this->addpage('system-payments',		Shopp::__('Payments'),		'ShoppAdminSystem',	'system');
-		$this->addpage('system-shipping',		Shopp::__('Shipping'),		'ShoppAdminSystem',	'system');
-		$this->addpage('system-taxes',			Shopp::__('Taxes'),			'ShoppAdminSystem',	'system');
-		$this->addpage('system-storage',		Shopp::__('Storage'),		'ShoppAdminSystem',	'system');
-		$this->addpage('system-advanced',		Shopp::__('Advanced'),		'ShoppAdminSystem',	'system');
-		if ( count(ShoppErrorLogging()->tail(2)) > 1 )
-			$this->addpage('system-log',		Shopp::__('Log'),			'ShoppAdminSystem',	'system');
-
-
 		// Setup tabs
 		$this->addpage('setup', 				Shopp::__('Setup'),			'ShoppAdminSetup');
 		$this->addpage('setup-core',			Shopp::__('Shopp Setup'),	'ShoppAdminSetup', 'setup');
@@ -141,6 +130,17 @@ class ShoppAdmin extends ShoppFlowController {
 		$this->addpage('setup-presentation',	Shopp::__('Presentation'),	'ShoppAdminSetup', 'setup');
 		$this->addpage('setup-pages',			Shopp::__('Pages'),			'ShoppAdminSetup', 'setup');
 		$this->addpage('setup-images',			Shopp::__('Images'),		'ShoppAdminSetup', 'setup');
+
+		// System tabs
+		$this->addpage('system', 				Shopp::__('System'),		'ShoppAdminSystem');
+		$this->addpage('system-payments',		Shopp::__('Payments'),		'ShoppAdminSystem',	'system');
+		$this->addpage('system-shipping',		Shopp::__('Shipping'),		'ShoppAdminSystem',	'system');
+		$this->addpage('system-taxes',			Shopp::__('Taxes'),			'ShoppAdminSystem',	'system');
+		$this->addpage('system-storage',		Shopp::__('Storage'),		'ShoppAdminSystem',	'system');
+		$this->addpage('system-advanced',		Shopp::__('Advanced'),		'ShoppAdminSystem',	'system');
+
+		if ( count(ShoppErrorLogging()->tail(2)) > 1 )
+			$this->addpage('system-log',		Shopp::__('Log'),			'ShoppAdminSystem',	'system');
 
 		// Catalog menu
 		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminWarehouse',  'products');
