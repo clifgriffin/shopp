@@ -532,7 +532,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			// shipping fee is available use 0.01 to satisfy minimum order amount requirements
 			// Additionally, this condition should only be possible when using the shopp('cart','paypal')
 			// Theme API tag which would circumvent normal checkout and use PayPal even for free orders
-			if ((float)$this->amount('subtotal') == 0 || (float)$this->amount('subtotal')-(float)$this->amount('discount') == 0) {
+			if ((float)$this->amount('order') == 0 || (float)$this->amount('order')-(float)$this->amount('discount') == 0) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
@@ -1002,11 +1002,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string JavaScript behaviors to add to the payment settings interface
 	 **/
 	public static function settingsjs () {
-		ob_start(); ?>
-jQuery(document).bind('shopppaypalstandardSettings', function() {
-	var $ = jqnc(),p = '#shopppaypalstandard-pdt',v = $(p + 'verify'),t = $(p + 'token');
-	v.change(function () { v.prop('checked') ? t.parent().fadeIn('fast') : t.parent().hide(); }).change();
-});
+		ob_start(); ?>var s='shopppaypalstandard';jQuery(document).bind(s+'Settings',function(){var $=jqnc(),p='#'+s+'-pdt',v=$(p+'verify'),t=$(p+'token');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});
 <?php return ob_get_clean();
 	}
 
