@@ -897,9 +897,4 @@ class ShoppCartItem {
 		$this->discount = 0;
 	}
 
-} // END class Item
-
-if ( ! class_exists('Item',false) ) {
-	class Item extends ShoppCartItem {
-	}
 }
