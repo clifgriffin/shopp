@@ -95,7 +95,7 @@ class ShoppScripts extends WP_Scripts {
 			if (shopp_setting('script_server') == 'plugin') {
 				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver";
 				if (is_ssl()) $src = str_replace('http://','https://',$src);
-			} else $src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
+			} else $src = SHOPP_PLUGINURI . "/services/scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
 
