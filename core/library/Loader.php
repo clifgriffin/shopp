@@ -103,6 +103,9 @@ class ShoppLoader {
 	 **/
 	public function load ( $class ) {
 
+		$scanning = defined('SHOPP_DEBUG') && SHOPP_DEBUG; // Default on SHOPP_DEBUG
+		if ( defined('SHOPP_CLASS_SCANNING') && ! SHOPP_CLASS_SCANNING ) $scanning = false; // Override
+
 		if ( $this->excluded($class) ) return true;
 		elseif ( $this->classmap($class) ) return true;
 		elseif ( defined('SHOPP_DEBUG') && SHOPP_DEBUG && $this->scanner($class) ) return true;
