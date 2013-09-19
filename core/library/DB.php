@@ -209,6 +209,31 @@ class sDB extends SingletonFramework {
 		return $data;
 	}
 
+	public static function serialized ( $data ) {
+		if ( ! is_string($data) ) return false;
+		$data = trim($data);
+
+	 	if ( 'N;' == $data ) return true;
+
+		$length = strlen($data);
+		if ( $length < 4 ) return false;
+		if ( ':' !== $data[1] ) return false;
+
+		$end = $data[ $length - 1 ];
+		if ( ';' !== $end && '}' !== $end ) return false;
+
+		$token = $data[0];
+		switch ( $token ) {
+			case 's' : return ( '"' === $data[ $length - 2 ] );
+			case 'a' :
+			case 'O' : return (bool) preg_match( "/^{$token}:[0-9]+:/s", $data );
+			case 'b' : return '0' == $data[2] || '1' == $data[2];
+			case 'i' :
+			case 'd' : return (bool) preg_match( "/^{$token}:[0-9.E+-]+;$/", $data );
+		}
+		return false;
+	}
+
 	/**
 	 * Sanitize and normalize data strings
 	 *
@@ -990,8 +1015,8 @@ abstract class ShoppDatabaseObject implements Iterator {
 				case 'int': $this->$property = (int)$value; break;
 				case 'string':
 					// If string has been serialized, unserialize it
-					if ( is_string($value) && preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s", $value) )
-						$value = unserialize($value);
+					if ( sDB::serialized($value) )
+						$value = @unserialize($value);
 				default:
 					// Anything not needing processing
 					// passes through into the object
@@ -1057,15 +1082,14 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param array $ignores (optional) List of property names to ignore copying from
 	 * @return void
 	 **/
-	public function copydata ($data,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
-		if (!is_array($ignores)) $ignores = array();
-		if (is_object($data)) $properties = get_object_vars($data);
+	public function copydata ( $data, $prefix = '', array $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified') ) {
+		if ( ! is_array($ignores) ) $ignores = array();
+		if ( is_object($data) ) $properties = get_object_vars($data);
 		else $properties = $data;
-		foreach((array)$properties as $property => $value) {
-			$property = $prefix.$property;
-			if (property_exists($this,$property) &&
-				!in_array($property,$ignores))
-					$this->{$property} = sDB::clean($value);
+		foreach ( (array)$properties as $property => $value ) {
+			$property = $prefix . $property;
+			if ( property_exists($this, $property) && ! in_array($property, $ignores) )
+					$this->$property = sDB::clean($value);
 		}
 	}
 
@@ -1077,7 +1101,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 *
 	 * @return array JSON-ready data set
 	 **/
-	public function json ($ignores = array()) {
+	public function json ( array $ignores = array() ) {
 		$this->_ignores = array_merge($this->_ignores,$ignores);
 		$this->_properties = $this->_properties(true);
 		$json = array();
