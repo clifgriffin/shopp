@@ -367,9 +367,8 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_maintenance() {
-		$this->markTestIncomplete('During test execution db_version may not have been populated resulting in a fail. '
-			.'May need to forcibly set it to match sDB::$version during testing.');
 
+		shopp_set_setting('db_version', ShoppVersion::db());
 		$originalmode = shopp_setting('maintenance');
 
 		shopp_set_setting('maintenance', 'on');
