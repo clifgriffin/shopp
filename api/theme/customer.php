@@ -222,7 +222,11 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function downloads ( $result, $options, $O ) {
-		return ( false !== $O->each_download() );
+		if ( $O->each_download() ) return true;
+		else {
+			$O->reset_downloads();
+			return false;
+		}
 	}
 
 	public static function email ( $result, $options, $O ) {
