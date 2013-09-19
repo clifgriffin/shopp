@@ -209,7 +209,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			}
 
 			if ($next) {
-				if (isset($this->worklist['query'])) $query = array_merge($_GET,$this->worklist['query']);
+				$query = $_GET;
+				if ( isset($this->worklist['query']) ) $query = array_merge($_GET, $this->worklist['query']);
 				$redirect = add_query_arg($query,$adminurl);
 				$cleanup = array('action','selected','delete_all');
 				if ('close' == $next) { $cleanup[] = 'id'; $next = false; }
@@ -716,7 +717,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	 * @param Product $Product
 	 * @return void
 	 **/
-	public function save (Product $Product) {
+	public function save ( ShoppProduct $Product) {
 		check_admin_referer('shopp-save-product');
 
 		if ( ! current_user_can('shopp_products') )
