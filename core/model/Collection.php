@@ -1210,7 +1210,7 @@ class ProductCategory extends ProductTaxonomy {
 	// 				WHERE {$loading['where']}
 	// 				GROUP BY letter";
 	//
-	// 	$alpha = $db->query($ac,'array');
+	// 	$alpha = sDB::query($ac,'array');
 	//
 	// 	$entry = new stdClass();
 	// 	$entry->letter = false;
@@ -1278,10 +1278,9 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return boolean true on success
 	 **/
 	public function save_imageorder ($ordering) {
-		$db = DB::get();
 		$table = ShoppDatabaseObject::tablename(CategoryImage::$table);
 		foreach ($ordering as $i => $id)
-			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='category' AND type='image')");
+			sDB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='category' AND type='image')");
 		return true;
 	}
 
@@ -1298,11 +1297,10 @@ class ProductCategory extends ProductTaxonomy {
 	public function link_images ($images) {
 		if (empty($images) || !is_array($images)) return false;
 
-		$db = DB::get();
 		$table = ShoppDatabaseObject::tablename(CategoryImage::$table);
 		$set = "id=".join(' OR id=',$images);
 		$query = "UPDATE $table SET parent='$this->id',context='category' WHERE ".$set;
-		$db->query($query);
+		sDB::query($query);
 
 		return true;
 	}
@@ -1322,14 +1320,13 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return boolean true on success
 	 **/
 	public function delete_images ($images) {
-		$db = &DB::get();
 		$imagetable = ShoppDatabaseObject::tablename(CategoryImage::$table);
 		$imagesets = "";
 		foreach ($images as $image) {
 			$imagesets .= (!empty($imagesets)?" OR ":"");
 			$imagesets .= "((context='category' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
 		}
-		$db->query("DELETE LOW_PRIORITY FROM $imagetable WHERE type='image' AND ($imagesets)");
+		sDB::query("DELETE LOW_PRIORITY FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 

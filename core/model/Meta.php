@@ -233,7 +233,6 @@ class ObjectMeta {
 	}
 
 	function load () {
-		$db = sDB::get();
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;
@@ -241,9 +240,9 @@ class ObjectMeta {
 
 		$where = "";
 		foreach ($args[0] as $key => $id)
-			$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
+			$where .= ($where == ""?"":" AND ")."$key='".sDB::escape($id)."'";
 
-		$r = $db->query("SELECT * FROM $this->_table WHERE $where",'array');
+		$r = sDB::query("SELECT * FROM $this->_table WHERE $where",'array');
 
 		foreach ($r as $row) {
 			$meta = new ShoppMetaObject();

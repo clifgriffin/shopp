@@ -134,8 +134,7 @@ class ContentIndex extends ShoppDatabaseObject {
 		$this->type = $type;
 		if (empty($product) || empty($type)) return false; // Nothing to load
 
-		$db = DB::get();
-		$r = $db->query("SELECT id,created FROM $this->_table WHERE product='$product' AND type='$type' LIMIT 1");
+		$r = sDB::query("SELECT id,created FROM $this->_table WHERE product='$product' AND type='$type' LIMIT 1");
 		if (!empty($r->id)) {
 			$this->id = $r->id;
 			$this->created = mktimestamp($r->created);

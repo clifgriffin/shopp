@@ -977,7 +977,6 @@ class ShoppProduct extends WPShoppObject {
 	 * Delete provided array of image ids, removing the source image and
 	 * all related images (small and thumbnails) */
 	public function delete_images ($images) {
-		$db = &DB::get();
 		$imagetable = ShoppDatabaseObject::tablename(ProductImage::$table);
 		$imagesets = "";
 		foreach ($images as $image) {
@@ -985,7 +984,7 @@ class ShoppProduct extends WPShoppObject {
 			$imagesets .= "((context='product' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
 		}
 		if (!empty($imagesets))
-			$db->query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
+			sDB::query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 

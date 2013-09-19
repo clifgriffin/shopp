@@ -98,18 +98,16 @@ class MemberPlan extends ShoppDatabaseObject  {
 	}
 
 	function load_stages () {
-		$db = DB::get();
 		$StageLoader = new MemberStage();
 		$query = "SELECT * FROM $StageLoader->_table
 					WHERE parent='$this->id'
 						AND context='$StageLoader->context'
 						AND type='$StageLoader->type'
 					ORDER BY sortorder";
-		$this->stages = $db->query($query,'array', array($StageLoader,'loader'));
+		$this->stages = sDB::query($query,'array', array($StageLoader,'loader'));
 	}
 
 	function load_access ($stage=false) {
-		$db = DB::get();
 		$AccessLoader = new MemberAccess();
 		if (!$stage) {
 			if (empty($this->stages)) $this->load_stages();
@@ -121,7 +119,7 @@ class MemberPlan extends ShoppDatabaseObject  {
 					WHERE $parent
 						AND context='$AccessLoader->context'
 						AND type='$AccessLoader->type'";
-		$this->access = $db->query($query,'array', array($this,'map_stageaccess'));
+		$this->access = sDB::query($query,'array', array($this,'map_stageaccess'));
 	}
 
 	// function load_content ($access=false) {
@@ -134,7 +132,7 @@ class MemberPlan extends ShoppDatabaseObject  {
 	// 	} else $taxonomy = "taxonomy='$access'";
 	//
 	// 	$query = "SELECT * FROM $ContentLoader->_table WHERE $taxonomy";
-	// 	$this->content = $db->query($query,'array', array($this,'map_stageaccess'));
+	// 	$this->content = sDB::query($query,'array', array($this,'map_stageaccess'));
 	// }
 
 	/**
@@ -166,14 +164,13 @@ class MemberPlan extends ShoppDatabaseObject  {
 	 **/
 	function delete () {
 		if (empty($this->id)) return;
-		$db = DB::get();
 
 		// @todo Delete all catalog entries related to this
 		// $catalog = ShoppDatabaseObject::tablename(Catalog::$table);
-		// $db->query("DELETE FROM $this->_table WHERE parent='$id' AND context='membership'");
+		// sDB::query("DELETE FROM $this->_table WHERE parent='$id' AND context='membership'");
 
 		// Delete all meta data related to this entry
-		$db->query("DELETE FROM $this->_table WHERE parent='$this->id' AND context='membership'");
+		sDB::->query("DELETE FROM $this->_table WHERE parent='$this->id' AND context='membership'");
 
 		parent::delete();
 	}

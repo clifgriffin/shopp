@@ -556,7 +556,7 @@ class ShoppOrder {
 	// 	elseif ($Purchase->txnstatus == 'CHARGED') // Changed from CHARGED, remove quantity ordered from product 'sold' stat
 	// 		$query = "UPDATE $products AS p LEFT JOIN $purchased AS s ON p.id=s.product SET p.sold=p.sold-s.quantity WHERE s.purchase=$Purchase->id";
 	//
-	// 	$db->query($query);
+	// 	sDB::query($query);
 	//
 	// }
 

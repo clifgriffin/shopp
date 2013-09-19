@@ -68,7 +68,6 @@ class Members extends ShoppAdminController {
 	 **/
 	function memeberships () {
 		$Shopp = Shopp::object();
-		$db = DB::get();
 
 		$defaults = array(
 			'page' => false,
@@ -155,15 +154,15 @@ class Members extends ShoppAdminController {
 
 			// Delete Catalog entries
 			$ContentRemoval = new MemberContent();
-			$db->query("DELETE FROM $ContentRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
+			sDB::query("DELETE FROM $ContentRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
 
 			// Delete Access taxonomies
 			$AccessRemoval = new MemberAccess();
-			$db->query("DELETE FROM $AccessRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
+			sDB::query("DELETE FROM $AccessRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
 
 			// Remove old stages
 			$StageRemoval = new MemberStage();
-			$db->query("DELETE FROM $StageRemoval->_table WHERE 0 < FIND_IN_SET(id,'$stagelist')");
+			sDB::query("DELETE FROM $StageRemoval->_table WHERE 0 < FIND_IN_SET(id,'$stagelist')");
 
 		}
 
@@ -215,7 +214,7 @@ class Members extends ShoppAdminController {
 		// }
 		// if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$count = $db->query("SELECT count(*) as total FROM $MemberPlan->_table AS c $where");
+		$count = sDB::query("SELECT count(*) as total FROM $MemberPlan->_table AS c $where");
 		$query = "SELECT *
 					FROM $MemberPlan->_table
 					WHERE parent='$MemberPlan->parent'
@@ -223,7 +222,7 @@ class Members extends ShoppAdminController {
 						AND type='$MemberPlan->type'
 					LIMIT $index,$per_page";
 
-		$MemberPlans = $db->query($query,'array');
+		$MemberPlans = sDB::query($query,'array');
 
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
@@ -302,7 +301,6 @@ class Members extends ShoppAdminController {
 	function editor () {
 		global $ruletypes, $rulegroups;
 		$Shopp = Shopp::object();
-		$db = sDB::get();
 
 		if ( ! current_user_can('shopp_memberships') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));

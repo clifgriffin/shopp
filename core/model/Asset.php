@@ -584,15 +584,13 @@ class DownloadAsset extends FileAsset {
 	public $purchased = false;
 
 	public function loadby_dkey ($key) {
-		$db = &DB::get();
-		if (!class_exists('ShoppPurchased')) require(SHOPP_MODEL_PATH."/Purchased.php");
 		$pricetable = ShoppDatabaseObject::tablename(Price::$table);
 
 		$Purchased = new ShoppPurchased($key,'dkey');
-		if (!empty($Purchased->id)) {
+		if ( ! empty($Purchased->id) ) {
 			// Handle purchased line-item downloads
 			$Purchase = new ShoppPurchase($Purchased->purchase);
-			$record = $db->query("SELECT download.* FROM $this->_table AS download INNER JOIN $pricetable AS pricing ON pricing.id=download.parent WHERE pricing.id=$Purchased->price AND download.context='price' AND download.type='download' ORDER BY modified DESC LIMIT 1");
+			$record = sDB::query("SELECT download.* FROM $this->_table AS download INNER JOIN $pricetable AS pricing ON pricing.id=download.parent WHERE pricing.id=$Purchased->price AND download.context='price' AND download.type='download' ORDER BY modified DESC LIMIT 1");
 			$this->populate($record);
 			$this->expopulate();
 			$this->purchased = $Purchased->id;
