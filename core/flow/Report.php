@@ -93,7 +93,7 @@ class ShoppAdminReport extends ShoppAdminController {
 	 **/
 	static function request () {
 		$defaults = array(
-			'start' => date('n/j/Y',mktime(0,0,0,11,1)),
+			'start' => date('n/j/Y',mktime(0,0,0)),
 			'end' => date('n/j/Y',mktime(23,59,59)),
 			'range' => '',
 			'scale' => 'day',
@@ -1225,7 +1225,7 @@ abstract class ShoppReportExportFramework {
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$sitename $name.$this->extension\"");
-		header("Content-Description: Delivered by WordPress/Shopp ".Shopp::VERSION);
+		header("Content-Description: Delivered by " . ShoppVersion::agent());
 		header("Cache-Control: maxage=1");
 		header("Pragma: public");
 

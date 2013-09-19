@@ -30,7 +30,7 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-require 'core/library/Core.php'; // Load core function library
+require 'core/library/Loader.php';
 
 /**
  * Shopp core plugin management class
@@ -42,14 +42,9 @@ require 'core/library/Core.php'; // Load core function library
  **/
 class Shopp extends ShoppCore {
 
-	const VERSION = '1.3dev';
-	const CODENAME = 'Mars';
-
 	private static $object = false;
 
 	private function __construct () {
-
-		require 'core/library/Loader.php';
 
 		$this->paths();				// Determine Shopp paths
 		$this->constants();			// Setup Shopp constants
@@ -140,8 +135,8 @@ class Shopp extends ShoppCore {
 	 * @return void
 	 **/
 	public function constants () {
-		if ( ! defined('SHOPP_VERSION') )				define( 'SHOPP_VERSION', self::VERSION );
-		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', 'WordPress Shopp Plugin/' . self::VERSION );
+		if ( ! defined('SHOPP_VERSION') )				define( 'SHOPP_VERSION', ShoppVersion::release() );
+		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', ShoppVersion::agent() );
 
 		// @deprecated
 		if ( ! defined('SHOPP_HOME') )					define( 'SHOPP_HOME', ShoppSupport::HOMEPAGE );

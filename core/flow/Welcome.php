@@ -10,8 +10,7 @@ class ShoppAdminWelcome extends ShoppAdminController {
 		parent::__construct();
 
 		$uri = SHOPP_ADMIN_URI . '/styles';
-		$version = dechex(crc16(SECURE_AUTH_SALT . Shopp::VERSION));
-		wp_enqueue_style('shopp.welcome', "$uri/welcome.css", array(), $version, 'screen');
+		wp_enqueue_style('shopp.welcome', "$uri/welcome.css", array(), ShoppVersion::cache(), 'screen');
 	}
 
 	public function admin () {
@@ -30,7 +29,7 @@ class ShoppAdminWelcome extends ShoppAdminController {
 	}
 
 	public function heading () {
-		$display_version = Shopp::VERSION;
+		$display_version = ShoppVersion::release();
 
 		Shopp::_em('
 # Welcome to Shopp %s

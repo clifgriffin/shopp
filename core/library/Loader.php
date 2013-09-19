@@ -32,7 +32,7 @@ class ShoppLoader {
 	 * @return void
 	 **/
 	private function __construct () {
-		spl_autoload_register(array($this,'load'));
+		spl_autoload_register(array($this, 'load'));
 	}
 
 	public static function &object () {
@@ -212,6 +212,7 @@ class ShoppLoader {
 		$configfile = 'wp-config.php';
 		$loadfile = 'wp-load.php';
 		$wp_abspath = false;
+		$cached = false;
 
 		$syspath = explode('/', $_SERVER['SCRIPT_FILENAME']);
 		$uripath = explode('/', $_SERVER['SCRIPT_NAME']);
@@ -584,6 +585,7 @@ ShoppLoader::map(array(
 	'shoppui' => '/flow/Admin.php',
 	'shopp_upgrader' => '/flow/Install.php',
 	'shopp_upgrader_skin' => '/flow/Install.php',
+	'shoppversion' => '/library/Version.php',
 	'shortwordparser' => '/model/Search.php',
 	'singletonframework' => '/library/Framework.php',
 	'smartcollection' => '/model/Collection.php',

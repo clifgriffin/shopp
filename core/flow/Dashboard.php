@@ -59,7 +59,7 @@ class ShoppAdminDashboard {
 	 * @return void
 	 **/
 	public function styles () {
-		wp_enqueue_style('shopp.dashboard', SHOPP_ADMIN_URI . '/styles/dashboard.css', array(), Shopp::VERSION, 'screen');
+		wp_enqueue_style('shopp.dashboard', SHOPP_ADMIN_URI . '/styles/dashboard.css', array(), ShoppVersion::cache(), 'screen');
 	}
 
 	/**
@@ -245,7 +245,7 @@ class ShoppAdminDashboard {
 	 **/
 	public function orders_widget ($args=null) {
 		$Shopp = Shopp::object();
-		$db = DB::get();
+
 		$defaults = array(
 			'before_widget' => '',
 			'before_title' => '',
@@ -267,7 +267,7 @@ class ShoppAdminDashboard {
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
 
-		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",'array');
+		$Orders = sDB::query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",'array');
 
 		if (!empty($Orders)) {
 		echo '<table class="widefat">';

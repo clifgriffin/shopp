@@ -13,7 +13,7 @@
  * @subpackage scripts
  **/
 
-$queryvars = array('load','sjsl');
+$queryvars = array('load', 'sjsl');
 
 foreach ($queryvars as $var) {
 	if ( isset($_GET[ $var ]) ) {
@@ -30,18 +30,18 @@ if ( empty($load) ) exit();
 /**
  * @ignore
  */
-if (!function_exists('add_action')) {
+if ( ! function_exists('add_action') ) {
 	function add_action() {}
 }
 
 /**
  * @ignore
  */
-if (!function_exists('do_action_ref_array')) {
+if ( ! function_exists('do_action_ref_array') ) {
 	function do_action_ref_array() {}
 }
 
-function get_file($path) {
+function get_file( $path ) {
 
 	if ( function_exists('realpath') )
 		$path = realpath($path);

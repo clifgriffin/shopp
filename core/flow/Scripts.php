@@ -194,7 +194,7 @@ function shopp_default_scripts (&$scripts) {
 
 	$script = basename(__FILE__);
 	$schema = ( !empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off' ) ? 'https://' : 'http://';
-	if ( defined('SHOPP_PLUGINURI') ) $url = SHOPP_PLUGINURI.'/core'.'/';
+	if ( defined('SHOPP_PLUGINURI') ) $url = SHOPP_PLUGINURI . '/core';
 	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 
 	$scripts->base_url = $url;
@@ -202,7 +202,7 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->default_dirs = array('/ui/behaviors/','/ui/products');
 
 	// Short checksum for cache control that changes with Shopp versions while masking it somewhat
-	$version = dechex(crc16(SECURE_AUTH_SALT . Shopp::VERSION));
+	$version = hash('crc32b', ABSPATH . ShoppVersion::release());
 
 	$scripts->add('shopp', '/ui/behaviors/shopp.js', array('jquery'), $version);
 	$scripts->add_data('shopp', 'group', 1);

@@ -716,11 +716,10 @@ class ShoppAjax {
 		check_admin_referer('wp_ajax_shopp_category_order');
 		if (empty($_POST['position']) || !is_array($_POST['position'])) die('0');
 
-		$db = sDB::get();
 		$table = ShoppDatabaseObject::tablename(ProductCategory::$table);
 		$updates = $_POST['position'];
 		foreach ($updates as $id => $position)
-			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
+			sDB::query("UPDATE $table SET priority='$position' WHERE id='$id'");
 		die('1');
 	}
 

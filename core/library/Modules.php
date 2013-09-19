@@ -327,8 +327,8 @@ class ModuleFile {
 			$error = shopp_debug(sprintf('%s could not be loaded because no @version property was set in the addon header comments.', $this->filename));
 		elseif ( empty($this->since) )
 			$error = shopp_debug(sprintf('%s could not be loaded because no @since property was set in the addon header comments.', $this->filename));
-		elseif ( defined('SHOPP_VERSION') ) {
-			if ( version_compare(self::baseversion(SHOPP_VERSION), self::baseversion($this->since)) == -1 )
+		elseif ( class_exists('ShoppVersion') ) {
+			if ( version_compare(self::baseversion(ShoppVersion::release()), self::baseversion($this->since)) == -1 )
 				$error = shopp_debug(sprintf('%s could not be loaded because it requires version %s (or higher) of Shopp.', $this->name, $this->since));
 		}
 

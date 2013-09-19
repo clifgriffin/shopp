@@ -66,7 +66,6 @@ abstract class ShoppCore {
 		// Manually load text domain for translated activation errors
 		$languages_path = str_replace('\\', '/', $plugin_path.'/lang');
 		load_plugin_textdomain('Shopp', false, $languages_path);
-		require 'Loader.php';
 
 		// Define translated messages
 		$_ = array(

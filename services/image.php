@@ -26,10 +26,8 @@ if ( ! isset($GLOBALS['Shopp']) ) $GLOBALS['Shopp'] = new stdClass;
 if ( ! defined('WPINC') ) define('WPINC', 'wp-includes'); // Stop 403s from unauthorized direct access
 
 // Core functions and lazy loader
-if ( ! class_exists('ShoppCore') )
-	require_once "$path/core/library/Core.php";
-
-require "$path/core/library/Loader.php";
+if ( ! class_exists('ShoppLoader') )
+	require "$path/core/library/Loader.php";
 
 // Barebones bootstrap (say that 5x fast) for WordPress
 if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload()) {
@@ -46,7 +44,7 @@ if ( ! function_exists('__')) {
 	}
 }
 
-ShoppDeveloperAPI::load( $path, array('core','settings') );
+ShoppDeveloperAPI::load( dirname(ShoppLoader::basepath()), array('core','settings') );
 
 // Start the server
 new ImageServer;
@@ -98,7 +96,7 @@ class ImageServer {
 	 * @return void
 	 **/
 	public function request () {
-
+		$matches = array();
 		if ( isset($_GET['siid']) ) $request = $_GET['siid'];
 		elseif ( 0 != preg_match(self::$prettyurls, $_SERVER['REQUEST_URI'], $matches) )
 			$request = $matches[1];	// Get requested image from pretty URL format
@@ -152,6 +150,7 @@ class ImageServer {
 		if ( $cached ) return ($this->Image = $cached);
 
 		$this->Image = new ImageAsset($this->request);
+
 		if ( max($this->width, $this->height) > 0 ) $this->loadsized();
 
 		wp_cache_set($cache, $this->Image, 'shopp_image');

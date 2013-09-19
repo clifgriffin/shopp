@@ -115,16 +115,15 @@ abstract class MetasetObject extends ShoppDatabaseObject {
 	}
 
 	function load () {
-		$db = &DB::instance();
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 		if (is_array($args[0])) {
 			foreach ($args[0] as $key => $id)
-				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
+				$where .= ($where == ""?"":" AND ")."$key='".sDB::escape($id)."'";
 		} else $where = "{$args[1]}='{$args[0]}' OR (parent={$args[0]} AND context='meta')";
 
-		$r = $db->query("SELECT * FROM $this->_table WHERE $where",'array');
+		$r = sDB::query("SELECT * FROM $this->_table WHERE $where",'array');
 
 		foreach ($r as $row) {
 			$meta = new ShoppMetaObject();
@@ -153,7 +152,6 @@ abstract class MetasetObject extends ShoppDatabaseObject {
 	 * @return void
 	 **/
 	function save ($op='update') {
-		$db = &DB::get();
 
 		if (empty($this->id)) {
 			$meta = new ShoppMetaObject();
@@ -193,10 +191,9 @@ abstract class MetasetObject extends ShoppDatabaseObject {
 	 * @return boolean
 	 **/
 	function delete () {
-		$db = &DB::get();
 		// Delete records
-		if (!empty($this->id) && !empty($this->_parent))
-			return $db->query("DELETE FROM $this->_table WHERE (id='$this->_parent' AND parent=0 AND context='$this->_meta') OR (parent='$this->_parent' AND context='$this->_meta')");
+		if ( ! empty($this->id) && ! empty($this->_parent) )
+			return sDB::query("DELETE FROM $this->_table WHERE (id='$this->_parent' AND parent=0 AND context='$this->_meta') OR (parent='$this->_parent' AND context='$this->_meta')");
 		else return false;
 	}
 
@@ -236,7 +233,7 @@ class ObjectMeta {
 	}
 
 	function load () {
-		$db = &DB::get();
+		$db = sDB::get();
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;

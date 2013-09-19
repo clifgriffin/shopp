@@ -195,9 +195,9 @@ class ShoppInstallation extends ShoppFlowController {
 		$testtable = 'shopp_db_permissions_test_'.time();
 		$tests = array("CREATE TABLE $testtable ( id INT )", "DROP TABLE $testtable");
 		foreach ($tests as $testquery) {
-			$db = DB::get();
+			$db = sDB::get();
 			DB::query($testquery);
-			$error = mysql_error($db->dbh);
+			$error = mysql_error(sDB::dbh);
 			if (!empty($error)) $this->error('dbprivileges');
 		}
 
@@ -403,7 +403,7 @@ class ShoppInstallation extends ShoppFlowController {
 		// Pre-inits
 		$Settings->setup('active_catalog_promos', '');
 
-		$Settings->setup('version', Shopp::VERSION);
+		$Settings->setup('version', ShoppVersion::release());
 
 		$this->images(); // Setup default image settings
 
@@ -444,38 +444,38 @@ class ShoppInstallation extends ShoppFlowController {
 	 * @return void
 	 **/
 	public function upgrade_110 () {
-		$db = DB::get();
+
 		$meta_table = ShoppDatabaseObject::tablename('meta');
 		$setting_table = ShoppDatabaseObject::tablename('setting');
 
 		// Update product status from the 'published' column
 		$product_table = ShoppDatabaseObject::tablename('product');
-		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
+		sDB::query("UPDATE $product_table SET status=CAST(published AS unsigned)");
 
 		// Set product publish date based on the 'created' date column
-		$db->query("UPDATE $product_table SET publish=created WHERE status='publish'");
+		sDB::query("UPDATE $product_table SET publish=created WHERE status='publish'");
 
 		// Update Catalog
 		$catalog_table = ShoppDatabaseObject::tablename('catalog');
-		$db->query("UPDATE $catalog_table set parent=IF(category!=0, category, tag), type=IF(category!=0, 'category', 'tag')");
+		sDB::query("UPDATE $catalog_table set parent=IF(category!=0, category, tag), type=IF(category!=0, 'category', 'tag')");
 
 		// Update specs
 		$meta_table = ShoppDatabaseObject::tablename('meta');
 		$spec_table = ShoppDatabaseObject::tablename('spec');
 		$now = current_time('mysql');
-		$db->query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
+		sDB::query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
 					SELECT product, 'product', 'spec', name, content, numeral, sortorder, '$now', '$now' FROM $spec_table");
 
 		// Update purchase table
 		$purchase_table = ShoppDatabaseObject::tablename('purchase');
-		$db->query("UPDATE $purchase_table SET txnid=transactionid, txnstatus=transtatus");
+		sDB::query("UPDATE $purchase_table SET txnid=transactionid, txnstatus=transtatus");
 
 		// Update image assets
 		$meta_table = ShoppDatabaseObject::tablename('meta');
 		$asset_table = ShoppDatabaseObject::tablename('asset');
-		$db->query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
+		sDB::query("INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
 							SELECT parent, context, 'image', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='image'");
-		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='image' AND name='processing'", 'array');
+		$records = sDB::query("SELECT id, value FROM $meta_table WHERE type='image' AND name='processing'", 'array');
 		foreach ($records as $r) {
 			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
@@ -496,7 +496,7 @@ class ShoppInstallation extends ShoppFlowController {
 				$value->uri = $name;
 			}
 			$value = mysql_real_escape_string(serialize($value));
-			$db->query("UPDATE $meta_table set name='original', value='$value' WHERE id=$r->id");
+			sDB::query("UPDATE $meta_table set name='original', value='$value' WHERE id=$r->id");
 		}
 
 		// Update product downloads
@@ -504,8 +504,8 @@ class ShoppInstallation extends ShoppFlowController {
 		$asset_table = ShoppDatabaseObject::tablename('asset');
 		$query = "INSERT INTO $meta_table (parent, context, type, name, value, numeral, sortorder, created, modified)
 					SELECT parent, context, 'download', 'processing', CONCAT_WS('::', id, name, value, size, properties, LENGTH(data)), '0', sortorder, created, modified FROM $asset_table WHERE datatype='download' AND parent != 0";
-		$db->query($query);
-		$records = $db->query("SELECT id, value FROM $meta_table WHERE type='download' AND name='processing'", 'array');
+		sDB::query($query);
+		$records = sDB::query("SELECT id, value FROM $meta_table WHERE type='download' AND name='processing'", 'array');
 		foreach ($records as $r) {
 			list($src, $name, $value, $size, $properties, $datasize) = explode("::", $r->value);
 			$p = unserialize($properties);
@@ -521,12 +521,12 @@ class ShoppInstallation extends ShoppFlowController {
 				$value->uri = $name;
 			}
 			$value = mysql_real_escape_string(serialize($value));
-			$db->query("UPDATE $meta_table set name='$name', value='$value' WHERE id=$r->id");
+			sDB::query("UPDATE $meta_table set name='$name', value='$value' WHERE id=$r->id");
 		}
 
 		// Update promotions
 		$promo_table = ShoppDatabaseObject::tablename('promo');
-		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'", 'array');
+		$records = sDB::query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'", 'array');
 
 		$FSStorage = array('path' => array());
 		// Migrate Asset storage settings
@@ -563,7 +563,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 		$where = "name like '%".join("%' OR name like '%", $gateways)."%'";
 		$query = "SELECT name, value FROM $setting_table WHERE $where";
-		$result = $db->query($query, 'array');
+		$result = sDB::query($query, 'array');
 		$paycards = Lookup::paycards();
 
 		// Convert settings to 1.1-compatible settings
@@ -1127,7 +1127,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		$key = ShoppSupport::key();
 		$vars = array('VERSION', 'KEY', 'URL');
-		$values = array(urlencode(Shopp::VERSION), urlencode($key['k']), urlencode(get_bloginfo('siteurl')));
+		$values = array(urlencode(ShoppVersion::release()), urlencode($key['k']), urlencode(get_bloginfo('siteurl')));
 		$package = str_replace($vars, $values, $package);
 
 		$download_file = $this->download_url($package);

@@ -377,7 +377,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 **/
 	public function save ( $Category ) {
 		$Shopp = Shopp::object();
-		$db = DB::get();
+
 		check_admin_referer('shopp-save-category');
 
 		if ( ! current_user_can('shopp_categories') )
@@ -528,7 +528,6 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 **/
 	public function products ( $workflow = false ) {
 		$Shopp = Shopp::object();
-		$db = DB::get();
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
