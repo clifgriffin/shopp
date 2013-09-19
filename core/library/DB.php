@@ -31,8 +31,6 @@ if ( ini_get('zend.ze1_compatibility_mode') )
  **/
 class sDB extends SingletonFramework {
 
-	static $version = 1300;	// Database schema version
-
 	protected static $object;
 
 	// Define datatypes for MySQL

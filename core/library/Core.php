@@ -130,7 +130,7 @@ abstract class ShoppCore {
 	 * @return boolean
 	 **/
 	public static function upgradedb () {
-		return ( ! ShoppSettings()->available() || ShoppSettings()->dbversion() != sDB::$version );
+		return ( ! ShoppSettings()->available() || ShoppSettings()->dbversion() != ShoppVersion::db() );
 	}
 
 	/**
