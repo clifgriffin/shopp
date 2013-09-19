@@ -111,7 +111,7 @@ function _shopp_order_purchased ( &$records, &$purchased, $orders ) {
  * @param mixed $to (optional) mktime or SQL datetime, get purchased before this date/time.
  * @return int number of orders found
  **/
-function shopp_order_count ($from = false, $to = false) {
+function shopp_order_count ( $from = false, $to = false ) {
 	return count( shopp_orders( $from, $to, false ) );
 }
 
@@ -127,7 +127,7 @@ function shopp_order_count ($from = false, $to = false) {
  * @param bool $items (optional default:true) load purchased items into the records, slightly slower operation
  * @return array of Purchase objects
  **/
-function shopp_customer_orders ( $customer = false, $from, $to, $items ) {
+function shopp_customer_orders ( $customer = false, $from = false, $to = false, $items = true ) {
 	if ( ! $customer || ! shopp_customer_exists($customer) ) {
 		shopp_debug(__FUNCTION__ . " failed: Invalid or missing customer id.");
 		return false;
