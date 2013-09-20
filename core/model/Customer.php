@@ -28,9 +28,6 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	public $info = false;			// Custom customer info fields
 	public $loginname = false;		// Account login name
 
-	// public $newuser = false;		// New WP user created flag
-	// public $guest = false;          // Flag for guest customers
-
 	protected $session = 0;         // Tracks Customer session flags
 	protected $updates = 0;         // Tracks updated setting flags
 
@@ -281,25 +278,25 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		}
 	}*/
 
-	public function load_orders ($filters=array()) {
-		if (empty($this->id)) return false;
+	public function load_orders ( array $filters =array()) {
+		if ( empty($this->id) ) return false;
 
 		$request = false; $id = false;
 		$Storefront = ShoppStorefront();
 
-		if (isset($Storefront->account)) extract((array)$Storefront->account);
+		if ( isset($Storefront->account) ) extract((array)$Storefront->account);
 		else {
-			if (isset($_GET['acct'])) $request = $_GET['acct'];
-			if (isset($_GET['id'])) $id = (int)$_GET['id'];
+			if ( isset($_GET['acct']) ) $request = $_GET['acct'];
+			if ( isset($_GET['id']) ) $id = (int)$_GET['id'];
 		}
 
-		if ($this->loggedin() && 'orders' == $request && !empty($id)) {
-			$Purchase = new ShoppPurchase((int)$id);
-			if ($Purchase->customer == $this->id) {
+		if ( $this->loggedin() && 'orders' == $request && ! empty($id) ) {
+			$Purchase = new ShoppPurchase($id);
+			if ( $Purchase->customer == $this->id ) {
 				ShoppPurchase($Purchase);
 				$Purchase->load_purchased();
 			} else {
-				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),esc_html($_GET['id'])),'customer_order_history',SHOPP_AUTH_ERR);
+				new ShoppError(sprintf(__('Order number %s could not be found in your order history.', 'Shopp'), esc_html($_GET['id'])), 'customer_order_history', SHOPP_AUTH_ERR);
 				unset($_GET['acct']);
 				return false;
 			}
@@ -307,13 +304,14 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		}
 
 		$where = '';
-		if (isset($filters['where'])) $where = " AND {$filters['where']}";
+		if ( isset($filters['where']) ) $where = " AND {$filters['where']}";
 		$orders = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchases = ShoppDatabaseObject::tablename(Purchased::$table);
 		$query = "SELECT o.* FROM $orders AS o WHERE o.customer=$this->id $where ORDER BY created DESC";
 
 		$PurchaseLoader = new ShoppPurchase();
 		$purchases = DB::query($query, 'array', array($PurchaseLoader, 'loader'));
+
 		$Storefront->purchases = (array)$purchases;
 	}
 
