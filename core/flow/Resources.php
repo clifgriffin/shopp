@@ -183,27 +183,27 @@ class ShoppResources {
 
 			// Voided orders
 			if ( $Purchase->isvoid() ) {
-				shopp_error(sprintf(Shopp::__('&quot;%s&quot; cannot be downloaded because the order has been cancelled.'), $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; cannot be downloaded because the order has been cancelled.', $name));
 				$forbidden = true;
 			}
 
 			// Purchase Completion check
 			if ( ! $Purchase->ispaid() && ! SHOPP_PREPAYMENT_DOWNLOADS ) {
-				shopp_error(sprintf(Shopp::__('&quot;%s&quot; cannot be downloaded because payment has not been received yet.'), $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; cannot be downloaded because payment has not been received yet.', $name));
 				$forbidden = true;
 			}
 
 			if ( __('Guest','Shopp') != ShoppCustomer()->type ) {
 
 				// Account restriction checks
-				if ( $accounts && !ShoppCustomer()->loggedin() ) {
-					shopp_error(Shopp::__('You must login to download purchases.'));
+				if ( $accounts && ! ShoppCustomer()->loggedin() ) {
+					shopp_add_error(Shopp::__('You must login to download purchases.'));
 					$forbidden = true;
 				}
 
 				// File owner authorization check
 				if ($accounts && ShoppCustomer()->id != $Purchase->customer) {
-					shopp_error(Shopp::__('You are not authorized to download the requested file.'));
+					shopp_add_error(Shopp::__('You are not authorized to download the requested file.'));
 					$forbidden = true;
 				}
 
@@ -212,20 +212,20 @@ class ShoppResources {
 			// Download limit checking
 			if (shopp_setting('download_limit') // Has download credits available
 					&& $Purchased->downloads+1 > shopp_setting('download_limit')) {
-				shopp_error(sprintf(Shopp::__('&quot;%s&quot; is no longer available for download because the download limit has been reached.'), $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; is no longer available for download because the download limit has been reached.', $name));
 				$forbidden = true;
 			}
 
 			// Download expiration checking
 			if (shopp_setting('download_timelimit') // Within the timelimit
 					&& $Purchased->created+shopp_setting('download_timelimit') < current_time('timestamp') ) {
-				shopp_error(sprintf(Shopp::__('&quot;%s&quot; is no longer available for download because it has expired.','Shopp'), $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; is no longer available for download because it has expired.','Shopp', $name));
 				$forbidden = true;
 			}
 
 			// IP restriction checks
 			if ( 'ip' == shopp_setting('download_restriction') && ! empty($Purchase->ip) && $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
-				shopp_error(sprintf(Shopp::__('&quot;%s&quot; cannot be downloaded because your computer could not be verified as the system the file was purchased from.','Shopp'), $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; cannot be downloaded because your computer could not be verified as the system the file was purchased from.', $name));
 				$forbidden = true;
 			}
 

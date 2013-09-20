@@ -151,10 +151,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 **/
 	public function ispaid () {
 		if ( empty($this->events) ) $this->load_events();
-
-		$legacypaid = ( 0 == $this->captured && 'CHARGED' == $Purchase->txnstatus );
-
-		return ($this->captured == $this->total || $legacypaid);
+		$legacy = ( 0 == $this->captured && in_array($this->txnstatus, array('CHARGED','captured')) );
+		return ($this->captured == $this->total || $legacy);
 	}
 
 	static function unstock ( UnstockOrderEvent $Event ) {
