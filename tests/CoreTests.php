@@ -7,10 +7,34 @@
 class CoreTests extends ShoppTestCase {
 	const TRANSLATED = 'Translated!';
 
+	protected static $template_dir = '';
+	protected static $template_dir_ready = false;
+
 	public $domain = '';
 	public $context = '';
 	public $email = array();
 
+
+	public static function setUpBeforeClass() {
+		self::create_tpl_dir();
+	}
+
+	/**
+	 * Ensure there are no custom Shopp templates in the target directory (in advance of test_copy_templates()
+	 * running.
+	 */
+	protected static function create_tpl_dir() {
+		self::$template_dir = trailingslashit( sys_get_temp_dir() ) . 'shopp_tpls';
+		mkdir(self::$template_dir);
+
+		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::$template_dir));
+		$failure = false;
+
+		foreach ($files as $file)
+			if ( $file->isFile() && ! unlink( $file->getPathname() ) ) $failure = true;
+
+		self::$template_dir_ready = ( ! $failure );
+	}
 
 	public function test_unsupported () {
 		$this->assertTrue(defined('SHOPP_UNSUPPORTED'));
@@ -248,6 +272,66 @@ class CoreTests extends ShoppTestCase {
 		$this->assertTrue( 99.208 < Shopp::convert_unit(45, 'lb', 'kg') );
 		$this->assertTrue( 99.209 > Shopp::convert_unit(45, 'lb', 'kg') );
 		$this->assertTrue( 0 == Shopp::convert_unit(400, 'lb', 'splargons'));
+	}
+
+	public function test_copy_templates() {
+		// Can we perform this test?
+		if ( ! self::$template_dir_ready || ! is_writeable( self::$template_dir ) )
+			$this->markTestSkipped('The template directory must be empty and writeable.');
+
+		// Yes? Do it!
+		$source = trailingslashit(ABSPATH) . 'wp-content/plugins/' . trailingslashit(SHOPP_DIR) . 'templates';
+		$target = self::$template_dir;
+		Shopp::copy_templates($source, $target);
+
+		// Done? Test it!
+		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::$template_dir));
+		$list = array();
+
+		foreach ($files as $file) {
+			if ( ! $file->isFile() ) continue;
+			$list[] = $file->getFilename();
+		}
+
+		$expected = array(
+			'account.php', 
+			'account-downloads.php', 
+			'account-orders.php', 
+			'account-profile.php',
+			'cart.php',
+			'catalog.php', 
+			'category.php',
+			'checkout.php',
+			'confirm.php',
+			'email.css',
+			'email.php',
+			'email-order.php',
+			'email-shipped.php',
+			'errors.php',
+			'login.php',
+			'login-recover.php',
+			'product.php',
+			'receipt.php',
+			'shopp.css',
+			'sidecart.php',
+			'sideproduct.php',
+			'summary.php',
+			'thanks.php'
+		);
+
+		foreach ($expected as $tpl_override) {
+			// Check that the expected templates made it across
+			$this->assertContains($tpl_override, $list);
+
+			// Check that calls to _e() were stripped
+			$sample = file_get_contents( trailingslashit(self::$template_dir) . $tpl_override);
+			$translators = strpos($sample, '_e(');
+			$this->assertFalse($translators);
+
+			// Check that the file header doc was stripped
+			$header_stripped = ( 0 === preg_match('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/', $sample) );
+			$this->assertTrue($header_stripped);
+		}
 	}
 
 	/**
