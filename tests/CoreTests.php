@@ -186,6 +186,17 @@ class CoreTests extends ShoppTestCase {
 		return self::TRANSLATED;
 	}
 
+	/**
+	 * @todo add additional tests to ensure correct output, discuss with jond
+	 */
+	public function test_auto_ranges() {
+		$set_of_4 = Shopp::auto_ranges(150, 5000, 100, 4);
+		$set_of_7 = Shopp::auto_ranges(150, 5000, 100, 20); // Though we're requesting 20 steps it should cap this at 7
+
+		$this->assertCount( 4, $set_of_4 );
+		$this->assertCount( 7, $set_of_7 );
+	}
+
 	public function test_object_r() {
 		$object = new stdClass;
 		$object->some_property = 'some value';
