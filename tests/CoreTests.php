@@ -139,6 +139,18 @@ class CoreTests extends ShoppTestCase {
 		$this->assertEquals( $expected, $translation );
 	}
 
+	public function test__d() {
+		// Basic test assuming defaults (English language)
+		$hogmanay_2013 = mktime(1, 1, 1, 12, 31, 2013); // Final Tuesday in December
+		$this->assertEquals( 'Tuesday December', Shopp::_d('l F', $hogmanay_2013) );
+
+		// Is it being passed through the l10n functions?
+		$this->setup_translation_filters();
+		$this->domain = '';
+		$this->assertEquals( 'Tuesday December', Shopp::_d('l F', $hogmanay_2013) ); // Our translation filter is "run once" so we expect the final string output here to actually be the same
+		$this->assertEquals( 'ShoppCore', $this->domain );
+	}
+
 	protected function setup_translation_filters() {
 		add_filter('gettext', array($this, 'filter_gettext'), 10, 3);
 		add_filter('gettext_with_context', array($this, 'filter_gettext_with_context'), 10, 4);
