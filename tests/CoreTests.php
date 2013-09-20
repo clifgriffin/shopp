@@ -151,6 +151,16 @@ class CoreTests extends ShoppTestCase {
 		$this->assertEquals( 'ShoppCore', $this->domain );
 	}
 
+	public function test__jse() {
+		$this->setup_translation_filters();
+
+		ob_start();
+		Shopp::_jse('How an outlaw, such as he evidently was, who had been caught in the act of robbing the Martian gold mines, could expect to escape punishment on returning to his native planet it was difficult to see.');
+		$translation = ob_get_clean();
+
+		$this->assertEquals( '"' . self::TRANSLATED . '"', $translation ); // Translation will be a quoted string literal
+	}
+
 	protected function setup_translation_filters() {
 		add_filter('gettext', array($this, 'filter_gettext'), 10, 3);
 		add_filter('gettext_with_context', array($this, 'filter_gettext_with_context'), 10, 4);
