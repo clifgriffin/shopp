@@ -70,6 +70,97 @@ class CoreTests extends ShoppTestCase {
 		$this->assertTrue( $this->domain === 'ShoppCore' );
 	}
 
+	public function test__m() {
+		$this->setup_translation_filters();
+
+		// Confirm that the string is translated first of all
+		$string = '"I have her tongue recognized! The language that she speaks, the roots of the great Indo-European, or Aryan stock, contains."';
+		$translation = Shopp::_m($string);
+		$this->assertCount( 1, $translation ); // An array-like structure containing one element (the above line of text) should be returned
+		$this->assertEquals( self::TRANSLATED, current($translation)->gist ); // It should have passed through the usual WP l10n filters
+
+		// Confirm Markdown-like functionality
+		$string = '"How she here came, so many _millions of miles_ from the earth, a great mystery is."';
+		$expected = '<p>"How she here came, so many <em>millions of miles</em> from the earth, a great mystery is."</p>';
+		$translation = Shopp::_m($string);
+		$this->assertEquals( $expected, $translation->getHtml() );
+	}
+
+	/**
+	 * @depends test__m
+	 */
+	public function test__em() {
+		$string = 'This announcement of the Heidelberg professor stirred us all most profoundly. _It not only deepened our interest in the beautiful girl whom we had rescued, but, in a dim way, it gave us reason to hope that we should yet discover some means of mastering the Martians by dealing them a blow from within._';
+		$expected = '<p>This announcement of the Heidelberg professor stirred us all most profoundly. <em>It not only deepened our interest in the beautiful girl whom we had rescued, but, in a dim way, it gave us reason to hope that we should yet discover some means of mastering the Martians by dealing them a blow from within.</em></p>';
+
+		ob_start();
+		Shopp::_em($string);
+		$translation = ob_get_clean();
+
+		$this->assertEquals( $expected, $translation );
+	}
+
+	public function test__mx() {
+		$this->setup_translation_filters();
+
+		// Confirm that the string is translated first of all
+		$string = 'It had been expected, the reader will remember, that the %s whom we had made prisoner on the asteroid, _might_ be of use to us in a similar way.';
+		$part = 'Martian';
+		$context = "Edison's Conquest of Mars";
+
+		$translation = Shopp::_mx($string, $context, $part);
+		$this->assertEquals( self::TRANSLATED, current($translation)->gist );
+		$this->assertTrue( $this->context === $context );
+		$this->assertTrue( $this->domain === 'ShoppCore' );
+
+		// Confirm Markdown-like functionality
+		$string = 'For that reason great efforts had been made to acquire _%s_ language, and _considerable progress_ had been effected in that direction.';
+		$part = 'his';
+		$context = "Edison's Conquest of Mars";
+		$expected = '<p>For that reason great efforts had been made to acquire <em>his</em> language, and <em>considerable progress</em> had been effected in that direction.</p>';
+
+		$translation = Shopp::_mx($string, $context, $part);
+		$this->assertEquals( $expected, $translation->getHtml() );
+	}
+
+	/**
+	 * @depends test__mx
+	 */
+	public function test__emx() {
+		$string = 'But from the moment of our arrival at Mars itself, and especially %s the battles began, the prisoner had resumed his _savage_ and _uncommunicative_ disposition.';
+		$part = 'after';
+		$context = "Edison's Conquest of Mars";
+		$expected = '<p>But from the moment of our arrival at Mars itself, and especially after the battles began, the prisoner had resumed his <em>savage</em> and <em>uncommunicative</em> disposition.</p>';
+
+		ob_start();
+		Shopp::_emx($string, $context, $part);
+		$translation = ob_get_clean();
+
+		$this->assertEquals( $expected, $translation );
+	}
+
+	public function test__d() {
+		// Basic test assuming defaults (English language)
+		$hogmanay_2013 = mktime(1, 1, 1, 12, 31, 2013); // Final Tuesday in December
+		$this->assertEquals( 'Tuesday December', Shopp::_d('l F', $hogmanay_2013) );
+
+		// Is it being passed through the l10n functions?
+		$this->setup_translation_filters();
+		$this->domain = '';
+		$this->assertEquals( 'Tuesday December', Shopp::_d('l F', $hogmanay_2013) ); // Our translation filter is "run once" so we expect the final string output here to actually be the same
+		$this->assertEquals( 'ShoppCore', $this->domain );
+	}
+
+	public function test__jse() {
+		$this->setup_translation_filters();
+
+		ob_start();
+		Shopp::_jse('How an outlaw, such as he evidently was, who had been caught in the act of robbing the Martian gold mines, could expect to escape punishment on returning to his native planet it was difficult to see.');
+		$translation = ob_get_clean();
+
+		$this->assertEquals( '"' . self::TRANSLATED . '"', $translation ); // Translation will be a quoted string literal
+	}
+
 	protected function setup_translation_filters() {
 		add_filter('gettext', array($this, 'filter_gettext'), 10, 3);
 		add_filter('gettext_with_context', array($this, 'filter_gettext_with_context'), 10, 4);
@@ -93,6 +184,17 @@ class CoreTests extends ShoppTestCase {
 		$this->domain = $domain;
 		$this->context = $context;
 		return self::TRANSLATED;
+	}
+
+	/**
+	 * @todo add additional tests to ensure correct output, discuss with jond
+	 */
+	public function test_auto_ranges() {
+		$set_of_4 = Shopp::auto_ranges(150, 5000, 100, 4);
+		$set_of_7 = Shopp::auto_ranges(150, 5000, 100, 20); // Though we're requesting 20 steps it should cap this at 7
+
+		$this->assertCount( 4, $set_of_4 );
+		$this->assertCount( 7, $set_of_7 );
 	}
 
 	public function test_object_r() {
@@ -367,6 +469,7 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_maintenance() {
+		$this->markTestSkipped('Needs to be revised for consistency.');
 
 		shopp_set_setting('db_version', ShoppVersion::db());
 		$originalmode = shopp_setting('maintenance');
@@ -405,20 +508,20 @@ class CoreTests extends ShoppTestCase {
 		$select = simplexml_load_string("<select> $html </select>");
 
 		$this->assertTrue(isset($select->option));
-		$this->assertTrue(2 === count($select->option));
+		$this->assertEquals(2, count($select->option));
 
 		$this->assertTrue(isset($select->option[0]['selected']));
-		$this->assertTrue('Mars' === (string) $select->option[0]);
-		$this->assertTrue('13' === (string) $select->option[0]['value']);
+		$this->assertEquals('Mars', (string) $select->option[0]);
+		$this->assertEquals('13', (string) $select->option[0]['value']);
 
 		$this->assertFalse(isset($select->option[1]['selected']));
-		$this->assertTrue('Orion' === (string) $select->option[1]);
-		$this->assertTrue('14' === (string) $select->option[1]['value']);
+		$this->assertEquals('Orion', (string) $select->option[1]);
+		$this->assertEquals('14', (string) $select->option[1]['value']);
 	}
 
 	public function test_numeric_format() {
-		$this->assertTrue('9,876.54' === Shopp::numeric_format(9876.5421));
-		$this->assertTrue('9876,5421' === Shopp::numeric_format(9876.5421, 4, ',', '', array(4)));
+		$this->assertEquals('9,876.54', Shopp::numeric_format(9876.5421));
+		$this->assertEquals('9876,5421',  Shopp::numeric_format(9876.5421, 4, ',', '', array(4)));
 	}
 
 	/**
