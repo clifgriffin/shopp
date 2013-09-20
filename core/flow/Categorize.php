@@ -27,7 +27,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	public function __construct () {
 		parent::__construct();
 
-		ShoppingObject::store('worklist', $this->worklist);
+		Shopping::restore('worklist', $this->worklist);
 
 		if ('shopp-tags' == $_GET['page']) {
 			wp_redirect(add_query_arg(array('taxonomy'=>ProductTag::$taxon), admin_url('edit-tags.php')));

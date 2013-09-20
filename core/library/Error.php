@@ -652,7 +652,7 @@ class ShoppErrorStorefrontNotices implements Iterator {
 	}
 
 	public function init () {
-		ShoppingObject::store('notices', $this->notices);
+		Shopping::restore('notices', $this->notices);
 	}
 
 	public function notice ( $Error ) {

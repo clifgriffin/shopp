@@ -44,7 +44,7 @@ class ShoppCheckout {
 
 	public function __construct () {
 
-		ShoppingObject::store('confirmed',$this->confirmed);
+		Shopping::restore('confirmed',$this->confirmed);
 
 		if ( empty($_POST) ) return;
 

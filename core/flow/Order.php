@@ -55,31 +55,7 @@ class ShoppOrder {
 	 **/
 	public function __construct () {
 
-		$this->Cart = ShoppingObject::__new( 'ShoppCart' );
-		$this->Customer = ShoppingObject::__new( 'ShoppCustomer' );
-
-		$this->Billing = ShoppingObject::__new( 'BillingAddress' );
-		$this->Billing->locate();
-
-		$this->Shipping = ShoppingObject::__new( 'ShippingAddress' );
-		$this->Shipping->locate();
-
-		$this->Tax = ShoppingObject::__new( 'ShoppTax' );
-		$this->taxaddress();
-
-		$this->Shiprates = ShoppingObject::__new( 'ShoppShiprates' );
-		$this->Discounts = ShoppingObject::__new( 'ShoppDiscounts' );
-
-		// Store order custom data and post processing data
-		ShoppingObject::store('data', $this->data);
-		ShoppingObject::store('inprogress', $this->inprogress);
-		ShoppingObject::store('purchase', $this->purchase);
-		ShoppingObject::store('txnid', $this->txnid);
-		ShoppingObject::store('orderstate', $this->state);
-
-		$this->Promotions = new ShoppPromotions;
-		$this->Payments = new ShoppPayments;
-		$this->Checkout = new ShoppCheckout;
+		$this->init();
 
 		// Set locking timeout for concurrency operation protection
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -107,6 +83,7 @@ class ShoppOrder {
 		// Ensure payment card PAN is truncated after successful processing
 		add_action('shopp_authed_order_event', array($this, 'securecard'));
 
+		add_action('shopp_resession', array($this, 'init'));
 		add_action('shopp_pre_resession', array($this, 'clear'), 100);
 
 		// Collect available payment methods from active gateways
@@ -124,6 +101,36 @@ class ShoppOrder {
 		// Needs to happen after the processor is selected in the session,
 		// but before gateway-order specific handlers are established
 		add_action('shopp_init', array($this, 'txnupdates'), 20);
+
+	}
+
+	function init () {
+
+		$this->Cart = Shopping::restart( 'ShoppCart', $this->Cart );
+		$this->Customer = Shopping::restart( 'ShoppCustomer', $this->Customer );
+
+		$this->Billing = Shopping::restart( 'BillingAddress', $this->Billing );
+		$this->Billing->locate();
+
+		$this->Shipping = Shopping::restart( 'ShippingAddress', $this->Shipping );
+		$this->Shipping->locate();
+
+		$this->Tax = Shopping::restart( 'ShoppTax', $this->Tax );
+		$this->taxaddress();
+
+		$this->Shiprates = Shopping::restart( 'ShoppShiprates', $this->Shiprates );
+		$this->Discounts = Shopping::restart( 'ShoppDiscounts', $this->Discounts );
+
+		// Store order custom data and post processing data
+		Shopping::restore('data', $this->data);
+		Shopping::restore('inprogress', $this->inprogress);
+		Shopping::restore('purchase', $this->purchase);
+		Shopping::restore('txnid', $this->txnid);
+		Shopping::restore('orderstate', $this->state);
+
+		$this->Promotions = new ShoppPromotions;
+		$this->Payments = new ShoppPayments;
+		$this->Checkout = new ShoppCheckout;
 
 	}
 

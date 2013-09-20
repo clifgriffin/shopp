@@ -303,7 +303,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 				$this->addtab($this->Admin->pagename($tab->name), $tab->label);
 		}
 
-		ShoppingObject::store('admin_notices', $this->notices);
+		Shopping::restore('admin_notices', $this->notices);
 		add_action('shopp_admin_notices', array($this, 'notices'));
 
 		$this->maintenance();

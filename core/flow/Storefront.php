@@ -46,10 +46,10 @@ class ShoppStorefront extends ShoppFlowController {
 
 		ShoppCatalog();
 
-		ShoppingObject::store( 'search',	$this->search );
-		ShoppingObject::store( 'browsing',	$this->browsing );
-		ShoppingObject::store( 'referrer',	$this->referrer );
-		ShoppingObject::store( 'viewed',	$this->viewed );
+		Shopping::restore( 'search',	$this->search );
+		Shopping::restore( 'browsing',	$this->browsing );
+		Shopping::restore( 'referrer',	$this->referrer );
+		Shopping::restore( 'viewed',	$this->viewed );
 
 		// Setup WP_Query overrides
 		add_action( 'parse_query',		array($this, 'query') );

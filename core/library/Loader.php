@@ -464,7 +464,7 @@ ShoppLoader::map(array(
 	'searchparser' => '/model/Search.php',
 	'searchresults' => '/model/Collection.php',
 	'searchtextfilters' => '/model/Search.php',
-	'sessionobject' => '/library/DB.php',
+	'sessionobject' => '/library/Session.php',
 	'shippedorderevent' => '/model/Events.php',
 	'shippedordereventrenderer' => '/ui/orders/events.php',
 	'shippingaddress' => '/model/Address.php',

@@ -31,8 +31,8 @@ class ShoppPayments extends ListFramework {
 	private $secure = false;
 
 	public function __construct () {
-		ShoppingObject::store('paymethod', $this->selected);
-		ShoppingObject::store('payselected', $this->userset);
+		Shopping::restore('paymethod', $this->selected);
+		Shopping::restore('payselected', $this->userset);
 	}
 
 	/**

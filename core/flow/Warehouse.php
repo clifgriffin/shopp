@@ -33,7 +33,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	public function __construct () {
 		parent::__construct();
 
-		ShoppingObject::store('worklist', $this->worklist);
+		Shopping::restore('worklist', $this->worklist);
 
 		if ( 'off' == shopp_setting('inventory') )
 			array_splice($this->views, 4, 1);

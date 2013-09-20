@@ -21,11 +21,11 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * The Shopping class is a specific implementation of a SessionObject that
  * provides automated session storage of data of any kind.  Data must be
  * registered to the Shopping class by statically calling the
- * ShoppingObject::store method to be stored in and loaded from the
+ * Shopping::restore method to be stored in and loaded from the
  * session.
  *
- * Storing objects requires the use of the ShoppingObject helper class in
- * order to maintain initialized instances {@see ShoppingObject}
+ * Storing functional objects requires the use of the Shopping::restart method in
+ * order to maintain initialized instances {@see ShoppingSession}
  *
  * @author Jonathan Davis
  * @package shopp
@@ -79,7 +79,7 @@ class Shopping extends SessionObject {
 	 *
 	 * @return void
 	 **/
-	function init () {
+	public function init () {
 		@session_start();
 		add_action('shopp_cart_updated',array($this,'savecart'));
 	}
@@ -95,7 +95,7 @@ class Shopping extends SessionObject {
 	 *
 	 * @return boolean
 	 **/
-	function reset () {
+	public function reset () {
 		session_regenerate_id();
 		$this->session = session_id();
 		session_write_close();
@@ -112,10 +112,9 @@ class Shopping extends SessionObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @return boolean True on success
+	 * @return void
 	 **/
 	static function resession ( $session = false ) {
-
 		$Shopping = ShoppShopping();
 
 		do_action('shopp_pre_resession', $session);
@@ -128,7 +127,8 @@ class Shopping extends SessionObject {
 			session_id( $session ); // session_id while session is closed
 			$Shopping->session = session_id(); // Get the new session assignment
 			$Shopping->init();
-			return true;
+			do_action('shopp_resession');
+			return;
 		}
 
 		$Shopping->init();
@@ -146,10 +146,9 @@ class Shopping extends SessionObject {
 		do_action('shopp_reset_session'); // @deprecated do_action('shopp_reset_session')
 		do_action('shopp_resession');
 
-		return true;
 	}
 
-	function clean ( $lifetime = false ) {
+	public function clean ( $lifetime = false ) {
 		if ( empty($this->session) ) return false;
 
 		$timeout = SHOPP_SESSION_TIMEOUT;
@@ -167,56 +166,53 @@ class Shopping extends SessionObject {
 
 	}
 
-	function stashing ( $stashing = null ) {
+	public function stashing ( $stashing = null ) {
 		if ( is_bool($stashing) ) $this->stash = $stashing ? 1 : 0;
 		return ( 1 === $this->stash );
 	}
 
-	function savecart ( $Cart ) {
+	public function savecart ( $Cart ) {
 		$this->stashing( ! empty($Cart->contents) );
 	}
 
-} // END class Shopping
-
-/**
- * ShoppingObject class
- *
- * A helper class that uses a Factory-like approach in instantiating objects
- * ensuring that the correct instantiation of the object is always provided.
- * When planning to store an entire object in the session, the object must
- * be initialized by calling the __new method of the ShoppingObject and
- * providing the class name as the only argument:
- *
- * $object = &ShoppingObject::__new('ObjectClass');
- *
- * The ShoppingObject then determines if the object has already been
- * initialized from a previous session, or if a new instance is required
- * returning a reference to the instance object.
- *
- * NOTE: It is important to realize that any ShoppingObject-instantiated
- * objects that use action hooks will need to re-establish those action
- * hooks after the session is reloaded because the unserialized instance of
- * the object will lose its hook callbacks.  This can be done by defining
- * a new method for initalizing all the applicable action listeners, then
- * calling that method both in the object constructor and using the __wakeup
- * magic method.
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package shopp
- **/
-class ShoppingObject {
-
-	static function &__new ($class, &$ref=false) {
-		$Shopping = ShoppShopping();
+	/**
+	 * A helper method that uses a Factory-like approach in instantiating objects
+	 * ensuring that the correct instantiation of the object is always provided.
+	 * When planning to store an entire object in the session, the object must
+	 * be initialized by calling the __new method of the ShoppingSession and
+	 * providing the class name as the only argument:
+	 *
+	 * $object = Shopping::restart('ObjectClass');
+	 *
+	 * The method then determines if the object has already been
+	 * initialized from a previous session, or if a new instance is required
+	 * returning a reference to the instance object.
+	 *
+	 * NOTE: It is important to realize that any ShoppingSession-instantiated
+	 * objects that use action hooks will need to re-establish those action
+	 * hooks after the session is reloaded because the unserialized instance of
+	 * the object will lose its hook callbacks.  This can be done by defining
+	 * a new method for initalizing all the applicable action listeners, then
+	 * calling that method both in the object constructor and using the __wakeup
+	 * magic method.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param string $class The name of an object class
+	 * @param Object $ref (optional) The reference to an object to be replaced
+	 * @return Object The object reference
+	 **/
+	public static function &restart ( $class, &$ref = false ) {
+		$Shopping = self::object();
 
 		if ( is_object($ref) && method_exists($ref, '__destruct') ) $ref->__destruct();
 
-		if (isset($Shopping->data->{$class})) { // Restore the object
-			$object = $Shopping->data->{$class};
+		if ( isset($Shopping->data->$class) ) { // Restore the object
+			$object = $Shopping->data->$class;
 		} else {
 			$object = new $class();					// Create a new object
-			$Shopping->data->{$class} = &$object; // Register storage
+			$Shopping->data->$class = &$object; // Register storage
 		}
 
 		return $object;
@@ -235,12 +231,36 @@ class ShoppingObject {
 	 * @param object $data The data to store
 	 * @return void
 	 **/
-	static function store ($property, &$data) {
-		$Shopping = ShoppShopping();
-		if (isset($Shopping->data->{$property}))	// Restore the data
-			$data = $Shopping->data->{$property};
+	public static function restore ( $property, &$data ) {
+		$Shopping = self::object();
 
-		$Shopping->data->{$property} = &$data;	// Keep a reference
+		if ( isset($Shopping->data->$property) )	// Restore the data
+			$data = $Shopping->data->$property;
+
+		$Shopping->data->$property = &$data;	// Keep a reference
 	}
 
+}
+
+/**
+ * @deprecated ShoppingObject
+ **/
+final class ShoppingObject {
+
+
+	/**
+	 * @deprecated ShoppingObject::__new
+	 * @see Shopping::restart
+	 **/
+	public static function &__new ( $class, &$ref = false ) {
+		return Shopping::restart($class, $ref);
+	}
+
+	/**
+	 * @deprecated ShoppingObject::store
+	 * @see Shopping::restore
+	 **/
+	public static function store ( $property, &$data ) {
+		return Shopping::restore($property, $data);
+	}
 }

@@ -1025,7 +1025,7 @@ class ShoppPromotions extends ListFramework {
 	 * Detect if promotions exist and pre-load if so.
 	 */
 	public function __construct() {
-		ShoppingObject::store( 'promos', $this->promos );
+		Shopping::restore( 'promos', $this->promos );
 	}
 
 
