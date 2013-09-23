@@ -160,7 +160,7 @@ class ShoppInstallation extends ShoppFlowController {
 		$installed = ShoppSettings::dbversion();
 
 		// No upgrades required
-		if ( $installed == DB::$version ) return;
+		if ( $installed == ShoppVersion::db() ) return;
 
 		shopp_set_setting('shopp_setup', '');
 		shopp_set_setting('maintenance', 'on');
@@ -171,7 +171,7 @@ class ShoppInstallation extends ShoppFlowController {
 		if ( $installed < 1100 ) $this->upgrade_110();
 		if ( $installed < 1200 ) $this->upgrade_120();
 
-		ShoppSettings()->save('db_version', DB::$version);
+		ShoppSettings()->save('db_version', ShoppVersion::db());
 
 	}
 
