@@ -380,20 +380,20 @@ class ProductDevAPITests extends ShoppTestCase {
 		$this->AssertEquals('on', $Price->inventory);
 	}
 
-	function test_shopp_product_publish () {
+	function test_shopp_publish_product () {
 
 		$Product = shopp_product('uss-enterprise', 'slug');
-		shopp_product_publish ( $Product->id, false );
+		shopp_publish_product ( $Product->id, false);
 		$Product = shopp_product('uss-enterprise', 'slug');
 
 		$this->AssertEquals('draft', $Product->status);
 
-		shopp_product_publish ( $Product->id, true, mktime( 12, 0, 0, 12, 1, 2011) );
+		shopp_publish_product ( $Product->id, true, mktime( 12, 0, 0, 12, 1, 2011) );
 		$Product = shopp_product('uss-enterprise', 'slug');
 		$this->AssertEquals('future', $Product->status);
 		$this->AssertEquals($Product->publish, mktime( 12, 0, 0, 12, 1, 2011));
 
-		shopp_product_publish ( $Product->id, true );
+		shopp_publish_product ( $Product->id );
 		$Product = shopp_product('uss-enterprise', 'slug');
 		$this->AssertEquals('publish', $Product->status);
 		$this->assertTrue(time() >= $Product->publish);
