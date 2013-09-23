@@ -197,7 +197,7 @@ class ShoppInstallation extends ShoppFlowController {
 		foreach ($tests as $testquery) {
 			$db = sDB::get();
 			DB::query($testquery);
-			$error = mysql_error(sDB::dbh);
+			$error = mysql_error($db->dbh);
 			if (!empty($error)) $this->error('dbprivileges');
 		}
 
