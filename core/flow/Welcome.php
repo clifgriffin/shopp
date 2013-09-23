@@ -1,5 +1,15 @@
 <?php
-
+/**
+ * Welcome.php
+ *
+ * Flow controller for the Shopp welcome screen
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, August 2013
+ * @package shopp
+ * @subpackage shopp
+ **/
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppAdminWelcome extends ShoppAdminController {

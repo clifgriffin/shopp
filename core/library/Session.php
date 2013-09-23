@@ -12,6 +12,8 @@
  * @since 1.0
  **/
 
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
 abstract class SessionObject {
 
 	public $_table;
