@@ -344,6 +344,13 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	}
 
 	private function maintenance () {
+
+		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
+			if ( isset($_POST['settings']['maintenance']))
+				shopp_set_setting('maintenance', $_POST['settings']['maintenance']);
+
+		}
+
 		if ( Shopp::maintenance() ) {
 			if ( isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'shopp_disable_maintenance') ) {
 				shopp_set_setting('maintenance', 'off');
