@@ -469,7 +469,6 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_maintenance() {
-		$this->markTestSkipped('Needs to be revised for consistency.');
 
 		shopp_set_setting('db_version', ShoppVersion::db());
 		$originalmode = shopp_setting('maintenance');
@@ -481,6 +480,8 @@ class CoreTests extends ShoppTestCase {
 		$this->assertFalse(Shopp::maintenance());
 
 		shopp_set_setting('maintenance', $originalmode);
+		shopp_rmv_setting('db_version');
+
 	}
 
 	public function test_mktimestamp() {
