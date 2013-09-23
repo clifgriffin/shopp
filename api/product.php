@@ -320,6 +320,48 @@ function shopp_duplicate_product ( $product = false, $load_by = 'id' ) {
 	return $Product;
 }
 
+
+/**
+ * shopp_publish_product - Publish a product (by default), schedule it or unpubblish it
+ *
+ * @author John Dillick, Jonathan Davis
+ * @since 1.3
+ *
+ * @param int (required) $product the product id to publish/unpublish
+ * @param bool (optional default: true) $flag true for publish, false for unpublish
+ * @param int (optional) $timestamp A UNIX timestamp via current_time('timestamp')
+ * @return bool true on success, false on failure
+ **/
+function shopp_publish_product ( $product = false, $flag = true, $timestamp = false ) {
+	if ( false === $product ) {
+		shopp_debug(__FUNCTION__ . " failed: Product id required.");
+		return false;
+	}
+
+	$Product = new ShoppProduct($product);
+	if ( empty($Product->id) ) {
+		shopp_debug(__FUNCTION__ . " failed: Unable to load product $product.");
+		return false;
+	}
+
+	$Product->status = 'draft';
+	$Product->publish = 0;
+
+	if ( $flag ) {
+		$Product->status = 'publish';
+		$Product->publish = null;
+
+		if ( $timestamp && $timestamp > $Product->publish ) {
+			$Product->publish = $timestamp;
+			$Product->status = 'future';
+		}
+	}
+	$Product->save();
+
+	return true;
+
+}
+
 /**
  * shopp_rmv_product
  *
@@ -560,17 +602,11 @@ function shopp_product ( $product = false, $load_by = 'id' ) {
 }
 
 /**
- * shopp_product_publish - set a product to published state, now or in the future, or unpublish a product
- *
- * @author John Dillick
- * @since 1.2
- *
- * @param int (required) $product the product id to publish/unpublish
- * @param bool (optional default: false) $flag true for publish, false for unpublish
- * @param int (optional) $datetime a unix datetime, use php mktime() to create this
- * @return bool true on success, false on failure
+ * @deprecated Used shopp_publish_product()
  **/
 function shopp_product_publish ( $product = false, $flag = false, $datetime = false ) {
+	shopp_debug(__FUNCTION__ . " has been deprecated. Use shopp_publish_product() instead.");
+
 	if ( false === $product ) {
 		shopp_debug(__FUNCTION__ . " failed: Product id required.");
 		return false;
