@@ -687,10 +687,13 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ( shopp_setting_enabled('tax_inclusive') && !Shopp::str_true($Product->excludetax) ) {
 			foreach ($Product->prices as &$price) {
 				if ( ! Shopp::str_true($price->tax) ) continue;
-				$Taxes = new CartTax();
-				$taxrate = $Taxes->rate($Product);
-				$price->price += $price->price*$taxrate;
-				$price->saleprice += $price->saleprice*$taxrate;
+
+				$taxes = array();
+				$Tax = new ShoppTax();
+				$Tax->rates($taxes, $Tax->item($Product));
+
+				$price->price += ShoppTax::calculate($taxes, $price->price);
+				$price->saleprice += ShoppTax::calculate($taxes, $price->saleprice);
 			}
 		}
 

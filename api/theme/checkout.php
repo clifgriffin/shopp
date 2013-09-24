@@ -279,38 +279,28 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		}
 
 		$rates = shopp_setting('taxrates');
-		foreach ( $rates as $rate ) { // @todo - what if more than one set of local rates applies to current country/zone? ie. conditions
-			if ( isset( $rate['locals'] ) ) {
-				$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+		foreach ( $rates as $rateset ) { // @todo - what if more than one set of local rates applies to current country/zone? ie. conditions
+			if ( isset( $rateset['locals'] ) ) {
+				$locales[ $rateset['country'] . $rateset['zone'] ] = array_keys($rateset['locals']);
 			}
 		}
 
-		// if there are no local tax jurisdictions in settings
+		// if there are local tax jurisdictions in settings
 		if ( ! empty($locales) ) {
 			// Add all the locales to the javascript environment
 			add_storefrontjs('var locales = '.json_encode($locales).';',true);
 
-			$Taxes = new CartTax();
+			// $Taxes = new CartTax();
+			$Tax = ShoppOrder()->Tax;
 
 			// Check for local rates applying to current country/zone
-			$setting = true; // return the whole rate setting, not just the percentage
-			$Item = false; // Item to pass to tax rate lookup
-			$rate = $Taxes->rate($Item,$setting);
 
-			// If the current country.state combination doesn't match any of the local jurisdictions,
-			// check for local jurisdiction rate setting that has a product-specific condition.
-			if( ! isset($rate['locals']) ) {
-				foreach ( $O->Cart->contents as $Item ) {
-					if ( ( $rate = $Taxes->rate($Item,$setting) ) && isset($rate['locals']) ) {
-						break;
-					}
+			$settings = $Tax->settings();
+			foreach ( $settings as $setting ) {
+				if ( isset($setting['locals']) ) {
+					$localities = array_keys($setting['locals']);
+					break;
 				}
-			}
-
-			// names of local tax jurisdictions that apply to current country.zone
-			$localities = array();
-			if ( isset($rate['locals']) ) {
-				$localities = array_keys($rate['locals']);
 			}
 
 			// Make this a required field
