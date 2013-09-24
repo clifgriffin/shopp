@@ -4,7 +4,7 @@
 	<div class="icon32"></div>
 	<?php
 
-		$this->tabs();
+		shopp_admin_screen_tabs();;
 		do_action('shopp_admin_notices');
 
 	?>

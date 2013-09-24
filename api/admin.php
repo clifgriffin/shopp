@@ -97,9 +97,30 @@ function shopp_admin_add_submenu ( string $label, string $page, string $menu = n
 	);
 
 	$Admin->menu($page, $menupage);
+	$Admin->addtab($page, $menu);
 
 	do_action("shopp_add_menu_$page");
 
 	return $menupage;
 
 }
+
+function shopp_admin_screen_tabs () {
+	global $plugin_page;
+
+	$tabs = ShoppAdmin()->tabs( $plugin_page );
+	$first = current($tabs);
+	$default = $first[1];
+
+	$markup = array();
+	foreach ( $tabs as $index => $entry ) {
+		list($title, $tab, $parent) = $entry;
+		$classes = array('nav-tab');
+		if ( ($plugin_page == $parent && $default == $tab) || $plugin_page == $tab )
+			$classes[] = 'nav-tab-active';
+		$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+	}
+
+	echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
+}
+

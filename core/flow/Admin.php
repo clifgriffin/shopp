@@ -726,9 +726,28 @@ class ShoppAdmin extends ShoppFlowController {
 	}
 
 	public function tabs ( $page ) {
-		if ( ! isset($this->pages[ $page ]) ) return false;
-		$tabs = array_filter($this->pages, create_function('$submenu','return ( "' . $page . '" == $submenu->parent );') );
-		return $tabs;
+		global $submenu;
+		if ( ! isset($this->tabs[ $page ]) ) return array();
+		$parent = $this->tabs[ $page ];
+		if ( isset($submenu[ $parent ]) ) {
+			$tabs = array();
+			foreach ( $submenu[ $parent ] as $entry ) {
+				list($title, $access, $tab, ) = $entry;
+				$tabs[ $tab ] = array(
+					$title,
+					$tab,
+					$parent
+				);
+			}
+			return $tabs;
+		}
+
+		return array();
+	}
+
+	public function addtab ( $tab, $parent ) {
+		$this->tabs[ $parent ] = $parent;
+		$this->tabs[ $tab ] = $parent;
 	}
 
 } // END class ShoppAdmin

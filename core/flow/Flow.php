@@ -263,9 +263,6 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	public $page;
 	public $pagename;
 
-	protected $tabs = array();
-	protected $tab = false;
-
 	protected $notices = array();
 
 	/**
@@ -295,12 +292,6 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		if ( false !== strpos($request, '-') ) {
 			$pages = explode('-', $_GET['page']);
 			$this->pagename = end($pages);
-		}
-
-		$tabs = $this->Admin->tabs($this->page);
-		if ( ! empty($tabs) ) {
-			foreach ($tabs as $tab)
-				$this->addtab($this->Admin->pagename($tab->name), $tab->label);
 		}
 
 		Shopping::restore('admin_notices', $this->notices);
@@ -366,28 +357,6 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		return add_query_arg( array_merge($args,array('page'=>esc_attr($_GET['page'])) ),admin_url('admin.php'));
 	}
 
-	protected function addtab ( string $pagehook, $title ) {
-		$this->tabs[ $pagehook ] = $title;
-	}
-
-	protected function tabs ( array $tabs = array() ) {
-		global $plugin_page;
-
-		$pagehook = sanitize_key($plugin_page);
-
-		$markup = array();
-		if ( empty($tabs) ) $tabs = $this->tabs;
-		$default = key($this->tabs);
-
-		foreach ( $tabs as $tab => $title ) {
-			$classes = array('nav-tab');
-			if ( (! isset($this->tabs[ $plugin_page ]) && $default == $tab) || $plugin_page == $tab )
-				$classes[] = 'nav-tab-active';
-			$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
-		}
-
-		echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
-	}
 
 	protected function ui ( string $file ) {
 		$path = join('/', array(SHOPP_ADMIN_PATH, $this->ui, $file));
