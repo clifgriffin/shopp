@@ -526,7 +526,7 @@ class ShoppAjax {
 
 	public function upload_local_taxes () {
 		check_admin_referer('shopp-settings-taxrates');
-		$rates = Setup::taxrate_upload();
+		$rates = ShoppAdminSystem::taxrate_upload();
 		echo json_encode($rates);
 		exit();
 	}
