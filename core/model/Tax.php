@@ -83,7 +83,7 @@ class ShoppTax {
 
 			if ( ! $this->taxcountry($country) ) continue;
 			if ( ! $this->taxzone($zone) ) continue;
-			if ( ! $this->taxrules($rules) ) continue;
+			if ( ! $this->taxrules($rules, $logic) ) continue;
 
 			// Capture fall back tax rates
 			if ( self::ALL == $country && empty($zone) ) $fallbacks[] = $setting;
@@ -176,13 +176,13 @@ class ShoppTax {
 	 * @param array $rules The list of tax rules to test
 	 * @return boolean True if the rules match enough to apply, false otherwise
 	 **/
-	protected function taxrules ( array $rules ) {
+	protected function taxrules ( array $rules, string $logic ) {
 		if ( empty($rules) ) return true;
 
 		$apply = false;
 		$matches = 0;
 
-		foreach ($setting['rules'] as $rule) {
+		foreach ($rules as $rule) {
 			$match = false;
 
 			if ( false !== $this->Item && false !== strpos($rule['p'],'product') ) {
@@ -193,8 +193,8 @@ class ShoppTax {
 
 			if ($match) $matches++;
 		}
-		if ( 'any' == $setting['logic'] && $matches > 0) $apply = true;
-		if ( 'all' == $setting['logic'] && count($setting['rules']) == $matches ) $apply = true;
+		if ( 'any' == $logic && $matches > 0) $apply = true;
+		if ( 'all' == $logic && count($rules) == $matches ) $apply = true;
 
 		return apply_filters('shopp_tax_rate_match_rule',$apply,$rule,$this);
 	}
@@ -338,8 +338,8 @@ class ShoppTaxableItem {
 		$property = $rule['p'];
 		$value = $rule['v'];
 
-		if ( method_exists($this,$this->class) )
-			return call_user_func($this->class,$rule['p'],$rule['v']);
+		if ( method_exists($this, $this->class) )
+			return call_user_func(array($this, $this->class), $property, $value);
 
 		return false;
 	}
@@ -374,7 +374,7 @@ class ShoppTaxableItem {
 	 * @param string $value The value to match
 	 * @return boolean True if matched or false
 	 **/
-	private function Product ( string $property, string $value ) {
+	private function ShoppProduct ( string $property, string $value ) {
 		$Product = $this->Object;
 		switch ( $property ) {
 			case 'product-name': return ($value == $Product->name); break;
