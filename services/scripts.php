@@ -6,7 +6,7 @@
  *
  * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited, May 4, 2010
+ * @copyright Ingenesis Limited, May 2010-2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  * @since 1.1
@@ -15,6 +15,7 @@
 
 $queryvars = array('load', 'sjsl');
 
+$load = '';
 foreach ($queryvars as $var) {
 	if ( isset($_GET[ $var ]) ) {
 		$load = $_GET[ $var ];
@@ -30,16 +31,12 @@ if ( empty($load) ) exit();
 /**
  * @ignore
  */
-if ( ! function_exists('add_action') ) {
-	function add_action() {}
-}
+if ( ! function_exists('add_action') ) { function add_action() {} }
 
 /**
  * @ignore
  */
-if ( ! function_exists('do_action_ref_array') ) {
-	function do_action_ref_array() {}
-}
+if ( ! function_exists('do_action_ref_array') ) { function do_action_ref_array() {} }
 
 function get_file( $path ) {
 
@@ -52,15 +49,18 @@ function get_file( $path ) {
 	return @file_get_contents($path);
 }
 
-if ( ! defined('SHORTINIT')) define('SHORTINIT',true);
-require dirname(dirname(__FILE__)) . '/core/library/Loader.php';
+if ( ! defined('SHORTINIT') ) {
+	define('SHORTINIT',true);
 
-if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
-	define('ABSPATH', dirname($loadfile) . '/');
+	require dirname(dirname(__FILE__)) . '/core/library/Loader.php';
 
-if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
+	if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
+		define('ABSPATH', dirname($loadfile) . '/');
 
-date_default_timezone_set('UTC');
+	if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
+
+	date_default_timezone_set('UTC');
+}
 
 $ShoppScripts = new ShoppScripts();
 shopp_default_scripts($ShoppScripts);
@@ -74,7 +74,7 @@ foreach( $load as $handle ) {
 	if ( ! isset( $ShoppScripts->registered[ $handle ] ) )
 		continue;
 
-	$path = ShoppLoader::basepath() . $ShoppScripts->registered[$handle]->src;
+	$path = ShoppLoader::basepath() . $ShoppScripts->registered[ $handle ]->src;
 	$out .= get_file($path) . "\n";
 }
 
