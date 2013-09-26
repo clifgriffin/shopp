@@ -569,10 +569,10 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 	public static function row ( $result, $options, $O ) {
 		$Shopp = Shopp::object();
-		if (!isset($O->_rindex) || $O->_rindex === false) $O->_rindex = 0;
+		if ( ! isset($O->_rindex) || $O->_rindex === false ) $O->_rindex = 0;
 		else $O->_rindex++;
-		if (empty($options['products'])) $options['products'] = shopp_setting('row_products');
-		if (isset($O->_rindex) && $O->_rindex > 0 && $O->_rindex % $options['products'] == 0) return true;
+		if ( empty($options['products']) ) $options['products'] = shopp_setting('row_products');
+		if ( 0 == $O->_rindex || $O->_rindex > 0 && $O->_rindex % $options['products'] == 0 ) return true;
 		else return false;
 	}
 
