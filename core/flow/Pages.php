@@ -133,14 +133,16 @@ class ShoppPages extends ListFramework {
  **/
 class ShoppPage {
 
-	public static $name = 'catalog';
-	public static $template = '';
+	public static $name = 'catalog';		// Internal name of the page
+	public static $template = '';			// Additional specific page template (more specific than: shopp.php, page.php)
 
-	protected $slug = 'shopp';			// Slug of the page
-	protected $title = '';				// Title of the page
-	protected $description = '';		// Translateable page description for admins
-	protected $templates = array();		// Additional WP page templates more specific than: shopp.php, page.php
-	protected $edit = array('page' => 'shopp-settings-pages');			// Edit link parameters
+	protected $slug = 'shopp';				// Slug of the page
+	protected $title = '';					// Title of the page
+	protected $description = '';			// Translateable page description for admins
+	protected $templates = array();			// Additional Shopp content
+	protected $edit = array(				// Edit link parameters
+		'page' => 'shopp-settings-pages'
+	);
 
 	public function __construct ( array $options = array() ) {
 		$defaults = array(
@@ -218,10 +220,13 @@ class ShoppPage {
 	 **/
 	public function templates () {
 		$templates = array('shopp.php', 'page.php');
+
 		$name = $this->name();
-		$template = $this->pagetemplate();
 		if ( ! empty($name) ) array_unshift($templates, "$name.php");
+
+		$template = $this->pagetemplate();
 		if ( ! empty($template) ) array_unshift($templates, "$template.php");
+
 		return $templates;
 	}
 
@@ -314,6 +319,7 @@ class ShoppCatalogPage extends ShoppPage {
 class ShoppAccountPage extends ShoppPage {
 
 	public static $name = 'account';
+
 	protected $slug = 'account';
 	protected $templates = array('account.php');
 
@@ -742,8 +748,10 @@ class ShoppMaintenancePage extends ShoppPage {
  **/
 class ShoppProductPage extends ShoppPage {
 
+	public static $name = 'shopp-product';
+
 	public function __construct ( $settings = array() ) {
-		$settings['template'] = 'single-'.Product::$posttype. '.php';
+		$settings['template'] = 'single-' . ShoppProduct::$posttype. ' . php';
 		parent::__construct($settings);
 	}
 
@@ -798,7 +806,8 @@ class ShoppProductPage extends ShoppPage {
  **/
 class ShoppCollectionPage extends ShoppPage {
 
-	public static $name = 'catalog';
+	public static $name = 'shopp-collection';
+
 	public $slug = 'catalog';
 	public $templates = array('shopp-collection.php');
 
