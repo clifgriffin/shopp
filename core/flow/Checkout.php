@@ -170,12 +170,16 @@ class ShoppCheckout {
 	}
 
 	public function payment () {
+		$Billing = ShoppOrder()->Billing;
+		$Payments = ShoppOrder()->Payments;
+
+		// Change the cardtype to the selected payment service option label
+		$Billing->cardtype = $Payments->selected()->label;
+
 		if ( ! $this->paycard() ) return;
 
 		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'paycard'));
 
-		$Billing = ShoppOrder()->Billing;
-		$Payments = ShoppOrder()->Payments;
 
 		$form = $this->form('billing');
 
@@ -188,8 +192,6 @@ class ShoppCheckout {
 		if ( ! empty($form['card']) )
 			$form['card'] = preg_replace('/[^\d]/', '', $form['card']);
 
-		// Change the cardtype to the selected payment service option label
-		$Billing->cardtype = $Payments->selected()->label;
 
 		$form['cardexpires'] = sprintf('%02d%02d', $form['cardexpires-mm'], $form['cardexpires-yy']);
 

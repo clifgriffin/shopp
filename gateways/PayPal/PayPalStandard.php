@@ -123,7 +123,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		);
 
 		add_filter('shopp_gateway_currency', array(__CLASS__, 'currencies'));
-		add_filter('shopp_themeapi_cart_paypal', array($this, 'sendcart'), 10, 2); // provides shopp('cart.paypal') checkout button
+		// add_filter('shopp_themeapi_cart_paypal', array($this, 'sendcart'), 10, 2); // provides shopp('cart.paypal') checkout button
 		add_filter('shopp_checkout_submit_button', array($this, 'submit'), 10, 3); // replace submit button with paypal image
 
 		// request handlers
@@ -131,7 +131,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		add_action('shopp_txn_update', array($this, 'ipn')); // process IPN
 
 		// order event handlers
+		add_filter('shopp_purchase_order_paypalstandard_processing', array($this, 'processing'));
 		add_action('shopp_paypalstandard_sale', array($this,'sale'));
+
 	}
 
 	/**
@@ -146,11 +148,14 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	public function actions () {
-		add_action('shopp_order_confirm_needed', array($this, 'force_confirm'), 9); // intercept checkout request, force confirm
-		add_action('shopp_init_confirmation', array($this, 'confirmation')); // replace confirm order page with paypal form
+		// add_action('shopp_order_confirm_needed', array($this, 'force_confirm'), 9); // intercept checkout request, force confirm
+		// add_action('shopp_init_confirmation', array($this, 'confirmation')); // replace confirm order page with paypal form
 		add_action('template_redirect', array($this, 'returned')); // wipes shopping session on thanks page load
 	}
 
+	public function processing ( $processing ) {
+		return array($this, 'uploadcart');
+	}
 
 	// ORDER EVENT HANDLER
 
@@ -165,8 +170,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	public function sale ( $Event ) {
-		shopp_debug(__METHOD__);
-		shopp_debug("Processing sale event: ".json_encode($Event));
+
 		// check payer_status
 		if ( isset($this->response->payer_status) ) {
 			shopp_add_order_event( $Event->order, 'review', array(
@@ -216,8 +220,6 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		shopp_add_order_event($Event->order, 'authed', $message);
 
-
-		exit;
 	}
 
 	/**
@@ -369,27 +371,32 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string checkout url
 	 **/
-	public function url ($url=false) {
-		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
-		else return $this->checkouturl;
+	public function url () {
+		return Shopp::str_true($this->settings['testmode']) ? $this->sandboxurl : $this->checkouturl;
 	}
 
 	/**
-	 * sendcart
-	 *
-	 * builds a form appropriate for sending to PayPal directly from the cart.. used by shopp('cart','paypal')
+	 * Builds a form to send the order to PayPal for processing
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @since 1.3
 	 *
 	 * @return string PayPal cart form
 	 **/
-	public function sendcart () {
-		$result = '<form action="'.$this->url().'" method="POST">' .
-					$this->form('',array('address_override' => 0)) .
-					$this->submit() .
-					'</form>';
-		return $result;
+	public function uploadcart ( $Purchase ) {
+		$id = sanitize_key($this->module);
+		$title = Shopp::__('Sending order to PayPal&hellip;');
+		$message = '<form id="' . $id . '" action="'.$this->url().'" method="POST">' .
+					$this->form( $Purchase ) .
+					'<h1>' . $title . '</h1>' .
+					'<noscript>' .
+					'<p>' . Shopp::__('Click the "Checkout with PayPal" button below to submit your order to PayPal for payment processing:') . '</p>' .
+					'<p>' . join('', $this->submit()) . '</p>' .
+					'</noscript>' .
+					'</form>' .
+					'<script type="text/javascript">document.getElementById("' . $id . '").submit();</script></body></html>';
+
+		wp_die($message, $title);
 	}
 
 	/**
@@ -402,7 +409,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string PayPal cart form contents
 	 **/
-	public function form ( string $form, array $options = array() ) {
+	public function form ( $Purchase ) {
 		$Shopping = ShoppShopping();
 		$Order = ShoppOrder();
 		$Customer = $Order->Customer;
@@ -412,7 +419,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['cmd'] 					= '_cart';
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
-		$_['invoice']				= time();
+		$_['invoice']				= $Purchase->id;
 		$_['custom']				= $Shopping->session;
 
 		// Options
@@ -548,9 +555,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		}
 
-		$_ = apply_filters('shopp_paypal_standard_form', array_merge($_, $options));
+		$_ = apply_filters('shopp_paypal_standard_form', $_);
 
-		return $form.$this->format($_);
+
+		return $this->format($_);
 	}
 
 	/**
@@ -604,7 +612,6 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function remote () {
 		if ( 'PPS' != $_REQUEST['rmtpay'] || ! isset($_REQUEST['tx']) ) return; // not PDT message
-
 		shopp_debug('Processing PDT packet: '._object_r($_REQUEST));
 
 		// Verify the message is authentically from PayPal
@@ -627,14 +634,32 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			'st' => '',		// Transaction status
 			'tx' => ''		// Transaction ID/PDT token
 		);
-		$message = array_intersect_key($_GET,$message);
-		extract($message);
+		$message = array_intersect_key($_GET, $message);
+		extract($message, EXTR_SKIP);
 
 		// Attempt to load a previous order from the transaction ID
 		// This can happen when IPN async messages are received before
 		// the customer returns to the storefront
-		$Purchase = new ShoppPurchase($tx,'txnid');
+		// $Purchase = new ShoppPurchase($tx, 'txnid');
+		$Purchase = new ShoppPurchase(ShoppOrder()->inprogress);
 
+		if ( $authentic ) {
+			// build response object
+			$this->response = new stdClass;
+			$this->response->status = $st;
+			$this->response->event = 'captured';
+			$this->response->txnid = $tx;
+			$this->response->fees = 0;
+			$this->response->amount = abs($amt);
+			// if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
+			// if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
+			// if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
+			// if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
+
+			shopp_debug('PDT to response protocol: '._object_r($this->response));
+		}
+
+		/*
 		// create new purchase on PDT if necessary
 		if ( empty($Purchase->id) ) {
 			shopp_debug('PayPal PDT processing: Creating a new order.');
@@ -671,7 +696,16 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			));
 
 			return; // end after purchase creation
-		}
+		}*/
+
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'notify'));
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'accounts'));
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'success'));
+
+		shopp_add_order_event($Purchase->id, 'sale', array(
+			'gateway' => $Purchase->gateway,
+			'amount' => $Purchase->total
+		));
 
 		ShoppOrder()->purchase = $Purchase->id;
 		shopp_redirect(Shopp::url(false,'thanks',false));
@@ -710,7 +744,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			$txnid = $_POST['parent_txn_id'];
 		}
 
-		$event = 'purchase';
+		$event = 'sale';
 		$txnstatus = $_POST['payment_status'];
 		if ( $txnstatus && isset(self::$events[$txnstatus]) )
 			$event = self::$events[$txnstatus];
@@ -757,43 +791,43 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		$Purchase = new ShoppPurchase( $txnid, 'txnid' );
 		// create new purchase by IPN
-		if ( empty($Purchase->id) ) {
-			if ( 'voided' == $event ) return; // the transaction is void of the starting gate. Don't create a purchase.
-
-			if ( ! isset($_POST['custom']) ) {
-				new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$txnid),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
-				die('PayPal IPN failed.');
-			}
-			shopp_debug('preparing to load session '.$_POST['custom']);
-			add_filter('shopp_agent_is_robot', array($this, 'is_robot_override'));
-
-			// load the desired session, which leaves the previous/defunct Order object intact
-			Shopping::resession($_POST['custom']);
-
-			// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
-			// also assign the restored Order object as the global Order object
-			// $this->Order = ShoppOrder( Shopping::restart( 'ShoppOrder', ShoppOrder() ) );
-
-			$Shopping = ShoppShopping();
-
-			// Couldn't load the session data
-			if ($Shopping->session != $_POST['custom'])
-				return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
-			else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
-
-			// process shipping address changes from IPN message
-			$this->ipnupdates();
-
-			// Create new purchase
-			shopp_add_order_event(false, 'purchase', array(
-				'gateway' => $this->module,
-				'txnid' => $txnid
-			));
-
-			if ( empty(ShoppPurchase()->id) ) new ShoppError('Purchase save failed.',false,SHOPP_DEBUG_ERR);
-
-			return; // end after new purchase creation
-		}
+		// if ( empty($Purchase->id) ) {
+		// 	if ( 'voided' == $event ) return; // the transaction is void of the starting gate. Don't create a purchase.
+		//
+		// 	if ( ! isset($_POST['custom']) ) {
+		// 		new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$txnid),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
+		// 		die('PayPal IPN failed.');
+		// 	}
+		// 	shopp_debug('preparing to load session '.$_POST['custom']);
+		// 	add_filter('shopp_agent_is_robot', array($this, 'is_robot_override'));
+		//
+		// 	// load the desired session, which leaves the previous/defunct Order object intact
+		// 	Shopping::resession($_POST['custom']);
+		//
+		// 	// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
+		// 	// also assign the restored Order object as the global Order object
+		// 	// $this->Order = ShoppOrder( Shopping::restart( 'ShoppOrder', ShoppOrder() ) );
+		//
+		// 	$Shopping = ShoppShopping();
+		//
+		// 	// Couldn't load the session data
+		// 	if ($Shopping->session != $_POST['custom'])
+		// 		return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+		// 	else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+		//
+		// 	// process shipping address changes from IPN message
+		// 	$this->ipnupdates();
+		//
+		// 	// Create new purchase
+		// 	shopp_add_order_event(false, 'purchase', array(
+		// 		'gateway' => $this->module,
+		// 		'txnid' => $txnid
+		// 	));
+		//
+		// 	if ( empty(ShoppPurchase()->id) ) new ShoppError('Purchase save failed.',false,SHOPP_DEBUG_ERR);
+		//
+		// 	return; // end after new purchase creation
+		// }
 
 		// Process update events as needed
 		if ( 'purchase' != $event ) {
@@ -940,8 +974,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string The response string from the request
 	 **/
-	public function send ($data, $url=false, $deprecated=false, $options = array()) {
-		return parent::send($data,$this->url());
+	public function send ( $data, $url = false, $deprecated = false, $options = array() ) {
+		return parent::send($data, $this->url());
 	}
 
 	/**

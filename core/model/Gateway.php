@@ -114,7 +114,7 @@ abstract class GatewayFramework {
 
 		$this->_loadcards();
 
-		$gateway = sanitize_key($this->module);
+		$gateway = GatewayModules::hookname($this->module);
 
 		add_action('shopp_init', array($this, 'myactions'), 30);
 		add_action('shopp_' . $gateway . '_refunded', array($this, 'cancelorder') );
@@ -567,6 +567,12 @@ class GatewayModules extends ModuleLoader {
 	public function templates () {
 		foreach ( $this->active as $package => &$module )
 			$module->uitemplate($package, $this->modules[ $package ]->name);
+	}
+
+	public static function hookname ( $classname ) {
+		if ( 0 === stripos($classname, 'shopp') )
+			$classname = substr($classname, 5);
+		return sanitize_key($classname);
 	}
 
 } // END class GatewayModules
