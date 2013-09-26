@@ -346,6 +346,25 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		return ShoppAdmin()->pagename($this->pagename);
 	}
 
+	protected function tabs ( array $tabs = array() ) {
+		global $plugin_page;
+
+		$pagehook = sanitize_key($plugin_page);
+
+		$markup = array();
+		if ( empty($tabs) ) $tabs = $this->tabs;
+		$default = key($this->tabs);
+
+		foreach ( $tabs as $tab => $title ) {
+			$classes = array('nav-tab');
+			if ( (! isset($this->tabs[ $plugin_page ]) && $default == $tab) || $plugin_page == $tab )
+				$classes[] = 'nav-tab-active';
+			$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+		}
+
+		echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
+	}
+
 	private function maintenance () {
 
 		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
