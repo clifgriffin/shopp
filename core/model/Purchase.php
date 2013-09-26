@@ -23,31 +23,24 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	public $data = array();
 
 	// Balances
-	public $invoiced = false;		// Amount invoiced
+	public $invoiced = false;	// Amount invoiced
 	public $authorized = false;	// Amount authorized
-	public $captured = false;		// Amount captured
-	public $refunded = false;		// Amount refunded
+	public $captured = false;	// Amount captured
+	public $refunded = false;	// Amount refunded
 	public $voided = false;		// Order cancelled prior to capture
-	public $balance = 0;			// Current balance
+	public $balance = 0;		// Current balance
 
 	public $downloads = false;
 	public $shipable = false;
 	public $shipped = false;
 	public $stocked = false;
 
-	public function __construct ($id=false,$key=false) {
+	public function __construct ( $id = false, $key = false ) {
 
 		$this->init(self::$table);
-		if (!$id) return true;
-		$this->load($id,$key);
-		if (!empty($this->shipmethod)) $this->shipable = true;
-		if (!empty($this->id)) $this->listeners();
-	}
-
-	public function listeners () {
-		// Attach the notification system to order events
-		add_action( 'shopp_order_event', array($this, 'notifications') );
-		add_action( 'shopp_order_notifications', array($this, 'success') );
+		if ( ! $id ) return true;
+		$this->load($id, $key);
+		if ( ! empty($this->shipmethod) ) $this->shipable = true;
 
 	}
 
@@ -57,16 +50,18 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 		$price = ShoppDatabaseObject::tablename(Price::$table);
 		$Purchased = new ShoppPurchased();
-		if (empty($this->id)) return false;
+		if ( empty($this->id) ) return false;
 		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id", 'array', array($Purchased, 'loader') );
-		foreach ( $this->purchased as &$purchase) {
-			if (!empty($purchase->download)) $this->downloads = true;
-			if ('Shipped' == $purchase->type) $this->shipable = true;
+		foreach ( $this->purchased as &$purchase ) {
+			if ( ! empty($purchase->download) ) $this->downloads = true;
+			if ( 'Shipped' == $purchase->type ) $this->shipable = true;
 			if ( isset($purchase->inventory) && Shopp::str_true($purchase->inventory) ) $this->stocked = true;
-			if ( is_string($purchase->data) ) $purchase->data = unserialize($purchase->data);
-			if ('yes' == $purchase->addons) {
-				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
-				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
+			if ( is_string($purchase->data) )
+				$purchase->data = maybe_unserialize($purchase->data);
+			if ( 'yes' == $purchase->addons ) {
+				$purchase->addons = new ObjectMeta($purchase->id, 'purchased', 'addon');
+				if ( ! $purchase->addons )
+					$purchase->addons = new ObjectMeta();
 				foreach ( $purchase->addons->meta as $Addon ) {
 					$addon = $Addon->value;
 					if ( 'Download' == $addon->type ) $this->downloads = true;
@@ -155,16 +150,37 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		return ($this->captured == $this->total || $legacy);
 	}
 
-	static function unstock ( UnstockOrderEvent $Event ) {
-		if (empty($Event->order)) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
+	public function capturable () {
+		if (!$this->authorized) return 0.0;
+		return ($this->authorized - (float)$this->captured);
+	}
 
-		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
-		$Purchase = ShoppPurchase();
-		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id) {
-			$Purchase = new ShoppPurchase($Event->order);
+	public function refundable () {
+		if (!$this->captured) return 0.0;
+		return ($this->captured - (float)$this->refunded);
+	}
+
+	public function gateway () {
+		$Shopp = Shopp::object();
+		$Gateways = $Shopp->Gateways;
+
+		$processor = $this->gateway;
+		if ( 'ShoppFreeOrder' == $processor ) return $Gateways->freeorder;
+		if ( isset($Gateways->active[ $processor ]) ) return $Gateways->active[ $processor ];
+		else {
+			foreach ( $Gateways->active as $Gateway ) {
+				if ($processor != $Gateway->name) continue;
+				return $Gateway;
+				break;
+			}
 		}
+		return false;
+	}
 
-		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+	public static function unstock ( UnstockOrderEvent $Event ) {
+		if ( empty($Event->order) ) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
+
+		$Purchase = $Event->order();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
 
 		$prices = array();
@@ -232,19 +248,20 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @param OrderEvent $Event The order event passed by the action hook
 	 * @return void
 	 **/
-	static function status_event ($Event) {
-		if (empty($Event->order)) return new ShoppError('Cannot update. No event order.',false,SHOPP_DEBUG_ERR);
+	public static function event ( $Event ) {
 
-		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
-		$Purchase = ShoppPurchase();
-		if (!isset($Purchase->id) || empty($Purchase->id)) $Purchase = new ShoppPurchase($Event->order);
+		$Purchase = $Event->order();
 
-		// Loaded Purchase does not match the one for the event
-		if ($Purchase->id != $Event->order) return new ShoppError('Cannot update. Loaded purchase does not match the purchase for the event.',false,SHOPP_DEBUG_ERR);
+		if ( ! $Purchase ) {
+			shopp_debug('Cannot update. No event order.');
+			return;
+		}
 
 		// Transaction status is the same as the event, no update needed
-		if ($Purchase->txnstatus == $Event->name)
-			return new ShoppError('Transaction status ('.$Purchase->txnstatus.') for purchase order #'.$Purchase->id.' is the same as the new event, no update necessary.',false,SHOPP_DEBUG_ERR);
+		if ( $Purchase->txnstatus == $Event->name ) {
+			shopp_debug('Transaction status (' . $Purchase->txnstatus . ') for purchase order #' . $Purchase->id . ' is the same as the new event, no update necessary.');
+			return;
+		}
 
 		$status = false;
 		$txnid = false;
@@ -252,31 +269,30 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		// Set transaction status from event name
 		$txnstatus = $Event->name;
 
-		if ( 'refunded' == $txnstatus) { // Determine if this is fully refunded (previous refunds + this refund amount)
-			if (empty($Purchase->events)) $Purchase->load_events(); // Not refunded if less than captured, so don't update txnstatus
-			if ($Purchase->refunded+$Event->amount < $Purchase->captured) $txnstatus = false;
+		if ( 'refunded' == $txnstatus ) { // Determine if this is fully refunded (previous refunds + this refund amount)
+			if ( empty($Purchase->events) ) $Purchase->load_events(); // Not refunded if less than captured, so don't update txnstatus
+			if ( $Purchase->refunded + $Event->amount < $Purchase->captured ) $txnstatus = false;
 		}
-		if ( 'voided' == $txnstatus) { // Determine if the transaction has been cancelled
-			if (empty($Purchase->events)) $Purchase->load_events();
-			if ($Purchase->captured) $txnstatus = false; // If previously captured, don't mark voided
+		if ( 'voided' == $txnstatus ) { // Determine if the transaction has been cancelled
+			if ( empty($Purchase->events) ) $Purchase->load_events();
+			if ( $Purchase->captured ) $txnstatus = false; // If previously captured, don't mark voided
 		}
-
-		if ( 'shipped' == $txnstatus) $txnstatus = false; // 'shipped' is not a valid txnstatus
+		if ( 'shipped' == $txnstatus ) $txnstatus = false; // 'shipped' is not a valid txnstatus
 
 		// Set order workflow status from status label mapping
 		$labels = (array)shopp_setting('order_status');
 		$events = (array)shopp_setting('order_states');
-		$key = array_search($Event->name,$events);
-		if (false !== $key && isset($labels[$key])) $status = (int)$key;
+		$key = array_search($Event->name, $events);
+		if ( false !== $key && isset($labels[ $key ]) ) $status = (int)$key;
 
 		// Set the transaction ID if available
-		if (isset($Event->txnid) && !empty($Event->txnid)) $txnid = $Event->txnid;
+		if ( isset($Event->txnid) && !empty($Event->txnid) ) $txnid = $Event->txnid;
 
-		$updates = compact('txnstatus','txnid','status');
+		$updates = compact('txnstatus', 'txnid', 'status');
 		$updates = array_filter($updates);
 
 		$data = DB::escape($updates);
-		$data = array_map(create_function('$value','return "\'$value\'";'),$data);
+		$data = array_map(create_function('$value', 'return "\'$value\'";'), $data);
 		$dataset = ShoppDatabaseObject::dataset($data);
 
 		if ( ! empty($dataset) ) {
@@ -286,33 +302,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		}
 
 		$Purchase->updates($updates);
-	}
 
-	public function capturable () {
-		if (!$this->authorized) return 0.0;
-		return ($this->authorized - (float)$this->captured);
-	}
-
-	public function refundable () {
-		if (!$this->captured) return 0.0;
-		return ($this->captured - (float)$this->refunded);
-	}
-
-	public function gateway () {
-		$Shopp = Shopp::object();
-		$Gateways = $Shopp->Gateways;
-
-		$processor = $this->gateway;
-		if ( 'ShoppFreeOrder' == $processor ) return $Gateways->freeorder;
-		if ( isset($Gateways->active[ $processor ]) ) return $Gateways->active[ $processor ];
-		else {
-			foreach ( $Gateways->active as $Gateway ) {
-				if ($processor != $Gateway->name) continue;
-				return $Gateway;
-				break;
-			}
-		}
-		return false;
+		return;
 	}
 
 	/**
@@ -324,25 +315,27 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @param OrderEvent $event The OrderEvent object passed by the hook
 	 * @return void
 	 **/
-	public function notifications ( $Event ) {
-		if ( $Event->order != $this->id ) return; // Only handle notifications for events relating to this order
+	public static function notifications ( $Event ) {
+
+		$Purchase = $Event->order();
+		if ( ! $Purchase ) return; // Only handle notifications for events relating to this order
 
 		$defaults = array('note');
 
-		$this->message['event'] = $Event;
-		if ( ! empty($Event->note) ) $this->message['note'] = &$Event->note;
+		$Purchase->message['event'] = $Event;
+		if ( ! empty($Event->note) ) $Purchase->message['note'] = &$Event->note;
 
 		// Generic filter hook for specifying global email messages
 		$messages = apply_filters('shopp_order_event_emails', array(
 			'customer' => array(
-				"$this->firstname $this->lastname",		// Recipient name
-				$this->email,							// Recipient email address
+				"$Purchase->firstname $Purchase->lastname",		// Recipient name
+				$Purchase->email,							// Recipient email address
 				sprintf(__('Your order with %s has been updated', 'Shopp'), shopp_setting('business_name')), // Subject
 				"email-$Event->name.php"),				// Template
 			'merchant' => array(
 				'',										// Recipient name
 				shopp_setting('merchant_email'),		// Recipient email address
-				sprintf(__('Order #%s: %s', 'Shopp'), $this->id, $Event->label()), // Subject
+				sprintf(__('Order #%s: %s', 'Shopp'), $Purchase->id, $Event->label()), // Subject
 				"email-merchant-$Event->name.php")		// Template
 		));
 
@@ -370,7 +363,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			// and if an email has not already been sent to the recipient
 			if ( ! empty($file) && ! in_array($email, $Event->_emails) ) {
 
-				if ( $this->email($addressee, $email, $subject, array($template)) )
+				if ( $Purchase->email($addressee, $email, $subject, array($template)) )
 					$Event->_emails[] = $email;
 
 			}
@@ -395,58 +388,41 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 *
 	 * @return void
 	 **/
-	public function success ($Purchase) {
-		if ($Purchase->id != $this->id) return; // Only handle notifications for events relating to this order
+	public function success ( $Purchase ) {
 
-		// Set the global purchase object to enable the Theme API
-		ShoppPurchase($Purchase);
-
-		$templates = array('email-order.php','order.php','order.html');
+		$templates = array('email-order.php', 'order.php', 'order.html');
 
 		// Generic filter hook for specifying global email messages
-		$messages = apply_filters('shopp_order_success_emails',array(
+		$messages = apply_filters('shopp_order_success_emails', array(
 			'customer' => array(
-				"$this->firstname $this->lastname",										// Recipient name
-				$this->email,															// Recipient email address
-				sprintf(__('Your order with %s', 'Shopp'), shopp_setting('business_name')), // Subject
-				array('email-order.php','order.php','order.html')),						// Templates
+				"$Purchase->firstname $Purchase->lastname",									// Recipient name
+				$Purchase->email,														// Recipient email address
+				Shopp::__('Your order with %s', shopp_setting('business_name')),	// Subject
+				$templates),														// Templates
 			'merchant' => array(
-				shopp_setting('business_name')	,										// Recipient name
-				shopp_setting('merchant_email'),										// Recipient email address
-				sprintf(__('New Order - %s', 'Shopp'), $this->id),					 	// Subject
-				array_merge(array('email-merchant-order.php'),$templates))				// Templates
+				shopp_setting('business_name'),										// Recipient name
+				shopp_setting('merchant_email'),									// Recipient email address
+				Shopp::__('New Order - %s', $Purchase->id),								// Subject
+				array_merge(array('email-merchant-order.php'), $templates))			// Templates
 		));
 
 		// Remove merchant notification if disabled in receipt copy setting
-		if (!shopp_setting_enabled('receipt_copy')) unset($messages['merchant']);
+		if ( ! shopp_setting_enabled('receipt_copy') ) unset($messages['merchant']);
 
-		foreach ($messages as $name => $message) {
-			list($addressee,$email,$subject,$templates) = $message;
+		foreach ( $messages as $name => $message ) {
+			list($addressee, $email, $subject, $templates) = $message;
 
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
-			$this->email($addressee,$email,$subject,$templates);
+			$Purchase->email($addressee, $email, $subject, $templates);
 		}
 
 	}
 
-	/**
-	 * Deprecated
-	 *
-	 * @deprecated
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function notification ($addressee,$address,$subject,$template='order.php',$receipt='receipt.php') {
-		$this->email($addressee,$address,$subject,array($template));
-	}
+	public function email ( $addressee, $address, $subject, array $templates = array() ) {
+		global $is_IIS;
 
-	public function email ($addressee,$address,$subject,$templates=array()) {
-		global $Shopp,$is_IIS;
-
-		new ShoppError("ShoppPurchase::email(): $addressee,$address,$subject,"._object_r($templates),false,SHOPP_DEBUG_ERR);
+		shopp_debug("ShoppPurchase::email(): $addressee,$address,$subject,"._object_r($templates));
 
 		// Build the e-mail message data
 		$_ = array();
@@ -461,8 +437,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;
 
-		$email = apply_filters('shopp_email_receipt_data',$email);
-		$email = apply_filters('shopp_purchase_email_message',$email);
+		$email = apply_filters('shopp_email_receipt_data', $email);
+		$email = apply_filters('shopp_purchase_email_message', $email);
 		$this->message = array_merge($this->message,$email);
 
 		// Load and process the template file
@@ -471,16 +447,18 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		$template = Shopp::locate_template($emails);
 
-		if (!file_exists($template))
-			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
+		if ( ! file_exists($template) ) {
+			shopp_add_error(Shopp::__('A purchase notification could not be sent because the template for it does not exist.'), SHOPP_ADMIN_ERR);
+			return false;
+		}
 
 		// Send the email
 		if (Shopp::email($template,$this->message)) {
-			shopp_debug('A purchase notification was sent to: '.$this->message['to']);
+			shopp_debug('A purchase notification was sent to: ' . $this->message['to']);
 			return true;
 		}
 
-		shopp_debug('A purchase notification FAILED to be sent to: '.$this->message['to']);
+		shopp_debug('A purchase notification FAILED to be sent to: ' . $this->message['to']);
 		return false;
 	}
 
@@ -565,13 +543,12 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 	public function save () {
 		$new = false;
-		if (empty($this->id)) $new = true;
+		if ( empty($this->id) ) $new = true;
 
-		if (!empty($this->card) && strlen($this->card) > 4)
-			$this->card = substr($this->card,-4);
+		if ( ! empty($this->card) && strlen($this->card) > 4 )
+			$this->card = substr($this->card, -4);
+
 		parent::save();
-
-		if ($new && !empty($this->id)) $this->listeners();
 	}
 
 	public function delete () {
@@ -581,8 +558,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	public function delete_purchased () {
-		if (empty($this->purchased)) $this->load_purchased();
-		foreach ($this->purchased as $item) {
+		if ( empty($this->purchased) ) $this->load_purchased();
+		foreach ( $this->purchased as $item ) {
 			$Purchased = new ShoppPurchased();
 			$Purchased->populate($item);
 			$Purchased->delete();
@@ -919,10 +896,14 @@ class PurchasesIIFExport extends PurchasesExport {
 	}
 }
 
+// Attach the notification system to order events
+add_action('shopp_order_event', array('ShoppPurchase', 'notifications'));
+add_action('shopp_order_notifications', array('ShoppPurchase', 'success'));
+
 // Automatically update the orders from order events
-$updates = array('invoiced','authed','captured','shipped','refunded','voided');
-foreach ($updates as $event) // Scheduled before default actions so updates are reflected in later actions
-	add_action( 'shopp_'.$event.'_order_event', array('ShoppPurchase','status_event'), 5 );
+$updates = array('invoiced', 'authed', 'captured', 'shipped', 'refunded', 'voided');
+foreach ( $updates as $event ) // Scheduled before default actions so updates are reflected in later actions
+	add_action( 'shopp_' . $event . '_order_event', array('ShoppPurchase', 'event'), 5 );
 
 // Handle unstock event
-add_action('shopp_unstock_order_event', array('ShoppPurchase','unstock'));
+add_action('shopp_unstock_order_event', array('ShoppPurchase', 'unstock'));

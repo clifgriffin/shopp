@@ -144,7 +144,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		do_action_ref_array('shopp_' . $action . '_order_event', array($this));
  		do_action_ref_array('shopp_order_event', array($this));
 
-
  	}
 
 	public function msgprops () {
@@ -160,16 +159,16 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		return $message;
  	}
 
-	public function datatype ($var) {
- 		if (is_array($var)) return 'array';
- 		if (is_bool($var)) return 'boolean';
- 		if (is_float($var)) return 'float';
- 		if (is_int($var)) return 'integer';
- 		if (is_null($var)) return 'NULL';
- 		if (is_numeric($var)) return 'numeric';
- 		if (is_object($var)) return 'object';
- 		if (is_resource($var)) return 'resource';
- 		if (is_string($var)) return 'string';
+	public function datatype ( $var ) {
+ 		if ( is_array($var) ) return 'array';
+ 		if ( is_bool($var) ) return 'boolean';
+ 		if ( is_float($var) ) return 'float';
+ 		if ( is_int($var) ) return 'integer';
+ 		if ( is_null($var) ) return 'NULL';
+ 		if ( is_numeric($var) ) return 'numeric';
+ 		if ( is_object($var) ) return 'object';
+ 		if ( is_resource($var) ) return 'resource';
+ 		if ( is_string($var) ) return 'string';
  		return 'unknown type';
  	}
 
@@ -226,6 +225,21 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		if( $index > 0 && isset($labels[$index]) )
  			return $labels[$index];
  	}
+
+	public function order () {
+		if ( empty($this->order) ) return false;
+
+		// If global purchase context is not a loaded Purchase object, load the purchase associated with the order
+		$Purchase = ShoppPurchase();
+		if ( ! isset($Purchase->id) || empty($Purchase->id) || $this->order != $Purchase->id )
+			$Purchase = ShoppPurchase( new ShoppPurchase($this->order) );
+
+		if ( ! isset($Purchase->id) || empty($Purchase->id) ) return false;
+
+		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+
+		return $Purchase;
+	}
 
  } // END class OrderEvent
 

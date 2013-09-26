@@ -179,15 +179,22 @@ class ShoppOrder {
 	 **/
 	public function txnupdates () {
 
-		add_action('shopp_txn_update',create_function('',"status_header('200'); exit();"),101); // Default shopp_txn_update requests to HTTP status 200
+		add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
 
 		if ( ! empty($_REQUEST['_txnupdate']) )
 			return do_action('shopp_txn_update');
 
 	}
 
+	/**
+	 * Set the taxable address
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function taxaddress () {
-		// Set the taxable address address
 		$this->Tax->address($this->Billing, $this->Shipping, $this->Cart->shipped());
 	}
 
@@ -254,19 +261,21 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function captured ($Event) {
+	public function captured ( $Event ) {
 
 		if ( 'authed' == $Event->name ) {
 			if ( ! isset($Event->capture) ) return;
 			if ( ! $Event->capture ) return;
+			$Event->fees = 0;
 		}
 
 		shopp_add_order_event($Event->order, 'captured', array(
 			'txnid' => $Event->txnid,				// Can be either the original transaction ID or an ID for this transaction
 			'amount' => $Event->amount,				// Capture of entire order amount
 			'fees' => $Event->fees,					// Transaction fees taken by the gateway net revenue = amount-fees
-			'gateway' => $Event->gateway			// Gateway handler name (module name from @subpackage)
+			'gateway' => $Event->gateway			// Gateway class name
 		));
+
 	}
 
 	/**
@@ -298,8 +307,8 @@ class ShoppOrder {
 		// Return a string of 'auth' for auth processing, or 'sale' for sale processing
 		// For advanced overrides, gateways can provide custom callbacks as a standard PHP object callback array: array($this,'customhandler')
 		if ( ! empty($Purchase->gateway) ) {
-			$gateway = sanitize_key($Purchase->gateway);
-			$processing = apply_filters('shopp_purchase_order_'.$gateway.'_processing', $processing, $Purchase);
+			$processing = apply_filters('shopp_purchase_order_' . sanitize_key($Purchase->gateway) . '_processing', $processing, $Purchase);
+			$processing = apply_filters('shopp_purchase_order_' . GatewayModules::hookname($Purchase->gateway) . '_processing', $processing, $Purchase);
 		}
 
 		// General order processing filter override
@@ -322,7 +331,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function auth ($Purchase) {
+	public function auth ( $Purchase ) {
 
 		add_action('shopp_authed_order_event', array($this, 'notify'));
 		add_action('shopp_authed_order_event', array($this, 'accounts'));
@@ -343,7 +352,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function sale ($Purchase) {
+	public function sale ( $Purchase ) {
 
 		add_action('shopp_captured_order_event', array($this, 'notify'));
 		add_action('shopp_captured_order_event', array($this, 'accounts'));
@@ -353,6 +362,7 @@ class ShoppOrder {
 			'gateway' => $Purchase->gateway,
 			'amount' => $Purchase->total
 		));
+
 	}
 
 	/**
@@ -575,12 +585,13 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function notify ($Event) {
-		$Purchase = ShoppPurchase();
-		if ( empty($Purchase) || empty($Purchase->id) )
-			$Purchase = new ShoppPurchase($Event->order); // Load the order if not already loaded
+	public function notify ( $Event ) {
 
-		do_action('shopp_order_notifications',$Purchase);
+		$Purchase = $Event->order();
+		if ( ! $Purchase ) return;
+
+		do_action('shopp_order_notifications', $Purchase);
+
 	}
 
 	/**
@@ -605,6 +616,14 @@ class ShoppOrder {
 
 	}
 
+	/**
+	 * Validates an order prior to submitting for payment processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return boolean True if the order is ready for processing, or void with redirect back to checkout
+	 **/
 	public function validate () {
 		if ( apply_filters('shopp_valid_order', $this->isvalid()) ) return true;
 		shopp_redirect( Shopp::url(false, 'checkout', $this->security()), true );
@@ -711,8 +730,8 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function securecard () {
-		if (!empty($this->Billing->card) && strlen($this->Billing->card) > 4) {
-			$this->Billing->card = substr($this->Billing->card,-4);
+		if ( ! empty($this->Billing->card) && strlen($this->Billing->card) > 4 ) {
+			$this->Billing->card = substr($this->Billing->card, -4);
 
 			// Card data is truncated, switch the cart to normal mode
 			ShoppShopping()->secured(false);
