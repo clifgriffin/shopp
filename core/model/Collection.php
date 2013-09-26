@@ -688,7 +688,7 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	public function delete () {
-		if ( ! $this->id ) return false;
+		if ( empty($this->id) ) return false;
 
 		// Remove WP taxonomy term
 		$status = wp_delete_term($this->id, $this->taxonomy);
@@ -803,9 +803,12 @@ class ProductCategory extends ProductTaxonomy {
 
 	protected $context = 'category';
 	public $api = 'category';
+	public $name = '';
+	public $description = '';
 	public $facets = array();
 	public $filters = array();
 
+	public $parent = false;
 	public $children = array();
 	public $child = false;
 

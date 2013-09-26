@@ -334,6 +334,18 @@ abstract class ShoppAdminController extends ShoppFlowController {
 
 	}
 
+	/**
+	 * Provides the admin screen page value
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string The prefixed admin page name
+	 **/
+	public function page () {
+		return ShoppAdmin()->pagename($this->pagename);
+	}
+
 	private function maintenance () {
 
 		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
