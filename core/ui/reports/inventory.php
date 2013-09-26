@@ -28,7 +28,7 @@ class InventoryReport extends ShoppReportFramework implements ShoppReport {
 		$ordercols = "$ordercols $orderd";
 
 		$id = "pr.product,' ',pr.id";
-		$product_table = WPDatabaseObject::tablename(Product::$table);
+		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
 		$summary_table = ShoppDatabaseObject::tablename(ProductSummary::$table);
 		$price_table = ShoppDatabaseObject::tablename('price');
 		$query = "SELECT CONCAT($id) AS id,

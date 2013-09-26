@@ -584,7 +584,7 @@ class DownloadAsset extends FileAsset {
 	public $purchased = false;
 
 	public function loadby_dkey ($key) {
-		$pricetable = ShoppDatabaseObject::tablename(Price::$table);
+		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 
 		$Purchased = new ShoppPurchased($key,'dkey');
 		if ( ! empty($Purchased->id) ) {

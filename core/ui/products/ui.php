@@ -152,12 +152,12 @@ function shopp_tags_meta_box ($Product, $options) {
 
 // Load all Shopp product taxonomies
 $Shopp = Shopp::object();
-foreach ( get_object_taxonomies(Product::$posttype) as $taxonomy_name ) {
+foreach ( get_object_taxonomies(ShoppProduct::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
 	if ( is_taxonomy_hierarchical($taxonomy_name) )
-		ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', Product::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', Product::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+		ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
 
 }
 
@@ -198,7 +198,7 @@ ShoppUI::addmetabox(
 	'product-settings',
 	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
 	'settings_meta_box',
-	Product::$posttype,
+	ShoppProduct::$posttype,
 	'side',
 	'core'
 );

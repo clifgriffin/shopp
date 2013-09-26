@@ -146,19 +146,19 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ($page == $this->Admin->pagename('products') && ($action !== false || isset($_GET['delete_all']))) {
 			if (isset($_GET['delete_all'])) $action = 'emptytrash';
 			switch ($action) {
-				case 'publish': 	Product::publishset($selected,'publish'); break;
-				case 'unpublish': 	Product::publishset($selected,'draft'); break;
-				case 'feature': 	Product::featureset($selected,'on'); break;
-				case 'defeature': 	Product::featureset($selected,'off'); break;
-				case 'restore': 	Product::publishset($selected,'draft'); break;
-				case 'trash': 		Product::publishset($selected,'trash'); break;
+				case 'publish': 	ShoppProduct::publishset($selected,'publish'); break;
+				case 'unpublish': 	ShoppProduct::publishset($selected,'draft'); break;
+				case 'feature': 	ShoppProduct::featureset($selected,'on'); break;
+				case 'defeature': 	ShoppProduct::featureset($selected,'off'); break;
+				case 'restore': 	ShoppProduct::publishset($selected,'draft'); break;
+				case 'trash': 		ShoppProduct::publishset($selected,'trash'); break;
 				case 'delete':
 					foreach ($selected as $id) {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
 				case 'emptytrash':
 					$Template = new ShoppProduct();
-					$trash = DB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".Product::posttype()."'",'array','col','ID');
+					$trash = DB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".ShoppProduct::posttype()."'",'array','col','ID');
 					foreach ($trash as $id) {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
@@ -313,7 +313,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		// Detect custom taxonomies
-		$taxonomies = array_intersect(get_object_taxonomies(Product::$posttype),array_keys($_GET));
+		$taxonomies = array_intersect(get_object_taxonomies(ShoppProduct::$posttype),array_keys($_GET));
 		if ( ! empty($taxonomies) ) {
 			foreach ($taxonomies as $n => $taxonomy) {
 				global $wpdb;
@@ -348,8 +348,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if (empty($taxrate)) $taxrate = 0;
 
 		// Setup queries
-		$pd = WPDatabaseObject::tablename(Product::$table);
-		$pt = ShoppDatabaseObject::tablename(Price::$table);
+		$pd = WPDatabaseObject::tablename(ShoppProduct::$table);
+		$pt = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$ps = ShoppDatabaseObject::tablename(ProductSummary::$table);
 
 		$orderdirs = array('asc','desc');
@@ -650,8 +650,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		$Price = new ShoppPrice();
 
-		$priceTypes = Price::types();
-		$billPeriods = Price::periods();
+		$priceTypes = ShoppPrice::types();
+		$billPeriods = ShoppPrice::periods();
 
 		$workflows = array(
 			"continue" => __('Continue Editing','Shopp'),
@@ -682,7 +682,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$post_type = ShoppProduct::posttype();
 
 		// For inclusive taxes, add tax to base product price (so tax is part of the price)
-		// This has to take place outside of Product::pricing() so that the summary system
+		// This has to take place outside of ShoppProduct::pricing() so that the summary system
 		// doesn't cache the results causing strange/unexpected price jumps
 		if ( shopp_setting_enabled('tax_inclusive') && !Shopp::str_true($Product->excludetax) ) {
 			foreach ($Product->prices as &$price) {

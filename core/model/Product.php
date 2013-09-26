@@ -308,8 +308,8 @@ class ShoppProduct extends WPShoppObject {
 		foreach ( $terms as $term ) { // Map WP taxonomy data to object meta
 			if ( ! isset($term->term_id) || empty($term->term_id) ) continue; 		// Skip invalid entries
 			if ( ! isset($term->object_id) || empty($term->object_id) ) continue;	// Skip invalid entries
-			if ( isset(Product::$_taxonomies[$term->taxonomy]) ) {
-				$property = Product::$_taxonomies[$term->taxonomy];
+			if ( isset(ShoppProduct::$_taxonomies[$term->taxonomy]) ) {
+				$property = ShoppProduct::$_taxonomies[$term->taxonomy];
 			} else {
 				$property = $term->taxonomy.'s';
 			}
@@ -1002,10 +1002,10 @@ class ShoppProduct extends WPShoppObject {
 		if (empty($id)) return false;
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
-		wp_delete_object_term_relationships($id, get_object_taxonomies(Product::$posttype));
+		wp_delete_object_term_relationships($id, get_object_taxonomies(ShoppProduct::$posttype));
 
 		// Delete prices
-		$table = ShoppDatabaseObject::tablename(Price::$table);
+		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		DB::query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete images/files
@@ -1066,7 +1066,7 @@ class ShoppProduct extends WPShoppObject {
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
 		$slug = sanitize_title_with_dashes($this->name);
-		$this->slug = wp_unique_post_slug($slug, $this->id, $this->status, Product::posttype(), 0);
+		$this->slug = wp_unique_post_slug($slug, $this->id, $this->status, ShoppProduct::posttype(), 0);
 		$this->created = '';
 		$this->modified = '';
 		$this->status = 'draft'; // Set duplicated product to draft status

@@ -353,7 +353,7 @@ class ShoppAjax {
 					$id = 'ID';
 					$name = 'post_title';
 					$table = $wpdb->posts;
-					$where[] = "post_type='".Product::$posttype."'";
+					$where[] = "post_type='".ShoppProduct::$posttype."'";
 					break;
 				case 'shopp_promotions':
 					$id = 'id';

@@ -180,7 +180,7 @@ class ProductCollection implements Iterator {
 
 		$columns = "SQL_CALC_FOUND_ROWS " . join(',', $cols) . ( $columns !== false ? ','.$columns : '' );
 		$table = "$Processing->_table AS p";
-		$where[] = "p.post_type='" . Product::posttype() . "'";
+		$where[] = "p.post_type='" . ShoppProduct::posttype() . "'";
 		$joins[$summary_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
 		$options = compact('columns', 'useindex', 'table', 'joins', 'where', 'groupby', 'having', 'limit', 'orderby');
 
@@ -459,7 +459,7 @@ class ProductCollection implements Iterator {
 	}
 
 	static private function taxquery ( $sql ) {
-		$tablename = WPShoppObject::tablename(Product::$table);
+		$tablename = WPShoppObject::tablename(ShoppProduct::$table);
 		$sql = str_replace($tablename . '.', 'p.', $sql);
 		$sql = ltrim($sql, ' AND ');
 		return $sql;
@@ -533,7 +533,7 @@ class ProductTaxonomy extends ProductCollection {
 		$taxonomy = get_class_property($class, 'taxon');
 		$hierarchical = get_class_property($class, 'hierarchical');
 		$slug = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug() . '/' . $namespace : $namespace;
-		register_taxonomy($taxonomy, array(Product::$posttype), array(
+		register_taxonomy($taxonomy, array(ShoppProduct::$posttype), array(
 			'hierarchical' => $hierarchical,
 			'labels' => call_user_func(array($class,'labels'),$class),
 			'show_ui' => true,
@@ -769,7 +769,7 @@ class ProductTaxonomy extends ProductCollection {
 			$where = array(
 				"$wpdb->posts.ID = $wpdb->term_relationships.object_id",
 				"post_status='publish'",
-				"post_type='" . Product::$posttype . "'"
+				"post_type='" . ShoppProduct::$posttype . "'"
 			);
 
 			if ( shopp_setting_enabled('inventory') && ! shopp_setting_enabled('outofstock_catalog') )
@@ -1196,9 +1196,9 @@ class ProductCategory extends ProductTaxonomy {
 	// function alphapages ($loading=array()) {
 	// 	$db =& DB::get();
 	//
-	// 	$catalogtable = ShoppDatabaseObject::tablename(Catalog::$table);
-	// 	$producttable = ShoppDatabaseObject::tablename(Product::$table);
-	// 	$pricetable = ShoppDatabaseObject::tablename(Price::$table);
+	// 	$catalogtable = ShoppDatabaseObject::tablename(ShoppCatalog::$table);
+	// 	$producttable = ShoppDatabaseObject::tablename(ShoppProduct::$table);
+	// 	$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 	//
 	// 	$alphanav = range('A','Z');
 	//
@@ -2114,7 +2114,7 @@ class PromoProducts extends SmartCollection {
 		$this->name = $Promo->name;
 		$this->slug = $this->uri = sanitize_title_with_dashes($this->name);
 
-		$pricetable = ShoppDatabaseObject::tablename(Price::$table);
+		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$this->loading = array('where' => array("p.id IN (SELECT product FROM $pricetable WHERE 0 < FIND_IN_SET($Promo->id,discounts))"));
 	}
 

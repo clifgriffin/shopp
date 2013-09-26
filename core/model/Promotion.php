@@ -42,8 +42,8 @@ class ShoppPromo extends ShoppDatabaseObject {
 
 	function catalog () {
 
-		$product_table = WPDatabaseObject::tablename(Product::$table);
-		$price_table = ShoppDatabaseObject::tablename(Price::$table);
+		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
+		$price_table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 
 		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
 		$where = array();
@@ -130,7 +130,7 @@ class ShoppPromo extends ShoppDatabaseObject {
 	function uncatalog ( $pricetags ) {
 		if ( empty($pricetags) ) return;
 
-		$table = ShoppDatabaseObject::tablename(Price::$table);
+		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$discounted = DB::query("SELECT id,product,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $table WHERE id IN ('" . join(',', $pricetags) . "')", 'array');
 
 		$products = array();

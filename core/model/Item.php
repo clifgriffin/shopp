@@ -612,7 +612,7 @@ class ShoppCartItem {
 		if ( empty($ids) ) return;
 
 		// Update stock in the database
-		$pricetable = ShoppDatabaseObject::tablename(Price::$table);
+		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		foreach ( $ids as $priceline ) {
 			db::query("UPDATE $pricetable SET stock=stock-{$this->quantity} WHERE id='{$priceline}'");
 		}
@@ -678,7 +678,7 @@ class ShoppCartItem {
 		$stock = apply_filters('shopp_cartitem_stock',false,$this);
 		if ($stock !== false) return $stock;
 
-		$table = ShoppDatabaseObject::tablename(Price::$table);
+		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$ids = array($this->priceline);
 
 		if ( ! empty($this->addons) ) {

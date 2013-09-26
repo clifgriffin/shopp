@@ -564,8 +564,8 @@ class ShoppOrder {
 	// public function salestats ($status, &$Purchase) {
 	// 	if (empty($Purchase->id)) return;
 	//
-	// 	$products = ShoppDatabaseObject::tablename(Product::$table);
-	// 	$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
+	// 	$products = ShoppDatabaseObject::tablename(ShoppProduct::$table);
+	// 	$purchased = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
 	//
 	// 	// Transaction status changed
 	// 	if ('CHARGED' == $status) // Now CHARGED, add quantity ordered to product 'sold' stat

@@ -322,7 +322,7 @@ class ShoppAdminDashboard {
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
 
-		$pt = ShoppDatabaseObject::tablename(Price::$table);
+		$pt = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$setting = ( shopp_setting('lowstock_level') );
 
 		$where = array();

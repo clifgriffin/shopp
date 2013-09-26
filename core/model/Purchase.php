@@ -48,7 +48,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		$table = ShoppDatabaseObject::tablename(Purchased::$table);
 		$meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		$price = ShoppDatabaseObject::tablename(Price::$table);
+		$price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$Purchased = new ShoppPurchased();
 		if ( empty($this->id) ) return false;
 		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id", 'array', array($Purchased, 'loader') );
@@ -221,7 +221,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		if ( empty($allocated) ) return;
 
-		$pricetable = ShoppDatabaseObject::tablename(Price::$table);
+		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$lowlevel = shopp_setting('lowstock_level');
 		foreach ( $prices as $price => $data ) {
 			list($productname, $qty) = $data;

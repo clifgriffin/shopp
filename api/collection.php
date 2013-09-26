@@ -76,7 +76,7 @@ function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
 	if ( ! isset($args['rewrite']) ) $args['rewrite'] = array();
 
 	$args['rewrite']['slug'] = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug().'/'.$rewrite_slug : $rewrite_slug;
-	register_taxonomy($taxonomy,Product::$posttype,$args);
+	register_taxonomy($taxonomy,ShoppProduct::$posttype,$args);
 }
 
 /**
@@ -249,7 +249,7 @@ function shopp_rmv_product_tag ( $tag = '' ) {
  * @return int|bool term id on success, false on failure
  **/
 function shopp_add_product_term ( $term = '', $taxonomy = 'shopp_category', $parent = false ) {
-	if ( ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
+	if ( ! in_array($taxonomy, get_object_taxonomies(ShoppProduct::$posttype) ) ) {
 		shopp_debug(__FUNCTION__ . " failed: $taxonomy not a shopp product taxonomy.");
 		return false;
 	}
@@ -324,7 +324,7 @@ function shopp_product_term ( $term = false, $taxonomy = 'shopp_category', $opti
  * @return bool true on success, false on failure
  **/
 function shopp_rmv_product_term ( $term = '', $taxonomy = 'shopp_category' ) {
-	if ( ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
+	if ( ! in_array($taxonomy, get_object_taxonomies(ShoppProduct::$posttype) ) ) {
 		shopp_debug(__FUNCTION__ . " failed: $taxonomy not a shopp product taxonomy.");
 		return false;
 	}
@@ -512,7 +512,7 @@ function shopp_term_products ( $term = false, $taxonomy = 'shopp_category', $opt
 
 	$options = wp_parse_args($options, $defaults);
 
-	if ( ! taxonomy_exists( $taxonomy ) || ! in_array($taxonomy, get_object_taxonomies(Product::$posttype) ) ) {
+	if ( ! taxonomy_exists( $taxonomy ) || ! in_array($taxonomy, get_object_taxonomies(ShoppProduct::$posttype) ) ) {
 		shopp_debug(__FUNCTION__ . " failed: Invalid Shopp taxonomy $taxonomy.");
 		return false;
 	}
@@ -541,7 +541,7 @@ function shopp_term_products ( $term = false, $taxonomy = 'shopp_category', $opt
  * @return int number of products
  **/
 function shopp_catalog_count ( $status = 'publish' ) {
-	$C = wp_count_posts( Product::$posttype );
+	$C = wp_count_posts( ShoppProduct::$posttype );
 	$counts = get_object_vars($C);
 
 	if ( 'total' == $status ) {

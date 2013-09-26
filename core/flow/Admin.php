@@ -146,7 +146,7 @@ class ShoppAdmin extends ShoppFlowController {
 		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminWarehouse',  'products');
 		$this->addpage('categories', Shopp::__('Categories'), 'ShoppAdminCategorize', 'products');
 
-		$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
+		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'object');
 		foreach ( $taxonomies as $t ) {
 			if ( 'shopp_category' == $t->name ) continue;
 			$pagehook = str_replace('shopp_', '', $t->name);
@@ -245,7 +245,7 @@ class ShoppAdmin extends ShoppFlowController {
 
 		// Set capability
 		$capability = isset($this->caps[ $name ]) ? $this->caps[ $name ] : 'none';
-		$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'names');
 		if ( in_array("shopp_$name", $taxonomies) ) $capability = 'shopp_categories';
 
 		// Set controller (callback handler)
@@ -309,7 +309,7 @@ class ShoppAdmin extends ShoppFlowController {
 		global $menu,$submenu;
 		if (!is_array($submenu)) return;
 
-		$taxonomies = get_object_taxonomies(Product::$posttype);
+		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype);
 		foreach ($submenu['shopp-products'] as &$submenus) {
 			$taxonomy_name = str_replace('-','_',$submenus[2]);
 			if (!in_array($taxonomy_name,$taxonomies)) continue;
@@ -324,7 +324,7 @@ class ShoppAdmin extends ShoppFlowController {
 
 	public function taxonomy_menu () {
 		global $parent_file,$taxonomy;
-		$taxonomies = get_object_taxonomies(Product::$posttype);
+		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype);
 		if (in_array($taxonomy,$taxonomies)) $parent_file = 'shopp-products';
 	}
 
@@ -431,7 +431,7 @@ class ShoppAdmin extends ShoppFlowController {
 
 		global $taxonomy;
 		if ( isset($taxonomy) ) { // Prevent loading styles if not on Shopp taxonomy editor
-			$taxonomies = get_object_taxonomies(Product::$posttype);
+			$taxonomies = get_object_taxonomies(ShoppProduct::$posttype);
 			if ( ! in_array($taxonomy, $taxonomies)) return;
 		}
 

@@ -1154,7 +1154,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	public static function url ( $result, $options, $O ) {
 		global $wp_rewrite;
-		return Shopp::url( $wp_rewrite->using_permalinks() ? $O->slug : array(Product::$posttype => $O->slug), false );
+		return Shopp::url( $wp_rewrite->using_permalinks() ? $O->slug : array(ShoppProduct::$posttype => $O->slug), false );
 	 }
 
 	public static function variation ( $result, $options, $O ) {

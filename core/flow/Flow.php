@@ -186,11 +186,11 @@ class ShoppFlow {
 
 	// Admin Bar
 	public function adminbar ( $wp_admin_bar ) {
-		$posttype = get_post_type_object(Product::posttype());
+		$posttype = get_post_type_object(ShoppProduct::posttype());
 		if (empty( $posttype ) || !current_user_can( $posttype->cap->edit_post )) return;
 		$wp_admin_bar->add_menu( array(
 			'parent' => 'new-content',
-			'id' => 'new-'.Product::posttype(),
+			'id' => 'new-'.ShoppProduct::posttype(),
 			'title' => $posttype->labels->singular_name,
 			'href' => admin_url( str_replace('%d','new',$posttype->_edit_link) )
 		) );

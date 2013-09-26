@@ -219,7 +219,7 @@
 						<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 					<?php
 						do_action( 'shopp_manage_product_custom_column', $column, $Product );
-						do_action( 'manage_'.Product::posttype().'_posts_custom_column', $column, $Product );
+						do_action( 'manage_'.ShoppProduct::posttype().'_posts_custom_column', $column, $Product );
 					?>
 						</td>
 					<?php

@@ -213,7 +213,7 @@ class ShoppStorefront extends ShoppFlowController {
 
 		// Handle Taxonomies
 		if ( is_archive() ) {
-			$taxonomies = get_object_taxonomies(Product::$posttype, 'object');
+			$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'object');
 			foreach ( $taxonomies as $t ) {
 				if ( '' == $wp_query->get($t->query_var) ) continue;
 				$taxonomy = $wp_query->get($t->query_var);

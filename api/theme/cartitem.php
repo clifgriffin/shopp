@@ -99,7 +99,7 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	public static function type ( $result, $options, $O ) { return $O->type; }
 
 	public static function url ( $result, $options, $O ) {
-		return Shopp::url( '' == get_option('permalink_structure') ? array(Product::$posttype => $O->slug ) : $O->slug, false );
+		return Shopp::url( '' == get_option('permalink_structure') ? array(ShoppProduct::$posttype => $O->slug ) : $O->slug, false );
 	}
 
 	public static function sku ( $result, $options, $O ) { return $O->sku; }

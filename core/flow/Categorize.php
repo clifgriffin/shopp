@@ -334,8 +334,8 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		$Category->load_images();
 
 		$Price = new ShoppPrice();
-		$priceTypes = Price::types();
-		$billPeriods = Price::periods();
+		$priceTypes = ShoppPrice::types();
+		$billPeriods = ShoppPrice::periods();
 
 		// Build permalink for slug editor
 		$permalink = trailingslashit(Shopp::url())."category/";

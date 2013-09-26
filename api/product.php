@@ -68,7 +68,7 @@ function shopp_add_product ( $data = array() ) {
 	$Product->updates($data, array('meta','categories','prices','tags', 'publish'));
 	$Product->save();
 
-	Product::publishset(array($Product->id), $data['publish']['flag'] ? 'publish' : 'draft');
+	ShoppProduct::publishset(array($Product->id), $data['publish']['flag'] ? 'publish' : 'draft');
 
 	if ( empty($Product->id) ) {
 		shopp_debug(__FUNCTION__ . " failed: Failure to create new Product object.");
@@ -457,7 +457,7 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 	// single/variant/addon structure
 	$_variant = array(
 		'option' => 'array',	// array option example: Color=>Blue, Size=>Small
-		'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( Price::types() )
+		'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( ShoppPrice::types() )
 		'taxed' => 'bool',		// bool - flag variant as taxable
 		'price' => 'float',		// float - Price of variant
 		'sale' => 'sale',		// array - flag => bool, price => Sale price of variant
@@ -475,7 +475,7 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 	);
 
 	// variant types
-	$_types = Price::types();
+	$_types = ShoppPrice::types();
 	$_type = array();
 	foreach ( $_types as $type ) {
 		$_type[] = $type['value'];
@@ -534,7 +534,7 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 		'period' => 'enum'		// string d for day, w for week, m for month, y for year
 	);
 
-	$_periods = Price::periods();
+	$_periods = ShoppPrice::periods();
 	$_period = array();
 	foreach ( $_periods[0] as $p ) $_period[] = $p['value'];
 
@@ -1136,7 +1136,7 @@ function shopp_product_set_variant ( $variant = false, $data = array(), $context
 		}
 	}
 
-	// 'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( Price::types() )
+	// 'type' => 'enum',		// string - Shipped, Virtual, Download, Donation, Subscription, Disabled ( ShoppPrice::types() )
 	if ( ! isset($data['type']) ) {
 		shopp_debug(__FUNCTION__ . " failed: Required variant type missing.");
 		return false;
@@ -1720,7 +1720,7 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 
 
 	// clean up old variations
-	$table = ShoppDatabaseObject::tablename(Price::$table);
+	$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 	db::query("DELETE FROM $table WHERE product=$product AND context='variation'");
 
 	$prices = array();
@@ -1812,7 +1812,7 @@ function shopp_product_variant_set_type ( $variant = false, $type = 'N/A', $cont
 	}
 
 	$types = array();
-	foreach ( Price::types() as $t ) {
+	foreach ( ShoppPrice::types() as $t ) {
 		$types[] = $t['value'];
 	}
 
@@ -2290,7 +2290,7 @@ function shopp_product_set_addon_options ( $product = false, $options = array(),
 
 
 	// clean up old variations
-	$table = ShoppDatabaseObject::tablename(Price::$table);
+	$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 	db::query("DELETE FROM $table WHERE product=$product AND context='addon'");
 
 	$prices = array();

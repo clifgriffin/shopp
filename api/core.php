@@ -393,7 +393,7 @@ function is_shopp_taxonomy ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query = $wp_the_query; }
 
 	$object = $wp_query->get_queried_object();
-	$taxonomies = get_object_taxonomies(Product::$posttype, 'names');
+	$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'names');
 
 	return isset($object->taxonomy) && in_array($object->taxonomy, $taxonomies);
 }
@@ -409,7 +409,7 @@ function is_shopp_taxonomy ( $wp_query = false ) {
  **/
 function is_shopp_product ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	$product = $wp_query->get(Product::$posttype);
+	$product = $wp_query->get(ShoppProduct::$posttype);
 	return (bool) $product;
 }
 

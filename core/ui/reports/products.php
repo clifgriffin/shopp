@@ -33,7 +33,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$id = "o.product,' ',o.price";
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
-		$product_table = WPDatabaseObject::tablename(Product::$table);
+		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
 		$summary_table = ShoppDatabaseObject::tablename(ProductSummary::$table);
 		$price_table = ShoppDatabaseObject::tablename('price');
 		$query = "SELECT CONCAT($id) AS id,
