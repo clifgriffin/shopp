@@ -96,80 +96,82 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 * @return void
 	 **/
 	public function workflow () {
-		$Shopp = Shopp::object();
 
 		$defaults = array(
-			'apply' => false,
+			'action' => false,
+			'selected' => array(),
 			'page' => false,
-			'deleting' => false,
-			'delete' => false,
 			'id' => false,
 			'save' => false,
-			'duplicate' => false,
-			'next' => false
-			);
-		$args = array_merge($defaults,$_REQUEST);
-		extract($args,EXTR_SKIP);
+			'next' => false,
+			'_wpnonce' => false
+		);
+		$args = array_merge($defaults, $_REQUEST);
+		extract($args, EXTR_SKIP);
 
-		if (!defined('WP_ADMIN') || !isset($page)
-			|| $page != $this->Admin->pagename('categories'))
-				return false;
+		if ( ! defined('WP_ADMIN') || $page != $this->page() )
+			return false;
 
 		$adminurl = admin_url('admin.php');
 
-		if ( $page == $this->Admin->pagename('categories') && false !== $apply && ! empty($delete) ) {
-			foreach($delete as $deletion) {
-				$Category = new ProductCategory($deletion);
-				if (empty($Category->id)) continue;
-				$Category->delete();
+		if ( 'delete' == $action && wp_verify_nonce($_wpnonce, 'shopp_categories_manager') ) {
+			if ( ! empty($id) ) $selected = array($id);
+			$total = count($selected);
+			foreach ( $selected as $selection ) {
+				$DeletedCategory = new ProductCategory($selection);
+				$deleted = $DeletedCategory->name;
+				$DeletedCategory->delete();
 			}
-			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'apply'=>null)),$adminurl));
+			if ( 1 == $total ) $this->notice(Shopp::__('Deleted %s category.', "<strong>$deleted</strong>"));
+			else $this->notice(Shopp::__('Deleted %s categories.', "<strong>$total</strong>"));
+
+			$reset = array('selected' => null, 'action' => null, 'id' => null, '_wpnonce' => null, );
+			$redirect = add_query_arg(array_merge($_GET, $reset), $adminurl);
 			shopp_redirect($redirect);
+			exit;
 		}
 
-		if ($id && $id != "new")
-			$Shopp->Category = new ProductCategory($id);
-		else $Shopp->Category = new ProductCategory();
+		if ( $id && 'new' != $id )
+			$Category = new ProductCategory($id);
+		else $Category = new ProductCategory();
 
-		$meta = array('specs','priceranges','options','prices');
-		foreach ($meta as $prop)
-			if (!isset($Shopp->Category->$prop)) $Shopp->Category->$prop = array();
+		$meta = array('specs', 'priceranges', 'options', 'prices');
+		foreach ( $meta as $prop )
+			if ( ! isset($Category->$prop) ) $Category->$prop = array();
 
-		if ($save) {
-			$this->save($Shopp->Category);
-			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Category->name).'</strong>') );
+		if ( $save ) {
+			$this->save($Category);
 
 			// Workflow handler
-			if (isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow'])) {
+			if ( isset($_REQUEST['settings']) && isset($_REQUEST['settings']['workflow']) ) {
 				$workflow = $_REQUEST['settings']['workflow'];
-				$worklist = $this->worklist;
-				$working = array_search($id,$this->worklist);
+				$working = array_search($id, $this->worklist);
 
-				switch($workflow) {
+				switch( $workflow ) {
 					case 'close': $next = 'close'; break;
 					case 'new': $next = 'new'; break;
-					case 'next': $key = $working+1; break;
-					case 'previous': $key = $working-1; break;
+					case 'next': $key = $working + 1; break;
+					case 'previous': $key = $working - 1; break;
 				}
 
-				if (isset($key)) $next = isset($worklist[$key]) ? $worklist[$key] : 'close';
+				if ( isset($key) ) $next = isset($this->worklist[ $key ]) ? $this->worklist[ $key ] : 'close';
 
 			}
 
-			if ($next) {
-				if ($next != "new")
-					$Shopp->Category = new ProductCategory($next);
-				else $Shopp->Category = new ProductCategory();
+			if ( $next ) {
+				if ( 'new' == $next ) $Category = new ProductCategory();
+				else $Category = new ProductCategory($next);
 			} else {
-				if (empty($id)) $id = $Shopp->Category->id;
-				$Shopp->Category = new ProductCategory($id);
+				if ( empty($id) ) $id = $Category->id;
+				$Category = new ProductCategory($id);
 			}
-
 		}
+
+		ShoppCollection($Category);
 
 	}
 
-	public function load_category ($term,$taxonomy) {
+	public function load_category ( $term, $taxonomy ) {
 		$Category = new ProductCategory();
 		$Category->populate($term);
 
@@ -182,7 +184,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 * @since 1.0
 	 * @return void
 	 **/
-	public function categories ($workflow=false) {
+	public function categories ( $workflow = false ) {
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -322,13 +324,14 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 * @return void
 	 **/
 	public function editor () {
-		global $Shopp,$CategoryImages;
+		global $CategoryImages;
+		$Shopp = Shopp::object();
 
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (empty($Shopp->Category)) $Category = new ProductCategory();
-		else $Category = $Shopp->Category;
+		$Category = ShoppCollection();
+		if ( empty($Category) ) $Category = new ProductCategory();
 
 		$Category->load_meta();
 		$Category->load_images();

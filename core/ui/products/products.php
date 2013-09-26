@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Products','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php'))); ?>" class="add-new-h2"><?php _e('Add New','Shopp'); ?></a> </h2>
+	<h2><?php Shopp::_e('Products'); ?> <a href="<?php echo esc_url(add_query_arg(array('page'=> $this->page(), 'id' => 'new'), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
 
 	<?php do_action('shopp_admin_notices'); ?>
 
@@ -9,7 +9,7 @@
 	<?php include('navigation.php'); ?>
 
 	<div>
-		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('products'); ?>" />
+		<input type="hidden" name="page" value="<?php echo $this->page(); ?>" />
 		<input type="hidden" name="view" value="<?php echo $this->view; ?>" />
 	</div>
 
@@ -70,20 +70,18 @@
 			$delurl = esc_url( add_query_arg( array('selected'=>$Product->id,'action'=>'delete'),$editor_url ) );
 			$category_url = add_query_arg(array('page'=>$this->Admin->pagename('categories')),admin_url('admin.php'));
 
-
 		?>
-			<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+			<tr<?php if ( ! $even) echo " class='alternate'"; $even = !$even; ?>>
 		<?php
 
-			foreach ($columns as $column => $column_title) {
+			foreach ( $columns as $column => $column_title ) {
 				$classes = array($column,"column-$column");
-				if ( in_array($column,$hidden) ) $classes[] = 'hidden';
-
+				if ( in_array($column, $hidden) ) $classes[] = 'hidden';
 
 				switch ($column) {
 					case 'cb':
 					?>
-						<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Product->id; ?>' /></th>
+						<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo esc_attr($Product->id); ?>' /></th>
 					<?php
 					break;
 
