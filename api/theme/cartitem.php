@@ -395,7 +395,7 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 			shopp_setting_enabled('tax_inclusive') &&
 			$O->istaxed &&
 			$O->unittax > 0 &&
-			!$O->excludetax
+			$O->includetax
 		);
 	}
 }
