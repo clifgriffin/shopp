@@ -23,35 +23,35 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
   **/
  class OrderEvent extends SingletonFramework {
 
- 	private static $instance;
+ 	private static $object;
  	private $handlers = array();
 
- 	static function instance () {
- 		if (!self::$instance instanceof self)
- 			self::$instance = new self;
- 		return self::$instance;
+ 	static function object () {
+ 		if ( ! self::$object instanceof self )
+ 			self::$object = new self;
+ 		return self::$object;
  	}
 
  	static function register ( $type, $class ) {
- 		$Dispatch = self::instance();
+ 		$Dispatch = self::object();
  		$Dispatch->handlers[$type] = $class;
  	}
 
  	static function add ( $order, $type, array $message = array() ) {
- 		$Dispatch = self::instance();
+ 		$Dispatch = self::object();
 
  		if ( ! isset($Dispatch->handlers[ $type ]) )
- 			return trigger_error('OrderEvent type "'.$type.'" does not exist.', E_USER_ERROR);
+ 			return trigger_error('OrderEvent type "' . $type . '" does not exist.', E_USER_ERROR);
 
  		$Event = $Dispatch->handlers[$type];
  		$message['order'] = $order;
  		$OrderEvent = new $Event($message);
- 		if (!isset($OrderEvent->_exception)) return $OrderEvent;
+ 		if ( ! isset($OrderEvent->_exception) ) return $OrderEvent;
  		return false;
  	}
 
  	static function events ( $order ) {
- 		$Dispatch = self::instance();
+ 		$Dispatch = self::object();
  		$Object = new OrderEventMessage();
  		$meta = $Object->_table;
  		$query = "SELECT *
@@ -60,11 +60,11 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  						AND type='$Object->type'
  						AND parent='$order'
  					ORDER BY created,id";
- 		return DB::query($query, 'array',array($Object, 'loader'), 'name');
+ 		return DB::query($query, 'array', array($Object, 'loader'), 'name');
  	}
 
  	static function handler ( $name ) {
- 		$Dispatch = self::instance();
+ 		$Dispatch = self::object();
  		if ( isset($Dispatch->handlers[ $name ]) )
  			return $Dispatch->handlers[ $name ];
  	}
@@ -101,12 +101,12 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  		$message = $this->msgprops();
 
- 		if (is_int($data)) $this->load($data);
+ 		if ( is_int($data) ) $this->load($data);
 
   		$this->context = 'purchase';
  		$this->type = 'event';
 
- 		if (!is_array($data)) return;
+ 		if ( ! is_array($data) ) return;
 
  		/* Creating a new event */
  		$data = $this->filter($data);
@@ -114,10 +114,10 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		// Ensure the data is provided
  		$missing = array_diff($this->_xcols, array_keys($data));
 
- 		if (!empty($missing)) {
+ 		if ( ! empty($missing) ) {
  			$params = array();
- 			foreach ($missing as $key) $params[] = "'$key' [{$message[$key]}]";
- 			trigger_error(sprintf('Required %s parameters missing (%s)',get_class($this),join(', ',$params)),E_USER_ERROR);
+ 			foreach ( $missing as $key ) $params[] = "'$key' [{$message[$key]}]";
+ 			trigger_error(sprintf('Required %s parameters missing (%s)', get_class($this), join(', ', $params)), E_USER_ERROR);
  			return $this->_exception = true;
  		}
 
@@ -134,7 +134,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 		shopp_debug(sprintf('%s dispatched.', get_class($this)));
 
- 		if (isset($this->gateway)) {
+ 		if ( isset($this->gateway) ) {
  			$gateway = sanitize_key($this->gateway);
 			if ( 0 === strpos($gateway, 'shopp') )
 				$gateway = substr($gateway, 5);
@@ -149,8 +149,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	public function msgprops () {
  		$message = $this->message;
  		unset($this->message);
- 		if (isset($message) && !empty($message)) {
- 			foreach ($message as $property => &$default) {
+ 		if ( isset($message) && ! empty($message) ) {
+ 			foreach ( $message as $property => &$default ) {
  				$this->$property = false;
  				$this->_xcols[] = $property;
  				$default = $this->datatype($default);
@@ -183,26 +183,26 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  	 * @return void
  	 **/
 	public function loader ( array &$records, &$record, $type = false, $index = 'id', $collate = false ) {
- 		if ($type !== false && isset($record->$type) && class_exists(OrderEvent::handler($record->$type))) {
+ 		if ( $type !== false && isset($record->$type) && class_exists(OrderEvent::handler($record->$type)) ) {
  			$OrderEventClass = OrderEvent::handler($record->$type);
- 		} elseif (isset($this)) {
- 			if ($index == 'id') $index = $this->_key;
+ 		} elseif ( isset($this) ) {
+ 			if ( 'id' == $index ) $index = $this->_key;
  			$OrderEventClass = get_class($this);
  		}
- 		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
+ 		$index = isset($record->$index) ? $record->$index : '!NO_INDEX!';
  		$Object = new $OrderEventClass(false);
  		$Object->msgprops();
  		$Object->populate($record);
  		if (method_exists($Object, 'expopulate'))
  			$Object->expopulate();
 
- 		if ($collate) {
- 			if (!isset($records[$index])) $records[$index] = array();
- 			$records[$index][] = $Object;
- 		} else $records[$index] = $Object;
+ 		if ( $collate ) {
+ 			if ( ! isset($records[ $index ])) $records[ $index ] = array();
+ 			$records[ $index ][] = $Object;
+ 		} else $records[ $index ] = $Object;
  	}
 
-	public function filter ($msg) {
+	public function filter ( $msg ) {
  		return $msg;
  	}
 
@@ -222,7 +222,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  		$index = array_search($this->name, $states);
 
- 		if( $index > 0 && isset($labels[$index]) )
+ 		if( $index > 0 && isset($labels[ $index ]) )
  			return $labels[$index];
  	}
 
@@ -364,11 +364,11 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		'payid' => ''			// Payment ID (last 4 of card or check number)
  	);
 
-	public function __construct ($data) {
+	public function __construct ( $data ) {
 
  		$this->lock($data);
 
- 		if (isset($data['capture']) && true === $data['capture'])
+ 		if ( isset($data['capture']) && true === $data['capture'] )
  			$this->capture = true;
 
  		parent::__construct($data);
@@ -377,13 +377,13 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  	}
 
-	public function filter ($msg) {
+	public function filter ( $msg ) {
 
- 		if (empty($msg['payid'])) return $msg;
+ 		if ( empty($msg['payid']) ) return $msg;
  		$paycards = Lookup::paycards();
- 		foreach ($paycards as $card) { // If it looks like a payment card number, truncate it
- 			if (!empty($msg['payid']) && $card->match($msg['payid']) && $msg['paytype'] == $card->name);
- 				$msg['payid'] = substr($msg['payid'],-4);
+ 		foreach ( $paycards as $card ) { // If it looks like a payment card number, truncate it
+ 			if ( ! empty($msg['payid']) && $card->match($msg['payid']) && $msg['paytype'] == $card->name );
+ 				$msg['payid'] = substr($msg['payid'], -4);
  		}
 
  		return $msg;
@@ -397,19 +397,20 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  	 *
  	 * @return boolean
  	 **/
-	public function lock ($data) {
- 		if (!isset($data['order'])) return false;
+	public function lock ( $data ) {
+ 		if ( ! isset($data['order']) ) return false;
 
  		$order = $data['order'];
  		$locked = 0;
- 		for ($attempts = 0; $attempts < 3 && $locked == 0; $attempts++)
- 			$locked = DB::query("SELECT GET_LOCK('$order',".SHOPP_TXNLOCK_TIMEOUT.") AS locked",'auto','col','locked');
+ 		for ( $attempts = 0; $attempts < 3 && $locked == 0; $attempts++ ) {
+ 			$locked = DB::query("SELECT GET_LOCK('$order'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
+			if ( 0 == $locked ) sleep(1); // Wait a sec before trying again
+ 		}
 
- 		if ($locked == 1) return true;
+ 		if ( 1 == $locked ) return true;
 
- 		new ShoppError(sprintf(__('Purchase authed lock for order %s failed. Could not achieve a lock.','Shopp'),$order),'order_txn_lock',SHOPP_TRXN_ERR);
- 		shopp_redirect( Shopp::url(false,'checkout', ShoppOrder()->security()) );
-
+		shopp_debug("Purchase authed lock for order #$order failed. Could not achieve a lock.");
+ 		shopp_redirect( Shopp::url(false, 'thanks', ShoppOrder()->security()) );
  	}
 
  	/**
@@ -421,9 +422,9 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  	 * @return boolean
  	 **/
 	public function unlock () {
- 		if (!$this->order) return false;
- 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->order') as unlocked",'auto','col','unlocked');
- 		return ($unlocked == 1);
+ 		if ( ! $this->order ) return false;
+ 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->order') as unlocked", 'auto', 'col', 'unlocked');
+ 		return ( 1 == $unlocked );
  	}
 
  }

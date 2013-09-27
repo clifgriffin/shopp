@@ -75,7 +75,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	public function load_events () {
-		$this->events = OrderEvent::instance()->events($this->id);
+		$this->events = OrderEvent::events($this->id);
 		$this->invoiced = false;
 		$this->authorized = false;
 		$this->captured = false;
