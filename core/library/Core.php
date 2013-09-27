@@ -786,10 +786,12 @@ abstract class ShoppCore {
 		$backtrace  = debug_backtrace();
 		$stack = array();
 
-		foreach ( $backtrace as $caller )
+		foreach ( $backtrace as $caller ) {
+			if ( 'debug_caller' == $caller['function'] ) continue;
 			$stack[] = isset( $caller['class'] ) ?
 				"{$caller['class']}->{$caller['function']}"
 				: $caller['function'];
+		}
 
 		return join( ', ', $stack );
 
