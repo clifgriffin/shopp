@@ -2296,8 +2296,7 @@ if ( ! function_exists('mkobject')) {
 		if (!$numeric) settype($data,'object');
 	}
 }
-
-if( ! function_exists('sanitize_path')){
+if ( ! function_exists('sanitize_path') ) {
 	/**
 	 * Normalizes path separators to always use forward-slashes
 	 *
@@ -2313,7 +2312,7 @@ if( ! function_exists('sanitize_path')){
 	 **/
 	function sanitize_path ($path) {
 		return str_replace('\\', '/', $path);
-	};
+	}
 }
 
 if ( ! function_exists('get_class_property') ) {
