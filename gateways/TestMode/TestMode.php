@@ -13,11 +13,11 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppTestMode extends GatewayFramework implements GatewayModule {
 
-	public $secure = false;							// SSL not required
+	public $secure = false;									// SSL not required
 
 	public $refunds = true;
 	public $captures = true;
-	public $cards = array('visa', 'mc', 'disc', 'amex');	// Support cards
+	public $cards = array('visa', 'mc', 'disc', 'amex');	// Supported cards
 
 	/**
 	 * Setup the TestMode gateway
@@ -55,9 +55,6 @@ class ShoppTestMode extends GatewayFramework implements GatewayModule {
 		// If the error option is checked, always generate an error
 		if (Shopp::str_true($this->settings['error']))
 			return new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.", "Shopp"), 'test_mode_error', SHOPP_TRXN_ERR);
-
-		// Set the transaction data for the order
-		$this->Order->transaction($this->txnid(), 'CHARGED');
 		return true;
 	}
 
@@ -82,14 +79,15 @@ class ShoppTestMode extends GatewayFramework implements GatewayModule {
 		$this->handler('voided', $Event);
 	}
 
-	public function handler ( $type, $Event ) {
-		if( ! isset($Event->txnid) ) $Event->txnid = time();
+	public function handler ( $type, OrderEventMessage $Event ) {
+		if( ! isset($Event->txnid) || empty($Event->txnid) ) $Event->txnid = time();
 		if ( Shopp::str_true($this->settings['error']) ) {
-			new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.", 'Shopp'), 'testmode_error', SHOPP_TRXN_ERR);
+			$error = Shopp::__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.");
+			new ShoppError($error, 'testmode_error', SHOPP_TRXN_ERR);
 			return shopp_add_order_event($Event->order, $Event->type . '-fail', array(
 				'amount' => $Event->amount,
 				'error' => 0,
-				'message' => __("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.", 'Shopp'),
+				'message' => $error,
 				'gateway' => $this->module
 			));
 		}
