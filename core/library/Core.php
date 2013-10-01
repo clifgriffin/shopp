@@ -573,23 +573,18 @@ abstract class ShoppCore {
 	 * @param string $target The target directory in the active theme
 	 * @return void
 	 **/
-	public static function copy_templates ($src,$target) {
-		$builtin = array_filter(scandir($src),"filter_dotfiles");
-		foreach ($builtin as $template) {
+	public static function copy_templates ( $src, $target ) {
+		$builtin = array_filter(scandir($src), "filter_dotfiles");
+		foreach ( $builtin as $template ) {
 			$target_file = $target.'/'.$template;
-			if (!file_exists($target_file)) {
-				$src_file = file_get_contents($src.'/'.$template);
-				$file = fopen($target_file,'w');
-				$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
+			if ( ! file_exists($target_file) ) {
+				$src_file = file_get_contents($src . '/' . $template);
+				$file = fopen($target_file, 'w');
+				$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/', '', $src_file); // strip warning comments
 
-				/* Translate Strings @since 1.1 */
-				$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
-				$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
-				$src_file = preg_replace('/\'\.\'/','',$src_file);
-
-				fwrite($file,$src_file);
+				fwrite($file, $src_file);
 				fclose($file);
-				chmod($target_file,0666);
+				chmod($target_file, 0666);
 			}
 		}
 	}
