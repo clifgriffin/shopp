@@ -294,12 +294,12 @@ class CoreTests extends ShoppTestCase {
 		}
 
 		$expected = array(
-			'account.php', 
-			'account-downloads.php', 
-			'account-orders.php', 
+			'account.php',
+			'account-downloads.php',
+			'account-orders.php',
 			'account-profile.php',
 			'cart.php',
-			'catalog.php', 
+			'catalog.php',
 			'category.php',
 			'checkout.php',
 			'confirm.php',
@@ -323,10 +323,11 @@ class CoreTests extends ShoppTestCase {
 			// Check that the expected templates made it across
 			$this->assertContains($tpl_override, $list);
 
+			// Jonathan Davis: I've disabled this since we're not going to copy translations anymore
 			// Check that calls to _e() were stripped
-			$sample = file_get_contents( trailingslashit(self::$template_dir) . $tpl_override);
-			$translators = strpos($sample, '_e(');
-			$this->assertFalse($translators);
+			// $sample = file_get_contents( trailingslashit(self::$template_dir) . $tpl_override);
+			// $translators = strpos($sample, '_e(');
+			// $this->assertFalse($translators);
 
 			// Check that the file header doc was stripped
 			$header_stripped = ( 0 === preg_match('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/', $sample) );
