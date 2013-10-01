@@ -328,7 +328,6 @@ class ImageServer {
 		if ( ! defined('SHOPP_ADDONS') )
 			define('SHOPP_ADDONS', WP_CONTENT_DIR . '/shopp-addons');
 
-		$Errors = ShoppErrors();
 		$Shopp->Storage = new StorageEngines();
 
 		ShoppSettings();
