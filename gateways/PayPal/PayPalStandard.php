@@ -3,11 +3,10 @@
  * PayPal Standard
  *
  * @author Jonathan Davis, John Dillick
- * @copyright Ingenesis Limited, 27 May, 2009
+ * @copyright Ingenesis Limited, May 2009
  * @package shopp
- * @version 1.2.2
+ * @version 1.3
  * @since 1.2
- *
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -19,13 +18,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	public $saleonly = true; // force sale event on processing (no auth)
 	public $recurring = true; // support for recurring payment
 
-	// URLs
-	public $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
-	public $sandboxurl = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
-	public $checkouturl = 'https://www.paypal.com/cgi-bin/webscr';
-
-	// Internals
-	public $baseop = array();
+	private $Message; // PDT and IPN message
 
 	static $currencies = array(
 		'USD', 'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
@@ -42,87 +35,21 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		'US' => 'en_US'
 	);
 
-	// status to event mapping
-	static $events = array(
-		'Voided'            => 'voided',
-		'Denied'            => 'voided',
-		'Expired'           => 'voided',
-		'Failed'            => 'voided',
-		'Refunded'          => 'refunded',
-		'Reversed'          => 'refunded',
-		'Canceled_Reversal' => 'captured',
-		'Canceled-Reversal' => 'captured',
-		'Completed'         => 'captured',
-		'Pending'           => 'purchase',
-		'Processed'         => 'purchase',
-	);
-
-	static $pending_reasons = array();
-	static $eligibility = array();
-	static $reversals = array();
-	static $transactions = array();
+	const APIURL = 'https://www.paypal.com/cgi-bin/webscr';
+	const DEVURL = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
+	const BUTTON = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 
 	public function __construct () {
+
 		parent::__construct();
 
 		$this->setup('account', 'pdtverify', 'pdttoken', 'testmode');
 
-		if ( array_key_exists($this->baseop['country'], self::$locales) )
-			$this->settings['locale'] = self::$locales[ $this->baseop['country'] ];
-		else $this->settings['locale'] = self::$locales['US'];
-
-		$this->buttonurl = sprintf(Shopp::force_ssl($this->buttonurl), $this->settings['locale']);
-
-		if ( ! isset($this->settings['label']) ) $this->settings['label'] = 'PayPal';
-
-		self::$pending_reasons = array(
-			'address' 	     => Shopp::__('The customer did not include a confirmed shipping address.'),
-			'echeck'         => Shopp::__('The eCheck that has not yet cleared'),
-			'intl'           => Shopp::__('You must manually accept or deny transactions for your non-US account.'),
-			'multi-currency' => Shopp::__('You must manually accept or deny a transaction in this currency.'),
-			'order'          => Shopp::__('You set the payment action to Order and have not yet captured funds.'),
-			'paymentreview'  => Shopp::__('The payment is pending while it is being reviewed by PayPal for risk.'),
-			'unilateral'     => Shopp::__('The payment is pending because it was made to an email address that is not yet registered or confirmed.'),
-			'upgrade'        => Shopp::__('Contact PayPal Customer Service to see if your account needs to be upgraded.'),
-			'verify'         => Shopp::__('Your account is not yet verified.'),
-			'other'          => Shopp::__('Contact PayPal Customer Service to determine why payment was not completed.'),
-		);
-
-		self::$eligibility = array(
-			'ExpandedSellerProtection' => Shopp::__('Eligible for PayPal’s Expanded Seller Protection'),
-			'SellerProtection'         => Shopp::__('Eligible for PayPal’s Seller Protection'),
-			'None'                     => Shopp::__('Not Eligible for PayPal’s Seller Protection')
-		);
-
-		self::$reversals = array(
-			'adjustment_reversal'      => Shopp::__('Reversal of an adjustment'),
-			'buyer-complaint'          => Shopp::__('Reversal on customer complaint.'),
-			'buyer_complaint'          => Shopp::__('Reversal on customer complaint.'),
-			'chargeback'               => Shopp::__('Reversal on chargeback.'),
-			'chargeback_reimbursement' => Shopp::__('Reimbursement for a chargeback'),
-			'chargeback_settlement'    => Shopp::__('Settlement of a chargeback'),
-			'guarantee'                => Shopp::__('Reversal due to a money-back guarantee.'),
-			'other'                    => Shopp::__('Non-specified reversal.'),
-			'refund'                   => Shopp::__('Reversal by merchant refund.'),
-		);
-
-		self::$transactions = array(
-			'chargeback'                        => Shopp::__('A credit card chargeback has occurred'),
-			'adjustment'                        => Shopp::__('A dispute has been resolved and closed'),
-			'cart'                              => false,
-			'new_case'                          => Shopp::__('A payment dispute has been filed.'),
-			'recurring_payment'                 => Shopp::__('Recurring payment received'),
-			'recurring_payment_expired'         => Shopp::__('Recurring payment expired'),
-			'recurring_payment_profile_created' => Shopp::__('Recurring payment profile created'),
-			'recurring_payment_skipped'         => Shopp::__('Recurring payment skipped'),
-			'subscr_cancel'                     => Shopp::__('Subscription canceled'),
-			'subscr_eot'                        => Shopp::__('Subscription expired'),
-			'subscr_failed'                     => Shopp::__('Subscription signup failed'),
-			'subscr_payment'                    => Shopp::__('Subscription payment received'),
-			'subscr_signup'                     => Shopp::__('Subscription started')
-		);
+		if ( ! isset($this->settings['label']) )
+			$this->settings['label'] = 'PayPal';
 
 		add_filter('shopp_gateway_currency', array(__CLASS__, 'currencies'));
+		add_filter('shopp_themeapi_cart_paypal', array($this, 'cartapi'));
 		// add_filter('shopp_themeapi_cart_paypal', array($this, 'sendcart'), 10, 2); // provides shopp('cart.paypal') checkout button
 		add_filter('shopp_checkout_submit_button', array($this, 'submit'), 10, 3); // replace submit button with paypal image
 
@@ -132,15 +59,17 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		// order event handlers
 		add_filter('shopp_purchase_order_paypalstandard_processing', array($this, 'processing'));
-		add_action('shopp_paypalstandard_sale', array($this,'sale'));
+		add_action('shopp_paypalstandard_sale', array($this, 'auth'));
+		add_action('shopp_paypalstandard_auth', array($this, 'auth'));
+		add_action('shopp_paypalstandard_capture', array($this, 'capture'));
+		add_action('shopp_paypalstandard_refund', array($this, 'refund'));
+		add_action('shopp_paypalstandard_void', array($this, 'void'));
 
 	}
 
 	/**
-	 * actions
-	 *
-	 * These action callbacks are only established when the current Order::processor() is set to this module.
-	 * All other general actions belong in the constructor
+	 * These action callbacks are only established when the payment method is set to this module.
+	 * All other general actions belong in the constructor.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -148,189 +77,165 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	public function actions () {
-		// add_action('shopp_order_confirm_needed', array($this, 'force_confirm'), 9); // intercept checkout request, force confirm
-		// add_action('shopp_init_confirmation', array($this, 'confirmation')); // replace confirm order page with paypal form
-		add_action('template_redirect', array($this, 'returned')); // wipes shopping session on thanks page load
+		add_filter('shopp_themeapi_checkout_confirmbutton', array($this, 'confirm'), 10, 3); // replace submit button with paypal image
 	}
 
 	public function processing ( $processing ) {
 		return array($this, 'uploadcart');
 	}
 
-	// ORDER EVENT HANDLER
 
 	/**
-	 * sale
+	 * Process a sale
 	 *
-	 * the shopp_paypalstandard_sale event handler, responsible for issuing authed event (with or without capture)
+	 * Hooks the notify, accounts and success order handlers to the authed
+	 * to ensure order emails and logins are created once a payment is in progress.
 	 *
-	 * @author John Dillick
-	 * @since 1.2
+	 * @author Jonathan Davis
+	 * @since 1.3
 	 *
+	 * @param Purchase $Purchase The purchase order to process a sale for
 	 * @return void
 	 **/
-	public function sale ( $Event ) {
+	public function sale ( ShoppPurchase $Purchase ) {
 
-		// check payer_status
-		if ( isset($this->response->payer_status) ) {
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'notify'));
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'accounts'));
+		add_action('shopp_authed_order_event', array(ShoppOrder(), 'success'));
+
+		shopp_add_order_event($Purchase->id, 'sale', array(
+			'gateway' => $Purchase->gateway,
+			'amount' => $Purchase->total
+		));
+
+	}
+
+	// ORDER EVENT HANDLERS
+
+	/**
+	 * Marks the order as authorized (+captured when payment is completed)
+	 *
+	 * @author John Dillick, Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param AuthOrderEvent|SaleOrderEvent $Event The 'auth' event message
+	 * @return void
+	 **/
+	public function auth ( OrderEventMessage $Event ) {
+
+		$Message = $this->Message;
+
+		if ( $payer_status = $Message->payer() ) { // Note the payer status
 			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'payer_status',
-				'note' => $this->response->payer_status
+				'note' => $payer_status
 			));
 		}
 
-		// check pending_reason
-		if ( isset($this->response->pending_reason) ) {
+
+		if ( $pending_reasons = $Message->reason() ) { // Note pending reasons
 			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'pending_reasons',
-				'note' => (
-					in_array( $this->response->pending_reason, array_keys( self::$pending_reasons ) ) ?
-					self::$pending_reasons[ $this->response->pending_reason ] :
-					self::$pending_reasons['other']
-					)
+				'note' => $pending_reasons
 			));
 		}
 
-		// check protection_eligibility
-		if ( isset($this->response->protection_eligibility) ) {
-			$eligibility = $this->response->protection_eligibility;
-			if ( in_array($this->response->protection_eligibility, array_keys(self::$eligibility)) ) {
-				$eligibility = self::$eligibility[$this->response->protection_eligibility];
-			}
+		if ( $protection_eligibility = $Message->protection() ) { // Note protection eligibility
 			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'protection_eligibility',
-				'note' => $eligibility
+				'note' => $protection_eligibility
 			));
 		}
 
-		$Paymethod = $this->Order->Payments->selected();
-		$Billing = $this->Order->Billing;
-
-		$message = array(
-			'txnid' => $this->response->txnid,						// Transaction ID
-			'amount' => $this->response->amount,					// Gross amount authorized
-			'gateway' => $this->module,								// Gateway handler name (module name from @subpackage)
-			'paymethod' => $Paymethod->label,						// Payment method (payment method label from payment settings)
-			'paytype' => $Billing->cardtype,						// Type of payment (check, MasterCard, etc)
-			'payid' => $Billing->card,								// Payment ID (last 4 of card or check number)
-			'capture' => ( 'captured' == $this->response->event )	// Capture flag
+		$authed = array(
+			'txnid' => $Message->txnid(),						// Transaction ID
+			'amount' => $Message->amount(),						// Gross amount authorized
+			'gateway' => $this->module,							// Gateway handler name (module name from @subpackage)
+			'paymethod' => $this->settings['label'],			// Payment method (payment method label from payment settings)
+			'paytype' => $Message->paytype(),					// Type of payment (eCheck, or instant payment)
+			'payid' => $Message->email(),						// Payment ID (PayPal customer account email)
+			'capture' => ( $captured = $Message->captured() )	// Capture flag
 		);
-		if ( 'captured' == $this->response->event && isset($this->response->fees) )
-			$message['fees'] = $this->response->fees;
 
-		shopp_add_order_event($Event->order, 'authed', $message);
+		if ( $captured && $fees = $Message->fees() )
+			$authed['fees'] = $fees;
+
+		shopp_add_order_event($Event->order, 'authed', $authed);
 
 	}
 
 	/**
-	 * captured
+	 * Mark an order payment as 'captured' (completed)
 	 *
-	 * handled notification from PayPal indicating that payment has been captured.  Payment was previously pending.
-	 *
-	 * @author John Dillick
+	 * @author Jonathan Davis
+	 * @version 1.3
 	 * @since 1.2
 	 *
+	 * @param CaptureOrderEvent $Event The 'capture' event message
 	 * @return void
 	 **/
-	public function captured ( $Purchase ) {
-		$Purchase->load_events();
-		if ( ! ($Purchase->balance > 0) ) return; // no more to capture
+	public function capture ( CaptureOrderEvent $Event ) {
+		$Message = $this->Message;
 
-		// check for reason_code
-		if ( isset($this->response->reason_code) ) {
-			// self::$reversals
-			shopp_add_order_event( $Purchase->order, 'review', array(
+		if ( $reversal = $Message->reversal() ) { // Log any reversal messages
+			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'reason',
-				'note' => (
-					in_array( $this->response->reason_code, array_keys( self::$reversals ) ) ?
-					self::$reversals[$this->response->reason_code] :
-					self::$reversals['other']
-					)
+				'note' => $reversal
 			));
 		}
 
-		shopp_add_order_event($Purchase->id, 'captured', array(
-			'txnid' => $this->response->txnid,		// Transaction ID of the CAPTURE event
-			'amount' => $this->response->amount,	// Amount captured
-			'fees' => $this->response->fees,		// Transaction fees taken by the gateway net revenue = amount-fees
-			'gateway' => $this->module				// Gateway handler name (module name from @subpackage)
+		shopp_add_order_event($Event->order, 'captured', array(
+			'txnid' => $Message->txnid(),		// Transaction ID of the CAPTURE event
+			'amount' => $Event->amount,		// Amount captured
+			'fees' => $Event->fees,			// Transaction fees taken by the gateway net revenue = amount-fees
+			'gateway' => $this->module		// Gateway handler name (module name from @subpackage)
 		));
 	}
 
 	/**
-	 * refunded
+	 * Mark an order as 'refunded'
 	 *
-	 * handled notification from PayPal indicating that refund has been issued.
-	 *
-	 * @author John Dillick
+	 * @author John Dillick, Jonathan Davis
+	 * @version 1.3
 	 * @since 1.2
 	 *
+	 * @param RefundOrderEvent $Event The 'refund' order event message
 	 * @return void
 	 **/
-	public function refunded ( $Purchase ) {
-		if ( $Purchase->refunded == $Purchase->total ) return; // no more refunds
-
-		// check for reason_code
-		if ( isset($this->response->reason_code) ) {
-			// self::$reversals
-			shopp_add_order_event( $Purchase->id, 'review', array(
+	public function refund ( RefundOrderEvent $Event ) {
+		$Message = $this->Message;
+		if ( $reversal = $Message->reversal() ) { // Log any reversal messages
+			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'reason',
-				'note' => (
-					in_array( $this->response->reason_code, array_keys( self::$reversals ) ) ?
-					self::$reversals[$this->response->reason_code] :
-					self::$reversals['other']
-					)
+				'note' => $reversal
 			));
 		}
 
-		shopp_add_order_event($Purchase->id, 'refunded', array(
-			'txnid' => $this->response->txnid,		// Transaction ID for the REFUND event
-			'amount' => $this->response->amount,	// Amount refunded
-			'gateway' => $this->module				// Gateway handler name (module name from @subpackage)
+		shopp_add_order_event($Event->order, 'refunded', array(
+			'txnid' => $Message->txnid(),		// Transaction ID for the REFUND event
+			'amount' => $Message->amount(),		// Amount refunded
+			'gateway' => $this->module			// Gateway handler name (module name from @subpackage)
 		));
-	}
 
-
-	public function voided ( $Purchase ) {
-		if ( $Purchase->isvoid() ) return; // already voided
-
-		shopp_add_order_event($Purchase->id, 'voided', array(
-			'txnid' => $this->response->new_txnid,	// Transaction ID
-			'txnorigin' => $this->response->txnid,	// Original Transaction ID
-			'gateway' => $this->module				// Gateway handler name (module name from @subpackage)
-		));
+		$this->void( $Event );
 	}
 
 	/**
-	 * confirmation
-	 *
-	 * replaces the confirm order form to submit cart to PPS
+	 * Mark an order as 'voided' (cancelled)
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @since 1.3
 	 *
+	 * @param OrderEventMessage $Event A RefundOrderEvent or VoidOrderEvent message
 	 * @return void
 	 **/
-	public function confirmation () {
-		add_filter('shopp_confirm_url', array($this, 'url'));
-		add_filter('shopp_confirm_form', array($this, 'form'));
-		add_filter('shopp_themeapi_checkout_confirmbutton', array($this, 'confirm'), 10, 3); // replace submit button with paypal image
-	}
-
-	/**
-	 * force_confirm
-	 *
-	 * forces the checkout request to go to order confirmation so that the confirm order form can be replaced for PPS
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function force_confirm ( $confirm ) {
-		$this->Order->Billing->cardtype = 'PayPal';
-		$this->Order->confirm = true;
-		return true;
+	public function void ( OrderEventMessage $Event ) {
+		$Message = $this->Message;
+		shopp_add_order_event($Event->order, 'voided', array(
+			'txnid' => $Message->txnid(),			// Transaction ID
+			'txnorigin' => $Message->txnorigin(),	// Original Transaction ID
+			'gateway' => $this->module				// Gateway handler name (module name from @subpackage)
+		));
 	}
 
 	/**
@@ -343,8 +248,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return array The modified list of button tags
 	 **/
-	public function submit ( $tag = false, $options = array(), $attrs = array() ) {
-		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" class="checkout-button" '.inputattrs($options,$attrs).' />';
+	public function submit ( $tag = false, array $options = array(), array $attrs = array() ) {
+		$tag[ $this->settings['label'] ] = '<input type="image" name="process" src="' . $this->buttonurl() . '" class="checkout-button" ' . inputattrs($options, $attrs) . ' />';
 		return $tag;
 	}
 
@@ -356,15 +261,29 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string
 	 **/
-	public function confirm ( $tag = false, $options = array(), $O = null ) {
-		$attrs = array('title','class','value','disabled','tabindex','accesskey');
+	public function confirm ( $tag = false, array $options = array(), $O = null ) {
+		$attrs = array('title', 'class', 'value', 'disabled', 'tabindex', 'accesskey');
 		return join('', $this->submit(array(), $options, $attrs));
 	}
 
 	/**
-	 * url
+	 * Adds shopp('cart','paypal') support. Build a form appropriate for sending to PayPal directly from the cart. used by shopp('cart','paypal')
 	 *
-	 * url returns the live or test paypal url, depending on testmode setting
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return string PayPal cart form
+	 **/
+	public function cartapi () {
+		$result = '<form action="' . $this->url() . '" method="POST">';
+		$result .= $this->form('',array('address_override'=>0));
+		$result .= $this->submit();
+		$result .= '</form>';
+		return $result;
+	}
+
+	/**
+	 * Provides the the live or sandbox url, depending on testmode setting
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -372,7 +291,34 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string checkout url
 	 **/
 	public function url () {
-		return Shopp::str_true($this->settings['testmode']) ? $this->sandboxurl : $this->checkouturl;
+		return Shopp::str_true($this->settings['testmode']) ? self::DEVURL : self::APIURL;
+	}
+
+	/**
+	 * Provides the locale-aware checkout button URL
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string The URL of the "Checkout with PayPal"
+	 **/
+	private function buttonurl () {
+		return sprintf(Shopp::force_ssl(self::BUTTON), $this->locale());
+	}
+
+	/**
+	 * Provides the locale based on the base of operations
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string The locale string
+	 **/
+	private function locale () {
+		$country = 'US';
+		if ( array_key_exists($this->baseop['country'], self::$locales) )
+			$country = $this->baseop['country'];
+		return self::$locales[ $country ];
 	}
 
 	/**
@@ -383,7 +329,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string PayPal cart form
 	 **/
-	public function uploadcart ( $Purchase ) {
+	public function uploadcart ( ShoppPurchase $Purchase ) {
 		$id = sanitize_key($this->module);
 		$title = Shopp::__('Sending order to PayPal&hellip;');
 		$message = '<form id="' . $id . '" action="'.$this->url().'" method="POST">' .
@@ -400,16 +346,15 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	/**
-	 * form
-	 *
-	 * Builds a hidden form to submit to PayPal when confirming the order for processing
+	 * Builds a hidden form to submit the order to PayPal
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @return string PayPal cart form contents
+	 * @param ShoppPurchase $Purchase The order to submit to PayPal
+	 * @return string PayPal order form contents
 	 **/
-	public function form ( $Purchase ) {
+	public function form ( ShoppPurchase $Purchase ) {
 		$Shopping = ShoppShopping();
 		$Order = ShoppOrder();
 		$Customer = $Order->Customer;
@@ -424,11 +369,11 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		// Options
 		if ( Shopp::str_true($this->settings['pdtverify']) )
-			$_['return']			= apply_filters( 'shopp_paypalstandard_returnurl', Shopp::url(array('rmtpay'=>'PPS','utm_nooverride'=>'1'),'checkout',false) );
-		else $_['return']				= Shopp::url(false,'thanks');
+			$_['return']			= apply_filters( 'shopp_paypalstandard_returnurl', Shopp::url(array('rmtpay' => $this->id(), 'utm_nooverride' => '1'), 'checkout', false) );
+		else $_['return']			= Shopp::url(false, 'thanks');
 
-		$_['cancel_return']			= Shopp::url(false,'cart');
-		$_['notify_url']			= Shopp::url(array('_txnupdate'=>'PPS'),'checkout');
+		$_['cancel_return']			= Shopp::url(false, 'cart');
+		$_['notify_url']			= $this->ipnurl();
 		$_['rm']					= 1; // Return with no transaction data
 
 		// Pre-populate PayPal Checkout
@@ -524,12 +469,12 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 			// Line Items
 			$id = 0;
-			foreach( $Order->Cart as $i => $Item ) {
+			foreach ( $Order->Cart as $i => $Item ) {
 				$id++;
-				$_['item_number_'.$id]		= $id;
-				$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
-				$_['amount_'.$id]			= $this->amount($Item->unitprice);
-				$_['quantity_'.$id]			= $Item->quantity;
+				$_[ 'item_number_' . $id ]		= $id;
+				$_[ 'item_name_' . $id ]		= $Item->name . ( ! empty($Item->option->label) ? ' ' . $Item->option->label : '');
+				$_[ 'amount_' . $id ]			= $this->amount($Item->unitprice);
+				$_[ 'quantity_ ' . $id ]			= $Item->quantity;
 				// $_['weight_'.$id]			= $Item->quantity;
 			}
 
@@ -539,12 +484,12 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			// shipping fee is available use 0.01 to satisfy minimum order amount requirements
 			// Additionally, this condition should only be possible when using the shopp('cart','paypal')
 			// Theme API tag which would circumvent normal checkout and use PayPal even for free orders
-			if ((float)$this->amount('order') == 0 || (float)$this->amount('order')-(float)$this->amount('discount') == 0) {
+			if ( (float)$this->amount('order') == 0 || (float)$this->amount('order') - (float)$this->amount('discount') == 0 ) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
 															__('Shipping & Handling','Shopp'));
-				$_['amount_'.$id]			= $this->amount( max((float)$this->amount('shipping'),0.01) );
+				$_['amount_'.$id]			= $this->amount( max((float)$this->amount('shipping'), 0.01) );
 				$_['quantity_'.$id]			= 1;
 			} else
 				$_['handling_cart']			= $this->amount('shipping');
@@ -562,156 +507,6 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	/**
-	 * pdtpassthru
-	 *
-	 * If order data validation fails, causes redirect to thank you page
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return bool valid order
-	 **/
-	public function pdtpassthru ($valid) {
-		if ($valid) return $valid;
-		// If the order data validation fails, passthru to the thank you page
-		shopp_redirect( Shopp::url(false,'thanks') );
-	}
-
-	/**
-	 * returned
-	 *
-	 * resets shopping session in preparation for loading thanks page
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function returned () {
-		if ( ! is_thanks_page() ) return;
-
-		// Session has already been reset after a processed transaction
-		if ( ! empty(ShoppPurchase()->id) ) return;
-
-		// Customer returned from PayPal
-		// but no transaction processed yet
-		// reset the session to preserve original order
-		Shopping::resession();
-
-	}
-
-	/**
-	 * remote
-	 *
-	 * handles the synchronous return from PPS
-	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	public function remote () {
-		if ( 'PPS' != $_REQUEST['rmtpay'] || ! isset($_REQUEST['tx']) ) return; // not PDT message
-		shopp_debug('Processing PDT packet: '._object_r($_REQUEST));
-
-		// Verify the message is authentically from PayPal
-		$authentic = false;
-		if (Shopp::str_true($this->settings['pdtverify'])) {
-			$pdtstatus = $this->verifypdt();
-			if (!$pdtstatus) {
-				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
-				shopp_redirect(Shopp::url(false,'checkout',false));
-			}
-			$authentic = true;
-		}
-
-		// Parse the message
-		$message = array(
-			'amt' => 0,		// Amount of the transaction
-			'cc' => '',		// Currency code
-			'cm' => '', 	// Custom message
-			'sig' => '', 	// Not documented
-			'st' => '',		// Transaction status
-			'tx' => ''		// Transaction ID/PDT token
-		);
-		$message = array_intersect_key($_GET, $message);
-		extract($message, EXTR_SKIP);
-
-		// Attempt to load a previous order from the transaction ID
-		// This can happen when IPN async messages are received before
-		// the customer returns to the storefront
-		// $Purchase = new ShoppPurchase($tx, 'txnid');
-		$Purchase = new ShoppPurchase(ShoppOrder()->inprogress);
-
-		if ( $authentic ) {
-			// build response object
-			$this->response = new stdClass;
-			$this->response->status = $st;
-			$this->response->event = 'captured';
-			$this->response->txnid = $tx;
-			$this->response->fees = 0;
-			$this->response->amount = abs($amt);
-			// if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
-			// if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
-			// if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
-			// if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
-
-			shopp_debug('PDT to response protocol: '._object_r($this->response));
-		}
-
-		/*
-		// create new purchase on PDT if necessary
-		if ( empty($Purchase->id) ) {
-			shopp_debug('PayPal PDT processing: Creating a new order.');
-
-			$event = isset(self::$events[$st])?self::$events[$st]:'purchase';
-			if ( $event == 'voided') return; // the transaction is void of the starting gate. Don't create a purchase.
-
-			// PDT data into response object
-
-			// build response object
-			$this->response = new stdClass;
-			$this->response->status = $st;
-			$this->response->event = $event;
-			$this->response->txnid = $tx;
-			$this->response->fees = 0;
-			$this->response->amount = abs($amt);
-			// if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
-			// if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
-			// if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
-			// if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
-
-			shopp_debug('PDT to response protocol: '._object_r($this->response));
-
-			// only permit purchase creation on unathenticated status
-			if ( ! $authentic ) {
-				shopp_debug('PDT response was not authenticated.  Downgrading status to Pending.');
-				$this->response->status = 'Pending';
-				$this->response->event = 'purchase';
-			}
-
-			shopp_add_order_event(false, 'purchase', array(
-				'gateway' => $this->module,
-				'txnid' => $tx
-			));
-
-			return; // end after purchase creation
-		}*/
-
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'notify'));
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'accounts'));
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'success'));
-
-		shopp_add_order_event($Purchase->id, 'sale', array(
-			'gateway' => $Purchase->gateway,
-			'amount' => $Purchase->total
-		));
-
-		ShoppOrder()->purchase = $Purchase->id;
-		shopp_redirect(Shopp::url(false,'thanks',false));
-	}
-
-	/**
 	 * Updates purchase records from an IPN message
 	 *
 	 * @author Jonathan Davis, John Dillick
@@ -722,156 +517,114 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function ipn () {
 
-		// Not an IPN for PPS
-		if ( 'PPS' != $_REQUEST['_txnupdate'] ) return;
+		if ( ! $this->ipnvalid() ) return;
 
-		// chargeback types vary
-		if ( isset($_POST['txn_type']) && false !== strpos(strtolower($_POST['txn_type']), 'chargeback') ) $_POST['txn_type'] = 'chargeback';
+		$Message = $this->Message;
 
+		shopp_debug('PayPal IPN response protocol: ' . _object_r($Message));
 
-		// Cancel processing if this is not a PayPal IPN message (invalid)
-		if ( ! isset($_POST['txn_type']) || ! in_array($_POST['txn_type'], array_keys(self::$transactions)) ) {
-			shopp_debug('Not a PayPal IPN message. Missing or invalid txn_type.');
-			return false;
-		}
+		$id = $Message->order();
+		$Purchase = new ShoppPurchase($id);
 
-		$txnid = false;
-		// if no parent transaction id, this is a new transaction
-		if ( isset($_POST['txn_id']) && ! isset($_POST['parent_txn_id']) ) {
-			$txnid = $_POST['txn_id'];
-		// if a parent transaction id exists, this is associated with our existing purchase
-		} elseif ( ! empty($_POST['parent_txn_id']) ) {
-			$txnid = $_POST['parent_txn_id'];
-		}
+		$event = $Message->event();
 
-		$event = 'sale';
-		$txnstatus = $_POST['payment_status'];
-		if ( $txnstatus && isset(self::$events[$txnstatus]) )
-			$event = self::$events[$txnstatus];
+		if ( in_array($event, array('sale', 'auth', 'capture')) ) {
 
-		// No transaction target: invalid IPN, silently ignore the message
-		if ( ! $txnid ) {
-			shopp_debug("Invalid IPN request.  Missing txn_id or parent_txn_id.");
-			return;
-		}
+			$this->updates();
 
-		// Validate the order notification
-		if ( ! $this->verifyipn() ) {
-			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$txnid,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
-			return false;
-		}
-		shopp_debug('IPN: '._object_r($_POST));
+			// Make sure purchase orders are invoiced
+			if ( 'purchase' == $Purchase->txnstatus )
+				ShoppOrder()->invoice($Purchase);
+			elseif ( 'invoiced' == $Purchase->txnstatus )
+				$this->sale($Purchase);
+			elseif ( 'capture' == $event ) {
+				if ( 'voided' == $Purchase->txnstatus )
+					ShoppOrder()->invoice($Purchase); // Reinvoice for cancel-reversals
 
-		// IPN data into response object
-		$fees = 0;
-		$amount = 0;
-		if ( isset($_POST['mc_fee']) ) $fees = abs($_POST['mc_fee']);
-		$amount = isset($_POST['mc_gross']) ? abs($_POST['mc_gross']) : $Purchase->total;
-
-		// build response object
-		$this->response = new stdClass;
-		$this->response->txn_type = $_POST['txn_type'];
-		$this->response->status = $txnstatus;
-		$this->response->event = $event;
-		$this->response->txnid = $txnid;
-		$this->response->fees = $fees;
-		$this->response->amount = $amount;
-
-		if ( in_array($event,array('captured','voided')) ) {
-			$new_txnid = isset($_POST['txn_id']) ? $_POST['txn_id'] : $txnid;
-			$this->response->txnid = $new_txnid;
-			$this->response->txnorigin = $txnid;
-		}
-		if ( isset($_POST['payer_status']) ) $this->response->payer_status = ( 'verified' == $_POST['payer_status'] ? __('Payer verified', 'Shopp') : __('Payer unverified', 'Shopp') );
-		if ( isset($_POST['pending_reason']) ) $this->response->pending_reason = $_POST['pending_reason'];
-		if ( isset($_POST['protection_eligibility']) ) $this->response->protection_eligibility = $_POST['protection_eligibility'];
-		if ( isset($_POST['reason_code']) ) $this->response->reason_code = $_POST['reason_code'];
-
-		shopp_debug('IPN to response protocol: '._object_r($this->response));
-
-		$Purchase = new ShoppPurchase( $txnid, 'txnid' );
-		// create new purchase by IPN
-		// if ( empty($Purchase->id) ) {
-		// 	if ( 'voided' == $event ) return; // the transaction is void of the starting gate. Don't create a purchase.
-		//
-		// 	if ( ! isset($_POST['custom']) ) {
-		// 		new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$txnid),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
-		// 		die('PayPal IPN failed.');
-		// 	}
-		// 	shopp_debug('preparing to load session '.$_POST['custom']);
-		// 	add_filter('shopp_agent_is_robot', array($this, 'is_robot_override'));
-		//
-		// 	// load the desired session, which leaves the previous/defunct Order object intact
-		// 	Shopping::resession($_POST['custom']);
-		//
-		// 	// destroy the defunct Order object from defunct session and restore the Order object from the loaded session
-		// 	// also assign the restored Order object as the global Order object
-		// 	// $this->Order = ShoppOrder( Shopping::restart( 'ShoppOrder', ShoppOrder() ) );
-		//
-		// 	$Shopping = ShoppShopping();
-		//
-		// 	// Couldn't load the session data
-		// 	if ($Shopping->session != $_POST['custom'])
-		// 		return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
-		// 	else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
-		//
-		// 	// process shipping address changes from IPN message
-		// 	$this->ipnupdates();
-		//
-		// 	// Create new purchase
-		// 	shopp_add_order_event(false, 'purchase', array(
-		// 		'gateway' => $this->module,
-		// 		'txnid' => $txnid
-		// 	));
-		//
-		// 	if ( empty(ShoppPurchase()->id) ) new ShoppError('Purchase save failed.',false,SHOPP_DEBUG_ERR);
-		//
-		// 	return; // end after new purchase creation
-		// }
-
-		// Process update events as needed
-		if ( 'purchase' != $event ) {
-			// Review event on transaction type
-			if ( self::$transactions[$this->response->txn_type] ) {
-				shopp_add_order_event( $Purchase->order, 'review', array(
-					'kind' => 'txn_type',
-					'note' => self::$transactions[$this->response->txn_type]
+				shopp_add_order_event($Purchase->id, 'capture', array(
+					'txnid' => $Purchase->txnid,
+					'gateway' => $Purchase->gateway,
+					'amount' => $Message->amount(),
+					'user' => $this->settings['label']
 				));
 			}
-
-			$this->$event( $Purchase );
-
+		} elseif ( 'void' == $event ) {
+			shopp_add_order_event($Purchase->id, 'void', array(
+				'txnid' => $Purchase->txnid,
+				'gateway' => $this->module,
+				'reason' => $Message->reversal(),
+				'user' => $this->settings['label'],
+				'note' => $Message->reversal()
+			));
+		} elseif ( 'refund' == $event ) {
+			shopp_add_order_event($Purchase->id, 'refund', array(
+				'txnid' => $Purchase->txnid,
+				'gateway' => $this->module,
+				'amount' => $Message->amount(),
+				'reason' => $Message->reversal(),
+				'user' => $this->settings['label']
+			));
+		} else {
+			shopp_add_order_event($Purchase->id, 'review', array(
+				'kind' => 'txn_type',
+				'note' => $Message->type()
+			));
 		}
 
-		die('PayPal IPN processed.');
+		status_header('200');
+		die('OK');
+	}
+
+	protected function ipnurl () {
+		$url = Shopp::url(array('_txnupdate' => $this->id()), 'checkout');
+		return apply_filters('shopp_paypalstandard_ipnurl', $url );
 	}
 
 	/**
-	 * is_robot_override
+	 * Verify the authenticity of an IPN message sent by PayPal
 	 *
-	 * PayPal Sandbox doesn't return a user agent.
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
 	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @return bool is_robot() override on empty user agent
+	 * @return boolean True if the IPN message is authentic, false otherwise
 	 **/
-	public function is_robot_override ( $is_robot ) {
-		if ( ! isset($_SERVER['HTTP_USER_AGENT']) ) return false;
-		return $is_robot;
+	protected function ipnvalid () {
+
+		shopp_debug('PayPal IPN ' . __METHOD__);
+		$ids = array($this->id(), 'PPS'); // 'PPS' is a backwards compatible ID for IPN requests
+		if ( ! in_array($_REQUEST['_txnupdate'], $ids) ) return false; // Not an IPN request for PayPal Standard
+		shopp_debug('PayPal IPN detected');
+
+		$this->Message = new ShoppPayPalStandardMessage($_POST);
+		shopp_debug('PayPal IPN request: ' . json_encode($_POST));
+
+		if ( ! $this->Message->valid() ) return false;
+		if ( Shopp::str_true($this->settings['testmode']) ) return true;
+
+		$_ = array();
+		$_['cmd'] = '_notify-validate';
+
+		$message = $this->encode(array_merge($_POST, $_));
+		$response = $this->send($message);
+
+		shopp_debug('PayPal IPN validation response: ' . var_export($response, true));
+
+		return ( 'VERIFIED' == $response );
+
 	}
 
 	/**
-	 * Process customer and shipping record changes from IPN message
+	 * Process customer and shipping record changes from a PayPal message
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
 	 **/
-	public function ipnupdates () {
+	protected function updates () {
 		$Order = $this->Order;
-		$data = stripslashes_deep($_POST);
+		$data = $this->Message->data();
 
 		$fields = array(
 			'Customer' => array(
@@ -890,40 +643,45 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			)
 		);
 
-		foreach ($fields as $Object => $set) {
+		foreach ( $fields as $Object => $set ) {
+			if ( ! isset($Order->$Object) ) continue;
 			$changes = false;
-			foreach ($set as $shopp => $paypal) {
-				if (isset($data[$paypal]) && (empty($Order->{$Object}->{$shopp}) || $changes)) {
-					$Order->{$Object}->{$shopp} = $data[$paypal];
-					// If any of the fieldset is changed, change the rest to keep data sets in sync
-					$changes = true;
+			foreach ( $set as $shopp => $paypal ) {
+				if ( isset($data[ $paypal ]) && ( empty($Order->$Object->$shopp) || $changes ) ) {
+					$Order->$Object->$shopp = $data[ $paypal ];
+					$changes = true; // If any of the fieldset is changed, change the rest to keep data sets in sync
 				}
 			}
 		}
+
 	}
 
 	/**
-	 * Verify the authenticity of an IPN message sent by PayPal
+	 * Handle the synchronous return from PPS (PDT and default return)
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @version 1.2
+	 * @since 1.2
 	 *
-	 * @return boolean True if the IPN message is authentic, false otherwise
+	 * @return void
 	 **/
-	public function verifyipn () {
+	public function remote () {
 
-		if ( Shopp::str_true($this->settings['testmode']) ) return true;
+		if ( ! $this->pdtvalid() ) return;
 
-		$_ = array();
-		$_['cmd'] = "_notify-validate";
+		if ( empty(ShoppOrder()->inprogress) ) {
+			shopp_debug('PDT processing could not load in progress order from session.');
+			return shopp_redirect(Shopp::url(false,'thanks',false)); // Send back customer to thanks page and hope IPN takes care of it properly
+		}
 
-		$message = $this->encode(array_merge($_POST,$_));
-		$response = $this->send($message);
+		$Purchase = new ShoppPurchase(ShoppOrder()->inprogress);
 
-		shopp_debug('PayPal IPN notification verification response received: '.$response);
+		if ( ! isset($Purchase->id) || empty($Purchase->id) ) {
+			shopp_debug('PDT processing could not load the in progress order from the database.');
+			return shopp_redirect(Shopp::url(false,'thanks',false)); // Send back customer to thanks page and hope IPN takes care of it properly
+		}
 
-		return ('VERIFIED' == $response);
+		$this->updates();
+		$this->sale( $Purchase );
 
 	}
 
@@ -933,37 +691,69 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis, John Dillick
 	 * @since 1.0
 	 *
-	 * @return boolean True if verified, false otherwise
+	 * @return boolean True if valid, false otherwise
 	 **/
-	public function verifypdt () {
-		if ($this->settings['pdtverify'] != "on") return false;
-		if ($this->settings['testmode'] == "on") return "VERIFIED";
-		$_ = array();
-		$_['cmd'] = "_notify-synch";
-		$_['at'] = $this->settings['pdttoken'];
-		$_['tx'] = $_GET['tx'];
+	protected function pdtvalid () {
 
-		$message = $this->encode($_);
-		$response = $this->send($message);
-		return (strpos($response,"SUCCESS") !== false);
+		$ids = array($this->id(), 'PPS'); // 'PPS' is a backwards compatible ID for PDT requests
+		if ( ! in_array($_REQUEST['rmtpay'], $ids) ) return false; // not PDT message
+
+		shopp_debug('Processing PDT request: ' . json_encode($_REQUEST));
+
+		if ( ! Shopp::str_true($this->settings['pdtverify']) || ! isset($_REQUEST['tx']) ) {
+			ShoppOrder()->success();
+			return true; // if PDT verify is off, skip this process
+		}
+
+		$_ = array();
+		$_['cmd'] = '_notify-synch';
+		$_['at'] = $this->settings['pdttoken'];
+		$_['tx'] = $_REQUEST['tx'];
+
+		$message = $this->encode($_);			// Build the request
+		$response = $this->send($message);		// Send it
+		$response = $this->pdtreply($response);	// Parse the response into a ShoppPayPalStandardMessage-compatible structure
+		shopp_debug('PayPal PDT _notify-synch reply: ' . json_encode($response));
+
+		// Shift the first element off to get the verification status and have a clean data array for ShoppPayPalStandardMessage
+		if ( 'SUCCESS' != array_shift($response) ) {
+			shopp_debug('The transaction was not verified by PayPal.');
+
+			// We run the success() method here to reset the shopping session and
+			// redirect the shopper to the "thanks" page with an "order in progress" message
+			// so the cart will be ready for a new order. Otherwise, the customer could resubmit the
+			// prior order and PayPal will give them "that transaction has already been completed" message.
+			ShoppOrder()->success();
+
+			return false;
+		}
+
+		$this->Message = new ShoppPayPalStandardMessage($response);
+		shopp_debug('PayPal PDT response protocol: ' . _object_r($this->Message));
+
+		// Everything looks good, return true and let the order PDT order processing handle it from here
+		return true;
 	}
 
 	/**
-	 * Reads PayPal transaction errors and generates Shopp errors
+	 * Parses the PDT response
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.0
+	 * @since 1.3
 	 *
-	 * @return ShoppError The Shopp error message object of the PayPal error message
+	 * @return void
 	 **/
-	public function error () {
-		if (!empty($this->Response)) {
-
-			$message = join("; ",$this->Response->l_longmessage);
-			if (empty($message)) return false;
-			return new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,
-				array('code'=>$code));
+	protected function pdtreply ( $string ) {
+		$response = array();
+		$lines = explode("\n", $string);
+		foreach ( $lines as $line ) {
+			if ( empty($line) ) continue;
+			if ( false !== strpos($line, '=') ) {
+				list($key, $value) = explode('=', $line);
+				$response[ $key ] = $value;
+			} else $response[] = $line;
 		}
+		return $response;
 	}
 
 	/**
@@ -1014,7 +804,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			'checked' => $this->settings['testmode']
 		));
 
-		$this->ui->behaviors( self::settingsjs() );
+		$script = "var s='shopppaypalstandard';jQuery(document).bind(s+'Settings',function(){var $=jqnc(),p='#'+s+'-pdt',v=$(p+'verify'),t=$(p+'token');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
+		$this->ui->behaviors($script);
 
 	}
 
@@ -1026,18 +817,240 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 	}
 
-	/**
-	 * Custom behaviors for the settings interface
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * @version 1.2
-	 *
-	 * @return string JavaScript behaviors to add to the payment settings interface
-	 **/
-	public static function settingsjs () {
-		ob_start(); ?>var s='shopppaypalstandard';jQuery(document).bind(s+'Settings',function(){var $=jqnc(),p='#'+s+'-pdt',v=$(p+'verify'),t=$(p+'token');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});
-<?php return ob_get_clean();
+}
+
+/**
+ * A standardized Shopp protocol for PayPal messages
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package shopp
+ **/
+class ShoppPayPalStandardMessage {
+
+	protected $amount = 0;
+	protected $email = '';
+	protected $fees = 0;
+	protected $order = 0;
+	protected $payer = '';
+	protected $payment = '';
+	protected $paytype = '';
+	protected $protection = '';
+	protected $reason = '';
+	protected $reversal = '';
+	protected $txnid = '';
+	protected $type = '';
+
+	protected $data = array();
+
+	protected static $map = array(
+		'invoice' => 'order',
+		'mc_fee' => 'fee',
+		'mc_gross' => 'amount',
+		'parent_txn_id' => 'txnorigin',
+		'payer_email' => 'email',
+		'payer_status' => 'payer',
+		'payment_status' => 'payment',
+		'payment_type' => 'paytype',
+		'pending_reason' => 'reason',
+		'protection_eligibility' => 'protection',
+		'reason_code' => 'reversal',
+		'txn_id' => 'txnid',
+		'txn_type' => 'type'
+	);
+
+	protected static $events = array(
+		'Voided' => 'void',
+		'Denied' => 'void',
+		'Expired' => 'void',
+		'Failed' => 'void',
+		'Refunded' => 'refund',
+		'Reversed' => 'refund',
+		'Canceled_Reversal' => 'capture',
+		'Canceled-Reversal' => 'capture',
+		'Completed' => 'capture',
+		'Pending' => 'auth',
+		'Processed' => 'auth',
+	);
+
+	protected static $eligibility = array();
+	protected static $reasons = array();
+	protected static $reversals = array();
+	protected static $types = array();
+
+	public function __construct ( array $data ) {
+
+		$this->data = $data; // Capture the source data
+
+		// Map the source data to message properties
+		foreach ( $data as $key => $value ) {
+			$property = isset(self::$map[ $key ]) ? self::$map[ $key ] : false;
+			if ( property_exists($this, $property) ) $this->$property = $value;
+		}
+
+		$this->labels(); // Initialize labels
+
 	}
 
+	protected static function labels () {
+		self::$eligibility = array(
+			'ExpandedSellerProtection' => Shopp::__('Eligible for PayPal’s Expanded Seller Protection'),
+			'SellerProtection'         => Shopp::__('Eligible for PayPal’s Seller Protection'),
+			'None'                     => Shopp::__('Not Eligible for PayPal’s Seller Protection')
+		);
+
+		self::$reasons = array(
+			'address' 	     => Shopp::__('The customer did not include a confirmed shipping address.'),
+			'echeck'         => Shopp::__('The eCheck has not yet cleared.'),
+			'intl'           => Shopp::__('You must manually accept or deny transactions for your non-US account.'),
+			'multi-currency' => Shopp::__('You must manually accept or deny a transaction in this currency.'),
+			'order'          => Shopp::__('You set the payment action to Order and have not yet captured funds.'),
+			'paymentreview'  => Shopp::__('The payment is pending while it is being reviewed by PayPal for risk.'),
+			'unilateral'     => Shopp::__('The payment is pending because it was made to an email address that is not yet registered or confirmed.'),
+			'upgrade'        => Shopp::__('Contact PayPal Customer Service to see if your account needs to be upgraded.'),
+			'verify'         => Shopp::__('Your account is not yet verified.'),
+			'other'          => Shopp::__('Contact PayPal Customer Service to determine why payment was not completed.'),
+		);
+
+		self::$reversals = array(
+			'adjustment_reversal'      => Shopp::__('Reversal of an adjustment'),
+			'buyer-complaint'          => Shopp::__('Reversal on customer complaint.'),
+			'buyer_complaint'          => Shopp::__('Reversal on customer complaint.'),
+			'chargeback'               => Shopp::__('Reversal on chargeback.'),
+			'chargeback_reimbursement' => Shopp::__('Reimbursement for a chargeback'),
+			'chargeback_settlement'    => Shopp::__('Settlement of a chargeback'),
+			'guarantee'                => Shopp::__('Reversal due to a money-back guarantee.'),
+			'other'                    => Shopp::__('Non-specified reversal.'),
+			'refund'                   => Shopp::__('Reversal by merchant refund.'),
+		);
+
+		self::$types = array(
+			'chargeback'                        => Shopp::__('A credit card chargeback has occurred'),
+			'adjustment'                        => Shopp::__('A dispute has been resolved and closed'),
+			'cart'                              => true,
+			'new_case'                          => Shopp::__('A payment dispute has been filed.'),
+			'recurring_payment'                 => Shopp::__('Recurring payment received'),
+			'recurring_payment_expired'         => Shopp::__('Recurring payment expired'),
+			'recurring_payment_profile_created' => Shopp::__('Recurring payment profile created'),
+			'recurring_payment_skipped'         => Shopp::__('Recurring payment skipped'),
+			'subscr_cancel'                     => Shopp::__('Subscription canceled'),
+			'subscr_eot'                        => Shopp::__('Subscription expired'),
+			'subscr_failed'                     => Shopp::__('Subscription signup failed'),
+			'subscr_payment'                    => Shopp::__('Subscription payment received'),
+			'subscr_signup'                     => Shopp::__('Subscription started')
+		);
+
+	}
+
+	public function captured () {
+		return in_array($this->payment, array('Completed', 'Canceled_Reversal', 'Canceled-Reversal'));
+	}
+
+	public function amount () {
+		return (float)abs($this->amount);
+	}
+
+	public function fees () {
+		return (float)abs($this->fees);
+	}
+
+	public function order () {
+		if ( empty($this->order) ) return false;
+		return (int)abs($this->order);
+	}
+
+	public function payer () {
+		if ( empty($this->payer) ) return false;
+		return ( 'verified' == $this->payer ? Shopp::__('Payer verified') : Shopp::__('Payer unverified') );
+	}
+
+	public function reason () {
+		if ( isset(self::$reasons[ $this->reason ]) )
+			return self::$reasons[ $this->reason ];
+		elseif ( ! empty($this->reason) )
+			return self::$reasons['other'];
+		return false;
+	}
+
+	public function protection () {
+		if ( isset(self::$eligibility[ $this->protection ]) )
+			return self::$eligibility[ $this->protection ];
+		return false;
+	}
+
+	public function event () {
+		if ( isset(self::$events[ $this->payment ]) )
+			return self::$events[ $this->payment ];
+		return false;
+	}
+
+	public function paytype () {
+		switch ( $this->paytype ) {
+			case 'echeck': return 'PayPal eCheck';
+			default: return 'PayPal.com';
+		}
+	}
+
+	public function email () {
+		if ( ! empty($this->email) )
+			return $this->email;
+		return false;
+	}
+
+	public function type () {
+
+		$type = strtolower($this->type);
+
+		// chargeback types vary
+		if ( false !== strpos($this->type, 'chargeback') )
+			$type = 'chargeback';
+
+		if ( isset(self::$types[ $type ]) )
+			return self::$types[ $type ];
+
+		return false;
+	}
+
+	public function txnid () {
+		if ( ! empty($this->txnid) )
+			return $this->txnid;
+		return false;
+	}
+
+	public function txnorigin () {
+		if ( ! empty($this->txnorigin) )
+			return $this->txnorigin;
+		return false;
+	}
+
+	public function reversal () {
+		$reversal = strtolower($this->reversal);
+		if ( isset(self::$reversals[ $reversal ]) )
+			return self::$reversals[ $reversal ];
+		return false;
+	}
+	public function data () {
+		if ( empty($this->data) || ! is_array($this->data) ) return array();
+		return $this->data;
+	}
+
+	public function valid () {
+
+		if ( false === $this->type() ) {
+			shopp_debug('PayPal messsage invalid. Missing or invalid txn_type.');
+			return false;
+		}
+
+		if ( ! $this->order() ) { // boolean false and 0 are both invalid
+			shopp_debug('PayPal messsage invalid. Missing or invalid "invoice" field.');
+			return false;
+		}
+
+		if ( false === $this->txnid() && false === $this->txnorigin() ) {
+			shopp_debug('PayPal messsage invalid. Missing txn_id or parent_txn_id.');
+			return false;
+		}
+
+		return true;
+	}
 }

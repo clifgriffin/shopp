@@ -127,6 +127,18 @@ abstract class GatewayFramework {
 	}
 
 	/**
+	 * Provides a salted hash to identify this processor in requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string salted hash payment processor id
+	 **/
+	protected function id () {
+		return hash('crc32b', NONCE_SALT . get_class($this));
+	}
+
+	/**
 	 * Initialize a list of gateway module settings
 	 *
 	 * @author Jonathan Davis
