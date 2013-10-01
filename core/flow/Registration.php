@@ -99,7 +99,8 @@ class ShoppRegistration {
 			'email' => $this->form('email'),
 			'phone' => $this->form('phone'),
 			'info' => $this->form('info'),
-            'password' => $this->form('password')
+            'password' => $this->form('password'),
+			'loginname' => $this->form('loginname')
 		);
 
 		// Remove invalid characters from the phone number

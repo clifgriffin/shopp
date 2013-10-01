@@ -71,7 +71,6 @@ class ShoppFormValidation {
 				if( apply_filters('shopp_login_required', ! isset($_POST['loginname'])) )
 					return shopp_add_error( __('A login is not available for creation with the information you provided. Please try a different email address or name, or try logging in if you previously created an account.','Shopp') );
 
-				$Customer->loginname = $_POST['loginname']; // Update the customer login name
 			}
 
 			shopp_debug('Login set to '. $_POST['loginname'] . ' for WordPress account creation.');
