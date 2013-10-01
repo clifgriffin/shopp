@@ -52,7 +52,7 @@ class Shopping extends SessionObject {
 
 		// Queue the session to start
 		// prioritize really early (before errors priority 5)
-		add_action('init',array($this,'init'),2);
+		add_action('init',array($this,'init'), 2);
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Shopping extends SessionObject {
 	 **/
 	public function init () {
 		@session_start();
-		add_action('shopp_cart_updated',array($this,'savecart'));
+		add_action('shopp_cart_updated', array($this,'savecart'));
 	}
 
 	/**
