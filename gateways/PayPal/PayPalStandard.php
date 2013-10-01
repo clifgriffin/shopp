@@ -81,6 +81,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	public function processing ( $processing ) {
+		shopp_debug(__METHOD__);
 		return array($this, 'uploadcart');
 	}
 
@@ -124,6 +125,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	public function auth ( OrderEventMessage $Event ) {
 
 		$Message = $this->Message;
+
+		shopp_debug(__METHOD__ . ': ' . _object_r($Message));
 
 		if ( $payer_status = $Message->payer() ) { // Note the payer status
 			shopp_add_order_event( $Event->order, 'review', array(
@@ -330,6 +333,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form
 	 **/
 	public function uploadcart ( ShoppPurchase $Purchase ) {
+		shopp_debug(__METHOD__);
 		$id = sanitize_key($this->module);
 		$title = Shopp::__('Sending order to PayPal&hellip;');
 		$message = '<form id="' . $id . '" action="'.$this->url().'" method="POST">' .
@@ -342,7 +346,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 					'</form>' .
 					'<script type="text/javascript">document.getElementById("' . $id . '").submit();</script></body></html>';
 
-		wp_die($message, $title);
+		wp_die($message, $title, array('response' => 200));
 	}
 
 	/**
@@ -564,7 +568,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				'reason' => $Message->reversal(),
 				'user' => $this->settings['label']
 			));
-		} else {
+		} elseif ( $txn_type = $Message->type() ) {
 			shopp_add_order_event($Purchase->id, 'review', array(
 				'kind' => 'txn_type',
 				'note' => $Message->type()
@@ -1035,11 +1039,6 @@ class ShoppPayPalStandardMessage {
 	}
 
 	public function valid () {
-
-		if ( false === $this->type() ) {
-			shopp_debug('PayPal messsage invalid. Missing or invalid txn_type.');
-			return false;
-		}
 
 		if ( ! $this->order() ) { // boolean false and 0 are both invalid
 			shopp_debug('PayPal messsage invalid. Missing or invalid "invoice" field.');
