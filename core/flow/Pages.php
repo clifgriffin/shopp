@@ -164,7 +164,7 @@ class ShoppPage {
 		return $link;
 	}
 
-	public function styleclass ($classes) {
+	public function styleclass ( $classes ) {
 		$classes[] = $this->name();
 		return $classes;
 	}
@@ -180,7 +180,7 @@ class ShoppPage {
 		return get_class_property($classname, 'template');
 	}
 
-	public function content ($content) {
+	public function content ( $content ) {
 		return $content;
 	}
 
@@ -751,7 +751,7 @@ class ShoppProductPage extends ShoppPage {
 	public static $name = 'shopp-product';
 
 	public function __construct ( $settings = array() ) {
-		$settings['template'] = 'single-' . ShoppProduct::$posttype. ' . php';
+		self::$template = 'single-' . ShoppProduct::$posttype;
 		parent::__construct($settings);
 	}
 
