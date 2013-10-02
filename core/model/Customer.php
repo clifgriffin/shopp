@@ -430,7 +430,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	protected function extract_downloads ($items) {
 		while ( list($index, $Purchased) = each($items) ) {
 			// Check for downloadable addons
-			if ( isset($Purchased->addons) && count($Purchased->addons->meta) >= 1 ) {
+			if ( isset($Purchased->addons->meta) && count($Purchased->addons->meta) >= 1 ) {
 				$this->extract_downloads($Purchased->addons->meta);
 			}
 
