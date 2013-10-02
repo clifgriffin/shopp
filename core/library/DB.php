@@ -1155,7 +1155,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param boolean $compact (optional) Set to true for a compact list of properties (skip the ignored properties)
 	 * @return array The list of property names
 	 **/
-	private function _properties ( boolean $compact = null ) {
+	private function _properties ( $compact = null ) {
 		$properties = array_keys( get_object_vars($this) );
 		if ( $compact ) $properties = array_values( array_filter($properties, array($this, '_ignored')) );
 		return $properties;
