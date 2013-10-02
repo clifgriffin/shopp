@@ -244,6 +244,7 @@ class ImageServer {
 		$headers = ! ( is_array($found) && isset($found['redirect']) );
 
 		// Output the image
+		ob_clean(); // try to catch errant data in buffer
 		$this->Image->output($headers);
 	}
 
@@ -287,6 +288,7 @@ class ImageServer {
 		$ImageData->canvas($this->width,$this->height,true);
 		$image = $ImageData->imagefile(100);
 		$this->headers('clear.png', @strlen($image));
+		ob_clean(); // try to catch errant data in buffer
 		die($image);
 	}
 
