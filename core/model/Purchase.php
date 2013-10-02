@@ -566,6 +566,34 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		}
 	}
 
+	public function lock () {
+		if ( empty($this->id) ) return false;
+
+ 		$locked = 0;
+ 		for ( $attempts = 0; $attempts < 3 && $locked == 0; $attempts++ ) {
+ 			$locked = DB::query("SELECT GET_LOCK('$this->id'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
+			if ( 0 == $locked ) sleep(1); // Wait a sec before trying again
+ 		}
+
+ 		if ( 1 == $locked ) return true;
+
+		shopp_debug("Purchase lock for order #$this->id failed. Could not achieve a lock.");
+		return false;
+ 	}
+
+ 	/**
+ 	 * Unlocks a transaction lock
+ 	 *
+ 	 * @author Jonathan Davis
+ 	 * @since 1.2.1
+ 	 *
+ 	 * @return boolean
+ 	 **/
+	public function unlock () {
+		if ( empty($this->id) ) return false;
+ 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->id') as unlocked", 'auto', 'col', 'unlocked');
+ 		return ( 1 == $unlocked );
+ 	}
 
 } // end Purchase class
 

@@ -380,11 +380,9 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 	public function filter ( $msg ) {
 
  		if ( empty($msg['payid']) ) return $msg;
- 		$paycards = Lookup::paycards();
- 		foreach ( $paycards as $card ) { // If it looks like a payment card number, truncate it
- 			if ( ! empty($msg['payid']) && $card->match($msg['payid']) && $msg['paytype'] == $card->name );
- 				$msg['payid'] = substr($msg['payid'], -4);
- 		}
+
+		if ( ! empty($msg['payid']) && is_numeric($msg['payid']) && strlen($msg['payid']) > 10 )
+			$msg['payid'] = substr($msg['payid'], -4);
 
  		return $msg;
  	}

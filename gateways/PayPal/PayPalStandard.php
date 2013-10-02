@@ -54,7 +54,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_checkout_submit_button', array($this, 'submit'), 10, 3); // replace submit button with paypal image
 
 		// request handlers
-		add_action('shopp_remote_payment', array($this, 'remote')); // process sync return from PayPal
+		add_action('shopp_remote_payment', array($this, 'pdt')); // process sync return from PayPal
 		add_action('shopp_txn_update', array($this, 'ipn')); // process IPN
 
 		// order event handlers
@@ -156,7 +156,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			'gateway' => $this->module,							// Gateway handler name (module name from @subpackage)
 			'paymethod' => $this->settings['label'],			// Payment method (payment method label from payment settings)
 			'paytype' => $Message->paytype(),					// Type of payment (eCheck, or instant payment)
-			'payid' => $Message->email(),						// Payment ID (PayPal customer account email)
+			'payid' => $Message->email(),						// PayPal account email address
 			'capture' => ( $captured = $Message->captured() )	// Capture flag
 		);
 
@@ -510,27 +510,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		return $this->format($_);
 	}
 
-	/**
-	 * Updates purchase records from an IPN message
-	 *
-	 * @author Jonathan Davis, John Dillick
-	 * @since 1.0
-	 * @version 1.2
-	 *
-	 * @return void
-	 **/
-	public function ipn () {
+	private function process ( $event, ShoppPurchase $Purchase ) {
 
-		if ( ! $this->ipnvalid() ) return;
-
-		$Message = $this->Message;
-
-		shopp_debug('PayPal IPN response protocol: ' . _object_r($Message));
-
-		$id = $Message->order();
-		$Purchase = new ShoppPurchase($id);
-
-		$event = $Message->event();
+		if ( ! $Purchase->lock() ) return false; // Only process order updates if this process can get a lock
 
 		if ( in_array($event, array('sale', 'auth', 'capture')) ) {
 
@@ -542,6 +524,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			elseif ( 'invoiced' == $Purchase->txnstatus )
 				$this->sale($Purchase);
 			elseif ( 'capture' == $event ) {
+				if ( ! $Purchase->capturable() ) return false; // Already captured
 				if ( 'voided' == $Purchase->txnstatus )
 					ShoppOrder()->invoice($Purchase); // Reinvoice for cancel-reversals
 
@@ -574,6 +557,41 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				'note' => $Message->type()
 			));
 		}
+
+		$Purchase->unlock();
+
+	}
+
+	/**
+	 * Updates purchase records from an IPN message
+	 *
+	 * @author Jonathan Davis, John Dillick
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @return void
+	 **/
+	public function ipn () {
+
+		if ( ! $this->ipnvalid() ) return;
+
+		$Message = $this->Message;
+
+		shopp_debug('PayPal IPN response protocol: ' . _object_r($Message));
+
+		$id = $Message->order();
+		$event = $Message->event();
+
+		$Purchase = new ShoppPurchase($id);
+
+		if ( empty($Purchase->id) ) {
+			$error = 'The IPN failed because the given order does not exist.';
+			shopp_debug($error);
+			status_header('404');
+			die($error);
+		}
+
+		$this->process($event, $Purchase);
 
 		status_header('200');
 		die('OK');
@@ -668,25 +686,34 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return void
 	 **/
-	public function remote () {
+	public function pdt () {
+
+		if ( empty(ShoppOrder()->inprogress) ) {
+			shopp_debug('PDT processing could not load in-progress order from session.');
+			return shopp_redirect(Shopp::url(false, 'thanks', false)); // Send back customer to thanks page and hope IPN takes care of it properly
+		}
 
 		if ( ! $this->pdtvalid() ) return;
 
-		if ( empty(ShoppOrder()->inprogress) ) {
-			shopp_debug('PDT processing could not load in progress order from session.');
-			return shopp_redirect(Shopp::url(false,'thanks',false)); // Send back customer to thanks page and hope IPN takes care of it properly
+		$Message = $this->Message;
+
+		$id = $Message->order();
+		$event = $Message->event();
+
+		if ( ShoppOrder()->inprogress != $id ) {
+			shopp_debug('PDT processing order did not match the inprogress order.');
+			return shopp_redirect(Shopp::url(false,'thanks', false));
 		}
 
-		$Purchase = new ShoppPurchase(ShoppOrder()->inprogress);
+		$Purchase = new ShoppPurchase($id);
 
 		if ( ! isset($Purchase->id) || empty($Purchase->id) ) {
 			shopp_debug('PDT processing could not load the in progress order from the database.');
-			return shopp_redirect(Shopp::url(false,'thanks',false)); // Send back customer to thanks page and hope IPN takes care of it properly
+			return shopp_redirect(Shopp::url(false, 'thanks', false));
 		}
 
-		$this->updates();
-		$this->sale( $Purchase );
-
+		$this->process($event, $Purchase);
+		shopp_redirect(Shopp::url(false, 'thanks', false));
 	}
 
 	/**
@@ -884,6 +911,8 @@ class ShoppPayPalStandardMessage {
 
 	public function __construct ( array $data ) {
 
+		$data = array_map('rawurldecode', $data);
+
 		$this->data = $data; // Capture the source data
 
 		// Map the source data to message properties
@@ -990,7 +1019,7 @@ class ShoppPayPalStandardMessage {
 
 	public function paytype () {
 		switch ( $this->paytype ) {
-			case 'echeck': return 'PayPal eCheck';
+			case 'echeck': return 'eCheck';
 			default: return 'PayPal.com';
 		}
 	}
