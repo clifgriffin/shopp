@@ -175,7 +175,8 @@
 							ob_start();
 							switch ($column) {
 								case 'items':
-									$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=>$id) );
+								$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=>$id) );
+								$rmvurl = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=>$id) );
 									?>
 										<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 											<a href="<?php echo add_query_arg(array('page' => 'shopp-products','id' => $Item->product),admin_url('admin.php')); ?>">
@@ -192,8 +193,8 @@
 											    if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
                                             </a>
 											<div class="row-actions">
-												<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-												<span class='delete'><a href="<?php echo $trashurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span>
+												<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+												<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span> -->
 												<span class='view'><a href="<?php ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 											</div>
 

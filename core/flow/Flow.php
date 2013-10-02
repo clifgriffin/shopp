@@ -385,7 +385,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 
 	static function url ( $args = array() ) {
 		$args = array_map('esc_attr',$args);
-		return add_query_arg( array_merge($args,array('page'=>esc_attr($_GET['page'])) ),admin_url('admin.php'));
+		return add_query_arg( array_merge($args,array('page'=> esc_attr($_GET['page'])) ),admin_url('admin.php'));
 	}
 
 

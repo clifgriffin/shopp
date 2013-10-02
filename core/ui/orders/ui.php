@@ -3,7 +3,7 @@ function manage_meta_box ($Purchase) {
 	$Gateway = $Purchase->gateway();
 
 ?>
-<form action="<?php echo ShoppAdminController::url( array('page' => $page, 'id'=>$Purchase->id) ); ?>" method="post">
+<form action="<?php echo ShoppAdminController::url( array('id'=>$Purchase->id) ); ?>" method="post">
 
 <?php if ($Purchase->shipable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
@@ -253,7 +253,7 @@ function manage_meta_box ($Purchase) {
 </form>
 <?php
 }
-ShoppUI::addmetabox('order-manage', __('Management','Shopp').$Admin->boxhelp('order-manager-manage'), 'manage_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
+ShoppUI::addmetabox('order-manage', __('Management','Shopp') . $Admin->boxhelp('order-manager-manage'), 'manage_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function billto_meta_box ($Purchase) {
 	?>
@@ -329,9 +329,9 @@ function billto_meta_box ($Purchase) {
 		</form>
 	<?php return; endif; ?>
 
-	<form action="<?php echo ShoppAdminController::url( array('page' => $page,'id' => $Purchase->id) ); ?>" method="post" id="billing-address-editor"></form>
+	<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="billing-address-editor"></form>
 	<div class="display">
-	<form action="<?php echo ShoppAdminController::url( array('page' => $page, 'id' => $Purchase->id) ); ?>" method="post"><?php
+	<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post"><?php
 	$targets = shopp_setting('target_markets');
 ?>
 		<input type="hidden" id="edit-billing-address-data" value="<?php
@@ -455,7 +455,7 @@ function contact_meta_box ($Purchase) {
 		'${company}' => $Purchase->company,
 		'${email}' => $Purchase->email,
 		'${phone}' => $Purchase->phone,
-		'${marketing}' => $Purchase->marketing,
+		'${marketing}' => isset($Purchase->marketing) ? $Purchase->marketing : false,
 		'${login}' => 'wordpress' == shopp_setting('account_system')
 	);
 	$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($customer));
@@ -465,18 +465,19 @@ function contact_meta_box ($Purchase) {
 
 	<script id="customer-s" type="text/x-jquery-tmpl">
 	<?php
+		$s = isset($_REQUEST['s']) ? $_REQUEST['s'] : false;
 		ob_start();
-		if ( isset($_POST['select-customer']) && empty($_POST['s']) )
-			$searchurl = wp_nonce_url(add_query_arg(array('page'=>$page,'id'=>$Purchase->id),admin_url('admin.php')),'wp_ajax_shopp_select_customer');
-		else $searchurl = wp_nonce_url(add_query_arg(array('action'=>'shopp_select_customer','page'=>$page,'id'=>$Purchase->id),admin_url('admin-ajax.php')),'wp_ajax_shopp_select_customer');
-		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && !empty($_POST['s']) ) ) $iframe = true;
-		if ( isset($_POST['s']) ) $searchurl = add_query_arg('s',$_REQUEST['s'],$searchurl);
+		if ( isset($_POST['select-customer']) && empty($s) )
+			$searchurl = wp_nonce_url(ShoppAdminController::url( array('id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
+		else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
+		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
+		if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
 	?>
-	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>><input type="hidden" name="change-customer" value="true" /><input type="hidden" name="action" value="shopp_select_customer" /><?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?><p><input type="search" name="s" value="<?php echo esc_attr($_POST['s']); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" /></p>
+	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>><input type="hidden" name="change-customer" value="true" /><input type="hidden" name="action" value="shopp_select_customer" /><?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?><p><input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" /></p>
 	</form>
 	<?php if ( $iframe ): ?>
 	<iframe id="customer-search-results" name="customer-search-results" src="<?php echo esc_url($searchurl); ?>"></iframe>
-	<form action="<?php echo ShoppAdminController::url(array('page' => $page,'id' => (int)$Purchase->id)); ?>" method="POST">
+	<form action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
 	<div><input type="submit" id="cancel-change-customer" name="cancel-change-customer" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" /></div>
 	</form>
 	<?php endif; ?>
@@ -491,7 +492,7 @@ function contact_meta_box ($Purchase) {
 	<form id="change-customer" action="<?php echo ShoppAdminController::url(array('page' => $page,'id' => (int)$Purchase->id)); ?>" method="POST">
 	<h4><?php _e('Add New Customer','Shopp'); ?></h4>
 	<input type="hidden" name="change-customer" value="true" />
-	<?php echo ShoppUI::template( $editcustomer, array( '${action}' => 'new-customer', '${savelabe££l}' => __('Add New Customer','Shopp') ) ); ?>
+	<?php echo ShoppUI::template( $editcustomer, array( '${action}' => 'new-customer', '${savelabel}' => __('Add New Customer','Shopp') ) ); ?>
 	</form>
 	<?php $changecustomer = ob_get_contents(); ob_end_clean(); echo $changecustomer; ?>
 	</script>
