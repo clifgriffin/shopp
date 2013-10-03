@@ -51,9 +51,6 @@ function shopp_add_product ( $data = array() ) {
 		if ( $Product->publish > 0 ) $Product->status = 'future';
 	}
 
-	// Allow existing Products to be updated
-	if ( ! empty( $data['id'] ) ) $Product->id = $data['id'];
-
 	// Set Product name
 	if ( empty($data['name']) ) {
 		shopp_debug(__FUNCTION__ . " failed: Missing product name.");
@@ -98,7 +95,6 @@ function shopp_add_product ( $data = array() ) {
 		}
 	}
 
-
 	// Tags
 	if ( isset($data['tags']) && isset($data['tags']['terms']) ) {
 		$tags_set = shopp_product_add_tags ( $Product->id, $data['tags']['terms'] );
@@ -108,7 +104,6 @@ function shopp_add_product ( $data = array() ) {
 		}
 	}
 
-
 	// Terms
 	if ( isset($data['terms']) && isset($data['terms']['terms']) && isset($data['terms']['taxonomy']) ) {
 		$terms_set = shopp_product_add_terms ( $Product->id, $data['terms']['terms'], $data['terms']['taxonomy'] );
@@ -117,7 +112,6 @@ function shopp_add_product ( $data = array() ) {
 			return false;
 		}
 	}
-
 
 	// Create Specs
 	if ( isset($data['specs']) ) {
@@ -262,13 +256,14 @@ function shopp_add_product ( $data = array() ) {
 } // end function shopp_add_product
 
 /**
- * Allows products to be updated using the same data structure as shopp_add_product() (which it builds on).
+ * Allows the properties of an existing product to be updated.
  *
- * @todo consider making a standalone function that doesn't rely on shopp_add_product(), to work around issues with multiple price objects being generated
+ * This only applies to "core properties". Prices, taxonomy terms and other attributes can be modified
+ * using other API functions that exist for those specific purposes.
+ *
  * @since 1.3
- *
  * @param int $id (required) product ID
- * @param array $data (required) associative array structure containing a single product definition, see _validate_product_data for how this array is structured/validated.
+ * @param array $data (required) associative array structure representing product properties
  * @return Product the created product object, or boolean false on a failure.
  **/
 function shopp_update_product ( $id, $data = array() ) {
@@ -277,13 +272,21 @@ function shopp_update_product ( $id, $data = array() ) {
 		return false;
 	}
 
-	if ( ! shopp_product($id) ) {
+	if ( ! ( $Product = shopp_product($id) ) ) {
 		shopp_debug(__FUNCTION__ . " failed: invalid product ID specified.");
 		return false;
 	}
 
-	$data['id'] = $id;
-	return shopp_add_product($data);
+	// The ID and type (post_type) properties may not be set using this function
+	$properties = array('name', 'slug', 'summary', 'description', 'status',	'publish', 'modified',  'post_date_gmt',
+		'post_modified_gmt', 'post_content_filtered', 'comment_status', 'ping_status', 'to_ping', 'pinged',
+		'exclude_tax', 'sale', 'outofstock', 'excludetax', 'variants', 'addons', 'freeship', 'inventory', 'checksum',
+		'stock', 'options');
+
+	foreach ( $properties as $property )
+		if ( isset($data[$property]) ) $Product->$property = $data[$property];
+
+	$Product->save();
 }
 
 
@@ -402,7 +405,6 @@ function _validate_product_data ( $data, $types = 'data', $problems = array() ) 
 
 	// data properties needed to populate a product
 	$_data = array(
-		'id' => 'int',              // integer - product ID
 		'name' => 'string', 		// string - the product name
 		'slug' => 'string', 		// string - the product slug (optional)
 		'publish' => 'publish',		// array - flag => bool, publishtime => array(month => int, day => int, year => int, hour => int, minute => int, meridian => AM/PM)
