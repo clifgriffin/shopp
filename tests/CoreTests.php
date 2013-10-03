@@ -324,6 +324,7 @@ class CoreTests extends ShoppTestCase {
 			$this->assertContains($tpl_override, $list);
 
 			// Check that the file header doc was stripped
+			$sample = file_get_contents( trailingslashit(self::$template_dir) . $tpl_override);
 			$header_stripped = ( 0 === preg_match('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/', $sample) );
 			$this->assertTrue($header_stripped);
 		}
