@@ -396,6 +396,29 @@ you can use the generic selector below, but it's slower:
 	content: "\f054";
 }
 
+.shoppui-cards > * {font-size:100%;border-radius:2px;border: 1px solid #ccc;}
+.shoppui-cards.icon > * {font-size:2em;}
+.shoppui-cards.small > * {font-size:3em;}
+.shoppui-cards.big > * {font-size:4em;border-radius:4px;}
+.shoppui-cards.huge > * {font-size:8em;border-radius:4px;}
+.shoppui-cards.shadow > * {box-shadow: 0 2px 3px #ddd;}
+
+.shoppui-visa,.shoppui-mc,.shoppui-disc,.shoppui-amex,.shoppui-ideal,.shoppui-paypal,.shoppui-amazon,.shoppui-2co,.shoppui-dc,.shoppui-jcb,.shoppui-echeck,.shoppui-dwolla,.shoppui-bc,.shoppui-cards > * {display:inline-block;background-repeat:no-repeat;background-size:contain;background-position:0 100%;text-indent:9999em;line-height:1em; width:1.6em;overflow:hidden;white-space:nowrap;margin-bottom:0.1em;}
+
+.shoppui-visa,.shoppui-cards .visa {background-image:url('../icons/visa.svg');}
+.shoppui-mc,.shoppui-cards .mc {background-image:url('../icons/mc.svg');}
+.shoppui-disc,.shoppui-cards .disc {background-image:url('../icons/disc.svg');}
+.shoppui-amex,.shoppui-cards .amex {background-image:url('../icons/amex.svg');}
+.shoppui-ideal,.shoppui-cards .ideal {background-image:url('../icons/ideal.svg');}
+.shoppui-paypal,.shoppui-cards .paypal {background-image:url('../icons/paypal.svg');}
+.shoppui-amazon,.shoppui-cards .amazon {background-image:url('../icons/amazon.svg');}
+.shoppui-2co,.shoppui-cards .twoco {background-image:url('../icons/2co.svg');}
+.shoppui-dc,.shoppui-cards .dc {background-image:url('../icons/dc.svg');}
+.shoppui-jcb,.shoppui-cards .jcb {background-image:url('../icons/jcb.svg');}
+.shoppui-echeck,.shoppui-cards .echeck {background-image:url('../icons/echeck.svg');}
+.shoppui-dwolla,.shoppui-cards .dwolla {background-image:url('../icons/dwolla.svg');}
+.shoppui-bc,.shoppui-cards .bitcoin {background-image:url('../icons/bc.svg');}
+
 @-ms-keyframes spin {
     from { -moz-transform: rotate(0deg); }
     to { -moz-transform: rotate(360deg); }
