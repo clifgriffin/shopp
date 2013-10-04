@@ -2188,8 +2188,8 @@ abstract class ShoppCore {
 	 * @return boolean True if valid, false if not
 	 **/
 	public static function valid_input ($type) {
-		$inputs = array("text","hidden","checkbox","radio","button","submit");
-		if (in_array($type,$inputs) !== false) return true;
+		$inputs = array('text', 'hidden', 'checkbox', 'radio', 'button', 'submit');
+		if ( in_array($type, $inputs) !== false ) return true;
 		return false;
 	}
 

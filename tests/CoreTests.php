@@ -892,4 +892,12 @@ class CoreTests extends ShoppTestCase {
 		foreach ( $possible_falses as $is_false )
 			$this->assertFalse(Shopp::str_true($is_false));
 	}
+
+	public function test_valid_input() {
+		$valid_types = array('text', 'hidden', 'checkbox', 'radio', 'button', 'submit');
+		foreach ( $valid_types as $input_type ) $this->assertTrue(Shopp::valid_input($input_type));
+
+		$invalid_types = array('password', 'secret', 'plugin-x-data-blah');
+		foreach ( $invalid_types as $input_type ) $this->assertFalse(Shopp::valid_input($input_type));
+	}
 }
