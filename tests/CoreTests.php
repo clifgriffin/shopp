@@ -839,4 +839,13 @@ class CoreTests extends ShoppTestCase {
 		$expected = SHOPP_PLUGINURI . '/templates/shopp.css';
 		$this->assertEquals($expected, $url);
 	}
+
+	/**
+	 * Largely taken care of by PrettyURLTests so we've got only a cursory test in here.
+	 */
+	public function test_url() {
+		$url = Shopp::url();
+		$expected = 'http://' . WP_TESTS_DOMAIN . '/?shopp_page=shop';
+		$this->assertEquals($expected, $url);
+	}
 }
