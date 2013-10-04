@@ -498,6 +498,25 @@ class CoreTests extends ShoppTestCase {
 		$this->assertCount(6, $present);
 	}
 
+	public function test_debug_caller() {
+		// Should end up with something akin to "debug_hop_final, debug_hop_initial, ..."
+		$trace = $this->debug_hop_initial();
+
+		$initial_hop = (false !== strpos($trace, 'debug_hop_initial'));
+		$final_hop = (false !== strpos($trace, 'debug_hop_final'));
+
+		$this->assertTrue($initial_hop);
+		$this->assertTrue($final_hop);
+	}
+
+	protected function debug_hop_initial() {
+		return self::debug_hop_final();
+	}
+
+	protected function debug_hop_final() {
+		return Shopp::debug_caller();
+	}
+
 	/**
 	 * Shopp's toast to Wills and Kate and young boy George. Also useful to ensure date formatting functions work
 	 * as expected.
@@ -848,4 +867,39 @@ class CoreTests extends ShoppTestCase {
 		$expected = 'http://' . WP_TESTS_DOMAIN . '/?shopp_page=shop';
 		$this->assertEquals($expected, $url);
 	}
+
+	public function test_str_true() {
+		// str_true() has a number of defaults but should also be case insensitive and losely typed
+		$true_defaults = array('yes', 'y', 'true', '1', 'on', 'open');
+		$true_variants = array('Yes', 'Y', 'TRUE', 1, 'On', 'Open');
+
+		foreach ( array_merge($true_defaults, $true_variants) as $is_true )
+			$this->assertTrue(Shopp::str_true($is_true));
+
+		// Should be possible to suggest an alternative set of defaults
+		$new_defaults = array('aye', 'defo', 'for reals');
+		$test_strs = array('AYE', 'Defo', 'For Reals');
+
+		foreach ( $test_strs as $is_true)
+			$this->assertTrue(Shopp::str_true($is_true, $new_defaults));
+
+		// What if alternative defaults are provided and don't incorporate the original defaults
+		$this->assertFalse(Shopp::str_true($true_defaults[1], $new_defaults));
+
+		// All other values besides defaults ought to return false
+		$possible_falses = array('no', 0, '0', 'no way', 'Please leave the bridge immediately.');
+
+		foreach ( $possible_falses as $is_false )
+			$this->assertFalse(Shopp::str_true($is_false));
+	}
+
+	public function test_valid_input() {
+		$valid_types = array('text', 'hidden', 'checkbox', 'radio', 'button', 'submit');
+		foreach ( $valid_types as $input_type ) $this->assertTrue(Shopp::valid_input($input_type));
+
+		$invalid_types = array('password', 'secret', 'plugin-x-data-blah');
+		foreach ( $invalid_types as $input_type ) $this->assertFalse(Shopp::valid_input($input_type));
+	}
+
+	public function test_
 }
