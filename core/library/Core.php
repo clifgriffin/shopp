@@ -1546,6 +1546,7 @@ abstract class ShoppCore {
 			}
 			$f['cpos'] = false;
 		}
+		$f['currency'] = trim($f['currency']);
 
 		$found = array();
 		if ( ! preg_match_all('/([^#]+)/', $df, $found) || empty($found) ) return $f;
