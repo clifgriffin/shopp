@@ -262,18 +262,21 @@ function shopp_add_product ( $data = array() ) {
  * using other API functions that exist for those specific purposes.
  *
  * @since 1.3
- * @param int $id (required) product ID
+ * @param int $product (required) ShoppProduct object or ID
  * @param array $data (required) associative array structure representing product properties
  * @return Product the created product object, or boolean false on a failure.
  **/
-function shopp_update_product ( $id, $data = array() ) {
+function shopp_update_product ( $product, $data = array() ) {
 	if ( empty($data) ) {
 		shopp_debug(__FUNCTION__ . " failed: revisions to the product definition must be passed.");
 		return false;
 	}
 
-	if ( ! ( $Product = shopp_product($id) ) ) {
-		shopp_debug(__FUNCTION__ . " failed: invalid product ID specified.");
+	if ( is_object($product) && is_a($product, 'ShoppProduct') ) {
+		$Product = $product;
+	}
+	elseif ( ! ( $Product = shopp_product($product) ) ) {
+		shopp_debug(__FUNCTION__ . " failed: invalid product or product ID specified.");
 		return false;
 	}
 

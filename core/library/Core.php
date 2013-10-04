@@ -1652,11 +1652,11 @@ abstract class ShoppCore {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @param string $template Email template file path
+	 * @param string $template Email template file path (or a string containing the template itself)
 	 * @param array $data The data to populate the template with
 	 * @return boolean True on success, false on failure
 	 **/
-	public static function email ($template,$data=array()) {
+	public static function email ($template, $data = array()) {
 
 		$debug = false;
 		$in_body = false;

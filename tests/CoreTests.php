@@ -704,6 +704,12 @@ class CoreTests extends ShoppTestCase {
 		$this->assertEquals('40d', Shopp::daytimes('1m', '1w', '3d'));
 	}
 
+	public function test_email() {
+		$valid_tpl_path = SHOPP_UNITTEST_DIR . '/data/email.php';
+		$mail_success = Shopp::email( $valid_tpl_path, array() );
+		$this->assertTrue(is_bool($mail_success));
+	}
+
 	public function test_keybind() {
 		$part_a = str_pad(md5('Centauri Montes'), 40, '0');
 		$part_b = str_pad(md5('Octantis Mons'), 40, '0');
