@@ -808,14 +808,29 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_parse_options() {
-		$options = Shopp::parse_options('status=%22Raised+eyebrows%22&parse=away');
+		$options = Shopp::parse_options('status=%22Raised+eyebrows%22&parse=away'); // Encoded quotes
 		$this->assertCount(2, $options);
-		$this->assertEquals('"Raised eyebrows"', $options['status']);
+		$this->assertEquals('"Raised eyebrows"', $options['status']); // Quotes should be decoded
 	}
 
 	public function test_taxrate() {
 		$Product = shopp_product('shopp-branded-plain-white-tee', 'slug');
 		$rate = Shopp::taxrate($Product);
 		$this->assertEquals(0.1, $rate); // 10% is set during test suite bootstrap
+	}
+
+	public function test_template_prefix() {
+		$this->filter_prefixes_once();
+		$this->assertEquals('mars/cart.php', Shopp::template_prefix('cart.php'));
+		$this->assertEquals('shopp/account.php', Shopp::template_prefix('account.php'));
+	}
+
+	protected function filter_prefixes_once() {
+		add_filter('shopp_template_directory', array($this, 'alter_tpl_prefix'));
+	}
+
+	public function alter_tpl_prefix($prefix) {
+		remove_filter('shopp_template_directory', array($this, 'alter_tpl_prefix'));
+		return 'mars';
 	}
 }

@@ -2005,7 +2005,7 @@ abstract class ShoppCore {
 	 * @return string Prefixed template file
 	 **/
 	public static function template_prefix ( string $name ) {
-		return apply_filters('shopp_template_directory','shopp').'/'.$name;
+		return apply_filters('shopp_template_directory', 'shopp').'/'.$name;
 	}
 
 	/**
