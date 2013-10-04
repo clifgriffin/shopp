@@ -2021,7 +2021,7 @@ abstract class ShoppCore {
 		$themepath = get_stylesheet_directory();
 		$themeuri = get_stylesheet_directory_uri();
 		$builtin = SHOPP_PLUGINURI.'/templates';
-		$template = rtrim(shopp_template_prefix(''),'/');
+		$template = rtrim(Shopp::template_prefix(''),'/');
 
 		$path = "$themepath/$template";
 

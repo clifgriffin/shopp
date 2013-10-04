@@ -833,4 +833,10 @@ class CoreTests extends ShoppTestCase {
 		remove_filter('shopp_template_directory', array($this, 'alter_tpl_prefix'));
 		return 'mars';
 	}
+
+	public function test_template_url() {
+		$url = Shopp::template_url('shopp.css');
+		$expected = SHOPP_PLUGINURI . '/templates/shopp.css';
+		$this->assertEquals($expected, $url);
+	}
 }
