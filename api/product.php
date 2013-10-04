@@ -280,15 +280,7 @@ function shopp_update_product ( $product, $data = array() ) {
 		return false;
 	}
 
-	// The ID and type (post_type) properties may not be set using this function
-	$properties = array('name', 'slug', 'summary', 'description', 'status',	'publish', 'modified',  'post_date_gmt',
-		'post_modified_gmt', 'post_content_filtered', 'comment_status', 'ping_status', 'to_ping', 'pinged',
-		'exclude_tax', 'sale', 'outofstock', 'excludetax', 'variants', 'addons', 'freeship', 'inventory', 'checksum',
-		'stock', 'options');
-
-	foreach ( $properties as $property )
-		if ( isset($data[$property]) ) $Product->$property = $data[$property];
-
+	$Product->updates($data);
 	$Product->save();
 }
 
