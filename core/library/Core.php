@@ -2018,16 +2018,15 @@ abstract class ShoppCore {
 	 * @param string $name The name of the template file
 	 * @return string The URL for the template file
 	 **/
-	public static function template_url ($name) {
+	public static function template_url ( $name ) {
 		$themepath = get_stylesheet_directory();
 		$themeuri = get_stylesheet_directory_uri();
-		$builtin = SHOPP_PLUGINURI.'/templates';
-		$template = rtrim(Shopp::template_prefix(''),'/');
+		$builtin = SHOPP_PLUGINURI . '/templates';
+		$template = rtrim(Shopp::template_prefix(''), '/');
 
 		$path = "$themepath/$template";
 
-		if ('off' != shopp_setting('theme_templates')
-				&& is_dir(sanitize_path( $path )) )
+		if ( shopp_setting_enabled('theme_templates') && is_dir(sanitize_path( $path )) )
 			$url = "$themeuri/$template/$name";
 		else $url = "$builtin/$name";
 

@@ -590,7 +590,7 @@ class ShoppStorefront extends ShoppFlowController {
 		add_action( 'wp_footer', array($this, 'footer') );
 		wp_enqueue_style( 'shopp.icons', SHOPP_ADMIN_URI.'/styles/icons.css', array(), 20110511, 'screen' );
 		wp_enqueue_style( 'shopp.catalog', SHOPP_ADMIN_URI.'/styles/catalog.css', array(), 20110511, 'screen' );
-		wp_enqueue_style( 'shopp', shopp_template_url('shopp.css'), array(), 20110511, 'screen' );
+		wp_enqueue_style( 'shopp', Shopp::template_url('shopp.css'), array(), 20110511, 'screen' );
 		wp_enqueue_style( 'shopp.colorbox', SHOPP_ADMIN_URI.'/styles/colorbox.css', array(), 20110511, 'screen' );
 
 		$orderhistory = ( is_account_page() && isset($_GET['id']) && ! empty($_GET['id']) );
@@ -1058,7 +1058,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	static function wrapper ( string $string ) {
 
-		$classes = array();
+		$classes = array('shopp_page');
 
 		$views = array('list', 'grid');
 		$view = shopp_setting('default_catalog_view');

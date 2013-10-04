@@ -213,8 +213,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		$linked = $before.'%2$s<a href="%3$s">%1$s</a>'.$after;
-		$list = $before.'%2$s<strong>%1$s</strong>'.$after;
+		$linked = $before . '%2$s<a href="%3$s">%1$s</a>' . $after;
+		$list = $before . '%2$s<span>%1$s</span>' . $after;
 
 		$CatalogPage = shopp_get_page('catalog');
 
