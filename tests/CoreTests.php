@@ -901,5 +901,52 @@ class CoreTests extends ShoppTestCase {
 		foreach ( $invalid_types as $input_type ) $this->assertFalse(Shopp::valid_input($input_type));
 	}
 
-	public function test_
+	public function test_scan_money_format() {
+		$specs = array();
+		$formats = array(
+			'$#,###.##', // "Conventional"
+			'# ###,##', // Space as the thousands separator
+			'£#,###.###', // Precision of 3 decimal places
+			'#,###.## £', // Trailing currency symbol
+			'##,###.## Yatts', // Irregular groupings (ie, Indian format)
+			'#,###. Kibbles' // No decimals in use
+		);
+
+		foreach ( $formats as $format )
+			$specs[$format] = Shopp::scan_money_format($format);
+
+		// Check all is in order with our convention Canada/US style format
+		$this->assertTrue($specs['$#,###.##']['cpos']);
+		$this->assertEquals('$', $specs['$#,###.##']['currency']);
+		$this->assertEquals('.', $specs['$#,###.##']['decimals']);
+		$this->assertEquals(',', $specs['$#,###.##']['thousands']);
+		$this->assertEquals(2, $specs['$#,###.##']['precision']);
+		$this->assertEquals(3, $specs['$#,###.##']['grouping'][0]);
+
+		// Symbol-less, space for thousands and comma for decimals
+		$this->assertFalse($specs['# ###,##']['cpos']);
+		$this->assertEquals('', $specs['# ###,##']['currency']);
+		$this->assertEquals(',', $specs['# ###,##']['decimals']);
+		$this->assertEquals(' ', $specs['# ###,##']['thousands']);
+
+		// Pounds sterling and decimal precision of 3
+		$this->assertTrue($specs['£#,###.###']['cpos']);
+		$this->assertEquals('£', $specs['£#,###.###']['currency']);
+		$this->assertEquals(3, $specs['£#,###.###']['precision']);
+
+		// Trailing currency symbols
+		$this->assertFalse($specs['#,###.## £']['cpos']);
+		$this->assertEquals('£', $specs['#,###.## £']['currency']);
+
+		// Irregular groupings and long currency symbols
+		$this->assertEquals('Yatts', $specs['##,###.## Yatts']['currency']);
+		$this->assertEquals(3, $specs['##,###.## Yatts']['grouping'][0]);
+		$this->assertEquals(2, $specs['##,###.## Yatts']['grouping'][1]);
+
+		// No decimals (ensure precision, groupings, thousands separator etc are not confused)
+		$this->assertEquals(',', $specs['#,###. Kibbles']['thousands']);
+		$this->assertEquals(3, $specs['#,###. Kibbles']['grouping']);
+		$this->assertEquals(0, $specs['#,###. Kibbles']['precision']);
+		$this->assertEmpty($specs['#,###. Kibbles']['decimals']);
+	}
 }
