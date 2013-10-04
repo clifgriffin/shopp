@@ -900,4 +900,6 @@ class CoreTests extends ShoppTestCase {
 		$invalid_types = array('password', 'secret', 'plugin-x-data-blah');
 		foreach ( $invalid_types as $input_type ) $this->assertFalse(Shopp::valid_input($input_type));
 	}
+
+	public function test_
 }

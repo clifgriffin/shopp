@@ -1423,6 +1423,7 @@ abstract class ShoppCore {
 	 *
 	 * @param array $matches preg matches array, expects $1 to be type and $2 to be string
 	 * @return string _e translated string
+	 * @deprecated 1.3
 	 **/
 	public static function preg_e_callback ( array $matches ) {
 		return ( 'e' == $matches[1] ) ? Shopp::__($matches[2]) : "'" . Shopp::__($matches[2]) . "'";
@@ -2125,6 +2126,7 @@ abstract class ShoppCore {
 	 * @param int $depth (internal) The number of the nested depth in the current iteration
 	 * @return array The sorted tree of data
 	 * @author Jonathan Davis
+	 * @deprecated 1.3
 	 **/
 	public static function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 		$depth++;
