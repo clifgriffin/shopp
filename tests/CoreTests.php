@@ -17,6 +17,7 @@ class CoreTests extends ShoppTestCase {
 
 	public static function setUpBeforeClass() {
 		self::create_tpl_dir();
+		self::create_test_product();
 	}
 
 	/**
@@ -34,6 +35,76 @@ class CoreTests extends ShoppTestCase {
 			if ( $file->isFile() && ! unlink( $file->getPathname() ) ) $failure = true;
 
 		self::$template_dir_ready = ( ! $failure );
+	}
+
+	protected static function create_test_product() {
+		shopp_add_product(array(
+			'name' => 'Shopp-branded Plain White Tee',
+			'publish' => array('flag' => true),
+			'featured' => true,
+			'summary' => 'Starfleet inspired standard issue of the Shopp crew.',
+			'description' => 'Designed to inspire fear and envy among the WordPress community.',
+			'tags' => array('terms' => array('Starfleet', 'Shopp')),
+			'variants' => array(
+				'menu' => array(
+					'Size' => array('Small','Medium','Large','Brikar')
+				),
+				0 => array(
+					'option' => array('Size' => 'Small'),
+					'type' => 'Shipped',
+					'price' => 19.99,
+					'sale' => array('flag'=>true, 'price' => 9.99),
+					'shipping' => array('flag' => true, 'fee' => 0, 'weight' => 0.1, 'length' => 0.3, 'width' => 0.3, 'height' => 0.1),
+					'inventory' => array(
+						'flag' => true,
+						'stock' => 5,
+						'sku' => 'SFU-001-S'
+					)
+				),
+				1 => array(
+					'option' => array('Size' => 'Medium'),
+					'type' => 'Shipped',
+					'price' => 22.55,
+					'sale' => array('flag'=>true, 'price' => 19.99),
+					'shipping' => array('flag' => true, 'fee' => 0, 'weight' => 0.1, 'length' => 0.3, 'width' => 0.3, 'height' => 0.1),
+					'inventory' => array(
+						'flag' => true,
+						'stock' => 15,
+						'sku' => 'SFU-001-M'
+					)
+				),
+				2 => array(
+					'option' => array('Size' => 'Large'),
+					'type' => 'Shipped',
+					'price' => 32.95,
+					'sale' => array('flag'=>true, 'price' => 24.95),
+					'shipping' => array('flag' => true, 'fee' => 0, 'weight' => 0.1, 'length' => 0.3, 'width' => 0.3, 'height' => 0.1),
+					'inventory' => array(
+						'flag' => true,
+						'stock' => 1,
+						'sku' => 'SFU-001-L'
+					)
+				),
+				3 => array(
+					'option' => array('Size' => 'Brikar'),
+					'type' => 'Shipped',
+					'price' => 55.00,
+					'sale' => array('flag'=>true, 'price' => 35.00),
+					'shipping' => array('flag' => true, 'fee' => 0, 'weight' => 2.1, 'length' => 0.3, 'width' => 0.9, 'height' => 1.1),
+					'inventory' => array(
+						'flag' => true,
+						'stock' => 1,
+						'sku' => 'SFU-001-B'
+					)
+				),
+
+			)
+		));
+	}
+
+	static function tearDownAfterClass () {
+		$Product = shopp_product('shopp-branded-plain-white-tee', 'slug');
+		shopp_rmv_product($Product->id);
 	}
 
 	public function test_unsupported () {
@@ -740,5 +811,11 @@ class CoreTests extends ShoppTestCase {
 		$options = Shopp::parse_options('status=%22Raised+eyebrows%22&parse=away');
 		$this->assertCount(2, $options);
 		$this->assertEquals('"Raised eyebrows"', $options['status']);
+	}
+
+	public function test_taxrate() {
+		$Product = shopp_product('shopp-branded-plain-white-tee', 'slug');
+		$rate = Shopp::taxrate($Product);
+		$this->assertEquals(0.1, $rate); // 10% is set during test suite bootstrap
 	}
 }

@@ -76,8 +76,6 @@ function shopp_tests_setup() {
 }
 
 function shopp_tests_settings () {
-
-
 	// Setup Shipping
 	$args = array(
 		'label' => 'Standard',
