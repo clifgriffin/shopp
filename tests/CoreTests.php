@@ -735,4 +735,10 @@ class CoreTests extends ShoppTestCase {
 		$this->assertEquals('mars-admin-screen.php', Shopp::pagename('index.php/mars-admin-screen.php')); // IIS rewrites
 		$this->assertEquals('mars-admin-screen.php', Shopp::pagename('mars-admin-screen.php'));
 	}
+
+	public function test_parse_options() {
+		$options = Shopp::parse_options('status=%22Raised+eyebrows%22&parse=away');
+		$this->assertCount(2, $options);
+		$this->assertEquals('"Raised eyebrows"', $options['status']);
+	}
 }
