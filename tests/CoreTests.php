@@ -498,6 +498,25 @@ class CoreTests extends ShoppTestCase {
 		$this->assertCount(6, $present);
 	}
 
+	public function test_debug_caller() {
+		// Should end up with something akin to "debug_hop_final, debug_hop_initial, ..."
+		$trace = $this->debug_hop_initial();
+
+		$initial_hop = (false !== strpos($trace, 'debug_hop_initial'));
+		$final_hop = (false !== strpos($trace, 'debug_hop_final'));
+
+		$this->assertTrue($initial_hop);
+		$this->assertTrue($final_hop);
+	}
+
+	protected function debug_hop_initial() {
+		return self::debug_hop_final();
+	}
+
+	protected function debug_hop_final() {
+		return Shopp::debug_caller();
+	}
+
 	/**
 	 * Shopp's toast to Wills and Kate and young boy George. Also useful to ensure date formatting functions work
 	 * as expected.
