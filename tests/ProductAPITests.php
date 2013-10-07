@@ -499,6 +499,4 @@ class ProductAPITests extends ShoppTestCase {
 
 		$this->assertValidMarkup($output);
 	}
-
-
 } // end ProductAPITests class

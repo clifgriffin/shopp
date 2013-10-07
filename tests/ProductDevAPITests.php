@@ -322,21 +322,12 @@ class ProductDevAPITests extends ShoppTestCase {
 
 	}
 
-	function test_shopp_update_product () {
-		$this->markTestSkipped('We need to consider how price objects are created before using shopp_update_product() as a mere alias.');
-
-		$Product = shopp_product('USS Enterprise', 'name');
-		$Product = shopp_update_product($Product->id, array('name' => 'USS Ottawa'));
-		$this->assertTrue( is_object($Product) );
-
-		$Product = shopp_product('USS Enterprise', 'name');
-		$this->assertFalse($Product);
-
-		$Product = shopp_product('USS Ottawa', 'name');
-		$this->assertTrue( is_object($Product) );
-
-		$Product = shopp_update_product($Product->id, array('name' => 'USS Enterprise'));
-		$this->assertTrue( is_object($Product) );
+	public function test_shopp_update_product () {
+		$Product = shopp_product('uss-enterprise', 'slug');
+		$revised_description = 'Now with a holo-deck powered by solid state drive technology.';
+		shopp_update_product($Product, array( 'description' => $revised_description	));
+		$Product = shopp_product($Product->id);
+		$this->assertEquals($revised_description, $Product->description);
 	}
 
 	function test_shopp_product () {
