@@ -1014,6 +1014,15 @@ class ShoppInstallation extends ShoppFlowController {
 
 	}
 
+	public function upgrade_130 () {
+		global $wpdb;
+
+		if ($db_version <= 1300) {
+			$meta_table = ShoppDatabaseObject::tablename('meta');
+			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
+		}
+	}
+
 	/**
 	 * Perform automatic updates for the core plugin and addons
 	 *
