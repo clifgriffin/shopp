@@ -944,9 +944,9 @@ class CoreTests extends ShoppTestCase {
 		$this->assertEquals(2, $specs['##,###.## Yatts']['grouping'][1]);
 
 		// No decimals (ensure precision, groupings, thousands separator etc are not confused)
-		$this->assertEquals(',', $specs['#,###. Kibbles']['thousands']);
-		$this->assertEquals(3, $specs['#,###. Kibbles']['grouping']);
+		$this->assertEquals(',', $specs['#,###. Kibbles']['thousands'], json_encode($specs['#,###. Kibbles']));
+		$this->assertEquals(3, $specs['#,###. Kibbles']['grouping'][0]);
 		$this->assertEquals(0, $specs['#,###. Kibbles']['precision']);
-		$this->assertEmpty($specs['#,###. Kibbles']['decimals']);
+		$this->assertEquals('.', $specs['#,###. Kibbles']['decimals']);
 	}
 }

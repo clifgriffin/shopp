@@ -1555,27 +1555,29 @@ abstract class ShoppCore {
 		$dd = 0; // Decimal digits
 
 		if ( count($dl) > 1 ) {
-			if ($dl[0] == $dl[1] && !isset($dl[2])) {
+			if ( $dl[0] == $dl[1] && ! isset($dl[2]) ) {
 				$f['thousands'] = $dl[1];
 				$f['precision'] = 0;
 			} else {
-				$f['decimals'] = $dl[count($dl)-1];
+				$f['decimals'] = $dl[ count($dl) - 1 ];
 				$f['thousands'] = $dl[0];
 			}
+		} elseif ( ! empty($f['decimals']) && $dl[0] != $f['decimals'] ) {
+			$f['thousands'] = $dl[0];
 		} else $f['decimals'] = $dl[0];
 
 		$dfc = $df;
 		// Count for precision
 		if ( ! empty($f['decimals']) && strpos($df, $f['decimals']) !== false) {
-			list($dfc,$dd) = explode($f['decimals'],$df);
+			list($dfc,$dd) = explode($f['decimals'], $df);
 			$f['precision'] = strlen($dd);
 		}
 
-		if (!empty($f['thousands']) && strpos($df,$f['thousands']) !== false) {
-			$groupings = explode($f['thousands'],$dfc);
+		if ( ! empty($f['thousands']) && false !== strpos($df, $f['thousands']) ) {
+			$groupings = explode($f['thousands'], $dfc);
 			$grouping = array();
-			while (list($i,$g) = each($groupings))
-				if (strlen($g) > 1) array_unshift($grouping,strlen($g));
+			while ( list($i, $g) = each($groupings) )
+				if ( strlen($g) > 1 ) array_unshift($grouping, strlen($g));
 			$f['grouping'] = $grouping;
 		}
 
