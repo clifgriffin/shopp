@@ -351,7 +351,7 @@ class CoreTests extends ShoppTestCase {
 			$this->markTestSkipped('The template directory must be empty and writeable.');
 
 		// Yes? Do it!
-		$source = trailingslashit(ABSPATH) . 'wp-content/plugins/' . trailingslashit(SHOPP_DIR) . 'templates';
+		$source = realpath(trailingslashit(ABSPATH) . 'wp-content/plugins/' . trailingslashit(SHOPP_DIR) . 'templates');
 		$target = self::$template_dir;
 		Shopp::copy_templates($source, $target);
 
