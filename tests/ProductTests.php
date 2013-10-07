@@ -2,7 +2,7 @@
 /**
  * ProductTests - tests for the product model (ShoppProduct)
  */
-class ProductDevAPITests extends ShoppTestCase
+class ProductTests extends ShoppTestCase
 {
 	public static function setUpBeforeClass() {
 		shopp_add_product(array(
