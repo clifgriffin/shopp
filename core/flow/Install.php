@@ -1014,6 +1014,27 @@ class ShoppInstallation extends ShoppFlowController {
 
 	}
 
+	public function upgrade_130 () {
+		global $wpdb;
+
+		if ($db_version <= 1300) {
+			$meta_table = ShoppDatabaseObject::tablename('meta');
+			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
+
+			// Update purchase gateway values to match new prefixed class names
+			$gateways = array(
+				'PayPalStandard' => 'ShoppPayPalStandard',
+				'_2Checkout' => 'Shopp2Checkout',
+				'OfflinePayment' => 'ShoppOfflinePayment',
+				'TestMode' => 'ShoppTestMode',
+				'FreeOrder' => 'ShoppFreeOrder'
+
+			);
+			foreach ($gateways as $name => $classname)
+				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
+		}
+	}
+
 	/**
 	 * Perform automatic updates for the core plugin and addons
 	 *

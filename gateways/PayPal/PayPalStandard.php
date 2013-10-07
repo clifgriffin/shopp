@@ -81,7 +81,6 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	public function processing ( $processing ) {
-		shopp_debug(__METHOD__);
 		return array($this, 'uploadcart');
 	}
 
@@ -333,7 +332,6 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form
 	 **/
 	public function uploadcart ( ShoppPurchase $Purchase ) {
-		shopp_debug(__METHOD__);
 		$id = sanitize_key($this->module);
 		$title = Shopp::__('Sending order to PayPal&hellip;');
 		$message = '<form id="' . $id . '" action="'.$this->url().'" method="POST">' .

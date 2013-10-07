@@ -489,7 +489,7 @@ function contact_meta_box ($Purchase) {
 	?>
 	<h4><?php _e('Search for Customer','Shopp'); ?></h4>
 	<?php echo ShoppUI::template( $search ); ?>
-	<form id="change-customer" action="<?php echo ShoppAdminController::url(array('page' => $page,'id' => (int)$Purchase->id)); ?>" method="POST">
+	<form id="change-customer" action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
 	<h4><?php _e('Add New Customer','Shopp'); ?></h4>
 	<input type="hidden" name="change-customer" value="true" />
 	<?php echo ShoppUI::template( $editcustomer, array( '${action}' => 'new-customer', '${savelabel}' => __('Add New Customer','Shopp') ) ); ?>
@@ -508,7 +508,7 @@ function contact_meta_box ($Purchase) {
 			return;
 		} elseif ( isset($_REQUEST['edit-customer'])) {
 		?>
-			<form action="<?php echo ShoppAdminController::url(array('page' => $page,'id' => (int)$Purchase->id)); ?>" method="POST">
+			<form action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
 			<?php echo ShoppUI::template($editcustomer,$customer); ?>
 			</form>
 		<?php
@@ -516,7 +516,7 @@ function contact_meta_box ($Purchase) {
 		}
 	?>
 	<div id="change-customer-editor"></div>
-	<form action="<?php echo ShoppAdminController::url(array('page' => $page,'id' => (int) $Purchase->id)); ?>" method="post" id="customer-editor-form"></form>
+	<form action="<?php echo ShoppAdminController::url(array('id' => (int) $Purchase->id)); ?>" method="post" id="customer-editor-form"></form>
 	<div class="display">
 		<form action="<?php echo ShoppAdminController::url(array('id' => $Purchase->id)); ?>" method="get">
 		<?php $targets = shopp_setting('target_markets'); ?>

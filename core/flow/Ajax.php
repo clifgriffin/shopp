@@ -460,7 +460,7 @@ class ShoppAjax {
 				 $where[] = "c.email LIKE '%$search%'";
 			} elseif (is_numeric($s)) {
 				$where[] = "c.phone='$search'";
-			} else $where[] = "(CONCAT(c.firstname,' ',c.lastname) LIKE '%$search%' OR c.company LIKE '%$s%')";
+			} else $where[] = "(CONCAT(c.firstname,' ',c.lastname) LIKE '%$search%' OR c.company LIKE '%$s%' OR u.user_login LIKE '%$s%')";
 
 			$pagenum = absint( $paged );
 			if ( empty($pagenum) ) $pagenum = 1;

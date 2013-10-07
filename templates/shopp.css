@@ -48,8 +48,6 @@
 #shopp ul.products li .summary { display: none; }
 #shopp ul.products li .listview { display: none; }
 
-#shopp ul.products img { display: block; }
-
 #shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
 #shopp .original { text-decoration: line-through; }
 #shopp .sale { font-size: 150%; }
@@ -71,6 +69,7 @@
 
 #shopp ul.breadcrumb { margin: 10px 0; display: inline; }
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
+#shopp ul.breadcrumb li span { font-weight: bold; }
 #shopp .category-list-menu { display: inline; }
 
 #shopp ul.categories { float: left; margin-right: 20px; }
