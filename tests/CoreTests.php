@@ -915,7 +915,7 @@ class CoreTests extends ShoppTestCase {
 		foreach ( $formats as $format )
 			$specs[$format] = Shopp::scan_money_format($format);
 
-		// Check all is in order with our convention Canada/US style format
+		// Check all is in order with our conventional Canada/US style format
 		$this->assertTrue($specs['$#,###.##']['cpos']);
 		$this->assertEquals('$', $specs['$#,###.##']['currency']);
 		$this->assertEquals('.', $specs['$#,###.##']['decimals']);
