@@ -571,13 +571,8 @@ class ShoppStorefront extends ShoppFlowController {
 		$Shopp = Shopp::object();
 
 		if ( is_ssl() ) {
-			add_filter( 'option_siteurl',			'force_ssl' );
-			add_filter( 'option_home',				'force_ssl' );
-			add_filter( 'option_url',				'force_ssl' );
-			add_filter( 'option_wpurl',				'force_ssl' );
-			add_filter( 'option_stylesheet_url',	'force_ssl' );
-			add_filter( 'option_template_url',		'force_ssl' );
-			add_filter( 'script_loader_src',		'force_ssl' );
+			$urls = array('option_siteurl', 'option_home', 'option_url', 'option_wpurl', 'option_stylesheet_url', 'option_template_url', 'script_loader_src');
+			foreach ( $urls as $filter ) add_filter($filter, 'force_ssl');
 		}
 
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
@@ -588,8 +583,8 @@ class ShoppStorefront extends ShoppFlowController {
 
 		add_action( 'wp_head', array($this, 'header') );
 		add_action( 'wp_footer', array($this, 'footer') );
-		wp_enqueue_style( 'shopp.icons', SHOPP_ADMIN_URI.'/styles/icons.css', array(), 20110511, 'screen' );
 		wp_enqueue_style( 'shopp.catalog', SHOPP_ADMIN_URI.'/styles/catalog.css', array(), 20110511, 'screen' );
+		wp_enqueue_style( 'shopp.icons', SHOPP_ADMIN_URI.'/styles/icons.css', array(), 20110511, 'screen' );
 		wp_enqueue_style( 'shopp', Shopp::template_url('shopp.css'), array(), 20110511, 'screen' );
 		wp_enqueue_style( 'shopp.colorbox', SHOPP_ADMIN_URI.'/styles/colorbox.css', array(), 20110511, 'screen' );
 
