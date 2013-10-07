@@ -56,9 +56,11 @@ class ProductTests extends ShoppTestCase
 	public function test_product_duplication() {
 		$Product = shopp_product('gold-command-uniform', 'slug');
 		$Product = shopp_product($Product->id); // Kludge! Ensures the product's _key is the ID
+		add_post_meta($Product->id, 'test_meta', 'The Martians are coming!');
 
 		$Product->duplicate();
 		$Product = shopp_product('gold-command-uniform-copy', 'slug');
 		$this->assertInstanceOf('ShoppProduct', $Product);
+		$this->assertEquals('The Martians are coming!', get_post_meta($Product->id, 'test_meta', true));
 	}
 }
