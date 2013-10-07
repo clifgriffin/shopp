@@ -55,8 +55,10 @@ class ProductTests extends ShoppTestCase
 
 	public function test_product_duplication() {
 		$Product = shopp_product('gold-command-uniform', 'slug');
+		$Product = shopp_product($Product->id); // Kludge! Ensures the product's _key is the ID
+
 		$Product->duplicate();
-		#$Product = shopp_product('gold-command-uniform-2', 'slug');
-		#$this->assertInstanceOf('ShoppProduct', $Product);
+		$Product = shopp_product('gold-command-uniform-copy', 'slug');
+		$this->assertInstanceOf('ShoppProduct', $Product);
 	}
 }
