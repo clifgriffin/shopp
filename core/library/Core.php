@@ -1288,11 +1288,17 @@ abstract class ShoppCore {
 	 * @param array $format The currency format to use
 	 * @return string The formatted amount
 	 **/
-	public static function money ($amount, $format = array()) {
+	public static function money ( $amount, array $format = array() ) {
+
 		$format = apply_filters('shopp_money_format', Shopp::currency_format($format) );
-		$number = Shopp::numeric_format(apply_filters('shopp_money_amount', $amount), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']);
-		if ( $format['cpos'] ) return $format['currency'].$number;
-		else return $number . $format['currency'];
+		extract($format, EXTR_SKIP);
+
+		$amount = apply_filters('shopp_money_amount', $amount);
+		$number = Shopp::numeric_format(abs($amount), $precision, $decimals, $thousands, $grouping);
+
+		if ( $cpos ) return ( $amount < 0 ? '-' : '' ) . $currency . $number;
+		else return $number . $currency;
+
 	}
 
 	/**
