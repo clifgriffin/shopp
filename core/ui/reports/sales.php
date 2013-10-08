@@ -30,24 +30,26 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		$where = array();
 		$where[] = "$starts < " . self::unixtime('o.created');
 		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.txnstatus IN ('captured','CHARGED')";
 		$where = join(" AND ",$where);
+
 
 		$id = $this->timecolumn('o.created');
 		$orders_table = ShoppDatabaseObject::tablename('purchase');
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
+
 		$query = "SELECT CONCAT($id) AS id,
-							UNIX_TIMESTAMP(o.created) as period,
-							COUNT(DISTINCT p.id) AS items,
+							UNIX_TIMESTAMP(o.created) AS period,
 							COUNT(DISTINCT o.id) AS orders,
-							SUM(o.subtotal)*(COUNT(DISTINCT o.id)/COUNT(*)) as subtotal,
-							SUM(o.tax)*(COUNT(DISTINCT o.id)/COUNT(*)) as tax,
-							SUM(o.freight)*(COUNT(DISTINCT o.id)/COUNT(*)) as shipping,
-							SUM(o.discount)*(COUNT(DISTINCT o.id)/COUNT(*)) as discounts,
-							SUM(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) as total,
-							AVG(o.total)*(COUNT(DISTINCT o.id)/COUNT(*)) AS orderavg,
-							AVG(p.unitprice)*(COUNT(DISTINCT o.id)/COUNT(*)) AS itemavg
+							SUM(o.subtotal) AS subtotal,
+							SUM(o.tax) AS tax,
+							SUM(o.freight) AS shipping,
+							SUM(o.discount) AS discounts,
+							SUM(o.total) AS total,
+							AVG(o.total) AS orderavg,
+							SUM( (SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS items,
+							(SELECT AVG(p.unitprice) FROM $purchased_table AS p WHERE o.id = p.purchase) AS itemavg
 					FROM $orders_table AS o
-					LEFT OUTER JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id)";
 
