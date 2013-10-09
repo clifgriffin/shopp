@@ -153,7 +153,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	public function posts ( array $posts, WP_Query $wp_query ) {
 
-		if ( is_shopp_taxonomy($wp_query) ) return $posts;
+		if ( is_shopp_taxonomy($wp_query) ) return array(true);
 
 		if ( $this->request($wp_query) ) {
 			$StubPage = new ShoppPage();
