@@ -298,8 +298,19 @@ abstract class ShippingFramework {
 
 		$this->module = get_class($this);
 
-		if ($this->singular) $this->settings = shopp_setting($this->module);
-		else {
+		if ( $this->singular ) {
+			// @todo Remove legacy gateway settings migrations
+			// Attempt to copy old settings if this is a new prefixed gateway class
+			$this->settings = shopp_setting($this->module);
+			if ( empty($this->settings) && false !== strpos($this->module, 'Shopp') ) {
+				$legacy = substr($this->module, 5);
+				$this->settings = shopp_setting($legacy);
+				if ( ! empty($this->settings) ) {
+					shopp_set_setting($this->module, $this->settings);
+					shopp_rmv_setting($legacy); // Clean up legacy setting
+				}
+			}
+		} else {
 			$active = shopp_setting('active_shipping');
 			if (isset($active[$this->module]) && is_array($active[$this->module])) {
 				$this->methods = array();
@@ -315,9 +326,6 @@ abstract class ShippingFramework {
 
 		$this->base = shopp_setting('base_operations');
 		$this->units = shopp_setting('weight_unit');
-
-		if ( $this->xml && ! class_exists('xmlQuery')) require(SHOPP_MODEL_PATH."/XML.php");
-		if ( $this->soap && ! class_exists('nusoap_base') ) require(SHOPP_MODEL_PATH."/SOAP.php");
 
 		// Setup default packaging for shipping module
 		$this->settings['shipping_packaging'] = shopp_setting('shipping_packaging');
