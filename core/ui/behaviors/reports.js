@@ -77,9 +77,10 @@ jQuery(document).ready( function() {
 
                 $("#tooltip").remove();
                 var x = item.datapoint[0],
-                    y = item.datapoint[1];
+                    y = Math.round(item.datapoint[1]);
 
 				if (co.yaxis.tickFormatter == asMoney) y = asMoney(item.datapoint[1]);
+
 
                 showTooltip(item.pageX, item.pageY, '<strong>'+y+'</strong> ' +item.series.label);
             }
