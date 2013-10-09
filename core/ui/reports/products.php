@@ -51,10 +51,11 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function chartseries ($label,$options = array() ) {
+	function chartseries ( $label, array $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
-		$this->Chart->series($record->product,array( 'color' => '#1C63A8','data'=>array( array($index,$record->grossed) ) ));
+
+		$this->Chart->series($record->product, array( 'color' => '#1C63A8', 'data'=> array( array($index, $record->grossed) ) ));
 	}
 
 	function filters () {

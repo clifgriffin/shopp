@@ -275,9 +275,9 @@ abstract class ShoppReportFramework {
 		$this->screen = $this->options['screen'];
 		$this->totals = new StdClass();
 
-		add_action('shopp_report_filter_controls',array($this,'filters'));
-		add_action("manage_{$this->screen}_columns",array($this,'screencolumns'));
-		add_action("manage_{$this->screen}_sortable_columns",array($this,'sortcolumns'));
+		add_action('shopp_report_filter_controls', array($this, 'filters'));
+		add_action("manage_{$this->screen}_columns", array($this, 'screencolumns'));
+		add_action("manage_{$this->screen}_sortable_columns", array($this, 'sortcolumns'));
 	}
 
 	/**
@@ -292,19 +292,20 @@ abstract class ShoppReportFramework {
 		extract($this->options);
 
 		// Map out time period based reports with index matching keys and period values
-		if ($this->periods) $this->timereport($starts,$ends,$scale);
+		if ( $this->periods )
+			$this->timereport($starts, $ends, $scale);
 
 		$this->setup();
 
 		$query = $this->query();
 		if ( empty($query) ) return;
-		$loaded = DB::query( $query, 'array', array($this,'process') );
+		$loaded = DB::query( $query, 'array', array($this, 'process') );
 
 		if ( $this->periods && $this->Chart ) {
-			foreach ($this->data as $index => $record) {
-				foreach ($this->chartseries as $series => $column) {
-					if ( isset($record->$column) )
-						$this->chartdata($series,$record->period,$record->$column);
+			foreach ( $this->data as $index => $record ) {
+				foreach ( $this->chartseries as $series => $column ) {
+					$data = isset($record->$column) ? $record->$column : 0;
+					$this->chartdata($series, $record->period, $data);
 				}
 			}
 		} else {
@@ -324,7 +325,7 @@ abstract class ShoppReportFramework {
 	 * @param object $record Loaded record from the query
 	 * @return void
 	 **/
-	public function process (&$records,&$record,$Object=false,$index='id',$collate=false) {
+	public function process ( &$records, &$record, $Object = false, $index = 'id', $collate = false ) {
 		$index = isset($record->$index) ? $record->$index : '!NO_INDEX!';
 
 		$columns = get_object_vars($record);
@@ -335,23 +336,23 @@ abstract class ShoppReportFramework {
 			}
 		}
 
-		if ( $this->periods && isset($this->data[$index]) ) {
-			$record->period = $this->data[$index]->period;
-			$this->data[$index] = $record;
+		if ( $this->periods && isset($this->data[ $index ]) ) {
+			$record->period = $this->data[ $index ]->period;
+			$this->data[ $index ] = $record;
 
 			return;
 		}
 
-		if ($collate) {
-			if (!isset($records[$index])) $records[$index] = $record;
-			$records[$index][] = $record;
+		if ( $collate ) {
+			if ( ! isset($records[ $index ]) ) $records[ $index ] = $record;
+			$records[ $index ][] = $record;
 			return;
 		}
 
 		$id = count($records);
-		$records[$index] = $record;
+		$records[ $index ] = $record;
 
-		$this->chartseries(false,array('index' => $id,'record'=>$record));
+		$this->chartseries(false, array('index' => $id, 'record' => $record));
 	}
 
 	/**
@@ -951,7 +952,7 @@ abstract class ShoppReportFramework {
 	protected function chartseries ( $label, $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		if ( isset($options['column']) ) $this->chartseries[] = $options['column'];	// Register the column to the data series index
-		$this->Chart->series($label,$options);										// Initialize the series in the chart
+		$this->Chart->series($label, $options);										// Initialize the series in the chart
 	}
 
 
@@ -1018,6 +1019,7 @@ class ShoppReportChart {
 	 **/
 	public function __construct () {
 		shopp_enqueue_script('flot');
+		shopp_enqueue_script('flot-time');
 		shopp_enqueue_script('flot-grow');
 	}
 
@@ -1122,7 +1124,7 @@ class ShoppReportChart {
 	 * @param boolean $periods Settings flag for specified time period data
 	 * @return void
 	 **/
-	public function data ($series,$x,$y,$periods=false) {
+	public function data ( $series, $x, $y, $periods = false ) {
 		if ( ! isset($this->data[$series]) ) return;
 
 		if ( $periods ) {
@@ -1151,6 +1153,14 @@ class ShoppReportChart {
 	 **/
 	public function render () {
 		if ( isset($this->datapoints) && $this->datapoints > 75 ) $this->options['series']['points'] = false;
+
+		// if ( empty($this->data) && isset($this->options['series']['bars'])) { // Default empty bar chart
+		// 	$this->data = array(array(
+		// 		'data' => array(0,0)
+		// 	));
+		// 	$this->options['yaxis']['min'] = 0;
+		// 	$this->options['yaxis']['max'] = 100;
+		// }
 
 		?>
 		<script type="text/javascript">
