@@ -155,10 +155,11 @@ class ShoppScripts extends WP_Scripts {
 		$debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;	// Determine if we are debugging the scripts
 		$extension = '.js';									// Use .js extension for script files
 		$suffix = '.min';									// Use .min for suffix
+		$minsrc = str_replace($extension, $suffix . $extension, $src);
 
 		// Add the suffix when not debugging and the suffix isn't already used (the file is not available unminified)
-		if ( ! $debug && false === strpos( $src, $suffix . $extension ) )
-			$src = str_replace($extension, $suffix . $extension, $src);
+		if ( ! $debug && false === strpos( $src, $suffix . $extension ) && file_exists(ShoppLoader::basepath() . $minsrc ) )
+			$src = $minsrc;
 
 		return parent::add( $handle, $src, $deps, $ver, $args);
 	}
