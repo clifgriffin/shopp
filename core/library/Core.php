@@ -2035,7 +2035,7 @@ abstract class ShoppCore {
 
 		$path = "$themepath/$template";
 
-		if ( shopp_setting_enabled('theme_templates') && is_dir(sanitize_path( $path )) )
+		if ( 'off' != shopp_setting('theme_templates') && is_dir(sanitize_path( $path )) )
 			$url = "$themeuri/$template/$name";
 		else $url = "$builtin/$name";
 
