@@ -309,6 +309,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('flot', '/ui/behaviors/flot/jquery.flot.min.js', array('jquery'), $version);
 	$scripts->add_data('flot', 'group', 1);
 
+	$scripts->add('flot-time', '/ui/behaviors/flot/jquery.flot.time.min.js', array('jquery'), $version);
+	$scripts->add_data('flot-time', 'group', 1);
+
 	$scripts->add('flot-grow', '/ui/behaviors/flot/jquery.flot.grow.min.js', array('flot'), $version);
 	$scripts->add_data('flot-grow', 'group', 1);
 
