@@ -153,7 +153,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	public function posts ( array $posts, WP_Query $wp_query ) {
 
-		if ( is_shopp_taxonomy($wp_query) ) return array(true);
+		if ( is_shopp_taxonomy($wp_query) ) return array($posts);
 
 		if ( $this->request($wp_query) ) {
 			$StubPage = new ShoppPage();
@@ -251,7 +251,6 @@ class ShoppStorefront extends ShoppFlowController {
 			$post_archive->post_title = ShoppCollection()->name; // Added so single_post_title will return the title properly
 			$wp_query->queried_object = $post_archive;
 			$wp_query->queried_object_id = 0;
-
 		}
 
 		$Collection = ShoppCollection();

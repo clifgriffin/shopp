@@ -233,6 +233,7 @@ class ShoppPage {
 	public function filters () {
 		add_filter('shopp_content_container_classes', array($this, 'styleclass'));
 		add_filter('get_edit_post_link', array($this, 'editlink'));
+		add_filter('get_edit_term_link', array($this, 'editlink'));
 		add_filter('the_content', array($this, 'content'), 20);
 		add_filter('the_excerpt', array($this, 'content'), 20);
 	}
@@ -840,10 +841,9 @@ class ShoppCollectionPage extends ShoppPage {
 			'edit' => $editlink,
 		);
 		parent::__construct($settings);
-
 	}
 
-	public function editlink ($link) {
+	public function editlink ( $link ) {
 		return $this->edit;
 	}
 
