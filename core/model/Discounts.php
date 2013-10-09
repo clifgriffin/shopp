@@ -1008,6 +1008,38 @@ class ShoppOrderDiscount {
 }
 
 /**
+ * Storage class for discounts applied to a purchase and saved in a ShoppPurchase record
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package shopp
+ **/
+class ShoppPurchaseDiscount {
+
+	public $id = false;						// The originating promotion object id
+	public $name = '';						// The name of the promotion
+	public $amount = 0.00;					// The total amount of the discount
+	public $type = ShoppOrderDiscount::AMOUNT_OFF;		// The discount type
+	public $target = ShoppOrderDiscount::ORDER;			// The discount target
+	public $discount = false;				// The calculated discount amount (float or array for BOGOFs)
+	public $code = false;					// The code associated with the discount
+	public $shipfree = false;				// A flag for free shipping
+
+	public function __construct ( ShoppOrderDiscount $Discount ) {
+
+		$this->id = $Discount->id();
+		$this->name = $Discount->name();
+		$this->type = $Discount->type();
+		$this->target = $Discount->target();
+		$this->discount = $Discount->discount();
+		$this->code = $Discount->code();
+		$this->shipfree = $Discount->shipfree();
+
+	}
+
+}
+
+/**
  * Loads the available promotions
  *
  * @author Jonathan Davis
@@ -1024,7 +1056,7 @@ class ShoppPromotions extends ListFramework {
 	/**
 	 * Detect if promotions exist and pre-load if so.
 	 */
-	public function __construct() {
+	public function __construct () {
 		Shopping::restore( 'promos', $this->promos );
 	}
 

@@ -558,6 +558,7 @@ ShoppLoader::map(array(
 	'shopppromotions' => '/model/Discounts.php',
 	'shopppurchase' => '/model/Purchase.php',
 	'shopppurchased' => '/model/Purchased.php',
+	'shopppurchasediscount' => '/model/Discounts.php',
 	'shoppregistration' => '/flow/Registration.php',
 	'shoppreport' => '/flow/Report.php',
 	'shoppreportchart' => '/flow/Report.php',

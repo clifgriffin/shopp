@@ -221,6 +221,8 @@ CREATE TABLE <?php echo $purchased; ?> (						-- Line items purchased in an orde
 	downloads int(10) unsigned NOT NULL default '0',			-- Number of downloads against this purchased item
 	unitprice decimal(16,6) NOT NULL default '0.00',			-- Unit price of purchased item
 	unittax decimal(16,6) NOT NULL default '0.00',				-- Unit taxes assessed for the purchased item
+	unitdiscount decimal(16,6) NOT NULL default '0.00',			-- Unit discount applied
+	discounts decimal(16,6) NOT NULL default '0.00',			-- Total line item discounts applied
 	shipping decimal(16,6) NOT NULL default '0.00',				-- Shipping costs specific to the purchased item
 	total decimal(16,6) NOT NULL default '0.00',				-- Total cost of the line item
 	addons enum('yes','no') NOT NULL default 'no',				-- Purchased item has add-ons
