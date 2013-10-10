@@ -515,7 +515,14 @@ class ShoppAdminSystem extends ShoppAdminController {
 		if (isset($_POST['submit'])) $edit = false;
 
 		$base = shopp_setting('base_operations');
-		$countries = array_merge(array('*' => __('All Markets','Shopp')),(array)shopp_setting('target_markets'));
+		$specials = array(ShoppTax::ALL => Shopp::__('All Markets'));
+
+		if ( ShoppTax::euvat(false, $base['country'], ShoppTax::EUVAT) )
+			$specials[ ShoppTax::EUVAT ] = Shopp::__('European Union');
+
+		$countries = array_merge($specials, (array)shopp_setting('target_markets'));
+
+
 		$zones = Lookup::country_zones();
 
 		include $this->ui('taxrates.php');

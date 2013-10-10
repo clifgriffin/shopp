@@ -189,7 +189,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 				}
 
 				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
-					(in_array($country,Lookup::tax_inclusive_countries()) ? 'on' : 'off')
+					(in_array($country, Lookup::country_inclusive_taxes()) ? 'on' : 'off')
 				);
 			}
 

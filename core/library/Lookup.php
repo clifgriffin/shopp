@@ -559,7 +559,7 @@ class Lookup {
 		$_['USAF']['Europe'] = array('AE');
 		$_['USAF']['Pacific'] = array('AP');
 
-		return apply_filters('shopp_areas',$_);
+		return apply_filters('shopp_areas', $_);
 	}
 
 	static function postcodes () {
@@ -651,16 +651,30 @@ class Lookup {
 	 *
 	 * @return array List of country codes
 	 **/
-	static function tax_inclusive_countries () {
-		$_ = array(
-			'AU','AT','BE','BG','CZ','DK','DE','EE','GB',
-			'GR','ES','FR','IE','IT','CY','LV','LT','LU',
-			'HU','MT','NL','PL','PT','RO','SI','SK','FI',
-			'SE'
-		);
+	static function country_inclusive_taxes () {
+		$_ = array_merge(self::country_euvat(), self::country_gst());
+
 		// @deprecated shopp_vat_countries
-		$_ = apply_filters('shopp_vat_countries',$_);
-		return apply_filters('shopp_tax_inclusive_countries',$_);
+		$_ = apply_filters('shopp_vat_countries', $_);
+		// @deprecated shopp_tax_inclusive_countries
+		$_ = apply_filters('shopp_tax_inclusive_countries', $_);
+		return (array)apply_filters('shopp_country_inclusive_taxes', $_);
+	}
+
+	static function country_euvat () {
+		$_ = array( // Includes 28 core member states plus dependent territories
+			'AT','BE','BG','CY','CZ','DE','DK','ES','ET','EE',
+			'FI','FR','GB','GR','HR','HU','IE','IM','IT','LB',
+			'LT','LU','LV','MT','NL','PL','PT','RO','SE','SI',
+			'SK');
+		return (array)apply_filters('shopp_country_euvat', $_);
+	}
+
+	static function country_gst () {
+		$_ = array(
+			'AU','JO','NZ'
+		);
+		return (array)apply_filters('shopp_country_gst', $_);
 	}
 
 	/**

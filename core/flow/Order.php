@@ -196,6 +196,7 @@ class ShoppOrder {
 	 **/
 	public function taxaddress () {
 		$this->Tax->address($this->Billing, $this->Shipping, $this->Cart->shipped());
+		add_filter('shopp_tax_country', array('ShoppTax','euvat'), 10, 3);
 	}
 
 	/**

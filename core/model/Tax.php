@@ -4,11 +4,11 @@
  * Tax manager
  *
  * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, April 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
- * @subpackage taxes
+ * @version 1.0
+ * @since 1.3
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -26,6 +26,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppTax {
 
 	const ALL = '*';			// Wildcard for all locations
+	const EUVAT = 'EUVAT';		// Special country value for European Union
 
 	private $address = array(	// The address to apply taxes for
 		'country' => false,
@@ -112,7 +113,8 @@ class ShoppTax {
 		if ( isset($Item) ) $this->Item = $Item;
 
 		$settings = $this->settings();
-		foreach ($settings as $setting) {
+
+		foreach ( $settings as $setting ) {
 			$localrate = false;
 			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
 				$localrate = $setting['locals'][ $this->address['locale'] ];
@@ -150,7 +152,7 @@ class ShoppTax {
 	 **/
 	protected function taxcountry ( string $country ) {
 		if ( empty($country) ) return false;
-		return ($this->address['country'] == $country || self::ALL == $country);
+		return apply_filters('shopp_tax_country', ( $this->address['country'] == $country || self::ALL == $country ),  $this->address['country'], $country);
 	}
 
 	/**
@@ -224,7 +226,7 @@ class ShoppTax {
 		// Locale is always tracked with the billing address even though it is may be a shipping locale
 		if ( isset($Billing->locale) ) $locale = $Billing->locale;
 
-		$this->address = array_merge(apply_filters('shopp_taxable_address',compact('country','zone','locale')));
+		$this->address = array_merge(apply_filters('shopp_taxable_address', compact('country','zone','locale')));
 
 		return $this->address;
 	}
@@ -258,6 +260,7 @@ class ShoppTax {
 		$compound = 0;
 		$total = 0;
 		foreach ($rates as $label => $taxrate) {
+			$taxrate->amount = 0; // Reset the captured tax amount @see Issue #2430
 
 			$tax = ( $taxable * $taxrate->rate );			// Tax amount
 
@@ -269,7 +272,7 @@ class ShoppTax {
 				$compound += $tax;						 	// Set compound taxable amount for next compound rate
 			}
 
-			$taxrate->amount += $tax;						// Capture the tax amount calculate for this taxrate
+			$taxrate->amount = $tax;						// Capture the tax amount calculate for this taxrate
 			$total += $tax;									// Sum all of the taxes to get the total tax for the item
 
 		}
@@ -298,6 +301,11 @@ class ShoppTax {
 
 		return (float)$total;
 
+	}
+
+	public static function euvat ( $result, $country, $setting ) {
+		if ( self::EUVAT != $setting ) return $result; // Passthru
+		return in_array($country, Lookup::country_euvat());
 	}
 
 	public function __sleep () {
