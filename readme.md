@@ -1,4 +1,6 @@
+<span class="float-right">
 [![build status](http://ci.shopp.net/projects/2/status.png?ref=master)](http://ci.shopp.net/projects/2?ref=master)
+</span>
 
 ![Shopp Logo](https://shopplugin.com/logo.png)
 
