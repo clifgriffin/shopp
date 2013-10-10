@@ -31,7 +31,7 @@ class Lookup {
 	 *
 	 * @return array List of regions
 	 **/
-	static function regions () {
+	public static function regions () {
 		$_ = array();
 		$_[0] = __('North America','Shopp');
 		$_[1] = __('Central America','Shopp');
@@ -52,7 +52,7 @@ class Lookup {
 	 *
 	 * @return string The translated region name
 	 **/
-	static function region ($id) {
+	public static function region ($id) {
 		$r = Lookup::regions();
 		return $r[$id];
 	}
@@ -70,7 +70,7 @@ class Lookup {
 	 *
 	 * @return array
 	 **/
-	static function countries () {
+	public static function countries () {
 		$_ = array();
 		$_['CA'] = array('name'=>__('Canada','Shopp'),'currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0);
 		$_['US'] = array('name'=>__('USA','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0);
@@ -329,7 +329,7 @@ class Lookup {
 	 *
 	 * @return array
 	 **/
-	static function country_zones () {
+	public static function country_zones () {
 		$_ = array();
 		$_['AR'] = array();
 		$_['AR']['B'] = __('Buenos Aires','Shopp');
@@ -512,7 +512,7 @@ class Lookup {
 	 *
 	 * @return array
 	 **/
-	static function country_areas () {
+	public static function country_areas () {
 		$_ = array();
 		$_['CA'] = array();
 		$_['CA']['Northern Canada'] = array('YT','NT','NU');
@@ -562,7 +562,53 @@ class Lookup {
 		return apply_filters('shopp_areas', $_);
 	}
 
-	static function postcodes () {
+	// ISO 3166-1 alpha 2 to numeric
+	public static function country_numeric () {
+		$_ = array('AF'=>'004','AX'=>'248','AL'=>'008','DZ'=>'012','AS'=>'016','AD'=>'020','AO'=>'024','AI'=>'660','AQ'=>'010','AG'=>'028','AR'=>'032','AM'=>'051','AW'=>'533','AU'=>'036','AT'=>'040','AZ'=>'031','BS'=>'044','BH'=>'048','BD'=>'050','BB'=>'052','BY'=>'112','BE'=>'056','BZ'=>'084','BJ'=>'204','BM'=>'060','BT'=>'064','BO'=>'068','BQ'=>'535','BA'=>'070','BW'=>'072','BV'=>'074','BR'=>'076','IO'=>'086','BN'=>'096','BG'=>'100','BF'=>'854','BI'=>'108','KH'=>'116','CM'=>'120','CA'=>'124','CV'=>'132','KY'=>'136','CF'=>'140','TD'=>'148','CL'=>'152','CN'=>'156','CX'=>'162','CC'=>'166','CO'=>'170','KM'=>'174','CG'=>'178','CD'=>'180','CK'=>'184','CR'=>'188','CI'=>'384','HR'=>'191','CU'=>'192','CW'=>'531','CY'=>'196','CZ'=>'203','DK'=>'208','DJ'=>'262','DM'=>'212','DO'=>'214','EC'=>'218','EG'=>'818','SV'=>'222','GQ'=>'226','ER'=>'232','EE'=>'233','ET'=>'231','FK'=>'238','FO'=>'234','FJ'=>'242','FI'=>'246','FR'=>'250','GF'=>'254','PF'=>'258','TF'=>'260','GA'=>'266','GM'=>'270','GE'=>'268','DE'=>'276','GH'=>'288','GI'=>'292','GR'=>'300','GL'=>'304','GD'=>'308','GP'=>'312','GU'=>'316','GT'=>'320','GG'=>'831','GN'=>'324','GW'=>'624','GY'=>'328','HT'=>'332','HM'=>'334','VA'=>'336','HN'=>'340','HK'=>'344','HU'=>'348','IS'=>'352','IN'=>'356','ID'=>'360','IR'=>'364','IQ'=>'368','IE'=>'372','IM'=>'833','IL'=>'376','IT'=>'380','JM'=>'388','JP'=>'392','JE'=>'832','JO'=>'400','KZ'=>'398','KE'=>'404','KI'=>'296','KP'=>'408','KR'=>'410','KW'=>'414','KG'=>'417','LA'=>'418','LV'=>'428','LB'=>'422','LS'=>'426','LR'=>'430','LY'=>'434','LI'=>'438','LT'=>'440','LU'=>'442','MO'=>'446','MK'=>'807','MG'=>'450','MW'=>'454','MY'=>'458','MV'=>'462','ML'=>'466','MT'=>'470','MH'=>'584','MQ'=>'474','MR'=>'478','MU'=>'480','YT'=>'175','MX'=>'484','FM'=>'583','MD'=>'498','MC'=>'492','MN'=>'496','ME'=>'499','MS'=>'500','MA'=>'504','MZ'=>'508','MM'=>'104','NA'=>'516','NR'=>'520','NP'=>'524','NL'=>'528','NC'=>'540','NZ'=>'554','NI'=>'558','NE'=>'562','NG'=>'566','NU'=>'570','NF'=>'574','MP'=>'580','NO'=>'578','OM'=>'512','PK'=>'586','PW'=>'585','PS'=>'275','PA'=>'591','PG'=>'598','PY'=>'600','PE'=>'604','PH'=>'608','PN'=>'612','PL'=>'616','PT'=>'620','PR'=>'630','QA'=>'634','RE'=>'638','RO'=>'642','RU'=>'643','RW'=>'646','BL'=>'652','SH'=>'654','KN'=>'659','LC'=>'662','MF'=>'663','PM'=>'666','VC'=>'670','WS'=>'882','SM'=>'674','ST'=>'678','SA'=>'682','SN'=>'686','RS'=>'688','SC'=>'690','SL'=>'694','SG'=>'702','SX'=>'534','SK'=>'703','SI'=>'705','SB'=>'090','SO'=>'706','ZA'=>'710','GS'=>'239','SS'=>'728','ES'=>'724','LK'=>'144','SD'=>'729','SR'=>'740','SJ'=>'744','SZ'=>'748','SE'=>'752','CH'=>'756','SY'=>'760','TW'=>'158','TJ'=>'762','TZ'=>'834','TH'=>'764','TL'=>'626','TG'=>'768','TK'=>'772','TO'=>'776','TT'=>'780','TN'=>'788','TR'=>'792','TM'=>'795','TC'=>'796','TV'=>'798','UG'=>'800','UA'=>'804','AE'=>'784','GB'=>'826','US'=>'840','UM'=>'581','UY'=>'858','UZ'=>'860','VU'=>'548','VE'=>'862','VN'=>'704','VG'=>'092','VI'=>'850','WF'=>'876','EH'=>'732','YE'=>'887','ZM'=>'894','ZW'=>'716');
+		return apply_filters('shopp_country_numeric', $_);
+	}
+
+	// ISO 3166-1 alpha 2 to alpha 3
+	public static function country_alpha3 () {
+		$_ = array('AF'=>'AFG','AX'=>'ALA','AL'=>'ALB','DZ'=>'DZA','AS'=>'ASM','AD'=>'AND','AO'=>'AGO','AI'=>'AIA','AQ'=>'ATA','AG'=>'ATG','AR'=>'ARG','AM'=>'ARM','AW'=>'ABW','AU'=>'AUS','AT'=>'AUT','AZ'=>'AZE','BS'=>'BHS','BH'=>'BHR','BD'=>'BGD','BB'=>'BRB','BY'=>'BLR','BE'=>'BEL','BZ'=>'BLZ','BJ'=>'BEN','BM'=>'BMU','BT'=>'BTN','BO'=>'BOL','BQ'=>'BES','BA'=>'BIH','BW'=>'BWA','BV'=>'BVT','BR'=>'BRA','IO'=>'IOT','BN'=>'BRN','BG'=>'BGR','BF'=>'BFA','BI'=>'BDI','KH'=>'KHM','CM'=>'CMR','CA'=>'CAN','CV'=>'CPV','KY'=>'CYM','CF'=>'CAF','TD'=>'TCD','CL'=>'CHL','CN'=>'CHN','CX'=>'CXR','CC'=>'CCK','CO'=>'COL','KM'=>'COM','CG'=>'COG','CD'=>'COD','CK'=>'COK','CR'=>'CRI','CI'=>'CIV','HR'=>'HRV','CU'=>'CUB','CW'=>'CUW','CY'=>'CYP','CZ'=>'CZE','DK'=>'DNK','DJ'=>'DJI','DM'=>'DMA','DO'=>'DOM','EC'=>'ECU','EG'=>'EGY','SV'=>'SLV','GQ'=>'GNQ','ER'=>'ERI','EE'=>'EST','ET'=>'ETH','FK'=>'FLK','FO'=>'FRO','FJ'=>'FJI','FI'=>'FIN','FR'=>'FRA','GF'=>'GUF','PF'=>'PYF','TF'=>'ATF','GA'=>'GAB','GM'=>'GMB','GE'=>'GEO','DE'=>'DEU','GH'=>'GHA','GI'=>'GIB','GR'=>'GRC','GL'=>'GRL','GD'=>'GRD','GP'=>'GLP','GU'=>'GUM','GT'=>'GTM','GG'=>'GGY','GN'=>'GIN','GW'=>'GNB','GY'=>'GUY','HT'=>'HTI','HM'=>'HMD','VA'=>'VAT','HN'=>'HND','HK'=>'HKG','HU'=>'HUN','IS'=>'ISL','IN'=>'IND','ID'=>'IDN','IR'=>'IRN','IQ'=>'IRQ','IE'=>'IRL','IM'=>'IMN','IL'=>'ISR','IT'=>'ITA','JM'=>'JAM','JP'=>'JPN','JE'=>'JEY','JO'=>'JOR','KZ'=>'KAZ','KE'=>'KEN','KI'=>'KIR','KP'=>'PRK','KR'=>'KOR','KW'=>'KWT','KG'=>'KGZ','LA'=>'LAO','LV'=>'LVA','LB'=>'LBN','LS'=>'LSO','LR'=>'LBR','LY'=>'LBY','LI'=>'LIE','LT'=>'LTU','LU'=>'LUX','MO'=>'MAC','MK'=>'MKD','MG'=>'MDG','MW'=>'MWI','MY'=>'MYS','MV'=>'MDV','ML'=>'MLI','MT'=>'MLT','MH'=>'MHL','MQ'=>'MTQ','MR'=>'MRT','MU'=>'MUS','YT'=>'MYT','MX'=>'MEX','FM'=>'FSM','MD'=>'MDA','MC'=>'MCO','MN'=>'MNG','ME'=>'MNE','MS'=>'MSR','MA'=>'MAR','MZ'=>'MOZ','MM'=>'MMR','NA'=>'NAM','NR'=>'NRU','NP'=>'NPL','NL'=>'NLD','NC'=>'NCL','NZ'=>'NZL','NI'=>'NIC','NE'=>'NER','NG'=>'NGA','NU'=>'NIU','NF'=>'NFK','MP'=>'MNP','NO'=>'NOR','OM'=>'OMN','PK'=>'PAK','PW'=>'PLW','PS'=>'PSE','PA'=>'PAN','PG'=>'PNG','PY'=>'PRY','PE'=>'PER','PH'=>'PHL','PN'=>'PCN','PL'=>'POL','PT'=>'PRT','PR'=>'PRI','QA'=>'QAT','RE'=>'REU','RO'=>'ROU','RU'=>'RUS','RW'=>'RWA','BL'=>'BLM','SH'=>'SHN','KN'=>'KNA','LC'=>'LCA','MF'=>'MAF','PM'=>'SPM','VC'=>'VCT','WS'=>'WSM','SM'=>'SMR','ST'=>'STP','SA'=>'SAU','SN'=>'SEN','RS'=>'SRB','SC'=>'SYC','SL'=>'SLE','SG'=>'SGP','SX'=>'SXM','SK'=>'SVK','SI'=>'SVN','SB'=>'SLB','SO'=>'SOM','ZA'=>'ZAF','GS'=>'SGS','SS'=>'SSD','ES'=>'ESP','LK'=>'LKA','SD'=>'SDN','SR'=>'SUR','SJ'=>'SJM','SZ'=>'SWZ','SE'=>'SWE','CH'=>'CHE','SY'=>'SYR','TW'=>'TWN','TJ'=>'TJK','TZ'=>'TZA','TH'=>'THA','TL'=>'TLS','TG'=>'TGO','TK'=>'TKL','TO'=>'TON','TT'=>'TTO','TN'=>'TUN','TR'=>'TUR','TM'=>'TKM','TC'=>'TCA','TV'=>'TUV','UG'=>'UGA','UA'=>'UKR','AE'=>'ARE','GB'=>'GBR','US'=>'USA','UM'=>'UMI','UY'=>'URY','UZ'=>'UZB','VU'=>'VUT','VE'=>'VEN','VN'=>'VNM','VG'=>'VGB','VI'=>'VIR','WF'=>'WLF','EH'=>'ESH','YE'=>'YEM','ZM'=>'ZMB','ZW'=>'ZWE');
+		return apply_filters('shopp_country_alpha3', $_);
+	}
+
+	/**
+	 * Provides a list of country codes for countries that use VAT taxes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return array List of country codes
+	 **/
+	public static function country_inclusive_taxes () {
+		$_ = array_merge(self::country_euvat(), self::country_gst());
+
+		// @deprecated shopp_vat_countries
+		$_ = apply_filters('shopp_vat_countries', $_);
+		// @deprecated shopp_tax_inclusive_countries
+		$_ = apply_filters('shopp_tax_inclusive_countries', $_);
+		return (array)apply_filters('shopp_country_inclusive_taxes', $_);
+	}
+
+	public static function country_euvat () {
+		$_ = array( // Includes 28 core member states plus dependent territories
+			'AT','BE','BG','CY','CZ','DE','DK','ES','ET','EE',
+			'FI','FR','GB','GR','HR','HU','IE','IM','IT','LB',
+			'LT','LU','LV','MT','NL','PL','PT','RO','SE','SI',
+			'SK');
+		return (array)apply_filters('shopp_country_euvat', $_);
+	}
+
+	public static function country_gst () {
+		$_ = array(
+			'AU','JO','NZ'
+		);
+		return (array)apply_filters('shopp_country_gst', $_);
+	}
+
+	public static function postcodes () {
 
 		$_ = array();
 
@@ -588,7 +634,7 @@ class Lookup {
 
 	}
 
-	static function postcode_patterns () {
+	public static function postcode_patterns () {
 		$_ = array(
 			'AU' => '\d{4}',
 			'CA' => '\w\d\w\s*\d\w\d',
@@ -603,32 +649,9 @@ class Lookup {
 	}
 
 	// ISO 4217 Currency Codes
-	static function currency_codes () {
+	public static function currency_codes () {
 		$_ =  array('AED'=>'784', 'AFN'=>'971', 'ALL'=>'008', 'AMD'=>'051', 'ANG'=>'532', 'AOA'=>'973', 'ARS'=>'032', 'AUD'=>'036', 'AWG'=>'533', 'AZN'=>'944', 'BAM'=>'977', 'BBD'=>'052', 'BDT'=>'050', 'BGN'=>'975', 'BHD'=>'048', 'BIF'=>'108', 'BMD'=>'060', 'BND'=>'096', 'BOB'=>'068', 'BOV'=>'984', 'BRL'=>'986', 'BSD'=>'044', 'BTN'=>'064', 'BWP'=>'072', 'BYR'=>'974', 'BZD'=>'084', 'CAD'=>'124', 'CDF'=>'976', 'CHE'=>'947', 'CHF'=>'756', 'CHW'=>'948', 'CLF'=>'990', 'CLP'=>'152', 'CNY'=>'156', 'COP'=>'170', 'COU'=>'970', 'CRC'=>'188', 'CUC'=>'931', 'CUP'=>'192', 'CVE'=>'132', 'CZK'=>'203', 'DJF'=>'262', 'DKK'=>'208', 'DOP'=>'214', 'DZD'=>'012', 'EGP'=>'818', 'ERN'=>'232', 'ETB'=>'230', 'EUR'=>'978', 'FJD'=>'242', 'FKP'=>'238', 'GBP'=>'826', 'GEL'=>'981', 'GHS'=>'936', 'GIP'=>'292', 'GMD'=>'270', 'GNF'=>'324', 'GTQ'=>'320', 'GYD'=>'328', 'HKD'=>'344', 'HNL'=>'340', 'HRK'=>'191', 'HTG'=>'332', 'HUF'=>'348', 'IDR'=>'360', 'ILS'=>'376', 'INR'=>'356', 'IQD'=>'368', 'IRR'=>'364', 'ISK'=>'352', 'JMD'=>'388', 'JOD'=>'400', 'JPY'=>'392', 'KES'=>'404', 'KGS'=>'417', 'KHR'=>'116', 'KMF'=>'174', 'KPW'=>'408', 'KRW'=>'410', 'KWD'=>'414', 'KYD'=>'136', 'KZT'=>'398', 'LAK'=>'418', 'LBP'=>'422', 'LKR'=>'144', 'LRD'=>'430', 'LSL'=>'426', 'LTL'=>'440', 'LVL'=>'428', 'LYD'=>'434', 'MAD'=>'504', 'MDL'=>'498', 'MGA'=>'969', 'MKD'=>'807', 'MMK'=>'104', 'MNT'=>'496', 'MOP'=>'446', 'MRO'=>'478', 'MUR'=>'480', 'MVR'=>'462', 'MWK'=>'454', 'MXN'=>'484', 'MXV'=>'979', 'MYR'=>'458', 'MZN'=>'943', 'NAD'=>'516', 'NGN'=>'566', 'NIO'=>'558', 'NOK'=>'578', 'NPR'=>'524', 'NZD'=>'554', 'OMR'=>'512', 'PAB'=>'590', 'PEN'=>'604', 'PGK'=>'598', 'PHP'=>'608', 'PKR'=>'586', 'PLN'=>'985', 'PYG'=>'600', 'QAR'=>'634', 'RON'=>'946', 'RSD'=>'941', 'RUB'=>'643', 'RWF'=>'646', 'SAR'=>'682', 'SBD'=>'090', 'SCR'=>'690', 'SDG'=>'938', 'SEK'=>'752', 'SGD'=>'702', 'SHP'=>'654', 'SLL'=>'694', 'SOS'=>'706', 'SRD'=>'968', 'STD'=>'678', 'SVC'=>'222', 'SYP'=>'760', 'SZL'=>'748', 'THB'=>'764', 'TJS'=>'972', 'TMT'=>'934', 'TND'=>'788', 'TOP'=>'776', 'TRY'=>'949', 'TTD'=>'780', 'TWD'=>'901', 'TZS'=>'834', 'UAH'=>'980', 'UGX'=>'800', 'USD'=>'840', 'USN'=>'997', 'USS'=>'998', 'UYI'=>'940', 'UYU'=>'858', 'UZS'=>'860', 'VEF'=>'937', 'VND'=>'704', 'VUV'=>'548', 'WST'=>'882', 'XAF'=>'950', 'XAG'=>'961', 'XAU'=>'959', 'XBA'=>'955', 'XBB'=>'956', 'XBC'=>'957', 'XBD'=>'958', 'XCD'=>'951', 'XDR'=>'960', 'XFU'=>'Nil', 'XOF'=>'952', 'XPD'=>'964', 'XPF'=>'953', 'XPT'=>'962', 'XSU'=>'994', 'XTS'=>'963', 'XUA'=>'965', 'XXX'=>'999', 'YER'=>'886', 'ZAR'=>'710', 'ZMK'=>'894', 'ZWL'=>'932');
 		return apply_filters('shopp_currency_codes', $_);
-	}
-
-	// ISO 3166-1 alpha 2 to numeric
-	static function country_numeric () {
-		$_ = array('AF'=>'004','AX'=>'248','AL'=>'008','DZ'=>'012','AS'=>'016','AD'=>'020','AO'=>'024','AI'=>'660','AQ'=>'010','AG'=>'028','AR'=>'032','AM'=>'051','AW'=>'533','AU'=>'036','AT'=>'040','AZ'=>'031','BS'=>'044','BH'=>'048','BD'=>'050','BB'=>'052','BY'=>'112','BE'=>'056','BZ'=>'084','BJ'=>'204','BM'=>'060','BT'=>'064','BO'=>'068','BQ'=>'535','BA'=>'070','BW'=>'072','BV'=>'074','BR'=>'076','IO'=>'086','BN'=>'096','BG'=>'100','BF'=>'854','BI'=>'108','KH'=>'116','CM'=>'120','CA'=>'124','CV'=>'132','KY'=>'136','CF'=>'140','TD'=>'148','CL'=>'152','CN'=>'156','CX'=>'162','CC'=>'166','CO'=>'170','KM'=>'174','CG'=>'178','CD'=>'180','CK'=>'184','CR'=>'188','CI'=>'384','HR'=>'191','CU'=>'192','CW'=>'531','CY'=>'196','CZ'=>'203','DK'=>'208','DJ'=>'262','DM'=>'212','DO'=>'214','EC'=>'218','EG'=>'818','SV'=>'222','GQ'=>'226','ER'=>'232','EE'=>'233','ET'=>'231','FK'=>'238','FO'=>'234','FJ'=>'242','FI'=>'246','FR'=>'250','GF'=>'254','PF'=>'258','TF'=>'260','GA'=>'266','GM'=>'270','GE'=>'268','DE'=>'276','GH'=>'288','GI'=>'292','GR'=>'300','GL'=>'304','GD'=>'308','GP'=>'312','GU'=>'316','GT'=>'320','GG'=>'831','GN'=>'324','GW'=>'624','GY'=>'328','HT'=>'332','HM'=>'334','VA'=>'336','HN'=>'340','HK'=>'344','HU'=>'348','IS'=>'352','IN'=>'356','ID'=>'360','IR'=>'364','IQ'=>'368','IE'=>'372','IM'=>'833','IL'=>'376','IT'=>'380','JM'=>'388','JP'=>'392','JE'=>'832','JO'=>'400','KZ'=>'398','KE'=>'404','KI'=>'296','KP'=>'408','KR'=>'410','KW'=>'414','KG'=>'417','LA'=>'418','LV'=>'428','LB'=>'422','LS'=>'426','LR'=>'430','LY'=>'434','LI'=>'438','LT'=>'440','LU'=>'442','MO'=>'446','MK'=>'807','MG'=>'450','MW'=>'454','MY'=>'458','MV'=>'462','ML'=>'466','MT'=>'470','MH'=>'584','MQ'=>'474','MR'=>'478','MU'=>'480','YT'=>'175','MX'=>'484','FM'=>'583','MD'=>'498','MC'=>'492','MN'=>'496','ME'=>'499','MS'=>'500','MA'=>'504','MZ'=>'508','MM'=>'104','NA'=>'516','NR'=>'520','NP'=>'524','NL'=>'528','NC'=>'540','NZ'=>'554','NI'=>'558','NE'=>'562','NG'=>'566','NU'=>'570','NF'=>'574','MP'=>'580','NO'=>'578','OM'=>'512','PK'=>'586','PW'=>'585','PS'=>'275','PA'=>'591','PG'=>'598','PY'=>'600','PE'=>'604','PH'=>'608','PN'=>'612','PL'=>'616','PT'=>'620','PR'=>'630','QA'=>'634','RE'=>'638','RO'=>'642','RU'=>'643','RW'=>'646','BL'=>'652','SH'=>'654','KN'=>'659','LC'=>'662','MF'=>'663','PM'=>'666','VC'=>'670','WS'=>'882','SM'=>'674','ST'=>'678','SA'=>'682','SN'=>'686','RS'=>'688','SC'=>'690','SL'=>'694','SG'=>'702','SX'=>'534','SK'=>'703','SI'=>'705','SB'=>'090','SO'=>'706','ZA'=>'710','GS'=>'239','SS'=>'728','ES'=>'724','LK'=>'144','SD'=>'729','SR'=>'740','SJ'=>'744','SZ'=>'748','SE'=>'752','CH'=>'756','SY'=>'760','TW'=>'158','TJ'=>'762','TZ'=>'834','TH'=>'764','TL'=>'626','TG'=>'768','TK'=>'772','TO'=>'776','TT'=>'780','TN'=>'788','TR'=>'792','TM'=>'795','TC'=>'796','TV'=>'798','UG'=>'800','UA'=>'804','AE'=>'784','GB'=>'826','US'=>'840','UM'=>'581','UY'=>'858','UZ'=>'860','VU'=>'548','VE'=>'862','VN'=>'704','VG'=>'092','VI'=>'850','WF'=>'876','EH'=>'732','YE'=>'887','ZM'=>'894','ZW'=>'716');
-		return apply_filters('shopp_country_numeric', $_);
-	}
-
-	// ISO 3166-1 alpha 2 to alpha 3
-	static function country_alpha3 () {
-		$_ = array('AF'=>'AFG','AX'=>'ALA','AL'=>'ALB','DZ'=>'DZA','AS'=>'ASM','AD'=>'AND','AO'=>'AGO','AI'=>'AIA','AQ'=>'ATA','AG'=>'ATG','AR'=>'ARG','AM'=>'ARM','AW'=>'ABW','AU'=>'AUS','AT'=>'AUT','AZ'=>'AZE','BS'=>'BHS','BH'=>'BHR','BD'=>'BGD','BB'=>'BRB','BY'=>'BLR','BE'=>'BEL','BZ'=>'BLZ','BJ'=>'BEN','BM'=>'BMU','BT'=>'BTN','BO'=>'BOL','BQ'=>'BES','BA'=>'BIH','BW'=>'BWA','BV'=>'BVT','BR'=>'BRA','IO'=>'IOT','BN'=>'BRN','BG'=>'BGR','BF'=>'BFA','BI'=>'BDI','KH'=>'KHM','CM'=>'CMR','CA'=>'CAN','CV'=>'CPV','KY'=>'CYM','CF'=>'CAF','TD'=>'TCD','CL'=>'CHL','CN'=>'CHN','CX'=>'CXR','CC'=>'CCK','CO'=>'COL','KM'=>'COM','CG'=>'COG','CD'=>'COD','CK'=>'COK','CR'=>'CRI','CI'=>'CIV','HR'=>'HRV','CU'=>'CUB','CW'=>'CUW','CY'=>'CYP','CZ'=>'CZE','DK'=>'DNK','DJ'=>'DJI','DM'=>'DMA','DO'=>'DOM','EC'=>'ECU','EG'=>'EGY','SV'=>'SLV','GQ'=>'GNQ','ER'=>'ERI','EE'=>'EST','ET'=>'ETH','FK'=>'FLK','FO'=>'FRO','FJ'=>'FJI','FI'=>'FIN','FR'=>'FRA','GF'=>'GUF','PF'=>'PYF','TF'=>'ATF','GA'=>'GAB','GM'=>'GMB','GE'=>'GEO','DE'=>'DEU','GH'=>'GHA','GI'=>'GIB','GR'=>'GRC','GL'=>'GRL','GD'=>'GRD','GP'=>'GLP','GU'=>'GUM','GT'=>'GTM','GG'=>'GGY','GN'=>'GIN','GW'=>'GNB','GY'=>'GUY','HT'=>'HTI','HM'=>'HMD','VA'=>'VAT','HN'=>'HND','HK'=>'HKG','HU'=>'HUN','IS'=>'ISL','IN'=>'IND','ID'=>'IDN','IR'=>'IRN','IQ'=>'IRQ','IE'=>'IRL','IM'=>'IMN','IL'=>'ISR','IT'=>'ITA','JM'=>'JAM','JP'=>'JPN','JE'=>'JEY','JO'=>'JOR','KZ'=>'KAZ','KE'=>'KEN','KI'=>'KIR','KP'=>'PRK','KR'=>'KOR','KW'=>'KWT','KG'=>'KGZ','LA'=>'LAO','LV'=>'LVA','LB'=>'LBN','LS'=>'LSO','LR'=>'LBR','LY'=>'LBY','LI'=>'LIE','LT'=>'LTU','LU'=>'LUX','MO'=>'MAC','MK'=>'MKD','MG'=>'MDG','MW'=>'MWI','MY'=>'MYS','MV'=>'MDV','ML'=>'MLI','MT'=>'MLT','MH'=>'MHL','MQ'=>'MTQ','MR'=>'MRT','MU'=>'MUS','YT'=>'MYT','MX'=>'MEX','FM'=>'FSM','MD'=>'MDA','MC'=>'MCO','MN'=>'MNG','ME'=>'MNE','MS'=>'MSR','MA'=>'MAR','MZ'=>'MOZ','MM'=>'MMR','NA'=>'NAM','NR'=>'NRU','NP'=>'NPL','NL'=>'NLD','NC'=>'NCL','NZ'=>'NZL','NI'=>'NIC','NE'=>'NER','NG'=>'NGA','NU'=>'NIU','NF'=>'NFK','MP'=>'MNP','NO'=>'NOR','OM'=>'OMN','PK'=>'PAK','PW'=>'PLW','PS'=>'PSE','PA'=>'PAN','PG'=>'PNG','PY'=>'PRY','PE'=>'PER','PH'=>'PHL','PN'=>'PCN','PL'=>'POL','PT'=>'PRT','PR'=>'PRI','QA'=>'QAT','RE'=>'REU','RO'=>'ROU','RU'=>'RUS','RW'=>'RWA','BL'=>'BLM','SH'=>'SHN','KN'=>'KNA','LC'=>'LCA','MF'=>'MAF','PM'=>'SPM','VC'=>'VCT','WS'=>'WSM','SM'=>'SMR','ST'=>'STP','SA'=>'SAU','SN'=>'SEN','RS'=>'SRB','SC'=>'SYC','SL'=>'SLE','SG'=>'SGP','SX'=>'SXM','SK'=>'SVK','SI'=>'SVN','SB'=>'SLB','SO'=>'SOM','ZA'=>'ZAF','GS'=>'SGS','SS'=>'SSD','ES'=>'ESP','LK'=>'LKA','SD'=>'SDN','SR'=>'SUR','SJ'=>'SJM','SZ'=>'SWZ','SE'=>'SWE','CH'=>'CHE','SY'=>'SYR','TW'=>'TWN','TJ'=>'TJK','TZ'=>'TZA','TH'=>'THA','TL'=>'TLS','TG'=>'TGO','TK'=>'TKL','TO'=>'TON','TT'=>'TTO','TN'=>'TUN','TR'=>'TUR','TM'=>'TKM','TC'=>'TCA','TV'=>'TUV','UG'=>'UGA','UA'=>'UKR','AE'=>'ARE','GB'=>'GBR','US'=>'USA','UM'=>'UMI','UY'=>'URY','UZ'=>'UZB','VU'=>'VUT','VE'=>'VEN','VN'=>'VNM','VG'=>'VGB','VI'=>'VIR','WF'=>'WLF','EH'=>'ESH','YE'=>'YEM','ZM'=>'ZMB','ZW'=>'ZWE');
-		return apply_filters('shopp_country_alpha3', $_);
-	}
-
-	static function customer_types () {
-		$_ = array(
-			__('Retail','Shopp'),
-			__('Guest','Shopp'),
-			__('Wholesale','Shopp'),
-			__('Referral','Shopp'),
-			__('Tax-Exempt','Shopp')
-		);
-		return apply_filters('shopp_customer_types',$_);
 	}
 
 	/**
@@ -639,43 +662,21 @@ class Lookup {
 	 *
 	 * @return array List of localities
 	 **/
-	static function localities () {
+	public static function localities () {
 		return apply_filters('shopp_localities',array());
 	}
 
-	/**
-	 * Provides a list of country codes for countries that use VAT taxes
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return array List of country codes
-	 **/
-	static function country_inclusive_taxes () {
-		$_ = array_merge(self::country_euvat(), self::country_gst());
-
-		// @deprecated shopp_vat_countries
-		$_ = apply_filters('shopp_vat_countries', $_);
-		// @deprecated shopp_tax_inclusive_countries
-		$_ = apply_filters('shopp_tax_inclusive_countries', $_);
-		return (array)apply_filters('shopp_country_inclusive_taxes', $_);
-	}
-
-	static function country_euvat () {
-		$_ = array( // Includes 28 core member states plus dependent territories
-			'AT','BE','BG','CY','CZ','DE','DK','ES','ET','EE',
-			'FI','FR','GB','GR','HR','HU','IE','IM','IT','LB',
-			'LT','LU','LV','MT','NL','PL','PT','RO','SE','SI',
-			'SK');
-		return (array)apply_filters('shopp_country_euvat', $_);
-	}
-
-	static function country_gst () {
+	public static function customer_types () {
 		$_ = array(
-			'AU','JO','NZ'
+			__('Retail','Shopp'),
+			__('Guest','Shopp'),
+			__('Wholesale','Shopp'),
+			__('Referral','Shopp'),
+			__('Tax-Exempt','Shopp')
 		);
-		return (array)apply_filters('shopp_country_gst', $_);
+		return apply_filters('shopp_customer_types',$_);
 	}
+
 
 	/**
 	 * Provides a list of supported payment cards
@@ -685,7 +686,7 @@ class Lookup {
 	 *
 	 * @return array List of payment cards
 	 **/
-	static function paycards () {
+	public static function paycards () {
 		$_ = array();
 		$_['amex'] = new PayCard('American Express','Amex','/^3[47]\d{13}$/',4);
 		$_['dc'] = new PayCard("Diner's Club",'DC','/^(30|36|38|39|54)\d{12}$/',3);
@@ -709,7 +710,7 @@ class Lookup {
 	 *
 	 * @return array List of packaging methods
 	 **/
-	static function packaging_types() {
+	public static function packaging_types() {
 		$_ = array(
 			'like' => __('Only like items together', 'Shopp'),
 			'piece' => __('Each piece separately', 'Shopp'),
@@ -719,7 +720,7 @@ class Lookup {
 		return apply_filters('shopp_packaging_types', $_);
 	}
 
-	static function shipcarriers () {
+	public static function shipcarriers () {
 		$_ = array();
 
 		// Postal carriers
@@ -759,7 +760,7 @@ class Lookup {
 	 *
 	 * @return object PayCard object
 	 **/
-	static function paycard ($card) {
+	public static function paycard ($card) {
 		$cards = Lookup::paycards();
 		if (isset($cards[strtolower($card)])) return $cards[strtolower($card)];
 		return false;
@@ -773,7 +774,7 @@ class Lookup {
 	 *
 	 * @return array List of payment status labels
 	 **/
-	static function payment_status_labels () {
+	public static function payment_status_labels () {
 		$_ = array(
 			'PENDING' => __('Pending','Shopp'),
 			'CHARGED' => __('Charged','Shopp'),
@@ -783,7 +784,7 @@ class Lookup {
 		return apply_filters('shopp_payment_status_labels',$_);
 	}
 
-	static function txnstatus_labels () {
+	public static function txnstatus_labels () {
 		$_ = array(
 			'review' => __('Review','Shopp'),
 			'purchase' => __('Purchase Order','Shopp'),
@@ -810,7 +811,7 @@ class Lookup {
 	 *
 	 * @return array List of stop words
 	 **/
-	static function stopwords () {
+	public static function stopwords () {
 		$_ = array(
 	  	    'a', 'an', 'and', 'are', 'as', 'at', 'be', 'but', 'by',
 		    'for', 'if', 'in', 'into', 'is', 'it',
@@ -835,7 +836,7 @@ class Lookup {
 	 *
 	 * @return array List of index factor settings
 	 **/
-	static function index_factors () {
+	public static function index_factors () {
 		$_ = array(
 			'name' => 200,
 			'prices' => 160,
@@ -857,7 +858,7 @@ class Lookup {
 	 * @param boolean $m (optional) True to mask the format string
 	 * @return string The format for key binding
 	 **/
-	static function keyformat ( $m=false ) {
+	public static function keyformat ( $m=false ) {
 		$f = array(0x69,0x73,0x2f,0x48,0x34,0x30,0x6b);
 		if (true === $m) $f = array_diff($f,array(0x73,0x2f,0x6b));
 		return join('',array_map('chr',$f));
@@ -871,7 +872,7 @@ class Lookup {
 	 *
 	 * @return array List of options
 	 **/
-	static function timeframes_menu () {
+	public static function timeframes_menu () {
 		$units = array( 'd' => 11, 'w' => 7, 'm' => 4 );
 		$_ = array();
 		$min = 0;
@@ -901,8 +902,7 @@ class Lookup {
 	 * @param mixed $code
 	 * @return string Error message
 	 **/
-	static function errors ($type,$code) {
-		// @todo Add documentation (to the doc website) for every error message
+	public static function errors ( $type, $code ) {
 
 		$_ = array();
 		$_['contact'] = array(
