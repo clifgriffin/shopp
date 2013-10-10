@@ -187,11 +187,13 @@ class ShoppDiscounts extends ListFramework {
 		// Match line item discount targets
 		if ( isset($Promo->rules['item']) ) {
 			$this->items($Promo, $Discount);
-		} //else $Promo->applied = $Discount;
+			$items = $Discount->items();
+			if ( empty($items) ) return; // No items matched, discount doesn't apply
+		}
 
 		$this->applycode($Promo);
 
-		$this->add($Promo->id,$Discount);
+		$this->add($Promo->id, $Discount);
 
 	}
 
@@ -593,7 +595,7 @@ class ShoppDiscountRule {
 			 	if ( isset(ShoppPromo::$values[ $property ]) && 'price' == ShoppPromo::$values[ $property ] )
 					$type = 'float';
 
-				return $this->isequalto($subject,$value,$type);
+				return $this->isequalto($subject, $value, $type);
 
 			case 'is not equal to':
 
