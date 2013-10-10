@@ -21,6 +21,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	public $columns = array();
 	public $message = array();
 	public $data = array();
+	public $discounts = array();
 
 	// Balances
 	public $invoiced = false;	// Amount invoiced
@@ -72,6 +73,27 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		}
 
 		return true;
+
+	}
+
+	public function load_discounts () {
+
+	}
+
+	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
+
+		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
+			$discounts = array();
+			foreach ( $ShoppDiscounts as $Discount )
+				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
+			shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
+			$this->discounts = $discounts;
+			ShoppPromo::used(array_keys($discounts));
+		}
+
+		if ( empty($this->id) ) return false;
+		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
+		return $this->discounts;
 	}
 
 	public function load_events () {

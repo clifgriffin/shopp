@@ -56,7 +56,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'freight' => 'freight',
 		'hasdata' => 'has_data',
 		'hasitems' => 'has_items',
-		'haspromo' => 'has_promo',
+		'haspromo' => 'has_discount',
 		'hasdiscount' => 'has_discount',
 		'hasdownloads' => 'has_downloads',
 		'hasfreight' => 'has_freight',
@@ -219,6 +219,14 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_discount ( $result, $options, $O ) {
+		if ( isset($options['name']) ) {
+			$discounts = $O->discounts();
+			if ( empty($discounts) ) return false;
+			foreach ( $discounts as $discount )
+				if ( $discount->name == $options['name'] ) return true;
+			return false;
+		}
+
 		return ($O->discount > 0);
 	}
 
@@ -236,11 +244,6 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		if ( empty($O->purchased) ) $O->load_purchased();
 		reset($O->purchased);
 		return (count($O->purchased) > 0);
-	}
-
-	public static function has_promo ( $result, $options, $O ) {
-		if ( empty($options['name']) ) return false;
-		return in_array($options['name'],$O->promos);
 	}
 
 	public static function has_tax ( $result, $options, $O ) {

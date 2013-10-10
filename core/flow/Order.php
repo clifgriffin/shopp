@@ -442,7 +442,6 @@ class ShoppOrder {
 			return;
 		}
 
-		ShoppPromo::used(array_keys($promos));
 		ShoppPurchase($Purchase);
 
 		// Process the order events if updating an existing order
@@ -474,8 +473,8 @@ class ShoppOrder {
 			return;
 		}
 
-		$this->items($Purchase->id);		// Create purchased records from the cart items
-		$this->discounts($Purchase->id);	// Save the discounts applied
+		$this->items($Purchase->id);			// Create purchased records from the cart items
+		$Purchase->discounts($this->Discounts);	// Save the discounts applied
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -504,13 +503,6 @@ class ShoppOrder {
 			$Purchased->save();
 		}
 		$this->checksum = $this->Cart->checksum;	// Track the cart contents checksum to detect changes.
-	}
-
-	public function discounts ( $purchaseid ) {
-		$discounts = array();
-		foreach ( $this->Discounts as $Discount )
-			$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-		shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
 	}
 
 	/**
