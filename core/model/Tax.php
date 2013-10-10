@@ -79,7 +79,7 @@ class ShoppTax {
 				'label' => Shopp::__('Tax')
 
 			);
-			$setting = array_merge($defaults,$setting);
+			$setting = array_merge($defaults, $setting);
 			extract($setting);
 
 			if ( ! $this->taxcountry($country) ) continue;
@@ -87,16 +87,20 @@ class ShoppTax {
 			if ( ! $this->taxrules($rules, $logic) ) continue;
 
 			// Capture fall back tax rates
-			if ( self::ALL == $country && empty($zone) ) $fallbacks[] = $setting;
+			if ( empty($zone) && ( self::ALL == $country || self::EUVAT == $country) ) {
+				$fallbacks[] = $setting;
+				continue;
+			}
 
 			$settings[] = $setting;
 
 		}
 
-		if ( empty($settings) && ! empty($fallbacks) ) $settings = $fallbacks;
+		if ( empty($settings) && ! empty($fallbacks) )
+			$settings = $fallbacks;
 
-		$settings = apply_filters('shopp_cart_taxrate_settings',$settings); // @deprecated Use shopp_tax_rate_settings instead
-		return apply_filters('shopp_tax_rate_settings',$settings);
+		$settings = apply_filters('shopp_cart_taxrate_settings', $settings); // @deprecated Use shopp_tax_rate_settings instead
+		return apply_filters('shopp_tax_rate_settings', $settings);
 	}
 
 	/**
