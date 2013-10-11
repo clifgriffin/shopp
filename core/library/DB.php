@@ -207,6 +207,14 @@ class sDB extends SingletonFramework {
 		return $data;
 	}
 
+	/**
+	 * Determines if the data contains serialized information
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if the data is serialized, false otherwise
+	 **/
 	public static function serialized ( $data ) {
 		if ( ! is_string($data) ) return false;
 		$data = trim($data);

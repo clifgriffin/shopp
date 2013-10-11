@@ -345,7 +345,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
 
-		if (apply_filters('shopp_notify_new_wpuser', true)) {
+		if ( apply_filters('shopp_notify_new_wpuser', true) ) {
 			// Send email notification of the new account
 			wp_new_user_notification( $wpuser, $this->password );
 		}
