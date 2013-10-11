@@ -121,6 +121,7 @@ function shopp_admin_screen_tabs () {
 		$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
 	}
 
+	$pagehook = sanitize_key($plugin_page);
 	echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
 }
 

@@ -125,9 +125,11 @@ class ShoppOfflinePayment extends GatewayFramework implements GatewayModule {
 	 **/
 	public function settings () {
 
+		$instructions = isset($this->settings['instructions']) ? $this->settings['instructions'] : '';
+
 		$this->ui->textarea(0,array(
 			'name' => 'instructions',
-			'value' => stripslashes_deep($this->settings['instructions'])
+			'value' => stripslashes_deep($instructions)
 		));
 
 		$this->ui->p(1,array(

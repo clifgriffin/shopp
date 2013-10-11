@@ -425,7 +425,6 @@ class ShoppOrder {
 		$Purchase->subtotal = $Purchase->order; // Remap order to subtotal
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
-		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->total('shipping');
 		$Purchase->ip = $Shopping->ip;
 		$Purchase->created = current_time('mysql');
