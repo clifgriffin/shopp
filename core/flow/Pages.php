@@ -239,8 +239,8 @@ class ShoppPage {
 	}
 
 	public function poststub () {
-		global $wp_query, $wp_the_query;
-		if ($wp_the_query !== $wp_query) return;
+		global $wp_query;
+		if ( ! $wp_query->is_main_query() ) return;
 
 		$this->filters();
 
@@ -259,6 +259,7 @@ class ShoppPage {
 
 		$wp_query->queried_object = $stub;
 		$wp_query->posts = array($stub);
+		return $stub;
 	}
 
 }
@@ -290,9 +291,9 @@ class ShoppCatalogPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Test that this is the main query and it is a catalog page
-		if ( $wp_the_query !== $wp_query || ! is_catalog_frontpage() ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_catalog_frontpage() ) return $content;
 
 		shopp_debug('Displaying catalog page request: ' . $_SERVER['REQUEST_URI']);
 
@@ -340,7 +341,6 @@ class ShoppAccountPage extends ShoppPage {
 
 		}
 
-
 		$options = array_merge($defaults, $options);
 
 		parent::__construct($options);
@@ -348,9 +348,9 @@ class ShoppAccountPage extends ShoppPage {
 
 	public function content ($content, $request=false) {
 		if ( ! $request) {
-			global $wp_query, $wp_the_query;
+			global $wp_query;
 			// Test that this is the main query and it is the account page
-			if ( $wp_the_query !== $wp_query || ! is_shopp_page('account') ) return $content;
+			if ( ! $wp_query->is_main_query() || ! is_shopp_page('account') ) return $content;
 		}
 
 		$widget = ('widget' == $request);
@@ -537,9 +537,9 @@ class ShoppCartPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Test that this is the main query and it is the cart page
-		if ( $wp_the_query !== $wp_query || ! is_shopp_page('cart') ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_page('cart') ) return $content;
 
 		ob_start();
 
@@ -582,9 +582,9 @@ class ShoppCheckoutPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Test that this is the main query and it is the checkout page
-		if ( $wp_the_query !== $wp_query || ! is_shopp_page('checkout') ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_page('checkout') ) return $content;
 
 		$Errors = ShoppErrors();
 
@@ -638,9 +638,9 @@ class ShoppConfirmPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Test that this is the main query and it is the confirm order page
-		if ( $wp_the_query !== $wp_query || ! is_shopp_page('confirm') ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_page('confirm') ) return $content;
 
 		$Errors = ShoppErrors();
 		$Order = ShoppOrder();
@@ -690,9 +690,9 @@ class ShoppThanksPage extends ShoppPage {
 
 	public function content ($content) {
 
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Make sure this is the main query and it is the thanks page
-		if ( $wp_the_query !== $wp_query || ! is_shopp_page('thanks') ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_page('thanks') ) return $content;
 
 		ob_start();
 		locate_shopp_template(array('thanks.php'), true);
@@ -724,8 +724,8 @@ class ShoppMaintenancePage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
-		if ( $wp_the_query !== $wp_query ) return $content;
+		global $wp_query;
+		if ( ! $wp_query->is_main_query() ) return $content;
 
 		if ( '' != locate_shopp_template($this->templates) ) {
 			ob_start();
@@ -768,9 +768,9 @@ class ShoppProductPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Test that this is the main query and it is a product
-		if ( $wp_the_query !== $wp_query || ! is_shopp_product() ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_product() ) return $content;
 
 		$Product = ShoppProduct();
 
@@ -848,9 +848,9 @@ class ShoppCollectionPage extends ShoppPage {
 	}
 
 	public function content ($content) {
-		global $wp_query, $wp_the_query;
+		global $wp_query;
 		// Only modify content for Shopp collections (Shopp smart collections and taxonomies)
-		if ( $wp_the_query !== $wp_query ||  ! is_shopp_collection() ) return $content;
+		if ( ! $wp_query->is_main_query() ||  ! is_shopp_collection() ) return $content;
 
 		$Collection = ShoppCollection();
 
@@ -872,12 +872,14 @@ class ShoppCollectionPage extends ShoppPage {
 	}
 
 	public function poststub () {
-		global $wp_query, $wp_the_query;
-		if ($wp_the_query !== $wp_query) return;
+		global $wp_query;
+		if ( ! $wp_query->is_main_query() ) return;
 
 		$query_object = $wp_query->queried_object;
-		parent::poststub();
+		$stub = parent::poststub();
 		$wp_query->queried_object = $query_object;
+
+		return $stub;
 	}
 
 }

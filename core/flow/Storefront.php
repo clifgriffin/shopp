@@ -153,11 +153,18 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	public function posts ( array $posts, WP_Query $wp_query ) {
 
-		if ( is_shopp_taxonomy($wp_query) ) return array($posts);
-
 		if ( $this->request($wp_query) ) {
-			$StubPage = new ShoppPage();
-			return array( $StubPage->poststub() );
+
+			// Load the requested Storefront ShoppPage
+			$Page = ShoppPages()->slugpage(ShoppPages::request());
+
+			if ( is_shopp_collection($wp_query) ) $Page = new ShoppCollectionPage();
+			elseif ( ! $Page ) $Page = new ShoppPage();
+
+			if ( Shopp::maintenance() )
+				$Page = new ShoppMaintenancePage();
+
+			return array( $Page->poststub() );
 		}
 
 		if ( count($posts) == 1 ) { // @deprecated Legacy support to redirect old shortcode pages
