@@ -858,6 +858,7 @@ class ShoppCartItem {
 
 		if ( $this->istaxed ) {
 			$Tax = ShoppOrder()->Tax;
+			if ( empty($Tax) ) $Tax = new ShoppTax; // ShoppTax support for Dev API calls
 
 			// For all the price units (base product and any addons),
 			// distribute discounts across taxable amounts using weighted averages
