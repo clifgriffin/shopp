@@ -230,7 +230,7 @@ class ShoppCart extends ListFramework {
 		$AjaxCart->checkouturl = Shopp::url(false,'checkout',ShoppOrder()->security());
 		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
 		$AjaxCart->imguri = '' != get_option('permalink_structure')?trailingslashit(Shopp::url('images')):Shopp::url().'&siid=';
-		$AjaxCart->Totals = clone($this->Totals);
+		$AjaxCart->Totals = json_decode( (string)$this->Totals );
 		$AjaxCart->Contents = array();
 		foreach( $this as $Item ) {
 			$CartItem = clone($Item);
