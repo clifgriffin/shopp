@@ -50,6 +50,13 @@
 .shopp_page .views .grid > span:before {content:"\e002";}
 .shopp_page .views .list > span:before {content:"\e003";}
 
+.shopp_grid-1 .products .product {width:100%;}
+.shopp_grid-2 .products .product {width:50%;}
+.shopp_grid-3 .products .product {width:33.333%;}
+.shopp_grid-4 .products .product {width:25%;}
+.shopp_grid-5 .products .product {width:20%;}
+.shopp_grid-6 .products .product {width:16.667%;}
+.shopp_grid-7 .products .product {width:14.288%;}
 
 /* Category Products */
 .shopp_page .products {text-indent:0;text-align:left;padding:0;margin:0;}

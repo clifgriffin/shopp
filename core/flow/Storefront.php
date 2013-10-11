@@ -581,9 +581,6 @@ class ShoppStorefront extends ShoppFlowController {
 			foreach ( $urls as $filter ) add_filter($filter, 'force_ssl');
 		}
 
-		// Include stylesheets and javascript based on whether shopp shortcodes are used
-		add_action( 'wp_print_styles', array($this, 'catalogcss') );
-
 		// Replace the WordPress canonical link
 		remove_action( 'wp_head', 'rel_canonical' );
 
@@ -704,31 +701,6 @@ class ShoppStorefront extends ShoppFlowController {
 		// Add noindex for cart, checkout, account pages
 		if ( is_shopp_page('cart') || is_shopp_page('checkout') || is_shopp_page('account') )
 			noindex();
-	}
-
-	/**
-	 * Adds a dynamic style declaration for the category grid view
-	 *
-	 * Ties the presentation setting to the grid view category rendering
-	 * in the storefront.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function catalogcss () {
-		if ( ! isset($row_products) ) $row_products = 3;
-		$row_products = shopp_setting('row_products');
-		$products_per_row = floor( (100 / $row_products) );
-		$css = '
-	<!-- Shopp catalog styles for dynamic grid view -->
-	<style type="text/css">
-	#shopp ul.products li.product { width: ' . $products_per_row . '%; }
-	</style>
-
-';
-		echo $css;
 	}
 
 	/**
@@ -1068,6 +1040,12 @@ class ShoppStorefront extends ShoppFlowController {
 		// Handle catalog view style cookie preference
 		if ( isset($_COOKIE['shopp_catalog_view']) ) $view = $_COOKIE['shopp_catalog_view'];
 		if ( in_array($view, $views) ) $classes[] = $view;
+
+		if ( 'grid' == $view ) {
+			$boxes = shopp_setting('row_products');
+			if ( empty($boxes) ) $boxes = 3;
+			$classes[] = 'shopp_grid-' . abs($boxes);
+		}
 
 		// Add collection slug
 		$Collection = ShoppCollection();
