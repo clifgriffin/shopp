@@ -1682,14 +1682,11 @@ abstract class ShoppCore {
 			// Include to parse the PHP and Theme API tags
 			ob_start();
 			include($templatefile);
-			$template = ob_end_clean();
+			$template = ob_get_clean();
 
 			if ( empty($template) )
 				return shopp_add_error(Shopp::__('Could not open the email template because the file does not exist or is not readable.'), SHOPP_ADMIN_ERR, array('template' => $templatefile));
 		}
-
-		// If not already in place, setup default system email filters
-		ShoppEmailDefaultFilters::init();
 
 		// Sanitize line endings
 		$template = str_replace(array("\r\n", "\r"), "\n", $template);
@@ -1697,17 +1694,6 @@ abstract class ShoppCore {
 
 		while ( list($linenum, $line) = each($f) ) {
 			$line = rtrim($line);
-			// Data replacement
-			if ( preg_match_all("/\[(.+?)\]/", $line, $labels, PREG_SET_ORDER) ) {
-				while ( list($i, $label) = each($labels) ) {
-					$code = $label[1];
-
-					if ( empty($data) ) $string = isset($_POST[ $code ]) ? $_POST[ $code ] : '';
-					else $string = apply_filters('shopp_email_data', $data[ $code ], $code);
-
-					if ( isset($string) && ! is_array($string) ) $line = preg_replace("/\[" . $code . "\]/", $string, $line);
-				}
-			}
 
 			// Header parse
 			if ( ! $in_body && false !== strpos($line, ':') ) {
@@ -1725,13 +1711,17 @@ abstract class ShoppCore {
 			// Catches the first blank line to begin capturing message body
 			if ( ! $in_body && empty($line) ) $in_body = true;
 			if ( $in_body ) $message .= $line . "\n";
+
 		}
 
 		// Use only the email address, discard everything else
-		if (strpos($to,'<') !== false) {
+		if ( strpos($to, '<') !== false ) {
 			list($name, $email) = explode('<', $to);
 			$to = trim(rtrim($email, '>'));
 		}
+
+		// If not already in place, setup default system email filters
+		ShoppEmailDefaultFilters::init();
 
 		// Message filters first
 		$headers = apply_filters('shopp_email_headers', $headers, $message);

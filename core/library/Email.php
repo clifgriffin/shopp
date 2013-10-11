@@ -1,6 +1,6 @@
 <?php
 /**
- * Email
+ * Email.php
  *
  * A collection of Email utility classes
  *
@@ -76,8 +76,8 @@ abstract class ShoppEmailFilters {
 	}
 
 	static function FixSymbols ( $message ) {
-		$entities = htmlentities( $text, ENT_NOQUOTES  | ENT_DISALLOWED, 'UTF-8', false ); // Translate HTML entities (special symbols)
-		return htmlspecialchars_decode( $entites, ENT_NOQUOTES ); // Translate HTML tags back
+		$entities = htmlentities( $message, ENT_NOQUOTES  | ENT_DISALLOWED, 'UTF-8', false ); // Translate HTML entities (special symbols)
+		return htmlspecialchars_decode( $entities, ENT_NOQUOTES ); // Translate HTML tags back
 	}
 
 }
