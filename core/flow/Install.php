@@ -633,6 +633,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 		$purchase_table = ShoppDatabaseObject::tablename('purchase');
 		DB::query("UPDATE $purchase_table SET txnstatus='captured' WHERE txnstatus='CHARGED'");
+		DB::query("UPDATE $purchase_table SET txnstatus='voided' WHERE txnstatus='VOID'");
 
 		if ($db_version <= 1130) {
 
@@ -1032,6 +1033,11 @@ class ShoppInstallation extends ShoppFlowController {
 			);
 			foreach ($gateways as $name => $classname)
 				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
+
+			// Clean up category meta
+			// $category_meta = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');
+			// foreach ( $category_meta )
+
 		}
 	}
 
