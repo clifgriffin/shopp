@@ -1,6 +1,6 @@
 <?php
 /**
- * Order
+ * Order.php
  *
  * Order controller that manages the relevant order objects
  *
@@ -19,7 +19,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  * @author Jonathan Davis
  * @since 1.1
- * @version 1.2
+ * @version 1.3
  * @package order
  **/
 class ShoppOrder {
@@ -243,15 +243,16 @@ class ShoppOrder {
 		if ( ! shopp_setting_enabled('inventory') ) return false;
 
 		$Purchase = ShoppPurchase();
-		if (!isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id)
+		if ( ! isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id )
 			$Purchase = new ShoppPurchase($Event->order);
 
-		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load purchased
+		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load events
 		if ( in_array('unstock', array_keys($Purchase->events)) ) return true; // Unstock already occurred, do nothing
-		if ( empty($Purchase->purchased) ) $Purchase->load_purchased();
+
+		$Purchase->load_purchased(); // Reload purchased to esnure we have inventory status
 		if ( ! $Purchase->stocked ) return false;
 
-		shopp_add_order_event($Purchase->id,'unstock');
+		shopp_add_order_event($Purchase->id, 'unstock');
 	}
 
 	/**
@@ -283,8 +284,8 @@ class ShoppOrder {
 	 * Order processing decides the type of transaction processing request to make
 	 *
 	 * Decides which processing operation to perform:
-	 * Authorization - Get authorization to charge the order amount with the payment processor
-	 * Sale - Get authorization and immediate capture (charge) of the payment
+	 *     auth - Get authorization from the payment processor to charge the order amount
+	 *     sale - Get authorization and immediate capture of the payment
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
@@ -293,15 +294,9 @@ class ShoppOrder {
 	 */
 	public function process ( $Purchase ) {
 
-		$processing = 'sale'; 							// By default, process as a sale event
+		// Authorize payments for shipped orders, use sale (auth+capture) for anything else
+		$processing = $this->Cart->shipped() ? 'auth' : 'sale';
 
-		if ( $this->Cart->shipped() ) {					// If there are shipped items
-			$processing = 'auth';						// Use authorize payment processing don't charge
-
-			if ( shopp_setting_enabled('inventory') )	// If inventory tracking enabled, set items to unstock after successful authed event
-				add_action('shopp_authed_order_event', array($this, 'unstock'));
-
-		}
 		$default = array($this, $processing);
 
 		// Gateway modules can use 'shopp_purchase_order_gatewaymodule_processing' filter hook to override order processing
@@ -736,6 +731,14 @@ class ShoppOrder {
 		}
 	}
 
+	/**
+	 * Provides the currently selected payment method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return ShoppPaymentOption The selected payment option
+	 **/
 	public function paymethod () {
 		return $this->Payments->selected();
 	}
@@ -753,7 +756,6 @@ class ShoppOrder {
 		$this->Cart->clear();
 		$this->Discounts->clear();
 		$this->Promotions->clear();
-		// $this->Shiprates->clear();
 
 		$this->data = array();
 		$this->inprogress = false;

@@ -45,57 +45,6 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 	}
 
-	public function load_purchased () {
-
-		$table = ShoppDatabaseObject::tablename(Purchased::$table);
-		$meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		$price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
-		$Purchased = new ShoppPurchased();
-		if ( empty($this->id) ) return false;
-		$this->purchased = DB::query("SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id", 'array', array($Purchased, 'loader') );
-		foreach ( $this->purchased as &$purchase ) {
-			if ( ! empty($purchase->download) ) $this->downloads = true;
-			if ( 'Shipped' == $purchase->type ) $this->shipable = true;
-			if ( isset($purchase->inventory) && Shopp::str_true($purchase->inventory) ) $this->stocked = true;
-			if ( is_string($purchase->data) )
-				$purchase->data = maybe_unserialize($purchase->data);
-			if ( 'yes' == $purchase->addons ) {
-				$purchase->addons = new ObjectMeta($purchase->id, 'purchased', 'addon');
-				if ( ! $purchase->addons )
-					$purchase->addons = new ObjectMeta();
-				foreach ( $purchase->addons->meta as $Addon ) {
-					$addon = $Addon->value;
-					if ( 'Download' == $addon->type ) $this->downloads = true;
-					if ( 'Shipped' == $addon->type ) $this->shipable = true;
-					if ( Shopp::str_true($addon->inventory) ) $this->stocked = true;
-				}
-			}
-		}
-
-		return true;
-
-	}
-
-	public function load_discounts () {
-
-	}
-
-	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
-
-		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
-			$discounts = array();
-			foreach ( $ShoppDiscounts as $Discount )
-				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-			shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
-			$this->discounts = $discounts;
-			ShoppPromo::used(array_keys($discounts));
-		}
-
-		if ( empty($this->id) ) return false;
-		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
-		return $this->discounts;
-	}
-
 	public function load_events () {
 		$this->events = OrderEvent::events($this->id);
 		$this->invoiced = false;
@@ -105,8 +54,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$this->voided = false;
 		$this->balance = 0;
 
-		foreach ($this->events as $Event) {
-			switch ($Event->name) {
+		foreach ( $this->events as $Event ) {
+			switch ( $Event->name ) {
 				case 'invoiced': $this->invoiced += $Event->amount; break;
 				case 'authed': $this->authorized += $Event->amount; break;
 				case 'captured': $this->captured += $Event->amount; break;
@@ -130,6 +79,101 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			}
 		}
 
+	}
+
+	/**
+	 * Load the purchased records for this order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @return boolean True if successfully loaded, false otherwise
+	 **/
+	public function load_purchased () {
+		if ( empty($this->id) ) return false;
+
+		$table = ShoppDatabaseObject::tablename(Purchased::$table);
+		$price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
+
+		$this->purchased = DB::query(
+			"SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",
+			'array',
+			array($this, 'purchases')
+		);
+
+		return true;
+	}
+
+	/**
+	 * Callback for loading purchased objects from a record set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $records A reference to the loaded record set
+	 * @param object $record A reference to the individual record to process
+	 * @return void
+	 **/
+	public function purchases ( array &$records, &$record ) {
+
+		$ShoppPurchased = 'ShoppPurchased';
+		if ( ! class_exists($ShoppPurchased) ) return;
+
+		$Purchased = new $ShoppPurchased();
+		$Purchased->populate($record);
+
+		$index = $record->id;
+
+		if ( ! empty($Purchased->download) ) $this->downloads = true;
+		if ( 'Shipped' == $Purchased->type ) $this->shipable = true;
+		if ( isset($record->inventory) && Shopp::str_true($record->inventory) ) $this->stocked = true;
+
+		if ( is_string($Purchased->data) )
+			$Purchased->data = maybe_unserialize($Purchased->data);
+
+		if ( 'yes' == $Purchased->addons ) { // Map addons and set flags
+
+			$Purchased->addons = new ObjectMeta($Purchased->id, 'purchased', 'addon');
+
+			if ( ! $Purchased->addons )
+				$Purchased->addons = new ObjectMeta();
+
+			foreach ( $Purchased->addons->meta as $Addon ) {
+				$addon = $Addon->value;
+				if ( 'Download' == $addon->type ) $this->downloads = true;
+				if ( 'Shipped' == $addon->type ) $this->shipable = true;
+				if ( Shopp::str_true($addon->inventory) ) $this->stocked = true;
+			}
+
+		}
+
+		$records[ $index ] = $Purchased;
+
+	}
+
+	/**
+	 * Set or load the discounts applied to this order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppDiscounts $ShoppDiscounts The ShoppDiscounts object from the order to add to this purchase
+	 * @return array List of discounts applied
+	 **/
+	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
+
+		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
+			$discounts = array();
+			foreach ( $ShoppDiscounts as $Discount )
+				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
+			shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
+			$this->discounts = $discounts;
+			ShoppPromo::used(array_keys($discounts));
+		}
+
+		if ( empty($this->id) ) return false;
+		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
+		return $this->discounts;
 	}
 
 	/**
@@ -200,7 +244,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	public static function unstock ( UnstockOrderEvent $Event ) {
-		if ( empty($Event->order) ) return new ShoppError('Can not unstock. No event order.',false,SHOPP_DEBUG_ERR);
+		if ( empty($Event->order) ) return shopp_debug('Can not unstock. No event order.');
 
 		$Purchase = $Event->order();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
@@ -252,9 +296,9 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 			$product = "$productname, $inventory->label";
 			if ( 0 == $inventory->stock ) {
-				new ShoppError(sprintf(__('%s is now out-of-stock!', 'Shopp'), $product), 'outofstock_warning', SHOPP_STOCK_ERR);
+				shopp_add_error(Shopp::__('%s is now out-of-stock!', $product), SHOPP_STOCK_ERR);
 			} elseif ( ($inventory->stock / $inventory->stocked * 100) <= $lowlevel ) {
-				new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.', 'Shopp'), $product), 'lowstock_warning', SHOPP_STOCK_ERR);
+				shopp_add_error(Shopp::__('%s has low stock levels and should be re-ordered soon.', $product), SHOPP_STOCK_ERR);
 			}
 		}
 
