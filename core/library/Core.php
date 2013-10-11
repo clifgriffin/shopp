@@ -1666,7 +1666,7 @@ abstract class ShoppCore {
 	 * @param array $data The data to populate the template with
 	 * @return boolean True on success, false on failure
 	 **/
-	public static function email ($template, $data = array()) {
+	public static function email ( $template, array $data = array() ) {
 
 		$debug = false;
 		$in_body = false;
@@ -1674,54 +1674,48 @@ abstract class ShoppCore {
 		$message = '';
 		$to = '';
 		$subject = '';
-		$protected = array('from','to','subject','cc','bcc');
-		$replacements = array(
-			"$" => "\\\$",		// Treat $ signs as literals
-			"€" => "&euro;",	// Fix euro symbols
-			"¥" => "&yen;",		// Fix yen symbols
-			"£" => "&pound;",	// Fix pound symbols
-			"¤" => "&curren;"	// Fix generic currency symbols
-		);
+		$protected = array('from', 'to', 'subject', 'cc', 'bcc');
 
-		if (false == strpos($template,"\n") && file_exists($template)) {
+		if ( false == strpos($template, "\n") && file_exists($template) ) {
 			$templatefile = $template;
+
 			// Include to parse the PHP and Theme API tags
 			ob_start();
 			include($templatefile);
-			$template = ob_get_contents();
-			ob_end_clean();
+			$template = ob_end_clean();
 
-			if (empty($template))
-				return shopp_add_error(__('Could not open the email template because the file does not exist or is not readable.','Shopp'),'email_template',SHOPP_ADMIN_ERR,array('template'=>$templatefile));
-
+			if ( empty($template) )
+				return shopp_add_error(Shopp::__('Could not open the email template because the file does not exist or is not readable.'), SHOPP_ADMIN_ERR, array('template' => $templatefile));
 		}
 
-		// Sanitize line endings
-		$template = str_replace(array("\r\n","\r"),"\n",$template);
-		$f = explode("\n",$template);
+		// If not already in place, setup default system email filters
+		ShoppEmailDefaultFilters::init();
 
-		while ( list($linenum,$line) = each($f) ) {
+		// Sanitize line endings
+		$template = str_replace(array("\r\n", "\r"), "\n", $template);
+		$f = explode("\n", $template);
+
+		while ( list($linenum, $line) = each($f) ) {
 			$line = rtrim($line);
 			// Data replacement
-			if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
-				while ( list($i,$label) = each($labels) ) {
+			if ( preg_match_all("/\[(.+?)\]/", $line, $labels, PREG_SET_ORDER) ) {
+				while ( list($i, $label) = each($labels) ) {
 					$code = $label[1];
-					if (empty($data)) $string = (isset($_POST[$code])?$_POST[$code]:'');
-					else $string = apply_filters('shopp_email_data', $data[$code], $code);
 
-					$string = str_replace(array_keys($replacements),array_values($replacements),$string);
+					if ( empty($data) ) $string = isset($_POST[ $code ]) ? $_POST[ $code ] : '';
+					else $string = apply_filters('shopp_email_data', $data[ $code ], $code);
 
-					if (isset($string) && !is_array($string)) $line = preg_replace("/\[".$code."\]/",$string,$line);
+					if ( isset($string) && ! is_array($string) ) $line = preg_replace("/\[" . $code . "\]/", $string, $line);
 				}
 			}
 
 			// Header parse
-			if (!$in_body && false !== strpos($line,':')) {
-				list($header,$value) = explode(':',$line);
+			if ( ! $in_body && false !== strpos($line, ':') ) {
+				list($header, $value) = explode(':', $line);
 
 				// Protect against header injection
-				if (in_array(strtolower($header),$protected))
-					$value = str_replace("\n","",urldecode($value));
+				if ( in_array(strtolower($header), $protected) )
+					$value = str_replace("\n", "", urldecode($value));
 
 				if ( 'to' == strtolower($header) ) $to = $value;
 				elseif ( 'subject' == strtolower($header) ) $subject = $value;
@@ -1729,33 +1723,32 @@ abstract class ShoppCore {
 			}
 
 			// Catches the first blank line to begin capturing message body
-			if ( !$in_body && empty($line) ) $in_body = true;
-			if ( $in_body ) $message .= $line."\n";
+			if ( ! $in_body && empty($line) ) $in_body = true;
+			if ( $in_body ) $message .= $line . "\n";
 		}
 
 		// Use only the email address, discard everything else
 		if (strpos($to,'<') !== false) {
-			list($name, $email) = explode('<',$to);
-			$to = trim(rtrim($email,'>'));
+			list($name, $email) = explode('<', $to);
+			$to = trim(rtrim($email, '>'));
 		}
 
-		// If not already in place, setup default system email filters
-		new ShoppEmailDefaultFilters();
-
 		// Message filters first
-		$headers = apply_filters('shopp_email_headers',$headers,$message);
-		$message = apply_filters('shopp_email_message',$message,$headers);
+		$headers = apply_filters('shopp_email_headers', $headers, $message);
+		$message = apply_filters('shopp_email_message', $message, $headers);
 
-		if (!$debug) return wp_mail($to,$subject,$message,$headers);
+		$sent = wp_mail($to, $subject, $message, $headers);
 
-		header('Content-type: text/plain');
-		echo "To: ".htmlspecialchars($to)."\n";
-		echo "Subject: $subject\n\n";
-		echo "Headers:\n";
-		print_r($headers);
+		do_action('shopp_email_completed');
 
-		echo "\nMessage:\n$message\n";
-		exit();
+		if ( $debug ) {
+			shopp_debug("To: " . htmlspecialchars($to) . "\n");
+			shopp_debug("Subject: $subject\n\n");
+			shopp_debug("Headers:\n");
+			shopp_debug("\nMessage:\n$message\n");
+		}
+
+		return $sent;
 	}
 
 	/**
@@ -1767,7 +1760,7 @@ abstract class ShoppCore {
 	 * @return void
 	 **/
 	public static function keybind ($data) {
-		if (!isset($data[1]) || empty($data[1])) $data[1] = str_repeat('0',40);
+		if (!isset($data[1]) || empty($data[1])) $data[1] = str_repeat('0', 40);
 		return pack(Lookup::keyformat(true),$data[0],$data[1]);
 	}
 
