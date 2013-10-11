@@ -62,17 +62,23 @@ abstract class ShoppEmailFilters {
 
 	static function AutoMultipart ( $message ) {
 		if ( false === strpos($message, '<html') ) return $message;
+		remove_action('phpmailer_init', array('ShoppEmailDefaultFilters', 'NoAltBody'));
 		add_action('phpmailer_init', array('ShoppEmailDefaultFilters', 'AltBody') );
 		return $message;
 	}
 
 	static function RemoveAutoMultipart () {
 		remove_action('phpmailer_init', array('ShoppEmailDefaultFilters', 'AltBody') );
+		add_action('phpmailer_init', array('ShoppEmailDefaultFilters', 'NoAltBody'));
 	}
 
 	static function AltBody ( $phpmailer ) {
 		$Textify = new Textify($phpmailer->Body);
 		$phpmailer->AltBody = $Textify->render();
+	}
+
+	static function NoAltBody ( $phpmailer ) {
+		$phpmailer->AltBody = null;
 	}
 
 	static function FixSymbols ( $message ) {
