@@ -31,6 +31,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	public $voided = false;		// Order cancelled prior to capture
 	public $balance = 0;		// Current balance
 
+	public $inventory = false;
 	public $downloads = false;
 	public $shipable = false;
 	public $shipped = false;
@@ -126,7 +127,10 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		if ( ! empty($Purchased->download) ) $this->downloads = true;
 		if ( 'Shipped' == $Purchased->type ) $this->shipable = true;
-		if ( isset($record->inventory) && Shopp::str_true($record->inventory) ) $this->stocked = true;
+		if ( isset($record->inventory) ) {
+			$Purchased->inventory = Shopp::str_true($record->inventory);
+			if ( $Purchased->inventory ) $this->stocked = true;
+		}
 
 		if ( is_string($Purchased->data) )
 			$Purchased->data = maybe_unserialize($Purchased->data);
@@ -148,7 +152,6 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		}
 
 		$records[ $index ] = $Purchased;
-
 	}
 
 	/**
@@ -249,6 +252,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$Purchase = $Event->order();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
 
+		error_log(serialize($Purchase->purchased));
 		$prices = array();
 		$allocated = array();
 		foreach ( $Purchase->purchased as $Purchased ) {
@@ -256,7 +260,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				foreach ( $Purchased->addons->meta as $index => $Addon ) {
 					if ( ! Shopp::str_true($Addon->value->inventory) ) continue;
 
-					$allocated[$Addon->value->id] = new PurchaseStockAllocation(array(
+					$allocated[ $Addon->value->id ] = new PurchaseStockAllocation(array(
 						'purchased' => $Purchased->id,
 						'addon' => $index,
 						'sku' => $Addon->value->sku,
@@ -270,9 +274,10 @@ class ShoppPurchase extends ShoppDatabaseObject {
 					);
 				}
 			}
+
 			if ( ! Shopp::str_true($Purchased->inventory) ) continue;
 
-			$allocated[$Purchased->id] = new PurchaseStockAllocation(array(
+			$allocated[ $Purchased->id ] = new PurchaseStockAllocation(array(
 				'purchased' => $Purchased->id,
 				'sku' => $Purchased->sku,
 				'price' => $Purchased->price,
@@ -284,7 +289,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				isset($prices[ $Purchased->price ]) ? $prices[ $Purchased->price ][1] + $Purchased->quantity : $Purchased->quantity
 			);
 		}
-
+		error_log(__METHOD__ . " allocated: " . serialize($allocated));
 		if ( empty($allocated) ) return;
 
 		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
@@ -292,6 +297,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		foreach ( $prices as $price => $data ) {
 			list($productname, $qty) = $data;
 			DB::query("UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
+			error_log(__METHOD__ . " updated inventory: " . "UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
 			$inventory = DB::query("SELECT label, stock, stocked FROM $pricetable WHERE id='$price' LIMIT 1", 'auto');
 
 			$product = "$productname, $inventory->label";
