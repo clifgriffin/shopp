@@ -96,6 +96,8 @@ class ShoppShiprates extends ListFramework {
 	 **/
 	public function item ( ShoppShippableItem $Item ) {
 
+		if ( ! $Item->shippable ) return; // Don't track the item
+
 		$this->shippable[ $Item->id ] = $Item->shipsfree;
 		$this->fees[ $Item->id ] = $Item->fees;
 
@@ -215,11 +217,16 @@ class ShoppShiprates extends ListFramework {
 	 **/
 	public function calculate () {
 
-		if ( $this->disabled() ) return false;		// Shipping disabled
+		if ( $this->disabled() ) return false;			// Shipping disabled
 
-		if ( $this->free() ) return 0;				// Free shipping for this order
+		if ( $this->free() ) return 0;					// Free shipping for this order
 
-		if ( $this->requested() ) 					// Return the current amount if the request hasn't changed
+		if ( empty($this->shippable) ) {				// No shippable items in the order
+			$this->clear();								// Clear any current rates
+			return false;								// Don't calculate any new rates
+		}
+
+		if ( $this->requested() ) 						// Return the current amount if the request hasn't changed
 			return (float)$this->amount();
 
 		// Initialize shipping modules
@@ -411,6 +418,7 @@ class ShoppShippableItem {
 	private $class;
 	private $Object;
 
+	public $shippable = false;
 	public $id = false;
 	public $fees = 0;
 	public $weight = 0;
@@ -432,7 +440,9 @@ class ShoppShippableItem {
 
 	function ShoppCartItem () {
 		$Item = $this->Object;
-		if ( ! $Item->shipped ) return false;
+		$this->shippable = $Item->shipped;
+
+		if ( ! $this->shippable ) return false;
 
 		$this->id = $Item->fingerprint();
 		$this->fees = $Item->shipfee;
@@ -441,7 +451,6 @@ class ShoppShippableItem {
 		$this->width = $Item->width;
 		$this->height = $Item->height;
 		$this->shipsfree = $Item->freeshipping;
-
 	}
 
 }
