@@ -267,24 +267,27 @@ class ShoppAdminDashboard {
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
 
-		$Orders = sDB::query("SELECT p.*,count(i.*) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.created DESC LIMIT 6",'array');
-
-		if (!empty($Orders)) {
-		echo '<table class="widefat">';
-		echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
-		echo '<tbody id="orders" class="list orders">';
-		$even = false;
-		foreach ($Orders as $Order) {
-			echo '<tr'.((!$even)?' class="alternate"':'').'>';
-			$even = !$even;
-			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>ShoppAdmin()->pagename('orders'),'id'=>$Order->id),admin_url('admin.php')).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
-			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
-			echo '<td class="num">'.$Order->items.'</td>';
-			echo '<td class="num">'.money($Order->total).'</td>';
-			echo '<td class="num">'.$statusLabels[$Order->status].'</td>';
-			echo '</tr>';
+		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
+			$Orders = sDB::query("SELECT p.*,count(*) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.created DESC LIMIT 6", 'array');
+			set_transient('shopp_dashboard_orders', $Orders, 300); // Keep for the next 1 minute
 		}
-		echo '</tbody></table>';
+
+		if ( ! empty($Orders) ) {
+			echo '<table class="widefat">';
+			echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
+			echo '<tbody id="orders" class="list orders">';
+			$even = false;
+			foreach ($Orders as $Order) {
+				echo '<tr'.((!$even)?' class="alternate"':'').'>';
+				$even = !$even;
+				echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>ShoppAdmin()->pagename('orders'),'id'=>$Order->id),admin_url('admin.php')).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+				echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
+				echo '<td class="num">'.$Order->items.'</td>';
+				echo '<td class="num">'.money($Order->total).'</td>';
+				echo '<td class="num">'.$statusLabels[ $Order->status ].'</td>';
+				echo '</tr>';
+			}
+			echo '</tbody></table>';
 		} else {
 			echo '<p>'.__('No orders, yet.','Shopp').'</p>';
 		}
