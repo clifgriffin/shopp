@@ -5,12 +5,11 @@
  * Admin Dashboard controller
  *
  * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, June 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @version 1.0
  * @since 1.3
- * @subpackage shopp
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -40,7 +39,7 @@ class ShoppAdminDashboard {
 			array('all_link' => 'admin.php?page=' . ShoppAdmin()->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		if (shopp_setting_enabled('inventory')) {
+		if ( shopp_setting_enabled('inventory') ) {
 			wp_add_dashboard_widget('dashboard_shopp_inventory', __('Low Inventory Monitor','Shopp'), array('ShoppAdminDashboard', 'inventory_widget'),
 				array('all_link' => 'admin.php?page=' . ShoppAdmin()->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 			);
@@ -73,8 +72,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function stats_widget ( $args = false ) {
-		$Shopp = Shopp::object();
+	public function stats_widget ( array $args = array() ) {
 
 		$ranges = array(
 			'today' => __('Today','Shopp'),
@@ -99,9 +97,8 @@ class ShoppAdminDashboard {
 			'after_widget' => '',
 			'range' => isset($_GET['shopp-stats-range']) ? $_GET['shopp-stats-range'] : ''
 		);
-		if (!$args) $args = array();
-		$args = array_merge($defaults,$args);
-		if (!empty($args)) extract( $args, EXTR_SKIP );
+		$args = array_merge($defaults, $args);
+		extract( $args, EXTR_SKIP );
 
 		if ( ! $range || !isset($ranges[ strtolower($range) ]) ) $range = 'last30';
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
@@ -109,26 +106,26 @@ class ShoppAdminDashboard {
 		$now = current_time('timestamp');
 		$offset = get_option( 'gmt_offset' ) * 3600;
 		$daytimes = 86400;
-		$day = date('j',$now);
-		$month = date('n',$now);
-		$year = date('Y',$now);
+		$day = date('j', $now);
+		$month = date('n', $now);
+		$year = date('Y', $now);
 		$end = $now;
 
-		list($weekstart,$weekend) = array_values(get_weekstartend(current_time('mysql')));
-		switch ($range) {
-			case 'today': $start = mktime(0,0,0,$month,$day,$year); break;
+		list($weekstart, $weekend) = array_values(get_weekstartend(current_time('mysql')));
+		switch ( $range ) {
+			case 'today': $start = mktime(0, 0, 0, $month, $day, $year); break;
 			case 'week': $start = $weekstart; $end = $weekend; break;
-			case 'month': $start = mktime(0,0,0,$month,1,$year); break;
-			case 'quarter': $start = mktime(0,0,0,$month-(3 - ($month % 3)),1,$year); break;
-			case 'year': $start = mktime(0,0,0,1,1,$year); break;
-			case 'yesterday': $start = mktime(0,0,0,$month,$day-1,$year); $end = mktime(23,59,59,$month,$day-1,$year); break;
-			case 'lastweek': $start = $weekstart-(7*$daytimes); $end = $weekstart-1; break;
+			case 'month': $start = mktime(0, 0, 0, $month, 1, $year); break;
+			case 'quarter': $start = mktime(0, 0, 0, $month - (3 - ($month % 3)), 1, $year); break;
+			case 'year': $start = mktime(0, 0, 0, 1, 1, $year); break;
+			case 'yesterday': $start = mktime(0, 0, 0, $month, $day - 1, $year); $end = mktime(23, 59, 59, $month, $day - 1, $year); break;
+			case 'lastweek': $start = $weekstart - (7 * $daytimes); $end = $weekstart - 1; break;
 			case 'last7': $start = $now - (7 * $daytimes); break;
 			case 'last30': $start = $now - (30 * $daytimes); break;
 			case 'last90': $start = $now - (90 * $daytimes); break;
-			case 'lastmonth': $start = mktime(0,0,0,$month-1,1,$year); $end = mktime(0,0,0,$month,0,$year); break;
-			case 'lastquarter': $start = mktime(0,0,0,($month-(3 - ($month % 3)))-3,1,$year); $end = mktime(23,59,59,date('n',$start)+3,0,$year); break;
-			case 'lastyear': $start = mktime(0,0,0,$month,1,$year-1); $end = mktime(23,59,59,1,0,$year); break;
+			case 'lastmonth': $start = mktime(0, 0, 0, $month-1, 1, $year); $end = mktime(0, 0, 0, $month, 0, $year); break;
+			case 'lastquarter': $start = mktime(0, 0, 0, ($month - (3 - ($month % 3))) - 3, 1, $year); $end = mktime(23, 59, 59, date('n', $start) + 3, 0, $year); break;
+			case 'lastyear': $start = mktime(0, 0, 0, $month, 1, $year-1); $end = mktime(23, 59, 59, 1, 0, $year); break;
 		}
 
 		// Include authorizations, captures and old 1.1 tranaction status CHARGED in sales data
@@ -145,17 +142,25 @@ class ShoppAdminDashboard {
 						AVG(IF($daterange,total,null)) AS wkavg
  					FROM $purchasetable WHERE $txnstatus";
 
-		$results = sDB::query($query);
+		$cached = get_transient('shopp_dashboard_stats_' . $range);
+		if ( empty($cached) ) {
 
-		$RecentBestsellers = new BestsellerProducts(array('range' => array($start,$end),'show'=>5));
-		$RecentBestsellers->load(array('pagination'=>false));
-		$RecentBestsellers->maxsold = 0;
-		foreach ($RecentBestsellers as $product) $RecentBestsellers->maxsold = max($RecentBestsellers->maxsold,$product->sold);
+			$results = sDB::query($query);
 
-		$LifeBestsellers = new BestsellerProducts(array('show'=>5));
-		$LifeBestsellers->load(array('pagination'=>false));
-		$LifeBestsellers->maxsold = 0;
-		foreach ($LifeBestsellers as $product) $LifeBestsellers->maxsold = max($LifeBestsellers->maxsold,$product->sold);
+			$RecentBestsellers = new BestsellerProducts(array('range' => array($start, $end), 'show' => 5));
+			$RecentBestsellers->load(array('pagination' => false));
+			$RecentBestsellers->maxsold = 0;
+			foreach ($RecentBestsellers as $product) $RecentBestsellers->maxsold = max($RecentBestsellers->maxsold, $product->sold);
+
+			$LifeBestsellers = new BestsellerProducts(array('show' => 5));
+			$LifeBestsellers->load(array('pagination' => false));
+			$LifeBestsellers->maxsold = 0;
+			foreach ($LifeBestsellers as $product) $LifeBestsellers->maxsold = max($LifeBestsellers->maxsold, $product->sold);
+
+			$result = set_transient('shopp_dashboard_stats_' . $range, array($results, $RecentBestsellers, $LifeBestsellers), 300);
+
+		} else list($results, $RecentBestsellers, $LifeBestsellers) = $cached;
+
 
 		echo $before_widget;
 
@@ -243,8 +248,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function orders_widget ($args=null) {
-		$Shopp = Shopp::object();
+	public function orders_widget ( array $args = array() ) {
 
 		$defaults = array(
 			'before_widget' => '',
@@ -253,9 +257,8 @@ class ShoppAdminDashboard {
 			'after_title' => '',
 			'after_widget' => ''
 		);
-		if (!$args) $args = array();
-		$args = array_merge($defaults,$args);
-		if (!empty($args)) extract( $args, EXTR_SKIP );
+		$args = array_merge($defaults, $args);
+		extract( $args, EXTR_SKIP );
 		$statusLabels = shopp_setting('order_status');
 
 		echo $before_widget;
@@ -269,7 +272,7 @@ class ShoppAdminDashboard {
 
 		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
 			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id", 'array');
-			set_transient('shopp_dashboard_orders', $Orders, 90); // Keep for the next 1 minute
+			$set = set_transient('shopp_dashboard_orders', $Orders, 90); // Keep for the next 1 minute
 		}
 
 		if ( ! empty($Orders) ) {
@@ -304,7 +307,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function inventory_widget ($args=null) {
+	public function inventory_widget ( array $args = array() ) {
 
 		$warnings = array(
 			'none' => __('OK','Shopp'),
@@ -321,9 +324,8 @@ class ShoppAdminDashboard {
 			'after_widget' => ''
 		);
 
-		if (!$args) $args = array();
-		$args = array_merge($defaults,$args);
-		if (!empty($args)) extract( $args, EXTR_SKIP );
+		$args = array_merge($defaults, $args);
+		extract( $args, EXTR_SKIP );
 
 		$pt = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$setting = ( shopp_setting('lowstock_level') );
