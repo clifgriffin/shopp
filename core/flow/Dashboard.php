@@ -267,7 +267,7 @@ class ShoppAdminDashboard {
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
 
-		$Orders = sDB::query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",'array');
+		$Orders = sDB::query("SELECT p.*,count(i.*) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.created DESC LIMIT 6",'array');
 
 		if (!empty($Orders)) {
 		echo '<table class="widefat">';
