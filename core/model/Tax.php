@@ -257,7 +257,9 @@ class ShoppTax {
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void
+	 * @param array $rates A list of ShoppItemTax objects
+	 * @param float $taxable The amount to calculate taxes on
+	 * @return float The total tax amount
 	 **/
 	public static function calculate ( array &$rates, float $taxable ) {
 
@@ -266,7 +268,7 @@ class ShoppTax {
 		foreach ($rates as $label => $taxrate) {
 			$taxrate->amount = 0; // Reset the captured tax amount @see Issue #2430
 
-			$tax = ( $taxable * $taxrate->rate );			// Tax amount
+			$tax = $taxable * $taxrate->rate;				// Tax amount
 
 			if ( $taxrate->compound ) {
 
@@ -283,6 +285,23 @@ class ShoppTax {
 
 		return $total;
 
+	}
+
+	/**
+	 * Provides the tax exclusive amount of a given tax inclusive amount
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $rates A list of ShoppItemTax objects
+	 * @param float $$amount The amount including tax
+	 * @return float The amount excluding tax
+	 **/
+	public static function exclusive ( array &$rates, float $amount ) {
+		$taxrate = 0;
+		foreach ( $rates as $tax )
+			$taxrate += $tax->rate;
+		return (float) $amount / (1 + $taxrate);
 	}
 
 	/**

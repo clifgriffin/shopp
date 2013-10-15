@@ -5,10 +5,9 @@
  * Flow controller for settings management
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, January 6, 2010
+ * @copyright Ingenesis Limited, January 2010-2013
  * @package shopp
- * @subpackage shopp
+ * @version 1.3
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access

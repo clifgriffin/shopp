@@ -344,8 +344,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate();
-		if (empty($taxrate)) $taxrate = 0;
+		$taxrate = shopp_setting_enabled('tax_inclusive') ? Shopp::taxrate() : 0;
 
 		// Setup queries
 		$pd = WPDatabaseObject::tablename(ShoppProduct::$table);
@@ -684,12 +683,13 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		// For inclusive taxes, add tax to base product price (so tax is part of the price)
 		// This has to take place outside of ShoppProduct::pricing() so that the summary system
 		// doesn't cache the results causing strange/unexpected price jumps
-		if ( shopp_setting_enabled('tax_inclusive') && !Shopp::str_true($Product->excludetax) ) {
+		if ( shopp_setting_enabled('tax_inclusive') && ! Shopp::str_true($Product->excludetax) ) {
 			foreach ($Product->prices as &$price) {
 				if ( ! Shopp::str_true($price->tax) ) continue;
 
 				$taxes = array();
 				$Tax = new ShoppTax();
+				$Tax->address(ShoppOrder()->Billing);
 				$Tax->rates($taxes, $Tax->item($Product));
 
 				$price->price += ShoppTax::calculate($taxes, $price->price);
@@ -793,12 +793,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		// Update Prices
-
-		$taxrate = 0;
-		$excludetax = isset($_POST['meta']['excludetax'])?Shopp::str_true($_POST['meta']['excludetax']):false;
-		if (shopp_setting_enabled('tax_inclusive')) $taxrate = shopp_taxrate(null,true,$Product);
-
-		if (!empty($_POST['price']) && is_array($_POST['price'])) {
+		if ( ! empty($_POST['price']) && is_array($_POST['price']) ) {
 
 			// Delete prices that were marked for removal
 			if (!empty($_POST['deletePrices'])) {
@@ -814,6 +809,11 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 			$Product->resum();
 
+			$taxrates = array();
+			$Tax = new ShoppTax();
+			$Tax->address(ShoppOrder()->Billing);
+			$Tax->rates($taxrates, $Tax->item($Product) );
+
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $priceline) {
 				if (empty($priceline['id'])) {
@@ -825,8 +825,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 				// Remove VAT amount to save in DB
 				if (shopp_setting_enabled('tax_inclusive') && !$excludetax && isset($priceline['tax']) && Shopp::str_true($priceline['tax'])) {
-					$priceline['price'] = (Shopp::floatval($priceline['price'])/(1+$taxrate));
-					$priceline['saleprice'] = (Shopp::floatval($priceline['saleprice'])/(1+$taxrate));
+					$priceline['price'] = ShoppTax::exclusive($taxrates, floatvalue($priceline['price']));
+					$priceline['saleprice'] = ShoppTax::exclusive($taxrates, floatvalue($priceline['saleprice']));
 				}
 				$priceline['shipfee'] = Shopp::floatval($priceline['shipfee']);
 				if (isset($priceline['recurring']['trialprice']))
@@ -851,16 +851,15 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 					$priceline['settings'][$setting] = $priceline[$setting];
 				}
 
-				if ( ! empty($priceline['settings']) ) shopp_set_meta ( $Price->id, 'price', 'settings', $priceline['settings'] );
-
-				if ( ! empty($priceline['options']) ) shopp_set_meta ( $Price->id, 'price', 'options', $priceline['options'] );
+				if ( ! empty($priceline['settings']) ) shopp_set_meta($Price->id, 'price', 'settings', $priceline['settings']);
+				if ( ! empty($priceline['options']) ) shopp_set_meta($Price->id, 'price', 'options', $priceline['options']);
 
 				$Product->sumprice($Price);
 
-				if (!empty($priceline['download'])) $Price->attach_download($priceline['download']);
+				if ( ! empty($priceline['download']) ) $Price->attach_download($priceline['download']);
 
-				if (!empty($priceline['downloadpath'])) { // Attach file specified by URI/path
-					if (!empty($Price->download->id) || (empty($Price->download) && $Price->load_download())) {
+				if ( ! empty($priceline['downloadpath']) ) { // Attach file specified by URI/path
+					if ( ! empty($Price->download->id) || ( empty($Price->download) && $Price->load_download() ) ) {
 						$File = $Price->download;
 					} else $File = new ProductDownload();
 
@@ -876,12 +875,12 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 					$File->name = !empty($priceline['downloadfile'])?$priceline['downloadfile']:basename($tmpfile);
 					$File->filename = $File->name;
 
-					if ($File->found($tmpfile)) {
+					if ( $File->found($tmpfile) ) {
 						$File->uri = $tmpfile;
 						$stored = true;
 					} else $stored = $File->store($tmpfile,'file');
 
-					if ($stored) {
+					if ( $stored ) {
 						$File->readmeta();
 						$File->save();
 					}
@@ -928,7 +927,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				db::query("DELETE FROM $Spec->_table WHERE id IN ($ids)");
 			}
 
-			if (is_array($_POST['details'])) {
+			if ( is_array($_POST['details']) ) {
 				foreach ($_POST['details'] as $i => $spec) {
 					if (in_array($spec['id'],$deletes)) continue;
 					if (isset($spec['new'])) {
@@ -945,8 +944,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		// Save any meta data
-		if (isset($_POST['meta']) && is_array($_POST['meta'])) {
-			foreach ($_POST['meta'] as $name => $value) {
+		if ( isset($_POST['meta']) && is_array($_POST['meta']) ) {
+			foreach ( $_POST['meta'] as $name => $value ) {
 				if (isset($Product->meta[$name])) {
 					$Meta = $Product->meta[$name];
 					if (is_array($Meta)) $Meta = reset($Product->meta[$name]);
