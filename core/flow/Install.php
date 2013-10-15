@@ -170,6 +170,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 		if ( $installed < 1100 ) $this->upgrade_110();
 		if ( $installed < 1200 ) $this->upgrade_120();
+		if ( $installed < 1300 ) $this->upgrade_130();
 
 		ShoppSettings()->save('db_version', ShoppVersion::db());
 
@@ -1746,5 +1747,3 @@ class Shopp_Upgrader_Skin extends Plugin_Upgrader_Skin {
 	}
 
 } // END class Shopp_Upgrader_Skin
-
-?>

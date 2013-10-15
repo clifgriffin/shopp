@@ -321,7 +321,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 
 		$source = $legacy ? 'setting' : self::$table;
 		$table = ShoppDatabaseObject::tablename($source);
-		$version = sDB::query("SELECT value FROM $table WHERE name='db_version'", 'object', 'col');
+		$version = sDB::query("SELECT value FROM $table WHERE name='db_version' ORDER BY id DESC LIMIT 1", 'object', 'col');
 
 		// Try again using the legacy table
 		if ( false === $version && false === $legacy ) $version = self::dbversion('legacy');
