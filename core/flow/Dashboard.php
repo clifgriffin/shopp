@@ -40,7 +40,7 @@ class ShoppAdminDashboard {
 		);
 
 		if ( shopp_setting_enabled('inventory') ) {
-			wp_add_dashboard_widget('dashboard_shopp_inventory', __('Low Inventory Monitor','Shopp'), array('ShoppAdminDashboard', 'inventory_widget'),
+			wp_add_dashboard_widget('dashboard_shopp_inventory', __('Inventory Monitor','Shopp'), array('ShoppAdminDashboard', 'inventory_widget'),
 				array('all_link' => 'admin.php?page=' . ShoppAdmin()->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 			);
 		}
@@ -361,7 +361,7 @@ class ShoppAdminDashboard {
 		<table><tbody>
 		<?php foreach ($Collection->products as $product): $product->lowstock($product->stock,$product->stocked); ?>
 		<tr>
-			<td class="amount"><?php echo $product->stock; ?></td>
+			<td class="amount"><?php echo abs($product->stock); ?></td>
 			<td><span class="stock lowstock <?php echo $product->lowstock; ?>"><?php echo $warnings[ $product->lowstock ]; ?></span></td>
 			<td><a href="<?php echo esc_url(add_query_arg('id',$product->id,$productscreen)); ?>"><?php echo $product->name; ?></a></td>
 			<td><a href="<?php echo esc_url(add_query_arg('view','inventory',$productscreen)); ?>"><?php echo $product->sku; ?></a></td>
