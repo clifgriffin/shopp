@@ -232,6 +232,9 @@ class ShoppShiprates extends ListFramework {
 		// Initialize shipping modules
 		do_action('shopp_calculate_shipping_init');
 
+		// Send items to shipping modules that package them
+		$this->items();
+
 		// Calculate active shipping module service methods
 		$this->modules();
 
@@ -245,6 +248,22 @@ class ShoppShiprates extends ListFramework {
 		// Return the amount
 		return (float)$this->amount();
 
+	}
+
+	/**
+	 * Provides shippable items to shipping rate calculator modules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	private function items () {
+		foreach ( $this->shippable as $id => $free ) {
+			if ( $free ) continue;
+			$Item = new ShoppShippableItem( shopp_cart_item($id) );
+			do_action_ref_array('shopp_calculate_item_shipping', array($id, &$Item));
+		}
 	}
 
 	/**
@@ -420,6 +439,7 @@ class ShoppShippableItem {
 
 	public $shippable = false;
 	public $id = false;
+	public $quantity = 0;
 	public $fees = 0;
 	public $weight = 0;
 	public $length = 0;
@@ -445,6 +465,7 @@ class ShoppShippableItem {
 		if ( ! $this->shippable ) return false;
 
 		$this->id = $Item->fingerprint();
+		$this->quantity = $Item->quantity;
 		$this->fees = $Item->shipfee;
 		$this->weight = $Item->weight;
 		$this->length = $Item->length;
