@@ -988,6 +988,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ($_FILES['Filedata']['size'] == 0)
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 
+		FileAsset::mimetypes();
+
 		// Save the uploaded file
 		$File = new ProductDownload();
 		$File->parent = 0;
@@ -995,10 +997,14 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$File->type = "download";
 		$File->name = $_FILES['Filedata']['name'];
 		$File->filename = $File->name;
-		$filetype = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'],$File->name);
-		$File->mime = $filetype['type'];
-		if (!empty($filetype['proper_filename']))
-			$File->name = $File->filename = $filetype['proper_filename'];
+
+		list($extension, $mimetype, $properfile) = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'],$File->name);
+		if ( empty($mimetype) ) $mimetype = 'application/octet-stream';
+		$File->mime = $mimetype;
+
+		if ( ! empty($properfile))
+			$File->name = $File->filename = $properfile;
+
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
 
@@ -1007,9 +1013,9 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		$File->save();
 
-		do_action('add_product_download',$File,$_FILES['Filedata']);
+		do_action('add_product_download', $File,$_FILES['Filedata']);
 
-		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->mime,"size"=>$File->size));
+		echo json_encode(array('id' => $File->id, 'name' => stripslashes($File->name), 'type' => $File->mime, 'size' => $File->size));
 	}
 
 	/**

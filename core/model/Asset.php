@@ -161,6 +161,47 @@ class FileAsset extends ShoppMetaObject {
 		/** Not Implemented **/
 	}
 
+	public static function mimetypes () {
+		add_filter('mime_types', array(__CLASS__, 'xmime'));
+	}
+
+	public static function xmime ( array $mimetypes = array() ) {
+		static $extensions = array(
+			'ac3' => 'audio/ac3',
+			'aif|aifc|aiff' => 'audio/x-aiff',
+			'ai|eps|ps' => 'application/postscript',
+			'au|snd' => 'audio/basic',
+			'cat' => 'application/vnd.ms-pkiseccat',
+			'clp' => 'application/x-msclip',
+			'crd' => 'application/x-mscardfile',
+			'dll' => 'application/x-msdownload',
+			'doc|dot|word|w6w' => 'application/msword',
+			'epub' => 'application/epub+zip',
+			'gtar' => 'application/x-gtar',
+			'ics|ifb' => 'text/calendar',
+			'ief' => 'image/ief',
+			'jpe|jpeg|jpg' => 'image/jpeg',
+			'm13|m14|mvb' => 'application/x-msmediaview',
+			'mny' => 'application/x-msmoney',
+			'mobi' => 'application/x-mobipocket-ebook',
+			'movie' => 'video/x-sgi-movie',
+			'mp3' => 'audio/x-mpeg',
+			'mp4' => 'video/mp4',
+			'mpa' => 'audio/MPA',
+			'mpe|mpeg|mpg' => 'video/mpeg',
+			'msg' => 'application/vnd.ms-outlook',
+			'pict' => 'image/pict',
+			'pub' => 'application/x-mspublisher',
+			'scd' => 'application/x-msschedule',
+			'sst' => 'application/vnd.ms-pkicertstore',
+			'stl' => 'application/vnd.ms-pkistl',
+			'trm' => 'application/x-msterminal',
+			'wmf' => 'application/x-msmetafile',
+			'xla|xlc|xlm|xls|xlt|xlw' => 'application/vnd.ms-excel'
+		);
+		return array_merge($mimetypes, $extensions);
+	}
+
 } // END class FileAsset
 
 /**
