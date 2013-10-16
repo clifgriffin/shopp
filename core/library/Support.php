@@ -76,15 +76,21 @@ class ShoppSupport {
 			'core' => ShoppVersion::release(),
 			'addons' => join("-", $addons),
 			'site' => get_bloginfo('url'),
-			'wp' => get_bloginfo('version').(is_multisite()?' (multisite)':''),
-			'mysql' => mysql_get_server_info(),
-			'php' => phpversion(),
-			'uploadmax' => ini_get('upload_max_filesize'),
-			'postmax' => ini_get('post_max_size'),
-			'memlimit' => ini_get('memory_limit'),
-			'server' => $_SERVER['SERVER_SOFTWARE'],
-			'agent' => $_SERVER['HTTP_USER_AGENT']
 		);
+
+		if ( shopp_setting_enabled('support_data') ) {
+			$optional = array(
+				'wp' => get_bloginfo('version').(is_multisite()?' (multisite)':''),
+				'mysql' => mysql_get_server_info(),
+				'php' => phpversion(),
+				'uploadmax' => ini_get('upload_max_filesize'),
+				'postmax' => ini_get('post_max_size'),
+				'memlimit' => ini_get('memory_limit'),
+				'server' => $_SERVER['SERVER_SOFTWARE'],
+				'agent' => $_SERVER['HTTP_USER_AGENT']
+			);
+			$data = array_merge($data, $optional);
+		}
 
 		$response = ShoppSupport::callhome($request, $data);
 
@@ -92,15 +98,15 @@ class ShoppSupport {
 		$response = unserialize($response);
 		unset($updates->response);
 
-		if (isset($response->key) && !Shopp::str_true($response->key)) shopp_set_setting( 'updatekey', array(0) );
+		if ( isset($response->key) && ! Shopp::str_true($response->key) ) shopp_set_setting( 'updatekey', array(0) );
 
-		if (isset($response->addons)) {
-			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
+		if ( isset($response->addons) ) {
+			$updates->response[ SHOPP_PLUGINFILE . '/addons' ] = $response->addons;
 			unset($response->addons);
 		}
 
-		if (isset($response->id))
-			$updates->response[SHOPP_PLUGINFILE] = $response;
+		if ( isset($response->id) )
+			$updates->response[ SHOPP_PLUGINFILE ] = $response;
 
 		if (isset($updates->response)) {
 			shopp_set_setting('updates', $updates);

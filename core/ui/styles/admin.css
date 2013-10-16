@@ -29,6 +29,12 @@ th.textright { text-align: right; }
 .shopp .checkbox { display: inline-block; position: relative; color: #464646; text-shadow: rgba(255,255,255,1) 0 1px 0; width: 10px; height: 10px; margin-top: 3px; border: 1px solid #a9a9a9;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; background: #fff url(data:image/gif;base64,R0lGODlhBQAGAJEAAPLy8vn5+ezs7AAAACH5BAAAAAAALAAAAAAFAAYAAAIHjA2Zwu3/CgA7) repeat-x scroll left bottom; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=1px, Color='#ececec')"; -moz-box-shadow: 0 1px 1px #ececec; -webkit-box-shadow: 0 2px 3px #ececec; box-shadow: 0 1px 1px #ececec; overflow: visible; }
 .shopp .checkbox.checked:before { font-family:'shopp-icons'; font-size: 13px; content: "\E00B"; line-height: 13px; position: relative; top: -3px; }
 
+/** Activation **/
+#shopp-activation-nag { cursor: pointer; }
+#shopp-activation-nag .dismiss { color: #A9A13B; }
+#activation-status { width: 485px; }
+
+
 /** Product Manager **/
 #products-manager select.filters { max-width: 150px; }
 #products-manager .column-name img { margin-right: 3px; }
@@ -306,6 +312,7 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 #lightbox div.progress { margin:40px 0 0 10px; }
 
 .shopp .notice {-webkit-border-radius:3px;border-radius:3px;border:1px solid #e6db55;background-color:#ffffe0;margin: 5px 0 15px;padding: 0 0.6em; }
+.shopp .notice p { margin:1em 0; }
 
 #wpcontent .form-table select.scrolling { height:auto; }
 

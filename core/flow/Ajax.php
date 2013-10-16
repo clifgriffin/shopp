@@ -48,7 +48,7 @@ class ShoppAjax {
 		add_action('wp_ajax_shopp_ship_costs', array($this, 'shipping_costs'));
 
 		// Below this line must have nonce protection (all admin ajax go below)
-		if (!isset($_REQUEST['_wpnonce'])) return;
+		if ( ! isset($_REQUEST['_wpnonce']) ) return;
 
 		add_action('wp_ajax_shopp_category_products', array($this, 'category_products'));
 		add_action('wp_ajax_shopp_order_receipt', array($this, 'receipt'));
@@ -74,6 +74,7 @@ class ShoppAjax {
 		add_action('wp_ajax_shopp_verify_file', array($this, 'verify_file'));
 		add_action('wp_ajax_shopp_gateway', array($this, 'gateway_ajax'));
 		add_action('wp_ajax_shopp_debuglog', array($this, 'logviewer'));
+		add_action('wp_ajax_shopp_nonag', array($this, 'nonag'));
 
 	}
 
@@ -768,6 +769,13 @@ class ShoppAjax {
 		<script type="text/javascript">
 		document.getElementById('bottom').scrollIntoView();
 		</script></body></html><?php exit();
+	}
+
+	public function nonag () {
+		check_admin_referer('wp_ajax_shopp_nonag');
+		$id = get_current_user_id();
+        add_user_meta($id, 'shopp_nonag', 'true', true);
+		return true;
 	}
 
 }

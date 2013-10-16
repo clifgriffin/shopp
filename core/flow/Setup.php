@@ -53,13 +53,14 @@ class ShoppAdminSetup extends ShoppAdminController {
 					'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
 				));
 				break;
+			case 'core':
 			case 'setup':
 				shopp_enqueue_script('spin');
 				shopp_enqueue_script('setup');
 				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
 
 				$this->keystatus = array(
-					'ks_inactive' => sprintf(__('Activate your Shopp support key for automatic updates and official support services. If you don&apos;t have a Shopp key, feel free to support the project by %s purchasing a key from the Shopp Store %s.','Shopp'),'<a href="' . ShoppSupport::STORE . '">','</a>'), // No key is activated yet
+					'ks_inactive' => Shopp::_m('You&apos;re missing out on expert support and one-click updates! Enter your **Support Key** and click the **Activate Key** button. Don&apos;t have a support key? %sBuy One Now!%s', '<a href="' . ShoppSupport::STORE . '" class="button button-primary">', '</a>'), // No key is activated yet
 					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'), 		// Cannot communicate with the server, config?, firewall?
 					'k_001' => __('The server is experiencing problems.','Shopp').$customer_service,			// The server did not provide a valid response? Uncovered maintenance?
 					'ks_1' => __('An unkown error occurred.','Shopp'),											// Absolutely no clue what happened
@@ -165,10 +166,16 @@ class ShoppAdminSetup extends ShoppAdminController {
 			if (str_repeat('0',40) == $key) $key = '';
 		}
 
-		$status_class = ($status < 0)?'activating':'';
+		$status_class = array();
+		if ( $status < 0 ) $status_class[] = 'activating';
+
 		$keystatus = '';
-		if (empty($key)) $keystatus = $this->keystatus['ks_inactive'];
-		if (!empty($_POST['activation'])) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
+		if ( empty($key) ) {
+			$keystatus = $this->keystatus['ks_inactive'];
+			$status_class[] = 'notice';
+		}
+		if ( ! empty($_POST['activation']) ) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
+		$status_class = join(' ', $status_class);
 
 		// Save settings
 		if ( ! empty($_POST['save']) && isset($_POST['settings'])) {
