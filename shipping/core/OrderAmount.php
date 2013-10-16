@@ -30,10 +30,10 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 
 	public function calculate ( &$options, $Order ) {
 
-		foreach ($this->methods as $slug => $method) {
+		foreach ( $this->methods as $slug => $method ) {
 
-			$tiers = $this->tablerate($method['table']);
-			if ($tiers === false) continue; // Skip methods that don't match at all
+			$tiers = isset($method['table']) ? $this->tablerate($method['table']) : false;
+			if ( false === $tiers ) continue; // Skip methods that don't match at all
 
 			$amount = 0;
 			$tiers = array_reverse($tiers);
@@ -59,6 +59,8 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 	}
 
 	public function settings () {
+
+		$this->setup('table');
 
 		$this->ui->tablerates(0,array(
 			'unit' => array( Shopp::__('Order Amount') ),

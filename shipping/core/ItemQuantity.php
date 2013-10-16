@@ -34,7 +34,7 @@ class ItemQuantity extends ShippingFramework implements ShippingModule {
 
 		foreach ( $this->methods as $slug => $method ) {
 
-			$tiers = $this->tablerate($method['table']);
+			$tiers = isset($method['table']) ? $this->tablerate($method['table']) : false;
 			if ( $tiers === false ) continue; // Skip methods that don't match at all
 
 			$amount = 0;
@@ -61,11 +61,15 @@ class ItemQuantity extends ShippingFramework implements ShippingModule {
 	}
 
 	public function settings () {
+
+		$this->setup('table');
+
 		$this->ui->tablerates(0, array(
 			'unit' => array(Shopp::__('Item Quantity'), Shopp::__('items')),
 			'table' => $this->settings['table'],
 			'rate_class' => 'money'
 		));
+
 	}
 
 }

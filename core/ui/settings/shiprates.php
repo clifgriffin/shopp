@@ -41,7 +41,7 @@
 		<tbody id="shiprates" class="list">
 		<?php
 
-			if ($edit && !isset($shiprates[$edit])) {
+			if ( $edit && ! isset($shiprates[ $edit ]) ) {
 				$template_data = array(
 					'${mindelivery_menu}' => Shopp::menuoptions($deliverymenu,false,true),
 					'${maxdelivery_menu}' => Shopp::menuoptions($deliverymenu,false,true),
@@ -63,7 +63,7 @@
 			foreach ($shiprates as $setting => $module):
 				$shipping = shopp_setting($setting);
 				$service = $Shipping->modules[$module]->name;
-				if (Shopp::str_true($shipping['fallback'])) $service = '<big title="'.__('Fallback shipping real-time rate lookup failures','Shopp').'">&#9100;</big>  '.$service;
+				if ( isset($shipping['fallback']) && Shopp::str_true($shipping['fallback']) ) $service = '<big title="'.__('Fallback shipping real-time rate lookup failures','Shopp').'">&#9100;</big>  '.$service;
 				$destinations = array();
 
 				$min = $max = false;

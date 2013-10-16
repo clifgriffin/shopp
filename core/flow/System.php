@@ -197,11 +197,18 @@ class ShoppAdminSystem extends ShoppAdminController {
 	}
 
 	public function shiprates () {
+
+		if ( ! current_user_can('shopp_settings_shipping') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		$Shopp = Shopp::object();
 		$Shipping = $Shopp->Shipping;
 		$Shipping->settings(); // Load all installed shipping modules for settings UIs
 
 		$methods = $Shopp->Shipping->methods;
+
+		$edit = false;
+		if ( isset($_REQUEST['id']) ) $edit = (int)$_REQUEST['id'];
 
 		$active = shopp_setting('active_shipping');
 		if (!$active) $active = array();
@@ -242,7 +249,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 				// Cancel editing if saving
 				if (isset($_POST['save'])) unset($_REQUEST['id']);
 
-				$Errors = &ShoppErrors();
+				$Errors = ShoppErrors();
 				do_action('shopp_verify_shipping_services');
 
 				if ($Errors->exist()) {
@@ -304,6 +311,8 @@ class ShoppAdminSystem extends ShoppAdminController {
 
 			}
 		}
+
+		$Shipping->settings(); // Load all installed shipping modules for settings UIs
 
 		$Shipping->ui(); // Setup setting UIs
 		$installed = array();
@@ -395,7 +404,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 		);
 
 		$ShippingTemplates = new TemplateShippingUI();
-		add_action('shopp_shipping_module_settings',array($Shipping,'templates'));
+		add_action('shopp_shipping_module_settings', array($Shipping, 'templates'));
 		include $this->ui('shiprates.php');
 	}
 
@@ -465,7 +474,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$edit = false;
-		if (isset($_REQUEST['id'])) $edit = (int)$_REQUEST['id'];
+		if ( isset($_REQUEST['id']) ) $edit = (int)$_REQUEST['id'];
 		$localerror = false;
 
 		$rates = shopp_setting('taxrates');

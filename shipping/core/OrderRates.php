@@ -32,7 +32,7 @@ class OrderRates extends ShippingFramework implements ShippingModule {
 
 		foreach ($this->methods as $slug => $method) {
 
-			$amount = $this->tablerate($method['table']);
+			$amount = isset($method['table']) ? $this->tablerate($method['table']) : false;
 			if ( false === $amount ) continue; // Skip methods that don't match at all
 
 			$rate = array(
@@ -51,6 +51,8 @@ class OrderRates extends ShippingFramework implements ShippingModule {
 	}
 
 	public function settings () {
+
+		$this->setup('table');
 
 		$this->ui->flatrates(0, array(
 			'table' => $this->settings['table']

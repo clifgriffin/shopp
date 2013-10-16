@@ -468,10 +468,11 @@ class xmlQuery {
 	 * @param boolean $recursive (optional) Turn on/off recursive searching
 	 * @return array List of matching elements
 	 **/
-	private function search ($tag,$attributes=array(),&$dom=false,$recursive=true) {
-		if (!$dom) $dom = &$this->dom;
-		if (!is_array($dom)) $dom = array($dom);
+	private function &search ( $tag, $attributes = array(), &$dom = false, $recursive = true) {
+		if ( ! $dom ) $dom = &$this->dom;
+		if ( ! is_array($dom) ) $dom = array($dom);
 
+		$empty = array();
 		$_ = array();
 		// Iterate through the elements of the DOM and find matches
 		foreach($dom as $key => &$element) {
@@ -480,14 +481,14 @@ class xmlQuery {
 			if ($recursive) {
 				if (isset($element['_c']) && !empty($element['_c'])) {
 					// Search child elements/nodes first
-					$found = &$this->search($tag,$attributes,$element['_c']);
-					$_ = array_merge($_,$found);
+					$found = &$this->search($tag, $attributes, $element['_c']);
+					$_ = array_merge($_, $found);
 				} elseif (count($element) > 0 && isset($element[0])) {
 					// Search a collection of a single tag
 					foreach ($element as $b => $branch) {
 						$entry = array($b => $branch);
-						$found = &$this->search($tag,$attributes,$entry,true);
-						$_ = array_merge($_,$found);
+						$found = &$this->search($tag, $attributes, $entry, true);
+						$_ = array_merge($_, $found);
 					}
 				}
 			}
@@ -502,7 +503,7 @@ class xmlQuery {
 					&& $this->match($element['_a'][$search[1]],$search[2],$search[3]))
 						$match = true;
 
-			if (!$match) return;
+			if ( ! $match ) return $empty;
 
 			// Element matched, save it to our results
 

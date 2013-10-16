@@ -402,9 +402,9 @@ abstract class ShippingFramework {
 	 **/
 	public function setup () {
 		$settings = func_get_args();
-		foreach ($settings as $name)
-			if (!isset($this->settings[$name]))
-				$this->settings[$name] = false;
+		foreach ( $settings as $name )
+			if ( ! isset($this->settings[ $name ]) )
+				$this->settings[ $name ] = false;
 	}
 
 	/**
@@ -783,7 +783,10 @@ abstract class ShippingFramework {
 	}
 
 	static function _sorttier ($a, $b) {
-		return Shopp::floatval($a['threshold']) < Shopp::floatval($b['threshold']) ? -1 : 1;
+		$at = isset($a['threshold']) ? $a['threshold'] : 0;
+		$bt = isset($b['threshold']) ? $b['threshold'] : 0;
+		if ( Shopp::floatval($at) == Shopp::floatval($bt) ) return 0;
+		return Shopp::floatval($at) < Shopp::floatval($bt) ? -1 : 1;
 	}
 
 
@@ -828,8 +831,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	public $unit = array();
 	public $norates = false;
 
-	public function __construct ($Module,$name) {
-		parent::__construct($Module,$name);
+	public function __construct ( $Module, $name ) {
+		parent::__construct($Module, $name);
 
 		$this->id = empty($Module->setting)?$this->module:$Module->setting;
 
@@ -840,8 +843,9 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	public function settings () {
 		$properties = array('module','type','unit','norates','threshold_class','rate_class');
 		$settings = array();
-		foreach ($properties as $prop)
-			$settings[$prop] = $this->{$prop};
+		foreach ( $properties as $prop )
+			if ( isset($this->$prop) )
+				$settings[$prop] = $this->{$prop};
 
 		return $settings;
 	}
@@ -986,13 +990,15 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 	public function tablerates ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
+			'id' => '',
+			'name' => '',
 			'class' => '',
 			'threshold_class' => '',
 			'rate_class' => '',
-			'unit' => array(),
+			'unit' => array('', ''),
 			'table' => array()
 		);
-		$attributes = array_merge($defaults,$attributes);
+		$attributes = array_merge($defaults, $attributes);
 		$attributes['id'] = "{$this->id}-{$attributes['name']}";
 		extract($attributes);
 
@@ -1034,7 +1040,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 	}
 
 	public function tablerate_row ( $row = 0, array $attrs = array(), array $table = array() ) {
-		$unit = $attrs['unit'];
+		$unit = isset($attrs['unit']) ? $attrs['unit'] : array('', '');
 
 		// Handle adding rate tiers
 		if (isset($_POST['addtier'])) {
@@ -1098,8 +1104,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$_[] = '</thead>';
 		$_[] = '<tbody>';
 		$_[] = '<tr>';
-		if (!$this->template)
-			$_[] = $this->location_fields($row,$setting);
+		if ( ! $this->template )
+			$_[] = $this->location_fields($row, $table);
 			$_[] = '<td>';
 				$_[] = '<table class="panel">';
 
@@ -1151,7 +1157,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return join('',$_);
 	}
 
-	public function parse_location ($destination) {
+	public static function parse_location ($destination) {
 		$selected = array(
 			'region' => '*',
 			'country' => '',
@@ -1198,8 +1204,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return $selected;
 	}
 
-	public function location_menu ( $destination = false, $module = false ) {
-		if (!$module) $this->module;
+	public function location_menu ( $destination = false, $row = 0, $module = false ) {
+		if ( ! $module ) $module = $this->module;
 		$menuarrow = ' &#x25be;';
 		$tab = str_repeat('&sdot;',3).'&nbsp;';
 		$regions = Lookup::regions();
@@ -1307,7 +1313,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$menuarrow = ' &#x25be;';
 		$destination = isset($setting['destination'])?$setting['destination']:'';
 
-		$menu = $this->location_menu($destination);
+		$menu = $this->location_menu($destination, $row);
 		extract($menu);
 		if ($this->template) {
 			$row = '${row}';

@@ -406,6 +406,7 @@ class ModuleSettingsUI {
 	 **/
 	public function __construct ( $Module, $name ) {
 		$this->name = $name;
+		if ( ! $Module ) return;
 		$this->module = $Module->module;
 		$this->id = sanitize_title_with_dashes($this->module);
 		$this->label = isset($Module->settings['label'])?$Module->settings['label']:$name;
