@@ -75,7 +75,6 @@ class ShoppCheckout {
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::login');
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::passwords');
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::billaddress');
-
 	}
 
 	public function form ( string $key = null ) {

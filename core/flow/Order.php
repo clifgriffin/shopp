@@ -123,6 +123,7 @@ class ShoppOrder {
 
 		// Store order custom data and post processing data
 		Shopping::restore('data', $this->data);
+		Shopping::restore('sameaddress', $this->sameaddress);
 		Shopping::restore('inprogress', $this->inprogress);
 		Shopping::restore('purchase', $this->purchase);
 		Shopping::restore('txnid', $this->txnid);

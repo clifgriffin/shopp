@@ -119,23 +119,21 @@ class ShoppRegistration {
 	}
 
 	public function shipaddress () {
-
 		$ShippingAddress = ShoppOrder()->Shipping;
 		$BillingAddress = ShoppOrder()->Billing;
 
 		if ( empty($ShippingAddress) )
 			$ShippingAddress = new ShippingAddress();
 
-		$form = $this->form('shipped');
+		$form = $this->form('shipping');
 
 		if ( ! empty($form) ) $ShippingAddress->updates($form);
 
 		// Handle same address copying
-		$copy = strtolower( $this->form('sameaddress') );
-		if ( 'billing' == $copy ) {
-			ShoppOrder()->sameaddress = $copy;
+		ShoppOrder()->sameaddress = strtolower( $this->form('sameaddress') );
+
+		if ( 'billing' == ShoppOrder()->sameaddress )
 			$BillingAddress->updates($form);
-		}
 
 	}
 
@@ -157,11 +155,9 @@ class ShoppRegistration {
 		$BillingAddress->updates($form,$ignore);
 
 		// Handle same address copying
-		$copy = strtolower( $this->form('sameaddress') );
-		if ( 'shipping' == $copy ) {
-			ShoppOrder()->sameaddress = $copy;
+		ShoppOrder()->sameaddress = strtolower( $this->form('sameaddress') );
+		if ( 'shipping' == ShoppOrder()->sameaddress )
 			$ShippingAddress->updates($form);
-		}
 
 	}
 

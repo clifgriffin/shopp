@@ -396,6 +396,7 @@ you can use the generic selector below, but it's slower:
 	content: "\f054";
 }
 
+.shoppui-cards { font-size: 16px; line-height: 1; }
 .shoppui-cards > * {font-size:100%;border-radius:2px;border: 1px solid #ccc;}
 .shoppui-cards.icon > * {font-size:2em;}
 .shoppui-cards.small > * {font-size:3em;}
@@ -403,7 +404,7 @@ you can use the generic selector below, but it's slower:
 .shoppui-cards.huge > * {font-size:8em;border-radius:4px;}
 .shoppui-cards.shadow > * {box-shadow: 0 2px 3px #ddd;}
 
-.shoppui-visa,.shoppui-mc,.shoppui-disc,.shoppui-amex,.shoppui-ideal,.shoppui-paypal,.shoppui-amazon,.shoppui-2co,.shoppui-dc,.shoppui-jcb,.shoppui-echeck,.shoppui-dwolla,.shoppui-bc,.shoppui-cards > * {display:inline-block;background-repeat:no-repeat;background-size:contain;background-position:0 100%;text-indent:9999em;line-height:1em; width:1.6em;overflow:hidden;white-space:nowrap;margin-bottom:0.1em;}
+.shoppui-visa,.shoppui-mc,.shoppui-disc,.shoppui-amex,.shoppui-ideal,.shoppui-paypal,.shoppui-amazon,.shoppui-2co,.shoppui-dc,.shoppui-jcb,.shoppui-echeck,.shoppui-dwolla,.shoppui-bc,.shoppui-cards > * {display:inline-block;background-repeat:no-repeat;background-size:contain;background-position:0 100%;text-indent:9999em;line-height:1em; width:1.591em;overflow:hidden;white-space:nowrap;margin-bottom:0.1em;}
 
 .shoppui-visa,.shoppui-cards .visa {background-image:url('../icons/visa.svg');}
 .shoppui-mc,.shoppui-cards .mc {background-image:url('../icons/mc.svg');}

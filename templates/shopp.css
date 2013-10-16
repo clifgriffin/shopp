@@ -14,7 +14,7 @@
 #shopp form ul { line-height: 1; }
 #shopp form li > label { font-weight: bold; padding: 20px 0 10px; }
 #shopp form ul li span label,
-#shopp form div label { font-size: 11px; font-weight: normal; padding-bottom: 3px; }
+#shopp form div label { font-size: 0.8125em; font-weight: normal; padding-top: 0.6em; }
 #shopp .right { float: right; }
 
 /** Catalog/Category **/
