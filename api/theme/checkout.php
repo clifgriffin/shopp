@@ -763,7 +763,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 					$Payoption = $Payments->get($value);
 					$options['value'] = $value;
 					$options['checked'] = ($O->paymethod == $value);
-					if ($options['checked'] === false) unset($options['checked']);
+					if ( false === $options['checked'] ) unset($options['checked']);
+					$options['checked'] = ( $SelectedPayment->slug == $Payoption->slug ) ? true : false;
 					$label = $Payoption->label;
 
 					if ( $logos ) {
