@@ -1265,7 +1265,7 @@ class WPDatabaseObject extends ShoppDatabaseObject {
 class WPShoppObject extends WPDatabaseObject {
 	static $posttype = 'shopp_post';
 
-	function load () {
+	public function load () {
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 
@@ -1282,18 +1282,33 @@ class WPShoppObject extends WPDatabaseObject {
 		parent::load($p);
 	}
 
-	static function labels () {
+	public static function labels () {
 		return array(
 			'name' => __('Posts','Shopp'),
 			'singular_name' => __('Post','Shopp')
 		);
 	}
 
-	static function register ($class,$slug) {
+	public static function capabilities () {
+		return apply_filters( 'shopp_product_capabilities', array(
+			'edit_post' => self::$posttype,
+			'delete_post' => self::$posttype
+		) );
+	}
+
+	public static function supports () {
+		return array(
+			'title',
+			'editor'
+		);
+	}
+
+	public static function register ($class,$slug) {
 		$posttype = get_class_property($class,'posttype');
 		register_post_type( $posttype, array(
-			'labels' => call_user_func(array($class,'labels')),
+			'labels' => call_user_func(array($class, 'labels')),
 			'capabilities' => call_user_func(array($class, 'capabilities')),
+			'supports' => call_user_func(array($class, 'supports')),
 			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
 			'public' => true,
 			'has_archive' => true,

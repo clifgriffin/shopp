@@ -104,11 +104,11 @@ class ShoppProduct extends WPShoppObject {
 		do_action('save_post', $this->id, get_post($this->id));
 	}
 
-	static function posttype () {
+	public static function posttype () {
 		return self::$posttype;
 	}
 
-	static function labels () {
+	public static function labels () {
 		return apply_filters( 'shopp_product_labels', array(
 			'name' => __('Products','Shopp'),
 			'singular_name' => __('Product','Shopp'),
@@ -117,10 +117,16 @@ class ShoppProduct extends WPShoppObject {
 		));
 	}
 
-	static function capabilities () {
+	public static function capabilities () {
 		return apply_filters( 'shopp_product_capabilities', array(
 			'edit_post' => 'shopp_products',
 			'delete_post' => 'shopp_products'
+		) );
+	}
+
+	public static function supports () {
+		return apply_filters( 'shopp_product_supports', array(
+			'title', 'editor', 'excerpt', 'comments'
 		) );
 	}
 
