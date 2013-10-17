@@ -157,10 +157,10 @@ class Shopping extends SessionObject {
 
 		$meta_table = ShoppDatabaseObject::tablename('meta');
 
-		DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified)
-					SELECT 'shopping','session',session,data,created,modified FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified) AND stash=1");
+		sDB::query("INSERT INTO $meta_table (context,type,name,value,created,modified)
+					SELECT 'shopping','session',session,data,created,'$now' FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified) AND stash=1");
 
-		DB::query("DELETE LOW_PRIORITY FROM $meta_table WHERE context='shopping' AND type='session' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
+		sDB::query("DELETE LOW_PRIORITY FROM $meta_table WHERE context='shopping' AND type='session' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
 
 		return parent::clean($lifetime);
 
@@ -173,6 +173,23 @@ class Shopping extends SessionObject {
 
 	public function savecart ( $Cart ) {
 		$this->stashing( ! empty($Cart->contents) );
+	}
+
+	public function reload ( $session ) {
+
+		$meta_table = ShoppDatabaseObject::tablename('meta');
+		$current = $this->session;
+		$now = current_time('mysql');
+
+		$query = "UPDATE $this->_table AS s, $meta_table AS m
+					SET s.created=m.created,s.modified='$now',s.data=m.value
+					WHERE s.session=m.name AND m.context='shopping' AND m.type='session' AND m.name='" . sDB::escape($session) . "'";
+
+		if ( sDB::query($query) ) $this->load();
+
+		do_action('shopp_reload');
+		do_action('shopp_resession');
+
 	}
 
 	/**
