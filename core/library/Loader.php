@@ -21,6 +21,7 @@ class ShoppLoader {
 	protected static $basepath = '';		// Tracks the base path of files in the classmap
 
 	private static $excludes = array();
+	private static $scanned = false;
 
 	/**
 	 * Setup the loader and register the autoloader
@@ -103,12 +104,11 @@ class ShoppLoader {
 	 **/
 	public function load ( $class ) {
 
-		$scanning = defined('SHOPP_DEBUG') && SHOPP_DEBUG; // Default on SHOPP_DEBUG
-		if ( defined('SHOPP_CLASS_SCANNING') ) $scanning = SHOPP_CLASS_SCANNING; // Override
-
 		if ( $this->excluded($class) ) return true;
 		elseif ( $this->classmap($class) ) return true;
-		elseif ( $scanning && $this->scanner($class) ) return true;
+
+		$scanning = defined('SHOPP_CLASS_SCANNING') && SHOPP_CLASS_SCANNING;
+		if ( $scanning && ! self::$scanned ) return $this->scanner($class);
 
 		return false;
 	}
@@ -151,6 +151,8 @@ class ShoppLoader {
 		$objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator( $path ), RecursiveIteratorIterator::SELF_FIRST);
 		foreach( $objects as $name => $object )
 			$this->scanfile( $name, $path );
+
+		self::$scanned = true; // Flag file system scan done (so it only ever runs once)
 
 		if ( $this->classmap($class) ) return true;
 		return false;
