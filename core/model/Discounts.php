@@ -463,7 +463,7 @@ class ShoppDiscountRule {
 
 		if ( is_callable($subject) ) {
 			// If the subject is a callback, use it for matching
-			return call_user_func($subject, $Item);
+			return call_user_func($subject, $Item, $this);
 		} else {
 			// Evaluate the subject using standard matching
 			return $this->evaluate($subject);
@@ -581,7 +581,7 @@ class ShoppDiscountRule {
 	 * @param mixed $subject The subject data to match against
 	 * @return boolean True for a match, false for no match
 	 **/
-	private function evaluate ( $subject ) {
+	public function evaluate ( $subject ) {
 
 		$property = $this->property;
 		$op = strtolower($this->logic);
