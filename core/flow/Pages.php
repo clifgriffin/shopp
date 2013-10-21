@@ -978,24 +978,28 @@ class ShoppShortcodes {
 		<form action="<?php shopp('cart.url'); ?>" method="post" class="shopp product">
 			<input type="hidden" name="redirect" value="checkout" />
 			<?php if (isset($atts['variations'])): ?>
-				<?php if(shopp('product', 'has-variations')): ?>
+				<?php if(shopp('product.has-variations')): ?>
 				<ul class="variations">
-					<?php shopp('product', 'variations', 'mode=multiple&label=true&defaults='.__('Select an option', 'Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
+					<?php shopp('product.variations', 'mode=multiple&label=true&defaults='.__('Select an option', 'Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 				</ul>
 				<?php endif; ?>
 			<?php endif; ?>
 			<?php if (isset($atts['addons'])): ?>
-				<?php if(shopp('product', 'has-addons')): ?>
+				<?php if(shopp('product.has-addons')): ?>
 					<ul class="addons">
-						<?php shopp('product', 'addons', 'mode=menu&label=true&defaults='.__('Select an add-on', 'Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
+						<?php shopp('product.addons', 'mode=menu&label=true&defaults='.__('Select an add-on', 'Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 					</ul>
 				<?php endif; ?>
 			<?php endif; ?>
-			<p><?php if (isset($atts['quantity'])): $quantity = (empty($atts['quantity']))?'class=selectall&input=menu':$atts['quantity']; ?>
-				<?php shopp('product', 'quantity', $quantity); ?>
+			<p><?php if ( isset($atts['quantity']) ): $quantity = empty($atts['quantity']) ? 'class=selectall&input=menu' : html_entity_decode($atts['quantity']); ?>
+				<?php shopp('product.quantity', $quantity); ?>
 			<?php endif; ?>
-			<?php $button = 'label=' . empty($atts['button']) ? __('Buy Now', 'Shopp') : $atts['button']; ?>
-			<?php shopp('product', 'addtocart', $button.( isset($atts['ajax']) && 'on' == $atts['ajax'] ? '&ajax=on' : '' )); ?></p>
+			<?php
+				$button = 'label=' . ( isset($atts['label']) ? $atts['label'] : __('Buy Now', 'Shopp') );
+				$button .= ( isset($atts['ajax']) && Shopp::str_true($atts['ajax']) ? '&ajax=on' : '' );
+				if ( isset($atts['button']) ) $button = html_entity_decode($atts['button']);
+			?>
+			<?php shopp('product.addtocart', $button); ?></p>
 		</form>
 		<?php
 		$markup = ob_get_contents();
