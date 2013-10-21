@@ -684,6 +684,7 @@ function addDetail (data) {
 
 	if (data && data.options) {
 		optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
+		$('<option></option>').appendTo(optionsmenu);
 		for (i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);
 		if (data && data.value) optionsmenu.val(htmlentities(data.value));
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);
