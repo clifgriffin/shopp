@@ -815,11 +815,22 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	public static function out_of_stock ( $result, $options, $O ) {
-		if ( shopp_setting_enabled('inventory') && $O->outofstock ) {
-			$label = isset($options['label'])?$options['label']:shopp_setting('outofstock_text');
-			$string = '<span class="outofstock">'.$label.'</span>';
-			return $string;
-		} else return false;
+
+		if ( ! shopp_setting_enabled('inventory') ) return false;
+		if ( ! $O->outofstock ) return false;
+
+		if ( isset($options['label']) ) { // If label option is set at all, show the label instead
+			$classes = array('outofstock');
+			if ( isset($options['class']) )
+				$classes = array_merge($classes, explode(' ', $options['class']));
+
+			$label = shopp_setting('outofstock_text'); // @deprecated Removing label setting
+			if ( empty($label) ) $label = Shopp::__('Out of stock');
+			if ( ! Shopp::str_true($options['label']) ) $label = $options['label'];
+			return '<span class="' . esc_attr(join(' ', $classes)). '">' . esc_html($label) . '</span>';
+
+		} else return true;
+
 	}
 
 	public static function price ( $result, $options, $O ) {
