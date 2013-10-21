@@ -794,7 +794,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string The response string from the request
 	 **/
 	public function send ( $data, $url = false, $deprecated = false, $options = array() ) {
-		return parent::send($data, $this->url());
+		$options['httpversion'] = '1.1';
+		return parent::send($data, $this->url(), false, $options);
 	}
 
 	/**
