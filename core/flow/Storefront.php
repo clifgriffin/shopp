@@ -1062,9 +1062,8 @@ class ShoppStorefront extends ShoppFlowController {
 		$classes = apply_filters( 'shopp_content_container_classes', $classes);
 		$classes = esc_attr( join(' ', $classes) );
 
-		if ( false === strpos($string, '<div id="shopp"') )
-			return '<div id="shopp"' . ( ! empty($classes) ? ' class="' . $classes . '"' : '') . '>' . $string . '</div>';
-		return $string;
+		$id = ( false === strpos($string, 'id="shopp"') ) ? ' id="shopp" ' : '';
+		return '<div'. $id . ( ! empty($classes) ? ' class="' . $classes . '"' : '') . '>' . $string . '</div>';
 	}
 
 	/**
