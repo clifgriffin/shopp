@@ -84,7 +84,7 @@ class MarkdownText extends ArrayObject {
         if (is_string($markdown) || method_exists($markdown, '__toString')) {
             $markdown = explode("\n", (string) $markdown);
             $markdown = array_map(
-                function ($markdown) { return trim($markdown, "\r"); },
+				create_function('$markdown', 'return trim($markdown, "\r");'),
                 $markdown
             );
         }
@@ -932,7 +932,7 @@ class MarkdownLink extends MarkdownFilter {
         foreach($text as $no => $line) {
             $line->gist = preg_replace_callback(
                 '/[!]?\[(.*?)\]\((.*?)(\s+"[\w ]+")?\)/uS',
-                function ($match) {
+                create_function('$match', '
                     if (!isset($match[3])) {
                         $match[3] = null;
                     }
@@ -942,7 +942,7 @@ class MarkdownLink extends MarkdownFilter {
                     } else {
                         return MarkdownLink::buildHtml($match[1], $match[2], $match[3]);
                     };
-                },
+				'),
                 $line->gist
             );
 
