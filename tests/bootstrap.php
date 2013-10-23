@@ -6,7 +6,7 @@
 
 // Test rig setup
 define('SHOPP_UNSUPPORTED', false);
-define('SHOPP_UNITTEST_DIR', __DIR__);
+define('SHOPP_UNITTEST_DIR', dirname(__FILE__));
 define('SHOPP_UNITTEST_CONFIG', SHOPP_UNITTEST_DIR.'/wp-tests-config.php');
 define('WP_TESTS_FORCE_KNOWN_BUGS', false);
 define('DISABLE_WP_CRON', true); // Stop HTTP requests during testing (which is in CLI mode)
