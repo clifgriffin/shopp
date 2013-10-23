@@ -142,9 +142,11 @@ abstract class ModuleLoader {
 		try {
 			foreach ( $paths as $directory ) {
 				if ( ! is_dir($directory) ) continue;
-				$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS) );
+				// @todo when PHP 5.3 is minimum version: $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS) );
+				$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator($directory, 4096 | 512) );
 				foreach ( $files as $file ) {
 					$filename = $file->getFilename();
+					if ( '.' == $filename{0} ) continue; // Skip dot files (remove with PHP 5.3 support)
 					if ( in_array($filename{0}, $ignores) ) continue;
 
 					if ( substr($filename, strlen($extension) * -1) == $extension ) {
