@@ -1,13 +1,13 @@
 <?php
 /**
- * Categorize
+ * Categorize.php
  *
  * Flow controller for category management interfaces
  *
  * @author Jonathan Davis
- * @version 1.2
  * @copyright Ingenesis Limited, September 15, 2011
  * @package shopp
+ * @version 1.2
  * @subpackage categories
  **/
 
@@ -114,6 +114,8 @@ class ShoppAdminCategorize extends ShoppAdminController {
 
 		$adminurl = admin_url('admin.php');
 
+		add_screen_option( 'per_page', array( 'label' => __('Categories Per Page','Shopp'), 'default' => 20, 'option' => 'edit_' . ProductCategory::$taxon . '_per_page' ) );
+
 		if ( 'delete' == $action && wp_verify_nonce($_wpnonce, 'shopp_categories_manager') ) {
 			if ( ! empty($id) ) $selected = array($id);
 			$total = count($selected);
@@ -189,14 +191,17 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		if ( ! current_user_can('shopp_categories') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$per_page_option = get_current_screen()->get_option( 'per_page' );
+
 		$defaults = array(
 			'paged' => 1,
 			'per_page' => 20,
 			's' => '',
 			'a' => ''
 			);
-		$args = array_merge($defaults,$_GET);
-		extract($args,EXTR_SKIP);
+		$args = array_merge($defaults, $_GET);
+		if ( false !== ( $user_per_page = get_user_option($per_page_option['option']) ) ) $args['per_page'] = $user_per_page;
+		extract($args, EXTR_SKIP);
 
 		if ('arrange' == $a)  {
 			$this->init_positions();
