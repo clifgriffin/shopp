@@ -104,7 +104,7 @@
 			<?php if ( shopp( 'purchase.hasfreight' ) ) : ?>
 				<tr class="totals">
 					<th scope="row" colspan="3" class="total"><?php _e( 'Shipping', 'Shopp' ); ?></th>
-					<td class="money"><?php shopp( 'purchase.freight' ); ?></td>
+					<td class="money"><?php shopp( 'purchase.shipping' ); ?></td>
 				</tr>
 			<?php endif; ?>
 
