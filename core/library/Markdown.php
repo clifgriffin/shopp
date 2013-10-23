@@ -1035,7 +1035,7 @@ abstract class MarkdownLists extends MarkdownFilter {
                     // two blank lines in a row
                     if ($prevline !== null && $prevline->isBlank()) {
                         // end of list
-                        $stack->apply($text, static::TAG);
+                        $stack->apply($text, self::_static('TAG'));
                     }
                 } else { // not blank line
                     if ($line->isIndented()) {
@@ -1065,7 +1065,7 @@ abstract class MarkdownLists extends MarkdownFilter {
                         }
                     } elseif (!isset($prevline) || $prevline->isBlank()) {
                         // end of list
-                        $stack->apply($text, static::TAG);
+                        $stack->apply($text, self::_static('TAG'));
                         continue;
                     } else { // unbroken text inside a list item
                         // add text to current list item
@@ -1079,11 +1079,19 @@ abstract class MarkdownLists extends MarkdownFilter {
 
         // if there is still stack, flush it
         if (!$stack->isEmpty()) {
-            $stack->apply($text, static::TAG);
+            $stack->apply($text, self::_static('TAG'));
         }
 
         return $text;
     }
+
+	protected static function _static ( $name ) {
+		$class =  get_class($this);
+		$R = new ReflectionClass($class);
+		$consts = $R->getConstants();
+		if ( isset($consts[ $name ]) ) return $consts[ $name ];
+		return '';
+	}
 
     abstract protected function matchMarker($line);
 }
