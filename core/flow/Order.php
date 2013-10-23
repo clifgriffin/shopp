@@ -502,6 +502,22 @@ class ShoppOrder {
 	}
 
 	/**
+	 * Adds discount data to an order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $purchaseid The Purchase id to attach the purchased records to
+	 * @return void
+	 **/
+	public function discounts ( $purchaseid ) {
+		$discounts = array();
+		foreach ( $this->Discounts as $Discount )
+			$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
+		shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
+	}
+
+	/**
 	 * Detect changes to the order (in the cart)
 	 *
 	 * @author Jonathan Davis
