@@ -588,11 +588,11 @@ class MarkdownCode extends MarkdownFilter {
             } else {
                 $line->gist = preg_replace_callback(
                     '/(?<!\\\)(`+)(?!`)(?P<code>.+?)(?<!`)\1(?!`)/u',
-                    function($values) {
-                        $line = trim($values['code']);
+                    create_function('$values', '
+                        $line = trim($values["code"]);
                         $line = htmlspecialchars($line, ENT_NOQUOTES);
-                        return '<code>' . $line . '</code>';
-                    },
+                        return "<code>" . $line . "</code>";
+					'),
                     $line->gist
                 );
             }
