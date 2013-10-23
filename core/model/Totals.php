@@ -385,7 +385,13 @@ abstract class OrderTotalAmount {
 	public function register ( OrderTotals $OrderTotals ) {
 		$this->parent = $OrderTotals;
 		$class = get_class($this);
-		return $class::$register; // @todo Test if this will cause problems in PHP 5.2.4 calling via magic method?
+
+		if ( ! class_exists($class, false) ) return '';
+		if ( ! property_exists($class, 'register') ) return '';
+
+		$vars = get_class_vars($class);
+		return $vars[ 'register' ];
+		// return $class::$register; // Use when PHP 5.3 is minimum requirement
 	}
 
 	/**
