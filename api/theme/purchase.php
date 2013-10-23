@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppPurchaseThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppPurchaseThemeAPI
-*
-**/
+ * purchase.php
+ *
+ * ShoppPurchaseThemeAPI provides shopp('purchase') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-2013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
@@ -53,13 +55,12 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'emailevent' => 'email_event',
 		'emailnote' => 'email_note',
 		'firstname' => 'first_name',
-		'freight' => 'freight',
 		'hasdata' => 'has_data',
 		'hasitems' => 'has_items',
 		'haspromo' => 'has_discount',
 		'hasdiscount' => 'has_discount',
 		'hasdownloads' => 'has_downloads',
-		'hasfreight' => 'has_freight',
+		'hasshipping' => 'has_shipping',
 		'hastax' => 'has_tax',
 		'id' => 'id',
 		'itemaddons' => 'item_addons',
@@ -94,6 +95,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'promolist' => 'promo_list',
 		'gateway' => 'gateway',
 		'receipt' => 'receipt',
+		'shipping' => 'shipping',
 		'shipname' => 'ship_name',
 		'shipaddress' => 'ship_address',
 		'shipcity' => 'ship_city',
@@ -111,10 +113,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'txnid' => 'txnid',
 		'transactionid' => 'txnid',
 		'url' => 'url',
-		'xaddress' => 'xaddress'
+		'xaddress' => 'xaddress',
+
+		'freight' => 'shipping', // @deprecated purchase.freight replaced by purchase.shipping
+		'hasfreight' => 'has_shipping', // @deprecated purchase.has-freight replaced by purchase.has-shipping
+
+		'_money'
 	);
 
-	public static function _apicontext () { return 'purchase'; }
+	public static function _apicontext () {
+		return 'purchase';
+	}
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('purchase') call
@@ -132,28 +141,67 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	public static function address ( $result, $options, $O ) { return esc_html($O->address); }
+	static function _money ($result, $options, $property, $O) {
+		// Passthru for non-monetary results
+		$monetary = array(
+			'freight', // @deprecated purchase.freight uses purchase.shipping
+			'subtotal', 'discount', 'shipping', 'itemaddon', 'itemtotal', 'itemunitprice', 'tax', 'total'
+		);
+		if ( ! in_array($property, $monetary) || ! is_numeric($result) ) return $result;
 
-	public static function card ( $result, $options, $O ) { return (!empty($O->card))?sprintf("%'X16d",$O->card):''; }
+		// Special case for purchase.item-addon `unitprice` option
+		if ( 'itemaddon' == $property && ! in_array('uniprice', $options) ) return $result;
 
-	public static function card_type ( $result, $options, $O ) { return $O->cardtype; }
+		// @deprecated currency parameter
+		if ( isset($options['currency']) ) $options['money'] = $options['currency'];
 
-	public static function city ( $result, $options, $O ) { return esc_html($O->city); }
+		$defaults = array(
+			'money' => 'on',
+			'number' => false,
+		);
+		$options = array_merge($defaults,$options);
+		extract($options);
 
-	public static function company ( $result, $options, $O ) { return esc_html($O->company); }
+		if ( Shopp::str_true($number) ) return $result;
+		if ( Shopp::str_true($money)  ) $result = Shopp::money( Shopp::roundprice($result) );
+
+		return $result;
+	}
+
+	public static function address ( $result, $options, $O ) {
+		return esc_html($O->address);
+	}
+
+	public static function card ( $result, $options, $O ) {
+		return ( ! empty($O->card) ) ? sprintf("%'X16d", $O->card) : '';
+	}
+
+	public static function card_type ( $result, $options, $O ) {
+		return esc_html($O->cardtype);
+	}
+
+	public static function city ( $result, $options, $O ) {
+		return esc_html($O->city);
+	}
+
+	public static function company ( $result, $options, $O ) {
+		return esc_html($O->company);
+	}
 
 	public static function country ( $result, $options, $O ) {
 		$countries = shopp_setting('target_markets');
-		return $countries[$O->country];
+		return $countries[ $O->country ];
 	}
 
-	public static function customer ( $result, $options, $O ) { return $O->customer; }
+	public static function customer ( $result, $options, $O ) {
+		return $O->customer;
+	}
 
 	public static function data ( $result, $options, $O ) {
-		if (!is_array($O->data)) return false;
+		if ( ! is_array($O->data) ) return false;
 		$data = current($O->data);
 		$name = key($O->data);
-		if (isset($options['name'])) return esc_html($name);
+		if ( isset($options['name']) ) return esc_html($name);
 		return apply_filters('shopp_purchase_order_data', $data);
 	}
 
@@ -162,32 +210,43 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return _d($options['format'], is_int($O->created) ? $O->created : sDB::mktime($O->created));
 	}
 
-	public static function discount ( $result, $options, $O ) { return money($O->discount); }
+	public static function discount ( $result, $options, $O ) {
+		return (float) $O->discount;
+	}
 
-	public static function email ( $result, $options, $O ) { return esc_html($O->email); }
+	public static function email ( $result, $options, $O ) {
+		return esc_html($O->email);
+	}
 
 	// email_* tags are for email headers. The trailing PHP_EOL is to account for PHP ticket #21891
 	// where trailing newlines are removed, despite the PHP docs saying they will be included.
 
-	public static function email_from ( $result, $options, $O ) { if (isset($O->message['from'])) return ($O->message['from'].PHP_EOL); }
+	public static function email_from ( $result, $options, $O ) {
+		if ( isset($O->message['from']) ) return ($O->message['from'] . PHP_EOL);
+	}
 
-	public static function email_to ( $result, $options, $O ) { if (isset($O->message['to'])) return ($O->message['to'].PHP_EOL); }
+	public static function email_to ( $result, $options, $O ) {
+		if ( isset($O->message['to']) ) return ($O->message['to'] . PHP_EOL);
+	}
 
-	public static function email_subject ( $result, $options, $O ) { if (isset($O->message['subject'])) return ($O->message['subject'].PHP_EOL); }
+	public static function email_subject ( $result, $options, $O ) {
+		if ( isset($O->message['subject']) ) return ($O->message['subject'] . PHP_EOL);
+	}
 
 	public static function email_event ( $result, $options, $O ) {
-		if (!isset($O->message['event'])) return '';
+		if ( ! isset($O->message['event']) ) return '';
 		extract($options);
 
 		$Event = $O->message['event'];
-		if (isset($Event->$name)) {
+		if ( isset($Event->$name) ) {
 			$string = $Event->$name;
 
-			if ('shipped' == $Event->name) {
+			if ( 'shipped' == $Event->name ) {
 				$carriers = Lookup::shipcarriers();
 				$carrier = $carriers[$Event->carrier];
-				if ('carrier' == $name) $string = $carrier->name;
-				if ('tracking' == $name && Shopp::str_true($link)) return'<a href="'.esc_url(sprintf($carrier->trackurl,$string)).'">'.esc_html($string).'</a>';
+				if ( 'carrier' == $name ) $string = $carrier->name;
+				if ( 'tracking' == $name && Shopp::str_true($link) )
+					return'<a href="' . esc_url(sprintf($carrier->trackurl, $string)) . '">' . esc_html($string) . '</a>';
 			}
 
 			return esc_html($string);
@@ -205,17 +264,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return esc_html($O->firstname);
 	}
 
-	public static function freight ( $result, $options, $O ) {
-		return money($O->freight);
-	}
-
 	public static function gateway ( $result, $options, $O ) {
 		return $O->gateway;
 	}
 
 	public static function has_data ( $result, $options, $O ) {
 		reset($O->data);
-		return (is_array($O->data) && count($O->data) > 0);
+		return ( is_array($O->data) && count($O->data) > 0 );
 	}
 
 	public static function has_discount ( $result, $options, $O ) {
@@ -235,10 +290,6 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return ($O->downloads);
 	}
 
-	public static function has_freight ( $result, $options, $O ) {
-		return ( $O->shipable || ! empty($O->shipmethod) || $O->freight > 0 );
-	}
-
 	public static function has_items ( $result, $options, $O ) {
 		if ( ! method_exists($O, 'load_purchased') ) return false;
 		if ( empty($O->purchased) ) $O->load_purchased();
@@ -246,11 +297,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return (count($O->purchased) > 0);
 	}
 
+	public static function has_shipping ( $result, $options, $O ) {
+		return ( $O->shipable || ! empty($O->shipmethod) || $O->freight > 0 );
+	}
+
 	public static function has_tax ( $result, $options, $O ) {
 		return ( $O->tax > 0 );
 	}
 
-	public static function id ( $result, $options, $O ) { return $O->id; }
+	public static function id ( $result, $options, $O ) {
+		return $O->id;
+	}
 
 	public static function item_addons ( $result, $options, $O ) {
 		$item = current($O->purchased);
@@ -271,16 +328,16 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$addon = current($item->addons->meta);
 		if ( false === $item || false === $addon ) return '';
 
-		if (isset($options['id'])) return esc_html($addon->id);
-		if (isset($options['name'])) return esc_html($addon->name);
-		if (isset($options['label'])) return esc_html($addon->name);
-		if (isset($options['type'])) return esc_html($addon->value->type);
-		if (isset($options['onsale'])) return $addon->value->sale;
-		if (isset($options['inventory'])) return $addon->value->inventory;
-		if (isset($options['sku'])) return esc_html($addon->value->sku);
-		if (isset($options['unitprice'])) return money($addon->value->unitprice);
+		if ( isset($options['id']) ) return esc_html($addon->id);
+		if ( isset($options['name']) ) return esc_html($addon->name);
+		if ( isset($options['label']) ) return esc_html($addon->name);
+		if ( isset($options['type']) ) return esc_html($addon->value->type);
+		if ( isset($options['onsale']) ) return $addon->value->sale;
+		if ( isset($options['inventory']) ) return $addon->value->inventory;
+		if ( isset($options['sku']) ) return esc_html($addon->value->sku);
+		if ( isset($options['unitprice']) ) return (float) $addon->value->unitprice;
 
-		if (isset($options['download'])) {
+		if ( isset($options['download']) ) {
 			$link = false;
 			if (isset($addon->value->download) && isset($addon->value->dkey)) {
 				$label = __('Download','Shopp');
@@ -296,7 +353,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			return '';
 		}
 
-		return money($addon->value->unitprice);
+		return (float) $addon->value->unitprice;
 	}
 
 	public static function item_addons_list ( $result, $options, $O ) {
@@ -464,19 +521,29 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	public static function item_total ( $result, $options, $O ) {
 		$item = current($O->purchased);
-		$amount = $item->total+($O->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
-		return money($amount);
+
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
+		$amount = $item->total + ( $taxes ? $item->unittax * $item->quantity : 0 );
+
+		return (float) $amount;
 	}
 
 	public static function item_unit_price ( $result, $options, $O ) {
 		$item = current($O->purchased);
-		$amount = $item->unitprice+($O->taxing == 'inclusive'?$item->unittax:0);
-		return money($amount);
+
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
+		$amount = $item->unitprice + ( $taxes ? $item->unittax : 0 );
+
+		return (float) $amount;
 	}
 
-	public static function last_name ( $result, $options, $O ) { return esc_html($O->lastname); }
+	public static function last_name ( $result, $options, $O ) {
+		return esc_html($O->lastname);
+	}
 
-	public static function not_paid ( $result, $options, $O ) { return !self::paid($result,$options,$O); }
+	public static function not_paid ( $result, $options, $O ) {
+		return ! self::paid($result, $options, $O);
+	}
 
 	public static function order_data ( $result, $options, $O ) {
 		if (!isset($O->_data_loop)) {
@@ -491,18 +558,26 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 	}
 
-	public static function paid ( $result, $options, $O ) { return in_array($O->txnstatus,array('captured')); }
+	public static function paid ( $result, $options, $O ) {
+		return in_array($O->txnstatus, array('captured'));
+	}
 
 	public static function payment ( $result, $options, $O ) {
 		$labels = Lookup::txnstatus_labels();
-		return isset($labels[$O->txnstatus])?$labels[$O->txnstatus]:$O->txnstatus;
+		return isset($labels[ $O->txnstatus ]) ? $labels[ $O->txnstatus ] : $O->txnstatus;
 	}
 
-	public static function paymethod ( $result, $options, $O ) { return $O->paymethod; }
+	public static function paymethod ( $result, $options, $O ) {
+		return $O->paymethod;
+	}
 
-	public static function phone ( $result, $options, $O ) { return esc_html($O->phone); }
+	public static function phone ( $result, $options, $O ) {
+		return esc_html($O->phone);
+	}
 
-	public static function postcode ( $result, $options, $O ) { return esc_html($O->postcode); }
+	public static function postcode ( $result, $options, $O ) {
+		return esc_html($O->postcode);
+	}
 
 	public static function promo_list ( $result, $options, $O ) {
 		$output = "";
@@ -522,11 +597,17 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $O->receipt();
 	}
 
-	public static function ship_name ( $result, $options, $O ) { return esc_html($O->shipname); }
+	public static function ship_name ( $result, $options, $O ) {
+		return esc_html($O->shipname);
+	}
 
-	public static function ship_address ( $result, $options, $O ) { return esc_html($O->shipaddress); }
+	public static function ship_address ( $result, $options, $O ) {
+		return esc_html($O->shipaddress);
+	}
 
-	public static function ship_city ( $result, $options, $O ) { return esc_html($O->shipcity); }
+	public static function ship_city ( $result, $options, $O ) {
+		return esc_html($O->shipcity);
+	}
 
 	public static function ship_country ( $result, $options, $O ) {
 		$Shopp = Shopp::object();
@@ -534,9 +615,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $countries[$O->shipcountry];
 	}
 
-	public static function ship_method ( $result, $options, $O ) { return esc_html($O->shipoption); }
+	public static function ship_method ( $result, $options, $O ) {
+		return esc_html($O->shipoption);
+	}
 
-	public static function ship_postcode ( $result, $options, $O ) { return esc_html($O->shippostcode); }
+	public static function ship_postcode ( $result, $options, $O ) {
+		return esc_html($O->shippostcode);
+	}
 
 	public static function ship_state ( $result, $options, $O ) {
 		$state = esc_html($O->shipstate);
@@ -552,7 +637,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $state;
 	}
 
-	public static function ship_xaddress ( $result, $options, $O ) { return esc_html($O->shipxaddress); }
+	public static function ship_xaddress ( $result, $options, $O ) {
+		return esc_html($O->shipxaddress);
+	}
+
+	public static function shipping ( $result, $options, $O ) {
+		return (float) $O->freight;
+	}
 
 	public static function state ( $result, $options, $O ) {
 		$state = esc_html($O->state);
@@ -575,18 +666,36 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return $labels[$O->status];
 	}
 
-	public static function subtotal ( $result, $options, $O ) { return Shopp::money($O->subtotal); }
+	public static function subtotal ( $result, $options, $O ) {
+		return (float) $O->subtotal;
+	}
 
-	public static function tax ( $result, $options, $O ) { return Shopp::money($O->tax); }
+	public static function tax ( $result, $options, $O ) {
+		return (float) $O->tax;
+	}
 
-	public static function total ( $result, $options, $O ) { return Shopp::money($O->total); }
+	public static function total ( $result, $options, $O ) {
+		return (float) $O->total;
+	}
 
-	public static function total_items ( $result, $options, $O ) { return count($O->purchased); }
+	public static function total_items ( $result, $options, $O ) {
+		return count($O->purchased);
+	}
 
-	public static function txnid ( $result, $options, $O ) { return $O->txnid; }
+	public static function txnid ( $result, $options, $O ) {
+		return $O->txnid;
+	}
 
-	public static function url ( $result, $options, $O ) { return Shopp::url(false,'account'); }
+	public static function url ( $result, $options, $O ) {
+		return Shopp::url(false, 'account');
+	}
 
-	public static function xaddress ( $result, $options, $O ) { return esc_html($O->xaddress); }
+	public static function xaddress ( $result, $options, $O ) {
+		return esc_html($O->xaddress);
+	}
+
+	private static function _include_tax ( $O ) {
+		return ( 'inclusive' == $O->taxing );
+	}
 
 }
