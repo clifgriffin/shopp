@@ -234,6 +234,9 @@ class ShoppLogin {
 			wp_set_current_user($user->ID, $user->user_login);
 		}
 
+		// Add a login redirect as the very last action if a redirect parameter is provided in the request; Props @alansherwood
+		if ( isset($_REQUEST['redirect']) ) add_action('shopp_login', array($this, 'redirect'), 100);
+
 		do_action_ref_array('shopp_login', array($this->Customer));
 	}
 
