@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppProductThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppProductThemeAPI
-*
-**/
+ * product.php
+ *
+ * ShoppProductThemeAPI provides shopp('product') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limted, 2012-2013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
@@ -99,7 +101,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'weight' => 'weight'
 	);
 
-	public static function _apicontext () { return 'product'; }
+	public static function _apicontext () {
+		return 'product';
+	}
 
 	public static function _context_name ( $name ) {
 		switch ( $name ) {
@@ -804,9 +808,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	public static function is_featured ( $result, $options, $O ) { return ($O->featured == "on"); }
+	public static function is_featured ( $result, $options, $O ) {
+		return Shopp::str_true($O->featured);
+	}
 
-	public static function name ( $result, $options, $O ) { return apply_filters('shopp_product_name',$O->name); }
+	public static function name ( $result, $options, $O ) {
+		return apply_filters('shopp_product_name',$O->name);
+	}
 
 	public static function on_sale ( $result, $options, $O ) {
 		if (empty($O->prices)) $O->load_data(array('prices','summary'));
@@ -970,7 +978,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return join("\n",$_);
 	}
 
-	public static function relevance ( $result, $options, $O ) { return (string)$O->score; }
+	public static function relevance ( $result, $options, $O ) {
+		return (string)$O->score;
+	}
 
 	public static function savings ( $result, $options, $O ) {
 
@@ -1113,7 +1123,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		return (int)$O->stock;
 	}
 
-	public static function summary ( $result, $options, $O ) { return apply_filters('shopp_product_summary',$O->summary); }
+	public static function summary ( $result, $options, $O ) {
+		return apply_filters('shopp_product_summary',$O->summary);
+	}
 
 	public static function tag ( $result, $options, $O ) {
 		$tag = current($O->tags);

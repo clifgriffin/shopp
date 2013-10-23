@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppCartThemeAPI - Provided theme api tags.
-*
-* @api
-* @version 1.0
-* @since 1.2
-* @package shopp
-*
-**/
+ * cart.php
+ *
+ * ShoppCartThemeAPI provides shopp('cart') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-2013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 

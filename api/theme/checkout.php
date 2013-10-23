@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppCheckoutThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppCheckoutThemeAPI
-*
-**/
+ * checkout.php
+ *
+ * ShoppCheckoutThemeAPI provides shopp('checkout') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-3013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
@@ -108,7 +110,9 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'xcobuttons' => 'xco_buttons'
 	);
 
-	public static function _apicontext () { return 'checkout'; }
+	public static function _apicontext () {
+		return 'checkout';
+	}
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('checkout) call
@@ -272,7 +276,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$output = false;
 
-		if ( "value" == $options['mode'] ) { return $O->Billing->locale; }
+		if ( "value" == $options['mode'] )
+			return $O->Billing->locale;
 
 		if ( ! isset($options['selected']) ) {
 			$options['selected'] = $O->Billing->locale ? $O->Billing->locale : false;
@@ -332,7 +337,9 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @since 1.0
 	 * @deprecated 1.1
 	 **/
-	public static function billing_xco ($result, $options, $O) { return; }
+	public static function billing_xco ($result, $options, $O) {
+		return;
+	}
 
 	public static function billing_xcsc ($result, $options, $O) {
 		if (empty($options['input'])) return;
@@ -455,7 +462,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		/// Allowable attributes for textarea inputs
 		$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
 
-		if (!$name) { // Iterator for order data
+		if (!$name) {// Iterator for order data
 			if (!isset($O->_customer_info_loop)) {
 				reset($O->Customer->info->named);
 				$O->_customer_info_loop = true;
@@ -607,7 +614,9 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 
-	public static function not_logged_in ($result, $options, $O) { return (!$O->Customer->loggedin() && shopp_setting('account_system') != "none"); }
+	public static function not_logged_in ($result, $options, $O) {
+		return (!$O->Customer->loggedin() && shopp_setting('account_system') != "none");
+	}
 
 	public static function order_data ($result, $options, $O) {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');

@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppShippingThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppShippingThemeAPI
-*
-**/
+ * shipping.php
+ *
+ * ShoppShippingThemeAPI provides shopp('shipping') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-2013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
@@ -22,30 +24,33 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  **/
 class ShoppShippingThemeAPI implements ShoppAPI {
+
 	static $register = array(
-	'url' => 'url',
-	'hasestimates' => 'has_options',
-	'hasoptions' => 'has_options',
-	'options' => 'options',
-	'methods' => 'options',
-	'optionmenu' => 'option_menu',
-	'methodmenu' => 'option_menu',
-	'optionname' => 'option_name',
-	'methodname' => 'option_name',
-	'methodslug' => 'option_slug',
-	'optionslug' => 'option_slug',
-	'optionselected' => 'option_selected',
-	'methodselected' => 'option_selected',
-	'optioncost' => 'option_cost',
-	'methodcost' => 'option_cost',
-	'optionselector' => 'option_selector',
-	'methodselector' => 'option_selector',
-	'optiondelivery' => 'option_delivery',
-	'methoddelivery' => 'option_delivery',
-	'updatebutton' => 'update_button'
+		'url' => 'url',
+		'hasestimates' => 'has_options',
+		'hasoptions' => 'has_options',
+		'options' => 'options',
+		'methods' => 'options',
+		'optionmenu' => 'option_menu',
+		'methodmenu' => 'option_menu',
+		'optionname' => 'option_name',
+		'methodname' => 'option_name',
+		'methodslug' => 'option_slug',
+		'optionslug' => 'option_slug',
+		'optionselected' => 'option_selected',
+		'methodselected' => 'option_selected',
+		'optioncost' => 'option_cost',
+		'methodcost' => 'option_cost',
+		'optionselector' => 'option_selector',
+		'methodselector' => 'option_selector',
+		'optiondelivery' => 'option_delivery',
+		'methoddelivery' => 'option_delivery',
+		'updatebutton' => 'update_button'
 	);
 
-	public static function _apicontext () { return 'shipping'; }
+	public static function _apicontext () {
+		return 'shipping';
+	}
 
 	/**
 	 * _setobject - returns the global context object used in the shopp('cart') call

@@ -1,13 +1,15 @@
 <?php
 /**
-* ShoppCollectionThemeAPI - Provided theme api tags.
-*
-* @version 1.0
-* @since 1.2
-* @package shopp
-* @subpackage ShoppCollectionThemeAPI
-*
-**/
+ * collection.php
+ * 
+ * ShoppCollectionThemeAPI provides shopp('collection') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-2013
+ * @package shopp
+ * @since 1.2
+ * @version 1.3
+ **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
@@ -104,7 +106,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $Object;
 	}
 
-	public static function _apicontext () { return 'collection'; }
+	public static function _apicontext () {
+		return 'collection';
+	}
 
 	public static function carousel ( $result, $options, $O ) {
 		$options['load'] = array('images');
@@ -446,7 +450,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if (count($O->products) > 0) return true; else return false;
 	}
 
-	public static function name ( $result, $options, $O ) { return $O->name; }
+	public static function name ( $result, $options, $O ) {
+		return $O->name;
+	}
 
 	public static function pagination ( $result, $options, $O ) {
 		if (!$O->paged) return "";
@@ -539,7 +545,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return join("\n",$_);
 	}
 
-	public static function parent ( $result, $options, $O ) { return isset($O->parent) ? $O->parent : false;  }
+	public static function parent ( $result, $options, $O ) {
+		return isset($O->parent) ? $O->parent : false;
+	}
 
 	public static function products ( $result, $options, $O ) {
 		if ( isset($options['looping']) ) return isset($O->_product_loop);
@@ -655,7 +663,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return ShoppStorefrontThemeAPI::category_list( $result, $options, $O );
 	}
 
-	public static function total ( $result, $options, $O ) { return $O->loaded?$O->total:false; }
+	public static function total ( $result, $options, $O ) {
+		return $O->loaded ? $O->total : false;
+	}
 
 	public static function url ( $result, $options, $O ) {
 		global $ShoppTaxonomies, $wp_rewrite;

@@ -1,12 +1,14 @@
 <?php
 /**
-* ShoppStorefrontThemeAPI - Provided theme api tags.
+* storefront.php
 *
-* @version 1.0
-* @since 1.2
+* ShoppStorefrontThemeAPI provides shopp('storefront') Theme API tags
+*
+* @api
+* @copyright Ingenesis Limited 2012-2013
 * @package shopp
-* @subpackage ShoppStorefrontThemeAPI
-*
+* @since 1.2
+* @version 1.3
 **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -14,6 +16,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 add_filter('shopp_themeapi_context_name', array('ShoppStorefrontThemeAPI', '_context_name'));
 
 class ShoppStorefrontThemeAPI implements ShoppAPI {
+
 	static $register = array(
 		'breadcrumb' => 'breadcrumb',
 		'businessname' => 'business_name',
@@ -54,7 +57,9 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 	);
 
-	public static function _apicontext () { return 'storefront'; }
+	public static function _apicontext () {
+		return 'storefront';
+	}
 
 	public static function _context_name ( $name ) {
 		switch ( $name ) {
@@ -284,9 +289,13 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $wrap.$trail.$endwrap;
 	}
 
-	public static function business_name ( $result, $options, $O ) { return esc_html(shopp_setting('business_name')); }
+	public static function business_name ( $result, $options, $O ) {
+		return esc_html(shopp_setting('business_name'));
+	}
 
-	public static function business_address ( $result, $options, $O ) { return esc_html(shopp_setting('business_address')); }
+	public static function business_address ( $result, $options, $O ) {
+		return esc_html(shopp_setting('business_address'));
+	}
 
 	public static function categories ( $result, $options, $O ) {
 		$null = null;
@@ -578,7 +587,9 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	public static function type ( $result, $options, $O ) { return $O->type; }
+	public static function type ( $result, $options, $O ) {
+		return $O->type;
+	}
 
 	public static function has_categories ( $result, $options, $O ) {
 		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
@@ -597,21 +608,37 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return ( count($O->categories) > 0 );
 	}
 
-	public static function is_account ( $result, $options, $O ) { return is_account_page(); }
+	public static function is_account ( $result, $options, $O ) {
+		return is_account_page();
+	}
 
-	public static function is_cart ( $result, $options, $O ) { return is_cart_page(); }
+	public static function is_cart ( $result, $options, $O ) {
+		return is_cart_page();
+	}
 
-	public static function is_catalog ( $result, $options, $O ) { return is_catalog_page(); }
+	public static function is_catalog ( $result, $options, $O ) {
+		return is_catalog_page();
+	}
 
-	public static function is_checkout ( $result, $options, $O ) { return is_checkout_page(); }
+	public static function is_checkout ( $result, $options, $O ) {
+		return is_checkout_page();
+	}
 
-	public static function is_collection ( $result, $options, $O ) { return is_shopp_collection(); }
+	public static function is_collection ( $result, $options, $O ) {
+		return is_shopp_collection();
+	}
 
-	public static function is_frontpage ( $result, $options, $O ) { return is_catalog_frontpage(); }
+	public static function is_frontpage ( $result, $options, $O ) {
+		return is_catalog_frontpage();
+	}
 
-	public static function is_product ( $result, $options, $O ) { return is_shopp_product(); }
+	public static function is_product ( $result, $options, $O ) {
+		return is_shopp_product();
+	}
 
-	public static function is_taxonomy ( $result, $options, $O ) { return is_shopp_taxonomy(); }
+	public static function is_taxonomy ( $result, $options, $O ) {
+		return is_shopp_taxonomy();
+	}
 
 	public static function orderby_list ( $result, $options, $O ) {
 
@@ -968,7 +995,9 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $markup;
 	}
 
-	public static function url ( $result, $options, $O ) { return Shopp::url(false,'catalog'); }
+	public static function url ( $result, $options, $O ) {
+		return Shopp::url(false,'catalog');
+	}
 
 	public static function views ( $result, $options, $O ) {
 		$Shopp = Shopp::object();

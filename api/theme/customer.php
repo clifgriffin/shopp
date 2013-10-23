@@ -1,12 +1,14 @@
 <?php
 /**
- * ShoppCustomerThemeAPI - Provided theme api tags.
+ * customer.php
  *
- * @version 1.0
- * @since 1.2
+ * ShoppCustomerThemeAPI provides shopp('customer') Theme API tags
+ *
+ * @api
+ * @copyright Ingenesis Limited, 2012-2013
  * @package shopp
- * @subpackage ShoppCustomerThemeAPI
- *
+ * @since 1.2
+ * @version 1.3
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -123,9 +125,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 	}
 
-	public static function accounts ( $result, $options, $O ) { return shopp_setting('account_system'); }
+	public static function accounts ( $result, $options, $O ) {
+		return shopp_setting('account_system');
+	}
 
-	public static function account_url ( $result, $options, $O ) { return Shopp::url(false,'account'); }
+	public static function account_url ( $result, $options, $O ) {
+		return Shopp::url(false,'account');
+	}
 
 	public static function action ( $result, $options, $O ) {
 		$Storefront = ShoppStorefront();
@@ -458,7 +464,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 	}
 
-	public static function recover_url ( $result, $options, $O ) { return add_query_arg('recover','',Shopp::url(false,'account')); }
+	public static function recover_url ( $result, $options, $O ) {
+		return add_query_arg('recover','',Shopp::url(false,'account'));
+	}
 
 	public static function register ( $result, $options, $O ) {
 		$defaults = array(
