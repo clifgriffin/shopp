@@ -527,14 +527,12 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_duration() {
-		$era_begins = new DateTime('1759-01-25'); // Birth of Rabby Burns
-		$begin = $era_begins->getTimestamp();
+		$begin = mktime(0, 0, 0, 1, 25, 1759); // Birth of Rabby Burns
 
-		$era_ends = new DateTime('1796-07-21'); // Death of Rabby Burns
-		$end = $era_ends->getTimestamp();
+		$end = mktime(0, 0, 0, 7, 21, 1796); // Death of Rabby Burns
 
-		$poetic_era = $era_ends->diff($era_begins); // 13,692 days
-		$this->assertTrue( (int) $poetic_era->days === (int) Shopp::duration($begin, $end));
+		$poetic_era = (int)($end - $begin) / 86400; // 13,692 days
+		$this->assertTrue( (int) $poetic_era === (int) Shopp::duration($begin, $end));
 	}
 
 	public function test_esc_attrs() {
@@ -651,16 +649,14 @@ class CoreTests extends ShoppTestCase {
 	}
 
 	public function test_mktimestamp() {
-		$date = new DateTime('2063-04-05');
-		$mysql = $date->format('Y-m-d H:i:s');
-		$stamp = $date->getTimestamp();
+		$stamp = mktime(0, 0, 0, 4, 5, 2063);
+		$mysql = date('Y-m-d H:i:s', $stamp);
 		$this->assertTrue($stamp === Shopp::mktimestamp($mysql));
 	}
 
 	public function test_mkdatetime() {
-		$date = new DateTime('2063-04-05');
-		$mysql = $date->format('Y-m-d H:i:s');
-		$stamp = $date->getTimestamp();
+		$stamp = mktime(0, 0, 0, 4, 5, 2063);
+		$mysql = date('Y-m-d H:i:s', $stamp);
 		$this->assertTrue($mysql === Shopp::mkdatetime($stamp));
 	}
 
