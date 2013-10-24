@@ -1013,6 +1013,8 @@ abstract class MarkdownLists extends MarkdownFilter {
     public function filter(MarkdownText $text) {
         $stack = new MarkdownStack();
 
+		$class = get_class($this); // @todo remove with PHP 5.3 requirement
+
         foreach ($text as $no => $line) {
             $prevline = isset($text[$no - 1]) ? $text[$no - 1] : null;
             $nextline = isset($text[$no + 1]) ? $text[$no + 1] : null;
@@ -1035,7 +1037,7 @@ abstract class MarkdownLists extends MarkdownFilter {
                     // two blank lines in a row
                     if ($prevline !== null && $prevline->isBlank()) {
                         // end of list
-                        $stack->apply($text, self::_static('TAG'));
+                        $stack->apply($text, self::_static($class, 'TAG'));
                     }
                 } else { // not blank line
                     if ($line->isIndented()) {
@@ -1065,7 +1067,7 @@ abstract class MarkdownLists extends MarkdownFilter {
                         }
                     } elseif (!isset($prevline) || $prevline->isBlank()) {
                         // end of list
-                        $stack->apply($text, self::_static('TAG'));
+                        $stack->apply($text, self::_static($class, 'TAG'));
                         continue;
                     } else { // unbroken text inside a list item
                         // add text to current list item
@@ -1079,17 +1081,19 @@ abstract class MarkdownLists extends MarkdownFilter {
 
         // if there is still stack, flush it
         if (!$stack->isEmpty()) {
-            $stack->apply($text, self::_static('TAG'));
+            $stack->apply($text, self::_static($class, 'TAG'));
         }
 
         return $text;
     }
 
-	protected static function _static ( $name ) {
-		$class =  get_class($this);
+	protected static function _static ( $class, $constant ) {
+		if ( ! class_exists($class, false) ) return '';
+
 		$R = new ReflectionClass($class);
-		$consts = $R->getConstants();
-		if ( isset($consts[ $name ]) ) return $consts[ $name ];
+		$constants = $R->getConstants();
+
+		if ( isset($constants[ $constant ]) ) return $constants[ $constant ];
 		return '';
 	}
 
