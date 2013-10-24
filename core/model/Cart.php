@@ -171,6 +171,7 @@ class ShoppCart extends ListFramework {
 			'quantity' => 1,
 			'product' => false,
 			'price' => false,
+			'prices' => array(),
 			'category' => false,
 			'item' => false,
 			'options' => array(),
@@ -188,8 +189,13 @@ class ShoppCart extends ListFramework {
 		if ( ! empty($Product->id) ) {
 			if ( false !== $item )
 				$result = $this->change($item, $Product, $price);
-			else
-				$result = $this->additem($quantity, $Product, $price, $category, $data, $addons);
+			else {
+				if ( false !== $price )
+					$prices[] = $price;
+
+				foreach($prices as $price)
+					$result = $this->additem($quantity, $Product, $price, $category, $data, $addons);
+			}
 		}
 
 	}
