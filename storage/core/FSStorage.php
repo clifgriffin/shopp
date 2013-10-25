@@ -312,8 +312,6 @@ class FSStorage extends StorageModule implements StorageEngine {
         return trailingslashit($public_url) . $uri;
     }
 
-
-
     /**
      * Tests if the path leads to a real directory that is subordinate to the
      * wp-content dir, or returns bool false.
@@ -325,58 +323,6 @@ class FSStorage extends StorageModule implements StorageEngine {
         if ( is_dir($path) ) return trailingslashit(WP_CONTENT_URL) . $path;
         return false;
     }
-
-
-    /**
-     * Determines if the (original) image is directly accessible. This method must be called and a
-     * (bool) true result obtained before trying to access the direct_url property.
-     *
-     * Where direct image URLs are undesirable, SHOPP_DIRECT_IMG_MODE should be defined
-     * as false.
-     *
-     * @return bool
-     */
-   /* public function directly_accessible () {
-        // Only determine this once then save the result
-        if ($this->is_directly_accessible === null) {
-            if (defined('SHOPP_DIRECT_IMG_MODE') && !SHOPP_DIRECT_IMG_MODE) // Direct mode can be disallowed
-            return $this->is_directly_accessible = false;
-
-            if ( $this->determine_base_url() ) {
-                $this->set_direct_url();
-                $this->is_directly_accessible = true;
-            }
-            else $this->is_directly_accessible = false;
-        }
-        // Return the saved result
-        return $this->is_directly_accessible;
-    }*/
-
-    /**
-     * Tries to determine the URL of image assets stored using FSStorage.
-     * Returns (bool) true on success, otherwise false.
-     *
-     * @return bool
-     */
-/*    public function determine_base_url() {
-        // Allow the base URL to be provided from within a theme/plugin
-        $this->base_url = apply_filters('shopp_direct_img_base', '');
-
-        // Otherwise try to form the base storage URL
-        if (empty($this->base_url)) {
-            $storage = shopp_setting('FSStorage');
-            if (empty($storage) || !isset($storage['path']['image']))
-                return false;
-
-            $this->base_dir = trailingslashit($storage['path']['image']);
-            $this->base_url = $this->find_public_url($this->base_dir);
-        }
-
-        if (empty($this->base_url)) return false;
-        return true;
-    }*/
-
-
 
     /**
      * Combines the object's base_url and uri properties (uri is dynamically assigned)
