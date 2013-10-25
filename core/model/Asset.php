@@ -286,14 +286,14 @@ class ImageAsset extends FileAsset {
 	}
 
 
-	/**
-	 * Tries to find the public URL for Shopp product images stored using the
-	 * FSStorage engine. Not bulletproof, it assumes that either the directory
-	 * is subordinate to ABSPATH or is anyway relative to wp-content.
-	 *
-	 * @param string $storagepath
-	 * @return string
-	 */
+    /**
+     * Tries to find the public URL for Shopp product images stored using the
+     * FSStorage engine. Not bulletproof, it assumes that either the directory
+     * is subordinate to ABSPATH or is anyway relative to wp-content.
+     *
+     * @param string $storage_path
+     * @return string
+     */
 	protected function find_public_url($storage_path) {
 		$wp_url = get_option('siteurl');
 		$wp_dir = trim(ABSPATH, '/');
@@ -364,17 +364,15 @@ class ImageAsset extends FileAsset {
 	public function resized_url($width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false) {
 		$size_query = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
 
-		$accessible = $this->directly_accessible();
-
-		if ($this->directly_accessible()) {
-			$size = $this->cache_filename_params($size_query);
+		if ( $this->directly_accessible() ) {
+			$size = $this->cache_filename_params( $size_query );
 			$path = "cache_{$size}_{$this->uri}";
 
 			// Final check: the cached image may not exist in this size
-			if (file_exists($this->base_dir.$path))
-				return $this->base_url.$path;
+			if ( file_exists( $this->base_dir . $path ) )
+				return $this->base_url . $path;
 		}
-		return add_query_string($size_query, Shopp::url($this->id, 'images'));
+		return Shopp::add_query_string( $size_query, Shopp::url($this->id, 'images') );
 	}
 
 
@@ -480,7 +478,7 @@ class ImageAsset extends FileAsset {
 	 * @param bool $sharpen
 	 * @param bool $quality
 	 * @param bool $fill
-	 * @return void
+	 * @return string
 	 */
 	public function resizing ( $width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false ) {
 		$args = func_get_args();
