@@ -98,6 +98,7 @@ class ShoppStorefront extends ShoppFlowController {
 		add_action( 'do_feed_rss2',			array($this, 'feed'), 1 );
 		add_filter( 'search_template',		array($this, 'pages') );
 		add_filter( 'page_template',		array($this, 'pages') );
+		add_filter( 'archive_template',		array($this, 'pages') );
 		add_filter( 'taxonomy_template',	array($this, 'collections') );
 		add_filter( 'single_template',		array($this, 'single') );
 
