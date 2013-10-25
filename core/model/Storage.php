@@ -208,6 +208,18 @@ interface StorageEngine {
 	 **/
 	public function exists( $uri );
 
+
+    /**
+     * Returns a web-accessible URL that allows the asset to be accessed and served directly (rather than, for example,
+     * passing through Shopp/a Shopp server like the Shopp Image Server). If a direct URL does not exist for this asset
+     * then boolean false will be returned.
+     *
+     * @param $uri
+     * @return mixed false | string
+     */
+    public function direct( $uri );
+
+
 	/**
 	 * Store the data for an asset
 	 *
@@ -312,6 +324,17 @@ abstract class StorageModule {
 		return str_replace(array_keys($data), $data, $editor);
 	}
 
+    /**
+     * This method should be overridden by any storage modules that support directly accessible URLs for assets and
+     * exists here only as a stub for compatibility-reasons. If it is not overridden it will always return false.
+     *
+     * @deprecated This is a stub method that ensures compatibility with interface StorageEngine
+     * @param string $uri
+     * @return bool false
+     */
+    public function direct( $uri ) {
+        return false;
+    }
 
 }
 
