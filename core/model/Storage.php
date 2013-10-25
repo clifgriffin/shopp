@@ -182,7 +182,6 @@ interface StorageEngine {
 	 * @since 1.1
 	 *
 	 * @param string $uri The uniform resource indicator
-	 * @return void
 	 **/
 	public function load( $uri );
 
@@ -214,7 +213,7 @@ interface StorageEngine {
      * passing through Shopp/a Shopp server like the Shopp Image Server). If a direct URL does not exist for this asset
      * then boolean false will be returned.
      *
-     * @param $uri
+     * @param int $uri
      * @return mixed false | string
      */
     public function direct( $uri );
@@ -229,7 +228,6 @@ interface StorageEngine {
 	 * @param FileAsset $asset The parent asset for the data
 	 * @param mixed $data The raw data to be stored
 	 * @param string $type (optional) Type of data source, one of binary or file (file referring to a filepath)
-	 * @return void
 	 **/
 	public function save( $asset, $data, $type = 'binary' );
 

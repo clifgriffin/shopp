@@ -29,20 +29,19 @@ if ( ! defined('WP_CONTENT_DIR') ) define('WP_CONTENT_DIR', ABSPATH . 'wp-conten
  **/
 class FSStorage extends StorageModule implements StorageEngine {
 
-	var $path = "";
+	public $path = "";
+
 	/**
 	 * FSStorage constructor
 	 *
 	 * @author Jonathan Davis
-	 *
-	 * @return void
-	 **/
-	function __construct () {
+	 */
+	public function __construct () {
 		parent::__construct();
 		$this->name = __('File system','Shopp');
 	}
 
-	function actions () {
+	public function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
  		add_filter('shopp_verify_stored_file',array(&$this,'verify'));
 
@@ -51,14 +50,14 @@ class FSStorage extends StorageModule implements StorageEngine {
 			add_filter('shopp_download_forbidden',create_function('$a','return false;'));
 	}
 
-	function context ($context) {
+	public function context ($context) {
 		chdir(WP_CONTENT_DIR);
 		$this->context = $context;
 		if (isset($this->settings['path'][$context]))
 			$this->path = realpath($this->settings['path'][$context]);
 	}
 
-	function save ($asset,$data,$type='binary') {
+	public function save ($asset,$data,$type='binary') {
 
 		$error = false;
 		if (empty($data)) $error = "$this->module: There is no file data to store.";
@@ -88,23 +87,23 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 	}
 
-	function exists ($uri) {
+	public function exists ($uri) {
 		$filepath = self::sanitize($this->path."/".$uri);
 		return (file_exists($filepath) && is_readable($filepath));
 	}
 
-	function load ($uri) {
+	public function load ($uri) {
 		return file_get_contents(self::sanitize($this->path.'/'.$uri));
 	}
 
-	function meta ($uri=false,$null=false) {
+	public function meta ($uri=false,$null=false) {
 		$_ = array();
 		$_['size'] = filesize(self::sanitize($this->path.'/'.$uri));
 		$_['mime'] = file_mimetype(self::sanitize($this->path.'/'.$uri));
 		return $_;
 	}
 
-	function output ($uri,$etag=false) {
+	public function output ($uri,$etag=false) {
 		$filepath = self::sanitize($this->path.'/'.$uri);
 
 		if ($this->context == "download") {
@@ -171,7 +170,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		} else readfile($filepath);
 	}
 
-	function settings ($context) {
+	public function settings ($context) {
 		$error = false;
 		chdir(WP_CONTENT_DIR);
 
@@ -204,15 +203,15 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 	}
 
-	function suggestions () {
-		if (!$this->handles('download')) return;
+	public function suggestions () {
+		if ( ! $this->handles('download') ) return;
 		check_admin_referer('wp_ajax_shopp_storage_suggestions');
-		if (empty($_GET['q']) || strlen($_GET['q']) < 3) return;
-		if ($_GET['t'] == "image") $this->context('image');
+		if ( empty($_GET['q']) || strlen($_GET['q'] ) < 3) return;
+		if ( $_GET['t'] == "image" ) $this->context('image');
 		else $this->context('download');
 
 		$Shopp = Shopp::object();
-		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
+		if ( $Shopp->Storage->engines[$this->context] != $this->module ) return;
 
 		$directory = false;	// The directory to search
 		$search = false;	// The file name to search for
@@ -220,53 +219,174 @@ class FSStorage extends StorageModule implements StorageEngine {
 		$sep = DIRECTORY_SEPARATOR;
 
 		$url = parse_url($_GET['q']);
-		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']))
+		if ( (isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']) )
 			return;
 
 		$query = self::sanitize($url['path']);
 		$search = basename($query);
-		if (strlen($search) < 3) return;
+		if ( strlen($search) < 3 ) return;
 
-		if ($url['scheme'] == "file") {
+		if ( $url['scheme'] == "file" ) {
 			$directory = dirname($query);
 			$uri = array($url['scheme'].':','',$directory);
 			$relpath = join("/",$uri).'/';
 		}
-		if (!$directory && $query[0] == "/") $directory = dirname($query);
-		if (!$directory) {
+		if ( ! $directory && $query[0] == "/" ) $directory = dirname($query);
+		if ( ! $directory ) {
 			$directory = realpath($this->path.$sep.dirname($query));
 			$relpath = dirname($query);
 			$relpath = ($relpath == ".")?false:$relpath.$sep;
 		}
 
 		$Directory = @dir($directory);
-		if ($Directory) {
-			while (( $file = $Directory->read() ) !== false) {
-				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;
-				if (strpos(strtolower($file),strtolower($search)) === false) continue;
-				if (is_dir($directory.$sep.$file)) $results[] = $relpath.$file.$sep;
+		if ( $Directory ) {
+			while ( ( $file = $Directory->read() ) !== false ) {
+				if ( substr($file,0,1) == "." || substr($file,0,1) == "_" ) continue;
+				if ( strpos(strtolower($file),strtolower($search)) === false ) continue;
+				if ( is_dir($directory.$sep.$file) ) $results[] = $relpath.$file.$sep;
 				else $results[] = $relpath.$file;
 			}
 		}
-		echo join("\n",$results);
+		echo join("\n", $results);
 		exit();
 	}
 
-	function verify ($uri) {
-		if (!$this->handles('download')) return $uri;
+	public function verify ($uri) {
+		if ( ! $this->handles('download') ) return $uri;
 
 		$this->context('download');
 		$path = trailingslashit(self::sanitize($this->path));
 
 		$url = $path.$uri;
-		if (!file_exists($url)) die('NULL');
-		if (is_dir($url)) die('ISDIR');
-		if (!is_readable($url)) die('READ');
+		if ( ! file_exists($url) ) die('NULL');
+		if ( is_dir($url) ) die('ISDIR');
+		if ( ! is_readable($url) ) die('READ');
 
 		die('OK');
 	}
 
-	static private function sanitize ( $path ) {
+    /**
+     * Provides a direct URL for the file asset (if it can be reasonably
+     *
+     * @param $uri
+     * @return mixed bool | string
+     */
+    public function direct( $uri ) {
+        if ( defined('SHOPP_DIRECT_ASSET_URLS') && ! SHOPP_DIRECT_ASSET_URLS ) return false;
+
+        $path = $this->finddirect($uri);
+        return ( false === $path ) ? false : $path;
+    }
+
+    /**
+     * Tries to find the public URL for Shopp product images stored using the
+     * FSStorage engine. Not bulletproof, it assumes that either the directory
+     * is subordinate to ABSPATH or is anyway relative to wp-content.
+     *
+     * @param string $uri
+     * @return string
+     */
+    protected function finddirect($uri) {
+        $wpurl = get_option('siteurl');
+        $wpdir = trim(ABSPATH, '/');
+        $storagedir = trim($this->path, '/');
+
+        $wpdir = explode('/', $wpdir);
+        $storagedir = explode('/', $storagedir);
+
+        // Determine if the storage path leads to a WP sub-directory
+        for ($segment = 0; $segment < count($wpdir); $segment++) {
+            if ($wpdir[$segment] !== $storagedir[$segment]) {
+                // Bad match? Check if we have a relative-to-wp-content path instead
+                return $this->relativepath($storagedir);
+            }
+        }
+
+        // Supposing the image directory isn't the WP root, append the trailing component
+        if (count($storagedir) > count($wpdir)) {
+            $trailing_component = join('/', array_slice($storagedir, count($wpdir)));
+            $public_url = trailingslashit($wpurl) . $trailing_component;
+        }
+        else $public_url = $wpurl;
+
+        return trailingslashit($public_url) . $uri;
+    }
+
+
+
+    /**
+     * Tests if the path leads to a real directory that is subordinate to the
+     * wp-content dir, or returns bool false.
+     */
+    protected function relativepath($path) {
+        $wp_content = trailingslashit(WP_CONTENT_DIR);
+        $path = $wp_content . trim($path, '/');
+
+        if ( is_dir($path) ) return trailingslashit(WP_CONTENT_URL) . $path;
+        return false;
+    }
+
+
+    /**
+     * Determines if the (original) image is directly accessible. This method must be called and a
+     * (bool) true result obtained before trying to access the direct_url property.
+     *
+     * Where direct image URLs are undesirable, SHOPP_DIRECT_IMG_MODE should be defined
+     * as false.
+     *
+     * @return bool
+     */
+   /* public function directly_accessible () {
+        // Only determine this once then save the result
+        if ($this->is_directly_accessible === null) {
+            if (defined('SHOPP_DIRECT_IMG_MODE') && !SHOPP_DIRECT_IMG_MODE) // Direct mode can be disallowed
+            return $this->is_directly_accessible = false;
+
+            if ( $this->determine_base_url() ) {
+                $this->set_direct_url();
+                $this->is_directly_accessible = true;
+            }
+            else $this->is_directly_accessible = false;
+        }
+        // Return the saved result
+        return $this->is_directly_accessible;
+    }*/
+
+    /**
+     * Tries to determine the URL of image assets stored using FSStorage.
+     * Returns (bool) true on success, otherwise false.
+     *
+     * @return bool
+     */
+/*    public function determine_base_url() {
+        // Allow the base URL to be provided from within a theme/plugin
+        $this->base_url = apply_filters('shopp_direct_img_base', '');
+
+        // Otherwise try to form the base storage URL
+        if (empty($this->base_url)) {
+            $storage = shopp_setting('FSStorage');
+            if (empty($storage) || !isset($storage['path']['image']))
+                return false;
+
+            $this->base_dir = trailingslashit($storage['path']['image']);
+            $this->base_url = $this->find_public_url($this->base_dir);
+        }
+
+        if (empty($this->base_url)) return false;
+        return true;
+    }*/
+
+
+
+    /**
+     * Combines the object's base_url and uri properties (uri is dynamically assigned)
+     * into a single directly accessible URL.
+     */
+    protected function set_direct_url() {
+        if (property_exists($this, 'uri')) $this->direct_url = $this->base_url.$this->uri;
+    }
+
+    static private function sanitize ( $path ) {
 		return str_replace('\\', '/', $path);
 	}
 

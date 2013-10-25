@@ -64,7 +64,9 @@ class FileAsset extends ShoppMetaObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return void
+     * @param $data
+     * @param $type
+	 * @return mixed
 	 **/
 	public function store ( $data, $type = 'binary' ) {
 		$Engine = $this->engine();
@@ -123,8 +125,6 @@ class FileAsset extends ShoppMetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 *
-	 * @return void
 	 **/
 	public function &engine () {
 		global $Shopp;
@@ -229,119 +229,6 @@ class ImageAsset extends FileAsset {
 	public $filename;
 	public $type = 'image';
 
-	// Direct URL support
-	public $direct_url = '';
-	protected $is_directly_accessible = null;
-	protected $base_dir ='';
-	protected $base_url = '';
-
-	/**
-	 * Determines if the (original) image is directly accessible. This method must be called and a
-	 * (bool) true result obtained before trying to access the direct_url property.
-	 *
-	 * Where direct image URLs are undesirable, SHOPP_DIRECT_IMG_MODE should be defined
-	 * as false.
-	 *
-	 * @return bool
-	 */
-	public function directly_accessible () {
-		// Only determine this once then save the result
-		if ($this->is_directly_accessible === null) {
-			if (defined('SHOPP_DIRECT_IMG_MODE') && !SHOPP_DIRECT_IMG_MODE) // Direct mode can be disallowed
-				return $this->is_directly_accessible = false;
-
-			if ( $this->determine_base_url() ) {
-				$this->set_direct_url();
-				$this->is_directly_accessible = true;
-			}
-			else $this->is_directly_accessible = false;
-		}
-		// Return the saved result
-		return $this->is_directly_accessible;
-	}
-
-
-	/**
-	 * Tries to determine the URL of image assets stored using FSStorage.
-	 * Returns (bool) true on success, otherwise false.
-	 *
-	 * @return bool
-	 */
-	public function determine_base_url() {
-		// Allow the base URL to be provided from within a theme/plugin
-		$this->base_url = apply_filters('shopp_direct_img_base', '');
-
-		// Otherwise try to form the base storage URL
-		if (empty($this->base_url)) {
-			$storage = shopp_setting('FSStorage');
-			if (empty($storage) || !isset($storage['path']['image']))
-				return false;
-
-			$this->base_dir = trailingslashit($storage['path']['image']);
-			$this->base_url = $this->find_public_url($this->base_dir);
-		}
-
-		if (empty($this->base_url)) return false;
-		return true;
-	}
-
-
-    /**
-     * Tries to find the public URL for Shopp product images stored using the
-     * FSStorage engine. Not bulletproof, it assumes that either the directory
-     * is subordinate to ABSPATH or is anyway relative to wp-content.
-     *
-     * @param string $storage_path
-     * @return string
-     */
-	protected function find_public_url($storage_path) {
-		$wp_url = get_option('siteurl');
-		$wp_dir = trim(ABSPATH, '/');
-		$storage_dir = trim($storage_path, '/');
-
-		$wp_dir = explode('/', $wp_dir);
-		$storage_dir = explode('/', $storage_dir);
-
-		// Determine if the storage path leads to a WP sub-directory
-		for ($segment = 0; $segment < count($wp_dir); $segment++)
-			if ($wp_dir[$segment] !== $storage_dir[$segment])
-				// Bad match? Check if we have a relative-to-wp-content path instead
-				return $this->relative_path_or_false($storage_path);
-
-		// Supposing the image directory isn't the WP root, append the trailing component
-		if (count($storage_dir) > count($wp_dir))
-			$trailing_component = join('/', array_slice($storage_dir, count($wp_dir)));
-
-		// Under normal circumstances we now have the public URL for the image dir
-		if (isset($trailing_component)) $public_url = trailingslashit($wp_url).$trailing_component;
-		else $public_url = $wp_url;
-
-		return trailingslashit($public_url);
-	}
-
-
-
-	/**
-	 * Tests if the path leads to a real directory that is subordinate to the
-	 * wp-content dir, or returns bool false.
-	 */
-	protected function relative_path_or_false($path) {
-		$path = trim($path, '/');
-		$wp_content = trailingslashit(WP_CONTENT_DIR);
-		$path = $wp_content.$path;
-
-		if (is_dir($path)) return trailingslashit(WP_CONTENT_URL).$path;
-		return false;
-	}
-
-
-	/**
-	 * Combines the object's base_url and uri properties (uri is dynamically assigned)
-	 * into a single directly accessible URL.
-	 */
-	protected function set_direct_url() {
-		if (property_exists($this, 'uri')) $this->direct_url = $this->base_url.$this->uri;
-	}
 
 
 	/**
@@ -364,15 +251,16 @@ class ImageAsset extends FileAsset {
 	public function resized_url($width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false) {
 		$size_query = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
 
-		if ( $this->directly_accessible() ) {
-			$size = $this->cache_filename_params( $size_query );
-			$path = "cache_{$size}_{$this->uri}";
+        // Build the path to the cached copy of the file (if it exists)
+        $size = $this->cache_filename_params( $size_query );
+        $this->uri = "cache_{$size}_{$this->uri}";
 
-			// Final check: the cached image may not exist in this size
-			if ( file_exists( $this->base_dir . $path ) )
-				return $this->base_url . $path;
-		}
-		return Shopp::add_query_string( $size_query, Shopp::url($this->id, 'images') );
+        // Ask the engine if we have a direct URL
+        $direct_url = $this->engine()->direct($this->uri);
+
+        return ( false !== $direct_url )
+            ? $direct_url
+            : Shopp::add_query_string( $size_query, Shopp::url($this->id, 'images') );
 	}
 
 
