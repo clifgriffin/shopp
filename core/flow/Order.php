@@ -635,7 +635,9 @@ class ShoppOrder {
 	 **/
 	public function validate () {
 		if ( apply_filters('shopp_valid_order', $this->isvalid()) ) return true;
-		shopp_redirect( Shopp::url(false, 'checkout', $this->security()), true );
+		
+		$redirect = Shopp::url(false, 'checkout', $this->security());
+		shopp_redirect( apply_filters('shopp_invalid_order_redirect', $redirect), true );
 	}
 
 	/**
