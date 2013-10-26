@@ -346,7 +346,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$string = "";
 		if ( shopp_setting_enabled('inventory') && $O->outofstock )
-			return '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>';
+			return apply_filters('shopp_product_outofstock_text', '<span class="outofstock">'.esc_html(shopp_setting('outofstock_text')).'</span>');
 
 		if ($redirect)
 			$string .= '<input type="hidden" name="redirect" value="'.esc_attr($redirect).'" />';
