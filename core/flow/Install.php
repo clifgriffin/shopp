@@ -1023,6 +1023,7 @@ class ShoppInstallation extends ShoppFlowController {
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
 			sDB::query("DELETE FROM $meta_table WHERE type='image' AND value LIKE '%O:10:\"ShoppError\"%'"); // clean up garbage from legacy bug
+			sDB::query("DELETE FROM $meta_table WHERE CONCAT('', name *1) = name AND context = 'category' AND type = 'meta'"); // clean up bad category meta
 
 			// Update purchase gateway values to match new prefixed class names
 			$gateways = array(
