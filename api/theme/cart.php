@@ -24,6 +24,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	static $register = array(
 		'_cart',
 		'applycode' => 'applycode',
+		'applygiftcard' => 'applygiftcard',
 		'discount' => 'discount',
 		'discountapplied' => 'discount_applied',
 		'discountname' => 'discount_name',
@@ -116,7 +117,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function applycode ( $result, $options, $O ) {
 
-		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
+		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
 
 		// Skip if discounts are not available
 		if ( ! self::discounts_available(false, false, $O) ) return false;
@@ -139,7 +140,34 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 
 		$result .= '<span><input type="text" id="discount-code" name="discount" value="" size="10" /></span>';
-		$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options, $submit_attrs).' /></span>';
+		$result .= '<span><input type="submit" id="apply-code" name="update" ' . inputattrs($options, $submit_attrs) . ' /></span>';
+		$result .= '</div>';
+		return $result;
+	}
+
+	public static function applygiftcard ( $result, $options, $O ) {
+
+		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+
+		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Add Gift Card');
+
+		$result = '<div class="apply-giftcard">';
+
+		$defaults = array(
+			'before' => '<p class="error">',
+			'after' => '</p>'
+		);
+		$options = array_merge($defaults, $options);
+		extract($options);
+
+		$Errors = ShoppErrorStorefrontNotices();
+		if ( $Errors->exist() ) {
+			while ( $Errors->exist() )
+				$result .=  $before . $Errors->message() . $after;
+		}
+
+		$result .= '<span><input type="text" id="giftcard" name="credit" value="" size="20" /></span>';
+		$result .= '<span><input type="submit" id="apply-giftcard" name="giftcard" ' . inputattrs($options, $submit_attrs) . ' /></span>';
 		$result .= '</div>';
 		return $result;
 	}
@@ -153,7 +181,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		if ( $Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
 
 		$defaults = array(
-			'label' => __('%s Off!', 'Shopp'),
+			'label' => __('%s off', 'Shopp'),
+			'creditlabel' => __('%s applied', 'Shopp'),
 			'before' => '',
 			'after' => '',
 			'remove' => 'on'
@@ -170,11 +199,12 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			case ShoppOrderDiscount::SHIP_FREE:		$string .= sprintf(esc_html($label), money($Discount->amount())); break;
 			case ShoppOrderDiscount::PERCENT_OFF:	$string .= sprintf(esc_html($label), percentage($Discount->discount(), array('precision' => 0))); break;
 			case ShoppOrderDiscount::AMOUNT_OFF:	$string .= sprintf(esc_html($label), money($Discount->discount())); break;
+			case ShoppOrderDiscount::CREDIT:		$string .= sprintf(esc_html($creditlabel), money($Discount->amount())); break;
 			case ShoppOrderDiscount::BOGOF:			list($buy, $get) = $Discount->discount(); $string .= Shopp::esc_html__('Buy %s get %s free', $buy, $get); break;
 		}
 
 		if ( Shopp::str_true($remove) )
-			$string .= '&nbsp;<a href="' . Shopp::url(array('removecode' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
+			$string .= '&nbsp;<a href="' . Shopp::url(array('undiscount' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
 
 		$string .= $after;
 

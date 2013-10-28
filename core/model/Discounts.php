@@ -27,6 +27,7 @@ class ShoppDiscounts extends ListFramework {
 	private $removed = array(); // List of removed discounts
 	private $codes = array();	// List of applied codes
 	private $request = false;	// Current code request
+	private $credit = false;	// Credit request types
 
 	/**
 	 * Get or set the current request
@@ -44,6 +45,13 @@ class ShoppDiscounts extends ListFramework {
 
 	}
 
+	public function credit ( string $request = null ) {
+
+		if ( isset($request) ) $this->credit = $request;
+		return $this->credit;
+
+	}
+
 	/**
 	 * Handle parsing and routing discount code related requests
 	 *
@@ -56,9 +64,11 @@ class ShoppDiscounts extends ListFramework {
 
 		if ( isset($_REQUEST['discount']) && ! empty($_REQUEST['discount']) )
 			$this->request( trim($_REQUEST['discount']) );
+		elseif ( isset($_REQUEST['credit']) && ! empty($_REQUEST['credit']) )
+			$this->credit( trim($_REQUEST['credit']) );
 
-		if ( isset($_REQUEST['removecode']) && ! empty($_REQUEST['removecode']) )
-			$this->undiscount(trim($_REQUEST['removecode']));
+		if ( isset($_REQUEST['undiscount']) && ! empty($_REQUEST['undiscount']) )
+			$this->undiscount(trim($_REQUEST['undiscount']));
 
 	}
 
@@ -81,9 +91,9 @@ class ShoppDiscounts extends ListFramework {
 		foreach ( $this as $Discount ) {
 
 			if ( ShoppOrderDiscount::ORDER == $Discount->target() && ShoppOrderDiscount::PERCENT_OFF == $Discount->type() ) {
-				$deferred[] = $Discount;
+				$deferred[] = $Discount; // Percentage off the order must be deferred to after all other discounts
 				continue;
-			}
+			} elseif ( ShoppOrderDiscount::CREDIT == $Discount->type() ) continue;
 
 			$Discount->calculate();
 			$discounts[] = $Discount->amount();
@@ -97,12 +107,32 @@ class ShoppDiscounts extends ListFramework {
 
 		$amount = array_sum($discounts);
 
-		$Cart = ShoppOrder()->Cart->Totals;
+		$Cart = ShoppOrder()->Cart;
 		if ( $Cart->total('order') < $amount )
 			$amount = $Cart->total('order');
 
-		return (float)$amount;
+		return (float) $amount;
 
+	}
+
+	public function credits () {
+		$credits = array();
+
+		$CartTotals = ShoppOrder()->Cart->Totals;
+		// Wipe out any existing credit calculations
+		$CartTotals->takeoff('discount', 'credit');
+		$discounts = $CartTotals->total('discount'); // Resum the applied discounts (without credits)
+		// echo "Discounts currently applied: "; var_dump($discounts); echo BR;
+		foreach ( $this as $Discount ) {
+			if ( $Discount->type() != ShoppOrderDiscount::CREDIT ) continue;
+			$Discount->calculate(); // Recalculate based on current total to apply an appropriate amount
+			$credits[] = $Discount->amount();
+			$CartTotals->register( new OrderAmountDiscount( array('id' => 'credit', 'amount' => array_sum($credits) ) ) );
+		}
+
+		$amount = array_sum($credits);
+
+		return (float) $amount;
 	}
 
 	/**
@@ -182,7 +212,8 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function apply ( ShoppOrderPromo $Promo ) {
-		$Discount = new ShoppOrderDiscount($Promo);
+		$Discount = new ShoppOrderDiscount();
+		$Discount->ShoppOrderPromo($Promo);
 
 		// Match line item discount targets
 		if ( isset($Promo->rules['item']) ) {
@@ -245,7 +276,7 @@ class ShoppDiscounts extends ListFramework {
 		// Determine which promocode matched
 		$rules = array_filter($Promo->rules, array($this, 'coderules'));
 
-		$request = strtolower($this->request);
+		$request = strtolower($this->request());
 
 		foreach ( $rules as $rule ) {
 
@@ -254,9 +285,9 @@ class ShoppDiscounts extends ListFramework {
 			if ( ! $CodeRule->match() ) continue;
 
 			// Prevent customers from reapplying codes
-			if ( $this->codeapplied($request) ) {
-				shopp_add_error( sprintf(__('%s has already been applied.', 'Shopp'), $value) );
-				$this->request = false;
+			if ( ! empty($request) && $this->codeapplied($request) ) {
+				shopp_add_error( sprintf(__('"%s" has already been applied.', 'Shopp'),  $rule['value']) );
+				$this->request(false);
 			}
 
 			if ( ! $this->codeapplied( $rule['value'] ) )
@@ -727,6 +758,7 @@ class ShoppOrderDiscount {
 	const PERCENT_OFF = 2;
 	const SHIP_FREE = 4;
 	const BOGOF = 8;
+	const CREDIT = 16;
 
 	// Discount targets
 	const ITEM = 1;
@@ -743,7 +775,7 @@ class ShoppOrderDiscount {
 	private $items = array();				// A list of items the discount applies to
 
 	/**
-	 * Converts a ShoppPromo object to a Discount object
+	 * Converts a ShoppOrderPromo object to a Discount object
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
@@ -751,14 +783,19 @@ class ShoppOrderDiscount {
 	 * @param ShoppOrderPromo $Promo The promotion object to convert
 	 * @return void
 	 **/
-	public function __construct ( ShoppOrderPromo $Promo ) {
-
+	public function ShoppOrderPromo ( ShoppOrderPromo $Promo ) {
 		$this->id((int)$Promo->id);
 		$this->name($Promo->name);
 		$this->code($Promo->code);
-		$this->discount($Promo);
-		$this->calculate();
 
+		$target = $this->target($Promo->target);
+		$type = $this->type($Promo->type);
+		$this->discount = $Promo->discount;
+
+		if ( self::BOGOF == $type )
+			$this->discount = array($Promo->buyqty, $Promo->getqty);
+
+		$this->calculate();
 	}
 
 	/**
@@ -788,6 +825,10 @@ class ShoppOrderDiscount {
 	 **/
 	public function name ( string $name = null ) {
 		if ( isset($name) ) $this->name = $name;
+
+		if ( $this->type() == self::CREDIT ) // Add remaining
+			return $this->name . ' ' . Shopp::__('(%s remaining)', money($this->discount() - $this->amount()));
+
 		return $this->name;
 	}
 
@@ -804,12 +845,28 @@ class ShoppOrderDiscount {
 	}
 
 	public function calculate ( $discounts = 0 ) {
-		$Items = ShoppOrder()->Cart;
-		$Cart = ShoppOrder()->Cart->Totals;
+		$Cart = ShoppOrder()->Cart;
 
 		switch ( $this->type ) {
-			case self::SHIP_FREE:	if ( self::ORDER == $this->target ) $this->shipfree(true); //$this->amount = $Cart->total('shipping'); break;
+			case self::SHIP_FREE:	if ( self::ORDER == $this->target ) $this->shipfree(true); $this->amount = $Cart->total('shipping'); break;
 			case self::AMOUNT_OFF:	$this->amount = $this->discount(); break;
+			case self::CREDIT:
+				$total = $Cart->total();
+
+				// Find current credits applied
+				$credit = 0;
+				if ( $credits = $Cart->Totals->entry('discount', 'credit') && method_exists($credits, 'amount') )
+					$credit = $credits->amount();
+
+				// echo "credit available: "; var_dump($this->discount()); echo BR;
+				// echo "order total: "; var_dump($total); echo BR;
+				// echo "credits applied (already): "; var_dump($credit); echo BR;
+
+				$this->amount = min($this->discount(), $total);
+
+				// echo "amount to apply: "; var_dump($this->amount); echo BR;
+
+				break; // Apply the smaller of either the order total or available discount
 			case self::PERCENT_OFF:
 				$subtotal = $Cart->total('order');
 				if ( $discounts > 0 ) $subtotal -= $discounts;
@@ -822,21 +879,22 @@ class ShoppOrderDiscount {
 
 			$discounts = array();
 			foreach ( $this->items as $id => $unitdiscount ) {
-				$Item = $Items->get($id);
+				$Item = $Cart->get($id);
 
 				if ( self::BOGOF == $this->type() ) {
 					if ( ! is_array( $Item->bogof) ) $Item->bogof = array();
 					$Item->bogof[ $this->id() ] = $unitdiscount;
-				}
-				else $Item->discount += $unitdiscount;
+				} else $Item->discount += $unitdiscount;
 
-				$Item->totals();
-				$Cart->total('tax'); // Recalculate taxes
+ 			   	// Recalculate Item discounts & taxes
+ 				$Item->totals();
+				$Cart->total('tax');
 
 				$discounts[] = $Item->discounts;
 			}
 
 			$this->amount = array_sum($discounts);
+
 		}
 
 	}
@@ -888,6 +946,7 @@ class ShoppOrderDiscount {
 				case 'amount off':			$this->type = self::AMOUNT_OFF; break;
 				case 'free shipping':		$this->type = self::SHIP_FREE; break;
 				case 'buy x get y free':	$this->type = self::BOGOF; break;
+				default:					if ( is_int($type) ) $this->type = $type;
 			}
 		}
 
@@ -928,18 +987,9 @@ class ShoppOrderDiscount {
 	 * @param ShoppOrderPromo $Promo The promotion object to determine the discount amount from
 	 * @return mixed The discount amount
 	 **/
-	public function discount ( ShoppOrderPromo $Promo = null ) {
+	public function discount ( $amount = null ) {
 
-		if ( isset($Promo) ) {
-
-			$target = $this->target($Promo->target);
-			$type = $this->type($Promo->type);
-			$this->discount = $Promo->discount;
-
-			if ( self::BOGOF == $type )
-				$this->discount = array($Promo->buyqty, $Promo->getqty);
-		}
-
+		if ( isset($amount) ) $this->discount = (float) $amount;
 		return $this->discount;
 	}
 

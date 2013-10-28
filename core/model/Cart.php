@@ -565,12 +565,14 @@ class ShoppCart extends ListFramework {
 		$Shipping->calculate();
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
 
-		if ( apply_filters( 'shopp_tax_shipping', shopp_setting_enabled('tax_shipping') ) ) {
+		if ( apply_filters( 'shopp_tax_shipping', shopp_setting_enabled('tax_shipping') ) )
 			$Totals->register( new OrderAmountShippingTax( $Totals->total('shipping') ) );
-		}
 
 		// Calculate discounts
 		$Totals->register( new OrderAmountDiscount( array('id' => 'cart', 'amount' => $Discounts->amount() ) ) );
+
+		// Apply credits to discount the order
+		$Discounts->credits();
 
 		if ( $Shipping->free() && $Totals->total('shipping') > 0 ) {
 			$Shipping->calculate();
@@ -591,7 +593,7 @@ class ShoppCart extends ListFramework {
 	 * @param string $register The name of the register to get an amount for
 	 * @return float The total amount for the register
 	 **/
-	public function total ( string $register ) {
+	public function total ( string $register = null ) {
 
 		// Setup totals counter
 		if ( false === $this->Totals ) $this->Totals = new OrderTotals();
