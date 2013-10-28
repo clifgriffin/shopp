@@ -570,8 +570,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 
-            if ($img->directly_accessible()) $href = $img->direct_url;
-			else $href = Shopp::url('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
+            /*if ($img->directly_accessible()) $href = $img->direct_url;
+			else */$href = Shopp::url('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
 
 			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').''.$title.'>';
 			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
