@@ -92,6 +92,7 @@ class ShoppAdmin extends ShoppFlowController {
 		add_action('wp_setup_nav_menu_item',array($this, 'navmenu_setup'));
 
 		add_filter('wp_dropdown_pages', array($this, 'storefront_pages'));
+		add_filter('pre_update_option_page_on_front', array($this, 'frontpage'));
 
 		$this->pages();
 
@@ -359,6 +360,15 @@ class ShoppAdmin extends ShoppFlowController {
 		return "$base-$page";
 	}
 
+	/**
+	 * Adds Shopp pages to the page_on_front menu
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $menu The current page_on_front menu
+	 * @return string The page_on_front menu with the Shopp storefront page included
+	 **/
 	public function storefront_pages ($menu) {
 		$CatalogPage = ShoppPages()->get('catalog');
 		$shoppid = ShoppCatalogPage::frontid(); // uses impossibly long number ("Shopp" in decimal)
@@ -375,6 +385,23 @@ class ShoppAdmin extends ShoppFlowController {
 		$token = '</select>';
 		$newmenu = str_replace($token,'</optgroup>'.$token,$newmenu);
 		return $newmenu;
+	}
+
+	/**
+	 * Filters the page_on_front option during save to handle the bigint on non 64-bit environments
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param mixed $value The value to save
+	 * @param mixed $oldvalue The prior page_on_front setting
+	 * @return mixed The value to save
+	 **/
+	public function frontpage ( $value, $oldvalue ) {
+		if ( ! isset($_POST['page_on_front']) ) return $value;
+		$shoppid = ShoppCatalogPage::frontid(); // uses impossibly long number ("Shopp" in decimal)
+		if ( $_POST['page_on_front'] == $shoppid ) return "$shoppid";
+		else return $value;
 	}
 
 	/**
