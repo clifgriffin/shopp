@@ -248,6 +248,7 @@ abstract class StorageModule {
 	public $contexts;
 	public $settings;
 
+
 	public function __construct () {
 		global $Shopp;
 		$this->module = get_class($this);

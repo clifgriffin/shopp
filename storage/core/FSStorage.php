@@ -29,7 +29,9 @@ if ( ! defined('WP_CONTENT_DIR') ) define('WP_CONTENT_DIR', ABSPATH . 'wp-conten
  **/
 class FSStorage extends StorageModule implements StorageEngine {
 
-	public $path = "";
+	public $path = '';
+    public $webroot = '';
+
 
 	/**
 	 * FSStorage constructor
@@ -39,6 +41,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 	public function __construct () {
 		parent::__construct();
 		$this->name = __('File system','Shopp');
+        $this->webroot = apply_filters('shopp_fsstorage_webroot', trim(ABSPATH, '/'));
 	}
 
 	public function actions () {
@@ -130,7 +133,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		    // Set start and end based on range (if set), or set defaults
 		    // also check for invalid ranges.
-		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),($size - 1));
+		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),(this->$size - 1));
 		    $start = (empty($start) || $end < abs(intval($start))) ? 0 : max(abs(intval($start)),0);
 
 	        // Only send partial content header if downloading a piece of the file (IE workaround)
@@ -266,63 +269,73 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 
     /**
-     * Provides a direct URL for the file asset (if it can be reasonably
+     * Provides a direct URL for the file asset (if it can be determined).
+     *
+     * In atypical installations this may not work as expected - if so direct URLs can be turned off completely by
+     * defining SHOPP_DIRECT_ASSET_URLS as false in wp-config.php. Note also that the web root as assumed to be the
+     * same as ABSPATH but this can be modified using the "shopp_fsstorage_webroot" filter (see the constructor) ...
+     * in practice this does not necessarily have to be the true web root, but the ability to modify it exists to handle
+     * special cases.
      *
      * @param $uri
      * @return mixed bool | string
      */
     public function direct( $uri ) {
         if ( defined('SHOPP_DIRECT_ASSET_URLS') && ! SHOPP_DIRECT_ASSET_URLS ) return false;
-
         $path = $this->finddirect($uri);
         return ( false === $path ) ? false : $path;
     }
 
-    /**
-     * Tries to find the public URL for Shopp product images stored using the
-     * FSStorage engine. Not bulletproof, it assumes that either the directory
-     * is subordinate to ABSPATH or is anyway relative to wp-content.
-     *
-     * @param string $uri
-     * @return string
-     */
-    protected function finddirect($uri) {
-        $wpurl = get_option('siteurl');
-        $wpdir = trim(ABSPATH, '/');
-        $storagedir = trim($this->path, '/');
+	/**
+	 * Tries to find the public URL for Shopp product images stored using the FSStorage engine. Not bulletproof, it
+	 * assumes that either the directory is subordinate to the web root (assumed to be ABSPATH, however this is
+	 * filterable) or is anyway relative to wp-content.
+	 *
+	 * If it cannot determine the public URL (in the case of cached images, for example, they may not have been cached
+	 * to disk yet) it will return false.
+	 *
+	 * @param string $uri
+	 * @return string | bool
+	 */
+	protected function finddirect($uri) {
+		$wpurl = get_option('siteurl');
+		$webroot = explode('/', $this->webroot);
 
-        $wpdir = explode('/', $wpdir);
-        $storagedir = explode('/', $storagedir);
+		// Obtain the storage path or bail out early if it is not accessible/is invalid
+		if ( ! ( $storagepath = $this->storagepath() ) ) return false;
+		else $storagedir = explode('/', trim($storagepath, '/') );
 
-        // Determine if the storage path leads to a WP sub-directory
-        for ($segment = 0; $segment < count($wpdir); $segment++) {
-            if ($wpdir[$segment] !== $storagedir[$segment]) {
-                // Bad match? Check if we have a relative-to-wp-content path instead
-                return $this->relativepath($storagedir);
-            }
-        }
+		// Ensure the file exists
+		if ( ! file_exists($storagepath . "/$uri" )) return false;
 
-        // Supposing the image directory isn't the WP root, append the trailing component
-        if (count($storagedir) > count($wpdir)) {
-            $trailing_component = join('/', array_slice($storagedir, count($wpdir)));
-            $public_url = trailingslashit($wpurl) . $trailing_component;
-        }
-        else $public_url = $wpurl;
+		// Determine if the storage path is inside the webroot (they should have the same initial set of "segments")
+		for ($segment = 0; $segment < count($webroot); $segment++)
+			if ($webroot[$segment] !== $storagedir[$segment]) return false;
 
-        return trailingslashit($public_url) . $uri;
-    }
+		// Supposing the image directory isn't the WP root, append the trailing component
+		if (count($storagedir) > count($this->webroot)) {
+			$trailing_component = join('/', array_slice($storagedir, count($webroot)));
+			$public_url = trailingslashit($wpurl) . $trailing_component;
+		}
+		else $public_url = $wpurl;
 
-    /**
-     * Tests if the path leads to a real directory that is subordinate to the
-     * wp-content dir, or returns bool false.
-     */
-    protected function relativepath($path) {
-        $wp_content = trailingslashit(WP_CONTENT_DIR);
-        $path = $wp_content . trim($path, '/');
+		return trailingslashit($public_url) . $uri;
+	}
 
-        if ( is_dir($path) ) return trailingslashit(WP_CONTENT_URL) . $path;
-        return false;
-    }
+	/**
+	 * Returns the storage path: if it is relative to wp-content then it is expanded to a complete filepath. If a valid
+	 * path can't be found (the directory doesn't exist or isn't accessible) bool false is returned.
+	 *
+	 * @return string | bool
+	 */
+	protected function storagepath() {
+	    if ( is_dir($this->path) ) return $this->path;
+
+		$wp_content_path = trailingslashit(WP_CONTENT_DIR) . $this->path;
+		if ( is_dir($wp_content_path) ) return $wp_content_path;
+
+		return false;
+	}
 
     /**
      * Combines the object's base_url and uri properties (uri is dynamically assigned)
