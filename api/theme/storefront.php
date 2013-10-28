@@ -92,12 +92,14 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	public static function image ( $result, $options, $O ) {
+
 		// Compatibility defaults
 		$_size = 96;
 		$_width = shopp_setting('gallery_thumbnail_width');
 		$_height = shopp_setting('gallery_thumbnail_height');
-		if (!$_width) $_width = $_size;
-		if (!$_height) $_height = $_size;
+
+		if ( ! $_width ) $_width = $_size;
+		if ( ! $_height ) $_height = $_size;
 
 		$defaults = array(
 			'img' => false,
@@ -120,19 +122,19 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		);
 
 		// Populate defaults from named image settings to allow specific overrides
-		if (!empty($options['setting'])) {
+		if ( ! empty($options['setting']) ) {
 			$setting = $options['setting'];
 			$ImageSettings = ImageSettings::__instance();
 			$settings = $ImageSettings->get($setting);
-			if ($settings) $defaults = array_merge($defaults,$settings->options());
+			if ( $settings ) $defaults = array_merge($defaults, $settings->options());
 		}
 
-		$options = array_merge($defaults,$options);
+		$options = array_merge($defaults, $options);
 		extract($options);
 
 		// Select image by database id
-		if ($id !== false) {
-			if (isset($O->images[$id])) $img = $O->images[$id];
+		if ( false !== $id ) {
+			if ( isset($O->images[ $id ]) ) $Image = $O->images[ $id ];
 			else {
 				shopp_debug( sprintf('No %s image exists at with the specified database ID of %d.', get_class($O), $id) );
 				return '';
@@ -140,10 +142,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		}
 
 		// Select image by index position in the list
-		if ($index !== false){
+		if ( false !== $index ){
 			$keys = array_keys($O->images);
-			if( isset($keys[$index]) && isset($O->images[ $keys[$index] ]) )
-				$img = $O->images[$keys[$index]];
+			if( isset($keys[ $index ]) && isset($O->images[ $keys[ $index ] ]) )
+				$Image = $O->images[ $keys[ $index ] ];
 			else {
 				shopp_debug( sprintf('No %s image exists at the specified index position %d.', get_class($O), $id) );
 				return '';
@@ -151,54 +153,50 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		}
 
 		// Use the current image pointer by default
-		if (!$img) $img = current($O->images);
+		if ( ! $Image ) $Image = current($O->images);
 
-		if ($size !== false) $width = $height = $size;
-		if (!$width) $width = $_width;
-		if (!$height) $height = $_height;
+		if ( false !== $size ) $width = $height = $size;
+		if ( ! $width ) $width = $_width;
+		if ( ! $height ) $height = $_height;
 
-		$scale = $fit?array_search($fit,$img->_scaling):false;
-		$sharpen = $sharpen?min($sharpen,$img->_sharpen):false;
-		$quality = $quality?min($quality,$img->_quality):false;
-		$fill = $bg?hexdec(ltrim($bg,'#')):false;
-		if ('transparent' == strtolower($bg)) $fill = -1;
+		$scale = $fit ? array_search($fit, $Image->_scaling) : false;
+		$sharpen = $sharpen ? min($sharpen, $Image->_sharpen) : false;
+		$quality = $quality ? min($quality, $Image->_quality) : false;
+		if ( 'transparent' == strtolower($bg) ) $fill = -1;
+		else $fill = $bg ? hexdec(ltrim($bg, '#')) : false;
 
-		list($width_a,$height_a) = array_values($img->scaled($width,$height,$scale));
-		if ($size == "original") {
-			$width_a = $img->width;
-			$height_a = $img->height;
+		list($width_a, $height_a) = array_values($Image->scaled($width, $height, $scale));
+		if ( 'original' == $size ) {
+			$width_a = $Image->width;
+			$height_a = $Image->height;
 		}
-		if ($width_a === false) $width_a = $width;
-		if ($height_a === false) $height_a = $height;
+		if ( $width_a === false ) $width_a = $width;
+		if ( $height_a === false ) $height_a = $height;
 
-		$alt = esc_attr(empty($alt)?(empty($img->alt)?$img->name:$img->alt):$alt);
-		$title = empty($title)?$img->title:$title;
-		$titleattr = empty($title)?'':' title="'.esc_attr($title).'"';
-		$classes = empty($class)?'':' class="'.esc_attr($class).'"';
+		$alt = esc_attr( empty($alt) ? (empty($Image->alt) ? $Image->name : $Image->alt) : $alt );
+		$title = empty($title) ? $Image->title : $title;
+		$titleattr = empty($title) ? '' : ' title="' . esc_attr($title) . '"';
+		$classes = empty($class) ? '' : ' class="' . esc_attr($class) . '"';
 
-		$src = Shopp::url($img->id,'images');
-		if ('' != get_option('permalink_structure')) $src = trailingslashit($src).$img->filename;
+		$src = ( 'original' == $size ) ? $Image->url() : $Image->url($width, $height, $scale, $sharpen, $quality, $fill);
 
-		if ($size != "original")
-			$src = $img->resized_url($width, $height, $scale, $sharpen, $quality, $fill);
-
-		switch (strtolower($property)) {
-			case "id": return $img->id; break;
-			case "url":
-			case "src": return $src; break;
-			case "title": return $title; break;
-			case "alt": return $alt; break;
-			case "width": return $width_a; break;
-			case "height": return $height_a; break;
-			case "class": return $class; break;
+		switch ( strtolower($property) ) {
+			case 'id': return $Image->id; break;
+			case 'url':
+			case 'src': return $src; break;
+			case 'title': return $title; break;
+			case 'alt': return $alt; break;
+			case 'width': return $width_a; break;
+			case 'height': return $height_a; break;
+			case 'class': return $class; break;
 		}
 
-		$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
+		$img = '<img src="' . $src . '"' . $titleattr . ' alt="' . $alt . '" width="' . (int) $width_a . '" height="' . (int) $height_a . '" ' . $classes . ' />';
 
-		if (Shopp::str_true($zoom))
-			return '<a href="'.Shopp::url($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$O->id.'"'.$titleattr.'>'.$imgtag.'</a>';
+		if ( Shopp::str_true($zoom) )
+			return '<a href="' . $Image->url() . '" class="' . $zoomfx . '" rel="product-' . $O->id . '"' . $titleattr . '>' . $img . '</a>';
 
-		return $imgtag;
+		return $img;
 	}
 
 	public static function breadcrumb ( $result, $options, $O ) {

@@ -50,7 +50,7 @@ function shopp_admin_add_menu ( string $label, string $page, integer $position =
 		$access,									// Access level
 		$Admin->pagename($page),					// Page
 		$handler,									// Handler
-		SHOPP_ADMIN_URI . '/icons/clear.png',		// Icon
+		Shopp::clearpng(),							// Icon
 		$position									// Menu position
 	);
 

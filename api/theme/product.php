@@ -454,7 +454,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	public static function gallery ( $result, $options, $O ) {
 		if ( empty($O->images) ) $O->load_data(array('images'));
 		if ( empty($O->images) ) return false;
-		$styles = '';
+
 		$_size = 240;
 		$_width = shopp_setting('gallery_small_width');
 		$_height = shopp_setting('gallery_small_height');
@@ -496,34 +496,31 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'preview' => 'click',
 			'colorbox' => '{}'
 
-
 		);
 
 		// Populate defaults from named settings, if provided
 		$ImageSettings = ImageSettings::__instance();
 
-		if (!empty($options['p_setting'])) {
-			$settings = $ImageSettings->get( $options['p_setting']);
-			if ($settings) $defaults = array_merge($defaults,$settings->options('p_'));
+		if ( ! empty($options['p_setting']) ) {
+			$settings = $ImageSettings->get($options['p_setting']);
+			if ( $settings ) $defaults = array_merge($defaults, $settings->options('p_'));
 		}
 
-		if (!empty($options['thumbsetting'])) {
-			$settings = $ImageSettings->get( $options['thumbsetting']);
-			if ($settings) $defaults = array_merge($defaults,$settings->options('thumb'));
+		if ( ! empty($options['thumbsetting']) ) {
+			$settings = $ImageSettings->get($options['thumbsetting']);
+			if ( $settings ) $defaults = array_merge($defaults, $settings->options('thumb'));
 		}
 
-		$optionset = array_merge($defaults,$options);
+		$optionset = array_merge($defaults, $options);
 
 		// Translate dot-notation options to underscore
 		$options = array();
 		$keys = array_keys($optionset);
-		foreach ($keys as $key)
-			$options[str_replace('.','_',$key)] = $optionset[$key];
-
+		foreach ( $keys as $key )
+			$options[ str_replace('.', '_',$key) ] = $optionset[ $key ];
 		extract($options);
 
-
-		if ($p_size > 0)
+		if ( $p_size > 0 )
 			$_width = $_height = $p_size;
 
 		$width = $p_width > 0 ? $p_width : $_width;
@@ -531,98 +528,113 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		$preview_width = $width;
 
-		$previews = '<ul class="previews">';
-		$firstPreview = true;
-
 		// Find the max dimensions to use for the preview spacing image
 		$maxwidth = $maxheight = 0;
 
-		foreach ($O->images as $img) {
+		foreach ( $O->images as $img ) {
 			$scale = $p_fit ? array_search($p_fit, $img->_scaling) : false;
 			$scaled = $img->scaled($width, $height, $scale);
 			$maxwidth = max($maxwidth, $scaled['width']);
 			$maxheight = max($maxheight, $scaled['height']);
 		}
 
-		if ($maxwidth == 0) $maxwidth = $width;
-		if ($maxheight == 0) $maxheight = $height;
+		if ( 0 == $maxwidth ) $maxwidth = $width;
+		if ( 0 == $maxheight ) $maxheight = $height;
 
 		$p_link = Shopp::str_true($p_link);
 
+		$product_class = 'product_' . (int) $O->id;
+
 		// Setup preview images
-		foreach ($O->images as $img) {
-			$scale = $p_fit ? array_search($p_fit, $img->_scaling) : false;
-			$sharpen = $p_sharpen ? min($p_sharpen, $img->_sharpen) : false;
-			$quality = $p_quality ? min($p_quality, $img->_quality) : false;
-			$fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
-			if ('transparent' == strtolower($p_bg)) $fill = -1;
-			$scaled = $img->scaled($width, $height, $scale);
-
-			if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
-
-				$href = Shopp::url('' != get_option('permalink_structure')?trailingslashit('000'):'000','images');
-				$previews .= '<li'.(($firstPreview)?' class="fill"':'').'>';
-				$previews .= '<img src="'.add_query_string("$maxwidth,$maxheight",$href).'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
-				$previews .= '</li>';
-			}
-			$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
-			$alt = esc_attr(!empty($img->alt)?$img->alt:$img->filename);
-
-			$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
-
-            /*if ($img->directly_accessible()) $href = $img->direct_url;
-			else */$href = Shopp::url('' != get_option('permalink_structure')?trailingslashit($img->id).$img->filename:$img->id,'images');
-
-			if ($p_link) $previews .= '<a href="'.$href.'" class="gallery product_'.$O->id.' '.$options['zoomfx'].'"'.(!empty($rel)?' rel="'.$rel.'"':'').''.$title.'>';
-			// else $previews .= '<a name="preview-'.$img->id.'">'; // If links are turned off, leave the <a> so we don't break layout
-			$previews .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
-			if ($p_link) $previews .= '</a>';
-			$previews .= '</li>';
+		$previews = '';
+		foreach ( $O->images as $Image ) {
 			$firstPreview = false;
+			if ( empty($previews) ) { // Adds "filler" image to reserve the dimensions in the DOM
+				$firstPreview = $previews .=
+					'<li class="fill">' .
+					'<img src="' .  Shopp::clearpng() . '" alt="" width="' . (int) $maxwidth . '" height="' . (int) $maxheight . '" />' .
+					'</li>';
+			}
+
+			$scale = $p_fit ? array_search($p_fit, $Image->_scaling) : false;
+			$sharpen = $p_sharpen ? min($p_sharpen, $Image->_sharpen) : false;
+			$quality = $p_quality ? min($p_quality, $Image->_quality) : false;
+
+			if ( 'transparent' == strtolower($p_bg) ) $fill = -1;
+			else $fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
+
+			$scaled = $Image->scaled($width, $height, $scale);
+
+			$titleattr = ! empty($Image->title) ? ' title="' . esc_attr($Image->title) . '"' : '';
+			$alt = esc_attr( ! empty($Image->alt) ? $Image->alt : $Image->filename );
+			$src = $Image->url($width, $height, $scale, $sharpen, $quality, $fill);
+
+			$img = '<img src="' . $src . '"' . $titleattr . ' alt="' . $alt . '" width="' . (int) $scaled['width'] . '" height="' . (int) $scaled['height'] . '" />';
+
+
+			if ( $p_link ) {
+
+				$hrefattr = $Image->url();
+				$relattr = empty($rel) ? '' : ' rel="' . esc_attr($rel) . '"';
+				$linkclasses = array($gallery, $product_class, $zoomfx);
+
+				$img = '<a href="' . $hrefattr . '" class="' . join(' ', $linkclasses) . '"' . $relattr . $titleattr . '>' . $img . '</a>';
+
+			}
+
+			$previews .= '<li id="preview-' . $Image->id . '"' . ( empty($firstPreview) ? '' : '  class="active"' ) . '>' . $img. '</li>';
 		}
-		$previews .= '</ul>';
+		$previews = '<ul class="previews">' . $previews . '</ul>';
 
-		$thumbs = "";
-		$twidth = $preview_width+$margins;
+		$thumbs = '';
+		$twidth = $preview_width + $margins;
 
-		if (count($O->images) > 1) {
+		// Add thumbnails (if needed)
+		if ( count($O->images) > 1 ) {
+
 			$default_size = 64;
 			$_thumbwidth = shopp_setting('gallery_thumbnail_width');
 			$_thumbheight = shopp_setting('gallery_thumbnail_height');
-			if (!$_thumbwidth) $_thumbwidth = $default_size;
-			if (!$_thumbheight) $_thumbheight = $default_size;
+			if ( ! $_thumbwidth ) $_thumbwidth = $default_size;
+			if ( ! $_thumbheight ) $_thumbheight = $default_size;
 
-			if ($thumbsize > 0) $thumbwidth = $thumbheight = $thumbsize;
+			if ( $thumbsize > 0 ) $thumbwidth = $thumbheight = $thumbsize;
 
-			$width = $thumbwidth > 0?$thumbwidth:$_thumbwidth;
-			$height = $thumbheight > 0?$thumbheight:$_thumbheight;
+			$width = $thumbwidth > 0 ? $thumbwidth : $_thumbwidth;
+			$height = $thumbheight > 0 ? $thumbheight : $_thumbheight;
 
-			$firstThumb = true;
-			$thumbs = '<ul class="thumbnails">';
-			foreach ($O->images as $img) {
-				$scale = $thumbfit?array_search($thumbfit,$img->_scaling):false;
-				$sharpen = $thumbsharpen?min($thumbsharpen,$img->_sharpen):false;
-				$quality = $thumbquality?min($thumbquality,$img->_quality):false;
-				$fill = $thumbbg?hexdec(ltrim($thumbbg,'#')):false;
-				if ('transparent' == strtolower($thumbbg)) $fill = -1;
+			$thumbs = '';
+			foreach ( $O->images as $Image ) {
 
-				$scaled = $img->scaled($width,$height,$scale);
+				$scale = $thumbfit ? array_search($thumbfit, $Image->_scaling) : false;
+				$sharpen = $thumbsharpen ? min($thumbsharpen, $Image->_sharpen) : false;
+				$quality = $thumbquality ? min($thumbquality, $Image->_quality) : false;
 
-				$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
-				$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
+				if ( 'transparent' == strtolower($thumbbg) ) $fill = -1;
+				else $fill = $thumbbg ? hexdec(ltrim($thumbbg, '#')) : false;
 
-				$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':'').'">';
-				$thumbs .= '<img src="'.$img->resized_url($width,$height,$scale,$sharpen,$quality,$fill).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
-				$thumbs .= '</li>'."\n";
-				$firstThumb = false;
+				$scaled = $Image->scaled($width, $height, $scale);
+
+				$titleattr = empty($Image->title) ? '' : ' title="' . esc_attr($Image->title) . '"';
+				$alt = esc_attr( empty($Image->alt) ? $Image->name : $Image->alt );
+				$src = $Image->url($width, $height, $scale, $sharpen, $quality, $fill);
+
+				$thumbclasses = array('preview-' . $Image->id);
+				if ( empty($thumbs) ) $thumbclasses[] = 'first';
+				$thumbclasses = esc_attr(join(' ', $thumbclasses));
+
+				$thumbs .= '<li id="thumbnail-' . $Image->id . '" class="' . $thumbclasses . '">' .
+							'<img src="' . $src . '"' . $titleattr . ' alt="' . $alt . '" width="' . (int) $scaled['width'] . '" height="' . (int) $scaled['height'] . '" />' .
+							'</li>';
+
 			}
-			$thumbs .= '</ul>';
+			$thumbs = '<ul class="thumbnails">' . $thumbs . '</ul>';
+		} // end count($O->images)
 
-		}
-		if ($rowthumbs > 0) $twidth = ($width+$margins+2)*(int)$rowthumbs;
+		if ( $rowthumbs > 0 ) $twidth = ($width + $margins + 2) * (int) $rowthumbs;
 
-		$result = '<div id="gallery-'.$O->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-		$script = "\t".'ShoppGallery("#gallery-'.$O->id.'","'.$preview.'"'.($twidth?",$twidth":"").');';
+		$result = '<div id="gallery-' . $O->id . '" class="gallery">' . $previews . $thumbs . '</div>';
+		$script = "\t" . 'ShoppGallery("#gallery-' . $O->id . '","' . $preview . '"' . ( $twidth ? ",$twidth" : "" ) . ');';
 		add_storefrontjs($script);
 
 		return $result;

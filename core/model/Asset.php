@@ -64,8 +64,8 @@ class FileAsset extends ShoppMetaObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-     * @param $data
-     * @param $type
+     * @param $data Data to save
+     * @param $type (optional) Type of data to save
 	 * @return mixed
 	 **/
 	public function store ( $data, $type = 'binary' ) {
@@ -229,8 +229,6 @@ class ImageAsset extends FileAsset {
 	public $filename;
 	public $type = 'image';
 
-
-
 	/**
 	 * Returns a URL for a resized image.
 	 *
@@ -248,33 +246,44 @@ class ImageAsset extends FileAsset {
 	 * @param $fill
 	 * @return string
 	 */
-	public function resized_url($width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false) {
-		$size_query = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
+	public function url ( $width = false, $height = false, $scale = false, $sharpen = false, $quality = false, $fill = false ) {
 
-        // Build the path to the cached copy of the file (if it exists)
-        $size = $this->cache_filename_params( $size_query );
-        $this->uri = "cache_{$size}_{$this->uri}";
+		$request = array();
+
+		$url = Shopp::url( '' != get_option('permalink_structure') ? trailingslashit($this->id) . $this->filename : $this->id, 'images' );
+
+		// Handle resize requests
+		$params = func_get_args();
+		if ( count($params) > 0 ) {
+			list($width, $height, $scale, $sharpen, $quality, $fill) = $params;
+			$request = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
+
+	        // Build the path to the cached copy of the file (if it exists)
+	        $size = $this->cachefile( $request );
+	        $this->uri = "cache_{$size}_{$this->uri}";
+
+		}
 
         // Ask the engine if we have a direct URL
         $direct_url = $this->engine()->direct($this->uri);
+		if ( false !== $direct_url ) return $direct_url;
 
-        return ( false !== $direct_url )
-            ? $direct_url
-            : Shopp::add_query_string( $size_query, Shopp::url($this->id, 'images') );
+		if ( empty($request) ) return $url;
+		else return Shopp::add_query_string( $request, $url);
+
 	}
-
 
 	/**
 	 * Takes the comma separated output of the resizing() method and returns the
 	 * equivalent filename component.
 	 *
-	 * @param $size_query
-	 * @return string
+	 * @param string $request
+	 * @return string A valid string for file names
 	 */
-	protected function cache_filename_params($size_query) {
-		$size_query = explode(',', $size_query);
-		array_pop($size_query); // Lop off the validation variable
-		return implode('_', $size_query);
+	protected function cachefile ( $request ) {
+		$query = explode(',', $request);
+		array_pop($query); // Lop off the validation variable
+		return implode('_', $query);
 	}
 
 
