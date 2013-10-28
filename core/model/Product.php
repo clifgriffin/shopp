@@ -380,6 +380,8 @@ class ShoppProduct extends WPShoppObject {
 			$this->resum[$index] = $Object;
 		}
 
+		$Object = apply_filters('shopp_product_loader', $Object, $record);
+
 		if ($collate) {
 			if (!isset($records[$index])) $records[$index] = array();
 			$records[$index][] = $Object;
