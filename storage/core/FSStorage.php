@@ -133,7 +133,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		    // Set start and end based on range (if set), or set defaults
 		    // also check for invalid ranges.
-		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),(this->$size - 1));
+		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),($size - 1));
 		    $start = (empty($start) || $end < abs(intval($start))) ? 0 : max(abs(intval($start)),0);
 
 	        // Only send partial content header if downloading a piece of the file (IE workaround)
