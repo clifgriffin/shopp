@@ -442,17 +442,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	// Check if any of the items in the cart are on sale
 	public static function has_savings ( $result, $options, $O ) {
 		// loop thru cart looking for $Item->sale == "on"
-		for ( $x = 0; $x < $O->count(); $x++ ){
-			if ( ! isset($O->_item_loop) ) {
-				$item = $O->rewind();
-				$O->_item_loop = true;
-			} else $item = $O->next();
-
-			if ( 'on' == $item->sale ) { 
-				unset($O->_item_loop);
-				$O->rewind();
-				return true;
-			}
+		foreach( $O as $item ) {
+			if ( 'on' == $item->sale ) return true;
 		}
 
 		return false;
@@ -460,24 +451,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	// Total discount of each item PLUS any Promotional Catalog discounts
 	public static function savings ( $result, $options, $O ) {
+		$total = 0;
 
-		$totalsavings = 0;
-		$originaltotal = 0;
-
-		for ( $x = 0; $x < $O->count(); $x++ ){
-			if ( ! isset($O->_item_loop) ) {
-				$item = $O->rewind();
-				$O->_item_loop = true;
-			} else $item = $O->next();
-
-			$originaltotal += $item->option->price * $item->quantity;
+		foreach( $O as $item ){
+			$total += $item->option->price * $item->quantity;
 		}
-		unset($O->_item_loop);
-		$O->rewind();
 
-		$Totals = $O->Totals;
-
-		return $originaltotal - ( $Totals->total('order') + $Totals->total('discount') ); 
+		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') ); 
 	}
 
 }
