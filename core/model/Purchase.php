@@ -164,19 +164,44 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @return array List of discounts applied
 	 **/
 	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
+		if ( empty($this->id) ) return false;
 
 		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
 			$discounts = array();
 			foreach ( $ShoppDiscounts as $Discount )
 				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-			shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
+
+			shopp_set_meta($this->id, 'purchase', 'discounts', $discounts);
 			$this->discounts = $discounts;
 			ShoppPromo::used(array_keys($discounts));
 		}
 
-		if ( empty($this->id) ) return false;
 		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
 		return $this->discounts;
+	}
+
+	/**
+	 * Set or load the discounts applied to this order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppDiscounts $ShoppDiscounts The ShoppDiscounts object from the order to add to this purchase
+	 * @return array List of discounts applied
+	 **/
+	public function taxes ( array $OrderTaxes = array() ) {
+		if ( empty($this->id) ) return false;
+
+		if ( ! empty($OrderTaxes) ) { // Save the given taxes
+			$taxes = array();
+			foreach ( (array) $OrderTaxes as $Tax )
+				$taxes[ $Tax->id() ] = new ShoppPurchaseTax($Tax);
+			shopp_set_meta($this->id, 'purchase', 'taxes', $taxes);
+			$this->taxes = $taxes;
+		}
+
+		if ( empty($this->taxes) ) $this->taxes = shopp_meta($this->id, 'purchase', 'taxes');
+		return $this->taxes;
 	}
 
 	/**

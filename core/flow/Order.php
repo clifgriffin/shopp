@@ -387,6 +387,7 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function purchase ( PurchaseOrderEvent $Event ) {
+
 		$Shopping = ShoppShopping();
 		$changed = $this->changed();
 
@@ -458,7 +459,8 @@ class ShoppOrder {
 
 				// Recreate purchased records from the cart and re-invoice for the new order total
 				$this->items($Purchase->id);
-				$this->discounts($Purchase->id);
+				$Purchase->discounts($this->Discounts);					// Save the discounts applied
+				$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
 				$this->invoice($Purchase);
 
 				add_action( 'shopp_order_event', array($Purchase, 'notifications') );
@@ -471,6 +473,7 @@ class ShoppOrder {
 
 		$this->items($Purchase->id);			// Create purchased records from the cart items
 		$Purchase->discounts($this->Discounts);	// Save the discounts applied
+		$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -499,22 +502,6 @@ class ShoppOrder {
 			$Purchased->save();
 		}
 		$this->checksum = $this->Cart->checksum;	// Track the cart contents checksum to detect changes.
-	}
-
-	/**
-	 * Adds discount data to an order
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param int $purchaseid The Purchase id to attach the purchased records to
-	 * @return void
-	 **/
-	public function discounts ( $purchaseid ) {
-		$discounts = array();
-		foreach ( $this->Discounts as $Discount )
-			$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-		shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
 	}
 
 	/**
@@ -635,7 +622,7 @@ class ShoppOrder {
 	 **/
 	public function validate () {
 		if ( apply_filters('shopp_valid_order', $this->isvalid()) ) return true;
-		
+
 		$redirect = Shopp::url(false, 'checkout', $this->security());
 		shopp_redirect( apply_filters('shopp_invalid_order_redirect', $redirect), true );
 	}
