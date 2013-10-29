@@ -101,6 +101,7 @@ function formatNumber (n,f,pr) {
 	f = getCurrencyFormat(f);
 
 	n = asNumber(n);
+
 	var digits,i,
 		whole=fraction=0,
 		divide = false,
@@ -110,6 +111,7 @@ function formatNumber (n,f,pr) {
 		grouping = f.grouping?f.grouping:[3];
 
 	n = "";
+
 	whole = d[0];
 	if (d[1]) fraction = d[1];
 
@@ -149,6 +151,7 @@ function asNumber (n,f) {
 	f = getCurrencyFormat(f);
 
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
+	if (typeof n === 'number') return new Number(n.toFixed(f.precision));
 
 	n = n.toString().replace(f.currency,''); // Remove the currency symbol
 	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.\-])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
@@ -212,12 +215,6 @@ function htmlentities (string) {
 		return String.fromCharCode(RegExp.$1);
 	});
 	return string;
-}
-
-function debuglog (o) {
-	if (window.console != undefined) {
-		console.log(o);
-	}
 }
 
 jQuery.fn.fadeRemove = function (duration,callback) {
