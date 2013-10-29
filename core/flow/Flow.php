@@ -386,6 +386,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	}
 
 	private function maintenance () {
+		if ( ShoppLoader::is_activating() || Shopp::upgradedb() ) return;
 
 		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
 			if ( isset($_POST['settings']['maintenance']))
@@ -398,6 +399,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 				shopp_set_setting('maintenance', 'off');
 			} else {
 				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup-pages'), admin_url('admin.php')), 'shopp_disable_maintenance');
+				error_log(debug_caller());
 				$this->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 			}
 		}
@@ -415,7 +417,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 			return $path;
 
 		$this->notice(Shopp::__('The requested setting screen was not found.'),'error');
-		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Ooops.</h2></div>';
+		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Oops.</h2></div>';
 		do_action('shopp_admin_notices');
 		return false;
 	}

@@ -1,66 +1,68 @@
 <div id="welcome" class="wrap shopp">
 	<div class="icon32"></div>
-	<h2>Shopp</h2>
+	<h2><?php Shopp::_emi('Shopp Database **Upgrade Required**'); ?></h2>
 
-	<h3><?php _e('Database Upgrade Required','Shopp'); ?></h3>
-	<p><?php _e('Shopp has been updated! Your storefront has been automatically switched to maintenance mode.','Shopp'); ?></p>
+	<?php Shopp::_em(
+'Shopp has been updated!
 
-	<p><?php _e('Before you can use Shopp, your database needs upgraded to the newest version.','Shopp'); ?></p>
+Before you can use the new version of Shopp, your database needs to be upgraded.
 
-	<?php if (current_user_can('activate_plugins')): ?>
+Your storefront has been switched to maintenance mode until the database upgrade is completed.'); ?>
 
-		<div class="error"><p><?php _e('Be sure to backup your database to prevent a loss of data.','Shopp'); ?></p></div>
+	<?php if ( current_user_can('activate_plugins') ): ?>
 
-		<p><?php _e('To upgrade, you simply need to reactivate Shopp:','Shopp'); ?></p>
-	  	<ul>
-			<li><?php printf( __('Click the %s button below to deactivate Shopp','Shopp'), '<strong>' . __('Continue&hellip;','Shopp') . '</strong>' ); ?></li>
-			<li><?php printf( __('In the WordPress plugin manager, click the %sActivate%s link for Shopp to reactivate and upgrade your Shopp database','Shopp'), '<strong>','</strong>' ); ?></p>
-		</ul>
+		<div class="error"><p><?php Shopp::_em('**IMPORTANT:** Be sure to backup your database to prevent a loss of data! [How do I backup?](%s)', ShoppSupport::DOCS . 'getting-started/upgrading/'); ?></p></div>
 
+		<?php Shopp::_em(
+'To upgrade, you simply need to reactivate Shopp:
+
+- Click the **Continue&hellip;** button below to deactivate Shopp
+- In the WordPress **Plugins** manager, click the **Activate** link for Shopp to reactivate and upgrade the Shopp database'); ?>
 		<?php
-			$plugin_file = basename(SHOPP_PATH).'/Shopp.php';
-			$deactivate = wp_nonce_url("plugins.php?action=deactivate&amp;plugin=$plugin_file&amp;plugin_status=recent&amp;paged=1","deactivate-plugin_$plugin_file");
+			$plugin_file = SHOPP_PLUGINFILE;
+			$deactivate = wp_nonce_url("plugins.php?action=deactivate&amp;plugin=$plugin_file&amp;s=Shopp&amp;paged=1", "deactivate-plugin_$plugin_file");
 		?>
-		<p><a href="<?php echo $deactivate; ?>" class="button-secondary"><?php _e('Continue&hellip;','Shopp'); ?></a></p>
+		<p><a href="<?php echo $deactivate; ?>" class="button-primary"><?php Shopp::_e('Continue&hellip;'); ?></a></p>
 
 	<?php else: ?>
-		<?php if (isset($_GET['_shopp_upgrade_notice'])): ?>
+		<?php if ( isset($_GET['_shopp_upgrade_notice']) ): ?>
 			<?php
 
 				check_admin_referer('shopp_upgrade_notice');
+				$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+				$homeurl = wp_specialchars_decode(get_option('home'), ENT_QUOTES);
+				$admin = get_bloginfo('admin_email');
+				$site = parse_url($homeurl);
 
-				// @todo
-				// $_ = array();
-				// $_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
-				// $_[] = 'To: '.$RecoveryCustomer->email;
-				// $_[] = 'Subject: '.$subject;
-				// $_[] = '';
-				// $_[] = sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl'));
-				// $_[] = '';
-				// if ($user_data)
-				// 	$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
-				// $_[] = sprintf(__('Password: %s'), $password) . "\r\n";
-				// $_[] = '';
-				// $_[] = __('Click here to login:').' '.Shopp::url(false,'account');
-				// $message = apply_filters('shopp_reset_password_message',join("\r\n",$_));
+				$_ = array();
+				$_[] = 'From: "' . $blogname . '" <' . shopp_setting('merchant_email') . '>';
+				$_[] = 'To: ' . $admin;
+				$_[] = sprintf('Subject: Shopp Upgraded on %s', $site['host']);
+				$_[] = '';
+				$_[] = sprintf(__('The Shopp installation on %1$s has been upgraded to %2$s and requires a database upgrade. Please login to %1$s and perform the upgrade by deactivating and reactivating the Shopp plugin.', 'Shopp'), $homeurl, ShoppVersion::release());
 
-				// shopp_email()
-			?>
-			<h3>Upgrade Notice Sent</h3>
-			<p>An upgrade notice has been sent to the site administrators.</p>
+				$message = apply_filters('shopp_upgrade_notice_message', join("\n", $_));
+
+				if ( Shopp::email($message) )
+					shopp_debug('A Shopp upgrade notification was sent.');
+
+				Shopp::_em(
+'### Upgrade Notice Sent
+
+An upgrade notice has been sent to the site administrator.'); ?>
 		<?php else: ?>
 
-			<div class="error">
-			<h3>Contact Your Site Administrator</h3>
-			<p>You will need to contact a site administrator to perform the upgrade.</p>
-			<br />
+			<div class="error"><?php Shopp::_em(
+'### Contact Your Site Administrator
+
+You will need to notify a site administrator to perform the upgrade.'); ?>
 			</div>
 			<div class="alignright">
 			<?php
 				$plugin_file = basename(SHOPP_PATH).'/Shopp.php';
 				$deactivate = wp_nonce_url("plugins.php?action=deactivate&amp;plugin=$plugin_file&amp;plugin_status=recent&amp;paged=1","deactivate-plugin_$plugin_file");
 			?>
-			<a href="<?php echo wp_nonce_url(add_query_arg('_shopp_upgrade_notice',true),'shopp_upgrade_notice'); ?>" class="button-primary">Send Upgrade Notice &raquo</a>
+			<a href="<?php echo wp_nonce_url(add_query_arg('_shopp_upgrade_notice',true),'shopp_upgrade_notice'); ?>" class="button-primary"><span class="shoppui-envelope-alt">&nbsp;</span> <?php Shopp::_e('Send Upgrade Notice'); ?></a>
 			</div>
 
 	<?php endif; endif; ?>
