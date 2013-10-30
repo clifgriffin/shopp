@@ -16,6 +16,7 @@
 #cboxOverlay{background:#2A2727;}
 
 #colorbox{}
+	#colorbox *:focus, #colorbox:focus {outline: 0;}
     #cboxContent{margin-top:32px;}
 	 	#cboxLoadingOverlay,
         #cboxLoadedContent{background:#fff;padding:1px;border:10px solid #fff;box-shadow:0 0 20px #2A2727; -moz-border-radius:5px;-webkit-border-radius:5px;-o-border-radius:5px;border-radius:5px;}
