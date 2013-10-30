@@ -54,7 +54,16 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		'input' => 'input',
 		'inputslist' => 'inputs_list',
 		'coverimage' => 'coverimage',
-		'thumbnail' => 'coverimage'
+		'thumbnail' => 'coverimage',
+
+		'discount_amount' => 'discount_amount',
+		'discount_amounts' => 'discount_amounts',
+		'onsale' => 'onsale',
+		'price' => 'price',
+		'prices' => 'prices',
+		'saleprice' => 'saleprice',
+		'saleprices' => 'saleprices',
+		'percent_savings' => 'percent_savings'
 	);
 
 	public static function _apicontext () {
@@ -83,11 +92,30 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	public static function _cartitem ( $result, $options, $property, $O ) {
+/*
 		if ( is_float($result) ) {
 			if ( isset($options['currency']) && !Shopp::str_true($options['currency']) ) return $result;
 			else return money( roundprice($result) );
 		}
 		return $result;
+*/
+
+		// Passthru for non-monetary results
+		$monetary = array('discount', 'unitptice', 'unittax', 'discounts', 'tax', 'total', 'discount_amount', 'discount_amounts', 'price', 'prices', 'saleprice', 'saleprices');
+		if ( ! in_array($property, $monetary) || ! is_numeric($result) ) return $result;
+
+		$defaults = array(
+			'money' => 'on',
+			'number' => false,
+		);
+		$options = array_merge($defaults, $options);
+		extract($options);
+
+		if ( Shopp::str_true($number) ) return $result;
+		if ( Shopp::str_true($money)  ) $result = money( roundprice($result) );
+
+		return $result;
+
 	}
 
 	public static function id ( $result, $options, $O ) {
@@ -420,4 +448,43 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 			$O->includetax
 		);
 	}
+
+	// Returns the cart item discount amount; subtract the original price from the saleprice
+	public static function discount_amount ( $result, $options, $O ) {
+		return ( $O->option->price - $O->option->promoprice );
+	}
+
+	public static function discount_amounts ( $result, $options, $O ) {
+		return ( $O->quantity * ( $O->option->price - $O->option->promoprice ) );
+	}
+
+	public static function onsale ( $result, $options, $O ) {
+		return str_true( $O->sale );
+	}
+
+	// Returns the non-discounted price on an item
+	public static function price ( $result, $options, $O ) {
+		return $O->option->price;
+	}
+
+	// Returns the non-discounted line item total
+	public static function prices ( $result, $options, $O ) {
+		return ( $O->option->price * $O->quantity );
+	}
+
+	// Returns the sale price on an item
+	public static function saleprice ( $result, $options, $O ) {
+		return $O->option->promoprice;
+	}
+
+	// Returns the total sale price on a line item
+	public static function saleprices ( $result, $options, $O ) {	
+		return ( $O->option->promoprice * $O->quantity );
+	}
+
+	// Returns the percentage of the discount
+	public static function percent_savings ( $result, $options, $O ) {
+		return ( ( 1 - ( $O->option->promoprice / $O->option->price ) ) * 100);
+	}
+
 }

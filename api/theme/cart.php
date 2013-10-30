@@ -439,4 +439,25 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		return Shopp::url(false, 'cart');
 	}
 
+	// Check if any of the items in the cart are on sale
+	public static function has_savings ( $result, $options, $O ) {
+		// loop thru cart looking for $Item->sale == "on"
+		foreach( $O as $item ) {
+			if ( 'on' == $item->sale ) return true;
+		}
+
+		return false;
+	}
+
+	// Total discount of each item PLUS any Promotional Catalog discounts
+	public static function savings ( $result, $options, $O ) {
+		$total = 0;
+
+		foreach( $O as $item ){
+			$total += $item->option->price * $item->quantity;
+		}
+
+		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') ); 
+	}
+
 }
