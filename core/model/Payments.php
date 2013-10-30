@@ -17,6 +17,14 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 /**
  * ShoppPayments
  *
+ * The Payments subsystem deals with several layers of the payment
+ * handling. Each of these layers have different terms that represent
+ * similar but different aspects of the payment system.
+ *
+ * Method - roughly analagous to the payment setting configured in Shopp > System > Payments
+ * Option - The payment option shown to customers
+ * Module - The payment gateway processing module (the Shopp addon or processing class)
+ *
  * @author Jonathan Davis
  * @since 1.3
  * @version 1.0
@@ -89,6 +97,14 @@ class ShoppPayments extends ListFramework {
 
 	}
 
+	/**
+	 * Processes payment method selection changes by the shopper
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function request () {
 
 		if ( ! isset($_POST['paymethod']) ) return;
@@ -103,6 +119,14 @@ class ShoppPayments extends ListFramework {
 		unset($_POST['paymethod']); // Prevent unnecessary reprocessing on subsequent calls
 	}
 
+	/**
+	 * Chooses the inital payment method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return ShoppPaymentOption The selected payment option
+	 **/
 	public function initial () {
 
 		if ( $this->count() == 0 ) return false;
@@ -114,6 +138,15 @@ class ShoppPayments extends ListFramework {
 
 	}
 
+	/**
+	 * Get or set the selected payment method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $selection The payment option slug
+	 * @return ShoppPaymentOption The selected payment option (or false)
+	 **/
 	public function selected ( string $selection = null ) {
 
 		if ( isset($selection) ) {
@@ -130,6 +163,21 @@ class ShoppPayments extends ListFramework {
 		return false;
 	}
 
+	/**
+	 * Get or set the payment processor
+	 *
+	 * Gets the payment processor for the currently selected payment method or,
+	 * when a payment processor class is provided, sets the processor (and selected
+	 * payment method) to the new processor.
+	 *
+	 * The payment processor must be a valid module that is activated in Shopp System settings.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $processor The payment processor class
+	 * @return string The payment processor class name
+	 **/
 	public function processor ( string $processor = null ) {
 
 		$selected = $this->selected();
@@ -151,18 +199,57 @@ class ShoppPayments extends ListFramework {
 		return $selected->processor;
 	}
 
+	/**
+	 * Provides the list of accepted payment cards for all of the
+	 * active payment methods
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array List of payment cards
+	 **/
 	public function accepted () {
 		return $this->cards;
 	}
 
+	/**
+	 * Detects if the user has set a selected payment method
+	 * (as opposed to the inital/default payment method)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True when the user has selected a payment method
+	 **/
 	public function userset () {
 		return $this->userset;
 	}
 
+	/**
+	 * Determines if a secure session is needed by any of the payment methods
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True when secure encryption is needed
+	 **/
 	public function secure () {
 		return $this->secure;
 	}
 
+	/**
+	 * Set the payment processor to the Free Order processor
+	 *
+	 * Adds the free order payment processor and payment option
+	 * just-in-time and selects it as the selected processor. This
+	 * prevents the free order processor from being able to be
+	 * called up by outside requests.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function free () {
 		$Payment = $this->freemodule();
 		$this->processors[ $Payment->processor ] = $Payment->slug;
@@ -170,6 +257,15 @@ class ShoppPayments extends ListFramework {
 		$this->selected = $Payment->slug;
 	}
 
+	/**
+	 * Get the specified payment module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $module The payment module class name
+	 * @return GatewayFramework A payment gateway class (or boolean false if not valid)
+	 **/
 	private function modules ( string $module = null ) {
 		$Shopp = Shopp::object();
 
@@ -186,6 +282,14 @@ class ShoppPayments extends ListFramework {
 		} else return false;
 	}
 
+	/**
+	 * Provides the Free Order payment option
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return ShoppPaymentOption The free order processor payment option
+	 **/
 	private static function freemodule () {
 		$Shopp = Shopp::object();
 		$Module = $Shopp->Gateways->freeorder;
@@ -201,6 +305,13 @@ class ShoppPayments extends ListFramework {
 
 } // end ShoppPayments
 
+/**
+ * A structured payment option object
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package shopp
+ **/
 class ShoppPaymentOption extends AutoObjectFramework {
 
 	public $slug;
