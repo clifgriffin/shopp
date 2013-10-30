@@ -181,13 +181,13 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	/**
-	 * Set or load the discounts applied to this order
+	 * Set or load the taxes applied to this order
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @param ShoppDiscounts $ShoppDiscounts The ShoppDiscounts object from the order to add to this purchase
-	 * @return array List of discounts applied
+	 * @param array $OrderTaxes A list of OrderAmountItemTax entries
+	 * @return array The list of taxes applied to the order
 	 **/
 	public function taxes ( array $OrderTaxes = array() ) {
 		if ( empty($this->id) ) return false;
@@ -202,6 +202,47 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		if ( empty($this->taxes) ) $this->taxes = shopp_meta($this->id, 'purchase', 'taxes');
 		return $this->taxes;
+	}
+
+	/**
+	 * Creates or retrieves temporary account registration information for the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array A list of the registration objects
+	 **/
+	public function registration ( $args = false ) {
+		if ( empty($this->id) ) return false;
+		$args = func_get_args();
+
+		$cleanup = count($args) == 1 && 'process' == reset($args);
+
+		$registration = array();
+		$objectmap = array(
+			'ShoppCustomer' => 'Customer',
+			'BillingAddress' => 'Billing',
+			'ShippingAddress' => 'Shipping'
+		);
+		foreach ( $args as $Object ) {
+			$class = is_object($Object) ? get_class($Object) : '';
+
+			if ( 'ShoppCustomer' == $class ) // hash the password before storage
+				$Object->hashpass();
+
+			if ( isset($objectmap[ $class ]) )
+				$registration[ $objectmap[ $class ] ] = $Object;
+		}
+
+		if ( ! empty($registration) )
+			shopp_set_meta($this->id, 'purchase', 'registration', $registration);
+
+		$meta = shopp_meta($this->id, 'purchase', 'registration');
+
+		if ( $cleanup )
+			shopp_rmv_meta($this->id, 'purchase', 'registration');
+
+		return $meta;
 	}
 
 	/**

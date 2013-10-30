@@ -160,7 +160,11 @@ class Shopping extends SessionObject {
 		sDB::query("INSERT INTO $meta_table (context,type,name,value,created,modified)
 					SELECT 'shopping','session',session,data,created,'$now' FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified) AND stash=1");
 
+		// Delete session data preserved in meta after SHOPP_CART_EXPIRES
 		sDB::query("DELETE LOW_PRIORITY FROM $meta_table WHERE context='shopping' AND type='session' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
+
+		// Delete failed purchase registration data after SHOPP_CART_EXPIRES
+		sDB::query("DELETE LOW_PRIORITY FROM $meta_table WHERE context='purchase' AND name='registration' AND type='meta' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
 
 		return parent::clean($lifetime);
 

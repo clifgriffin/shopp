@@ -461,6 +461,8 @@ class ShoppOrder {
 				$this->items($Purchase->id);
 				$Purchase->discounts($this->Discounts);					// Save the discounts applied
 				$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
+				$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
+
 				$this->invoice($Purchase);
 
 				add_action( 'shopp_order_event', array($Purchase, 'notifications') );
@@ -471,9 +473,10 @@ class ShoppOrder {
 			return;
 		}
 
-		$this->items($Purchase->id);			// Create purchased records from the cart items
-		$Purchase->discounts($this->Discounts);	// Save the discounts applied
+		$this->items($Purchase->id);							// Create purchased records from the cart items
+		$Purchase->discounts($this->Discounts);					// Save the discounts applied
 		$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
+		$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -526,9 +529,20 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function accounts ($Event) {
+	public function accounts ( $Event ) {
 
-		$this->Checkout->registration();
+		$Purchase = $Event->order();
+		if ( ! $Purchase ) return;
+
+		// Detect (somehow) if the ShoppOrder()->Customer/Billing/Shipping
+		// If it is, load Purchase registration
+		$registration = $Purchase->registration('process');
+		extract($registration, EXTR_SKIP);
+
+        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
+        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+
+		ShoppRegistration::process();
 
 		// Update Purchase with link to created customer record
 		if ( ! empty($this->Customer->id) ) {
