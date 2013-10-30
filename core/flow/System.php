@@ -565,11 +565,12 @@ class ShoppAdminSystem extends ShoppAdminController {
 			if (isset($rate['zone']) && $rate['zone']) $score++;
 
 			if ('*' != $rate['country']) $score++;
+
+			$score += $rate['rate'] / 100;
 		}
 
-		if ($scoring['a'] > $scoring['b']) return 1;
-		else return -1;
-
+		if ( $scoring['a'] == $scoring['b'] ) return 0;
+		else return ( $scoring['a'] > $scoring['b'] ? 1 : -1 );
 	}
 
 	public function taxrate_upload () {
