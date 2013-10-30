@@ -253,7 +253,7 @@ class ShoppCheckout {
 		if ( ! $action || 'process' != $action) return;
 
 		$wasfree = $Cart->orderisfree();
-		$estimated = $Cart->Totals->total();
+		$estimated = $Cart->total();
 
 		$Cart->totals();
 
@@ -261,9 +261,9 @@ class ShoppCheckout {
 		else $this->customer(); // Catch changes from validation
 
 		// Catch originally free orders that get extra (shipping) costs added to them
-		if ( $wasfree && $Payments->count() > 1 && ! ( $Cart->orderisfree() && empty($Payments->selected()->cards) ) ) {
+		if ( $wasfree && $Payments->count() > 1 && ! $Cart->orderisfree() && empty($Payments->selected()->cards) ) {
 			shopp_add_error( __('The order amount changed and requires that you select a payment method.','Shopp') );
-			shopp_redirect( Shopp::url(false,'checkout',$this->security()) );
+			shopp_redirect( Shopp::url(false,'checkout', ShoppOrder()->security()) );
 		}
 
 		// If using shopp_checkout_processed for a payment gateway redirect action

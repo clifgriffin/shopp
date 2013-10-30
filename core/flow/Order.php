@@ -372,7 +372,7 @@ class ShoppOrder {
 	 **/
 	public function freebie () {
 
-		$this->Payments->processor('ShoppFreeOrder');
+		$this->Payments->free();
 		$this->Billing->cardtype = __('Free Order','Shopp');
 
 		return true;
@@ -700,7 +700,7 @@ class ShoppOrder {
 			if ( empty($Shipping->postcode) )
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode', false);
 
-			if ( 0 === $Shiprates->count() && ! $Shiprates->free() ) {
+			if ( $Shiprates->count() > 0 && ! $Shiprates->free() ) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 
 				$message = __('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', 'Shopp');

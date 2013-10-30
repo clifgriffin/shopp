@@ -51,7 +51,7 @@ class ShoppPayments extends ListFramework {
 
 		$gateways = explode(',', shopp_setting('active_gateways'));
 
-		foreach ($gateways as $gateway) {
+		foreach ( $gateways as $gateway ) {
 			$id	= false;
 
 			if ( false !== strpos($gateway, '-') )
@@ -86,9 +86,6 @@ class ShoppPayments extends ListFramework {
 		$this->populate($options);
 		$this->cards = $accepted;
 		$this->processors = $processors;
-
-		// Always include FreeOrder in the list of available payment processors
-		$this->processors['ShoppFreeOrder'] = 'freeorder';
 
 	}
 
@@ -166,17 +163,30 @@ class ShoppPayments extends ListFramework {
 		return $this->secure;
 	}
 
+	public function free () {
+		$Payment = $this->freemodule();
+		$this->processors[ $Payment->processor ] = $Payment->slug;
+		$this->add($Payment->slug, $Payment);
+		$this->selected = $Payment->slug;
+	}
+
 	private function modules ( string $module = null ) {
 		$Shopp = Shopp::object();
 
 		if ( is_null($module) ) return $Shopp->Gateways->active;
 
-		if ( isset($Shopp->Gateways->active[ $module ]) )
+		$FreeModule = $this->freemodule();
+
+		if ( $module == $FreeModule->processor ) {
+			return $Shopp->Gateways->freeorder;
+
+		} elseif ( isset($Shopp->Gateways->active[ $module ]) ) {
 			return $Shopp->Gateways->active[ $module ];
-		else return false;
+
+		} else return false;
 	}
 
-	private static function freeorder () {
+	private static function freemodule () {
 		$Shopp = Shopp::object();
 		$Module = $Shopp->Gateways->freeorder;
 		return new ShoppPaymentOption(
