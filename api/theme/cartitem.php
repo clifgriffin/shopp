@@ -42,8 +42,11 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		'taxrate' => 'taxrate',
 		'quantity' => 'quantity',
 		'remove' => 'remove',
+		'onsale' => 'onsale',
 		'optionlabel' => 'option_label',
 		'options' => 'options',
+		'price' => 'price',
+		'prices' => 'prices',
 		'hasaddons' => 'has_addons',
 		'addons' => 'addons',
 		'addon' => 'addon',
@@ -55,15 +58,8 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		'inputslist' => 'inputs_list',
 		'coverimage' => 'coverimage',
 		'thumbnail' => 'coverimage',
-
-		'discount_amount' => 'discount_amount',
-		'discount_amounts' => 'discount_amounts',
-		'onsale' => 'onsale',
-		'price' => 'price',
-		'prices' => 'prices',
 		'saleprice' => 'saleprice',
 		'saleprices' => 'saleprices',
-		'percent_savings' => 'percent_savings'
 	);
 
 	public static function _apicontext () {
@@ -92,24 +88,24 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	public static function _cartitem ( $result, $options, $property, $O ) {
-/*
-		if ( is_float($result) ) {
-			if ( isset($options['currency']) && !Shopp::str_true($options['currency']) ) return $result;
-			else return money( roundprice($result) );
-		}
-		return $result;
-*/
 
 		// Passthru for non-monetary results
-		$monetary = array('discount', 'unitptice', 'unittax', 'discounts', 'tax', 'total', 'discount_amount', 'discount_amounts', 'price', 'prices', 'saleprice', 'saleprices');
+		$monetary = array('discount', 'unitprice', 'unittax', 'discounts', 'tax', 'total', 'price', 'prices', 'saleprice', 'saleprices');
 		if ( ! in_array($property, $monetary) || ! is_numeric($result) ) return $result;
+
+		// @deprecated currency parameter
+		if ( isset($options['currency']) ) $options['money'] = $options['currency'];
 
 		$defaults = array(
 			'money' => 'on',
 			'number' => false,
+			'show' => ''
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
+
+		if ( in_array($show, array('%', 'percent')) )
+			return $result; // Pass thru percentage rendering
 
 		if ( Shopp::str_true($number) ) return $result;
 		if ( Shopp::str_true($money)  ) $result = money( roundprice($result) );
@@ -123,31 +119,70 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	public static function product ( $result, $options, $O ) {
-		return $O->product; 
+		if ( isset($options['priceline']) && Shopp::str_true($options['priceline']) )
+			return $O->$priceline;
+		return $O->product;
 	}
 
 	public static function name ( $result, $options, $O ) {
 		return $O->name;
 	}
 
-	public static function type ( $result, $options, $O ) { 
-		return $O->type; 
+	public static function type ( $result, $options, $O ) {
+		return $O->type;
 	}
 
 	public static function url ( $result, $options, $O ) {
 		return Shopp::url( '' == get_option('permalink_structure') ? array(ShoppProduct::$posttype => $O->slug ) : $O->slug, false );
 	}
 
-	public static function sku ( $result, $options, $O ) { 
-		return $O->sku; 
+	public static function sku ( $result, $options, $O ) {
+		return $O->sku;
 	}
 
-	public static function description ( $result, $options, $O ) { 
-		return $O->description; 
+	public static function description ( $result, $options, $O ) {
+		return $O->description;
 	}
 
-	public static function discount ( $result, $options, $O ) { 
-		return (float) $O->discount; 
+	public static function discount ( $result, $options, $O ) {
+
+		$defaults = array(
+			'catalog' => false,
+			'show' => ''
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
+
+		// Item unit discount
+		$discount = $O->discount;
+
+		if ( Shopp::str_true($catalog) )
+			$discount = $O->option->price - $O->option->promoprice;
+
+		if ( in_array($show, array('%', 'percent')) )
+			return percentage( ( $discount / $O->option->price ) * 100, array('precision' => 0) );
+
+		return (float) $discount;
+	}
+
+	public static function discounts ( $result, $options, $O ) {
+		$defaults = array(
+			'catalog' => false,
+			'show' => ''
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
+
+		// Unit discount * quantity
+		$discounts = $O->discounts;
+
+		if ( Shopp::str_true($catalog) )
+			$discounts =  $O->quantity * self::discount('', array('catalog' => true, 'number' => true), $O);
+
+		if ( in_array($show, array('%', 'percent')) )
+			return percentage( ( $discounts / self::prices('', array('number' => true), $O) ) * 100, array('precision' => 0) );
+
+		return (float) $discounts;
 	}
 
 	public static function unitprice ( $result, $options, $O ) {
@@ -155,16 +190,13 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return (float) $O->unitprice + ( $taxes ? $O->unittax : 0 );
 	}
 
-	public static function unittax ( $result, $options, $O ) { 
-		return (float) $O->unittax; 
+	public static function unittax ( $result, $options, $O ) {
+		return (float) $O->unittax;
 	}
 
-	public static function discounts ( $result, $options, $O ) { 
-		return (float) $O->discounts; 
-	}
 
-	public static function tax ( $result, $options, $O ) { 
-		return (float) $O->tax; 
+	public static function tax ( $result, $options, $O ) {
+		return (float) $O->tax;
 	}
 
 	public static function total ( $result, $options, $O ) {
@@ -227,8 +259,8 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return $result;
 	}
 
-	public static function option_label ( $result, $options, $O ) { 
-		return $O->option->label; 
+	public static function option_label ( $result, $options, $O ) {
+		return $O->option->label;
 	}
 
 	public static function options ( $result, $options, $O ) {
@@ -440,26 +472,8 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return ShoppStorefrontThemeAPI::image( $result, $options, $O );
 	}
 
-	private static function _include_tax ( $O ) {
-		return (
-			shopp_setting_enabled('tax_inclusive') &&
-			$O->istaxed &&
-			$O->unittax > 0 &&
-			$O->includetax
-		);
-	}
-
-	// Returns the cart item discount amount; subtract the original price from the saleprice
-	public static function discount_amount ( $result, $options, $O ) {
-		return ( $O->option->price - $O->option->promoprice );
-	}
-
-	public static function discount_amounts ( $result, $options, $O ) {
-		return ( $O->quantity * ( $O->option->price - $O->option->promoprice ) );
-	}
-
 	public static function onsale ( $result, $options, $O ) {
-		return str_true( $O->sale );
+		return Shopp::str_true( $O->sale );
 	}
 
 	// Returns the non-discounted price on an item
@@ -478,13 +492,17 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	// Returns the total sale price on a line item
-	public static function saleprices ( $result, $options, $O ) {	
+	public static function saleprices ( $result, $options, $O ) {
 		return ( $O->option->promoprice * $O->quantity );
 	}
 
-	// Returns the percentage of the discount
-	public static function percent_savings ( $result, $options, $O ) {
-		return ( ( 1 - ( $O->option->promoprice / $O->option->price ) ) * 100);
+	private static function _include_tax ( $O ) {
+		return (
+			shopp_setting_enabled('tax_inclusive') &&
+			$O->istaxed &&
+			$O->unittax > 0 &&
+			$O->includetax
+		);
 	}
 
 }

@@ -298,7 +298,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_set_setting('tax_shipping', 'off');
 		shopp_add_cart_product($Product->id,1);
 
-		$expected = '$17.01';
+		$expected = '17.01';
 		shopp('cart', 'items');
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -335,7 +335,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_set_setting('tax_shipping', 'on');
 		shopp_add_cart_product($Product->id,1);
 
-		$expected = '$17.01';
+		$expected = '17.01';
 		shopp('cart', 'items');
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -372,7 +372,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id,1);
 		shopp_add_cart_promocode('2percent');
 
-		$expected = '$17.01';
+		$expected = '17.01';
 		shopp('cart', 'items');
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -409,7 +409,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id, 1);
 		shopp_add_cart_promocode('5off');
 
-		$expected = '$17.01';
+		$expected = '17.01';
 		shopp('cart', 'items');
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -447,7 +447,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id, 1);
 		shopp_add_cart_promocode('FreeShip');
 
-		$expected = '$17.01';
+		$expected = '17.01';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -669,10 +669,10 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_promocode('5off');
 
 		while( shopp('cart', 'items') ) {
-			$expected = '$17.01';
+			$expected = '17.01';
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-			$expected = '$170.10';
+			$expected = '170.10';
 			$actual = shopp('cartitem','total',$options);
 			$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
 		}
@@ -706,10 +706,10 @@ class CartTotalsTests extends ShoppTestCase {
 
 
 		shopp('cart', 'items');
-		$expected = '$17.01';
+		$expected = '17.01';
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-		$expected = '$255.15';
+		$expected = '255.15';
 		$actual = shopp('cartitem','total',$options);
 		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
 		shopp('cart', 'items');
@@ -744,10 +744,10 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_promocode('buy5get1');
 
 		shopp('cart', 'items');
-		$expected = '$17.01';
+		$expected = '17.01';
 		$actual = shopp('cartitem','unitprice',$options);
 		$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
-		$expected = '$102.06';
+		$expected = '102.06';
 		$actual = shopp('cartitem','total',$options);
 		$this->assertEquals($expected, $actual,'Cart line item total assertion failed');
 		shopp('cart', 'items');
