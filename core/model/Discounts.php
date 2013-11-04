@@ -255,7 +255,7 @@ class ShoppDiscounts extends ListFramework {
 
 			// Prevent customers from reapplying codes
 			if ( $this->codeapplied($request) ) {
-				shopp_add_error( sprintf(__('%s has already been applied.', 'Shopp'), $value) );
+				shopp_add_error( sprintf(__('%s has already been applied.', 'Shopp'), $request) );
 				$this->request = false;
 			}
 
