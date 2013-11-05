@@ -150,7 +150,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function discount_applied ( $result, $options, $O ) {
 		$Discount = ShoppOrder()->Discounts->current();
-		if ( $Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
+		if ( ! $Discount->applies() ) return false;
 
 		$defaults = array(
 			'label' => __('%s Off!', 'Shopp'),
@@ -183,7 +183,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function discount_name ( $result, $options, $O ) {
 		$Discount = ShoppOrder()->Discounts->current();
-		if ( $Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
+		if ( ! $Discount->applies() ) return false;
 		return $Discount->name();
 	}
 

@@ -762,6 +762,18 @@ class ShoppOrderDiscount {
 	}
 
 	/**
+	 * Determines if the discount applies to (affects) the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if the discount affects the order, false otherwise
+	 **/
+	public function applies () {
+		return apply_filters('shopp_discount_applies', ( $Discount->amount() == 0 && ! $Discount->shipfree() ), $Discount );
+	}
+
+	/**
 	 * Gets or sets the discount promotion id
 	 *
 	 * @author Jonathan Davis
