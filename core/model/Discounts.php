@@ -783,7 +783,8 @@ class ShoppOrderDiscount {
 	 * @return boolean True if the discount affects the order, false otherwise
 	 **/
 	public function applies () {
-		return apply_filters('shopp_discount_applies', ( $Discount->amount() == 0 && ! $Discount->shipfree() ), $Discount );
+		$applies = ( $this->amount() > 0 || ( $this->amount() == 0 && $this->shipfree() ) );
+		return apply_filters('shopp_discount_applies', $applies, $this );
 	}
 
 	/**
