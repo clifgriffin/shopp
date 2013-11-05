@@ -390,6 +390,19 @@ class ShoppDiscounts extends ListFramework {
 		return isset( $this->codes[ strtolower($code) ]);
 	}
 
+	/**
+	 * Provides a list of the codes applied
+	 *
+	 * @clifgriffin U CAN HAZ INTERFACE
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array List of applied codes
+	 **/
+	public function codes () {
+		return array_keys($this->codes);
+	}
+
 	public function clear () {
 		parent::clear();
 		$this->codes = array();
