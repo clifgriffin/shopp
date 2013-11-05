@@ -78,11 +78,13 @@ class ShoppAdmin extends ShoppFlowController {
 		// Dashboard widget support
 		add_action('wp_dashboard_setup', array('ShoppAdminDashboard', 'init'));
 
+		// Metabox help screencasts
+		add_filter('shopp_admin_boxhelp', array('ShoppSupport', 'activated'));
+
+		add_action('admin_init', array($this, 'updates'));
 		add_action('admin_init', array($this, 'tinymce'));
-		add_action('load-plugins.php', array($this, 'pluginspage'));
 		add_action('switch_theme', array($this, 'themepath'));
 		add_filter('favorite_actions', array($this, 'favorites'));
-		add_filter('shopp_admin_boxhelp', array($this, 'support'));
 		add_action('load-update.php', array($this, 'styles'));
 		add_action('admin_menu', array($this, 'taxonomies'), 100);
 
@@ -96,7 +98,7 @@ class ShoppAdmin extends ShoppFlowController {
 
 		$this->pages();
 
-		wp_enqueue_style('shopp.menu',SHOPP_ADMIN_URI.'/styles/menu.css',array(),ShoppVersion::cache(),'screen');
+		wp_enqueue_style('shopp.menu', SHOPP_ADMIN_URI . '/styles/menu.css', array(), ShoppVersion::cache(), 'screen');
 
 		// Set the currently requested page and menu
 		if ( isset($_GET['page']) && false !== strpos($_GET['page'], basename(SHOPP_PATH)) ) $page = $_GET['page'];
@@ -478,6 +480,21 @@ class ShoppAdmin extends ShoppFlowController {
 
 	}
 
+	public function updates () {
+
+		add_filter('plugin_row_meta', array('ShoppSupport','addons'), 10, 2); // Show installed addons
+
+		if ( ShoppSupport::activated() ) return;
+
+		add_action('in_plugin_update_message-' . SHOPP_PLUGINFILE, array('ShoppSupport', 'wpupdate'), 10, 2);
+		add_action('after_plugin_row_' . SHOPP_PLUGINFILE, array('ShoppSupport', 'pluginsnag'), 10, 2);
+
+		$updates = array('load-plugins', 'load-update.php', 'load-update-core.php', 'wp_update_plugins', 'shopp_check_updates');
+		foreach ( $updates as $action )
+			add_action($action, array('ShoppSupport', 'updates'));
+
+	}
+
 	/**
 	 * Adds contextually appropriate help information to interfaces
 	 *
@@ -556,19 +573,6 @@ class ShoppAdmin extends ShoppFlowController {
 	 **/
 	public function themepath () {
 		shopp_set_setting('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
-	}
-
-	/**
-	 * Report the current status of Shopp support
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean
-	 **/
-	public function support ( $status = true ) {
-		if ( ! ShoppSupport::activated() ) return false;
-		return $status;
 	}
 
 	/**
@@ -680,18 +684,6 @@ class ShoppAdmin extends ShoppFlowController {
 				wp_redirect(add_query_arg('page',$this->pagename('orders'),admin_url('admin.php')));
 				exit();
 		}
-	}
-
-	/**
-	 * Suppress the standard WordPress plugin update message for the Shopp listing on the plugin page
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function pluginspage () {
-		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
 
 	/**
