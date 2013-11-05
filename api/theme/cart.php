@@ -27,6 +27,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'discount' => 'discount',
 		'discountapplied' => 'discount_applied',
 		'discountname' => 'discount_name',
+		'discountremove' => 'discount_remove',
 		'discounts' => 'discounts',
 		'discountsavailable' => 'discounts_available',
 		'downloaditems' => 'download_items',
@@ -174,7 +175,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 
 		if ( Shopp::str_true($remove) )
-			$string .= '&nbsp;<a href="' . Shopp::url(array('removecode' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
+			$string .= '&nbsp;' . self::discount_remove('', $options, $O);
 
 		$string .= $after;
 
@@ -185,6 +186,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		$Discount = ShoppOrder()->Discounts->current();
 		if ( ! $Discount->applies() ) return false;
 		return $Discount->name();
+	}
+
+	public static function discount_remove ( $result, $options, $O ) {
+		$Discount = ShoppOrder()->Discounts->current();
+		if ( ! $Discount->applies() ) return false;
+
+		return '<a href="' . Shopp::url(array('removecode' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
 	}
 
 	public static function discounts ( $result, $options, $O ) {
@@ -457,7 +465,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			$total += $item->option->price * $item->quantity;
 		}
 
-		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') ); 
+		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') );
 	}
 
 }
