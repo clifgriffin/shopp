@@ -300,6 +300,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function info ( $result, $options, $O ) {
+		$fields = $O->info;
 		$defaults = array(
 			'mode' => 'input',
 			'type' => 'text',
@@ -307,30 +308,32 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			'value' => false
 		);
 
-		if ( isset($options['name']) && array_key_exists($options['name'], ShoppOrder()->Customer->info) )
-			$defaults['value'] = ShoppOrder()->Customer->info[ $options['name'] ];
+		if ( is_array($fields) && isset($options['name']) && isset($fields[ $options['name'] ]) )
+			$defaults['value'] = $fields[ $options['name'] ];
 
-		$options = array_merge($defaults,$options);
-		extract($options);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
 
-		if ($O->_info_looping)
-			$info = current($O->info->meta);
-		elseif ($name !== false && is_object($O->info->named[$name]))
-			$info = $O->info->named[$name];
+		if ( $O->_info_looping )
+			$info = current($fields->meta);
+		elseif ( $name !== false && is_object($fields->named[ $name ]) )
+			$info = $fields->named[$name];
 
-		switch ($mode) {
-			case "name": return $info->name; break;
-			case "value": return apply_filters('shopp_customer_info', $info->value); break;
+		switch ( strtolower($mode) ) {
+			case 'name': return $info->name;
+			case 'value': return apply_filters('shopp_customer_info', $info->value);
 		}
 
-		if (!$name && !empty($info->name)) $options['name'] = $info->name;
-		elseif (!$name) return false;
+		if ( ! $name && ! empty($info->name) ) $name = $info->name;
+		elseif ( ! $name ) return false;
 
-		if (!$value && !empty($info->value)) $options['value'] = $info->value;
+		if ( ! $value && ! empty($info->value) ) $options['value'] = $info->value;
 
-		$allowed_types = array("text","password","hidden","checkbox","radio");
-		$type = in_array($type,$allowed_types)?$type:'hidden';
-		return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
+		$allowed_types = array('text', 'password', 'hidden', 'checkbox', 'radio');
+		$type = in_array($type, $allowed_types) ? $type : 'hidden';
+		$id = 'customer-info-' . sanitize_title_with_dashes($name);
+
+		return '<input type="' . $type . '" name="info[' . esc_attr($name) . ']" id="' . $id . '"' . inputattrs($options) . ' />';
 	}
 
 	public static function last_name ( $result, $options, $O ) {
@@ -733,7 +736,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * @deprecated Replaced by shopp('storefront','account-menu')
 	 **/
 	public static function menu ( $result, $options, $O ) {
-		return ShoppStorefrontThemeAPI::account_menu($result,$options,$O);
+		return ShoppStorefrontThemeAPI::account_menu($result, $options, $O);
 	}
 
 	/**
@@ -748,7 +751,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * @deprecated Replaced by shopp('storefront','account-menuitem')
 	 **/
 	public static function management ( $result, $options, $O ) {
-		return ShoppStorefrontThemeAPI::account_menuitem($result,$options,$O);
+		return ShoppStorefrontThemeAPI::account_menuitem($result, $options, $O);
 	}
 
 }
