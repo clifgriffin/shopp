@@ -352,7 +352,7 @@ class CartAPITests extends ShoppTestCase {
 				shopp('cart.discount-applied', 'remove=off');
 		$actual = ob_get_clean();
 
-		$this->assertEquals('$3.00 Off!',$actual);
+		$this->assertEquals('$3.00 off',$actual);
 	}
 
 
