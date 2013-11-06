@@ -446,6 +446,10 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			'value' => '',
 			'options' => ''
 		);
+
+		if ( isset($options['name']) && array_key_exists($options['name'], ShoppOrder()->Customer->info) )
+			$defaults['value'] = ShoppOrder()->Customer->info[ $options['name'] ];
+
 		if ('textarea' == $defaults['type']) {
 			$defaults['cols'] = '30';
 			$defaults['rows'] = '3';
@@ -629,6 +633,9 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			'value' => '',
 			'options' => ''
 		);
+
+		if ( isset($options['name']) && array_key_exists($options['name'], ShoppOrder()->data) )
+			$defaults['value'] = ShoppOrder()->data[ $options['name'] ];
 
 		if ( isset($options['type']) && 'textarea' == $options['type'] ) {
 			$defaults['cols'] = '30';

@@ -306,6 +306,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 			'name' => false,
 			'value' => false
 		);
+
+		if ( isset($options['name']) && array_key_exists($options['name'], ShoppOrder()->Customer->info) )
+			$defaults['value'] = ShoppOrder()->Customer->info[ $options['name'] ];
+
 		$options = array_merge($defaults,$options);
 		extract($options);
 
