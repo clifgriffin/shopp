@@ -52,6 +52,7 @@ class ShoppDiscounts extends ListFramework {
 
 	}
 
+
 	/**
 	 * Handle parsing and routing discount code related requests
 	 *
@@ -67,8 +68,8 @@ class ShoppDiscounts extends ListFramework {
 		elseif ( isset($_REQUEST['credit']) && ! empty($_REQUEST['credit']) )
 			$this->credit( trim($_REQUEST['credit']) );
 
-		if ( isset($_REQUEST['undiscount']) && ! empty($_REQUEST['undiscount']) )
-			$this->undiscount(trim($_REQUEST['undiscount']));
+		if ( isset($_REQUEST['removecode']) && ! empty($_REQUEST['removecode']) )
+			$this->undiscount(trim($_REQUEST['removecode']));
 
 	}
 
@@ -119,10 +120,11 @@ class ShoppDiscounts extends ListFramework {
 		$credits = array();
 
 		$CartTotals = ShoppOrder()->Cart->Totals;
+
 		// Wipe out any existing credit calculations
 		$CartTotals->takeoff('discount', 'credit');
 		$discounts = $CartTotals->total('discount'); // Resum the applied discounts (without credits)
-		// echo "Discounts currently applied: "; var_dump($discounts); echo BR;
+
 		foreach ( $this as $Discount ) {
 			if ( $Discount->type() != ShoppOrderDiscount::CREDIT ) continue;
 			$Discount->calculate(); // Recalculate based on current total to apply an appropriate amount
@@ -285,9 +287,9 @@ class ShoppDiscounts extends ListFramework {
 			if ( ! $CodeRule->match() ) continue;
 
 			// Prevent customers from reapplying codes
-			if ( $this->codeapplied($request) ) {
-				shopp_add_error( sprintf(__('%s has already been applied.', 'Shopp'), $request) );
-				$this->request = false;
+			if ( ! empty($request) && $this->codeapplied($request) ) {
+				shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', $rule['value']) );
+				$this->request(false);
 			}
 
 			if ( ! $this->codeapplied( $rule['value'] ) )
@@ -809,9 +811,7 @@ class ShoppOrderDiscount {
 			$this->discount = array($Promo->buyqty, $Promo->getqty);
 
 		$this->calculate();
-
 	}
-
 	/**
 	 * Determines if the discount applies to (affects) the order
 	 *
@@ -885,19 +885,12 @@ class ShoppOrderDiscount {
 				if ( $credits = $Cart->Totals->entry('discount', 'credit') && method_exists($credits, 'amount') )
 					$credit = $credits->amount();
 
-				// echo "credit available: "; var_dump($this->discount()); echo BR;
-				// echo "order total: "; var_dump($total); echo BR;
-				// echo "credits applied (already): "; var_dump($credit); echo BR;
-
 				$this->amount = min($this->discount(), $total);
-
-				// echo "amount to apply: "; var_dump($this->amount); echo BR;
 
 				break; // Apply the smaller of either the order total or available discount
 			case self::PERCENT_OFF:
 				$subtotal = $Cart->total('order');
 				if ( $discounts > 0 ) $subtotal -= $discounts;
-				// $subtotal = $Cart->total('order') - $Cart->total('discount');
 				$this->amount = $subtotal * ($this->discount() / 100);
 				break;
 		}
@@ -925,7 +918,6 @@ class ShoppOrderDiscount {
 		}
 
 	}
-
 	/**
 	 * Gets or sets the code for this discount
 	 *
@@ -1016,19 +1008,11 @@ class ShoppOrderDiscount {
 	 **/
 	public function discount ( $amount = null ) {
 
-		if ( isset($Promo) ) {
-
-			$target = $this->target($Promo->target);
-			$type = $this->type($Promo->type);
-			$this->discount = $Promo->discount;
-
-			if ( self::BOGOF == $type )
-				$this->discount = array($Promo->buyqty, $Promo->getqty);
-		}
-
 		if ( isset($amount) ) $this->discount = (float) $amount;
 		return $this->discount;
+
 	}
+
 
 	/**
 	 * Gets or sets the items the discount applies to
