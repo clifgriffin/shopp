@@ -164,19 +164,85 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @return array List of discounts applied
 	 **/
 	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
+		if ( empty($this->id) ) return false;
 
 		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
 			$discounts = array();
 			foreach ( $ShoppDiscounts as $Discount )
 				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-			shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
+
+			shopp_set_meta($this->id, 'purchase', 'discounts', $discounts);
 			$this->discounts = $discounts;
 			ShoppPromo::used(array_keys($discounts));
 		}
 
-		if ( empty($this->id) ) return false;
 		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
 		return $this->discounts;
+	}
+
+	/**
+	 * Set or load the taxes applied to this order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $OrderTaxes A list of OrderAmountItemTax entries
+	 * @return array The list of taxes applied to the order
+	 **/
+	public function taxes ( array $OrderTaxes = array() ) {
+		if ( empty($this->id) ) return false;
+
+		if ( ! empty($OrderTaxes) ) { // Save the given taxes
+			$taxes = array();
+			foreach ( (array) $OrderTaxes as $Tax )
+				$taxes[ $Tax->id() ] = new ShoppPurchaseTax($Tax);
+			shopp_set_meta($this->id, 'purchase', 'taxes', $taxes);
+			$this->taxes = $taxes;
+		}
+
+		if ( empty($this->taxes) ) $this->taxes = shopp_meta($this->id, 'purchase', 'taxes');
+		return $this->taxes;
+	}
+
+	/**
+	 * Creates or retrieves temporary account registration information for the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array A list of the registration objects
+	 **/
+	public function registration ( $args = false ) {
+		if ( empty($this->id) ) return false;
+		$args = func_get_args();
+
+		$cleanup = count($args) == 1 && 'process' == reset($args);
+
+		$registration = array();
+		$objectmap = array(
+			'ShoppCustomer' => 'Customer',
+			'BillingAddress' => 'Billing',
+			'ShippingAddress' => 'Shipping'
+		);
+		foreach ( $args as $Object ) {
+			$class = is_object($Object) ? get_class($Object) : '';
+
+			if ( 'ShoppCustomer' == $class ) // hash the password before storage
+				$Object->hashpass();
+
+			if ( isset($objectmap[ $class ]) )
+				$registration[ $objectmap[ $class ] ] = $Object;
+		}
+
+		if ( ! empty($registration) )
+			shopp_set_meta($this->id, 'purchase', 'registration', $registration);
+
+		$meta = shopp_meta($this->id, 'purchase', 'registration');
+
+		if ( $cleanup )
+			shopp_rmv_meta($this->id, 'purchase', 'registration');
+
+		return $meta;
 	}
 
 	/**

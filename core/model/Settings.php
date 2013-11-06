@@ -53,7 +53,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 		$this->bootup = false;
 	}
 
-	static function object () {
+	public static function object () {
 		if ( ! self::$object instanceof self )
 			self::$object = new self;
 		return self::$object;

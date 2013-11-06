@@ -9,23 +9,6 @@
 
 	?>
 
-
-	<form name="settings" id="general" action="<?php echo $this->url; ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-activation'); ?>
-
-		<table class="form-table">
-			<tr>
-				<th scope="row" valign="top"><label for="update-key"><?php _e('Support Key','Shopp'); ?></label></th>
-				<td>
-					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="54" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
-					<span class="connecting"><input type="submit" id="activation-button" name="activation-button" class="button-secondary" value="<?php echo $button; ?>" /></span>
-					<input type="hidden" name="activation" value="<?php echo $action; ?>" />
-					<div id="activation-status" class="hide-if-js<?php echo " $status_class"; ?>"><?php echo $keystatus; ?></div>
-	            </td>
-			</tr>
-		</table>
-	</form>
-
 	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 
@@ -98,9 +81,6 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-	var activated = <?php echo ($activated)?'true':'false'; ?>,
-		zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
-		act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
-		deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
+	var zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>';
 /* ]]> */
 </script>

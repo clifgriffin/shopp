@@ -576,7 +576,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$hrefattr = $Image->url();
 				$relattr = empty($rel) ? '' : ' rel="' . esc_attr($rel) . '"';
-				$linkclasses = array($gallery, $product_class, $zoomfx);
+				$linkclasses = array('gallery', $product_class, $zoomfx);
 
 				$img = '<a href="' . $hrefattr . '" class="' . join(' ', $linkclasses) . '"' . $relattr . $titleattr . '>' . $img . '</a>';
 

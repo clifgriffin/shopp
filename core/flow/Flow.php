@@ -47,9 +47,6 @@ class ShoppFlow {
 		add_action( 'admin_menu', array($this, 'menu'), 50 );
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
-		// Handle automatic updates
-		add_action('update-custom_shopp', array($this, 'update'));
-
 		// Parse the request
 		if ( defined('WP_ADMIN') ) add_action( 'current_screen', array($this, 'parse') );
 		else add_action( 'parse_request', array($this, 'parse') );
@@ -170,11 +167,6 @@ class ShoppFlow {
 
 		if ( ! $this->Installer )
 			$this->Installer = new ShoppInstallation;
-	}
-
-	public function update () {
-		$this->installation();
-		do_action('shopp_autoupdate');
 	}
 
 	public function save_settings () {
@@ -331,27 +323,11 @@ abstract class ShoppAdminController extends ShoppFlowController {
 			$markup[] = '</div>';
 		}
 
-		$markup[] = $this->reminder();
+		$markup[] = ShoppSupport::reminder();
 
 		if ( ! empty($markup) ) echo join('', $markup);
 		$this->notices = array(); // Reset output buffer
 
-	}
-
-	private function reminder () {
-		$userid = get_current_user_id();
-		if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || get_user_meta($userid, 'shopp_nonag') || in_array($_REQUEST['page'], array('shopp-setup', 'shopp-setup-core')) ) return '';
-
-		$url = add_query_arg('action', 'shopp_nonag', wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_nonag'));
-		$_ = array();
-		$_[] = '<div id="shopp-activation-nag" class="notice wp-core-ui">';
-		$_[] = '<p class="dismiss shoppui-remove-sign alignright"></p>';
-		$_[] = '<p class="nag">' . Shopp::_m('You&apos;re missing out on **expert support** and **one-click updates**! Don&apos;t have a support key? %sClick Here to Buy a Support Key Now!%s', '<a href="' . ShoppSupport::STORE . '" class="button button-secondary">', '</a>') . '</p>';
-		$_[] = '</div>';
-		$_[] = '<script type="text/javascript">';
-		$_[] = 'jQuery(document).ready(function($){var id="#shopp-activation-nag",el=$(id).click(function(){window.open($(this).find("a").attr("href"),"_blank");}).find(".dismiss").click(function(){$(id).remove();$.ajax(\'' . $url . '\');});});';
-		$_[] = '</script>';
-		return join('', $_);
 	}
 
 	/**
@@ -386,6 +362,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	}
 
 	private function maintenance () {
+		if ( ShoppLoader::is_activating() || Shopp::upgradedb() ) return;
 
 		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
 			if ( isset($_POST['settings']['maintenance']))
@@ -398,6 +375,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 				shopp_set_setting('maintenance', 'off');
 			} else {
 				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup-pages'), admin_url('admin.php')), 'shopp_disable_maintenance');
+				error_log(debug_caller());
 				$this->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 			}
 		}
@@ -415,7 +393,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 			return $path;
 
 		$this->notice(Shopp::__('The requested setting screen was not found.'),'error');
-		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Ooops.</h2></div>';
+		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Oops.</h2></div>';
 		do_action('shopp_admin_notices');
 		return false;
 	}

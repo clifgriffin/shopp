@@ -64,9 +64,12 @@ class OrderTotals extends ListFramework {
 	 * @param string $id The entry identifier
 	 * @return OrderAmount The order amount entry
 	 **/
-	public function &entry ( string $register, string $id ) {
+	public function &entry ( string $register, string $id = null ) {
 		if ( ! isset($this->register[ $register ]) ) return false;
 		$Register = &$this->register[ $register ];
+
+		// If id is not provided, return the entire register
+		if ( ! isset($id) ) return $Register;
 
 		if ( ! isset($Register[$id]) ) return false;
 		return $Register[$id];
@@ -218,7 +221,7 @@ class OrderTotals extends ListFramework {
 	public function __toString () {
 		$data = new StdClass();
 		foreach ( $this as $id => $entry )
-			$data->$id = (string)$entry;
+			$data->$id = $entry->amount();
 
 		return json_encode($data);
 	}
@@ -449,7 +452,7 @@ abstract class OrderTotalAmount {
 	}
 
 	public function __toString () {
-		return (string)$this->amount();
+		return $this->amount();
 	}
 
 	private function precision () {
@@ -698,6 +701,10 @@ class OrderAmountItemTax extends OrderAmountDebit {
 
 	public function total () {
 		return array_sum($this->items());
+	}
+
+	public function rate () {
+		return (float) $this->rate;
 	}
 
 	public function &amount ( float $value = null ) {

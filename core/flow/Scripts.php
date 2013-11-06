@@ -90,12 +90,14 @@ class ShoppScripts extends WP_Scripts {
 		if ( $zip && defined('ENFORCE_GZIP') && ENFORCE_GZIP )
 			$zip = 'gzip';
 
+		$debug = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '&debug=1' : '';
+
 		if ( !empty($this->concat) ) {
 			$ver = md5("$this->concat_version");
 			if (shopp_setting('script_server') == 'plugin') {
-				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver";
+				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
 				if (is_ssl()) $src = str_replace('http://','https://',$src);
-			} else $src = SHOPP_PLUGINURI . "/services/scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
+			} else $src = SHOPP_PLUGINURI . "/services/scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver" . $debug;
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
 
@@ -153,6 +155,7 @@ class ShoppScripts extends WP_Scripts {
 	public function add ( $handle, $src, $deps = array(), $ver = false, $args = null ) {
 
 		$debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;	// Determine if we are debugging the scripts
+		if ( isset($_GET['debug']) && 1 == $_GET['debug'] ) $debug = true;
 		$extension = '.js';									// Use .js extension for script files
 		$suffix = '.min';									// Use .min for suffix
 		$minsrc = str_replace($extension, $suffix . $extension, $src);
@@ -204,6 +207,7 @@ function shopp_default_scripts (&$scripts) {
 
 	// Short checksum for cache control that changes with Shopp versions while masking it somewhat
 	$version = hash('crc32b', ABSPATH . ShoppVersion::release());
+	$version = (time());
 
 	$scripts->add('shopp', '/ui/behaviors/shopp.js', array('jquery'), $version);
 	$scripts->add_data('shopp', 'group', 1);

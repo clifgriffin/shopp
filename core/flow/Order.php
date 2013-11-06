@@ -372,7 +372,7 @@ class ShoppOrder {
 	 **/
 	public function freebie () {
 
-		$this->Payments->processor('ShoppFreeOrder');
+		$this->Payments->free();
 		$this->Billing->cardtype = __('Free Order','Shopp');
 
 		return true;
@@ -387,6 +387,7 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function purchase ( PurchaseOrderEvent $Event ) {
+
 		$Shopping = ShoppShopping();
 		$changed = $this->changed();
 
@@ -458,7 +459,10 @@ class ShoppOrder {
 
 				// Recreate purchased records from the cart and re-invoice for the new order total
 				$this->items($Purchase->id);
-				$this->discounts($Purchase->id);
+				$Purchase->discounts($this->Discounts);					// Save the discounts applied
+				$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
+				$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
+
 				$this->invoice($Purchase);
 
 				add_action( 'shopp_order_event', array($Purchase, 'notifications') );
@@ -469,8 +473,10 @@ class ShoppOrder {
 			return;
 		}
 
-		$this->items($Purchase->id);			// Create purchased records from the cart items
-		$Purchase->discounts($this->Discounts);	// Save the discounts applied
+		$this->items($Purchase->id);							// Create purchased records from the cart items
+		$Purchase->discounts($this->Discounts);					// Save the discounts applied
+		$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
+		$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -502,22 +508,6 @@ class ShoppOrder {
 	}
 
 	/**
-	 * Adds discount data to an order
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param int $purchaseid The Purchase id to attach the purchased records to
-	 * @return void
-	 **/
-	public function discounts ( $purchaseid ) {
-		$discounts = array();
-		foreach ( $this->Discounts as $Discount )
-			$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-		shopp_set_meta($purchaseid, 'purchase', 'discounts', $discounts);
-	}
-
-	/**
 	 * Detect changes to the order (in the cart)
 	 *
 	 * @author Jonathan Davis
@@ -539,9 +529,20 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function accounts ($Event) {
+	public function accounts ( $Event ) {
 
-		$this->Checkout->registration();
+		$Purchase = $Event->order();
+		if ( ! $Purchase ) return;
+
+		// Detect (somehow) if the ShoppOrder()->Customer/Billing/Shipping
+		// If it is, load Purchase registration
+		$registration = $Purchase->registration('process');
+		extract($registration, EXTR_SKIP);
+
+        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
+        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+
+		ShoppRegistration::process();
 
 		// Update Purchase with link to created customer record
 		if ( ! empty($this->Customer->id) ) {
@@ -635,7 +636,7 @@ class ShoppOrder {
 	 **/
 	public function validate () {
 		if ( apply_filters('shopp_valid_order', $this->isvalid()) ) return true;
-		
+
 		$redirect = Shopp::url(false, 'checkout', $this->security());
 		shopp_redirect( apply_filters('shopp_invalid_order_redirect', $redirect), true );
 	}
@@ -699,7 +700,7 @@ class ShoppOrder {
 			if ( empty($Shipping->postcode) )
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode', false);
 
-			if ( 0 === $Shiprates->count() && ! $Shiprates->free() ) {
+			if ( $Shiprates->count() > 0 && ! $Shiprates->free() ) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 
 				$message = __('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', 'Shopp');

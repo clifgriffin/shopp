@@ -469,7 +469,8 @@ class sDB extends SingletonFramework {
 		$data = array();
 
 		// Go through each data property of the object
-		foreach( get_object_vars($Object) as $var => $value) {
+		$properties = get_object_vars($Object);
+		foreach ( $properties as $var => $value) {
 			$property = isset($mapping[ $var ]) ? $mapping[ $var ] : $var;
 			if ( ! isset($Object->_datatypes[ $property ]) ) continue;
 
@@ -503,9 +504,11 @@ class sDB extends SingletonFramework {
 					$data[$property] = "'$value'";
 					break;
 				case 'float':
+
 					// Sanitize without rounding to protect precision
-					if ( method_exists('ShoppCore', 'floatval') ) $value = ShoppCore::floatval($value, false);
+					if ( is_string($value) && method_exists('ShoppCore', 'floatval') ) $value = ShoppCore::floatval($value, false);
 					else $value = floatval($value);
+
 				case 'int':
 					// Normalize for MySQL float representations (@see bug #853)
 					// Force formating with full stop (.) decimals
@@ -897,7 +900,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 **/
 	public static function tablename ( $table = '' ) {
 		global $wpdb;
-		return apply_filters('shopp_table_name', $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table);
+		return apply_filters('shopp_table_name', $wpdb->get_blog_prefix() . SHOPP_DBPREFIX . $table, $table);
 	}
 
 	/**
@@ -933,6 +936,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 			if ( isset($data['created']) ) $data['created'] = "'$time'";
 			$dataset = ShoppDatabaseObject::dataset($data);
 			$this->id = sDB::query("INSERT $this->_table SET $dataset");
+
 			do_action_ref_array( "shopp_save_$classhook", array($this) );
 			return $this->id;
 

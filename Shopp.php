@@ -80,13 +80,6 @@ class Shopp extends ShoppCore {
 		// Theme integration
 		add_action('widgets_init', array($this, 'widgets'));
 
-		// Plugin management
-		add_action('after_plugin_row_' . SHOPP_PLUGINFILE, array('ShoppSupport', 'status'), 10, 2);
-		add_action('install_plugins_pre_plugin-information', array('ShoppSupport', 'changelog'));
-
-		$updates = array('load-plugins', 'load-update.php', 'load-update-core.php', 'wp_update_plugins', 'shopp_check_updates');
-		foreach ( $updates as $action ) add_action($action, array('ShoppSupport', 'updates'));
-
 	}
 
 	/**
@@ -98,11 +91,23 @@ class Shopp extends ShoppCore {
 	 * @return Shopp Provides the running Shopp object
 	 **/
 	public static function object () {
-		if ( ! self::$object instanceof self ) {
+		if ( ! self::$object instanceof self )
 			self::$object = new self;
-			do_action('shopp_loaded');
-		}
 		return self::$object;
+	}
+
+	/**
+	 * Boot up the core plugin
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public static function plugin () {
+		global $Shopp; // Provide global for backwards compatibility
+		$Shopp = Shopp::object();
+		do_action('shopp_loaded');
 	}
 
 	/**
@@ -400,5 +405,4 @@ class Shopp extends ShoppCore {
 if ( Shopp::services() || Shopp::unsupported() ) return; // Prevent loading the plugin
 
 /* Start the core */
-$Shopp = Shopp::object();
-add_action('shopp_loaded');
+Shopp::plugin();

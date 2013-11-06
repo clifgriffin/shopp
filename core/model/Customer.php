@@ -315,20 +315,36 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$Storefront->purchases = (array)$purchases;
 	}
 
+	public function hashpass () {
+
+		if ( empty($this->password) ) return;
+
+		$password = $this->password;
+		$this->clearpass();
+		$this->passhash = wp_hash_password($password);
+
+	}
+
+	public function clearpass () {
+		$this->password = '';
+		if ( isset($this->_confirm_password) )
+			unset($this->_confirm_password);
+	}
+
 	public function create_wpuser () {
 
-		require(ABSPATH . '/wp-includes/registration.php');
+		require ABSPATH . '/wp-includes/registration.php';
 
-		if (empty($this->loginname)) return false;
-		if (!validate_username($this->loginname)) {
-			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
+		if ( empty($this->loginname) ) return false;
+		if ( ! validate_username($this->loginname) ) {
+			shopp_add_error(Shopp::__('This login name is invalid because it uses illegal characters. Valid login names include: letters, numbers, spaces, . - @ _'));
 			return false;
 		}
-		if (username_exists($this->loginname)){
-			new ShoppError(__('The login name is already registered. Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+		if ( username_exists($this->loginname) ) {
+			shopp_add_error(Shopp::__('The login name is already registered. Please choose another login name.'));
 			return false;
 		}
-		if (empty($this->password)) $this->password = wp_generate_password(12,true);
+		if ( empty($this->password) ) $this->password = wp_generate_password(12, true);
 
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
@@ -340,14 +356,21 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			'first_name' => $this->firstname,
 			'last_name' => $this->lastname
 		));
-		if (!$wpuser) return false;
+		if ( ! $wpuser ) return false;
 
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
 
+		if ( isset($this->passhash) ) {
+			global $wpdb;
+			$wpdb->update( $wpdb->users, array('user_pass' => $this->passhash), array('ID' => $wpuser) );
+			error_log("updated pasword to the pre-hashed version");
+		}
+
 		if ( apply_filters('shopp_notify_new_wpuser', true) ) {
 			// Send email notification of the new account
-			wp_new_user_notification( $wpuser, $this->password );
+			$password = isset($this->passhash) ? '' : $this->password; // Only include generated passwords
+			wp_new_user_notification( $wpuser, $password );
 		}
 
 		shopp_debug('Successfully created the WordPress user for the Shopp account.');

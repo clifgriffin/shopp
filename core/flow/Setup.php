@@ -55,37 +55,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 				break;
 			case 'core':
 			case 'setup':
-				shopp_enqueue_script('spin');
 				shopp_enqueue_script('setup');
-				$customer_service = ' '.sprintf(__('Contact %s customer service %s.','Shopp'),'<a href="'.SHOPP_CUSTOMERS.'" target="_blank">','</a>');
-
-				$this->keystatus = array(
-					'ks_inactive' => Shopp::_m('You&apos;re missing out on expert support and one-click updates! Enter your **Support Key** and click the **Activate Key** button. Don&apos;t have a support key? %sBuy One Now!%s', '<a href="' . ShoppSupport::STORE . '" class="button button-primary">', '</a>'), // No key is activated yet
-					'k_000' => __('The server could not be reached because of a connection problem.','Shopp'), 		// Cannot communicate with the server, config?, firewall?
-					'k_001' => __('The server is experiencing problems.','Shopp').$customer_service,			// The server did not provide a valid response? Uncovered maintenance?
-					'ks_1' => __('An unkown error occurred.','Shopp'),											// Absolutely no clue what happened
-					'ks_2' => __('The activation server is currently down for maintenance.','Shopp'),			// The server is giving a maintenance code
-					'ks0' => __('This site has been deactivated.','Shopp'),										// Successful deactivation
-					'ks1' => __('This site has been activated.','Shopp'),										// Successful activation
-					'ks_100' => __('An unknown activation error occurred.','Shopp').$customer_service,			// Unknown activation problem
-					'ks_101' => __('The key provided is not valid.','Shopp').$customer_service,
-					'ks_102' => __('This site is not valid to activate the key.','Shopp').$customer_service,
-					'ks_103' => __('The key provided could not be validated by shopplugin.net.','Shopp').$customer_service,
-					'ks_104' => __('The key provided is already active on another site.','Shopp').$customer_service,
-					'ks_200' => __('An unkown deactivation error occurred.','Shopp').$customer_service,
-					'ks_201' => __('The key provided is not valid.','Shopp').$customer_service,
-					'ks_202' => __('The site is not valid to be able to deactivate the key.','Shopp').$customer_service,
-					'ks_203' => __('The key provided could not be validated by shopplugin.net.','Shopp').$customer_service
-				);
-
-				$l10n = array(
-					'activate_button' => __('Activate Key','Shopp'),
-					'deactivate_button' => __('De-activate Key','Shopp'),
-					'connecting' => __('Connecting','Shopp'),
-					'fail' => __('Sorry!','Shopp')
-				);
-				$l10n = array_merge($l10n, $this->keystatus);
-				shopp_localize_script( 'setup', '$sl', $l10n);
 				break;
 		}
 
@@ -137,45 +107,6 @@ class ShoppAdminSetup extends ShoppAdminController {
 			if ($country == $iso) $base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
-
-		// Key activation
-		if (!empty($_POST['activation'])) {
-			check_admin_referer('shopp-settings-activation');
-			$sitekey = ShoppSupport::key();
-			$key = $_POST['updatekey'];
-			if ($key == str_repeat('0',40)) $key = $sitekey['k'];
-			ShoppSupport::request($key, $_POST['activation']);
-		}
-
-		$sitekey = ShoppSupport::key();
-		$activated = ShoppSupport::activated();
-		$key = $sitekey['k'];
-		$status = $sitekey['s'];
-
-		$type = 'text';
-		$action = 'activate';
-		$button = __('Activate Key','Shopp');
-
-		if ($activated) {
-			$button = __('De-activate Key','Shopp');
-			$action = 'deactivate';
-			$type = 'password';
-			$key = str_repeat('0',strlen($key));
-			$keystatus = $this->keystatus['ks1'];
-		} else {
-			if (str_repeat('0',40) == $key) $key = '';
-		}
-
-		$status_class = array();
-		if ( $status < 0 ) $status_class[] = 'activating';
-
-		$keystatus = '';
-		if ( empty($key) ) {
-			$keystatus = $this->keystatus['ks_inactive'];
-			$status_class[] = 'notice';
-		}
-		if ( ! empty($_POST['activation']) ) $keystatus = $this->keystatus['ks'.str_replace('-','_',$status)];
-		$status_class = join(' ', $status_class);
 
 		// Save settings
 		if ( ! empty($_POST['save']) && isset($_POST['settings'])) {

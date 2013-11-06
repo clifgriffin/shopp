@@ -452,3 +452,28 @@ class ShoppItemTax extends AutoObjectFramework {
 	public $compound = false;
 
 }
+
+/**
+ * Storage class for taxes applied to a purchase and saved in a ShoppPurchase record
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ * @package shopp
+ **/
+class ShoppPurchaseTax {
+
+	public $id = false;						// The originating Tax object id
+	public $name = '';						// The name of the Tax
+	public $rate = 0.00;					// Tax rate
+	public $amount = 0.00;					// The total amount of taxes
+
+	public function __construct ( OrderAmountItemTax $Tax ) {
+
+		$this->id = $Tax->id();
+		$this->name = $Tax->label();
+		$this->rate = $Tax->rate();
+		$this->amount = $Tax->amount();
+
+	}
+
+}

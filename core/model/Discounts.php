@@ -285,9 +285,9 @@ class ShoppDiscounts extends ListFramework {
 			if ( ! $CodeRule->match() ) continue;
 
 			// Prevent customers from reapplying codes
-			if ( ! empty($request) && $this->codeapplied($request) ) {
-				shopp_add_error( sprintf(__('"%s" has already been applied.', 'Shopp'),  $rule['value']) );
-				$this->request(false);
+			if ( $this->codeapplied($request) ) {
+				shopp_add_error( sprintf(__('%s has already been applied.', 'Shopp'), $request) );
+				$this->request = false;
 			}
 
 			if ( ! $this->codeapplied( $rule['value'] ) )
@@ -419,6 +419,19 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	public function codeapplied ( string $code ) {
 		return isset( $this->codes[ strtolower($code) ]);
+	}
+
+	/**
+	 * Provides a list of the codes applied
+	 *
+	 * @clifgriffin U CAN HAZ INTERFACE
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array List of applied codes
+	 **/
+	public function codes () {
+		return array_keys($this->codes);
 	}
 
 	public function clear () {
@@ -796,6 +809,20 @@ class ShoppOrderDiscount {
 			$this->discount = array($Promo->buyqty, $Promo->getqty);
 
 		$this->calculate();
+
+	}
+
+	/**
+	 * Determines if the discount applies to (affects) the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if the discount affects the order, false otherwise
+	 **/
+	public function applies () {
+		$applies = ( $this->amount() > 0 || ( $this->amount() == 0 && $this->shipfree() ) );
+		return apply_filters('shopp_discount_applies', $applies, $this );
 	}
 
 	/**
@@ -988,6 +1015,16 @@ class ShoppOrderDiscount {
 	 * @return mixed The discount amount
 	 **/
 	public function discount ( $amount = null ) {
+
+		if ( isset($Promo) ) {
+
+			$target = $this->target($Promo->target);
+			$type = $this->type($Promo->type);
+			$this->discount = $Promo->discount;
+
+			if ( self::BOGOF == $type )
+				$this->discount = array($Promo->buyqty, $Promo->getqty);
+		}
 
 		if ( isset($amount) ) $this->discount = (float) $amount;
 		return $this->discount;

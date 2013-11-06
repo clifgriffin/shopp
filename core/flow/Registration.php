@@ -87,7 +87,6 @@ class ShoppRegistration {
 
 	}
 
-
 	public function customer () {
 
 		$Customer = ShoppOrder()->Customer;
@@ -172,24 +171,27 @@ class ShoppRegistration {
 		if ( $Customer->session(ShoppCustomer::GUEST) ) {
 			$Customer->type = __('Guest', 'Shopp');
 		} else {
+
 			// WordPress account integration used, customer has no wp user
 			if ( 'wordpress' == shopp_setting('account_system') && empty($Customer->wpuser) ) {
 				if ( $wpuser = get_current_user_id() ) $Customer->wpuser = $wpuser; // use logged in WordPress account
 				else $Customer->create_wpuser(); // not logged in, create new account
 			}
+
+			if ( ! $Customer->exists() ) {
+				$Customer->id = false;
+				shopp_debug('Creating new Shopp customer record');
+				if ( empty($Customer->password) )
+					$Customer->password = wp_generate_password(12, true);
+
+				if ( 'shopp' == shopp_setting('account_system') ) $Customer->notification();
+				$Customer->password = wp_hash_password($Customer->password);
+				if ( isset($Customer->passhash) ) $Customer->password = $Customer->passhash;
+			} else unset($Customer->password); // Existing customer, do not overwrite password field!
+
 		}
 
 		// New customer, save hashed password
-		if ( ! $Customer->exists() && ! $Customer->session(ShoppCustomer::GUEST) ) {
-			$Customer->id = false;
-			shopp_debug('Creating new Shopp customer record');
-			if ( empty($Customer->password) )
-				$Customer->password = wp_generate_password(12, true);
-
-			if ( 'shopp' == shopp_setting('account_system') ) $Customer->notification();
-			$Customer->password = wp_hash_password($Customer->password);
-		} else unset($Customer->password); // Existing customer, do not overwrite password field!
-
 		$Customer->save();
         $Customer->password = '';
 

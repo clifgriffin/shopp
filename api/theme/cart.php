@@ -28,6 +28,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'discount' => 'discount',
 		'discountapplied' => 'discount_applied',
 		'discountname' => 'discount_name',
+		'discountremove' => 'discount_remove',
 		'discounts' => 'discounts',
 		'discountsavailable' => 'discounts_available',
 		'downloaditems' => 'download_items',
@@ -178,7 +179,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function discount_applied ( $result, $options, $O ) {
 		$Discount = ShoppOrder()->Discounts->current();
-		if ( $Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
+		if ( ! $Discount->applies() ) return false;
 
 		$defaults = array(
 			'label' => __('%s off', 'Shopp'),
@@ -204,7 +205,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		}
 
 		if ( Shopp::str_true($remove) )
-			$string .= '&nbsp;<a href="' . Shopp::url(array('undiscount' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
+			$string .= '&nbsp;' . self::discount_remove('', $options, $O);
 
 		$string .= $after;
 
@@ -213,8 +214,15 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function discount_name ( $result, $options, $O ) {
 		$Discount = ShoppOrder()->Discounts->current();
-		if ( $Discount->amount() == 0 && ! $Discount->shipfree() ) return false;
+		if ( ! $Discount->applies() ) return false;
 		return $Discount->name();
+	}
+
+	public static function discount_remove ( $result, $options, $O ) {
+		$Discount = ShoppOrder()->Discounts->current();
+		if ( ! $Discount->applies() ) return false;
+
+		return '<a href="' . Shopp::url(array('removecode' => $Discount->id()), 'cart') . '" class="shoppui-remove-sign"><span class="hidden">' . Shopp::esc_html__('Remove Discount') . '</span></a>';
 	}
 
 	public static function discounts ( $result, $options, $O ) {
@@ -467,6 +475,27 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function url ( $result, $options, $O ) {
 		return Shopp::url(false, 'cart');
+	}
+
+	// Check if any of the items in the cart are on sale
+	public static function has_savings ( $result, $options, $O ) {
+		// loop thru cart looking for $Item->sale == "on"
+		foreach( $O as $item ) {
+			if ( 'on' == $item->sale ) return true;
+		}
+
+		return false;
+	}
+
+	// Total discount of each item PLUS any Promotional Catalog discounts
+	public static function savings ( $result, $options, $O ) {
+		$total = 0;
+
+		foreach( $O as $item ){
+			$total += $item->option->price * $item->quantity;
+		}
+
+		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') );
 	}
 
 }

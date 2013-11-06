@@ -750,7 +750,9 @@ class ShoppAjax {
 		check_admin_referer('wp_ajax_shopp_debuglog'); ?>
 		<html>
 		<head>
+		<?php if ( ! isset( $_REQUEST['refresh'] ) && 'off' === $_REQUEST['refresh'] ): ?>
 		<meta http-equiv="refresh" content="10">
+		<?php endif; ?>
 		<style type="text/css">
 		body { margin: 0; padding: 0; font-family:monospace;font-size:1em;line-height:1em;}
 		ol { list-style:decimal;padding-left:5em;background:#ececec;margin-left:0; margin-bottom: 1px; }

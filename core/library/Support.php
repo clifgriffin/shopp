@@ -150,82 +150,134 @@ class ShoppSupport {
 		exit;
 	}
 
-	/**
-	 * Reports on the availability of new updates and the update key
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public static function status () {
-		$updates = shopp_setting('updates');
-		$keysetting = ShoppSupport::key();
-		$key = $keysetting['k'];
 
-		$activated = ShoppSupport::activated();
+	public static function pluginsnag ( $file, $plugin_data ) {
+
+		if ( self::earlyupdates() ) return;
+
+		$current = get_site_transient( 'update_plugins' );
+		if ( isset( $current->response[ SHOPP_PLUGINFILE ] ) ) return;
+
+		if ( is_network_admin() || ! is_multisite() ) {
+		$wp_list_table = _get_list_table('WP_Plugins_List_Table');
+			echo '<tr class="plugin-update-tr"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
+			echo self::buykey();
+			echo '<style type="text/css">#shopp th,#shopp td{border-bottom:0;}</style>';
+			echo '</div></td></tr>';
+		}
+
+	}
+
+	public static function addons ( $meta, $plugin) {
+		if ( SHOPP_PLUGINFILE != $plugin ) return $meta;
+
+		$Shopp = Shopp::object();
+		$builtin = array(
+			'Shopp2Checkout', 'ShoppPayPalStandard', 'ShoppOfflinePayment', 'ShoppTestMode',
+			'FreeOption', 'ItemQuantity', 'ItemRates', 'OrderAmount', 'OrderRates', 'OrderWeight', 'PercentageAmount',
+			'DBStorage', 'FSStorage'
+		);
+		$builtin = array_flip($builtin);
+
+		$modules = array_merge(
+			$Shopp->Gateways->modules,
+			$Shopp->Shipping->modules,
+			$Shopp->Storage->modules
+		);
+
+		$installed = array_diff_key($modules, $builtin);
+
+		if ( empty($installed) ) return $meta;
+		$label = Shopp::_mi('**Add-ons:**');
+		foreach ( $installed as $addon ) {
+			$entry = array($label, $addon->name, $addon->version);
+			if ( $label ) $label = '';
+			$meta[] = trim(join(' ', $entry));
+		}
+		return $meta;
+	}
+
+	public static function earlyupdates () {
+		$updates = shopp_setting('updates');
+
 		$core = isset($updates->response[ SHOPP_PLUGINFILE ]) ? $updates->response[ SHOPP_PLUGINFILE ] : false;
 		$addons = isset($updates->response[ SHOPP_PLUGINFILE . '/addons' ]) ? $updates->response[ SHOPP_PLUGINFILE . '/addons'] : false;
+
+		if ( ! $core && ! $addons ) return false;
 
 		$plugin_name = 'Shopp';
 		$plugin_slug = strtolower($plugin_name);
 		$store_url = ShoppSupport::STORE;
 		$account_url = "$store_url/account/";
-		$style = '<style type="text/css">#shopp th, #shopp td { border-bottom: 0; }</style>';
+
+		$updates = array();
 
 		if ( ! empty($core)	// Core update available
 				&& isset($core->new_version)	// New version info available
 				&& version_compare($core->new_version, ShoppVersion::release(), '>') // New version is greater than current version
 			) {
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $plugin_slug . '&core=' . $core->new_version . '&TB_iframe=true&width=600&height=800');
-			$update_url = wp_nonce_url('update.php?action=shopp&plugin=' . SHOPP_PLUGINFILE, 'upgrade-plugin_shopp');
 
-			if ( true || ! $activated ) { // Key not active
-				$update_url = $store_url;
-				$message = Shopp::__(
-					'There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s purchase a %1$s key %4$s to get access to automatic updates and official support services.',
-					$plugin_name, '<a href="' . $details_url . '" class="thickbox" title="' . esc_attr($plugin_name) . '">', '<a href="' . $update_url .'">', '</a>', $core->new_version
-				);
-
-				shopp_set_setting('updates', false);
-			} else {
-				$message = Shopp::__(
-					'There is a new version of %1$s available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.',
-					$plugin_name, '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($plugin_name).'">', '<a href="'.$update_url.'">', '</a>', $core->new_version
-				);
-			}
-
-			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.$style.'</div></td></tr>';
-
-			return;
+			$updates[] = Shopp::_mi('%2$s Shopp %1$s is available %3$s from shopplugin.com now.', $core->new_version, '<a href="' . $details_url . '" class="thickbox" title="' . esc_attr($plugin_name) . '">', '</a>');
 		}
 
-		if ( ! $activated ) { // No update available, key not active
-			$message = Shopp::__(
-				'Please activate a valid %1$s support key for automatic updates and official support services. %2$s Find your %1$s support key %4$s or %3$s purchase a new key at the Shopp Store. %4$s',
-				$plugin_name, '<a href="'.$account_url.'" target="_blank">', '<a href="'.$store_url.'" target="_blank">', '</a>'
-			);
-
-			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.$style.'</div></td></tr>';
-			shopp_set_setting('updates', false);
-
-			return;
-		}
-
-	    if ( $addons ) {
+	    if ( ! empty($addons) ) {
 			// Addon update messages
-			foreach ( $addons as $addon ) {
-				$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=shopp&addon='.($addon->slug).'&TB_iframe=true&width=600&height=800');
-				$update_url = wp_nonce_url('update.php?action=shopp&addon='.$addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_'.$addon->slug);
-				$message = Shopp::__(
-					'There is a new version of the %1$s add-on available. %2$s View version %5$s details %4$s or %3$s upgrade automatically %4$s.',
-					esc_html($addon->name), '<a href="'.$details_url.'" class="thickbox" title="'.esc_attr($addon->name).'">', '<a href="'.esc_url($update_url).'">', '</a>', esc_html($addon->new_version)
-				);
+			$addonupdates = array();
+			foreach ( (array)$addons as $addon )
+				$addonupdates[] = $addon->name . ' ' . $addon->new_version;
 
-				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.$style.'</div></td></tr>';
-			}
+			if ( count($addons) > 1 ) {
+				$last = array_pop($addonupdates);
+				$updates[] = Shopp::_mi('Add-on updates are available for %s &amp; %s.', join(', ', $addonupdates), $last);
+			} elseif ( count($addons) == 1 )
+				$updates[] = Shopp::_mi('An add-on update is available for %s.', $addonupdates[0]);
 		}
 
+		if ( is_network_admin() || ! is_multisite() ) {
+
+			$wp_list_table = _get_list_table('WP_Plugins_List_Table');
+			echo '<tr class="plugin-update-tr"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
+			Shopp::_emi(
+				'You&apos;re missing out on important updates! %1$s &nbsp; %2$s Buy a Shopp Support Key! %3$s', empty($updates) ? '' : join(' ', $updates), '<a href="' . ShoppSupport::STORE . '" class="button button-primary">', '</a>'
+			);
+			echo '<style type="text/css">#shopp th,#shopp td{border-bottom:0;}</style>';
+			echo '</div></td></tr>';
+		}
+
+
+		return true;
+	}
+
+	public static function wpupdate ( $file, $plugin_data ) {
+		echo ' '; echo self::buykey();
+	}
+
+	public static function reminder () {
+		$userid = get_current_user_id();
+		$setupscreen = true;
+		if ( ! in_array($_REQUEST['page'], array('shopp-setup', 'shopp-setup-core')) ) { // When not in the setup screen
+			$setupscreen = false;
+			if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || get_user_meta($userid, 'shopp_nonag') ) return '';
+		}
+
+		$url = add_query_arg('action', 'shopp_nonag', wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_nonag'));
+		$_ = array();
+		$_[] = '<div id="shopp-activation-nag" class="notice wp-core-ui">';
+
+		if ( ! $setupscreen ) $_[] = '<p class="dismiss shoppui-remove-sign alignright"></p>';
+
+		$_[] = '<p class="nag">' . self::buykey() . '</p>';
+		$_[] = '</div>';
+
+		$_[] = '<script type="text/javascript">';
+		$_[] = 'jQuery(document).ready(function($){var id="#shopp-activation-nag",el=$(id).click(function(){window.open($(this).find("a").attr("href"),"_blank");}).find(".dismiss").click(function(){$(id).remove();$.ajax(\'' . $url . '\');});});';
+		$_[] = '</script>';
+		return join('', $_);
+	}
+
+	public static function buykey () {
+		return Shopp::_mi('You&apos;re missing out on **expert support**, **early access** to Shopp updates, and **one-click add-on updates**! Don&apos;t have a Shopp Support Key? %sBuy a Shopp Support Key!%s', '<a href="' . ShoppSupport::STORE . '" class="button button-primary" target="_blank">', '</a>');
 	}
 
 	/**
@@ -260,9 +312,11 @@ class ShoppSupport {
 		$params = array_merge($defaults, $options);
 
 		$URL = ShoppSupport::HOMEPAGE . "?$query";
-
+		error_log($URL);
+		error_log(json_encode($params));
 		$connection = new WP_Http();
 		$result = $connection->request($URL, $params);
+		error_log(json_encode($result));
 		extract($result);
 
 		if ( isset($response['code']) && 200 != $response['code'] ) { // Fail, fallback to http instead
@@ -295,61 +349,6 @@ class ShoppSupport {
 
 	}
 
-
-	public static function activate ( string $key ) {
-		return self::request($key, 'activate');
-	}
-
-	public static function deactivate ( string $key ) {
-		return self::request($key, 'deactivate');
-	}
-
-	/**
-	 * Activates or deactivates a support key
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return stdClass The server response
-	 **/
-	public static function request ( string $key, string $action ) {
-		$actions = array('deactivate', 'activate');
-		if (!in_array($action, $actions)) $action = reset($actions);
-		$action = "$action-key";
-
-		$request = array( 'ShoppServerRequest' => $action, 'key' => $key, 'site' => get_bloginfo('siteurl') );
-		$response = ShoppSupport::callhome($request);
-		$result = json_decode($response);
-
-		$result = apply_filters('shopp_update_key', $result);
-
-		shopp_set_setting( 'updatekey', $result );
-
-		return $response;
-	}
-
-	/**
-	 * Loads the key setting
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return key data
-	 **/
-	public static function key () {
-		$updatekey = shopp_setting('updatekey');
-
-		// @deprecated Will be removed eventually
-		if ( is_array($updatekey) ) {
-			$keys = array('s', 'k', 't');
-			return array_combine(array_slice($keys, 0, count($updatekey)), $updatekey);
-		}
-
-		$data = base64_decode($updatekey);
-		if ( empty($data) ) return false;
-		return unpack(Lookup::keyformat(), $data);
-	}
-
 	/**
 	 * Determines if the support key is activated
 	 *
@@ -359,8 +358,9 @@ class ShoppSupport {
 	 * @return boolean True if activated, false otherwise
 	 **/
 	public static function activated () {
-		$key = ShoppSupport::key();
-		return ('1' == $key['s']);
+		if ( class_exists('ShoppSupportKey', false) )
+			return ShoppSupportKey::activated();
+		return false;
 	}
 
 } // END class ShoppSupport
