@@ -289,7 +289,7 @@ class ShoppDiscounts extends ListFramework {
 			// Prevent customers from reapplying codes
 			if ( ! empty($request) && $this->codeapplied($request) ) {
 				shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', $rule['value']) );
-				$this->request(false);
+				$this->request = false;
 			}
 
 			if ( ! $this->codeapplied( $rule['value'] ) )
