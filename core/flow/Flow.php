@@ -47,9 +47,6 @@ class ShoppFlow {
 		add_action( 'admin_menu', array($this, 'menu'), 50 );
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
-		// Handle automatic updates
-		add_action('update-custom_shopp', array($this, 'update'));
-
 		// Parse the request
 		if ( defined('WP_ADMIN') ) add_action( 'current_screen', array($this, 'parse') );
 		else add_action( 'parse_request', array($this, 'parse') );
@@ -170,11 +167,6 @@ class ShoppFlow {
 
 		if ( ! $this->Installer )
 			$this->Installer = new ShoppInstallation;
-	}
-
-	public function update () {
-		$this->installation();
-		do_action('shopp_autoupdate');
 	}
 
 	public function save_settings () {
