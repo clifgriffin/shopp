@@ -405,21 +405,19 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			$this->_password_change = false;
 		}
 
-		do_action('shopp_customer_update',$this);
+		do_action('shopp_customer_update', $this);
 
 		$this->save();
 		$this->load_info();
 
-		$addresses = array('Billing'=>'BillingAddress','Shipping'=>'ShippingAddress');
-		foreach ($addresses as $Address => $class) {
-			$type = strtolower($Address);
-			if (isset($_POST[$type]) && !empty($_POST[$type])) {
-				$Updated = new $class($this->id,'customer');
-				$Updated->customer = $this->id;
-				$Updated->updates($_POST[$type]);
-				$Updated->save();
-				ShoppOrder()->$Address = $Updated;
-			}
+		$addresses = array('billing' => 'Billing', 'shipping' => 'Shipping');
+		foreach ( $addresses as $type => $Address ) {
+			if ( ! isset($_POST[ $type ]) || empty($_POST[ $type ]) ) continue;
+
+			$Updated = ShoppOrder()->$Address;
+			$Updated->customer = $this->id;
+			$Updated->updates($_POST[ $type ]);
+			$Updated->save();
 		}
 
 		$this->updated(self::PROFILE, true);
