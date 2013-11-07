@@ -654,6 +654,7 @@ class ShoppOrder {
 		$Customer = $this->Customer;
 		$Shipping = $this->Shipping;
 		$Shiprates = $this->Shiprates;
+		$Payments = $this->Payments;
 		$Cart = $this->Cart;
 
 		$valid = true;
@@ -716,6 +717,12 @@ class ShoppOrder {
 		if ( ! $valid_shipping ) {
 			$valid = false;
 			shopp_add_error(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'), $errlevel);
+		}
+
+		// Alert when no gateway is configured (and the order is not free)
+		if ( $Payments->count() == 0 && $Cart->total() > 0 ) {
+			$valid = false;
+			shopp_add_error( Lookup::errors('gateway','nogateways'), $errlevel);
 		}
 
 		return $valid;

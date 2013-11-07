@@ -190,11 +190,7 @@ class ShoppPayments extends ListFramework {
 		if ( ! $selected || ! $this->modules($selected->processor) )
 			$selected = $this->initial();
 
-		if ( ! $selected ) {
-			if ( isset($_POST['checkout']) )
-				shopp_add_error( Lookup::errors('gateway','nogateways') );
-			return false;
-		}
+		if ( ! $selected ) return false;
 
 		return $selected->processor;
 	}
