@@ -76,7 +76,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		'billingname' => 'billing_name',
 		'billingrequired' => 'card_required',
 		'cardrequired' => 'card_required',
-		'billingxco' => 'billing_xco',
 		'billingxcsc' => 'billing_xcsc',
 		'billingxcscrequired' => 'billing_xcsc_required',
 		'cartsummary' => 'cart_summary',
@@ -333,73 +332,73 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		return false;
 	}
 
-	/**
-	 * @since 1.0
-	 * @deprecated 1.1
-	 **/
-	public static function billing_xco ( $result, $options, $O ) {
-		return;
-	}
-
 	public static function billing_xcsc ( $result, $options, $O ) {
-		if (empty($options['input'])) return;
-		$input = $options['input'];
+		$Payments = $O->Payments;
+		$defaults = array(
+			'input' => false,
+			'class' => ''
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
 
-		$cards = array();
-		$valid = array();
-		// Collect valid card inputs for all gateways
-		foreach ($O->payoptions as $payoption) {
-			foreach ($payoption->cards as $card) {
-				$PayCard = Lookup::paycard($card);
-				if (empty($PayCard->inputs)) continue;
-				$cards[] = $PayCard->symbol;
-				foreach ($PayCard->inputs as $field => $size)
-					$valid[$field] = $size;
+		if ( empty($input) ) return;
+
+		$classes = array('paycard', 'xcsc');
+		if ( ! empty($class) ) $classes[] = $class;
+		$options['class'] = join(' ', $classes);
+
+		// Load valid extra fields for accepted payment cards
+		$valid = get_transient('shopp_billing_xcsc_valid_fields');
+		if ( ! $valid ) {
+			$cards = $Payments->accepted();
+			foreach ( $cards as $card ) {
+				if ( empty($card->inputs) ) continue;
+				foreach ( $card->inputs as $field => $size )
+					$valid[ $field ] = $size;
 			}
+
+			set_transient('shopp_billing_xcsc_valid_fields', $valid, 86400);
 		}
 
-		if (!array_key_exists($input,$valid)) return;
+		if ( ! array_key_exists($input, $valid) ) return;
 
-		if (!empty($_POST['billing']['xcsc'][$input]))
-			$options['value'] = $_POST['billing']['xcsc'][$input];
-		$options['class'] = isset($options['class']) ? $options['class'].' paycard xcsc':'paycard xcsc';
+		if ( isset($_POST['billing']['xcsc'][ $input ]) && ! empty($_POST['billing']['xcsc'][ $input ]) )
+			$options['value'] = $_POST['billing']['xcsc'][ $input ];
 
-		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
-		return $string;
+		$id = 'billing-xcsc-' . sanitize_title_with_dashes($input);
+
+		if ( ! isset( $options['autocomplete']) ) $options['autocomplete'] = 'off';
+		return '<input type="text" name="billing[xcsc][' . esc_attr($input) . ']" id="' . $id . '" ' . inputattrs($options) . ' />';
 	}
 
 	public static function billing_xcsc_required ( $result, $options, $O ) {
-		$Shopp = Shopp::object();
-		$Gateways = $Shopp->Gateways->active;
-		foreach ($Gateways as $Gateway) {
-			foreach ((array)$Gateway->settings['cards'] as $card) {
-				$PayCard = Lookup::paycard($card);
-				if (!empty($PayCard->inputs)) return true;
-			}
-		}
+		$Payments = $O->Payments;
+		$cards = $Payments->accepted();
+
+		foreach ( $cards as $card )
+			if ( ! empty($card->inputs) ) return true;
+
 		return false;
 	}
 
 	public static function card_required ( $result, $options, $O ) {
-		$Shopp = Shopp::object();
-		if ($O->Cart->Totals->total() == 0) return false;
-		foreach ($Shopp->Gateways->active as $gateway)
-			if (!empty($gateway->cards)) return true;
-		return false;
+		if ($O->Cart->total() == 0) return false;
+
+		$Payments = $O->Payments;
+		$cards = $Payments->accepted();
+		return ! empty($cards);
 	}
 
 	public static function cart_summary ( $result, $options, $O ) {
 		ob_start();
-		locate_shopp_template(array('summary.php'),true);
-		$content = ob_get_contents();
-		ob_end_clean();
+		locate_shopp_template(array('summary.php'), true);
+		$content = ob_get_clean();
 
 		// If inside the checkout form, strip the extra <form> tag so we don't break standards
 		// This is ugly, but necessary given the different markup contexts the cart summary is used in
 		$Storefront = ShoppStorefront();
-		if ($Storefront !== false && $Storefront->checkout)
-			$content = preg_replace('/<\/?form.*?>/','',$content);
+		if ( false !== $Storefront && $Storefront->checkout )
+			$content = preg_replace('/<\/?form.*?>/', '', $content);
 
 		return $content;
 	}
