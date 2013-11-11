@@ -46,7 +46,7 @@ class ShoppResources {
 		}
 
 		if ( ! empty( $this->request['src'] ) )
-			do_action( 'shopp_resource_' . $this->request['src'] );
+			do_action( 'shopp_resource_' . $this->request['src'], $this->request );
 
 		exit();
 	}
