@@ -1345,6 +1345,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if ( 'hide' == $options['disabled'] ) $jsoptions['disabled'] = false;
 			if ( 'hide' == $options['pricetags'] ) $jsoptions['pricetags'] = false;
 			if ( ! empty($taxrate) ) $jsoptions['taxrate'] = Shopp::taxrate($O);
+			$select_collection = ( ! empty($collection_class) ) ? '.' . $collection_class : '';
 
 			ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
@@ -1353,7 +1354,7 @@ $s.opdef = true;
 <?php if (!empty($options['required'])): ?>
 $s.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
-new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$collection_class,$O->id); ?>,<?php echo json_encode($jsoptions); ?>);
+new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_collection,$O->id); ?>,<?php echo json_encode($jsoptions); ?>);
 <?php
 
 			$script = ob_get_contents();
