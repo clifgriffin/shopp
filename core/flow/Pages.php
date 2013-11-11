@@ -250,6 +250,7 @@ class ShoppPage {
 		$stub->comment_status = 'closed'; // Force comments closed
 		$stub->post_title = $this->title;
 		$stub->post_content = '';
+		$stub->post_excerpt = ' '; // Prevent wp_trim_excerpt from calling the_content filter
 		$stub->post_type = ShoppPages::QUERYVAR;
 
 		// Setup labels
