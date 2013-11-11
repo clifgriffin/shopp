@@ -225,28 +225,43 @@ class ShoppLoader {
 
 		define('SHOPP_LOADER_APC', function_exists('apc_exists'));
 
-		if ( file_exists(self::sanitize($root) . '/' . $loadfile))
-			$wp_abspath = $root;
+		if ( SHOPP_LOADER_APC && apc_exists('shopp_wp_abspath') && $cached = apc_fetch('shopp_wp_abspath') ) {
+			if ( file_exists("$cached/$loadfile") )
+				return "$cached/$loadfile";
+		}
 
-		if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
-			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']) . '/' . $configfile) ) {
-			// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
+		if ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
+			$wp_abspath = $root;
+		} elseif ( isset($_SERVER['SHOPP_WP_ABSPATH'])
+			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']) . '/' . $loadfile) ) {
+			// SetEnv SHOPP_WP_ABSPATH /path/to/wp-load.php
 			// and SHOPP_ABSPATH used on webserver site config
 			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
-		} elseif ( SHOPP_LOADER_APC && apc_exists('shopp_wp_abspath') && $cached = apc_fetch('shopp_wp_abspath')
-			 && file_exists("$cached/$loadfile") ) {
 
-			$wp_abspath = $cached;
+		} elseif ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
+			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
 
 		} elseif ( strpos($filepath, $root) !== false ) {
-			// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
-			$fullpath = explode ('/', self::sanitize($filepath) );
-			while ( ! $wp_abspath && null !== array_pop($fullpath) ) {
-				if (file_exists( sanitize_path(join('/', $fullpath)) . '/' . $loadfile ))
-					$wp_abspath = join('/', $fullpath);
+
+			// Search DOCUMENT_ROOT sub directories first
+			$subdirs = array_reverse(glob($root . '/*', GLOB_ONLYDIR));
+			foreach ( $subdirs as $dir ) {
+				$found = glob($dir . '/' . $loadfile);
+				if ( ! empty($found) ) {
+					$wp_abspath = $dir;
+					break;
+				}
 			}
-		} elseif ( file_exists(self::sanitize($root).'/'.$loadfile) ) {
-			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
+
+			if ( ! $wp_abspath ) {
+				// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-load.php
+				$fullpath = explode ('/', self::sanitize($filepath));
+				while ( ! $wp_abspath && null !== array_pop($fullpath) ) {
+					if (file_exists( self::sanitize(join('/', $fullpath)) . '/' . $loadfile ))
+						$wp_abspath = join('/', $fullpath);
+				}
+			}
+
 		} elseif ( file_exists(self::sanitize(dirname($root)) . '/' . $loadfile) ) {
 			$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
 	    } else {
@@ -258,9 +273,12 @@ class ShoppLoader {
 
 		$wp_load_file = self::sanitize($wp_abspath) . "/$loadfile";
 
-		if ( SHOPP_LOADER_APC ) apc_store('shopp_wp_abspath', $wp_abspath);
+		if ( false !== $wp_load_file ) {
+			if ( SHOPP_LOADER_APC )
+				apc_store('shopp_wp_abspath', $wp_abspath);
+			return $wp_load_file;
+		}
 
-		if ( $wp_load_file !== false ) return $wp_load_file;
 		return false;
 
 	}
