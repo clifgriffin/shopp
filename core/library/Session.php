@@ -78,7 +78,7 @@ abstract class SessionObject {
 	 **/
 	public function open ( $path, $name ) {
 		$this->path = $path;
-		if ( empty($this->path) ) $this->path = sanitize_path(realpath(SHOPP_TEMP_PATH));
+		if ( defined('SHOPP_TEMP_PATH') ) $this->path = sanitize_path(realpath(SHOPP_TEMP_PATH));
         if ( ! is_dir($this->path) ) mkdir($this->path, 0777);
 
 		if ( empty($this->session) ) $this->session = session_id();	// Grab our session id
