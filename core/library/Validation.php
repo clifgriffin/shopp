@@ -56,17 +56,20 @@ class ShoppFormValidation {
 					return shopp_add_error( Shopp::__('The login name you provided is not available.  Try logging in if you have previously created an account.') );
 
 			} else { // need to find an usuable login
+				$handle = $_POST['email'];
+				if( ! username_exists($handle) ) $_POST['loginname'] = strtolower($handle);
+				
 				list($handle, ) = explode('@', $_POST['email']);
-				if( ! username_exists($handle) ) $_POST['loginname'] = $handle;
+				if( ! username_exists($handle) ) $_POST['loginname'] = strtolower($handle);
 
 				$handle = $_POST['firstname'] . substr($_POST['lastname'], 0, 1);
-				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = $handle;
+				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = strtolower($handle);
 
 				$handle = substr($_POST['firstname'],0,1) . $_POST['lastname'];
-				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = $handle;
+				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = strtolower($handle);
 
 				$handle .= rand(1000,9999);
-				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = $handle;
+				if( ! isset($_POST['loginname']) && ! username_exists($handle)) $_POST['loginname'] = strtolower($handle);
 
 				if( apply_filters('shopp_login_required', ! isset($_POST['loginname'])) )
 					return shopp_add_error( Shopp::__('A login is not available for creation with the information you provided. Please try a different email address or name, or try logging in if you previously created an account.') );
