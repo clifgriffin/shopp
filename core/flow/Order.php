@@ -702,7 +702,7 @@ class ShoppOrder {
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode', false);
 
 			if ( $Shiprates->count() == 0 && ! $Shiprates->free() ) {
-				$valid = apply_filters('shopp_ordering_no_shipping_costs',true);
+				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 
 				$message = __('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', 'Shopp');
 
