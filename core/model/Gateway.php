@@ -181,7 +181,8 @@ abstract class GatewayFramework {
 	 * @return string The currency code
 	 **/
 	public function currency () {
-		$currency = 'USD'; // Default to USD
+		// Use gateway default currency or USD if gateway doesn't specify
+		$currency = isset($this->currency) && 3 == strlen($this->currency) ? strtoupper($this->currency) : 'USD';
 
 		if ( ! empty($this->baseop) && isset($this->baseop['currency']) && isset($this->baseop['currency']['code']) )
 			$currency = $this->baseop['currency']['code'];
