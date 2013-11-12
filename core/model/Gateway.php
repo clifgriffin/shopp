@@ -217,12 +217,17 @@ abstract class GatewayFramework {
 	 * @since 1.1
 	 *
 	 * @param string $data The encoded data to send
-	 * @param string $url The URL to connect to
-	 * @param string $deprecated DO NOT USE
-	 * @param array $options
+	 * @param string $url (optional) The API endpoint URL to connect to
+	 * @param array $options (optional) WP_Http options
 	 * @return string Raw response
 	 **/
-	public function send ( $data, $url = false, $deprecated = false, $options = array() ) {
+	public function send ( $data, $url = false ) {
+
+		// Adds optional support for options
+		$parameters = func_num_args();
+		$args = func_get_args();
+		if ( $parameters > 2 ) $options = $args[ $parameters - 1 ];
+		else $options = array();
 
 		$defaults = array(
 			'method' => 'POST',
@@ -238,10 +243,10 @@ abstract class GatewayFramework {
 			'decompress' => true,
 			'sslverify' => false
 		);
-		$params = array_merge($defaults,$options);
+		$params = array_merge($defaults, $options);
 
 		$connection = new WP_Http();
-		$result = $connection->request($url,$params);
+		$result = $connection->request($url, $params);
 
 		if (is_wp_error($result)) {
 			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ',$msgs);
