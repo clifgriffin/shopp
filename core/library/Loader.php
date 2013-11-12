@@ -231,44 +231,44 @@ class ShoppLoader {
 		}
 
 		if ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
-			$wp_abspath = $root;
-		} elseif ( isset($_SERVER['SHOPP_WP_ABSPATH'])
+
+			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
+
+		} elseif ( isset($_SERVER['SHOPP_WP_ABSPATH'] )
 			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']) . '/' . $loadfile) ) {
+
 			// SetEnv SHOPP_WP_ABSPATH /path/to/wp-load.php
 			// and SHOPP_ABSPATH used on webserver site config
 			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
 
-		} elseif ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
-			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-
 		} elseif ( strpos($filepath, $root) !== false ) {
 
-			// Search DOCUMENT_ROOT sub directories first
-			$subdirs = array_reverse(glob($root . '/*', GLOB_ONLYDIR));
-			foreach ( $subdirs as $dir ) {
-				$found = glob($dir . '/' . $loadfile);
-				if ( ! empty($found) ) {
-					$wp_abspath = $dir;
-					break;
-				}
-			}
+			// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-load.php
+			$fullpath = explode ('/', self::sanitize($filepath));
+			while ( ! $wp_abspath && null !== array_pop($fullpath) )
+				if ( file_exists( self::sanitize(join('/', $fullpath)) . '/' . $loadfile ) )
+					$wp_abspath = join('/', $fullpath);
 
 			if ( ! $wp_abspath ) {
-				// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-load.php
-				$fullpath = explode ('/', self::sanitize($filepath));
-				while ( ! $wp_abspath && null !== array_pop($fullpath) ) {
-					if (file_exists( self::sanitize(join('/', $fullpath)) . '/' . $loadfile ))
-						$wp_abspath = join('/', $fullpath);
+				// No wp-load.php found in any of the parent directories
+				// Try scanning sub-directories of DOCUMENT_ROOT for WP sub-directory installs
+				$subdirs = array_reverse(glob($root . '/*', GLOB_ONLYDIR));
+				foreach ( $subdirs as $dir ) {
+					$found = glob($dir . '/' . $loadfile);
+					if ( ! empty($found) ) {
+						$wp_abspath = $dir;
+						break;
+					}
 				}
 			}
 
-		} elseif ( file_exists(self::sanitize(dirname($root)) . '/' . $loadfile) ) {
-			$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
 	    } else {
+
 	        /* Last chance, do or die */
 			$filepath = self::sanitize($filepath);
 	        if ( false !== ($pos = strpos($filepath, 'wp-content/plugins')) )
 	            $wp_abspath = substr($filepath, 0, --$pos);
+
 	    }
 
 		$wp_load_file = self::sanitize($wp_abspath) . "/$loadfile";
