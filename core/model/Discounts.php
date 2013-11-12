@@ -875,7 +875,7 @@ class ShoppOrderDiscount {
 		$Cart = ShoppOrder()->Cart;
 
 		switch ( $this->type ) {
-			case self::SHIP_FREE:	if ( self::ORDER == $this->target ) $this->shipfree(true); $this->amount = $Cart->total('shipping'); break;
+			case self::SHIP_FREE:	if ( self::ORDER == $this->target ) $this->shipfree(true); $this->amount = 0; break;
 			case self::AMOUNT_OFF:	$this->amount = $this->discount(); break;
 			case self::CREDIT:
 				$total = $Cart->total();
@@ -1043,7 +1043,7 @@ class ShoppOrderDiscount {
 		switch ( $this->type ) {
 			case self::PERCENT_OFF:	$amount = $Item->unitprice * ($this->discount() / 100); break;
 			case self::AMOUNT_OFF:	$amount = $this->discount(); break;
-			case self::SHIP_FREE:	$Item->freeshipping = true; $amount = 0;
+			case self::SHIP_FREE:	$Item->freeshipping = true; $amount = 0; break;
 			case self::BOGOF:
 				list($buy, $get) = $this->discount();
 
