@@ -123,6 +123,10 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	}
 
 	public function save () {
+
+		if ( empty($this->password) ) // Do not save empty password updates
+			unset($this->password);
+
 		parent::save();
 
 		if (empty($this->info) || !is_array($this->info)) return true;
@@ -390,19 +394,41 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 * @return boolean|string output based on the account menu request
 	 **/
 	public function profile () {
-		if (empty($_POST['customer'])) return; // Not a valid customer profile update request
+		if ( ! isset($_POST['customer']) || empty($_POST['customer']) ) return; // Not a valid customer profile update request
 
-		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-		$this->updates($_POST);
-		if (isset($_POST['info'])) $this->info = $_POST['info'];
+		$defaults = array(
+			'phone' => '',
+			'password' => null,
+			'confirm-password' => null,
+			'info' => null,
+			'billing' => array(),
+			'shipping' => array()
+		);
+		$updates = array_merge($defaults, $_POST);
+		extract($updates, EXTR_SKIP);
 
-		if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
-			$this->password = wp_hash_password($_POST['password']);
-			if ( 'wordpress' == shopp_setting('account_system') && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
+		$phone = preg_replace('/[^\d\(\)\-+\. (ext|x)]/', '', $phone);
+
+		// Update this ShoppCustomer model
+		$this->updates($updates);
+
+		if ( is_array($info) && ! empty($info) ) $this->info = $info; // Add info fields
+
+		if ( '' !=  $password . $updates['confirm-password'] && $password == $updates['confirm-password'] ) {
+
+			$this->password = wp_hash_password($password);
+			if ( 'wordpress' == shopp_setting('account_system') && ! empty($this->wpuser) )
+				wp_set_password( $password, $this->wpuser );
+
 			$this->_password_change = true;
+
 		} else {
-			if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
+
+			if ( ! empty($password) )
+				shopp_add_error(Shopp::__('The passwords you entered do not match. Please re-enter your passwords.'));
+
 			$this->_password_change = false;
+
 		}
 
 		do_action('shopp_customer_update', $this);
@@ -412,11 +438,11 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		$addresses = array('billing' => 'Billing', 'shipping' => 'Shipping');
 		foreach ( $addresses as $type => $Address ) {
-			if ( ! isset($_POST[ $type ]) || empty($_POST[ $type ]) ) continue;
+			if ( ! isset($updates[ $type ]) || empty($updates[ $type ]) ) continue;
 
 			$Updated = ShoppOrder()->$Address;
 			$Updated->customer = $this->id;
-			$Updated->updates($_POST[ $type ]);
+			$Updated->updates($updates[ $type ]);
 			$Updated->save();
 		}
 
