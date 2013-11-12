@@ -252,10 +252,10 @@ class ShoppCheckout {
 
 		if ( ! $action || 'process' != $action) return;
 
-		$wasfree = $Cart->orderisfree();
-		$estimated = $Cart->total();
+		$wasfree = $Cart->orderisfree();	// Get current free status
+		$estimated = $Cart->total();		// Get current total
 
-		$Cart->totals();
+		$Cart->totals(); // Retotal after checkout to capture order total changes
 
 		if ( true !== apply_filters('shopp_validate_checkout', false) ) return;
 		else $this->customer(); // Catch changes from validation
@@ -266,16 +266,17 @@ class ShoppCheckout {
 			shopp_redirect( Shopp::url(false,'checkout', ShoppOrder()->security()) );
 		}
 
-		// If using shopp_checkout_processed for a payment gateway redirect action
-		// be sure to include a ShoppOrder()->Cart->orderisfree() check first.
+		// Do not use shopp_checkout_processed for payment gateway redirect actions
+		// Free order processing doesn't take over until the order is submitted for processing in `shopp_process_order`
 		do_action('shopp_checkout_processed');
 
-		if ( $Cart->orderisfree() ) do_action('shopp_process_free_order');
-
 		// If the cart's total changes at all, confirm the order
-		if ( apply_filters('shopp_order_confirm_needed', $estimated != $Cart->Totals->total() || $forcedconfirm ) )
+		if ( apply_filters('shopp_order_confirm_needed', $estimated != $Cart->total() || $forcedconfirm ) ) {
 			shopp_redirect( Shopp::url(false, 'confirm', ShoppOrder()->security()) );
-		else do_action('shopp_process_order');
+			return;
+		}
+
+		do_action('shopp_process_order');
 	}
 
 	/**
@@ -285,6 +286,7 @@ class ShoppCheckout {
 	 * @since 1.3
 	 **/
 	public function registration () {
+
         add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
         add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
 
@@ -301,10 +303,12 @@ class ShoppCheckout {
 	 * @return void
 	 **/
 	public function confirmed () {
+
 		if ( 'confirmed' == $this->form('checkout') ) {
 			$this->confirmed = true;
 			do_action('shopp_process_order');
 		}
+
 	}
 
 }

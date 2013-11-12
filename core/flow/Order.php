@@ -64,10 +64,9 @@ class ShoppOrder {
 		add_action('parse_request', array($this->Discounts, 'requests'));
 
 		// Order processing
+		add_action('shopp_process_order', array($this, 'freebie'), 7);
 		add_action('shopp_process_order', array($this, 'validate'), 7);
 		add_action('shopp_process_order', array($this, 'submit'), 100);
-
-		add_action('shopp_process_free_order', array($this, 'freebie'));
 
 		add_action('shopp_update_destination', array($this->Shipping, 'locate'));
 		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
@@ -372,10 +371,13 @@ class ShoppOrder {
 	 **/
 	public function freebie () {
 
-		$this->Payments->free();
-		$this->Billing->cardtype = __('Free Order','Shopp');
+		if ( ! $this->Cart->orderisfree() ) return;
 
-		return true;
+		$this->Payments->free();
+		$this->Billing->cardtype = Shopp::__('Free Order');
+
+		do_action('shopp_process_free_order');
+
 	}
 
 	/**
