@@ -5,12 +5,11 @@
  * Shopp Support class for shopplugin.com resources
  *
  * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, May 2013
  * @license (@see license.txt)
  * @package shopp
+ * @version 1.0
  * @since 1.3
- * @subpackage suppport
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -57,7 +56,7 @@ class ShoppSupport {
 		}
 
 		$justchecked = isset( $plugin_updates->last_checked_shopp ) && $timeout > ( time() - $plugin_updates->last_checked_shopp );
-		$changed = isset($plugin_updates->response[SHOPP_PLUGINFILE]);
+		$changed = isset($plugin_updates->response[ SHOPP_PLUGINFILE ]);
 		if ( $justchecked && ! $changed ) return;
 
 		$Shopp = Shopp::object();
@@ -98,7 +97,8 @@ class ShoppSupport {
 		$response = unserialize($response);
 		unset($updates->response);
 
-		if ( isset($response->key) && ! Shopp::str_true($response->key) ) shopp_set_setting( 'updatekey', array(0) );
+		if ( isset($response->key) && ! Shopp::str_true($response->key) )
+			delete_transient('shopp_activation');
 
 		if ( isset($response->addons) ) {
 			$updates->response[ SHOPP_PLUGINFILE . '/addons' ] = $response->addons;
@@ -112,10 +112,10 @@ class ShoppSupport {
 			shopp_set_setting('updates', $updates);
 
 			// Add Shopp to the WP plugin update notification count
-			if ( isset($updates->response[SHOPP_PLUGINFILE]) )
-				$plugin_updates->response[SHOPP_PLUGINFILE] = $updates->response[SHOPP_PLUGINFILE];
+			if ( isset($updates->response[ SHOPP_PLUGINFILE ]) )
+				$plugin_updates->response[ SHOPP_PLUGINFILE ] = $updates->response[ SHOPP_PLUGINFILE ];
 
-		} else unset($plugin_updates->response[SHOPP_PLUGINFILE]); // No updates, remove Shopp from the plugin update count
+		} else unset($plugin_updates->response[ SHOPP_PLUGINFILE ]); // No updates, remove Shopp from the plugin update count
 
 		$plugin_updates->last_checked_shopp = time();
 		if ( function_exists('set_site_transient') ) set_site_transient('update_plugins', $plugin_updates);
@@ -312,11 +312,13 @@ class ShoppSupport {
 		$params = array_merge($defaults, $options);
 
 		$URL = ShoppSupport::HOMEPAGE . "?$query";
-		error_log($URL);
-		error_log(json_encode($params));
+		// error_log('CALLHOME REQUEST ------------------');
+		// error_log($URL);
+		// error_log(json_encode($params));
 		$connection = new WP_Http();
 		$result = $connection->request($URL, $params);
-		error_log(json_encode($result));
+		// error_log(json_encode($result));
+		// error_log('-------------- END CALLHOME REQUEST');
 		extract($result);
 
 		if ( isset($response['code']) && 200 != $response['code'] ) { // Fail, fallback to http instead
