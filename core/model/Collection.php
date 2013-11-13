@@ -100,11 +100,9 @@ class ProductCollection implements Iterator {
 		if ( is_array($taxquery) ) {
 			$tqdefaults = array(
 				'relation' => 'AND',
-				'field' => 'name',
 				'include_children' => true,
-				'operator' => 'IN',
 			);
-			$taxquery = array_merge($tqdefaults,$taxquery);
+			$taxquery = array_merge($tqdefaults, $taxquery);
 
 	 		$TQ = new WP_Tax_Query($taxquery);
 	 		$sql = $TQ->get_sql( $Processing->_table, 'ID' );
@@ -1786,10 +1784,10 @@ class MixProducts extends SmartCollection {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		$relationships = array('AND','OR');
+		$relationships = array('AND', 'OR');
 		$relation = in_array($relation,$relationships)?$relation:$defaults['relation'];
 
-		$operators = array('IN','NOT IN','AND');
+		$operators = array('IN', 'NOT IN', 'AND');
 		$operator = in_array($operator,$operators)?$operator:$defaults['operator'];
 
 
@@ -1797,7 +1795,6 @@ class MixProducts extends SmartCollection {
 			'relation' => $relation,
 			'include_children' => $include_children,
 			'field' => $field,
-			'operator' => $operator
 		);
 
 		if (false === $taxquery) {
@@ -1809,6 +1806,7 @@ class MixProducts extends SmartCollection {
 			foreach ($options['terms'] as $i => $terms) {
 				$taxquery[ $i ]['terms'] = explode(',',$terms);
 				$taxquery[ $i ]['field'] = $field;
+				$taxquery[ $i ]['operator'] = $operator;
 			}
 		} else $taxquery = array_merge($settings,$taxquery);
 
