@@ -467,7 +467,7 @@ class ShoppPurchaseTax {
 	public $rate = 0.00;					// Tax rate
 	public $amount = 0.00;					// The total amount of taxes
 
-	public function __construct ( OrderAmountItemTax $Tax ) {
+	public function __construct ( OrderAmountTax $Tax ) {
 
 		$this->id = $Tax->id();
 		$this->name = $Tax->label();

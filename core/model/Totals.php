@@ -1,14 +1,14 @@
 <?php
 /**
  * Totals.php
+ *
  * Order totals calculator
  *
  * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, February 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
- * @subpackage ordertotals
+ * @version 1.0
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -21,7 +21,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @author Jonathan Davis
  * @since 1.3
  * @version 1.0
- * @package ordertotals
  **/
 class OrderTotals extends ListFramework {
 
@@ -238,7 +237,6 @@ class OrderTotals extends ListFramework {
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderTotalRegisters {
 
@@ -319,7 +317,6 @@ class OrderTotalRegisters {
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 abstract class OrderTotalAmount {
 
@@ -467,13 +464,12 @@ abstract class OrderTotalAmount {
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderTotal extends OrderTotalAmount {
 	static public $register = 'total';
 
 	public function label () {
-		return __('Total','Shopp');
+		return Shopp::__('Total');
 	}
 
 }
@@ -484,7 +480,6 @@ OrderTotalRegisters::register('OrderTotal');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountDebit extends OrderTotalAmount {
 	protected $column = OrderTotalAmount::DEBIT;
@@ -495,7 +490,6 @@ class OrderAmountDebit extends OrderTotalAmount {
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountCredit extends OrderTotalAmount {
 	protected $column = OrderTotalAmount::CREDIT;
@@ -506,7 +500,6 @@ class OrderAmountCredit extends OrderTotalAmount {
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountDiscount extends OrderAmountCredit {
 	static public $register = 'discount';
@@ -515,7 +508,7 @@ class OrderAmountDiscount extends OrderAmountCredit {
 	protected $code = false;	// The code used
 
 	public function label () {
-		return __('Discounts','Shopp');
+		return Shopp::__('Discounts');
 	}
 
 }
@@ -526,13 +519,12 @@ OrderTotalRegisters::register('OrderAmountDiscount');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountAccountCredit extends OrderAmountCredit {
 	static public $register = 'account';
 
 	public function label () {
-		return __('Credit','Shopp');
+		return Shopp::__('Credit');
 	}
 }
 OrderTotalRegisters::register('OrderAmountAccountCredit');
@@ -542,13 +534,12 @@ OrderTotalRegisters::register('OrderAmountAccountCredit');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountGiftCertificate extends OrderAmountCredit {
 	static public $register = 'certificate';
 
 	public function label () {
-		return __('Gift Certificate','Shopp');
+		return Shopp::__('Gift Certificate');
 	}
 }
 OrderTotalRegisters::register('OrderAmountGiftCertificate');
@@ -558,13 +549,12 @@ OrderTotalRegisters::register('OrderAmountGiftCertificate');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountGiftCard extends OrderAmountCredit {
 	static public $register = 'giftcard';
 
 	public function label () {
-		return __('Gift Card','Shopp');
+		return Shopp::__('Gift Card');
 	}
 }
 OrderTotalRegisters::register('OrderAmountGiftCard');
@@ -574,14 +564,13 @@ OrderTotalRegisters::register('OrderAmountGiftCard');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountFee extends OrderAmountDebit {
 	static public $register = 'fee';
 	protected $quantity = 0;
 
 	public function label () {
-		return __('Fee','Shopp');
+		return Shopp::__('Fee');
 	}
 }
 OrderTotalRegisters::register('OrderAmountFee');
@@ -591,7 +580,6 @@ OrderTotalRegisters::register('OrderAmountFee');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountCartItem extends OrderAmountDebit {
 	static public $register = 'order';
@@ -622,7 +610,7 @@ class OrderAmountCartItem extends OrderAmountDebit {
 	 * @return void
 	 **/
 	public function label () {
-		return __('Subtotal','Shopp');
+		return Shopp::__('Subtotal');
 	}
 
 }
@@ -655,20 +643,44 @@ class OrderAmountItemDiscounts extends OrderAmountDebit {
 	 * @return string
 	 **/
 	public function label () {
-		return __('Discounts','Shopp');
+		return Shopp::__('Discounts');
 	}
 
 }
 OrderTotalRegisters::register('OrderAmountItemDiscounts');
 
 /**
+ * A generic tax amount
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ **/
+class OrderAmountTax extends OrderAmountDebit {
+	static public $register = 'tax';
+
+	protected $setting = false;	// The related tax setting
+	protected $rate = 0.0;	// The applied rate
+	protected $items = array();
+
+	public function label () {
+		return Shopp::__('Tax');
+	}
+
+	public function rate () {
+		return (float) $this->rate;
+	}
+
+}
+OrderTotalRegisters::register('OrderAmountTax');
+
+
+/**
  * Defines an item tax entry
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
-class OrderAmountItemTax extends OrderAmountDebit {
+class OrderAmountItemTax extends OrderAmountTax {
 	static public $register = 'tax';
 
 	protected $rate = 0.0;	// The applied rate
@@ -703,16 +715,12 @@ class OrderAmountItemTax extends OrderAmountDebit {
 		return array_sum($this->items());
 	}
 
-	public function rate () {
-		return (float) $this->rate;
-	}
-
 	public function &amount ( float $value = null ) {
 		return parent::amount($this->total());
 	}
 
 	public function label () {
-		if ( empty($this->label) ) return __('Tax','Shopp');
+		if ( empty($this->label) ) return Shopp::__('Tax');
 		return $this->label;
 	}
 
@@ -724,9 +732,8 @@ OrderTotalRegisters::register('OrderAmountItemTax');
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
-class OrderAmountShippingTax extends OrderAmountDebit {
+class OrderAmountShippingTax extends OrderAmountTax {
 	static public $register = 'tax';
 
 	protected $rate = 0.0;	// The applied rate
@@ -738,15 +745,23 @@ class OrderAmountShippingTax extends OrderAmountDebit {
 		$taxes = array();
 		$Tax->rates($taxes);
 		$firstrate = reset($taxes);
-		$this->rate = $firstrate->rate;
+		if ( $firstrate )
+			$this->rate = $firstrate->rate;
+
 		$this->id = 'shipping';
 		$this->amount = ShoppTax::calculate($taxes, $taxable);
-		$this->label = __('Shipping Tax','Shopp');
+		$this->label = Shopp::__('Shipping Tax');
 	}
 
 }
 OrderTotalRegisters::register('OrderAmountShippingTax');
 
+/**
+ * Cart item quantity register
+ *
+ * @author Jonathan Davis
+ * @since 1.3
+ **/
 class OrderAmountCartItemQuantity extends OrderTotalAmount {
 	static public $register = 'quantity';
 
@@ -756,36 +771,17 @@ class OrderAmountCartItemQuantity extends OrderTotalAmount {
 	}
 
 	public function label () {
-		return __('quantity','Shopp');
+		return Shopp::__('quantity');
 	}
 }
 OrderTotalRegisters::register('OrderAmountItemQuantity');
 
-/**
- * A generic tax amount
- *
- * @author Jonathan Davis
- * @since 1.3
- * @package ordertotals
- **/
-class OrderAmountTax extends OrderAmountDebit {
-	static public $register = 'tax';
-	protected $setting = false;	// The related tax setting
-	protected $rate = 0.0;	// The applied rate
-	protected $items = array();
-
-	public function label () {
-		return __('Tax','Shopp');
-	}
-}
-OrderTotalRegisters::register('OrderAmountTax');
 
 /**
  * Defines a shipping amount
  *
  * @author Jonathan Davis
  * @since 1.3
- * @package ordertotals
  **/
 class OrderAmountShipping extends OrderAmountDebit {
 
@@ -795,7 +791,7 @@ class OrderAmountShipping extends OrderAmountDebit {
 	protected $items = array();
 
 	public function label () {
-		return __('Shipping','Shopp');
+		return Shopp::__('Shipping');
 	}
 }
 OrderTotalRegisters::register('OrderAmountShipping');
