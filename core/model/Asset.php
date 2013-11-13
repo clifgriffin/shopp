@@ -381,6 +381,7 @@ class ImageAsset extends FileAsset {
 		$args = func_get_args();
 
 		if ($args[1] == 0) $args[1] = $args[0];
+		for ($i = 0; $i < 5; $i++) $args[$i] = (int) $args[$i];
 		$message = rtrim(join(',', $args), ',');
 		$validation = self::checksum($this->id, $args);
 		$message .= ",$validation";
