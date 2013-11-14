@@ -1754,6 +1754,45 @@ abstract class ShoppCore {
 	}
 
 	/**
+	 * Returns a string value for use in an email's "from" header.
+	 *
+	 * The idea is that where multiple comma separated addresses have been provided
+	 * (such as in the merchant email field) only the first of these is used.
+	 * Thus, if the addressee is "Supplies Unlimited" and the addresses are
+	 * "info@merchant.com, dispatch@merchant.com, partners@other.co" this method
+	 * should return:
+	 *
+	 *     "Supplies Unlimited" <info@merchant.com>
+	 *
+	 * Preventing the other addresses from being exposed in the email header. NB:
+	 * if no addressee is supplied we will simply get back a solitary email address
+	 * without enclosing angle brackets:
+	 *
+	 *     info@merchant.com
+	 *
+	 * @param string $addresses
+	 * @param string $addressee = ''
+	 * @return string
+	 */
+	public static function single_email_addr( $addresses, $addressee = '' ) {
+		// If multiple addresses were provided, use only the first
+		if ( false !== strpos($addresses, ',') ) {
+			$addresses = explode( ',', $addresses );
+			$address = array_shift( $addresses );
+		}
+		else $address = $addresses;
+
+		// Clean up
+		$address = trim( $address );
+		$addressee = wp_specialchars_decode( trim( $addressee ), ENT_QUOTES );
+
+		// Add angle brackets/quotes where needed
+		if ( empty( $address ) ) return $addressee;
+		if ( empty( $addressee ) ) return $address;
+		return '"' . $addressee . '" <' . $address . '>';
+	}
+
+	/**
 	 * Ties the key status and update key together
 	 *
 	 * @author Jonathan Davis

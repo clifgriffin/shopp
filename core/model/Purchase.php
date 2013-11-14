@@ -564,9 +564,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 		// Build the e-mail message data
 		$_ = array();
-		$email['from'] = '"'.wp_specialchars_decode( shopp_setting('business_name'), ENT_QUOTES ).'"';
-		if (shopp_setting('merchant_email'))
-			$email['from'] .= ' <'.shopp_setting('merchant_email').'>';
+		$email['from'] = Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		if ($is_IIS) $email['to'] = $address;
 		else $email['to'] = '"'.wp_specialchars_decode( $addressee, ENT_QUOTES ).'" <'.$address.'>';
 		$email['subject'] = $subject;
