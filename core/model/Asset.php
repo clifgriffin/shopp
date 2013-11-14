@@ -260,7 +260,7 @@ class ImageAsset extends FileAsset {
 
 	        // Build the path to the cached copy of the file (if it exists)
 	        $size = $this->cachefile( $request );
-	        $this->uri = "cache_{$size}_{$this->uri}";
+	        $this->uri = "cache_{$size}_{$this->filename}";
 
 		}
 
