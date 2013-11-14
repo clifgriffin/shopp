@@ -1726,12 +1726,6 @@ abstract class ShoppCore {
 
 		}
 
-		// Use only the email address, discard everything else
-		if ( strpos($to, '<') !== false ) {
-			list($name, $email) = explode('<', $to);
-			$to = trim(rtrim($email, '>'));
-		}
-
 		// If not already in place, setup default system email filters
 		ShoppEmailDefaultFilters::init();
 
@@ -1770,6 +1764,7 @@ abstract class ShoppCore {
 	 *
 	 *     info@merchant.com
 	 *
+	 * @see ShoppCore::multiple_email_addrs()
 	 * @param string $addresses
 	 * @param string $addressee = ''
 	 * @return string
@@ -1790,6 +1785,49 @@ abstract class ShoppCore {
 		if ( empty( $address ) ) return $addressee;
 		if ( empty( $addressee ) ) return $address;
 		return '"' . $addressee . '" <' . $address . '>';
+	}
+
+	/**
+	 * Returns a string for use in an email's "To" header.
+	 *
+	 * Ordinarily multiple comma separated email addresses will only be a factor
+	 * where notices are being sent back to the merchant and they want to copy in
+	 * other staff, partner organizations etc. Given as the $addresses:
+	 *
+	 *     "info@merchant.com, dispatch@merchant.com, partners@other.co"
+	 *
+	 * And as the $addressee:
+	 *
+	 *     "Supplies Unlimited"
+	 *
+	 * This should return:
+	 *
+	 *     "Supplies Unlimited" <info@merchant.com>, dispatch@merchant.com, partners@other.co"
+	 *
+	 * However, if there is only a single email address rather than several sepeated by
+	 * commas it will simply return:
+	 *
+	 *     "Supplies Unlimited" <info@merchant.com>"
+	 *
+	 * @see ShoppCore::single_email_addr()
+	 * @param $addresses
+	 * @param $addressee
+	 * @return string
+	 */
+	public static function multiple_email_addrs( $addresses, $addressee = '' ) {
+		$addressee = wp_specialchars_decode( trim( $addressee ), ENT_QUOTES );
+		$source_list = explode( ',', $addresses );
+		$addresses = array();
+
+		foreach ( $source_list as $address ) {
+			$address = trim( $address );
+			if ( ! empty( $address ) ) $addresses[] = $address;
+		}
+
+		if ( isset($addresses[0]) && ! empty( $addressee ) )
+			$addresses[0] = '"' . $addressee . '" <' . $addresses[0] . '>';
+
+		return join( ',', $addresses );
 	}
 
 	/**
