@@ -406,6 +406,8 @@ class ShoppOrder {
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = ! $paycard ? $this->Billing->cardtype : $paycard->name;
 
+		$shipoption = $this->Shiprates->selected();
+
 		if ( empty($this->inprogress) ) {
 			// Create a new order
 			$Purchase = new ShoppPurchase();
@@ -430,6 +432,7 @@ class ShoppOrder {
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
 		$Purchase->freight = $this->Cart->Totals->total('shipping');
+		$Purchase->shipoption = $shipoption->name;
 		$Purchase->ip = $Shopping->ip;
 		$Purchase->created = current_time('mysql');
 		unset($Purchase->order);
