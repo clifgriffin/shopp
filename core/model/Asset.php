@@ -380,8 +380,8 @@ class ImageAsset extends FileAsset {
 	public function resizing ( $width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false ) {
 		$args = func_get_args();
 
-		if ($args[1] == 0) $args[1] = $args[0];
-		for ($i = 0; $i < 5; $i++) $args[$i] = (int) $args[$i];
+		if ( 0 == $args[1] ) $args[1] = $args[0]; // No height specified? It should equal the width
+		for ($i = 0; $i < 5; $i++) if ( isset($args[$i]) ) $args[$i] = (int) $args[$i];
 		$message = rtrim(join(',', $args), ',');
 		$validation = self::checksum($this->id, $args);
 		$message .= ",$validation";
