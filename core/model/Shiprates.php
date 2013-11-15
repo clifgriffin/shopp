@@ -350,7 +350,9 @@ class ShoppShiprates extends ListFramework {
 		if ( is_string($this->track) ) $request = $this->track;
 		else $request = hash('crc32b', serialize($this->track));
 
-		if ( $this->request == $request ) return true;
+		// If the request is the same and we have some shipping options,
+		// then this request has been made, don't re-run all the shipping modules
+		if ( $this->request == $request && $this->count() > 0 ) return true;
 		$this->request = $request;
 		return false;
 	}
