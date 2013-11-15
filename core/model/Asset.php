@@ -261,7 +261,6 @@ class ImageAsset extends FileAsset {
 	        // Build the path to the cached copy of the file (if it exists)
 	        $size = $this->cachefile( $request );
 	        $this->uri = "cache_{$size}_{$this->filename}";
-
 		}
 
         // Ask the engine if we have a direct URL
@@ -381,7 +380,9 @@ class ImageAsset extends FileAsset {
 		$args = func_get_args();
 
 		if ( 0 == $args[1] ) $args[1] = $args[0]; // No height specified? It should equal the width
+		if ( isset($args[4]) && false === $args[4] ) $args[4] = 100;
 		for ($i = 0; $i < 5; $i++) if ( isset($args[$i]) ) $args[$i] = (int) $args[$i];
+
 		$message = rtrim(join(',', $args), ',');
 		$validation = self::checksum($this->id, $args);
 		$message .= ",$validation";
