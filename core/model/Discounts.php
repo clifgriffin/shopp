@@ -163,9 +163,6 @@ class ShoppDiscounts extends ListFramework {
 			// Cancel matching if max number of discounts reached
 			if ( $this->maxed($Promo) ) break;
 
-			// Skip removed discounts
-			if ( $this->removed($Promo) ) continue;
-
 			$matches = 0;
 			$total = 0;
 
@@ -325,22 +322,6 @@ class ShoppDiscounts extends ListFramework {
 			return;
 		}
 
-		// If no code was found, block the discount from being auto-applied again
-		$this->removed[ $id ] = true;
-
-	}
-
-	/**
-	 * Determines if a give ShoppOrderPromo has been previously removed
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param ShoppOrderPromo $Promo The promo object to check
-	 * @return boolean True if removed, false otherwise
-	 **/
-	private function removed ( ShoppOrderPromo $Promo ) {
-		return isset($this->removed[ $Promo->id ]);
 	}
 
 	/**
