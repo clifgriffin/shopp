@@ -349,7 +349,7 @@ class ShoppError {
 	 * @param string $delimiter The delimeter used to join multiple error messages
 	 * @return string A collection of concatenated error messages
 	 **/
-	public function message ($remove=false, $source=false, $delimiter="\n") {
+	public function message ( $remove = false, $source = false, $delimiter = "\n" ) {
 		$string = "";
 		// Show source if debug is on, or not a general error message
 		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) &&
@@ -362,7 +362,7 @@ class ShoppError {
 		return $string;
 	}
 
-	private static function typehint ($level, $message, $debug) {
+	private static function typehint ( $level, $message, $debug ) {
 		$pattern = '/^Argument (\d)+ passed to (?:(\w+)::)?(\w+)\(\) must be an instance of (\w+), (\w+) given/';
 
 		$typehints = array(
@@ -377,11 +377,11 @@ class ShoppError {
 
 			list($matched, $index, $class, $function, $hint, $type) = $matches;
 
-			if ( isset($typehints[$hint]) ) {
-				if ($debug['function'] == $function) {
-					$argument = $debug['args'][$index - 1];
+			if ( isset($typehints[ $hint ]) ) {
+				if ( $debug['function'] == $function ) {
+					$argument = $debug['args'][ $index - 1 ];
 
-					if ( call_user_func($typehints[$hint], $argument) ) return true;
+					if ( call_user_func($typehints[ $hint ], $argument) ) return true;
 				}
 			}
 
