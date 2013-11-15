@@ -299,10 +299,12 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$null = null;
 		if (!isset($O->_category_loop)) {
 			reset($O->categories);
-			ShoppCollection(current($O->categories));
+			$current = current($O->categories);
+			if ( false !== $current ) ShoppCollection($current);
 			$O->_category_loop = true;
 		} else {
-			ShoppCollection(next($O->categories));
+			$next = next($O->categories);
+			if ( false !== $next ) ShoppCollection($next);
 		}
 
 		if (current($O->categories) !== false) return true;
