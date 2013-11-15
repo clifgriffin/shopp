@@ -152,7 +152,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp_query The working WP_Query object
 	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
 	 **/
-	public function posts ( array $posts, WP_Query $wp_query ) {
+	public function posts ( $posts, WP_Query $wp_query ) {
 
 		if ( $this->request($wp_query) ) {
 
