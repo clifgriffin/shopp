@@ -384,6 +384,8 @@ function shipto_meta_box ($Purchase) { ?>
 					'countrymenu' => Shopp::menuoptions($Purchase->_countries,$Purchase->shipcountry,true)
 
 				);
+				$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($address));
+				shopp_custom_script('orders','address["shipping"] = '.$js.';');
 				echo esc_attr(json_encode($address));
 			?>" />
 			<input type="submit" id="edit-shipping-address" name="edit-shipping-address" value="<?php _e('Edit','Shopp'); ?>" class="button-secondary button-edit" />
@@ -625,6 +627,7 @@ function notes_meta_box ($Purchase) {
 	add_filter('shopp_order_note', 'wpautop');
 
 ?>
+<form action="<?php echo ShoppAdminController::url( array('id'=>$Purchase->id) ); ?>" method="post">
 <?php if (!empty($Notes->meta)): ?>
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>
@@ -669,6 +672,7 @@ function notes_meta_box ($Purchase) {
 <p class="alignright" id="add-note">
 	<button type="button" name="add-note" value="add" id="add-note-button" class="button-secondary"><?php _e('Add Note','Shopp'); ?></button></p>
 	<br class="clear" />
+</form>
 <?php
 }
 ShoppUI::addmetabox('order-notes', __('Notes','Shopp').$Admin->boxhelp('order-manager-notes'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');

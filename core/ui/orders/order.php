@@ -262,6 +262,7 @@
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</table>
+			</form>
 
 
 			<div id="poststuff" class="poststuff">
@@ -283,7 +284,6 @@
 			<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
 			<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 			</div>
-		</form>
 	</div> <!-- #order -->
 
 </div>
