@@ -107,6 +107,7 @@ class ImageServer {
 
 		$clearpng = ( '000' == substr($this->request, 0, 3) );
 
+		$args = array();
 		foreach ( $_GET as $arg => $v ) {
 			if ( false !== strpos($arg, ',') ) {
 				$args = explode(',', $arg);

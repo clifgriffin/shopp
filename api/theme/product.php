@@ -161,10 +161,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (array_key_exists('label', $options)) 		$_[] = $addon->label;
 		if (array_key_exists('type', $options)) 		$_[] = $addon->type;
 		if (array_key_exists('sku', $options)) 			$_[] = $addon->sku;
-		if (array_key_exists('price', $options)) 		$_[] = money(Shopp::applytax($addon->price, $taxrates, $addon->tax, $taxes));
+		if (array_key_exists('price', $options)) 		$_[] = money(Shopp::applytax((float)$addon->price, $taxrates, $addon->tax, $taxes));
 		if (array_key_exists('saleprice', $options)) {
-			if ( Shopp::str_true($discounts) ) $_[] = money(Shopp::applytax($addon->promoprice, $taxrates, $addon->tax, $taxes));
-			else $_[] = money(Shopp::applytax($addon->saleprice, $taxrates, $addon->tax, $taxes));
+			if ( Shopp::str_true($discounts) ) $_[] = money(Shopp::applytax((float)$addon->promoprice, $taxrates, $addon->tax, $taxes));
+			else $_[] = money(Shopp::applytax((float)$addon->saleprice, $taxrates, $addon->tax, $taxes));
 		}
 		if (array_key_exists('stock', $options)) 		$_[] = $addon->stock;
 		if (array_key_exists('weight', $options)) 		$_[] = round($addon->weight, 3) . (false !== $weightunit ? " $weightunit" : false);
@@ -242,7 +242,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$currently = Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price;
 				$disabled = Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ? ' disabled="disabled"' : '';
 
-				$currently = Shopp::applytax($currently, $taxrates, $pricing->tax, $taxes);
+				$currently = Shopp::applytax((float)$currently, $taxrates, $pricing->tax, $taxes);
 
 				$discount = 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
@@ -294,7 +294,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					$currently = Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price;
 					$disabled = Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ? ' disabled="disabled"' : '';
 
-					$currently = Shopp::applytax($currently, $taxrates, $pricing->tax, $taxes);
+					$currently = Shopp::applytax((float)$currently, $taxrates, $pricing->tax, $taxes);
 
 					$discount = 100 - round($pricing->promoprice * 100 / $pricing->price);
 					$_ = new StdClass();
@@ -884,13 +884,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( ! $taxes ) $taxrate = 0;
 
 		if ( $min == $max || ! empty($starting) || Shopp::str_true($low) ) {
-			$prices = array(Shopp::applytax($min, $taxrates, $mintaxable, $taxes));
+			$prices = array(Shopp::applytax((float)$min, $taxrates, $mintaxable, $taxes));
 		} elseif ( Shopp::str_true($high) ) {
-			$prices = array(Shopp::applytax($max, $taxrates, $maxtaxable, $taxes));
+			$prices = array(Shopp::applytax((float)$max, $taxrates, $maxtaxable, $taxes));
 		} else {
 			$prices = array(
-				Shopp::applytax($min, $taxrates, $mintaxable, $taxes),
-				Shopp::applytax($max, $taxrates, $maxtaxable, $taxes)
+				Shopp::applytax((float)$min, $taxrates, $mintaxable, $taxes),
+				Shopp::applytax((float)$max, $taxrates, $maxtaxable, $taxes)
 			);
 		}
 
@@ -1027,9 +1027,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					sort($range);
 				}
 
-				if ( ! $range ) return money(Shopp::applytax($O->min['saved'], $taxrates, $mintaxable, $taxes)); // No price range
-				else return money(Shopp::applytax($range[0], $taxrates, $mintaxable, $taxes)) . $separator . money(Shopp::applytax($range[1], $taxrates, $maxtaxable, $taxes));
-			} else return money(Shopp::applytax($O->max['saved'], $taxrates, $maxtaxable, $taxes));
+				if ( ! $range ) return money(Shopp::applytax((float)$O->min['saved'], $taxrates, $mintaxable, $taxes)); // No price range
+				else return money(Shopp::applytax((float)$range[0], $taxrates, $mintaxable, $taxes)) . $separator . money(Shopp::applytax((float)$range[1], $taxrates, $maxtaxable, $taxes));
+			} else return money(Shopp::applytax((float)$O->max['saved'], $taxrates, $maxtaxable, $taxes));
 
 		}
 	}
@@ -1217,10 +1217,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if (array_key_exists('label',$options))		$_[] = $variation->label;
 		if (array_key_exists('type',$options))		$_[] = $variation->type;
 		if (array_key_exists('sku',$options))		$_[] = $variation->sku;
-		if (array_key_exists('price',$options)) 	$_[] = money(Shopp::applytax($variation->price, $taxrates, $variation->tax, $taxes));
+		if (array_key_exists('price',$options)) 	$_[] = money(Shopp::applytax((float)$variation->price, $taxrates, $variation->tax, $taxes));
 		if (array_key_exists('saleprice',$options)) {
-			if (Shopp::str_true($discounts)) $_[] = money(Shopp::applytax($variation->promoprice, $taxrates, $variation->tax, $taxes));
-			else $_[] = money(Shopp::applytax($variation->saleprice, $taxrates, $variation->tax, $taxes));
+			if (Shopp::str_true($discounts)) $_[] = money(Shopp::applytax((float)$variation->promoprice, $taxrates, $variation->tax, $taxes));
+			else $_[] = money(Shopp::applytax((float)$variation->saleprice, $taxrates, $variation->tax, $taxes));
 		}
 		if (array_key_exists('stock',$options)) 	$_[] = $variation->stock;
 		if (array_key_exists('weight',$options)) 	$_[] = round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
@@ -1288,7 +1288,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$currently = Shopp::str_true($pricing->sale)?$pricing->promoprice:$pricing->price;
 				$disabled = Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ? ' disabled="disabled"' : '';
 
-				$currently = Shopp::applytax($currently, $taxrates, $pricing->tax, $taxes);
+				$currently = Shopp::applytax((float)$currently, $taxrates, $pricing->tax, $taxes);
 
 				$discount = 0 == $pricing->price ? 0 : 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();

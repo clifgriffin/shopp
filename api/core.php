@@ -413,6 +413,21 @@ function is_shopp_product ( $wp_query = false ) {
 	return (bool) $product;
 }
 
+/**
+ * Determines if the current request is for a single Shopp product
+ *
+ * @author Clifton H. Griffin II
+ * @since 1.3
+ *
+ * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
+ * @return boolean
+ **/
+function is_single_product( $wp_query = false ) {
+	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
+
+	return ( is_shopp_product($wp_query) && $wp_query->is_single() );
+}
+
 function shopp_add_error ( $message, $level = null ) {
 	if ( is_null($level) ) $level = SHOPP_ERR;
 	return new ShoppError( $message, false, $level );
