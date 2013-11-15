@@ -199,7 +199,7 @@ class sDB extends SingletonFramework {
 	 **/
 	public static function escape ( $data ) {
 		// Prevent double escaping by stripping any existing escapes out
-		if ( is_array($data) ) array_map(array('DB', 'escape'), $data);
+		if ( is_array($data) ) array_map(array(__CLASS__, 'escape'), $data);
 		elseif ( is_object($data) ) {
 			foreach ( get_object_vars($data) as $p => $v )
 				$data->$p = sDB::escape($v);
@@ -250,7 +250,7 @@ class sDB extends SingletonFramework {
 	 * @return string Cleaned up data
 	 **/
 	public static function clean ( $data ) {
-		if ( is_array($data) ) array_map(array('DB', 'clean'), $data);
+		if ( is_array($data) ) array_map(array(__CLASS__, 'clean'), $data);
 		if ( is_string($data) ) $data = rtrim($data);
 		return $data;
 	}
@@ -356,11 +356,11 @@ class sDB extends SingletonFramework {
 
 		// Setup record processing callback
 		if ( is_string($callback) && ! function_exists($callback) )
-			$callback = array('DB', $callback);
+			$callback = array(__CLASS__, $callback);
 
 		// Failsafe if callback isn't valid
 		if ( ! $callback || ( is_array($callback) && ! method_exists($callback[0], $callback[1]) ) )
-			$callback = array('DB', 'auto');
+			$callback = array(__CLASS__, 'auto');
 
 		// Process each row through the record processing callback
 		$records = array();
