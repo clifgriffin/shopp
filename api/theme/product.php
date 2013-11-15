@@ -1290,7 +1290,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$currently = Shopp::applytax($currently, $taxrates, $pricing->tax, $taxes);
 
-				$discount = 100-round($pricing->promoprice*100/$pricing->price);
+				$discount = 0 == $pricing->price ? 0 : 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
 				if ($pricing->type != 'Donation')
 					$_->p = money($currently);
