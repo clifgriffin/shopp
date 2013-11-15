@@ -153,7 +153,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		}
 
 		// Use the current image pointer by default
-		if ( ! $Image ) $Image = current($O->images);
+		if ( ! isset($Image) ) $Image = current($O->images);
 
 		if ( false !== $size ) $width = $height = $size;
 		if ( ! $width ) $width = $_width;
