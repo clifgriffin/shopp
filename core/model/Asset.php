@@ -64,8 +64,8 @@ class FileAsset extends ShoppMetaObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-     * @param $data Data to save
-     * @param $type (optional) Type of data to save
+	 * @param $data Data to save
+	 * @param $type (optional) Type of data to save
 	 * @return mixed
 	 **/
 	public function store ( $data, $type = 'binary' ) {
@@ -139,10 +139,10 @@ class FileAsset extends ShoppMetaObject {
 		$Engine = $StorageEngines->get($this->storage);
 
 		if ( false === $Engine ) // If no engine found, force DBStorage (to provide a working StorageEngine to the Asset)
-			$Engine = $StorageEngines->activate('DBStorage');
+		$Engine = $StorageEngines->activate('DBStorage');
 
 		if ( false === $Engine ) // If no engine is available at all, we're screwed.
-			wp_die('No Storage Engine available. Cannot continue.');
+		wp_die('No Storage Engine available. Cannot continue.');
 
 		$Engine->context($this->type);
 
@@ -216,10 +216,18 @@ class FileAsset extends ShoppMetaObject {
  **/
 class ImageAsset extends FileAsset {
 
-	// Allowable settings
-	public $_scaling = array('all', 'matte', 'crop', 'width', 'height');
-	public $_sharpen = 500;
-	public $_quality = 100;
+	const WIDTH = 0;
+	const HEIGHT = 1;
+	const SCALE = 2;
+	const SHARPEN = 3;
+	const QUALITY = 4;
+	const FILL = 5;
+
+	public static $defaults = array(
+		'scaling' => array('all', 'matte', 'crop', 'width', 'height'),
+		'sharpen' => 0,
+		'quality' => 80
+	);
 
 	public $width;
 	public $height;
@@ -258,13 +266,14 @@ class ImageAsset extends FileAsset {
 			list($width, $height, $scale, $sharpen, $quality, $fill) = $params;
 			$request = $this->resizing($width, $height, $scale, $sharpen, $quality, $fill);
 
-	        // Build the path to the cached copy of the file (if it exists)
-	        $size = $this->cachefile( $request );
-	        $this->uri = "cache_{$size}_{$this->filename}";
+			// Build the path to the cached copy of the file (if it exists)
+			$size = $this->cachefile( $request );
+			$this->uri = "cache_{$size}_{$this->filename}";
+
 		}
 
-        // Ask the engine if we have a direct URL
-        $direct_url = $this->engine()->direct($this->uri);
+		// Ask the engine if we have a direct URL
+		$direct_url = $this->engine()->direct($this->uri);
 		if ( false !== $direct_url ) return $direct_url;
 
 		if ( empty($request) ) return $url;
@@ -370,19 +379,24 @@ class ImageAsset extends FileAsset {
 	 *
 	 * @param $width
 	 * @param $height
-	 * @param bool $scale
-	 * @param bool $sharpen
-	 * @param bool $quality
-	 * @param bool $fill
+	 * @param bool $scale = null
+	 * @param bool $sharpen = null
+	 * @param bool $quality = null
+	 * @param bool $fill = null
 	 * @return string
 	 */
-	public function resizing ( $width, $height, $scale = false, $sharpen = false, $quality = false, $fill = false ) {
+	public function resizing ( $width, $height, $scale = null, $sharpen = null, $quality = null, $fill = null ) {
 		$args = func_get_args();
 
-		if ( 0 == $args[1] ) $args[1] = $args[0]; // No height specified? It should equal the width
-		if ( isset($args[4]) && false === $args[4] ) $args[4] = 100;
-		for ($i = 0; $i < 5; $i++) if ( isset($args[$i]) ) $args[$i] = (int) $args[$i];
+		// If not provided, height should equal width
+		if ( 0 == $args[self::HEIGHT] ) $args[self::HEIGHT] = $args[self::WIDTH];
 
+		// Apply defaults where needed
+		$args[self::SCALE] = ( null === $args[self::SCALE] ) ? 0 : $args[self::SCALE];
+		$args[self::SHARPEN] = ( null === $args[self::SHARPEN] ) ? self::$defaults['sharpen'] : $args[self::SHARPEN];
+		$args[self::QUALITY] = ( null === $args[self::QUALITY] ) ? self::$defaults['quality'] : $args[self::QUALITY];
+
+		// Form the checksummed message
 		$message = rtrim(join(',', $args), ',');
 		$validation = self::checksum($this->id, $args);
 		$message .= ",$validation";
