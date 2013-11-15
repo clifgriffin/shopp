@@ -651,7 +651,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$value_override = array("text","hidden","password","textarea","menu");
 
 		/// Allowable attributes for textarea inputs
-		$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
+		$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required','maxlength');
 
 		if (!$name) { // Iterator for order data
 			if (!isset($O->_data_loop)) {
