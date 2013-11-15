@@ -281,21 +281,39 @@ class ShoppDiscounts extends ListFramework {
 
 			$CodeRule = new ShoppDiscountRule($rule, $Promo);
 
-			if ( ! $CodeRule->match() ) continue;
-
-			// Prevent customers from reapplying codes
-			if ( ! empty($request) && $this->codeapplied($request) ) {
-				shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', $rule['value']) );
-				$this->request = false;
-			}
-
-			if ( ! $this->codeapplied( $rule['value'] ) )
-				$this->codes[ strtolower($rule['value']) ] = array();
-
-			$this->codes[ strtolower($rule['value']) ] = $Promo->id;
+			if ( $CodeRule->match() )
+				$this->addcode($rule['value'], $Promo);
 
 		}
 
+	}
+
+	/**
+	 * Adds an applied discount code
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $code The code to apply
+	 * @param ShoppOrderPromo $Promo The promotion the code comes from
+	 * @return boolean True if successful, false otherwise
+	 **/
+	public function addcode ( $code, ShoppOrderPromo $Promo ) {
+
+		$code = strtolower($code);
+
+		// Prevent customers from reapplying codes
+		if ( ! empty($code) && $this->codeapplied($code) ) {
+			shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', esc_html($code)) );
+			$this->request = false;
+			return false;
+		}
+
+		if ( ! $this->codeapplied( $code ) )
+			$this->codes[ $code ] = array();
+
+		$this->codes[ $code ] = $Promo->id;
+		return true;
 	}
 
 	/**
