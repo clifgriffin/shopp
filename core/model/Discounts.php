@@ -211,6 +211,9 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function apply ( ShoppOrderPromo $Promo ) {
+
+		$this->applycode($Promo);
+
 		$Discount = new ShoppOrderDiscount();
 		$Discount->ShoppOrderPromo($Promo);
 
@@ -220,8 +223,6 @@ class ShoppDiscounts extends ListFramework {
 			$items = $Discount->items();
 			if ( empty($items) ) return; // No items matched, discount doesn't apply
 		}
-
-		$this->applycode($Promo);
 
 		$this->add($Promo->id, $Discount);
 
@@ -313,6 +314,8 @@ class ShoppDiscounts extends ListFramework {
 			$this->codes[ $code ] = array();
 
 		$this->codes[ $code ] = $Promo->id;
+		$Promo->code = $code;
+
 		return true;
 	}
 
