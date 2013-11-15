@@ -556,9 +556,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					'</li>';
 			}
 
-			$scale = $p_fit ? array_search($p_fit, $Image->_scaling) : false;
-			$sharpen = $p_sharpen ? min($p_sharpen, $Image->_sharpen) : false;
-			$quality = $p_quality ? min($p_quality, $Image->_quality) : false;
+			$scale = $p_fit ? array_search($p_fit, ImageAsset::$defaults['scaling']) : false;
+			$sharpen = $p_sharpen ? min($p_sharpen, ImageAsset::$defaults['sharpen']) : false;
+			$quality = $p_quality ? min($p_quality, ImageAsset::$defaults['quality']) : false;
 
 			if ( 'transparent' == strtolower($p_bg) ) $fill = -1;
 			else $fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
@@ -606,9 +606,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$thumbs = '';
 			foreach ( $O->images as $Image ) {
 
-				$scale = $thumbfit ? array_search($thumbfit, $Image->_scaling) : false;
-				$sharpen = $thumbsharpen ? min($thumbsharpen, $Image->_sharpen) : false;
-				$quality = $thumbquality ? min($thumbquality, $Image->_quality) : false;
+				$scale = $thumbfit ? array_search($thumbfit, ImageAsset::$defaults['scaling']) : false;
+				$sharpen = $thumbsharpen ? min($thumbsharpen, ImageAsset::$defaults['sharpen']) : false;
+				$quality = $thumbquality ? min($thumbquality, ImageAsset::$defaults['quality']) : false;
 
 				if ( 'transparent' == strtolower($thumbbg) ) $fill = -1;
 				else $fill = $thumbbg ? hexdec(ltrim($thumbbg, '#')) : false;
