@@ -19,9 +19,7 @@
 		</p>
 		<ul>
 			<li><a href="<?php shopp( 'cart.url' ); ?>"><?php _e( 'Edit shopping cart', 'Shopp' ); ?></a></li>
-			<?php if ( shopp( 'checkout.local-payment' ) ) : ?>
-				<li><a href="<?php shopp( 'checkout.url' ); ?>"><?php _e( 'Proceed to Checkout', 'Shopp' ); ?></a></li>
-			<?php endif; ?>
+			<li><a href="<?php shopp( 'checkout.url' ); ?>"><?php _e( 'Proceed to Checkout', 'Shopp' ); ?></a></li>
 		</ul>
 	<?php else : ?>
 		<p class="notice"><?php _e( 'Your cart is empty.', 'Shopp' ); ?></p>
