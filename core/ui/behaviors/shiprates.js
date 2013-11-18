@@ -237,7 +237,7 @@ jQuery(document).ready( function($) {
 							e.preventDefault();
 							tier.fadeRemove();
 						});
-						debuglog(tierset);
+
 					tier.find('input.money').each(function () {
 						this.value = asMoney(this.value.match(/[^(\d,\. )]/) ? asNumber(this.value) : new Number(this.value));
 					}).change(function () {
