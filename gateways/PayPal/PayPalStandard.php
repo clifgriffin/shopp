@@ -124,6 +124,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	public function auth ( OrderEventMessage $Event ) {
 
 		$Message = $this->Message;
+		if ( ! $Message ) return; // Requires an IPN/PDT message
 
 		shopp_debug(__METHOD__ . ': ' . _object_r($Message));
 
@@ -178,6 +179,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function capture ( CaptureOrderEvent $Event ) {
 		$Message = $this->Message;
+		if ( ! $Message ) return; // Requires an IPN/PDT message
 
 		if ( $reversal = $Message->reversal() ) { // Log any reversal messages
 			shopp_add_order_event( $Event->order, 'review', array(
@@ -204,8 +206,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param RefundOrderEvent $Event The 'refund' order event message
 	 * @return void
 	 **/
-	public function refund ( RefundOrderEvent $Event ) {
+	public function refund ( RefundOrderEven8t $Event ) {
 		$Message = $this->Message;
+		if ( ! $Message ) return; // Requires an IPN/PDT message
+
 		if ( $reversal = $Message->reversal() ) { // Log any reversal messages
 			shopp_add_order_event( $Event->order, 'review', array(
 				'kind' => 'reason',
@@ -233,6 +237,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function void ( OrderEventMessage $Event ) {
 		$Message = $this->Message;
+		if ( ! $Message ) return; // Requires an IPN/PDT message
+
 		shopp_add_order_event($Event->order, 'voided', array(
 			'txnid' => $Message->txnid(),			// Transaction ID
 			'txnorigin' => $Message->txnorigin(),	// Original Transaction ID
@@ -793,9 +799,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string The response string from the request
 	 **/
-	public function send ( $data, $url = false, $deprecated = false, $options = array() ) {
+	public function send ( $data, $url = false ) {
 		$options['httpversion'] = '1.1';
-		return parent::send($data, $this->url(), false, $options);
+		return parent::send($data, $this->url());
 	}
 
 	/**
