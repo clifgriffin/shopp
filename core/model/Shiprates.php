@@ -244,6 +244,8 @@ class ShoppShiprates extends ListFramework {
 		// If nothing is currently, select the lowest cost option
 		if ( ! $this->selected() && false !== $lowest )
 			$this->selected( $lowest->slug );
+		
+		do_action('shopp_shiprates_calculated');
 
 		// Return the amount
 		return (float)$this->amount();
