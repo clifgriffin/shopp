@@ -166,7 +166,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
 		if ( empty($this->id) ) return false;
 
-		if ( ! is_null($ShoppDiscounts) ) { // Save the given discounts
+		if ( isset($ShoppDiscounts) ) { // Save the given discounts
 			$discounts = array();
 			foreach ( $ShoppDiscounts as $Discount )
 				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
@@ -681,8 +681,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$new = false;
 		if ( empty($this->id) ) $new = true;
 
-		if ( ! empty($this->card) && strlen($this->card) > 4 )
-			$this->card = substr($this->card, -4);
+		if ( ! empty($this->card) )
+			$this->card = PayCard::truncate($this->card);
 
 		parent::save();
 	}
