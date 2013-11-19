@@ -144,13 +144,29 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	public static function billing_card ( $result, $options, $O ) {
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		if (!empty($O->Billing->card) && strlen($O->Billing->card) > 4)
-			$options['value'] = str_repeat('X',strlen($O->Billing->card)-4).substr($O->Billing->card,-4);
-		if ($options['mode'] == "value") return $options['value'];
-		$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
-		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
+		$card = $O->Billing->card;
+		$modes = array('input', 'value');
+		$classes = array('paycard');
+
+		$defaults = array(
+			'class' => '',
+			'mode' => 'input',
+			'mask' => 'X',
+		);
+		$options = array_merge($defaults, $options);
+
+		if ( ! in_array($options['mode'], $modes) ) $options['mode'] = reset($modes);
+		$options['value'] = PayCard::mask($card, $options['mask']);
+		$classes[] = $options['class'];
+
+		extract($options, EXTR_SKIP);
+
+		if ( 'value' == $mode ) return $value;
+
+		$options['class'] = join(' ', $classes);
+
+		if ( ! isset($options['autocomplete']) ) $options['autocomplete'] = 'off';
+		return '<input type="text" name="billing[card]" id="billing-card" ' . inputattrs($options) . ' />';
 	}
 
 	public static function billing_card_expires_mm ( $result, $options, $O ) {
