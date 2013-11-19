@@ -956,8 +956,8 @@ class ShoppProduct extends WPShoppObject {
 
 					$Resized = new ImageProcessor($Image->retrieve(),$Image->width,$Image->height);
 					$scaled = $Image->scaled($width,$height,$scale);
-					$scale = $Cropped->_scaling[$scale];
-					$quality = ($quality === false)?$Cropped->_quality:$quality;
+					$scale = ImageAsset::$defaults['scaling'][$scale];
+					$quality = ($quality === false) ? ImageAsset::$defaults['quality'] : $quality;
 
 					$Resized->scale($scaled['width'],$scaled['height'],$scale,$alpha,$fill,(int)$dx,(int)$dy,(float)$cropscale);
 

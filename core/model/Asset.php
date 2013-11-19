@@ -334,7 +334,7 @@ class ImageAsset extends FileAsset {
 
 	public function scaled ( $width, $height, $fit = 'all' ) {
 		if ( preg_match('/^\d+$/', $fit) )
-			$fit = $this->_scaling[ $fit ];
+			$fit = self::$defaults['scaling'][$fit];
 
 		$d = array('width'=>$this->width,'height'=>$this->height);
 		switch ($fit) {
