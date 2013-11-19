@@ -282,7 +282,7 @@ class PurchaseAPITests extends ShoppTestCase {
         // $this->markTestSkipped('The '.__CLASS__.' unit tests have not been re-implemented.');
 
 		$actual = shopp('purchase.get-shipmethod');
-		$this->assertEquals('', $actual);
+		$this->assertEquals('Standard', $actual);
 	}
 
 	function test_purchase_items_tags () {
