@@ -286,11 +286,12 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function applycode ( ShoppOrderPromo $Promo ) {
+		$request = $this->request();
+
+		if ( empty($request) ) return; // Skip if there is no code request was made
 
 		// Determine which promocode matched
 		$rules = array_filter($Promo->rules, array($this, 'coderules'));
-
-		$request = strtolower($this->request());
 
 		foreach ( $rules as $rule ) {
 
