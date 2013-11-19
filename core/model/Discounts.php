@@ -185,7 +185,8 @@ class ShoppDiscounts extends ListFramework {
 			// The matches tally must equal to total 'non-item' rules in order to apply
 			if ( 'all' == $Promo->search && $matches == $total ) $apply = true;
 
-			if ( apply_filters('shopp_apply_discount', $apply, $Promo) ) $this->apply($Promo); // Add the Promo as a new discount
+			if ( apply_filters('shopp_apply_discount', $apply, $Promo) )
+				$this->apply($Promo); // Add the Promo as a new discount
 			else $this->reset($Promo);
 
 		} // End promos loop
@@ -212,16 +213,29 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	private function apply ( ShoppOrderPromo $Promo ) {
 
-		$this->applycode($Promo);
+		$exists = $this->exists($Promo->id);
+		$itemrules = isset($Promo->rules['item']);
 
+		// If it already is applied and the promo does not have item rules
+		if ( $exists && ! $itemrules ) return;
+
+		$this->applycode($Promo); // Apply the appropriate discount code from the promo
+
+		// Build the discount to apply to the order
 		$Discount = new ShoppOrderDiscount();
 		$Discount->ShoppOrderPromo($Promo);
 
-		// Match line item discount targets
-		if ( isset($Promo->rules['item']) ) {
+		// Check matching line item discount targets to apply the discount to
+		if ( $itemrules ) {
+
 			$this->items($Promo, $Discount);
 			$items = $Discount->items();
-			if ( empty($items) ) return; // No items matched, discount doesn't apply
+
+			if ( empty($items) ) { // No items match
+				if ( $exists ) $this->reset($Promo); // If it was applied, remove the discount
+				return; // Do not apply the discount
+			}
+
 		}
 
 		$this->add($Promo->id, $Discount);
