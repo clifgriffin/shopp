@@ -761,7 +761,7 @@ class PayCard {
 	public $csc = false;
 	public $inputs = array();
 
-	public function __construct ( $name, $symbol, $pattern, $csc=false, $inputs = array() ) {
+	public function __construct ( $name, $symbol, $pattern, $csc = false, $inputs = array() ) {
 		$this->name = $name;
 		$this->symbol = $symbol;
 		$this->pattern = $pattern;
@@ -770,17 +770,27 @@ class PayCard {
 	}
 
 	public function validate ( $pan ) {
-		$n = preg_replace('/\D/', '', $pan);
-		if ( strlen($n) == 4 ) return true;
-		return ( $this->match($n) && $this->checksum($n) );
+		$n = self::sanitize($pan);
+		if ( empty($n) ) return false;
+		if ( strlen($n) == 4 && is_numeric($n) ) return true;
+		return ( $this->match($n) && self::checksum($n) );
 	}
 
 	public function match ( $number ) {
-		if ( $this->pattern && ! preg_match($this->pattern, $number) ) return false;
-		return true;
+		if ( empty($this->pattern) ) return true; // Can't test an empty pattern
+		return preg_match($this->pattern, $number);
 	}
 
-	public function checksum ( $number ) {
+	/**
+	 * Calculate and validate the PAN checksum
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $number The PAN number to validate
+	 * @return boolean True if valid, false otherwise
+	 **/
+	public static function checksum ( $number ) {
 		$code = strrev($number);
 		for ( $cs = $i = 0; $i < strlen($code); $i++ ) {
 			$d = intval($code[ $i ]);
@@ -791,4 +801,57 @@ class PayCard {
 		return ( $cs % 10 == 0 );
 	}
 
-}
+	/**
+	 * Santizes a string value for digits-only
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $value The PAN value to sanitize
+	 * @return string The digit-only string
+	 **/
+	public static function sanitize ( $value ) {
+		$value = str_replace(array('-', '+'),'', $value); // Remove plus and minus that filter_var won't catch
+		$value = filter_var($value, FILTER_SANITIZE_NUMBER_INT); // Remove any other non-digit
+		return $value;
+	}
+
+	/**
+	 * Detects PAN values and truncates it to the last 4 digits
+	 *
+	 * PCI DSS requirement 3 says first 6 and last 4 digits of PAN allowed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $value The (possible) PAN id
+	 * @return string The truncated value
+	 **/
+	public static function truncate ( $value ) {
+		$pan = self::sanitize($value); // Sanitize first
+		if ( is_numeric($pan) && strlen($pan) > 10 )
+			return substr($pan, -4);
+		return $value;
+	}
+
+	/**
+	 * Masks a payment card PAN to last 4 digits with a masking character
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $value The PAN value to mask
+	 * @param string $value The masking character to use
+	 * @return string The masked PAN value
+	 **/
+	public static function mask ( $value, string $mask = null ) {
+		if ( empty($value) ) return $value;
+
+		if ( ! isset($mask) ) $mask = 'X';
+		$n = self::sanitize($value);
+		$length = max(strlen($value) - 4, 12);
+		if ( self::checksum($n) );
+			return str_repeat($mask, $length) . self::truncate($n);
+	}
+
+} // end class PayCard
