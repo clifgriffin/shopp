@@ -185,7 +185,8 @@ class ShoppDiscounts extends ListFramework {
 			// The matches tally must equal to total 'non-item' rules in order to apply
 			if ( 'all' == $Promo->search && $matches == $total ) $apply = true;
 
-			if ( apply_filters('shopp_apply_discount', $apply, $Promo) ) $this->apply($Promo); // Add the Promo as a new discount
+			if ( apply_filters('shopp_apply_discount', $apply, $Promo) )
+				$this->apply($Promo); // Add the Promo as a new discount
 			else $this->reset($Promo);
 
 		} // End promos loop
@@ -212,16 +213,29 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	private function apply ( ShoppOrderPromo $Promo ) {
 
-		$this->applycode($Promo);
+		$exists = $this->exists($Promo->id);
+		$itemrules = isset($Promo->rules['item']);
 
+		// If it already is applied and the promo does not have item rules
+		if ( $exists && ! $itemrules ) return;
+
+		$this->applycode($Promo); // Apply the appropriate discount code from the promo
+
+		// Build the discount to apply to the order
 		$Discount = new ShoppOrderDiscount();
 		$Discount->ShoppOrderPromo($Promo);
 
-		// Match line item discount targets
-		if ( isset($Promo->rules['item']) ) {
+		// Check matching line item discount targets to apply the discount to
+		if ( $itemrules ) {
+
 			$this->items($Promo, $Discount);
 			$items = $Discount->items();
-			if ( empty($items) ) return; // No items matched, discount doesn't apply
+
+			if ( empty($items) ) { // No items match
+				if ( $exists ) $this->reset($Promo); // If it was applied, remove the discount
+				return; // Do not apply the discount
+			}
+
 		}
 
 		$this->add($Promo->id, $Discount);
@@ -272,11 +286,12 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function applycode ( ShoppOrderPromo $Promo ) {
+		$request = $this->request();
+
+		if ( empty($request) ) return; // Skip if there is no code request was made
 
 		// Determine which promocode matched
 		$rules = array_filter($Promo->rules, array($this, 'coderules'));
-
-		$request = strtolower($this->request());
 
 		foreach ( $rules as $rule ) {
 
@@ -302,9 +317,10 @@ class ShoppDiscounts extends ListFramework {
 	public function addcode ( $code, ShoppOrderPromo $Promo ) {
 
 		$code = strtolower($code);
+		$request = strtolower($this->request());
 
 		// Prevent customers from reapplying codes
-		if ( ! empty($code) && $this->codeapplied($code) ) {
+		if ( ! empty($request) && $code == $request && $this->codeapplied($code) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', esc_html($code)) );
 			$this->request = false;
 			return false;
