@@ -62,7 +62,7 @@ class ShoppFormValidation {
 			$_POST['loginname'] = ShoppLoginGenerator::name();
 
 			if ( apply_filters('shopp_login_required', empty($_POST['loginname'])) )
-				return shopp_add_error( Shopp::__('A login could not be created with the information you provided. Enter different name or email address.') . $pleaselogin );
+				return shopp_add_error( Shopp::__('A login could not be created with the information you provided. Enter a different name or email address.') . $pleaselogin );
 
 			shopp_debug('Login set to '. $_POST['loginname'] . ' for WordPress account creation.');
 
