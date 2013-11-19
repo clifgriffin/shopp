@@ -381,8 +381,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
  		if ( empty($msg['payid']) ) return $msg;
 
-		if ( ! empty($msg['payid']) && is_numeric($msg['payid']) && strlen($msg['payid']) > 10 )
-			$msg['payid'] = substr($msg['payid'], -4);
+		$msg['payid'] = PayCard::truncate($msg['payid']);
 
  		return $msg;
  	}
