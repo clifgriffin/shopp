@@ -317,9 +317,10 @@ class ShoppDiscounts extends ListFramework {
 	public function addcode ( $code, ShoppOrderPromo $Promo ) {
 
 		$code = strtolower($code);
+		$request = strtolower($this->request());
 
 		// Prevent customers from reapplying codes
-		if ( ! empty($code) && $this->codeapplied($code) ) {
+		if ( ! empty($request) && $code == $request && $this->codeapplied($code) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', esc_html($code)) );
 			$this->request = false;
 			return false;
