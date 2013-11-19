@@ -64,7 +64,8 @@ class OrderTotals extends ListFramework {
 	 * @return OrderAmount The order amount entry
 	 **/
 	public function &entry ( string $register, string $id = null ) {
-		if ( ! isset($this->register[ $register ]) ) return false;
+		$false = false;
+		if ( ! isset($this->register[ $register ]) ) return $false;
 		$Register = &$this->register[ $register ];
 
 		// If id is not provided, return the entire register
