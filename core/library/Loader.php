@@ -561,7 +561,7 @@ ShoppLoader::map(array(
 	'shoppitemtax' => '/model/Tax.php',
 	'shopploader' => '/library/Loader.php',
 	'shopplogin' => '/flow/Login.php',
-	'shopploginname' => '/library/Loginname.php',
+	'shopplogingenerator' => '/library/Loginname.php',
 	'shoppmaintenancepage' => '/flow/Pages.php',
 	'shoppmetaobject' => '/model/Meta.php',
 	'shopporder' => '/flow/Order.php',
