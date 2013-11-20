@@ -1709,7 +1709,7 @@ abstract class ShoppCore {
 
 			// Header parse
 			if ( ! $in_body && false !== strpos($line, ':') ) {
-				list($header, $value) = explode(':', $line);
+				list($header, $value) = explode(':', $line, 2);
 
 				// Protect against header injection
 				if ( in_array(strtolower($header), $protected) )
