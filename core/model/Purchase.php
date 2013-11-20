@@ -448,9 +448,9 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @author Marc Neuhaus, Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @param OrderEvent $event The OrderEvent object passed by the hook
+	 * @param $Event OrderEvent $event The OrderEvent object passed by the hook
 	 * @return void
-	 **/
+	 */
 	public static function notifications ( $Event ) {
 
 		$Purchase = $Event->order();
@@ -494,7 +494,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			if ( in_array($Event->name, $defaults) && 'customer' == $name )
 				$templates[] = 'email.php';
 
-			$file = locate_shopp_template($templates);
+			$file = Shopp::locate_template( $templates );
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
 			if ( ! empty($file) && ! in_array($email, $Event->_emails) ) {
