@@ -257,7 +257,7 @@ class ShoppCheckout {
 
 		$Cart->totals(); // Retotal after checkout to capture order total changes
 
-		if ( true !== apply_filters('shopp_validate_checkout', false) ) return;
+		if ( true !== apply_filters('shopp_validate_checkout', true) ) return;
 		else $this->customer(); // Catch changes from validation
 
 		// Catch originally free orders that get extra (shipping) costs added to them

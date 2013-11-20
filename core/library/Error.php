@@ -69,19 +69,19 @@ class ShoppErrors {
 
 		if ( $debugging ) $this->reporting = SHOPP_DEBUG_ERR;
 		if ( $level > $this->reporting ) $this->reporting = $level;
-
-		add_action('init', array($this, 'init'), 5);
-		do_action('shopp_errors_init');
-
 	}
 
 	public static function object () {
-		if ( ! self::$object instanceof self )
+		if ( ! self::$object instanceof self ) {
 			self::$object = new self();
+			do_action('shopp_errors_init');
+			add_action('init', array(self::$object, 'init'));
+		}
 		return self::$object;
 	}
 
 	public function init () {
+
 		foreach( $this->errors as $index => $error )
 			if ( $error->remove ) unset($this->errors[$index]);
 	}
