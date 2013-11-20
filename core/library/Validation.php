@@ -70,10 +70,8 @@ class ShoppFormValidation {
 
 		// Validate unique email address for new account
 		if ( in_array($accounts, array('wordpress', 'shopp')) && ! $Customer->session(ShoppCustomer::GUEST) ) {
-
-			$ExistingCustomer = new ShoppCustomer($_POST['email'], 'email');
-
-			if ( apply_filters('shopp_email_exists', ( 'wordpress' == $accounts ? email_exists($_POST['email']) : empty($ExistingCustomer->id) )) )
+			$ShoppCustomer = new ShoppCustomer($_POST['email'], 'email');
+			if ( apply_filters('shopp_email_exists', ( 'wordpress' == $accounts ? email_exists($_POST['email']) : $ShoppCustomer->exists() )) )
 				return shopp_add_error( Shopp::__('The email address you entered is already in use. Enter a different email address to create a new account.') . $pleaselogin );
 
 		}
@@ -91,7 +89,7 @@ class ShoppFormValidation {
 			}
 
 			if ( apply_filters('shopp_login_exists', username_exists($_POST['loginname'])) )
-				return shopp_add_error( Shopp::__('The login name is already in use. Enter a different login name to create a new account.') . $pleaselogin );
+				return shopp_add_error( Shopp::__('"%s" is already in use. Enter a different login name to create a new account.', esc_html($_POST['loginname'])) . $pleaselogin );
 		}
 
         return $result;
