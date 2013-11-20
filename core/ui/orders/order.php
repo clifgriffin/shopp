@@ -106,14 +106,14 @@
 					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
-				<?php if ($Purchase->discount > 0): ?>
+				<?php if (abs($Purchase->discount) > 0): ?>
 				<tr class="totals">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
-					<td class="money">-<?php echo money($Purchase->discount); ?>
-						<?php if (!empty($Purchase->promos)): ?>
+					<td class="money"><?php echo money($Purchase->discount); ?>
+						<?php if ( $Purchase->discounts() ): ?>
 						<ul class="promos">
-						<?php foreach ($Purchase->promos as $pid => $promo): ?>
-							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $pid), admin_url('admin.php'))); ?>"><?php echo $promo; ?></a></small></li>
+						<?php foreach ( $Purchase->discounts as $id => $Discount ): ?>
+							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $id), admin_url('admin.php'))); ?>"><?php echo esc_html($Discount->name); ?></a></small></li>
 						<?php endforeach; ?>
 						</ul>
 						<?php endif; ?>
