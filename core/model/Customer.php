@@ -220,10 +220,12 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		$business = shopp_setting('business_name');
+		$merchant = shopp_setting('merchant_email');
 
 		$_ = array();
-		$_[] = 'From: "'.$blogname.'" <'.shopp_setting('merchant_email').'>';
-		$_[] = 'To: '.shopp_setting('merchant_email');
+		$_[] = 'From: ' . Shopp::single_email_addr( $merchant, $business );
+		$_[] = 'To: ' . Shopp::multiple_email_addrs( $merchant );
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
@@ -237,8 +239,8 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		if (empty($this->password)) return;
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
-		$_[] = 'To: '.$this->email;
+		$_[] = 'From: ' . Shopp::single_email_addr( $merchant, $business );
+		$_[] = 'To: ' . $this->email;
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
