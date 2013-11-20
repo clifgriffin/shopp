@@ -547,12 +547,21 @@ class ShoppOrder {
 	public function accounts ( $Event ) {
 
 		$Purchase = $Event->order();
-		if ( ! $Purchase ) return;
+		if ( ! $Purchase ) {
+			shopp_debug('No purchase available for account registration processing.');
+			return;
+		}
 
-		// Detect (somehow) if the ShoppOrder()->Customer/Billing/Shipping
-		// If it is, load Purchase registration
-		$registration = $Purchase->registration('process');
-		extract($registration, EXTR_SKIP);
+		$registration = $Purchase->registration();
+		if ( empty($registration) ) {
+			shopp_debug('No purchase registration data available for account registration processing.');
+			return;
+		}
+
+		$this->Customer->copydata($registration['Customer']);
+		$this->Billing->copydata($registration['Billing']);
+		$this->Shipping->copydata($registration['Shipping']);
+
 
         add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
         add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
