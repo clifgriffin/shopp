@@ -73,6 +73,7 @@ class ShoppOrder {
 		add_action('shopp_update_destination', array($this, 'taxaddress'));
 
 		add_action('shopp_purchase_order_event', array($this, 'purchase'));
+		add_action('shopp_purchase_order_created', array($this, 'meta'));
 		add_action('shopp_purchase_order_created', array($this, 'invoice'));
 		add_action('shopp_purchase_order_created', array($this, 'process'));
 
@@ -431,7 +432,7 @@ class ShoppOrder {
 		$Purchase->subtotal = $Purchase->order; // Remap order to subtotal
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
-		$Purchase->freight = $this->Cart->Totals->total('shipping');
+		$Purchase->freight = $this->Cart->total('shipping');
 		$Purchase->shipoption = $shipoption->name;
 		$Purchase->ip = $Shopping->ip;
 		$Purchase->created = current_time('mysql');
@@ -464,10 +465,7 @@ class ShoppOrder {
 
 				// Recreate purchased records from the cart and re-invoice for the new order total
 				$this->items($Purchase->id);
-				$Purchase->discounts($this->Discounts);					// Save the discounts applied
-				$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
-				$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
-
+				$this->meta($Purchase);
 				$this->invoice($Purchase);
 
 				add_action( 'shopp_order_event', array($Purchase, 'notifications') );
@@ -479,9 +477,7 @@ class ShoppOrder {
 		}
 
 		$this->items($Purchase->id);							// Create purchased records from the cart items
-		$Purchase->discounts($this->Discounts);					// Save the discounts applied
-		$Purchase->taxes($this->Cart->Totals->entry('tax'));	// Save the taxes applied
-		$Purchase->registration($this->Customer, $this->Billing, $this->Shipping); // Keep registration with order for third-party processing
+
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates
@@ -510,6 +506,20 @@ class ShoppOrder {
 			$Purchased->save();
 		}
 		$this->checksum = $this->Cart->checksum;	// Track the cart contents checksum to detect changes.
+	}
+
+	public function meta ( ShoppPurchase $Purchase ) {
+		// Save the discounts applied
+		$Purchase->discounts($this->Discounts);
+
+		// Save the taxes applied
+		$TotalTaxes = $this->Cart->Totals->entry('tax');
+		if ( ! empty($TotalTaxes) )
+			$Purchase->taxes($TotalTaxes);
+
+		// Save new user registration with order
+		if ( ! $this->Customer->exists() )
+			$Purchase->registration($this->Customer, $this->Billing, $this->Shipping);
 	}
 
 	/**
