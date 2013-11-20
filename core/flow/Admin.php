@@ -78,9 +78,6 @@ class ShoppAdmin extends ShoppFlowController {
 		// Dashboard widget support
 		add_action('wp_dashboard_setup', array('ShoppAdminDashboard', 'init'));
 
-		// Metabox help screencasts
-		add_filter('shopp_admin_boxhelp', array('ShoppSupport', 'activated'));
-
 		add_action('admin_init', array($this, 'updates'));
 		add_action('admin_init', array($this, 'tinymce'));
 		add_action('switch_theme', array($this, 'themepath'));
@@ -530,6 +527,8 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @return string The anchor tag for the help link
 	 **/
 	public function boxhelp ( $id ) {
+		if ( ! ShoppSupport::activated() ) return '';
+
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
 		return apply_filters('shopp_admin_boxhelp','<a href="'.esc_url($helpurl).'" class="shoppui-question"></a>');
 	}

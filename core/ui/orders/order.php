@@ -106,14 +106,14 @@
 					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
-				<?php if ($Purchase->discount > 0): ?>
+				<?php if (abs($Purchase->discount) > 0): ?>
 				<tr class="totals">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
-					<td class="money">-<?php echo money($Purchase->discount); ?>
-						<?php if (!empty($Purchase->promos)): ?>
+					<td class="money"><?php echo money($Purchase->discount); ?>
+						<?php if ( $Purchase->discounts() ): ?>
 						<ul class="promos">
-						<?php foreach ($Purchase->promos as $pid => $promo): ?>
-							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $pid), admin_url('admin.php'))); ?>"><?php echo $promo; ?></a></small></li>
+						<?php foreach ( $Purchase->discounts as $id => $Discount ): ?>
+							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $id), admin_url('admin.php'))); ?>"><?php echo esc_html($Discount->name); ?></a></small></li>
 						<?php endforeach; ?>
 						</ul>
 						<?php endif; ?>
@@ -175,6 +175,8 @@
 								ob_start();
 								switch ($column) {
 									case 'items':
+									ShoppProduct( new ShoppProduct($Item->product) ); // @todo Find a way to make this more efficient by loading product slugs with load_purchased()?
+									$viewurl = shopp('product.get-url');
 									$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=>$id) );
 									$rmvurl = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=>$id) );
 										?>
@@ -195,7 +197,7 @@
 												<div class="row-actions">
 													<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 													<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span> -->
-													<span class='view'><a href="<?php ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+													<span class='view'><a href="<?php echo $viewurl;  ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 												</div>
 
 												<?php if ( (is_array($Item->data) && ! empty($Item->data))  || ! empty($Item->sku) || (! empty($Item->addons) && 'no' != $Item->addons) ): ?>

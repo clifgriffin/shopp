@@ -64,22 +64,13 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				case 'voided': $Event->amount = $this->balance; $this->voided += $Event->amount; $Event->credit = true; break;
 				case 'shipped': $this->shipped = true; $this->shipevent = $Event; break;
 			}
-			if (isset($Event->transactional)) {
+			if ( isset($Event->transactional) ) {
 				$this->txnevent = $Event;
 
-				if ($Event->credit) $this->balance -= $Event->amount;
-				elseif ($Event->debit) $this->balance += $Event->amount;
+				if ( $Event->credit ) $this->balance -= $Event->amount;
+				elseif ( $Event->debit ) $this->balance += $Event->amount;
 			}
 		}
-
-		// Legacy support - @todo Remove in 1.3
-		if (isset($this->txnstatus) && !empty($this->txnstatus)) {
-			switch ($this->txnstatus) {
-				case 'CHARGED': $this->authorized = $this->captured = true; break;
-				case 'VOID': $this->voided = true; $this->balance = 0; break;
-			}
-		}
-
 	}
 
 	/**
@@ -216,7 +207,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		if ( empty($this->id) ) return false;
 		$args = func_get_args();
 
-		$cleanup = count($args) == 1 && 'process' == reset($args);
+		if ( count($args) == 1 && 'cleanup' == reset($args) )
+			return shopp_rmv_meta($this->id, 'purchase', 'registration');
 
 		$registration = array();
 		$objectmap = array(
@@ -224,23 +216,29 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			'BillingAddress' => 'Billing',
 			'ShippingAddress' => 'Shipping'
 		);
+
 		foreach ( $args as $Object ) {
 			$class = is_object($Object) ? get_class($Object) : '';
 
-			if ( 'ShoppCustomer' == $class ) // hash the password before storage
+			$Record = new StdClass;
+			$properties = array_keys($Object->_datatypes);
+			foreach ( $properties as $property )
+				if ( isset($Object->$property) ) $Record->$property = $Object->$property;
+
+			if ( 'ShoppCustomer' == $class ) { // hash the password before storage
 				$Object->hashpass();
+				$Record->passhash = $Object->passhash;
+				$Record->loginname = $Object->loginname;
+			}
 
 			if ( isset($objectmap[ $class ]) )
-				$registration[ $objectmap[ $class ] ] = $Object;
+				$registration[ $objectmap[ $class ] ] = $Record;
 		}
 
 		if ( ! empty($registration) )
 			shopp_set_meta($this->id, 'purchase', 'registration', $registration);
 
 		$meta = shopp_meta($this->id, 'purchase', 'registration');
-
-		if ( $cleanup )
-			shopp_rmv_meta($this->id, 'purchase', 'registration');
 
 		return $meta;
 	}
@@ -547,7 +545,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		// Remove merchant notification if disabled in receipt copy setting
 		if ( ! shopp_setting_enabled('receipt_copy') ) unset($messages['merchant']);
 
-		foreach ( $messages as $name => $message ) {
+		foreach ( $messages as $message ) {
 			list($addressee, $email, $subject, $templates) = $message;
 
 			// Send email if the specific template is available
@@ -563,7 +561,6 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		shopp_debug("ShoppPurchase::email(): $addressee,$address,$subject,"._object_r($templates));
 
 		// Build the e-mail message data
-		$_ = array();
 		$email['from'] = Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		if ($is_IIS) $email['to'] = Shopp::multiple_email_addrs( $address );
 		else $email['to'] = Shopp::multiple_email_addrs( $address, $addressee );
@@ -589,7 +586,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		}
 
 		// Send the email
-		if (Shopp::email($template,$this->message)) {
+		if (Shopp::email($template, $this->message)) {
 			shopp_debug('A purchase notification was sent to: ' . $this->message['to']);
 			return true;
 		}
@@ -760,7 +757,6 @@ class PurchasesExport {
 	public $limit = 1024;
 
 	public function __construct () {
-		$Shopp = Shopp::object();
 
 		$this->purchase_cols = ShoppPurchase::exportcolumns();
 		$this->purchased_cols = ShoppPurchased::exportcolumns();
@@ -872,7 +868,7 @@ class PurchasesExport {
 
 	public function records () {
 		while (!empty($this->data)) {
-			foreach ($this->data as $key => $record) {
+			foreach ($this->data as $record) {
 				foreach(get_object_vars($record) as $column)
 					$this->export($this->parse($column));
 				$this->record();
@@ -993,7 +989,6 @@ class PurchasesXLSExport extends PurchasesExport {
 class PurchasesIIFExport extends PurchasesExport {
 
 	public function __construct () {
-		$Shopp = Shopp::object();
 		parent::__construct();
 		$this->content_type = "application/qbooks";
 		$this->extension = "iif";
@@ -1033,9 +1028,7 @@ class PurchasesIIFExport extends PurchasesExport {
 
 	public function record () { }
 
-	public static function settings () {
-		$Shopp = Shopp::object();
-		?>
+	public static function settings () { ?>
 		<div id="iif-settings" class="hidden">
 			<input type="text" id="iif-account" name="settings[purchaselog_iifaccount]" value="<?php echo shopp_setting('purchaselog_iifaccount'); ?>" size="30"/><br />
 			<label for="iif-account"><small><?php _e('QuickBooks account name for transactions','Shopp'); ?></small></label>

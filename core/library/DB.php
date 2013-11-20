@@ -983,12 +983,17 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 *
 	 * @return boolean
 	 **/
-	public function exists () {
+	public function exists ( $verify = false ) {
 		$key = $this->_key;
-		if ( ! isset($this->$key) ) return false;
-		$id = $this->$key;
-		$r = sDB::query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
-		return ( ! empty($r->id) );
+		if ( empty($this->$key) ) return false;
+
+		if ( $verify ) {
+			$id = $this->$key;
+			$exists = sDB::query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1", 'auto', 'col', 'id');
+			return ( ! empty($exists) );
+		}
+
+		return true;
 	}
 
 	/**

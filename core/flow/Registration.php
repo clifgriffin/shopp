@@ -162,11 +162,9 @@ class ShoppRegistration {
 
 	public static function process () {
 
-		if ( true !== apply_filters('shopp_validate_registration', false) ) return;
+		if ( true !== apply_filters('shopp_validate_registration', true) ) return;
 
 		$Customer = ShoppOrder()->Customer;
-		$BillingAddress = ShoppOrder()->Billing;
-		$ShippingAddress = ShoppOrder()->Shipping;
 
 		if ( $Customer->session(ShoppCustomer::GUEST) ) {
 			$Customer->type = __('Guest', 'Shopp');
@@ -195,20 +193,19 @@ class ShoppRegistration {
 		$Customer->save();
         $Customer->password = '';
 
-		// Update billing address
-		if ( ! empty($BillingAddress->address) ) {
-			$BillingAddress->customer = $Customer->id;
-			$BillingAddress->save();
-		}
-
-		// Update shipping address
-		if ( ! empty($ShippingAddress->address) ) {
-			$ShippingAddress->customer = $Customer->id;
-			$ShippingAddress->save();
+		// Update billing and shipping addresses
+		$addresses = array('Billing', 'Shipping');
+		foreach ($addresses as $Address) {
+			if ( empty(ShoppOrder()->$Address->address) ) continue;
+			$Address = ShoppOrder()->$Address;
+			$Address->customer = $Customer->id;
+			$Address->save();
 		}
 
 		do_action('shopp_customer_registered', $Customer);
-        if ( apply_filters('shopp_registration_redirect', true) ) shopp_redirect( Shopp::url(false, 'account') );
+
+        if ( apply_filters('shopp_registration_redirect', false) )
+			shopp_redirect( Shopp::url(false, 'account') );
 	}
 
 }

@@ -55,27 +55,72 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		return array_diff($properties, array('updates', 'downloads', '_download'));
 	}
 
+	/**
+	 * Reset the status flags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function reset () {
 		$this->flag(self::GUEST, false);
 		$this->flag(self::WPUSER, false);
 	}
 
+	/**
+	 * Re-establish actions relavant to this account
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function listeners () {
 		add_action('shopp_logged_out', array($this, 'logout'));
 	}
 
+	/**
+	 * Get session flags or set a session flag
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $flag The flag named constant (ShoppCustomer::LOGIN, ShoppCustomer::GUEST, ShoppCustomer::WPUSER)
+	 * @return boolean True if flag is set, false otherwise
+	 **/
 	public function session ( $flag, $setting = null ) {
 		if ( null === $setting ) {
 			return ( ($this->session & $flag) == $flag );
 		} else return $this->flag('session', $flag, $setting);
 	}
 
+	/**
+	 * Get customer update flags or set an update flag
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $flag The flag named constant (ShoppCustomer::PASSWORD, ShoppCustomer::PROFILE)
+	 * @return boolean True if the flag is set, false otherwise
+	 **/
 	public function updated ( $flag, $setting = null ) {
 		if ( null === $setting ) {
 			return ( ($this->updates & $flag) == $flag );
 		} else return $this->flag('updates', $flag, $setting);
 	}
 
+	/**
+	 * Set or get property flags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $property The flag property to change
+	 * @param int $flag The named constant
+	 * @param boolean $setting True for on, false for off
+	 * @return boolean True if set, false otherwise
+	 **/
     protected function flag ( $property, $flag, $setting = false ) {
 
 		if ( ! property_exists($this, $property ) ) return false;
@@ -90,26 +135,6 @@ class ShoppCustomer extends ShoppDatabaseObject {
     }
 
 	/**
-	 * simplify - get a simplified version of the customer object
-	 *
-	 * @author John Dillick
-	 * @since 1.2
-	 *
-	 * @return stdClass returns stdClass simplified version of the customer object
-	 **/
-	public function simplify () {
-		$map = array('id', 'wpuser', 'firstname', 'lastname', 'email', 'phone', 'company', 'marketing', 'type');
-		$_ = new stdClass;
-
-		foreach ( $map as $property ) {
-			if ( isset($this->{$property}) ) $_->{$property} = $this->{$property};
-		}
-
-		if ( isset($this->info) && ! empty($this->info) ) $_->info = $this->info;
-		return $_;
-	}
-
-	/**
 	 * Loads customer 'info' meta data
 	 *
 	 * @author Jonathan Davis
@@ -122,6 +147,14 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		if ( ! $this->info ) $this->info = new ObjectMeta();
 	}
 
+	/**
+	 * Save the record to the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	public function save () {
 
 		if ( empty($this->password) ) // Do not save empty password updates
@@ -149,7 +182,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	/**
 	 * Determines if the customer is logged in, and checks for wordpress login if necessary
 	 *
-	 * @author John Dillick
+	 * @author John Dillick, Jonathan Davis
 	 * @since 1.2
 	 *
 	 * @return bool true if logged in, false if not logged in
@@ -163,58 +196,38 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		return apply_filters('shopp_customer_login_check', $this->session(self::LOGIN));
 	}
 
+	/**
+	 * Set the customer as logged in
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function login () {
 		$this->session(self::LOGIN, true);
 	}
 
+	/**
+	 * Set the customer as logged out
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function logout () {
 		$this->session(self::LOGIN, false);
 	}
 
-	public function order () {
-		$Shopp = Shopp::object();
-
-		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-
-			$Purchase = new ShoppPurchase($_POST['purchaseid']);
-			if ($Purchase->email == $_POST['email']) {
-				$Shopp->Purchase = $Purchase;
-				$Purchase->load_purchased();
-				ob_start();
-				locate_shopp_template(array('receipt.php'),true);
-				$content = ob_get_contents();
-				ob_end_clean();
-				return apply_filters('shopp_account_vieworder',$content);
-			}
-		}
-
-		$request = false; $id = false;
-		$Storefront = ShoppStorefront();
-
-		if (isset($Storefront->account)) extract($Storefront->account);
-		else {
-			if (isset($_GET['acct'])) $request = $_GET['acct'];
-			if (isset($_GET['id'])) $request = (int)$_GET['id'];
-		}
-
-		if ($this->loggedin() && 'order' == $request && false !== $id) {
-			$Purchase = new ShoppPurchase((int)$id);
-			if ($Purchase->customer == $this->id) {
-				ShoppPurchase($Purchase);
-				$Purchase->load_purchased();
-				ob_start();
-				locate_shopp_template(array('account-receipt.php','receipt.php'),true);
-				$content = ob_get_contents();
-				ob_end_clean();
-			} else {
-				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),esc_html($_GET['id'])),'customer_order_history',SHOPP_AUTH_ERR);
-				unset($_GET['acct']);
-				return false;
-			}
-
-		}
-	}
-
+	/**
+	 * Send new customer notification emails
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	public function notification () {
 		$Shopp = Shopp::object();
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
@@ -253,74 +266,71 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		if (!Shopp::email(join("\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
-		else shopp_debug('Successfully created the WordPress user for the Shopp account.');
+		else shopp_debug('A new account notification e-mail was sent to the customer.');
 	}
 
-	/*public function load_downloads () {
-		$Storefront = ShoppStorefront();
-		if (empty($this->id)) return false;
-		$orders = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$purchases = ShoppDatabaseObject::tablename(Purchased::$table);
-		$asset = ShoppDatabaseObject::tablename(ProductDownload::$table);
-		$query = "(SELECT p.dkey AS dkey,p.id,p.purchase,p.download as download,p.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata
-			FROM $purchases AS p
-			LEFT JOIN $orders AS o ON o.id=p.purchase
-			LEFT JOIN $asset AS f ON f.parent=p.price
-			WHERE o.customer=$this->id AND f.context='price' AND f.type='download')
-			UNION
-			(SELECT a.name AS dkey,p.id,p.purchase,a.value AS download,ao.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata
-			FROM $purchases AS p
-			RIGHT JOIN $asset AS a ON a.parent=p.id AND a.type='download' AND a.context='purchased'
-			LEFT JOIN $asset AS ao ON a.parent=p.id AND ao.type='addon' AND ao.context='purchased'
-			LEFT JOIN $orders AS o ON o.id=p.purchase
-			LEFT JOIN $asset AS f on f.id=a.value
-			WHERE o.customer=$this->id AND f.context='price' AND f.type='download') ORDER BY created DESC";
-		$Storefront->downloads = DB::query($query,'array');
-		foreach ($Storefront->downloads as &$download) {
-			$download->filedata = unserialize($download->filedata);
-			foreach ($download->filedata as $property => $value) {
-				$download->{$property} = $value;
-			}
-		}
-	}*/
+	/**
+	 * Loads orders related to this customer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $filters A list of SQL filter parameters
+	 * @return void
+	 **/
+	public function load_orders ( array $filters = array() ) {
+		if ( empty($this->id) ) return;
 
-	public function load_orders ( array $filters =array()) {
-		if ( empty($this->id) ) return false;
-
-		$request = false; $id = false;
 		$Storefront = ShoppStorefront();
 
-		if ( isset($Storefront->account) ) extract((array)$Storefront->account);
-		else {
-			if ( isset($_GET['acct']) ) $request = $_GET['acct'];
-			if ( isset($_GET['id']) ) $id = (int)$_GET['id'];
-		}
+		if ( isset($Storefront->account) )
+			extract((array)$Storefront->account);
 
-		if ( $this->loggedin() && 'orders' == $request && ! empty($id) ) {
-			$Purchase = new ShoppPurchase($id);
-			if ( $Purchase->customer == $this->id ) {
-				ShoppPurchase($Purchase);
-				$Purchase->load_purchased();
-			} else {
-				new ShoppError(sprintf(__('Order number %s could not be found in your order history.', 'Shopp'), esc_html($_GET['id'])), 'customer_order_history', SHOPP_AUTH_ERR);
-				unset($_GET['acct']);
-				return false;
-			}
+		if ( isset($id) )
+			$this->order($id);
 
-		}
+		$where = array("o.customer=$this->id");
+		if ( isset($filters['where']) ) $where[] = $filters['where'];
+		$where = join(' AND ', $where);
 
-		$where = '';
-		if ( isset($filters['where']) ) $where = " AND {$filters['where']}";
 		$orders = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$purchases = ShoppDatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT o.* FROM $orders AS o WHERE o.customer=$this->id $where ORDER BY created DESC";
+		$query = "SELECT o.* FROM $orders AS o WHERE $where ORDER BY created DESC";
 
 		$PurchaseLoader = new ShoppPurchase();
-		$purchases = DB::query($query, 'array', array($PurchaseLoader, 'loader'));
+		$purchases = sDB::query($query, 'array', array($PurchaseLoader, 'loader'));
 
 		$Storefront->purchases = (array)$purchases;
 	}
 
+	/**
+	 * Loads an order by id associated with only this customer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param int $id The purchase record ID
+	 * @return void
+	 **/
+	public function order ( $id ) {
+		$Purchase = new ShoppPurchase(array('id' => (int) $id, 'customer' => $this->id));
+
+		if ( $Purchase->exists() )  {
+			ShoppPurchase($Purchase);
+			$Purchase->load_purchased();
+			return;
+		}
+
+		shopp_add_error(Shopp::__('Order number %s could not be found in your order history.', (int) $id), SHOPP_AUTH_ERR);
+	}
+
+	/**
+	 * Generates a hashed version of the password
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function hashpass () {
 
 		if ( empty($this->password) ) return;
@@ -331,17 +341,32 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 	}
 
+	/**
+	 * Clear the password data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function clearpass () {
 		$this->password = '';
 		if ( isset($this->_confirm_password) )
 			unset($this->_confirm_password);
 	}
 
+	/**
+	 * Create a new WordPress user associated with this customer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if successful, false otherwise
+	 **/
 	public function create_wpuser () {
 
-		require ABSPATH . '/wp-includes/registration.php';
-
 		if ( empty($this->loginname) ) return false;
+
 		if ( ! validate_username($this->loginname) ) {
 			shopp_add_error(Shopp::__('This login name is invalid because it uses illegal characters. Valid login names include: letters, numbers, spaces, . - @ _'));
 			return false;
@@ -358,7 +383,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			'user_pass' => $this->password,
 			'user_email' => $this->email,
 			'display_name' => $this->firstname.' '.$this->lastname,
-			'nickname' => $handle,
+			'nickname' => $this->firstname,
 			'first_name' => $this->firstname,
 			'last_name' => $this->lastname
 		));
@@ -379,7 +404,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			wp_new_user_notification( $wpuser, $password );
 		}
 
-		shopp_debug('Successfully created the WordPress user for the Shopp account.');
+		shopp_debug(sprintf('Successfully created the WordPress user "%s" for the Shopp account.', $this->loginname));
 
 		// Set the WP user created flag
 		$this->session(self::WPUSER, true);
@@ -396,7 +421,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 * @return boolean|string output based on the account menu request
 	 **/
 	public function profile () {
-		if ( ! isset($_POST['customer']) || empty($_POST['customer']) ) return; // Not a valid customer profile update request
+		if ( empty($_POST['customer']) ) return; // Not a valid customer profile update request
 
 		$defaults = array(
 			'phone' => '',
@@ -414,7 +439,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		// Update this ShoppCustomer model
 		$this->updates($updates);
 
-		if ( is_array($info) && ! empty($info) ) $this->info = $info; // Add info fields
+		if ( is_array($info) ) $this->info = $info; // Add info fields
 
 		if ( '' !=  $password . $updates['confirm-password'] && $password == $updates['confirm-password'] ) {
 
@@ -440,7 +465,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		$addresses = array('billing' => 'Billing', 'shipping' => 'Shipping');
 		foreach ( $addresses as $type => $Address ) {
-			if ( ! isset($updates[ $type ]) || empty($updates[ $type ]) ) continue;
+			if ( empty($updates[ $type ]) ) continue;
 
 			$Updated = ShoppOrder()->$Address;
 			$Updated->customer = $this->id;
@@ -488,7 +513,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 			// Is it a downloadable item? Do not add the same dkey twice
 			if ( empty($Purchased->download) ) continue;
-			$this->downloads[$Purchased->dkey] = $Purchased;
+			$this->downloads[ $Purchased->dkey ] = $Purchased;
 		}
 	}
 
@@ -537,8 +562,6 @@ class CustomersExport {
 	public $limit = 1024;
 
 	public function __construct () {
-
-		$Shopp = Shopp::object();
 
 		$this->customer_cols = ShoppCustomer::exportcolumns();
 		$this->billing_cols = BillingAddress::exportcolumns();
@@ -605,7 +628,7 @@ class CustomersExport {
 
 	public function records () {
 		while (!empty($this->data)) {
-			foreach ($this->data as $key => $record) {
+			foreach ($this->data as $record) {
 				foreach(get_object_vars($record) as $column)
 					$this->export($this->parse($column));
 				$this->record();
