@@ -147,10 +147,10 @@ class ShoppFormValidation {
 
 		$fields = ( isset($_POST['billing']) ) ? $_POST['billing'] : array();
 
-		if ( apply_filters('shopp_billing_card_required', empty($fields['card'])) )
+		if ( apply_filters('shopp_billing_card_required', isset($fields['card']) && empty($fields['card'])) )
 			return shopp_add_error( Shopp::__('You did not provide a credit card number.') );
 
-		if ( apply_filters('shopp_billing_cardtype_required', empty($fields['cardtype'])) )
+		if ( apply_filters('shopp_billing_cardtype_required', isset($fields['cardtype']) && empty($fields['cardtype'])) )
 			return shopp_add_error( Shopp::__('You did not select a credit card type.') );
 
 		$card = Lookup::paycard( strtolower($fields['cardtype']) );
