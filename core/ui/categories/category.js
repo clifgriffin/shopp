@@ -32,11 +32,11 @@ jQuery(document).ready(function () {
 		return true;
 	});
 
-	$('#templates, #details-template, #details-facetedmenu, #variations-template, #variations-pricing, #price-ranges, #facetedmenus-setting').hide();
+	$('#templates, #details-template, #details-facetedmenu, #variations-template, #variations-pricing, #price-ranges').hide();
 
 	$('#spectemplates-setting').change(function () {
-		if (this.checked) $('#templates, #details-template, #facetedmenus-setting').show();
-		else $('#details-template, #facetedmenus-setting').hide();
+		if (this.checked) $('#templates, #details-template').show();
+		else $('#details-template').hide();
 		if (!$('#spectemplates-setting').attr('checked') && !$('#variations-setting').attr('checked'))
 			$('#templates').hide();
 	}).change();
