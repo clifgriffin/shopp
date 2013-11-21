@@ -129,7 +129,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 
 			$reset = array('selected' => null, 'action' => null, 'id' => null, '_wpnonce' => null, );
 			$redirect = add_query_arg(array_merge($_GET, $reset), $adminurl);
-			shopp_redirect($redirect);
+			Shopp::redirect( $redirect );
 			exit;
 		}
 

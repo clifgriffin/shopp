@@ -844,7 +844,7 @@ class PurchasesExport {
 	// Implement for exporting all the data
 	public function output () {
 		if (!$this->data) $this->query();
-		if (!$this->data) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
+		if (!$this->data) Shopp::redirect( add_query_arg( array_merge($_GET,array('src' => null) ), admin_url('admin.php') ) );
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");

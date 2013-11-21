@@ -407,7 +407,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		if ( 1 == $locked ) return true;
 
 		shopp_debug("Purchase authed lock for order #$order failed. Could not achieve a lock.");
- 		shopp_redirect( Shopp::url(false, 'thanks', ShoppOrder()->security()) );
+ 		Shopp::redirect( Shopp::url( false, 'thanks', ShoppOrder()->security() ) );
  	}
 
  	/**

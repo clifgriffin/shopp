@@ -217,7 +217,7 @@ class ShoppAdminService extends ShoppAdminController {
 		$this->orders = DB::query($query,'array','index','id');
 
 		$num_pages = ceil($this->ordercount->total / $per_page);
-		if ($paged > 1 && $paged > $num_pages) shopp_redirect(add_query_arg('paged',null,$url));
+		if ($paged > 1 && $paged > $num_pages) Shopp::redirect( add_query_arg('paged', null, $url) );
 
 	}
 

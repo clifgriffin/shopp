@@ -173,7 +173,7 @@ class ShoppStorefront extends ShoppFlowController {
 			if ( preg_match("/\[($shortcodes)\]/", $posts[0]->post_content, $matches) ) {
 				$shortcode = next($matches);
 				if ( 'catalog' == $shortcode ) $shortcode = '';
-				shopp_redirect( Shopp::url($shortcode) );
+				Shopp::redirect( Shopp::url($shortcode) );
 				exit();
 			}
 		}
@@ -535,7 +535,7 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( is_account_page() )	$redirect = 'account';
 
 		if ( $redirect )
-			shopp_redirect( Shopp::url($_GET, $redirect, true) );
+			Shopp::redirect( Shopp::url($_GET, $redirect, true) );
 
 	}
 
@@ -857,11 +857,11 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	public function cart () {
 
-		if ( isset($_REQUEST['checkout']) ) shopp_redirect( Shopp::url(false, 'checkout', $this->security()) );
+		if ( isset($_REQUEST['checkout']) ) Shopp::redirect( Shopp::url(false, 'checkout', $this->security()) );
 
 		if ( isset($_REQUEST['shopping']) && 'reset' == strtolower($_REQUEST['shopping']) ) {
 			ShoppShopping()->reset();
-			shopp_redirect( Shopp::url() );
+			Shopp::redirect( Shopp::url() );
 		}
 
 		if ( empty($_REQUEST['cart']) ) return true;
@@ -877,11 +877,11 @@ class ShoppStorefront extends ShoppFlowController {
 		$redirect = false;
 		if ( isset($_REQUEST['redirect']) ) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case 'checkout': shopp_redirect( Shopp::url(false, $redirect, ShoppOrder()->security()) ); break;
+			case 'checkout': Shopp::redirect( Shopp::url(false, $redirect, ShoppOrder()->security()) ); break;
 			default:
 				if ( ! empty($_REQUEST['redirect']) )
-					shopp_safe_redirect($_REQUEST['redirect']);
-				else shopp_redirect( Shopp::url(false, 'cart') );
+					Shopp::safe_redirect($_REQUEST['redirect']);
+				else Shopp::redirect( Shopp::url(false, 'cart') );
 		}
 
 		exit;
