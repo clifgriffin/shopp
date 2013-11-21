@@ -625,7 +625,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$thumbs .= '<li id="thumbnail-' . $Image->id . '" class="' . $thumbclasses . '">' .
 							'<img src="' . $src . '"' . $titleattr . ' alt="' . $alt . '" width="' . (int) $scaled['width'] . '" height="' . (int) $scaled['height'] . '" />' .
-							'</li>';
+							'</li> ';
 
 			}
 			$thumbs = '<ul class="thumbnails">' . $thumbs . '</ul>';
