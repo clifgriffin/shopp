@@ -386,18 +386,15 @@ class ImageAsset extends FileAsset {
 	 * @return string
 	 */
 	public function resizing ( $width, $height, $scale = null, $sharpen = null, $quality = null, $fill = null ) {
-		$defaults = array(
-			self::WIDTH => 0,
-			self::HEIGHT => 0,
-			self::SCALE => 0,
-			self::SHARPEN => self::$defaults['sharpen'],
-			self::QUALITY => self::$defaults['quality']
+		$args = func_get_args();
+
+		$args = array(
+			self::WIDTH => $args[self::WIDTH],
+			self::HEIGHT => ( 0 == $args[self::HEIGHT] ) ? $args[self::HEIGHT] : $args[self::WIDTH],
+			self::SCALE => ( isset($args[self::SCALE]) ) ? $args[self::SCALE] : 0,
+			self::SHARPEN => ( isset($args[self::SHARPEN]) ) ? $args[self::SHARPEN] : self::$defaults['sharpen'],
+			self::QUALITY => ( isset($args[self::QUALITY]) ) ? $args[self::QUALITY] : self::$defaults['quality']
 		);
-
-		$args = array_merge( $defaults, func_get_args() );
-
-		// If not provided, height should equal width
-		if ( 0 == $args[self::HEIGHT] ) $args[self::HEIGHT] = $args[self::WIDTH];
 
 		// Form the checksummed message
 		$message = rtrim(join(',', $args), ',');
