@@ -72,7 +72,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function stats_widget ( array $args = array() ) {
+	public function stats_widget ( $args = false ) {
 
 		$ranges = array(
 			'today' => __('Today','Shopp'),
@@ -97,14 +97,14 @@ class ShoppAdminDashboard {
 			'after_widget' => '',
 			'range' => isset($_GET['shopp-stats-range']) ? $_GET['shopp-stats-range'] : ''
 		);
-		$args = array_merge($defaults, $args);
+		$args = array_merge($defaults, (array) $args);
 		extract( $args, EXTR_SKIP );
 
 		if ( ! $range || !isset($ranges[ strtolower($range) ]) ) $range = 'last30';
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 
 		$now = current_time('timestamp');
-		$offset = get_option( 'gmt_offset' ) * 3600;
+		// $offset = get_option( 'gmt_offset' ) * 3600;
 		$daytimes = 86400;
 		$day = date('j', $now);
 		$month = date('n', $now);
@@ -157,7 +157,7 @@ class ShoppAdminDashboard {
 			$LifeBestsellers->maxsold = 0;
 			foreach ($LifeBestsellers as $product) $LifeBestsellers->maxsold = max($LifeBestsellers->maxsold, $product->sold);
 
-			$result = set_transient('shopp_dashboard_stats_' . $range, array($results, $RecentBestsellers, $LifeBestsellers), 300);
+			set_transient('shopp_dashboard_stats_' . $range, array($results, $RecentBestsellers, $LifeBestsellers), 300);
 
 		} else list($results, $RecentBestsellers, $LifeBestsellers) = $cached;
 
@@ -201,20 +201,20 @@ class ShoppAdminDashboard {
 			reset($LifeBestsellers);
 			$firstrun = true;
 			while (true):
-				list($recentid,$recent) = each($RecentBestsellers->products);
-				list($lifetimeid,$lifetime) = each($LifeBestsellers->products);
-				if (!$recent && !$lifetime) break;
+				list($recentid, $recent) = each($RecentBestsellers->products);
+				list($lifetimeid, $lifetime) = each($LifeBestsellers->products);
+				if ( ! $recent && ! $lifetime) break;
 			?>
 			<tr>
 				<?php if (empty($RecentBestsellers->products) && $firstrun) echo '<td colspan="2" rowspan="5">'.__('None','Shopp').'</td>'; ?>
-				<?php if (!empty($recent->id)): ?>
+				<?php if ( ! empty($recent->id) ): ?>
 				<td class="salesgraph">
 					<div class="bar" style="width:<?php echo ($recent->sold/$RecentBestsellers->maxsold)*100; ?>%;"><?php echo $recent->sold; ?></div>
 				</td>
 				<td>
 				<a href="<?php echo esc_url(add_query_arg('view','bestselling',$productscreen)); ?>"><?php echo esc_html($recent->name); ?></a>
 				</td>
-				<?php endif; ?>
+				<?php endif; ?>
 				<?php if (empty($LifeBestsellers->products) && $firstrun) echo '<td colspan="2" rowspan="5">'.__('None','Shopp').'</td>'; ?>
 				<?php if (!empty($lifetime->id)): ?>
 				<td class="salesgraph">
@@ -229,11 +229,7 @@ class ShoppAdminDashboard {
 		<?php endif; ?>
 		</tbody></table></div>
 		<script type="text/javascript">
-		jQuery(document).ready( function($) {
-			$('#shopp-stats-range').change(function () {
-				$(this).parents('form').submit();
-			});
-		});
+		jQuery(document).ready(function($){$('#shopp-stats-range').change(function(){$(this).parents('form').submit();});});
 		</script>
 		<?php
 		echo $after_widget;
@@ -248,7 +244,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function orders_widget ( array $args = array() ) {
+	public function orders_widget ( $args = false ) {
 
 		$defaults = array(
 			'before_widget' => '',
@@ -257,7 +253,7 @@ class ShoppAdminDashboard {
 			'after_title' => '',
 			'after_widget' => ''
 		);
-		$args = array_merge($defaults, $args);
+		$args = array_merge($defaults, (array) $args);
 		extract( $args, EXTR_SKIP );
 		$statusLabels = shopp_setting('order_status');
 
@@ -272,7 +268,7 @@ class ShoppAdminDashboard {
 
 		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
 			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id", 'array');
-			$set = set_transient('shopp_dashboard_orders', $Orders, 90); // Keep for the next 1 minute
+			set_transient('shopp_dashboard_orders', $Orders, 90); // Keep for the next 1 minute
 		}
 
 		if ( ! empty($Orders) ) {
@@ -307,7 +303,7 @@ class ShoppAdminDashboard {
 	 *
 	 * @return void
 	 **/
-	public function inventory_widget ( array $args = array() ) {
+	public function inventory_widget ( $args = false ) {
 
 		$warnings = array(
 			'none' => __('OK','Shopp'),
@@ -324,7 +320,7 @@ class ShoppAdminDashboard {
 			'after_widget' => ''
 		);
 
-		$args = array_merge($defaults, $args);
+		$args = array_merge($defaults, (array) $args);
 		extract( $args, EXTR_SKIP );
 
 		$pt = ShoppDatabaseObject::tablename(ShoppPrice::$table);
