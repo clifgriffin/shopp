@@ -1226,7 +1226,7 @@ abstract class ShoppReportExportFramework {
 	 * @return void
 	 **/
 	public function output () {
-		if ( empty($this->data) ) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
+		if ( empty($this->data) ) Shopp::redirect( add_query_arg( array_merge( $_GET, array('src' => null) ), admin_url('admin.php') ) );
 
 		$sitename = get_bloginfo('name');
 		$report = $this->options['report'];

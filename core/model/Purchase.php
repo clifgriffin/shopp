@@ -448,9 +448,9 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @author Marc Neuhaus, Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @param OrderEvent $event The OrderEvent object passed by the hook
+	 * @param $Event OrderEvent $event The OrderEvent object passed by the hook
 	 * @return void
-	 **/
+	 */
 	public static function notifications ( $Event ) {
 
 		$Purchase = $Event->order();
@@ -494,7 +494,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			if ( in_array($Event->name, $defaults) && 'customer' == $name )
 				$templates[] = 'email.php';
 
-			$file = locate_shopp_template($templates);
+			$file = Shopp::locate_template( $templates );
 			// Send email if the specific template is available
 			// and if an email has not already been sent to the recipient
 			if ( ! empty($file) && ! in_array($email, $Event->_emails) ) {
@@ -844,7 +844,7 @@ class PurchasesExport {
 	// Implement for exporting all the data
 	public function output () {
 		if (!$this->data) $this->query();
-		if (!$this->data) shopp_redirect(add_query_arg(array_merge($_GET,array('src' => null)),admin_url('admin.php')));
+		if (!$this->data) Shopp::redirect( add_query_arg( array_merge($_GET,array('src' => null) ), admin_url('admin.php') ) );
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");

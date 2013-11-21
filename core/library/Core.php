@@ -2808,8 +2808,8 @@ function shopp_parse_options ($options) {
 /**
  * @deprecated Use Shopp::
  **/
-function shopp_redirect ($uri,$exit=true,$status=302) {
-	Shopp::redirect($uri,$exit,$status);
+function shopp_redirect ($uri, $exit=true, $status=302) {
+	Shopp::redirect($uri, $exit, $status);
 }
 
 /**

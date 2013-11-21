@@ -163,17 +163,17 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
 			}
-			wp_cache_delete('shopp_product_subcounts');
-			$redirect = add_query_arg($_GET,$adminurl);
-			$redirect = remove_query_arg( array('action','selected','delete_all'),$redirect);
-			shopp_redirect($redirect);
+			wp_cache_delete( 'shopp_product_subcounts' );
+			$redirect = add_query_arg( $_GET, $adminurl );
+			$redirect = remove_query_arg( array('action','selected','delete_all'), $redirect );
+			Shopp::redirect( $redirect );
 		}
 
 		if ($duplicate) {
 			$Product = new ShoppProduct($duplicate);
 			$Product->duplicate();
 			$this->index($Product);
-			shopp_redirect(add_query_arg(array('page' => $this->Admin->pagename('products'), 'paged' => $_REQUEST['paged']),$adminurl));
+			Shopp::redirect( add_query_arg(array('page' => $this->Admin->pagename('products'), 'paged' => $_REQUEST['paged']), $adminurl) );
 		}
 
 		if (isset($id) && $id != "new") {
@@ -416,7 +416,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		// Overpagination protection, redirect to page 1 if the requested page doesn't exist
 		$num_pages = ceil($this->products->total / $per_page);
-		if ($paged > 1 && $paged > $num_pages) shopp_redirect(add_query_arg('paged',null,$url));
+		if ($paged > 1 && $paged > $num_pages) Shopp::redirect( add_query_arg('paged', null, $url ) );
 
 		// Return a list of product keys for workflow list requests
 		if ($workflow) return $this->products->worklist();

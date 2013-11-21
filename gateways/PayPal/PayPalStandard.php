@@ -687,14 +687,12 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
-	 *
-	 * @return void
 	 **/
 	public function pdt () {
 
 		if ( empty(ShoppOrder()->inprogress) ) {
 			shopp_debug('PDT processing could not load in-progress order from session.');
-			return shopp_redirect(Shopp::url(false, 'thanks', false)); // Send back customer to thanks page and hope IPN takes care of it properly
+			return Shopp::redirect( Shopp::url( false, 'thanks', false ) ); // Send back customer to thanks page and hope IPN takes care of it properly
 		}
 
 		if ( ! $this->pdtvalid() ) return;
@@ -706,18 +704,18 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if ( ShoppOrder()->inprogress != $id ) {
 			shopp_debug('PDT processing order did not match the inprogress order.');
-			return shopp_redirect(Shopp::url(false,'thanks', false));
+			return Shopp::redirect( Shopp::url( false, 'thanks', false ) );
 		}
 
 		$Purchase = new ShoppPurchase($id);
 
 		if ( ! isset($Purchase->id) || empty($Purchase->id) ) {
 			shopp_debug('PDT processing could not load the in progress order from the database.');
-			return shopp_redirect(Shopp::url(false, 'thanks', false));
+			return Shopp::redirect( Shopp::url(false, 'thanks', false ) );
 		}
 
 		$this->process($event, $Purchase);
-		shopp_redirect(Shopp::url(false, 'thanks', false));
+		Shopp::redirect( Shopp::url( false, 'thanks', false ) );
 	}
 
 	/**
@@ -776,7 +774,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void
+	 * @return array
 	 **/
 	protected function pdtreply ( $string ) {
 		$response = array();
@@ -797,8 +795,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
+	 * @param string $data
+	 * @param bool $url
 	 * @return string The response string from the request
-	 **/
+	 */
 	public function send ( $data, $url = false ) {
 		$options['httpversion'] = '1.1';
 		return parent::send($data, $this->url());

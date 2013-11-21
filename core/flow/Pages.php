@@ -421,7 +421,7 @@ class ShoppAccountPage extends ShoppPage {
 		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request', 'Shopp'), get_option('blogname')));
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'From: ' . Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -444,7 +444,7 @@ class ShoppAccountPage extends ShoppPage {
 
 		if (!Shopp::email(join("\n", $message))) {
 			new ShoppError(__('The e-mail could not be sent.'), 'password_recovery_email', SHOPP_ERR);
-			shopp_redirect(add_query_arg('acct', 'recover', Shopp::url(false, 'account')));
+			Shopp::redirect( add_query_arg( 'acct', 'recover', Shopp::url(false, 'account') ) );
 		} else {
 			new ShoppError(__('Check your email address for instructions on resetting the password for your account.', 'Shopp'), 'password_recovery_email', SHOPP_ERR);
 		}
@@ -484,7 +484,7 @@ class ShoppAccountPage extends ShoppPage {
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password', 'Shopp'), get_option('blogname')));
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'From: ' . Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -501,7 +501,7 @@ class ShoppAccountPage extends ShoppPage {
 
 		if (!Shopp::email(join("\n", $message))) {
 			new ShoppError(__('The e-mail could not be sent.'), 'password_reset_email', SHOPP_ERR);
-			shopp_redirect(add_query_arg('acct', 'recover', Shopp::url(false, 'account')));
+			Shopp::redirect( add_query_arg( 'acct', 'recover', Shopp::url(false, 'account') ) );
 		} else new ShoppError(__('Check your email address for your new password.', 'Shopp'), 'password_reset_email', SHOPP_ERR);
 
 		unset($_GET['acct']);

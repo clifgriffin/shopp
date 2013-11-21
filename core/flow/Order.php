@@ -646,7 +646,7 @@ class ShoppOrder {
 		Shopping::resession();
 
 		if ( false !== $this->purchase )
-			shopp_redirect( Shopp::url(false, 'thanks') );
+			Shopp::redirect( Shopp::url(false, 'thanks') );
 
 	}
 
@@ -662,7 +662,7 @@ class ShoppOrder {
 		if ( apply_filters('shopp_valid_order', $this->isvalid()) ) return true;
 
 		$redirect = Shopp::url(false, 'checkout', $this->security());
-		shopp_redirect( apply_filters('shopp_invalid_order_redirect', $redirect), true );
+		Shopp::redirect( apply_filters('shopp_invalid_order_redirect', $redirect), true );
 	}
 
 	/**

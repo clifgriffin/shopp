@@ -123,13 +123,13 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 
 		if (Shopp::str_true($this->settings['verify']) && !$this->verify($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			shopp_redirect(Shopp::url(false,'checkout'));
+			Shopp::redirect( Shopp::url( false, 'checkout' ) );
 
 		}
 
 		if (empty($_POST['order_number'])) {
 			new ShoppError(__('The order submitted by 2Checkout did not specify a transaction ID.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			shopp_redirect(Shopp::url(false,'checkout'));
+			Shopp::redirect( Shopp::url( false, 'checkout' ) );
 		}
 
 		// Create the order and begin processing it
@@ -139,7 +139,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 		));
 
 		ShoppOrder()->purchase = ShoppPurchase()->id;
-		shopp_redirect(Shopp::url(false,'thanks',false));
+		Shopp::redirect( Shopp::url(false, 'thanks', false) );
 
 	}
 
