@@ -267,15 +267,12 @@ class ShoppResources {
 	public function help () {
 		if ( ! isset($_GET['id']) ) return;
 
-		$keysetting = ShoppSupport::key();
-		$key = $keysetting['k'];
+		echo ShoppSupport::callhome(array(
+			'ShoppScreencast' => $_GET['id'],
+			'site' => get_bloginfo('siteurl')
+		));
 
-		$site = get_bloginfo('siteurl');
-
-		$request = array('ShoppScreencast' => $_GET['id'], 'key' => $key, 'site' => $site);
-		$response = ShoppSupport::callhome($request);
-		echo $response;
-		exit();
+		exit;
 	}
 
 }

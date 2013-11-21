@@ -291,7 +291,7 @@ class ShoppLoader {
 	 */
 	public static function is_activating () {
 		global $action, $plugin;
-		return ( ($action === 'activate' || $action === 'error_scrape') && $plugin === SHOPP_PLUGINFILE);
+		return ( ( $action === 'activate' || $action === 'error_scrape' ) && $plugin === SHOPP_PLUGINFILE);
 	}
 }
 

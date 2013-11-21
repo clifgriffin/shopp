@@ -530,7 +530,7 @@ class ShoppAdmin extends ShoppFlowController {
 		if ( ! ShoppSupport::activated() ) return '';
 
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
-		return apply_filters('shopp_admin_boxhelp','<a href="'.esc_url($helpurl).'" class="shoppui-question"></a>');
+		return apply_filters('shopp_admin_boxhelp','<a href="'.esc_url($helpurl).'" class="help shoppui-question"></a>');
 	}
 
 	/**
