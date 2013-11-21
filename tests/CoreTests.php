@@ -792,15 +792,6 @@ class CoreTests extends ShoppTestCase {
 		$this->assertTrue(is_bool($mail_success));
 	}
 
-	public function test_keybind() {
-		$part_a = str_pad(md5('Centauri Montes'), 40, '0');
-		$part_b = str_pad(md5('Octantis Mons'), 40, '0');
-		$one_part = Shopp::keybind(array($part_a));
-		$two_part = Shopp::keybind(array($part_a, $part_b));
-		$this->assertTrue( ! empty($one_part) );
-		$this->assertTrue( ! empty($two_part) );
-	}
-
 	public function test_rss() {
 		$data = array(
 			'link' => 'http://shopplugin.net/mars',
