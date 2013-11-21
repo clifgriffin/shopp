@@ -224,7 +224,7 @@ class ProductAPITests extends ShoppTestCase {
 		$imageid = self::$image;
 		$expected = array(
 			'tag' => 'img',
-			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&96,96,'. self::imgrequesthash($imageid,array(96,96)), 'alt' => 'original', 'width' => '95', 'height' => '96')
+			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&' . self::imgrequesthash( $imageid, array(96,96) ), 'alt' => 'original', 'width' => '95', 'height' => '96')
 		);
 		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
@@ -318,7 +318,7 @@ class ProductAPITests extends ShoppTestCase {
 		$imageid = self::$image;
 		$expected = array(
 			'tag' => 'img',
-			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&96,96,'. self::imgrequesthash($imageid,array(96,96)), 'alt' => 'original', 'width' => '95', 'height' => '96')
+			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&' . self::imgrequesthash( $imageid, array(96,96) ), 'alt' => 'original', 'width' => '95', 'height' => '96')
 		);
 		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);

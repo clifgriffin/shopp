@@ -345,7 +345,7 @@ ob_get_contents();
 
 		$expected = array(
 			'tag' => 'img',
-			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&200,220,'. self::imgrequesthash($imageid,array(200,220)), 'alt' => 'original', 'width' => '200', 'height' => '203', 'class' => 'cart-thumb')
+			'attributes' => array('src' => 'http://' . WP_TESTS_DOMAIN . '?siid=' . $imageid . '&'. self::imgrequesthash($imageid,array(200,220)), 'alt' => 'original', 'width' => '200', 'height' => '203', 'class' => 'cart-thumb')
 		);
 		$this->assertTag($expected,$actual,$actual,true);
 
