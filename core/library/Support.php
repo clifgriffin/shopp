@@ -292,7 +292,7 @@ class ShoppSupport {
 	 * @return string The response from the server
 	 **/
 	public static function callhome ($request=array(), $data=array(), $options=array()) {
-		$query = http_build_query(array_merge(array('ver'=>'1.1'), $request), '', '&');
+		$query = http_build_query(array_merge(array('ver'=>'1.2'), $request), '', '&');
 		$data = http_build_query($data, '', '&');
 
 		$defaults = array(
@@ -352,7 +352,7 @@ class ShoppSupport {
 	}
 
 	/**
-	 * Determines if the support key is activated
+	 * Checks if the support key is activated
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
