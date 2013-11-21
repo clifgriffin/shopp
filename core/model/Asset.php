@@ -390,7 +390,7 @@ class ImageAsset extends FileAsset {
 
 		$args = array(
 			self::WIDTH => $args[self::WIDTH],
-			self::HEIGHT => ( 0 == $args[self::HEIGHT] ) ? $args[self::HEIGHT] : $args[self::WIDTH],
+			self::HEIGHT => ( 0 == $args[self::HEIGHT] ) ? $args[self::WIDTH] : $args[self::HEIGHT],
 			self::SCALE => ( isset($args[self::SCALE]) ) ? $args[self::SCALE] : 0,
 			self::SHARPEN => ( isset($args[self::SHARPEN]) ) ? $args[self::SHARPEN] : self::$defaults['sharpen'],
 			self::QUALITY => ( isset($args[self::QUALITY]) ) ? $args[self::QUALITY] : self::$defaults['quality']
