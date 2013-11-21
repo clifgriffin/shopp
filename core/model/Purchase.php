@@ -561,9 +561,9 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		shopp_debug("ShoppPurchase::email(): $addressee,$address,$subject,"._object_r($templates));
 
 		// Build the e-mail message data
-		$email['from'] = Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
-		if ($is_IIS) $email['to'] = Shopp::multiple_email_addrs( $address );
-		else $email['to'] = Shopp::multiple_email_addrs( $address, $addressee );
+		$email['from'] = Shopp::email_from( shopp_setting('merchant_email'), shopp_setting('business_name') );
+		if ($is_IIS) $email['to'] = Shopp::email_to( $address );
+		else $email['to'] = Shopp::email_to( $address, $addressee );
 		$email['subject'] = $subject;
 		$email['receipt'] = $this->receipt();
 		$email['url'] = get_bloginfo('siteurl');

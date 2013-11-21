@@ -237,8 +237,8 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$merchant = shopp_setting('merchant_email');
 
 		$_ = array();
-		$_[] = 'From: ' . Shopp::single_email_addr( $merchant, $business );
-		$_[] = 'To: ' . Shopp::multiple_email_addrs( $merchant );
+		$_[] = 'From: ' . Shopp::email_from( $merchant, $business );
+		$_[] = 'To: ' . Shopp::email_to( $merchant );
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';
 		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
@@ -252,7 +252,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		if (empty($this->password)) return;
 
 		$_ = array();
-		$_[] = 'From: ' . Shopp::single_email_addr( $merchant, $business );
+		$_[] = 'From: ' . Shopp::email_from( $merchant, $business );
 		$_[] = 'To: ' . $this->email;
 		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
 		$_[] = '';

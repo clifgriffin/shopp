@@ -422,6 +422,3 @@ function &ShoppAdmin() {
 	if ( ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Admin) || empty($Shopp->Flow->Admin) ) return $false;
 	return $Shopp->Flow->Admin;
 }
-
-add_filter('shopp_update_key','shopp_keybind');
-add_filter('shopp_update_key','base64_encode');

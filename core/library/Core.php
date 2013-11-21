@@ -1764,26 +1764,26 @@ abstract class ShoppCore {
 	 *
 	 *     info@merchant.com
 	 *
-	 * @see ShoppCore::multiple_email_addrs()
+	 * @see ShoppCore::email_to()
 	 * @param string $addresses
 	 * @param string $addressee = ''
 	 * @return string
 	 */
-	public static function single_email_addr( $addresses, $addressee = '' ) {
+	public static function email_from ( $addresses, $addressee = '' ) {
 		// If multiple addresses were provided, use only the first
 		if ( false !== strpos($addresses, ',') ) {
-			$addresses = explode( ',', $addresses );
-			$address = array_shift( $addresses );
+			$addresses = explode(',', $addresses);
+			$address = array_shift($addresses);
 		}
 		else $address = $addresses;
 
 		// Clean up
-		$address = trim( $address );
-		$addressee = wp_specialchars_decode( trim( $addressee ), ENT_QUOTES );
+		$address = trim($address);
+		$addressee = wp_specialchars_decode( trim($addressee), ENT_QUOTES );
 
 		// Add angle brackets/quotes where needed
-		if ( empty( $address ) ) return $addressee;
-		if ( empty( $addressee ) ) return $address;
+		if ( empty($address) ) return $addressee;
+		if ( empty($addressee) ) return $address;
 		return '"' . $addressee . '" <' . $address . '>';
 	}
 
@@ -1809,12 +1809,12 @@ abstract class ShoppCore {
 	 *
 	 *     "Supplies Unlimited" <info@merchant.com>"
 	 *
-	 * @see ShoppCore::single_email_addr()
+	 * @see ShoppCore::email_from()
 	 * @param $addresses
 	 * @param $addressee
 	 * @return string
 	 */
-	public static function multiple_email_addrs( $addresses, $addressee = '' ) {
+	public static function email_to ( $addresses, $addressee = '' ) {
 		$addressee = wp_specialchars_decode( trim( $addressee ), ENT_QUOTES );
 		$source_list = explode( ',', $addresses );
 		$addresses = array();
@@ -1827,20 +1827,7 @@ abstract class ShoppCore {
 		if ( isset($addresses[0]) && ! empty( $addressee ) )
 			$addresses[0] = '"' . $addressee . '" <' . $addresses[0] . '>';
 
-		return join( ',', $addresses );
-	}
-
-	/**
-	 * Ties the key status and update key together
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	public static function keybind ($data) {
-		if (!isset($data[1]) || empty($data[1])) $data[1] = str_repeat('0', 40);
-		return pack(Lookup::keyformat(true),$data[0],$data[1]);
+		return join(',', $addresses);
 	}
 
 	/**
@@ -2433,162 +2420,161 @@ function _jse ( $text, $domain = 'default' ) {
 }
 
 /**
- * @deprecated Use Shopp::_object_r
+ * @deprecated Use Shopp::_object_r()
  **/
 function _object_r ($object) {
 	return Shopp::object_r($object);
 }
 
 /**
- * @deprecated Use Shopp::add_query_string
+ * @deprecated Use Shopp::add_query_string()
  **/
 function add_query_string ( $string, $url) {
 	return Shopp::add_query_string($string, $url);
 }
 
 /**
- * @deprecated Use Shopp::add_storefrontjs
+ * @deprecated Use Shopp::add_storefrontjs()
  **/
 function add_storefrontjs ($script,$global=false) {
 	Shopp::add_storefrontjs($script,$global);
 }
 
 /**
- * @deprecated Use Shopp::array_filter_keys
+ * @deprecated Use Shopp::array_filter_keys()
  **/
 function array_filter_keys ($array,$mask) {
 	return Shopp::array_filter_keys($array,$mask);
 }
 
 /**
- * @deprecated Use Shopp::auto_ranges
+ * @deprecated Use Shopp::auto_ranges()
  **/
 function auto_ranges ($avg, $max, $min, $values) {
 	return Shopp::auto_ranges($avg, $max, $min, $values);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::convert_unit()
  **/
 function convert_unit ($value = 0, $unit, $from=false) {
 	return Shopp::convert_unit($value, $unit, $from);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::copy_templates()
  **/
 function copy_shopp_templates ( $src, $target ) {
 	Shopp::copy_templates($src, $target);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::crc16()
  **/
 function crc16 ($data) {
 	return Shopp::crc16($data);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::currency_format()
  **/
 function currency_format ( $format = array() ) {
 	return Shopp::currency_format($format);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::datecalc()
  **/
 function datecalc ( $week = -1, $dayOfWeek = -1, $month = -1, $year = -1 ) {
 	return Shopp::datecalc($week, $dayofWeek, $month, $year);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::date_format_order()
  **/
 function date_format_order ($fields=false) {
 	return Shopp::date_format_order($fields);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::debug_caller()
  **/
 function debug_caller () {
 	return Shopp::debug_caller();
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::duration()
  **/
 function duration ($start,$end) {
 	return Shopp::duration($start,$end);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::esc_attrs()
  **/
 function esc_attrs ($value) {
 	return Shopp::esc_attrs($value);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::filter_dotfiles()
  **/
 function filter_dotfiles ($name) {
 	return Shopp::filter_dotfiles($name);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::find_filepath()
  **/
 function findfile ($filename, $directory, $root, &$found) {
 	return Shopp::find_filepath($filename, $directory, $root, $found);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::file_mimetype()
  **/
 function file_mimetype ($file,$name=false) {
 	return Shopp::file_mimetype($file,$name);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::floatval()
  **/
 function floatvalue ($value, $round=true, $format = array()) {
 	return Shopp::floatval($value, $round, $format);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::force_ssl()
  **/
 function force_ssl ($url,$rewrite=false) {
 	return Shopp::force_ssl($url,$rewrite);
 }
 
-
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::gateway_path()
  **/
 function gateway_path ($file) {
 	return Shopp::gateway_path($file);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::ini_size()
  **/
 function ini_size ($name) {
 	return Shopp::ini_size($name);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::inputattrs()
  **/
 function inputattrs ($options,$allowed=array()) {
 	return Shopp::inputattrs($options,$allowed);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::is_robot()
  **/
 function is_robot() {
 	return Shopp::is_robot();
@@ -2608,119 +2594,119 @@ function is_shopp_secure () {
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::linkencode()
  **/
 function linkencode ($url) {
 	return Shopp::linkencode($url);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::locate_shopp_template()
  **/
 function locate_shopp_template ($template_names, $load = false, $require_once = false ) {
 	return Shopp::locate_template($template_names, $load, $require_once);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::lzw_compress()
  **/
 function lzw_compress ($s) {
 	return Shopp::lzw_compress($s);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::mktimestamp()
  **/
 function mktimestamp ($datetime) {
 	return Shopp::mktimestamp($datetime);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::mkdatetime()
  **/
 function mkdatetime ($timestamp) {
 	return Shopp::mkdatetime($timestamp);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::mk24hour()
  **/
 function mk24hour ($hour, $meridiem) {
 	return Shopp::mk24hour($hour, $meridiem);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::menuoptions()
  **/
 function menuoptions ($list,$selected=null,$values=false,$extend=false) {
 	return Shopp::menuoptions($list,$selected,$values,$extend);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::money()
  **/
 function money ($amount, $format = array()) {
 	return Shopp::money($amount, $format);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::numeric_format()
  **/
 function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $grouping=array(3)) {
 	return Shopp::numeric_format($number, $precision, $decimals, $separator, $grouping);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::parse_phone()
  **/
 function parse_phone ($num) {
 	return Shopp::parse_phone($num);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::phone()
  **/
 function phone ($num) {
 	return Shopp::phone($num);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::percentage()
  **/
 function percentage ( $amount, $format = array() ) {
 	return Shopp::percentage( $amount, $format);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::preg_e_callback()
  **/
 function preg_e_callback ($matches) {
 	return Shopp::preg_e_callback($matches);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::raw_request_url()
  **/
 function raw_request_url () {
 	return Shopp::raw_request_url();
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::readableFileSize()
  **/
 function readableFileSize ($bytes,$precision=1) {
 	return Shopp::readableFileSize($bytes,$precision);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::roundprice()
  **/
 function roundprice ($amount, $format = array()) {
 	return Shopp::roundprice($amount, $format);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::rsa_encrypt()
  **/
 function rsa_encrypt ($data, $pkey) {
 	return Shopp::rsa_encrypt($data, $pkey);
@@ -2728,136 +2714,120 @@ function rsa_encrypt ($data, $pkey) {
 
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::scan_money_format()
  **/
 function scan_money_format ( $format ) {
 	return Shopp::scan_money_format( $format );
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::set_wp_query_var()
  **/
 function set_wp_query_var ($var,$value) {
 	return Shopp::set_wp_query_var($var,$value);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::get_wp_query_var()
  **/
 function get_wp_query_var ($key) {
 	return Shopp::get_wp_query_var($key);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::div()
  **/
 function shoppdiv ($string) {
 	return Shopp::div($string);
 }
 
-//@todo make this work with func_get_args()?
+/**
+ * @deprecated Use Shopp::daytimes()
+ **/
+
 function shopp_daytimes () {
 	return Shopp::daytimes();
-	$args = func_get_args();
-	$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-
-	$total = 0;
-	foreach ($args as $timeframe) {
-		if (empty($timeframe)) continue;
-		list($i,$p) = sscanf($timeframe,'%d%s');
-		$total += $i*$periods[$p];
-	}
-	return ceil($total/$periods['d']).'d';
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::email()
  **/
 function shopp_email ($template,$data=array()) {
 	return Shopp::email($template,$data);
 }
 
 /**
- * @deprecated Use Shopp::
- **/
-function shopp_keybind ($data) {
-	return Shopp::keybind($data);
-}
-
-/**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::rss()
  **/
 function shopp_rss ($data) {
 	return Shopp::rss($data);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::pagename()
  **/
 function shopp_pagename ($page) {
 	return Shopp::pagename($page);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::parse_options()
  **/
 function shopp_parse_options ($options) {
 	return Shopp::parse_options($options);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::redirect()
  **/
 function shopp_redirect ($uri, $exit=true, $status=302) {
 	Shopp::redirect($uri, $exit, $status);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::safe_redirect()
  **/
 function shopp_safe_redirect ($location, $status = 302) {
 	Shopp::safe_redirect($location, $status);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::taxrate()
  **/
 function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 	return Shopp::taxrate($Item);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::template_prefix()
  **/
 function shopp_template_prefix ($name) {
 	return Shopp::template_prefix($name);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::template_url()
  **/
 function shopp_template_url ($name) {
 	return Shopp::template_url($name);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::url()
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 	return Shopp::url($request,$page,$secure);
 }
 
-
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::sort_tree()
  **/
-
 function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	return Shopp::sort_tree($items,$parent,$key,$depth);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::str_true()
  **/
 
 function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on','open') ) {
@@ -2865,16 +2835,15 @@ function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on','open')
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::str_true()
  **/
 function value_is_true ($value) {
 	return Shopp::str_true($value);
 }
 
 /**
- * @deprecated Use Shopp::
+ * @deprecated Use Shopp::valid_input()
  **/
-
 function valid_input ($type) {
 	return Shopp::valid_input($type);
 }
