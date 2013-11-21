@@ -92,6 +92,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	public static function image ( $result, $options, $O ) {
+		if ( empty($O->images) ) return;
 
 		// Compatibility defaults
 		$_size = 96;
