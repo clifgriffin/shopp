@@ -510,7 +510,8 @@ class ShoppOrder {
 
 	public function meta ( ShoppPurchase $Purchase ) {
 		// Save the discounts applied
-		$Purchase->discounts($this->Discounts);
+		if ( $this->Discounts->count() > 0 )
+			$Purchase->discounts($this->Discounts);
 
 		// Save the taxes applied
 		$TotalTaxes = $this->Cart->Totals->entry('tax');
