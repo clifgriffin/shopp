@@ -421,7 +421,7 @@ class ShoppAccountPage extends ShoppPage {
 		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request', 'Shopp'), get_option('blogname')));
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'From: ' . Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -484,7 +484,7 @@ class ShoppAccountPage extends ShoppPage {
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password', 'Shopp'), get_option('blogname')));
 
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.shopp_setting('merchant_email').'>';
+		$_[] = 'From: ' . Shopp::single_email_addr( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
