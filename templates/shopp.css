@@ -128,7 +128,7 @@ ul.shopp_categories li ul.active { display: block; }
 /** Side Products Widget **/
 .sideproduct { margin-top: 20px; }
 .sideproduct h3 { margin-top: 0; }
-
+.sideproduct .original.price { text-decoration: line-through; }
 
 /** Shopping Cart **/
 #shopp #cart { width: 100%; }
