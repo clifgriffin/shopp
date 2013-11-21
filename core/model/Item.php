@@ -877,6 +877,9 @@ class ShoppCartItem {
 			$Tax->rates($this->taxes, $Tax->item($this) );
 			$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
 			$this->tax = $Tax->total($this->taxes, (int)$taxqty);
+
+			foreach ( $this->taxes as $taxid => &$ItemTax )
+				ShoppOrder()->Cart->Totals->register( new OrderAmountItemTax( $ItemTax, $this->id ) );
 		}
 
 		$this->total = ( $this->unitprice * $this->quantity ); // total undiscounted, pre-tax line price
