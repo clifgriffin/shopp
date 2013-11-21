@@ -774,7 +774,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void
+	 * @return array
 	 **/
 	protected function pdtreply ( $string ) {
 		$response = array();
@@ -795,8 +795,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
+	 * @param string $data
+	 * @param bool $url
 	 * @return string The response string from the request
-	 **/
+	 */
 	public function send ( $data, $url = false ) {
 		$options['httpversion'] = '1.1';
 		return parent::send($data, $this->url());
