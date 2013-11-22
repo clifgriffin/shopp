@@ -526,7 +526,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				if ( isset($Collection->slug) && $Collection->slug == $category->slug )
 					$classes[] = 'current';
 
-				if ( isset($Collection->parent) && $Collection->parent == $category->id )
+				if ( isset($Collection->parent) && $Collection->parent == $category->id && ! isset($category->smart) )
 					$classes[] = 'current-parent';
 
 				$categoryname = $category->name;
