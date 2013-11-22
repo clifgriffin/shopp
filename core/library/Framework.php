@@ -410,6 +410,31 @@ class AutoObjectFramework {
 
 }
 
+class FormPostFramework {
+
+	protected $form = array();
+	protected $defaults = array();
+
+	public function form ( string $key = null, boolean $latest = null ) {
+
+		if ( true === $latest ) $this->updateform();
+
+		if ( isset($key) ) {
+			if ( isset($this->form[ $key ]) )
+				return $this->form[ $key ];
+			else return false;
+		}
+
+		return $this->form;
+	}
+
+	public function updateform () {
+		$submitted = stripslashes_deep($_POST);					// Clean it up
+		$this->form = array_merge($this->defaults, $submitted);	// Capture it
+	}
+
+}
+
 /**
  * Provides a basic message dispatch object
  *

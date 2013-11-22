@@ -22,13 +22,12 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @version 1.2
  * @package order
  **/
-class ShoppCheckout {
+class ShoppCheckout extends FormPostFramework {
 
-	private $form = array();		// Holds the cleaned up POST data
 	private $confirmed = false;		// Flag to indicate
 	private $Register = false;		// The ShoppRegistration manager
 
-	static $defaults = array(
+	protected $defaults = array(
 		'guest' => false,
 		'sameaddress' => 'off',
 		'firstname' => '',
@@ -48,8 +47,7 @@ class ShoppCheckout {
 
 		if ( empty($_POST) ) return;
 
-		$submitted = stripslashes_deep($_POST);					// Clean it up
-		$this->form = array_merge(self::$defaults, $submitted);	// Capture it
+		$this->updateform();
 
 		$action = $this->form('checkout');
 
@@ -75,16 +73,6 @@ class ShoppCheckout {
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::login');
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::passwords');
 		add_filter('shopp_validate_checkout', 'ShoppFormValidation::billaddress');
-	}
-
-	public function form ( string $key = null ) {
-		if ( isset($key) ) {
-			if ( isset($this->form[ $key ]) )
-				return $this->form[ $key ];
-			else return false;
-		}
-
-		return $this->form;
 	}
 
 	public function data () {

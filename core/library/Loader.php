@@ -354,6 +354,7 @@ ShoppLoader::map(array(
 	'featuredproducts' => '/model/Collection.php',
 	'fileasset' => '/model/Asset.php',
 	'flowcontroller' => '/library/Deprecated.php',
+	'formpostframework' => '/library/Framework.php',
 	'shoppfreeorder' => '/model/Gateway.php',
 	'gatewayframework' => '/model/Gateway.php',
 	'gatewaymodule' => '/model/Gateway.php',

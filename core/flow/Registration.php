@@ -22,13 +22,11 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @version 1
  * @package order
  **/
-class ShoppRegistration {
+class ShoppRegistration extends FormPostFramework {
 
 	const PROCESS = 'shopp_registration';
 
-	private $form = array();		// Holds the cleaned up POST data
-
-	static $defaults = array(
+	protected $defaults = array(
 		'sameaddress' => 'off',
 		'firstname' => '',
 		'lastname' => '',
@@ -37,14 +35,16 @@ class ShoppRegistration {
 		'billing' => array(),
 		'shipping' => array(),
 		'info' => array(),
+		'loginname' => '',
+		'password' => '',
+		'confirm-password' => ''
 	);
 
 	public function __construct () {
 
-		$_POST = apply_filters('shopp_customer_registration',$_POST);
+		if ( empty($_POST) ) return;
 
-		$submitted = stripslashes_deep($_POST);					// Clean it up
-		$this->form = array_merge(self::$defaults, $submitted);	// Capture it
+		$this->updateform();
 
 		if ( ! self::submitted() ) return;
 
@@ -68,17 +68,6 @@ class ShoppRegistration {
 		return isset($_POST[ self::PROCESS ]);
 	}
 
-
-	public function form ( string $key = null ) {
-		if ( isset($key) ) {
-			if ( isset($this->form[ $key ]) )
-				return $this->form[ $key ];
-			else return false;
-		}
-
-		return $this->form;
-	}
-
 	public function info () {
 		$Customer = ShoppOrder()->Customer;
 
@@ -98,8 +87,8 @@ class ShoppRegistration {
 			'email' => $this->form('email'),
 			'phone' => $this->form('phone'),
 			'info' => $this->form('info'),
-            'password' => $this->form('password'),
-			'loginname' => $this->form('loginname')
+            'password' => $this->form('password', true),
+			'loginname' => $this->form('loginname', true)
 		);
 
 		// Remove invalid characters from the phone number
@@ -111,7 +100,7 @@ class ShoppRegistration {
 		$Customer->updates($updates);
 
 		// Keep confirm-password field value when showing checkout validation errors
-		$confirmpass = $this->form('confirm-password');
+		$confirmpass = $this->form('confirm-password', true);
 		if ( ! empty($confirmpass) )
 			$Customer->_confirm_password = $confirmpass;
 
