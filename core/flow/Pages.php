@@ -232,6 +232,7 @@ class ShoppPage {
 
 	public function filters () {
 		add_filter('shopp_content_container_classes', array($this, 'styleclass'));
+		add_filter('body_class', array($this, 'styleclass'));
 		add_filter('get_edit_post_link', array($this, 'editlink'));
 		add_filter('get_edit_term_link', array($this, 'editlink'));
 		add_filter('the_content', array($this, 'content'), 20);
