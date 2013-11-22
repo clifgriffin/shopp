@@ -117,10 +117,10 @@ class ShoppCartItem {
 		// If option ids are passed, lookup by option key, otherwise by id
 		if ( is_array($pricing) && ! empty($pricing) ) {
 			$optionkey = $Product->optionkey($pricing);
-			if ( ! isset($Product->pricekey[$optionkey]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
-			if ( isset($Product->pricekey[$optionkey]) ) $Price = $Product->pricekey[$optionkey];
+			if ( ! isset($Product->pricekey[ $optionkey ]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
+			if ( isset($Product->pricekey[ $optionkey ]) ) $Price = $Product->pricekey[ $optionkey ];
 		} elseif ( $pricing ) {
-			$Price = $Product->priceid[$pricing];
+			$Price = $Product->priceid[ $pricing ];
 		}
 
 		// Find single product priceline
@@ -159,7 +159,7 @@ class ShoppCartItem {
 
 		// Product has Addons
 		if ( Shopp::str_true($Product->addons) )
-			$this->addons($this->addonsum,$addons,$Product->prices);
+			$this->addons($this->addonsum, $addons, $Product->prices);
 
 		if (isset($Price->id))
 			$this->option = $this->mapprice($Price);
@@ -172,8 +172,8 @@ class ShoppCartItem {
 		$baseprice = roundprice( $this->sale ? $Price->promoprice : $Price->price );
 		$this->unitprice = $baseprice + $this->addonsum;
 
-		if (shopp_setting_enabled('taxes')) {
-			if (Shopp::str_true($Price->tax)) $this->taxable[] = $baseprice;
+		if ( shopp_setting_enabled('taxes') ) {
+			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
 			$this->istaxed = ( $this->taxable > 0 );
 			$this->includetax = shopp_setting_enabled('tax_inclusive');
 			if ( isset($Product->excludetax) && Shopp::str_true($Product->excludetax) )
@@ -199,12 +199,12 @@ class ShoppCartItem {
 
 		// Map out the selected menu name and option
 		if ( Shopp::str_true($Product->variants) ) {
-			$selected = explode(',',$this->option->options); $s = 0;
+			$selected = explode(',', $this->option->options); $s = 0;
 			$variants = isset($Product->options['v']) ? $Product->options['v'] : $Product->options;
-			foreach ( (array)$variants as $i => $menu ) {
-				foreach( (array)$menu['options'] as $option ) {
-					if ( $option['id'] == $selected[$s] ) {
-						$this->variant[$menu['name']] = $option['name']; break;
+			foreach ( (array) $variants as $i => $menu ) {
+				foreach( (array) $menu['options'] as $option ) {
+					if ( $option['id'] == $selected[ $s ] ) {
+						$this->variant[ $menu['name'] ] = $option['name']; break;
 					}
 				}
 				$s++;
@@ -228,21 +228,21 @@ class ShoppCartItem {
 			if ( Shopp::str_true($Price->shipping) ) {
 				$this->shipfee = $Price->shipfee;
 				if ( isset($Price->dimensions) )
-					$dimensions = array_merge($dimensions,$Price->dimensions);
+					$dimensions = array_merge($dimensions, $Price->dimensions);
 			} else $this->freeshipping = true;
 
 			if ( isset($Product->addons) && Shopp::str_true($Product->addons) ) {
-				$this->addons($dimensions,$addons,$Product->prices,'dimensions');
-				$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
+				$this->addons($dimensions, $addons, $Product->prices, 'dimensions');
+				$this->addons($this->shipfee, $addons, $Product->prices, 'shipfee');
 			}
 
 			foreach ( $dimensions as $dimension => $value ) {
 				$this->$dimension = $value;
 			}
-			if (isset($Product->processing) && Shopp::str_true($Product->processing)) {
-				if (isset($Product->minprocess)) $this->processing['min'] = $Product->minprocess;
+			if ( isset($Product->processing) && Shopp::str_true($Product->processing) ) {
+				if ( isset($Product->minprocess) ) $this->processing['min'] = $Product->minprocess;
 
-				if (isset($Product->maxprocess)) $this->processing['max'] = $Product->maxprocess;
+				if ( isset($Product->maxprocess) ) $this->processing['max'] = $Product->maxprocess;
 			}
 
 		}
@@ -251,7 +251,7 @@ class ShoppCartItem {
 
 	public function load_purchased ( $Purchased ) {
 
-		$this->load(new ShoppProduct($Purchased->product),$Purchased->price,false);
+		$this->load(new ShoppProduct($Purchased->product), $Purchased->price, false);
 
 		// Copy matching properties
 		$properties = get_object_vars($Purchased);
@@ -877,9 +877,6 @@ class ShoppCartItem {
 			$Tax->rates($this->taxes, $Tax->item($this) );
 			$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
 			$this->tax = $Tax->total($this->taxes, (int)$taxqty);
-
-			foreach ( $this->taxes as $taxid => &$ItemTax )
-				ShoppOrder()->Cart->Totals->register( new OrderAmountItemTax( $ItemTax, $this->id ) );
 		}
 
 		$this->total = ( $this->unitprice * $this->quantity ); // total undiscounted, pre-tax line price

@@ -87,6 +87,7 @@ class ShoppCart extends ListFramework {
 		add_action('shopp_session_reset', array($this, 'clear') );
 
 		add_action('shopp_cart_item_retotal', array($this, 'processtime') );
+		add_action('shopp_cart_item_retotal', array($this, 'itemtaxes') );
 
 		add_action('shopp_init', array($this, 'tracking'));
 
@@ -165,6 +166,15 @@ class ShoppCart extends ListFramework {
 
 	}
 
+	/**
+	 * Handle add requests for new cart items
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param array $request The request to process
+	 * @return void
+	 **/
 	private function addrequest ( array $request ) {
 
 		$defaults = array(
@@ -200,6 +210,17 @@ class ShoppCart extends ListFramework {
 
 	}
 
+
+	/**
+	 * Handle item update requests (quantity, or variant changes for example)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $item The item id (fingerprint) to change
+	 * @param array $request The update request
+	 * @return void
+	 **/
 	private function updates ( $item, array $request ) {
 		$CartItem = $this->get($item);
 		$defaults = array(
@@ -222,34 +243,38 @@ class ShoppCart extends ListFramework {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @return string JSON response
+	 * @return void
 	 **/
 	public function ajax () {
 
-		if ('html' == strtolower($_REQUEST['response'])) {
-			echo shopp('cart','get-sidecart');
-			exit();
+		if ( 'html' == strtolower($_REQUEST['response']) ) {
+			shopp('cart.sidecart');
+			exit;
 		}
+
 		$AjaxCart = new StdClass();
-		$AjaxCart->url = Shopp::url(false,'cart');
-		$AjaxCart->label = __('Edit shopping cart','Shopp');
-		$AjaxCart->checkouturl = Shopp::url(false,'checkout',ShoppOrder()->security());
-		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
-		$AjaxCart->imguri = '' != get_option('permalink_structure')?trailingslashit(Shopp::url('images')):Shopp::url().'&siid=';
+		$AjaxCart->url = Shopp::url(false, 'cart');
+		$AjaxCart->label = __('Edit shopping cart', 'Shopp');
+		$AjaxCart->checkouturl = Shopp::url(false, 'checkout', ShoppOrder()->security());
+		$AjaxCart->checkoutLabel = __('Proceed to Checkout', 'Shopp');
+		$AjaxCart->imguri = '' != get_option('permalink_structure') ? trailingslashit(Shopp::url('images')) : Shopp::url() . '&siid=';
 		$AjaxCart->Totals = json_decode( (string)$this->Totals );
 		$AjaxCart->Contents = array();
-		foreach( $this as $Item ) {
+
+		foreach ( $this as $Item ) {
 			$CartItem = clone($Item);
 			unset($CartItem->options);
 			$AjaxCart->Contents[] = $CartItem;
 		}
-		if (isset($this->added))
+
+		if ( isset($this->added) )
 			$AjaxCart->Item = clone($this->added());
 		else $AjaxCart->Item = new ShoppCartItem();
 		unset($AjaxCart->Item->options);
 
 		echo json_encode($AjaxCart);
-		exit();
+		exit;
+
 	}
 
 	/**
@@ -265,8 +290,8 @@ class ShoppCart extends ListFramework {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	public function additem ( $quantity = 1, &$Product, &$Price, $category=false, $data=array(), $addons=array() ) {
-		$NewItem = new ShoppCartItem($Product,$Price,$category,$data,$addons);
+	public function additem ( $quantity = 1, &$Product, &$Price, $category = false, $data = array(), $addons = array() ) {
+		$NewItem = new ShoppCartItem($Product, $Price, $category, $data, $addons);
 
 		if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 
@@ -341,7 +366,7 @@ class ShoppCart extends ListFramework {
 	 * @param int $quantity New quantity to update the item to
 	 * @return boolean
 	 **/
-	public function setitem ( $item, $quantity) {
+	public function setitem ( $item, $quantity ) {
 
 		if ( 0 == $this->count() ) return false;
 		if ( 0 == $quantity ) return $this->remove($item);
@@ -405,7 +430,7 @@ class ShoppCart extends ListFramework {
 		foreach ($this as $index => $cartitem) {
 			if ( ! $cartitem->inventory ) continue;
 
-			if ( isset($order[$cartitem->priceline]) ) $ordered = $order[$cartitem->priceline];
+			if ( isset($order[ $cartitem->priceline ]) ) $ordered = $order[ $cartitem->priceline ];
 			else {
 				$ordered = new StdClass();
 				$ordered->stock = $cartitem->option->stock;
@@ -455,17 +480,6 @@ class ShoppCart extends ListFramework {
 		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->price == $pricing) )
 			return true;
 
-		// If the updated product and price variation match
-		// add the updated quantity of this item to the other item
-		// and remove this one
-
-		/*foreach ( $this as $id => $thisitem ) {
-			if ($thisitem->product == $product && $thisitem->priceline == $pricing) {
-				$this->update($id,$thisitem->quantity+$this->get($item)->quantity);
-				$this->remove($item);
-			}
-		}*/
-
 		// Maintain item state, change variant
 		$Item = $this->get($item);
 		$qty = $Item->quantity;
@@ -500,19 +514,47 @@ class ShoppCart extends ListFramework {
 	}
 
 	/**
-	 * Determines the order processing timeframes
+	 * Recalculates order processing time minimum and maximums across all items
 	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
 	 *
+	 * @return void
 	 **/
 	public function processtime ( ShoppCartItem $Item ) {
 
 		if ( isset($Item->processing['min']) )
-			$this->processing['min'] = ShippingFramework::daytimes($this->processing['min'],$Item->processing['min']);
+			$this->processing['min'] = ShippingFramework::daytimes($this->processing['min'], $Item->processing['min']);
 
 		if ( isset($Item->processing['max']) )
-			$this->processing['max'] = ShippingFramework::daytimes($this->processing['max'],$Item->processing['max']);
+			$this->processing['max'] = ShippingFramework::daytimes($this->processing['max'], $Item->processing['max']);
+
 	}
 
+	/**
+	 * Add new item taxes to the tax register
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppCartItem $Item The cart item from shopp_cart_item_retotal
+	 * @return void
+	 **/
+	public function itemtaxes ( ShoppCartItem $Item ) {
+
+		foreach ( $Item->taxes as $id => &$ItemTax )
+			$this->Totals->register( new OrderAmountItemTax( $ItemTax, $Item->fingerprint() ) );
+
+	}
+
+	/**
+	 * Adds change tracking to the shipping rates system for automagic recalculations
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function tracking () {
 
 		$Shopp = Shopp::object();
@@ -560,7 +602,7 @@ class ShoppCart extends ListFramework {
 		$downloads = $this->downloads();
 		$shipped = $this->shipped();
 
-		do_action('shopp_cart_item_totals'); // Update cart item totals
+		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
 
 		$Shipping->calculate();
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
@@ -671,6 +713,15 @@ class ShoppCart extends ListFramework {
 		return $this->filteritems('recurring');
 	}
 
+	/**
+	 * Helper to filter a list of products by type
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $type The type of item to find (shipped, downloads or recurring)
+	 * @return boolean True if the item is of the specified type, false otherwise
+	 **/
 	private function filteritems ($type) {
 		$types = array('shipped','downloads','recurring');
 		if ( ! in_array($type,$types) ) return false;
