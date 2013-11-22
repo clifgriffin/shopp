@@ -133,7 +133,7 @@ class ShoppCart extends ListFramework {
 
 		switch( $command ) {
 			case 'empty': $this->clear(); break;
-			case 'remove': $this->removeitem( key($remove) ); break;
+			case 'remove': $this->rmvitem( key($remove) ); break;
 			case 'add':
 
 				if ( false !== $product )
@@ -321,6 +321,10 @@ class ShoppCart extends ListFramework {
 		if ( ! $this->xitemstock( $this->added() ) )
 			return $this->remove( $this->added() ); // Remove items if no cross-item stock available
 
+		// Add total actions so the Item will recalculate its own totals
+		add_action('shopp_cart_item_totals', array($Item, 'rediscount'));
+		add_action('shopp_cart_item_totals', array($Item, 'totals'));
+
 		do_action_ref_array('shopp_cart_add_item', array($Item));
 
 		return true;
@@ -352,7 +356,12 @@ class ShoppCart extends ListFramework {
 
 		$Shipping->takeoff( $id );
 
+		// Remove actions so the Item reference will get cleaned up
+		remove_action('shopp_cart_item_totals', array($Item, 'rediscount'));
+		remove_action('shopp_cart_item_totals', array($Item, 'totals'));
+
 		do_action_ref_array('shopp_cart_remove_item', array($Item->fingerprint(), $Item));
+
 		return $this->remove($id);
 	}
 

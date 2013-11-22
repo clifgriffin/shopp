@@ -85,16 +85,16 @@ class ShoppCartItem {
 		if ( get_class($Product) == 'ShoppPurchased' ) $this->load_purchased($Product);
 		else $this->load($Product, $pricing, $category, $data, $addons);
 
-		$this->__wakeup();
-		$this->rediscount();
-		$this->totals();
+		// $this->__wakeup();
+		// $this->rediscount();
+		// $this->totals();
 
 	}
 
-	public function __wakeup () {
-		add_action('shopp_cart_item_totals', array($this, 'rediscount'));
-		add_action('shopp_cart_item_totals', array($this, 'totals'));
-	}
+	// public function __wakeup () {
+	// 	add_action('shopp_cart_item_totals', array($this, 'rediscount'));
+	// 	add_action('shopp_cart_item_totals', array($this, 'totals'));
+	// }
 
 	/**
 	 * load
