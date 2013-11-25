@@ -400,7 +400,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		if ( apply_filters('shopp_notify_new_wpuser', true) ) {
 			// Send email notification of the new account
-			$password = isset($this->passhash) ? '' : $this->password; // Only include generated passwords
+			$password = isset($this->passhash) ? '*******' : $this->password; // Only include generated passwords
 			wp_new_user_notification( $wpuser, $password );
 		}
 
