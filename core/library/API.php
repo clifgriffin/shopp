@@ -117,9 +117,12 @@ class ShoppAPIFile extends ModuleFile {
 		// Define a static $map property as an associative array or tag => member function names.
 		// Without the tag key, it will be registered as a general purpose filter for all tags in this context
 		$register = get_class_property($api, 'register');
-		if (!empty($register)) {
+		if ( ! empty($register) ) {
 			foreach ( $register as $tag => $method ) {
-				if ( strpos($method, '::') !== false ) list($apiclass, $method) = explode('::', $method);
+				if ( is_array($method) )
+					list($apiclass, $method) = $method;
+				elseif ( is_string($method) && strpos($method, '::') !== false )
+					list($apiclass, $method) = explode('::', $method);
 				else $apiclass = $api;
 
  				if ( is_callable( array($apiclass, $method) ) ) {
