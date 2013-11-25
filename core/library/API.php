@@ -119,11 +119,13 @@ class ShoppAPIFile extends ModuleFile {
 		$register = get_class_property($api, 'register');
 		if ( ! empty($register) ) {
 			foreach ( $register as $tag => $method ) {
-				if ( is_array($method) )
-					list($apiclass, $method) = $method;
-				elseif ( is_string($method) && strpos($method, '::') !== false )
+				$apiclass = $api;
+
+				if ( is_array($method) ) {
+					$apiclass = $method[0];
+					$method = $method[1];
+				} elseif ( is_string($method) && strpos($method, '::') !== false )
 					list($apiclass, $method) = explode('::', $method);
-				else $apiclass = $api;
 
  				if ( is_callable( array($apiclass, $method) ) ) {
 					if ( is_numeric($tag) ) add_filter( 'shopp_themeapi_'.strtolower($apicontext), array($apiclass, $method), 9, 4 ); // general filter
