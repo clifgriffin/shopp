@@ -656,7 +656,7 @@ class ShoppErrorStorefrontNotices implements Iterator {
 	}
 
 	public function notice ( $Error ) {
-		if ( $Error->level > SHOPP_STOCK_ERR ) return;
+		if ( $Error->level > SHOPP_COMM_ERR ) return;
 		$this->notices += $Error->messages;
 	}
 
