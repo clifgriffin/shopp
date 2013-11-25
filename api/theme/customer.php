@@ -338,7 +338,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 	public static function last_name ( $result, $options, $O ) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return ShoppOrder()->Customer->lastname;
+		if ($options['mode'] == "value") return $O->Customer->lastname;
 		if (!empty(ShoppOrder()->Customer->lastname))
 			$options['value'] = ShoppOrder()->Customer->lastname;
 		return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
@@ -687,8 +687,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if ( 'value' == $mode ) return $value;
 
-		$base = shopp_setting('base_operations');
-		$countries = shopp_setting('target_markets');
+		$base = (array) shopp_setting('base_operations');
+		$countries = (array) shopp_setting('target_markets');
 		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 
 		$country = $base['country'];

@@ -634,7 +634,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 
 	public static function not_logged_in ( $result, $options, $O ) {
-		return (!$O->Customer->loggedin() && shopp_setting('account_system') != "none");
+		return ( ! $O->Customer->loggedin() && 'none' !== shopp_setting('account_system') );
 	}
 
 	public static function order_data ( $result, $options, $O ) {
