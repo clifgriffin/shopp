@@ -389,11 +389,11 @@ class ImageAsset extends FileAsset {
 		$args = func_get_args();
 
 		$args = array(
-			self::WIDTH => (int) $args[self::WIDTH],
-			self::HEIGHT => ( 0 == $args[self::HEIGHT] ) ? (int) $args[self::WIDTH] : (int) $args[self::HEIGHT],
-			self::SCALE => ( isset($args[self::SCALE]) ) ? (int) $args[self::SCALE] : 0,
-			self::SHARPEN => ( isset($args[self::SHARPEN]) ) ? (int) $args[self::SHARPEN] : self::$defaults['sharpen'],
-			self::QUALITY => ( isset($args[self::QUALITY]) ) ? (int) $args[self::QUALITY] : self::$defaults['quality']
+			self::WIDTH => (int) $args[ self::WIDTH ],
+			self::HEIGHT => ( 0 == $args[ self::HEIGHT ] ) ? (int) $args[ self::WIDTH ] : (int) $args[ self::HEIGHT ],
+			self::SCALE => ( isset($args[ self::SCALE ]) ) ? (int) $args[ self::SCALE ] : 0,
+			self::SHARPEN => ( isset($args[ self::SHARPEN ]) ) ? (int) $args[ self::SHARPEN ] : self::$defaults['sharpen'],
+			self::QUALITY => ( isset($args[ self::QUALITY ]) ) ? (int) $args[ self::QUALITY ] : self::$defaults['quality']
 		);
 
 		// Form the checksummed message
