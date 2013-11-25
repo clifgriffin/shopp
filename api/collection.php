@@ -43,7 +43,7 @@ function shopp_register_collection ( $name = '' ) {
 	add_rewrite_tag( "%$permastruct%", "$namespace/([^/]+)" );
 	add_permastruct( $permastruct, ShoppPages()->baseslug() . '/%shopp_collection%', false );
 
-	add_filter( $permastruct . '_rewrite_rules', 'ProductCollection::pagerewrites' );
+	add_filter( $permastruct . '_rewrite_rules', array('ProductCollection', 'pagerewrites') );
 
 	$apicall = create_function ( '$result, $options, $O',
 		'ShoppCollection( new ' . $name . '($options) );

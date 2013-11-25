@@ -538,7 +538,7 @@ class ShoppErrorLogging {
 	}
 
 }
-add_action('shopp_errors_init', 'ShoppErrorLogging::object');
+add_action('shopp_errors_init', array('ShoppErrorLogging', 'object'));
 
 /**
  * ShoppErrorNotification class
@@ -630,7 +630,7 @@ class ShoppErrorNotification {
 	}
 
 }
-add_action('shopp_errors_init', 'ShoppErrorNotification::object');
+add_action('shopp_errors_init', array('ShoppErrorNotification', 'object'));
 
 class ShoppErrorStorefrontNotices implements Iterator {
 
@@ -701,4 +701,4 @@ class ShoppErrorStorefrontNotices implements Iterator {
 	}
 
 }
-add_action('shopp_errors_init', 'ShoppErrorStorefrontNotices::object');
+add_action('shopp_errors_init', array('ShoppErrorStorefrontNotices', 'object'));

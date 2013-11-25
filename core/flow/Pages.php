@@ -24,7 +24,7 @@ class ShoppPages extends ListFramework {
 	private $slugs = array();
 
 	private function __construct () {
-		add_action('shopp_init_storefront_pages', 'ShoppPages::permalinks' );
+		add_action('shopp_init_storefront_pages', array('ShoppPages', 'permalinks') );
 	}
 
 	/**

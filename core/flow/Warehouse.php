@@ -843,7 +843,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 				// Save 'price' meta records after saving the price record
 				if (isset($priceline['dimensions']) && is_array($priceline['dimensions']))
-					$priceline['dimensions'] = array_map('Shopp::floatval',$priceline['dimensions']);
+					$priceline['dimensions'] = array_map(array('Shopp', 'floatval'), $priceline['dimensions']);
 
 				$settings = array('donation','recurring','membership','dimensions');
 

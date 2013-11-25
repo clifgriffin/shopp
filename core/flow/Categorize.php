@@ -409,7 +409,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 				$pricing['price'] = Shopp::floatval($pricing['price'],false);
 				$pricing['saleprice'] = Shopp::floatval($pricing['saleprice'],false);
 				$pricing['shipfee'] = Shopp::floatval($pricing['shipfee'],false);
-				$pricing['dimensions'] = array_map('Shopp::floatval',$pricing['dimensions']);
+				$pricing['dimensions'] = array_map(array('Shopp', 'floatval'), $pricing['dimensions']);
 			}
 		}
 

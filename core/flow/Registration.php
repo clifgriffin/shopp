@@ -55,12 +55,12 @@ class ShoppRegistration extends FormPostFramework {
 
 		add_action('parse_request', array(__CLASS__, 'process'));
 
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::names');
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::email');
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::login');
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::passwords');
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::shipaddress');
-		add_filter('shopp_validate_registration', 'ShoppFormValidation::billaddress');
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'names'));
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'email'));
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'login'));
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'passwords'));
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'shipaddress'));
+		add_filter('shopp_validate_registration', array('ShoppFormValidation', 'billaddress'));
 
 	}
 

@@ -307,7 +307,8 @@ class Shopp extends ShoppCore {
  	public function rewrites ($wp_rewrite_rules) {
  		global $is_IIS;
  		$structure = get_option('permalink_structure');
- 		if ('' == $structure) return $wp_rewrite_rules;
+ 		if ( '' == $structure ) return $wp_rewrite_rules;
+
  		$path = str_replace('%2F', '/', urlencode(join('/', array(PLUGINDIR, SHOPP_DIR, 'services'))));
 
  		// Download URL rewrites
@@ -320,9 +321,9 @@ class Shopp extends ShoppCore {
 
  		// Image URL rewrite
  		$images = array( ShoppPages()->baseslug(), 'images', '(\d+)', "?\??(.*)$" );
- 		add_rewrite_rule(join('/', $images), $path.'/image.php?siid=$1&$2');
+ 		add_rewrite_rule(join('/', $images), $path . '/image.php?siid=$1&$2');
 
- 		return $rules + (array)$wp_rewrite_rules;
+ 		return $rules + (array) $wp_rewrite_rules;
  	}
 
 	/**

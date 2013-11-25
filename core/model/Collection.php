@@ -202,7 +202,7 @@ class ProductCollection implements Iterator {
 				$cached = false;
 			} else { // Run query and cache results
 				$expire = apply_filters('shopp_collection_cache_expire', 43200);
-				$alpha = DB::query($alphaquery, 'array', array($this, 'alphatable'));
+				$alpha = sDB::query($alphaquery, 'array', array($this, 'alphatable'));
 				wp_cache_set($cachehash, $alpha, 'shopp_collection_alphanav');
 			}
 
@@ -229,8 +229,8 @@ class ProductCollection implements Iterator {
 
 			$cache = new stdClass();
 
-			if ( $ids ) $cache->products = $this->products = DB::query($query, 'array', 'col', 'ID');
-			else $cache->products = $this->products = DB::query($query, 'array', array($Processing, 'loader'));
+			if ( $ids ) $cache->products = $this->products = sDB::query($query, 'array', 'col', 'ID');
+			else $cache->products = $this->products = sDB::query($query, 'array', array($Processing, 'loader'));
 
 			$cache->total = $this->total = sDB::found();
 
@@ -283,7 +283,7 @@ class ProductCollection implements Iterator {
 	}
 
 	// Add alpha-pagination support to category/collection pagination rules
-	public function pagerewrites ( $rewrites ) {
+	public static function pagerewrites ( $rewrites ) {
 		$rules = array_keys($rewrites);
 		$queries = array_values($rewrites);
 
@@ -619,7 +619,7 @@ class ProductTaxonomy extends ProductCollection {
 	public function load_meta () {
 		if ( empty($this->id) ) return;
 		$meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		DB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'", 'array', array($this, 'metaloader'), 'type');
+		sDB::query("SELECT * FROM $meta WHERE parent=$this->id AND context='$this->context' AND type='meta'", 'array', array($this, 'metaloader'), 'type');
 	}
 
 	public function metaloader ( &$records, &$record, $property = false ) {
@@ -894,8 +894,8 @@ class ProductCategory extends ProductTaxonomy {
 		$Storefront->browsing[$this->slug] = $this->filters; // Save currently applied filters
 	}
 
-	public function facetsql ($options) {
-		if (!$this->filters) return array();
+	public function facetsql ( $options ) {
+		if ( ! $this->filters ) return array();
 
 		$joins = $options['joins'];
 
@@ -906,56 +906,56 @@ class ProductCategory extends ProductTaxonomy {
 		$filters = array();
 		$facets = array();
 		$numeric = array();
-		foreach ($this->filters as $filtered => $value) {
+		foreach ( $this->filters as $filtered => $value ) {
 			$Facet = $this->facets[ $filtered ];
-			if (empty($value)) continue;
+			if ( empty($value) ) continue;
 			$name = $Facet->name;
 			$value = urldecode($value);
 
-			if (!is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
+			if ( ! is_array($value) && preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/', $value, $matches) ) {
 				if ('price' == $Facet->slug) { // Prices require complex matching on summary prices in the main collection query
-					list(,$min,$max) = array_map('Shopp::floatval',$matches);
-					if ($min > 0) $options['where'][] = "(s.minprice >= $min)";
-					if ($max > 0) $options['where'][] = "(s.minprice > 0 AND s.minprice <= $max)";
+					list(, $min, $max) = array_map(array('Shopp', 'floatval'), $matches);
+					if ( $min > 0 ) $options['where'][] = "(s.minprice >= $min)";
+					if ( $max > 0 ) $options['where'][] = "(s.minprice > 0 AND s.minprice <= $max)";
 
 				} else { // Spec-based numbers are somewhat more straightforward
-					list(,$min,$max) = $matches;
+					list(, $min, $max) = $matches;
 					$ranges = array();
-					if ($min > 0) $ranges[] = "numeral >= $min";
-					if ($max > 0) $ranges[] = "numeral <= $max";
+					if ( $min > 0 ) $ranges[] = "numeral >= $min";
+					if ( $max > 0 ) $ranges[] = "numeral <= $max";
 					// $filters[] = "(".join(' AND ',$ranges).")";
 					$numeric[] = DB::escape($name);
-					$facets[] = sprintf("name='%s' AND %s",DB::escape($name),join(' AND ',$ranges));
-					$filters[] = sprintf("FIND_IN_SET('%s',facets)",DB::escape($name));
+					$facets[] = sprintf("name='%s' AND %s", sDB::escape($name), join(' AND ', $ranges));
+					$filters[] = sprintf("FIND_IN_SET('%s', facets)", sDB::escape($name));
 
 				}
 
 			} else { // No range, direct value match
-				$filters[] = sprintf("FIND_IN_SET('%s=%s',facets)",DB::escape($name),DB::escape($value));
-				$facets[] = sprintf("name='%s' AND value='%s'",DB::escape($name),DB::escape($value));
+				$filters[] = sprintf("FIND_IN_SET('%s=%s',facets)", sDB::escape($name), sDB::escape($value));
+				$facets[] = sprintf("name='%s' AND value='%s'", sDB::escape($name), sDB::escape($value));
 			}
 
 		}
 
 		$spectable = ShoppDatabaseObject::tablename(Spec::$table);
-		$jointables = str_replace('p.ID','m.parent',join(' ',$joins)); // Rewrite the joins to use the spec table reference
-		$having = "HAVING ".join(' AND ',$filters);
+		$jointables = str_replace('p.ID', 'm.parent', join(' ', $joins)); // Rewrite the joins to use the spec table reference
+		$having = "HAVING " . join(' AND ', $filters);
 
 		$query = "SELECT m.parent,GROUP_CONCAT(m.name,
-			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'','='),
-			IF(0<FIND_IN_SET('".join(",",$numeric)."',m.name),'',m.value)) AS facets
+			IF(0<FIND_IN_SET('" . join(',', $numeric) . "',m.name),'','='),
+			IF(0<FIND_IN_SET('" . join(',', $numeric) . "',m.name),'',m.value)) AS facets
 					FROM $spectable AS m $jointables
-					WHERE context='product' AND type='spec' AND (".join(' OR ',$facets).")
+					WHERE context='product' AND type='spec' AND (" . join(' OR ', $facets) . ")
 					GROUP BY m.parent
 					$having";
 
 		// Support cache accelleration
-		$cachehash = 'collection_facet_'.md5($query);
-		$cached = wp_cache_get($cachehash,'shopp_collection_facet');
-		if ($cached) $set = $cached;
+		$cachehash = 'collection_facet_' . md5($query);
+		$cached = wp_cache_get($cachehash, 'shopp_collection_facet');
+		if ( $cached ) $set = $cached;
 		else {
-			$set = DB::query($query,'array','col','parent');
-			wp_cache_set($cachehash,$set,'shopp_collection_facet');
+			$set = sDB::query($query, 'array', 'col', 'parent');
+			wp_cache_set($cachehash, $set, 'shopp_collection_facet');
 		}
 
 		if ( ! empty($set) ) {
@@ -999,7 +999,7 @@ class ProductCategory extends ProductTaxonomy {
 				$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
 					FROM $sumtable
 					WHERE product IN ($ids) GROUP BY rangeid";
-				$counts = DB::query($query,'array','col','total','rangeid');
+				$counts = sDB::query($query,'array','col','total','rangeid');
 
 				foreach ($ranges as $id => $range) {
 					if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
@@ -1030,7 +1030,7 @@ class ProductCategory extends ProductTaxonomy {
 			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
 			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
-		$specdata = DB::query($query,'array','index','name',true);
+		$specdata = sDB::query($query,'array','index','name',true);
 
 		foreach ($this->specs as $spec) {
 			if ('disabled' == $spec['facetedmenu']) continue;
@@ -1115,7 +1115,7 @@ class ProductCategory extends ProductTaxonomy {
 							$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
 								FROM $spectable AS spec
 								WHERE spec.parent IN ($ids) AND spec.name='$Facet->name' AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
-							$counts = DB::query($query,'array','col','total','rangeid');
+							$counts = sDB::query($query,'array','col','total','rangeid');
 
 							foreach ($ranges as $id => $range) {
 								if ( ! isset($counts[$id]) || $counts[$id] < 1 ) continue;
@@ -1190,7 +1190,7 @@ class ProductCategory extends ProductTaxonomy {
 		$table = ShoppDatabaseObject::tablename(CategoryImage::$table);
 		if (empty($this->id)) return false;
 		$query = "SELECT * FROM $table WHERE parent=$this->id AND context='category' AND type='image' ORDER BY $orderby";
-		$records = DB::query($query,'array',array($this,'metaloader'),'type');
+		$records = sDB::query($query,'array',array($this,'metaloader'),'type');
 
 		return true;
 	}
@@ -1649,7 +1649,7 @@ class BestsellerProducts extends SmartCollection {
 	static function threshold () {
 		// Get mean sold for bestselling threshold
 		$summary = ShoppDatabaseObject::tablename(ProductSummary::$table);
-		return (float)DB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold", 'auto', 'col', 'threshold');
+		return (float)sDB::query("SELECT AVG(sold) AS threshold FROM $summary WHERE 0 != sold", 'auto', 'col', 'threshold');
 	}
 
 }
@@ -2009,7 +2009,7 @@ class AlsoBoughtProducts extends SmartCollection {
 
 		// @todo Add WP_Cache support since this is a pretty expensive query
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
-		$matches = DB::query("SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
+		$matches = sDB::query("SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
 						FROM (
 							SELECT n1.product AS p1,n2.product AS p2,SUM(n1.quantity) AS sum1,SUM(n2.quantity) AS sum2,
 								SUM(n1.quantity * n1.quantity) AS sum1sq,SUM(n2.quantity * n2.quantity) AS sum2sq,

@@ -71,17 +71,17 @@ class ShoppStorefront extends ShoppFlowController {
 		add_filter( 'wp_list_pages', array($this,'securelinks') );
 
 		// Wrap Shopp content in #shopp div  to enable CSS and Javascript
-		add_filter( 'shopp_order_lookup',		'Storefront::wrapper' );
-		add_filter( 'shopp_order_confirmation',	'Storefront::wrapper' );
-		add_filter( 'shopp_errors_page',		'Storefront::wrapper' );
-		add_filter( 'shopp_catalog_template',	'Storefront::wrapper' );
-		add_filter( 'shopp_cart_template',		'Storefront::wrapper' );
-		add_filter( 'shopp_checkout_page',		'Storefront::wrapper' );
-		add_filter( 'shopp_account_template',	'Storefront::wrapper' );
-		add_filter( 'shopp_category_template',	'Storefront::wrapper' );
-		add_filter( 'shopp_order_receipt',		'Storefront::wrapper' );
-		add_filter( 'shopp_account_manager',	'Storefront::wrapper' );
-		add_filter( 'shopp_account_vieworder',	'Storefront::wrapper' );
+		add_filter( 'shopp_order_lookup',		array('Storefront', 'wrapper') );
+		add_filter( 'shopp_order_confirmation',	array('Storefront', 'wrapper') );
+		add_filter( 'shopp_errors_page',		array('Storefront', 'wrapper') );
+		add_filter( 'shopp_catalog_template',	array('Storefront', 'wrapper') );
+		add_filter( 'shopp_cart_template',		array('Storefront', 'wrapper') );
+		add_filter( 'shopp_checkout_page',		array('Storefront', 'wrapper') );
+		add_filter( 'shopp_account_template',	array('Storefront', 'wrapper') );
+		add_filter( 'shopp_category_template',	array('Storefront', 'wrapper') );
+		add_filter( 'shopp_order_receipt',		array('Storefront', 'wrapper') );
+		add_filter( 'shopp_account_manager',	array('Storefront', 'wrapper') );
+		add_filter( 'shopp_account_vieworder',	array('Storefront', 'wrapper') );
 		add_filter( 'the_content',				array($this, 'autowrap'), 99 );
 
 		add_action( 'wp_enqueue_scripts',		'shopp_dependencies' );
@@ -999,14 +999,14 @@ class ShoppStorefront extends ShoppFlowController {
 		$this->shortcodes = array();
 
 		// Additional shortcode functionality
-		$this->shortcodes['catalog-product'] 	= 'ShoppShortcodes::product';
-		$this->shortcodes['catalog-buynow'] 	= 'ShoppShortcodes::buynow';
-		$this->shortcodes['catalog-collection']	= 'ShoppShortcodes::collection';
+		$this->shortcodes['catalog-product'] 	= array('ShoppShortcodes', 'product');
+		$this->shortcodes['catalog-buynow'] 	= array('ShoppShortcodes', 'buynow');
+		$this->shortcodes['catalog-collection']	= array('ShoppShortcodes', 'collection');
 
 		// @deprecated shortcodes
-		$this->shortcodes['product']	= 'ShoppShortcodes::product';
-		$this->shortcodes['buynow']		= 'ShoppShortcodes::buynow';
-		$this->shortcodes['category']	= 'ShoppShortcodes::collection';
+		$this->shortcodes['product']	= array('ShoppShortcodes', 'product');
+		$this->shortcodes['buynow']		= array('ShoppShortcodes', 'buynow');
+		$this->shortcodes['category']	= array('ShoppShortcodes', 'collection');
 
 		foreach ( $this->shortcodes as $name => &$callback )
 			if ( shopp_setting_enabled('maintenance') || ! ShoppSettings()->available() || Shopp::maintenance() )

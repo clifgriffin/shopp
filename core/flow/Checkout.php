@@ -67,12 +67,12 @@ class ShoppCheckout extends FormPostFramework {
 		add_action('shopp_process_checkout', array($this, 'billaddress'));
 		add_action('shopp_process_checkout', array($this, 'process'));
 
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::names');
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::email');
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::data');
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::login');
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::passwords');
-		add_filter('shopp_validate_checkout', 'ShoppFormValidation::billaddress');
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'names'));
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'email'));
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'data'));
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'login'));
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'passwords'));
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'billaddress'));
 	}
 
 	public function data () {
