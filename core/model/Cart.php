@@ -223,6 +223,7 @@ class ShoppCart extends ListFramework {
 	 **/
 	private function updates ( $item, array $request ) {
 		$CartItem = $this->get($item);
+		if ( ! $CartItem ) return;
 		$defaults = array(
 			'quantity' => 1,
 			'product' => false,
@@ -231,7 +232,7 @@ class ShoppCart extends ListFramework {
 		$request = array_merge($defaults, $request);
 		extract($request, EXTR_SKIP);
 
-		if ( $product == $CartItem->product && false !== $price && $price != $CartItem->priceline)
+		if ( $product == $CartItem->product && false !== $price && $price != $CartItem->priceline )
 			$this->change($item,$product,$price);
 		else $this->setitem($item,$quantity);
 
