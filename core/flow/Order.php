@@ -61,6 +61,7 @@ class ShoppOrder {
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
 		add_action('parse_request', array($this, 'request'));
+		add_action('parse_request', array($this, 'locate'));
 		add_action('parse_request', array($this->Discounts, 'requests'));
 
 		// Order processing
@@ -68,21 +69,20 @@ class ShoppOrder {
 		add_action('shopp_process_order', array($this, 'validate'), 7);
 		add_action('shopp_process_order', array($this, 'submit'), 100);
 
-		add_action('shopp_update_destination', array($this->Shipping, 'locate'));
-		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
-		add_action('shopp_update_destination', array($this, 'taxaddress'));
-
+		// Creating the purchase order
 		add_action('shopp_purchase_order_event', array($this, 'purchase'));
 		add_action('shopp_purchase_order_created', array($this, 'meta'));
 		add_action('shopp_purchase_order_created', array($this, 'invoice'));
 		add_action('shopp_purchase_order_created', array($this, 'process'));
 
+		// Handle authed transactions
 		add_action('shopp_authed_order_event', array($this, 'unstock'));
 		add_action('shopp_authed_order_event', array($this, 'captured'));
 
 		// Ensure payment card PAN is truncated after successful processing
 		add_action('shopp_authed_order_event', array($this, 'securecard'));
 
+		// Reset handlers
 		add_action('shopp_resession', array($this, 'init'));
 		add_action('shopp_pre_resession', array($this, 'clear'), 100);
 
@@ -110,13 +110,8 @@ class ShoppOrder {
 		$this->Customer = Shopping::restart( 'ShoppCustomer', $this->Customer );
 
 		$this->Billing = Shopping::restart( 'BillingAddress', $this->Billing );
-		$this->Billing->locate();
-
 		$this->Shipping = Shopping::restart( 'ShippingAddress', $this->Shipping );
-		$this->Shipping->locate();
-
 		$this->Tax = Shopping::restart( 'ShoppTax', $this->Tax );
-		$this->taxaddress();
 
 		$this->Shiprates = Shopping::restart( 'ShoppShiprates', $this->Shiprates );
 		$this->Discounts = Shopping::restart( 'ShoppDiscounts', $this->Discounts );
@@ -160,10 +155,6 @@ class ShoppOrder {
 
 			do_action('shopp_process_shipmethod');
 
-		} elseif ( isset($_REQUEST['shipping']) ) {
-
-			do_action_ref_array( 'shopp_update_destination', array($_REQUEST['shipping']) );
-
 		}
 
 	}
@@ -187,15 +178,31 @@ class ShoppOrder {
 
 	}
 
-	/**
-	 * Set the taxable address
+	/**It
+	 * Update addresses throughout the system
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
 	 * @return void
 	 **/
-	public function taxaddress () {
+	public function locate () {
+
+		if ( isset($_REQUEST['shipping']) ) {
+			$request = $_REQUEST['shipping'];
+
+			$this->Billing->locate($request);
+			$this->Shipping->locate($request);
+
+			do_action_ref_array( 'shopp_update_destination', array($request) );
+
+		} else {
+			$this->Billing->locate();
+			$this->Shipping->locate();
+		}
+
+		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
+
 		$this->Tax->address($this->Billing, $this->Shipping, $this->Cart->shipped());
 		add_filter('shopp_tax_country', array('ShoppTax','euvat'), 10, 3);
 	}
