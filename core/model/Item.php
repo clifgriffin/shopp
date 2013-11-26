@@ -846,6 +846,9 @@ class ShoppCartItem {
 
 		do_action('shopp_cart_item_pretotal', $this);
 
+		$this->bogof = 0;
+		$this->discount = 0;
+
 		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
 		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
 
@@ -893,11 +896,6 @@ class ShoppCartItem {
 
 		do_action('shopp_cart_item_retotal', $this);
 
-	}
-
-	public function rediscount () {
-		$this->bogof = 0;
-		$this->discount = 0;
 	}
 
 }

@@ -321,10 +321,6 @@ class ShoppCart extends ListFramework {
 		if ( ! $this->xitemstock( $this->added() ) )
 			return $this->remove( $this->added() ); // Remove items if no cross-item stock available
 
-		// Add total actions so the Item will recalculate its own totals
-		add_action('shopp_cart_item_totals', array($Item, 'rediscount'));
-		add_action('shopp_cart_item_totals', array($Item, 'totals'));
-
 		do_action_ref_array('shopp_cart_add_item', array($Item));
 
 		return true;
@@ -351,14 +347,10 @@ class ShoppCart extends ListFramework {
 		foreach ( $Item->taxes as $taxid => &$Tax ) {
 			$TaxTotal = $Totals->entry( OrderAmountItemTax::$register, $Tax->label );
 			if ( false !== $TaxTotal )
-				$TaxTotal->unlink($id);
+				$TaxTotal->unapply($id);
 		}
 
 		$Shipping->takeoff( $id );
-
-		// Remove actions so the Item reference will get cleaned up
-		remove_action('shopp_cart_item_totals', array($Item, 'rediscount'));
-		remove_action('shopp_cart_item_totals', array($Item, 'totals'));
 
 		do_action_ref_array('shopp_cart_remove_item', array($Item->fingerprint(), $Item));
 
@@ -551,10 +543,11 @@ class ShoppCart extends ListFramework {
 	 **/
 	public function itemtaxes ( ShoppCartItem $Item ) {
 
-		if ( ! $this->exists($Item->fingerprint()) ) return;
+		$id = $Item->fingerprint();
+		if ( ! $this->exists($id) ) return;
 
 		foreach ( $Item->taxes as $id => &$ItemTax )
-			$this->Totals->register( new OrderAmountItemTax( $ItemTax, $Item->fingerprint() ) );
+			$this->Totals->register( new OrderAmountItemTax( $ItemTax, $id ) );
 
 	}
 
@@ -614,6 +607,8 @@ class ShoppCart extends ListFramework {
 		$shipped = $this->shipped();
 
 		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
+		foreach ( $this as $Item )
+			$Item->totals();
 
 		$Shipping->calculate();
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
