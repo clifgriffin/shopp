@@ -375,7 +375,6 @@ abstract class ShoppAdminController extends ShoppFlowController {
 				shopp_set_setting('maintenance', 'off');
 			} else {
 				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup-pages'), admin_url('admin.php')), 'shopp_disable_maintenance');
-				error_log(debug_caller());
 				$this->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 			}
 		}

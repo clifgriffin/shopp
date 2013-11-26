@@ -229,22 +229,17 @@ class ShoppShiprates extends ListFramework {
 		if ( $this->requested() ) 						// Return the current amount if the request hasn't changed
 			return (float)$this->amount();
 
-		// Initialize shipping modules
-		do_action('shopp_calculate_shipping_init');
+		do_action('shopp_calculate_shipping_init');		// Initialize shipping modules
 
-		// Send items to shipping modules that package them
-		$this->items();
+		$this->items();									// Send items to shipping modules that package them
+		$this->modules();								// Calculate active shipping module service methods
 
-		// Calculate active shipping module service methods
-		$this->modules();
-
-		// Find the lowest cost option to use as a default selection
-		$lowest = $this->lowrate();
+		$lowest = $this->lowrate();						// Find the lowest cost option to use as a default selection
 
 		// If nothing is currently, select the lowest cost option
 		if ( ! $this->selected() && false !== $lowest )
 			$this->selected( $lowest->slug );
-		
+
 		do_action('shopp_shiprates_calculated');
 
 		// Return the amount
@@ -261,13 +256,17 @@ class ShoppShiprates extends ListFramework {
 	 * @return void
 	 **/
 	private function items () {
+
 		foreach ( $this->shippable as $id => $free ) {
 			if ( $free ) continue;
+
 			$CartItem = shopp_cart_item($id);
 			if ( ! $CartItem ) continue;
+
 			$Item = new ShoppShippableItem( $CartItem );
 			do_action_ref_array('shopp_calculate_item_shipping', array($id, &$Item));
 		}
+
 	}
 
 	/**
