@@ -925,8 +925,8 @@ class ShoppOrderDiscount {
 				} else $Item->discount += $unitdiscount;
 
  			   	// Recalculate Item discounts & taxes
- 				$Item->totals();
-				$Cart->total('tax');
+ 				$Item->discounts();
+				$Item->taxes();
 
 				$discounts[] = $Item->discounts;
 			}

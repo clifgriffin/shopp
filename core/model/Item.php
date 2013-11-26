@@ -849,22 +849,16 @@ class ShoppCartItem {
 	 **/
 	public function totals () {
 
+		$this->bogof = 0;
+		$this->discount = 0;
+
 		do_action('shopp_cart_item_pretotal', $this);
 
 		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
-		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
 
-		// Buy X Get Y Free (Buy 1 Get 1 Free or BOGOF) discounts
-		$bogof = 0;
-		if ( is_array($this->bogof) ) {
-			$bogof = array_sum($this->bogof);
-			$this->discounts += $bogof * $this->unitprice;
-		}
-
-		if ( $this->istaxed ) {
-			$taxableqty = ( $bogof && $bogof != $this->quantity ) ? $this->quantity - $bogof : $this->quantity;
-			$this->taxes($taxableqty);
-		}
+		$this->discounts();
+		if ( $this->istaxed )
+			$this->taxes();
 
 		$this->total = ( $this->unitprice * $this->quantity ); // total undiscounted, pre-tax line price
 		$this->totald = ( $this->priced * $this->quantity ); // total discounted, pre-tax line price
@@ -882,6 +876,16 @@ class ShoppCartItem {
 
 	}
 
+	public function discounts () {
+		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
+
+		// Buy X Get Y Free (Buy 1 Get 1 Free or BOGOF) discounts
+		if ( is_array($this->bogof) ) {
+			$this->bogof = array_sum($this->bogof);
+			$this->discounts += $this->bogof * $this->unitprice;
+		}
+	}
+
 	/**
 	 * Calculate taxes that apply to the item
 	 *
@@ -891,7 +895,7 @@ class ShoppCartItem {
 	 * @param integer $quantity The taxable quantity of items
 	 * @return void
 	 **/
-	private function taxes ( $quantity = 1 ) {
+	public function taxes ( $quantity = 1 ) {
 		if ( ! $this->istaxed ) return;
 
 		$Tax = ShoppOrder()->Tax;
@@ -905,11 +909,13 @@ class ShoppCartItem {
    			foreach ($this->taxable as $amount)
    				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
 		}
+
 		$taxable = (float) array_sum($_);
+		$taxableqty = ( $this->bogof && $this->bogof != $this->quantity ) ? $this->quantity - $this->bogof : $this->quantity;
 
 		$Tax->rates($this->taxes, $Tax->item($this) );
 		$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
-		$this->tax = $Tax->total($this->taxes, (int) $quantity);
+		$this->tax = $Tax->total($this->taxes, (int) $taxableqty);
 	}
 
 }

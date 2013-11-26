@@ -607,10 +607,8 @@ class ShoppCart extends ListFramework {
 		$shipped = $this->shipped();
 
 		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
-		foreach ( $this as $Item ) {
-			$Item->rediscount();
+		foreach ( $this as $Item )
 			$Item->totals();
-		}
 
 		$Shipping->calculate();
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
