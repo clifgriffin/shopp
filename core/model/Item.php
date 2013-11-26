@@ -834,6 +834,11 @@ class ShoppCartItem {
 		return false;
 	}
 
+	public function rediscount () {
+		$this->bogof = 0;
+		$this->discount = 0;
+	}
+
 	/**
 	 * Recalculates line item amounts
 	 *
@@ -846,9 +851,6 @@ class ShoppCartItem {
 
 		do_action('shopp_cart_item_pretotal', $this);
 
-		$this->bogof = 0;
-		$this->discount = 0;
-
 		$this->priced = ( $this->unitprice - $this->discount );		// discounted unit price
 		$this->discounts = ( $this->discount * $this->quantity );	// total item discount figure
 
@@ -860,26 +862,8 @@ class ShoppCartItem {
 		}
 
 		if ( $this->istaxed ) {
-			$Tax = ShoppOrder()->Tax;
-			if ( empty($Tax) ) $Tax = new ShoppTax; // ShoppTax support for Dev API calls
-
-			// For all the price units (base product and any addons),
-			// distribute discounts across taxable amounts using weighted averages
-   			$_ = array();
-			if ($this->unitprice > 0) {
-				$taxable = 0;
-	   			foreach ($this->taxable as $amount)
-	   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
-			}
-   			$taxable = (float)array_sum($_);
-
-			$taxqty = $this->quantity;
-			if ( $bogof && $bogof != $this->quantity )
-				$taxqty -= $bogof;
-
-			$Tax->rates($this->taxes, $Tax->item($this) );
-			$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
-			$this->tax = $Tax->total($this->taxes, (int)$taxqty);
+			$taxableqty = ( $bogof && $bogof != $this->quantity ) ? $this->quantity - $bogof : $this->quantity;
+			$this->taxes($taxableqty);
 		}
 
 		$this->total = ( $this->unitprice * $this->quantity ); // total undiscounted, pre-tax line price
@@ -896,6 +880,36 @@ class ShoppCartItem {
 
 		do_action('shopp_cart_item_retotal', $this);
 
+	}
+
+	/**
+	 * Calculate taxes that apply to the item
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param integer $quantity The taxable quantity of items
+	 * @return void
+	 **/
+	private function taxes ( $quantity = 1 ) {
+		if ( ! $this->istaxed ) return;
+
+		$Tax = ShoppOrder()->Tax;
+		if ( empty($Tax) ) $Tax = new ShoppTax; // ShoppTax support for Dev API calls
+
+		// For all the price units (base product and any addons),
+		// distribute discounts across taxable amounts using weighted averages
+		$_ = array();
+		if ($this->unitprice > 0) {
+			$taxable = 0;
+   			foreach ($this->taxable as $amount)
+   				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
+		}
+		$taxable = (float) array_sum($_);
+
+		$Tax->rates($this->taxes, $Tax->item($this) );
+		$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
+		$this->tax = $Tax->total($this->taxes, (int) $quantity);
 	}
 
 }

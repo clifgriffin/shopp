@@ -543,11 +543,11 @@ class ShoppCart extends ListFramework {
 	 **/
 	public function itemtaxes ( ShoppCartItem $Item ) {
 
-		$id = $Item->fingerprint();
-		if ( ! $this->exists($id) ) return;
+		$itemid = $Item->fingerprint();
+		if ( ! $this->exists($itemid) ) return;
 
 		foreach ( $Item->taxes as $id => &$ItemTax )
-			$this->Totals->register( new OrderAmountItemTax( $ItemTax, $id ) );
+			$this->Totals->register( new OrderAmountItemTax( $ItemTax, $itemid ) );
 
 	}
 
@@ -607,8 +607,10 @@ class ShoppCart extends ListFramework {
 		$shipped = $this->shipped();
 
 		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
-		foreach ( $this as $Item )
+		foreach ( $this as $Item ) {
+			$Item->rediscount();
 			$Item->totals();
+		}
 
 		$Shipping->calculate();
 		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
@@ -664,9 +666,6 @@ class ShoppCart extends ListFramework {
 		$this->shipped = array();
 		$this->downloads = array();
 		$this->recurring = array();
-
-		// Remove ShoppCartItem handlers
-		Shopp::remove_class_actions('shopp_cart_item_totals', 'ShoppCartItem');
 
 		// Clear the item registers
 		$this->Totals = new OrderTotals();
