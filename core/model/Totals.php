@@ -444,6 +444,7 @@ abstract class OrderTotalAmount {
 	 * @return void
 	 **/
 	public function remove () {
+		if ( ! $this->parent ) return;
 		$register = get_class_property(get_class($this), 'register');
 		$OrderTotals = $this->parent;
 		$OrderTotals->takeoff($register, $this->id);
@@ -696,9 +697,14 @@ class OrderAmountItemTax extends OrderAmountTax {
 		$this->amount = $this->total();
 	}
 
-	public function unlink ( string $itemid ) {
+	public function unapply ( string $itemid ) {
 		if ( isset($this->items[ $itemid ]) );
 			unset($this->items[ $itemid ]);
+
+		if ( empty($this->items) )	// No longer applies to any item
+			$this->remove();		// Remove the register entry
+
+		else $this->amount();		// Recalculate total tax amount
 	}
 
 	public function update ( OrderTotalAmount $Updates ) {
@@ -709,11 +715,16 @@ class OrderAmountItemTax extends OrderAmountTax {
 	public function items ( array $items = null ) {
 		if ( isset($items) )
 			$this->items = array_merge($this->items, $items);
+		$this->items = array_filter($this->items); // Filter out empty rates
+
+		if ( empty($this->items) )// no longer applies to any item
+			$this->remove();
+
 		return $this->items;
 	}
 
 	public function total () {
-		return array_sum($this->items());
+		return (float) array_sum($this->items());
 	}
 
 	public function &amount ( float $value = null ) {
