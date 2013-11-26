@@ -188,6 +188,9 @@ class ShoppOrder {
 	 **/
 	public function locate () {
 
+		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
+		add_filter('shopp_tax_country', array('ShoppTax', 'euvat'), 10, 3);
+
 		if ( isset($_REQUEST['shipping']) ) {
 			$request = $_REQUEST['shipping'];
 
@@ -201,10 +204,7 @@ class ShoppOrder {
 			$this->Shipping->locate();
 		}
 
-		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
-
 		$this->Tax->address($this->Billing, $this->Shipping, $this->Cart->shipped());
-		add_filter('shopp_tax_country', array('ShoppTax','euvat'), 10, 3);
 	}
 
 	/**
