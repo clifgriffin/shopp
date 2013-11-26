@@ -92,8 +92,13 @@ class ShoppTax {
 				continue;
 			}
 
-			$settings[] = $setting;
+			$setting['localrate'] = 0;
+			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
+				$setting['localrate'] = $setting['locals'][ $this->address['locale'] ];
 
+			$key = hash('crc32b', serialize($setting));
+
+			$settings[ $key ] = $setting;
 		}
 
 		if ( empty($settings) && ! empty($fallbacks) )
@@ -118,15 +123,11 @@ class ShoppTax {
 
 		$settings = $this->settings();
 
-		foreach ( $settings as $setting ) {
-			$localrate = false;
-			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
-				$localrate = $setting['locals'][ $this->address['locale'] ];
+		foreach ( $settings as $key => $setting ) {
 
 			// Add any local rate to the base rate, then divide by 100 to prepare the rate to be applied
-			$rate = ( self::float($setting['rate']) + self::float($localrate) ) / 100;
+			$rate = ( self::float($setting['rate']) + self::float($setting['localrate']) ) / 100;
 
-			$key = hash('crc32b', $setting['label'] . $rate );
 			if ( ! isset($rates[ $key ]) ) $rates[ $key ] = new ShoppItemTax();
 			$ShoppItemTax = $rates[ $key ];
 
@@ -140,9 +141,13 @@ class ShoppTax {
 
 		}
 
+		// get list of existing rates that no longer match
+		$unapply = array_keys(array_diff_key($rates, $settings));
+		foreach ( $unapply as $key )
+			$rates[ $key ]->rate = $rates[ $key ]->amount = $rates[ $key ]->total = null;
+
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
 		$rates = apply_filters( 'shopp_tax_rates', $rates );
-
 	}
 
 	/**
@@ -248,7 +253,7 @@ class ShoppTax {
 		$base = shopp_setting('base_operations');
 		$format = $base['currency']['format'];
 		$format['precision'] = 3;
-		return Shopp::floatval($amount,true,$format);
+		return Shopp::floatval($amount, true, $format);
 	}
 
 	/**
@@ -265,7 +270,10 @@ class ShoppTax {
 
 		$compound = 0;
 		$total = 0;
-		foreach ($rates as $label => $taxrate) {
+		foreach ( $rates as $label => $taxrate ) {
+
+			if ( is_null($taxrate->rate) ) continue; // Skip taxes to set to be removed from the item
+
 			$taxrate->amount = 0; // Reset the captured tax amount @see Issue #2430
 
 			$tax = $taxable * $taxrate->rate;				// Tax amount
