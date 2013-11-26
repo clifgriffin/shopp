@@ -744,7 +744,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$payment_methods = apply_filters('shopp_payment_methods', $Payments->count() );
 		if ( $payment_methods <= 1 ) return false; // Skip if only one gateway is active
 		$defaults = array(
-			'default' => false,
+			'default' => null,
 			'exclude' => false,
 			'type' => 'menu',
 			'mode' => false,
@@ -793,9 +793,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 					if ( in_array($value, $excludes) ) continue;
 					$Payoption = $Payments->get($value);
 					$options['value'] = $value;
-					$options['checked'] = ($O->paymethod == $value);
-					if ( false === $options['checked'] ) unset($options['checked']);
 					$options['checked'] = ( $SelectedPayment->slug == $Payoption->slug ) ? true : false;
+					if ( false === $options['checked'] ) unset($options['checked']);
 					$label = $Payoption->label;
 
 					if ( $logos ) {
