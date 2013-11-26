@@ -286,7 +286,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_downloads ( $result, $options, $O ) {
-		reset($O->downloads);
+		if ( is_array($O->downloads) )
+			reset($O->downloads);
 		return ($O->downloads);
 	}
 
