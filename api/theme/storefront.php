@@ -398,7 +398,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if (!isset(ShoppCollection()->id)) return false;
 			$sectionterm = ShoppCollection()->id;
 			if (ShoppCollection()->parent == 0) $baseparent = $sectionterm;
-			else $baseparent = end(get_ancestors($sectionterm,$taxonomy));
+			else {
+				$ancestors = get_ancestors($sectionterm, $taxonomy);
+				$baseparent = end($ancestors);
+			}
 		}
 
 		if (0 != $childof) $termargs['child_of'] = $baseparent = $childof;
@@ -526,7 +529,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				if ( isset($Collection->slug) && $Collection->slug == $category->slug )
 					$classes[] = 'current';
 
-				if ( isset($Collection->parent) && $Collection->parent == $category->id && ! isset($category->smart) )
+				if ( ! isset($category->smart) && isset($Collection->parent) && $Collection->parent == $category->id )
 					$classes[] = 'current-parent';
 
 				$categoryname = $category->name;
