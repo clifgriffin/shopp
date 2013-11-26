@@ -144,7 +144,7 @@ class ShoppTax {
 		// get list of existing rates that no longer match
 		$unapply = array_keys(array_diff_key($rates, $settings));
 		foreach ( $unapply as $key )
-			$rates[ $key ]->rate = $rates[ $key ]->amount = $rates[ $key ]->total = null;
+			$rates[ $key ]->amount = $rates[ $key ]->total = null;
 
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
 		$rates = apply_filters( 'shopp_tax_rates', $rates );
@@ -272,7 +272,7 @@ class ShoppTax {
 		$total = 0;
 		foreach ( $rates as $label => $taxrate ) {
 
-			if ( is_null($taxrate->rate) ) continue; // Skip taxes to set to be removed from the item
+			if ( is_null($taxrate->total) ) continue; 		// Skip taxes flagged to be removed from the item
 
 			$taxrate->amount = 0; // Reset the captured tax amount @see Issue #2430
 

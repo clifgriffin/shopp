@@ -709,21 +709,23 @@ class OrderAmountItemTax extends OrderAmountTax {
 
 	public function update ( OrderTotalAmount $Updates ) {
 		$this->items( $Updates->items() );
-		$this->total();
+		$this->amount();
 	}
 
 	public function items ( array $items = null ) {
 		if ( isset($items) )
 			$this->items = array_merge($this->items, $items);
-		$this->items = array_filter($this->items); // Filter out empty rates
-
-		if ( empty($this->items) )// no longer applies to any item
-			$this->remove();
-
 		return $this->items;
 	}
 
 	public function total () {
+		$this->items = array_filter($this->items); // Filter out empty rates
+
+		if ( empty($this->items) ) { // no longer applies to any item
+			$this->remove();
+			return null;
+		}
+
 		return (float) array_sum($this->items());
 	}
 
