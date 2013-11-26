@@ -40,7 +40,7 @@ class ShoppPrice extends ShoppDatabaseObject {
 		// clean up meta entries for deleted price
 		$metatable = ShoppDatabaseObject::tablename('meta');
 		$query = "DELETE FROM $metatable WHERE context='price' and parent=$price";
-		DB::query($query);
+		sDB::query($query);
 	}
 
 	public function metasetloader ( &$records, &$record, $id = 'id', $property = false, $collate = false, $merge = false ) {

@@ -257,7 +257,7 @@ class ShoppCartItem {
 		$properties = get_object_vars($Purchased);
 		foreach((array)$properties as $property => $value) {
 			if ( property_exists($this,$property) )
-					$this->{$property} = DB::clean($value);
+					$this->{$property} = sDB::clean($value);
 		}
 
 	}

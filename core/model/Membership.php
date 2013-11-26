@@ -123,7 +123,7 @@ class MemberPlan extends ShoppDatabaseObject  {
 	}
 
 	// function load_content ($access=false) {
-	// 	$db = DB::get();
+	// 	$db = sDB::get();
 	// 	$ContentLoader = new MemberContent();
 	// 	if (!$access) {
 	// 		if (empty($this->access)) $this->load_access();

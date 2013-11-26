@@ -299,7 +299,7 @@ abstract class ShoppReportFramework {
 
 		$query = $this->query();
 		if ( empty($query) ) return;
-		$loaded = DB::query( $query, 'array', array($this, 'process') );
+		$loaded = sDB::query( $query, 'array', array($this, 'process') );
 
 		if ( $this->periods && $this->Chart ) {
 			foreach ( $this->data as $index => $record ) {

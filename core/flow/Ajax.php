@@ -412,12 +412,12 @@ class ShoppAjax {
 			}
 
 			if ( ! empty($q) )
-				$where[] = "$name LIKE '%".DB::escape($q)."%'";
+				$where[] = "$name LIKE '%".sDB::escape($q)."%'";
 			$where = join(' AND ',$where);
 			$joins = join(' ',$joins);
 
 			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $where $orderlimit";
-			$items = DB::query($query,'array');
+			$items = sDB::query($query,'array');
 			echo json_encode($items);
 			exit();
 		}
@@ -439,7 +439,7 @@ class ShoppAjax {
 
 		if ( ! empty($s) ) {
 			$s = stripslashes($s);
-			$search = DB::escape($s);
+			$search = sDB::escape($s);
 			$where = array();
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER)) {
 				foreach ($props as $search) {
@@ -485,12 +485,12 @@ class ShoppAjax {
 				'orderby' => "c.created DESC",
 				'limit' => "$index,$per_page"
 			);
-			$query = DB::select($select);
+			$query = sDB::select($select);
 
 		}
 		// if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$Customers = DB::query($query,'array','index','id');
+		$Customers = sDB::query($query,'array','index','id');
 		$url = admin_url('admin-ajax.php');
 		?>
 		<html>
@@ -732,7 +732,7 @@ class ShoppAjax {
 		$updates = $_POST['position'];
 		$category = (int)$_POST['category'];
 		foreach ((array)$updates as $id => $position)
-			DB::query("UPDATE $wpdb->term_relationships SET term_order='".((int)$position)."' WHERE object_id='".((int)$id)."' AND term_taxonomy_id='$category'");
+			sDB::query("UPDATE $wpdb->term_relationships SET term_order='".((int)$position)."' WHERE object_id='".((int)$id)."' AND term_taxonomy_id='$category'");
 		die('1');
 	}
 

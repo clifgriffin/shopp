@@ -237,7 +237,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		if ($workflow) return $ids;
 
 		$meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		if ( ! empty($ids) ) DB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
+		if ( ! empty($ids) ) sDB::query("SELECT * FROM $meta WHERE parent IN (".join(',',$ids).") AND context='category' AND type='meta'",'array',array($this,'metaloader'));
 
 		$count = wp_count_terms('shopp_category');
 		$num_pages = ceil($count / $per_page);
@@ -499,7 +499,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		foreach ($Catalog->categories as $Category)
 			if (!isset($Category->_priority) // Check previous priority and only save changes
 					|| (isset($Category->_priority) && $Category->_priority != $Category->priority))
-				DB::query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
+				sDB::query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
 
 	}
 

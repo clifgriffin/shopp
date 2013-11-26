@@ -122,7 +122,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 			if ($wp_integration && !empty($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login) {
 				$newlogin = get_user_by('login',$_POST['userlogin']);
 				if (!empty($newlogin->ID)) {
-					if (DB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
+					if (sDB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
 						$Customer->wpuser = $newlogin->ID;
 						$updated = sprintf(__('Updated customer login to %s.','Shopp'),"<strong>$newlogin->user_login</strong>");
 					} else $updated = sprintf(__('Could not update customer login to "%s" because that user is already assigned to another customer.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
@@ -247,13 +247,13 @@ class ShoppAdminAccount extends ShoppAdminController {
 			'orderby' => "c.created DESC",
 			'limit' => "$index,$per_page"
 		);
-		$query = DB::select($select);
-		$Customers = DB::query($query,'array','index','id');
+		$query = sDB::select($select);
+		$Customers = sDB::query($query,'array','index','id');
 
-		$total = DB::found();
+		$total = sDB::found();
 
 		// Add order data to customer records in this view
-		$orders = DB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (".join(',',array_keys($Customers)).") GROUP BY customer",'array','index','customer');
+		$orders = sDB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (".join(',',array_keys($Customers)).") GROUP BY customer",'array','index','customer');
 		foreach ($Customers as &$record) {
 			$record->total = 0; $record->orders = 0;
 			if ( ! isset($orders[$record->id]) ) continue;
@@ -364,7 +364,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 		if ($Customer->id > 0) {
 			$purchase_table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-			$r = DB::query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
+			$r = sDB::query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
 
 			$Customer->orders = $r->purchases;
 			$Customer->total = $r->total;

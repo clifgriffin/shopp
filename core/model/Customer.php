@@ -599,7 +599,7 @@ class CustomersExport {
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
 		$query = "SELECT ".join(",",$columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where GROUP BY c.id ORDER BY c.created ASC LIMIT $offset,$this->limit";
-		$this->data = DB::query($query,'array');
+		$this->data = sDB::query($query,'array');
 	}
 
 	// Implement for exporting all the data

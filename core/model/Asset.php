@@ -701,9 +701,9 @@ class ImageSettings extends ListFramework {
 			"context='$ImageSetting->context'"
 		);
 		$options = compact('table','where');
-		$query = DB::select($options);
-		$this->populate(DB::query($query,'array',array($ImageSetting,'loader'),false,'name'));
-		$this->found = DB::found();
+		$query = sDB::select($options);
+		$this->populate(sDB::query($query,'array',array($ImageSetting,'loader'),false,'name'));
+		$this->found = sDB::found();
 	}
 
 	/**

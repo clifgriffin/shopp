@@ -81,7 +81,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 	 **/
 	public function load ( $name = '', $arg2 = false ) {
 
-		if ( ! empty($name) ) $where[] = "name='" . DB::clean($name) . "'";
+		if ( ! empty($name) ) $where[] = "name='" . sDB::clean($name) . "'";
 		else {
 			if ($this->bootup) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
 			$this->bootup = true;
@@ -91,7 +91,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 		$where = array("parent=0", "context='$Setting->context'", "type='$Setting->type'");
 		$where = join(' AND ',$where);
 
-		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where", 'array', array($this, 'register'));
+		$settings = sDB::query("SELECT name,value FROM $this->_table WHERE $where", 'array', array($this, 'register'));
 
 		if ( ! is_array($settings) || count($settings) == 0 ) return false;
 		if ( ! empty($settings) ) $this->registry = array_merge($this->registry, $settings);
@@ -117,12 +117,12 @@ class ShoppSettings extends ShoppDatabaseObject {
 	public function add ($name, $value) {
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = DB::clean($value);
+		$Setting->value = sDB::clean($value);
 
-		$data = DB::prepare($Setting);
+		$data = sDB::prepare($Setting);
 		$dataset = ShoppDatabaseObject::dataset($data);
-		if ( DB::query("INSERT $this->_table SET $dataset") )
-		 	$this->registry[$name] = $this->restore(DB::clean($value));
+		if ( sDB::query("INSERT $this->_table SET $dataset") )
+		 	$this->registry[$name] = $this->restore(sDB::clean($value));
 		else return false;
 		return true;
 	}
@@ -143,15 +143,15 @@ class ShoppSettings extends ShoppDatabaseObject {
 
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = DB::clean($value);
-		$data = DB::prepare($Setting);				// Prepare the data for db entry
+		$Setting->value = sDB::clean($value);
+		$data = sDB::prepare($Setting);				// Prepare the data for db entry
 		$dataset = ShoppDatabaseObject::dataset($data);	// Format the data in SQL
 
 		$where = array("context='$Setting->context'","type='$Setting->type'");
-		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		if (!empty($name)) $where[] = "name='".sDB::clean($name)."'";
 		$where = join(' AND ',$where);
 
-		if (DB::query("UPDATE $this->_table SET $dataset WHERE $where"))
+		if (sDB::query("UPDATE $this->_table SET $dataset WHERE $where"))
 			$this->registry[$name] = $this->restore($value); // Update the value in the registry
 		else return false;
 		return true;
@@ -206,10 +206,10 @@ class ShoppSettings extends ShoppDatabaseObject {
 		$Setting = $this->setting();
 
 		$where = array("context='$Setting->context'","type='$Setting->type'");
-		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		if (!empty($name)) $where[] = "name='".sDB::clean($name)."'";
 		$where = join(' AND ',$where);
 
-		if (!DB::query("DELETE FROM $this->_table WHERE $where")) return false;
+		if (!sDB::query("DELETE FROM $this->_table WHERE $where")) return false;
 		if (isset($this->registry[$name])) $this->registry[$name] = $null;
 		return true;
 	}

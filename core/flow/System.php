@@ -846,7 +846,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 		} elseif (!empty($_POST['rebuild'])) {
 			$assets = ShoppDatabaseObject::tablename(ProductImage::$table);
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
-			if (DB::query($query))
+			if (sDB::query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
 		}
 

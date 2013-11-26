@@ -60,7 +60,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  						AND type='$Object->type'
  						AND parent='$order'
  					ORDER BY created,id";
- 		return DB::query($query, 'array', array($Object, 'loader'), 'name');
+ 		return sDB::query($query, 'array', array($Object, 'loader'), 'name');
  	}
 
  	static function handler ( $name ) {
@@ -400,7 +400,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		$order = $data['order'];
  		$locked = 0;
  		for ( $attempts = 0; $attempts < 3 && $locked == 0; $attempts++ ) {
- 			$locked = DB::query("SELECT GET_LOCK('$order'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
+ 			$locked = sDB::query("SELECT GET_LOCK('$order'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
 			if ( 0 == $locked ) sleep(1); // Wait a sec before trying again
  		}
 
@@ -420,7 +420,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  	 **/
 	public function unlock () {
  		if ( ! $this->order ) return false;
- 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->order') as unlocked", 'auto', 'col', 'unlocked');
+ 		$unlocked = sDB::query("SELECT RELEASE_LOCK('$this->order') as unlocked", 'auto', 'col', 'unlocked');
  		return ( 1 == $unlocked );
  	}
 

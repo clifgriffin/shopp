@@ -93,7 +93,7 @@ class ShoppPurchased extends ShoppDatabaseObject {
 		// Update sold tallies
 		if (!empty($this->product)) {
 			$summary = ShoppDatabaseObject::tablename(ProductSummary::$table);
-			DB::query("UPDATE $summary SET sold=sold+$this->quantity,grossed=grossed+$this->total WHERE product='$this->product'");
+			sDB::query("UPDATE $summary SET sold=sold+$this->quantity,grossed=grossed+$this->total WHERE product='$this->product'");
 		}
 
 		$this->addons = $addons; // restore addons model
@@ -101,7 +101,7 @@ class ShoppPurchased extends ShoppDatabaseObject {
 
 	public function delete () {
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchased'");
+		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchased'");
 		parent::delete();
 	}
 
@@ -110,7 +110,7 @@ class ShoppPurchased extends ShoppDatabaseObject {
 		$key = sha1($message);
 
 		$limit = 25; $c = 0;
-		while ((int)DB::query("SELECT count(*) AS found FROM $this->_table WHERE dkey='$key'",'auto','col','found') > 0) {
+		while ((int)sDB::query("SELECT count(*) AS found FROM $this->_table WHERE dkey='$key'",'auto','col','found') > 0) {
 			$key = sha1($message.rand());
 			if ($c++ > $limit) break;
 		}

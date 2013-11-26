@@ -93,7 +93,7 @@ class ShoppCatalog {
 		else $limit = '';
 
 		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.taxonomy='$taxonomy' GROUP BY t.id ORDER BY t.name ASC$limit";
-		$this->tags = DB::query($query,'array');
+		$this->tags = sDB::query($query,'array');
 		return true;
 	}
 

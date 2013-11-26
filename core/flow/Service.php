@@ -172,13 +172,13 @@ class ShoppAdminService extends ShoppAdminController {
 
 		$where = array();
 		$joins = array();
-		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
+		if (!empty($status) || $status === '0') $where[] = "status='".sDB::escape($status)."'";
 		if (!empty($s)) {
 			$s = stripslashes($s);
 			$search = array();
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
 				foreach ($props as $query) {
-					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
+					$keyword = sDB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
 					switch(strtolower($query[1])) {
 						case "txn": 		$search[] = "txnid='$keyword'"; break;
 						case "company":		$search[] = "company LIKE '%$keyword%'"; break;
@@ -202,19 +202,19 @@ class ShoppAdminService extends ShoppAdminController {
 				if (empty($search)) $search[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 				$where[] = "(".join(' OR ',$search).")";
 			} elseif (strpos($s,'@') !== false) {
-				 $where[] = "email='".DB::escape($s)."'";
-			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
+				 $where[] = "email='".sDB::escape($s)."'";
+			} else $where[] = "(id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".sDB::escape($s)."%')";
 		}
-		if (!empty($starts) && !empty($ends)) $where[] = "created BETWEEN '".DB::mkdatetime($starts)."' AND '".DB::mkdatetime($ends)."'";
+		if (!empty($starts) && !empty($ends)) $where[] = "created BETWEEN '".sDB::mkdatetime($starts)."' AND '".sDB::mkdatetime($ends)."'";
 
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
 		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
 		$joins = join(' ', $joins);
 
-		$this->ordercount = DB::query("SELECT count(*) as total,SUM(IF(txnstatus IN ('authed','captured'),total,NULL)) AS sales,AVG(IF(txnstatus IN ('authed','captured'),total,NULL)) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
+		$this->ordercount = sDB::query("SELECT count(*) as total,SUM(IF(txnstatus IN ('authed','captured'),total,NULL)) AS sales,AVG(IF(txnstatus IN ('authed','captured'),total,NULL)) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC LIMIT 1",'object');
 		$query = "SELECT o.* FROM $Purchase->_table AS o $joins $where ORDER BY created DESC LIMIT $start,$per_page";
 
-		$this->orders = DB::query($query,'array','index','id');
+		$this->orders = sDB::query($query,'array','index','id');
 
 		$num_pages = ceil($this->ordercount->total / $per_page);
 		if ($paged > 1 && $paged > $num_pages) Shopp::redirect( add_query_arg('paged', null, $url) );
@@ -638,8 +638,8 @@ class ShoppAdminService extends ShoppAdminController {
 		if (empty($labels)) return false;
 		$status = array();
 
-		$alltotal = DB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
-		$r = DB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",'array','index','status');
+		$alltotal = sDB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
+		$r = sDB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",'array','index','status');
 		$all = array('' => __('All Orders','Shopp'));
 
 		$labels = $all+$labels;

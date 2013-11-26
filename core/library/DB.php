@@ -652,7 +652,7 @@ if ( ! class_exists('DB',false) ) {
 		/* @deprecated use sDB class */
 
 		public static function get () {
-			return DB::object();
+			return sDB::object();
 		}
 
 	}

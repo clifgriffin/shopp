@@ -932,14 +932,14 @@ class ShoppUI {
 				<?php endforeach; ?>
 				<?php
 					// Promo Collections
-					$select = DB::select(array(
+					$select = sDB::select(array(
 						'table' => ShoppDatabaseObject::tablename(ShoppPromo::$table),
 						'columns' => 'SQL_CALC_FOUND_ROWS id,name',
 						'where' => array("target='Catalog'","status='enabled'"),
 						'orderby' => 'created DESC'
 					));
 
-					$Promotions = DB::query($select,'array');
+					$Promotions = sDB::query($select,'array');
 					foreach ($Promotions as $promo):
 						$slug = sanitize_title_with_dashes($promo->name);
 				?>

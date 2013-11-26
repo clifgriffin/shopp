@@ -261,8 +261,6 @@ function images_meta_box ($Product) {
 
 						foreach ($cropped as $cache):
 							$cropimage = unserialize($cache->value);
-
-							$cropping = false;
 							if (join('',array($cropimage->settings['dx'],$cropimage->settings['dy'],$cropimage->settings['cropscale'])) != '')
 								$cropping = join(',',array($cropimage->settings['dx'],$cropimage->settings['dy'],$cropimage->settings['cropscale']));
 							$c = "$cropimage->width:$cropimage->height"; ?>

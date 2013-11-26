@@ -135,15 +135,15 @@ class ShoppInstallation extends ShoppFlowController {
 			$this->error('nodbschema-install');
 
 		// Remove any old product post types and taxonomies to prevent duplication of irrelevant data
-		DB::query("DELETE FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "'");
-		DB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='" . ProductCategory::$taxon . "' OR taxonomy='" . ProductTag::$taxon . "'");
+		sDB::query("DELETE FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "'");
+		sDB::query("DELETE FROM $wpdb->term_taxonomy WHERE taxonomy='" . ProductCategory::$taxon . "' OR taxonomy='" . ProductTag::$taxon . "'");
 
 		// Install tables
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_clean();
 
-		DB::loaddata($schema);
+		sDB::loaddata($schema);
 		unset($schema);
 
 	}
@@ -197,7 +197,7 @@ class ShoppInstallation extends ShoppFlowController {
 		$tests = array("CREATE TABLE $testtable ( id INT )", "DROP TABLE $testtable");
 		foreach ($tests as $testquery) {
 			$db = sDB::get();
-			DB::query($testquery);
+			sDB::query($testquery);
 			$error = mysql_error($db->dbh);
 			if (!empty($error)) $this->error('dbprivileges');
 		}
@@ -324,8 +324,8 @@ class ShoppInstallation extends ShoppFlowController {
 			),
 			'limit' => count($defaults)
 		);
-		$query = DB::select($options);
-		$existing = DB::query($query, 'array', 'col', 'name');
+		$query = sDB::select($options);
+		$existing = sDB::query($query, 'array', 'col', 'name');
 
 		// Get the settings that need setup
 		$setup = array_diff($defaults, $existing);
@@ -430,9 +430,9 @@ class ShoppInstallation extends ShoppFlowController {
 
 			// Fix all product modified timestamps (for 1.2.6)
 			$post_type = 'shopp_product';
-			$post_modified = DB::mkdatetime( current_time('timestamp') );
-			$post_modified_gmt = DB::mkdatetime( current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600) );
-			DB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
+			$post_modified = sDB::mkdatetime( current_time('timestamp') );
+			$post_modified_gmt = sDB::mkdatetime( current_time('timestamp') + (get_option( 'gmt_offset' ) * 3600) );
+			sDB::query("UPDATE $wpdb->posts SET post_modified='$post_modified', post_modified_gmt='$post_modified_gmt' WHERE post_type='$post_type' AND post_modified='0000-00-00 00:00:00'");
 		}
 	}
 
@@ -624,17 +624,17 @@ class ShoppInstallation extends ShoppFlowController {
 
 		// Clear the shopping session table
 		$shopping_table = ShoppDatabaseObject::tablename('shopping');
-		DB::query("DELETE FROM $shopping_table");
+		sDB::query("DELETE FROM $shopping_table");
 
 		if ($db_version <= 1140) {
 			$summary_table = ShoppDatabaseObject::tablename('summary');
 			// Force summaries to rebuild
-			DB::query("UPDATE $summary_table SET modified='0000-00-00 00:00:01'");
+			sDB::query("UPDATE $summary_table SET modified='0000-00-00 00:00:01'");
 		}
 
 		$purchase_table = ShoppDatabaseObject::tablename('purchase');
-		DB::query("UPDATE $purchase_table SET txnstatus='captured' WHERE txnstatus='CHARGED'");
-		DB::query("UPDATE $purchase_table SET txnstatus='voided' WHERE txnstatus='VOID'");
+		sDB::query("UPDATE $purchase_table SET txnstatus='captured' WHERE txnstatus='CHARGED'");
+		sDB::query("UPDATE $purchase_table SET txnstatus='voided' WHERE txnstatus='VOID'");
 
 		if ($db_version <= 1130) {
 
@@ -642,7 +642,7 @@ class ShoppInstallation extends ShoppFlowController {
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			$setting_table = ShoppDatabaseObject::tablename('setting');
 
-			DB::query("INSERT INTO $meta_table (context, type, name, value, created, modified) SELECT 'shopp', 'setting', name, value, created, modified FROM $setting_table");
+			sDB::query("INSERT INTO $meta_table (context, type, name, value, created, modified) SELECT 'shopp', 'setting', name, value, created, modified FROM $setting_table");
 
 			// Clean up unnecessary duplicate settings
 			shopp_rmv_setting('data_model');
@@ -761,10 +761,10 @@ class ShoppInstallation extends ShoppFlowController {
 			$shipping_table = ShoppDatabaseObject::tablename('shipping');
 
 			// Move billing address data to the address table
-			DB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
+			sDB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
 						SELECT customer, 'billing', address, xaddress, city, state, country, postcode, created, modified FROM $billing_table");
 
-			DB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
+			sDB::query("INSERT INTO $address_table (customer, type, address, xaddress, city, state, country, postcode, created, modified)
 						SELECT customer, 'shipping', address, xaddress, city, state, country, postcode, created, modified FROM $shipping_table");
 		}
 
@@ -785,25 +785,25 @@ class ShoppInstallation extends ShoppFlowController {
 				$post_type = 'shopp_product';
 
 				// Create custom post types from products, temporarily use post_parent for link to original product entry
-				DB::query("INSERT INTO $wpdb->posts (post_type, post_name, post_title, post_excerpt, post_content, post_status, post_date, post_date_gmt, post_modified, post_modified_gmt, post_parent)
+				sDB::query("INSERT INTO $wpdb->posts (post_type, post_name, post_title, post_excerpt, post_content, post_status, post_date, post_date_gmt, post_modified, post_modified_gmt, post_parent)
 							SELECT '$post_type', slug, name, summary, description, status, created, created, modified, modified, id FROM $product_table");
 
 				// Update purchased table product column with new Post ID so sold counts can be updated
-				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
+				sDB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
 
 				// Update product links for prices and meta
-				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts AS wp ON price.product=wp.post_parent SET price.product=wp.ID WHERE wp.post_type='$post_type'");
-				DB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
-				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
+				sDB::query("UPDATE $price_table AS price JOIN $wpdb->posts AS wp ON price.product=wp.post_parent SET price.product=wp.ID WHERE wp.post_type='$post_type'");
+				sDB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
+				sDB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
 
 				// Preliminary summary data
-				DB::query("INSERT INTO $summary_table (product, featured, variants, addons, modified)
+				sDB::query("INSERT INTO $summary_table (product, featured, variants, addons, modified)
 						   SELECT wp.ID, p.featured, p.variations, p.addons, '0000-00-00 00:00:01'
 						   FROM $product_table AS p
 						   JOIN $wpdb->posts as wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
 
 				// Move product options column to meta setting
-				DB::query("INSERT INTO $meta_table (parent, context, type, name, value)
+				sDB::query("INSERT INTO $meta_table (parent, context, type, name, value)
 						SELECT wp.ID, 'product', 'meta', 'options', options
 						FROM $product_table AS p
 						JOIN $wpdb->posts AS wp ON p.id=wp.post_parent AND wp.post_type='$post_type'");
@@ -816,13 +816,13 @@ class ShoppInstallation extends ShoppFlowController {
 				// Copy categories and tags to WP taxonomies
 				$tag_current_table = $dev_migration?"$meta_table WHERE context='catalog' AND type='tag'":$tag_table;
 
-				$terms = DB::query("(SELECT id, 'shopp_category' AS taxonomy, name, parent, description, slug FROM $category_table)
+				$terms = sDB::query("(SELECT id, 'shopp_category' AS taxonomy, name, parent, description, slug FROM $category_table)
 											UNION
 										(SELECT id, 'shopp_tag' AS taxonomy, name, 0 AS parent, '' AS description, name AS slug FROM $tag_current_table) ORDER BY id", 'array');
 
 				// Prep category images for the move
 				$category_image_offset = 65535;
-				DB::query("UPDATE $meta_table set parent=parent+$category_image_offset WHERE context='category' AND type='image'");
+				sDB::query("UPDATE $meta_table set parent=parent+$category_image_offset WHERE context='category' AND type='image'");
 
 				$mapping = array();
 				$children = array();
@@ -838,19 +838,19 @@ class ShoppInstallation extends ShoppFlowController {
 					$slug = (strpos($term->slug, ' ') === false)?$term->slug:sanitize_title_with_dashes($term->slug);
 					$term_group = 0;
 
-					if ($exists = DB::query("SELECT term_id, term_group FROM $wpdb->terms WHERE slug = '$slug'", 'array')) {
+					if ($exists = sDB::query("SELECT term_id, term_group FROM $wpdb->terms WHERE slug = '$slug'", 'array')) {
 						$term_group = $exists[0]->term_group;
 						$id = $exists[0]->term_id;
 						$num = 2;
 						do {
-							$alternate = DB::escape($slug."-".$num++);
-							$alternate_used = DB::query("SELECT slug FROM $wpdb->terms WHERE slug='$alternate'");
+							$alternate = sDB::escape($slug."-".$num++);
+							$alternate_used = sDB::query("SELECT slug FROM $wpdb->terms WHERE slug='$alternate'");
 						} while ($alternate_used);
 						$slug = $alternate;
 
 						if ( empty($term_group) ) {
-							$term_group = DB::query("SELECT MAX(term_group) AS term_group FROM $wpdb->terms GROUP BY term_group", 'auto', 'col', 'term_group');
-							DB::query("UPDATE $wpdb->terms SET term_group='$term_group' WHERE term_id='$id'");
+							$term_group = sDB::query("SELECT MAX(term_group) AS term_group FROM $wpdb->terms GROUP BY term_group", 'auto', 'col', 'term_group');
+							sDB::query("UPDATE $wpdb->terms SET term_group='$term_group' WHERE term_id='$id'");
 						}
 					}
 
@@ -880,14 +880,14 @@ class ShoppInstallation extends ShoppFlowController {
 							// Move category settings to meta
 							$metafields = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');
 							foreach ($metafields as $field)
-								DB::query("INSERT INTO $meta_table (parent, context, type, name, value)
+								sDB::query("INSERT INTO $meta_table (parent, context, type, name, value)
 											SELECT $term_id, 'category', 'meta', '$field', $field
 											FROM $category_table
 											WHERE id=$term->id");
 
 
 							// Update category images to new term ids
-							DB::query("UPDATE $meta_table set parent='$term_id' WHERE parent='".((int)$term->id+$category_image_offset)."' AND context='category' AND type='image'");
+							sDB::query("UPDATE $meta_table set parent='$term_id' WHERE parent='".((int)$term->id+$category_image_offset)."' AND context='category' AND type='image'");
 						}
 					}
 
@@ -914,7 +914,7 @@ class ShoppInstallation extends ShoppFlowController {
 					$where = "taxonomy=0 OR taxonomy=1";
 				}
 
-				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where", 'array');
+				$rels = sDB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where", 'array');
 
 				foreach ((array)$rels as $r) {
 					$object_id = $r->product;
@@ -926,7 +926,7 @@ class ShoppInstallation extends ShoppFlowController {
 					$tt_id = $tt_ids[$taxonomy][$term_id];
 					if ( empty($tt_id) ) continue;
 
-					DB::query("INSERT $wpdb->term_relationships (object_id, term_taxonomy_id) VALUES ($object_id, $tt_id)");
+					sDB::query("INSERT $wpdb->term_relationships (object_id, term_taxonomy_id) VALUES ($object_id, $tt_id)");
 				}
 
 				if (isset($tt_ids['shopp_category']))
@@ -936,7 +936,7 @@ class ShoppInstallation extends ShoppFlowController {
 					wp_update_term_count_now($tt_ids['shopp_tag'], 'shopp_tag');
 
 				// Clear custom post type parents
-				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
+				sDB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
 
 		} // END if ($db_version <= 1131)
 
@@ -946,7 +946,7 @@ class ShoppInstallation extends ShoppFlowController {
 			$search = array();
 			$shortcodes = array('[catalog]', '[cart]', '[checkout]', '[account]');
 			foreach ($shortcodes as $string) $search[] = "post_content LIKE '%$string%'";
-			$results = DB::query("SELECT ID, post_title AS title, post_name AS slug, post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ", $search).")", 'array');
+			$results = sDB::query("SELECT ID, post_title AS title, post_name AS slug, post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ", $search).")", 'array');
 
 			$pages = $trash = array();
 			foreach ($results as $post) {
@@ -960,7 +960,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 			shopp_set_setting('storefront_pages', $pages);
 
-			DB::query("UPDATE $wpdb->posts SET post_name=CONCAT(post_name, '-deprecated'), post_status='trash' where ID IN (".join(', ', $trash).")");
+			sDB::query("UPDATE $wpdb->posts SET post_name=CONCAT(post_name, '-deprecated'), post_status='trash' where ID IN (".join(', ', $trash).")");
 		}
 
 		// Move needed price table columns to price meta records
@@ -969,11 +969,11 @@ class ShoppInstallation extends ShoppFlowController {
 			$price_table = ShoppDatabaseObject::tablename('price');
 
 			// Move 'options' to meta 'options' record
-			DB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
+			sDB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
 						SELECT id, 'price', 'meta', 'options', options, created, modified FROM $price_table");
 
 			// Merge 'weight', 'dimensions' and 'donation' columns to a price 'settings' record
-			DB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
+			sDB::query("INSERT INTO $meta_table (parent, context, type, name, value, created, modified)
 							SELECT id, 'price', 'meta', 'settings',
 							CONCAT('a:2:{s:10:\"dimensions\";',
 								IF(weight = 0 AND dimensions = '0', 'a:0:{}',
@@ -1006,12 +1006,12 @@ class ShoppInstallation extends ShoppFlowController {
 				'Test Mode' => 'TestMode'
 			);
 			foreach ($gateways as $name => $classname)
-				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
+				sDB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 		} // END if ($db_version <= 1145)
 
 		if ($db_version <= 1148) {
 			$price_table = ShoppDatabaseObject::tablename('price');
-			DB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
+			sDB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
 		}
 
 	}
@@ -1035,7 +1035,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 			);
 			foreach ($gateways as $name => $classname)
-				DB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
+				sDB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 
 			// Clean up category meta
 			// $category_meta = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');

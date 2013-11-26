@@ -184,7 +184,7 @@ class ShoppProduct extends WPShoppObject {
 	public function load_summary ($ids) {
 		if ( empty($ids) ) return;
 		$Object = new ProductSummary();
-		DB::query("SELECT *,modified AS summed FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'sumloader'));
+		sDB::query("SELECT *,modified AS summed FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'sumloader'));
 	}
 
 	/**
@@ -212,7 +212,7 @@ class ShoppProduct extends WPShoppObject {
 		$this->load_sold($ids);
 
 		$Object = new ShoppPrice();
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,sortorder", 'array', array($this, 'pricing'));
+		sDB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product,sortorder", 'array', array($this, 'pricing'));
 
 		// Load price metadata that exists
 		if (!empty($this->priceid)) {
@@ -221,7 +221,7 @@ class ShoppProduct extends WPShoppObject {
 			$Object->products = ( isset($this->products) && ! empty($this->products) ) ? $this->products : $this;
 			$ObjectMeta = new ObjectMeta();
 			// Sort by sort order then by the modified timestamp so the most recent changes are last and become the authoritative record
-			DB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified", 'array', array($Object, 'metasetloader'), 'parent', 'metatype', 'name', false);
+			sDB::query("SELECT * FROM $ObjectMeta->_table WHERE context='price' AND parent IN ($prices) ORDER BY sortorder,modified", 'array', array($Object, 'metasetloader'), 'parent', 'metatype', 'name', false);
 		}
 
 		if ( isset($this->products) && !empty($this->products) ) {
@@ -249,10 +249,10 @@ class ShoppProduct extends WPShoppObject {
 		$imagesort = $this->image_order();
 		$metasort = array('sortorder','sortorder ASC');
 		if ( in_array($imagesort, $metasort) )
-			DB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
+			sDB::query("SELECT * FROM $table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 		else { // Separate sort order for images
-			DB::query("SELECT * FROM $table WHERE context='product' AND type != 'image' AND parent IN ($ids) ORDER BY sortorder", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
-			DB::query("SELECT * FROM $table WHERE context='product' AND type = 'image' AND parent IN ($ids) ORDER BY $imagesort", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
+			sDB::query("SELECT * FROM $table WHERE context='product' AND type != 'image' AND parent IN ($ids) ORDER BY sortorder", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
+			sDB::query("SELECT * FROM $table WHERE context='product' AND type = 'image' AND parent IN ($ids) ORDER BY $imagesort", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 		}
 	}
 
@@ -268,7 +268,7 @@ class ShoppProduct extends WPShoppObject {
 		if ( empty($ids) ) return;
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 		$sortorder = $this->image_order();
-		DB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder ) AS img GROUP BY parent",'array',array($this, 'metasetloader'),'parent','metatype','name',false);
+		sDB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder ) AS img GROUP BY parent",'array',array($this, 'metasetloader'),'parent','metatype','name',false);
 	}
 
 	/**
@@ -284,7 +284,7 @@ class ShoppProduct extends WPShoppObject {
 		$purchase = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
 		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus !='void' GROUP BY p.product";
-		DB::query($query,'array',array($this,'sold'));
+		sDB::query($query,'array',array($this,'sold'));
 	}
 
 	/**
@@ -369,8 +369,8 @@ class ShoppProduct extends WPShoppObject {
 		if (isset($record->summed)) { // Loaded from the collection loader
 			$Object->sumloader($records, $record);
 
-			$update = DB::mktime(ProductSummary::$_updates);
-			if (DB::mktime($record->summed) == $update) $resum = true; // Forced resum
+			$update = sDB::mktime(ProductSummary::$_updates);
+			if (sDB::mktime($record->summed) == $update) $resum = true; // Forced resum
 
 		} else $resum = true;
 
@@ -501,7 +501,7 @@ class ShoppProduct extends WPShoppObject {
 		}
 		$this->checksum = md5($this->checksum);
 
-		if (isset($data->summed)) $this->summed = DB::mktime($data->summed);
+		if (isset($data->summed)) $this->summed = sDB::mktime($data->summed);
 		if (shopp_setting_enabled('inventory') && Shopp::str_true($this->inventory) && $this->stock <= 0) $this->outofstock = true;
 	}
 
@@ -882,7 +882,7 @@ class ShoppProduct extends WPShoppObject {
 	public function save_imageorder ($ordering) {
 		$table = ShoppDatabaseObject::tablename(ProductImage::$table);
 		foreach ($ordering as $i => $id)
-			DB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
+			sDB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
 	}
 
 	/**
@@ -920,7 +920,7 @@ class ShoppProduct extends WPShoppObject {
 	public function link_images ($images) {
 		if (empty($images)) return;
 		$table = ShoppDatabaseObject::tablename(ProductImage::$table);
-		DB::query("UPDATE $table SET parent='$this->id',context='product' WHERE id IN (".join(',',$images).")");
+		sDB::query("UPDATE $table SET parent='$this->id',context='product' WHERE id IN (".join(',',$images).")");
 	}
 
 	/**
@@ -1014,31 +1014,31 @@ class ShoppProduct extends WPShoppObject {
 
 		// Delete prices
 		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
-		DB::query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete images/files
 		$table = ShoppDatabaseObject::tablename(ProductImage::$table);
 
 		// Delete images
 		$images = array();
-		$src = DB::query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",'array');
+		$src = sDB::query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",'array');
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
 
 		// Delete product meta (specs, images, downloads)
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
+		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
 
 		// Delete product summary
 		$table = ShoppDatabaseObject::tablename(ProductSummary::$table);
-		DB::query("DELETE FROM $table WHERE product='$id'");
+		sDB::query("DELETE FROM $table WHERE product='$id'");
 
 		// Delete product search index
 		$table = ShoppDatabaseObject::tablename(ContentIndex::$table);
-		DB::query("DELETE FROM $table WHERE product='$id'");
+		sDB::query("DELETE FROM $table WHERE product='$id'");
 
 		// Delete record
-		DB::query("DELETE FROM $this->_table WHERE ID='$id'");
+		sDB::query("DELETE FROM $this->_table WHERE ID='$id'");
 
 		do_action_ref_array('shopp_product_deleted',array($this));
 
@@ -1054,7 +1054,7 @@ class ShoppProduct extends WPShoppObject {
 	 **/
 	public function trash () {
 		$id = $this->{$this->_key};
-		DB::query("UPDATE $this->_table SET post_status='trash' WHERE ID='$id'");
+		sDB::query("UPDATE $this->_table SET post_status='trash' WHERE ID='$id'");
 	}
 
 	/**
@@ -1182,10 +1182,10 @@ class ShoppProduct extends WPShoppObject {
 		$table = WPShoppObject::tablename(self::$table);
 
 		$time = current_time('timestamp');
-		$post_date_gmt = DB::mkdatetime($time + (get_option( 'gmt_offset' ) * 3600));
-		$post_date = DB::mkdatetime($time);
+		$post_date_gmt = sDB::mkdatetime($time + (get_option( 'gmt_offset' ) * 3600));
+		$post_date = sDB::mkdatetime($time);
 
-		DB::query("UPDATE $table SET post_status='$status', post_date='$post_date', post_date_gmt='$post_date_gmt', post_modified='$post_date', post_modified_gmt='$post_date_gmt' WHERE ID in (" . join(',', $ids) . ")");
+		sDB::query("UPDATE $table SET post_status='$status', post_date='$post_date', post_date_gmt='$post_date_gmt', post_modified='$post_date', post_modified_gmt='$post_date_gmt' WHERE ID in (" . join(',', $ids) . ")");
 
 		return true;
 	}
@@ -1242,7 +1242,7 @@ class ProductSummary extends ShoppDatabaseObject {
 	}
 
 	public function save () {
-		$data = DB::prepare($this,$this->_map);
+		$data = sDB::prepare($this,$this->_map);
 
 		$id = $this->{$this->_key};
 		if (!empty($this->_map)) {
@@ -1255,7 +1255,7 @@ class ProductSummary extends ShoppDatabaseObject {
 		$data['modified'] = "'".current_time('mysql')."'";
 		$dataset = ShoppDatabaseObject::dataset($data);
 		$query = "INSERT $this->_table SET $dataset ON DUPLICATE KEY UPDATE $dataset";
-		$id = DB::query($query);
+		$id = sDB::query($query);
 		do_action_ref_array('shopp_save_productsummary', array(&$this));
 		return $id;
 
@@ -1275,7 +1275,7 @@ class ProductSummary extends ShoppDatabaseObject {
 	public static function rebuild ( $id ) {
 		$id = intval($id);
 		$table = ShoppDatabaseObject::tablename(ProductSummary::$table);
-		return DB::query("UPDATE $table SET modified='" . self::RECALCULATE . "' WHERE product=$id LIMIT 1");
+		return sDB::query("UPDATE $table SET modified='" . self::RECALCULATE . "' WHERE product=$id LIMIT 1");
 	}
 
 } // END class ProductSummary

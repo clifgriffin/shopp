@@ -419,9 +419,9 @@ class ShoppAdminSetup extends ShoppAdminController {
 		$limit = "$start,$per_page";
 
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
-		$query = DB::select($options);
-		$settings = DB::query($query,'array',array($ImageSetting,'loader'));
-		$total = DB::found();
+		$query = sDB::select($options);
+		$settings = sDB::query($query,'array',array($ImageSetting,'loader'));
+		$total = sDB::found();
 
 		$num_pages = ceil($total / $per_page);
 		$ListTable = ShoppUI::table_set_pagination( $this->screen, $total, $num_pages, $per_page );

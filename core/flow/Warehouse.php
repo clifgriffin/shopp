@@ -158,7 +158,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 					} break;
 				case 'emptytrash':
 					$Template = new ShoppProduct();
-					$trash = DB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".ShoppProduct::posttype()."'",'array','col','ID');
+					$trash = sDB::query("SELECT ID FROM $Template->_table WHERE post_status='trash' AND post_type='".ShoppProduct::posttype()."'",'array','col','ID');
 					foreach ($trash as $id) {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
@@ -357,7 +357,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		if (isset($subs[$this->view]['order'])) $order = $subs[$this->view]['order'];
 
-
+		$ordercols = '';
 		switch ($orderby) {
 			case 'name': $order = 'title'; if ('desc' == $orderd) $order = 'reverse'; break;
 			case 'price': $order = 'lowprice'; if ('desc' == $orderd) $order = 'highprice'; break;
@@ -443,8 +443,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				if (in_array($name,array('onsale','bestselling','featured','inventory')))
 					$query['joins'][$ps] = "INNER JOIN $ps AS s ON p.ID=s.product";
 
-				$query = DB::select($query);
-				$subquery['total'] = DB::query($query,'auto','col','total');
+				$query = sDB::select($query);
+				$subquery['total'] = sDB::query($query,'auto','col','total');
 				$subcounts[$name] = $subquery['total'];
 			}
 			wp_cache_set('shopp_product_subcounts',$subcounts,'shopp_admin');
@@ -669,7 +669,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			$ids = join(',',array_keys($Product->images));
 			$CoverImage = reset($Product->images);
 			$image_table = $CoverImage->_table;
-			$Product->cropped = DB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array','index','parent');
+			$Product->cropped = sDB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array','index','parent');
 		}
 
 		$shiprates = shopp_setting('shipping_rates');
@@ -1103,8 +1103,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$where = empty($where) ? '' : ' WHERE '.join(' AND ',$where);
 
 		if ('catalog-products' == $id)
-			$products = DB::query("SELECT p.id,p.post_title AS name FROM $p $where ORDER BY name ASC",'array','col','name','id');
-		else $products = DB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins).$where." ORDER BY name ASC",'array','col','name','id');
+			$products = sDB::query("SELECT p.id,p.post_title AS name FROM $p $where ORDER BY name ASC",'array','col','name','id');
+		else $products = sDB::query("SELECT p.id,p.post_title AS name FROM $p ".join(' ',$joins).$where." ORDER BY name ASC",'array','col','name','id');
 
 		return menuoptions($products,0,true);
 	}

@@ -61,7 +61,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 	public function form ($form) {
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$next = DB::query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
+		$next = sDB::query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
 
 		$Order = $this->Order;
 		$Customer = $Order->Customer;

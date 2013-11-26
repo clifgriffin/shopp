@@ -32,13 +32,13 @@ class SchemaTests extends ShoppTestCase {
 			$statement = trim(preg_replace('/\s+/', ' ', $statement));
 
 			if ( $statement ) {
-				$checks = $checks && DB::query($statement);
+				$checks = $checks && sDB::query($statement);
 			}
 		}
 
 		// cleanup
 		foreach ( $tables as $table ) {
-			$checks = $checks && DB::query("DROP TABLE schematest_$table");
+			$checks = $checks && sDB::query("DROP TABLE schematest_$table");
 		}
 
 		$this->AssertTrue($checks);

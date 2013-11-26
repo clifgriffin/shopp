@@ -1192,8 +1192,8 @@ class ShoppPromotions extends ListFramework {
 		$orderby = 'target DESC';
 
 		$queryargs = compact('table', 'where', 'orderby');
-		$query = DB::select( $queryargs );
-		$loaded = DB::query($query, 'array', array('ShoppPromotions', 'loader') );
+		$query = sDB::select( $queryargs );
+		$loaded = sDB::query($query, 'array', array('ShoppPromotions', 'loader') );
 
 		if ( ! $loaded || 0 == count($loaded) ) return;
 

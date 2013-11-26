@@ -759,7 +759,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		extract($options);
 
 		$pt = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$shoppers = DB::query("SELECT firstname,lastname,email,city,state FROM $pt AS pt GROUP BY customer ORDER BY created DESC LIMIT $show",'array');
+		$shoppers = sDB::query("SELECT firstname,lastname,email,city,state FROM $pt AS pt GROUP BY customer ORDER BY created DESC LIMIT $show",'array');
 
 		if (empty($shoppers)) return '';
 

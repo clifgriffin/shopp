@@ -87,7 +87,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$table = ShoppDatabaseObject::tablename(Purchased::$table);
 		$price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 
-		$this->purchased = DB::query(
+		$this->purchased = sDB::query(
 			"SELECT pd.*,pr.inventory FROM $table AS pd LEFT JOIN $price AS pr ON pr.id=pd.price WHERE pd.purchase=$this->id",
 			'array',
 			array($this, 'purchases')
@@ -316,7 +316,6 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$Purchase = $Event->order();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
 
-		error_log(serialize($Purchase->purchased));
 		$prices = array();
 		$allocated = array();
 		foreach ( $Purchase->purchased as $Purchased ) {
@@ -353,16 +352,14 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				isset($prices[ $Purchased->price ]) ? $prices[ $Purchased->price ][1] + $Purchased->quantity : $Purchased->quantity
 			);
 		}
-		error_log(__METHOD__ . " allocated: " . serialize($allocated));
 		if ( empty($allocated) ) return;
 
 		$pricetable = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 		$lowlevel = shopp_setting('lowstock_level');
 		foreach ( $prices as $price => $data ) {
 			list($productname, $qty) = $data;
-			DB::query("UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
-			error_log(__METHOD__ . " updated inventory: " . "UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
-			$inventory = DB::query("SELECT label, stock, stocked FROM $pricetable WHERE id='$price' LIMIT 1", 'auto');
+			sDB::query("UPDATE $pricetable SET stock=(stock-" . (int)$qty . ") WHERE id='$price' LIMIT 1");
+			$inventory = sDB::query("SELECT label, stock, stocked FROM $pricetable WHERE id='$price' LIMIT 1", 'auto');
 
 			$product = "$productname, $inventory->label";
 			if ( 0 == $inventory->stock ) {
@@ -427,14 +424,14 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$updates = compact('txnstatus', 'txnid', 'status');
 		$updates = array_filter($updates);
 
-		$data = DB::escape($updates);
+		$data = sDB::escape($updates);
 		$data = array_map(create_function('$value', 'return "\'$value\'";'), $data);
 		$dataset = ShoppDatabaseObject::dataset($data);
 
 		if ( ! empty($dataset) ) {
 			$table = ShoppDatabaseObject::tablename(self::$table);
 			$query = "UPDATE $table SET $dataset WHERE id='$Event->order' LIMIT 1";
-			DB::query($query);
+			sDB::query($query);
 		}
 
 		$Purchase->updates($updates);
@@ -686,7 +683,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 	public function delete () {
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		DB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchase'");
+		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchase'");
 		parent::delete();
 	}
 
@@ -704,7 +701,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
  		$locked = 0;
  		for ( $attempts = 0; $attempts < 3 && $locked == 0; $attempts++ ) {
- 			$locked = DB::query("SELECT GET_LOCK('$this->id'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
+ 			$locked = sDB::query("SELECT GET_LOCK('$this->id'," . SHOPP_TXNLOCK_TIMEOUT . ") AS locked", 'auto', 'col', 'locked');
 			if ( 0 == $locked ) sleep(1); // Wait a sec before trying again
  		}
 
@@ -724,7 +721,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
  	 **/
 	public function unlock () {
 		if ( empty($this->id) ) return false;
- 		$unlocked = DB::query("SELECT RELEASE_LOCK('$this->id') as unlocked", 'auto', 'col', 'unlocked');
+ 		$unlocked = sDB::query("SELECT RELEASE_LOCK('$this->id') as unlocked", 'auto', 'col', 'unlocked');
  		return ( 1 == $unlocked );
  	}
 
@@ -792,13 +789,13 @@ class PurchasesExport {
 		}
 
 		$where = array();
-		if (!empty($status) || $status === '0') $where[] = "status='".DB::escape($status)."'";
+		if (!empty($status) || $status === '0') $where[] = "status='".sDB::escape($status)."'";
 		if (!empty($s)) {
 			$s = stripslashes($s);
 			$search = array();
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
 				foreach ($props as $query) {
-					$keyword = DB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
+					$keyword = sDB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
 					switch(strtolower($query[1])) {
 						case "txn": 		$search[] = "txnid='$keyword'"; break;
 						case "company":		$search[] = "company LIKE '%$keyword%'"; break;
@@ -818,8 +815,8 @@ class PurchasesExport {
 				if (empty($search)) $search[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 				$where[] = "(".join(' OR ',$search).")";
 			} elseif (strpos($s,'@') !== false) {
-				 $where[] = "email='".DB::escape($s)."'";
-			} else $where[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".DB::escape($s)."%')";
+				 $where[] = "email='".sDB::escape($s)."'";
+			} else $where[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".sDB::escape($s)."%')";
 		}
 		if (!empty($start) && !empty($end)) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
 		if (!empty($customer)) $where[] = "customer=".intval($customer);
@@ -838,7 +835,7 @@ class PurchasesExport {
 		else $FROM = "FROM $purchasetable AS o";
 
 		$query = "SELECT ".join(",",$columns)." $FROM $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
-		$this->data = DB::query($query,'array');
+		$this->data = sDB::query($query,'array');
 	}
 
 	// Implement for exporting all the data

@@ -132,7 +132,7 @@ class ShoppAdminDashboard {
 		$salestatus = array("'authed'","'captured'","'CHARGED'");
 
 		$txnstatus = "txnstatus IN (".join(',',$salestatus).")";
-		$daterange = "created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'";
+		$daterange = "created BETWEEN '".sDB::mkdatetime($start)."' AND '".sDB::mkdatetime($end)."'";
 
 		$query = "SELECT count(id) AS orders,
 						SUM(total) AS sales,

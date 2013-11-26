@@ -132,7 +132,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 			}
 		}
 
-		$select = DB::select(array(
+		$select = sDB::select(array(
 			'table' => $table,
 			'columns' => 'SQL_CALC_FOUND_ROWS *',
 			'where' => $where,
@@ -140,8 +140,8 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 			'limit' => "$start,$per_page"
 		));
 
-		$Promotions = DB::query($select,'array');
-		$count = DB::found();
+		$Promotions = sDB::query($select,'array');
+		$count = sDB::found();
 
 		$num_pages = ceil($count / $per_page);
 		$ListTable = ShoppUI::table_set_pagination($this->screen, $count, $num_pages, $per_page );

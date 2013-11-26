@@ -214,7 +214,7 @@ class ProductCollection implements Iterator {
 			$options['where'][] = $alphafilter;
 		}
 
-		$query = DB::select( apply_filters('shopp_collection_query', $options) );
+		$query = sDB::select( apply_filters('shopp_collection_query', $options) );
 
 		if ( $debug ) echo $query.BR.BR;
 
@@ -924,7 +924,7 @@ class ProductCategory extends ProductTaxonomy {
 					if ( $min > 0 ) $ranges[] = "numeral >= $min";
 					if ( $max > 0 ) $ranges[] = "numeral <= $max";
 					// $filters[] = "(".join(' AND ',$ranges).")";
-					$numeric[] = DB::escape($name);
+					$numeric[] = sDB::escape($name);
 					$facets[] = sprintf("name='%s' AND %s", sDB::escape($name), join(' AND ', $ranges));
 					$filters[] = sprintf("FIND_IN_SET('%s', facets)", sDB::escape($name));
 
@@ -1020,7 +1020,7 @@ class ProductCategory extends ProductTaxonomy {
 		// Identify facet menu types to treat numeric and string contexts properly @bug #2014
 		$custom = array();
 		foreach ($this->facets as $Facet)
-			if ('custom' == $Facet->type) $custom[] = DB::escape($Facet->name);
+			if ('custom' == $Facet->type) $custom[] = sDB::escape($Facet->name);
 
 		// Load spec aggregation data
 		$spectable = ShoppDatabaseObject::tablename(Spec::$table);
@@ -1196,7 +1196,7 @@ class ProductCategory extends ProductTaxonomy {
 	}
 
 	// function alphapages ($loading=array()) {
-	// 	$db =& DB::get();
+	// 	$db =& sDB::get();
 	//
 	// 	$catalogtable = ShoppDatabaseObject::tablename(ShoppCatalog::$table);
 	// 	$producttable = ShoppDatabaseObject::tablename(ShoppProduct::$table);
@@ -1636,7 +1636,7 @@ class BestsellerProducts extends SmartCollection {
 			$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
 			$this->loading['columns'] = "COUNT(*) AS sold";
 			$this->loading['joins'] = array($purchased => "INNER JOIN $purchased as pur ON pur.product=p.id");
-			$this->loading['where'] = array("pur.created BETWEEN '".DB::mkdatetime($start)."' AND '".DB::mkdatetime($end)."'");
+			$this->loading['where'] = array("pur.created BETWEEN '".sDB::mkdatetime($start)."' AND '".sDB::mkdatetime($end)."'");
 			$this->loading['orderby'] = 'sold DESC';
 			$this->loading['groupby'] = 'pur.product';
 		} else {

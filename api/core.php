@@ -452,7 +452,7 @@ function shopp_rebuild_search_index () {
 	$set = 10; // Process 10 at a time
 	$index_table = ShoppDatabaseObject::tablename(ContentIndex::$table);
 
-	$total = DB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "'");
+	$total = sDB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "'");
 	if ( empty($total->products) ) false;
 
 	set_time_limit(0); // Prevent timeouts
