@@ -332,18 +332,18 @@ class ShoppSupport {
 			$errors = array(); foreach ($result->errors as $errname => $msgs) $errors[] = join(' ', $msgs);
 			$errors = join(' ', $errors);
 
-			shopp_add_error("Shopp: ".Lookup::errors('callhome', 'fail')." $errors ".Lookup::errors('contact', 'admin')." (WP_HTTP)", SHOPP_COMM_ERR);
+			shopp_add_error("Shopp: ".Lookup::errors('callhome', 'fail')." $errors ".Lookup::errors('contact', 'admin')." (WP_HTTP)", SHOPP_ADMIN_ERR);
 
 			return false;
 		} elseif ( empty($result) || !isset($result['response']) ) {
-			shopp_add_error("Shopp: ".Lookup::errors('callhome', 'noresponse'), SHOPP_COMM_ERR);
+			shopp_add_error("Shopp: ".Lookup::errors('callhome', 'noresponse'), SHOPP_ADMIN_ERR);
 			return false;
 		} else extract($result);
 
 		if ( isset($response['code']) && 200 != $response['code'] ) {
 			$error = Lookup::errors('callhome', 'http-'.$response['code']);
 			if (empty($error)) $error = Lookup::errors('callhome', 'http-unkonwn');
-			shopp_add_error("Shopp: $error", 'callhome_comm_err', SHOPP_COMM_ERR);
+			shopp_add_error("Shopp: $error", 'callhome_comm_err', SHOPP_ADMIN_ERR);
 			return $body;
 		}
 
