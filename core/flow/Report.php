@@ -1135,7 +1135,8 @@ class ShoppReportChart {
 		$this->data[$series]['data'][] = array($x,$y);
 
 		// Setup the minimum scale for the y-axis from chart data
-		$this->options['yaxis']['min'] = (float)min($this->options['yaxis']['min'],$y);
+		$min = isset($this->options['yaxis']['min']) ? $this->options['yaxis']['min'] : $y;
+		$this->options['yaxis']['min'] = (float)min($min,$y);
 
 		if ( ! isset($this->datapoints) ) $this->datapoints = 0;
 		$this->datapoints = max( $this->datapoints, count($this->data[$series]['data']) );
