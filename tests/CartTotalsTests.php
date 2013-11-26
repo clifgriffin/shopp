@@ -277,6 +277,7 @@ class CartTotalsTests extends ShoppTestCase {
 		ShoppOrder()->clear();
 
 		ShoppOrder()->Discounts->clear();
+		ShoppOrder()->Billing = new BillingAddress;
 
 		$args = array(
 			array(
