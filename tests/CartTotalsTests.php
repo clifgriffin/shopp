@@ -278,6 +278,18 @@ class CartTotalsTests extends ShoppTestCase {
 
 		ShoppOrder()->Discounts->clear();
 
+		$args = array(
+			array(
+				'rate' => '10%',
+				'compound' => 'off',
+				'country' => '*',
+				'logic' => 'any',
+				'haslocals' => false
+			)
+		);
+		shopp_set_setting('taxes','on');
+		shopp_set_setting('taxrates',serialize($args));
+
 		shopp_set_setting('tax_shipping', 'off');
 		shopp_set_setting('tax_inclusive','off');
 		shopp_set_setting('base_operations', array());
@@ -362,6 +374,60 @@ class CartTotalsTests extends ShoppTestCase {
 		$expected = '29.57';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
+
+	}
+
+	function test_cart_address_taxes () {
+		$Order = ShoppOrder();
+		$Product = shopp_product('uss-enterprise','slug');
+		$options = array('number' => true,'return' => true);
+
+		$data = array(
+			'address' => '24-593 Federation Dr',
+			'city' => 'San Francisco',
+			'state' => 'CA',
+			'country' => 'US',
+			'postcode' => '94123',
+			'residential' => true
+		);
+
+		$Order->Billing->updates($data);
+		$Order->locate();
+
+		$args = array(
+			array(
+				'rate' => '10%',
+				'compound' => 'off',
+				'country' => 'US',
+				'zone' => 'CA',
+				'logic' => 'any',
+				'haslocals' => false
+			)
+		);
+		shopp_set_setting('taxrates', serialize($args));
+		$taxrates = shopp_setting('taxrates');
+
+		shopp_add_cart_product($Product->id, 1);
+
+		$expected = '1.70';
+		$actual = shopp('cart.tax', $options);
+		$this->assertEquals($expected, $actual, 'Cart tax assertion failed');
+
+		$data = array(
+			'city' => 'Columbus',
+			'state' => 'OH',
+			'country' => 'US',
+			'postcode' => '43002',
+			'residential' => true
+		);
+
+		$Order->Billing->updates($data);
+		$Order->locate();
+		$Order->Cart->totals();
+
+		$expected = '0.00';
+		$actual = shopp('cart.tax', $options);
+		$this->assertEquals($expected, $actual, 'Cart no tax assertion failed');
 
 	}
 
