@@ -48,8 +48,8 @@ abstract class ModuleLoader {
 
         $interface_hook = self::sanitize_key($this->interface);
 
-		$known = array(); 						// Build an index of known files
-		$detected = array();					// Load the current set of detected modules
+		$known = array(); 										// Build an index of known files
+		$detected = array();									// Load the current set of detected modules
 		$invalid = get_transient(self::INVALID_FILES_SETTING);	// Load a set of invalid modules
 		if ( ! $invalid ) $invalid = array();
 
@@ -75,9 +75,13 @@ abstract class ModuleLoader {
 			$Loader = $this->loader;
 			$Module = new $Loader($file);
 
-			if ( apply_filters("shopp_modules_valid_$interface_hook", $Module->valid(), $Module) )
+			if ( apply_filters("shopp_modules_valid_$interface_hook", $Module->valid(), $Module) ) {
 				$detected[ $Module->classname ] = $Module;
+				if ( $this->interfaces($Module) )
+					$this->modules[ $Module->classname ] = $Module;
+			}
 			else $invalid[] = $Module->file;
+
 		}
 
 		shopp_set_setting(self::MODULES_SETTING, $detected);
@@ -149,6 +153,7 @@ abstract class ModuleLoader {
 		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
 		return $hashes;
 	}
+
 	/**
 	 * Find files of a given extension
 	 *
@@ -168,7 +173,7 @@ abstract class ModuleLoader {
 			$Iterator = new RecursiveIteratorIterator($Directory);
 			$FoundFiles = new RegexIterator($Iterator, "/^.+\.$extension$/i", RecursiveRegexIterator::GET_MATCH);
 
-			foreach ( $FoundFiles as $i => $file )
+			foreach ( $FoundFiles as $file )
 				$matches[] = reset($file);
 
 		}

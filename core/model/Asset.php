@@ -127,9 +127,9 @@ class FileAsset extends ShoppMetaObject {
 	 * @since 1.1
 	 **/
 	public function &engine () {
-		global $Shopp;
+		$Shopp = Shopp::object();
 
-		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines();
+		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines;
 		$StorageEngines = $Shopp->Storage;
 
 		$Engine = false;
