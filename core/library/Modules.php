@@ -162,6 +162,7 @@ abstract class ModuleLoader {
 	 **/
 	public static function files ( $extension, $paths, array &$matches = array() ) {
 		foreach ( $paths as $path ) {
+			if ( ! is_dir($path) ) continue;
 
 			$Directory = new RecursiveDirectoryIterator($path, 4096 | 512);
 			$Iterator = new RecursiveIteratorIterator($Directory);
