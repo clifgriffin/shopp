@@ -24,12 +24,14 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 abstract class ModuleLoader {
 
+	const MODULES_SETTING = 'addon_modules';
+	const INVALID_FILES_SETTING = 'shopp_invalid_addon_files';
+
 	// Module File load manager
 	protected $loader = 'ModuleFile';
 	protected $interface = false;
 	protected $paths = array();		// Source paths to search for module files
 
-	public $legacy = array();		// Legacy module checksums
 	public $modules = array();		// Installed available modules
 	public $activated = array();	// List of selected modules to be activated
 	public $active = array();		// Instantiated module objects
@@ -44,23 +46,28 @@ abstract class ModuleLoader {
 	 **/
 	public function installed () {
 
-		$cachekey = self::sanitize_key($this->interface);
-		if ( $cached = wp_cache_get($cachekey, 'shopp-addons') )
-			$this->modules = $cached;
+        $interface_hook = self::sanitize_key($this->interface);
 
-		$legacy_cachekey = self::sanitize_key($this->interface);
-		if ( $legacy = wp_cache_get($legacy_cachekey, 'shopp-legacy-addons') )
-			$this->legacy = $legacy;
+		$known = array(); 						// Build an index of known files
+		$detected = array();					// Load the current set of detected modules
+		$invalid = get_transient(self::INVALID_FILES_SETTING);	// Load a set of invalid modules
+		if ( ! $invalid ) $invalid = array();
 
-		if ( ! empty($this->modules) || ! empty($this->legacy) ) return;
+		if ( $detected = shopp_setting(self::MODULES_SETTING) ) {
+			$this->modules = array_filter($detected, array($this, 'interfaces'));
+			foreach ( $detected as $moduleclass => $Module )
+				$known[ $moduleclass ] = $Module->file;
+		}
 
 		$files = array();
-		$found = self::files('.php', $this->paths, $files);
+		$found = self::files('php', $this->paths, $files);
 
-		if ( ! $found || empty($files) ) return $files;
+		$new = array_diff($files, $known, $invalid);
 
-		$keyinterface = self::sanitize_key($this->interface);
-		foreach ( $files as $file ) {
+		if ( ! $found || empty($new) ) return;
+
+		foreach ( $new as $file ) {
+
 			// Skip if the file can't be read or isn't a real file at all
 			if ( ! is_readable($file) || is_dir($file) ) continue;
 
@@ -68,16 +75,29 @@ abstract class ModuleLoader {
 			$Loader = $this->loader;
 			$Module = new $Loader($file);
 
-			if ( apply_filters("shopp_modules_valid_$keyinterface", ( $this->interface == $Module->interface ), $Module) ) {
-				if ( $Module->addon ) $this->modules[ $Module->classname ] = $Module;
-				else $this->legacy[] = md5_file($file);
-			}
-
+			if ( apply_filters("shopp_modules_valid_$interface_hook", $Module->valid(), $Module) )
+				$detected[ $Module->classname ] = $Module;
+			else $invalid[] = $Module->file;
 		}
 
-		wp_cache_set($cachekey, $this->modules, 'shopp-addons');
-		wp_cache_set($legacy_cachekey, $this->legacy, 'shopp-legacy-addons');
+		shopp_set_setting(self::MODULES_SETTING, $detected);
+		set_transient(self::INVALID_FILES_SETTING, $invalid, 60);
 
+	}
+
+	protected function uninstalled ( $module ) {
+
+		if ( ( $detected = shopp_setting(self::MODULES_SETTING) ) === false ) return;
+
+		if ( isset($detected[ $module ]) ) {
+			unset($detected[ $module ]);
+			shopp_set_setting(self::MODULES_SETTING, $detected);
+		}
+
+	}
+
+	protected function interfaces ( ModuleFile $Module ) {
+		return $Module->interface == $this->interface;
 	}
 
 	/**
@@ -98,6 +118,12 @@ abstract class ModuleLoader {
 			if ( ! isset($this->modules[ $module ]) ) continue;
 
 			$ModuleFile = $this->modules[ $module ];
+
+			if ( ! file_exists($ModuleFile->file) || ! is_readable($ModuleFile->file) ) {
+				$this->uninstalled($module);
+				continue;
+			}
+
 			ShoppLoader::add($module, $ModuleFile->file);
 			$this->active[ $module ] = $ModuleFile->load();
 
@@ -123,41 +149,27 @@ abstract class ModuleLoader {
 		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
 		return $hashes;
 	}
-
 	/**
-	 * Find files of a specific extension
+	 * Find files of a given extension
 	 *
-	 * @author Barry Hughes, Jonathan Davis
+	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
 	 * @param string $extension File extension to search for (beginning with a '.')
-	 * @param string $directory Starting directory
+	 * @param array $paths Directory paths to search (recursively) for matching files
 	 * @param string &$matches List of files found
-	 * @param boolean $greedy (optional: default true) Find more than one file
 	 * @return boolean True if files were found, false otherwise
 	 **/
-	public static function files ( $extension, $paths, array &$matches = array(), $greedy = true ) {
-		$ignores = array('_'); // Ignor _directories
+	public static function files ( $extension, $paths, array &$matches = array() ) {
+		foreach ( $paths as $path ) {
 
-		try {
-			foreach ( $paths as $directory ) {
-				if ( ! is_dir($directory) ) continue;
-				// @todo when PHP 5.3 is minimum version: $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS) );
-				$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator($directory, 4096 | 512) );
-				foreach ( $files as $file ) {
-					$filename = $file->getFilename();
-					if ( '.' == $filename{0} ) continue; // Skip dot files (remove with PHP 5.3 support)
-					if ( in_array($filename{0}, $ignores) ) continue;
+			$Directory = new RecursiveDirectoryIterator($path, 4096 | 512);
+			$Iterator = new RecursiveIteratorIterator($Directory);
+			$FoundFiles = new RegexIterator($Iterator, "/^.+\.$extension$/i", RecursiveRegexIterator::GET_MATCH);
 
-					if ( substr($filename, strlen($extension) * -1) == $extension ) {
-						$matches[] = $file->getPathname();
-						if ( ! $greedy ) break;
-					}
+			foreach ( $FoundFiles as $i => $file )
+				$matches[] = reset($file);
 
-				}
-			}
-		} catch ( Exception $e ) {
-			shopp_debug('An error occured wile search for file ' . $filename . ': ' . $e->getMessage());
 		}
 
 		return ( 1 <= count($matches) );
