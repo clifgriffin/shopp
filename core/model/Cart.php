@@ -371,7 +371,7 @@ class ShoppCart extends ListFramework {
 	public function setitem ( $item, $quantity ) {
 
 		if ( 0 == $this->count() ) return false;
-		if ( 0 == $quantity ) return $this->remove($item);
+		if ( 0 == $quantity ) return $this->rmvitem($item);
 
 		if ( $this->exists($item) ) {
 
@@ -379,10 +379,10 @@ class ShoppCart extends ListFramework {
 			$updated = ($quantity != $Item->quantity);
 			$Item->quantity($quantity);
 
-			if ( 0 == $Item->quantity() ) $this->remove($item);
+			if ( 0 == $Item->quantity() ) $this->rmvitem($item);
 
 			if ( $updated && ! $this->xitemstock($Item) )
-				$this->remove($item); // Remove items if no cross-item stock available
+				$this->rmvitem($item); // Remove items if no cross-item stock available
 
 		}
 
