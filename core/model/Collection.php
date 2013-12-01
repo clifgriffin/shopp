@@ -362,7 +362,7 @@ class ProductCollection implements Iterator {
 		if ( Shopp::str_true($product->sale) ) {
 			if ( $taxrate ) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
 			if ( $product->min['saleprice'] != $product->max['saleprice'] )
-				$pricing .= __("from ",'Shopp');
+				$pricing .= Shopp::__('from') . ' ';
 			$pricing .= money($product->min['saleprice']);
 		} else {
 			if ($taxrate) {
@@ -370,8 +370,8 @@ class ProductCollection implements Iterator {
 				$product->max['price'] += $product->max['price'] * $taxrate;
 			}
 
-			if ($product->min['price'] != $product->max['price'])
-				$pricing .= __("from ",'Shopp');
+			if ( $product->min['price'] != $product->max['price'] )
+				$pricing .= Shopp::__('from') . ' ';
 			$pricing .= money($product->min['price']);
 		}
 		$item['description'] .= "<td><p><big>$pricing</big></p>";
@@ -1850,7 +1850,7 @@ class TagProducts extends SmartCollection {
 			}
 		} else $terms[] = $term->term_id;
 
-		$this->name = sprintf(__('Products tagged "%s"','Shopp'), $this->tag);
+		$this->name = Shopp::__('Products tagged &quot;%s&quot;', $this->tag);
 		$this->uri = urlencode($this->tag);
 
 		global $wpdb;
@@ -2005,7 +2005,7 @@ class AlsoBoughtProducts extends SmartCollection {
 		}
 
 		if (empty($this->product->id)) return ($this->loading = compact('where'));
-		$this->name = sprintf(__('Customers that bought "%s" also bought&hellip;','Shopp'),$this->product->name);
+		$this->name = Shopp::__('Customers that bought &quot;%s&quot; also bought&hellip;', $this->product->name);
 
 		// @todo Add WP_Cache support since this is a pretty expensive query
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);

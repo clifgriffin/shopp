@@ -343,9 +343,9 @@ class ShoppCartItem {
 
 				if ( shopp_setting_enabled('backorders') ) {
 					$this->backordered = $qty - $min;
-					new ShoppError(Shopp::__('"%s" is not available in the requested quantity. %d of the items will be backordered with delayed delivery.', $this->name, $this->backordered), 'item_backorder');
+					shopp_add_error(Shopp::__('&quot;%s&quot; is not available in the requested quantity. %d of the items will be backordered with delayed delivery.', $this->name, $this->backordered));
 				} else {
-					new ShoppError(Shopp::__('"%s" is not available in the requested quantity.', $this->name), 'item_low_stock');
+					shopp_add_error(Shopp::__('&quot;%s&quot; is not available in the requested quantity.', $this->name));
 					if ( ! $min ) return; // don't set min to item quantity if no stock
 					$this->quantity = $min;
 				}

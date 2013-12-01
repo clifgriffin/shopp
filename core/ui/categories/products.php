@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<h2><?php printf(Shopp::__('Arrange Products for "%s"'), $CategoryProducts->name); ?></h2>
+	<h2><?php Shopp::_e('Arrange Products for &quot;%s&quot;', $CategoryProducts->name); ?></h2>
 
 	<?php do_action('shopp_admin_notice'); ?>
 

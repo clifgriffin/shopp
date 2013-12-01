@@ -195,7 +195,7 @@ class ShoppDiscounts extends ListFramework {
 
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
 		else {
-			shopp_add_error( Shopp::__('"%s" is not a valid code.', $this->request) );
+			shopp_add_error( Shopp::__('&quot;%s&quot; is not a valid code.', $this->request) );
 			$this->request = false;
 		}
 	}

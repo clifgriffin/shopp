@@ -229,7 +229,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 * @return void
 	 **/
 	public function notification () {
-		$Shopp = Shopp::object();
+
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
@@ -239,33 +239,33 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$_ = array();
 		$_[] = 'From: ' . Shopp::email_from( $merchant, $business );
 		$_[] = 'To: ' . Shopp::email_to( $merchant );
-		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
+		$_[] = 'Subject: ' . Shopp::__('[%s] New Customer Registration', $blogname);
 		$_[] = '';
-		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
-		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
+		$_[] = Shopp::__('New customer registration on your &quot;%s&quot; store:', $blogname);
+		$_[] = Shopp::__('E-mail: %s', stripslashes($this->email));
 
 		$_ = apply_filters('shopp_merchant_new_customer_notification',$_);
 
-		if (!Shopp::email(join("\n",$_)))
-			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
+		if ( ! Shopp::email(join("\n", $_)) )
+			shopp_add_error('The new account notification e-mail could not be sent.', SHOPP_ADMIN_ERR);
 		else shopp_debug('A new account notification e-mail was sent to the merchant.');
-		if (empty($this->password)) return;
+		if ( empty($this->password) ) return;
 
 		$_ = array();
 		$_[] = 'From: ' . Shopp::email_from( $merchant, $business );
 		$_[] = 'To: ' . $this->email;
-		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
+		$_[] = 'Subject: ' . Shopp::__('[%s] New Customer Registration', $blogname);
 		$_[] = '';
-		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
-		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
-		$_[] = sprintf(__('Password: %s'), $this->password);
+		$_[] = Shopp::__('New customer registration on your &quot;%s&quot; store:', $blogname);
+		$_[] = Shopp::__('E-mail: %s', stripslashes($this->email));
+		$_[] = Shopp::__('Password: %s', $this->password);
 		$_[] = '';
-		$_[] = Shopp::url(false,'account',$Shopp->Gateways->secure);
+		$_[] = Shopp::url(false,'account', ShoppOrder()->security());
 
 		$_ = apply_filters('shopp_new_customer_notification',$_);
 
-		if (!Shopp::email(join("\n",$_)))
-			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
+		if ( ! Shopp::email(join("\n", $_)) )
+			shopp_add_error('The customer&apos;s account notification e-mail could not be sent.', SHOPP_ADMIN_ERR);
 		else shopp_debug('A new account notification e-mail was sent to the customer.');
 	}
 

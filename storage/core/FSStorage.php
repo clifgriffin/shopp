@@ -186,10 +186,10 @@ class FSStorage extends StorageModule implements StorageEngine {
 			$p = self::sanitize(realpath($path));
 
 				if	(empty($path)) continue;
-			elseif	(!file_exists($p)) $error = __("The path does not exist.","Shopp");
-			elseif	(!is_dir($p)) $error = __("The path supplied is not a directory.","Shopp");
-			elseif	(!is_writable($p)) $error = __("The path must be <strong>writable</strong> by the web server.","Shopp");
-			elseif	(!is_readable($p)) $error = __("The path must be <strong>readable</strong> by the web server.","Shopp");
+			elseif	(!file_exists($p)) $error = Shopp::__('The path does not exist.');
+			elseif	(!is_dir($p)) $error = Shopp::__('The path supplied is not a directory.');
+			elseif	(!is_writable($p)) $error = Shopp::__('The path must be **writable** by the web server.');
+			elseif	(!is_readable($p)) $error = Shopp::__('The path must be **readable** by the web server.');
 
 			if ($error !== false)
 				$label[$method] = '<span class="error">'.$error.'</span>';

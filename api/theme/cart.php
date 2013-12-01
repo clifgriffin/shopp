@@ -201,7 +201,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			case ShoppOrderDiscount::PERCENT_OFF:	$string .= sprintf(esc_html($label), percentage($Discount->discount(), array('precision' => 0))); break;
 			case ShoppOrderDiscount::AMOUNT_OFF:	$string .= sprintf(esc_html($label), money($Discount->discount())); break;
 			case ShoppOrderDiscount::CREDIT:		$string .= sprintf(esc_html($creditlabel), money($Discount->amount())); break;
-			case ShoppOrderDiscount::BOGOF:			list($buy, $get) = $Discount->discount(); $string .= Shopp::esc_html__('Buy %s get %s free', $buy, $get); break;
+			case ShoppOrderDiscount::BOGOF:			list($buy, $get) = $Discount->discount(); $string .= ucfirst(strtolower(Shopp::esc_html__('Buy %s Get %s Free', $buy, $get))); break;
 		}
 
 		if ( Shopp::str_true($remove) )

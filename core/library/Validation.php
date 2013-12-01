@@ -85,11 +85,11 @@ class ShoppFormValidation {
 			if ( apply_filters('shopp_login_valid', ( ! validate_username($_POST['loginname']))) ) {
 				$sanitized = sanitize_user( $_POST['loginname'], true );
 				$illegal = array_diff( str_split($_POST['loginname']), str_split($sanitized) );
-				return shopp_add_error( Shopp::__('The login name provided includes invalid characters: %s', esc_html(join(' ', $illegal)) ));
+				return shopp_add_error( Shopp::__('The login name provided includes includesnvalid characters: %s', esc_html(join(' ', $illegal)) ));
 			}
 
 			if ( apply_filters('shopp_login_exists', username_exists($_POST['loginname'])) )
-				return shopp_add_error( Shopp::__('"%s" is already in use. Enter a different login name to create a new account.', esc_html($_POST['loginname'])) . $pleaselogin );
+				return shopp_add_error( Shopp::__('&quot;%s&quot; is already in use. Enter a different login name to create a new account.', esc_html($_POST['loginname'])) . $pleaselogin );
 		}
 
         return $result;

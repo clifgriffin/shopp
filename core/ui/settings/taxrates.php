@@ -65,7 +65,7 @@
 			<select name="settings[taxrates][${id}][country]" class="country">${countries}</select><select name="settings[taxrates][${id}][zone]" class="zone no-zones">${zones}</select>
 			<?php echo ShoppUI::button('add','addrule'); ?>
 			<?php
-				$options = array('any'=>__('any','Shopp'),'all'=>__('all','Shopp'));
+				$options = array('any' => Shopp::__('any'), 'all' => strtolower(Shopp::__('All')));
 				$menu = '<select name="settings[taxrates][${id}][logic]" class="logic">'.menuoptions($options,false,true).'</select>';
 			?>
 				<div class="conditionals no-conditions">

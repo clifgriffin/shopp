@@ -48,8 +48,7 @@ class Shopp extends ShoppCore {
 
 		$this->paths();				// Determine Shopp paths
 		$this->constants();			// Setup Shopp constants
-
-		load_plugin_textdomain( 'Shopp', false, SHOPP_DIR . '/lang' );
+		$this->textdomain();		// Load the translation file
 
 		// Load the Developer API
 		ShoppDeveloperAPI::load( SHOPP_PATH );
@@ -102,7 +101,7 @@ class Shopp extends ShoppCore {
 	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
-	 * @return void Description...
+	 * @return void
 	 **/
 	public static function plugin () {
 		global $Shopp; // Provide global for backwards compatibility
@@ -162,6 +161,7 @@ class Shopp extends ShoppCore {
 		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH', sys_get_temp_dir());	// Use the system defined temporary directory
 		if ( ! defined('SHOPP_ADDONS') )				define('SHOPP_ADDONS', WP_CONTENT_DIR . '/shopp-addons');	// A configurable directory to keep Shopp addons
 		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES', true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
+
 	}
 
 	/**
@@ -184,8 +184,6 @@ class Shopp extends ShoppCore {
 		define('SHOPP_PLUGINFILE', "$directory/$file" );
 		define('SHOPP_PLUGINURI', set_url_scheme(WP_PLUGIN_URL . "/$directory") );
 
-		define('SHOPP_WPADMIN_URL', admin_url() ); // @deprecated, use admin_url() instead
-
 		define('SHOPP_ADMIN_DIR', '/core/ui');
 		define('SHOPP_ADMIN_PATH', SHOPP_PATH . SHOPP_ADMIN_DIR);
 		define('SHOPP_ADMIN_URI',  SHOPP_PLUGINURI . SHOPP_ADMIN_DIR);
@@ -197,6 +195,26 @@ class Shopp extends ShoppCore {
 		define('SHOPP_STORAGE',    SHOPP_PATH . '/storage');
 		define('SHOPP_THEME_APIS', SHOPP_PATH . '/api/theme');
 		define('SHOPP_DBSCHEMA',   SHOPP_MODEL_PATH . '/schema.sql');
+
+	}
+
+	/**
+	 * Load the text domain translation file
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 * @uses SHOPP_LANG_DIR
+	 * @uses SHOPP_ADDONS
+	 * @uses SHOPP_DIR
+	 *
+	 * @return void
+	 **/
+	public function textdomain () {
+
+		if ( ! defined('SHOPP_LANG_DIR') )	// Add configurable path for language files
+			define('SHOPP_LANG_DIR', ( is_dir(SHOPP_ADDONS . '/languages') ? SHOPP_ADDONS . '/languages' : SHOPP_DIR . '/lang' ) );
+
+		load_textdomain(__CLASS__, SHOPP_LANG_DIR . '/' . __CLASS__ . '-' . get_locale() . '.mo');
 
 	}
 

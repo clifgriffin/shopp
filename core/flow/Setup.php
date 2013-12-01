@@ -298,20 +298,20 @@ class ShoppAdminSetup extends ShoppAdminController {
 
 		$downloads = array('1','2','3','5','10','15','25','100');
 		$time = array(
-			'1800' => __('30 minutes','Shopp'),
-			'3600' => __('1 hour','Shopp'),
-			'7200' => __('2 hours','Shopp'),
-			'10800' => __('3 hours','Shopp'),
-			'21600' => __('6 hours','Shopp'),
-			'43200' => __('12 hours','Shopp'),
-			'86400' => __('1 day','Shopp'),
-			'172800' => __('2 days','Shopp'),
-			'259200' => __('3 days','Shopp'),
-			'604800' => __('1 week','Shopp'),
-			'2678400' => __('1 month','Shopp'),
-			'7952400' => __('3 months','Shopp'),
-			'15901200' => __('6 months','Shopp'),
-			'31536000' => __('1 year','Shopp'),
+			'1800' => Shopp::__('%d minutes', 30),
+			'3600' => Shopp::__('%d hour', 1),
+			'7200' => Shopp::__('%d hours', 2),
+			'10800' => Shopp::__('%d hours', 3),
+			'21600' => Shopp::__('%d hours', 6),
+			'43200' => Shopp::__('%d hours', 12),
+			'86400' => Shopp::__('%d day', 1),
+			'172800' => Shopp::__('%d days', 2),
+			'259200' => Shopp::__('%d days', 3),
+			'604800' => Shopp::__('%d week', 1),
+			'2678400' => Shopp::__('%d month', 1),
+			'7952400' => Shopp::__('%d months', 3),
+			'15901200' => Shopp::__('%d months', 6),
+			'31536000' => Shopp::__('%d year', 1),
 		);
 
 		if ( ! empty($_POST['save']) ) {

@@ -125,9 +125,9 @@ class ShoppAdminAccount extends ShoppAdminController {
 					if (sDB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
 						$Customer->wpuser = $newlogin->ID;
 						$updated = sprintf(__('Updated customer login to %s.','Shopp'),"<strong>$newlogin->user_login</strong>");
-					} else $updated = sprintf(__('Could not update customer login to "%s" because that user is already assigned to another customer.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+					} else $updated = sprintf(__('Could not update customer login to &quot;%s&quot; because that user is already assigned to another customer.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
 
-				} else $updated = sprintf(__('Could not update customer login to "%s" because the user does not exist in WordPress.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+				} else $updated = sprintf(__('Could not update customer login to &quot;%s&quot; because the user does not exist in WordPress.','Shopp'),'<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
 			}
 
 			if (!empty($_POST['new-password']) && !empty($_POST['confirm-password'])
@@ -148,9 +148,9 @@ class ShoppAdminAccount extends ShoppAdminController {
 				$return = $Customer->create_wpuser();
 
 				if ( $return ) {
-					$updated = sprintf( __( 'The Shopp and WordPress accounts have been created with the username "%s".', 'Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+					$updated = sprintf( __( 'The Shopp and WordPress accounts have been created with the username &quot;%s&quot;.', 'Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
 				} else {
-					$updated = sprintf( __( 'Could not create a WordPress account for customer "%s".','Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
+					$updated = sprintf( __( 'Could not create a WordPress account for customer &quot;%s&quot;.','Shopp'), '<strong>'.sanitize_user($_POST['userlogin']).'</strong>');
 				}
 			}
 			elseif ($new_customer && ( !$valid_email || !$password ) ) {

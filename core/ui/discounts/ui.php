@@ -71,7 +71,7 @@ function rules_meta_box ($Promotion) {
 	if (empty($Promotion->search)) $Promotion->search = "all";
 
 	$logic = '<select name="search" class="small">';
-	$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->search,true);
+	$logic .= menuoptions(array('any' => Shopp::__('any'),'all' => strtolower(Shopp::__('All'))), $Promotion->search, true);
 	$logic .= '</select>';
 
 ?>

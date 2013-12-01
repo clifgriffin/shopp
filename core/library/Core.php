@@ -144,7 +144,7 @@ abstract class ShoppCore {
 	 * @return string The translated text
 	 **/
 	public static function translate ( $text, $context = null ) {
-		$domain = __CLASS__;
+		$domain = 'Shopp';
 
 		if ( is_null($context) ) $string = translate( $text, $domain );
 		else $string = translate_with_gettext_context($text, $context, $domain);

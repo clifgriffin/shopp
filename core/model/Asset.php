@@ -127,7 +127,7 @@ class FileAsset extends ShoppMetaObject {
 	 * @since 1.1
 	 **/
 	public function &engine () {
-		$Shopp = Shopp::object();
+		global $Shopp; // Must remain global reference, not singleton to prevent loading core plugin in image server context
 
 		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines;
 		$StorageEngines = $Shopp->Storage;
@@ -568,7 +568,7 @@ class DownloadAsset extends FileAsset {
 
 	public function download ($dkey=false) {
 		$found = $this->found();
-		if (!$found) return new ShoppError(sprintf(__('Download failed. "%s" could not be found.','Shopp'),$this->name),'false');
+		if ( ! $found ) return shopp_add_error(Shopp::__('Download failed. &quot;%s&quot; could not be found.', $this->name), 'false');
 
 		add_action('shopp_download_success',array($this,'downloaded'));
 
@@ -602,7 +602,7 @@ class DownloadAsset extends FileAsset {
 		$this->send();	// Send the file data using the storage engine
 
 		flush(); // Flush output to browser (to poll for connection)
-		if (connection_aborted()) return new ShoppError(__('Connection broken. Download attempt failed.','Shopp'),'download_failure',SHOPP_COMM_ERR);
+		if ( connection_aborted() ) return shopp_add_error(Shopp::__('Connection broken. Download attempt failed.'), SHOPP_COMM_ERR);
 
 		return true;
 	}

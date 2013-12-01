@@ -26,7 +26,7 @@
 	            	<?php _e('Select your primary business location.','Shopp'); ?><br />
 					<?php if (!empty($operations['country'])): ?>
 		            <strong><?php _e('Currency','Shopp'); ?>: </strong><?php echo Shopp::money(1000.00); ?>
-					<?php if (shopp_setting_enabled('tax_inclusive')): ?><strong>(+<?php _e('tax','Shopp'); ?>)</strong><?php endif; ?>
+					<?php if (shopp_setting_enabled('tax_inclusive')): ?><strong>(+<?php echo strtolower(Shopp::__('Tax')); ?>)</strong><?php endif; ?>
 					<?php endif; ?>
 				</td>
 			</tr>

@@ -344,7 +344,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 					$this->form( $Purchase ) .
 					'<h1>' . $title . '</h1>' .
 					'<noscript>' .
-					'<p>' . Shopp::__('Click the "Checkout with PayPal" button below to submit your order to PayPal for payment processing:') . '</p>' .
+					'<p>' . Shopp::__('Click the &quot;Checkout with PayPal&quot; button below to submit your order to PayPal for payment processing:') . '</p>' .
 					'<p>' . join('', $this->submit()) . '</p>' .
 					'</noscript>' .
 					'</form>' .

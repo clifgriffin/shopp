@@ -291,10 +291,11 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 
 	public static function targets () {
 		$targets = apply_filters('shopp_discount_targets', array(
-			'Catalog' => Shopp::__('product'),
-			'Cart' => Shopp::__('cart'),
-			'Cart Item' => Shopp::__('cart')
+			'Catalog' => Shopp::__('Product'),
+			'Cart' => Shopp::__('Cart'),
+			'Cart Item' => Shopp::__('Cart')
 		));
+		$targets = array_map('strtolower', $targets);
 		echo json_encode($targets);
 	}
 
