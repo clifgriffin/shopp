@@ -18,7 +18,7 @@
 	<?php if ( shopp( 'purchase.notpaid' ) ) : ?>
 		<p><?php _e( 'Your order has been received but the payment has not yet completed processing.', 'Shopp' ); ?></p>
 
-		<?php if ( shopp( 'checkout.offline-instructions', 'return=1' ) ) : ?>
+		<?php if ( shopp( 'checkout.get-offline-instructions' ) ) : ?>
 			<p><?php shopp( 'checkout.offline-instructions' ); ?></p>
 		<?php endif; ?>
 
