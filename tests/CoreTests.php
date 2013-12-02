@@ -116,13 +116,13 @@ class CoreTests extends ShoppTestCase {
 
 		$translation = Shopp::translate('Some of the colonists objected to having an anatomically correct android running around without any clothes on');
 		$this->assertTrue($translation === self::TRANSLATED);
-		$this->assertTrue($this->domain === 'ShoppCore');
+		$this->assertTrue($this->domain === 'Shopp');
 		$this->assertEmpty($this->context);
 
 		$translation = Shopp::translate("Who knows if we're even dead or alive?", "Geordi La Forge's philosophy");
 		$this->assertTrue($translation === self::TRANSLATED);
 		$this->assertTrue($this->context === "Geordi La Forge's philosophy");
-		$this->assertTrue($this->domain === 'ShoppCore');
+		$this->assertTrue($this->domain === 'Shopp');
 	}
 
 	/**
@@ -162,7 +162,7 @@ class CoreTests extends ShoppTestCase {
 		$translation = Shopp::_x($string, $context, $part);
 		$this->assertTrue( $translation === self::TRANSLATED );
 		$this->assertTrue( $this->context === $context );
-		$this->assertTrue( $this->domain === 'ShoppCore' );
+		$this->assertTrue( $this->domain === 'Shopp' );
 	}
 
 	public function test__m() {
@@ -206,7 +206,7 @@ class CoreTests extends ShoppTestCase {
 		$translation = Shopp::_mx($string, $context, $part);
 		$this->assertEquals( self::TRANSLATED, current($translation)->gist );
 		$this->assertTrue( $this->context === $context );
-		$this->assertTrue( $this->domain === 'ShoppCore' );
+		$this->assertTrue( $this->domain === 'Shopp' );
 
 		// Confirm Markdown-like functionality
 		$string = 'For that reason great efforts had been made to acquire _%s_ language, and _considerable progress_ had been effected in that direction.';
@@ -243,7 +243,7 @@ class CoreTests extends ShoppTestCase {
 		$this->setup_translation_filters();
 		$this->domain = '';
 		$this->assertEquals( 'Tuesday December', Shopp::_d('l F', $hogmanay_2013) ); // Our translation filter is "run once" so we expect the final string output here to actually be the same
-		$this->assertEquals( 'ShoppCore', $this->domain );
+		$this->assertEquals( 'Shopp', $this->domain );
 	}
 
 	public function test__jse() {
