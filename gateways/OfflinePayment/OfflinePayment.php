@@ -155,17 +155,18 @@ class ShoppOfflinePayment extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_offline_payment_instructions', 'wpautop');
 
 		$paymethod = shopp('purchase','get-paymethod');
-		$Order = ShoppOrder();
-		if ( ! isset($Order->payoptions[ $paymethod ]) ) return;
+		$Payments = ShoppOrder()->Payments;
 
-		$method = $Order->payoptions[ $paymethod ]->setting;
-		list($module, $id) = explode('-', $method);
+		if ( ! $Payments->exists($paymethod) ) return false;
 
-		if ( ! isset($this->settings[ $id ]) ) return;
+		$Paymethod = $Payments->get($paymethod);
+		list($module, $id) = explode('-', $Paymethod->setting);
+
+		if ( ! isset($this->settings[ $id ]) ) return false;
 
 		$settings = $this->settings[ $id ];
 
-		if(!empty($settings['instructions']))
+		if ( ! empty($settings['instructions']) )
 			return apply_filters('shopp_offline_payment_instructions', $settings['instructions']);
 
 		return false;

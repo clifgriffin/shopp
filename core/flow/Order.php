@@ -414,6 +414,7 @@ class ShoppOrder {
 		$paycard = Lookup::paycard($this->Billing->cardtype);
 		$this->Billing->cardtype = ! $paycard ? $this->Billing->cardtype : $paycard->name;
 
+		$Paymethod = $this->Payments->selected();
 		$shipoption = $this->Shiprates->selected();
 
 		if ( empty($this->inprogress) ) {
@@ -437,6 +438,7 @@ class ShoppOrder {
 		$Purchase->copydata($this->Shipping, 'ship');
 		$Purchase->copydata($this->Cart->Totals->data());
 		$Purchase->subtotal = $Purchase->order; // Remap order to subtotal
+		$Purchase->paymethod = $Paymethod->slug;
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
 		$Purchase->freight = $this->Cart->total('shipping');
@@ -793,8 +795,9 @@ class ShoppOrder {
 	 * Provides the currently selected payment method
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.3
+	 * @since 1.2
 	 *
+	 * @deprecated ShoppOrder::paymethod(); Use ShoppOrder()->Payments->selected()
 	 * @return ShoppPaymentOption The selected payment option
 	 **/
 	public function paymethod () {
