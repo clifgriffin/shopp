@@ -532,6 +532,7 @@ class ShoppAdminService extends ShoppAdminController {
 			$Customer = new ShoppCustomer((int)$_GET['customerid']);
 			if ( (int)$Customer->id > 0) {
 				$Purchase->copydata($Customer);
+				$Purchase->customer = $Customer->id;
 				$Purchase->save();
 			} else $this->notice(__('The selected customer was not found.','Shopp'),'error');
 		}

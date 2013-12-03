@@ -470,16 +470,16 @@ function contact_meta_box ($Purchase) {
 		$s = isset($_REQUEST['s']) ? $_REQUEST['s'] : false;
 		ob_start();
 		if ( isset($_POST['select-customer']) && empty($s) )
-			$searchurl = wp_nonce_url(ShoppAdminController::url( array('id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
-		else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
+			$searchurl = wp_nonce_url(ShoppAdminController::url( array('page' => $page, 'id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
+		else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'page' => $page, 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
 		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
 		if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
 	?>
-	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>><input type="hidden" name="change-customer" value="true" /><input type="hidden" name="action" value="shopp_select_customer" /><?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?><p><input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" /></p>
+	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>><input type="hidden" name="change-customer" value="true" /><input type="hidden" name="action" value="shopp_select_customer" /><input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" /><?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?><p><input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" /></p>
 	</form>
 	<?php if ( $iframe ): ?>
 	<iframe id="customer-search-results" name="customer-search-results" src="<?php echo esc_url($searchurl); ?>"></iframe>
-	<form action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
+	<form action="<?php echo ShoppAdminController::url(array('page' => $page, 'id' => (int)$Purchase->id)); ?>" method="POST">
 	<div><input type="submit" id="cancel-change-customer" name="cancel-change-customer" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" /></div>
 	</form>
 	<?php endif; ?>
@@ -525,7 +525,7 @@ function contact_meta_box ($Purchase) {
 			<input type="hidden" id="edit-customer-data" value="<?php
 				echo esc_attr(json_encode($customer));
 			?>" />
-			<input type="hidden" name="page" value="<?php $pre = 'page_'; $screen = get_current_screen(); echo substr($screen->id,strpos($screen->id,$pre)+strlen($pre)); ?>" />
+			<input type="hidden" name="page" value="<?php echo $page; ?>" />
 			<input type="hidden" name="id" value="<?php echo $Purchase->id; ?>" />
 			<input type="submit" id="edit-customer" name="edit-customer" value="<?php _e('Edit','Shopp'); ?>" class="button-secondary button-edit" />
 		</form>
