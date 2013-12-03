@@ -48,6 +48,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'data' => 'data',
 		'date' => 'date',
 		'discount' => 'discount',
+		'discountlist' => 'discount_list',
 		'email' => 'email',
 		'emailfrom' => 'email_from',
 		'emailsubject' => 'email_subject',
@@ -92,7 +93,6 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'paymethod' => 'paymethod',
 		'phone' => 'phone',
 		'postcode' => 'postcode',
-		'promolist' => 'promo_list',
 		'gateway' => 'gateway',
 		'receipt' => 'receipt',
 		'shipping' => 'shipping',
@@ -115,6 +115,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		'url' => 'url',
 		'xaddress' => 'xaddress',
 
+		'promolist' => 'discount_list', // @deprecated purchase.promo-list replaced by purchase.discount-list
 		'freight' => 'shipping', // @deprecated purchase.freight replaced by purchase.shipping
 		'hasfreight' => 'has_shipping', // @deprecated purchase.has-freight replaced by purchase.has-shipping
 
@@ -580,12 +581,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return esc_html($O->postcode);
 	}
 
-	public static function promo_list ( $result, $options, $O ) {
-		$output = "";
-		if (!empty($O->promos)) {
+	public static function discount_list ( $result, $options, $O ) {
+		$output = '';
+		$discounts = $O->discounts();
+		if ( ! empty($discounts) ) {
 			$output .= '<ul>';
-			foreach ($O->promos as $promo)
-				$output .= '<li>'.$promo.'</li>';
+			foreach ( $discounts as $id => $Discount )
+				$output .= '<li>' . esc_html($Discount->name) . '</li>';
 			$output .= '</ul>';
 		}
 		return $output;
