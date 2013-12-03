@@ -106,7 +106,7 @@
 					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
-				<?php if (abs($Purchase->discount) > 0): ?>
+				<?php if ( $Purchase->discounts() ): ?>
 				<tr class="totals">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->discount); ?>
