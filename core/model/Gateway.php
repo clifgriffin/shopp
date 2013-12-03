@@ -262,7 +262,7 @@ abstract class GatewayFramework {
 
 		if ( ! in_array($response['code'], $this->codes) ) {
 			$error = Lookup::errors('gateway','http-'.$response['code']);
-			if (empty($error)) $error = Lookup::errors('gateway','http-unkonwn');
+			if (empty($error)) $error = Lookup::errors('gateway','http-unknown');
 			new ShoppError($this->name.": $error",'gateway_comm_err',SHOPP_COMM_ERR);
 			return false;
 		}
