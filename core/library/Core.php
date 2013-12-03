@@ -1159,7 +1159,7 @@ abstract class ShoppCore {
 	 * @return string The full template file path, if one is located
 	 **/
 	public static function locate_template ($template_names, $load = false, $require_once = false ) {
-		if ( !is_array($template_names) ) return '';
+		if ( ! is_array($template_names) ) return '';
 
 		$located = '';
 
@@ -1170,18 +1170,22 @@ abstract class ShoppCore {
 
 		if ('' == $located) {
 			foreach ( $template_names as $template_name ) {
-				if ( !$template_name ) continue;
+				if ( ! $template_name ) continue;
 
-				if ( file_exists(SHOPP_PATH . '/templates' . '/' . $template_name)) {
-					$located = SHOPP_PATH . '/templates' . '/' . $template_name;
+				if ( file_exists(SHOPP_PATH . '/templates/' . $template_name)) {
+					$located = SHOPP_PATH . '/templates/' . $template_name;
 					break;
 				}
 
 			}
 		}
 
-		if ( $load && '' != $located )
+		if ( $load && '' != $located ) {
+			$context = ShoppStorefront::intemplate();
+			ShoppStorefront::intemplate($located);
 			load_template( $located, $require_once );
+			ShoppStorefront::intemplate($context);
+		}
 
 		return $located;
 	}
@@ -1692,8 +1696,11 @@ abstract class ShoppCore {
 			$templatefile = $template;
 
 			// Include to parse the PHP and Theme API tags
+
 			ob_start();
-			include($templatefile);
+			ShoppStorefront::intemplate($templatefile);
+			include $templatefile;
+			ShoppStorefront::intemplate('');
 			$template = ob_get_clean();
 
 			if ( empty($template) )

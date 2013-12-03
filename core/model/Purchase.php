@@ -660,15 +660,19 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	// Display a sales receipt
-	public function receipt ($template='receipt.php') {
-		if (empty($this->purchased)) $this->load_purchased();
+	public function receipt ( $template = 'receipt.php' ) {
+		if ( empty($this->purchased) ) $this->load_purchased();
+
+		if ( 'receipt.php' == $template) { // If not overridden
+			$context = ShoppStorefront::intemplate(); // Set receipt context
+			if ( false !== $context ) $template = "receipt-$context";
+		}
 
 		ob_start();
-		locate_shopp_template(array($template,'receipt.php'),true);
-		$content = ob_get_contents();
-		ob_end_clean();
+		locate_shopp_template(array($template, 'receipt.php'), true);
+		$content = ob_get_clean();
 
-		return apply_filters('shopp_order_receipt',$content);
+		return apply_filters('shopp_order_receipt', $content);
 	}
 
 	public function save () {

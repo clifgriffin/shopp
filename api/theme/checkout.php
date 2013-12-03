@@ -406,14 +406,19 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	public static function cart_summary ( $result, $options, $O ) {
+
+		$templates = array('summary.php');
+		$context = ShoppStorefront::intemplate(); // Set summary context
+		if ( false !== $context ) // Prepend the summary-context.php template file
+			array_unshift($templates, "summary-$context");
+
 		ob_start();
-		locate_shopp_template(array('summary.php'), true);
+		locate_shopp_template($templates, true);
 		$content = ob_get_clean();
 
 		// If inside the checkout form, strip the extra <form> tag so we don't break standards
 		// This is ugly, but necessary given the different markup contexts the cart summary is used in
-		$Storefront = ShoppStorefront();
-		if ( false !== $Storefront && $Storefront->checkout )
+		if ( 'checkout.php' == $context )
 			$content = preg_replace('/<\/?form.*?>/', '', $content);
 
 		return $content;
@@ -830,8 +835,10 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	}
 
 	public static function receipt ( $result, $options, $O ) {
-		$Shopp = Shopp::object();
-		if (!empty($Shopp->Purchase->id)) return $Shopp->Purchase->receipt();
+		$Purchase = ShoppPurchase();
+		if ( ! $Purchase ) return false;
+		if ( ! $Purchase->exists() ) return false;
+		return $Purchase->receipt();
 	}
 
 	public static function residential_shipping_address ( $result, $options, $O ) {

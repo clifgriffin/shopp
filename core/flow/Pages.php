@@ -67,8 +67,8 @@ class ShoppPages extends ListFramework {
 	}
 
 	public function requested () {
-		if ( ! isset($this->slugs[ $this->request() ]) ) return false;
-		$pagename = $this->slugs[ $this->request() ];
+		if ( ! isset($this->slugs[ ShoppPages::request() ]) ) return false;
+		$pagename = $this->slugs[ ShoppPages::request() ];
 		return $this->get( $pagename );
 	}
 
@@ -301,8 +301,8 @@ class ShoppCatalogPage extends ShoppPage {
 
 		ob_start();
 		locate_shopp_template(array('catalog.php'), true);
-		$content = ob_get_contents();
-		ob_end_clean();
+		$content = ob_get_clean();
+
 		return apply_filters('shopp_catalog_template', $content);
 
 	}
@@ -365,14 +365,13 @@ class ShoppAccountPage extends ShoppPage {
 		if ( ! $request) $request = ShoppStorefront()->account['request'];
 		$templates = array('account-'.$request.'.php', 'account.php');
 
-		if ('login' == $request || !ShoppCustomer()->loggedin()) $templates = array('login-'.$request.'.php', 'login.php');
+		if ('login' == $request || !ShoppCustomer()->loggedin()) $templates = array('login.php');
 
 		ob_start();
 		if ( apply_filters('shopp_show_account_errors', true) && ShoppErrors()->exist(SHOPP_AUTH_ERR) )
-			echo ShoppStorefront::errors(array('account-errors.php', 'errors.php'));
+			echo ShoppStorefront::errors(array("errors-$context", 'account-errors.php', 'errors.php'));
 		locate_shopp_template($templates, true);
-		$content = ob_get_contents();
-		ob_end_clean();
+		$content = ob_get_clean();
 
 		// Suppress the #shopp div for sidebar widgets
 		if ($widget) $content = '<!-- id="shopp" -->'.$content;
@@ -412,7 +411,7 @@ class ShoppAccountPage extends ShoppPage {
 		}
 
 		// return errors
-		if (!empty($errors)) return;
+		if ( ! empty($errors) ) return;
 
 		// Generate new key
 		$RecoveryCustomer->activation = wp_generate_password(20, false);
@@ -547,7 +546,7 @@ class ShoppCartPage extends ShoppPage {
 
 		$Errors = ShoppErrorStorefrontNotices();
 		if ( $Errors->exist() )
-			echo ShoppStorefront::errors();
+			echo ShoppStorefront::errors(array('errors-cart.php', 'errors.php'));
 
 		locate_shopp_template(array('cart.php'), true);
 
@@ -591,19 +590,16 @@ class ShoppCheckoutPage extends ShoppPage {
 		$Errors = ShoppErrors();
 
 		do_action('shopp_init_checkout');
-		ShoppStorefront()->checkout = true;
 
 		ob_start();
 
 		$Errors = ShoppErrorStorefrontNotices();
 		if ( $Errors->exist() )
-			echo ShoppStorefront::errors();
+			echo ShoppStorefront::errors(array('errors-checkout.php', 'errors.php'));
 
 		locate_shopp_template(array('checkout.php'), true);
 
 		$content = ob_get_clean();
-
-		ShoppStorefront()->checkout = false;
 
 		return apply_filters('shopp_checkout_page', $content);
 	}
@@ -653,7 +649,7 @@ class ShoppConfirmPage extends ShoppPage {
 		ob_start();
 		ShoppStorefront()->_confirm_page_content = true;
 		if ( $Errors->exist(SHOPP_COMM_ERR) )
-			echo ShoppStorefront::errors();
+			echo ShoppStorefront::errors(array('errors-confirm.php', 'errors.php'));
 
 		locate_shopp_template(array('confirm.php'), true);
 		$content = ob_get_contents();

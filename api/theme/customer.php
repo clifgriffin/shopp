@@ -591,18 +591,16 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function submit_login ( $result, $options, $O ) {
-		if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
+		if ( ! isset($options['value']) ) $options['value'] = __('Login', 'Shopp');
 		$string = "";
 		$id = "submit-login";
 
-		$request = $_GET;
-		if (isset($request['acct']) && $request['acct'] == "logout") unset($request['acct']);
-
-		if (ShoppStorefront()->checkout) {
+		$context = ShoppStorefront::intemplate();
+		if ( 'checkout.php' == $context ) {
 			$id .= "-checkout";
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="redirect" value="'.esc_attr(Shopp::url($request,'account',ShoppOrder()->security())).'" />';
-		$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
+		} else $string .= '<input type="hidden" name="redirect" value="' . esc_attr(Shopp::url($request, 'account', ShoppOrder()->security())) . '" />';
+		$string .= '<input type="submit" name="submit-login" id="' . $id . '"' . inputattrs($options) . ' />';
 		return $string;
 	}
 

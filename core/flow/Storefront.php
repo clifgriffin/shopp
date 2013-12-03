@@ -25,7 +25,6 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppStorefront extends ShoppFlowController {
 
 	public $behaviors = array();	// Runtime JavaScript behaviors
-	public $checkout = false;		// Flags when the checkout form is being processed
 	public $searching = false;		// Flags if a search request has been made
 	public $Requested = false;		// Property for tracking the originally requested content
 
@@ -39,6 +38,8 @@ class ShoppStorefront extends ShoppFlowController {
 	public $browsing = array();		// Browsing session settings (sortorder, current page slug)
 	public $referrer = false;		// The referring page
 	public $viewed = array();		// List of recent products viewed by customer
+
+	static $template = '';			// Content template context
 
 	public function __construct () {
 
@@ -1021,6 +1022,21 @@ class ShoppStorefront extends ShoppFlowController {
 	}
 
 	/**
+	 * Report on the currently loading template
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return string The template file being loaded
+	 **/
+	public static function intemplate ( string $template = null ) {
+		if ( isset($template) )
+			self::$template = basename($template);
+		if ( empty(self::$template) ) return false;
+		return self::$template;
+	}
+
+	/**
 	 * Wraps mark-up in a #shopp container, if needed
 	 *
 	 * @author Jonathan Davis
@@ -1075,12 +1091,13 @@ class ShoppStorefront extends ShoppFlowController {
 	 *
 	 * @return string The processed errors.php template file
 	 **/
-	static function errors ( $template = 'errors.php' ) {
+	static function errors ( array $templates = array('errors.php') ) {
+
 		ob_start();
-		locate_shopp_template( (array)$template, true );
-		$content = ob_get_contents();
-		ob_end_clean();
+		locate_shopp_template( $templates, true );
+		$content = ob_get_clean();
+
 		return apply_filters('shopp_storefront_errors', $content);
 	}
 
-} // END class ShoppStorefront
+}
