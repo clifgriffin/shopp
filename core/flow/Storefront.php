@@ -1032,7 +1032,7 @@ class ShoppStorefront extends ShoppFlowController {
 	public static function intemplate ( string $template = null ) {
 		if ( isset($template) )
 			self::$template = basename($template);
-		if ( empty(self::$template) ) return false;
+		if ( empty(self::$template) ) return '';
 		return self::$template;
 	}
 

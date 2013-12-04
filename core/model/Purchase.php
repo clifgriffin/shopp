@@ -663,9 +663,10 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	public function receipt ( $template = 'receipt.php' ) {
 		if ( empty($this->purchased) ) $this->load_purchased();
 
-		if ( 'receipt.php' == $template) { // If not overridden
+		if ( 'receipt.php' == $template ) { // If not overridden
 			$context = ShoppStorefront::intemplate(); // Set receipt context
-			if ( false !== $context ) $template = "receipt-$context";
+			if ( ! empty($context) )
+				$template = "receipt-$context";
 		}
 
 		ob_start();

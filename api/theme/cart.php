@@ -174,7 +174,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function discount ( $result, $options, $O ) {
-		return abs($O->Totals->total('discount'));
+		return abs($O->total('discount'));
 	}
 
 	public static function discount_applied ( $result, $options, $O ) {
@@ -276,7 +276,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_discount ( $result, $options, $O ) {
-		return ( abs($O->Totals->total('discount')) > 0 );
+		return ( abs($O->total('discount')) > 0 );
 	}
 
 	public static function has_discounts ( $result, $options, $O ) {
@@ -296,7 +296,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_ship_costs ( $result, $options, $O ) {
-		return ($O->Totals->total('shipping') > 0);
+		return ($O->total('shipping') > 0);
 	}
 
 	public static function has_shipped ( $result, $options, $O ) {
@@ -309,7 +309,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_taxes ( $result, $options, $O ) {
-		return ($O->Totals->total('tax') > 0);
+		return ($O->total('tax') > 0);
 	}
 
 	public static function items ( $result, $options, $O ) {
@@ -347,12 +347,12 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function shipped_items ( $result, $options, $O ) {
-		if (!isset($O->_shipped_loop)) {
+		if ( ! isset($O->_shipped_loop) ) {
 			reset($O->shipped);
 			$O->_shipped_loop = true;
 		} else next($O->shipped);
 
-		if (current($O->shipped)) return true;
+		if ( current($O->shipped) ) return true;
 		else {
 			unset($O->_shipped_loop);
 			reset($O->shipped);
@@ -366,16 +366,16 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			$options['currency'] = "false";
 			if ( ShoppOrder()->Shiprates->free() ) {
 				$result = shopp_setting('free_shipping_text');
-				if ( empty($result) ) $result = __('Free Shipping!','Shopp');
+				if ( empty($result) ) $result = Shopp::__('Free Shipping!');
 			}
 
 			else $result = $options['label'];
 		} else {
-			if ( false === $O->Totals->total('shipping') )
-				return __("Enter Postal Code","Shopp");
+			if ( false === $O->total('shipping') )
+				return Shop::__('Enter Postal Code');
 			elseif ( false === $O->total('shipping') )
-				return __("Not Available","Shopp");
-			else $result = $O->Totals->total('shipping');
+				return Shopp::__('Not Available');
+			else $result = $O->total('shipping');
 		}
 		return $result;
 	}
@@ -394,7 +394,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		$markets = shopp_setting('target_markets');
 		$Shipping = ShoppOrder()->Shipping;
 
-		if (empty($markets)) return '';
+		if ( empty($markets) ) return '';
 
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		if ( ! empty($Shipping->country) ) $selected = $Shipping->country;
@@ -425,15 +425,15 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function sidecart ( $result, $options, $O ) {
 		if ( ! shopp_setting_enabled('shopping_cart') ) return '';
+
 		ob_start();
 		locate_shopp_template(array('sidecart.php'), true);
-		$content = ob_get_contents();
-		ob_end_clean();
-		return $content;
+		return ob_get_clean();
+
 	}
 
 	public static function subtotal ( $result, $options, $O ) {
-		return $O->Totals->total('order');
+		return $O->total('order');
 	}
 
 	public static function tax ( $result, $options, $O ) {
@@ -445,12 +445,12 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 		if ( ! empty($label) ) return $label;
 
-		return (float) $O->Totals->total('tax');
+		return (float) $O->total('tax');
 
 	 }
 
 	public static function total ( $result, $options, $O ) {
-		return $O->Totals->total();
+		return $O->total();
 	}
 
 	public static function total_items ( $result, $options, $O ) {
@@ -462,7 +462,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function total_quantity ( $result, $options, $O ) {
-	 	return $O->Totals->total('quantity');
+	 	return $O->total('quantity');
 	}
 
 	public static function update_button ( $result, $options, $O ) {
@@ -495,7 +495,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			$total += $item->option->price * $item->quantity;
 		}
 
-		return $total - ( $O->Totals->total('order') + $O->Totals->total('discount') );
+		return $total - ( $O->total('order') + $O->total('discount') );
 	}
 
 }

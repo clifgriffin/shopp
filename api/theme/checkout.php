@@ -409,7 +409,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		$templates = array('summary.php');
 		$context = ShoppStorefront::intemplate(); // Set summary context
-		if ( false !== $context ) // Prepend the summary-context.php template file
+		if ( ! empty($context) ) // Prepend the summary-context.php template file
 			array_unshift($templates, "summary-$context");
 
 		ob_start();
