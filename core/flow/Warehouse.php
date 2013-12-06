@@ -344,7 +344,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		$lowstock = shopp_setting('lowstock_level');
-		$taxrate = shopp_setting_enabled('tax_inclusive') ? Shopp::taxrate() : 0;
 
 		// Setup queries
 		$pd = WPDatabaseObject::tablename(ShoppProduct::$table);
@@ -685,19 +684,19 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		// For inclusive taxes, add tax to base product price (so tax is part of the price)
 		// This has to take place outside of ShoppProduct::pricing() so that the summary system
 		// doesn't cache the results causing strange/unexpected price jumps
-		if ( shopp_setting_enabled('tax_inclusive') && ! Shopp::str_true($Product->excludetax) ) {
-			foreach ($Product->prices as &$price) {
-				if ( ! Shopp::str_true($price->tax) ) continue;
-
-				$taxes = array();
-				$Tax = new ShoppTax();
-				$Tax->address(ShoppOrder()->Billing);
-				$Tax->rates($taxes, $Tax->item($Product));
-
-				$price->price += ShoppTax::calculate($taxes, $price->price);
-				$price->saleprice += ShoppTax::calculate($taxes, $price->saleprice);
-			}
-		}
+		// if ( shopp_setting_enabled('tax_inclusive') && ! Shopp::str_true($Product->excludetax) ) {
+		// 	foreach ($Product->prices as &$price) {
+		// 		if ( ! Shopp::str_true($price->tax) ) continue;
+		//
+		// 		$taxes = array();
+		// 		$Tax = new ShoppTax();
+		// 		$Tax->address(ShoppOrder()->Billing);
+		// 		$Tax->rates($taxes, $Tax->item($Product));
+		//
+		// 		$price->price += ShoppTax::calculate($taxes, $price->price);
+		// 		$price->saleprice += ShoppTax::calculate($taxes, $price->saleprice);
+		// 	}
+		// }
 
 		do_action('add_meta_boxes', ShoppProduct::$posttype, $Product);
 		do_action('add_meta_boxes_'.ShoppProduct::$posttype, $Product);
@@ -811,13 +810,9 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 			$Product->resum();
 
-			$taxrates = array();
-			$Tax = new ShoppTax();
-			$Tax->address(ShoppOrder()->Billing);
-			$Tax->rates($taxrates, $Tax->item($Product) );
-
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $priceline) {
+
 				if (empty($priceline['id'])) {
 					$Price = new ShoppPrice();
 					$priceline['product'] = $Product->id;
@@ -825,11 +820,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 				$priceline['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 
-				// Remove VAT amount to save in DB
-				if (shopp_setting_enabled('tax_inclusive') && !$excludetax && isset($priceline['tax']) && Shopp::str_true($priceline['tax'])) {
-					$priceline['price'] = ShoppTax::exclusive($taxrates, floatvalue($priceline['price']));
-					$priceline['saleprice'] = ShoppTax::exclusive($taxrates, floatvalue($priceline['saleprice']));
-				}
 				$priceline['shipfee'] = Shopp::floatval($priceline['shipfee']);
 				if (isset($priceline['recurring']['trialprice']))
 					$priceline['recurring']['trialprice'] = Shopp::floatval($priceline['recurring']['trialprice']);

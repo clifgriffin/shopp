@@ -524,19 +524,22 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	public static function item_total ( $result, $options, $O ) {
 		$item = current($O->purchased);
 
-		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
-		$amount = $item->total + ( $taxes ? $item->unittax * $item->quantity : 0 );
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
 
-		return (float) $amount;
+		$total = (float) $item->total;
+		$total = self::_taxes($total, $item, $taxes);
+		return (float) $total;
 	}
 
 	public static function item_unit_price ( $result, $options, $O ) {
 		$item = current($O->purchased);
 
-		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
-		$amount = $item->unitprice + ( $taxes ? $item->unittax : 0 );
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
 
-		return (float) $amount;
+		$unitprice = (float) $item->unitprice;
+		$unitprice = self::_taxes($unitprice, $item, $taxes);
+		return (float) $unitprice;
+
 	}
 
 	public static function last_name ( $result, $options, $O ) {
@@ -548,12 +551,12 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	public static function order_data ( $result, $options, $O ) {
-		if (!isset($O->_data_loop)) {
+		if ( ! isset($O->_data_loop) ) {
 			reset($O->data);
 			$O->_data_loop = true;
 		} else next($O->data);
 
-		if (current($O->data) !== false) return true;
+		if ( false !== current($O->data) ) return true;
 		else {
 			unset($O->_data_loop);
 			return false;
@@ -595,7 +598,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	public static function receipt ( $result, $options, $O ) {
 		$template = '';
-		if ( isset($options['template']) && !empty($options['template']) )
+		if ( isset($options['template']) && ! empty($options['template']) )
 			return $O->receipt($options['template']);
 		return $O->receipt();
 	}
@@ -697,8 +700,34 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		return esc_html($O->xaddress);
 	}
 
-	private static function _include_tax ( $O ) {
+	private static function _inclusive_taxes ( ShoppPurchase $O ) {
 		return ( 'inclusive' == $O->taxing );
+	}
+
+	/**
+	 * Helper to apply or exclude taxes from a single amount based on inclusive tax settings and the tax option
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param float $amount The amount to add taxes to, or exclude taxes from
+	 * @param ShoppProduct $O The product to get properties from
+	 * @param boolean $istaxed Whether the amount can be taxed
+	 * @param boolean $taxoption The Theme API tax option given the the tag
+	 * @param array $taxrates A list of taxrates that apply to the product and amount
+	 * @return float The amount with tax added or tax excluded
+	 **/
+	private static function _taxes ( $amount, ShoppPurchased $Item, $taxoption = null, $quantity = 1) {
+		// if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
+
+		$inclusivetax = self::_inclusive_taxes(ShoppPurchase());
+		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
+
+			if ( $taxoption ) $amount += ( $Item->unittax * $quantity );
+			else $amount = $amount -= ( $Item->unittax * $quantity );
+		}
+
+		return (float) $amount;
 	}
 
 }

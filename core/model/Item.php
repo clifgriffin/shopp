@@ -904,9 +904,9 @@ class ShoppCartItem {
 		// For all the price units (base product and any addons),
 		// distribute discounts across taxable amounts using weighted averages
 		$_ = array();
-		if ($this->unitprice > 0) {
+		if ( $this->unitprice > 0 ) {
 			$taxable = 0;
-   			foreach ($this->taxable as $amount)
+   			foreach ( $this->taxable as $amount )
    				$_[] = $amount - ( ($amount / $this->unitprice) * $this->discount );
 		}
 

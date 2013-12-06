@@ -668,7 +668,7 @@ class ShoppCart extends ListFramework {
 		$this->recurring = array();
 
 		// Clear the item registers
-		$this->Totals = new OrderTotals();
+		$this->Totals = new OrderTotals;
 
 	}
 

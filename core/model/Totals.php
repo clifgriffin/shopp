@@ -672,6 +672,13 @@ class OrderAmountTax extends OrderAmountDebit {
 		return (float) $this->rate;
 	}
 
+	public function column () {
+		// Do not add inclusive taxes to totals tally
+		if ( shopp_setting_enabled('tax_inclusive') )
+			return null;
+		return $this->column;
+	}
+
 }
 OrderTotalRegisters::register('OrderAmountTax');
 
@@ -690,6 +697,7 @@ class OrderAmountItemTax extends OrderAmountTax {
 	protected $label = '';
 
 	public function __construct ( ShoppItemTax &$Tax, string $itemid ) {
+
 		$this->items[ $itemid ] = &$Tax->total;
 		$this->label = &$Tax->label;
 		$this->rate = &$Tax->rate;

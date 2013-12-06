@@ -186,8 +186,12 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	public static function unitprice ( $result, $options, $O ) {
-		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
-		return (float) $O->unitprice + ( $taxes ? $O->unittax : 0 );
+
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
+
+		$unitprice = (float) $O->unitprice;
+		$unitprice = self::_taxes($unitprice, $O, $taxes);
+		return (float) $unitprice;
 	}
 
 	public static function unittax ( $result, $options, $O ) {
@@ -200,8 +204,12 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	}
 
 	public static function total ( $result, $options, $O ) {
-		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : self::_include_tax($O);
-		return (float) $O->total + ( $taxes ? ( $O->unittax * $O->quantity ) : 0 );
+		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
+
+		$total = (float) $O->total;
+		$total = self::_taxes($total, $O, $taxes, $O->quantity);
+
+		return (float) $total;
 	}
 
 	public static function taxrate ( $result, $options, $O ) {
@@ -496,13 +504,37 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return ( $O->option->promoprice * $O->quantity );
 	}
 
-	private static function _include_tax ( $O ) {
-		return (
-			shopp_setting_enabled('tax_inclusive') &&
-			$O->istaxed &&
-			$O->unittax > 0 &&
-			$O->includetax
-		);
+	private static function _inclusive_taxes ( ShoppCartItem $O ) {
+		return shopp_setting_enabled('tax_inclusive') && $O->includetax;
+	}
+
+	/**
+	 * Helper to apply or exclude taxes from a single amount based on inclusive tax settings and the tax option
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param float $amount The amount to add taxes to, or exclude taxes from
+	 * @param ShoppProduct $O The product to get properties from
+	 * @param boolean $istaxed Whether the amount can be taxed
+	 * @param boolean $taxoption The Theme API tax option given the the tag
+	 * @param array $taxrates A list of taxrates that apply to the product and amount
+	 * @return float The amount with tax added or tax excluded
+	 **/
+	private static function _taxes ( $amount, ShoppCartItem $O, $taxoption = null, $quantity = 1) {
+		// if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
+
+		if ( ! $O->istaxed ) return $amount;
+		if ( 0 == $O->unittax ) return $amount;
+
+		$inclusivetax = self::_inclusive_taxes($O);
+		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
+
+			if ( $taxoption ) $amount += ( $O->unittax * $quantity );
+			else $amount = $amount -= ( $O->unittax * $quantity );
+		}
+
+		return (float) $amount;
 	}
 
 }

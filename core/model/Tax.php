@@ -252,7 +252,7 @@ class ShoppTax {
 	private static function float ( $amount ) {
 		$base = shopp_setting('base_operations');
 		$format = $base['currency']['format'];
-		$format['precision'] = 3;
+		$format['precision'] = 6;
 		return Shopp::floatval($amount, true, $format);
 	}
 
@@ -270,18 +270,24 @@ class ShoppTax {
 
 		$compound = 0;
 		$total = 0;
+		$inclusive = shopp_setting_enabled('tax_inclusive');
 		foreach ( $rates as $label => $taxrate ) {
 
 			if ( is_null($taxrate->total) ) continue; 		// Skip taxes flagged to be removed from the item
 
 			$taxrate->amount = 0; // Reset the captured tax amount @see Issue #2430
 
-			$tax = $taxable * $taxrate->rate;				// Tax amount
+			// Calculate tax amount
+			if ( $inclusive ) $tax = $taxable - ( $taxable / (1 + $taxrate->rate) );
+			else $tax = $taxable * $taxrate->rate;
 
 			if ( $taxrate->compound ) {
 
 				if ( 0 == $compound ) $compound = $taxable;	// Set initial compound taxable amount
-				else $tax = ($compound * $taxrate->rate);	// Compounded tax amount
+				else {
+					if ( $inclusive ) $tax = $compound - ( $compound / (1 + $taxrate->rate) );
+					else $tax = ($compound * $taxrate->rate);	// Compounded tax amount
+				}
 
 				$compound += $tax;						 	// Set compound taxable amount for next compound rate
 			}

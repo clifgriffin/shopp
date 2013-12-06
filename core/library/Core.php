@@ -2043,35 +2043,6 @@ abstract class ShoppCore {
 	}
 
 	/**
-	 * Applies applicable tax rates to a taxable amount
-	 *
-	 * This is a helper for the Theme API tags to contextually determine when it
-	 * is appropriate to add taxes to the price display of a taxable amount
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return float
-	 **/
-	public static function applytax ( float $amount, array $rates, $taxable = true, $override = null ) {
-
-		if ( is_string($taxable) ) $taxable = self::str_true($taxable);
-		if ( is_string($override) ) $override = self::str_true($override);
-
-		if ( false === $taxable ) return $amount;
-
-		$inclusive = shopp_setting_enabled('tax_inclusive');
-
-		$tax = 0;
-		if ( true === $override || (is_null($override) && $inclusive) )
-			$tax = ShoppTax::calculate($rates, $amount);
-
-		return floatval($amount + $tax);
-
-	}
-
-
-	/**
 	 * Helper to prefix theme template file names
 	 *
 	 * @author Jonathan Davis
@@ -2081,7 +2052,7 @@ abstract class ShoppCore {
 	 * @return string Prefixed template file
 	 **/
 	public static function template_prefix ( string $name ) {
-		return apply_filters('shopp_template_directory', 'shopp').'/'.$name;
+		return apply_filters('shopp_template_directory', 'shopp') . '/' . $name;
 	}
 
 	/**
@@ -2120,7 +2091,7 @@ abstract class ShoppCore {
 	 * @param boolean $secure (optional) True for secure URLs, false to force unsecure URLs
 	 * @return string The final URL
 	 **/
-	public static function url ($request=false,$page='catalog',$secure=null) {
+	public static function url ( $request = false, $page = 'catalog', $secure = null ) {
 		global $wp_rewrite;
 
 		$prettyurls = $wp_rewrite->using_permalinks();

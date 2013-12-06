@@ -148,7 +148,7 @@
 						if ( Shopp::str_true($Product->sale) ) $classes[] = 'sale';
 					?>
 						<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php
-							shopp($Product, 'price');
+							shopp($Product, 'saleprice');
 							if ( Shopp::str_true($Product->sale) ) echo '&nbsp;<span class="shoppui-tag" title="' . Shopp::__('On Sale') . '"><span class="hidden">' . Shopp::__('On Sale') . '</span></span>';
 						?>
 						</td>
