@@ -227,10 +227,10 @@ class ShoppAjax {
 				$Category = new ProductCategory($_POST['id']);
 				if ( $slug == $Category->slug ) die('-1');
 				$term = get_term($Category->id,$Category->taxonomy);
-				$Category->slug = wp_unique_term_slug(sanitize_title_with_dashes($title),$term);
-				if ( $slug == $Category->slug ) die('-1');
-				elseif ( $slug ) $Category->slug = wp_unique_term_slug(sanitize_title_with_dashes($slug),$term);
+
+				$Category->slug = wp_unique_term_slug(sanitize_title_with_dashes($slug),$term);
 				$Category->save();
+
 				echo apply_filters('editable_slug',$Category->slug);
 				break;
 			case 'product':
