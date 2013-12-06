@@ -168,6 +168,9 @@ class ShoppInstallation extends ShoppFlowController {
 		// Process any database schema changes
 		$this->upschema();
 
+		// @todo Remove before release
+		if ( in_array($installed, array(1300,1301)) ) $installed = 1148;
+
 		if ( $installed < 1100 ) $this->upgrade_110();
 		if ( $installed < 1200 ) $this->upgrade_120();
 		if ( $installed < 1300 ) $this->upgrade_130();
@@ -1019,7 +1022,7 @@ class ShoppInstallation extends ShoppFlowController {
 	public function upgrade_130 () {
 		global $wpdb;
 
-		if ($db_version <= 1300) {
+		if ($db_version <= 1200) {
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
 			sDB::query("DELETE FROM $meta_table WHERE type='image' AND value LIKE '%O:10:\"ShoppError\"%'"); // clean up garbage from legacy bug
@@ -1037,11 +1040,56 @@ class ShoppInstallation extends ShoppFlowController {
 			foreach ($gateways as $name => $classname)
 				sDB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 
+			$activegateways = explode(',', shopp_setting('active_gateways'));
+			foreach ($activegateways as &$setting)
+				$setting = str_replace(array_keys($gateways),$gateways,$setting);
+			shopp_set_setting('active_gateways',join(',', $activegateways));
+
 			// Clean up category meta
 			// $category_meta = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');
 			// foreach ( $category_meta )
-
 		}
+
+		if ( $db_version <= 1200 && shopp_setting_enabled('tax_inclusive') ) {
+			error_log(__METHOD__);
+			$price_table = ShoppDatabaseObject::tablename('price');
+
+			$taxrates = shopp_setting('taxrates');
+			$baseop = shopp_setting('base_operations');
+
+			$taxtaxes = array();	// Capture taxonomy condition tax rates
+			$basetaxes = array();	// Capture base of operations rate(s)
+			foreach ( $taxrates as $rate ) {
+				if ( ! ( $baseop['country'] == $rate['country'] || ShoppTax::ALL == $rate['country'] ) ) continue;
+				if ( ! empty($rate['zone']) && $baseop['zone'] != $rate['zone'] ) continue;
+				if ( ! empty($rate['rules']) && $rate['logic'] == 'any' ) { // Capture taxonomy conditional rates
+					foreach ( $rate['rules'] as $raterule ) {
+						if ( 'product-category' == $raterule['p'] ) $taxname = ProductCategory::$taxon . '::'. $raterule['v'];
+						elseif ('product-tags' == $raterule['p'] ) $taxname = ProductTag::$taxon . '::'. $raterule['v'];
+						$taxtaxes[ $taxname ] = Shopp::floatval($rate['rate'])/100;
+					}
+				} else $basetaxes[] = Shopp::floatval($rate['rate'])/100;
+			}
+
+			// Find products by in each taxonomy term
+			$done = array(); // Capture each set into the "done" list
+			foreach ( $taxtaxes as $taxterm => $taxrate ) {
+				list($taxonomy, $name) = explode('::', $taxterm);
+				$Collection = new ProductCollection();
+				$Collection->load(array('ids' => true, 'taxquery' => array(array('taxonomy' => $taxonomy, 'field' => 'name', 'terms' => $name))));
+				$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product IN (" . join(',', $Collection->products). ")";
+				error_log($query);
+				sDB::query($query);
+				$done = array_merge($done, $Collection->products);
+			}
+
+			// Update the rest of the prices (skipping those we've already done) with the tax rate that matches the base of operations
+			$taxrate = array_sum($basetaxes); // Merge all the base taxes into a single rate
+			$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product NOT IN (" . join(',', $done) . ")";
+			error_log( $query);
+			sDB::query($query);
+		}
+
 	}
 
 }

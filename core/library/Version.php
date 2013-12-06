@@ -30,7 +30,7 @@ class ShoppVersion {
 	const CODENAME = 'Mars';
 
 	/** @type int DB The database schema version */
-	const DB = 1301;
+	const DB = 1200;
 
 	/**
 	 * Provides the full plugin release version string
