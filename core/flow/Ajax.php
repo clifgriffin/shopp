@@ -236,10 +236,11 @@ class ShoppAjax {
 			case 'product':
 				$Product = new ShoppProduct($_POST['id']);
 				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
-				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($title), $Product->id, $Product->status, ShoppProduct::posttype(), 0);
-				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
-				elseif ( $slug ) $Product->slug = wp_unique_term_slug(sanitize_title_with_dashes($slug), $term);
+
+				// Regardless of the true post status, we'll pass 'publish' here to ensure we get a unique slug back
+				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, 'publish', ShoppProduct::posttype(), 0);
 				$Product->save();
+
 				echo apply_filters('editable_slug', $Product->slug);
 				break;
 		}
