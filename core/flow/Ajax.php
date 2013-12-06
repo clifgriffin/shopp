@@ -209,7 +209,7 @@ class ShoppAjax {
 	 * @return void
 	 **/
 	public function edit_slug () {
-		check_admin_referer('wp_ajax_shopp_edit_slug');
+		check_admin_referer( 'wp_ajax_shopp_edit_slug' );
 
 		$defaults = array(
 			'slug' => false,
@@ -217,31 +217,31 @@ class ShoppAjax {
 			'id' => false,
 			'title' => false,
 		);
-		$p = array_merge($defaults,$_POST);
-		extract($p);
+		$p = array_merge( $defaults, $_POST );
+		extract( $p );
 
-		if ( false === $slug || false === $id) die('-1');
+		if ( false === $slug || false === $id ) die('-1');
 
 		switch ( $type ) {
 			case 'category':
-				$Category = new ProductCategory($_POST['id']);
+				$Category = new ProductCategory( $_POST['id'] );
 				if ( $slug == $Category->slug ) die('-1');
-				$term = get_term($Category->id,$Category->taxonomy);
+				$term = get_term( $Category->id, $Category->taxonomy );
 
-				$Category->slug = wp_unique_term_slug(sanitize_title_with_dashes($slug),$term);
+				$Category->slug = wp_unique_term_slug( sanitize_title_with_dashes( $slug ), $term );
 				$Category->save();
 
-				echo apply_filters('editable_slug',$Category->slug);
+				echo apply_filters( 'editable_slug', $Category->slug );
 				break;
 			case 'product':
-				$Product = new ShoppProduct($_POST['id']);
-				if ($slug == $Product->slug) die('-1'); // Same as before? Nothing to do so bail
+				$Product = new ShoppProduct( $_POST['id'] );
+				if ( $slug == $Product->slug ) die( '-1' ); // Same as before? Nothing to do so bail
 
 				// Regardless of the true post status, we'll pass 'publish' here to ensure we get a unique slug back
-				$Product->slug = wp_unique_post_slug(sanitize_title_with_dashes($slug), $Product->id, 'publish', ShoppProduct::posttype(), 0);
+				$Product->slug = wp_unique_post_slug( sanitize_title_with_dashes($slug), $Product->id, 'publish', ShoppProduct::posttype(), 0 );
 				$Product->save();
 
-				echo apply_filters('editable_slug', $Product->slug);
+				echo apply_filters( 'editable_slug', $Product->slug );
 				break;
 		}
 		exit;
