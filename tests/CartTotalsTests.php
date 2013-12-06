@@ -273,10 +273,13 @@ class CartTotalsTests extends ShoppTestCase {
 		ShoppOrder()->Promotions->load();
 	}
 
+	static function tearDownAfterClass () {
+		self::resetTests();
+	}
+
 	static function resetTests () {
 		ShoppOrder()->clear();
 
-		ShoppOrder()->Discounts->clear();
 		ShoppOrder()->Billing = new BillingAddress;
 
 		$args = array(
@@ -574,7 +577,7 @@ class CartTotalsTests extends ShoppTestCase {
 
 		shopp_add_cart_product($Product->id, 1);
 
-		$expected = '£18.71';
+		$expected = '£17.01';
 		while( shopp('cart', 'items') ){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -590,7 +593,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£1.70';
+		$expected = '£1.55';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -598,12 +601,10 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£28.58';
+		$expected = '£26.88';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
-		shopp_set_setting('tax_shipping', 'off');
-		shopp_set_setting('base_operations', array());
 
 	}
 
@@ -637,7 +638,7 @@ class CartTotalsTests extends ShoppTestCase {
 
 		shopp_add_cart_product($Product->id,1);
 
-		$expected = '£18.71';
+		$expected = '£17.01';
 		while( shopp('cart', 'items') ){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -653,7 +654,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£2.69';
+		$expected = '£2.45';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -661,7 +662,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£29.57';
+		$expected = '£26.88';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -698,7 +699,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id,1);
 		shopp_add_cart_promocode('5off');
 
-		$expected = '£18.63';
+		$expected = '£17.01';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -714,7 +715,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£1.62';
+		$expected = '£1.47';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -722,7 +723,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£27.65';
+		$expected = '£26.03';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -770,7 +771,6 @@ class CartTotalsTests extends ShoppTestCase {
 		$Product = shopp_product('uss-enterprise','slug');
 
 		shopp_add_cart_product($Product->id, 15);
-
 
 		shopp('cart', 'items');
 		$expected = '17.01';
@@ -872,7 +872,7 @@ class CartTotalsTests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id,1);
 		shopp_add_cart_promocode('2percent');
 
-		$expected = '£18.71';
+		$expected = '£17.01';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -888,7 +888,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£1.70';
+		$expected = '£1.55';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -896,7 +896,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£28.24';
+		$expected = '£26.54';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -931,9 +931,8 @@ class CartTotalsTests extends ShoppTestCase {
 
 		shopp_add_cart_product($Product->id,1);
 		shopp_add_cart_promocode('FreeShip');
-		ShoppOrder()->Cart->totals();
 
-		$expected = '£18.71';
+		$expected = '£17.01';
 		while(shopp('cart', 'items')){
 			$actual = shopp('cartitem','unitprice',$options);
 			$this->assertEquals($expected, $actual,'Cart line item unit price assertion failed');
@@ -949,7 +948,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£1.70';
+		$expected = '£1.55';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
@@ -957,11 +956,10 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£18.71';
+		$expected = '£17.01';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
-		self::resetTests();
 	}
 
 } // end CartTotalsTests class

@@ -184,18 +184,27 @@ class ProductAPITests extends ShoppTestCase {
 
 	function test_product_prices_withvat () {
         // $this->markTestSkipped('The '.__CLASS__.' unit tests have not been re-implemented.');
+		shopp_set_setting('tax_inclusive', 'on');
 
 		$output = shopp('product.get-price');
-		$this->assertEquals("$19.99 &mdash; $55.00",$output);
+		$this->assertEquals("$19.99 &mdash; $55.00", $output);
 
-		$output = shopp('product.get-price','taxes=on');
-		$this->assertEquals("$21.99 &mdash; $60.50",$output);
+		$output = shopp('product.get-price', 'taxes=on');
+		$this->assertEquals("$19.99 &mdash; $55.00", $output);
 
 		$output = shopp('product.get-saleprice');
-		$this->assertEquals("$9.99 &mdash; $35.00",$output);
+		$this->assertEquals("$9.99 &mdash; $35.00", $output);
 
-		$output = shopp('product.get-saleprice','taxes=on');
-		$this->assertEquals("$10.99 &mdash; $38.50",$output);
+		$output = shopp('product.get-saleprice', 'taxes=on');
+		$this->assertEquals("$9.99 &mdash; $35.00", $output);
+
+		$output = shopp('product.get-price', 'taxes=off');
+		$this->assertEquals("$18.17 &mdash; $50.00", $output);
+
+		$output = shopp('product.get-saleprice', 'taxes=off');
+		$this->assertEquals("$9.08 &mdash; $31.82", $output);
+
+		shopp_set_setting('tax_inclusive', 'off');
 	}
 
 	function test_product_hassavings () {
