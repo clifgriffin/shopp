@@ -610,30 +610,33 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @return void
+	 * @return mixed
 	 **/
 	public function tinymce () {
-		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
+		if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'edit_pages' ) ) return;
 
-		$len = strlen(ABSPATH); $p = '';
-		for($i = 0; $i < $len; $i++) $p .= 'x'.dechex(ord(substr(ABSPATH,$i,1))+$len);
+		$len = strlen( ABSPATH );
+		$p = '';
+
+		for ( $i = 0; $i < $len; $i++ )
+			$p .= 'x' . dechex( ord( substr( ABSPATH, $i, 1 ) ) + $len );
 
 		// Add TinyMCE buttons when using rich editor
-		if ('true' == get_user_option('rich_editing')) {
-			global $pagenow,$plugin_page;
-			$pages = array('post.php', 'post-new.php', 'page.php', 'page-new.php');
-			$editors = array('shopp-products','shopp-categories');
-			if(!(in_array($pagenow, $pages) || (in_array($plugin_page, $editors) && !empty($_GET['id']))))
+		if ( 'true' == get_user_option( 'rich_editing' ) ) {
+			global $pagenow, $plugin_page;
+			$pages = array( 'post.php', 'post-new.php', 'page.php', 'page-new.php' );
+			$editors = array( 'shopp-products', 'shopp-categories' );
+			if ( ! ( in_array( $pagenow, $pages ) || ( in_array( $plugin_page, $editors ) && ! empty( $_GET['id'] ) ) ) )
 				return false;
 
 			wp_localize_script( 'editor', 'ShoppDialog', array(
-				'title' => __('Insert Product Category or Product', 'Shopp'),
-				'desc' => __('Insert a product or category from Shopp...', 'Shopp'),
+				'title' => __( 'Insert Product Category or Product', 'Shopp' ),
+				'desc' => __( 'Insert a product or category from Shopp...', 'Shopp' ),
 				'p' => $p
 			));
 
-			add_filter('mce_external_plugins', array($this,'mceplugin'),5);
-			add_filter('mce_buttons', array($this,'mcebutton'),5);
+			add_filter( 'mce_external_plugins', array( $this, 'mceplugin' ), 5 );
+			add_filter( 'mce_buttons', array( $this, 'mcebutton' ), 5 );
 		}
 	}
 
