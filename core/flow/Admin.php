@@ -34,32 +34,32 @@ class ShoppAdmin extends ShoppFlowController {
 	/**
 	 * @public $caps
 	 **/
-	public $caps = array(                          	            	// Initialize the capabilities, mapping to pages
-		'main' => 'shopp_menu',                                  	//
-		'orders' => 'shopp_orders',                              	// Capabilities						Role
-		'customers' => 'shopp_customers',                        	// _______________________________________________
-		'reports' => 'shopp_financials',                         	//
-		'memberships' => 'shopp_products',                       	// shopp_settings					administrator
-		'products' => 'shopp_products',                          	// shopp_settings_checkout
-		'categories' => 'shopp_categories',                      	// shopp_settings_payments
-		'discounts' => 'shopp_promotions',                      	// shopp_settings_shipping
-		'system' => 'shopp_settings',        		           		// shopp_settings_taxes
-		'system-payments' => 'shopp_settings_payments',      	  	// shopp_settings_system
-		'system-shipping' => 'shopp_settings_shipping',      	  	// shopp_settings_update
-		'system-taxes' => 'shopp_settings_taxes',            	  	// shopp_financials					shopp-merchant
-		'system-advanced' => 'shopp_settings_system',              	// shopp_financials					shopp-merchant
-		'system-storage' => 'shopp_settings_system',              	// shopp_financials					shopp-merchant
-		'system-log' => 'shopp_settings_system',              	// shopp_financials					shopp-merchant
-		'setup' => 'shopp_settings',                   		       	// shopp_settings_taxes
-		'setup-core' => 'shopp_settings',                          	// shopp_settings_taxes
-		'setup-management' => 'shopp_settings',            		  	// shopp_settings_presentation
-		'setup-pages' => 'shopp_settings_presentation',       		// shopp_promotions
-		'setup-presentation' => 'shopp_settings_presentation',		// shopp_products
-		'setup-checkout' => 'shopp_settings_checkout',				// shopp_products
-		'setup-downloads' => 'shopp_settings_checkout',				// shopp_products
-		'setup-images' => 'shopp_settings_presentation',    	  	// shopp_categories
-		'welcome' => 'shopp_menu',  						  	  	// shopp_categories
-		'credits' => 'shopp_menu',    	  							// shopp_categories
+	public $caps = array(                                      // Initialize the capabilities, mapping to pages
+		'main' => 'shopp_menu',                                //
+		'orders' => 'shopp_orders',                            // Capabilities                  Role
+		'customers' => 'shopp_customers',                      // _______________________________________________
+		'reports' => 'shopp_financials',                       //
+		'memberships' => 'shopp_products',                     // shopp_settings                administrator
+		'products' => 'shopp_products',                        // shopp_settings_checkout
+		'categories' => 'shopp_categories',                    // shopp_settings_payments
+		'discounts' => 'shopp_promotions',                     // shopp_settings_shipping
+		'system' => 'shopp_settings',                          // shopp_settings_taxes
+		'system-payments' => 'shopp_settings_payments',        // shopp_settings_system
+		'system-shipping' => 'shopp_settings_shipping',        // shopp_settings_update
+		'system-taxes' => 'shopp_settings_taxes',              // shopp_financials              shopp-merchant
+		'system-advanced' => 'shopp_settings_system',          // shopp_financials              shopp-merchant
+		'system-storage' => 'shopp_settings_system',           // shopp_financials              shopp-merchant
+		'system-log' => 'shopp_settings_system',               // shopp_financials              shopp-merchant
+		'setup' => 'shopp_settings',                           // shopp_settings_taxes
+		'setup-core' => 'shopp_settings',                      // shopp_settings_taxes
+		'setup-management' => 'shopp_settings',                // shopp_settings_presentation
+		'setup-pages' => 'shopp_settings_presentation',        // shopp_promotions
+		'setup-presentation' => 'shopp_settings_presentation', // shopp_products
+		'setup-checkout' => 'shopp_settings_checkout',         // shopp_products
+		'setup-downloads' => 'shopp_settings_checkout',        // shopp_products
+		'setup-images' => 'shopp_settings_presentation',       // shopp_categories
+		'welcome' => 'shopp_menu',                             // shopp_categories
+		'credits' => 'shopp_menu',                             // shopp_categories
 	);
 
 	/**
