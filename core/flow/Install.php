@@ -1022,7 +1022,11 @@ class ShoppInstallation extends ShoppFlowController {
 	public function upgrade_130 () {
 		global $wpdb;
 
-		if ($db_version <= 1200) {
+		if ( $db_version <= 1200 ) {
+ 		   // All existing sessions must be cleared and restarted, 1.3 sessions are not compatible with any prior version of Shopp
+ 			$sessions_table = ShoppDatabaseObject::tablename('shopping');
+			sDB::query("DELETE FROM $sessions_table");
+
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
 			sDB::query("DELETE FROM $meta_table WHERE type='image' AND value LIKE '%O:10:\"ShoppError\"%'"); // clean up garbage from legacy bug
@@ -1051,7 +1055,7 @@ class ShoppInstallation extends ShoppFlowController {
 		}
 
 		if ( $db_version <= 1200 && shopp_setting_enabled('tax_inclusive') ) {
-			error_log(__METHOD__);
+
 			$price_table = ShoppDatabaseObject::tablename('price');
 
 			$taxrates = shopp_setting('taxrates');
@@ -1066,9 +1070,9 @@ class ShoppInstallation extends ShoppFlowController {
 					foreach ( $rate['rules'] as $raterule ) {
 						if ( 'product-category' == $raterule['p'] ) $taxname = ProductCategory::$taxon . '::'. $raterule['v'];
 						elseif ('product-tags' == $raterule['p'] ) $taxname = ProductTag::$taxon . '::'. $raterule['v'];
-						$taxtaxes[ $taxname ] = Shopp::floatval($rate['rate'])/100;
+						$taxtaxes[ $taxname ] = Shopp::floatval($rate['rate']) / 100;
 					}
-				} else $basetaxes[] = Shopp::floatval($rate['rate'])/100;
+				} else $basetaxes[] = Shopp::floatval($rate['rate']) / 100;
 			}
 
 			// Find products by in each taxonomy term
@@ -1078,7 +1082,7 @@ class ShoppInstallation extends ShoppFlowController {
 				$Collection = new ProductCollection();
 				$Collection->load(array('ids' => true, 'taxquery' => array(array('taxonomy' => $taxonomy, 'field' => 'name', 'terms' => $name))));
 				$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product IN (" . join(',', $Collection->products). ")";
-				error_log($query);
+
 				sDB::query($query);
 				$done = array_merge($done, $Collection->products);
 			}
@@ -1086,7 +1090,7 @@ class ShoppInstallation extends ShoppFlowController {
 			// Update the rest of the prices (skipping those we've already done) with the tax rate that matches the base of operations
 			$taxrate = array_sum($basetaxes); // Merge all the base taxes into a single rate
 			$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product NOT IN (" . join(',', $done) . ")";
-			error_log( $query);
+
 			sDB::query($query);
 		}
 

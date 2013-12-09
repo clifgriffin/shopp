@@ -52,7 +52,6 @@ class ShoppDiscounts extends ListFramework {
 
 	}
 
-
 	/**
 	 * Handle parsing and routing discount code related requests
 	 *
