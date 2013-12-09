@@ -28,8 +28,8 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
-		$where[] = "$starts < " . self::unixtime('o.created');
-		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = self::unixtime( "'$starts'" ) . ' < ' . self::unixtime( 'o.created' );
+		$where[] = self::unixtime( "'$ends'" ) . ' > ' . self::unixtime( 'o.created' );
 		$where[] = "o.txnstatus IN ('captured','CHARGED')";
 		$where = join(" AND ",$where);
 
