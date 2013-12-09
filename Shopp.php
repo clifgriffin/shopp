@@ -393,7 +393,7 @@ class Shopp extends ShoppCore {
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
 		// Image Server request handling
-		if ( isset($_GET['siid']) || (false !== strpos($_SERVER['REQUEST_URI'], '/images/') && sscanf($_SERVER['REQUEST_URI'], '%s/images/%d/')))
+		if ( isset($_GET['siid']) || ( 2 == sscanf($_SERVER['REQUEST_URI'], '%s/images/%d', $s, $i) ) )
 			return require 'services/image.php';
 
 		// Script Server request handling
