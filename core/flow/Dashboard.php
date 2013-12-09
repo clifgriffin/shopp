@@ -267,7 +267,7 @@ class ShoppAdminDashboard {
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
 
 		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
-			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id", 'array');
+			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.id DESC", 'array');
 			set_transient('shopp_dashboard_orders', $Orders, 90); // Keep for the next 1 minute
 		}
 
