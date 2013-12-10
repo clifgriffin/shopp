@@ -575,8 +575,7 @@ class ShoppCart extends ListFramework {
 		$Shiprates->track('shipstate', $ShippingAddress->state);
 		$Shiprates->track('shippostcode', $ShippingAddress->postcode);
 
-		$shipped = $this->shipped();
-		$Shiprates->track('items', $shipped);
+		$Shiprates->track('items', $this->shipped());
 
 		$Shiprates->track('modules', $ShippingModules->active);
 		$Shiprates->track('postcodes', $ShippingModules->postcodes);
@@ -609,11 +608,14 @@ class ShoppCart extends ListFramework {
 		$shipped = $this->shipped();
 
 		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
-		foreach ( $this as $Item )
-			$Item->totals();
 
-		$Shipping->calculate();
-		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
+		$items = $this->keys(); // Use local array for iterating
+		foreach ( $items as $itemid ) { // Allow other code to interate the cart in this loop
+			$Item = $this->get($itemid);
+			$Item->totals();
+		}
+
+		$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate() ) ) );
 
 		if ( apply_filters( 'shopp_tax_shipping', shopp_setting_enabled('tax_shipping') ) )
 			$Totals->register( new OrderAmountShippingTax( $Totals->total('shipping') ) );
@@ -625,8 +627,7 @@ class ShoppCart extends ListFramework {
 		$Discounts->credits();
 
 		if ( $Shipping->free() && $Totals->total('shipping') > 0 ) {
-			$Shipping->calculate();
-			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->amount() ) ) );
+			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate() ) ) );
 		}
 
 		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );

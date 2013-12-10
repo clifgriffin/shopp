@@ -87,7 +87,7 @@ class ShippingAPITests extends ShoppTestCase {
 				shopp('shipping','method-cost');
 		$actual = ob_get_clean();
 
-		$this->assertEquals('$9.87$21.09',$actual);
+		$this->assertEquals('$3.21$21.09',$actual);
 	}
 
 	function test_shipping_methodselector () {

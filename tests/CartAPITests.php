@@ -175,7 +175,6 @@ class CartAPITests extends ShoppTestCase {
 
 	static function resetTests () {
 		ShoppOrder()->clear();
-		ShoppOrder()->Discounts->clear();
 	}
 
 	function setUp () {
@@ -185,12 +184,14 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_url () {
+		// $this->markTestSkipped('Skipped.');
 		$actual = shopp('cart','url','return=1');
 		$expected = 'http://'.WP_TESTS_DOMAIN.'/?shopp_page=cart'; // Ugly permalinks straight out of the box
 		$this->assertEquals($expected, $actual);
 	}
 
 	function test_cart_hasitems () {
+		// $this->markTestSkipped('Skipped.');
 		$this->assertFalse(shopp('cart','hasitems'));
 
 		$Product = shopp_product('uss-enterprise','slug');
@@ -200,6 +201,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_totalitems () {
+		// $this->markTestSkipped('Skipped.');
 		$FirstProduct = shopp_product('uss-enterprise','slug');
 		$SecondProduct = shopp_product('galileo','slug');
 
@@ -223,6 +225,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_totalquantity () {
+		// $this->markTestSkipped('Skipped.');
 		$FirstProduct = shopp_product('uss-enterprise','slug');
 		$SecondProduct = shopp_product('galileo','slug');
 
@@ -246,6 +249,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_itemlooping () {
+		// $this->markTestSkipped('Skipped.');
 		$FirstProduct = shopp_product('uss-enterprise','slug');
 		$SecondProduct = shopp_product('galileo','slug');
 
@@ -262,6 +266,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_lastitem () {
+		// $this->markTestSkipped('Skipped.');
 		$FirstProduct = shopp_product('uss-enterprise','slug');
 		$SecondProduct = shopp_product('galileo','slug');
 
@@ -281,6 +286,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_haspromos () {
+		// $this->markTestSkipped('Skipped.');
 		$Cart = ShoppOrder()->Cart;
 		$Discounts = ShoppOrder()->Discounts;
 
@@ -299,6 +305,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_totalpromos () {
+		// $this->markTestSkipped('Skipped.');
 
 		shopp_set_setting('promo_limit',0);
 		$Product = shopp_product('uss-enterprise','slug');
@@ -317,6 +324,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_discount_name () {
+		// $this->markTestSkipped('Skipped.');
 		shopp_set_setting('promo_limit', 0);
 
 		$Product = shopp_product('uss-enterprise','slug');
@@ -357,6 +365,7 @@ class CartAPITests extends ShoppTestCase {
 
 
 	function test_cart_function_tag () {
+		// $this->markTestSkipped('Skipped.');
 
 		ob_start();
 		shopp('cart','function');
@@ -379,6 +388,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_emptybutton () {
+		// $this->markTestSkipped('Skipped.');
 		ob_start();
 		shopp('cart','empty-button');
 		$actual = ob_get_contents();
@@ -393,6 +403,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_updatebutton () {
+		// $this->markTestSkipped('Skipped.');
 		ob_start();
 		shopp('cart','update-button');
 		$actual = ob_get_contents();
@@ -407,6 +418,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_sidecart () {
+		// $this->markTestSkipped('Skipped.');
 
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
@@ -422,6 +434,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_hasdiscount () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 
@@ -431,6 +444,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_discount () {
+		// $this->markTestSkipped('Skipped.');
 		shopp_set_setting('promo_limit', 0);
 
 		$Product = shopp_product('uss-enterprise','slug');
@@ -467,6 +481,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_promosavailable () {
+		// $this->markTestSkipped('Skipped.');
 		shopp_set_setting('promo_limit', 0);
 
 		$Product = shopp_product('uss-enterprise','slug');
@@ -482,6 +497,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_applycode () {
+		// $this->markTestSkipped('Skipped.');
 		$actual = shopp('cart.get-applycode');
 
 		$expected = array(
@@ -501,6 +517,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_hasshippingmethods () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -512,6 +529,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_needsshipped () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id, 1);
 		$this->assertTrue(shopp('cart','needs-shipped'));
@@ -519,18 +537,19 @@ class CartAPITests extends ShoppTestCase {
 
 	function test_cart_hasshipcosts () {
 		$Product = shopp_product('uss-enterprise','slug');
-		shopp_add_cart_product($Product->id,1);
+		shopp_add_cart_product($Product->id, 1);
 		$this->assertTrue(shopp('cart','has-ship-costs'));
 	}
 
 	function test_cart_needsshippingestimates () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
-		shopp_add_cart_product($Product->id,1);
-
+		shopp_add_cart_product($Product->id, 1);
 		$this->assertTrue(shopp('cart','needs-shipping-estimates'));
 	}
 
 	function test_cart_shippingestimates () {
+		// $this->markTestSkipped('Skipped.');
 
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
@@ -564,6 +583,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_subtotal () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 
@@ -579,6 +599,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_shipping () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 
@@ -595,6 +616,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_hastaxes () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 
@@ -602,6 +624,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_tax () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 
@@ -618,6 +641,7 @@ class CartAPITests extends ShoppTestCase {
 	}
 
 	function test_cart_total () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('uss-enterprise','slug');
 		shopp_add_cart_product($Product->id,1);
 

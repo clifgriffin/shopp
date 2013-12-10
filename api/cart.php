@@ -100,12 +100,12 @@ function shopp_add_cart_product ( $product = false, $quantity = 1, $variant = fa
  * @return bool true for success, false on failure
  **/
 function shopp_rmv_cart_item ( $item = false ) {
-	$Cart = ShoppOrder()->Cart;
 	if ( false === $item ) {
 		shopp_debug(__FUNCTION__ . " failed: Missing item parameter.");
 		return false;
 	}
 
+	$Cart = ShoppOrder()->Cart;
 	if ( $Cart->count() == 0 ) return false;
 
 	if ( is_int($item) ) {

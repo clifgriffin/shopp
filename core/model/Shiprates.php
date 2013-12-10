@@ -72,20 +72,6 @@ class ShoppShiprates extends ListFramework {
 	}
 
 	/**
-	 * Initializes item counters
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	public function init () {
-
-		$this->fees = 0;
-
-	}
-
-	/**
 	 * Add a shippable item to track properties
 	 *
 	 * @author Jonathan Davis
@@ -116,6 +102,7 @@ class ShoppShiprates extends ListFramework {
 
 		if ( isset($this->shippable[ $id ]) )
 			unset($this->shippable[ $id ]);
+
 
 		if ( isset($this->fees[ $id ]) )
 			unset($this->fees[ $id ]);
@@ -168,7 +155,7 @@ class ShoppShiprates extends ListFramework {
 		$selection = $this->selected();
 		if ( false === $selection ) return false;	// Check selection first, since a selection must be made
 		$amount = $selection->amount;				// regardless of free shipping
-
+		Xdebug_break();
 		// Override the amount for free shipping or when all items in the order ship free
 		if ( $this->free() || count($this->shippable) == array_sum($this->shippable) ) $amount = 0;
 
@@ -216,14 +203,15 @@ class ShoppShiprates extends ListFramework {
 	 * @return float The shipping rate service amount, or false if disabled
 	 **/
 	public function calculate () {
+		Xdebug_break();
 
-		if ( $this->disabled() ) return false;			// Shipping disabled
+		if ( $this->disabled() ) return (float) 0;			// Shipping disabled
 
-		if ( $this->free() ) return 0;					// Free shipping for this order
+		if ( $this->free() ) return (float) 0;			// Free shipping for this order
 
-		if ( empty($this->shippable) ) {				// No shippable items in the order
-			$this->clear();								// Clear any current rates
-			return false;								// Don't calculate any new rates
+		if ( empty($this->shippable) ) {					// No shippable items in the order
+			parent::clear();								// Clear any current rates
+			return (float) 0;							// Don't calculate any new rates
 		}
 
 		if ( $this->requested() ) 						// Return the current amount if the request hasn't changed
@@ -232,6 +220,7 @@ class ShoppShiprates extends ListFramework {
 		do_action('shopp_calculate_shipping_init');		// Initialize shipping modules
 
 		$this->items();									// Send items to shipping modules that package them
+
 		$this->modules();								// Calculate active shipping module service methods
 
 		$lowest = $this->lowrate();						// Find the lowest cost option to use as a default selection
@@ -244,6 +233,16 @@ class ShoppShiprates extends ListFramework {
 
 		// Return the amount
 		return (float)$this->amount();
+
+	}
+
+	public function clear () {
+		parent::clear();
+
+		$this->free = false;
+		$this->shippable = array();
+		$this->fees = array();
+		$this->track = array();
 
 	}
 
@@ -298,7 +297,7 @@ class ShoppShiprates extends ListFramework {
 		$newnotices = $Notices->count() - $notices;
 		if ( $newnotices > 0 ) $Notices->rollback($newnotices);
 
-		$this->clear();
+		parent::clear();
 		$this->populate($services);
 		// $this->sort('self::sort');
 
