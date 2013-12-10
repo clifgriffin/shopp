@@ -441,7 +441,7 @@ class PurchaseAPITests extends ShoppTestCase {
         // $this->markTestSkipped('The '.__CLASS__.' unit tests have not been re-implemented.');
 
 		$actual = shopp('purchase.get-freight');
-		$this->assertEquals('$9.87',$actual);
+		$this->assertEquals('$3.21',$actual);
 	}
 
 	function test_purchase_hasdiscount () {
@@ -474,7 +474,7 @@ class PurchaseAPITests extends ShoppTestCase {
         // $this->markTestSkipped('The '.__CLASS__.' unit tests have not been re-implemented.');
 
 		$actual = shopp('purchase.get-total');
-		$this->assertEquals('$28.58',$actual);
+		$this->assertEquals('$21.92',$actual);
 	}
 
 	function test_purchase_status () {

@@ -171,17 +171,20 @@ class OrderTotals extends ListFramework {
 
 		// Calculate a new total amount for the register
 		$Total = new OrderTotal( array('amount' => 0.0) );
-		if ( empty($Register) ) return $Total->amount();
 
-		foreach ( $Register as $Entry) {
-			$amount = $Entry->amount();
-			if ( OrderTotalAmount::CREDIT == $Entry->column() ) 	// Set the amount based on transaction column
-				$amount = $Entry->amount() * OrderTotalAmount::CREDIT;
-			$Total->amount( $Total->amount() + $amount );
+		if ( ! empty($Register) ) {
+
+			foreach ( $Register as $Entry ) {
+				$amount = $Entry->amount();
+				if ( OrderTotalAmount::CREDIT == $Entry->column() ) 	// Set the amount based on transaction column
+					$amount = $Entry->amount() * OrderTotalAmount::CREDIT;
+				$Total->amount( $Total->amount() + $amount );
+			}
+
+			// Do not include entry in grand total if it is not a balance adjusting register
+			if ( null === $Entry->column() ) return $Total->amount();
+
 		}
-
-		// Do not include entry in grand total if it is not a balance adjusting register
-		if ( null === $Entry->column() ) return $Total->amount();
 
 		// For other registers, add or update that register's total entry for it in the totals register
 		$GrandTotal = &$this->register[ self::TOTAL ];

@@ -108,9 +108,9 @@ class OrderDevAPITests extends ShoppTestCase {
 		));
 
 		// $this->AssertEquals('authed',$Purchase->txnstatus);
-		$this->AssertEquals(28.58, shopp_order_amt_balance($Purchase->id));
-		$this->AssertEquals(28.58, shopp_order_amt_invoiced($Purchase->id));
-		$this->AssertEquals(28.58, shopp_order_amt_authorized($Purchase->id));
+		$this->AssertEquals(21.92, shopp_order_amt_balance($Purchase->id));
+		$this->AssertEquals(21.92, shopp_order_amt_invoiced($Purchase->id));
+		$this->AssertEquals(21.92, shopp_order_amt_authorized($Purchase->id));
 		$this->AssertEquals(0, shopp_order_amt_captured($Purchase->id));
 		$this->AssertEquals(0, shopp_order_amt_refunded($Purchase->id));
 		$this->AssertFalse(shopp_order_is_void($Purchase->id));
@@ -123,7 +123,7 @@ class OrderDevAPITests extends ShoppTestCase {
 
 		));
 
-		$this->AssertEquals(28.58, shopp_order_amt_captured($Purchase->id));
+		$this->AssertEquals(21.92, shopp_order_amt_captured($Purchase->id));
 	}
 
 	function test_shopp_last_order() {
@@ -146,9 +146,9 @@ class OrderDevAPITests extends ShoppTestCase {
 		$pid = $Purchase->id;
 
 	    $this->AssertEquals( 17.01, $Purchase->subtotal );
-	    $this->AssertEquals( 9.87, $Purchase->freight );
+	    $this->AssertEquals( 3.21, $Purchase->freight );
 	    $this->AssertEquals( 1.7, $Purchase->tax );
-	    $this->AssertEquals( 28.58, $Purchase->total );
+	    $this->AssertEquals( 21.92, $Purchase->total );
 
 		$item = array(
 			'product' => 0, // product id of line item
@@ -170,9 +170,9 @@ class OrderDevAPITests extends ShoppTestCase {
 
 		$Purchase = shopp_last_order();
 	    $this->AssertEquals( 17.01 + $item['total'], $Purchase->subtotal );
-	    $this->AssertEquals( 9.87, $Purchase->freight );
+	    $this->AssertEquals( 3.21, $Purchase->freight );
 	    $this->AssertEquals( 1.7 + ( $item['unittax'] * $item['quantity'] ), $Purchase->tax );
-	    $this->AssertEquals( 28.58 + $item['total'] + ( $item['unittax'] * $item['quantity'] ), $Purchase->total );
+	    $this->AssertEquals( 21.92 + $item['total'] + ( $item['unittax'] * $item['quantity'] ), $Purchase->total );
 	}
 
 	function test_shopp_rmv_order_line() {
@@ -183,9 +183,9 @@ class OrderDevAPITests extends ShoppTestCase {
 
 		$Purchase = shopp_last_order();
 	    $this->AssertEquals( 37.01, $Purchase->subtotal );
-	    $this->AssertEquals( 9.87, $Purchase->freight );
+	    $this->AssertEquals( 3.21, $Purchase->freight );
 	    $this->AssertEquals( 3.7, $Purchase->tax );
-	    $this->AssertEquals( 50.58, $Purchase->total );
+	    $this->AssertEquals( 43.92, $Purchase->total );
 
 		shopp_rmv_order_line($pid, 1);
 		$this->AssertEquals(1, shopp_order_line_count($pid));
@@ -193,9 +193,9 @@ class OrderDevAPITests extends ShoppTestCase {
 		$Purchase = shopp_last_order();
 
 	    $this->AssertEquals( 17.01, $Purchase->subtotal );
-	    $this->AssertEquals( 9.87, $Purchase->freight );
+	    $this->AssertEquals( 3.21, $Purchase->freight );
 	    $this->AssertEquals( 1.7, $Purchase->tax );
-	    $this->AssertEquals( 28.58, $Purchase->total );
+	    $this->AssertEquals( 21.92, $Purchase->total );
 	}
 
 

@@ -133,11 +133,13 @@ class CartDevAPITests extends ShoppTestCase {
 	}
 
 	function test_shopp_empty_cart () {
+		// $this->markTestSkipped('Skipped.');
 		shopp_empty_cart();
 		$this->AssertTrue(ShoppOrder()->Cart->count() == 0);
 	}
 
 	function test_shopp_add_cart_product () {
+		// $this->markTestSkipped('Skipped.');
 
 		$Product = shopp_product('uss-enterprise', 'slug');
 		shopp_add_cart_product($Product->id, 2);
@@ -182,6 +184,7 @@ class CartDevAPITests extends ShoppTestCase {
 
 	// this test will fail if the above shopp_add_cart_product test does not run
 	function test_shopp_cart_item () {
+		// $this->markTestSkipped('Skipped.');
 		$Enterprise = shopp_product('uss-enterprise', 'slug');
 		shopp_add_cart_product($Enterprise->id, 2);
 		$Galileo = shopp_product('galileo', 'slug');
@@ -207,6 +210,7 @@ class CartDevAPITests extends ShoppTestCase {
 
 	// this test will fail if the above shopp_add_cart_product test does not run
 	function test_shopp_rmv_cart_item () {
+		// $this->markTestSkipped('Skipped.');
 		$Enterprise = shopp_product('uss-enterprise', 'slug');
 		shopp_add_cart_product($Enterprise->id, 2);
 		$Galileo = shopp_product('galileo', 'slug');
@@ -226,24 +230,31 @@ class CartDevAPITests extends ShoppTestCase {
 		$this->AssertEquals(34.02, $item->totald);
 		$this->AssertEquals(34.02, $item->total);
 
-		$Cart = ShoppOrder()->Cart->Totals;
+		$Cart = ShoppOrder()->Cart;
 
 		$this->AssertEquals(34.02, $Cart->total('order'));
 		$this->AssertEquals(9.87, $Cart->total('shipping'));
 		$this->AssertEquals(3.4, $Cart->total('tax'));
 		$this->AssertEquals(34.02 + 9.87 + 3.4, $Cart->total());
 
+		// echo __METHOD__ . " BEFORE shopp_rmv_cart_item\n";
 		shopp_rmv_cart_item(0);
+		// echo __METHOD__ . " AFTER shopp_rmv_cart_item\n";
+		// print_r(ShoppOrder()->Shiprates);
 
-		$Totals = ShoppOrder()->Cart->Totals;
+		$this->AssertEquals(0, $Cart->total('order'));
+		$this->AssertEquals(0, $Cart->total('tax'));
 
-		$this->AssertEquals(0, $Totals->subtotal);
-		$this->AssertEquals(false, $Totals->shipping);
-		$this->AssertEquals(0, $Totals->total);
+		// echo __METHOD__ . " BEFORE total('shipping')\n";
+		// var_dump($Cart->total('shipping'));
+		$this->AssertEquals(0, $Cart->total('shipping'));
+		// echo __METHOD__ . " AFTER total('shipping')\n";
+		$this->AssertEquals(0, $Cart->total());
 
 	}
 
 	function test_shopp_add_cart_variant () {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('command-uniform', 'slug');
 
 		shopp_add_cart_product($Product->id, 2);
@@ -266,6 +277,7 @@ class CartDevAPITests extends ShoppTestCase {
 	}
 
 	function test_shopp_add_cart_addon() {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -288,6 +300,7 @@ class CartDevAPITests extends ShoppTestCase {
 	 * @depends test_shopp_add_cart_addon
 	 */
 	function test_shopp_rmv_cart_addon() {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -312,6 +325,7 @@ class CartDevAPITests extends ShoppTestCase {
 	 * @depends test_shopp_add_cart_addon
 	 */
 	function test_shopp_cart_item_addons() {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -336,6 +350,7 @@ class CartDevAPITests extends ShoppTestCase {
 	 * @depends test_shopp_cart_item_addons
 	 */
 	function test_shopp_cart_item_addons_count() {
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
