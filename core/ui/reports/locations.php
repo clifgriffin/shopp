@@ -35,9 +35,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		$id = "o.country";
 		$orders_table = ShoppDatabaseObject::tablename('purchase');
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
-		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
-		$summary_table = ShoppDatabaseObject::tablename(ProductSummary::$table);
-		$price_table = ShoppDatabaseObject::tablename('price');
+
 		$query = "SELECT CONCAT($id) AS id,
 							o.country AS country,
 							COUNT(DISTINCT o.id) AS orders,
