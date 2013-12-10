@@ -40,7 +40,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 							o.country AS country,
 							COUNT(DISTINCT o.id) AS orders,
 							COUNT(DISTINCT p.id) AS items,
-							SUM(p.total) AS grossed
+							SUM(p.unitprice) AS grossed
 					FROM $orders_table AS o
 					JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
