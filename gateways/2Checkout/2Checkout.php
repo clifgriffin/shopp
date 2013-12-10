@@ -168,13 +168,13 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 		if ( Shopp::str_true($this->settings['testmode']) ) return true;
 		$order = $_POST['order_number'];
 
-		$verification = strtoupper(md5($this->settings['secret'].
-							$this->settings['sid'].
-							$order.
-							$this->amount($this->Order->Cart->Totals->total))
-						);
+		$verification = strtoupper(md5($this->settings['secret'] .
+							$this->settings['sid'] .
+							$order .
+							$this->amount('total')
+						));
 
-		return ($verification == $key);
+		return ( $verification == $key );
 	}
 
 	public function settings () {

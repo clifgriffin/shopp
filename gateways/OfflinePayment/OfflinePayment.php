@@ -72,13 +72,12 @@ class ShoppOfflinePayment extends GatewayFramework implements GatewayModule {
 	 **/
 	public function auth ( $Event ) {
 		$Order = $this->Order;
-		$OrderTotals = $Order->Cart->Totals;
 		$Billing = $Order->Billing;
 		$Paymethod = $Order->Payments->selected();
 
 		shopp_add_order_event($Event->order, 'authed', array(
 			'txnid' => time(),
-			'amount' => $OrderTotals->total,
+			'amount' => $this->amount('total'),
 			'fees' => 0,
 			'gateway' => $Paymethod->processor,
 			'paymethod' => $Paymethod->label,
