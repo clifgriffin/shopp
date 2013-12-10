@@ -1017,6 +1017,11 @@ class ShoppInstallation extends ShoppFlowController {
 			sDB::query("UPDATE $price_table SET optionkey=(options*7001) WHERE context='addon'");
 		}
 
+		if ( $db_verison <= 1150 ) {
+			$meta_table = ShoppDatabaseObject::tablename('meta');
+			sDB::query("DELETE $meta_table FROM $meta_table LEFT OUTER JOIN (SELECT MAX(id) AS keepid FROM $meta_table WHERE context='category' AND type='meta' GROUP BY parent, name) AS keepRowTable ON $meta_table.id = keepRowTable.keepid WHERE keepRowTable.keepid IS NULL AND context='category' AND type='meta'");
+		}
+
 	}
 
 	public function upgrade_130 () {

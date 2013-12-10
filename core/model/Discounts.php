@@ -923,11 +923,16 @@ class ShoppOrderDiscount {
 					$Item->bogof[ $this->id() ] = $unitdiscount;
 				} else $Item->discount += $unitdiscount;
 
+				// Track prior discounts applied to the item
+				$itemdiscounts = $Item->discounts;
+
  			   	// Recalculate Item discounts & taxes
  				$Item->discounts();
 				$Item->taxes();
 
-				$discounts[] = $Item->discounts;
+				// Add any new discount amount to the stack (prevents compounding percentage discounts)
+				if ( $Item->discounts - $itemdiscounts > 0 )
+					$discounts[] = ($Item->discounts - $itemdiscounts);
 			}
 
 			$this->amount = array_sum($discounts);
