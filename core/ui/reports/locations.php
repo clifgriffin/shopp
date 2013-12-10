@@ -18,7 +18,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = self::unixtime( "'$starts'" ) . ' < ' . self::unixtime( 'o.created' );
 		$where[] = self::unixtime( "'$ends'" ) . ' > ' . self::unixtime( 'o.created' );
-
+		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
 		$where = join(" AND ",$where);
 
 		$orderd = 'desc';
@@ -40,7 +40,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 							o.country AS country,
 							COUNT(DISTINCT o.id) AS orders,
 							COUNT(DISTINCT p.id) AS items,
-							SUM(o.total) AS grossed
+							SUM(p.total) AS grossed
 					FROM $orders_table AS o
 					JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
