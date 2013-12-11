@@ -2103,64 +2103,65 @@ abstract class ShoppCore {
 		$path[] = ShoppPages()->baseslug();
 
 		// Build request path based on Storefront shopp_page requested
-		if ('images' == $page) {
+		if ( 'images' == $page ) {
 			$path[] = 'images';
-			if (!$prettyurls) $request = array('siid'=>$request);
+			if ( ! $prettyurls ) $request = array('siid' => $request);
 		} else {
-			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
-			if (false !== $page) {
+			if ( false !== $page ) {
 				$Page = ShoppPages()->get($page);
 				if ( method_exists($Page, 'slug') )
 					$page_slug = $Page->slug();
 			}
-			if ($page != 'catalog') {
-				if (!empty($page_slug)) $path[] = $page_slug;
-			}
+
+			if ( $page != 'catalog' && ! empty($page_slug) )
+				$path[] = $page_slug;
 		}
 
 		// Change the URL scheme as necessary
 		$scheme = null; // Full-auto
-		if ($secure === false) $scheme = 'http'; // Contextually forced off
-		elseif (($secure || is_ssl()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
+		if ( $secure === false ) $scheme = 'http'; // Contextually forced off
+		elseif ( ( $secure || is_ssl() ) && ! SHOPP_NOSSL ) $scheme = 'https'; // HTTPS required
 
 		$url = home_url(false,$scheme);
-		if ($prettyurls) $url = home_url(join('/',$path),$scheme);
-		if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
+		if ( $prettyurls ) $url = home_url(join('/', $path), $scheme);
+		if ( false !== strpos($url, '?') ) list($url, $query) = explode('?', $url);
+
 		$url = trailingslashit($url);
 
-		if (!empty($query)) {
-			parse_str($query,$home_queryvars);
-			if ($request === false) {
-				$request = array();
-				$request = array_merge($home_queryvars,$request);
+		if ( ! empty($query) ) {
+			parse_str($query, $home_queryvars);
+			if ( false === $request ) {
+				$request = array_merge($home_queryvars, array());
 			} else {
 				$request = array($request);
-				array_push($request,$home_queryvars);
+				array_push($request, $home_queryvars);
 			}
 		}
 
-		if (!$prettyurls) $url = isset($page_slug)?add_query_arg('shopp_page',$page_slug,$url):$url;
+		if ( ! $prettyurls ) $url = isset($page_slug) ? add_query_arg('shopp_page', $page_slug, $url) : $url;
 
 		// No extra request, return the complete URL
-		if (!$request) return apply_filters('shopp_url',$url);
+		if ( ! $request ) return apply_filters('shopp_url', $url);
 
 		// Filter URI request
 		$uri = false;
-		if (!is_array($request)) $uri = urldecode($request);
-		if (is_array($request) && isset($request[0])) $uri = array_shift($request);
-		if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
+		if ( ! is_array($request)) $uri = urldecode($request);
+		if ( is_array($request) && isset($request[0]) ) $uri = array_shift($request);
+		if ( ! empty($uri) ) $uri = join('/', array_map('urlencode', explode('/', $uri))); // sanitize
 
-		$url = user_trailingslashit($url.$uri);
+		$url .= $uri;
 
-		if (!empty($request) && is_array($request)) {
-			$request = array_map('urldecode',$request);
-			$request = array_map('urlencode',$request);
-			$url = add_query_arg($request,$url);
+		if ( false === strpos(basename($uri), '.') ) // Not an image URL
+			$url = user_trailingslashit($url);
+
+		if ( ! empty($request) && is_array($request) ) {
+			$request = array_map('urldecode', $request);
+			$request = array_map('urlencode', $request);
+			$url = add_query_arg($request, $url);
 		}
 
-		return apply_filters('shopp_url',$url);
+		return apply_filters('shopp_url', $url);
 	}
-
 
 	/**
 	 * Recursively sorts a heirarchical tree of data
