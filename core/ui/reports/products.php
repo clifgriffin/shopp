@@ -17,7 +17,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = self::unixtime( "'$starts'" ) . ' < ' . self::unixtime( 'o.created' );
 		$where[] = self::unixtime( "'$ends'" ) . ' > ' . self::unixtime( 'o.created' );
-
+		$where[] = "orders.txnstatus IN ('authorized','captured')";
 		$where = join(" AND ",$where);
 
 		$orderd = 'desc';
@@ -32,23 +32,25 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		$ordercols = "$ordercols $orderd";
 
 		$id = "o.product,' ',o.price";
+
+		$purchase_table = ShoppDatabaseObject::tablename('purchase');
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
 		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
-		$summary_table = ShoppDatabaseObject::tablename(ProductSummary::$table);
 		$price_table = ShoppDatabaseObject::tablename('price');
+
 		$query = "SELECT CONCAT($id) AS id,
 							CONCAT(p.post_title,' ',pr.label) AS product,
 							COUNT(DISTINCT o.id) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
 							SUM(o.total) AS grossed
-					FROM $purchased_table AS o
-					JOIN $summary_table AS s ON s.product=o.product
+					FROM $purchased_table AS o INNER JOIN $purchase_table AS orders ON orders.id=o.purchase
 					JOIN $product_table AS p ON p.ID=o.product
 					JOIN $price_table AS pr ON pr.id=o.price
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
 
 		return $query;
+
 	}
 
 	function chartseries ( $label, array $options = array() ) {
