@@ -283,8 +283,8 @@ class ShoppProduct extends WPShoppObject {
 		if ( empty($ids) ) return;
 		$purchase = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus !='void' GROUP BY p.product";
-		sDB::query($query,'array',array($this,'sold'));
+		$query = "SELECT p.product as id,sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus IN ('authorized','captured') GROUP BY p.product";
+		sDB::query($query, 'array', array($this, 'sold'));
 	}
 
 	/**
@@ -641,22 +641,23 @@ class ShoppProduct extends WPShoppObject {
 	}
 
 	/**
-	 * Returns the number of this product sold
+	 * Adds sold and grossed states to the target record
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
 	 * @return int
 	 **/
-	public function sold (&$records,&$data) {
+	public function sold ( &$records, &$data ) {
 
-		if (isset($this->products) && !empty($this->products)) $products = &$this->products;
+		if ( isset($this->products) && ! empty($this->products) )
+			$products = &$this->products;
 		else $products = array();
 
 		$target = false;
-		if (is_array($products) && isset($products[ $data->id ]))
+		if ( is_array($products) && isset($products[ $data->id ]) )
 			$target = $products[ $data->id ];
-		elseif (isset($this))
+		elseif ( isset($this) )
 			$target = $this;
 
 		$target->sold = $data->sold;
