@@ -642,7 +642,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			$prefix.'shipcountry' => __('Shipping Country','Shopp'),
 			$prefix.'shippostcode' => __('Shipping Postal Code','Shopp'),
 			$prefix.'shipmethod' => __('Shipping Method','Shopp'),
-			$prefix.'promos' => __('Promotions Applied','Shopp'),
+			'discounts.value' => __('Discounts Applied','Shopp'),
 			$prefix.'subtotal' => __('Order Subtotal','Shopp'),
 			$prefix.'discount' => __('Order Discount','Shopp'),
 			$prefix.'freight' => __('Order Shipping Fees','Shopp'),
@@ -743,6 +743,7 @@ class PurchaseStockAllocation extends AutoObjectFramework {
 }
 
 class PurchasesExport {
+
 	public $sitename = "";
 	public $headings = false;
 	public $data = false;
@@ -772,35 +773,35 @@ class PurchasesExport {
 		shopp_set_setting('purchaselog_lastexport',current_time('timestamp'));
 	}
 
-	public function query ($request=array()) {
+	public function query ( $request = array() ) {
 		$defaults = array(
 			'status' => false,
 			's' => false,
 			'start' => false,
 			'end' => false
 		);
-		$request = array_merge($defaults,$_GET);
+		$request = array_merge($defaults, $_GET);
 		extract($request);
 
 
-		if (!empty($start)) {
-			list($month,$day,$year) = explode('/',$start);
-			$start = mktime(0,0,0,$month,$day,$year);
+		if ( ! empty($start) ) {
+			list($month, $day, $year) = explode('/', $start);
+			$start = mktime(0, 0, 0, $month, $day, $year);
 		}
 
-		if (!empty($end)) {
-			list($month,$day,$year) = explode('/',$end);
-			$end = mktime(23,59,59,$month,$day,$year);
+		if ( ! empty($end) ) {
+			list($month, $day, $year) = explode('/', $end);
+			$end = mktime(23, 59, 59, $month, $day, $year);
 		}
 
 		$where = array();
 		$joins = array();
-		if (!empty($status) || $status === '0') $where[] = "status='".sDB::escape($status)."'";
-		if (!empty($s)) {
+		if ( ! empty($status) || $status === '0' ) $where[] = "status='" . sDB::escape($status) . "'";
+		if ( ! empty($s) ) {
 			$s = stripslashes($s);
 			$search = array();
-			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
-				foreach ($props as $query) {
+			if ( preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/', $s, $props, PREG_SET_ORDER) > 0 ) {
+				foreach ( $props as $query ) {
 					$keyword = sDB::escape( ! empty($query[2]) ? $query[2] : $query[3] );
 					switch(strtolower($query[1])) {
 						case "txn": 		$search[] = "txnid='$keyword'"; break;
@@ -818,43 +819,42 @@ class PurchasesExport {
 						case "promo":
 						case "discount":
 											$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-											$joins[$meta_table] = "INNER JOIN $meta_table AS m ON m.parent = o.id AND context='purchase' AND name='discounts'";
-											$search[] = "m.value LIKE '%$keyword%'"; break;
-						$search[] = "discounts LIKE '%$keyword%'"; break;
+											$joins[ $meta_table ] = "INNER JOIN $meta_table AS discounts ON discounts.parent = o.id";
+											$search[] = "discounts.value LIKE '%$keyword%' AND discounts.context='purchase' AND discounts.name='discounts'"; break;
 					}
 				}
-				if (empty($search)) $search[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
+				if ( empty($search) ) $search[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 				$where[] = "(".join(' OR ',$search).")";
-			} elseif (strpos($s,'@') !== false) {
+			} elseif ( strpos($s,'@') !== false ) {
 				 $where[] = "email='".sDB::escape($s)."'";
 			} else $where[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%".sDB::escape($s)."%')";
 		}
-		if (!empty($start) && !empty($end)) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
-		if (!empty($customer)) $where[] = "customer=".intval($customer);
-		$where = !empty($where) ? "WHERE ".join(' AND ',$where) : '';
+		if ( ! empty($start) && !empty($end) ) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
+		if ( ! empty($customer) ) $where[] = "customer=".intval($customer);
+		$where = ! empty($where) ? "WHERE ".join(' AND ', $where) : '';
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
-		$offset = ($this->set*$this->limit);
+		$offset = ($this->set * $this->limit);
 
 		$c = 0; $columns = array(); $purchasedcols = false;
-		foreach ($this->selected as $column) {
+		foreach ( $this->selected as $column ) {
 			$columns[] = "$column AS col".$c++;
 			if ( false !== strpos($column, 'p.') ) $purchasedcols = true;
 		}
-		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
+		if ( $purchasedcols ) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
 		else $FROM = "FROM $purchasetable AS o";
 
 		$joins = join(' ', $joins);
 
 		$query = "SELECT ".join(",",$columns)." $FROM $joins $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
-		$this->data = sDB::query($query,'array');
+		$this->data = sDB::query($query, 'array');
 	}
 
 	// Implement for exporting all the data
 	public function output () {
-		if (!$this->data) $this->query();
-		if (!$this->data) Shopp::redirect( add_query_arg( array_merge($_GET,array('src' => null) ), admin_url('admin.php') ) );
+		if ( ! $this->data ) $this->query();
+		if ( ! $this->data ) Shopp::redirect( add_query_arg( array_merge($_GET,array('src' => null) ), admin_url('admin.php') ) );
 
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");
@@ -863,7 +863,7 @@ class PurchasesExport {
 		header("Pragma: public");
 
 		$this->begin();
-		if ($this->headings) $this->heading();
+		if ( $this->headings ) $this->heading();
 		$this->records();
 		$this->end();
 	}
@@ -888,12 +888,16 @@ class PurchasesExport {
 		}
 	}
 
-	public function parse ($column) {
-		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
+	public function parse ( $column ) {
+		if ( sdb::serialized($column) ) {
 			$list = unserialize($column);
 			$column = "";
-			foreach ($list as $name => $value)
-				$column .= (empty($column)?"":";")."$name:$value";
+			foreach ( $list as $name => $value ) {
+				if ( is_a($value, 'ShoppPurchaseDiscount') ) {
+					$Discount = $value;
+					$column .= ( empty($column) ? "" : ";" ) . trim("$Discount->id:$Discount->name (" . money($Discount->discount) . ") $Discount->code");
+				} else $column .= ( empty($column) ? "" : ";" ) . "$name:$value";
+			}
 		}
 		return $this->escape($column);
 	}
@@ -901,7 +905,7 @@ class PurchasesExport {
 	public function end() {}
 
 	// Implement for exporting a single value
-	public function export ($value) {
+	public function export ( $value ) {
 		echo ($this->recordstart?"":"\t").$value;
 		$this->recordstart = false;
 	}
