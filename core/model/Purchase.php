@@ -794,6 +794,7 @@ class PurchasesExport {
 		}
 
 		$where = array();
+		$joins = array();
 		if (!empty($status) || $status === '0') $where[] = "status='".sDB::escape($status)."'";
 		if (!empty($s)) {
 			$s = stripslashes($s);
@@ -814,7 +815,12 @@ class PurchasesExport {
 						case "zipcode":
 						case "postcode":	$search[] = "postcode='$keyword'"; break;
 						case "country": 	$search[] = "country='$keyword'"; break;
-						case "promo":		$search[] = "promos LIKE '%$keyword%'"; break;
+						case "promo":
+						case "discount":
+											$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+											$joins[$meta_table] = "INNER JOIN $meta_table AS m ON m.parent = o.id AND context='purchase' AND name='discounts'";
+											$search[] = "m.value LIKE '%$keyword%'"; break;
+						$search[] = "discounts LIKE '%$keyword%'"; break;
 					}
 				}
 				if (empty($search)) $search[] = "(o.id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
@@ -839,7 +845,9 @@ class PurchasesExport {
 		if ($purchasedcols) $FROM = "FROM $purchasedtable AS p INNER JOIN $purchasetable AS o ON o.id=p.purchase";
 		else $FROM = "FROM $purchasetable AS o";
 
-		$query = "SELECT ".join(",",$columns)." $FROM $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
+		$joins = join(' ', $joins);
+
+		$query = "SELECT ".join(",",$columns)." $FROM $joins $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
 		$this->data = sDB::query($query,'array');
 	}
 
