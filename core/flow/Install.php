@@ -1054,9 +1054,6 @@ class ShoppInstallation extends ShoppFlowController {
 				$setting = str_replace(array_keys($gateways),$gateways,$setting);
 			shopp_set_setting('active_gateways',join(',', $activegateways));
 
-			// Clean up category meta
-			// $category_meta = array('spectemplate', 'facetedmenus', 'variations', 'pricerange', 'priceranges', 'specs', 'options', 'prices');
-			// foreach ( $category_meta )
 		}
 
 		if ( $db_version <= 1200 && shopp_setting_enabled('tax_inclusive') ) {
@@ -1069,8 +1066,10 @@ class ShoppInstallation extends ShoppFlowController {
 			$taxtaxes = array();	// Capture taxonomy condition tax rates
 			$basetaxes = array();	// Capture base of operations rate(s)
 			foreach ( $taxrates as $rate ) {
+
 				if ( ! ( $baseop['country'] == $rate['country'] || ShoppTax::ALL == $rate['country'] ) ) continue;
 				if ( ! empty($rate['zone']) && $baseop['zone'] != $rate['zone'] ) continue;
+
 				if ( ! empty($rate['rules']) && $rate['logic'] == 'any' ) { // Capture taxonomy conditional rates
 					foreach ( $rate['rules'] as $raterule ) {
 						if ( 'product-category' == $raterule['p'] ) $taxname = ProductCategory::$taxon . '::'. $raterule['v'];
@@ -1080,11 +1079,11 @@ class ShoppInstallation extends ShoppFlowController {
 				} else $basetaxes[] = Shopp::floatval($rate['rate']) / 100;
 			}
 
-			// Find products by in each taxonomy term
+			// Find products by in each taxonomy termno
 			$done = array(); // Capture each set into the "done" list
 			foreach ( $taxtaxes as $taxterm => $taxrate ) {
 				list($taxonomy, $name) = explode('::', $taxterm);
-				$Collection = new ProductCollection();
+				$Collection = new ProductCollection;
 				$Collection->load(array('ids' => true, 'taxquery' => array(array('taxonomy' => $taxonomy, 'field' => 'name', 'terms' => $name))));
 				$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product IN (" . join(',', $Collection->products). ")";
 
@@ -1094,7 +1093,8 @@ class ShoppInstallation extends ShoppFlowController {
 
 			// Update the rest of the prices (skipping those we've already done) with the tax rate that matches the base of operations
 			$taxrate = array_sum($basetaxes); // Merge all the base taxes into a single rate
-			$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on' AND product NOT IN (" . join(',', $done) . ")";
+			$done = empty($done) ? '' : " AND product NOT IN (" . join(',', $done) . ")";
+			$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on'$done";
 
 			sDB::query($query);
 		}

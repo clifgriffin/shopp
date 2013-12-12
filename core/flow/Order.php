@@ -594,34 +594,6 @@ class ShoppOrder {
 	}
 
 	/**
-	 * Recalculates sales stats for products
-	 *
-	 * Updates the sales stats for products affected by purchase transaction status changes.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @param string $status New transaction status being set
-	 * @param ShoppPurchase $Purchase The affected Purchase object
-	 * @return void
-	 **/
-	// public function salestats ($status, &$Purchase) {
-	// 	if (empty($Purchase->id)) return;
-	//
-	// 	$products = ShoppDatabaseObject::tablename(ShoppProduct::$table);
-	// 	$purchased = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
-	//
-	// 	// Transaction status changed
-	// 	if ('CHARGED' == $status) // Now CHARGED, add quantity ordered to product 'sold' stat
-	// 		$query = "UPDATE $products AS p LEFT JOIN $purchased AS s ON p.id=s.product SET p.sold=p.sold+s.quantity WHERE s.purchase=$Purchase->id";
-	// 	elseif ($Purchase->txnstatus == 'CHARGED') // Changed from CHARGED, remove quantity ordered from product 'sold' stat
-	// 		$query = "UPDATE $products AS p LEFT JOIN $purchased AS s ON p.id=s.product SET p.sold=p.sold-s.quantity WHERE s.purchase=$Purchase->id";
-	//
-	// 	sDB::query($query);
-	//
-	// }
-
-	/**
 	 * Send out new order notifications
 	 *
 	 * @author Jonathan Davis

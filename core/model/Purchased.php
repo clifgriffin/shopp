@@ -90,12 +90,6 @@ class ShoppPurchased extends ShoppDatabaseObject {
 			}
 		}
 
-		// Update sold tallies
-		if (!empty($this->product)) {
-			$summary = ShoppDatabaseObject::tablename(ProductSummary::$table);
-			sDB::query("UPDATE $summary SET sold=sold+$this->quantity,grossed=grossed+$this->total WHERE product='$this->product'");
-		}
-
 		$this->addons = $addons; // restore addons model
 	}
 

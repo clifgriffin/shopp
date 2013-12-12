@@ -155,7 +155,7 @@ class ShoppShiprates extends ListFramework {
 		$selection = $this->selected();
 		if ( false === $selection ) return false;	// Check selection first, since a selection must be made
 		$amount = $selection->amount;				// regardless of free shipping
-		Xdebug_break();
+
 		// Override the amount for free shipping or when all items in the order ship free
 		if ( $this->free() || count($this->shippable) == array_sum($this->shippable) ) $amount = 0;
 
@@ -203,7 +203,6 @@ class ShoppShiprates extends ListFramework {
 	 * @return float The shipping rate service amount, or false if disabled
 	 **/
 	public function calculate () {
-		Xdebug_break();
 
 		if ( $this->disabled() ) return (float) 0;			// Shipping disabled
 

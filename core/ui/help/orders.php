@@ -31,6 +31,7 @@ ob_start(); ?>
 <tr><td><strong><?php Shopp::_e('Zip/Postal Codes','Shopp'); ?>:</strong></td><td>zip:95131<br />postcode:M1P1C0</td></tr>
 <tr><td><strong><?php Shopp::_e('Country','Shopp'); ?>:</strong></td><td>country:US</td></tr>
 <tr><td><strong><?php Shopp::_e('Product','Shopp'); ?>:</strong></td><td>product:"acme widget"<br />product:widget<br />product:SKU123</td></tr>
+<tr><td><strong><?php Shopp::_e('Discounts','Shopp'); ?>:</strong></td><td>discount:"25% off"<br />discount:code123</td></tr>
 </table>
 <?php $table = ob_get_clean();
 

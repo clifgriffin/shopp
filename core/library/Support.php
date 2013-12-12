@@ -255,11 +255,8 @@ class ShoppSupport {
 
 	public static function reminder () {
 		$userid = get_current_user_id();
-		$setupscreen = true;
-		if ( ! in_array($_REQUEST['page'], array('shopp-setup', 'shopp-setup-core')) ) { // When not in the setup screen
-			$setupscreen = false;
-			if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || get_user_meta($userid, 'shopp_nonag') ) return '';
-		}
+
+		if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || get_user_meta($userid, 'shopp_nonag') ) return '';
 
 		$url = add_query_arg('action', 'shopp_nonag', wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_nonag'));
 		$_ = array();

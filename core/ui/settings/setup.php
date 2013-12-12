@@ -9,8 +9,8 @@
 
 	?>
 
-	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-general'); ?>
+	<form name="settings" id="general" action="<?php echo esc_url($this->url); ?>" method="post">
+		<?php wp_nonce_field('shopp-setup'); ?>
 
 		<table class="form-table">
 			<tr>
@@ -72,6 +72,13 @@
 				<td><textarea name="settings[business_address]" id="business-address" cols="47" rows="4"><?php echo esc_attr(shopp_setting('business_address')); ?></textarea><br />
 	            <?php _e('Enter the mailing address for your business.','Shopp'); ?></td>
 			</tr>
+
+			<tr>
+				<th scope="row" valign="top"><label for="maintenance-toggle"><?php _e('Maintenance Mode','Shopp'); ?></label></th>
+				<td><input type="hidden" name="settings[maintenance]" value="off" /><input type="checkbox" name="settings[maintenance]" value="on" id="maintenance-toggle"<?php if ( shopp_setting_enabled('maintenance') ) echo ' checked="checked"'?> /><label for="maintenance-toggle"> <?php _e('Enable mainteance mode','Shopp'); ?></label><br />
+	            <?php _e('All storefront pages will display a maintenance mode message.','Shopp'); ?></td>
+			</tr>
+
 
 		</table>
 

@@ -364,7 +364,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	private function maintenance () {
 		if ( ShoppLoader::is_activating() || Shopp::upgradedb() ) return;
 
-		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-settings-pages') ) {
+		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-setup') ) {
 			if ( isset($_POST['settings']['maintenance']))
 				shopp_set_setting('maintenance', $_POST['settings']['maintenance']);
 
@@ -374,7 +374,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 			if ( isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'shopp_disable_maintenance') ) {
 				shopp_set_setting('maintenance', 'off');
 			} else {
-				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup-pages'), admin_url('admin.php')), 'shopp_disable_maintenance');
+				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup'), admin_url('admin.php')), 'shopp_disable_maintenance');
 				$this->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 			}
 		}

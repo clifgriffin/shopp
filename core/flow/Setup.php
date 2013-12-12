@@ -110,7 +110,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 
 		// Save settings
 		if ( ! empty($_POST['save']) && isset($_POST['settings'])) {
-			check_admin_referer('shopp-settings-general');
+			check_admin_referer('shopp-setup');
 
 			if (isset($_POST['settings']['base_operations'])) {
 				$baseop = &$_POST['settings']['base_operations'];
