@@ -1,6 +1,6 @@
 === Shopp ===
 Contributors: jond, barryhughes, clifgriffin, jdillick, lorenzocaum, chaoix
-Donate link: http://example.com/
+Donate link: http://shopp.me/shopp-donate
 Tags: ecommerce, e-commerce, wordpress ecommerce, shopp, shop, shopping, cart, store, storefront, sales, sell, catalog, checkout, accounts, secure, variations, variants, reports, downloads, digital, downloadable, inventory, stock, shipping, taxes, shipped, addons, widgets, shortcodes
 Requires at least: 3.5
 Tested up to: 3.8
