@@ -96,13 +96,23 @@ jQuery(document).ready( function($) {
 				managerui.empty().append(ui);
 		}),
 
-		printbtn = $('#print-button').click(function (e) {
+		printbtn = $( '#print-button' ).click( function (e) {
 			e.preventDefault();
-			var frame = $('#print-receipt').get(0), fw = frame.contentWindow;
-			fw.focus();
-			fw.print();
+			var frame = $( '#print-receipt' ).get( 0 ), fw = frame.contentWindow;
+
+			// Which browser agent?
+			var trident = ( -1 !== navigator.userAgent.indexOf( "Trident" ) ); // IE
+			var presto = ( -1 !== navigator.userAgent.indexOf( "Presto" ) ); // Opera (pre-webkit)
+
+			if ( trident || presto ) {
+				var preview = window.open( fw.location.href+"&print=auto" );
+				$( preview ).load( function () {	preview.close(); } );
+			} else {
+				fw.focus();
+				fw.print();
+			}
 			return false;
-		}),
+		} );
 
 		editaddress = function (type) {
 			var $this = $(this),
