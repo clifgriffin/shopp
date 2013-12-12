@@ -311,6 +311,16 @@ class ShoppCatalogPage extends ShoppPage {
 		return self::FRONTPAGE;
 	}
 
+	public function poststub () {
+		global $wp_query;
+		if ( ! $wp_query->is_main_query() ) return;
+
+		$stub = parent::poststub();
+		$wp_query->is_post_type_archive = false;
+
+		return $stub;
+	}
+
 }
 
 /**
@@ -876,6 +886,13 @@ class ShoppCollectionPage extends ShoppPage {
 		$query_object = $wp_query->queried_object;
 		$stub = parent::poststub();
 		$wp_query->queried_object = $query_object;
+		$wp_query->is_tax = false;
+		$wp_query->is_archive = false;
+
+		switch ( $query_object->taxonomy ) {
+			case ProductTag::$taxon: $wp_query->is_tag = true; break;
+			case ProductCategory::$taxon: $wp_query->is_category = true; break;
+		}
 
 		return $stub;
 	}
