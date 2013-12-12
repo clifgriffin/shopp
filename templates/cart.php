@@ -17,9 +17,9 @@
 			<a href="<?php shopp( 'cart.referrer' ); ?>">&laquo; <?php _e( 'Continue Shopping', 'Shopp' ); ?></a>
 			<a href="<?php shopp( 'checkout.url' ); ?>" class="right"><?php _e( 'Proceed to Checkout', 'Shopp' ); ?> &raquo;</a>
 		</div>
-		
+
 		<?php shopp( 'cart.function' ); ?>
-		
+
 		<table class="cart">
 			<tr>
 				<th scope="col" class="item"><?php _e( 'Cart Items', 'Shopp' ); ?></th>
@@ -27,7 +27,7 @@
 				<th scope="col" class="money"><?php _e( 'Item Price', 'Shopp' ); ?></th>
 				<th scope="col" class="money"><?php _e( 'Item Total', 'Shopp' ); ?></th>
 			</tr>
-			
+
 			<?php while ( shopp( 'cart.items' ) ) : ?>
 				<tr>
 					<td>
@@ -44,16 +44,16 @@
 					<td class="money"><?php shopp( 'cartitem.total' ); ?></td>
 				</tr>
 			<?php endwhile; ?>
-			
-			<?php while ( shopp( 'cart.promos' ) ) : ?>
+
+			<?php while ( shopp( 'cart.discounts' ) ) : ?>
 				<tr>
 					<td colspan="4" class="money">
-						<?php shopp( 'cart.promo-name' ); ?>
-						<strong><?php shopp( 'cart.promo-discount', array( 'before' => '&nbsp;&mdash;&nbsp;' ) ); ?></strong>
+						<?php shopp( 'cart.discount-name' ); ?>
+						<strong><?php shopp( 'cart.discount-applied', array( 'before' => '&nbsp;&mdash;&nbsp;' ) ); ?></strong>
 					</td>
 				</tr>
 			<?php endwhile; ?>
-			
+
 			<tr class="totals">
 				<td colspan="2" rowspan="5">
 					<?php if ( shopp( 'cart.needs-shipping-estimates' ) ) : ?>
@@ -65,21 +65,21 @@
 				<th scope="row"><?php _e( 'Subtotal', 'Shopp' ); ?></th>
 				<td class="money"><?php shopp( 'cart.subtotal' ); ?></td>
 			</tr>
-			
+
 			<?php if ( shopp( 'cart.hasdiscount' ) ) : ?>
 				<tr class="totals">
 					<th scope="row"><?php _e( 'Discount', 'Shopp' ); ?></th>
 					<td class="money">-<?php shopp( 'cart.discount' ); ?></td>
 				</tr>
 			<?php endif; ?>
-			
+
 			<?php if ( shopp( 'cart.needs-shipped' ) ) : ?>
 				<tr class="totals">
 					<th scope="row"><?php shopp( 'cart.shipping', 'label=' . __( 'Estimated Shipping', 'Shopp' ) ); ?></th>
 					<td class="money"><?php shopp( 'cart.shipping' ); ?></td>
 				</tr>
 			<?php endif; ?>
-			
+
 			<tr class="totals">
 				<th scope="row"><?php shopp( 'cart.tax', 'label=' . __( 'Tax', 'Shopp' ) ); ?></th>
 				<td class="money"><?php shopp( 'cart.tax' ); ?></td>
@@ -92,7 +92,7 @@
 				<td colspan="4"><?php shopp( 'cart.update-button' ); ?></td>
 			</tr>
 		</table>
-		
+
 		<div>
 			<a href="<?php shopp( 'cart.referrer' ); ?>">&laquo; <?php _e( 'Continue Shopping', 'Shopp' ); ?></a>
 			<a href="<?php shopp( 'checkout.url' ); ?>" class="right"><?php _e( 'Proceed to Checkout', 'Shopp' ); ?> &raquo;</a>
@@ -102,6 +102,6 @@
 <?php else : ?>
 	<p class="notice"><?php _e( 'There are currently no items in your shopping cart.', 'Shopp' ); ?></p>
 	<p>
-		<a href="<?php shopp( 'catalog.url' ); ?>">&laquo; <?php _e( 'Continue Shopping', 'Shopp' ); ?></a>
+		<a href="<?php shopp( 'storefront.url' ); ?>">&laquo; <?php _e( 'Continue Shopping', 'Shopp' ); ?></a>
 	</p>
 <?php endif; ?>

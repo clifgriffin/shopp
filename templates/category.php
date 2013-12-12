@@ -16,7 +16,7 @@
 <?php if ( shopp( 'collection.hasproducts', 'load=coverimages' ) ) : ?>
 	<div class="category">
 		<section class="navigation controls">
-			<?php shopp( 'catalog.breadcrumb', array( 'separator' => '&nbsp;/ ' ) ); ?>
+			<?php shopp( 'storefront.breadcrumb', array( 'separator' => '&nbsp;/ ' ) ); ?>
 			<?php shopp( 'collection.subcategory-list',
 					array(	'dropdown' => true,
 						 	'hierarchy' => true,
@@ -26,12 +26,12 @@
 			); ?>
 
 			<div class="alignright">
-				<?php shopp( 'catalog.orderby-list', 'dropdown=on' ); ?>
+				<?php shopp( 'storefront.orderby-list', 'dropdown=on' ); ?>
 			</div>
 		</section>
 
 		<section class="view controls">
-			<?php shopp( 'catalog.views', 'label=' . __( 'Views: ', 'Shopp' ) ); ?>
+			<?php shopp( 'storefront.views', 'label=' . __( 'Views: ', 'Shopp' ) ); ?>
 			<?php shopp( 'collection.pagination', 'show=10&before=<div class="alignright">' ); ?>
 		</section>
 
@@ -67,6 +67,6 @@
 	</div>
 
 <?php else : ?>
-	<?php if ( ! shopp('storefront.is-landing') ) shopp( 'catalog.breadcrumb' ); ?>
+	<?php if ( ! shopp('storefront.is-landing') ) shopp( 'storefront.breadcrumb' ); ?>
 	<p class="notice"><?php _e( 'No products were found.', 'Shopp' ); ?></p>
 <?php endif; ?>

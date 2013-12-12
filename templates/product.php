@@ -11,7 +11,7 @@
  **/
 ?>
 
-<?php shopp( 'catalog.breadcrumb' ); ?>
+<?php shopp( 'storefront.breadcrumb' ); ?>
 
 <?php if ( shopp( 'product.found' ) ) : ?>
 	<?php shopp( 'product.gallery', 'p_setting=gallery-previews&thumbsetting=gallery-thumbnails' ); ?>
