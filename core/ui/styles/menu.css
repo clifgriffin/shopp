@@ -1,15 +1,11 @@
-/** Admin Menu Icons **/
-#toplevel_page_shopp-orders div.wp-menu-image,
-#toplevel_page_shopp-products div.wp-menu-image,
-#toplevel_page_shopp-settings div.wp-menu-image { background: transparent url('../icons/menu.png') no-repeat scroll 0px -64px; }
+/** Admin Menu Icons for WP 3.8/MP6 **/
+.svg #toplevel_page_shopp-orders div.wp-menu-image,
+.svg #toplevel_page_shopp-products div.wp-menu-image { background: none; }
 
-#toplevel_page_shopp-orders.wp-menu-open div.wp-menu-image,
-#toplevel_page_shopp-orders:hover div.wp-menu-image { background-position: 0px -32px; }
+.svg #toplevel_page_shopp-orders div.wp-menu-image:before,
+.svg #toplevel_page_shopp-products div.wp-menu-image:before {  font-family: 'shopp-icons' !important; font-size: 16px !important; margin: 1px 0 0 2px; }
 
-#toplevel_page_shopp-products div.wp-menu-image { background-position: -32px -64px; }
-#toplevel_page_shopp-products.wp-menu-open div.wp-menu-image,
-#toplevel_page_shopp-products:hover div.wp-menu-image { background-position: -32px -32px; }
+.svg #toplevel_page_shopp-orders div.wp-menu-image:before { content: "\e001";  }
+.svg #toplevel_page_shopp-products div.wp-menu-image:before { content: "\e002"; }
 
-#toplevel_page_shopp-settings div.wp-menu-image { background-position: -64px -64px; }
-#toplevel_page_shopp-settings.wp-menu-open div.wp-menu-image,
-#toplevel_page_shopp-settings:hover div.wp-menu-image { background-position: -64px -32px; }
+

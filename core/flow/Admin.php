@@ -95,7 +95,12 @@ class ShoppAdmin extends ShoppFlowController {
 
 		$this->pages();
 
-		wp_enqueue_style('shopp.menu', SHOPP_ADMIN_URI . '/styles/menu.css', array(), ShoppVersion::cache(), 'screen');
+		global $wp_version;
+	    if ( ( defined( 'MP6' ) && MP6 ) || version_compare( $wp_version, '3.8', '>=' ) )
+			$menucss = 'menu.css';
+		else $menucss = 'backmenu.css';
+
+		wp_enqueue_style('shopp.menu', SHOPP_ADMIN_URI . '/styles/' . $menucss, array(), ShoppVersion::cache(), 'screen');
 
 		// Set the currently requested page and menu
 		if ( isset($_GET['page']) && false !== strpos($_GET['page'], basename(SHOPP_PATH)) ) $page = $_GET['page'];
