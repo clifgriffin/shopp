@@ -214,7 +214,7 @@ class ShoppAdminDashboard {
 				<td>
 				<a href="<?php echo esc_url(add_query_arg('view','bestselling',$productscreen)); ?>"><?php echo esc_html($recent->name); ?></a>
 				</td>
-				<?php endif; ?>
+				<?php endif; ?>
 				<?php if (empty($LifeBestsellers->products) && $firstrun) echo '<td colspan="2" rowspan="5">'.__('None','Shopp').'</td>'; ?>
 				<?php if (!empty($lifetime->id)): ?>
 				<td class="salesgraph">
