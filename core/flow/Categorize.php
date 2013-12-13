@@ -284,14 +284,15 @@ class ShoppAdminCategorize extends ShoppAdminController {
 	 * @return void
 	 **/
 	public function columns () {
-		ShoppUI::register_column_headers($this->screen, array(
+		$columns = array(
 			'cb' => '<input type="checkbox" />',
 			'name' => Shopp::__('Name'),
 			'slug' => Shopp::__('Slug'),
 			'products' => Shopp::__('Products'),
 			'templates' => Shopp::__('Templates'),
 			'menus' => Shopp::__('Menus')
-		));
+		);
+		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_manage_category_columns',$columns));
 	}
 
 	/**
