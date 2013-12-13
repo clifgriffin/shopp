@@ -28,7 +28,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param string $access The access capability required to see the menu
  * @return integer The position the menu was added
  **/
-function shopp_admin_add_menu ( string $label, string $page, integer $position = null, $handler = false, string $access = null ) {
+function shopp_admin_add_menu ( string $label, string $page, integer $position = null, $handler = false, string $access = null, string $icon = null ) {
 
 	global $menu;
 	$Admin = ShoppAdmin();
@@ -50,7 +50,7 @@ function shopp_admin_add_menu ( string $label, string $page, integer $position =
 		$access,									// Access level
 		$Admin->pagename($page),					// Page
 		$handler,									// Handler
-		Shopp::clearpng(),							// Icon
+		$icon,										// Icon
 		$position									// Menu position
 	);
 

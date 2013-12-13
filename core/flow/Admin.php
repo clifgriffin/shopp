@@ -96,9 +96,9 @@ class ShoppAdmin extends ShoppFlowController {
 		$this->pages();
 
 		global $wp_version;
-	    if ( ( defined( 'MP6' ) && MP6 ) || version_compare( $wp_version, '3.8', '>=' ) )
-			$menucss = 'menu.css';
-		else $menucss = 'backmenu.css';
+	    if ( ! ( defined( 'MP6' ) && MP6 ) && version_compare( $wp_version, '3.8', '<' ) )
+			$menucss = 'backmenu.css';
+		else $menucss = 'menu.css';
 
 		wp_enqueue_style('shopp.menu', SHOPP_ADMIN_URI . '/styles/' . $menucss, array(), ShoppVersion::cache(), 'screen');
 
@@ -186,8 +186,8 @@ class ShoppAdmin extends ShoppFlowController {
 		if ( Shopp::maintenance() ) $access = 'manage_options';
 
 		// Add main menus
-		$position = shopp_admin_add_menu(Shopp::__('Shopp'), 'orders', 40, false, 'shopp_orders');
-		shopp_admin_add_menu(Shopp::__('Catalog'), 'products', $position, false, 'shopp_products');
+		$position = shopp_admin_add_menu(Shopp::__('Shopp'), 'orders', 40, false, 'shopp_orders', Shopp::clearpng());
+		shopp_admin_add_menu(Shopp::__('Catalog'), 'products', $position, false, 'shopp_products', Shopp::clearpng());
 
 		// Add after the Shopp menus to avoid being purged by the duplicate separator check
 		$menu[ $position - 1 ] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
