@@ -15,9 +15,10 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = array();
 
-		$where[] = self::unixtime( "'$starts'" ) . ' < ' . self::unixtime( 'o.created' );
-		$where[] = self::unixtime( "'$ends'" ) . ' > ' . self::unixtime( 'o.created' );
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
 		$where[] = "orders.txnstatus IN ('authorized','captured')";
+
 		$where = join(" AND ",$where);
 
 		$orderd = 'desc';

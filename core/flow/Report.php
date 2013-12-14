@@ -110,13 +110,14 @@ class ShoppAdminReport extends ShoppAdminController {
 		if (!empty($options['start'])) {
 			$startdate = $options['start'];
 			list($sm,$sd,$sy) = explode("/",$startdate);
-			$options['starts'] = date( 'Y-m-d H:i:s', mktime( 0, 0, 0, $sm, $sd, $sy ) );
+			$options['starts'] = mktime(0,0,0,$sm,$sd,$sy);
+			date('F j Y',$options['starts']);
 		}
 
 		if (!empty($options['end'])) {
 			$enddate = $options['end'];
 			list($em,$ed,$ey) = explode("/",$enddate);
-			$options['ends'] = date( 'Y-m-d H:i:s', mktime( 23, 59, 59, $em, $ed, $ey ) );
+			$options['ends'] = mktime(23,59,59,$em,$ed,$ey);
 			if ($options['ends'] > $today) $options['ends'] = $today;
 		}
 
