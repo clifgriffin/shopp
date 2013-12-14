@@ -28,11 +28,12 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
-		$where[] = self::unixtime( "'$starts'" ) . ' < ' . self::unixtime( 'o.created' );
-		$where[] = self::unixtime( "'$ends'" ) . ' > ' . self::unixtime( 'o.created' );
-		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
-		$where = join(" AND ",$where);
 
+		$where[] = "$starts < " . self::unixtime('o.created');
+		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";;
+
+		$where = join(" AND ",$where);
 
 		$id = $this->timecolumn('o.created');
 		$orders_table = ShoppDatabaseObject::tablename('purchase');
