@@ -120,7 +120,7 @@
 						</td>
 				</tr>
 				<?php endif; ?>
-				<?php if ($Purchase->freight > 0): ?>
+				<?php if ( ! empty($Purchase->shipoption) ): ?>
 				<tr class="totals">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->freight); ?></td>
