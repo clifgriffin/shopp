@@ -217,7 +217,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 #membership .stage { filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=2px, Color='#999'); -ms-filter: "progid:DXImageTransform.Microsoft.dropshadow(OffX=0, OffY=2px, Color='#999')"; -moz-box-shadow: 0 2px 3px #999; -webkit-box-shadow: 0 2px 3px #999; box-shadow: 0 2px 3px #999; }
 
-.membership.search-select-results { width: 300px; } 
+.membership.search-select-results { width: 300px; }
 
 /** Pricing editor **/
 
@@ -384,37 +384,37 @@ button.moveto {
 	background-image:    -moz-linear-gradient(top, #fefefe, #ccc);
 	background-image:      -o-linear-gradient(top, #fefefe, #ccc);
 	background-image:   linear-gradient(to bottom, #fefefe, #ccc);
-	padding: 2px 0; 
-	margin: 0; 
+	padding: 2px 0;
+	margin: 0;
 	text-shadow: 0 1px 1px #fff;
 	box-shadow: inset 0 -1px 2px #fff, inset 0 1px 2px #fff;
-	border: 1px solid #ACACAC; 
+	border: 1px solid #ACACAC;
 }
 button.moveto.shoppui-step-top {
 	padding-left: 6px;
 	padding-right: 2px;
 	border-right: none;
-	    -moz-border-radius-topleft: 999px; 
-	-webkit-border-top-left-radius: 999px; 
-	 -khtml-border-top-left-radius: 999px; 
-	        border-top-left-radius: 999px; 
-	    -moz-border-radius-bottomleft: 999px; 
-	-webkit-border-bottom-left-radius: 999px; 
-	 -khtml-border-bottom-left-radius: 999px; 
-	        border-bottom-left-radius: 999px; 
-	
+	    -moz-border-radius-topleft: 999px;
+	-webkit-border-top-left-radius: 999px;
+	 -khtml-border-top-left-radius: 999px;
+	        border-top-left-radius: 999px;
+	    -moz-border-radius-bottomleft: 999px;
+	-webkit-border-bottom-left-radius: 999px;
+	 -khtml-border-bottom-left-radius: 999px;
+	        border-bottom-left-radius: 999px;
+
 }
 button.moveto.shoppui-step-bottom {
 	padding-left: 2px;
 	padding-right: 6px;
-	    -moz-border-radius-topright: 999px; 
+	    -moz-border-radius-topright: 999px;
 	-webkit-border-top-right-radius: 999px;
-	 -khtml-border-top-right-radius: 999px; 
-	        border-top-right-radius: 999px; 
-	    -moz-border-radius-bottomright: 999px; 
+	 -khtml-border-top-right-radius: 999px;
+	        border-top-right-radius: 999px;
+	    -moz-border-radius-bottomright: 999px;
 	-webkit-border-bottom-right-radius: 999px;
-	 -khtml-border-bottom-right-radius: 999px; 
-	        border-bottom-right-radius: 999px; 
+	 -khtml-border-bottom-right-radius: 999px;
+	        border-bottom-right-radius: 999px;
 }
 
 span.indent { display: inline-block; width: 36px; }
@@ -450,7 +450,7 @@ span.indent { display: inline-block; width: 36px; }
 .shopp .new-category input[type=button] { font-size: 10px; }
 
 #product ul.category-tabs li.hide-if-no-js { display: none; }
-	
+
 /** Tags Metabox **/
 .shopp .tags-metabox .search-select input.input { width: 100px; }
 .shopp .tags-metabox .search-select input.input:focus { -webkit-box-shadow: none; box-shadow: none; }
@@ -548,7 +548,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .column { position:relative; }
 #order .column-items img { margin-right: 3px; }
 #order .left-column {float:left;width:260px;display:inline;overflow:visible; }
-#order .right-column { width:100%;margin-left:-340px; display: inline;}
+#order .right-column { width:100%;display: inline;}
 #order #main-column { margin-left:280px; }
 
 #order .meta-boxes .inside { line-height:1.3em; }
@@ -760,7 +760,7 @@ tr.inline-edit-row td  { padding: 10px; }
 #customer-select ul { background: none; list-style: none; padding-left: 0; }
 #customer-select .avatar { float: left; margin-right: 5px; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px; }
 #customer-select li { overflow: hidden; }
-#customer-select ul a { width: 228px; display: inline-block; padding: 3px; clear: both; border: 1px solid #dfdfdf; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px; 
+#customer-select ul a { width: 228px; display: inline-block; padding: 3px; clear: both; border: 1px solid #dfdfdf; -moz-border-radius: 3px; -webkit-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px;
 	background: #f3f3f3;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#fefefe), to(#f4f4f4));
 	background-image: -webkit-linear-gradient(top, #fefefe, #f4f4f4);
@@ -770,7 +770,7 @@ tr.inline-edit-row td  { padding: 10px; }
 	border-color: #bbb;
  	color: #333;
 	text-shadow: 0 1px 0 #fff;
-	text-decoration: none; 
+	text-decoration: none;
 }
 #customer-select ul a:hover { background: #fff; cursor: pointer; }
 
@@ -781,7 +781,7 @@ tr.inline-edit-row td  { padding: 10px; }
 .shopp button.hidden,
 .shopp .category-menu.hidden,
 .shopp div.inline div.hidden,
-.shopp .hidden, 
-.shopp .js .closed .inside, 
-.shopp .js .hide-if-js, 
+.shopp .hidden,
+.shopp .js .closed .inside,
+.shopp .js .hide-if-js,
 .shopp .no-js .hide-if-no-js { display: none; }
