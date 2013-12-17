@@ -100,8 +100,8 @@
 #shopp dd { clear:right; width:50%; padding-left: 50%; }
 
 #shopp .gallery { margin: 5px 10px 5px 0; }
-#shopp .gallery ul { margin: 10px 0 10px 0; }
-#shopp .gallery li { margin: 0 5px 0 0; }
+#shopp .gallery ul.thumbnails { margin: 10px 0 10px 0; }
+#shopp .gallery ul.thumbnails li { margin: 0 5px 0 0; }
 
 
 /** Category List Widget **/
