@@ -213,7 +213,7 @@ class ShoppLogin {
 	 **/
 	public function login ( $Account ) {
 
-		if ( $this->Customer->session(ShoppCustomer::LOGIN) ) return; // Prevent login pong (Shopp login <-> WP login)
+		if ( $this->Customer->loggedin() ) return; // Prevent login pong (Shopp login <-> WP login)
 		$this->Customer->copydata($Account, '', array());
 
 		$this->Customer->login(); // Mark the customer account as logged in

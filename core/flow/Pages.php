@@ -197,7 +197,7 @@ class ShoppPage {
 		$title = apply_filters('shopp_' . get_class_property($classname, 'name') . '_pagetitle', $this->title); // @deprecated Use shopp_storefront_page_title or shopp_{$name}_storefront_page_title instead
 
 		$title = apply_filters('shopp_' . get_class_property($classname, 'name') . '_storefront_page_title', $title);
-		return $title = apply_filters('shopp_storefront_page_title', $title);
+		return apply_filters('shopp_storefront_page_title', $title);
 	}
 
 	public function slug () {
@@ -851,6 +851,26 @@ class ShoppCollectionPage extends ShoppPage {
 		parent::__construct($settings);
 	}
 
+	public function filters () {
+		parent::filters();
+		add_filter('wp_title', array($this, 'unlabel'), 1, 3);
+	}
+
+	public function unlabel ( $title, $sep, $seplocation ) {
+		global $wp_query;
+
+		$query_object = $wp_query->queried_object;
+		if ( empty($query_object->taxonomy) ) return $title;
+
+		$tax = get_taxonomy($query_object->taxonomy);
+		if ( empty($tax->labels->name) ) return $title;
+
+		$taxlabel = 'right' == $seplocation ? $tax->labels->name . " $sep " : " $sep " . $tax->labels->name;
+		$title = str_replace($taxlabel, '', $title);
+
+		return $title;
+	}
+
 	public function editlink ( $link ) {
 		return $this->edit;
 	}
@@ -886,13 +906,7 @@ class ShoppCollectionPage extends ShoppPage {
 		$query_object = $wp_query->queried_object;
 		$stub = parent::poststub();
 		$wp_query->queried_object = $query_object;
-		$wp_query->is_tax = false;
-		$wp_query->is_archive = false;
-
-		switch ( $query_object->taxonomy ) {
-			case ProductTag::$taxon: $wp_query->is_tag = true; break;
-			case ProductCategory::$taxon: $wp_query->is_category = true; break;
-		}
+		$wp_query->is_post_type_archive = false;
 
 		return $stub;
 	}

@@ -777,7 +777,7 @@ class ShoppAjax {
 	public function nonag () {
 		check_admin_referer('wp_ajax_shopp_nonag');
 		$id = get_current_user_id();
-        add_user_meta($id, 'shopp_nonag', 'true', true);
+        add_user_meta($id, 'shopp_nonag', current_time(), true);
 		return true;
 	}
 

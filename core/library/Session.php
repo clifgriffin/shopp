@@ -243,8 +243,22 @@ abstract class SessionObject {
 			trigger_error("Could not delete cached session data.");
 
 		// Garbage collection for file-system sessions
-        foreach ( glob("$this->path/sess_*") as $file )
-            if ( filemtime($file) + $lifetime < time() && file_exists($file) ) unlink($file);
+		if( $dh = opendir($this->path) ) {
+
+		    while( ( $file = readdir($dh) ) !== false ) {
+		    	if ( false === strpos($file, 'sess_') ) continue;
+
+		    	$file = $this->path . "/$file";
+
+		        if ( filemtime($file) + $lifetime < time() && file_exists($file) ) {
+			    	if ( @unlink($file) === false ) {
+				    	break;
+			    	}
+		        }
+		    }
+
+		    closedir($dh);
+		}
 
 		return true;
 	}
