@@ -482,7 +482,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				$_[ 'item_number_' . $id ]		= $id;
 				$_[ 'item_name_' . $id ]		= $Item->name . ( ! empty($Item->option->label) ? ' ' . $Item->option->label : '');
 				$_[ 'amount_' . $id ]			= $this->amount($Item->unitprice);
-				$_[ 'quantity_ ' . $id ]			= $Item->quantity;
+				$_[ 'quantity_' . $id ]			= $Item->quantity;
 				// $_['weight_'.$id]			= $Item->quantity;
 			}
 
