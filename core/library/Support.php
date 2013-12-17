@@ -256,7 +256,9 @@ class ShoppSupport {
 	public static function reminder () {
 		$userid = get_current_user_id();
 
-		if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || get_user_meta($userid, 'shopp_nonag') ) return '';
+		$lasttime = (int)get_user_meta($userid, 'shopp_nonag');
+		$dismissed = ( current_time('timestamp') - $lasttime ) < ( rand(2,5) * 86400 );
+		if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || $dismissed ) return '';
 
 		$url = add_query_arg('action', 'shopp_nonag', wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_nonag'));
 		$_ = array();
