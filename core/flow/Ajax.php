@@ -255,7 +255,7 @@ class ShoppAjax {
 		$selected = $Shiprates->selected();
 
 
-		if ( $selected !== false && $_GET['method'] != $selected->slug ) {
+		if ( $selected === false || ( isset($selected->slug) && $_GET['method'] != $selected->slug) ) {
 			$Shiprates->selected( $_GET['method'] );
 		}
 
