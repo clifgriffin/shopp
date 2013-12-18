@@ -105,6 +105,10 @@ class ShoppLogin {
 		if ( ! isset($_POST['account-login']) || empty($_POST['account-login']) )
 			return shopp_add_error( __('You must provide a valid login name or email address to proceed.','Shopp'), SHOPP_AUTH_ERR );
 
+		// Add a login redirect as the very last action if a redirect parameter is provided in the request; Props @alansherwood
+		if ( isset($_REQUEST['redirect']) )
+			add_action('shopp_authed', array($this, 'redirect'), 100);
+
 		$mode = 'loginname';
 		if ( false !== strpos($_POST['account-login'], '@') ) $mode = 'email';
 		$this->auth($_POST['account-login'], $_POST['password-login'], $mode);
@@ -124,6 +128,8 @@ class ShoppLogin {
 	 **/
 	public function auth ( string $id, string $password, $type = 'email') {
 
+		do_action('shopp_auth');
+
 		$errors = array(
 			'empty_username' => __('The login field is empty.','Shopp'),
 			'empty_password' => __('The password field is empty.','Shopp'),
@@ -132,55 +138,53 @@ class ShoppLogin {
 			'incorrect_password' => __('The password is incorrect.','Shopp')
 		);
 
-		switch(shopp_setting('account_system')) {
+		switch( shopp_setting('account_system') ) {
 			case 'shopp':
-				$Account = new ShoppCustomer($id,'email');
+				$Account = new ShoppCustomer($id, 'email');
 
-				if (empty($Account)) {
-					new ShoppError( $errors['invalid_email'],'invalid_account',SHOPP_AUTH_ERR );
+				if ( empty($Account) ) {
+					new ShoppError( $errors['invalid_email'], 'invalid_account', SHOPP_AUTH_ERR );
 					return;
 				}
 
-				if (!wp_check_password($password,$Account->password)) {
-					new ShoppError( $errors['incorrect_password'],'incorrect_password',SHOPP_AUTH_ERR );
+				if ( ! wp_check_password($password, $Account->password) ) {
+					new ShoppError( $errors['incorrect_password'], 'incorrect_password', SHOPP_AUTH_ERR );
 					return;
 				}
 
+				$this->login($Account);
 				break;
 
-  		case 'wordpress':
-			if('email' == $type){
-				$user = get_user_by_email($id);
-				if ($user) $loginname = $user->user_login;
-				else {
-					new ShoppError( $errors['invalid_email'],'invalid_account',SHOPP_AUTH_ERR );
+	  		case 'wordpress':
+				if ( 'email' == $type ) {
+					$user = get_user_by_email($id);
+					if ( $user ) $loginname = $user->user_login;
+					else {
+						new ShoppError( $errors['invalid_email'], 'invalid_account', SHOPP_AUTH_ERR );
+						return;
+					}
+				} else $loginname = $id;
+
+				$user = wp_authenticate($loginname, $password);
+				if ( is_wp_error($user) ) { // WordPress User Authentication failed
+					$code = $user->get_error_code();
+					if ( isset($errors[ $code ]) ) new ShoppError( $errors[ $code ], 'invalid_account', SHOPP_AUTH_ERR );
+					else {
+						$messages = $user->get_error_messages();
+						foreach ( $messages as $message )
+							new ShoppError( sprintf(__('Unknown login error: %s'), $message), 'unknown_login_error', SHOPP_AUTH_ERR);
+					}
 					return;
+				} else {
+					wp_set_auth_cookie($user->ID, false, is_ssl());
+					do_action('wp_login', $user->user_login, $user);
+					wp_set_current_user($user->ID, $user->user_login);
 				}
-			} else $loginname = $id;
-
-			$user = wp_authenticate($loginname,$password);
-			if (is_wp_error($user)) { // WordPress User Authentication failed
-				$code = $user->get_error_code();
-				if ( isset($errors[ $code ]) ) new ShoppError( $errors[ $code ],'invalid_account',SHOPP_AUTH_ERR );
-				else {
-					$messages = $user->get_error_messages();
-					foreach ($messages as $message)
-						new ShoppError( sprintf(__('Unknown login error: %s'),$message),'unknown_login_error',SHOPP_AUTH_ERR);
-				}
-				return;
-			} else {
-				wp_set_auth_cookie($user->ID);
-				do_action('wp_login', $loginname);
-				wp_set_current_user($user->ID,$user->user_login);
-
-				return;
-			}
-  			break;
+	  			break;
 			default: return;
 		}
 
-		$this->login($Account);
-		do_action('shopp_auth');
+		do_action('shopp_authed');
 
 	}
 
@@ -213,31 +217,25 @@ class ShoppLogin {
 	 **/
 	public function login ( $Account ) {
 
-		if ( $this->Customer->loggedin() ) return; // Prevent login pong (Shopp login <-> WP login)
-		$this->Customer->copydata($Account, '', array());
-
+		$this->Customer->copydata($Account, '', array()); // Copy account data to session customer
 		$this->Customer->login(); // Mark the customer account as logged in
-		unset($this->Customer->password);
+		unset($this->Customer->password); // Don't need the password in the session
+
+		// Load the billing address
 		$this->Billing->load($Account->id, 'customer');
-		$this->Billing->card = '';
-		$this->Billing->cardexpires = '';
-		$this->Billing->cardholder = '';
-		$this->Billing->cardtype = '';
+		$clearfields = array('card', 'cardexpires', 'cardholder', 'cardtype');
+		foreach ( $clearfields as $field )
+			$this->Billing->$field = '';
+
+		// Load the shipping address
 		$this->Shipping->load($Account->id, 'customer');
 		if ( empty($this->Shipping->id) )
 			$this->Shipping->copydata($this->Billing);
 
-		// Login WP user if not logged in
-		if ( 'wordpress' == shopp_setting('account_system') && ! get_current_user_id() ) {
-			$user = get_user_by('id', $this->Customer->wpuser);
-			@wp_set_auth_cookie($user->ID);
-			wp_set_current_user($user->ID, $user->user_login);
-		}
-
-		// Add a login redirect as the very last action if a redirect parameter is provided in the request; Props @alansherwood
-		if ( isset($_REQUEST['redirect']) ) add_action('shopp_login', array($this, 'redirect'), 100);
-
+		// Warning: Do not exit or redirect from shopp_login action or the login
+		// process will not complete properly. Instead use the shopp_login_redirect filter hook
 		do_action_ref_array('shopp_login', array($this->Customer));
+
 	}
 
 	/**
@@ -278,10 +276,10 @@ class ShoppLogin {
 			else $redirect = $_REQUEST['redirect'];
 		}
 
-		if ( ! $redirect ) $redirect = Shopp::url(false,'account',$secure);
+		if ( ! $redirect ) $redirect = apply_filters('shopp_login_redirect', Shopp::url(false, 'account', $secure));
 
 		Shopp::safe_redirect($redirect);
-		exit();
+		exit;
 	}
 
 	/**
