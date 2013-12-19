@@ -3,7 +3,7 @@
  * Plugin Name: Shopp
  * Plugin URI: http://shopplugin.com
  * Description: An ecommerce framework for WordPress.
- * Version: 1.4dev
+ * Version: 1.3.1dev
  * Author: Ingenesis Limited
  * Author URI: http://ingenesis.net
  * Requires at least: 3.5
@@ -393,7 +393,7 @@ class Shopp extends ShoppCore {
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
 		// Image Server request handling
-		if ( isset($_GET['siid']) || 1 == preg_match('!^/[^/]+/images/\d+/.*$!', $_SERVER['REQUEST_URI']) )
+		if ( isset($_GET['siid']) || 1 == preg_match('{^/.+?/images/\d+/.*$}', $_SERVER['REQUEST_URI']) )
 			return require 'services/image.php';
 
 		// Script Server request handling

@@ -11,7 +11,7 @@
  **/
 
 // Reduce image display issues by hiding warnings/notices
-ini_set('display_errors',0);
+ini_set('display_errors', 0);
 
 if ( ! defined('SHORTINIT') ) define('SHORTINIT',true);
 define('SHOPP_IMGSERVER_LOADED', true);
@@ -59,7 +59,7 @@ exit;
  **/
 class ImageServer {
 
-	static $prettyurls = '/\/images\/(\d+).*$/';
+	static $prettyurls = '{^/.+?/images/(\d+)/.*$}';
 
 	private $caching = true;	// Set to false to force off image caching
 

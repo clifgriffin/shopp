@@ -209,7 +209,7 @@ class ShoppLoader {
 		fclose($file);
 	}
 
-	static function find_wpload () {
+	public static function find_wpload () {
 
 		$configfile = 'wp-config.php';
 		$loadfile = 'wp-load.php';
