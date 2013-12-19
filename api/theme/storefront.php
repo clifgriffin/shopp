@@ -424,7 +424,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$wraplist = Shopp::str_true($wraplist);
 		$hierarchy = Shopp::str_true($hierarchy);
 
-		if (Shopp::str_true($dropdown)) {
+		if ( Shopp::str_true($dropdown) ) {
 			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
 			$string .= $title;
 			$string .= '<form action="/" method="get" class="category-list-menu"><select name="shopp_cats" '.$classes.'>';
@@ -536,7 +536,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'total'));
 				extract($filtered, EXTR_OVERWRITE);
 
-				if ( empty($classes) ) $classes = '';
+				if ( empty($classes) ) $class = '';
 				else $class = ' class="' . join(' ', $classes) . '"';
 
 				$listing = '';
