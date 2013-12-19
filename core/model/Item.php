@@ -154,14 +154,14 @@ class ShoppCartItem {
 		$this->description = $Product->summary;
 
 		// Product has variants
-		if ( Shopp::str_true($Product->variants) )
+		if ( Shopp::str_true($Product->variants) && empty($this->variants) )
 			$this->variants($Product->prices);
 
 		// Product has Addons
-		if ( Shopp::str_true($Product->addons) )
+		if ( Shopp::str_true($Product->addons) && empty($this->addons) )
 			$this->addons($this->addonsum, $addons, $Product->prices);
 
-		if (isset($Price->id))
+		if ( isset($Price->id) )
 			$this->option = $this->mapprice($Price);
 
 		$this->sku = $Price->sku;
@@ -173,6 +173,7 @@ class ShoppCartItem {
 		$this->unitprice = $baseprice + $this->addonsum;
 
 		if ( shopp_setting_enabled('taxes') ) {
+			$this->taxable = array();
 			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
 			$this->istaxed = ( $this->taxable > 0 );
 			$this->includetax = shopp_setting_enabled('tax_inclusive');

@@ -485,17 +485,13 @@ class ShoppCart extends ListFramework {
 
 		// Maintain item state, change variant
 		$Item = $this->get($item);
-		$qty = $Item->quantity;
 		$category = $Item->category;
 		$data = $Item->data;
 
-		foreach ($Item->addons as $addon)
+		foreach ( $Item->addons as $addon )
 			$addons[] = $addon->options;
 
-		$UpdatedItem = new ShoppCartItem(new ShoppProduct($product), $pricing, $category, $data, $addons);
-		$UpdatedItem->quantity($qty);
-
-		parent::update($item, $UpdatedItem);
+		$Item->load(new ShoppProduct($product), $pricing, $category, $data, $addons);
 
 		return true;
 	}
