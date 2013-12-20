@@ -326,7 +326,9 @@ class ModuleFile {
 	 **/
 	public function load () {
 		if ( ! $this->addon ) return;
-		return new $this->classname();
+
+		if ( class_exists($this->classname, false) )
+			new $this->classname();
 	}
 
 	/**
