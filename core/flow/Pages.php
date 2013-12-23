@@ -434,6 +434,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'From: ' . Shopp::email_from( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
+		$_[] = 'Content-type: text/html';
 		$_[] = '';
 		$_[] = '<p>'.__('A request has been made to reset the password for the following site and account:', 'Shopp').'<br />';
 		$_[] = get_option('siteurl').'</p>';
