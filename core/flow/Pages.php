@@ -359,34 +359,34 @@ class ShoppAccountPage extends ShoppPage {
 	}
 
 	public function content ($content, $request=false) {
-		if ( ! $request) {
+		if ( ! $request ) {
 			global $wp_query;
 			// Test that this is the main query and it is the account page
 			if ( ! $wp_query->is_main_query() || ! is_shopp_page('account') ) return $content;
 		}
 
-		$widget = ('widget' == $request);
+		$widget = ( 'widget' === $request );
 		if ($widget) $request = 'menu'; // Modify widget request to render the account menu
 
-		if ('none' == shopp_setting('account_system'))
-			return apply_filters('shopp_account_template', shopp('customer', 'get-order-lookup'));
+		if ( 'none' == shopp_setting('account_system' ) )
+			return apply_filters( 'shopp_account_template', shopp( 'customer', 'get-order-lookup' ) );
 
 		// $download_request = get_query_var('s_dl');
 		if ( ! $request) $request = ShoppStorefront()->account['request'];
-		$templates = array('account-'.$request.'.php', 'account.php');
+		$templates = array( 'account-'.$request.'.php', 'account.php' );
 
 		if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
 
 		ob_start();
-		if ( apply_filters('shopp_show_account_errors', true) && ShoppErrors()->exist(SHOPP_AUTH_ERR) )
-			echo ShoppStorefront::errors(array("errors-$context", 'account-errors.php', 'errors.php'));
-		locate_shopp_template($templates, true);
+		if ( apply_filters( 'shopp_show_account_errors', true ) && ShoppErrors()->exist( SHOPP_AUTH_ERR ) )
+			echo ShoppStorefront::errors( array( "errors-$context", 'account-errors.php', 'errors.php' ) );
+		Shopp::locate_template( $templates, true );
 		$content = ob_get_clean();
 
 		// Suppress the #shopp div for sidebar widgets
-		if ($widget) $content = '<!-- id="shopp" -->'.$content;
+		if ($widget) $content = '<!-- id="shopp" -->' . $content;
 
-		return apply_filters('shopp_account_template', $content);
+		return apply_filters( 'shopp_account_template', $content );
 
 	}
 
