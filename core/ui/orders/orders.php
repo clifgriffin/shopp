@@ -72,7 +72,7 @@
 
 			$viewurl = add_query_arg('id',$Order->id,$url);
 			$customer = '' == trim($Order->firstname.$Order->lastname) ? "(".__('no contact name','Shopp').")" : ucfirst("{$Order->firstname} {$Order->lastname}");
-			$customerurl = add_query_arg('customer',$Order->customer,$url);
+			$customerurl = add_query_arg( array( 'page' => 'shopp-customers', 'id' => $Order->customer ), $url );
 
 			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
