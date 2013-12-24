@@ -1235,6 +1235,8 @@ abstract class ShoppDatabaseObject implements Iterator {
  **/
 class WPDatabaseObject extends ShoppDatabaseObject {
 
+	public $post_author = '';
+
 	/**
 	 * Builds a table name from the defined WP table prefix
 	 *
