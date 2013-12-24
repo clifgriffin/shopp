@@ -248,6 +248,7 @@ class ShoppPage {
 		$stub = new WPDatabaseObject;
 		$stub->init('posts');
 		$stub->ID = 0;
+		$stub->post_name = '';
 		$stub->comment_status = 'closed'; // Force comments closed
 		$stub->post_title = $this->title;
 		$stub->post_content = '';
@@ -292,6 +293,13 @@ class ShoppCatalogPage extends ShoppPage {
 		parent::__construct($options);
 	}
 
+	public function templates () {
+		$templates = parent::templates();
+		if ( is_catalog_frontpage() )
+			array_unshift($templates, 'front-page.php');
+		return $templates;
+	}
+
 	public function content ($content) {
 		global $wp_query;
 		// Test that this is the main query and it is a catalog page
@@ -311,12 +319,21 @@ class ShoppCatalogPage extends ShoppPage {
 		return self::FRONTPAGE;
 	}
 
+	public function styleclass ( $classes ) {
+		if ( is_catalog_frontpage() )
+			$classes[] = 'home';
+		$classes[] = $this->name();
+		return $classes;
+	}
+
 	public function poststub () {
 		global $wp_query;
 		if ( ! $wp_query->is_main_query() ) return;
 
 		$stub = parent::poststub();
 		$wp_query->is_post_type_archive = false;
+		// if ( is_catalog_frontpage() )
+		// 	$wp_query->is_home = true;
 
 		return $stub;
 	}
