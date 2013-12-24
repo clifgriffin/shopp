@@ -368,7 +368,7 @@ class ShoppError {
 		$typehints = array(
 			'boolean'   => 'is_bool',
 			'integer'   => 'is_int',
-			'float'     => 'is_float',
+			'float'     => array('is_float', 'is_int'),
 			'string'    => 'is_string',
 			'resource'  => 'is_resource'
 		);
@@ -381,7 +381,10 @@ class ShoppError {
 				if ( $debug['function'] == $function ) {
 					$argument = $debug['args'][ $index - 1 ];
 
-					if ( call_user_func($typehints[ $hint ], $argument) ) return true;
+					$hints = (array) $typehints[ $hint ];
+					foreach ( $hints as $typehint )
+						if ( call_user_func($typehint, $argument) ) return true;
+
 				}
 			}
 
