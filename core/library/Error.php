@@ -236,6 +236,8 @@ class ShoppErrors {
 	public function php ( $number, $message, $file, $line ) {
 		if ( false === strpos($file, SHOPP_PATH) ) return true;
 
+		if ( self::typehint($number, $message) ) return true;
+
 		$debug = '';
 		if ( defined('SHOPP_DEBUG') && SHOPP_DEBUG )
 			$debug = sprintf(" [%s, line %d]", basename($file), $line);
@@ -246,6 +248,20 @@ class ShoppErrors {
 
 		if ( E_USER_ERROR == $number ) return false; // Always show fatal errors
 		return true;
+	}
+
+	private function typehint ( $level, $message ) {
+		if ( $level != E_RECOVERABLE_ERROR ) return false;
+
+		$typehints = array('boolean', 'integer', 'float', 'string', 'resource');
+		foreach ( $typehints as $type )
+			if ( false !== strpos($message, "must be an instance of $type, $type") ) return true;
+
+		$floattypes = array('double', 'integer');
+		foreach ( $floattypes as $type )
+			if ( false !== strpos($message, "must be an instance of float, $type") ) return true;
+
+		return false;
 	}
 
 } // end ShoppErrors
@@ -314,7 +330,7 @@ class ShoppError {
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
 
 		// Add broad typehinting support for primitives
-		if ( isset($data['phperror']) && $this->typehint($data['phperror'], $message, $this->debug) ) return;
+		// if ( isset($data['phperror']) && self::typehint($data['phperror'], $message, $this->debug) ) return;
 
 		unset($this->debug['object'], $this->debug['args']);
 
@@ -360,37 +376,6 @@ class ShoppError {
 			if (!empty($Errors->errors)) $Errors->remove($this);
 		}
 		return $string;
-	}
-
-	private static function typehint ( $level, $message, $debug ) {
-		$pattern = '/^Argument (\d)+ passed to (?:(\w+)::)?(\w+)\(\) must be an instance of (\w+), (\w+) given/';
-
-		$typehints = array(
-			'boolean'   => 'is_bool',
-			'integer'   => 'is_int',
-			'float'     => array('is_float', 'is_int'),
-			'string'    => 'is_string',
-			'resource'  => 'is_resource'
-		);
-
-		if ( E_RECOVERABLE_ERROR == $level && preg_match( $pattern, $message, $matches ) ) {
-
-			list($matched, $index, $class, $function, $hint, $type) = $matches;
-
-			if ( isset($typehints[ $hint ]) ) {
-				if ( $debug['function'] == $function ) {
-					$argument = $debug['args'][ $index - 1 ];
-
-					$hints = (array) $typehints[ $hint ];
-					foreach ( $hints as $typehint )
-						if ( call_user_func($typehint, $argument) ) return true;
-
-				}
-			}
-
-		}
-
-		return false;
 	}
 
 }
