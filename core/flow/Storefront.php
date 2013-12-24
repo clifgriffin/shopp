@@ -357,6 +357,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
+	 * @param string $template Template file path
 	 * @return void
 	 **/
 	public function maintenance ( string $template ) {

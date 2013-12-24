@@ -255,8 +255,7 @@ class ShoppSupport {
 
 	public static function reminder () {
 		$userid = get_current_user_id();
-
-		$lasttime = (int)get_user_meta($userid, 'shopp_nonag');
+		$lasttime = get_user_meta($userid, 'shopp_nonag', true);
 		$dismissed = ( current_time('timestamp') - $lasttime ) < ( rand(2,5) * 86400 );
 		if ( ! current_user_can('shopp_settings') || ShoppSupport::activated() || $dismissed ) return '';
 
@@ -264,7 +263,7 @@ class ShoppSupport {
 		$_ = array();
 		$_[] = '<div id="shopp-activation-nag" class="notice wp-core-ui">';
 
-		if ( ! $setupscreen ) $_[] = '<p class="dismiss shoppui-remove-sign alignright"></p>';
+		$_[] = '<p class="dismiss shoppui-remove-sign alignright"></p>';
 
 		$_[] = '<p class="nag">' . self::buykey() . '</p>';
 		$_[] = '</div>';
