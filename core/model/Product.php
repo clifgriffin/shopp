@@ -165,7 +165,6 @@ class ShoppProduct extends WPShoppObject {
 		} else $ids = $this->id;
 
 		if ( empty($ids) ) return;
-
 		foreach ($loadcalls as $loadmethod) {
 			if ( method_exists($this, $loadmethod) )
 				call_user_func_array(array($this,$loadmethod),array($ids));
@@ -202,7 +201,7 @@ class ShoppProduct extends WPShoppObject {
 		$this->prices = array();
 
 		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
-		if (!empty($this->id) && $this->id == $ids) {
+		if ( ! empty($this->id) && $this->id == $ids && empty($this->checksum) ) {
 			$this->load_summary($ids);
 			$this->resum();
 		}
