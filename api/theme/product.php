@@ -877,10 +877,6 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults, $options);
 		extract($options);
 
-		// Pricing disabled? Ensure price data has been loaded first
-		if ( empty($O->prices) ) $O->load_data( array('prices') );
-		if ( 1 === count($O->prices) && 'N/A' === $O->prices[0]->type ) return $disabled;
-
 		if ( ! Shopp::str_true($O->sale) ) $property = 'price';
 
 		$levels = array('min', 'max');
@@ -888,6 +884,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$$level = isset($O->{$level}[ $property ]) ? $O->{$level}[ $property ] : false;
 
 		list($min, $max) = self::_taxes($O, $property, $taxes);
+
+		if ( 0 == $min + $max ) { // Pricing disabled?
+			// @todo Refactor this so the summary system can reflect disabled products
+			if ( empty($O->prices) ) $O->load_data( array('prices') ); // Load all price data to check disabled status
+			if ( 1 === count($O->prices) && 'N/A' === $O->prices[0]->type ) return $disabled;
+		}
 
 		if ( $min == $max || ! empty($starting) || Shopp::str_true($low) ) $prices = array($min);
 		elseif ( Shopp::str_true($high) ) $prices = array($max);
