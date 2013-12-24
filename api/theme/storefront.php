@@ -387,6 +387,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'showall' => false,		// Show all categories, empty or not
 			'section' => false,		// Section (or branch of categories) to render
 			'sectionterm' => false, // Term id of the section to show
+			'selected' => false,	// Selected term_id to auto-select option when dropdown=true
 			'smart' => false,		// Include smart collections either before or after other collections (before, after)
 			'title' => '',			// Title/label to show above the list/menu
 			'taxonomy' => ProductCategory::$taxon,	// Taxonomy to use
@@ -1261,7 +1262,7 @@ class ShoppCategoryDropdownWalker extends Walker {
 	 * @param string $output   Passed by reference. Used to append additional content.
 	 * @param object $category Category data object.
 	 * @param int    $depth    Depth of category. Used for padding.
-	 * @param array  $args     Uses 'selected' and 'show_count' keys, if they exist. @see wp_dropdown_categories()
+	 * @param array  $args     Uses 'selected' and 'products' keys, if they exist. @see wp_dropdown_categories()
 	 */
 	public function start_el ( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
 		$pad = str_repeat('&nbsp;', $depth * 3);
