@@ -1,7 +1,7 @@
 <?php
 /**
  * collection.php
- * 
+ *
  * ShoppCollectionThemeAPI provides shopp('collection') Theme API tags
  *
  * @api
@@ -585,7 +585,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	public static function section_list ( $result, $options, $O ) {
-		if (!isset($O->id) || empty($O->id)) return false;
+		if ( ! isset($O->id) || empty($O->id) ) return false;
 		$options['section'] = true;
 		return ShoppStorefrontThemeAPI::category_list( $result, $options, $O );
 	}
@@ -659,7 +659,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	public static function subcategory_list ( $result, $options, $O ) {
 		if (!isset($O->id) || empty($O->id)) return false;
 		$options['childof'] = $O->id;
-		$options['default'] = __('Select a sub-category&hellip;','Shopp');
+		$options['default'] = Shopp::__('Select a sub-category&hellip;');
 		return ShoppStorefrontThemeAPI::category_list( $result, $options, $O );
 	}
 

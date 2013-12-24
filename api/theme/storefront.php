@@ -363,207 +363,195 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	public static function category_list ( $result, $options, $O ) {
-		$defaults = array(
-			'title' => '',
-			'before' => '',
-			'after' => '',
-			'class' => '',
-			'exclude' => '',
-			'orderby' => 'name',
-			'order' => 'ASC',
-			'depth' => 0,
-			'level' => 0,
-			'childof' => 0,
-			'section' => false,
-			'parent' => false,
-			'showall' => false,
-			'linkall' => false,
-			'linkcount' => false,
-			'dropdown' => false,
-			'default' => __('Select category&hellip;','Shopp'),
-			'hierarchy' => false,
-			'products' => false,
-			'wraplist' => true,
-			'showsmart' => false
-			);
 
-		$options = array_merge($defaults,$options);
+		$defaults = array(
+
+			'after' => '',			// After list
+			'before' => '',			// Before list
+			'childof' => 0,			// Only child categories of given term id
+			'class' => '',			// CSS classes for the conatiner
+			'default' => Shopp::__('Select category&hellip;'),
+			'depth' => 0,			// Depth level limit
+			'dropdown' => false,	// Render as a dropdown instead of list
+			'empty' => Shopp::__('No categories'),
+			'exclude' => '',		// List of term ids to exclude (comma-separated)
+			'excludetree' => '',	// List of parent term ids to exclude (comma-separated)
+			'hierarchy' => true,	// Show hierarchy
+			'include' => '',		// List of term ids to include (comma-separated)
+			'linkall' => false,		// Link to empty categories
+			'parent' => false,		// Show categories with given parent term id
+			'products' => false,	// Show products count
+			'number' => '',			// The maximum number of terms
+			'orderby' => 'name',	// Property to sort categories by (id, count, name, slug)
+			'order' => 'ASC',		// Direction to sort categories ascending or descending: (ASC, DESC)
+			'showall' => false,		// Show all categories, empty or not
+			'section' => false,		// Section (or branch of categories) to render
+			'sectionterm' => false, // Term id of the section to show
+			'smart' => false,		// Include smart collections either before or after other collections (before, after)
+			'title' => '',			// Title/label to show above the list/menu
+			'taxonomy' => ProductCategory::$taxon,	// Taxonomy to use
+			'wraplist' => true,		// Wrap list in <ul></ul> (only works when dropdown=false)
+
+			// Deprecated options
+			'linkcount' => false,
+			'showsmart' => false,
+		);
+
+		$options = array_merge($defaults, $options);
+
+		$options['style'] = 'list';
+		if ( Shopp::str_true($options['dropdown']) )
+			$options['style'] = 'dropdown';
+		elseif ( ! Shopp::str_true($options['hierarchy']) || ! Shopp::str_true($options['wraplist']) )
+			$options['style'] = '';
+
+		if ( ! empty($options['showsmart']) && empty($options['smart']) )
+			$options['smart'] = $options['showsmart'];
+
 		extract($options, EXTR_SKIP);
 
-		$taxonomy = ProductCategory::$taxon;
-		$termargs = array('hide_empty' => 0,'fields'=>'id=>parent','orderby'=>$orderby,'order'=>$order);
+		if ( ! taxonomy_exists($taxonomy) )
+			return false;
 
 		$baseparent = 0;
-		if (Shopp::str_true($section)) {
-			if (!isset(ShoppCollection()->id)) return false;
+		if ( Shopp::str_true($section) ) {
+
+			if ( ! isset(ShoppCollection()->id) && empty($sectionterm) ) return false;
 			$sectionterm = ShoppCollection()->id;
-			if (ShoppCollection()->parent == 0) $baseparent = $sectionterm;
+
+			if ( 0 == ShoppCollection()->parent )
+				$childof = $sectionterm;
 			else {
-				$ancestors = get_ancestors($sectionterm, $taxonomy);
-				$baseparent = end($ancestors);
+				$ancestors = get_ancestors($sectionterm, $options['taxonomy']);
+				$childof = end($ancestors);
 			}
 		}
 
-		if (0 != $childof) $termargs['child_of'] = $baseparent = $childof;
+		// If hierarchy, use depth provided, otherwise flat
+		$options['depth'] = $hierarchy ? $depth : -1;
 
-		$O->categories = array(); $count = 0;
-		$terms = get_terms( $taxonomy, $termargs );
-		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy,$terms,$children,$count,$O->categories,1,0,$baseparent);
-		if ($showsmart == "before" || $showsmart == "after")
-			$O->collections($showsmart);
-		$categories = $O->categories;
+		$lists = array('exclude', 'excludetree', 'include');
+		foreach ( $lists as $values )
+			if ( false !== strpos($$values, ',') )
+				$$values = explode(',', $$values);
 
-		if (empty($categories)) return '';
+		$terms = get_terms( $options['taxonomy'], array(
+			'hide_empty' => ! $showall,
+			'child_of' => $childof,
+			'fields' => 'all',
+			'orderby' => $orderby,
+			'order' => $order,
+			'exclude' => $exclude,
+			'exclude_tree' => $excludetree,
+			'include' => $include,
+			'number' => $number,
+		));
 
-		$string = "";
-		if ($depth > 0) $level = $depth;
-		$levellimit = $level;
-		$exclude = explode(",",$exclude);
-		$classes = ' class="shopp-categories-menu'.(empty($class)?'':' '.$class).'"';
-		$wraplist = Shopp::str_true($wraplist);
-		$hierarchy = Shopp::str_true($hierarchy);
+		if ( empty( $class ) )
+			$class = $taxonomy;
 
-		if ( Shopp::str_true($dropdown) ) {
-			if (!isset($default)) $default = __('Select category&hellip;','Shopp');
-			$string .= $title;
-			$string .= '<form action="/" method="get" class="category-list-menu"><select name="shopp_cats" '.$classes.'>';
-			$string .= '<option value="">'.$default.'</option>';
-			foreach ($categories as &$category) {
-				$link = $padding = $total = '';
-				if ( ! isset($category->smart) ) {
-					// If the parent of this category was excluded, add this to the excludes and skip
-					if (!empty($category->parent) && in_array($category->parent,$exclude)) {
-						$exclude[] = $category->id;
-						continue;
-					}
-					if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-					if ($category->count == 0 && !isset($category->smart) && !$category->_children && ! Shopp::str_true($showall)) continue; // Only show categories with products
-					if ($levellimit && $category->level >= $levellimit) continue;
+		$collections = self::_collections();
 
-					if ($hierarchy && $category->level > $level) {
-						$parent = &$previous;
-						if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
-					}
-
-					if ($hierarchy)
-						$padding = str_repeat("&nbsp;",$category->level*3);
-					$term_id = $category->term_id;
-					$link = get_term_link( (int) $category->term_id, $category->taxonomy);
-					if (is_wp_error($link)) $link = '';
-
-					$total = '';
-					if ( Shopp::str_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
-				} else {
-					$category->level = 1;
-					$namespace = get_class_property( 'SmartCollection' ,'namespace');
-					$taxonomy = get_class_property( 'SmartCollection' ,'taxon');
-					$prettyurls = ( '' != get_option('permalink_structure') );
-					$link = Shopp::url( $prettyurls ? "$namespace/{$category->slug}" : array($taxonomy=>$category->slug),false );
-				}
-				$categoryname = $category->name;
-
-				$filtered = apply_filters('shopp_storefront_categorylist_option', compact('link', 'padding', 'categoryname', 'total'));
-				extract($filtered, EXTR_OVERWRITE);
-
-				$string .= '<option value="' . $link . '">' . $padding . $categoryname . $total . '</option>';
-				$previous = &$category;
-				$level = $category->level;
-			}
-
-			$string .= '</select></form>';
-		} else {
-			$depth = 0;
-
-			$string .= $title;
-			if ($wraplist) $string .= '<ul' . $classes . '>';
-			$Collection = ShoppCollection();
-			foreach ( $categories as &$category ) {
-				if ( ! isset($category->count) ) $category->count = 0;
-				if ( ! isset($category->level) ) $category->level = 0;
-
-				// If the parent of this category was excluded, add this to the excludes and skip
-				if ( ! empty($category->parent) && in_array($category->parent, $exclude) ) {
-					$exclude[] = $category->id;
-					continue;
-				}
-
-				if ( ! empty($category->id) && in_array($category->id, $exclude) ) continue; // Skip excluded categories
-				if ( $levellimit && $category->level >= $levellimit ) continue;
-				if ( $hierarchy && $category->level > $depth ) {
-					$parent = &$previous;
-					if ( ! isset($parent->path) ) $parent->path = $parent->slug;
-					if ( substr($string, -5, 5) == '</li>' ) // Keep everything but the
-						$string = substr($string,0,-5);  // last </li> to re-open the entry
-					$active = '';
-
-					if ( $Collection && property_exists($Collection, 'parent') && $Collection->parent == $parent->id ) $active = ' active';
-
-					$subcategories = '<ul class="children' . $active . '">';
-					$string .= $subcategories;
-				}
-
-				if ( $hierarchy && $category->level < $depth ) {
-					for ( $i = $depth; $i > $category->level; $i-- ) {
-						if ( substr($string, strlen($subcategories) * -1) == $subcategories ) {
-							// If the child menu is empty, remove the <ul> to avoid breaking standards
-							$string = substr($string, 0, strlen($subcategories) * -1) . '</li>';
-						} else $string .= '</ul></li>';
-					}
-				}
-
-				if ( ! isset($category->smart) ) {
-					$link = get_term_link( (int) $category->term_id,$category->taxonomy);
-					if (is_wp_error($link)) $link = '';
-				} else {
-					$namespace = get_class_property( 'SmartCollection', 'namespace');
-					$taxonomy = get_class_property( 'SmartCollection', 'taxon');
-					$prettyurls = ( '' != get_option('permalink_structure') );
-					$link = Shopp::url( $prettyurls ? "$namespace/{$category->slug}" : array($taxonomy => $category->slug), false );
-				}
-
-				$total = '';
-				if ( Shopp::str_true($products) && $category->count > 0 ) $total = ' <span>(' . $category->count . ')</span>';
-
-				$classes = array();
-				if ( isset($Collection->slug) && $Collection->slug == $category->slug )
-					$classes[] = 'current';
-
-				if ( ! isset($category->smart) && isset($Collection->parent) && $Collection->parent == $category->id )
-					$classes[] = 'current-parent';
-
-				$categoryname = $category->name;
-				$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'total'));
-				extract($filtered, EXTR_OVERWRITE);
-
-				if ( empty($classes) ) $class = '';
-				else $class = ' class="' . join(' ', $classes) . '"';
-
-				$listing = '';
-				if ( ! empty($link) && ($category->count > 0 || isset($category->smart) || Shopp::str_true($linkall)) ) {
-					$listing = '<a href="' . esc_url($link) . '"' . $class . '>' . esc_html($category->name) . ($linkcount ? $total : '') . '</a>'.( ! $linkcount ? $total : '');
-				} else $listing = $categoryname;
-
-				if ( Shopp::str_true($showall) ||
-					$category->count > 0 ||
-					isset($category->smart) ||
-					$category->_children)
-					$string .= '<li' . $class . '>' . $listing . '</li>';
-
-				$previous = &$category;
-				$depth = $category->level;
-			}
-			if ( $hierarchy && $depth > 0 )
-				for ( $i = $depth; $i > 0; $i-- ) {
-					if ( substr($string, strlen($subcategories) * -1) == $subcategories ) {
-						// If the child menu is empty, remove the <ul> to avoid breaking standards
-						$string = substr($string, 0, strlen($subcategories) * -1) . '</li>';
-					} else $string .= '</ul></li>';
-				}
-			if ( $wraplist ) $string .= '</ul>';
+		switch ( $smart ) {
+			case 'before': $terms = array_merge($collections, $terms); break;
+			case 'after':  $terms = array_merge($terms, $collections); break;
 		}
-		return $before . $string . $after;
-		break;
+
+		if ( empty($terms) ) return '';
+
+		if ( 'dropdown' == $style ) return self::_category_menu($terms, $depth, $options);
+		else return self::_category_list($terms, $depth, $options);
+	}
+
+	/**
+	 * Helper to load smart collections for category listings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return array List of smart collections in term-compatible objects
+	 **/
+	private static function _collections () {
+		$Shopp = Shopp::object();
+
+		$collections = array();
+		foreach ( $Shopp->Collections as $slug => $CollectionClass ) {
+			if ( ! get_class_property($CollectionClass, '_menu') ) continue;
+
+			$Collection = new StdClass;
+		    $Collection->term_id = 0;
+		    $Collection->name = call_user_func(array($CollectionClass, 'name'));
+		    $Collection->slug = $slug;
+		    $Collection->term_group = 0;
+		    $Collection->taxonomy = 'shopp_collection';
+		    $Collection->description = '';
+		    $Collection->parent = 0;
+			$collections[] = $Collection;
+		}
+
+		return $collections;
+	}
+
+	/**
+	 * Builds the category dropdown menu markup
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.1
+	 *
+	 * @param array $terms The list of terms to use
+	 * @param int $depth The depth to render
+	 * @param array $options The list of options
+	 * @return string The drop-down menu markup
+	 **/
+	private static function _category_menu ( $terms, $depth, $options ) {
+		extract($options, EXTR_SKIP);
+		$Categories = new ShoppCategoryDropdownWalker;
+
+		$menu = '';
+
+		if ( ! empty($title) ) $menu .= $title;
+		$classes = array($class);
+		$classes[] = 'shopp-categories-menu';
+		$class = empty($classes) ? '' : ' class="' . trim(join(' ', $classes)) . '"';
+		$menu .= '<form action="/" method="get" class="category-list-menu"><select name="shopp_cats" ' . $class . '>';
+		if ( ! empty($default) )
+			$menu .= '<option value="">' . $default . '</option>';
+
+		$menu .= $Categories->walk($terms, $depth, $options);
+
+		$menu .= '</select></form>';
+
+		return $before . $menu . $after;
+	}
+
+	/**
+	 * Builds markup for an unordered list of categories
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.1
+	 *
+	 * @param array $terms The list of terms to use
+	 * @param int $depth The depth to render
+	 * @param array $options The list of options
+	 * @return string The drop-down menu markup
+	 **/
+	private static function _category_list ( $terms, $depth, $options ) {
+		extract($options, EXTR_SKIP);
+		$Categories = new ShoppCategoryWalker;
+
+		$classes = array($class);
+		$classes[] = 'shopp-categories-menu';
+		$class = empty($classes) ? '' : ' class="' . trim(join(' ', $classes)) . '"';
+
+		$list = '';
+		if ( Shopp::str_true($wraplist) ) $list .= '<ul' . $class . '>';
+		if ( ! empty($title) ) $list .= '<li>' . $title . '<ul>';
+
+		$list .= $Categories->walk($terms, $depth, $options);
+
+		if ( Shopp::str_true($wraplist) ) $list .= '</ul>';
+		if ( ! empty($title) ) $list .= '</li>';
+		return $before . $list . $after;
 	}
 
 	public static function currency ( $result, $options, $O ) {
@@ -1114,5 +1102,179 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $page->label;
 	}
 
+}
+
+
+/**
+ * Create HTML list of categories.
+ *
+ * @package WordPress
+ * @since 2.1.0
+ * @uses Walker
+ */
+class ShoppCategoryWalker extends Walker {
+
+	public $tree_type = 'shopp_category';
+	public $db_fields = array ('parent' => 'parent', 'id' => 'term_id');
+
+	/**
+	 * Starts the list before the elements are added.
+	 *
+	 * @see Walker::start_lvl()
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $output Passed by reference. Used to append additional content.
+	 * @param int    $depth  Depth of category. Used for tab indentation.
+	 * @param array  $args   An array of arguments. Will only append content if style argument value is 'list'.
+	 *                       @see wp_list_categories()
+	 */
+	public function start_lvl ( &$output, $depth = 0, $args = array() ) {
+		if ( 'list' != $args['style'] )
+			return;
+
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent<ul class='children'>\n";
+	}
+
+	/**
+	 * Ends the list of after the elements are added.
+	 *
+	 * @see Walker::end_lvl()
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $output Passed by reference. Used to append additional content.
+	 * @param int    $depth  Depth of category. Used for tab indentation.
+	 * @param array  $args   An array of arguments. Will only append content if style argument value is 'list'.
+	 *                       @wsee wp_list_categories()
+	 */
+	public function end_lvl ( &$output, $depth = 0, $args = array() ) {
+		if ( 'list' != $args['style'] )
+			return;
+
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent</ul>\n";
+	}
+
+	/**
+	 * Start the element output.
+	 *
+	 * @see Walker::start_el()
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $output   Passed by reference. Used to append additional content.
+	 * @param object $category Category data object.
+	 * @param int    $depth    Depth of category in reference to parents. Default 0.
+	 * @param array  $args     An array of arguments. @see wp_list_categories()
+	 * @param int    $id       ID of the current category.
+	 */
+	public function start_el ( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
+		extract($args);
+
+		$smartcollection = $category->taxonomy == get_class_property( 'SmartCollection', 'taxon');
+
+		if ( $smartcollection ) {
+			global $wp_rewrite;
+			$termlink = $wp_rewrite->get_extra_permastruct($category->taxonomy);
+			if ( ! empty($termlink) ) $category->slug = get_class_property( 'SmartCollection', 'namespace') . '/' . $category->slug;
+		}
+
+		$categoryname = $category->name;
+		$link = get_term_link($category);
+		$classes = '';
+		if ( 'list' == $args['style'] ) {
+			$classes = 'cat-item cat-item-' . $category->term_id;
+			if ( ! empty($current_category) ) {
+				$_current_category = get_term( $current_category, $category->taxonomy );
+				if ( $category->term_id == $current_category )
+					$classes .=  ' current-cat current';
+				elseif ( $category->term_id == $_current_category->parent )
+					$classes .=  ' current-cat-parent current-parent';
+			}
+		}
+		$total = isset($category->count) ? $category->count : false;
+
+		$title = sprintf(__( 'View all &quot;%s&quot; products' ), $categoryname);
+
+		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'title', 'total'));
+		extract($filtered, EXTR_OVERWRITE);
+
+		$link = '<a href="' . esc_url( $link ) . '" title="' . esc_attr( $title ) . '"';
+		$link .= '>';
+		$link .= $categoryname . '</a>';
+
+		if ( empty($total) && ! Shopp::str_true($linkall) && ! $smartcollection )
+			$link = $categoryname;
+
+		if ( false !== $total && Shopp::str_true($products) )
+			$link .= ' (' . intval($total) . ')';
+
+		if ( 'list' == $args['style'] ) {
+			$output .= "\t<li";
+			if ( ! empty($class) ) $output .=  ' class="' . $class . '"';
+			$output .= ">$link\n";
+		} else {
+			$output .= "\t$link<br />\n";
+		}
+	}
+
+	/**
+	 * Ends the element output, if needed.
+	 *
+	 * @see Walker::end_el()
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $output Passed by reference. Used to append additional content.
+	 * @param object $page   Not used.
+	 * @param int    $depth  Depth of category. Not used.
+	 * @param array  $args   An array of arguments. Only uses 'list' for whether should append to output. @see wp_list_categories()
+	 */
+	public function end_el ( &$output, $page, $depth = 0, $args = array() ) {
+		if ( 'list' != $args['style'] )
+			return;
+
+		$output .= "</li>\n";
+	}
+
+}
+
+/**
+ * Create HTML dropdown list of Shopp categories.
+ *
+ * @package shopp
+ * @since 1.3
+ * @uses Walker
+ */
+class ShoppCategoryDropdownWalker extends Walker {
+
+	public $tree_type = 'category';
+	public $db_fields = array ('parent' => 'parent', 'id' => 'term_id');
+
+	/**
+	 * Build the category menu
+	 *
+	 * @since 1.3.1
+	 *
+	 * @param string $output   Passed by reference. Used to append additional content.
+	 * @param object $category Category data object.
+	 * @param int    $depth    Depth of category. Used for padding.
+	 * @param array  $args     Uses 'selected' and 'show_count' keys, if they exist. @see wp_dropdown_categories()
+	 */
+	public function start_el ( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
+		$pad = str_repeat('&nbsp;', $depth * 3);
+
+		$cat_name = apply_filters('shopp_storefront_categorylist_option', $category->name, $category);
+		$output .= "\t<option class=\"level-$depth\" value=\"".$category->slug."\"";
+		if ( $category->term_id == $args['selected'] )
+			$output .= ' selected="selected"';
+		$output .= '>';
+		$output .= $pad.$cat_name;
+		if ( $args['products'] )
+			$output .= '&nbsp;&nbsp;('. $category->count .')';
+		$output .= "</option>\n";
+	}
 
 }

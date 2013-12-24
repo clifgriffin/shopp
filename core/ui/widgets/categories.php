@@ -27,7 +27,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppCategoriesWidget') ) {
 
 			$title = $before_title.$options['title'].$after_title;
 			unset($options['title']);
-			$menu = shopp('catalog','get-category-list',$options);
+			$menu = shopp('catalog','get-category-list', $options);
 			echo $before_widget.$title.$menu.$after_widget;
 	    }
 
