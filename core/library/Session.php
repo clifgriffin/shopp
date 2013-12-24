@@ -173,7 +173,8 @@ abstract class SessionObject {
 			trigger_error("Could not clear session data.");
 
 		// Handle clean-up of file storage sessions
-        if ( file_exists("$this->path/sess_$id") ) unlink($file);
+        if ( is_writable("$this->path/sess_$id") )
+			@unlink($file);
 
 		unset($this->session, $this->ip, $this->data);
 		return true;
@@ -250,7 +251,7 @@ abstract class SessionObject {
 
 		    	$file = $this->path . "/$file";
 
-		        if ( filemtime($file) + $lifetime < time() && file_exists($file) ) {
+		        if ( filemtime($file) + $lifetime < time() && is_writable($file) ) {
 			    	if ( @unlink($file) === false ) {
 				    	break;
 			    	}
