@@ -240,7 +240,7 @@ abstract class SessionObject {
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$now = current_time('mysql');
 
-		if ( ! sDB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
+		if ( ! sDB::query("DELETE FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
 			trigger_error("Could not delete cached session data.");
 
 		// Garbage collection for file-system sessions

@@ -882,7 +882,7 @@ class ShoppProduct extends WPShoppObject {
 	public function save_imageorder ($ordering) {
 		$table = ShoppDatabaseObject::tablename(ProductImage::$table);
 		foreach ($ordering as $i => $id)
-			sDB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
+			sDB::query("UPDATE $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
 	}
 
 	/**
@@ -1014,7 +1014,7 @@ class ShoppProduct extends WPShoppObject {
 
 		// Delete prices
 		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
-		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		sDB::query("DELETE FROM $table WHERE product='$id'");
 
 		// Delete images/files
 		$table = ShoppDatabaseObject::tablename(ProductImage::$table);
@@ -1027,7 +1027,7 @@ class ShoppProduct extends WPShoppObject {
 
 		// Delete product meta (specs, images, downloads)
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
+		sDB::query("DELETE FROM $table WHERE parent='$id' AND context='product'");
 
 		// Delete product summary
 		$table = ShoppDatabaseObject::tablename(ProductSummary::$table);

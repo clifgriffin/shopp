@@ -1298,7 +1298,7 @@ class ProductCategory extends ProductTaxonomy {
 	public function save_imageorder ($ordering) {
 		$table = ShoppDatabaseObject::tablename(CategoryImage::$table);
 		foreach ($ordering as $i => $id)
-			sDB::query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='category' AND type='image')");
+			sDB::query("UPDATE $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='category' AND type='image')");
 		return true;
 	}
 
@@ -1344,7 +1344,7 @@ class ProductCategory extends ProductTaxonomy {
 			$imagesets .= (!empty($imagesets)?" OR ":"");
 			$imagesets .= "((context='category' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
 		}
-		sDB::query("DELETE LOW_PRIORITY FROM $imagetable WHERE type='image' AND ($imagesets)");
+		sDB::query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 

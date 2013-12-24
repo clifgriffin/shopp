@@ -138,12 +138,12 @@ class ShoppPromo extends ShoppDatabaseObject {
 			$products[] = $pricetag->product;
 			$promos = explode(',', $pricetag->discounts);
 			array_splice($promos, ($pricetag->offset - 1), 1); // Remove the located promotion ID from the discounts list
-			sDB::query("UPDATE LOW_PRIORITY $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id");
+			sDB::query("UPDATE $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id");
 		}
 
 		// Force resum on products next load
 		$summary = ShoppDatabaseObject::tablename('summary');
-		sDB::query("UPDATE LOW_PRIORITY $summary SET modified='" . ProductSummary::$_updates . "' WHERE product IN (" . join(',', $products). ")");
+		sDB::query("UPDATE $summary SET modified='" . ProductSummary::$_updates . "' WHERE product IN (" . join(',', $products). ")");
 	}
 
 	/**
@@ -250,7 +250,7 @@ class ShoppPromo extends ShoppDatabaseObject {
 	public static function used ($promos) {
 		if ( empty($promos) || ! is_array($promos) ) return;
 		$table = ShoppDatabaseObject::tablename(self::$table);
-		sDB::query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'" . join(',', $promos) . "')");
+		sDB::query("UPDATE $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'" . join(',', $promos) . "')");
 	}
 
 	public static function activedates () {

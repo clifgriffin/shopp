@@ -95,7 +95,7 @@ class ShoppPurchased extends ShoppDatabaseObject {
 
 	public function delete () {
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-		sDB::query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='purchased'");
+		sDB::query("DELETE FROM $table WHERE parent='$this->id' AND context='purchased'");
 		parent::delete();
 	}
 
