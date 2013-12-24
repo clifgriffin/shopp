@@ -68,7 +68,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 	 * @return boolean
 	 **/
 	public function available () {
-		return ($this->loaded && !empty($this->registry));
+		return ( $this->loaded && ! empty($this->registry) );
 	}
 
 	/**
@@ -81,14 +81,14 @@ class ShoppSettings extends ShoppDatabaseObject {
 	 **/
 	public function load ( $name = '', $arg2 = false ) {
 
-		if ( ! empty($name) ) $where[] = "name='" . sDB::clean($name) . "'";
-		else {
-			if ($this->bootup) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
+		if ( empty($name) ) {
+			if ( $this->bootup ) return false; // Already trying to load all settings, bail out to prevent an infinite loop of DOOM!
 			$this->bootup = true;
 		}
 
 		$Setting = $this->setting();
 		$where = array("parent=0", "context='$Setting->context'", "type='$Setting->type'");
+		if ( ! empty($name) ) $where[] = "name='" . sDB::clean($name) . "'";
 		$where = join(' AND ',$where);
 
 		$settings = sDB::query("SELECT name,value FROM $this->_table WHERE $where", 'array', array($this, 'register'));
