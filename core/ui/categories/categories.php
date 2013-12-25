@@ -91,7 +91,7 @@
 
 				case 'templates':
 					$classes[] = 'num';
-					$enabled = isset($Category->spectemplates) && Shopp::str_true($Category->spectemplates);
+					$enabled = isset($Category->spectemplate) && Shopp::str_true($Category->spectemplate);
 					$title = $enabled ? Shopp::__('Product detail templates enabled') : '';
 				?>
 					<td width="5%" class="<?php echo esc_attr(join(' ',$classes)); ?>">
