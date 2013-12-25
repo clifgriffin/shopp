@@ -139,6 +139,7 @@ function shopp_tests_settings () {
 	shopp_set_setting('taxrates',serialize($args));
 
 	shopp_set_setting('shopping_cart','on');
+	shopp_set_setting('order_shipfee','0');
 
 	ShoppSettings()->booted();	// Mark the system as ready
 	ShoppSettings()->load();	// Load all of the current settings

@@ -122,7 +122,7 @@ class DefaultURLTests extends ShoppTestCase {
 		$markup = array(
 			'tag' => 'a',
 			'attributes' => array(
-				'href' => 'http://' . WP_TESTS_DOMAIN . '/?shopp_category=heavy-cruiser&paged=2',
+				'href' => 'http://' . WP_TESTS_DOMAIN . '?shopp_category=heavy-cruiser&paged=2',
 			),
 			'content' => '2'
 		);

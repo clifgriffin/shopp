@@ -29,7 +29,7 @@ class PurchaseAPITests extends ShoppTestCase {
 		            'price' => 17.01
 		        ),
 				'taxed'=> true,
-				'shipping' => array('flag' => true, 'fee' => 1.50, 'weight' => 52.7, 'length' => 285.9, 'width' => 125.6, 'height' => 71.5),
+				'shipping' => array('flag' => true, 'fee' => 0, 'weight' => 52.7, 'length' => 285.9, 'width' => 125.6, 'height' => 71.5),
 				'inventory' => array(
 					'flag' => true,
 					'stock' => 1,

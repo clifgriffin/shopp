@@ -608,7 +608,7 @@ class CartAPITests extends ShoppTestCase {
 		$expected = array(
 			'tag' => 'span',
 			'attributes' => array('class' => 'shopp-cart cart-shipping'),
-			'content' => '$9.87'
+			'content' => '$11.37'
 		);
 		$this->assertTag($expected,$actual,$actual,true);
 
@@ -646,14 +646,14 @@ class CartAPITests extends ShoppTestCase {
 		shopp_add_cart_product($Product->id,1);
 
 		$actual = shopp('cart.get-total','number=1');
-		$this->assertEquals('28.58',$actual);
+		$this->assertEquals('30.08',$actual);
 
 		$actual = shopp('cart.get-total');
 
 		$expected = array(
 			'tag' => 'span',
 			'attributes' => array('class' => 'shopp-cart cart-total'),
-			'content' => '$28.58'
+			'content' => '$30.08'
 		);
 		$this->assertTag($expected,$actual,$actual,true);
 

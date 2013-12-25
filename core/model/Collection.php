@@ -700,78 +700,14 @@ class ProductTaxonomy extends ProductCollection {
 
 	}
 
-
-	static function tree2 ( $taxonomy, $terms, &$children, &$count, &$results = array(), $page = 1, $per_page = 0, $parent = 0, $level = 0) {
-		foreach ( $terms as $id => $term_parent ) {
-			if ( $count >= $start ) {
-				if ( isset($results[ $id ]) ) continue;
-				$results[ $id ] = get_term($id, $taxonomy);
-				$results[ $id ]->id = $results[ $id ]->term_id;
-				$results[ $id ]->level = $level;
-				$results[ $id ]->_children = isset($children[ $id ]);
-			}
-			++$count;
-			unset($terms[ $id ]);
-
-			// if ( isset($children[ $id ]) )
-			// 	self::tree($taxonomy, $terms, $children, $count, $results, $page, $per_page, $id, $level + 1);
-		}
-	}
-
-	static function tree ( $taxonomy, $terms, &$children, &$count, &$results = array(), $page = 1, $per_page = 0, $parent = 0, $level = 0) {
-
-		$start = ($page - 1) * $per_page;
-		$end = $start + $per_page;
-
-		foreach ( $terms as $id => $term_parent ) {
-			if ( $end > $start && $count >= $end ) break;
-			if ( $term_parent != $parent ) continue;
-
-			// Render parents when pagination starts in a branch
-			if ( $start > 0 && $count == $start && $term_parent > 0 ) {
-				$parents = $parent_ids = array();
-				$p = $term_parent;
-				while ( $p ) {
-					$terms_parent = get_term( $p, $taxonomy );
-					$terms_parent->id = $terms_parent->term_id;
-					$parents[] = $terms_parent;
-					$p = $terms_parent->parent;
-
-					if (in_array($p,$parent_ids)) break;
-
-					$parent_ids[] = $p;
-				}
-				unset($parent_ids);
-
-				$parent_count = count($parents);
-				while ($terms_parent = array_pop($parents)) {
-					$results[ $terms_parent->term_id ] = $terms_parent;
-					$results[ $terms_parent->term_id ]->level = $level - ($parent_count--);
-				}
-			}
-
-			if ( $count >= $start ) {
-				if ( isset($results[ $id ]) ) continue;
-				$results[ $id ] = get_term($id, $taxonomy);
-				$results[ $id ]->id = $results[ $id ]->term_id;
-				$results[ $id ]->level = $level;
-				$results[ $id ]->_children = isset($children[ $id ]);
-			}
-			++$count;
-			unset($terms[ $id ]);
-
-			if ( isset($children[ $id ]) )
-				self::tree($taxonomy, $terms, $children, $count, $results, $page, $per_page, $id, $level + 1);
-		}
-	}
-
 	public function pagelink ( $page ) {
-		$alphamask = 11001001;
-		$alpha = ( false !== preg_match('/([A-Z]|0\-9)/', $page) );
+		global $wp_rewrite;
 
-		$p =  $alpha ? $alphamask : $page;
-		$url = get_pagenum_link($p);
-		if ( $alpha ) $url = str_replace($alphamask, $page, $url);
+		$alpha = ( false !== preg_match('/([A-Z]|0\-9)/', $page) );
+		$base = shopp($this, 'get-url');
+
+		if ( (int) $page > 1 || $alpha )
+	        $url = $wp_rewrite->using_permalinks() ? user_trailingslashit( trailingslashit($base) . "page/$page") : add_query_arg('paged', $page, $base);
 
 		return apply_filters('shopp_paged_link', $url, $page);
 	}
@@ -1167,22 +1103,22 @@ class ProductCategory extends ProductTaxonomy {
 	 * @param array $options Named array for WP get_terms
 	 * @return boolean successfully loaded or not
 	 **/
-	public function load_children ( $options=array() ) {
+	public function load_children ( array $options = array() ) {
+
 		if ( empty($this->id) ) return false;
 
 		$taxonomy = self::$taxon;
 		$categories = array(); $count = 0;
-		$args = array_merge($options, array('child_of' => $this->id, 'fields' => 'id=>parent'));
-		$terms = get_terms( $taxonomy, $args );
-		$children = _get_term_hierarchy($taxonomy);
-		ProductCategory::tree($taxonomy, $terms, $children, $count, $categories, 1, 0, $this->id);
+		$options = array_merge($options, array('child_of' => $this->id, 'fields' => 'all'));
+		$terms = get_terms( $taxonomy, $options );
+
 		$this->children = array();
-		foreach ( $categories as $id => $childterm ) {
-			$this->children[ $id ] = new ProductCategory($id);
-			$this->children[ $id ]->populate($childterm);
+		foreach ( $terms as $term ) {
+			$this->children[ $term->term_id ] = new ProductCategory($term->term_id);
+			$this->children[ $term->term_id ]->populate($term);
 		}
 
-		return !empty($this->children);
+		return ( ! empty($this->children) );
 
 	}
 
@@ -1711,6 +1647,9 @@ class SearchResults extends SmartCollection {
 	public function __construct ( array $options = array() ) {
 		parent::__construct($options);
 		add_filter('shopp_themeapi_collection_url', array($this, 'url'), 10, 3);
+
+		$options['search'] = empty($options['search']) ? '' : stripslashes($options['search']);
+		$this->search = $options['search'];
 	}
 
 	public static function name () {
@@ -1718,7 +1657,6 @@ class SearchResults extends SmartCollection {
 	}
 
 	public function smart ( array $options = array() ) {
-		$options['search'] = empty($options['search']) ? '' : stripslashes($options['search']);
 
 		// $this->loading['debug'] = true;
 		// Load search engine components
@@ -1726,11 +1664,10 @@ class SearchResults extends SmartCollection {
 		new BooleanParser;
 		new ShortwordParser;
 
-		// Sanitize the search string
-		$search = $options['search'];
-		$this->search = $search;
-
+		$search = $this->search;
 		if ( ShoppStorefront() ) ShoppStorefront()->search = $search;
+
+		// Sanitize the search string
 
 		// Price matching
 		$prices = SearchParser::PriceMatching($search);

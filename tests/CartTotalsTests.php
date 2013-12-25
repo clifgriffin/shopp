@@ -334,11 +334,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '28.58';
+		$expected = '30.08';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -367,15 +367,15 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '2.69';
+		$expected = '2.84';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '29.57';
+		$expected = '31.22';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -462,11 +462,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '28.24';
+		$expected = '29.74';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand total assertion failed');
 
@@ -499,11 +499,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '27.65';
+		$expected = '29.15';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand total assertion failed');
 
@@ -597,11 +597,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '£9.87';
+		$expected = '£11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£26.88';
+		$expected = '£28.38';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -654,15 +654,15 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
-		$expected = '£2.45';
+		$expected = '£2.58';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '£9.87';
+		$expected = '£11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£26.88';
+		$expected = '£28.38';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -719,11 +719,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '£9.87';
+		$expected = '£11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£26.03';
+		$expected = '£27.53';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -757,11 +757,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '24.87';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '187.62';
+		$expected = '202.62';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 	}
@@ -793,11 +793,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '32.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '274.04';
+		$expected = '296.54';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -831,11 +831,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '9.87';
+		$expected = '18.87';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '103.43';
+		$expected = '112.43';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
@@ -892,11 +892,11 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
 
-		$expected = '£9.87';
+		$expected = '£11.37';
 		$actual = shopp('cart','shipping',$options);
 		$this->assertEquals($expected, $actual,'Cart shipping assertion failed');
 
-		$expected = '£26.54';
+		$expected = '£28.04';
 		$actual = shopp('cart','total',$options);
 		$this->assertEquals($expected, $actual,'Cart grand Total assertion failed');
 
