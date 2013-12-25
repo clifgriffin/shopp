@@ -476,7 +476,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$_[] = '<ul class="paging">';
 			foreach ($O->alpha as $letter => $products) {
 				$link = $O->pagelink($letter);
-				if ($products > 0) $_[] = '<li><a href="'.esc_url($link).'">'.$letter.'</a></li>';
+				if ($products > 0) $_[] = '<li><a href="'.esc_url_raw($link).'">'.$letter.'</a></li>';
 				else $_[] = '<li><span>'.$letter.'</span></li>';
 			}
 			$_[] = '</ul>';
@@ -500,12 +500,12 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				if ($visible_pages > $O->pages) $visible_pages = $O->pages + 1;
 				if ($i > 1) {
 					$link = $O->pagelink(1);
-					$_[] = '<li><a href="'.esc_url($link).'">1</a></li>';
+					$_[] = '<li><a href="'.esc_url_raw($link).'">1</a></li>';
 
 					$pagenum = ($O->page - $jumps);
 					if ($pagenum < 1) $pagenum = 1;
 					$link = $O->pagelink($pagenum);
-					$_[] = '<li><a href="'.esc_url($link).'">'.$jumpback.'</a></li>';
+					$_[] = '<li><a href="'.esc_url_raw($link).'">'.$jumpback.'</a></li>';
 				}
 			}
 
@@ -513,30 +513,30 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			if (!empty($previous) && $O->page > 1) {
 				$prev = $O->page-1;
 				$link = $O->pagelink($prev);
-				$_[] = '<li class="previous"><a href="'.esc_url($link).'">'.$previous.'</a></li>';
+				$_[] = '<li class="previous"><a href="'.esc_url_raw($link).'">'.$previous.'</a></li>';
 			} else $_[] = '<li class="previous disabled">'.$previous.'</li>';
 			// end previous button
 
 			while ($i < $visible_pages) {
 				$link = $O->pagelink($i);
 				if ( $i == $O->page ) $_[] = '<li class="active">'.$i.'</li>';
-				else $_[] = '<li><a href="'.esc_url($link).'">'.$i.'</a></li>';
+				else $_[] = '<li><a href="'.esc_url_raw($link).'">'.$i.'</a></li>';
 				$i++;
 			}
 			if ($O->pages > $visible_pages) {
 				$pagenum = ($O->page + $jumps);
 				if ($pagenum > $O->pages) $pagenum = $O->pages;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li><a href="'.esc_url($link).'">'.$jumpfwd.'</a></li>';
+				$_[] = '<li><a href="'.esc_url_raw($link).'">'.$jumpfwd.'</a></li>';
 				$link = $O->pagelink($O->pages);
-				$_[] = '<li><a href="'.esc_url($link).'">'.$O->pages.'</a></li>';
+				$_[] = '<li><a href="'.esc_url_raw($link).'">'.$O->pages.'</a></li>';
 			}
 
 			// Add next button
 			if (!empty($next) && $O->page < $O->pages) {
 				$pagenum = $O->page+1;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li class="next"><a href="'.esc_url($link).'">'.$next.'</a></li>';
+				$_[] = '<li class="next"><a href="'.esc_url_raw($link).'">'.$next.'</a></li>';
 			} else $_[] = '<li class="next disabled">'.$next.'</li>';
 
 			$_[] = '</ul>';
@@ -668,15 +668,13 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	public static function url ( $result, $options, $O ) {
-		global $ShoppTaxonomies, $wp_rewrite;
-		if ( property_exists($O,'id') && $O->id && isset($O->taxonomy) && ! in_array($O->taxonomy, array_keys($ShoppTaxonomies)) )
-			return get_term_link( (int) $O->id, $O->taxonomy);
+		global $wp_rewrite;
 
 		$namespace = get_class_property( get_class($O) ,'namespace');
 		$prettyurls = $wp_rewrite->using_permalinks();
 
-		$url = Shopp::url( $prettyurls ? "$namespace/$O->slug" : array($O->taxonomy => $O->slug),false );
-		if (isset($options['page'])) $url = $O->pagelink((int)$options['page']);
+		$url = Shopp::url( $prettyurls ? "$namespace/$O->slug" : array($O->taxonomy => $O->slug), false );
+		if ( isset($options['page']) ) $url = $O->pagelink((int)$options['page']);
 		return $url;
 	}
 
