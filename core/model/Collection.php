@@ -700,6 +700,53 @@ class ProductTaxonomy extends ProductCollection {
 
 	}
 
+	static function tree ( $taxonomy, $terms, &$children, &$count, &$results = array(), $page = 1, $per_page = 0, $parent = 0, $level = 0) {
+
+		$start = ($page - 1) * $per_page;
+		$end = $start + $per_page;
+
+		foreach ( $terms as $id => $term_parent ) {
+			if ( $end > $start && $count >= $end ) break;
+			if ( $term_parent != $parent ) continue;
+
+			// Render parents when pagination starts in a branch
+			if ( $start > 0 && $count == $start && $term_parent > 0 ) {
+				$parents = $parent_ids = array();
+				$p = $term_parent;
+				while ( $p ) {
+					$terms_parent = get_term( $p, $taxonomy );
+					$terms_parent->id = $terms_parent->term_id;
+					$parents[] = $terms_parent;
+					$p = $terms_parent->parent;
+
+					if (in_array($p,$parent_ids)) break;
+
+					$parent_ids[] = $p;
+				}
+				unset($parent_ids);
+
+				$parent_count = count($parents);
+				while ($terms_parent = array_pop($parents)) {
+					$results[ $terms_parent->term_id ] = $terms_parent;
+					$results[ $terms_parent->term_id ]->level = $level - ($parent_count--);
+				}
+			}
+
+			if ( $count >= $start ) {
+				if ( isset($results[ $id ]) ) continue;
+				$results[ $id ] = get_term($id, $taxonomy);
+				$results[ $id ]->id = $results[ $id ]->term_id;
+				$results[ $id ]->level = $level;
+				$results[ $id ]->_children = isset($children[ $id ]);
+			}
+			++$count;
+			unset($terms[ $id ]);
+
+			if ( isset($children[ $id ]) )
+				self::tree($taxonomy, $terms, $children, $count, $results, $page, $per_page, $id, $level + 1);
+		}
+	}
+
 	public function pagelink ( $page ) {
 		global $wp_rewrite;
 

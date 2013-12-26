@@ -251,12 +251,6 @@ class ShoppAdminCategorize extends ShoppAdminController {
 			)
 		);
 
-		// @todo Rework category arrange ui and updating to use WP taxonomies
-		// if ('arrange' == $a) {
-		// 	include(SHOPP_ADMIN_PATH."/categories/arrange.php");
-		// 	return;
-		// }
-
 		include $this->ui('categories.php');
 	}
 
