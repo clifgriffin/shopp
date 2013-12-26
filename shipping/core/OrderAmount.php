@@ -31,7 +31,6 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 	public function calculate ( &$options, $Order ) {
 
 		foreach ( $this->methods as $slug => $method ) {
-
 			$tiers = isset($method['table']) ? $this->tablerate($method['table']) : false;
 			if ( false === $tiers ) continue; // Skip methods that don't match at all
 
@@ -40,7 +39,7 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 			foreach ( $tiers as $tier ) {
 				extract($tier);
 				$amount = Shopp::floatval($rate);			// Capture the rate amount
-				if (Shopp::floatval($Order->Cart->Totals->subtotal) >= Shopp::floatval($threshold)) break;
+				if ( $Order->Cart->total('order') >= Shopp::floatval($threshold) ) break;
 			}
 
 			$rate = array(
