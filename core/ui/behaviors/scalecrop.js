@@ -77,7 +77,9 @@ jQuery.fn.scaleCrop = function (settings) {
 				d = image.position(); // Update the image position
 			}
 
-			inst.element.css({left:d.left,top:d.top});
+			if ( inst )
+				inst.element.css({left:d.left,top:d.top}); // Causing errors
+
 			container.width((image.width()*2)-frame.width()).height((image.height()*2)-frame.height())
 				.css({
 					left:fp.left+((frame.width()-container.width())/2)+1+px,
