@@ -212,7 +212,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	public static function discount ( $result, $options, $O ) {
-		return (float) $O->discount;
+		return (float) abs($O->discount);
 	}
 
 	public static function email ( $result, $options, $O ) {
@@ -282,8 +282,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 				if ( $discount->name == $options['name'] ) return true;
 			return false;
 		}
-
-		return ($O->discount > 0);
+		return (abs($O->discount) > 0);
 	}
 
 	public static function has_downloads ( $result, $options, $O ) {
