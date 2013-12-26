@@ -569,17 +569,17 @@ function contact_meta_box ($Purchase) {
 ShoppUI::addmetabox('order-contact', __('Customer','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
-	$_[] = '<ul>';
+	$_[] = '<table>';
 	foreach ($Purchase->data as $name => $value) {
 		if (empty($value)) continue;
 		$classname = 'shopp_orderui_orderdata_'.sanitize_title_with_dashes($name);
-		$listing = '<li class="'.$classname.'"><strong>'.$name.':</strong> <span>';
+		$listing = '<tr class="'.$classname.'"><th><strong>'.$name.'</th><td>';
 		if (is_string($value) && strpos($value,"\n")) $listing .= '<textarea name="orderdata['.esc_attr($name).']" readonly="readonly" cols="30" rows="4">'.esc_html($value).'</textarea>';
 		else $listing .= esc_html($value);
-		$listing .= '</span></li>';
+		$listing .= '</td></tr>';
 		$_[] = apply_filters($classname,$listing);
 	}
-	$_[] = '</ul>';
+	$_[] = '</table>';
 	echo apply_filters('shopp_orderui_orderdata',join("\n",$_));
 }
 if (!empty(ShoppPurchase()->data) && is_array(ShoppPurchase()->data) && join("",ShoppPurchase()->data) != ""

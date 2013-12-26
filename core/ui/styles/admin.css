@@ -574,6 +574,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes .notesent { color:#777; font-weight: bold; margin-top:0; }
 #order #order-notes .notemeta { padding-bottom: 1em; }
 
+#order #order-data td,#order #order-data th { padding: 7px 7px 8px; vertical-align: top; }
+
 #order .meta-boxes address { white-space: normal; width: inherit; }
 #order-contact a { text-decoration: none; }
 #order-contact .fn { font-weight: bold; font-size: 1.25em; line-height: 1.25em; }
