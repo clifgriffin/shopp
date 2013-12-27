@@ -232,6 +232,18 @@ class ListFramework implements Iterator {
 	}
 
 	/**
+	 * Moves the internal pointer to the previous entry and returns the entry
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.1
+	 *
+	 * @return mixed The previous entry in the list
+	 **/
+	public function prev () {
+		return prev($this->_list);
+	}
+
+	/**
 	 * Moves the internal pointer to the beginning of the list and returns the first entry
 	 *
 	 * @author Jonathan Davis
