@@ -43,27 +43,27 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		parent::__construct();
 
-		$this->setup('account', 'pdtverify', 'pdttoken', 'testmode');
+		$this->setup( 'account', 'pdtverify', 'pdttoken', 'testmode' );
 
 		if ( ! isset($this->settings['label']) )
 			$this->settings['label'] = 'PayPal';
 
-		add_filter('shopp_gateway_currency', array(__CLASS__, 'currencies'));
-		add_filter('shopp_themeapi_cart_paypal', array($this, 'cartapi'));
+		add_filter( 'shopp_gateway_currency', array( __CLASS__, 'currencies' ) );
+		add_filter( 'shopp_themeapi_cart_paypal', array( $this, 'cartapi' ) );
 		// add_filter('shopp_themeapi_cart_paypal', array($this, 'sendcart'), 10, 2); // provides shopp('cart.paypal') checkout button
-		add_filter('shopp_checkout_submit_button', array($this, 'submit'), 10, 3); // replace submit button with paypal image
+		add_filter( 'shopp_checkout_submit_button', array($this, 'submit'), 10, 3 ); // replace submit button with paypal image
 
 		// request handlers
-		add_action('shopp_remote_payment', array($this, 'pdt')); // process sync return from PayPal
-		add_action('shopp_txn_update', array($this, 'ipn')); // process IPN
+		add_action( 'shopp_remote_payment', array( $this, 'pdt' ) ); // process sync return from PayPal
+		add_action( 'shopp_txn_update', array( $this, 'ipn' ) ); // process IPN
 
 		// order event handlers
-		add_filter('shopp_purchase_order_paypalstandard_processing', array($this, 'processing'));
-		add_action('shopp_paypalstandard_sale', array($this, 'auth'));
-		add_action('shopp_paypalstandard_auth', array($this, 'auth'));
-		add_action('shopp_paypalstandard_capture', array($this, 'capture'));
-		add_action('shopp_paypalstandard_refund', array($this, 'refund'));
-		add_action('shopp_paypalstandard_void', array($this, 'void'));
+		add_filter( 'shopp_purchase_order_paypalstandard_processing', array( $this, 'processing' ) );
+		add_action( 'shopp_paypalstandard_sale', array( $this, 'auth' ) );
+		add_action( 'shopp_paypalstandard_auth', array( $this, 'auth' ) );
+		add_action( 'shopp_paypalstandard_capture', array( $this, 'capture' ) );
+		add_action( 'shopp_paypalstandard_refund', array( $this, 'refund' ) );
+		add_action( 'shopp_paypalstandard_void', array( $this, 'void' ) );
 
 	}
 
@@ -77,11 +77,11 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return void
 	 **/
 	public function actions () {
-		add_filter('shopp_themeapi_checkout_confirmbutton', array($this, 'confirm'), 10, 3); // replace submit button with paypal image
+		add_filter( 'shopp_themeapi_checkout_confirmbutton', array( $this, 'confirm' ), 10, 3 ); // replace submit button with paypal image
 	}
 
 	public function processing ( $processing ) {
-		return array($this, 'uploadcart');
+		return array( $this, 'uploadcart' );
 	}
 
 
@@ -99,14 +99,14 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function sale ( ShoppPurchase $Purchase ) {
 
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'notify'));
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'accounts'));
-		add_action('shopp_authed_order_event', array(ShoppOrder(), 'success'));
+		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'notify' ) );
+		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'accounts' ) );
+		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'success' ) );
 
-		shopp_add_order_event($Purchase->id, 'sale', array(
+		shopp_add_order_event( $Purchase->id, 'sale', array(
 			'gateway' => $Purchase->gateway,
 			'amount' => $Purchase->total
-		));
+		) );
 
 	}
 
@@ -163,7 +163,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( $captured && $fees = $Message->fees() )
 			$authed['fees'] = $fees;
 
-		shopp_add_order_event($Event->order, 'authed', $authed);
+		shopp_add_order_event( $Event->order, 'authed', $authed );
 
 	}
 
@@ -257,7 +257,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return array The modified list of button tags
 	 **/
 	public function submit ( $tag = false, array $options = array(), array $attrs = array() ) {
-		$tag[ $this->settings['label'] ] = '<input type="image" name="process" src="' . $this->buttonurl() . '" class="checkout-button" ' . inputattrs($options, $attrs) . ' />';
+		$tag[ $this->settings['label'] ] = '<input type="image" name="process" src="' . esc_url( $this->buttonurl() ) . '" class="checkout-button" ' . inputattrs($options, $attrs) . ' />';
 		return $tag;
 	}
 
@@ -270,8 +270,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string
 	 **/
 	public function confirm ( $tag = false, array $options = array(), $O = null ) {
-		$attrs = array('title', 'class', 'value', 'disabled', 'tabindex', 'accesskey');
-		return join('', $this->submit(array(), $options, $attrs));
+		$attrs = array( 'title', 'class', 'value', 'disabled', 'tabindex', 'accesskey' );
+		return join( '', $this->submit( array(), $options, $attrs ) );
 	}
 
 	/**
@@ -303,7 +303,11 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	/**
-	 * Provides the locale-aware checkout button URL
+	 * Provides the locale-aware checkout button URL.
+	 *
+	 * A common customization request is to swap the standard button image for something else and this
+	 * can be accomplished via the shopp_paypapstandard_buttonurl hook. It is the merchant's/implementing
+	 * developer's responsibility to comply with PayPal guidelines if they choose to do this.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
@@ -311,7 +315,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string The URL of the "Checkout with PayPal"
 	 **/
 	private function buttonurl () {
-		return sprintf(Shopp::force_ssl(self::BUTTON), $this->locale());
+		$buttonurl = apply_filters( 'shopp_paypalstandard_buttonurl', sprintf( self::BUTTON, $this->locale() ) );
+		return Shopp::force_ssl( $buttonurl );
 	}
 
 	/**
