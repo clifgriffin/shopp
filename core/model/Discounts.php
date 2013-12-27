@@ -524,12 +524,12 @@ class ShoppDiscountRule {
 		// Determine the subject data to match against
 		$subject = $this->subject();
 
-		if ( is_callable($subject) ) {
+		if ( is_callable( $subject ) ) {
 			// If the subject is a callback, use it for matching
-			return call_user_func($subject, $Item, $this);
+			return call_user_func( $subject, $Item, $this );
 		} else {
 			// Evaluate the subject using standard matching
-			return $this->evaluate($subject);
+			return $this->evaluate( $subject );
 		}
 
 	}
@@ -601,7 +601,28 @@ class ShoppDiscountRule {
 	}
 
 	/**
-	 * Determine the item subject data and match against it
+	 * Determine the item subject data and match against it.
+	 *
+	 * @param ShoppCartItem $Item The Item to match against
+	 * @return boolean True if match, false for no match
+	 **/
+	private function items ( ShoppCartItem $Item = null ) {
+		// Are we matching against a specific, individual item?
+		if ( null !== $Item ) return $this->item( $Item );
+
+		// Do we have items in the cart?
+		$items = shopp_cart_items();
+		if ( empty( $items ) ) return false;
+
+		// If we do, let's see if any of them yield a match
+		foreach ( $items as $Item )
+			if ( true === $this->item( $Item ) ) return true;
+
+		return false;
+	}
+
+	/**
+	 * Match the rule against a specific item.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
@@ -609,22 +630,22 @@ class ShoppDiscountRule {
 	 * @param ShoppCartItem $Item The Item to match against
 	 * @return boolean True if match, false for no match
 	 **/
-	private function items ( ShoppCartItem $Item = null ) {
+	private function item ( ShoppCartItem $Item = null ) {
 		if ( ! isset($Item) ) return false;
 
 		$property = strtolower($this->property);
 
 		switch ( $property ) {
 			case 'total price':
-			case 'any item amount':		$subject = (float)$Item->total; break;
+			case 'any item amount':		$subject = (float) $Item->total; break;
 			case 'name':
 			case 'any item name':		$subject = $Item->name; break;
 			case 'quantity':
-			case 'any item quantity':	$subject = (int)$Item->quantity; break;
-			case 'category':			$subject = (array)$Item->categories; break;
-			case 'discount amount':		$subject = (float)$Item->discount; break;
-			case 'tag name':			$subject = (array)$Item->tags; break;
-			case 'unit price':			$subject = (float)$Item->unitprice; break;
+			case 'any item quantity':	$subject = (int) $Item->quantity; break;
+			case 'category':			$subject = (array) $Item->categories; break;
+			case 'discount amount':		$subject = (float) $Item->discount; break;
+			case 'tag name':			$subject = (array) $Item->tags; break;
+			case 'unit price':			$subject = (float) $Item->unitprice; break;
 			case 'variant':
 			case 'variation':			$subject = $Item->option->label; break;
 			case 'input name':			$subject = $Item->data; break;
