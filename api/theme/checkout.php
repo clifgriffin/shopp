@@ -291,7 +291,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$output = false;
 
-		if ( "value" == $options['mode'] )
+		if ( ! empty($options['mode']) && 'value' == $options['mode'] )
 			return $O->Billing->locale;
 
 		if ( ! isset($options['selected']) ) {
