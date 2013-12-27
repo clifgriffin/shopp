@@ -83,11 +83,14 @@ class ListFramework implements Iterator {
 	 * @since 1.3
 	 *
 	 * @param callback $callback A callback function to use for sorting instead of the default key sorting
-	 * @return void
+	 * @param string $orderby (optional) The property to use for sorting ('keys' to sort by keys, otherwise uses the values)
+	 * @return boolean TRUE on success, FALSE on failure
 	 **/
-	public function sort ( $callback = null ) {
-		if ( is_null($callback) ) ksort($this->_list);
-		uksort($this->_list,$callback);
+	public function sort ( $callback = null, $orderby = false ) {
+		if ( is_null($callback) ) return ksort($this->_list);
+
+		if ( 'keys' == $orderby ) return uksort($this->_list, $callback);
+		else return usort($this->_list, $callback);
 	}
 
 	/**

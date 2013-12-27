@@ -152,7 +152,7 @@ class ShoppDiscounts extends ListFramework {
 			$Promotions->load();
 
 		// Match applied first
-		$Promotions->sort( array($this, 'sortapplied') );
+		$Promotions->sort( array($this, 'sortapplied'), 'keys' );
 
 		// Iterate over each promo to determine whether it applies
 		$discount = 0;
