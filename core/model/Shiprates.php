@@ -118,7 +118,7 @@ class ShoppShiprates extends ListFramework {
 	 * @return float The shipping fee amount
 	 **/
 	public function fees () {
-		return (float)shopp_setting('order_shipfee') + array_sum($this->fees);
+		return (float) apply_filters('shopp_shipping_fees', shopp_setting('order_shipfee') + array_sum($this->fees) );
 	}
 
 	/**
