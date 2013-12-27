@@ -90,7 +90,7 @@ class ListFramework implements Iterator {
 		if ( is_null($callback) ) return ksort($this->_list);
 
 		if ( 'keys' == $orderby ) return uksort($this->_list, $callback);
-		else return usort($this->_list, $callback);
+		else return uasort($this->_list, $callback);
 	}
 
 	/**
