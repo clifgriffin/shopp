@@ -93,8 +93,8 @@ class ShoppAPIModules extends ModuleLoader {
 	 * @return void
 	 **/
 	public static function functions () {
-		if ( ! shopp_setting_enabled('theme_templates') ) return;
-		locate_shopp_template( array('functions.php'), true );
+		if ( ! Shopp::str_true( shopp_setting( 'theme_templates' ) ) ) return;
+		Shopp::locate_template( array( 'functions.php' ), true );
 	}
 
 } // END class ShoppAPILoader
