@@ -746,12 +746,16 @@ class ShoppAjax {
 		exit();
 	}
 
-	// @todo Investigate if it is possible to inject a formatted error log message as an XSS vector
+	/**
+     * Automatic refresh of the log is possible when $_REQUEST['refresh'] is set to something other than 'off'.
+	 *
+	 * @todo Investigate if it is possible to inject a formatted error log message as an XSS vector
+	 */
 	public function logviewer () {
 		check_admin_referer('wp_ajax_shopp_debuglog'); ?>
 		<html>
 		<head>
-		<?php if ( ! isset( $_REQUEST['refresh'] ) && 'off' === $_REQUEST['refresh'] ): ?>
+		<?php if ( isset( $_REQUEST['refresh'] ) && 'off' !== $_REQUEST['refresh'] ): ?>
 		<meta http-equiv="refresh" content="10">
 		<?php endif; ?>
 		<style type="text/css">
