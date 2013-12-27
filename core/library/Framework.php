@@ -234,7 +234,7 @@ class ListFramework implements Iterator {
 	/**
 	 * Moves the internal pointer to the previous entry and returns the entry
 	 *
-	 * @author Jonathan Davis
+	 * @author Aaron Campbell
 	 * @since 1.3.1
 	 *
 	 * @return mixed The previous entry in the list
