@@ -284,7 +284,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	public function cartapi () {
 		$result = '<form action="' . $this->url() . '" method="POST">';
-		$result .= $this->form('',array('address_override'=>0));
+		$result .= $this->form( '', array( 'address_override' => 0 ) );
 		$result .= $this->submit();
 		$result .= '</form>';
 		return $result;
@@ -299,7 +299,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string checkout url
 	 **/
 	public function url () {
-		return Shopp::str_true($this->settings['testmode']) ? self::DEVURL : self::APIURL;
+		return Shopp::str_true( $this->settings['testmode'] ) ? self::DEVURL : self::APIURL;
 	}
 
 	/**
@@ -329,7 +329,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	private function locale () {
 		$country = 'US';
-		if ( array_key_exists($this->baseop['country'], self::$locales) )
+		if ( array_key_exists( $this->baseop['country'], self::$locales ) )
 			$country = $this->baseop['country'];
 		return self::$locales[ $country ];
 	}
@@ -343,19 +343,19 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @return string PayPal cart form
 	 **/
 	public function uploadcart ( ShoppPurchase $Purchase ) {
-		$id = sanitize_key($this->module);
-		$title = Shopp::__('Sending order to PayPal&hellip;');
-		$message = '<form id="' . $id . '" action="'.$this->url().'" method="POST">' .
+		$id = sanitize_key( $this->module );
+		$title = Shopp::__( 'Sending order to PayPal&hellip;' );
+		$message = '<form id="' . $id . '" action="' . $this->url() . '" method="POST">' .
 					$this->form( $Purchase ) .
 					'<h1>' . $title . '</h1>' .
 					'<noscript>' .
-					'<p>' . Shopp::__('Click the &quot;Checkout with PayPal&quot; button below to submit your order to PayPal for payment processing:') . '</p>' .
-					'<p>' . join('', $this->submit()) . '</p>' .
+					'<p>' . Shopp::__( 'Click the &quot;Checkout with PayPal&quot; button below to submit your order to PayPal for payment processing:' ) . '</p>' .
+					'<p>' . join( '', $this->submit() ) . '</p>' .
 					'</noscript>' .
 					'</form>' .
 					'<script type="text/javascript">document.getElementById("' . $id . '").submit();</script></body></html>';
 
-		wp_die($message, $title, array('response' => 200));
+		wp_die( $message, $title, array( 'response' => 200 ) );
 	}
 
 	/**
@@ -438,25 +438,25 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		// Recurring Non-Free Item
 		if ( $Order->Cart->recurring() && $Order->Cart->recurring[0]->unitprice > 0 ) {
 			$tranges = array(
-				'D'=>array('min'=>1, 'max'=>90),
-				'W'=>array('min'=>1, 'max'=>52),
-				'M'=>array('min'=>1, 'max'=>24),
-				'Y'=>array('min'=>1, 'max'=>5),
+				'D' => array( 'min' => 1, 'max' => 90 ),
+				'W' => array( 'min' => 1, 'max' => 52 ),
+				'M' => array( 'min' => 1, 'max' => 24 ),
+				'Y' => array( 'min' => 1, 'max' => 5 ),
 			);
 
 			$Item = $Order->Cart->recurring[0];
 
 			$recurring = $Item->recurring();
-			$recurring['period'] = strtoupper($recurring['period']);
+			$recurring['period'] = strtoupper( $recurring['period'] );
 
 			//normalize recurring interval
-			$recurring['interval'] = min(max($recurring['interval'], $tranges[$recurring['period']]['min']), $tranges[$recurring['period']]['max']);
+			$recurring['interval'] = min( max( $recurring['interval'], $tranges[$recurring['period']]['min'] ), $tranges[$recurring['period']]['max'] );
 
 			$_['cmd']	= '_xclick-subscriptions';
 			$_['rm']	= 2; // Return with transaction data
 
 			$_['item_number'] = $Item->product;
-			$_['item_name'] = $Item->name.((!empty($Item->option->label))?' ('.$Item->option->label.')':'');
+			$_['item_name'] = $Item->name . ( ( ! empty( $Item->option->label ) ) ? ' (' . $Item->option->label . ')' : '' );
 
 			// Trial pricing
 			if ( $Item->has_trial() ) {
@@ -464,13 +464,13 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				$trial['period'] = strtoupper($trial['period']);
 
 				// normalize trial interval
-				$trial['interval'] = min(max($trial['interval'], $tranges[$trial['period']]['min']), $tranges[$trial['period']]['max']);
+				$trial['interval'] = min( max( $trial['interval'], $tranges[$trial['period']]['min'] ), $tranges[$trial['period']]['max'] );
 
-				$_['a1']	= $this->amount($trial['price']);
+				$_['a1']	= $this->amount( $trial['price'] );
 				$_['p1']	= $trial['interval'];
 				$_['t1']	= $trial['period'];
 			}
-			$_['a3']	= $this->amount($Item->subprice);
+			$_['a3']	= $this->amount( $Item->subprice );
 			$_['p3']	= $recurring['interval'];
 			$_['t3']	= $recurring['period'];
 
@@ -497,7 +497,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			// shipping fee is available use 0.01 to satisfy minimum order amount requirements
 			// Additionally, this condition should only be possible when using the shopp('cart','paypal')
 			// Theme API tag which would circumvent normal checkout and use PayPal even for free orders
-			if ( (float)$this->amount('order') == 0 || (float)$this->amount('order') - (float)$this->amount('discount') == 0 ) {
+			if ( (float) $this->amount('order') == 0 || (float) $this->amount('order') - (float) $this->amount('discount') == 0 ) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
 				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
@@ -523,18 +523,18 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if ( ! $Purchase->lock() ) return false; // Only process order updates if this process can get a lock
 
-		if ( in_array($event, array('sale', 'auth', 'capture')) ) {
+		if ( in_array( $event, array( 'sale', 'auth', 'capture' ) ) ) {
 
 			$this->updates();
 
 			// Make sure purchase orders are invoiced
-			if ( 'purchase' == $Purchase->txnstatus )
+			if ( 'purchase' === $Purchase->txnstatus )
 				ShoppOrder()->invoice($Purchase);
-			elseif ( 'invoiced' == $Purchase->txnstatus )
+			elseif ( 'invoiced' === $Purchase->txnstatus )
 				$this->sale($Purchase);
-			elseif ( 'capture' == $event ) {
+			elseif ( 'capture' === $event ) {
 				if ( ! $Purchase->capturable() ) return false; // Already captured
-				if ( 'voided' == $Purchase->txnstatus )
+				if ( 'voided' === $Purchase->txnstatus )
 					ShoppOrder()->invoice($Purchase); // Reinvoice for cancel-reversals
 
 				shopp_add_order_event($Purchase->id, 'capture', array(
@@ -586,7 +586,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		$Message = $this->Message;
 
-		shopp_debug('PayPal IPN response protocol: ' . _object_r($Message));
+		shopp_debug( 'PayPal IPN response protocol: ' . Shopp::object_r( $Message ) );
 
 		$id = $Message->order();
 		$event = $Message->event();
@@ -595,20 +595,20 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if ( empty($Purchase->id) ) {
 			$error = 'The IPN failed because the given order does not exist.';
-			shopp_debug($error);
-			status_header('404');
-			die($error);
+			shopp_debug( $error );
+			status_header( '404' );
+			die( $error );
 		}
 
 		$this->process($event, $Purchase);
 
-		status_header('200');
-		die('OK');
+		status_header( '200' );
+		die( 'OK' );
 	}
 
 	protected function ipnurl () {
-		$url = Shopp::url(array('_txnupdate' => $this->id()), 'checkout');
-		return apply_filters('shopp_paypalstandard_ipnurl', $url );
+		$url = Shopp::url( array( '_txnupdate' => $this->id() ), 'checkout' );
+		return apply_filters( 'shopp_paypalstandard_ipnurl', $url );
 	}
 
 	/**
@@ -622,24 +622,24 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	protected function ipnvalid () {
 
-		shopp_debug('PayPal IPN ' . __METHOD__);
-		$ids = array($this->id(), 'PPS'); // 'PPS' is a backwards compatible ID for IPN requests
-		if ( ! in_array($_REQUEST['_txnupdate'], $ids) ) return false; // Not an IPN request for PayPal Standard
+		shopp_debug( 'PayPal IPN ' . __METHOD__ );
+		$ids = array( $this->id(), 'PPS' ); // 'PPS' is a backwards compatible ID for IPN requests
+		if ( ! in_array( $_REQUEST['_txnupdate'], $ids ) ) return false; // Not an IPN request for PayPal Standard
 		shopp_debug('PayPal IPN detected');
 
-		$this->Message = new ShoppPayPalStandardMessage($_POST);
-		shopp_debug('PayPal IPN request: ' . json_encode($_POST));
+		$this->Message = new ShoppPayPalStandardMessage( $_POST );
+		shopp_debug('PayPal IPN request: ' . json_encode( $_POST ) );
 
 		if ( ! $this->Message->valid() ) return false;
-		if ( Shopp::str_true($this->settings['testmode']) ) return true;
+		if ( Shopp::str_true( $this->settings['testmode'] ) ) return true;
 
 		$_ = array();
 		$_['cmd'] = '_notify-validate';
 
-		$message = $this->encode(array_merge($_POST, $_));
-		$response = $this->send($message);
+		$message = $this->encode( array_merge($_POST, $_ ) );
+		$response = $this->send( $message );
 
-		shopp_debug('PayPal IPN validation response: ' . var_export($response, true));
+		shopp_debug( 'PayPal IPN validation response: ' . var_export( $response, true ) );
 
 		return ( 'VERIFIED' == $response );
 
@@ -675,7 +675,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		);
 
 		foreach ( $fields as $Object => $set ) {
-			if ( ! isset($Order->$Object) ) continue;
+			if ( ! isset( $Order->$Object ) ) continue;
 			$changes = false;
 			foreach ( $set as $shopp => $paypal ) {
 				if ( isset($data[ $paypal ]) && ( empty($Order->$Object->$shopp) || $changes ) ) {
@@ -733,10 +733,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 **/
 	protected function pdtvalid () {
 
-		$ids = array($this->id(), 'PPS'); // 'PPS' is a backwards compatible ID for PDT requests
-		if ( ! in_array($_REQUEST['rmtpay'], $ids) ) return false; // not PDT message
+		$ids = array( $this->id(), 'PPS' ); // 'PPS' is a backwards compatible ID for PDT requests
+		if ( ! in_array( $_REQUEST['rmtpay'], $ids ) ) return false; // not PDT message
 
-		shopp_debug('Processing PDT request: ' . json_encode($_REQUEST));
+		shopp_debug( 'Processing PDT request: ' . json_encode( $_REQUEST ) );
 
 		if ( ! Shopp::str_true($this->settings['pdtverify']) || ! isset($_REQUEST['tx']) ) {
 			ShoppOrder()->success();
