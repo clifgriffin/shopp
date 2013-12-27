@@ -747,7 +747,7 @@ class ShoppAjax {
 	}
 
 	/**
-     * Automatic refresh of the log is possible when $_REQUEST['refresh'] is set to something other than 'off'.
+	 * Automatic refresh of the log is possible when $_REQUEST['refresh'] is set to something other than 'off'.
 	 *
 	 * @todo Investigate if it is possible to inject a formatted error log message as an XSS vector
 	 */
