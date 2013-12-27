@@ -60,8 +60,8 @@ class ShoppOrder {
 		// Set locking timeout for concurrency operation protection
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
+		add_action('parse_request', array($this, 'locate')); // location updates must come before other requests
 		add_action('parse_request', array($this, 'request'));
-		add_action('parse_request', array($this, 'locate'));
 		add_action('parse_request', array($this->Discounts, 'requests'));
 
 		// Order processing
@@ -189,6 +189,10 @@ class ShoppOrder {
 	public function locate () {
 
 		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
+		add_action('shopp_update_destination', create_function('','
+			$Order = ShoppOrder();
+			$Order->Tax->address($Order->Billing, $Order->Shipping, $Order->Cart->shipped());
+		'));
 		add_filter('shopp_tax_country', array('ShoppTax', 'euvat'), 10, 3);
 
 		if ( isset($_REQUEST['shipping']) ) {
@@ -486,7 +490,6 @@ class ShoppOrder {
 		}
 
 		$this->items($Purchase->id);							// Create purchased records from the cart items
-
 
 		$this->purchase = false; 			// Clear last purchase in prep for new purchase
 		$this->inprogress = $Purchase->id;	// Keep track of the purchase record in progress for transaction updates

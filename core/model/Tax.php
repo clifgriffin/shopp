@@ -92,11 +92,11 @@ class ShoppTax {
 				continue;
 			}
 
+			$key = hash('crc32b', serialize($setting)); // Key settings before local rates
+
 			$setting['localrate'] = 0;
 			if ( isset($setting['locals']) && is_array($setting['locals']) && isset($setting['locals'][ $this->address['locale'] ]) )
 				$setting['localrate'] = $setting['locals'][ $this->address['locale'] ];
-
-			$key = hash('crc32b', serialize($setting));
 
 			$settings[ $key ] = $setting;
 		}
@@ -148,6 +148,7 @@ class ShoppTax {
 
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
 		$rates = apply_filters( 'shopp_tax_rates', $rates );
+
 	}
 
 	/**

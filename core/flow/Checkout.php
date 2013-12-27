@@ -153,7 +153,8 @@ class ShoppCheckout extends FormPostFramework {
 		if ( ! empty($form['locale']) )
 			$BillingAddress->locale = $form['locale'];
 
-		if ( ! $Cart->shipped() ) do_action('shopp_update_destination');
+		if ( ! $Cart->shipped() || ! empty($form['locale']) )
+			do_action('shopp_update_destination');
 
 	}
 
