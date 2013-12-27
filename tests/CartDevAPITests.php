@@ -297,7 +297,7 @@ class CartDevAPITests extends ShoppTestCase {
 	}
 
 	function test_shopp_rmv_cart_addon() {
-		$this->markTestSkipped('Skipped.');
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -319,7 +319,7 @@ class CartDevAPITests extends ShoppTestCase {
 	}
 
 	function test_shopp_cart_item_addons() {
-		$this->markTestSkipped('Skipped.');
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 
@@ -344,7 +344,7 @@ class CartDevAPITests extends ShoppTestCase {
 	 * @depends test_shopp_cart_item_addons
 	 */
 	function test_shopp_cart_item_addons_count() {
-		$this->markTestSkipped('Skipped.');
+		// $this->markTestSkipped('Skipped.');
 		$Product = shopp_product('galileo', 'slug');
 		shopp_add_cart_product($Product->id, 1);
 

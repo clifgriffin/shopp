@@ -490,9 +490,6 @@ class ShoppCart extends ListFramework {
 		$category = $Item->category;
 		$data = $Item->data;
 
-		foreach ( $Item->addons as $addon )
-			$addons[] = $addon->options;
-
 		$Item->load(new ShoppProduct($product), $pricing, $category, $data, $addons);
 		ShoppOrder()->Shiprates->item( new ShoppShippableItem($Item) );
 

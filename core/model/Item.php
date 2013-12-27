@@ -158,8 +158,11 @@ class ShoppCartItem {
 			$this->variants($Product->prices);
 
 		// Product has Addons
-		if ( Shopp::str_true($Product->addons) && empty($this->addons) )
+		if ( Shopp::str_true($Product->addons) ) {
+			if ( ! empty($this->addons) ) // Compute addon differences
+				$addons = array_diff($addons, array_keys($this->addons));
 			$this->addons($this->addonsum, $addons, $Product->prices);
+		}
 
 		if ( isset($Price->id) )
 			$this->option = $this->mapprice($Price);
@@ -435,31 +438,42 @@ class ShoppCartItem {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	public function addons (&$sum,$addons,$prices,$property='pricing') {
-		foreach ($prices as $p)	{
-			if ('N/A' == $p->type || 'addon' != $p->context) continue;
+	public function addons ( &$sum, array $addons, array $prices, $property = 'pricing' ) {
+
+		foreach ( $prices as $p )	{
+			if ( 'N/A' == $p->type || 'addon' != $p->context ) continue;
 			$pricing = $this->mapprice($p);
-			if (empty($pricing) || !in_array($pricing->id,$addons)) continue;
-			if ('Shipped' == $p->type) $this->shipped = true;
-			if ($property == 'pricing') {
-				$pricing->unitprice = (Shopp::str_true($p->sale)?$p->promoprice:$p->price);
-				$this->addons[] = $pricing;
+
+			if ( empty($pricing) ) continue; // Skip if no pricing available
+			if ( in_array( ($pricing->id * -1), $addons ) ) { // If the addon is marked for removal
+				unset($this->addons[ $pricing->id ]); // Remove it from our addons list
+				continue;
+			}
+
+			if ( ! in_array($pricing->id, $addons)) continue;
+
+			if ( 'Shipped' == $p->type ) $this->shipped = true;
+
+			if ( 'pricing' == $property ) {
+				$pricing->unitprice = Shopp::str_true($p->sale) ? $p->promoprice : $p->price;
+				$this->addons[ $pricing->id ] = $pricing;
 				$sum += $pricing->unitprice;
 
-				if (shopp_setting_enabled('taxes') && Shopp::str_true($pricing->tax))
+				if ( shopp_setting_enabled('taxes') && Shopp::str_true($pricing->tax) )
 					$this->taxable[] = $pricing->unitprice;
 
-			} elseif ('dimensions' == $property) {
+			} elseif ( 'dimensions' == $property ) {
 				if ( ! Shopp::str_true($p->shipping) || 'Shipped' != $p->type ) continue;
-				foreach ($p->dimensions as $dimension => $value)
-					$sum[$dimension] += $value;
-			} elseif ('shipfee' == $property) {
+				foreach ( $p->dimensions as $dimension => $value )
+					$sum[ $dimension ] += $value;
+			} elseif ( 'shipfee' == $property ) {
 				if ( ! Shopp::str_true($p->shipping) ) continue;
 				$sum += $pricing->shipfee;
 			} else {
-				if (isset($pricing->$property)) $sum += $pricing->$property;
+				if ( isset($pricing->$property) ) $sum += $pricing->$property;
 			}
 		}
+
 	}
 
 	/**
