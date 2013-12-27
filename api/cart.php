@@ -342,17 +342,16 @@ function shopp_rmv_cart_item_addon ( $itemkey = false, $addonkey = false ) {
 		return false; // Debug message will already have been generated in shopp_cart_item_addons()
 	}
 
-	foreach ($addons as $existing)
-		if ( $existing->id == $addonkey ) $exists = true;
-
-	if ( ! $exists ) {
+	if ( ! isset($addons[ $addonkey ]) ) {
 		shopp_debug(__FUNCTION__ . " failed: addon $addonkey was not found in item $itemkey");
 		return false;
 	}
 
 	$revised = array();
-	foreach ( $addons as $addon )
-		if ( $addonkey != $addon->id ) $revised[] = $addon->id;
+	foreach ( $addons as $addon ) {
+		if ( $addonkey == $addon->id ) $revised[] = (int)($addonkey * -1);
+		else $revised[] = $addon->id;
+	}
 
 	return $Order->Cart->change($itemkey, $item->product, (int) $item->priceline, $revised);
 }
