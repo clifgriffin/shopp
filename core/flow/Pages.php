@@ -893,6 +893,52 @@ class ShoppCollectionPage extends ShoppPage {
 		return $this->edit;
 	}
 
+	/**
+	 * Determines page template names (page templates, not content templates)
+	 *
+	 * Uses the following precedence:
+	 * - taxonomy-shopp_taxonomy-slug.php
+	 * - shopp-taxonomy-slug.php
+	 * - taxonomy-shopp_taxonomy.php
+	 * - shopp-taxonomy.php
+	 * - shopp-collection.php
+	 * - shopp.php
+	 * - page.php
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.1
+	 *
+	 * @return array Collection page templates
+	 **/
+	public function templates () {
+		global $wp_query;
+		$templates = array('shopp.php', 'page.php');
+
+		$taxonomy = self::$name;
+		array_unshift($templates, $taxonomy . '.php');
+
+		$object = $wp_query->queried_object;
+		if ( ! empty($object->taxonomy) )
+		$taxonomy = $object->taxonomy;
+
+		$shopptax = str_replace('_', '-', $taxonomy);
+		array_unshift($templates,
+			'taxonomy-' . $taxonomy . '.php', // taxonomy-shopp-category.php
+			$shopptax . '.php', // shopp-category.php
+			'taxonomy.php', // taxonomy.php
+			$taxonomy . '.php'  // shopp-collection.php
+		);
+
+		$slug = $object->slug;
+		if ( ! empty($slug) ) {
+			array_unshift($templates, str_replace('_', '-', $taxonomy) . '-' . $slug . '.php'); // shopp-category-slug.php
+			array_unshift($templates, 'taxonomy-' . $taxonomy . '-' . $slug . '.php'); // taxonomy-shopp_category-slug.php
+		}
+
+		return $templates;
+	}
+
+
 	public function content ($content) {
 		global $wp_query;
 		// Only modify content for Shopp collections (Shopp smart collections and taxonomies)
@@ -923,6 +969,9 @@ class ShoppCollectionPage extends ShoppPage {
 
 		$query_object = $wp_query->queried_object;
 		$stub = parent::poststub();
+		$Collection = ShoppCollection();
+		$query_object->name = $Collection->name;
+		$query_object->slug = $Collection->slug;
 		$wp_query->queried_object = $query_object;
 		$wp_query->is_post_type_archive = false;
 
