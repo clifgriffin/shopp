@@ -255,21 +255,18 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$discount = 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
-				if ( 'Donation' != $pricing->type )
-					$_->p = money($currently);
+				$_->p = 'Donation' != $pricing->type ? money($currently) : false;
 				$_->l = $pricing->label;
 				$_->i = Shopp::str_true($pricing->inventory);
-				if ($_->i) $_->s = $pricing->stock;
+				$_->s = $_->i ? (int)$pricing->stock : false;
 				$_->u = $pricing->sku;
 				$_->tax = Shopp::str_true($pricing->tax);
 				$_->t = $pricing->type;
-				if ( $pricing->promoprice != $pricing->price )
-					$_->r = money($pricing->price);
-				if ( $discount > 0 )
-					$_->d = $discount;
+				$_->r = $pricing->promoprice != $pricing->price ? money($pricing->price) : false;
+				$_->d = $discount > 0 ? $discount : false;
 
 				if ( 'N/A' != $pricing->type )
-					$markup[] = '<option value="' . (int)$pricing->id . '"' . $disabled . '>' . self::_variant_formatlabel($format, $_) . '</option>' . "\n";
+					$markup[] = '<option value="' . (int)$pricing->id . '"' . $disabled . '>' . esc_html(self::_variant_formatlabel($format, $_)) . '</option>' . "\n";
 
 			}
 
@@ -307,21 +304,18 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 					$discount = 100 - round($pricing->promoprice * 100 / $pricing->price);
 					$_ = new StdClass();
-					if ( 'Donation' != $pricing->type )
-						$_->p = money($currently);
+					$_->p = 'Donation' != $pricing->type ? money($currently) : false;
 					$_->l = $pricing->label;
 					$_->i = Shopp::str_true($pricing->inventory);
-					if ($_->i) $_->s = $pricing->stock;
+					$_->s = $_->i ? (int)$pricing->stock : false;
 					$_->u = $pricing->sku;
 					$_->tax = Shopp::str_true($pricing->tax);
 					$_->t = $pricing->type;
-					if ( $pricing->promoprice != $pricing->price )
-						$_->r = money($pricing->price);
-					if ( $discount > 0 )
-						$_->d = $discount;
+					$_->r = $pricing->promoprice != $pricing->price ? money($pricing->price) : false;
+					$_->d = $discount > 0 ? $discount : false;
 
 					if ( 'N/A' != $pricing->type )
-						$markup[] = '<option value="' . (int)$pricing->id . '"' . $disabled . '>' . self::_variant_formatlabel($format, $_) . '</option>' . "\n";
+						$markup[] = '<option value="' . (int)$pricing->id . '"' . $disabled . '>' . esc_html(self::_variant_formatlabel($format, $_)) . '</option>' . "\n";
 
 				}
 
@@ -1306,21 +1300,18 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 				$discount = 0 == $pricing->price ? 0 : 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
-				if ($pricing->type != 'Donation')
-					$_->p = money($currently);
+				$_->p = 'Donation' != $pricing->type ? money($currently) : false;
 				$_->l = $pricing->label;
 				$_->i = Shopp::str_true($pricing->inventory);
-				if ($_->i) $_->s = $pricing->stock;
+				$_->s = $_->i ? (int)$pricing->stock : false;
 				$_->u = $pricing->sku;
 				$_->tax = Shopp::str_true($pricing->tax);
 				$_->t = $pricing->type;
-				if ($pricing->promoprice != $pricing->price)
-					$_->r = money($pricing->price);
-				if ($discount > 0)
-					$_->d = $discount;
+				$_->r = $pricing->promoprice != $pricing->price ? money($pricing->price) : false;
+				$_->d = $discount > 0 ? $discount : false;
 
 				if ( 'N/A' != $pricing->type )
-					$string .= '<option value="' . $pricing->id . '"' . $disabled . '>' . self::_variant_formatlabel($format, $_) . '</option>' . "\n";
+					$string .= '<option value="' . $pricing->id . '"' . $disabled . '>' . esc_html(self::_variant_formatlabel($format, $_)) . '</option>' . "\n";
 			}
 			$string .= '</select>';
 			if ( ! empty($options['after_menu']) ) $string .= $options['after_menu']."\n";
@@ -1336,20 +1327,17 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {
-				$discount = 100-round($pricing->promoprice*100/$pricing->price);
+				$discount = 100-round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
-				if ($pricing->type != 'Donation')
-					$_->p = (float)apply_filters('shopp_product_variant_price', (Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price) );
+				$_->p = 'Donation' != $pricing->type ? (float)apply_filters('shopp_product_variant_price', (Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price) ) : false;
 				$_->i = Shopp::str_true($pricing->inventory);
 				$_->s = $_->i ? (int)$pricing->stock : false;
 				$_->u = $pricing->sku;
 				$_->tax = Shopp::str_true($pricing->tax);
 				$_->t = $pricing->type;
-				if ($pricing->promoprice != $pricing->price)
-					$_->r = $pricing->price;
-				if ($discount > 0)
-					$_->d = $discount;
-				$pricekeys[$key] = $_;
+				$_->r = $pricing->promoprice != $pricing->price ? money($pricing->price) : false;
+				$_->d = $discount > 0 ? $discount : false;
+				$pricekeys[ $key ] = $_;
 			}
 
 			// Output a JSON object for JS manipulation
@@ -1425,22 +1413,13 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 	}
 
 	public static function _variant_formatlabel ( string $format, $var ) {
-		$v = get_object_vars($var);
-		$tokens = join('', array_keys($v));
-		$t = addslashes(serialize($v));
-		$p = '([^\s]*)';
-		$label = preg_replace_callback(
-			"/$p(%([a-zA-Z]))$p/",
-			create_function('$m','
-				$t = unserialize("'.$t.'");
-				if ( ! array_key_exists($m[3],$t) ) return "";
-				return $m[1].$t[ $m[3] ].$m[4];
-			'),
-			$format
-		);
+		$data = (array)$var;
+
+		$label = $format;
+		foreach ( $data as $token => $value )
+			$label = str_replace("%$token", (string)$value, $label);
 
 		return trim($label);
-
 	}
 
 	/**
