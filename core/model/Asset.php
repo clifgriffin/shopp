@@ -254,7 +254,7 @@ class ImageAsset extends FileAsset {
 	 * @param $fill
 	 * @return string
 	 */
-	public function url ( $width = false, $height = false, $scale = false, $sharpen = false, $quality = false, $fill = false ) {
+	public function url ( $width = null, $height = null, $scale = null, $sharpen = null, $quality = null, $fill = null ) {
 
 		$request = array();
 
@@ -387,6 +387,11 @@ class ImageAsset extends FileAsset {
 	 */
 	public function resizing ( $width, $height, $scale = null, $sharpen = null, $quality = null, $fill = null ) {
 		$args = func_get_args();
+		$numargs = func_num_args();
+
+		// Catch any remaining cases where the theme API passes bool false instead of null for defaults args
+		for ( $i = 2; $i < $numargs; $i++)
+			if ( false === $args[$i] ) $args[$i] = null;
 
 		$args = array(
 			self::WIDTH => (int) $args[ self::WIDTH ],
