@@ -372,7 +372,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			else $result = $options['label'];
 		} else {
 			if ( false === $O->total('shipping') )
-				return Shop::__('Enter Postal Code');
+				return Shopp::__('Enter Postal Code');
 			elseif ( false === $O->total('shipping') )
 				return Shopp::__('Not Available');
 			else $result = $O->total('shipping');
