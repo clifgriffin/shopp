@@ -1466,6 +1466,7 @@ class SmartCollection extends ProductCollection {
 	public $slug = false;
 	public $name = false;
 	public $loading = array();
+	protected $_options = array();
 
 	public function __construct ( array $options = array() ) {
 
@@ -1483,6 +1484,7 @@ class SmartCollection extends ProductCollection {
 		$this->slug = $this->uri = $slugs[0];
 
 		$this->name = call_user_func(array($thisclass, 'name'));
+		$this->_options = $options;
 	}
 
 	public static function name () {
@@ -1494,6 +1496,7 @@ class SmartCollection extends ProductCollection {
 	}
 
 	public function load ( array $options = array() ) {
+		$options = array_merge( $this->_options, $options );
 		$this->smart($options);
 		parent::load($this->loading);
 	}
