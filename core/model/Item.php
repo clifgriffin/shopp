@@ -78,30 +78,20 @@ class ShoppCartItem {
 	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	public function __construct ( $Product, $pricing, $category = false, $data = array(), $addons = array() ) {
+	public function __construct ( ShoppProduct $Product = null, $pricing = null, $category = false, array $data = array(), array $addons = array() ) {
+
 		$args = func_get_args();
 		if ( empty($args) ) return;
 
 		if ( get_class($Product) == 'ShoppPurchased' ) $this->load_purchased($Product);
 		else $this->load($Product, $pricing, $category, $data, $addons);
 
-		// $this->__wakeup();
-		// $this->rediscount();
-		// $this->totals();
-
 	}
 
-	// public function __wakeup () {
-	// 	add_action('shopp_cart_item_totals', array($this, 'rediscount'));
-	// 	add_action('shopp_cart_item_totals', array($this, 'totals'));
-	// }
-
 	/**
-	 * load
+	 * Loads or constructs the Item object from product and product pricing parameters
 	 *
-	 * loads/constructs the Item object from parameters
-	 *
-	 * @author John Dillick
+	 * @author John Dillick, Jonathan Davis
 	 * @since 1.2
 	 *
 	 * @param object $Product Product object
@@ -253,6 +243,14 @@ class ShoppCartItem {
 
 	}
 
+	/**
+	 * Loads or constructs item properties from a purchased product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
 	public function load_purchased ( $Purchased ) {
 
 		$this->load(new ShoppProduct($Purchased->product), $Purchased->price, false);
@@ -280,13 +278,13 @@ class ShoppCartItem {
 	public function valid () {
 		// no product or no price specified
 		if ( ! $this->product || ! $this->priceline ) {
-			new ShoppError(__('The product could not be added to the cart because it could not be found.','Shopp'),'cart_item_invalid',SHOPP_ERR);
+			new ShoppError(__('The product could not be added to the cart because it could not be found.','Shopp'), 'cart_item_invalid', SHOPP_ERR);
 			return false;
 		}
 
 		// the item is not in stock
 		if ( ! $this->instock() ) {
-			new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
+			new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'), 'cart_item_invalid', SHOPP_ERR);
 			return false;
 		}
 		return true;
@@ -302,9 +300,11 @@ class ShoppCartItem {
 	 **/
 	public function fingerprint () {
 		$_  = $this->product.$this->priceline;
+		if ( empty($_) ) $_ = $this->name;
+		if ( empty($_) ) $_ = mktime();
 		if ( ! empty($this->addons) )	$_ .= serialize($this->addons);
 		if ( ! empty($this->data) )		$_ .= serialize($this->data);
-		return __CLASS__ . '_' . hash('crc32',$_);
+		return __CLASS__ . '_' . hash('crc32', $_);
 	}
 
 	/**

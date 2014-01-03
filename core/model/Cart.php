@@ -286,16 +286,19 @@ class ShoppCart extends ListFramework {
 	 * @since 1.0
 	 *
 	 * @param int $quantity The quantity of the item to add to the cart
-	 * @param ShoppProduct $Product Product object to add to the cart
-	 * @param ShoppPrice $Price Price object to add to the cart
+	 * @param ShoppProduct|ShoppCartItem $Product Product object or cart item object to add to the cart
+	 * @param mixed $Price Price object to add to the cart
 	 * @param int $category The id of the category navigated to find the product
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
 	public function additem ( $quantity = 1, &$Product, &$Price, $category = false, $data = array(), $addons = array() ) {
-		$NewItem = new ShoppCartItem($Product, $Price, $category, $data, $addons);
 
-		if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
+		if ( 'ShoppCartItem' == get_class($Product) ) $NewItem = $Product;
+		else {
+			$NewItem = new ShoppCartItem($Product, $Price, $category, $data, $addons);
+			if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
+		}
 
 		$id = $NewItem->fingerprint();
 
