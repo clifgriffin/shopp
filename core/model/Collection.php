@@ -1757,7 +1757,7 @@ class SearchResults extends SmartCollection {
 			'where' => array($where),
 			'groupby' => 'p.ID',
 			'orderby' => 'score DESC');
-		if ( ! empty($pricematch) ) $this->loading['having'] = array($pricematch);
+		if ( ! empty($pricematch) ) $this->loading[ empty( $search )? 'where':'having' ] = array($pricematch);
 		if ( isset($options['show']) ) $this->loading['limit'] = $options['show'];
 		if ( isset($options['published']) ) $this->loading['published'] = $options['published'];
 		if ( isset($options['paged']) ) $this->loading['paged'] = $options['paged'];
