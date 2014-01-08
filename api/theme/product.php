@@ -1135,7 +1135,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	public static function summary ( $result, $options, $O ) {
-		return apply_filters('shopp_product_summary',$O->summary);
+		$summary = $O->summary;
+
+		$overflow = isset($options['overflow']) ? esc_html($options['overflow']) : '&hellip;';
+
+		if ( ! empty($options['clip']) && strlen($O->summary) > (int)$options['clip'] )
+			$summary = substr($summary, 0, strpos(wordwrap($summary, (int)$options['clip'], "\b"), "\b")) . $overflow;
+
+		return apply_filters('shopp_product_summary', $summary);
 	}
 
 	public static function tag ( $result, $options, $O ) {
