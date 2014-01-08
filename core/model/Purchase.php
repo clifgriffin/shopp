@@ -470,10 +470,10 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				shopp_setting('merchant_email'),		// Recipient email address
 				sprintf(__('Order #%s: %s', 'Shopp'), $Purchase->id, $Event->label()), // Subject
 				"email-merchant-$Event->name.php")		// Template
-		));
+		), $Event);
 
 		// Event-specific hook for event specific email messages
-		$messages = apply_filters('shopp_' . $Event->name . '_order_event_emails', $messages);
+		$messages = apply_filters('shopp_' . $Event->name . '_order_event_emails', $messages, $Event);
 
 		foreach ( $messages as $name => $message ) {
 			list($addressee, $email, $subject, $template) = $message;
