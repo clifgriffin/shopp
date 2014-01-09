@@ -260,9 +260,9 @@ class ShoppSettings extends ShoppDatabaseObject {
 	public function restore ($value) {
 		if ( ! is_string($value) ) return $value;
 		// Return unserialized, if serialized value
-		if ( is_serialized($value) ) {
-			$restored = unserialize($value);
-			if ( empty($restored) ) $restored = unserialize( stripslashes($value) );
+		if ( sDB::serialized($value) ) {
+			$restored = @unserialize($value);
+			if ( empty($restored) ) $restored = @unserialize( stripslashes($value) );
 			if ( false !== $restored ) return $restored;
 		}
 		return $value;

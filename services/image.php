@@ -245,7 +245,7 @@ class ImageServer {
 		$headers = ! ( is_array($found) && isset($found['redirect']) );
 
 		// Output the image
-		ob_clean(); // try to catch errant data in buffer
+		@ob_clean(); // try to catch errant data in buffer
 		$this->Image->output($headers);
 	}
 
