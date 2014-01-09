@@ -454,7 +454,7 @@ class ShoppOrder {
 
 		// Catch Purchase record save errors
 		if ( empty($Purchase->id) ) {
-			shopp_add_error( Shopp::__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.') );
+			shopp_add_error( Shopp::__('The order could not be created because of a technical problem on the server. Please try again, or contact the website administrator.') );
 			return;
 		}
 
