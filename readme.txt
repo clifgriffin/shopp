@@ -20,13 +20,13 @@ Shopp was introduced in 2008 as a premium plugin by the team at Ingenesis Limite
 
 Run sales, add new products, update inventory, ship orders. It’s all there, and it’s easy. Shopp consistently wins accolades for it’s WordPress-native administration tools giving it the most natural management experience you’ll find in a WordPress e-commerce solution. Get in, do your thing and get on with your real life.
 
-E-commerce software shouldn’t tell you how to manage your business. You should be able tell your e-commerce software how you manage your business. Shopp lets you do just that. Create your own order processing labels and easily move orders through each step of the order fullfillment workflow either automatically or take control of it yourself.
+E-commerce software shouldn’t tell you how to manage your business. You should be able tell your e-commerce software how you manage your business. Shopp lets you do just that. Create your own order processing labels and easily move orders through each step of the order fulfillment workflow either automatically or take control of it yourself.
 
 Export orders to accounting systems like Intuit® QuickBooks®, or to spreadsheets like Microsoft® Excel®. Shopp remembers your last export date so its easy to do ongoing exports on a regular basis.
 
 = Safe & Sound =
 
-Your website will be in good -hands- bytes running on Shopp. Our comprehensive security builds on the solid toolkit of WordPress to let the good guys in and keep bad guys out. We use all the tricks of the trade plus a few ideas of our own to protect your store and your customers.
+Your website will be in good hands (or bytes) running on Shopp. Our comprehensive security builds on the solid toolkit of WordPress to let the good guys in and keep bad guys out. We use all the tricks of the trade plus a few ideas of our own to protect your store and your customers.
 
 Shopp is so secure it passes PCI vulnerability scans every day and we can prove it! [See the McAfee SECURE seal on our website](https://www.mcafeesecure.com/RatingVerify?ref=shopplugin.net). 
 
@@ -85,51 +85,9 @@ To quickly and easily verify that your web hosting will run Shopp, you can use t
 5. Find **Shopp** in the list of available plugins and click **Activate**. The Shopp menus will appear on the left.
 6. Click on any of the Shopp menus to start setting up your new Shopp store!
 
-At a minimum you should setup a **Base of Operations** location to setup Shopp to work for your location. For details see our [Getting Started Guide](https://shopplugin.comt/docs/getting-started/)
+At a minimum you should setup a **Base of Operations** location to setup Shopp to work for your location. For details see our [Getting Started Guide](https://shopplugin.com/docs/getting-started/)
 
 == Changelog ==
-
-= 1.0 =
-
-* Initial release
-* Content templates
-* Shortcodes
-* Widgets
-* Product Variants editor
-* PayPal Standard
-
-= 1.1 =
-
-* Product addons
-* Storefront Search Engine
-* Tax system improvements
-* Image & Script Servers
-* Scriptabe email templates
-* Cart Item discounts
-* Passes PCI scans
-* Offline Payments
-* 2Checkout and Google Checkout included
-* New Theme API tags
-
-= 1.2 =
-
-* Converted products to a WordPress custom post type
-* Converted categories and tags to WordPress taxonomies
-* Added order event system
-* Re-engineered APIs to be pluggable
-* Introduced Developer API
-* WordPress Menus support
-* Replaced WordPress Page placeholders to Shopp virtual pages
-* New notification email templates
-* Added subscription support to PayPal Standard
-* Added support for authorization-only transactions
-* Added support for refund and void transactions
-* Added shipment notices
-* Redesigned shipping calculators
-* Query speed optimizations
-* DB record loader infrastructure
-* Auto-generate plain text email alternative 
-* Implemented unit tests
 
 = 1.3 =
 
@@ -151,6 +109,49 @@ At a minimum you should setup a **Base of Operations** location to setup Shopp t
 * Redesigned unit tests 
 * implemented continuous integration developement
 
+= 1.2 =
+
+* Converted products to a WordPress custom post type
+* Converted categories and tags to WordPress taxonomies
+* Added order event system
+* Re-engineered APIs to be pluggable
+* Introduced Developer API
+* WordPress Menus support
+* Replaced WordPress Page placeholders to Shopp virtual pages
+* New notification email templates
+* Added subscription support to PayPal Standard
+* Added support for authorization-only transactions
+* Added support for refund and void transactions
+* Added shipment notices
+* Redesigned shipping calculators
+* Query speed optimizations
+* DB record loader infrastructure
+* Auto-generate plain text email alternative 
+* Implemented unit tests
+
+= 1.1 =
+
+* Product addons
+* Storefront Search Engine
+* Tax system improvements
+* Image & Script Servers
+* Scriptabe email templates
+* Cart Item discounts
+* Passes PCI scans
+* Offline Payments
+* 2Checkout and Google Checkout included
+* New Theme API tags
+
+= 1.0 =
+
+* Initial release
+* Content templates
+* Shortcodes
+* Widgets
+* Product Variants editor
+* PayPal Standard
+
+
 == Frequently Asked Questions ==
 
 = Do you have a demo version? =
@@ -159,7 +160,7 @@ We have an online demo you can play around with. You can also login to the admin
 
 = Where can I see examples of Shopp in action? =
 
-The [Showcase](https://shopplugin.com/showcase) has lots of live storefronts running Shopp.
+The [Showcase](https://shopplugin.net/blog/category/showcase/) has lots of live storefronts running Shopp.
 
 = Do you have a product importer? =
 
