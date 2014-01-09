@@ -295,7 +295,7 @@ class ShoppCatalogPage extends ShoppPage {
 
 	public function templates () {
 		$templates = parent::templates();
-		if ( is_catalog_frontpage() )
+		if ( $this->is_frontpage() )
 			array_unshift($templates, 'front-page.php');
 		return $templates;
 	}
@@ -320,7 +320,7 @@ class ShoppCatalogPage extends ShoppPage {
 	}
 
 	public function styleclass ( $classes ) {
-		if ( is_catalog_frontpage() )
+		if ( $this->is_frontpage() )
 			$classes[] = 'home';
 		$classes[] = $this->name();
 		return $classes;
@@ -332,12 +332,15 @@ class ShoppCatalogPage extends ShoppPage {
 
 		$stub = parent::poststub();
 		$wp_query->is_post_type_archive = false;
-		// if ( is_catalog_frontpage() )
-		// 	$wp_query->is_home = true;
+		if ( $this->is_frontpage() )
+			$wp_query->is_home = true;
 
 		return $stub;
 	}
 
+	public function is_frontpage () {
+		return self::frontid() == get_option('page_on_front');
+	}
 }
 
 /**
