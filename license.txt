@@ -1,19 +1,23 @@
-Table of Contents
+# Table of Contents
 =====================================================================
 Section I   : Credits and Copyrights
 Section II  : GNU General Public License
 Section III : BSD License (see Credits)
-Section IV	: THE EMOGRIFIER LICENSE
-
-Section I   : Credits
+Section IV : THE EMOGRIFIER LICENSE
 =====================================================================
+## Section I: Credits
+
 Code contributors include (but not limited to):
 Jonathan Davis - Ingenesis Limited
 John Dillick - Ingenesis Limited
 Marc Neuhaus
 Timothy Hatcher
-Tom Wu (see BSD License in Section III for license to this author's work)
-Pelago, pelagodesign.com (see THE EMOGRIFIER LICENSE, Section IV)
+Barry Hughes
+Clifton Griffin
+Ben Andersen
+Lorenzo Caum
+Tom Wu (see Section III: BSD License)
+Pelago, pelagodesign.com (see Section IV: THE EMOGRIFIER LICENSE)
 
 Copyrights:
 All works distributed with the Shopp Plugin for WordPress are
@@ -21,8 +25,10 @@ copyrighted by their respective authors.  For more complete copyright
 and licensing information, see the copyright notices contained in the
 source code files.
 
-Section II  : GNU General Public License
 =====================================================================
+
+## Section II: GNU General Public License
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -701,34 +707,36 @@ Public License instead of this License.  But first, please read
 END of Section II  : GNU General Public License
 =====================================================================
 
-Section III : BSD License (see Credits)
-=====================================================================
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
-* WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-*
-* IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
-* INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
-* RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
-* THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
-* OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*
-* In addition, the following condition applies:
-*
-* All redistributions must retain an intact copy of this copyright notice
-* and disclaimer.
-*
+## Section III: BSD License
+
+(see Section I: Credits)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
+RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
+THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+In addition, the following condition applies:
+
+All redistributions must retain an intact copy of this copyright notice
+and disclaimer.
+
 Address all questions regarding this license to:
 
   Tom Wu
@@ -738,8 +746,9 @@ Address all questions regarding this license to:
 End of Section III : BSD License
 =====================================================================
 
-Section IV : THE EMOGRIFIER LICENSE (see Credits)
-=====================================================================
+## Section IV: THE EMOGRIFIER LICENSE
+
+(see Section I: Credits)
 
 Emogrifier is provided under the terms of the MIT license:
 1: http://www.opensource.org/licenses/mit-license.php
