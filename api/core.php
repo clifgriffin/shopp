@@ -192,7 +192,7 @@ function is_catalog_page ( $wp_query = false ) {
 }
 
 /**
- * Determines if the requested page is the catalog front page.
+ * Determines if the requested page is the storefront catalog page
  *
  * @author Jonathan Davis
  * @since 1.2
