@@ -75,7 +75,7 @@
 
 			<tr>
 				<th scope="row" valign="top"><label for="maintenance-toggle"><?php _e('Maintenance Mode','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[maintenance]" value="off" /><input type="checkbox" name="settings[maintenance]" value="on" id="maintenance-toggle"<?php if ( shopp_setting_enabled('maintenance') ) echo ' checked="checked"'?> /><label for="maintenance-toggle"> <?php _e('Enable mainteance mode','Shopp'); ?></label><br />
+				<td><input type="hidden" name="settings[maintenance]" value="off" /><input type="checkbox" name="settings[maintenance]" value="on" id="maintenance-toggle"<?php if ( shopp_setting_enabled('maintenance') ) echo ' checked="checked"'?> /><label for="maintenance-toggle"> <?php _e('Enable maintenance mode','Shopp'); ?></label><br />
 	            <?php _e('All storefront pages will display a maintenance mode message.','Shopp'); ?></td>
 			</tr>
 
