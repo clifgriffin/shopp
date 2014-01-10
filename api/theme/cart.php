@@ -118,7 +118,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function applycode ( $result, $options, $O ) {
 
-		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
 
 		// Skip if discounts are not available
 		if ( ! self::discounts_available(false, false, $O) ) return false;
@@ -148,7 +148,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	public static function applygiftcard ( $result, $options, $O ) {
 
-		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
 
 		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Add Gift Card');
 
@@ -266,7 +266,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function empty_button ( $result, $options, $O ) {
-		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
 		if ( ! isset($options['value']) ) $options['value'] = __('Empty Cart', 'Shopp');
 		return '<input type="submit" name="empty" id="empty-button" ' . inputattrs($options,$submit_attrs) . ' />';
 	}
@@ -466,7 +466,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function update_button ( $result, $options, $O ) {
-		$submit_attrs = array('title', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
 		if ( ! isset($options['value']) ) $options['value'] = __('Update Subtotal', 'Shopp');
 		if ( isset($options['class']) ) $options['class'] .= ' update-button';
 		else $options['class'] = 'update-button';
