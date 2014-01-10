@@ -1078,6 +1078,7 @@ abstract class ShoppCore {
 				'minlength','maxlength','placeholder','readonly','required','size','src','tabindex','cols','rows',
 				'title','value');
 		}
+		$allowed = apply_filters( 'shopp_allowed_inputattrs', $allowed, $options );
 		$string = "";
 		$classes = "";
 
