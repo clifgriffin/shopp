@@ -485,7 +485,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		/// Allowable attributes for textarea inputs
 		$textarea_attrs = array('accesskey', 'title', 'tabindex', 'class', 'disabled', 'required');
-		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
+		$select_attrs = array( 'title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 
 		if ( ! $name ) {// Iterator for customer info fields
 			if ( ! isset($O->_customer_info_loop) ) {
