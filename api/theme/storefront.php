@@ -137,7 +137,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( false !== $id ) {
 			if ( isset($O->images[ $id ]) ) $Image = $O->images[ $id ];
 			else {
-				shopp_debug( sprintf('No %s image exists at with the specified database ID of %d.', get_class($O), $id) );
+				shopp_debug( sprintf('No %s image exists with the specified database ID of %d.', get_class($O), $id) );
 				return '';
 			}
 		}
