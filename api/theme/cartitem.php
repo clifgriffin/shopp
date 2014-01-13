@@ -120,7 +120,7 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 
 	public static function product ( $result, $options, $O ) {
 		if ( isset($options['priceline']) && Shopp::str_true($options['priceline']) )
-			return $O->$priceline;
+			return $O->priceline;
 		return $O->product;
 	}
 
