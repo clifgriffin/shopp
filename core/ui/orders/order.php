@@ -113,7 +113,7 @@
 						<?php if ( $Purchase->discounts() ): ?>
 						<ul class="promos">
 						<?php foreach ( $Purchase->discounts as $id => $Discount ): ?>
-							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $id), admin_url('admin.php'))); ?>"><?php echo esc_html($Discount->name); ?></a></small></li>
+							<li><small><a href="<?php echo esc_url( add_query_arg(array('page' => $this->Admin->pagename('discounts'), 'id' => $id), admin_url('admin.php'))); ?>"><?php echo esc_html($Discount->name); ?></a><?php if ( isset($Discount->code) ) echo " - " . esc_html($Discount->code); ?></small></li>
 						<?php endforeach; ?>
 						</ul>
 						<?php endif; ?>
