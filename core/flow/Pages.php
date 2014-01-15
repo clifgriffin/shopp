@@ -406,7 +406,7 @@ class ShoppAccountPage extends ShoppPage {
 		// Suppress the #shopp div for sidebar widgets
 		if ($widget) $content = '<!-- id="shopp" -->' . $content;
 
-		return apply_filters( 'shopp_account_template', $content );
+		return apply_filters( 'shopp_account_template', $content, $request );
 
 	}
 
