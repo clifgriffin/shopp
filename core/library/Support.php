@@ -275,7 +275,7 @@ class ShoppSupport {
 	}
 
 	public static function buykey () {
-		return Shopp::_mi('You&apos;re missing out on **expert support**, **early access** to Shopp updates, and **one-click add-on updates**! Don&apos;t have a Shopp Support Key? %sBuy a Shopp Support Key!%s', '<a href="' . ShoppSupport::STORE . '" class="button button-primary" target="_blank">', '</a>');
+		return Shopp::_mi('You&apos;re missing out on **expert support**, **early access** to Shopp updates, and **one-click add-on updates**! Don&apos;t have a Shopp Support Key? %sBuy a Shopp Support Key!%s', '<a href="' . ShoppSupport::STORE . '?utm_source=wpadmin-' . $_REQUEST['page'] . '&utm_medium=Shopp&utm_campaign=Plugin" class="button button-primary" target="_blank">', '</a>');
 	}
 
 	/**
