@@ -150,6 +150,7 @@ class ShoppCheckout extends FormPostFramework {
 		$this->Register->billaddress();
 
 		// Special case for updating/tracking billing locale
+		$form = $this->form('billing');
 		if ( ! empty($form['locale']) )
 			$BillingAddress->locale = $form['locale'];
 
