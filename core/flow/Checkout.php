@@ -106,7 +106,8 @@ class ShoppCheckout extends FormPostFramework {
 
 		$this->Register->shipaddress();
 
-		if ( $Cart->shipped() ) do_action('shopp_update_destination');
+		if ( $Cart->shipped() )
+			do_action('shopp_update_destination');
 
 	}
 
@@ -131,7 +132,8 @@ class ShoppCheckout extends FormPostFramework {
 			$ShippingAddress = new ShippingAddress();
 
 		$selection = $this->form('shipmethod');
-		if ( $selection == $Shiprates->selected()->slug ) return;
+		$selected = isset($Shiprates->selected()->slug) ? $Shiprates->selected()->slug : '';
+		if ( $selection == $selected ) return;
 
 		// Verify shipping method exists first
 		if ( ! $Shiprates->exists($selection) ) return;
@@ -154,7 +156,7 @@ class ShoppCheckout extends FormPostFramework {
 		if ( ! empty($form['locale']) )
 			$BillingAddress->locale = $form['locale'];
 
-		if ( ! $Cart->shipped() || ! empty($form['locale']) )
+		if ( ! $Cart->shipped() || ! empty($form['locale']) || 'shipping' == ShoppOrder()->sameaddress )
 			do_action('shopp_update_destination');
 
 	}

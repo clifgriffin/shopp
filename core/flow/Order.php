@@ -60,9 +60,15 @@ class ShoppOrder {
 		// Set locking timeout for concurrency operation protection
 		if ( ! defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
-		add_action('parse_request', array($this, 'locate')); // location updates must come before other requests
+		// Request handling
 		add_action('parse_request', array($this, 'request'));
 		add_action('parse_request', array($this->Discounts, 'requests'));
+
+
+		// Address handling
+		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
+		add_action('shopp_update_destination', array($this, 'taxlocale'));
+
 
 		// Order processing
 		add_action('shopp_process_order', array($this, 'freebie'), 7);
@@ -101,6 +107,10 @@ class ShoppOrder {
 		// Needs to happen after the processor is selected in the session,
 		// but before gateway-order specific handlers are established
 		add_action('shopp_init', array($this, 'txnupdates'), 20);
+
+		// Initialize/reinitalize the current location
+		add_action('shopp_init', array($this, 'locate'), 20);
+
 
 	}
 
@@ -178,7 +188,7 @@ class ShoppOrder {
 
 	}
 
-	/**It
+	/**
 	 * Update addresses throughout the system
 	 *
 	 * @author Jonathan Davis
@@ -188,27 +198,34 @@ class ShoppOrder {
 	 **/
 	public function locate () {
 
-		add_action('shopp_update_destination', array($this->Billing, 'fromshipping'));
-		add_action('shopp_update_destination', create_function('','
-			$Order = ShoppOrder();
-			$Order->Tax->address($Order->Billing, $Order->Shipping, $Order->Cart->shipped());
-		'));
-		add_filter('shopp_tax_country', array('ShoppTax', 'euvat'), 10, 3);
+		$request = isset($_REQUEST['shipping']) ? $_REQUEST['shipping'] : false;
 
-		if ( isset($_REQUEST['shipping']) ) {
-			$request = $_REQUEST['shipping'];
+		$this->Billing->locate($request);
+		$this->Shipping->locate($request);
 
-			$this->Billing->locate($request);
-			$this->Shipping->locate($request);
+		do_action_ref_array( 'shopp_update_destination', array($request) );
 
-			do_action_ref_array( 'shopp_update_destination', array($request) );
+	}
 
-		} else {
-			$this->Billing->locate();
-			$this->Shipping->locate();
-		}
+	/**
+	 * Send the current taxable address to the Tax system
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @return void
+	 **/
+	public function taxlocale ( ) {
 
-		$this->Tax->address($this->Billing, $this->Shipping, $this->Cart->shipped());
+		$Address = $this->Billing;
+		if ( $this->Cart->shipped() || shopp_setting_enabled('tax_destination') ) // @todo add setting for "Apply tax to the shipping address"
+			$Address = $this->Shipping;
+
+		// Locale is always tracked with the billing address even though it is may be a shipping locale
+		$locale = isset($this->Billing->locale) ? $this->Billing->locale : null;
+
+		$this->Tax->location($Address->country, $Address->state, $locale); // Update the ShoppTax working location
+
 	}
 
 	/**
@@ -235,7 +252,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function invoice ($Purchase) {
+	public function invoice ( ShoppPurchase $Purchase ) {
 		shopp_add_order_event($Purchase->id, 'invoiced', array(
 			'gateway' => $Purchase->gateway,			// Gateway handler name (module name from @subpackage)
 			'amount' => $Purchase->total				// Capture of entire order amount

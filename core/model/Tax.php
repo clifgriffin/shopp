@@ -217,6 +217,7 @@ class ShoppTax {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
+	 * @deprecated Use ShoppTax->location()
 	 *
 	 * @param BillingAddress $Billing The billing address
 	 * @param ShippingAddress $Shipping The shipping address
@@ -224,7 +225,6 @@ class ShoppTax {
 	 * @return array An associative array containing the country, zone and locale
 	 **/
 	public function address ( BillingAddress $Billing, ShippingAddress $Shipping = null, $shipped = false ) {
-
 		$Address = $Billing;
 		if ( $shipped && null !== $Shipping || shopp_setting_enabled('tax_destination') ) // @todo add setting for "Apply tax to the shipping address"
 			$Address = $Shipping;
@@ -237,6 +237,32 @@ class ShoppTax {
 		if ( isset($Billing->locale) ) $locale = $Billing->locale;
 
 		$this->address = array_merge(apply_filters('shopp_taxable_address', compact('country','zone','locale')));
+
+		return $this->address;
+	}
+
+
+
+	/**
+	 * Sets the taxable location (address) for matching tax rates
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @param string $country The country code
+	 * @param string $state The state name or code
+	 * @param string $locale (optional) The locale name
+	 * @return array An associative array containing the country, zone and locale
+	 **/
+	public function location ( string $country = null, string $state = null, string $locale = null ) {
+
+		$address = apply_filters('shopp_taxable_address', array(
+			'country' => $country,
+			'zone' => $state,
+			'locale' => $locale
+		));
+
+		$this->address = array_merge($this->address, array_filter($address));
 
 		return $this->address;
 	}
