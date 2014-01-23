@@ -496,6 +496,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$this->downloads = array();
 
 		foreach ( $purchases as $Purchase ) {
+			if ( ! in_array($Purchase->txnstatus, array('captured')) ) continue;
 			reset($Purchase->purchased);
 			$this->extract_downloads($Purchase->purchased);
 		}
