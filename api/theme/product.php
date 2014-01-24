@@ -424,6 +424,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		// Force select the first loaded image
 		unset($options['id']);
 		$options['index'] = 0;
+		$options['load'] = 'coverimage';
 		return self::image( $result, $options, $O );
 	}
 
@@ -727,7 +728,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * @return string
 	 **/
 	public static function image ( $result, $options, $O ) {
-		if ( empty($O->images) ) $O->load_data( array('images') );
+		$loadset = array('images', 'coverimage');
+		if ( empty($options['load']) || ! in_array($options['load'], $loadset) )
+			$options['load'] = $loading[0];
+
+		// Load images if no images are loaded or we're loading all images after the coverimage was loaded
+		if ( empty($O->images) || ( 'images' == $options['load'] && in_array('coverimage', $O->_loaded) ) )
+			$O->load_data( array($options['load']) );
+
 		return ShoppStorefrontThemeAPI::image( $result, $options, $O );
 	}
 

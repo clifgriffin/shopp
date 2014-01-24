@@ -158,36 +158,33 @@ class ShoppProduct extends WPShoppObject {
 			'tags' 		  => 'load_taxonomies'
 
 		);
-
+		// allow case-insensitive options
 		$options = array_map('strtolower', $options);
+
+		// prevent loading data sets already requested and processed
 		$options = array_diff($options, $this->_loaded);
+
+		// Only allow white-listed load operations
 		$load = array_flip(array_intersect($options, array_keys($loaders)));
+
+		// Convert load requests to loading callbacks while preventing duplicate calls
 		$loadcalls = array_unique(array_values(array_intersect_key($loaders, $load)));
 
-		if ( ! empty($products) ) {
+		if ( ! empty($products) ) { // Handle loading data across a collection of products
 			$ids = join(',', array_keys($products));
 			$this->products = &$products;
-			foreach ( $products as $product ) {
+			foreach ( $products as $product )
 				$product->_loaded = array_merge($product->_loaded, $options);
-			}
-		} else {
+		} else { // Handle loading data for a single product
 			$ids = $this->id;
 			$this->_loaded = array_unique(array_merge($this->_loaded, $options));
 		}
 
-
 		if ( empty($ids) ) return;
-		foreach ( $loadcalls as $loadmethod ) {
+
+		foreach ( $loadcalls as $loadmethod )
 			if ( method_exists($this, $loadmethod) )
 				call_user_func_array(array($this, $loadmethod), array($ids));
-		}
-
-		if ( in_array('coverimages', $options) ) {
-			foreach ( $products as $product ) {
-				if ( empty($product->images) )
-					$product->_loaded[] = 'images';
-			}
-		}
 
 	}
 
@@ -220,7 +217,7 @@ class ShoppProduct extends WPShoppObject {
 		$this->prices = array();
 
 		// Reset summary properties for correct price range and stock sums in single product (product page) loading contexts
-		if ( ! empty($this->id) && $this->id == $ids && empty($this->checksum) ) {
+		if (!empty($this->id) && $this->id == $ids) {
 			$this->load_summary($ids);
 			$this->resum();
 		}
