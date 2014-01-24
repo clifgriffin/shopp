@@ -69,7 +69,7 @@ class ProductCollection implements Iterator {
 			'ids' => false,			// Flag for loading product IDs only
 			'adjacent' => false,	//
 			'product' => false,		//
-			'load' => array(),		// Product data to load
+			'load' => array('coverimages'),		// Product data to load
 			'inventory' => false,	// Flag for detecting inventory-based queries
 			'taxquery' => false,	// Cross taxonomy queries
 			'debug' => false		// Output the query for debugging
