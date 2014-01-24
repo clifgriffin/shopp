@@ -232,7 +232,7 @@ class ShoppResources {
 			do_action_ref_array('shopp_download_request', array($Purchased));
 		}
 
-		if ( apply_filters('shopp_download_forbidden', $forbidden) ) {
+		if ( apply_filters('shopp_download_forbidden', $forbidden, $Purchased) ) {
 			Shopp::redirect( add_query_arg('downloads', '', Shopp::url(false, 'account') ), true, 303 );
 		}
 
