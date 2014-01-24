@@ -831,6 +831,10 @@ class PurchasesExport {
 		}
 		if ( ! empty($start) && !empty($end) ) $where[] = '(UNIX_TIMESTAMP(o.created) >= '.$start.' AND UNIX_TIMESTAMP(o.created) <= '.$end.')';
 		if ( ! empty($customer) ) $where[] = "customer=".intval($customer);
+		if ( in_array( 'discounts.value', $this->selected ) ) {
+			$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+			$joins[ $meta_table ] = "LEFT JOIN $meta_table AS discounts ON discounts.parent = o.id AND discounts.context='purchase' AND discounts.name='discounts'";
+		}
 		$where = ! empty($where) ? "WHERE ".join(' AND ', $where) : '';
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
