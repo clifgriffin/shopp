@@ -168,9 +168,6 @@ class ShoppInstallation extends ShoppFlowController {
 		// Process any database schema changes
 		$this->upschema();
 
-		// @todo Remove before release
-		if ( in_array($installed, array(1300,1301)) ) $installed = 1148;
-
 		if ( $installed < 1100 ) $this->upgrade_110();
 		if ( $installed < 1200 ) $this->upgrade_120();
 		if ( $installed < 1300 ) $this->upgrade_130();
