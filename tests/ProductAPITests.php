@@ -99,7 +99,7 @@ class ProductAPITests extends ShoppTestCase {
 
 		$path = dirname(__FILE__) . '/data/';
 		self::$image = shopp_add_image ( $Product->id, 'product', $path . '1.png' );
-
+		$Product = shopp_product($Product->id); // Load after image is added
 		ShoppProduct($Product);
 	}
 
