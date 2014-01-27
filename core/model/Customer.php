@@ -286,7 +286,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		if ( isset($Storefront->account) )
 			extract((array)$Storefront->account);
 
-		if ( isset($id) )
+		if ( ! empty($id) )
 			$this->order($id);
 
 		$where = array("o.customer=$this->id");
