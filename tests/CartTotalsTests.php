@@ -281,6 +281,7 @@ class CartTotalsTests extends ShoppTestCase {
 		ShoppOrder()->clear();
 
 		ShoppOrder()->Billing = new BillingAddress;
+		ShoppOrder()->Shipping = new ShippingAddress;
 
 		$args = array(
 			array(
@@ -396,6 +397,7 @@ class CartTotalsTests extends ShoppTestCase {
 		);
 
 		$Order->Billing->updates($data);
+		$Order->Shipping->updates($data);
 		$Order->locate();
 
 		$args = array(
@@ -410,7 +412,6 @@ class CartTotalsTests extends ShoppTestCase {
 		);
 		shopp_set_setting('taxrates', serialize($args));
 		$taxrates = shopp_setting('taxrates');
-
 		shopp_add_cart_product($Product->id, 1);
 
 		$expected = '1.70';
@@ -426,6 +427,7 @@ class CartTotalsTests extends ShoppTestCase {
 		);
 
 		$Order->Billing->updates($data);
+		$Order->Shipping->updates($data);
 		$Order->locate();
 		$Order->Cart->totals();
 
@@ -654,6 +656,7 @@ class CartTotalsTests extends ShoppTestCase {
 		$actual = shopp('cart','discount',$options);
 		$this->assertEquals($expected, $actual,'Cart discount assertion failed');
 
+		$taxrates = shopp_setting('taxrates');
 		$expected = '£2.58';
 		$actual = shopp('cart','tax',$options);
 		$this->assertEquals($expected, $actual,'Cart tax assertion failed');
