@@ -222,7 +222,7 @@ class ShoppOrder {
 			$Address = $this->Shipping;
 
 		// Locale is always tracked with the billing address even though it is may be a shipping locale
-		$locale = isset($this->Billing->locale) ? $this->Billing->locale : null;
+		$locale = empty($this->Billing->locale) ? null : $this->Billing->locale;
 
 		$this->Tax->location($Address->country, $Address->state, $locale); // Update the ShoppTax working location
 
