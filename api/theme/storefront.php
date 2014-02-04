@@ -1267,8 +1267,10 @@ class ShoppCategoryDropdownWalker extends Walker {
 	public function start_el ( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
 		$pad = str_repeat('&nbsp;', $depth * 3);
 
+		$link = get_term_link($category);
+
 		$cat_name = apply_filters('shopp_storefront_categorylist_option', $category->name, $category);
-		$output .= "\t<option class=\"level-$depth\" value=\"".$category->slug."\"";
+		$output .= "\t<option class=\"level-$depth\" value=\"" . $link . "\"";
 		if ( $category->term_id == $args['selected'] )
 			$output .= ' selected="selected"';
 		$output .= '>';
