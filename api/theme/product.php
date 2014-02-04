@@ -814,7 +814,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			if ( isset($options['cols']) ) $cols = ' cols="' . (int)$options['cols'] . '"';
 			if ( isset($options['rows']) ) $rows = ' rows="' . (int)$options['rows'] . '"';
 
-			$result .= '<textarea name="products[' . (int)$O->id . '][data][' . esc_attr($name) . ']" id="'.$id.'"'.$cols.$rows.inputattrs($options).'>'.esc_html($value).'</textarea>';
+			$result = '<textarea name="products[' . (int)$O->id . '][data][' . esc_attr($name) . ']" id="'.$id.'"'.$cols.$rows.inputattrs($options).'>'.esc_html($value).'</textarea>';
 
 		} else {
 
