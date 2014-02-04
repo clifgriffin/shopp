@@ -654,6 +654,10 @@ if ( ! class_exists('DB',false) ) {
 		public static function get () {
 			return sDB::object();
 		}
+		
+		public static function instance () {
+			return sDB::object();
+		}
 
 	}
 }
