@@ -44,8 +44,8 @@ class ShoppAdminReport extends ShoppAdminController {
 		shopp_enqueue_script('daterange');
 		shopp_enqueue_script('reports');
 
-		add_filter('shopp_reports',array($this,'xreports'));
-		add_action('load-'.$this->screen,array($this,'loader'));
+		add_filter('shopp_reports', array(__CLASS__, 'xreports'));
+		add_action('load-'.$this->screen, array($this, 'loader'));
 	}
 
 	/**
@@ -143,14 +143,17 @@ class ShoppAdminReport extends ShoppAdminController {
 	 **/
 	static function load () {
 		$options = self::request();
-		extract($options,EXTR_SKIP);
+		extract($options, EXTR_SKIP);
 
 		$reports = self::reports();
 
 		// Load the report
 		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
 
-		$ReportClass = $reports[$report]['class'];
+		if ( empty($reports[ $report ]['class']) )
+			return wp_die(Shopp::__('The requested report does not exist.'));
+
+		$ReportClass = $reports[ $report ]['class'];
 		$Report = new $ReportClass($options);
 		$Report->load();
 
