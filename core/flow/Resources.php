@@ -94,6 +94,7 @@ class ShoppResources {
 	public function export_reports () {
 		if ( ! current_user_can('shopp_financials') || ! current_user_can('shopp_export_orders') ) exit();
 
+		add_filter('shopp_reports', array('ShoppAdminReport', 'xreports'));
 		$reports = ShoppAdminReport::reports();
 		$Report = ShoppAdminReport::load();
 
