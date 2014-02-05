@@ -252,8 +252,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @return boolean
 	 **/
 	public function isrefunded () {
-		if (empty($this->events)) $this->load_events();
-		return ($this->refunded == $this->captured);
+		if ( empty($this->events) ) $this->load_events();
+		return ( $this->refunded == $this->captured );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @return boolean
 	 **/
 	public function isvoid () {
-		if (empty($this->events)) $this->load_events();
+		if ( empty($this->events) ) $this->load_events();
 		return ($this->voided > 0 && $this->voided >= $this->invoiced);
 	}
 
@@ -284,7 +284,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	public function capturable () {
-		if (!$this->authorized) return 0.0;
+		if ( ! $this->authorized ) return 0.0;
 		return ($this->authorized - (float)$this->captured);
 	}
 
