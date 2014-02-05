@@ -20,7 +20,7 @@
 						<div class="stamp shipped<?php if ($Purchase->isvoid()) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php endif; ?>
 
-						<?php if ($Purchase->ispaid()): ?>
+						<?php if ( $Purchase->ispaid() && ! $Purchase->isvoid() ): ?>
 						<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php elseif ($Purchase->isvoid()): ?>
 						<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>

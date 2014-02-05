@@ -28,3 +28,5 @@
 #dashboard_shopp_inventory span.lowstock.critical { background: #900; }
 #dashboard_shopp_inventory span.lowstock.warning { background: #C60; }
 #dashboard_shopp_inventory span.lowstock.backorder { background: #C00; }
+
+.orders.list .refunded td { text-decoration: line-through; }

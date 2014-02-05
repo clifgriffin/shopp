@@ -265,6 +265,7 @@ class ShoppAdminDashboard {
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
+		$txnstatus_labels = Lookup::txnstatus_labels();
 
 		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
 			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.id DESC", 'array');
@@ -276,14 +277,18 @@ class ShoppAdminDashboard {
 			echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
 			echo '<tbody id="orders" class="list orders">';
 			$even = false;
-			foreach ($Orders as $Order) {
-				echo '<tr'.((!$even)?' class="alternate"':'').'>';
-				$even = !$even;
+			foreach ( $Orders as $Order ) {
+				$classes = array();
+				if ( $even = !$even ) $classes[] = 'alternate';
+				$txnstatus = isset($txnstatus_labels[ $Order->txnstatus ]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
+				$classes[] = strtolower(preg_replace('/[^\w]/', '_', $Order->txnstatus));
+
+				echo '<tr class="' . join(' ',$classes) . '">';
 				echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>ShoppAdmin()->pagename('orders'),'id'=>$Order->id),admin_url('admin.php')).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
 				echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
-				echo '<td class="num">'.$Order->items.'</td>';
-				echo '<td class="num">'.money($Order->total).'</td>';
-				echo '<td class="num">'.$statusLabels[ $Order->status ].'</td>';
+				echo '<td class="num items">'.$Order->items.'</td>';
+				echo '<td class="num total">'.money($Order->total).'</td>';
+				echo '<td class="num status">'.$statusLabels[ $Order->status ].'</td>';
 				echo '</tr>';
 			}
 			echo '</tbody></table>';
