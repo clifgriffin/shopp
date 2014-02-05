@@ -506,6 +506,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 /** Order Management **/
 
 .orders.list .status { font-weight: bold; }
+.orders.list .refunded .order,
+.orders.list .refunded .total,
 .orders.list .voided .order,
 .orders.list .voided .total { text-decoration: line-through; }
 
