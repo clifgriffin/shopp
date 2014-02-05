@@ -533,7 +533,10 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			elseif ( 'invoiced' === $Purchase->txnstatus )
 				$this->sale($Purchase);
 			elseif ( 'capture' === $event ) {
-				if ( ! $Purchase->capturable() ) return false; // Already captured
+
+				if ( ! $Purchase->capturable() )
+					return ShoppOrder()->success(); // Already captured
+
 				if ( 'voided' === $Purchase->txnstatus )
 					ShoppOrder()->invoice($Purchase); // Reinvoice for cancel-reversals
 
@@ -694,11 +697,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @since 1.2
 	 **/
 	public function pdt () {
-
-		if ( empty(ShoppOrder()->inprogress) ) {
-			shopp_debug('PDT processing could not load in-progress order from session.');
-			return Shopp::redirect( Shopp::url( false, 'thanks', false ) ); // Send back customer to thanks page and hope IPN takes care of it properly
-		}
+		$Order = ShoppOrder();
 
 		if ( ! $this->pdtvalid() ) return;
 
@@ -707,18 +706,14 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		$id = $Message->order();
 		$event = $Message->event();
 
-		if ( ShoppOrder()->inprogress != $id ) {
-			shopp_debug('PDT processing order did not match the inprogress order.');
-			return Shopp::redirect( Shopp::url( false, 'thanks', false ) );
-		}
-
 		$Purchase = new ShoppPurchase($id);
 
-		if ( ! isset($Purchase->id) || empty($Purchase->id) ) {
+		if ( empty($Purchase->id) ) {
 			shopp_debug('PDT processing could not load the in progress order from the database.');
 			return Shopp::redirect( Shopp::url(false, 'thanks', false ) );
 		}
 
+		$Order->inprogress = $Purchase->id;
 		$this->process($event, $Purchase);
 		Shopp::redirect( Shopp::url( false, 'thanks', false ) );
 	}
@@ -932,7 +927,6 @@ class ShoppPayPalStandardMessage {
 		}
 
 		$this->labels(); // Initialize labels
-
 	}
 
 	protected static function labels () {
