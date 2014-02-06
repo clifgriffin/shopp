@@ -260,6 +260,9 @@ class ImageAsset extends FileAsset {
 
 		$url = Shopp::url( '' != get_option('permalink_structure') ? trailingslashit($this->id) . $this->filename : $this->id, 'images' );
 
+		// Get the current URI
+		$uri = $this->uri;
+
 		// Handle resize requests
 		$params = func_get_args();
 		if ( count($params) > 0 ) {
@@ -268,17 +271,15 @@ class ImageAsset extends FileAsset {
 
 			// Build the path to the cached copy of the file (if it exists)
 			$size = $this->cachefile( $request );
-			$this->uri = "cache_{$size}_{$this->filename}";
-
+			$uri = "cache_{$size}_{$this->filename}"; // Override the URI for the request
 		}
 
 		// Ask the engine if we have a direct URL
-		$direct_url = $this->engine()->direct($this->uri);
+		$direct_url = $this->engine()->direct($uri);
 		if ( false !== $direct_url ) return $direct_url;
 
 		if ( empty($request) ) return $url;
 		else return Shopp::add_query_string( $request, $url);
-
 	}
 
 	/**
