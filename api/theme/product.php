@@ -551,6 +551,16 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		// Setup preview images
 		$previews = '';
+
+		if ( 'transparent' == strtolower($p_bg) ) $fill = -1;
+		else $fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
+
+		$lowest_quality = min(ImageSetting::$qualities);
+
+		$scale = $p_fit ? array_search($p_fit, ImageAsset::$defaults['scaling']) : false;
+		$sharpen = $p_sharpen ? max($p_sharpen, ImageAsset::$defaults['sharpen']) : false;
+		$quality = $p_quality ? max($p_quality, $lowest_quality) : false;
+
 		foreach ( $O->images as $Image ) {
 			$firstPreview = false;
 			if ( empty($previews) ) { // Adds "filler" image to reserve the dimensions in the DOM
@@ -560,13 +570,6 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					'</li>';
 			}
 
-			$scale = $p_fit ? array_search($p_fit, ImageAsset::$defaults['scaling']) : false;
-			$sharpen = $p_sharpen ? min($p_sharpen, ImageAsset::$defaults['sharpen']) : false;
-			$quality = $p_quality ? min($p_quality, ImageAsset::$defaults['quality']) : false;
-
-			if ( 'transparent' == strtolower($p_bg) ) $fill = -1;
-			else $fill = $p_bg ? hexdec(ltrim($p_bg, '#')) : false;
-
 			$scaled = $Image->scaled($width, $height, $scale);
 
 			$titleattr = ! empty($Image->title) ? ' title="' . esc_attr($Image->title) . '"' : '';
@@ -575,15 +578,12 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			$img = '<img src="' . $src . '"' . $titleattr . ' alt="' . $alt . '" width="' . (int) $scaled['width'] . '" height="' . (int) $scaled['height'] . '" />';
 
-
 			if ( $p_link ) {
-
 				$hrefattr = $Image->url();
 				$relattr = empty($rel) ? '' : ' rel="' . esc_attr($rel) . '"';
 				$linkclasses = array('gallery', $product_class, $zoomfx);
 
 				$img = '<a href="' . $hrefattr . '" class="' . join(' ', $linkclasses) . '"' . $relattr . $titleattr . '>' . $img . '</a>';
-
 			}
 
 			$previews .= '<li id="preview-' . $Image->id . '"' . ( empty($firstPreview) ? '' : '  class="active"' ) . '>' . $img. '</li>';

@@ -672,12 +672,12 @@ class ImageSetting extends ShoppMetaObject {
 	}
 
 	public function fit_value ($value) {
-		if (isset(self::$fittings[$value])) return self::$fittings[$value];
+		if ( in_array($value, self::$fittings) ) return $value;
 		return self::$fittings[0];
 	}
 
 	public function quality_value ($value) {
-		if (isset(self::$qualities[$value])) return self::$qualities[$value];
+		if ( in_array($value, self::$qualities) ) return (int) $value;
 		return self::$qualities[2];
 	}
 
