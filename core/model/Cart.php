@@ -113,6 +113,9 @@ class ShoppCart extends ListFramework {
 		$command = 'update'; // Default command
 		$commands = array('add', 'empty', 'update', 'remove');
 
+		if ( isset($_REQUEST['empty']) )
+			$_REQUEST['cart'] = 'empty';
+
 		$request = isset($_REQUEST['cart']) ? strtolower($_REQUEST['cart']) : false;
 
 		if ( in_array( $request, $commands) )
@@ -124,7 +127,7 @@ class ShoppCart extends ListFramework {
 			'products' => array(),
 			'item' => false,
 			'items' => array(),
-			'remove' => array()
+			'remove' => array(),
 		);
 		$request = array_intersect_key($_REQUEST,$allowed); // Filter for allowed arguments
 		$request = array_merge($allowed, $request);			// Merge to defaults
