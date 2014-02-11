@@ -699,7 +699,7 @@ class ShoppDiscountRule {
 			case 'is greater than':				return (Shopp::floatval($subject,false) > Shopp::floatval($value,false));
 			case 'is greater than or equal to':	return (Shopp::floatval($subject,false) >= Shopp::floatval($value,false));
 			case 'is less than':				return (Shopp::floatval($subject,false) < Shopp::floatval($value,false));
-			case 'Is less than or equal to':	return (Shopp::floatval($subject,false) <= Shopp::floatval($value,false));
+			case 'is less than or equal to':	return (Shopp::floatval($subject,false) <= Shopp::floatval($value,false));
 		}
 
 		return false;
