@@ -5,7 +5,7 @@
  * @author Jonathan Davis, John Dillick
  * @copyright Ingenesis Limited, May 2009
  * @package shopp
- * @version 1.3
+ * @version 1.3.2
  * @since 1.2
  **/
 
@@ -52,6 +52,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		add_filter( 'shopp_themeapi_cart_paypal', array( $this, 'cartapi' ) );
 		// add_filter('shopp_themeapi_cart_paypal', array($this, 'sendcart'), 10, 2); // provides shopp('cart.paypal') checkout button
 		add_filter( 'shopp_checkout_submit_button', array($this, 'submit'), 10, 3 ); // replace submit button with paypal image
+
+		// Prevent inclusive taxes from adding extra taxes to the order
+		add_filter( 'shopp_gateway_tax_amount', array($this, 'notaxinclusive' ) );
 
 		// request handlers
 		add_action( 'shopp_remote_payment', array( $this, 'pdt' ) ); // process sync return from PayPal

@@ -344,9 +344,13 @@ abstract class GatewayFramework {
 	 **/
 	public function amount ( $amount, array $format = array() ) {
 
+		$register = false;
+
 		if ( is_string($amount) ) {
+			$register = $amount;
 			$Cart = ShoppOrder()->Cart;
 			$amount = $Cart->total($amount);
+			if ( false === $amount ) $register = false;
 		} elseif ( ! ( is_int($amount) || is_float($amount) ) ) return $amount;
 
 		$defaults = array(
@@ -357,8 +361,29 @@ abstract class GatewayFramework {
 		$format = array_merge($defaults, $format);
 		extract($format);
 
+		if ( ! empty($register) ) // Allow targeting specific amounts for filtering
+			$amount = apply_filters("shopp_gateway_{$register}_amount", $amount);
+
 		$amount = apply_filters('shopp_gateway_amount', abs($amount));
+
 		return number_format($amount, $precision, $decimals, $thousands);
+	}
+
+	/**
+	 * Zeros out tax amounts when tax inclusive is enabled
+	 *
+	 * Prevents inclusive-tax unaware payment systems (such as PayPal Standard)
+	 * from adding extra taxes to the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @param float $amount The tax amount to filter
+	 * @return float The correct amount
+	 **/
+	public function notaxinclusive ( $amount ) {
+		if ( shopp_setting_enabled('tax_inclusive') ) return 0.0;
+		else return $amount;
 	}
 
 	public function ascii_filter ( $string ) {
