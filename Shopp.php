@@ -71,13 +71,13 @@ class Shopp extends ShoppCore {
 		add_action('shopp_init', array($this, 'collections'));
 		add_action('shopp_init', array($this, 'taxonomies'));
 		add_action('shopp_init', array($this, 'products'), 99);
-		add_action('shopp_init', array($this, 'rebuild'), 99);
-
-		add_filter('rewrite_rules_array', array($this, 'rewrites'));
-		add_filter('query_vars', array($this, 'queryvars'));
 
 		// Theme integration
 		add_action('widgets_init', array($this, 'widgets'));
+
+		// Request handling
+		add_filter('rewrite_rules_array', array($this, 'rewrites'));
+		add_filter('query_vars', array($this, 'queryvars'));
 
 	}
 
@@ -343,21 +343,6 @@ class Shopp extends ShoppCore {
 
  		return $rules + (array) $wp_rewrite_rules;
  	}
-
-	/**
-	 * Force rebuilding rewrite rules when necessary
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	public function rebuild () {
-		if ( ! shopp_setting_enabled('rebuild_rewrites') ) return;
-
-		flush_rewrite_rules();
-		shopp_set_setting('rebuild_rewrites', 'off');
-	}
 
 	/**
 	 * Registers the query variables used by Shopp
