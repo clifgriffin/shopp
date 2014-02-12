@@ -397,8 +397,9 @@ class ShoppAccountPage extends ShoppPage {
 		if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
 		$context = ShoppStorefront::intemplate(); // Set account page context
 
+		$Errors = ShoppErrorStorefrontNotices();
 		ob_start();
-		if ( apply_filters( 'shopp_show_account_errors', true ) && ShoppErrors()->exist( SHOPP_AUTH_ERR ) )
+		if ( apply_filters( 'shopp_show_account_errors', true ) && $Errors->exist() )
 			echo ShoppStorefront::errors( array( "errors-$context", 'account-errors.php', 'errors.php' ) );
 		Shopp::locate_template( $templates, true );
 		$content = ob_get_clean();
