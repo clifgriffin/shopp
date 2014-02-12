@@ -1501,6 +1501,12 @@ class SmartCollection extends ProductCollection {
 		parent::load($this->loading);
 	}
 
+	public static function defaultlinks ( $termlink, $term, $taxonomy ) {
+		if ( false !== strpos($termlink, "taxonomy=" . self::$taxon) )
+			return home_url("?" . self::$taxon . "=$term->slug");
+		return $termlink;
+	}
+
 	public function register () {
 		global $wp_rewrite;
 		if ( ! $wp_rewrite->using_permalinks() ) return;
