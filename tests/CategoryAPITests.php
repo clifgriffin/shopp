@@ -44,7 +44,7 @@ class CategoryAPITests extends ShoppTestCase {
 
 	function test_category_url () {
 		$actual = shopp('category.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_category=heavy-cruiser', $actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_category=heavy-cruiser', $actual);
 	}
 
 	function test_category_id () {
