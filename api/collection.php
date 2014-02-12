@@ -40,7 +40,7 @@ function shopp_register_collection ( $name = '' ) {
 	do_action('shopp_register_collection', $name, $slug);
 	$slugs = SmartCollection::slugs($name);
 
-	add_rewrite_tag( "%$permastruct%", "$namespace/([^/]+)" );
+	add_rewrite_tag( "%$permastruct%", "([^/]+)" );
 	add_permastruct( $permastruct, ShoppPages()->baseslug() . "/$namespace/%shopp_collection%", false );
 
 	add_filter( $permastruct . '_rewrite_rules', array('ProductCollection', 'pagerewrites') );
