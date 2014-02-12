@@ -109,7 +109,7 @@ class DefaultURLTests extends ShoppTestCase {
 		shopp('catalog.category', 'slug=heavy-cruiser&load=true');
 		$actual = shopp('category.get-url');
 
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_category=heavy-cruiser', $actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_category=heavy-cruiser', $actual);
 	}
 
 	function test_category_paginated_url () {
@@ -122,7 +122,7 @@ class DefaultURLTests extends ShoppTestCase {
 		$markup = array(
 			'tag' => 'a',
 			'attributes' => array(
-				'href' => 'http://' . WP_TESTS_DOMAIN . '?shopp_category=heavy-cruiser&paged=2',
+				'href' => 'http://' . WP_TESTS_DOMAIN . '/?shopp_category=heavy-cruiser&paged=2',
 			),
 			'content' => '2'
 		);
@@ -134,7 +134,7 @@ class DefaultURLTests extends ShoppTestCase {
 	function test_category_feed_url () {
 		shopp('catalog','category','slug=heavy-cruiser&load=true');
 		$actual = shopp('category.get-feed-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_category=heavy-cruiser&src=category_rss',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_category=heavy-cruiser&src=category_rss',$actual);
 	}
 
 
@@ -146,61 +146,61 @@ class DefaultURLTests extends ShoppTestCase {
 	function test_catalogproducts_url () {
 		shopp('storefront.catalog-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=catalog',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=catalog',$actual);
 	}
 
 	function test_newproducts_url () {
 		shopp('storefront.new-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=new',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=new',$actual);
 	}
 
 	function test_featuredproducts_url () {
 		shopp('storefront.featured-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=featured',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=featured',$actual);
 	}
 
 	function test_onsaleproducts_url () {
 		shopp('storefront.onsale-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=onsale',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=onsale',$actual);
 	}
 
 	function test_bestsellerproducts_url () {
 		shopp('storefront.bestseller-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=bestsellers',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=bestsellers',$actual);
 	}
 
 	function test_alsoboughtproducts_url () {
 		shopp('storefront.alsobought-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=alsobought',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=alsobought',$actual);
 	}
 
 	function test_randomproducts_url () {
 		shopp('storefront.random-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=random',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=random',$actual);
 	}
 
 	function test_relatedproducts_url () {
 		shopp('storefront.related-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=related',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=related',$actual);
 	}
 
 	function test_tagproducts_url () {
 		shopp('storefront.tag-products','load=true');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=tag',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=tag',$actual);
 	}
 
 	function test_searchproducts_url () {
 		shopp('storefront.search-products','load=true&search=uss+enterprise');
 		$actual = shopp('collection.get-url');
-		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '?shopp_collection=search-results&s=uss+enterprise&s_cs=1',$actual);
+		$this->assertEquals('http://' . WP_TESTS_DOMAIN . '/?shopp_collection=search-results&s=uss+enterprise&s_cs=1',$actual);
 	}
 
 } // end DefaultURLTests class
