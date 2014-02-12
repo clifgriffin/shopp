@@ -41,7 +41,7 @@ function shopp_register_collection ( $name = '' ) {
 	$slugs = SmartCollection::slugs($name);
 
 	add_rewrite_tag( "%$permastruct%", "$namespace/([^/]+)" );
-	add_permastruct( $permastruct, ShoppPages()->baseslug() . '/%shopp_collection%', false );
+	add_permastruct( $permastruct, ShoppPages()->baseslug() . "/$namespace/%shopp_collection%", false );
 
 	add_filter( $permastruct . '_rewrite_rules', array('ProductCollection', 'pagerewrites') );
 
@@ -55,6 +55,11 @@ function shopp_register_collection ( $name = '' ) {
 		add_filter( 'shopp_themeapi_storefront_' . $collection . 'products', $apicall, 10, 3 ); // @deprecated
 		add_filter( 'shopp_themeapi_storefront_' . $collection . 'collection', $apicall, 10, 3 );
 	}
+
+	// Add special default permalink handling for collection URLs (only add it once)
+	global $wp_rewrite;
+	if ( ! $wp_rewrite->using_permalinks() && false === has_filter('term_link', array('SmartCollection', 'defaultlinks')) )
+		add_filter('term_link', array('SmartCollection', 'defaultlinks'), 10, 3);
 
 }
 
@@ -76,7 +81,7 @@ function shopp_register_taxonomy ( $taxonomy, $args = array() ) {
 	if ( ! isset($args['rewrite']) ) $args['rewrite'] = array();
 
 	$args['rewrite']['slug'] = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug().'/'.$rewrite_slug : $rewrite_slug;
-	register_taxonomy($taxonomy,ShoppProduct::$posttype,$args);
+	register_taxonomy($taxonomy, ShoppProduct::$posttype,$args);
 }
 
 /**

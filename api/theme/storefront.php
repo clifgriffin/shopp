@@ -484,7 +484,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		    $Collection->name = call_user_func(array($CollectionClass, 'name'));
 		    $Collection->slug = $slug;
 		    $Collection->term_group = 0;
-		    $Collection->taxonomy = 'shopp_collection';
+		    $Collection->taxonomy = get_class_property('SmartCollection','taxon');
 		    $Collection->description = '';
 		    $Collection->parent = 0;
 			$collections[] = $Collection;
@@ -1176,14 +1176,10 @@ class ShoppCategoryWalker extends Walker {
 
 		$smartcollection = $category->taxonomy == get_class_property( 'SmartCollection', 'taxon');
 
-		if ( $smartcollection ) {
-			global $wp_rewrite;
-			$termlink = $wp_rewrite->get_extra_permastruct($category->taxonomy);
-			if ( ! empty($termlink) ) $category->slug = get_class_property( 'SmartCollection', 'namespace') . '/' . $category->slug;
-		}
-
 		$categoryname = $category->name;
+
 		$link = get_term_link($category);
+
 		$classes = '';
 		if ( 'list' == $args['style'] ) {
 			$classes = 'cat-item cat-item-' . $category->term_id;
@@ -1275,7 +1271,7 @@ class ShoppCategoryDropdownWalker extends Walker {
 			$output .= ' selected="selected"';
 		$output .= '>';
 		$output .= $pad.$cat_name;
-		if ( $args['products'] )
+		if ( $args['products'] && isset($category->count) )
 			$output .= '&nbsp;&nbsp;('. $category->count .')';
 		$output .= "</option>\n";
 	}

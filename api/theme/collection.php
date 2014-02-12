@@ -668,12 +668,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	public static function url ( $result, $options, $O ) {
-		global $wp_rewrite;
-
-		$namespace = get_class_property( get_class($O) ,'namespace');
-		$prettyurls = $wp_rewrite->using_permalinks();
-
-		$url = Shopp::url( $prettyurls ? "$namespace/$O->slug" : array($O->taxonomy => $O->slug), false );
+		$url = get_term_link($O);
 		if ( isset($options['page']) ) $url = $O->pagelink((int)$options['page']);
 		return $url;
 	}
