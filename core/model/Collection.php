@@ -1470,12 +1470,6 @@ class SmartCollection extends ProductCollection {
 
 	public function __construct ( array $options = array() ) {
 
-		if ( isset($options['show']) )
-			$this->loading['limit'] = $options['show'];
-
-		if ( isset($options['pagination']) )
-			$this->loading['pagination'] = $options['pagination'];
-
 		$this->taxonomy = self::$taxon;
 
 		$thisclass = get_class($this);
@@ -1498,6 +1492,13 @@ class SmartCollection extends ProductCollection {
 	public function load ( array $options = array() ) {
 		$options = array_merge( $this->_options, $options );
 		$this->smart($options);
+
+		if ( isset($options['show']) )
+			$this->loading['limit'] = $options['show'];
+
+		if ( isset($options['pagination']) )
+			$this->loading['pagination'] = $options['pagination'];
+
 		parent::load($this->loading);
 	}
 
