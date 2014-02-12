@@ -88,8 +88,8 @@ class ShoppInstallation extends ShoppFlowController {
 			shopp_set_setting('display_welcome', 'on');
 
 		shopp_set_setting('updates', false);
-		shopp_set_setting('rebuild_rewrites', 'on');
 
+		add_action('init', 'flush_rewrite_rules', 99);
 		return true;
 	}
 
