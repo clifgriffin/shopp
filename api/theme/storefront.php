@@ -400,11 +400,11 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		$options = array_merge($defaults, $options);
 
-		$options['style'] = 'list';
+		$options['style'] = '';
 		if ( Shopp::str_true($options['dropdown']) )
 			$options['style'] = 'dropdown';
-		elseif ( ! Shopp::str_true($options['hierarchy']) || ! Shopp::str_true($options['wraplist']) )
-			$options['style'] = '';
+		elseif ( Shopp::str_true($options['hierarchy']) || Shopp::str_true($options['wraplist']) )
+			$options['style'] = 'list';
 
 		if ( ! empty($options['showsmart']) && empty($options['smart']) )
 			$options['smart'] = $options['showsmart'];
@@ -1183,14 +1183,15 @@ class ShoppCategoryWalker extends Walker {
 		$classes = '';
 		if ( 'list' == $args['style'] ) {
 			$classes = 'cat-item cat-item-' . $category->term_id;
-			if ( ! empty($current_category) ) {
-				$_current_category = get_term( $current_category, $category->taxonomy );
-				if ( $category->term_id == $current_category )
-					$classes .=  ' current-cat current';
-				elseif ( $category->term_id == $_current_category->parent )
-					$classes .=  ' current-cat-parent current-parent';
-			}
+
+			$Collection = ShoppCollection();
+			if ( isset($Collection->slug) && $Collection->slug == $category->slug)
+				$classes .= ' current-cat current';
+
+			if ( ! empty($Collection->parent) && $Collection->parent == $category->term_id)
+				$classes .= ' current-cat-parent current-parent';
 		}
+
 		$total = isset($category->count) ? $category->count : false;
 
 		$title = sprintf(__( 'View all &quot;%s&quot; products' ), $categoryname);
@@ -1198,7 +1199,7 @@ class ShoppCategoryWalker extends Walker {
 		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'title', 'total'));
 		extract($filtered, EXTR_OVERWRITE);
 
-		$link = '<a href="' . esc_url( $link ) . '" title="' . esc_attr( $title ) . '"';
+		$link = '<a href="' . esc_url( $link ) . '" title="' . esc_attr( $title ) . '" class="' . $classes . '"';
 		$link .= '>';
 		$link .= $categoryname . '</a>';
 
@@ -1210,7 +1211,7 @@ class ShoppCategoryWalker extends Walker {
 
 		if ( 'list' == $args['style'] ) {
 			$output .= "\t<li";
-			if ( ! empty($class) ) $output .=  ' class="' . $class . '"';
+			if ( ! empty($classes) ) $output .=  ' class="' . $classes . '"';
 			$output .= ">$link\n";
 		} else {
 			$output .= "\t$link<br />\n";
