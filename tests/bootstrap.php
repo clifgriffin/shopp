@@ -52,6 +52,7 @@ require WP_UNITTEST_DIR . '/functions.php';
 
 // Preset WordPress options used to activate themes, plugins, as well as  other settings.
 $GLOBALS['wp_tests_options'] = array('active_plugins' => array( 'shopp/Shopp.php' ));
+$GLOBALS['plugin'] = 'shopp/Shopp.php';
 
 function wp_tests_options( $value ) {
 	$key = substr( current_filter(), strlen( 'pre_option_' ) );
