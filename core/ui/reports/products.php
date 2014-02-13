@@ -41,7 +41,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$query = "SELECT CONCAT($id) AS id,
 							CONCAT(p.post_title,' ',pr.label) AS product,
-							COUNT(DISTINCT o.id) AS sold,
+							SUM(o.quantity) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
 							SUM(o.total) AS grossed
 					FROM $purchased_table AS o INNER JOIN $purchase_table AS orders ON orders.id=o.purchase
