@@ -11,7 +11,7 @@ Subject: <?php shopp( 'purchase.email-subject' ); ?>
 	<div id="body">
 		<?php shopp( 'purchase.receipt' ); ?>
 		<?php if ( shopp( 'purchase.notpaid' ) && shopp( 'checkout.get-offline-instructions' ) ) : ?>
-			<p><?php shopp( 'checkout.offline-instructions' ); ?></p>
+			<?php shopp( 'checkout.offline-instructions' ); ?>
 		<?php endif; ?>
 	</div>
 </html>
