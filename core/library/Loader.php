@@ -501,6 +501,7 @@ ShoppLoader::map(array(
 	'shippingpackaginginterface' => '/model/Shipping.php',
 	'shippingreport' => '/ui/reports/shipping.php',
 	'shippingsettingsui' => '/model/Shipping.php',
+	'shopp' => '/library/Shopp.php',
 	'shoppaccountdashboardpage' => '/flow/Pages.php',
 	'shoppaccountpage' => '/flow/Pages.php',
 	'shoppaccountwidget' => '/ui/widgets/account.php',
