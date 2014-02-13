@@ -160,7 +160,7 @@ class CatalogAPITests extends ShoppTestCase {
 		$this->assertNotTag($expected, $actual, 'category-list linkall=off failed');
 
 		ob_start();
-		shopp('storefront.category-list', 'wraplist=off');
+		shopp('storefront.category-list', 'wraplist=off&hierarchy=off');
 		$actual = ob_get_clean();
 		$expected = array('tag' => 'ul');
 		$this->assertNotTag($expected, $actual, 'category-list wraplist=off failed');
