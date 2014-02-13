@@ -256,12 +256,12 @@ class ShoppShiprates extends ListFramework {
 	private function items () {
 
 		foreach ( $this->shippable as $id => $free ) {
-			if ( $free ) continue;
 
 			$CartItem = shopp_cart_item($id);
 			if ( ! $CartItem ) continue;
 
 			$Item = new ShoppShippableItem( $CartItem );
+			$this->item($Item);
 			do_action_ref_array('shopp_calculate_item_shipping', array($id, &$Item));
 		}
 
@@ -471,14 +471,14 @@ class ShoppShippableItem {
 
 		if ( ! $this->shippable ) return false;
 
-		$this->id = $Item->fingerprint();
-		$this->quantity = $Item->quantity;
-		$this->fees = $Item->shipfee;
-		$this->weight = $Item->weight;
-		$this->length = $Item->length;
-		$this->width = $Item->width;
-		$this->height = $Item->height;
-		$this->shipsfree = $Item->freeshipping;
+		$this->id        = $Item->fingerprint();
+		$this->quantity  =& $Item->quantity;
+		$this->fees      =& $Item->shipfee;
+		$this->weight    =& $Item->weight;
+		$this->length    =& $Item->length;
+		$this->width     =& $Item->width;
+		$this->height    =& $Item->height;
+		$this->shipsfree =& $Item->freeshipping;
 	}
 
 }

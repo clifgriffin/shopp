@@ -28,49 +28,7 @@ class ShoppDiscounts extends ListFramework {
 	private $codes = array();	// List of applied codes
 	private $request = false;	// Current code request
 	private $credit = false;	// Credit request types
-
-	/**
-	 * Get or set the current request
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param string $request The request string to set
-	 * @return string The current request
-	 **/
-	public function request ( string $request = null ) {
-
-		if ( isset($request) ) $this->request = $request;
-		return $this->request;
-
-	}
-
-	public function credit ( string $request = null ) {
-
-		if ( isset($request) ) $this->credit = $request;
-		return $this->credit;
-
-	}
-
-	/**
-	 * Handle parsing and routing discount code related requests
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	public function requests () {
-
-		if ( isset($_REQUEST['discount']) && ! empty($_REQUEST['discount']) )
-			$this->request( trim($_REQUEST['discount']) );
-		elseif ( isset($_REQUEST['credit']) && ! empty($_REQUEST['credit']) )
-			$this->credit( trim($_REQUEST['credit']) );
-
-		if ( isset($_REQUEST['removecode']) && ! empty($_REQUEST['removecode']) )
-			$this->undiscount(trim($_REQUEST['removecode']));
-
-	}
+	private $shipping = false;	// Track shipping discount changes
 
 	/**
 	 * Calculate the discount amount
@@ -115,27 +73,6 @@ class ShoppDiscounts extends ListFramework {
 
 	}
 
-	public function credits () {
-		$credits = array();
-
-		$CartTotals = ShoppOrder()->Cart->Totals;
-
-		// Wipe out any existing credit calculations
-		$CartTotals->takeoff('discount', 'credit');
-		$discounts = $CartTotals->total('discount'); // Resum the applied discounts (without credits)
-
-		foreach ( $this as $Discount ) {
-			if ( $Discount->type() != ShoppOrderDiscount::CREDIT ) continue;
-			$Discount->calculate(); // Recalculate based on current total to apply an appropriate amount
-			$credits[] = $Discount->amount();
-			$CartTotals->register( new OrderAmountDiscount( array('id' => 'credit', 'amount' => array_sum($credits) ) ) );
-		}
-
-		$amount = array_sum($credits);
-
-		return (float) $amount;
-	}
-
 	/**
 	 * Match the promotions that apply to the order
 	 *
@@ -153,6 +90,9 @@ class ShoppDiscounts extends ListFramework {
 
 		// Match applied first
 		$Promotions->sort( array($this, 'sortapplied'), 'keys' );
+
+		// Reset shipping flag to track changes
+		$this->shipping = false;
 
 		// Iterate over each promo to determine whether it applies
 		$discount = 0;
@@ -238,6 +178,7 @@ class ShoppDiscounts extends ListFramework {
 		}
 
 		$this->add($Promo->id, $Discount);
+		$this->shipping($Discount); // Flag shipping changes
 
 	}
 
@@ -348,10 +289,12 @@ class ShoppDiscounts extends ListFramework {
 		if ( ! $this->exists($id) ) return false;
 
 		$Discount = $this->get($id);
+		$Discount->unapply();
 
 		$_REQUEST['cart'] = true;
 
-		$this->remove($id);
+		$this->remove($Discount->id()); // Remove it from the discount stack if it is there
+		$this->shipping($Discount);		// Flag shipping changes
 
 		if ( isset($this->codes[ $Discount->code() ]) ) {
 			unset($this->codes[ $Discount->code() ]);
@@ -370,9 +313,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function reset ( ShoppOrderPromo $Promo ) {
-
-		$this->remove($Promo->id);		// Remove it from the discount stack if it is there
-
+		$this->undiscount($Promo->id);
 	}
 
 	/**
@@ -397,6 +338,97 @@ class ShoppDiscounts extends ListFramework {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get or set the current request
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param string $request The request string to set
+	 * @return string The current request
+	 **/
+	public function request ( string $request = null ) {
+
+		if ( isset($request) ) $this->request = $request;
+		return $this->request;
+
+	}
+
+	public function credit ( string $request = null ) {
+
+		if ( isset($request) ) $this->credit = $request;
+		return $this->credit;
+
+	}
+
+	/**
+	 * Handle parsing and routing discount code related requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function requests () {
+
+		if ( isset($_REQUEST['discount']) && ! empty($_REQUEST['discount']) )
+			$this->request( trim($_REQUEST['discount']) );
+		elseif ( isset($_REQUEST['credit']) && ! empty($_REQUEST['credit']) )
+			$this->credit( trim($_REQUEST['credit']) );
+
+		if ( isset($_REQUEST['removecode']) && ! empty($_REQUEST['removecode']) )
+			$this->undiscount(trim($_REQUEST['removecode']));
+
+	}
+
+	/**
+	 * Applies credits to the order discounts register
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return float The total amount credited
+	 **/
+	public function credits () {
+		$credits = array();
+
+		$CartTotals = ShoppOrder()->Cart->Totals;
+
+		// Wipe out any existing credit calculations
+		$CartTotals->takeoff('discount', 'credit');
+		$discounts = $CartTotals->total('discount'); // Resum the applied discounts (without credits)
+
+		foreach ( $this as $Discount ) {
+			if ( $Discount->type() != ShoppOrderDiscount::CREDIT ) continue;
+			$Discount->calculate(); // Recalculate based on current total to apply an appropriate amount
+			$credits[] = $Discount->amount();
+		}
+
+		$amount = array_sum($credits);
+		if ( $amount > 0 )
+			$CartTotals->register( new OrderAmountDiscount( array('id' => 'credit', 'amount' => $amount ) ) );
+
+		return (float) $amount;
+	}
+
+
+	/**
+	 * Report shipping discount changes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @param ShoppOrderDiscount $Discount (optional) The applied or unapplied discount to check for shipping changes
+	 * @return boolean True if shipping discounts changed, false otherwise
+	 **/
+	public function shipping ( ShoppOrderDiscount $Discount = null ) {
+
+		if ( isset($Discount) && ShoppOrderDiscount::SHIP_FREE == $Discount->type() )
+			$this->shipping = true;
+
+		return $this->shipping;
 	}
 
 	/**
@@ -567,9 +599,9 @@ class ShoppDiscountRule {
 			case 'promo use count':		return $this->promo->uses;
 
 			case 'discounts applied':	return ShoppOrder()->Discounts->count();
-			case 'total quantity':		return $Cart->Totals->total('quantity');
-			case 'shipping amount':		return $Cart->Totals->total('shipping');
-			case 'subtotal amount':		return $Cart->Totals->total('order');
+			case 'total quantity':		return $Cart->total('quantity');
+			case 'shipping amount':		return $Cart->total('shipping');
+			case 'subtotal amount':		return $Cart->total('order');
 			case 'customer type':		return ShoppOrder()->Customer->type;
 			case 'ship-to country':		return ShoppOrder()->Shipping->country;
 			default:					return apply_filters('shopp_discounts_subject_' . sanitize_key($property), false);
@@ -696,10 +728,10 @@ class ShoppDiscountRule {
 			case 'ends with':					return $this->endswith($subject, $value);
 
 			// Numeric operations
-			case 'is greater than':				return (Shopp::floatval($subject,false) > Shopp::floatval($value,false));
-			case 'is greater than or equal to':	return (Shopp::floatval($subject,false) >= Shopp::floatval($value,false));
-			case 'is less than':				return (Shopp::floatval($subject,false) < Shopp::floatval($value,false));
-			case 'is less than or equal to':	return (Shopp::floatval($subject,false) <= Shopp::floatval($value,false));
+			case 'is greater than':				return (Shopp::floatval($subject, false) >  Shopp::floatval($value, false));
+			case 'is greater than or equal to':	return (Shopp::floatval($subject, false) >= Shopp::floatval($value, false));
+			case 'is less than':				return (Shopp::floatval($subject, false) <  Shopp::floatval($value, false));
+			case 'is less than or equal to':	return (Shopp::floatval($subject, false) <= Shopp::floatval($value, false));
 		}
 
 		return false;
@@ -859,7 +891,7 @@ class ShoppOrderDiscount {
 	 * @return boolean True if the discount affects the order, false otherwise
 	 **/
 	public function applies () {
-		$applies = ( $this->amount() > 0 || ( $this->amount() == 0 && $this->shipfree() ) );
+		$applies = ( $this->amount() > 0 || ( $this->amount() == 0 && $this->shipfree() ) || count($this->items) > 0 );
 		return apply_filters('shopp_discount_applies', $applies, $this );
 	}
 
@@ -1086,7 +1118,7 @@ class ShoppOrderDiscount {
 		switch ( $this->type ) {
 			case self::PERCENT_OFF:	$amount = $Item->unitprice * ($this->discount() / 100); break;
 			case self::AMOUNT_OFF:	$amount = $this->discount(); break;
-			case self::SHIP_FREE:	$Item->freeshipping = true; $amount = 0; break;
+			case self::SHIP_FREE:	$Item->freeshipping = true; $this->shipping = true; $amount = 0; break;
 			case self::BOGOF:
 				list($buy, $get) = $this->discount();
 
@@ -1121,6 +1153,29 @@ class ShoppOrderDiscount {
 		return isset($this->items[ $key ]);
 	}
 
+	/**
+	 * Unapply the discount
+	 *
+	 * This primarily involves resetting the Cart Item->freeshipping property.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public function unapply () {
+		$Cart = ShoppOrder()->Cart;
+
+		if ( self::SHIP_FREE == $this->type ) {
+			$Shiprates = ShoppOrder()->Shiprates;
+			foreach ( $this->items as $id => $item ) {
+				$CartItem = $Cart->get($id);
+				$CartItem->freeshipping = false;
+			}
+		}
+
+	}
+
 }
 
 /**
@@ -1132,14 +1187,14 @@ class ShoppOrderDiscount {
  **/
 class ShoppPurchaseDiscount {
 
-	public $id = false;						// The originating promotion object id
-	public $name = '';						// The name of the promotion
-	public $amount = 0.00;					// The total amount of the discount
-	public $type = ShoppOrderDiscount::AMOUNT_OFF;		// The discount type
-	public $target = ShoppOrderDiscount::ORDER;			// The discount target
-	public $discount = false;				// The calculated discount amount (float or array for BOGOFs)
-	public $code = false;					// The code associated with the discount
-	public $shipfree = false;				// A flag for free shipping
+	public $id = false;								// The originating promotion object id
+	public $name = '';								// The name of the promotion
+	public $amount = 0.00;							// The total amount of the discount
+	public $type = ShoppOrderDiscount::AMOUNT_OFF;	// The discount type
+	public $target = ShoppOrderDiscount::ORDER;		// The discount target
+	public $discount = false;						// The calculated discount amount (float or array for BOGOFs)
+	public $code = false;							// The code associated with the discount
+	public $shipfree = false;						// A flag for free shipping
 
 	public function __construct ( ShoppOrderDiscount $Discount ) {
 
