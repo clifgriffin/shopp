@@ -22,6 +22,6 @@
 			<li><a href="<?php shopp( 'checkout.url' ); ?>"><?php _e( 'Proceed to Checkout', 'Shopp' ); ?></a></li>
 		</ul>
 	<?php else : ?>
-		<p class="notice"><?php _e( 'Your cart is empty.', 'Shopp' ); ?></p>
+		<p class="status notice"><?php _e( 'Your cart is empty.', 'Shopp' ); ?></p>
 	<?php endif; ?>
 </div>
