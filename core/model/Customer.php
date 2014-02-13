@@ -492,7 +492,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 */
 	public function load_downloads () {
 		// Bail out if the downloads property is already populated or we can't load customer order data
-		if ( /*! empty($this->downloads) ||*/ ! ($purchases = shopp_customer_orders($this->id)) ) return; # Decomment before commit!
+		if ( /*! empty($this->downloads) ||*/ ! ($purchases = shopp_customer_orders($this->id)) ) return; // Decomment before commit!
 		$this->downloads = array();
 
 		foreach ( $purchases as $Purchase ) {
@@ -502,7 +502,10 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		}
 	}
 
-	protected function extract_downloads ($items) {
+	protected function extract_downloads ( $items ) {
+
+		$this->_filemap = array(); // Temporary property to hold the file mapping index
+
 		while ( list($index, $Purchased) = each($items) ) {
 			// Check for downloadable addons
 			if ( isset($Purchased->addons->meta) && count($Purchased->addons->meta) >= 1 ) {
@@ -514,8 +517,64 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 			// Is it a downloadable item? Do not add the same dkey twice
 			if ( empty($Purchased->download) ) continue;
+
+			// Load download file data
 			$this->downloads[ $Purchased->dkey ] = $Purchased;
+			$this->_filemap[ $Purchased->download ] = $Purchased->dkey;
 		}
+
+		$this->load_downloadfiles( array_keys($this->_filemap) );
+
+	}
+
+	/**
+	 * Loads the extra download file data for the loaded customer downloads
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @param array $downloads a list of download meta record ids to load
+	 * @return void
+	 **/
+	public function load_downloadfiles ( array $downloads = array() ) {
+
+		if ( empty($downloads) ) return false;
+
+		$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+		sDB::query("SELECT * FROM $meta_table WHERE id IN (" . join(',', $downloads) . ")", 'array', array($this, 'download_loader'));
+
+		unset($this->_filemap);
+	}
+
+	/**
+	 * Download record loader to map download file data to the loaded downloads for the customer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3.2
+	 *
+	 * @param array $records The records to map to (unused becase they are mapped to the Customer->downloads records)
+	 * @param array $record	The record data loaded from the query
+	 * @return void
+	 **/
+	public function download_loader ( &$records, &$record ) {
+
+		// Lookup the download key
+		if ( empty($this->_filemap[ $record->id ]) ) return;
+		$dkey = $this->_filemap[ $record->id ];
+
+		// Find the purchased download
+		if ( empty($this->downloads[ $dkey ]) ) return;
+		$Purchased = &$this->downloads[ $dkey ];
+
+		// Unserialize the file data
+		$data = maybe_unserialize($record->value);
+		if ( is_object($data) ) $properties = get_object_vars($data);
+		else return;
+
+		// Map the file data to the purchased download record
+		foreach ( (array)$properties as $property => $value )
+			$Purchased->$property = sDB::clean($value);
+
 	}
 
 	public function reset_downloads () {
@@ -743,26 +802,3 @@ class CustomersXLSExport extends CustomersExport {
 		$this->r++;
 	}
 } // END class CustomerXLSExport
-
-/**
- * CustomerAccountPage class
- *
- * A property container for Shopp's customer account page meta
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package customer
- **/
-class CustomerAccountPage {
-
-	public $request = '';
-	public $label = '';
-	public $handler = false;
-
-	public function __construct ( $request, $label, $handler ) {
-		$this->request = $request;
-		$this->label = $label;
-		$this->handler = $handler;
-	}
-
-} // END class CustomerAccountPage

@@ -219,7 +219,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if ( array_key_exists('total', $options) ) $string .= money($download->total);
 		if ( array_key_exists('filetype', $options) ) $string .= $download->mime;
 		if ( array_key_exists('size', $options) ) $string .= readableFileSize($download->size);
-		if ( array_key_exists('date', $options) ) $string .= _d($df, mktimestamp($download->created));
+		if ( array_key_exists('date', $options) ) $string .= _d($df, $download->created);
 		if ( array_key_exists('url', $options) )
 			$string .= Shopp::url( ('' == get_option('permalink_structure') ?
 					array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey),
