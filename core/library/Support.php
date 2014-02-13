@@ -261,7 +261,7 @@ class ShoppSupport {
 
 		$url = add_query_arg('action', 'shopp_nonag', wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_nonag'));
 		$_ = array();
-		$_[] = '<div id="shopp-activation-nag" class="notice wp-core-ui">';
+		$_[] = '<div id="shopp-activation-nag" class="update-nag">';
 
 		$_[] = '<p class="dismiss shoppui-remove-sign alignright"></p>';
 
@@ -275,7 +275,7 @@ class ShoppSupport {
 	}
 
 	public static function buykey () {
-		return Shopp::_mi('You&apos;re missing out on **expert support**, **early access** to Shopp updates, and **one-click add-on updates**! Don&apos;t have a Shopp Support Key? %sBuy a Shopp Support Key!%s', '<a href="' . ShoppSupport::STORE . '?utm_source=wpadmin-' . $_REQUEST['page'] . '&utm_medium=Shopp&utm_campaign=Plugin" class="button button-primary" target="_blank">', '</a>');
+		return Shopp::_mi('%s<big>Upgrade for Support</big>%s<big>You&apos;re missing out on **expert support**, **early access** to Shopp updates, and **one-click add-on updates**!</big>Don&apos;t have a Shopp Support Key? Support the project and get expert support, buy one today!', '<a href="' . ShoppSupport::STORE . '?utm_source=wpadmin-' . $_REQUEST['page'] . '&utm_medium=Shopp&utm_campaign=Plugin" class="button button-primary" target="_blank">', '</a>');
 	}
 
 	/**
