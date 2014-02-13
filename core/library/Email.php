@@ -82,7 +82,8 @@ abstract class ShoppEmailFilters {
 	}
 
 	static function FixSymbols ( $message ) {
-		$entities = htmlentities( $message, ENT_NOQUOTES  | ENT_DISALLOWED, 'UTF-8', false ); // Translate HTML entities (special symbols)
+		if ( ! defined( 'ENT_DISALLOWED' ) ) define( 'ENT_DISALLOWED', 128 ); // ENT_DISALLOWED added in PHP 5.4
+		$entities = htmlentities( $message, ENT_NOQUOTES | ENT_DISALLOWED, 'UTF-8', false ); // Translate HTML entities (special symbols)
 		return htmlspecialchars_decode( $entities, ENT_NOQUOTES ); // Translate HTML tags back
 	}
 
