@@ -313,7 +313,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @return void
 	 **/
 	private function reset ( ShoppOrderPromo $Promo ) {
-		$this->undiscount($Promo->id);
+		$this->undiscount((int)$Promo->id);
 	}
 
 	/**
