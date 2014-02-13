@@ -35,6 +35,7 @@ class ShoppRegistration extends FormPostFramework {
 		'billing' => array(),
 		'shipping' => array(),
 		'info' => array(),
+		'marketing' => '',
 		'loginname' => '',
 		'password' => '',
 		'confirm-password' => ''
@@ -87,7 +88,8 @@ class ShoppRegistration extends FormPostFramework {
 			'email' => $this->form('email'),
 			'phone' => $this->form('phone'),
 			'info' => $this->form('info'),
-            'password' => $this->form('password', true),
+			'marketing' => $this->form('marketing'),
+			'password' => $this->form('password', true),
 			'loginname' => $this->form('loginname', true)
 		);
 
