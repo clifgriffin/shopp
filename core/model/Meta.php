@@ -35,13 +35,15 @@ class ShoppMetaObject extends ShoppDatabaseObject {
 	 *
 	 * @return void
 	 **/
-	function __construct ($id=false,$key='id') {
+	function __construct ( $id = false, $key = 'id' ) {
 		$this->init(self::$table);
-		if (!$id) return;
-		if (is_array($id)) $this->load($id);
-		else $this->load(array($key=>$id,'type'=>$this->type));
+		if ( ! $id ) return;
 
-		if (!empty($this->id) && !empty($this->_xcols))
+		if ( is_array($id) )
+			$this->load($id);
+		else $this->load(array($key => $id, 'type' => $this->type));
+
+		if ( ! empty($this->id) && ! empty($this->_xcols) )
 			$this->expopulate();
 	}
 
@@ -54,7 +56,7 @@ class ShoppMetaObject extends ShoppDatabaseObject {
 	 * @return void
 	 **/
 	function expopulate () {
-		if (!is_object($this->value)) return;
+		if ( ! is_object($this->value) ) return;
 		$properties = $this->value;
 		$this->copydata($properties);
 		unset($this->value);
