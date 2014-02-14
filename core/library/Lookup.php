@@ -776,27 +776,28 @@ class Lookup {
 	 **/
 	public static function payment_status_labels () {
 		$_ = array(
-			'PENDING' => __('Pending','Shopp'),
-			'CHARGED' => __('Charged','Shopp'),
-			'REFUNDED' => __('Refunded','Shopp'),
-			'VOID' => __('Void','Shopp')
+			'PENDING'  => Shopp::__('Pending'),
+			'CHARGED'  => Shopp::__('Charged'),
+			'REFUNDED' => Shopp::__('Refunded'),
+			'VOID'     => Shopp::__('Void')
 		);
-		return apply_filters('shopp_payment_status_labels',$_);
+		return apply_filters('shopp_payment_status_labels', $_);
 	}
 
 	public static function txnstatus_labels () {
 		$_ = array(
-			'review' => __('Review','Shopp'),
-			'purchase' => __('Purchase Order','Shopp'),
-			'invoiced' => __('Invoiced','Shopp'),
-			'authed' => __('Authorized','Shopp'),
-			'captured' => __('Paid','Shopp'),
-			'shipped' => __('Shipped','Shopp'),
-			'refunded' => __('Refunded','Shopp'),
-			'voided' => __('Void','Shopp'),
-			'closed' => __('Closed','Shopp')
+			'review'      => Shopp::__('Review'),
+			'purchase'    => Shopp::__('Purchase Order'),
+			'invoiced'    => Shopp::__('Invoiced'),
+			'authed'      => Shopp::__('Authorized'),
+			'auth-failed' => Shopp::__('Declined'),
+			'captured'    => Shopp::__('Paid'),
+			'shipped'     => Shopp::__('Shipped'),
+			'refunded'    => Shopp::__('Refunded'),
+			'voided'      => Shopp::__('Void'),
+			'closed'      => Shopp::__('Closed')
 		);
-		return apply_filters('shopp_txnstatus_labels',$_);
+		return apply_filters('shopp_txnstatus_labels', $_);
 	}
 
 	/**

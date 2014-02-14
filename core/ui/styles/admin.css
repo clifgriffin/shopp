@@ -311,8 +311,11 @@ div.progress div.gloss { position:absolute;width:100%;height:10px;background:url
 
 #lightbox div.progress { margin:40px 0 0 10px; }
 
-.shopp .notice {-webkit-border-radius:3px;border-radius:3px;border:1px solid #e6db55;background-color:#ffffe0;margin: 5px 0 15px;padding: 0 0.6em; }
-.shopp .notice p { margin:1em 0; }
+#shopp-activation-nag { width:100%; box-sizing:border-box;}
+#shopp-activation-nag .dismiss { color:#ccc; margin-right:8px; }
+#shopp-activation-nag .dismiss:hover { color:#aaa; }
+#shopp-activation-nag .button { float: left; margin: 8px 20px 0 0; button }
+#shopp-activation-nag big { display:block; }
 
 #wpcontent .form-table select.scrolling { height:auto; }
 
