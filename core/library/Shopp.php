@@ -27,7 +27,7 @@ final class Shopp extends ShoppCore {
 
 	private function __construct () {
 
-		$this->paths();				// Determine Shopp paths
+		self::paths();				// Determine Shopp paths
 		$this->constants();			// Setup Shopp constants
 		$this->textdomain();		// Load the translation file
 
@@ -153,8 +153,11 @@ final class Shopp extends ShoppCore {
 	 *
 	 * @return void
 	 **/
-	public function paths () {
+	public static function paths () {
 		global $plugin, $mu_plugin, $network_plugin;
+
+		// This need should only run once
+		if ( defined( 'SHOPP_PATH' ) ) return;
 
 		if ( isset($plugin) ) $filepath = $plugin;
 		elseif ( isset($mu_plugin) ) $filepath = $mu_plugin;
@@ -368,13 +371,15 @@ final class Shopp extends ShoppCore {
 	public static function services () {
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
+		defined( 'SHOPP_PATH' ) or self::paths();
+
 		// Image Server request handling
 		if ( isset($_GET['siid']) || 1 == preg_match('{^/.+?/images/\d+/.*$}', $_SERVER['REQUEST_URI']) )
-			return require 'services/image.php';
+			return require SHOPP_PATH . '/services/image.php';
 
 		// Script Server request handling
 		if ( isset($_GET['sjsl']) )
-			return require 'services/scripts.php';
+			return require SHOPP_PATH . '/services/scripts.php';
 	}
 
 	// Deprecated properties
