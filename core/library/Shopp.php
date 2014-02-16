@@ -371,7 +371,7 @@ final class Shopp extends ShoppCore {
 	public static function services () {
 		if ( WP_DEBUG ) define('SHOPP_MEMORY_PROFILE_BEFORE', memory_get_peak_usage(true) );
 
-		defined( 'SHOPP_DIR' ) or self::paths();
+		defined( 'SHOPP_PATH' ) or self::paths();
 
 		// Image Server request handling
 		if ( isset($_GET['siid']) || 1 == preg_match('{^/.+?/images/\d+/.*$}', $_SERVER['REQUEST_URI']) )
