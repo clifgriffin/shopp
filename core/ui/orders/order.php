@@ -251,7 +251,7 @@
 									default:
 										?>
 											<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
-											<?php do_action( 'shopp_manage_order_'.$column.'_column_data', $column, $Product, $Item, $Purchase ); ?>
+											<?php do_action( 'shopp_manage_order_' . sanitize_key($column) .'_column_data', $column, $Product, $Item, $Purchase ); ?>
 											</td>
 										<?php
 										break;
