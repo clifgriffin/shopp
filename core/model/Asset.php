@@ -674,8 +674,11 @@ class ImageSetting extends ShoppMetaObject {
 	}
 
 	public function fit_value ($value) {
-		if ( in_array($value, self::$fittings) ) return $value;
-		return self::$fittings[0];
+		$index = absint( $value ); // $value may relate to an index of the self::$fittings array
+
+		if ( in_array($value, self::$fittings) ) return $value; // Is $value a string literal like "all"?
+		elseif ( $index == $value && isset(self::$fittings[$index]) ) return self::$fittings[$index]; // Or is it an index (like 0)?
+		return self::$fittings[0]; // Default to "all"
 	}
 
 	public function quality_value ($value) {
