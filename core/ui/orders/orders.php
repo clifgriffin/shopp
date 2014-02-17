@@ -143,7 +143,7 @@
 					case 'date':
 					?>
 						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
+							<?php echo date("Y/m/d", mktimestamp($Order->created)); ?><br />
 							<strong><?php echo $statusLabels[$Order->status]; ?></strong>
 						</td>
 					<?php
@@ -161,6 +161,7 @@
 					?>
 						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
 							<?php do_action( 'shopp_manage_orders_custom_column', $column, $Order ); ?>
+							<?php do_action( 'shopp_manage_orders_' . santitize_key($column) . '_column', $column, $Order ); ?>
 						</td>
 					<?php
 					break;
