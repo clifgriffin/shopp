@@ -226,7 +226,8 @@ class ImageAsset extends FileAsset {
 	public static $defaults = array(
 		'scaling' => array('all', 'matte', 'crop', 'width', 'height'),
 		'sharpen' => 0,
-		'quality' => 80
+		'quality' => 80,
+		'fill' => 16777215
 	);
 
 	public $width;
@@ -399,7 +400,8 @@ class ImageAsset extends FileAsset {
 			self::HEIGHT => ( 0 == $args[ self::HEIGHT ] ) ? (int) $args[ self::WIDTH ] : (int) $args[ self::HEIGHT ],
 			self::SCALE => ( isset($args[ self::SCALE ]) ) ? (int) $args[ self::SCALE ] : 0,
 			self::SHARPEN => ( isset($args[ self::SHARPEN ]) ) ? (int) $args[ self::SHARPEN ] : self::$defaults['sharpen'],
-			self::QUALITY => ( isset($args[ self::QUALITY ]) ) ? (int) $args[ self::QUALITY ] : self::$defaults['quality']
+			self::QUALITY => ( isset($args[ self::QUALITY ]) ) ? (int) $args[ self::QUALITY ] : self::$defaults['quality'],
+			self::FILL => ( isset($args[ self::FILL ]) ) ? (int) $args[ self::FILL ] : self::$defaults['fill']
 		);
 
 		// Form the checksummed message
