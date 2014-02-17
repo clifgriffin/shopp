@@ -35,7 +35,7 @@
 			</select>
 			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
 		</div>
-		
+
 		<div class="alignleft actions filtering">
 				<select name="range" id="range">
 					<?php echo Shopp::menuoptions($ranges,$range,true); ?>
@@ -62,6 +62,7 @@
 	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
+			$columns = get_column_headers(ShoppAdmin()->screen());
 			$hidden = get_hidden_columns(ShoppAdmin()->screen());
 
 			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
@@ -93,16 +94,82 @@
 			if (!$even) $classes[] = "alternate";
 			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
 			$even = !$even;
-			?>
+		?>
 		<tr class="<?php echo join(' ',$classes); ?>">
-			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
-			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php printf(__('View Order #%d','Shopp'),$Order->id); ?>'><?php printf(__('Order #%d','Shopp'),$Order->id); ?></a></td>
-			<td class="name column-name"><a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
-			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php echo esc_html($location); ?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?></td>
-			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
-				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?><br /><span class="status"><?php echo $txnstatus; ?></span></td>
+		<?php
+			foreach ( $columns as $column => $column_title ) {
+				$classes = array($column,"column-$column");
+				if ( in_array($column, $hidden) ) $classes[] = 'hidden';
+
+				switch ( $column ) {
+					case 'cb':
+					?>
+						<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo esc_attr($Order->id); ?>' /></th>
+					<?php
+					break;
+
+					case 'order':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php printf(__('View Order #%d','Shopp'),$Order->id); ?>'><?php printf(__('Order #%d','Shopp'),$Order->id); ?></a>
+						</td>
+					<?php
+					break;
+
+					case 'name':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?>
+						</td>
+					<?php
+					break;
+
+					case 'destination':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<?php echo esc_html($location); ?>
+						</td>
+					<?php
+					break;
+
+					case 'txn':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?>
+						</td>
+					<?php
+					break;
+
+					case 'date':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
+							<strong><?php echo $statusLabels[$Order->status]; ?></strong>
+						</td>
+					<?php
+					break;
+
+					case 'total':
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<?php echo money($Order->total); ?><br /><span class="status"><?php echo $txnstatus; ?></span>
+						</td>
+					<?php
+					break;
+
+					default:
+					?>
+						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
+							<?php do_action( 'shopp_manage_orders_custom_column', $column, $Order ); ?>
+						</td>
+					<?php
+					break;
+
+
+				} // end switch ( $column )
+
+			} // end foreach ( $columns…)
+		?>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
