@@ -96,7 +96,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 		// Welcome screen handling
 		if ( ! empty($_POST['setup']) ) {
 			$_POST['settings']['display_welcome'] = 'off';
-			$this->settings_save();
+			shopp_set_formsettings();
 		}
 
 		$country = (isset($_POST['settings']) && isset($_POST['settings']['base_operations']))?$_POST['settings']['base_operations']['country']:'';
@@ -134,7 +134,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			if (!isset($_POST['settings']['target_markets']))
 				asort($_POST['settings']['target_markets']);
 
-			$this->settings_save();
+			shopp_set_formsettings();
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
@@ -178,7 +178,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 				$term_recount = true;
 			}
 
-			$this->settings_save();
+			shopp_set_formsettings();
 		}
 
 		if ($term_recount) {
@@ -244,7 +244,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			}
 
 
-			$this->settings_save();
+			shopp_set_formsettings();
 			$updated = __('Shopp checkout settings saved.','Shopp');
 		}
 
@@ -337,7 +337,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			$CatalogPage = ShoppPages()->get('catalog');
 			$defaults = ShoppPages()->settings();
 			$_POST['settings']['storefront_pages'] = array_merge($defaults,$_POST['settings']['storefront_pages']);
-			$this->settings_save();
+			shopp_set_formsettings();
 
 			// Re-register page, collection, taxonomies and product rewrites
 			// so that the new slugs work immediately
@@ -451,12 +451,6 @@ class ShoppAdminSetup extends ShoppAdminController {
 			'quality'=>__('Quality','Shopp'),
 			'sharpness'=>__('Sharpness','Shopp')
 		));
-	}
-
-	public function settings_save () {
-		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
-		foreach ($_POST['settings'] as $setting => $value)
-			shopp_set_setting($setting,stripslashes_deep($value));
 	}
 
 }
