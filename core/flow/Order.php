@@ -582,19 +582,22 @@ class ShoppOrder {
 			return;
 		}
 
-		$registration = $Purchase->registration();
-		if ( empty($registration) ) {
-			shopp_debug('No purchase registration data available for account registration processing.');
-			return;
+		if ( ! $this->Customer->exists() ) {
+
+			$registration = $Purchase->registration();
+			if ( empty($registration) ) {
+				shopp_debug('No purchase registration data available for account registration processing.');
+				return;
+			}
+
+			$this->Customer->copydata($registration['Customer']);
+			$this->Billing->copydata($registration['Billing']);
+			$this->Shipping->copydata($registration['Shipping']);
+
+	        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
+	        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+
 		}
-
-		$this->Customer->copydata($registration['Customer']);
-		$this->Billing->copydata($registration['Billing']);
-		$this->Shipping->copydata($registration['Shipping']);
-
-
-        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
-        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
 
 		ShoppRegistration::process();
 
