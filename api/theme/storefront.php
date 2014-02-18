@@ -96,8 +96,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		// Compatibility defaults
 		$_size = 96;
-		$_width = shopp_setting( 'gallery_thumbnail_width' );
-		$_height = shopp_setting( 'gallery_thumbnail_height' );
+		$_width = shopp_setting('gallery_thumbnail_width');
+		$_height = shopp_setting('gallery_thumbnail_height');
 
 		if ( ! $_width ) $_width = $_size;
 		if ( ! $_height ) $_height = $_size;
@@ -126,11 +126,11 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( ! empty($options['setting']) ) {
 			$setting = $options['setting'];
 			$ImageSettings = ImageSettings::__instance();
-			$settings = $ImageSettings->get( $setting );
-			if ( $settings ) $defaults = array_merge( $defaults, $settings->options() );
+			$settings = $ImageSettings->get($setting);
+			if ( $settings ) $defaults = array_merge($defaults, $settings->options());
 		}
 
-		$options = array_merge( $defaults, $options );
+		$options = array_merge($defaults, $options);
 		extract($options);
 
 		// Select image by database id
@@ -144,8 +144,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		// Select image by index position in the list
 		if ( false !== $index ){
-			$keys = array_keys( $O->images );
-			if ( isset($keys[ $index ]) && isset($O->images[ $keys[ $index ] ]) )
+			$keys = array_keys($O->images);
+			if( isset($keys[ $index ]) && isset($O->images[ $keys[ $index ] ]) )
 				$Image = $O->images[ $keys[ $index ] ];
 			else {
 				shopp_debug( sprintf('No %s image exists at the specified index position %d.', get_class($O), $id) );
@@ -154,7 +154,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		}
 
 		// Use the current image pointer by default
-		if ( ! isset($Image) ) $Image = current( $O->images );
+		if ( ! isset($Image) ) $Image = current($O->images);
 
 		if ( false !== $size ) $width = $height = $size;
 		if ( ! $width ) $width = $_width;
@@ -164,9 +164,9 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$sharpen = $sharpen ? min( $sharpen, ImageAsset::$defaults['sharpen'] ) : null;
 		$quality = $quality ? min( $quality, ImageAsset::$defaults['quality'] ) : null;
 		if ( 'transparent' == strtolower($bg) ) $fill = -1;
-		else $fill = $bg ? hexdec( ltrim($bg, '#') ) : false;
+		else $fill = $bg ? hexdec(ltrim($bg, '#')) : false;
 
-		list( $width_a, $height_a ) = array_values( $Image->scaled($width, $height, $scale) );
+		list($width_a, $height_a) = array_values($Image->scaled($width, $height, $scale));
 		if ( 'original' == $size ) {
 			$width_a = $Image->width;
 			$height_a = $Image->height;

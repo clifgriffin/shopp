@@ -226,8 +226,7 @@ class ImageAsset extends FileAsset {
 	public static $defaults = array(
 		'scaling' => array('all', 'matte', 'crop', 'width', 'height'),
 		'sharpen' => 0,
-		'quality' => 80,
-		'fill' => 16777215
+		'quality' => 80
 	);
 
 	public $width;
@@ -400,8 +399,7 @@ class ImageAsset extends FileAsset {
 			self::HEIGHT => ( 0 == $args[ self::HEIGHT ] ) ? (int) $args[ self::WIDTH ] : (int) $args[ self::HEIGHT ],
 			self::SCALE => ( isset($args[ self::SCALE ]) ) ? (int) $args[ self::SCALE ] : 0,
 			self::SHARPEN => ( isset($args[ self::SHARPEN ]) ) ? (int) $args[ self::SHARPEN ] : self::$defaults['sharpen'],
-			self::QUALITY => ( isset($args[ self::QUALITY ]) ) ? (int) $args[ self::QUALITY ] : self::$defaults['quality'],
-			self::FILL => ( isset($args[ self::FILL ]) ) ? (int) $args[ self::FILL ] : self::$defaults['fill']
+			self::QUALITY => ( isset($args[ self::QUALITY ]) ) ? (int) $args[ self::QUALITY ] : self::$defaults['quality']
 		);
 
 		// Form the checksummed message
@@ -674,11 +672,8 @@ class ImageSetting extends ShoppMetaObject {
 	}
 
 	public function fit_value ($value) {
-		$index = absint( $value ); // $value may relate to an index of the self::$fittings array
-
-		if ( in_array($value, self::$fittings) ) return $value; // Is $value a string literal like "all"?
-		elseif ( $index == $value && isset(self::$fittings[$index]) ) return self::$fittings[$index]; // Or is it an index (like 0)?
-		return self::$fittings[0]; // Default to "all"
+		if ( in_array($value, self::$fittings) ) return $value;
+		return self::$fittings[0];
 	}
 
 	public function quality_value ($value) {
