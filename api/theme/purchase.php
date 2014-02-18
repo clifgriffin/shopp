@@ -200,9 +200,16 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	public static function data ( $result, $options, $O ) {
 		if ( ! is_array($O->data) ) return false;
+
 		$data = current($O->data);
 		$name = key($O->data);
-		if ( isset($options['name']) ) return esc_html($name);
+
+		if ( ! empty($options['name']) ) {
+			if ( isset($O->data[ $options['name'] ]) )
+				$data = $O->data[ $options['name'] ];
+			else $data = false;
+		} elseif ( isset($options['name']) ) return esc_html($name);
+
 		return apply_filters('shopp_purchase_order_data', $data);
 	}
 
