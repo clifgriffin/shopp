@@ -206,7 +206,7 @@ final class Shopp extends ShoppCore {
 	public function textdomain () {
 
 		if ( ! defined('SHOPP_LANG_DIR') )	// Add configurable path for language files
-			define('SHOPP_LANG_DIR', ( is_dir(SHOPP_ADDONS . '/languages') ? SHOPP_ADDONS . '/languages' : SHOPP_DIR . '/lang' ) );
+			define('SHOPP_LANG_DIR', ( is_dir(SHOPP_ADDONS . '/languages') ? SHOPP_ADDONS . '/languages' : SHOPP_PATH . '/lang' ) );
 
 		load_textdomain(__CLASS__, SHOPP_LANG_DIR . '/' . __CLASS__ . '-' . get_locale() . '.mo');
 

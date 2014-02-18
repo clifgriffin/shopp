@@ -109,8 +109,10 @@ class ShoppCartItem {
 			$optionkey = $Product->optionkey($pricing);
 			if ( ! isset($Product->pricekey[ $optionkey ]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
 			if ( isset($Product->pricekey[ $optionkey ]) ) $Price = $Product->pricekey[ $optionkey ];
-		} elseif ( $pricing ) {
+		} elseif ( is_int($pricing) ) {
 			$Price = $Product->priceid[ $pricing ];
+		} elseif ( is_a($pricing, 'ShoppPrice') ) {
+			$Price = $pricing;
 		}
 
 		// Find single product priceline

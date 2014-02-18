@@ -1059,11 +1059,9 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( isset($_COOKIE['shopp_catalog_view']) ) $view = $_COOKIE['shopp_catalog_view'];
 		if ( in_array($view, $views) ) $classes[] = $view;
 
-		if ( 'grid' == $view ) {
-			$boxes = shopp_setting('row_products');
-			if ( empty($boxes) ) $boxes = 3;
-			$classes[] = 'shopp_grid-' . abs($boxes);
-		}
+		$boxes = shopp_setting('row_products');
+		if ( empty($boxes) ) $boxes = 3;
+		$classes[] = 'shopp_grid-' . abs($boxes);
 
 		// Add collection slug
 		$Collection = ShoppCollection();
