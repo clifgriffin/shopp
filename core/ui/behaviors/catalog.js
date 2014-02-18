@@ -394,7 +394,7 @@ function validate (form) {
 			error = new Array($cv.chkbox.replace(/%s/,input.attr(title)),field);
 
 		if (input.hasClass('email') && !input.val().match( // RFC822 & RFC5322 Email validation
-			 new RegExp(/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i)))
+			 new RegExp(/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.([a-z][a-z0-9]+)|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i)))
 			 error = new Array($cv.email,field);
 
 		if ( input.attr('class') && ( chars = input.attr('class').match( new RegExp('min(\\d+)') ) ) ) {
