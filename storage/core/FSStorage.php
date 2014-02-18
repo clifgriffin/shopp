@@ -317,7 +317,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 			$inpath = strrpos( $baseurl, $path );
 			if ( $inpath ) $baseurl = substr( $baseurl, 0, $inpath );
 		}
-		
+
 		// Supposing the image directory isn't the WP root, append the trailing component
 		if ( $storagepath !== $webroot ) {
 			$path = str_replace( trailingslashit( $webroot ), '', $storagepath );
