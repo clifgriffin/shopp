@@ -131,6 +131,7 @@ class ShoppPromo extends ShoppDatabaseObject {
 		if ( empty($pricetags) ) return;
 
 		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
+		echo "SELECT id,product,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $table WHERE id IN ('" . join(',', $pricetags) . "')";
 		$discounted = sDB::query("SELECT id,product,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $table WHERE id IN ('" . join(',', $pricetags) . "')", 'array');
 
 		$products = array();
@@ -138,12 +139,14 @@ class ShoppPromo extends ShoppDatabaseObject {
 			$products[] = $pricetag->product;
 			$promos = explode(',', $pricetag->discounts);
 			array_splice($promos, ($pricetag->offset - 1), 1); // Remove the located promotion ID from the discounts list
+			echo "UPDATE $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id";
 			sDB::query("UPDATE $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id");
 		}
 
 		// Force resum on products next load
 		$summary = ShoppDatabaseObject::tablename('summary');
-		sDB::query("UPDATE $summary SET modified='" . ProductSummary::$_updates . "' WHERE product IN (" . join(',', $products). ")");
+		echo "UPDATE $summary SET modified='" . ProductSummary::RECALCULATE . "' WHERE product IN (" . join(',', $products). ")";
+		sDB::query("UPDATE $summary SET modified='" . ProductSummary::RECALCULATE . "' WHERE product IN (" . join(',', $products). ")");
 	}
 
 	/**

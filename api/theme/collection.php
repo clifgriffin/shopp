@@ -389,11 +389,16 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_images ( $result, $options, $O ) {
+
 		if ( ! is_a($O, 'ProductCategory') ) return false;
-		if ( empty($O->images) ) $O->load_images();
-		reset($O->images);
-		if ( empty($O->images) ) return false;
-		return true;
+
+		if ( empty($O->images) ) {
+			$O->load_images();
+			reset($O->images);
+		}
+
+		return ( ! empty($O->images) );
+
 	}
 
 	public static function id ( $result, $options, $O ) {
@@ -411,17 +416,17 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * @return string
 	 **/
 	public static function image ( $result, $options, $O ) {
-		if (!self::has_images( $result, $options, $O )) return '';
+		if ( ! self::has_images( $result, $options, $O )) return '';
 		return ShoppStorefrontThemeAPI::image( $result, $options, $O );
 	}
 
 	public static function images ( $result, $options, $O ) {
-		if (!isset($O->_images_loop)) {
+		if ( ! isset($O->_images_loop) ) {
 			reset($O->images);
 			$O->_images_loop = true;
 		} else next($O->images);
 
-		if (current($O->images) !== false) return true;
+		if ( current($O->images) !== false ) return true;
 		else {
 			unset($O->_images_loop);
 			return false;
