@@ -2250,7 +2250,7 @@ abstract class ShoppCore {
 	 *
 	 * @return boolean True if Suhosin is dectected and has configuration issues
 	 **/
-	function suhosin_warning () {
+	public static function suhosin_warning () {
 
 		return ( // Is Suhosin loaded or available?
 				(extension_loaded('Suhosin') || (defined('SUHOSIN_PATCH') && SUHOSIN_PATCH))
@@ -2265,6 +2265,30 @@ abstract class ShoppCore {
 					&& @ini_get('suhosin.request.max_vars') > 0 && @ini_get('suhosin.request.max_vars') < 1024
 				)
 		);
+	}
+
+	/**
+	 * Trim whitespace from the beggingin
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return void Description...
+	 **/
+	public function trim_deep ( $value ) {
+
+		if ( is_object($value) ) {
+			$vars = get_object_vars( $value );
+			foreach ( $vars as $key => $data )
+				$value->{$key} = self::trim_deep( $data );
+		} elseif ( is_array($value) ) {
+			$value = array_map(array(__CLASS__, 'trim_deep'), $value);
+		} elseif ( is_string( $value ) ) {
+			$value = trim($value);
+		}
+
+		return $value;
+
 	}
 
 } // End abstract class ShoppCore
