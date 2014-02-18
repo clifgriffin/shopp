@@ -178,6 +178,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 
 		if ( 'new' !== $_POST['id'] ) {
 			$Promotion = new ShoppPromo($_POST['id']);
+			$wascatalog = ( 'Catalog' == $Promotion->target );
 		} else $Promotion = new ShoppPromo();
 
 		if ( ! empty($_POST['starts']['month']) && ! empty($_POST['starts']['date']) && ! empty($_POST['starts']['year']) )
@@ -194,9 +195,14 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 
 		do_action_ref_array('shopp_promo_saved', array(&$Promotion));
 
-		// $Promotion->reset_discounts();
-		if ( 'Catalog' == $Promotion->target )
+		// Apply catalog promotion discounts to catalog product price lines
+		if ( 'Catalog' == $Promotion->target ) {
 			$Promotion->catalog();
+		} elseif ( $wascatalog ) {
+			// Unapply catalog discounts for discounts that no longer target catalog products
+			$priceids = ShoppPromo::discounted_prices(array($Promotion->id));
+			$Promotion->uncatalog($priceids);
+		}
 
 		// Set confirmation notice
 		$this->notice(Shopp::__('Promotion has been updated!'));
