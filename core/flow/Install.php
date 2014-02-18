@@ -233,20 +233,29 @@ class ShoppInstallation extends ShoppFlowController {
 	 * _______________________________________________
 	 *
 	 * shopp_settings					admin
-	 * shopp_settings_checkout
-	 * shopp_settings_payments
-	 * shopp_settings_shipping
-	 * shopp_settings_taxes
-	 * shopp_settings_presentation
-	 * shopp_settings_system
 	 * shopp_settings_update
+	 * shopp_settings_system
+	 * shopp_settings_presentation
+	 * shopp_settings_taxes
+	 * shopp_settings_shipping
+	 * shopp_settings_payments
+	 * shopp_settings_checkout
 	 * shopp_financials					merchant
-	 * shopp_promotions
-	 * shopp_products
 	 * shopp_categories
+	 * shopp_products
+	 * shopp_memberships
+	 * shopp_promotions
+	 * shopp_export_orders
+	 * shopp_export_customers
+	 * shopp_delete_orders
+	 * shopp_delete_customers
+	 * shopp_capture
+	 * shopp_void
+	 * shopp_refund
 	 * shopp_orders						shopp-csr
 	 * shopp_customers
 	 * shopp_menu
+	 * read
 	 *
 	 * @author John Dillick
 	 * @since 1.1
