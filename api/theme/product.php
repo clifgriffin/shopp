@@ -139,7 +139,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			// 'promos' => 'on', @deprecated option use 'discounts'
 			'discounts' => 'on',
 			'taxes' => null,
-			'input' => null
+			'input' => null,
+			'money' => 'on',
+			'number' => 'off'
 		);
 		$options = array_merge($defaults, $options);
 		extract($options, EXTR_SKIP);
@@ -159,20 +161,29 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( array_key_exists('type', $options) ) 		$_[] = $addon->type;
 		if ( array_key_exists('sku', $options) ) 		$_[] = $addon->sku;
 
-		if ( array_key_exists('price', $options) )
-			$_[] = money(self::_taxed((float)$addon->price, $O, $addon->tax, $taxes));
+		if ( array_key_exists('price', $options) ) {
+			$price = Shopp::roundprice(self::_taxed((float)$addon->price, $O, $addon->tax, $taxes));
+			if ( Shopp::str_true($money) ) $_[] = Shopp::money($price);
+			else $_[] = $price;
+		}
 
 		if ( array_key_exists('saleprice', $options) ) {
-			if ( Shopp::str_true($discounts) )
-				$_[] = money(self::_taxed((float)$addon->promoprice, $O, $addon->tax, $taxes));
-			else $_[] = money(self::_taxed((float)$addon->saleprice, $O, $addon->tax, $taxes));
+			$saleprice = Shopp::str_true($discounts) ? $addon->promoprice : $addon->saleprice;
+			$saleprice = Shopp::roundprice( self::_taxed((float)$addon->promoprice, $O, $addon->tax, $taxes) );
+			if ( Shopp::str_true($money) ) $_[] = Shopp::money($saleprice);
+			else $_[] = $saleprice;
 		}
 
 		if ( array_key_exists('stock', $options) ) 		$_[] = $addon->stock;
 		if ( array_key_exists('weight', $options) )
 			$_[] = round($addon->weight, 3) . (false !== $weightunit ? " $weightunit" : false);
-		if ( array_key_exists('shipfee', $options) )
-			$_[] = money(Shopp::floatval($addon->shipfee));
+
+		if ( array_key_exists('shipfee', $options) ) {
+			$shipfee = Shopp::roundprice($addon->shipfee);
+			if ( Shopp::str_true($money) ) $_[] = Shopp::money($shipfee);
+			else $_[] = $shipfee;
+		}
+
 		if ( array_key_exists('sale', $options) )
 			return Shopp::str_true($addon->sale);
 		if ( array_key_exists('shipping', $options) )
@@ -1212,7 +1223,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'units' => 'on',
 			'promos' => 'on',
 			'discounts' => 'on',
-			'taxes' => null
+			'taxes' => null,
+			'money' => 'on',
+			'number' => 'off'
 		);
 		$options = array_merge($defaults, $options);
 		extract($options, EXTR_SKIP);
@@ -1228,19 +1241,27 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( array_key_exists('sku', $options) )	$_[] = $variation->sku;
 		if ( array_key_exists('stock', $options) ) 	$_[] = $variation->stock;
 
-		if ( array_key_exists('price', $options) )
-			$_[] = money(self::_taxed((float)$variation->price, $O, $variation->tax, $taxes));
+		if ( array_key_exists('price', $options) ) {
+			$price = Shopp::roundprice(self::_taxed((float)$variation->price, $O, $variation->tax, $taxes));
+			if ( Shopp::str_true($money) ) $_[] = money($price);
+			else $_[] = $price;
+		}
 
 		if ( array_key_exists('saleprice', $options) ) {
-			if (Shopp::str_true($discounts) ) $_[] = money(self::_taxed((float)$variation->promoprice, $O, $variation->tax, $taxes));
-			else $_[] = money(self::_taxed((float)$variation->saleprice, $O, $variation->tax, $taxes));
+			$saleprice = Shopp::str_true($discounts) ? $variation->promoprice : $variation->saleprice;
+			$saleprice = Shopp::roundprice( self::_taxed((float)$saleprice, $O, $variation->tax, $taxes) );
+			if ( Shopp::str_true($money) ) $_[] = money($saleprice);
+			else $_[] = $saleprice;
 		}
 
 		if ( array_key_exists('weight', $options) )
 			$_[] = round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
 
-		if ( array_key_exists('shipfee', $options) )
-			$_[] = money(Shopp::floatval($variation->shipfee));
+		if ( array_key_exists('shipfee', $options) ) {
+			$shipfee = Shopp::roundprice($variation->shipfee);
+			if ( Shopp::str_true($money) ) $_[] = money($shipfee);
+			else $_[] = $shipfee;
+		}
 
 		if ( array_key_exists('sale', $options) )
 			return Shopp::str_true($variation->sale);
