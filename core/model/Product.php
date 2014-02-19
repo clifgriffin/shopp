@@ -1126,16 +1126,17 @@ class ShoppProduct extends WPShoppObject {
 			if ( ! isset($term->term_id) || empty($term->term_id) ) continue; 		// Skip invalid entries
 			if ( ! isset($term->taxonomy) || empty($term->taxonomy) ) continue; 	// Skip invalid entries
 
-			if (!isset($terms[$term->taxonomy])) $terms[$term->taxonomy] = array();
-			$terms[$term->taxonomy][] = (int)$term->term_id;
+			if ( ! isset($terms[ $term->taxonomy ]) )
+				$terms[ $term->taxonomy ] = array();
+			$terms[ $term->taxonomy ][] = (int)$term->term_id;
 		}
 		foreach ($terms as $taxonomy => $termlist)
 			wp_set_object_terms( $this->id, $termlist, $taxonomy );
 
 		$metadata = array('specs','images','settings','meta');
-		foreach ($metadata as $metaset) {
+		foreach ( $metadata as $metaset ) {
 			if ( ! is_array($this->$metaset) ) continue;
-			foreach ($this->$metaset as $metaobjects) {
+			foreach ( $this->$metaset as $metaobjects ) {
 				if ( ! is_array($metaobjects) ) $metaobjects = array($metaobjects);
 				foreach ( $metaobjects as $meta ) {
 					$ObjectClass = get_class($meta);
@@ -1146,6 +1147,11 @@ class ShoppProduct extends WPShoppObject {
 				}
 			}
 		}
+
+		// Duplicate summary (primarily for summary settings data)
+		$Summary = new ProductSummary($original);
+		$Summary->product = $this->id;
+		$Summary->save();
 
 		// Re-summarize product pricing
 		$this->load_data(array('prices','summary'));

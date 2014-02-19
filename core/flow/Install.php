@@ -4,21 +4,13 @@
  *
  * Flow controller for installation and upgrades
  *
- * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited, January  6, 2010
+ * @copyright Ingenesis Limited, January 2010-2014
  * @package shopp
- * @subpackage shopp
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-/**
- * ShoppInstallation
- *
- * @package shopp
- * @author Jonathan Davis
- **/
 class ShoppInstallation extends ShoppFlowController {
 
 	static $errors = array();
@@ -244,13 +236,21 @@ class ShoppInstallation extends ShoppFlowController {
 	 * shopp_promotions
 	 * shopp_products
 	 * shopp_categories
+	 * shopp_export_orders
+	 * shopp_export_customers
+	 * shopp_delete_orders
+	 * shopp_delete_customers
+	 * shopp_void
+	 * shopp_refund
 	 * shopp_orders						shopp-csr
 	 * shopp_customers
+	 * shopp_capture
 	 * shopp_menu
 	 *
 	 * @author John Dillick
 	 * @since 1.1
 	 *
+	 * @return void
 	 **/
 	public function roles () {
 		global $wp_roles; // WP_Roles roles container
@@ -264,6 +264,7 @@ class ShoppInstallation extends ShoppFlowController {
 		));
 
 		$caps['shopp-csr'] = array(
+				'shopp_capture',
 				'shopp_customers',
 				'shopp_orders',
 				'shopp_menu',
@@ -279,7 +280,6 @@ class ShoppInstallation extends ShoppFlowController {
 				'shopp_export_customers',
 				'shopp_delete_orders',
 				'shopp_delete_customers',
-				'shopp_capture',
 				'shopp_void',
 				'shopp_refund'
 		));
@@ -295,6 +295,7 @@ class ShoppInstallation extends ShoppFlowController {
 		));
 
 		$caps = apply_filters('shopp_role_caps', $caps, $shopp_roles);
+
 		foreach ( $shopp_roles as $role => $display ) {
 			if ( $wp_roles->is_role($role) ) {
 				foreach( $caps[$role] as $cap ) $wp_roles->add_cap($role, $cap, true);
