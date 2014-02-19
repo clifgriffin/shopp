@@ -109,7 +109,7 @@ class ShoppCartItem {
 			$optionkey = $Product->optionkey($pricing);
 			if ( ! isset($Product->pricekey[ $optionkey ]) ) $optionkey = $Product->optionkey($pricing, true); // deprecated prime
 			if ( isset($Product->pricekey[ $optionkey ]) ) $Price = $Product->pricekey[ $optionkey ];
-		} elseif ( is_int($pricing) ) {
+		} elseif ( is_numeric($pricing) ) {
 			$Price = $Product->priceid[ $pricing ];
 		} elseif ( is_a($pricing, 'ShoppPrice') ) {
 			$Price = $pricing;
