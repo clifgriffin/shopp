@@ -26,6 +26,7 @@ class ShoppAdminReport extends ShoppAdminController {
 	public $count = false;
 
 	private $view = 'dashboard';
+	protected $ui = 'reports';
 
 	private $defaults = array();	// Default request options
 	private $options = array();		// Processed options
@@ -190,6 +191,7 @@ class ShoppAdminReport extends ShoppAdminController {
 		extract($this->options, EXTR_SKIP);
 
 		$Report = $this->Report;
+		$Report->pagination();
 		$ListTable = ShoppUI::table_set_pagination ($this->screen, $Report->total, $Report->pages, $per_page );
 
 		$ranges = array(
@@ -225,7 +227,9 @@ class ShoppAdminReport extends ShoppAdminController {
 		$reports = self::reports();
 
 		$report_title = isset($reports[ $report ])? $reports[ $report ]['name'] : __('Report','Shopp');
-		include(SHOPP_ADMIN_PATH."/reports/reports.php");
+
+		include $this->ui('reports.php');
+
 	}
 
 } // end class Report
@@ -710,6 +714,8 @@ abstract class ShoppReportFramework {
 		unset($this->data); // Free memory
 
 	?>
+
+
 			<table class="widefat" cellspacing="0">
 				<thead>
 				<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>

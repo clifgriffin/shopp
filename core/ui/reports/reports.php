@@ -20,7 +20,7 @@
 			</div>
 		</div>
 
-		<?php $ListTable->pagination('top'); ?>
+		<?php $ListTable->pagination( 'top' ); ?>
 
 		<div class="clear"></div>
 	</div>
