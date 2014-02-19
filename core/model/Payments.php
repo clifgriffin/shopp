@@ -134,6 +134,8 @@ class ShoppPayments extends ListFramework {
 		$this->rewind();
 		$selected = $this->key();
 
+		if ( empty($selected) ) return false;
+
 		return $this->selected($selected);
 
 	}
