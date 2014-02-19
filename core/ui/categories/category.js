@@ -51,7 +51,7 @@ jQuery(document).ready(function () {
 		}
 	}).change();
 
-	if (details) for (s in details) addDetail(details[s]);
+	if (details) $.each(details, function(i, r) { addDetail(r); });
 	$('#addPriceLevel').click(function() { addPriceLevel(); });
 	$('#addDetail').click(function() { addDetail(); });
 
@@ -71,7 +71,7 @@ jQuery(document).ready(function () {
 		else $('#pricerange-menu, #addPriceLevel').hide();
 	}).change();
 
-	if (priceranges) for (key in priceranges) addPriceLevel(priceranges[key]);
+	if (priceranges) $.each(priceranges, function(i, r) { addPriceLevel(r); });
 
 	if (!category) $('#title').focus();
 
@@ -123,11 +123,7 @@ jQuery(document).ready(function () {
 		}).change();
 
 		// Load up existing options
-		if (data && data.options) {
-			for (var i in data.options) menu.addOption(data.options[i]);
-		}
-
-
+		if (data && data.options) $.each(data.options, function (i,r) { menu.addOption(r); });
 		$(menu.itemsElement).sortable({'axis':'y','items':'li.option','scroll':false});
 
 		menu.element.unbind('click',menu.click);
