@@ -125,7 +125,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		// Populate defaults from named image settings to allow specific overrides
 		if ( ! empty($options['setting']) ) {
 			$setting = $options['setting'];
-			$ImageSettings = ImageSettings::__instance();
+			$ImageSettings = ImageSettings::object();
 			$settings = $ImageSettings->get($setting);
 			if ( $settings ) $defaults = array_merge($defaults, $settings->options());
 		}

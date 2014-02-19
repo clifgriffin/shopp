@@ -514,7 +514,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		);
 
 		// Populate defaults from named settings, if provided
-		$ImageSettings = ImageSettings::__instance();
+		$ImageSettings = ImageSettings::object();
 
 		if ( ! empty($options['p_setting']) ) {
 			$settings = $ImageSettings->get($options['p_setting']);

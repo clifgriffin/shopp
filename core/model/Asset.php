@@ -633,10 +633,18 @@ class ProductDownload extends DownloadAsset {
 // Prevent loading image setting classes when run in image server script context
 if ( !class_exists('ListFramework') ) return;
 
+/**
+ * ImageSetting
+ *
+ * Data model for handling image setting data
+ *
+ * @since 1.2
+ * @package shopp
+ **/
 class ImageSetting extends ShoppMetaObject {
 
-	static $qualities = array(100,92,80,70,60);
-	static $fittings = array('all','matte','crop','width','height');
+	static $qualities = array(100, 92, 80, 70, 60);
+	static $fittings = array('all', 'matte', 'crop', 'width', 'height');
 
 	public $width;
 	public $height;
@@ -646,69 +654,117 @@ class ImageSetting extends ShoppMetaObject {
 	public $bg = false;
 	public $context = 'setting';
 	public $type = 'image_setting';
-	public $_xcols = array('width','height','fit','quality','sharpen','bg');
+	public $_xcols = array('width', 'height', 'fit', 'quality', 'sharpen', 'bg');
 
-	public function __construct ($id=false,$key='id') {
+	public function __construct ( $id = false, $key = 'id' ) {
 		$this->init(self::$table);
 		$this->load($id,$key);
 	}
 
+	/**
+	 * Provides a translated list of image "fit" setting labels
+	 *
+	 * @since 1.2
+	 *
+	 * @return array List of translated settings labels
+	 **/
 	public function fit_menu () {
-		return array(	__('All','Shopp'),
-			__('Fill','Shopp'),
-			__('Crop','Shopp'),
-			__('Width','Shopp'),
-			__('Height','Shopp')
+		return array(
+			Shopp::__('All'),
+			Shopp::__('Fill'),
+			Shopp::__('Crop'),
+			Shopp::__('Width'),
+			Shopp::__('Height')
 		);
 	}
 
+	/**
+	 * Provides a menu of readable image quality labels
+	 *
+	 * @since 1.3
+	 *
+	 * @return array List of quality labels
+	 **/
 	public function quality_menu () {
-		return array(	__('Highest quality, largest file size','Shopp'),
-			__('Higher quality, larger file size','Shopp'),
-			__('Balanced quality &amp; file size','Shopp'),
-			__('Lower quality, smaller file size','Shopp'),
-			__('Lowest quality, smallest file size','Shopp')
+		return array(
+			Shopp::__('Highest quality, largest file size'),
+			Shopp::__('Higher quality, larger file size'),
+			Shopp::__('Balanced quality &amp; file size'),
+			Shopp::__('Lower quality, smaller file size'),
+			Shopp::__('Lowest quality, smallest file size')
 		);
 	}
 
-	public function fit_value ($value) {
-		if ( in_array($value, self::$fittings) ) return $value;
+	/**
+	 * Converts a numeric ImageSetting fit setting to a Theme API compatible option name
+	 *
+	 * @since 1.3
+	 *
+	 * @param integer $setting The numeric ImageSetting value
+	 * @return string The option name
+	 **/
+	public function fit ( integer $setting ) {
+		if ( isset(self::$fittings[ $setting ]) )
+			return self::$fittings[ $setting ];
 		return self::$fittings[0];
 	}
 
-	public function quality_value ($value) {
-		if ( in_array($value, self::$qualities) ) return (int) $value;
+	/**
+	 * Converts a numeric ImageSetting quality setting to a Theme API compatible option value
+	 *
+	 * @since 1.3
+	 *
+	 * @param integer $setting The numeric ImageSetting value
+	 * @return integer The option value
+	 **/
+	public function quality ( integer $setting ) {
+		if ( isset(self::$qualities[ $setting ])  )
+			return self::$qualities[ $setting ];
 		return self::$qualities[2];
 	}
 
-	public function options ($prefix='') {
+	/**
+	 * Convert the ImageSetting values to a Theme API compatible array of image options
+	 *
+	 * @since 1.3
+	 *
+	 * @param string $prefix (optional) Prefix for the option keys
+	 * @return array The image options
+	 **/
+	public function options ( $prefix = '' ) {
 		$settings = array();
-		$properties = array('width','height','fit','quality','sharpen','bg');
-		foreach ($properties as $property) {
+		$properties = array('width', 'height', 'fit', 'quality', 'sharpen', 'bg');
+		foreach ( $properties as $property ) {
 			$value = $this->{$property};
-			if ('quality' == $property) $value = $this->quality_value($this->{$property});
-			if ('fit' == $property) $value = $this->fit_value($this->{$property});
-			$settings[$prefix.$property] = $value;
+			if ( 'quality' == $property ) $value = $this->quality((int)$this->{$property});
+			if ( 'fit' == $property ) $value = $this->fit((int)$this->{$property});
+			$settings[ $prefix . $property ] = $value;
 		}
 		return $settings;
 	}
 
 } // END class ImageSetting
 
+/**
+ * Loads the collection of image settings
+ *
+ * @since 1.2
+ * @package shopp
+ **/
 class ImageSettings extends ListFramework {
 
-	private static $instance;
+	private static $object;
 
-	public function __construct () {
+	private function __construct () {
 		$ImageSetting = new ImageSetting();
 		$table = $ImageSetting->_table;
 		$where = array(
 			"type='$ImageSetting->type'",
 			"context='$ImageSetting->context'"
 		);
-		$options = compact('table','where');
+		$options = compact('table', 'where');
 		$query = sDB::select($options);
-		$this->populate(sDB::query($query,'array',array($ImageSetting,'loader'),false,'name'));
+		$this->populate(sDB::query($query, 'array', array($ImageSetting, 'loader'), false, 'name'));
 		$this->found = sDB::found();
 	}
 
@@ -735,11 +791,10 @@ class ImageSettings extends ListFramework {
 	 *
 	 * @return DB Returns a reference to the DB object
 	 **/
-	public static function &__instance () {
-		if (!self::$instance instanceof self)
-			self::$instance = new self;
-		return self::$instance;
+	public static function &object () {
+		if ( ! self::$object instanceof self )
+			self::$object = new self;
+		return self::$object;
 	}
-
 
 } // END class ImageSettings
