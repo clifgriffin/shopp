@@ -26,105 +26,6 @@ class ShoppSupport {
 	const KB        = 'https://shopplugin.com/kb/';
 
 	/**
-	 * Checks for available updates
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return array List of available updates
-	 **/
-	public static function updates () {
-
-		if ( ! wp_next_scheduled('shopp_check_updates') )
-			wp_schedule_event(time(), 'twicedaily', 'shopp_check_updates');
-
-		global $pagenow;
-		if ( is_admin()
-			&& 'plugins.php' == $pagenow
-			&& isset($_GET['action'])
-			&& 'deactivate' == $_GET['action']) return array();
-
-		$updates = new StdClass();
-		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
-		else $plugin_updates = get_transient('update_plugins');
-
-		switch ( current_filter() ) {
-			case 'load-update-core.php': $timeout = 60; break; // 1 minute
-			case 'load-plugins.php': // 1 hour
-			case 'load-update.php': $timeout = 3600; break;
-			default: $timeout = 43200; // 12 hours
-		}
-
-		$justchecked = isset( $plugin_updates->last_checked_shopp ) && $timeout > ( time() - $plugin_updates->last_checked_shopp );
-		$changed = isset($plugin_updates->response[ SHOPP_PLUGINFILE ]);
-		if ( $justchecked && ! $changed ) return;
-
-		$Shopp = Shopp::object();
-		$addons = array_merge(
-			$Shopp->Gateways->checksums(),
-			$Shopp->Shipping->checksums(),
-			$Shopp->Storage->checksums()
-		);
-
-		$request = array('ShoppServerRequest' => 'update-check');
-		/**
-		 * Update checks collect environment details for faster support service only,
-		 * none of it is linked to personally identifiable information.
-		 **/
-		$data = array(
-			'core' => ShoppVersion::release(),
-			'addons' => join("-", $addons),
-			'site' => get_bloginfo('url'),
-		);
-
-		if ( shopp_setting_enabled('support_data') ) {
-			$optional = array(
-				'wp' => get_bloginfo('version').(is_multisite()?' (multisite)':''),
-				'mysql' => mysql_get_server_info(),
-				'php' => phpversion(),
-				'uploadmax' => ini_get('upload_max_filesize'),
-				'postmax' => ini_get('post_max_size'),
-				'memlimit' => ini_get('memory_limit'),
-				'server' => $_SERVER['SERVER_SOFTWARE'],
-				'agent' => $_SERVER['HTTP_USER_AGENT']
-			);
-			$data = array_merge($data, $optional);
-		}
-
-		$response = ShoppSupport::callhome($request, $data);
-
-		if ($response == '-1') return; // Bad response, bail
-		$response = unserialize($response);
-		unset($updates->response);
-
-		if ( isset($response->key) && ! Shopp::str_true($response->key) )
-			delete_transient('shopp_activation');
-
-		if ( isset($response->addons) ) {
-			$updates->response[ SHOPP_PLUGINFILE . '/addons' ] = $response->addons;
-			unset($response->addons);
-		}
-
-		if ( isset($response->id) )
-			$updates->response[ SHOPP_PLUGINFILE ] = $response;
-
-		if (isset($updates->response)) {
-			shopp_set_setting('updates', $updates);
-
-			// Add Shopp to the WP plugin update notification count
-			if ( isset($updates->response[ SHOPP_PLUGINFILE ]) )
-				$plugin_updates->response[ SHOPP_PLUGINFILE ] = $updates->response[ SHOPP_PLUGINFILE ];
-
-		} else unset($plugin_updates->response[ SHOPP_PLUGINFILE ]); // No updates, remove Shopp from the plugin update count
-
-		$plugin_updates->last_checked_shopp = time();
-		if ( function_exists('set_site_transient') ) set_site_transient('update_plugins', $plugin_updates);
-		else set_transient('update_plugins', $plugin_updates);
-
-		return $updates;
-	}
-
-	/**
 	 * Loads the change log for an available update
 	 *
 	 * @author Jonathan Davis
@@ -160,9 +61,10 @@ class ShoppSupport {
 
 		if ( is_network_admin() || ! is_multisite() ) {
 		$wp_list_table = _get_list_table('WP_Plugins_List_Table');
-			echo '<tr class="plugin-update-tr"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
+			echo '<tr class="plugin-update-tr active"><th colspan="' . $wp_list_table->get_column_count() . '" class="check-column plugin-update colspanchange"><div class="update-message">';
 			echo self::buykey();
-			echo '<style type="text/css">#shopp th,#shopp td{border-bottom:0;}</style>';
+			echo '<br class="clear" /><br /><style type="text/css">#shopp th,#shopp td{border-bottom:0;-webkit-box-shadow:none;box-shadow:none;}
+				#shopp+.plugin-update-tr .update-message {box-sizing:border-box;} #shopp+.plugin-update-tr .button {float:left; margin:20px 20px 0 0;} #shopp+.plugin-update-tr big { display:block; } #shopp+.plugin-update-tr .update-message::before {content:"";}</style>';
 			echo '</div></td></tr>';
 		}
 
@@ -237,7 +139,7 @@ class ShoppSupport {
 		if ( is_network_admin() || ! is_multisite() ) {
 
 			$wp_list_table = _get_list_table('WP_Plugins_List_Table');
-			echo '<tr class="plugin-update-tr"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
+			echo '<tr class="plugin-update-tr"><th colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
 			Shopp::_emi(
 				'You&apos;re missing out on important updates! %1$s &nbsp; %2$s Buy a Shopp Support Key! %3$s', empty($updates) ? '' : join(' ', $updates), '<a href="' . ShoppSupport::STORE . '" class="button button-primary">', '</a>'
 			);

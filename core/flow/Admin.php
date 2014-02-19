@@ -491,10 +491,6 @@ class ShoppAdmin extends ShoppFlowController {
 		add_action('in_plugin_update_message-' . SHOPP_PLUGINFILE, array('ShoppSupport', 'wpupdate'), 10, 2);
 		add_action('after_plugin_row_' . SHOPP_PLUGINFILE, array('ShoppSupport', 'pluginsnag'), 10, 2);
 
-		$updates = array('load-plugins', 'load-update.php', 'load-update-core.php', 'wp_update_plugins', 'shopp_check_updates');
-		foreach ( $updates as $action )
-			add_action($action, array('ShoppSupport', 'updates'));
-
 	}
 
 	/**
