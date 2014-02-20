@@ -189,7 +189,9 @@ final class Shopp extends ShoppCore {
 		define('SHOPP_SHIPPING',   SHOPP_PATH . '/shipping');
 		define('SHOPP_STORAGE',    SHOPP_PATH . '/storage');
 		define('SHOPP_THEME_APIS', SHOPP_PATH . '/api/theme');
-		define('SHOPP_DBSCHEMA',   SHOPP_MODEL_PATH . '/schema.sql');
+
+		// @deprecated
+		define('SHOPP_DBSCHEMA',   SHOPP_PATH . '/core/schema/schema.sql');
 
 	}
 
