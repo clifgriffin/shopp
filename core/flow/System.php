@@ -685,10 +685,13 @@ class ShoppAdminSystem extends ShoppAdminController {
 					$indexed = '-' . $matched[1];
 					$gateway = str_replace($matched[0], '', $gateway);
 
+					// Merge the existing gateway settings with the newly updated settings
 					if ( isset($Gateways->active[ $gateway ]) ) {
 						$Gateway = $Gateways->active[ $gateway ];
-						$_POST['settings'][$gateway] = array_merge($Gateway->settings,$_POST['settings'][ $gateway ]);
+						// Cannot use array_merge() because it adds numeric index values instead of overwriting them
+						$_POST['settings'][ $gateway ] = (array) $_POST['settings'][ $gateway ] + (array) $Gateway->settings;
 					}
+
 				}
 
 				if ( ! empty($gateway) && isset($Gateways->active[ $gateway ])

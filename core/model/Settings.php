@@ -319,7 +319,7 @@ class ShoppSettings extends ShoppDatabaseObject {
 
 		// Try again using the legacy table
 		if ( false === $version && false === $legacy ) $version = self::dbversion('legacy');
-		elseif ( false === $version && true === $legacy ) { // No version in the legacy settings table, possible 1.0 install?
+		elseif ( false !== $legacy ) { // No version in the legacy settings table, possible 1.0 install?
 			// Look in the old settings table for the old Shopp version setting
 			$shopp_version = sDB::query("SELECT value FROM $table WHERE name='version' ORDER BY id DESC LIMIT 1", 'object', 'col');
 			// Use (int) 1 to indicate Shopp 1.0 installed and avoid the install process
@@ -331,5 +331,6 @@ class ShoppSettings extends ShoppDatabaseObject {
 
 		return (int)$version;
 	}
+
 
 } // END class Settings
