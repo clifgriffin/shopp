@@ -298,9 +298,14 @@ class FSStorage extends StorageModule implements StorageEngine {
 	 * @return string | bool
 	 */
 	protected function finddirect ( $uri ) {
-		$wpdir = apply_filters( 'shopp_fsstorage_homedir', ABSPATH );
-		$baseurl = untrailingslashit( apply_filters( 'shopp_fsstorage_homeurl', get_option( 'home' ) ) );
+		// The web server's document root
 		$webroot = $this->webroot;
+
+		// The base directory of WordPress
+		$wpdir = apply_filters( 'shopp_fsstorage_homedir', ABSPATH );
+
+		// The base URL (home URL) of the site
+		$baseurl = untrailingslashit( apply_filters( 'shopp_fsstorage_homeurl', get_option( 'home' ) ) );
 
 		// Obtain the storage path or bail out early if it is not accessible/is invalid
 		if ( ! ( $storagepath = $this->storagepath() ) ) return false;
@@ -311,12 +316,16 @@ class FSStorage extends StorageModule implements StorageEngine {
 		// Determine if the storage path is inside the webroot (they should have the same initial set of "segments")
 		if ( 0 != strpos( $storagepath, $webroot ) ) return false;
 
-		// Is WordPress installed and accessed from within a subdirectory? Adjust $baseurl to remove the subdir if so
-		if ( $webroot !== $wpdir && strlen( $wpdir ) > strlen ( $webroot ) ) {
+		// Is WordPress installed and accessed from within a subdirectory of webroot? Adjust $baseurl to remove the subdir if so
+		if ( $webroot !== $wpdir && false !== strpos($wpdir, $webroot) ) {
 			$path = untrailingslashit( str_replace( $webroot, '', $wpdir ) );
 			$inpath = strrpos( $baseurl, $path );
 			if ( $inpath ) $baseurl = substr( $baseurl, 0, $inpath );
 		}
+
+		// Determine if the storage path is under the WordPress directory and if so use it as the canonical webroot
+		if ( false !== strpos($storagepath, $wpdir) )
+			$webroot = $wpdir;
 
 		// Supposing the image directory isn't the WP root, append the trailing component
 		if ( $storagepath !== $webroot ) {
