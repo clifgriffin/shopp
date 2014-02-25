@@ -324,7 +324,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		}
 
 		// Determine if the storage path is under the WordPress directory and if so use it as the canonical webroot
-		if ( false !== strpos($storagepath, $wpdir) )
+		if ( false !== strpos($storagepath, $wpdir) && false === strpos($storagepath, $webroot) )
 			$webroot = $wpdir;
 
 		// Supposing the image directory isn't the WP root, append the trailing component
