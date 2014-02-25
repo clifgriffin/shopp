@@ -21,8 +21,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	public $products = array();
 	public $subs = array();
 
-	protected $ui = 'products';
-
 	/**
 	 * Store constructor
 	 *
@@ -642,12 +640,12 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ( ! current_user_can('shopp_products') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if ( empty($Shopp->Product) ) {
+		if (empty($Shopp->Product)) {
 			$Product = new ShoppProduct();
 			$Product->status = "publish";
 		} else $Product = $Shopp->Product;
 
-		$Product->slug = apply_filters('editable_slug', $Product->slug);
+		$Product->slug = apply_filters('editable_slug',$Product->slug);
 		$permalink = trailingslashit(Shopp::url());
 
 		$Price = new ShoppPrice();
@@ -656,43 +654,58 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$billPeriods = ShoppPrice::periods();
 
 		$workflows = array(
-			'continue' => Shopp::__('Continue Editing'),
-			'close' =>    Shopp::__('Products Manager'),
-			'new' =>      Shopp::__('New Product'),
-			'next' =>     Shopp::__('Edit Next'),
-			'previous' => Shopp::__('Edit Previous')
+			"continue" => __('Continue Editing','Shopp'),
+			"close" => __('Products Manager','Shopp'),
+			"new" => __('New Product','Shopp'),
+			"next" => __('Edit Next','Shopp'),
+			"previous" => __('Edit Previous','Shopp')
 		);
 
 		$taglist = array();
-		foreach ( $Product->tags as $tag )
-			$taglist[] = $tag->name;
+		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 
-		if ( $Product->id && ! empty($Product->images) ) {
-			$ids = join(',', array_keys($Product->images));
+		if ($Product->id && !empty($Product->images)) {
+			$ids = join(',',array_keys($Product->images));
 			$CoverImage = reset($Product->images);
 			$image_table = $CoverImage->_table;
 			$Product->cropped = sDB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array','index','parent');
 		}
 
 		$shiprates = shopp_setting('shipping_rates');
-		if ( ! empty($shiprates) )
-			ksort($shiprates);
+		if (!empty($shiprates)) ksort($shiprates);
 
 		$uploader = shopp_setting('uploader_pref');
-		if ( ! $uploader ) $uploader = 'flash';
+		if (!$uploader) $uploader = 'flash';
 
-		$process = empty($Product->id) ? 'new' : $Product->id;
-		$_POST['action'] = add_query_arg(array_merge($_GET, array('page' => $this->Admin->pagename('products'))), admin_url('admin.php'));
+		$process = (!empty($Product->id)?$Product->id:'new');
+		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
 		$post_type = ShoppProduct::posttype();
 
+		// For inclusive taxes, add tax to base product price (so tax is part of the price)
+		// This has to take place outside of ShoppProduct::pricing() so that the summary system
+		// doesn't cache the results causing strange/unexpected price jumps
+		// if ( shopp_setting_enabled('tax_inclusive') && ! Shopp::str_true($Product->excludetax) ) {
+		// 	foreach ($Product->prices as &$price) {
+		// 		if ( ! Shopp::str_true($price->tax) ) continue;
+		//
+		// 		$taxes = array();
+		// 		$Tax = new ShoppTax();
+		// 		$Tax->address(ShoppOrder()->Billing);
+		// 		$Tax->rates($taxes, $Tax->item($Product));
+		//
+		// 		$price->price += ShoppTax::calculate($taxes, $price->price);
+		// 		$price->saleprice += ShoppTax::calculate($taxes, $price->saleprice);
+		// 	}
+		// }
+
 		do_action('add_meta_boxes', ShoppProduct::$posttype, $Product);
-		do_action('add_meta_boxes_' . ShoppProduct::$posttype, $Product);
+		do_action('add_meta_boxes_'.ShoppProduct::$posttype, $Product);
 
 		do_action('do_meta_boxes', ShoppProduct::$posttype, 'normal', $Product);
 		do_action('do_meta_boxes', ShoppProduct::$posttype, 'advanced', $Product);
 		do_action('do_meta_boxes', ShoppProduct::$posttype, 'side', $Product);
 
-		include $this->ui('editor.php');
+		include(SHOPP_ADMIN_PATH."/products/editor.php");
 	}
 
 	/**

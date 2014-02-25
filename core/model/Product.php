@@ -593,7 +593,6 @@ class ShoppProduct extends WPShoppObject {
 			$price->promoprice = $discount->pricetag;
 		}
 
-		$price->_sale = $price->sale; // Keep a copy of the price record "sale" setting {@see issue #2797}
 		if ($price->promoprice < $price->price) $target->sale = $price->sale = 'on';
 
 		// Grab price and saleprice ranges (minimum - maximum)

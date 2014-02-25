@@ -500,7 +500,7 @@ function Priceline (id,options,data,target,attachment) {
 
 	_.Shipped = function (data) {
 		_.price(data.price,data.tax);
-		_.saleprice(data._sale,data.saleprice);
+		_.saleprice(data.sale,data.saleprice);
 		_.shipping(data.shipping,data.dimensions,data.shipfee);
 		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
 	};
