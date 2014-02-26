@@ -384,7 +384,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			// 'debug' => true
 		);
 
-		if ( isset($ordercols) ) {
+		if ( ! empty($ordercols) ) {
 			unset($loading['order']);
 			$loading['orderby'] = $ordercols;
 		}
