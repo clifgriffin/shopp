@@ -395,7 +395,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		if ( isset($this->passhash) ) {
 			global $wpdb;
 			$wpdb->update( $wpdb->users, array('user_pass' => $this->passhash), array('ID' => $wpuser) );
-			error_log("updated pasword to the pre-hashed version");
+			error_log("updated password to the pre-hashed version");
 		}
 
 		if ( apply_filters('shopp_notify_new_wpuser', true) ) {
