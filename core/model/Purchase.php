@@ -848,7 +848,7 @@ class PurchasesExport {
 
 		if ( $discountcols ) {
 			$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-			$joins[ $meta_table ] = "INNER JOIN $meta_table AS discounts ON discounts.parent = o.id AND discounts.name='discounts' AND discounts.context='purchase'";
+			$joins[ $meta_table ] = "LEFT JOIN $meta_table AS discounts ON discounts.parent = o.id AND discounts.name='discounts' AND discounts.context='purchase'";
 		}
 
 		$joins = join(' ', $joins);
