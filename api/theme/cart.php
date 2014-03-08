@@ -371,11 +371,20 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 			else $result = $options['label'];
 		} else {
-			if ( false === $O->total('shipping') )
+
+			$shipping = $O->total('shipping');
+			if ( isset($options['id']) ) {
+				$Entry = $O->Totals->entry('shipping', $options['id']);
+				if ( ! $Entry ) $shipping = false;
+				else $shipping = $Entry->amount();
+			}
+
+			if ( false === $shipping )
 				return Shopp::__('Enter Postal Code');
-			elseif ( false === $O->total('shipping') )
+			elseif ( false === $shipping )
 				return Shopp::__('Not Available');
-			else $result = $O->total('shipping');
+			else $result = (float) $shipping;
+
 		}
 		return $result;
 	}
@@ -439,13 +448,21 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	public static function tax ( $result, $options, $O ) {
 		$defaults = array(
 			'label' => false,
+			'id' => false
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
 
 		if ( ! empty($label) ) return $label;
 
-		return (float) $O->total('tax');
+		$tax = (float) $O->total('tax');
+		if ( ! empty($id) ) {
+			$Entry = $O->Totals->entry('tax', $id);
+			if ( empty($Entry) ) return false;
+			$tax = (float) $Entry->amount();
+		}
+
+		return $tax;
 
 	 }
 

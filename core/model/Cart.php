@@ -647,7 +647,7 @@ class ShoppCart extends ListFramework {
 	 * @param string $register The name of the register to get an amount for
 	 * @return float The total amount for the register
 	 **/
-	public function total ( string $register = null ) {
+	public function total ( string $register = null, string $entry = null ) {
 
 		// Setup totals counter
 		if ( false === $this->Totals ) $this->Totals = new OrderTotals();
