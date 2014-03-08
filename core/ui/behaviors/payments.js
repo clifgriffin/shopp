@@ -49,6 +49,7 @@ jQuery(document).ready( function($) {
 			else ui.prependTo('#payments-settings-table');
 
 			$(document).trigger(gateway+'Settings',[ui]);
+			quickSelects(ui);
 
 			editing = $this;
 
