@@ -293,7 +293,7 @@ function shopp_rmv_meta ( $id = false, $context = false, $name = false, $type = 
 		return false;
 	}
 
-	// save existing meta record by meta id
+	// remove existing meta record by meta id
 	if ( $id && ! $context ) {
 		$meta = new ShoppMetaObject();
 		$meta->load($id);
