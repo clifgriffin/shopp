@@ -161,7 +161,7 @@
 					?>
 						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
 							<?php do_action( 'shopp_manage_orders_custom_column', $column, $Order ); ?>
-							<?php do_action( 'shopp_manage_orders_' . santitize_key($column) . '_column', $column, $Order ); ?>
+							<?php do_action( 'shopp_manage_orders_' . sanitize_key($column) . '_column', $column, $Order ); ?>
 						</td>
 					<?php
 					break;
