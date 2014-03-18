@@ -99,15 +99,15 @@ class ShoppAddress extends ShoppDatabaseObject {
 
 		if ( $data ) $this->updates($data);
 
-		// Update state if postcode changes for tax updates
-		if ( isset($this->postcode) ) $this->postmap();
-
 		if ( empty($this->country) ) {
 			// If the target markets are set to single country, use that target as default country
 			// otherwise default to the base of operations for tax and shipping estimates
 			if (1 == count($markets)) $this->country = key($markets);
 			else $this->country = $base['country'];
 		}
+
+		// Update state if postcode changes for tax updates
+		if ( isset($this->postcode) ) $this->postmap();
 
 		$this->region = false;
 		if ( isset($countries[ $this->country ]) && isset($regions[ $countries[ $this->country ]['region'] ]) )

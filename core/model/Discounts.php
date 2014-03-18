@@ -262,7 +262,7 @@ class ShoppDiscounts extends ListFramework {
 		// Prevent customers from reapplying codes
 		if ( ! empty($request) && $code == $request && $this->codeapplied($code) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; has already been applied.', esc_html($code)) );
-			$this->request(false); // Reset request after the request is processed
+			$this->request = false; // Reset request after the request is processed
 			return false;
 		}
 
@@ -272,7 +272,7 @@ class ShoppDiscounts extends ListFramework {
 		$this->codes[ $code ] = $Promo->id;
 		$Promo->code = $code;
 
-		$this->request(false); // Reset request after the request is successfully processed (#2808)
+		$this->request = false; // Reset request after the request is successfully processed (#2808)
 
 		return true;
 	}

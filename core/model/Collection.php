@@ -1848,7 +1848,7 @@ class MixProducts extends SmartCollection {
 		} else $taxquery = array_merge($settings,$taxquery);
 
 		$this->loading['taxquery'] = $taxquery;
-		$this->loading['debug'] = true;
+		$this->loading['debug'] = false;
 
 	}
 

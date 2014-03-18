@@ -297,9 +297,9 @@ class ShoppAdminService extends ShoppAdminController {
 		$formatPref = shopp_setting('purchaselog_format');
 		if (!$formatPref) $formatPref = 'tab';
 
-		$columns = array_merge(ShoppPurchase::exportcolumns(),ShoppPurchased::exportcolumns());
+		$exportcolumns = array_merge(ShoppPurchase::exportcolumns(),ShoppPurchased::exportcolumns());
 		$selected = shopp_setting('purchaselog_columns');
-		if (empty($selected)) $selected = array_keys($columns);
+		if ( empty($selected) ) $selected = array_keys($exportcolumns);
 
 		$Gateways = array_merge($Shopp->Gateways->modules, array('ShoppFreeOrder' => $Shopp->Gateways->freeorder));
 
