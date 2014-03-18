@@ -162,7 +162,8 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 			// Use 90% of availble memory for read buffer size, 4K minimum (less chunks, less overhead, faster throughput)
 			$packet = max(4096,apply_filters('shopp_fsstorage_download_read_buffer',floor($memory*0.9)));
-
+			$packet = ( $packet > 8192 ) ? 8192 : $packet;
+			
 			while(!feof($file) && connection_status() == 0) {
 				$buffer = fread($file, $packet);
 				echo $buffer;	// Output

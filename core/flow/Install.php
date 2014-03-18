@@ -396,7 +396,7 @@ class ShoppInstallation extends ShoppFlowController {
 		// Presentation Settings
 		$Settings->setup('theme_templates', 'off');
 		$Settings->setup('row_products', '3');
-		$Settings->setup('catalog_pagination', '25');
+		$Settings->setup('catalog_pagination', '24');
 		$Settings->setup('default_product_order', 'title');
 		$Settings->setup('product_image_order', 'ASC');
 		$Settings->setup('product_image_orderby', 'sortorder');
