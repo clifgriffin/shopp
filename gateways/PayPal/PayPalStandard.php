@@ -294,7 +294,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 
 	/**
-	 * Provides the the live or sandbox url, depending on testmode setting
+	 * Provides the live or sandbox url, depending on testmode setting
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
