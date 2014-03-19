@@ -739,12 +739,13 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		}
 
 		// Set a unique product slug
-		if (empty($Product->slug)) $Product->slug = sanitize_title($_POST['name']);
+		if ( empty($Product->slug) )
+			$Product->slug = sanitize_title($_POST['name']);
 		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, ShoppProduct::posttype(), 0);
 
 		$Product->featured = 'off';
 
-		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
+		if ( isset($_POST['content']) ) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('meta','categories','prices','tags'));
 
 		do_action('shopp_pre_product_save');

@@ -30,7 +30,7 @@ th.textright { text-align: right; }
 .shopp .checkbox.checked:before { font-family:'shopp-icons'; font-size: 13px; content: "\E00B"; line-height: 13px; position: relative; top: -3px; }
 
 /** Activation **/
-#shopp-activation-nag { cursor: pointer; }
+#shopp-activation-nag { display: block; cursor: pointer; }
 #shopp-activation-nag .dismiss { color: #A9A13B; }
 #activation-status { width: 485px; }
 
