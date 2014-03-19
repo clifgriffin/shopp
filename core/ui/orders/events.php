@@ -423,6 +423,8 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 	}
 
 	function details () {
+		if ( 'NOTRACKING' == $this->carrier_name() )
+			return Shopp::__('No Tracking');
 		return sprintf('%s: %s',$this->carrier_name(),$this->tracklink());
 	}
 

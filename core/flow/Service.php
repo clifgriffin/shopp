@@ -25,6 +25,8 @@ class ShoppAdminService extends ShoppAdminController {
 	public $orders = array();
 	public $ordercount = false;
 
+	protected $ui = 'orders';
+
 	/**
 	 * Service constructor
 	 *
@@ -303,7 +305,7 @@ class ShoppAdminService extends ShoppAdminController {
 
 		$Gateways = array_merge($Shopp->Gateways->modules, array('ShoppFreeOrder' => $Shopp->Gateways->freeorder));
 
-		include(SHOPP_ADMIN_PATH."/orders/orders.php");
+		include $this->ui('orders.php');
 	}
 
 	/**
@@ -348,8 +350,8 @@ class ShoppAdminService extends ShoppAdminController {
 			'price' => __('Price','Shopp'),
 			'total' => __('Total','Shopp')
 		)));
-		include(SHOPP_ADMIN_PATH."/orders/events.php");
-		include(SHOPP_ADMIN_PATH."/orders/ui.php");
+		include $this->ui('events.php');
+		include $this->ui('ui.php');
 		do_action('shopp_order_manager_layout');
 	}
 
@@ -599,36 +601,38 @@ class ShoppAdminService extends ShoppAdminController {
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
 			if ($base['country'] == $iso) $base_region = $c['region'];
-			$countries[$iso] = $c['name'];
+			$countries[ $iso ] = $c['name'];
 		}
 		$Purchase->_countries = $countries;
 
 		$regions = Lookup::country_zones();
-		$Purchase->_billing_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Purchase->country]);
-		$Purchase->_shipping_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Purchase->shipcountry]);
+		$Purchase->_billing_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->country ]);
+		$Purchase->_shipping_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->shipcountry ]);
 
 		$carriers_menu = $carriers_json = array();
 		$shipping_carriers = shopp_setting('shipping_carriers');
 		$shipcarriers = Lookup::shipcarriers();
 
-		if (empty($shipping_carriers)) {
-			$serviceareas = array('*',$base['country']);
-			foreach ($shipcarriers as $code => $carrier) {
-				if (!in_array($carrier->areas,$serviceareas)) continue;
-				$carriers_menu[$code] = $carrier->name;
-				$carriers_json[$code] = array($carrier->name,$carrier->trackpattern);
+		$carriers_menu['NOTRACKING'] = Shopp::__('No Tracking');
+		$carriers_json['NOTRACKING'] = array(Shopp::__('No Tracking'), false);
+		if ( empty($shipping_carriers) ) {
+			$serviceareas = array('*', $base['country']);
+			foreach ( $shipcarriers as $code => $carrier ) {
+				if ( ! in_array($carrier->areas, $serviceareas) ) continue;
+				$carriers_menu[ $code ] = $carrier->name;
+				$carriers_json[ $code ] = array($carrier->name,$carrier->trackpattern);
 			}
 		} else {
 			foreach ($shipping_carriers as $code) {
-				$carriers_menu[$code] = $shipcarriers[$code]->name;
-				$carriers_json[$code] = array($shipcarriers[$code]->name,$shipcarriers[$code]->trackpattern);
+				$carriers_menu[ $code ] = $shipcarriers[ $code ]->name;
+				$carriers_json[ $code ] = array($shipcarriers[ $code ]->name, $shipcarriers[ $code ]->trackpattern);
 			}
 		}
 		unset($carrierdata);
 
-		if (empty($statusLabels)) $statusLabels = array('');
+		if ( empty($statusLabels) ) $statusLabels = array('');
 
-		include(SHOPP_ADMIN_PATH."/orders/order.php");
+		include $this->ui('order.php');
 	}
 
 	/**
