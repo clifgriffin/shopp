@@ -168,7 +168,6 @@ class ShoppCartItem {
 		$this->unitprice = $baseprice + $this->addonsum;
 
 		if ( shopp_setting_enabled('taxes') ) {
-			$this->taxable = array();
 			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
 			$this->istaxed = ( $this->taxable > 0 );
 			$this->includetax = shopp_setting_enabled('tax_inclusive');
