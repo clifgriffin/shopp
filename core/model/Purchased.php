@@ -119,6 +119,7 @@ class ShoppPurchased extends ShoppDatabaseObject {
 			$prefix.'id' => __('Line Item ID','Shopp'),
 			$prefix.'name' => __('Product Name','Shopp'),
 			$prefix.'optionlabel' => __('Product Variation Name','Shopp'),
+			'addons.name' => __('Product Add-on Name', 'Shopp'),
 			$prefix.'description' => __('Product Description','Shopp'),
 			$prefix.'sku' => __('Product SKU','Shopp'),
 			$prefix.'quantity' => __('Product Quantity Purchased','Shopp'),
