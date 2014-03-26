@@ -859,8 +859,6 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	public function cart () {
 
-		if ( isset($_REQUEST['checkout']) ) Shopp::redirect( Shopp::url(false, 'checkout', $this->security()) );
-
 		if ( isset($_REQUEST['shopping']) && 'reset' == strtolower($_REQUEST['shopping']) ) {
 			ShoppShopping()->reset();
 			Shopp::redirect( Shopp::url() );
@@ -869,6 +867,8 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( empty($_REQUEST['cart']) ) return true;
 
 		do_action('shopp_cart_request');
+
+		if ( isset($_REQUEST['checkout']) ) Shopp::redirect( Shopp::url(false, 'checkout', $this->security()) );
 
 		if ( isset($_REQUEST['ajax']) ) {
 			$Cart = ShoppOrder()->Cart;

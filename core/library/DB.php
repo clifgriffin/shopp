@@ -654,7 +654,7 @@ if ( ! class_exists('DB',false) ) {
 		public static function get () {
 			return sDB::object();
 		}
-		
+
 		public static function instance () {
 			return sDB::object();
 		}
@@ -942,6 +942,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 			$this->id = sDB::query("INSERT $this->_table SET $dataset");
 
 			do_action_ref_array( "shopp_save_$classhook", array($this) );
+			do_action_ref_array( "shopp_create_$classhook", array($this) );
 			return $this->id;
 
 		}

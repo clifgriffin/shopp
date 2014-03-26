@@ -60,7 +60,7 @@
 						<small><?php _e( 'Estimate shipping &amp; taxes for:', 'Shopp' ); ?></small>
 						<?php shopp( 'cart.shipping-estimates' ); ?>
 					<?php endif; ?>
-					<?php shopp( 'cart.promo-code' ); ?>
+					<?php shopp( 'cart.apply-code' ); ?>
 				</td>
 				<th scope="row"><?php _e( 'Subtotal', 'Shopp' ); ?></th>
 				<td class="money"><?php shopp( 'cart.subtotal' ); ?></td>

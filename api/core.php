@@ -109,7 +109,6 @@ function ShoppOrder ( $Object = false ) {
 	return $Shopp->Order;
 }
 
-
 /**
  * Helper to access the Shopp settings registry
  *
@@ -138,26 +137,70 @@ function ShoppErrors () {
 	return ShoppErrors::object();
 }
 
+/**
+ * Provides the ShoppErrorLogging instance
+ *
+ * @since 1.3
+ *
+ * @return ShoppErrorLogging The running ShoppErrorLogging instance
+ **/
 function ShoppErrorLogging () {
 	return ShoppErrorLogging::object();
 }
 
+/**
+ * Provides the ShoppErrorNotification instance
+ *
+ * @since 1.3
+ *
+ * @return ShoppErrorNotification The running ShoppErrorNotification instance
+ **/
 function ShoppErrorNotification () {
 	return ShoppErrorNotification::object();
 }
 
+/**
+ * Provides the ShoppErrorStorefrontNotices instance
+ *
+ * @since 1.3
+ *
+ * @return ShoppErrorStorefrontNotices The running ShoppErrorStorefrontNotices instance
+ **/
 function ShoppErrorStorefrontNotices () {
 	return ShoppErrorStorefrontNotices::object();
 }
 
+/**
+ * The ShoppPages controller instance
+ *
+ * @since 1.3
+ *
+ * @return ShoppPages The running ShoppPages controller
+ **/
 function ShoppPages () {
 	return ShoppPages::object();
 }
 
+/**
+ * Get a specified ShoppPage
+ *
+ * @since 1.3
+ *
+ * @param string $pagename The name of the ShoppPage to retrieve
+ * @return ShoppPage The requested ShoppPage if found, false otherwise
+ **/
 function shopp_get_page ( string $pagename ) {
 	return ShoppPages()->get($pagename);
 }
 
+/**
+ * Register a new ShoppPage class to the ShoppPages controller
+ *
+ * @since 1.3
+ *
+ * @param string $classname The class name of the new type of ShoppPage
+ * @return void
+ **/
 function shopp_register_page ( string $classname ) {
 	ShoppPages()->register($classname);
 }
@@ -187,8 +230,17 @@ function is_shopperror ($e) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_catalog_page ( $wp_query = false ) {
+function is_shopp_catalog_page ( $wp_query = false ) {
 	return is_shopp_page('catalog', $wp_query);
+}
+
+if ( ! function_exists('is_catalog_page') ) {
+	/**
+	 * @deprecated Use is_shopp_catalog_page()
+	 **/
+	function is_catalog_page ( $wp_query = false ) {
+		return is_shopp_catalog_page($wp_query);
+	}
 }
 
 /**
@@ -200,9 +252,18 @@ function is_catalog_page ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_catalog_frontpage ( $wp_query = false ) {
+function is_shopp_catalog_frontpage ( $wp_query = false ) {
 	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
 	return is_shopp_page('catalog', $wp_query) && ! ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
+}
+
+if ( ! function_exists('is_catalog_frontpage') ) {
+	/**
+	 * @deprecated Use is_shopp_catalog_frontpage()
+	 **/
+	function is_catalog_frontpage ( $wp_query = false ) {
+		return is_shopp_catalog_frontpage($wp_query);
+	}
 }
 
 /**
@@ -214,8 +275,17 @@ function is_catalog_frontpage ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_account_page ( $wp_query = false ) {
+function is_shopp_account_page ( $wp_query = false ) {
 	return is_shopp_page('account', $wp_query);
+}
+
+if ( ! function_exists('is_account_page') ) {
+	/**
+	 * @deprecated Use is_shopp_account_page()
+	 **/
+	function is_account_page ( $wp_query = false ) {
+		return is_shopp_account_page($wp_query);
+	}
 }
 
 /**
@@ -227,8 +297,17 @@ function is_account_page ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_cart_page ( $wp_query = false ) {
+function is_shopp_cart_page ( $wp_query = false ) {
 	return is_shopp_page('cart', $wp_query);
+}
+
+if ( ! function_exists('is_cart_page') ) {
+	/**
+	 * @deprecated Use is_shopp_cart_page()
+	 **/
+	function is_cart_page ( $wp_query = false ) {
+		return is_shopp_cart_page($wp_query);
+	}
 }
 
 /**
@@ -240,8 +319,17 @@ function is_cart_page ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_checkout_page ( $wp_query = false ) {
+function is_shopp_checkout_page ( $wp_query = false ) {
 	return is_shopp_page('checkout', $wp_query);
+}
+
+if ( ! function_exists('is_checkout_page') ) {
+	/**
+	 * @deprecated Use is_shopp_checkout_page()
+	 **/
+	function is_checkout_page ( $wp_query = false ) {
+		return is_shopp_checkout_page($wp_query);
+	}
 }
 
 /**
@@ -253,8 +341,17 @@ function is_checkout_page ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_confirm_page ( $wp_query = false ) {
+function is_shopp_confirm_page ( $wp_query = false ) {
 	return is_shopp_page('confirm', $wp_query);
+}
+
+if ( ! function_exists('is_confirm_page') ) {
+	/**
+	 * @deprecated Use is_shopp_confirm_page()
+	 **/
+	function is_confirm_page ( $wp_query = false ) {
+		return is_shopp_confirm_page($wp_query);
+	}
 }
 
 /**
@@ -266,8 +363,17 @@ function is_confirm_page ( $wp_query = false ) {
  * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_thanks_page ( $wp_query = false ) {
+function is_shopp_thanks_page ( $wp_query = false ) {
 	return is_shopp_page('thanks', $wp_query);
+}
+
+if ( ! function_exists('is_thanks_page') ) {
+	/**
+	 * @deprecated Use is_shopp_thanks_page()
+	 **/
+	function is_thanks_page ( $wp_query = false ) {
+		return is_shopp_thanks_page($wp_query);
+	}
 }
 
 /**
@@ -431,21 +537,57 @@ function is_single_product ( $wp_query = false ) {
 	return ( is_shopp_product($wp_query) && $wp_query->is_single() );
 }
 
+
+/**
+ * Add an error to Shopp
+ *
+ * @since 1.3
+ *
+ * @param string $message The error message to add
+ * @param int $level The error type (SHOPP_ERR, SHOPP_ADMIN_ERR)
+ * @return ShoppError The ShoppError object
+ **/
 function shopp_add_error ( $message, $level = null ) {
 	if ( is_null($level) ) $level = SHOPP_ERR;
 	return new ShoppError( $message, false, $level );
 }
 
+/**
+ * Add an error message that will be displayed to visitors on the storefront
+ *
+ * @since 1.3
+ *
+ * @param string $message The error message to add
+ * @return ShoppError The ShoppError object
+ **/
 function shopp_add_notice ( $message ) {
-	return shopp_add_error($message,SHOPP_ERR);
+	return shopp_add_error($message, SHOPP_ERR);
 }
 
+/**
+ * Add a developer debug error message to the Shopp log file
+ *
+ * @since 1.3
+ *
+ * @param string $message The error message to add
+ * @param boolean $backtrace Include the call stack in the logged message
+ * @return ShoppError The ShoppError object
+ **/
 function shopp_debug ( $message, $backtrace = false ) {
 	if ( ! SHOPP_DEBUG ) return false;
-	if ( $backtrace ) $callstack = debug_caller();
-	return shopp_add_error( $message . $backtrace, SHOPP_DEBUG_ERR );
+	$callstack = false;
+	if ( $backtrace )
+		$callstack = ' ' . debug_caller();
+	return shopp_add_error( $message . $callstack, SHOPP_DEBUG_ERR );
 }
 
+/**
+ * Rebuild the Shopp product search index
+ *
+ * @since 1.3
+ *
+ * @return void
+ **/
 function shopp_rebuild_search_index () {
 
 	global $wpdb;
@@ -477,6 +619,13 @@ function shopp_rebuild_search_index () {
 
 }
 
+/**
+ * Destroy the entire product search index
+ *
+ * @since 1.3
+ *
+ * @return void
+ **/
 function shopp_empty_search_index () {
 
 	$index_table = ShoppDatabaseObject::tablename(ContentIndex::$table);
