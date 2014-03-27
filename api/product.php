@@ -2294,13 +2294,14 @@ function shopp_product_set_addon_options ( $product = false, $options = array(),
 	$mapping = array();
 
 	foreach ( $options as $type => $opts ) {
-		foreach ( $opts as $option ) {
+		foreach ( $opts as $index => $option ) {
 			$addon = array($type => $option );
 
 			$Price = new ShoppPrice();
 			$Price->type = 'Shipped';
 			$Price->product = $product;
 			$Price->context = 'addon';
+			$Price->sortorder = $index + 2; // default price sort order is 1, start at minimum 2 #2847
 			list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($addon, $options, 'addon');
 			$Price->save();
 			shopp_set_meta ( $Price->id, 'price', 'options', $Price->options );
