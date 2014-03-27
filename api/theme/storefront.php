@@ -160,9 +160,12 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( ! $width ) $width = $_width;
 		if ( ! $height ) $height = $_height;
 
+		$lowest_quality = min(ImageSetting::$qualities);
+
 		$scale = $fit ? array_search( $fit, ImageAsset::$defaults['scaling'] ) : null;
-		$sharpen = $sharpen ? min( $sharpen, ImageAsset::$defaults['sharpen'] ) : null;
-		$quality = $quality ? min( $quality, ImageAsset::$defaults['quality'] ) : null;
+		$sharpen = $sharpen ? max( $sharpen, ImageAsset::$defaults['sharpen'] ) : null;
+		$quality = $quality ? max( $quality, $lowest_quality ) : null;
+
 		if ( 'transparent' == strtolower($bg) ) $fill = -1;
 		else $fill = $bg ? hexdec(ltrim($bg, '#')) : false;
 
