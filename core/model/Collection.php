@@ -320,7 +320,9 @@ class ProductCollection implements Iterator {
 		$product = ShoppProduct();
 		if ( $product ) {
 			$loop = shopp($this, 'products');
-			$product = ShoppProduct();
+
+			if ( ! $loop ) $product = false;
+			else $product = ShoppProduct();
 		}
 
 		if ( ! ($product || $loop) ) {
@@ -329,8 +331,11 @@ class ProductCollection implements Iterator {
 			else $page = $this->page + 1;
 
 			if ( $this->pages > 0 && $page > $this->pages ) return false;
-			$this->load( array('load' => array('prices', 'specs', 'categories', 'coverimages'), 'paged'=>$paged, 'page' => $page) );
+			$this->load( array('load' => array('prices', 'specs', 'categories', 'coverimages'), 'paged' => $paged, 'page' => $page) );
 			$loop = shopp($this, 'products');
+
+			if ( ! $loop ) return false; // Loop ended, bail out
+
 			$product = ShoppProduct();
 			if ( ! $product ) return false; // No products, bail
 		}
@@ -1490,8 +1495,8 @@ class SmartCollection extends ProductCollection {
 	}
 
 	public function load ( array $options = array() ) {
-		$options = array_merge( $this->_options, $options );
-		$this->smart($options);
+		$this->loading = array_merge( $this->_options, $options );
+		$this->smart($this->loading);
 
 		if ( isset($options['show']) )
 			$this->loading['limit'] = $options['show'];
