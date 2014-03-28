@@ -588,8 +588,13 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_categories ( $result, $options, $O ) {
-		$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
-		if ( empty($O->categories) ) $O->load_categories(array('where'=>'true'),$showsmart);
+		$defaults = array(
+			'showsmart' => false
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
+
+		if ( empty($O->categories) ) $O->load_categories($options, $showsmart);
 		else { // Make sure each entry is a valid ProductCollection to prevent fatal errors @bug #2017
 			foreach ($O->categories as $id => $term) {
 				if (  $Category instanceof ProductCollection ) continue;

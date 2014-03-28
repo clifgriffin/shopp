@@ -37,12 +37,12 @@ class ShoppCatalog {
 	 **/
 	public function load_categories ( array $loading = array(), $showsmart = false, $results = false ) {
 
-		$terms = get_terms(ProductCategory::$taxon);
+		$terms = get_terms(ProductCategory::$taxon, $loading);
 
-		foreach ($terms as $term)
+		foreach ( (array)$terms as $term )
 			$this->categories[] = new ProductCategory($term);
 
-		if ($showsmart == "before" || $showsmart == "after")
+		if ( in_array($showsmart, array('before', 'after')) )
 			$this->collections($showsmart);
 
 	}
