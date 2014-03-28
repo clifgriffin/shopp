@@ -281,10 +281,9 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
   * In most cases, after record creation an InvoicedOrderEvent sets up the transactional
   * debit against the purchase total prior to an AuthOrderEvent
   *
-  * When generating an PurchaseOrderEvent message using shopp_add_order_event() in a
-  * payment gateway, it is necessary to pass a (boolean) false value as the first
-  * ($order) parameter since the purchase record is created against the AuthedOrderEvent
-  * message.
+  * When generating an PurchaseOrderEvent message using shopp_add_order_event(), it is
+  * necessary to pass a (boolean) false value as the first ($order) parameter since
+  * the purchase record is created with the PurchaseOrderEvent message.
   *
   * Example: shopp_add_order_event(false,'purchase',array(...));
   *
