@@ -75,7 +75,7 @@
 		</div>
 		<div>
 			<h4><?php Shopp::_e( 'schema.org' ); ?></h4>
-			<p><?php printf( __( 'Products and categories now sport customizable schema.org microdata markup to improve search engine understanding of your web store.' ) ); ?></p>
+			<p><?php printf( __( 'Products and categories now support customizable schema.org microdata markup to improve search engine understanding of your web store.' ) ); ?></p>
 		</div>
 		<div class="last-feature">
 			<h4><?php Shopp::_e( 'API Improvements' ); ?></h4>
