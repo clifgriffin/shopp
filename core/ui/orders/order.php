@@ -163,7 +163,7 @@
 								'${itemname}' => $itemname,
 								'${quantity}' => $Item->quantity,
 								'${unitprice}'     => money($Item->unitprice),
-								'${total}'    => money( $Item->total+($Purchase->taxing == 'inclusive'?$Item->unittax*$Item->quantity:0) )
+								'${total}'    => money( $Item->total+($Purchase->taxing != 'inclusive'?$Item->unittax*$Item->quantity:0) )
 							);
 							echo ShoppUI::template($itemeditor,$data);
 						} else {
@@ -207,7 +207,7 @@
 
 												<?php if (isset($Item->addons) && isset($Item->addons->meta)): ?>
 													<?php foreach ((array)$Item->addons->meta as $id => $addon):
-														if ($Purchase->taxing == "inclusive")
+														if ( $Purchase->taxing != "inclusive" )
 															$addonprice = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
 														else $addonprice = $addon->value->unitprice;
 
@@ -235,7 +235,7 @@
 									case 'price':
 									$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->unitprice+($Purchase->taxing == 'inclusive'?$Item->unittax:0);
+											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->unitprice+($Purchase->taxing != 'inclusive'?$Item->unittax:0);
 												echo money($amount); ?></td>
 										<?php
 										break;
@@ -243,7 +243,7 @@
 									case 'total':
 										$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->total+($Purchase->taxing == 'inclusive'?$Item->unittax*$Item->quantity:0);
+											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->total+($Purchase->taxing != 'inclusive'?$Item->unittax*$Item->quantity:0);
 												echo money($amount); ?></td>
 										<?php
 										break;
