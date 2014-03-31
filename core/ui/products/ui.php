@@ -108,7 +108,7 @@ function shopp_categories_meta_box ($Product,$options) {
 	</div>
 
 	<div id="<?php echo $taxonomy; ?>-all" class="multiple-select category-menu tabs-panel">
-		<ul id="<?php echo $taxonomy; ?>-checklist" data-wp-lists="list:<?php echo $taxonomy?>" class="list:<?php echo $taxonomy?> form-no-clear">
+		<ul id="<?php echo $taxonomy; ?>-checklist" data-wp-lists="list:<?php echo $taxonomy; ?>" class="list:<?php echo $taxonomy; ?> form-no-clear">
 		<?php wp_terms_checklist($Product->id, array( 'taxonomy' => $taxonomy, 'popular_cats' => $popular_ids) ) ?>
 		</ul>
 	</div>
