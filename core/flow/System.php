@@ -519,7 +519,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 			$rates = stripslashes_deep($rates);
 			shopp_set_setting('taxrates',$rates);
 		}
-		if (isset($_POST['addrate'])) $_POSTedit = count($rates);
+		if (isset($_POST['addrate'])) $edit = count($rates);
 		if (isset($_POST['submit'])) $edit = false;
 
 		$base = shopp_setting('base_operations');
