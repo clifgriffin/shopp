@@ -861,42 +861,48 @@ class ProductCategory extends ProductTaxonomy {
 	 * @return void
 	 **/
 	public function filters () {
-		if ('off' == $this->facetedmenus) return;
+		if ( 'off' == $this->facetedmenus ) return;
 		$Storefront = ShoppStorefront();
-		if (!$Storefront) return;
+		if ( ! $Storefront ) return;
 
-		if (!empty($this->facets)) return;
-		$specs = $this->specs;
+		if ( ! empty($this->facets) ) return;
 
-		$this->facets = array();
-		if (isset($Storefront->browsing[$this->slug]))
-			$this->filters = $Storefront->browsing[$this->slug];
+		$specs = &$this->specs;
 		if ( is_null($specs) ) $specs = array();
 
-		if ('disabled' != $this->pricerange) {
-			array_unshift($specs,array('name' => apply_filters('shopp_category_price_facet_label',__('Price Filter','Shopp')),'slug'=> 'price','facetedmenu' => $this->pricerange));
+		$this->facets = array();
+		if ( isset($Storefront->browsing[ $this->slug ]) )
+			$this->filters = $Storefront->browsing[ $this->slug ];
+
+		if ( 'disabled' != $this->pricerange ) {
+			array_unshift($specs, array(
+				'name'        => apply_filters('shopp_category_price_facet_label', __('Price Filter','Shopp')),
+				'slug'        => 'price',
+				'facetedmenu' => $this->pricerange
+			));
 		}
 
-		foreach ($specs as $spec) {
-			if (!isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu']) continue;
+		foreach ( $specs as $spec ) {
+			if ( ! isset($spec['facetedmenu']) || 'disabled' == $spec['facetedmenu'] ) continue;
 
-			if (isset($spec['slug'])) $slug = $spec['slug'];
+			if ( isset($spec['slug']) ) $slug = $spec['slug'];
 			else $slug = sanitize_title_with_dashes($spec['name']);
-			$selected = isset($_GET[$slug]) && Shopp::str_true(get_query_var('s_ff')) ? $_GET[$slug] : false;
+
+			$selected = isset($_GET[ $slug ]) && Shopp::str_true(get_query_var('s_ff')) ? $_GET[ $slug ] : false;
 
 			$Facet = new ProductCategoryFacet();
 			$Facet->name = $spec['name'];
 			$Facet->slug = $slug;
 			$Facet->type = $spec['facetedmenu'];
-			if (false !== $selected) {
+			if ( false !== $selected ) {
 				$Facet->selected = $selected;
-				$this->filters[$slug] = $selected;
-			} elseif (isset($this->filters[$slug])) $Facet->selected = $this->filters[$slug];
-			$this->facets[$slug] = $Facet;
+				$this->filters[ $slug ] = $selected;
+			} elseif ( isset($this->filters[ $slug ]) ) $Facet->selected = $this->filters[ $slug ];
+			$this->facets[ $slug ] = $Facet;
 		}
 
 		$this->filters = array_filter($this->filters);
-		$Storefront->browsing[$this->slug] = $this->filters; // Save currently applied filters
+		$Storefront->browsing[ $this->slug ] = $this->filters; // Save currently applied filters
 	}
 
 	public function facetsql ( $options ) {
@@ -904,7 +910,7 @@ class ProductCategory extends ProductTaxonomy {
 
 		$joins = $options['joins'];
 
-		if (!isset($options['where'])) $options['where'] = array();
+		if ( ! isset($options['where']) ) $options['where'] = array();
 
 		$f = 1;
 		$where = array();
@@ -985,7 +991,7 @@ class ProductCategory extends ProductTaxonomy {
 		$ids = join(',',$Filtered->worklist());
 
 		// Load price facet filters first
-		if ('disabled' != $this->pricerange && isset($this->facets['price'])) {
+		if ( 'disabled' != $this->pricerange ) {
 			$Facet = $this->facets['price'];
 			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
 
@@ -1024,8 +1030,8 @@ class ProductCategory extends ProductTaxonomy {
 
 		// Identify facet menu types to treat numeric and string contexts properly @bug #2014
 		$custom = array();
-		foreach ($this->facets as $Facet)
-			if ('custom' == $Facet->type) $custom[] = sDB::escape($Facet->name);
+		foreach ( $this->facets as $Facet )
+			if ( 'custom' == $Facet->type ) $custom[] = sDB::escape($Facet->name);
 
 		// Load spec aggregation data
 		$spectable = ShoppDatabaseObject::tablename(Spec::$table);
@@ -1035,14 +1041,14 @@ class ProductCategory extends ProductTaxonomy {
 			count(*) AS count,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 			FROM $spectable AS spec
 			WHERE spec.parent IN ($ids) AND spec.context='product' AND spec.type='spec' AND (spec.value != '' OR spec.numeral > 0) GROUP BY merge";
-		$specdata = sDB::query($query,'array','index','name',true);
+		$specdata = sDB::query($query, 'array', 'index', 'name', true);
 
 		foreach ($this->specs as $spec) {
 			if ('disabled' == $spec['facetedmenu']) continue;
 			$slug = sanitize_title_with_dashes($spec['name']);
 			if (!isset($this->facets[ $slug ])) continue;
 			$Facet = &$this->facets[ $slug ];
-			$Facet->link = add_query_arg(array('s_ff'=>'on',urlencode($Facet->slug) => ''),shopp('category','get-url'));
+			$Facet->link = add_query_arg(array('s_ff'=>'on', urlencode($Facet->slug) => ''), shopp('category', 'get-url'));
 
 			// For custom menu presets
 
@@ -1140,7 +1146,6 @@ class ProductCategory extends ProductTaxonomy {
 					}
 
 			} // END switch
-
 		}
 	}
 
