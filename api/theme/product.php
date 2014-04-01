@@ -1330,13 +1330,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				if ( 'variation' != $pricing->context ) continue;
 
 				$currently = Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price;
-				$disabled = Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ? ' disabled="disabled"' : '';
+				$disable = ( $pricetag->type == 'N/A' || ( Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ) );
 
 				$currently = self::_taxed((float)$currently, $O, $pricing->tax, $taxes);
 
 				$discount = 0 == $pricing->price ? 0 : 100 - round($pricing->promoprice * 100 / $pricing->price);
 				$_ = new StdClass();
-				$_->p = 'Donation' != $pricing->type ? money($currently) : false;
+				$_->p = 'Donation' != $pricing->type && ! $disable ? money($currently) : false;
 				$_->l = $pricing->label;
 				$_->i = Shopp::str_true($pricing->inventory);
 				$_->s = $_->i ? (int)$pricing->stock : false;
@@ -1346,8 +1346,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$_->r = $pricing->promoprice != $pricing->price ? money($pricing->price) : false;
 				$_->d = $discount > 0 ? $discount : false;
 
-				if ( 'N/A' != $pricing->type )
-					$string .= '<option value="' . $pricing->id . '"' . $disabled . '>' . esc_html(self::_variant_formatlabel($format, $_)) . '</option>' . "\n";
+				if ( $disable && 'show' == $disabled )
+					$string .= '<option value="' . $pricing->id . '"' . ( $disable ? ' disabled="disabled"' : '' ) . '>' . esc_html(self::_variant_formatlabel($format, $_)) . '</option>' . "\n";
 			}
 			$string .= '</select>';
 			if ( ! empty($options['after_menu']) ) $string .= $options['after_menu']."\n";

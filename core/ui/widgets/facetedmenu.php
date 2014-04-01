@@ -22,27 +22,29 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppFacetedMenuWidget') ) {
 			);
 	    }
 
-	    function widget($args, $options) {
+	    function widget ( array $args, array $options ) {
 
-			if (!empty($args)) extract($args);
+			if ( ! empty($args) )
+				extract($args);
 
-			if (empty($options['title'])) $options['title'] = __('Product Filters','Shopp');
-			$title = $before_title.$options['title'].$after_title;
+			if ( empty($options['title']) ) $options['title'] = __('Product Filters','Shopp');
+			$title = $before_title . $options['title'] . $after_title;
 
 			$Collection = ShoppCollection();
-			if (empty($Collection)) return;
+			if ( empty($Collection) ) return;
 
-			if (shopp('category','get-id') != '' && shopp('category','has-faceted-menu')) {
-				$menu = shopp('category','get-faceted-menu',$options);
+			if ( '' != shopp('collection.get-id') && shopp('collection.has-faceted-menu') ) {
+				$menu = shopp('collection.get-faceted-menu', $options);
 				echo $before_widget.$title.$menu.$after_widget;
 			}
+
 	    }
 
-	    function update($new_instance, $old_instance) {
+	    function update ( $new_instance, $old_instance ) {
 	        return $new_instance;
 	    }
 
-	    function form($options) {
+	    function form ( array $options ) {
 			?>
 			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 			<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
@@ -50,6 +52,5 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppFacetedMenuWidget') ) {
 	    }
 
 	} // class ShoppFacetedMenuWidget
-
 
 }
