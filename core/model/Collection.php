@@ -1855,7 +1855,7 @@ class MixProducts extends SmartCollection {
 }
 
 /**
- * A smart collection to get products that have all of the
+ * A smart collection to get products that have at least one of the specified tags
  *
  * @author Jonathan Davis
  * @since 1.2
