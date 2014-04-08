@@ -527,6 +527,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		if ( ! $Purchase->lock() ) return false; // Only process order updates if this process can get a lock
 
+		$Message = $this->Message;
+
 		if ( in_array( $event, array( 'sale', 'auth', 'capture' ) ) ) {
 
 			$this->updates();
