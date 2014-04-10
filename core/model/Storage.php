@@ -369,6 +369,11 @@ class StorageSettingsUI extends ModuleSettingsUI {
 		if (isset($attributes['name']))
 			$attributes['name'] .= '][${context}';
 		parent::checkbox($column, $attributes);
+
+		$id = "{$this->id}-" . sanitize_title_with_dashes($attributes['name']);
+		$fix = str_replace('context','-${context}', $id);
+		foreach ( $this->markup as &$markup )
+			$markup = str_replace($id, $fix, $markup);
 	}
 
 	/**
