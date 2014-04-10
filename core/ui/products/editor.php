@@ -49,6 +49,9 @@
 						<?php endif; ?>
 					</div>
 				</div>
+				
+				<?php do_action( 'edit_form_after_title', $Product ); ?>
+
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 				<?php
 					$media_buttons = ( defined('SHOPP_EDITOR_MEDIA_BTNS') && SHOPP_EDITOR_MEDIA_BTNS );
