@@ -328,6 +328,11 @@ final class Shopp extends ShoppCore {
 
  		// Download URL rewrites
 		$AccountPage = ShoppPages()->get('account');
+		if ( empty($AccountPage) ) { // Ensure a ShoppAccountPage is available #2862
+			ShoppPages()->register('ShoppAccountPage');
+			$AccountPage = ShoppPages()->get('account');
+		}
+
  		$downloads = array( ShoppPages()->baseslug(), $AccountPage->slug(), 'download', '([a-f0-9]{40})', '?$' );
  		if ( $is_IIS && 0 === strpos($structure, '/index.php/') ) array_unshift($downloads, 'index.php');
  		$rules = array( join('/', $downloads)
