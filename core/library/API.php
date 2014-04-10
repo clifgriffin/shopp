@@ -63,7 +63,7 @@ class ShoppAPIModules extends ModuleLoader {
 	protected $loader = 'ShoppAPIFile';
 
 	protected $interface = 'ShoppAPI';
-	protected $paths = array(SHOPP_THEME_APIS);
+	protected $paths = array(SHOPP_THEME_APIS, SHOPP_ADDONS);
 
 	/**
 	 * API constructor

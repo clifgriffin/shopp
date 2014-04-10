@@ -225,9 +225,12 @@ class ShoppLoader {
 
 		define('SHOPP_LOADER_APC', function_exists('apc_exists'));
 
-		if ( SHOPP_LOADER_APC && apc_exists('shopp_wp_abspath') && $cached = apc_fetch('shopp_wp_abspath') ) {
-			if ( file_exists("$cached/$loadfile") )
+		if ( SHOPP_LOADER_APC ) {
+
+			$apccache = 'shopp_wp_abspath_' . hash('crc32b', $filepath);
+			if (apc_exists($apccache) && $cached = apc_fetch($apccache) && file_exists("$cached/$loadfile") )
 				return "$cached/$loadfile";
+
 		}
 
 		if ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
@@ -275,7 +278,7 @@ class ShoppLoader {
 
 		if ( false !== $wp_load_file ) {
 			if ( SHOPP_LOADER_APC )
-				apc_store('shopp_wp_abspath', $wp_abspath);
+				apc_store($apccache, $wp_abspath);
 			return $wp_load_file;
 		}
 

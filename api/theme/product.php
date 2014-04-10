@@ -15,25 +15,24 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 add_filter('shopp_themeapi_context_name', array('ShoppProductThemeAPI', '_context_name'));
 
+// WP auto embed support
+global $wp_embed;
+if ( ! is_object($wp_embed) ) $wp_embed = new WP_Embed;
+
 // Default text filters for product Theme API tags
 add_filter('shopp_themeapi_product_name','convert_chars');
 add_filter('shopp_themeapi_product_summary','convert_chars');
 add_filter('shopp_themeapi_product_description', 'wptexturize');
 add_filter('shopp_themeapi_product_description', 'convert_chars');
 add_filter('shopp_themeapi_product_description', 'wpautop');
-add_filter('shopp_themeapi_product_description', 'do_shortcode',11);
+add_filter('shopp_themeapi_product_description', array($wp_embed, 'run_shortcode'), 11);
+add_filter('shopp_themeapi_product_description', array($wp_embed, 'autoembed'), 11);
+add_filter('shopp_themeapi_product_description', 'do_shortcode',12);
 add_filter('shopp_themeapi_product_spec', 'wptexturize');
 add_filter('shopp_themeapi_product_spec', 'convert_chars');
-add_filter('shopp_themeapi_product_spec', 'do_shortcode', 11);
-
-// WP auto embed support
-global $wp_embed;
-if ( ! is_object($wp_embed) ) $wp_embed = new WP_Embed;
-
-add_filter('shopp_product_spec', array($wp_embed, 'run_shortcode'), 8);
-add_filter('shopp_product_spec', array($wp_embed, 'autoembed'), 8);
-add_filter('shopp_product_description', array($wp_embed, 'run_shortcode'), 8);
-add_filter('shopp_product_description', array($wp_embed, 'autoembed'), 8);
+add_filter('shopp_themeapi_product_spec', array($wp_embed, 'run_shortcode'), 11);
+add_filter('shopp_themeapi_product_spec', array($wp_embed, 'autoembed'), 11);
+add_filter('shopp_themeapi_product_spec', 'do_shortcode', 12);
 
 /**
  * Provides shopp('product') template API functionality

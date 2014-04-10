@@ -97,11 +97,11 @@ class ShoppDiscounts extends ListFramework {
 		// Iterate over each promo to determine whether it applies
 		$discount = 0;
 		foreach ( $Promotions as $Promo ) {
-			$apply = false;
 
 			// Cancel matching if max number of discounts reached
-			if ( $this->maxed($Promo) ) break;
+			if ( $this->maxed($Promo) && ! $this->applied($Promo) ) continue;
 
+			$apply = false;
 			$matches = 0;
 			$total = 0;
 
@@ -180,6 +180,10 @@ class ShoppDiscounts extends ListFramework {
 		$this->add($Promo->id, $Discount);
 		$this->shipping($Discount); // Flag shipping changes
 
+	}
+
+	private function applied ( ShoppOrderPromo $Promo ) {
+		return $this->exists($Promo->id);
 	}
 
 	/**

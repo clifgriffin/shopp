@@ -386,7 +386,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	}
 
 
-	protected function ui ( string $file ) {
+	protected function ui ( $file ) {
 		$path = join('/', array(SHOPP_ADMIN_PATH, $this->ui, $file));
 		if ( is_readable($path) )
 			return $path;
