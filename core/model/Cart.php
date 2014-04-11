@@ -206,7 +206,7 @@ class ShoppCart extends ListFramework {
 				if ( false !== $price )
 					$prices[] = $price;
 
-				if ( empty($prices) ) $prices[] = false; // Use default price for produc if none provided
+				if ( empty($prices) ) $prices[] = false; // Use default price for product if none provided
 				foreach($prices as $price)
 					$result = $this->additem($quantity, $Product, $price, $category, $data, $addons);
 			}
@@ -672,7 +672,7 @@ class ShoppCart extends ListFramework {
 		$this->recurring = array();
 
 		// Clear the item registers
-		$this->Totals = new OrderTotals;
+		$this->Totals = new OrderTotals();
 
 	}
 
