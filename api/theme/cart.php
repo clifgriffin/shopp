@@ -442,7 +442,22 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	}
 
 	public static function subtotal ( $result, $options, $O ) {
-		return $O->total('order');
+		$defaults = array(
+			'taxes' => 'on'
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
+
+		$subtotal = $O->total('order');
+
+		// Handle no-tax option for tax inclusive storefronts
+		if ( ! Shopp::str_true($taxes) && shopp_setting_enabled('tax_inclusive') ) {
+			$tax = $O->Totals->entry('tax', 'Tax');
+			if ( is_a($tax, 'OrderAmountItemTax') )
+				$subtotal -= $tax->amount();
+		}
+
+		return (float)$subtotal;
 	}
 
 	public static function tax ( $result, $options, $O ) {
