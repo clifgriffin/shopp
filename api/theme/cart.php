@@ -482,19 +482,19 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 }
 
 	public static function total ( $result, $options, $O ) {
-		return $O->total();
+		return (float)$O->total();
 	}
 
 	public static function total_items ( $result, $options, $O ) {
-	 	return $O->count();
+	 	return (int)$O->count();
 	}
 
 	public static function total_discounts ( $result, $options, $O ) {
-		return ShoppOrder()->Discounts->count();
+		return (int)ShoppOrder()->Discounts->count();
 	}
 
 	public static function total_quantity ( $result, $options, $O ) {
-	 	return $O->total('quantity');
+	 	return (int)$O->total('quantity');
 	}
 
 	public static function update_button ( $result, $options, $O ) {
