@@ -116,13 +116,18 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	/**
 	 * _setobject - returns the global context object used in the shopp('checkout) call
 	 *
-	 * @author John Dillick
+	 * @author John Dillick, Jonathan Davis
 	 * @since 1.2
 	 *
 	 **/
-	public static function _setobject ($Object, $object) {
+	public static function _setobject ( $Object, $object, $tag ) {
+
 		if ( is_object($Object) && is_a($Object, 'ShoppOrder') && 'checkout' == strtolower($object) ) return $Object;
 		else if ( strtolower($object) != 'checkout' ) return $Object; // not mine, do nothing
+
+		$handler = self::$register[ $tag ];
+		if ( is_array($handler) && 'ShoppCustomerThemeAPI' == $handler[0] )
+			return ShoppCustomer();
 
 		return ShoppOrder();
 	}

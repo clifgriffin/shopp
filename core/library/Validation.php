@@ -85,7 +85,7 @@ class ShoppFormValidation {
 			if ( apply_filters('shopp_login_valid', ( ! validate_username($_POST['loginname']))) ) {
 				$sanitized = sanitize_user( $_POST['loginname'], true );
 				$illegal = array_diff( str_split($_POST['loginname']), str_split($sanitized) );
-				return shopp_add_error( Shopp::__('The login name provided includes includesnvalid characters: %s', esc_html(join(' ', $illegal)) ));
+				return shopp_add_error( Shopp::__('The login name provided includes invalid characters: %s', esc_html(join(' ', $illegal)) ));
 			}
 
 			if ( apply_filters('shopp_login_exists', username_exists($_POST['loginname'])) )
