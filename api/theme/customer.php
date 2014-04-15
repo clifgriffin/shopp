@@ -119,10 +119,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function account_login ( $result, $options, $O ) {
-		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-		if (!empty($_POST['account-login']))
+		if ( ! isset($options['autocomplete']) ) $options['autocomplete'] = "off";
+		if ( ! empty($_POST['account-login']) )
 			$options['value'] = $_POST['account-login'];
-		return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
+		return '<input type="text" name="account-login" id="account-login"' . inputattrs($options) . ' />';
 	}
 
 	public static function accounts ( $result, $options, $O ) {
@@ -130,14 +130,15 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function account_url ( $result, $options, $O ) {
-		return Shopp::url(false,'account');
+		return Shopp::url(false, 'account');
 	}
 
 	public static function action ( $result, $options, $O ) {
 		$Storefront = ShoppStorefront();
 		$request = false; $id = false;
-		if (isset($Storefront->account)) extract($Storefront->account);
-		return Shopp::url(array($request=>''),'account');
+		if ( isset($Storefront->account) )
+			extract($Storefront->account);
+		return Shopp::url(array($request => ''), 'account');
 	}
 
 	public static function billing_address ( $result, $options, $O ) {
@@ -191,17 +192,18 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function company ( $result, $options, $O ) {
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $O->company;
-		if (!empty(ShoppOrder()->Customer->company))
-			$options['value'] = ShoppOrder()->Customer->company;
-		return '<input type="text" name="company" id="company" '.inputattrs($options).' />';
+		if ( ! isset($options['mode']) ) $options['mode'] = "input";
+		if ( $options['mode'] == "value" ) return $O->company;
+		if ( ! empty($O->company) )
+			$options['value'] = $O->company;
+		return '<input type="text" name="company" id="company" ' . inputattrs($options) . ' />';
 	}
 
 	public static function confirm_password ( $result, $options, $O ) {
-		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+		if ( ! isset($options['autocomplete']) )
+			$options['autocomplete'] = "off";
 		$options['value'] = "";
-		return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
+		return '<input type="password" name="confirm-password" id="confirm-password"' . inputattrs($options) . ' />';
 	}
 
 	public static function download ( $result, $options, $O ) {
@@ -222,7 +224,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if ( array_key_exists('date', $options) ) $string .= _d($df, $download->created);
 		if ( array_key_exists('url', $options) )
 			$string .= Shopp::url( ('' == get_option('permalink_structure') ?
-					array('src'=>'download','shopp_download'=>$download->dkey) : 'download/'.$download->dkey),
+					array('src' => 'download', 'shopp_download' => $download->dkey) : 'download/' . $download->dkey),
 				'account');
 		return $string;
 	}
@@ -236,11 +238,11 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function email ( $result, $options, $O ) {
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		if ($options['mode'] == "value") return $O->email;
-		if (!empty(ShoppOrder()->Customer->email))
-			$options['value'] = ShoppOrder()->Customer->email;
-		return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
+		if ( ! isset($options['mode']) ) $options['mode'] = "input";
+		if ( 'value' == $options['mode'] ) return $O->email;
+		if ( ! empty($O->email) )
+			$options['value'] = $O->email;
+		return '<input type="text" name="email" id="email" ' . inputattrs($options) . ' />';
 	}
 
 	// Disabled and Deprecated
@@ -256,8 +258,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	public static function first_name ( $result, $options, $O ) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->firstname;
-		if (!empty(ShoppOrder()->Customer->firstname))
-			$options['value'] = ShoppOrder()->Customer->firstname;
+		if (!empty($O->firstname))
+			$options['value'] = $O->firstname;
 		return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 	}
 
@@ -339,8 +341,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	public static function last_name ( $result, $options, $O ) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->lastname;
-		if (!empty(ShoppOrder()->Customer->lastname))
-			$options['value'] = ShoppOrder()->Customer->lastname;
+		if (!empty($O->lastname))
+			$options['value'] = $O->lastname;
 		return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
 	}
 
@@ -360,16 +362,16 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value") return $O->loginname;
-		if (!empty(ShoppOrder()->Customer->loginname))
-			$options['value'] = ShoppOrder()->Customer->loginname;
+		if (!empty($O->loginname))
+			$options['value'] = $O->loginname;
 		return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
 	}
 
 	public static function marketing ( $result, $options, $O ) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->marketing;
-		if (!empty(ShoppOrder()->Customer->marketing))
-			$options['value'] = ShoppOrder()->Customer->marketing;
+		if (!empty($O->marketing))
+			$options['value'] = $O->marketing;
 		$attrs = array("accesskey","alt","checked","class","disabled","format",
 			"minlength","maxlength","readonly","size","src","tabindex",
 			"title");
@@ -414,8 +416,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 		if ($options['mode'] == "value")
 			return strlen($O->password) == 34?str_pad('&bull;',8):$O->password;
-		if (!empty(ShoppOrder()->Customer->password))
-			$options['value'] = ShoppOrder()->Customer->password;
+		if (!empty($O->password))
+			$options['value'] = $O->password;
 		return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 	}
 
@@ -437,8 +439,8 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	public static function phone ( $result, $options, $O ) {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		if ($options['mode'] == "value") return $O->phone;
-		if (!empty(ShoppOrder()->Customer->phone))
-			$options['value'] = ShoppOrder()->Customer->phone;
+		if (!empty($O->phone))
+			$options['value'] = $O->phone;
 		return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />';
 	}
 

@@ -69,7 +69,7 @@ function shopp () {
 		$get = true;
 	}
 
-	$Object = apply_filters('shopp_themeapi_object', $Object, $context);
+	$Object = apply_filters('shopp_themeapi_object', $Object, $context, $tag);
 	$Object = apply_filters('shopp_tag_domain', $Object, $context); // @deprecated
 
 	if ('hascontext' == $tag) return ($Object);
