@@ -50,7 +50,7 @@ abstract class ModuleLoader {
 
 		$known = array(); 										// Build an index of known files
 		$detected = array();									// Load the current set of detected modules
-		$invalid = get_transient(self::INVALID_FILES_SETTING);	// Load a set of invalid modules
+		$invalid = get_transient(self::INVALID_FILES_SETTING);	// Load a set of invalid module files
 		if ( ! $invalid ) $invalid = array();
 
 		if ( $detected = shopp_setting(self::MODULES_SETTING) ) {
@@ -118,18 +118,19 @@ abstract class ModuleLoader {
 		else $activate = $this->activated;
 
 		foreach ( $activate as $module ) {
+
 			// Module isn't available, skip it
-			if ( ! isset($this->modules[ $module ]) ) continue;
+			$ModuleFile = $this->module($module);
+			if ( false === $ModuleFile ) continue;
 
-			$ModuleFile = $this->modules[ $module ];
-
-			if ( ! file_exists($ModuleFile->file) || ! is_readable($ModuleFile->file) ) {
+			// If file isn't available
+			if ( ! $ModuleFile->readable() ) {
 				$this->uninstalled($module);
 				continue;
 			}
 
-			ShoppLoader::add($module, $ModuleFile->file);
-			$this->active[ $module ] = $ModuleFile->load();
+			if ( false === $this->activate($module) )
+				continue; // Load failed, try the next module
 
 			if ( function_exists('do_action_ref_array') )
 				do_action_ref_array('shopp_module_loaded', array($module));
@@ -149,8 +150,12 @@ abstract class ModuleLoader {
 	 **/
 	public function checksums () {
 		$hashes = array();
-		foreach ($this->modules as $module) $hashes[] = md5_file($module->file);
-		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
+		foreach ( (array)$this->modules as $module )
+			$hashes[] = md5_file($module->file);
+
+		if ( ! empty($this->legacy) )
+			$hashes = array_merge($hashes, $this->legacy);
+
 		return $hashes;
 	}
 
@@ -183,11 +188,8 @@ abstract class ModuleLoader {
 
 	public function recache () {
 
-		$cachekey = self::sanitize_key($this->interface);
-		wp_cache_delete($cachekey, 'shopp-addons');
-
-		$legacy_cachekey = self::sanitize_key($this->interface);
-		wp_cache_delete($legacy_cachekey, 'shopp-legacy-addons');
+		shopp_rmv_setting(self::MODULES_SETTING);
+		shopp_rmv_setting(self::INVALID_FILES_SETTING);
 
 		$this->installed();
 
@@ -202,7 +204,7 @@ abstract class ModuleLoader {
 	 * @param string $module The module file class/package name
 	 * @return StorageEngine or false
 	 **/
-	function module ( $module ) {
+	public function module ( $module ) {
 		if ( isset($this->modules[ $module ]) )
 			return $this->modules[ $module ];
 		return false;
@@ -217,11 +219,28 @@ abstract class ModuleLoader {
 	 * @param string $module The module file class/package name
 	 * @return Object The activated module object or false if it failed to load
 	 **/
-	function activate ( $module ) {
+	public function activate ( $module ) {
 		$ModuleFile = $this->module($module);
 		if ( false === $ModuleFile ) return false;
+
+		if ( $ModuleFile->modified() ) {
+			unset($this->modules[ $module ], $this->active[ $module ]);
+			$this->recache();
+
+			$ModuleFile = new ModuleFile($ModuleFile->file);
+			if ( false === $ModuleFile ) return false;
+
+			$module = $ModuleFile->classname;
+			$this->modules[ $module ] = $ModuleFile;
+		}
+
 		ShoppLoader::add($module, $ModuleFile->file);
-		$this->active[ $module ] = $ModuleFile->load();
+		$Module = $ModuleFile->load();
+
+		if ( false === $Module ) return false;
+
+		$this->active[ $module ] = $Module;
+
 		return $this->active[ $module ];
 	}
 
@@ -275,6 +294,7 @@ class ModuleFile {
 
 		$this->filename = basename($file);
 		$this->file = $file;
+		$this->modified = filemtime($file);
 
 		$meta = self::docblock($file);
 
@@ -317,6 +337,22 @@ class ModuleFile {
 	}
 
 	/**
+	 * Determine if the module file has been updated since the last scan
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @return boolean True if the file has been updated
+	 **/
+	public function modified () {
+		return filemtime($this->file) != $this->modified;
+	}
+
+	public function readable () {
+		return ( file_exists($this->file) && is_readable($this->file) );
+	}
+
+	/**
 	 * Loads the module file and instantiates the module
 	 *
 	 * @author Jonathan Davis
@@ -325,10 +361,12 @@ class ModuleFile {
 	 * @return void
 	 **/
 	public function load () {
-		if ( ! $this->addon ) return;
+		if ( false === $this->addon ) return false;
 
 		if ( class_exists($this->classname, true) )
 			return new $this->classname();
+
+		return false;
 	}
 
 	/**

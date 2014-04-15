@@ -659,7 +659,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 		if ( ! $active_gateways ) $gateways = array();
 		else $gateways = explode(',', $active_gateways);
 
-		$Gateways->settings();	// Load all installed gateways for settings UIs
+		$gateways = array_filter($gateways, create_function('$g', 'return class_exists($g, false);'));
 
 		if ( ! empty($_GET['delete']) ) {
 			$delete = $_GET['delete'];
@@ -706,11 +706,11 @@ class ShoppAdminSystem extends ShoppAdminController {
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
-		$Gateways->settings();	// Reload all installed gateways for settings UIs
+		$Gateways->settings();	// Load all installed gateways for settings UIs
 		do_action('shopp_setup_payments_init');
 
 		$installed = array();
-		foreach($Gateways->modules as $slug => $module)
+		foreach ( (array)$Gateways->modules as $slug => $module )
 			$installed[$slug] = $module->name;
 
 		$edit = false;
