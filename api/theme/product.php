@@ -1491,7 +1491,8 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 		$taxrates = Shopp::taxrates($O);
 
 		foreach ( $levels as $level )
-			$$level = self::_taxed($$level, $O, isset($O->{$level}[ $property . '_tax' ]), $taxoption, $taxrates);
+			$$level = self::_taxed($$level, $O, isset($O->{$level}[ $property . '_tax' ]) ? $O->{$level}[ $property . '_tax' ] : true, $taxoption, $taxrates);
+
 
 		return array($min, $max);
 	}
