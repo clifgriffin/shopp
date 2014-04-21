@@ -87,7 +87,7 @@ class ShoppTax {
 			if ( ! $this->taxrules($rules, $logic) ) continue;
 
 			// Capture fall back tax rates
-			if ( empty($zone) && ( self::ALL == $country || self::EUVAT == $country) ) {
+			if ( empty($zone) && ( self::ALL == $country ) ) {
 				$fallbacks[] = $setting;
 				continue;
 			}
@@ -146,6 +146,8 @@ class ShoppTax {
 		foreach ( $unapply as $key )
 			$rates[ $key ]->amount = $rates[ $key ]->total = null;
 
+		if ( empty($settings) ) $rates = array();
+
 		$rates = apply_filters( 'shopp_cart_taxrate', $rates ); // @deprecated Use shopp_tax_rates
 		$rates = apply_filters( 'shopp_tax_rates', $rates );
 
@@ -162,7 +164,8 @@ class ShoppTax {
 	 **/
 	protected function taxcountry ( string $country ) {
 		if ( empty($country) ) return false;
-		return apply_filters('shopp_tax_country', ( $this->address['country'] == $country || self::ALL == $country ),  $this->address['country'], $country);
+		$EU = self::EUVAT == $country && in_array($this->address['country'], Lookup::country_euvat());
+		return apply_filters('shopp_tax_country', ( self::ALL == $country || $EU || $this->address['country'] == $country ),  $this->address['country'], $country);
 	}
 
 	/**
@@ -241,8 +244,6 @@ class ShoppTax {
 		return $this->address;
 	}
 
-
-
 	/**
 	 * Sets the taxable location (address) for matching tax rates
 	 *
@@ -254,7 +255,7 @@ class ShoppTax {
 	 * @param string $locale (optional) The locale name
 	 * @return array An associative array containing the country, zone and locale
 	 **/
-	public function location ( string $country = null, string $state = null, string $locale = null ) {
+	public function location ( $country = null, $state = null, $locale = null ) {
 
 		$address = apply_filters('shopp_taxable_address', array(
 			'country' => $country,
@@ -262,9 +263,37 @@ class ShoppTax {
 			'locale' => $locale
 		));
 
-		$this->address = array_merge($this->address, array_filter($address));
+		$this->address = array_merge($this->address, array_filter($address, create_function('$e', 'return ! is_null($e);')));
 
 		return $this->address;
+	}
+
+	public static function baserates ( $Item = null ) {
+		// Get base tax rate
+		$base = shopp_setting('base_operations');
+		$BaseTax = new ShoppTax;
+		$BaseTax->location($base['country'], false, false);
+
+		// Calculate the deduction
+		$baserates = array();
+		$BaseTax->rates($baserates, $BaseTax->item($Item));
+
+		return (array)$baserates;
+	}
+
+	public static function adjustment ( $rates ) {
+
+		if ( ! shopp_setting_enabled('tax_inclusive') ) return 1;
+
+		$baserates = ShoppTax::baserates($this);
+		$baserate = reset($baserates);
+		$appliedrate = reset($rates);
+
+		$baserate = isset($baserate->rate) ? $baserate->rate : 0;
+		$appliedrate = isset($appliedrate->rate) ? $appliedrate->rate : 0;
+
+		return 1 + ($baserate - $appliedrate);
+
 	}
 
 	/**

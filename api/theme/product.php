@@ -1488,18 +1488,11 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 		foreach ( $levels as $level )
 			$$level = isset($O->{$level}[ $property ]) ? $O->{$level}[ $property ] : false;
 
-		$inclusivetax = self::_inclusive_taxes($O);
-		if ( isset($taxoption) ) $taxoption = Shopp::str_true( $taxoption );
+		$taxrates = Shopp::taxrates($O);
 
-		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
-		// If the 'taxes' option is specified and the item either has inclusive taxes that apply,
-		// or the 'taxes' option is forced on (but not both) then handle taxes by either adding or excluding taxes
-		// This is an exclusive or known as XOR, the lesser known brother of Thor that gets left out of the family get togethers
-		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
-			$taxrates = Shopp::taxrates($O);
-			foreach ( $levels as $level )
-				$$level = self::_taxed($$level, $O, isset($O->{$level}[ $property . '_tax' ]), $taxoption, $taxrates);
-		}
+		foreach ( $levels as $level )
+			$$level = self::_taxed($$level, $O, isset($O->{$level}[ $property . '_tax' ]) ? $O->{$level}[ $property . '_tax' ] : true, $taxoption, $taxrates);
+
 
 		return array($min, $max);
 	}
@@ -1518,11 +1511,23 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 	 * @return float The amount with tax added or tax excluded
 	 **/
 	private static function _taxed ( $amount, ShoppProduct $O, $istaxed, $taxoption = null, array $taxrates = array() ) {
-		if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
-
 		if ( ! $istaxed ) return $amount;
 
+		if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
+
 		$inclusivetax = self::_inclusive_taxes($O);
+		if ( isset($taxoption) ) $taxoption = Shopp::str_true( $taxoption );
+
+		if ( $inclusivetax ) {
+			$adjustment = ShoppTax::adjustment($taxrates);
+			if ( 1 != $adjustment )
+				return (float) ($amount / $adjustment);
+		}
+
+		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
+		// If the 'taxes' option is specified and the item either has inclusive taxes that apply,
+		// or the 'taxes' option is forced on (but not both) then handle taxes by either adding or excluding taxes
+		// This is an exclusive or known as XOR, the lesser known brother of Thor that gets left out of the family get togethers
 		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
 
 			if ( $taxoption )

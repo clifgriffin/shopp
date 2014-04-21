@@ -169,7 +169,7 @@ class ShoppCartItem {
 
 		if ( shopp_setting_enabled('taxes') ) {
 			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
-			$this->istaxed = ( $this->taxable > 0 );
+			$this->istaxed =  array_sum($this->taxable) > 0 ;
 			$this->includetax = shopp_setting_enabled('tax_inclusive');
 			if ( isset($Product->excludetax) && Shopp::str_true($Product->excludetax) )
 				$this->includetax = false;
@@ -929,9 +929,28 @@ class ShoppCartItem {
 		$taxable = (float) array_sum($_);
 		$taxableqty = ( $this->bogof && $this->bogof != $this->quantity ) ? $this->quantity - $this->bogof : $this->quantity;
 
-		$Tax->rates($this->taxes, $Tax->item($this) );
+
+		$Tax->rates($this->taxes, $Tax->item($this));
+
 		$this->unittax = ShoppTax::calculate($this->taxes, $taxable);
 		$this->tax = $Tax->total($this->taxes, (int) $taxableqty);
+
+		// Handle inclusive tax price adjustments for non-EU markets or alternate tax rate markets
+		$adjustment = ShoppTax::adjustment($this->taxes);
+		if ( 1 != $adjustment ) {
+
+			if ( ! isset($this->taxprice) )
+				$this->taxprice = $this->unitprice;
+
+			// Modify the unitprice from the original tax inclusive price and update the discounted price
+			$this->unitprice = ($this->taxprice / $adjustment);
+			$this->priced = ( $this->unitprice - $this->discount );
+
+		} elseif ( isset($this->taxprice) ) { // Undo tax price adjustments
+			$this->unitprice = $this->taxprice;
+			unset($this->taxprice);
+		}
+
 	}
 
 }
