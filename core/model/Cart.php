@@ -630,8 +630,12 @@ class ShoppCart extends ListFramework {
 		// Apply credits to discount the order
 		$Discounts->credits();
 
+
 		if ( $Discounts->shipping() ) // If shipping discounts changed, recalculate shipping amount
 			$Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Shipping->calculate() ) ) );
+
+		// Ensure taxes are recalculated
+		$Totals->total('tax');
 
 		do_action_ref_array('shopp_cart_retotal', array(&$Totals) );
 

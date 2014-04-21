@@ -255,7 +255,7 @@ class ShoppTax {
 	 * @param string $locale (optional) The locale name
 	 * @return array An associative array containing the country, zone and locale
 	 **/
-	public function location ( string $country = null, string $state = null, string $locale = null ) {
+	public function location ( $country = null, $state = null, $locale = null ) {
 
 		$address = apply_filters('shopp_taxable_address', array(
 			'country' => $country,
