@@ -1801,7 +1801,7 @@ class SearchResults extends SmartCollection {
 /**
  * A smart collection for grouping products using multiple WordPress taxonomies
  *
- * @todo Move support for this to the ProductCollection/ProductTaxonomy class
+ * @deprecated Multiple taxonomy support is enabled across all collections
  *
  * @author Jonathan Davis
  * @since 1.2
@@ -2048,41 +2048,49 @@ class AlsoBoughtProducts extends SmartCollection {
 		$Cart = $Order->Cart;
 
 		// Use the current product is available
-		if (!empty($Product->id))
-			$this->product = ShoppProduct();
+		if ( ! empty($Product->id) )
+			$this->product = $Product;
 
 		// Or load a product specified
-		if (isset($options['product'])) {
-			if ($options['product'] == "recent-cartitem") { 			// Use most recently added item in the cart
+		if ( ! empty($options['product']) ) {
+			if ( 'recent-cartitem' == $options['product'] ) { 			// Use most recently added item in the cart
 				$this->product = new ShoppProduct($Cart->added()->product);
 			} elseif (preg_match('/^[\d+]$/',$options['product'])) {	// Load by specified id
 				$this->product = new ShoppProduct($options['product']);
 			} else {
-				$this->product = new ShoppProduct($options['product'],'slug'); // Load by specified slug
+				$this->product = new ShoppProduct($options['product'], 'slug'); // Load by specified slug
 			}
 		}
 
 		if ( empty($this->product->id) ) {
 			$loading = compact('where');
-			$this->loading = array_merge($options, $this->loading);
+			$this->loading = array_merge($options, $loading);
 			return;
 		}
 
 		$this->name = Shopp::__('Customers that bought &quot;%s&quot; also bought&hellip;', $this->product->name);
 
-		// @todo Add WP_Cache support since this is a pretty expensive query
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
-		$matches = sDB::query("SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
-						FROM (
-							SELECT n1.product AS p1,n2.product AS p2,SUM(n1.quantity) AS sum1,SUM(n2.quantity) AS sum2,
-								SUM(n1.quantity * n1.quantity) AS sum1sq,SUM(n2.quantity * n2.quantity) AS sum2sq,
-								SUM(n1.quantity * n2.quantity) AS psum,COUNT(*) AS n
-							FROM $purchased AS n1
-							LEFT JOIN $purchased AS n2 ON n1.purchase = n2.purchase
-							WHERE n1.product != n2.product
-							GROUP BY n1.product,n2.product
-						) AS step1
-						ORDER BY r DESC, n DESC",'array','col','p2');
+		$query = "SELECT  p2,((psum - (sum1 * sum2 / n)) / sqrt((sum1sq - pow(sum1, 2.0) / n) * (sum2sq - pow(sum2, 2.0) / n))) AS r, n
+								FROM (
+									SELECT n1.product AS p1,n2.product AS p2,SUM(n1.quantity) AS sum1,SUM(n2.quantity) AS sum2,
+										SUM(n1.quantity * n1.quantity) AS sum1sq,SUM(n2.quantity * n2.quantity) AS sum2sq,
+										SUM(n1.quantity * n2.quantity) AS psum,COUNT(*) AS n
+									FROM $purchased AS n1
+									LEFT JOIN $purchased AS n2 ON n1.purchase = n2.purchase
+									WHERE n1.product != n2.product
+									GROUP BY n1.product,n2.product
+								) AS step1
+								ORDER BY r DESC, n DESC";
+
+		$cachehash = 'alsobought_' . md5($query);
+		$cached = wp_cache_get($cachehash, 'shopp_collection_alsobought');
+		if ( $cached ) $matches = $cached;
+		else {
+			$matches = sDB::query($query, 'array', 'col', 'p2');
+			wp_cache_set($cachehash, $matches, 'shopp_collection_alsobought');
+		}
+
 		if ( empty($matches) ) {
 			$loading = compact('where');
 			$this->loading = array_merge($options, $loading);
