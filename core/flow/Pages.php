@@ -174,6 +174,9 @@ class ShoppPage {
 		return get_class_property($classname, 'name');
 	}
 
+	public function head () {
+		/* Implemented in concrete classes */
+	}
 
 	public function pagetemplate () {
 		$classname = get_class($this);
@@ -235,6 +238,7 @@ class ShoppPage {
 		add_filter('body_class', array($this, 'styleclass'));
 		add_filter('get_edit_post_link', array($this, 'editlink'));
 		add_filter('get_edit_term_link', array($this, 'editlink'));
+		add_filter('wp_head', array($this, 'head'), 20);
 		add_filter('the_content', array($this, 'content'), 20);
 		add_filter('the_excerpt', array($this, 'content'), 20);
 	}
@@ -612,6 +616,16 @@ class ShoppCheckoutPage extends ShoppPage {
 		$options = array_merge($defaults, $options);
 
 		parent::__construct($options);
+	}
+
+	public function head () {
+		?>
+		<script type="text/javascript">
+		//<![CDATA[
+			document.body.className += ' js-on';
+		//]]>
+		</script>
+<?php
 	}
 
 	public function content ($content) {
