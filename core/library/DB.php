@@ -42,9 +42,10 @@ class sDB extends SingletonFramework {
 		'date' 		=> array('date', 'time', 'year')
 	);
 
-	public $results = array();
-	public $queries = array();
-	public $dbh = false;
+	public $results = array(); // @deprecated No longer used
+	public $queries = array(); // A runtime log of queries that have been run
+	public $api = false;       // The DB API engine instance
+	public $dbh = false;       // The
 	public $found = false;
 
 	/**
@@ -58,11 +59,14 @@ class sDB extends SingletonFramework {
 	 * @return void
 	 **/
 	protected function __construct () {
-		global $wpdb;
 
-		if ( isset($wpdb->dbh) ) {
-			$this->dbh = $wpdb->dbh;
-			$this->mysql = mysql_get_server_info();
+		if ( isset($GLOBALS['wpdb']) )
+			$this->wpdb();
+		else $this->connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+
+		if ( empty($this->api) ) {
+			$this->error("Could not load a valid Shopp database engine.");
+			return;
 		}
 
 	}
@@ -94,21 +98,70 @@ class sDB extends SingletonFramework {
 	}
 
 	/**
+	 * Tethers an available WPDB connection
+	 *
+	 * @since 1.3.3
+	 *
+	 * @return void
+	 **/
+	protected function wpdb () {
+		global $wpdb;
+
+		if ( $wpdb->check_connection() ) {
+
+			if ( ! isset($wpdb->use_mysqli) || ! $wpdb->use_mysqli )
+				$this->api = new ShoppMySQLEngine();
+			else $this->api = new ShoppMySQLiEngine();
+
+			$this->api->tether($wpdb->dbh);
+
+		}
+
+	}
+
+	/**
+	 * Sets up the appropriate database engine
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	protected function engine () {
+		if ( ! function_exists('mysqli_connect') )
+			$this->api = new ShoppMySQLEngine();
+		else $this->api = new ShoppMySQLiEngine();
+	}
+
+	/**
 	 * Connects to the database server
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
+	 * @param string $host The host name of the server
 	 * @param string $user The database username
 	 * @param string $password The database password
 	 * @param string $database The database name
-	 * @param string $host The host name of the server
 	 * @return void
 	 **/
-	public function connect ($user, $password, $database, $host) {
-		$this->dbh = @mysql_connect($host, $user, $password);
-		if ( ! $this->dbh ) trigger_error("Could not connect to the database server '$host'.");
-		else $this->db($database);
+	protected function connect ( $host, $user, $password, $database ) {
+
+		$this->engine();
+
+		if ( $this->api->connect($host, $user, $password) )
+			$this->db($database);
+		else $this->error("Could not connect to the database server '$host'.");
+
+	}
+
+	/**
+	 * Database system initialization error handler
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	protected function error ( $message ) {
+		trigger_error($message);
 	}
 
 	/**
@@ -120,10 +173,10 @@ class sDB extends SingletonFramework {
 	 * @return boolean
 	 **/
 	public function reconnect () {
-		if ( mysql_ping($this->dbh) ) return true;
+		if ( $this->api->ping() ) return true;
 
-		@mysql_close($this->dbh);
-		$this->connect(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
+		$this->api->close($this->dbh);
+		$this->connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 		if ( $this->dbh ) {
 			global $wpdb;
 			$wpdb->dbh = $this->dbh;
@@ -141,8 +194,9 @@ class sDB extends SingletonFramework {
 	 * @return void
 	 **/
 	public function db ( $database ) {
-		if( ! @mysql_select_db($database, $this->dbh) )
-			trigger_error("Could not select the '$database' database.");
+		if ( ! $this->api->select($database) )
+			$this->error("Could not select the '$database' database.");
+
 	}
 
 	/**
@@ -325,12 +379,12 @@ class sDB extends SingletonFramework {
 
 		if ( SHOPP_QUERY_DEBUG ) $timer = microtime(true);
 
-		$result = @mysql_query($query, $db->dbh);
+		$result = $db->api->query($query);
 
 		if ( SHOPP_QUERY_DEBUG ) $db->queries[] = array($query, microtime(true) - $timer, sDB::caller());
 
 		// Error handling
-		if ( $db->dbh && $error = mysql_error($db->dbh) ) {
+		if ( $db->dbh && $error = $db->api->error() ) {
 			shopp_add_error( sprintf('Query failed: %s - DB Query: %s', $error, str_replace("\n", "", $query) ), SHOPP_DB_ERR);
 			return false;
 		}
@@ -339,16 +393,16 @@ class sDB extends SingletonFramework {
 
 		// Handle special cases
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i", $query) ) {
-			$db->affected = mysql_affected_rows();
+			$db->affected = $db->api->affected();
 			if ( preg_match("/^\\s*(insert|replace) /i", $query) ) {
-				$insert = @mysql_fetch_object( @mysql_query("SELECT LAST_INSERT_ID() AS id", $db->dbh) );
+				$insert = $db->api->object( $db->api->query("SELECT LAST_INSERT_ID() AS id") );
 				return (int)$insert->id;
 			}
 
 			if ( $db->affected > 0 ) return $db->affected;
 			else return true;
 		} elseif ( preg_match("/ SQL_CALC_FOUND_ROWS /i", $query) ) {
-			$rows = @mysql_fetch_object( @mysql_query("SELECT FOUND_ROWS() AS found", $db->dbh) );
+			$rows = $db->api->object( $db->api->query("SELECT FOUND_ROWS() AS found") );
 		}
 
 		// Default data processing
@@ -364,11 +418,11 @@ class sDB extends SingletonFramework {
 
 		// Process each row through the record processing callback
 		$records = array();
-		while ( $row = @mysql_fetch_object($result) )
+		while ( $row = $db->api->object($result) )
 			call_user_func_array($callback, array_merge( array(&$records, &$row), $args) );
 
 		// Free the results immediately to save memory
-		@mysql_free_result($result);
+		$db->api->free();
 
 		// Save the found count if it is present
 		if ( isset($rows->found) ) $db->found = (int) $rows->found;
@@ -660,6 +714,146 @@ if ( ! class_exists('DB',false) ) {
 		}
 
 	}
+}
+
+/**
+ * The interface for Shopp DB engines
+ *
+ * @since 1.3.3
+ * @package sDB
+ **/
+interface ShoppDBInterface {
+
+	public function connect ( $host, $user, $password );
+	public function tether ( $connection );
+	public function db ( $database );
+	public function ping ();
+	public function close ();
+	public function query ( $query );
+	public function error ();
+	public function affected ();
+	public function object ( $results = null );
+	public function free ();
+}
+
+/**
+ * Implements the original PHP MySQL extension
+ *
+ * @author Jonathan Davis
+ * @since 1.3.3
+ * @package sDB
+ **/
+class ShoppMySQLEngine implements ShoppDBInterface {
+
+	private $connection;
+	private $results;
+
+	public function tether ( $connection ) {
+		$this->connection = $connection;
+	}
+
+	public function connect ( $host, $user, $password ) {
+		$this->connection = @mysql_connect($host, $user, $password);
+		return $this->connection;
+	}
+
+	public function db ( $database ) {
+		return @mysql_select_db($database, $this->connection);
+	}
+
+	public function ping () {
+		return mysql_ping($this->connection);
+
+	}
+
+	public function close () {
+		return @mysql_close($this->connection);
+	}
+
+	public function query ( $query ) {
+		$this->result = @mysql_query($query, $this->connection);
+		return $this->result;
+	}
+
+	public function error () {
+		return mysql_error($this->connection);
+	}
+
+	public function affected () {
+		return mysql_affected_rows($this->connection);
+	}
+
+	public function object ( $results = null ) {
+		if ( empty($results) ) $results = $this->results;
+		if ( ! is_resource($results) ) return false;
+		return @mysql_fetch_object($results);
+	}
+
+	public function free () {
+		if ( ! is_resource($this->result) ) return false;
+		return mysql_free_result($this->result);
+	}
+
+}
+
+/**
+ * Implements the PHP mysqli extension
+ *
+ * @since 1.3.3
+ * @package sDB
+ **/
+class ShoppMySQLiEngine implements ShoppDBInterface {
+
+	private $connection;
+	private $results;
+
+	public function tether ( $connection ) {
+		$this->connection = $connection;
+	}
+
+	public function connect ( $host, $user, $password ) {
+		$this->connection = new mysqli();
+		@$this->connection->real_connect($host, $user, $password);
+		return $this->connection;
+	}
+
+	public function db ( $database ) {
+		return @$this->connection->select_db($database);
+	}
+
+	public function ping () {
+		return $this->connection->ping();
+
+	}
+
+	public function close () {
+		return @$this->connection->close();
+	}
+
+	public function query ( $query ) {
+		$this->results = @$this->connection->query($query);
+		return $this->results;
+	}
+
+	public function error () {
+		return $this->connection->error;
+	}
+
+	public function affected () {
+		return $this->connection->affected_rows;
+	}
+
+	public function object ( $results = null ) {
+		if ( empty($results) ) $results = $this->results;
+		if ( ! is_a($results, 'mysqli_result') ) return false;
+		return $results->fetch_object();
+	}
+
+	public function free () {
+		if ( ! is_a($this->results, 'mysqli_result') ) return false;
+		return $this->results->free();
+	}
+
 }
 
 /**
