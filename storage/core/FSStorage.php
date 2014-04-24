@@ -6,7 +6,7 @@
  *
  * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited, February 18, 2010
+ * @copyright Ingenesis Limited, February 2010-2014
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  * @since 1.1
@@ -32,17 +32,15 @@ class FSStorage extends StorageModule implements StorageEngine {
 	public $path = '';
     public $webroot = '';
 
-
 	/**
 	 * FSStorage constructor
-	 *
-	 * @author Jonathan Davis
 	 */
 	public function __construct () {
 		parent::__construct();
 		$this->name = __('File system','Shopp');
         $this->webroot = apply_filters('shopp_fsstorage_webroot', $_SERVER['DOCUMENT_ROOT']);
 	}
+
 
 	public function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
@@ -163,7 +161,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 			// Use 90% of availble memory for read buffer size, 4K minimum (less chunks, less overhead, faster throughput)
 			$packet = max(4096,apply_filters('shopp_fsstorage_download_read_buffer',floor($memory*0.9)));
 			$packet = ( $packet > 8192 ) ? 8192 : $packet;
-			
+
 			while(!feof($file) && connection_status() == 0) {
 				$buffer = fread($file, $packet);
 				echo $buffer;	// Output
@@ -299,17 +297,26 @@ class FSStorage extends StorageModule implements StorageEngine {
 	 * @return string | bool
 	 */
 	protected function finddirect ( $uri ) {
-		// The web server's document root
-		$webroot = $this->webroot;
+		$paths = array_map( // Normalize directory separators as URL-compliant forward-slashes
+			array('self', 'sanitize'),
+			array(
+				// The web server's document root
+				'webroot' => $this->webroot,
 
-		// The base directory of WordPress
-		$wpdir = apply_filters( 'shopp_fsstorage_homedir', ABSPATH );
+				// The base directory of WordPress
+				'wpdir' => apply_filters( 'shopp_fsstorage_homedir', ABSPATH ),
+
+				// Obtain the storage path or bail out early if it is not accessible/is invalid
+				'storagepath' => $this->storagepath()
+			)
+		);
+		extract($paths, EXTR_SKIP);
+
+		// Obtain the storage path or bail out early if it is not accessible/is invalid
+		if ( ! $storagepath ) return false;
 
 		// The base URL (home URL) of the site
 		$baseurl = untrailingslashit( apply_filters( 'shopp_fsstorage_homeurl', get_option( 'home' ) ) );
-
-		// Obtain the storage path or bail out early if it is not accessible/is invalid
-		if ( ! ( $storagepath = $this->storagepath() ) ) return false;
 
 		// Ensure the file exists
 		if ( ! file_exists( $storagepath . "/$uri" ) ) return false;
@@ -325,8 +332,9 @@ class FSStorage extends StorageModule implements StorageEngine {
 		}
 
 		// Determine if the storage path is under the WordPress directory and if so use it as the canonical webroot
-		if ( false !== strpos($storagepath, $wpdir) && false === strpos($storagepath, $webroot) )
+		if ( false !== strpos($storagepath, $wpdir) && false === strpos($storagepath, $webroot) ) {
 			$webroot = $wpdir;
+		}
 
 		// Supposing the image directory isn't the WP root, append the trailing component
 		if ( $storagepath !== $webroot ) {
@@ -357,11 +365,12 @@ class FSStorage extends StorageModule implements StorageEngine {
      * into a single directly accessible URL.
      */
     protected function set_direct_url() {
-        if (property_exists($this, 'uri')) $this->direct_url = $this->base_url.$this->uri;
+        if ( property_exists($this, 'uri') )
+			$this->direct_url = $this->base_url . $this->uri;
     }
 
     static private function sanitize ( $path ) {
-		return str_replace('\\', '/', $path);
+		return str_replace(DIRECTORY_SEPARATOR, '/', $path);
 	}
 
 } // END class FSStorage
