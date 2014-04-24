@@ -463,10 +463,16 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			$_['item_number'] = $Subscription->product;
 			$_['item_name'] = $Subscription->name . ( ( ! empty( $Subscription->option->label ) ) ? ' (' . $Subscription->option->label . ')' : '' );
 
+			$trial_discounts = apply_filters('shopp_paypalstandard_discount_trials', false);
+
 			// Trial pricing
 			if ( $Subscription->has_trial() ) {
 				$trial = $Subscription->trial();
 				$trial['period'] = strtoupper($trial['period']);
+				$trialprice = $this->amount( $trial['price'] );
+
+				if ( $this->amount('discount') > 0 && $trial_discounts )
+					$trialprice -= $this->amount('discount');
 
 				// normalize trial interval
 				$trial['interval'] = min( max( $trial['interval'], $tranges[$trial['period']]['min'] ), $tranges[$trial['period']]['max'] );
@@ -474,8 +480,19 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				$_['a1']	= $this->amount( $trial['price'] );
 				$_['p1']	= $trial['interval'];
 				$_['t1']	= $trial['period'];
+			} elseif ( $this->amount('discount') > 0 && $trial_discounts ) {
+				// When no trial discounts are created, add a discount to a trial offer using
+				// the interval and period of the normal subscription, but at a discounted price
+				$_['a1']	= $this->amount( $Subscription->subprice ) - $this->amount('discount');
+				$_['p1']	= $recurring['interval'];
+				$_['t1']	= $recurring['period'];
 			}
-			$_['a3']	= $this->amount( $Subscription->subprice );
+
+			$subprice = $this->amount( $Subscription->subprice );
+
+			if ( $this->amount('discount') > 0 && ! $trial_discounts )
+				$subprice -= $this->amount('discount');
+			$_['a3']	= $subprice;
 			$_['p3']	= $recurring['interval'];
 			$_['t3']	= $recurring['period'];
 
