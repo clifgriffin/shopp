@@ -38,12 +38,11 @@ class CustomersReport extends ShoppReportFramework implements ShoppReport {
 
 		$query = "SELECT $id AS id,
 							CONCAT(c.firstname,' ',c.lastname) AS customer,
-							COUNT(DISTINCT p.id) AS sold,
+							SUM( (SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS sold,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.total) AS grossed
-					FROM $customer_table as c
-					JOIN $purchase_table AS o ON c.id=o.customer
-					JOIN $purchased_table AS p ON p.purchase=o.id
+					FROM $purchase_table as o
+					INNER JOIN $customer_table AS c ON c.id=o.customer
 					WHERE $where
 					GROUP BY $id ORDER BY $ordercols";
 

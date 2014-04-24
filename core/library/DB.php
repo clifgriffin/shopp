@@ -107,16 +107,13 @@ class sDB extends SingletonFramework {
 	protected function wpdb () {
 		global $wpdb;
 
-		if ( $wpdb->check_connection() ) {
+		if ( empty($wpdb->dbh) ) return;
 
-			if ( ! isset($wpdb->use_mysqli) || ! $wpdb->use_mysqli )
-				$this->api = new ShoppMySQLEngine();
-			else $this->api = new ShoppMySQLiEngine();
+		if ( ! isset($wpdb->use_mysqli) || ! $wpdb->use_mysqli )
+			$this->api = new ShoppMySQLEngine();
+		else $this->api = new ShoppMySQLiEngine();
 
-			$this->api->tether($wpdb->dbh);
-
-		}
-
+		$this->api->tether($wpdb->dbh);
 	}
 
 	/**
