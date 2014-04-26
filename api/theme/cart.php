@@ -60,6 +60,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		'totalquantity' => 'total_quantity',
 		'updatebutton' => 'update_button',
 		'url' => 'url',
+		'hassavings' => 'has_savings',
+		'savings' => 'savings',
 
 		/* Deprecated tag names - do not use */
 		'haspromos' => 'has_discounts',
@@ -511,9 +513,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 	// Check if any of the items in the cart are on sale
 	public static function has_savings ( $result, $options, $O ) {
-		// loop thru cart looking for $Item->sale == "on"
+		// loop thru cart looking for $Item->sale == "on" or "1" etc
 		foreach( $O as $item ) {
-			if ( 'on' == $item->sale ) return true;
+			if ( str_true( $item->sale ) ) return true;
 		}
 
 		return false;
