@@ -977,6 +977,7 @@ class ShoppOrderDiscount {
 			$discounts = array();
 			foreach ( $this->items as $id => $unitdiscount ) {
 				$Item = $Cart->get($id);
+				if ( empty($Item) ) continue;
 
 				if ( self::BOGOF == $this->type() ) {
 					if ( ! is_array( $Item->bogof) ) $Item->bogof = array();
