@@ -973,11 +973,14 @@ class ShoppOrderDiscount {
 		}
 
 		if ( ! empty($this->items) ) {
-
+			$removed = array();
 			$discounts = array();
 			foreach ( $this->items as $id => $unitdiscount ) {
 				$Item = $Cart->get($id);
-				if ( empty($Item) ) continue;
+				if ( empty($Item) ) {
+					$removed[] = $id;
+					continue;
+				}
 
 				if ( self::BOGOF == $this->type() ) {
 					if ( ! is_array( $Item->bogof) ) $Item->bogof = array();
@@ -995,6 +998,12 @@ class ShoppOrderDiscount {
 				if ( $Item->discounts - $itemdiscounts > 0 )
 					$discounts[] = ($Item->discounts - $itemdiscounts);
 			}
+
+			foreach ( $removed as $id )
+				unset($this->items[ $id ]);
+
+			if ( empty($this->items) )
+				$this->unapply();
 
 			$this->amount = array_sum($discounts);
 
