@@ -644,6 +644,7 @@ class ShoppOrder {
 	public function success () {
 
 		$this->purchase = $this->inprogress;
+		ShoppPurchase(new ShoppPurchase($this->purchase));
 		$this->inprogress = false;
 
 		do_action('shopp_order_success', ShoppPurchase());
