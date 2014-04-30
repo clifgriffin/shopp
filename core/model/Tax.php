@@ -203,7 +203,7 @@ class ShoppTax {
 				$match = $this->Item->taxrule($rule);
 			} elseif ( is_a($this->Customer, 'ShoppCustomer') && false !== strpos($rule['p'],'customer') ) {
 				switch ( $rule['p'] ) {
-					case "customer-type": $match = strtolower($rule['v']) == strtolwer($this->Customer->type); break;
+					case "customer-type": $match = strtolower($rule['v']) == strtolower($this->Customer->type); break;
 				}
 			}
 
