@@ -1029,6 +1029,11 @@ class ShoppProduct extends WPShoppObject {
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		wp_delete_object_term_relationships($id, get_object_taxonomies(ShoppProduct::$posttype));
+		
+		// Delete product meta (dimensions)
+		$table_meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+		$table_price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
+		sDB::query("DELETE FROM $table_meta WHERE parent IN ( SELECT id FROM $table_price WHERE product='$id' )");
 
 		// Delete prices
 		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
