@@ -225,7 +225,7 @@ class ShoppOrder {
 		$locale = empty($this->Billing->locale) ? null : $this->Billing->locale;
 
 		$this->Tax->location($Address->country, $Address->state, $locale); // Update the ShoppTax working location
-
+		$this->Tax->customer($this->Customer);
 	}
 
 	/**

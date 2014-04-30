@@ -197,21 +197,23 @@ class ShoppTax {
 		$apply = false;
 		$matches = 0;
 
-		foreach ($rules as $rule) {
+		foreach ( $rules as $rule ) {
 			$match = false;
-
-			if ( false !== $this->Item && false !== strpos($rule['p'],'product') ) {
+			if ( is_a($this->Item, 'ShoppTaxableItem') && false !== strpos($rule['p'],'product') ) {
 				$match = $this->Item->taxrule($rule);
-			} elseif ( false !== strpos($rule['p'],'customer')) {
-				$match = $this->Customer->taxrule($rule);
+			} elseif ( is_a($this->Customer, 'ShoppCustomer') && false !== strpos($rule['p'],'customer') ) {
+				switch ( $rule['p'] ) {
+					case "customer-type": $match = strtolower($rule['v']) == strtolower($this->Customer->type); break;
+				}
 			}
 
-			if ($match) $matches++;
+			if ( $match ) $matches++;
 		}
-		if ( 'any' == $logic && $matches > 0) $apply = true;
+
+		if ( 'any' == $logic && $matches > 0 ) $apply = true;
 		if ( 'all' == $logic && count($rules) == $matches ) $apply = true;
 
-		return apply_filters('shopp_tax_rate_match_rule',$apply,$rule,$this);
+		return apply_filters('shopp_tax_rate_match_rule', $apply, $rule, $this);
 	}
 
 
@@ -266,6 +268,19 @@ class ShoppTax {
 		$this->address = array_merge($this->address, array_filter($address, create_function('$e', 'return ! is_null($e);')));
 
 		return $this->address;
+	}
+
+	/**
+	 * Sets the working customer
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.3
+	 *
+	 * @param ShoppCustomer	$Customer The session customer to use for Customer rule conditions
+	 * @return void
+	 **/
+	public function customer ( ShoppCustomer $Customer ) {
+		$this->Customer = $Customer;
 	}
 
 	public static function baserates ( $Item = null ) {
