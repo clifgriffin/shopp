@@ -614,7 +614,7 @@ class ShoppCart extends ListFramework {
 		do_action('shopp_cart_item_totals', $Totals); // Update cart item totals
 
 		$items = $this->keys(); // Use local array for iterating
-		foreach ( $items as $itemid ) { // Allow other code to interate the cart in this loop
+		foreach ( $items as $itemid ) { // Allow other code to iterate the cart in this loop
 			$Item = $this->get($itemid);
 			$Item->totals();
 		}
