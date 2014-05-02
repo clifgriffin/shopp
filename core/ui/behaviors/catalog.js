@@ -216,7 +216,7 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 	order = (!order)?'normal':order;
 	_.order = ($.inArray(order,ordering) != -1)?order:'normal';
 
-	_.slides = $(_.element).find('li:not(li.clear)').hide().css('visibility','visible');;
+	_.slides = $(_.element).find('li:not(li.clear)').hide().css('visibility','visible');
 	_.total = _.slides.length;
 	_.slide = 0;
 	_.shuffling = new Array();
