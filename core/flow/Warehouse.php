@@ -525,7 +525,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			$inventory_menu = '<select name="sl">'.Shopp::menuoptions($inventory_filters, $sl, true) . '</select>';
 		}
 
-		if ( 'off' == shopp_setting('inventory') ) unset($subs['inventory']);
+		if ( 'off' == shopp_setting('inventory') ) unset($this->subs['inventory']);
 		switch ($view) {
 			case 'inventory':
 				if ( shopp_setting_enabled('inventory') ) $is_inventory = true;
