@@ -2275,7 +2275,7 @@ abstract class ShoppCore {
 	 *
 	 * @return void Description...
 	 **/
-	public function trim_deep ( $value ) {
+	public static function trim_deep ( $value ) {
 
 		if ( is_object($value) ) {
 			$vars = get_object_vars( $value );
