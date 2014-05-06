@@ -153,6 +153,7 @@ class ContentIndex extends ShoppDatabaseObject {
 	 **/
 	function save () {
 		list($content,) = func_get_args();
+		$content = apply_filters('shopp_index_content',$content, $this);
 		if (empty($this->product) || empty($this->type) || empty($content))
 			return false;
 
@@ -160,7 +161,7 @@ class ContentIndex extends ShoppDatabaseObject {
 		if (isset($factoring[$this->type])) $this->factor = $factoring[$this->type];
 		else $this->factor = 1;
 
-		$this->terms = apply_filters('shopp_index_content',$content);
+		$this->terms = $content;
 
 		parent::save();
 	}
