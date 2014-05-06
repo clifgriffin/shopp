@@ -618,14 +618,9 @@ class ShoppCheckoutPage extends ShoppPage {
 		parent::__construct($options);
 	}
 
-	public function head () {
-		?>
-		<script type="text/javascript">
-		//<![CDATA[
-			document.body.className += ' js-on';
-		//]]>
-		</script>
-<?php
+	public function head () {?>
+		<script type="text/javascript">//<![CDATA[ checkout JS-support detection
+			document.documentElement.className += ' js-on'; //]]></script><?php
 	}
 
 	public function content ($content) {
