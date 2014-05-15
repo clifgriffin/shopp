@@ -60,7 +60,7 @@ function shopp_deregister_script( $handle ) {
  *
  * Registers the script if src provided (does NOT overwrite) and enqueues.
 */
-function shopp_enqueue_script( $handle, $src = false, $deps = array(), $ver = false, $in_footer = false ) {
+function shopp_enqueue_script ( $handle, $src = false, $deps = array(), $ver = false, $in_footer = false ) {
 	global $ShoppScripts;
 	if ( !is_a($ShoppScripts, 'ShoppScripts') )
 		$ShoppScripts = new ShoppScripts();
@@ -84,7 +84,7 @@ function shopp_enqueue_script( $handle, $src = false, $deps = array(), $ver = fa
  * @param string $list Optional, defaults to 'queue'. Others values are 'registered', 'queue', 'done', 'to_do'
  * @return bool
  */
-function shopp_script_is( $handle, $list = 'queue' ) {
+function shopp_script_is ( $handle, $list = 'queue' ) {
 	global $ShoppScripts;
 	if ( !is_a($ShoppScripts, 'ShoppScripts') )
 		$ShoppScripts = new ShoppScripts();
@@ -106,17 +106,12 @@ function shopp_script_is( $handle, $list = 'queue' ) {
  * @return void
  **/
 function shopp_dependencies () {
-	global $ShoppScripts,$wp_scripts;
-	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+	global $ShoppScripts, $ShoppStyles;
+
+	if ( ! is_a($ShoppScripts, 'ShoppScripts') )
 		$ShoppScripts = new ShoppScripts();
 
-	foreach ($wp_scripts->queue as $handle) {
-		$deps = $wp_scripts->registered[$handle]->deps;
-		$shoppdeps = array_intersect($deps,array_keys($ShoppScripts->registered));
-		foreach ($shoppdeps as $key => $s_handle) {
-			shopp_enqueue_script($s_handle);
-			array_splice($deps,$key,1);
-		}
-		$wp_scripts->registered[$handle]->deps = $deps;
-	}
+	if ( ! is_a($ShoppStyles, 'ShoppStyles') )
+		$ShoppStyles = new ShoppStyles();
+
 }

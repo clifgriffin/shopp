@@ -603,6 +603,7 @@ ShoppLoader::map(array(
 	'shoppshopperswidget' => '/ui/widgets/shoppers.php',
 	'shoppshortcodes' => '/flow/Pages.php',
 	'shoppstorefront' => '/flow/Storefront.php',
+	'shoppstyles' => '/flow/Styles.php',
 	'shoppsupport' => '/library/Support.php',
 	'shopptagcloudwidget' => '/ui/widgets/tagcloud.php',
 	'shopptax' => '/model/Tax.php',

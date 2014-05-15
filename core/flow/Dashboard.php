@@ -58,7 +58,7 @@ class ShoppAdminDashboard {
 	 * @return void
 	 **/
 	public function styles () {
-		wp_enqueue_style('shopp.dashboard', SHOPP_ADMIN_URI . '/styles/dashboard.css', array(), ShoppVersion::cache(), 'screen');
+		shopp_enqueue_style('dashboard');
 	}
 
 	/**
