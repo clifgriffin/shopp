@@ -29,7 +29,7 @@ class IndexProduct {
 
 	public $Product = false;
 	public $properties = array(
-		'name','prices','summary','description','specs','categories','tags'
+		'name', 'prices', 'summary', 'description', 'specs', 'categories', 'tags'
 	);
 
 	/**
@@ -42,7 +42,7 @@ class IndexProduct {
 	 **/
 	function __construct ($id) {
 		$this->Product = new ShoppProduct($id);
-		$this->Product->load_data(array('prices','specs','categories','tags'));
+		$this->Product->load_data(array('prices', 'specs', 'categories', 'tags'));
 	}
 
 	/**
@@ -54,38 +54,38 @@ class IndexProduct {
 	 * @return void
 	 **/
 	function index () {
-		$properties = apply_filters('shopp_index_product_properties',$this->properties);
-		foreach ($properties as $property) {
-			switch ($property) {
+		$properties = apply_filters('shopp_index_product_properties', $this->properties);
+		foreach ( $properties as $property ) {
+			switch ( $property ) {
 				case "prices":
 					$prices = array();
-					foreach ($this->Product->prices as $price) {
+					foreach ( $this->Product->prices as $price ) {
 						if ($price->type == "N/A") continue; // Skip disabled pricelines
 						$prices[] = "$price->label $price->sku";
 					}
-					$content = join(' ',$prices);
+					$content = join(' ', $prices);
 					break;
 				case "specs":
 					$specs = array();
-					foreach ($this->Product->specs as $Spec)
+					foreach ( $this->Product->specs as $Spec )
 						$specs[] = "$Spec->name $Spec->value";
-					$content = join(' ',$specs);
+					$content = join(' ', $specs);
 					break;
 				case "categories":
 					$categories = array();
-					foreach ($this->Product->categories as $Category)
+					foreach ( $this->Product->categories as $Category )
 						$categories[] = $Category->name;
-					$content = join(' ',$categories);
+					$content = join(' ', $categories);
 					break;
 				case "tags":
 					$tags = array();
-					foreach ($this->Product->tags as $Tag)
+					foreach ( $this->Product->tags as $Tag )
 						$tags[] = $Tag->name;
-					$content = join(' ',$tags);
+					$content = join(' ', $tags);
 					break;
 				default: $content = $this->Product->{$property}; break;
 			}
-			$Indexer = new ContentIndex($this->Product->id,$property);
+			$Indexer = new ContentIndex($this->Product->id, $property);
 			$Indexer->save($content);
 		}
 	}
@@ -112,11 +112,13 @@ class ContentIndex extends ShoppDatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 *
+	 * @param int $product The ID of the indexed product
+	 * @param string $type The type of index to load
 	 * @return void
 	 **/
-	function __construct ($product,$type) {
+	function __construct ( $product, $type ) {
 		$this->init(self::$table);
-		$this->load($product,$type);
+		$this->load($product, $type);
 	}
 
 	/**
@@ -129,13 +131,13 @@ class ContentIndex extends ShoppDatabaseObject {
 	 * @param string $type Type of product property indexed
 	 * @return void
 	 **/
-	function load ($product=false,$type=false) {
+	function load ( $product = false, $type = false ) {
 		$this->product = $product;
 		$this->type = $type;
-		if (empty($product) || empty($type)) return false; // Nothing to load
+		if ( empty($product) || empty($type) ) return false; // Nothing to load
 
 		$r = sDB::query("SELECT id,created FROM $this->_table WHERE product='$product' AND type='$type' LIMIT 1");
-		if (!empty($r->id)) {
+		if ( ! empty($r->id) ) {
 			$this->id = $r->id;
 			$this->created = mktimestamp($r->created);
 			$this->_loaded = true;
@@ -152,23 +154,25 @@ class ContentIndex extends ShoppDatabaseObject {
 	 * @return void
 	 **/
 	function save () {
+
 		list($content,) = func_get_args();
-		$content = apply_filters('shopp_index_content',$content, $this);
-		if (empty($this->product) || empty($this->type) || empty($content))
+		$content = apply_filters('shopp_index_content', $content, $this);
+		if ( empty($this->product) || empty($this->type) || empty($content) )
 			return false;
 
 		$factoring = Lookup::index_factors();
-		if (isset($factoring[$this->type])) $this->factor = $factoring[$this->type];
+		if ( isset($factoring[ $this->type ])) $this->factor = $factoring[ $this->type ];
 		else $this->factor = 1;
 
 		$this->terms = $content;
 
 		parent::save();
+
 	}
 
 } // END class ContentIndex
 
-if ( ! class_exists('SearchParser',false) ):
+if ( ! class_exists('SearchParser', false) ):
 /**
  * SearchParser class
  *
@@ -190,12 +194,12 @@ class SearchParser extends SearchTextFilters {
 	 * @return void
 	 **/
 	function __construct () {
-		add_filter('shopp_search_query',array('SearchParser','MarkupFilter'));
-		add_filter('shopp_search_query',array('SearchParser','CurrencyFilter'));
-		add_filter('shopp_search_query',array('SearchParser','StopFilter'));
-		add_filter('shopp_search_query',array('SearchParser','AccentFilter'));
-		add_filter('shopp_search_query',array('SearchParser','LowercaseFilter'));
-		add_filter('shopp_search_query',array('SearchParser','NormalizeFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'MarkupFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'CurrencyFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'StopFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'AccentFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'LowercaseFilter'));
+		add_filter('shopp_search_query', array('SearchParser', 'NormalizeFilter'));
 	}
 
 	/**
@@ -207,21 +211,21 @@ class SearchParser extends SearchTextFilters {
 	 * @param string $query A search query string
 	 * @return object The price matching object
 	 **/
-	static function PriceMatching ($query) {
+	static function PriceMatching ( $query ) {
 		$pricematch = self::_pricematch_regex();
-		preg_match_all("/$pricematch/",$query,$matches,PREG_SET_ORDER);
-		if (empty($matches)) return false;
+		preg_match_all("/$pricematch/", $query, $matches, PREG_SET_ORDER);
+		if ( empty($matches) ) return false;
 		$_->op = $matches[0][0][0];
-		$_->op = (in_array($_->op,array("<",">")))?$_->op:'';
+		$_->op = ( in_array($_->op, array("<", ">")) ) ? $_->op : '';
 		$_->min = Shopp::floatval($matches[0][1]);
 		$_->max = Shopp::floatval($matches[0][4]);
 		$_->target = $_->min;
-		if ($_->max > 0) $_->op = "-"; // Range matching
+		if ( $_->max > 0 ) $_->op = "-"; // Range matching
 
 		// Roundabout price match
-		if (empty($_->op) && empty($_->max)) {
-			$_->min = $_->target-($_->target/2);
-			$_->max = $_->target+($_->target/2);
+		if ( empty($_->op) && empty($_->max) ) {
+			$_->min = $_->target - ( $_->target / 2 );
+			$_->max = $_->target + ( $_->target / 2 );
 		}
 
 		return $_;
@@ -230,7 +234,7 @@ class SearchParser extends SearchTextFilters {
 }
 endif;
 
-if ( ! class_exists('BooleanParser',false) ):
+if ( ! class_exists('BooleanParser', false) ):
 /**
  * BooleanParser class
  *
@@ -252,20 +256,20 @@ class BooleanParser extends SearchTextFilters {
 	 * @return void
 	 **/
 	function __construct () {
-		add_filter('shopp_boolean_search',array('BooleanParser','MarkupFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','CurrencyFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','AccentFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','StopFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','LowercaseFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','NormalizeFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','StemFilter'));
-		add_filter('shopp_boolean_search',array('BooleanParser','KeywordFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'MarkupFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'CurrencyFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'AccentFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'StopFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'LowercaseFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'NormalizeFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'StemFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'KeywordFilter'));
 	}
 
 }
 endif;
 
-if ( ! class_exists('ShortwordParser',false) ):
+if ( ! class_exists('ShortwordParser', false) ):
 /**
  * ShortwordParser class
  *
@@ -287,19 +291,19 @@ class ShortwordParser extends SearchTextFilters {
 	 * @return void
 	 **/
 	function __construct () {
-		add_filter('shopp_shortword_search',array('ShortwordParser','MarkupFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','CurrencyFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','AccentFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','LowercaseFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','ShortwordFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','StopFilter'));
-		add_filter('shopp_shortword_search',array('ShortwordParser','NormalizeFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'MarkupFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'CurrencyFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'AccentFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'LowercaseFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'ShortwordFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'StopFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'NormalizeFilter'));
 	}
 
 }
 endif;
 
-if ( ! class_exists('ContentParser',false) ):
+if ( ! class_exists('ContentParser', false) ):
 class ContentParser extends SearchTextFilters {
 
 	/**
@@ -311,11 +315,11 @@ class ContentParser extends SearchTextFilters {
 	 * @return void
 	 **/
 	function __construct () {
-		add_filter('shopp_index_content',array('ContentParser','MarkupFilter'));
-		add_filter('shopp_index_content',array('ContentParser','AccentFilter'));
-		add_filter('shopp_index_content',array('ContentParser','LowercaseFilter'));
-		add_filter('shopp_index_content',array('ContentParser','NormalizeFilter'));
-		add_filter('shopp_index_content',array('ContentParser','StemFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'MarkupFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'AccentFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'LowercaseFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'NormalizeFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'StemFilter'));
 	}
 
 } // END class ContentParser
@@ -346,11 +350,11 @@ abstract class SearchTextFilters {
 		$format = Shopp::currency_format();
 		extract($format);
 
-		$pre = ($cpos?''.preg_quote($currency).($symbol?'':'?'):'');
-		$amount = '[\d'.preg_quote($thousands).']+';
-		$fractional = '('.preg_quote($decimals).'\d{'.$precision.'}?)?';
-		$post = (!$cpos?''.preg_quote($currency).($symbol?'':'?'):'');
-		return $pre.$amount.$fractional.$post;
+		$pre = ( $cpos ? '' . preg_quote($currency) . ( $symbol ? '' : '?' ) : '' );
+		$amount = '[\d' . preg_quote($thousands) . ']+';
+		$fractional = '(' . preg_quote($decimals) . '\d{' . $precision . '}?)?';
+		$post = ( ! $cpos ? '' . preg_quote($currency) . ( $symbol ? '' : '?' ) : '' );
+		return $pre . $amount . $fractional . $post;
 	}
 
 	/**
@@ -379,7 +383,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to process
 	 * @return string text with markup tags removed
 	 **/
-	static function MarkupFilter ($text) {
+	static function MarkupFilter ( $text ) {
 		return strip_tags($text);
 	}
 
@@ -392,7 +396,7 @@ abstract class SearchTextFilters {
 	 * @param string $string The text to transpose
 	 * @return string Transposed text
 	 **/
-	static function LowercaseFilter ($text) {
+	static function LowercaseFilter ( $text ) {
 		return strtolower($text);
 	}
 
@@ -408,10 +412,10 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to clean up
 	 * @return string The cleaned text
 	 **/
-	static function StopFilter ($text) {
+	static function StopFilter ( $text ) {
 		$stopwords = Lookup::stopwords();
-		$replacements = implode('|',$stopwords);
-		return preg_replace("/\b($replacements)\b/",'',$text);
+		$replacements = implode('|', $stopwords);
+		return preg_replace("/\b($replacements)\b/", '', $text);
 	}
 
 	/**
@@ -429,16 +433,16 @@ abstract class SearchTextFilters {
 	static function NormalizeFilter ($text) {
 
 		// Collapse hyphenated prefix words
-		$text = preg_replace("/(\s?\w{1,3})\-(\w+)\b/","$1$2",$text);
+		$text = preg_replace("/(\s?\w{1,3})\-(\w+)\b/", "$1$2", $text);
 
 		// Collapse words with periods and commas
-		$text = preg_replace("/[\.\']/",'',$text);
+		$text = preg_replace("/[\.\']/", '', $text);
 
 		// Translate any other non-word characters to spaces
-		$text = preg_replace("/[^\w\d\s\p{L}\_\"]/u",' ',$text);
+		$text = preg_replace("/[^\w\d\s\p{L}\_\"]/u", ' ', $text);
 
 		// Collapse the spaces
-		$text = preg_replace("/\s+/m",' ',$text);
+		$text = preg_replace("/\s+/m", ' ', $text);
 
 		return trim($text);
 	}
@@ -452,8 +456,8 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to convert
 	 * @return string Converted text
 	 **/
-	static function AccentFilter ($text) {
-		if (!function_exists('remove_accents'))
+	static function AccentFilter ( $text ) {
+		if ( ! function_exists('remove_accents') )
 			require( ABSPATH . WPINC . '/formatting.php' );
 		return remove_accents($text);
 	}
@@ -467,23 +471,23 @@ abstract class SearchTextFilters {
 	 * @param string $text The query string to parse
 	 * @return string The boolean search string
 	 **/
-	static function KeywordFilter ($text) {
-		if (!defined('SHOPP_SEARCH_LOGIC')) define('SHOPP_SEARCH_LOGIC','OR');
-		$logic = (strtoupper(SHOPP_SEARCH_LOGIC) == "AND")?"+":"";
+	static function KeywordFilter ( $text ) {
+		if ( ! defined('SHOPP_SEARCH_LOGIC') ) define('SHOPP_SEARCH_LOGIC', 'OR');
+		$logic = strtoupper(SHOPP_SEARCH_LOGIC) == 'AND' ? '+' : '';
 
 		$tokens = array();
-		$token = strtok($text,' ');
-        while ($token) {
+		$token = strtok($text, ' ');
+        while ( $token ) {
             // find double quoted tokens
-            if ($token{0} == '"') {
-				$token .= ' '.strtok('"').'"';
+            if ( '"' == $token{0} ) {
+				$token .= ' ' . strtok('"') . '"';
 				$tokens[] = $token;
 			} else {
 				$tokens[] = "$logic$token*";
 			}
             $token = strtok(' ');
         }
-		return implode(' ',$tokens);
+		return implode(' ', $tokens);
 	}
 
 	/**
@@ -495,9 +499,9 @@ abstract class SearchTextFilters {
 	 * @param string $text The query string to parse
 	 * @return string The shortword search string
 	 **/
-	static function ShortwordFilter ($text) {
-		$text = preg_replace('/\b\w{4,}\b/','',$text);
-		$text = preg_replace('/ +/','|',$text);
+	static function ShortwordFilter ( $text ) {
+		$text = preg_replace('/\b\w{4,}\b/', '', $text);
+		$text = preg_replace('/ +/', '|', $text);
 		return $text;
 	}
 
@@ -510,9 +514,9 @@ abstract class SearchTextFilters {
 	 * @param string $text The search query
 	 * @return string search query without price search
 	 **/
-	static function CurrencyFilter ($text) {
+	static function CurrencyFilter ( $text ) {
 		$pricematch = self::_pricematch_regex();
-		$text = preg_replace("/$pricematch/",'',$text);
+		$text = preg_replace("/$pricematch/", '', $text);
 		return $text;
 	}
 
@@ -525,18 +529,18 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to stem
 	 * @return string The text plus the generated word stems
 	 **/
-	static function StemFilter ($text) {
+	static function StemFilter ( $text ) {
 		// Filter out short words for stemming
-		$source = preg_replace("/\b\w{1,3}\b/",'',$text);
+		$source = preg_replace("/\b\w{1,3}\b/", '', $text);
 		$_ = array();
-		$token = strtok($source,' ');
+		$token = strtok($source, ' ');
 		while ($token) {
 			$stem = PorterStemmer::Stem($token);
-			if ($stem != $token) $_[] = $stem;
+			if ( $stem != $token ) $_[] = $stem;
 			$token = strtok(' ');
 		}
 
-		return !empty($_)?"$text ".join(' ',$_):$text;
+		return ! empty($_) ? "$text " . join(' ', $_) : $text;
 	}
 
 } // END class SearchTextFilters
@@ -566,8 +570,8 @@ class PorterStemmer {
      * @param  string $word Word to stem
      * @return string Stemmed word
      **/
-    public static function Stem ($word) {
-        if (strlen($word) <= 2)
+    public static function Stem ( $word ) {
+        if ( strlen($word) <= 2 )
             return $word;
 
         $word = self::step1ab($word);
@@ -583,9 +587,9 @@ class PorterStemmer {
     /**
      * Step 1
      **/
-    private static function step1ab ($word) {
+    private static function step1ab ( $word ) {
         // Part a
-        if (substr($word, -1) == 's') {
+        if ( substr($word, -1) == 's') {
                self::replace($word, 'sses', 'ss')
             OR self::replace($word, 'ies', 'i')
             OR self::replace($word, 'ss', 'ss')
@@ -593,12 +597,12 @@ class PorterStemmer {
         }
 
         // Part b
-        if (substr($word, -2, 1) != 'e' OR !self::replace($word, 'eed', 'ee', 0)) { // First rule
+        if ( substr($word, -2, 1) != 'e' OR !self::replace($word, 'eed', 'ee', 0) ) { // First rule
             $v = self::$regex_vowel;
 
             // ing and ed
-            if (   preg_match("#$v+#", substr($word, 0, -3)) && self::replace($word, 'ing', '')
-                OR preg_match("#$v+#", substr($word, 0, -2)) && self::replace($word, 'ed', '')) { // Note use of && and OR, for precedence reasons
+            if ( preg_match("#$v+#", substr($word, 0, -3)) && self::replace($word, 'ing', '')
+                OR preg_match("#$v+#", substr($word, 0, -2)) && self::replace($word, 'ed', '') ) { // Note use of && and OR, for precedence reasons
 
                 // If one of above two test successful
                 if (    !self::replace($word, 'at', 'ate')
@@ -629,10 +633,10 @@ class PorterStemmer {
      *
      * @param string $word Word to stem
      **/
-    private static function step1c($word) {
+    private static function step1c ( $word ) {
         $v = self::$regex_vowel;
 
-        if (substr($word, -1) == 'y' && preg_match("#$v+#", substr($word, 0, -1))) {
+        if ( substr($word, -1) == 'y' && preg_match("#$v+#", substr($word, 0, -1)) ) {
             self::replace($word, 'y', 'i');
         }
 
@@ -645,7 +649,7 @@ class PorterStemmer {
      *
      * @param string $word Word to stem
      **/
-    private static function step2($word) {
+    private static function step2 ( $word ) {
         switch (substr($word, -2, 1)) {
             case 'a':
                    self::replace($word, 'ational', 'ate', 0)
@@ -702,8 +706,8 @@ class PorterStemmer {
      *
      * @param string $word String to stem
      **/
-    private static function step3 ($word) {
-        switch (substr($word, -2, 1)) {
+    private static function step3 ( $word ) {
+        switch ( substr($word, -2, 1) ) {
             case 'a':
                 self::replace($word, 'ical', 'ic', 0);
                 break;
@@ -739,8 +743,8 @@ class PorterStemmer {
      *
      * @param string $word Word to stem
      **/
-    private static function step4 ($word) {
-        switch (substr($word, -2, 1)) {
+    private static function step4 ( $word ) {
+        switch ( substr($word, -2, 1) ) {
             case 'a':
                 self::replace($word, 'al', '', 1);
                 break;
@@ -808,7 +812,7 @@ class PorterStemmer {
      *
      * @param string $word Word to stem
      **/
-    private static function step5 ($word) {
+    private static function step5 ( $word ) {
         // Part a
         if (substr($word, -1) == 'e') {
             if (self::m(substr($word, 0, -1)) > 1) {
@@ -841,12 +845,12 @@ class PorterStemmer {
      *                       of the $str string. True does not necessarily mean
      *                       that it was replaced.
      **/
-    private static function replace (&$str, $check, $repl, $m = null) {
+    private static function replace ( &$str, $check, $repl, $m = null ) {
         $len = 0 - strlen($check);
 
-        if (substr($str, $len) == $check) {
+        if ( substr($str, $len) == $check ) {
             $substr = substr($str, 0, $len);
-            if (is_null($m) OR self::m($substr) > $m)
+            if ( is_null($m) OR self::m($substr) > $m )
                 $str = $substr . $repl;
             return true;
         }
@@ -870,7 +874,7 @@ class PorterStemmer {
      * @param  string $str The string to return the m count for
      * @return int         The m count
      **/
-    private static function m ($str) {
+    private static function m ( $str ) {
         $c = self::$regex_consonant;
         $v = self::$regex_vowel;
 
@@ -890,7 +894,7 @@ class PorterStemmer {
      * @param  string $str String to check
      * @return bool        Result
      **/
-    private static function doubleConsonant ($str) {
+    private static function doubleConsonant ( $str ) {
         $c = self::$regex_consonant;
 
         return preg_match("#$c{2}$#", $str, $matches) AND $matches[0]{0} == $matches[0]{1};
@@ -902,7 +906,7 @@ class PorterStemmer {
      * @param  string $str String to check
      * @return bool        Result
      **/
-    private static function cvc ($str) {
+    private static function cvc ( $str ) {
         $c = self::$regex_consonant;
         $v = self::$regex_vowel;
 
