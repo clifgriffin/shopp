@@ -302,6 +302,8 @@ class ShoppCart extends ListFramework {
 			$NewItem = new ShoppCartItem($Product, $Price, $category, $data, $addons);
 			if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 		}
+		
+		do_action('shopp_cart_before_add_item', array($NewItem) );
 
 		$id = $NewItem->fingerprint();
 
