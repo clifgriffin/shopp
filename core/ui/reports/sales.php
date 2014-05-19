@@ -31,7 +31,7 @@ class SalesReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = "$starts < " . self::unixtime('o.created');
 		$where[] = "$ends > " . self::unixtime('o.created');
-		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";;
+		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
 
 		$where = join(" AND ",$where);
 
