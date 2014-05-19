@@ -136,6 +136,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$sub = 'settings';
+		$term_recount = false;
 		if (shopp_setting_enabled('shipping')) $sub = 'rates';
 		if ( isset($_GET['sub']) && in_array( $_GET['sub'],array_keys($this->subscreens) ) )
 			$sub = $_GET['sub'];
