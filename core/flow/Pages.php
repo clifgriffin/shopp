@@ -523,6 +523,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'From: ' . Shopp::email_from( shopp_setting('merchant_email'), shopp_setting('business_name') );
 		$_[] = 'To: ' . $RecoveryCustomer->email;
 		$_[] = 'Subject: ' . $subject;
+		$_[] = 'Content-type: text/html';
 		$_[] = '';
 		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_option('siteurl')) . '</p>';
 		$_[] = '';
@@ -542,7 +543,6 @@ class ShoppAccountPage extends ShoppPage {
 
 		unset($_GET['acct']);
 	}
-
 
 }
 
