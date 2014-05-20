@@ -703,7 +703,7 @@ class ImageSetting extends ShoppMetaObject {
 	 * @param integer $setting The numeric ImageSetting value
 	 * @return string The option name
 	 **/
-	public function fit ( integer $setting ) {
+	public function fit ( $setting ) {
 		if ( isset(self::$fittings[ $setting ]) )
 			return self::$fittings[ $setting ];
 		return self::$fittings[0];
@@ -717,7 +717,7 @@ class ImageSetting extends ShoppMetaObject {
 	 * @param integer $setting The numeric ImageSetting value
 	 * @return integer The option value
 	 **/
-	public function quality ( integer $setting ) {
+	public function quality ( $setting ) {
 		if ( isset(self::$qualities[ $setting ])  )
 			return self::$qualities[ $setting ];
 		return self::$qualities[2];

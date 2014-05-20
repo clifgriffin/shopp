@@ -1496,7 +1496,7 @@ class SmartCollection extends ProductCollection {
 		return Shopp::__('Collection');
 	}
 
-	public static function slugs ( string $class ) {
+	public static function slugs ( $class ) {
 		return apply_filters( 'shopp_' . strtolower($class) . '_collection_slugs', get_class_property($class, 'slugs') );
 	}
 

@@ -345,7 +345,7 @@ class ShoppCart extends ListFramework {
 	 * @param int $item Index of the item in the Cart contents
 	 * @return boolean
 	 **/
-	public function rmvitem ( string $id ) {
+	public function rmvitem ( $id ) {
 		$Item = $this->get($id);
 
 		$Totals = $this->Totals;
@@ -487,7 +487,7 @@ class ShoppCart extends ListFramework {
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
 	 * @return boolean
 	 **/
-	public function change ( string $item, integer $product, integer $pricing, array $addons = array() ) {
+	public function change ( $item, $product, $pricing, array $addons = array() ) {
 
 		// Don't change anything if everything is the same
 		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->price == $pricing) )
@@ -653,7 +653,7 @@ class ShoppCart extends ListFramework {
 	 * @param string $register The name of the register to get an amount for
 	 * @return float The total amount for the register
 	 **/
-	public function total ( string $register = null, string $entry = null ) {
+	public function total ( $register = null, $entry = null ) {
 
 		// Setup totals counter
 		if ( false === $this->Totals ) $this->Totals = new OrderTotals();

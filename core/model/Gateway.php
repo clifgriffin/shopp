@@ -869,7 +869,7 @@ class PayCard {
 	 * @param string $value The masking character to use
 	 * @return string The masked PAN value
 	 **/
-	public static function mask ( $value, string $mask = null ) {
+	public static function mask ( $value, $mask = null ) {
 		if ( empty($value) ) return $value;
 
 		if ( ! isset($mask) ) $mask = 'X';

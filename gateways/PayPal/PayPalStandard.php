@@ -851,7 +851,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 	}
 
-	public static function currencies ( string $currency ) {
+	public static function currencies ( $currency ) {
 
 		if ( in_array($currency, self::$currencies) )
 			return $currency;

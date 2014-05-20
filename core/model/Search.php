@@ -567,7 +567,7 @@ class PorterStemmer {
 	 * @since 1.1
 	 * @package shopp
      *
-     * @param  string $word Word to stem
+     * @param  $word Word to stem
      * @return string Stemmed word
      **/
     public static function Stem ( $word ) {
@@ -837,9 +837,9 @@ class PorterStemmer {
      * Replaces the first string with the second, at the end of the string. If third
      * arg is given, then the preceding string must match that m count at least.
      *
-     * @param  string $str   String to check
-     * @param  string $check Ending to check for
-     * @param  string $repl  Replacement string
+     * @param  $str   String to check
+     * @param  $check Ending to check for
+     * @param  $repl  Replacement string
      * @param  int    $m     Optional minimum number of m() to meet
      * @return bool          Whether the $check string was at the end
      *                       of the $str string. True does not necessarily mean
@@ -871,7 +871,7 @@ class PorterStemmer {
      * <c>vcvc<v>   gives 2
      * <c>vcvcvc<v> gives 3
      *
-     * @param  string $str The string to return the m count for
+     * @param  $str The string to return the m count for
      * @return int         The m count
      **/
     private static function m ( $str ) {
@@ -891,7 +891,7 @@ class PorterStemmer {
      * Returns true/false as to whether the given string contains two
      * of the same consonant next to each other at the end of the string.
      *
-     * @param  string $str String to check
+     * @param  $str String to check
      * @return bool        Result
      **/
     private static function doubleConsonant ( $str ) {
@@ -903,7 +903,7 @@ class PorterStemmer {
     /**
      * Checks for ending CVC sequence where second C is not W, X or Y
      *
-     * @param  string $str String to check
+     * @param  $str String to check
      * @return bool        Result
      **/
     private static function cvc ( $str ) {
