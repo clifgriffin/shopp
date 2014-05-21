@@ -443,6 +443,7 @@ ShoppLoader::map(array(
 	'ordertotalregisters' => '/model/Totals.php',
 	'ordertotals' => '/model/Totals.php',
 	'paycard' => '/model/Gateway.php',
+	'paymenttypesreport' => '/ui/reports/payment-types.php',
 	'porterstemmer' => '/model/Search.php',
 	'postcodemapping' => '/model/Address.php',
 	'price' => '/library/Deprecated.php',
