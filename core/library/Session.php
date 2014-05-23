@@ -124,6 +124,8 @@ abstract class SessionObject {
 
 				if ( empty($key) && ! is_ssl() ) Shopp::redirect( Shopp::force_ssl( Shopp::raw_request_url(), true ) );
 
+				$this->secured(true); // Maintain session security
+
 				$readable = sDB::query("SELECT AES_DECRYPT('" .
 										mysql_real_escape_string(
 											base64_decode(
