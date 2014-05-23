@@ -660,7 +660,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 		if ( ! $active_gateways ) $gateways = array();
 		else $gateways = explode(',', $active_gateways);
 
-		$gateways = array_filter($gateways, create_function('$g', 'return class_exists($g, false);'));
+		$gateways = array_filter($gateways, array($Gateways, 'moduleclass'));
 
 		if ( ! empty($_GET['delete']) ) {
 			$delete = $_GET['delete'];
