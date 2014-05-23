@@ -226,7 +226,7 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @param string $parent The internal reference for the parent page
 	 * @return void
 	 **/
-	private function addpage ( string $name, string $label, string $controller, string $parent = null) {
+	private function addpage ( $name, $label, $controller, $parent = null ) {
 		$page = $this->pagename($name);
 
 		if ( isset($parent) ) $parent = $this->pagename($parent);
