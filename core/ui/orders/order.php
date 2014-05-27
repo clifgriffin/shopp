@@ -158,12 +158,13 @@
 					<?php
 
 						if ( isset($_GET['editline']) && (int)$_GET['editline'] == $id ) {
+							$inclusivetax = $Purchase->taxing == 'inclusive' ? $Item->unittax : 0;
 							$data = array(
-								'${lineid}' => (int)$_GET['editline'],
-								'${itemname}' => $itemname,
-								'${quantity}' => $Item->quantity,
-								'${unitprice}'     => money($Item->unitprice),
-								'${total}'    => money( $Item->total+($Purchase->taxing != 'inclusive'?$Item->unittax*$Item->quantity:0) )
+								'${lineid}'    => (int)$_GET['editline'],
+								'${itemname}'  => $itemname,
+								'${quantity}'  => $Item->quantity,
+								'${unitprice}' => money($Item->unitprice + $inclusivetax),
+								'${total}'     => money( $Item->total + ($inclusivetax * $Item->quantity) )
 							);
 							echo ShoppUI::template($itemeditor,$data);
 						} else {
@@ -228,23 +229,21 @@
 									case 'qty':
 										$classes[] = 'num';
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo $Item->quantity; ?></td>
+											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo $data['${quantity}']; ?></td>
 										<?php
 										break;
 
 									case 'price':
 									$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->unitprice+($Purchase->taxing != 'inclusive'?$Item->unittax:0);
-												echo money($amount); ?></td>
+											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo money($data['${unitprice}']); ?></td>
 										<?php
 										break;
 
 									case 'total':
 										$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php $amount = $Item->total+($Purchase->taxing != 'inclusive'?$Item->unittax*$Item->quantity:0);
-												echo money($amount); ?></td>
+											<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><?php echo money($data['${total}']); ?></td>
 										<?php
 										break;
 

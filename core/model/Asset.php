@@ -603,7 +603,7 @@ class DownloadAsset extends FileAsset {
 		header('Content-Description: Delivered by ' . ShoppVersion::agent());
 
 		ignore_user_abort(true);
-		ob_end_flush(); // Don't use the PHP output buffer
+		while(@ob_end_flush()); // Don't use the PHP output buffer
 
 		$this->send();	// Send the file data using the storage engine
 
