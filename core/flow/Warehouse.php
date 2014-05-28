@@ -685,6 +685,12 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$_POST['action'] = add_query_arg(array_merge($_GET, array('page' => $this->Admin->pagename('products'))), admin_url('admin.php'));
 		$post_type = ShoppProduct::posttype();
 
+		// Re-index menu options to maintain order in JS #2930
+		foreach ( $Product->options as &$types ) {
+			foreach ( $types as &$menu )
+				$menu['options'] = array_values($menu['options']);
+		}
+
 		do_action('add_meta_boxes', ShoppProduct::$posttype, $Product);
 		do_action('add_meta_boxes_' . ShoppProduct::$posttype, $Product);
 
