@@ -208,7 +208,8 @@ class ShoppCart extends ListFramework {
 
 				if ( empty($prices) ) $prices[] = false; // Use default price for product if none provided
 				foreach($prices as $price)
-					$result = $this->additem($quantity, $Product, $price, $category, $data, $addons);
+					$result = $this->additem($quantity, $Product, $price, $category, apply_filters('shopp_cartitem_data', $data), $addons);
+
 			}
 		}
 
