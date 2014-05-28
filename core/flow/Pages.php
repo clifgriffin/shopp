@@ -241,7 +241,18 @@ class ShoppPage {
 		add_filter('wp_head', array($this, 'head'), 20);
 		add_filter('the_content', array($this, 'content'), 20);
 		add_filter('the_excerpt', array($this, 'content'), 20);
+		add_filter('wpseo_replacements', array($this, 'wpseo')); // compatibility helper for WPSEO
 	}
+
+	public function wpseo ( $replacements ) {
+
+		if ( is_shopp_page() && empty($replacements['%%title%%']) )
+			$replacements['%%title%%'] = $this->title();
+
+		return $replacements;
+
+	}
+
 
 	public function poststub () {
 		global $wp_query;
