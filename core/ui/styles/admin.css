@@ -556,6 +556,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .left-column {float:left;width:260px;display:inline;overflow:visible; }
 #order .right-column { width:100%;display: inline;}
 #order #main-column { margin-left:280px; }
+#order .column-qty { text-align: center; }
 
 #order .meta-boxes .inside { line-height:1.3em; }
 #order .meta-boxes .inside big { line-height:1.5em; }
