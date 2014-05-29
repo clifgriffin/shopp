@@ -297,7 +297,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$where = $subs[$this->view]['where'];
 
 		if (!empty($s)) {
-			$SearchResults = new SearchResults(array('search'=>$s,'published'=>'off','paged'=>-1));
+			$SearchResults = new SearchResults(array('search'=>$s,'nostock'=>'on','published'=>'off','paged'=>-1));
 			$SearchResults->load();
 			$ids = array_keys($SearchResults->products);
 			$where[] = "p.ID IN (".join(',',$ids).")";
