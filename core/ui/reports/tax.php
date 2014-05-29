@@ -43,23 +43,23 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 
 	function columns () {
 		return array(
-			'period'=>__('Period','Shopp'),
-			'orders'=>__('Orders','Shopp'),
-			'subtotal'=>__('Subtotal','Shopp'),
-			'taxable'=>__('Taxable Amount','Shopp'),
-			'rate'=>__('Tax Rate','Shopp'),
-			'tax'=>__('Total Tax','Shopp')
+			'period'   => Shopp::__('Period'),
+			'orders'   => Shopp::__('Orders'),
+			'subtotal' => Shopp::__('Subtotal'),
+			'taxable'  => Shopp::__('Taxable Amount'),
+			'rate'     => Shopp::__('Tax Rate'),
+			'tax'      => Shopp::__('Total Tax')
 		);
 	}
 
-	static function orders ($data) { return intval($data->orders); }
+	static function orders ( $data ) { return intval($data->orders); }
 
-	static function subtotal ($data) { return money($data->subtotal); }
+	static function subtotal ( $data ) { return money($data->subtotal); }
 
-	static function taxable ($data) { return money($data->taxable); }
+	static function taxable ( $data ) { return money($data->taxable); }
 
-	static function tax ($data) { return money($data->tax); }
+	static function tax ( $data ) { return money($data->tax); }
 
-	static function rate ($data) { return percentage($data->rate*100); }
+	static function rate ( $data ) { return percentage($data->rate * 100); }
 
 }
