@@ -156,18 +156,13 @@
 					?>
 						<tr class="<?php echo esc_attr(join(' ',$rowclasses)); ?>">
 					<?php
-
-						$inclusivetax = $Purchase->taxing == 'inclusive' ? $Item->unittax : 0;
-						$unitprice = $Item->unitprice + $inclusivetax;
-						$totalprice = $Item->total + ($inclusivetax * $Item->quantity);
-
 						if ( isset($_GET['editline']) && (int)$_GET['editline'] == $id ) {
 							$data = array(
 								'${lineid}'    => (int)$_GET['editline'],
 								'${itemname}'  => $itemname,
 								'${quantity}'  => $Item->quantity,
-								'${unitprice}' => money($unitprice),
-								'${total}'     => money($totalprice)
+								'${unitprice}' => money($Item->unitprice),
+								'${total}'     => money($Item->total)
 							);
 							echo ShoppUI::template($itemeditor, $data);
 						} else {
@@ -239,14 +234,14 @@
 									case 'price':
 									$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ', $classes)); ?>"><?php echo money($unitprice); ?></td>
+											<td class="<?php echo esc_attr(join(' ', $classes)); ?>"><?php echo money($Item->unitprice); ?></td>
 										<?php
 										break;
 
 									case 'total':
 										$classes[] = 'money';
 										?>
-											<td class="<?php echo esc_attr(join(' ', $classes)); ?>"><?php echo money($totalprice); ?></td>
+											<td class="<?php echo esc_attr(join(' ', $classes)); ?>"><?php echo money($Item->total); ?></td>
 										<?php
 										break;
 
