@@ -20,20 +20,21 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = "$starts < " . self::unixtime('o.created');
 		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
 
 		$where = join(" AND ",$where);
 		$id = $this->timecolumn('o.created');
 		$orders_table = ShoppDatabaseObject::tablename('purchase');
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
+
 		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) as subtotal,
-							SUM(IF(p.unittax > 0,p.total,0)) AS taxable,
-							AVG(p.unittax/p.unitprice) AS rate,
+							SUM( (SELECT IF(p.unittax > 0,p.total,0) FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS taxable,
+							AVG( (SELECT p.unittax/p.unitprice FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS rate,
 							SUM(o.tax) as tax
-					FROM $purchased_table AS p
-					JOIN $orders_table AS o ON p.purchase=o.id
+					FROM $orders_table AS o
 					WHERE $where
 					GROUP BY CONCAT($id)";
 
