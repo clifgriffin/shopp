@@ -760,8 +760,8 @@ div.storage-settings { clear:both;margin-top:8px; }
 /** Inline editors **/
 tr.inline-edit-row td  { padding: 10px; border-bottom: 1px solid #e1e1e1; border-top: 1px solid #e1e1e1; }
 .inline-edit-row label { line-height: 20px; font-size: 11px; }
-
 .inline-edit-row span { display: inline-block; }
+.shopp-settings td > div { padding-bottom: 8px; }
 
 #order-contact iframe { width: 100%; }
 #customer-select { background: #f5f5f5; width: 236px; min-width: 236px; }
