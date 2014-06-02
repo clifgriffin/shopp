@@ -617,7 +617,7 @@ function newAddonGroup (data) {
 			.not('.ui-sortable-helper')
 			.find('input.id')
 			.each(function (id,option) {
-				var optionid = $(option).val(),dbPriceid, dP=$('#deletePrices');;
+				var optionid = $(option).val(),dbPriceid, dP=$('#deletePrices');
 				if (Pricelines.row[optionid]) {
 					dbPriceid = Pricelines.row[optionid].data.id;
 					if ( dbPriceid ) {

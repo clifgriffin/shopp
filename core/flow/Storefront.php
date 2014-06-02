@@ -1049,7 +1049,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 **/
 	static function wrapper ( string $string ) {
 
-		$classes = array('shopp_page');
+		$classes = array('shoppage', 'shopp_page');
 
 		$views = array('list', 'grid');
 		$view = shopp_setting('default_catalog_view');

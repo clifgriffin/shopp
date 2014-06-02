@@ -300,7 +300,7 @@ class ShoppTax {
 
 		if ( ! shopp_setting_enabled('tax_inclusive') ) return 1;
 
-		$baserates = ShoppTax::baserates($this);
+		$baserates = ShoppTax::baserates();
 		$baserate = reset($baserates);
 		$appliedrate = reset($rates);
 
