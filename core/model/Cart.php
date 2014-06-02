@@ -303,7 +303,7 @@ class ShoppCart extends ListFramework {
 			$NewItem = new ShoppCartItem($Product, $Price, $category, $data, $addons);
 			if ( ! $NewItem->valid() || ! $this->addable($NewItem) ) return false;
 		}
-		
+
 		do_action('shopp_cart_before_add_item', array($NewItem) );
 
 		$id = $NewItem->fingerprint();
@@ -717,7 +717,7 @@ class ShoppCart extends ListFramework {
 	 * @return boolean True if there are shipped items in the cart
 	 **/
 	public function downloads () {
-		return $this->filteritems('download');
+		return $this->filteritems('downloads');
 	}
 
 	/**
@@ -741,14 +741,15 @@ class ShoppCart extends ListFramework {
 	 * @param string $type The type of item to find (shipped, downloads or recurring)
 	 * @return boolean True if the item is of the specified type, false otherwise
 	 **/
-	private function filteritems ($type) {
-		$types = array('shipped','downloads','recurring');
-		if ( ! in_array($type,$types) ) return false;
+	private function filteritems ( $type ) {
+		$types = array('shipped', 'downloads', 'recurring');
+		if ( ! in_array($type, $types) ) return false;
 
 		$this->$type = array();
 		foreach ($this as $key => $item) {
-			if ( ! $item->$type ) continue;
-			$this->{$type}[$key] = $item;
+			$prop = rtrim($type, 's'); // No plurals
+			if ( $item->$prop ) continue;
+			$this->{$type}[ $key ] = $item;
 		}
 
 		return ! empty($this->$type);
