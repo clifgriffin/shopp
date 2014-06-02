@@ -402,7 +402,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	public static function buy_now ( $result, $options, $O ) {
 		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Buy Now');
-		return self::addtocart( $result, $options, $O );
+		return self::add_to_cart( $result, $options, $O );
 	}
 
 	public static function categories ( $result, $options, $O ) {
