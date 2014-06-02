@@ -218,7 +218,7 @@ class ShoppShiprates extends ListFramework {
 
 		do_action('shopp_calculate_shipping_init');		// Initialize shipping modules
 
-		parent:clear();									// clear existing rates before we pull new ones
+		parent::clear();									// clear existing rates before we pull new ones
 		
 		$this->items();									// Send items to shipping modules that package them
 
