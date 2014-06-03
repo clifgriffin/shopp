@@ -747,8 +747,8 @@ class ShoppCart extends ListFramework {
 
 		$this->$type = array();
 		foreach ($this as $key => $item) {
-			$prop = rtrim($type, 's'); // No plurals
-			if ( $item->$prop ) continue;
+			$prop = rtrim($type, 's'); // No plural properties
+			if ( ! $item->$prop ) continue;
 			$this->{$type}[ $key ] = $item;
 		}
 
