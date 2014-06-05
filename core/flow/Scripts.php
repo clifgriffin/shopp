@@ -342,12 +342,12 @@ function shopp_default_script_settings () {
 		$currency = array(
 			// Currency formatting
 			'cp' => $settings['cpos'],
-			'c' =>  $settings['currency'],
-			'p' =>  (int)$settings['precision'],
-			't' =>  $settings['thousands'],
-			'd' =>  $settings['decimals']
+			'c'  => $settings['currency'],
+			'p'  => (int)$settings['precision'],
+			't'  => $settings['thousands'],
+			'd'  => $settings['decimals']
 		);
-		if (isset($settings['grouping']))
+		if ( isset($settings['grouping']) )
 			$currency['g'] = is_array($settings['grouping']) ? join(',',$settings['grouping']) : $settings['grouping'];
 
 	}
@@ -364,9 +364,13 @@ function shopp_default_script_settings () {
 
 	// Checkout page settings & localization
 	shopp_localize_script('checkout', '$co', array(
-		'ajaxurl' => admin_url('admin-ajax.php'),
-		'loginname' => __('You did not enter a login.','Shopp'),
-		'loginpwd' => __('You did not enter a password to login with.','Shopp'),
+		'ajaxurl' =>    admin_url('admin-ajax.php'),
+		'loginname' =>  Shopp::__('You did not enter a login.'),
+		'loginpwd' =>   Shopp::__('You did not enter a password to login with.'),
+		'badpan' =>     Shopp::__('Not a valid card number.'),
+		'submitting' => Shopp::__('Submitting&hellip;'),
+		'error' =>      Shopp::__('An error occurred while submitting your order. Please try submitting your order again.'),
+		'timeout' =>    (int)SHOPP_SUBMIT_TIMEOUT
 	));
 
 	// Validation alerts
