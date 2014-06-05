@@ -372,6 +372,7 @@ function carousels () {
 function validate (form) {
 	if (!form) return false;
 	var $ = jqnc(),
+		$form = $(form),
 		passed = true,
 		passwords = [],
 		error = [],
@@ -415,10 +416,13 @@ function validate (form) {
 
 	});
 
-	form.shopp_validation = false;
-	$(form).trigger('shopp_validate',[error]);
-	if (form.shopp_validation) {
-		error = form.shopp_validation;
+	$form.data('error', error).trigger('shopp_validate');
+
+	if ( 'undefined' != form.shopp_validation )
+		$form.data('error', form.shopp_validation);
+
+	if ( $form.data('error') ) {
+		error = $form.data('error');
 		if (error[1] && $('#'+error[1].id).length > 0) {
 			$('#'+error[1].id).addClass('error');
 			$('label[for=' + error[1].id + ']').addClass('error');
@@ -426,7 +430,8 @@ function validate (form) {
 	}
 
 	if (error.length > 0) {
-		error[1].focus();
+		if ( error[1] instanceof jQuery )
+			error[1].focus();
 		if ($(form).hasClass('validation-alerts')) alert(error[0]);
 		passed = false;
 	}
@@ -438,7 +443,7 @@ function validate (form) {
  * Auto-initialize form validation forms with a 'validate' class
  **/
 function validateForms () {
-	jQuery('form.validate').bind('submit.validate',function (e) {
+	jQuery('form.validate').on('submit.validate',function (e) {
 		return validate(this);
 	});
 }
