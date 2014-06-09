@@ -326,7 +326,7 @@ abstract class ShoppCore {
 	 * @param int $timestamp (optional) The timestamp to be formatted (defaults to current timestamp)
 	 * @return string The formatted localized date/time
 	 **/
-	public static function _d ( string $format, $timestamp = null ) {
+	public static function _d ( $format, $timestamp = null ) {
 
 		$tokens = array(
 			'D' => array('Mon' => Shopp::__('Mon'), 'Tue' => Shopp::__('Tue'),
@@ -372,7 +372,7 @@ abstract class ShoppCore {
 	 * @param string $text Text to translate
 	 * @return void
 	 **/
-	public static function _jse ( string $text) {
+	public static function _jse ( $text) {
 		echo json_encode(Shopp::translate($text));
 	}
 
@@ -1537,7 +1537,7 @@ abstract class ShoppCore {
 	 * @param string $format A currency formatting string such as $#,###.##
 	 * @return array Formatting options list
 	 **/
-	public static function scan_money_format ( string $format ) {
+	public static function scan_money_format ( $format ) {
 		$f = array(
 			'cpos' => true,
 			'currency' => '',
@@ -2052,7 +2052,7 @@ abstract class ShoppCore {
 	 * @param string $name The name of the template file
 	 * @return string Prefixed template file
 	 **/
-	public static function template_prefix ( string $name ) {
+	public static function template_prefix ( $name ) {
 		return apply_filters('shopp_template_directory', 'shopp') . '/' . $name;
 	}
 

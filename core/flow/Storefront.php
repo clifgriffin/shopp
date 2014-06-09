@@ -360,7 +360,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param string $template Template file path
 	 * @return void
 	 **/
-	public function maintenance ( string $template ) {
+	public function maintenance ( $template ) {
 		// Only run if in maintenance mode
 		if ( ! is_shopp_page() ) return $template;
 		if ( ! Shopp::maintenance() ) return $template;
@@ -409,7 +409,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param string $template The template
 	 * @return string The output of the templates
 	 **/
-	public function pages ( string $template ) {
+	public function pages ( $template ) {
 		// Catch smart collection pages
 		if ( is_shopp_collection() )
 			return $this->collections($template);
@@ -431,7 +431,7 @@ class ShoppStorefront extends ShoppFlowController {
 		return locate_template( $Page->templates() );
 	}
 
-	public function collections ( string $template ) {
+	public function collections ( $template ) {
 		if ( ! is_shopp_collection() ) return $template;
 
 		$Page = new ShoppCollectionPage();
@@ -1017,7 +1017,7 @@ class ShoppStorefront extends ShoppFlowController {
 
 	}
 
-	public function autowrap ( string $content ) {
+	public function autowrap ( $content ) {
 		if ( ! in_array(get_the_ID(), $this->shortcoded) ) return $content;
 		return ShoppStorefront::wrapper($content);
 	}
@@ -1030,7 +1030,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 *
 	 * @return string The template file being loaded
 	 **/
-	public static function intemplate ( string $template = null ) {
+	public static function intemplate ( $template = null ) {
 		if ( isset($template) )
 			self::$template = basename($template);
 		if ( empty(self::$template) ) return '';
@@ -1047,7 +1047,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param array $classes CSS classes to add to the container
 	 * @return string The wrapped markup
 	 **/
-	static function wrapper ( string $string ) {
+	static function wrapper ( $string ) {
 
 		$classes = array('shoppage', 'shopp_page');
 

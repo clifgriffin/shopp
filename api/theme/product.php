@@ -1447,7 +1447,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 		return $string;
 	}
 
-	public static function _variant_formatlabel ( string $format, $var ) {
+	public static function _variant_formatlabel ( $format, $var ) {
 		$data = (array)$var;
 
 		$label = $format;

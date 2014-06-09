@@ -189,7 +189,7 @@ function ShoppPages () {
  * @param string $pagename The name of the ShoppPage to retrieve
  * @return ShoppPage The requested ShoppPage if found, false otherwise
  **/
-function shopp_get_page ( string $pagename ) {
+function shopp_get_page ( $pagename ) {
 	return ShoppPages()->get($pagename);
 }
 
@@ -201,7 +201,7 @@ function shopp_get_page ( string $pagename ) {
  * @param string $classname The class name of the new type of ShoppPage
  * @return void
  **/
-function shopp_register_page ( string $classname ) {
+function shopp_register_page ( $classname ) {
 	ShoppPages()->register($classname);
 }
 
