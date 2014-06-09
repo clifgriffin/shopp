@@ -283,7 +283,7 @@ class ShoppProduct extends WPShoppObject {
 		if ( empty($ids) ) return;
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 		$sortorder = $this->image_order();
-		sDB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder LIMIT 1 ) AS img GROUP BY parent",'array',array($this, 'metasetloader'),'parent','metatype','name',false);
+		sDB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder LIMIT 18446744073709551615 ) AS img GROUP BY parent",'array',array($this, 'metasetloader'),'parent','metatype','name',false);
 	}
 
 	/**
