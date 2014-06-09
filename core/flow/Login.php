@@ -126,7 +126,7 @@ class ShoppLogin {
 	 * @param string $type (optional) Type of identifying credential provided (defaults to 'email')
 	 * @return void
 	 **/
-	public function auth ( string $id, string $password, $type = 'email') {
+	public function auth ( $id, $password, $type = 'email') {
 
 		do_action('shopp_auth');
 

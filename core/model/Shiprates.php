@@ -57,7 +57,7 @@ class ShoppShiprates extends ListFramework {
 	 * @param string $selected (optional) The slug to set as the selected shiprate service option
 	 * @return ShoppShiprateService The currently selected shiprate service
 	 **/
-	public function selected ( string $selected = null ) {
+	public function selected ( $selected = null ) {
 
 		if ( is_null($selected) ) {
 			if ( ! $this->exists( $this->selected ) )
@@ -98,7 +98,7 @@ class ShoppShiprates extends ListFramework {
 	 * @param string $id The item id to remove
 	 * @return void
 	 **/
-	public function takeoff ( string $id ) {
+	public function takeoff ( $id ) {
 
 		if ( isset($this->shippable[ $id ]) )
 			unset($this->shippable[ $id ]);
@@ -172,7 +172,7 @@ class ShoppShiprates extends ListFramework {
 	 * @param mixed $value The data to track stored as a reference
 	 * @return void
 	 **/
-	public function track ( string $name, &$value ) {
+	public function track ( $name, &$value ) {
 		$this->track[ $name ] = &$value;
 	}
 

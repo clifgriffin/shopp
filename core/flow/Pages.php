@@ -41,7 +41,7 @@ class ShoppPages extends ListFramework {
 		return self::$object;
 	}
 
-	public function register ( string $StorefrontPageClass ) {
+	public function register ( $StorefrontPageClass ) {
 
 		if ( ! class_exists($StorefrontPageClass) ) return false;
 
@@ -83,7 +83,7 @@ class ShoppPages extends ListFramework {
 		add_permastruct($var, "$catalog/%$var%", false);
 	}
 
-	public function slugpage ( string $slug ) {
+	public function slugpage ( $slug ) {
 		if ( ! isset($this->slugs[ $slug ]) ) return false;
 		return $this->get( $this->slugs[ $slug ] );
 	}
@@ -810,7 +810,7 @@ class ShoppProductPage extends ShoppPage {
 		return $link;
 	}
 
-	public function wp_title ( string $title, string $sep = null, $placement = null ) {
+	public function wp_title ( $title, $sep = null, $placement = null ) {
 		if ( is_null($sep) ) $sep = '&mdash;';
 		if ( is_null($placement) ) $placement = '';
 

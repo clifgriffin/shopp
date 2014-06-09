@@ -155,7 +155,7 @@ function shopp_set_cart_item_quantity ( $item = false, $quantity = 1 ) {
  * @param string $item The item fingerprint index identifier
  * @return bool true for success, false on failure
  **/
-function shopp_set_cart_item_variant ( string $item = null, int $variant = null ) {
+function shopp_set_cart_item_variant ( $item = null, $variant = null ) {
 
 	if ( null === $item ) {
 		shopp_debug(__FUNCTION__ . ' failed: Missing item parameter.');
@@ -268,7 +268,7 @@ function shopp_add_cart_promocode ($code = false) {
  * @param string $code The promotion code to apply
  * @return void
  **/
-function shopp_add_cart_discount_code( string $code = null ) {
+function shopp_add_cart_discount_code( $code = null ) {
 	if ( null === $code || empty($code) ) {
 		shopp_debug(__FUNCTION__ . " failed: Missing code parameter.");
 	}
