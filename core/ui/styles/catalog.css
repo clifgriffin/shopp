@@ -66,6 +66,10 @@
 .shopp_page .products, .shopp_page .products ul { position: relative; width: 100%; margin: 0; padding: 0; }
 .shopp_page .products > .product { float: left; position: relative; }
 .shopp_page .products > .product.first { clear: both; margin-left: 0; }
+.shopp-product ul,
+.shopp-product ol { display: inline-block; }
+.shopp-product ul.breadcrumb,
+.shopp-product ul.variations { padding-left: 0; }
 
 /* Deprecated row class support */
 .shopp_page .products ul li.product { display: block; float: left; border: none; }

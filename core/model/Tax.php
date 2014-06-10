@@ -162,7 +162,7 @@ class ShoppTax {
 	 * @param string $country The country code
 	 * @return boolean True if the country matches or false
 	 **/
-	protected function taxcountry ( string $country ) {
+	protected function taxcountry ( $country ) {
 		if ( empty($country) ) return false;
 		$EU = self::EUVAT == $country && in_array($this->address['country'], Lookup::country_euvat());
 		return apply_filters('shopp_tax_country', ( self::ALL == $country || $EU || $this->address['country'] == $country ),  $this->address['country'], $country);
@@ -177,7 +177,7 @@ class ShoppTax {
 	 * @param string $zone The name of the zone
 	 * @return boolean True if the zone matches or false
 	 **/
-	protected function taxzone ( string $zone ) {
+	protected function taxzone ( $zone ) {
 		if ( empty($zone) ) return true;
 		return ($this->address['zone'] == $zone);
 	}
@@ -191,7 +191,7 @@ class ShoppTax {
 	 * @param array $rules The list of tax rules to test
 	 * @return boolean True if the rules match enough to apply, false otherwise
 	 **/
-	protected function taxrules ( array $rules, string $logic ) {
+	protected function taxrules ( array $rules, $logic ) {
 		if ( empty($rules) ) return true;
 
 		$apply = false;
@@ -300,7 +300,7 @@ class ShoppTax {
 
 		if ( ! shopp_setting_enabled('tax_inclusive') ) return 1;
 
-		$baserates = ShoppTax::baserates($this);
+		$baserates = ShoppTax::baserates();
 		$baserate = reset($baserates);
 		$appliedrate = reset($rates);
 
@@ -399,7 +399,7 @@ class ShoppTax {
 	 * @param array $rates the list of applicable ShoppItemTax entries
 	 * @return float $total
 	 **/
-	public function total ( array &$taxes, integer $quantity ) {
+	public function total ( array &$taxes, $quantity ) {
 
 		$total = 0;
 		foreach ( $taxes as $label => &$taxrate ) {
@@ -470,7 +470,7 @@ class ShoppTaxableItem {
 	 * @param string $value The value to match
 	 * @return boolean True if matched or false
 	 **/
-	private function ShoppCartItem ( string $property, string $value ) {
+	private function ShoppCartItem ( $property, $value ) {
 		$CartItem = $this->Object;
 		switch ( $property ) {
 			case 'product-name': return ($value == $CartItem->name); break;
@@ -490,7 +490,7 @@ class ShoppTaxableItem {
 	 * @param string $value The value to match
 	 * @return boolean True if matched or false
 	 **/
-	private function ShoppProduct ( string $property, string $value ) {
+	private function ShoppProduct ( $property, $value ) {
 		$Product = $this->Object;
 		switch ( $property ) {
 			case 'product-name': return ($value == $Product->name); break;

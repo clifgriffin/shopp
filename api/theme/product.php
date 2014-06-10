@@ -402,7 +402,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 	public static function buy_now ( $result, $options, $O ) {
 		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Buy Now');
-		return self::addtocart( $result, $options, $O );
+		return self::add_to_cart( $result, $options, $O );
 	}
 
 	public static function categories ( $result, $options, $O ) {
@@ -1447,7 +1447,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 		return $string;
 	}
 
-	public static function _variant_formatlabel ( string $format, $var ) {
+	public static function _variant_formatlabel ( $format, $var ) {
 		$data = (array)$var;
 
 		$label = $format;

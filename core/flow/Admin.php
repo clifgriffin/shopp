@@ -224,7 +224,7 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @param string $parent The internal reference for the parent page
 	 * @return void
 	 **/
-	private function addpage ( string $name, string $label, string $controller, string $parent = null) {
+	private function addpage ( $name, $label, $controller, $parent = null ) {
 		$page = $this->pagename($name);
 
 		if ( isset($parent) ) $parent = $this->pagename($parent);
@@ -291,7 +291,7 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @param string $menu The WordPress screen ID
 	 * @return string The screen id of the given menu name
 	 **/
-	public function menu ( string $name, string $menu = null ) {
+	public function menu ( $name, $menu = null ) {
 
 		if ( isset($menu) ) $this->menus[ $name ] = $menu;
 		if ( isset($this->menus[ $name ]) ) return $this->menus[ $name ];
@@ -781,7 +781,7 @@ class ShoppAdminPage {
 	public $controller = '';
 	public $parent = false;
 
-	public function __construct ( string $name, string $page, string $label, string $controller, string $parent = null ) {
+	public function __construct ( $name, $page, $label, $controller, $parent = null ) {
 		$this->name = $name;
 		$this->page = $page;
 		$this->label = $label;
@@ -810,7 +810,7 @@ class ShoppUI {
 		return hash('crc32b', ABSPATH . ShoppVersion::release());
 	}
 
-	public static function button ( string $button, string $name, array $options = array() ) {
+	public static function button ( $button, $name, array $options = array() ) {
 		$buttons = array(
 			'add' => array('class' => 'add', 'title' => Shopp::__('Add'), 'icon' => 'shoppui-plus', 'type' => 'submit'),
 			'delete' => array('class' => 'delete', 'title' => Shopp::__('Delete'), 'icon' => 'shoppui-minus', 'type' => 'submit')
@@ -1055,7 +1055,7 @@ class ShoppUI {
 	 * @param string $priority [optional]
 	 * @param array $args [optional]
 	 */
-	public static function addmetabox(string $id, string $title, $callback, string $posttype, $context = 'advanced', $priority = 'default', array $args = null) {
+	public static function addmetabox(string $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null) {
 		self::$metaboxes[$id] = $callback;
 		$args = (array) $args;
 		array_unshift($args, $id);

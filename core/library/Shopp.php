@@ -120,28 +120,29 @@ final class Shopp extends ShoppCore {
 	 * @return void
 	 **/
 	public function constants () {
-		if ( ! defined('SHOPP_VERSION') )				define( 'SHOPP_VERSION', ShoppVersion::release() );
-		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )		define( 'SHOPP_GATEWAY_USERAGENT', ShoppVersion::agent() );
+		if ( ! defined('SHOPP_VERSION') )              define( 'SHOPP_VERSION', ShoppVersion::release() );
+		if ( ! defined('SHOPP_GATEWAY_USERAGENT') )    define( 'SHOPP_GATEWAY_USERAGENT', ShoppVersion::agent() );
 
 		// @deprecated
-		if ( ! defined('SHOPP_HOME') )					define( 'SHOPP_HOME', ShoppSupport::HOMEPAGE );
-		if ( ! defined('SHOPP_CUSTOMERS') )				define( 'SHOPP_CUSTOMERS', ShoppSupport::FORUMS);
-		if ( ! defined('SHOPP_DOCS') )					define( 'SHOPP_DOCS', ShoppSupport::DOCS );
+		if ( ! defined('SHOPP_HOME') )                 define( 'SHOPP_HOME', ShoppSupport::HOMEPAGE );
+		if ( ! defined('SHOPP_CUSTOMERS') )            define( 'SHOPP_CUSTOMERS', ShoppSupport::FORUMS);
+		if ( ! defined('SHOPP_DOCS') )                 define( 'SHOPP_DOCS', ShoppSupport::DOCS );
 
 		// Helper for line break output
-		if ( ! defined('BR') ) 							define('BR', '<br />');
+		if ( ! defined('BR') )                         define('BR', '<br />');
 
 		// Overrideable config macros
-		if ( ! defined('SHOPP_NOSSL') )					define('SHOPP_NOSSL', false);					// Require SSL to protect transactions, overrideable for development
-		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') )	define('SHOPP_PREPAYMENT_DOWNLOADS', false);	// Require payment capture granting access to downloads
-		if ( ! defined('SHOPP_SESSION_TIMEOUT') )		define('SHOPP_SESSION_TIMEOUT', 172800);		// Sessions live for 2 days
-		if ( ! defined('SHOPP_CART_EXPIRES') )			define('SHOPP_CART_EXPIRES', 1209600);			// Carts are stashed for up to 2 weeks
-		if ( ! defined('SHOPP_QUERY_DEBUG') )			define('SHOPP_QUERY_DEBUG', false);				// Debugging queries is disabled by default
-		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )		define('SHOPP_GATEWAY_TIMEOUT', 10);			// Gateway connections timeout after 10 seconds
-		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )		define('SHOPP_SHIPPING_TIMEOUT', 10);			// Shipping provider connections timeout after 10 seconds
-		if ( ! defined('SHOPP_TEMP_PATH') )				define('SHOPP_TEMP_PATH', sys_get_temp_dir());	// Use the system defined temporary directory
-		if ( ! defined('SHOPP_ADDONS') )				define('SHOPP_ADDONS', WP_CONTENT_DIR . '/shopp-addons');	// A configurable directory to keep Shopp addons
-		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') )	define('SHOPP_NAMESPACE_TAXONOMIES', true);		// Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
+		if ( ! defined('SHOPP_NOSSL') )                define('SHOPP_NOSSL', false);                             // Require SSL to protect transactions, overrideable for development
+		if ( ! defined('SHOPP_PREPAYMENT_DOWNLOADS') ) define('SHOPP_PREPAYMENT_DOWNLOADS', false);              // Require payment capture granting access to downloads
+		if ( ! defined('SHOPP_SESSION_TIMEOUT') )      define('SHOPP_SESSION_TIMEOUT', 172800);                  // Sessions live for 2 days
+		if ( ! defined('SHOPP_CART_EXPIRES') )         define('SHOPP_CART_EXPIRES', 1209600);                    // Carts are stashed for up to 2 weeks
+		if ( ! defined('SHOPP_QUERY_DEBUG') )          define('SHOPP_QUERY_DEBUG', false);                       // Debugging queries is disabled by default
+		if ( ! defined('SHOPP_GATEWAY_TIMEOUT') )      define('SHOPP_GATEWAY_TIMEOUT', 10);                      // Gateway connections timeout after 10 seconds
+		if ( ! defined('SHOPP_SHIPPING_TIMEOUT') )     define('SHOPP_SHIPPING_TIMEOUT', 10);                     // Shipping provider connections timeout after 10 seconds
+		if ( ! defined('SHOPP_SUBMIT_TIMEOUT') )       define('SHOPP_SUBMIT_TIMEOUT', 20);                       // Order submission timeout
+		if ( ! defined('SHOPP_TEMP_PATH') )            define('SHOPP_TEMP_PATH', sys_get_temp_dir());            // Use the system defined temporary directory
+		if ( ! defined('SHOPP_ADDONS') )               define('SHOPP_ADDONS', WP_CONTENT_DIR . '/shopp-addons'); // A configurable directory to keep Shopp addons
+		if ( ! defined('SHOPP_NAMESPACE_TAXONOMIES') ) define('SHOPP_NAMESPACE_TAXONOMIES', true);               // Add taxonomy namespacing for permalinks /shop/category/category-name, /shopp/tag/tag-name
 
 	}
 

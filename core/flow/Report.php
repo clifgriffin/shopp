@@ -66,6 +66,7 @@ class ShoppAdminReport extends ShoppAdminController {
 			'customers' => array( 'class' => 'CustomersReport', 'name' => __('Customers Report','Shopp'), 'label' => __('Customers','Shopp') ),
 			'locations' => array( 'class' => 'LocationsReport', 'name' => __('Locations Report','Shopp'), 'label' => __('Locations','Shopp') ),
 			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
+			'payment-types' => array( 'class' => 'PaymentTypesReport', 'name' => __('Payment Types Report','Shopp'), 'label' => __('Payment Types','Shopp') ),
 		));
 	}
 
@@ -451,7 +452,7 @@ abstract class ShoppReportFramework {
 	 *
 	 * @return string Date index column SQL statement
 	 **/
-	public function timecolumn ( string $column ) {
+	public function timecolumn ( $column ) {
 		$tzoffset = date('Z')/3600;
 		$column = "CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00')";
 		switch (strtolower($this->options['scale'])) {
@@ -473,7 +474,7 @@ abstract class ShoppReportFramework {
 	 * @param string $column The column name
 	 * @return string The UNIX_TIMESTAMP SQL column fragment
 	 **/
-	static function unixtime ( string $column ) {
+	static function unixtime ( $column ) {
 		$tzoffset = date('Z')/3600;
 		return "UNIX_TIMESTAMP(CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00'))";
 	}
@@ -489,7 +490,7 @@ abstract class ShoppReportFramework {
 	 * @param string $scale Scale of periods (hour, day, week, month, year)
 	 * @return int The number of periods
 	 **/
-	public function range ( integer $starts, integer $ends, $scale = 'day') {
+	public function range ( $starts, $ends, $scale = 'day') {
 		$oneday = 86400;
 		$years = date('Y',$ends)-date('Y',$starts);
 		switch (strtolower($scale)) {
@@ -532,7 +533,7 @@ abstract class ShoppReportFramework {
 	 * @param array $formats The starting and ending date() formats
 	 * @return string Formatted week range label
 	 **/
-	static function weekrange ( int $ts, $formats=array('F j','F j Y') ) {
+	static function weekrange ( $ts, $formats=array('F j','F j Y') ) {
 		$weekday = date('w',$ts);
 		$startweek = $ts-($weekday*86400);
 		$endweek = $startweek+(6*86400);

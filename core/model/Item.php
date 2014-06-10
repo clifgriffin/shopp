@@ -168,6 +168,7 @@ class ShoppCartItem {
 		$this->unitprice = $baseprice + $this->addonsum;
 
 		if ( shopp_setting_enabled('taxes') ) {
+			$this->taxable = array(); // Re-init during ShoppCart::change() loads #2922
 			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
 			$this->istaxed =  array_sum($this->taxable) > 0 ;
 			$this->includetax = shopp_setting_enabled('tax_inclusive');
@@ -928,7 +929,6 @@ class ShoppCartItem {
 
 		$taxable = (float) array_sum($_);
 		$taxableqty = ( $this->bogof && $this->bogof != $this->quantity ) ? $this->quantity - $this->bogof : $this->quantity;
-
 
 		$Tax->rates($this->taxes, $Tax->item($this));
 

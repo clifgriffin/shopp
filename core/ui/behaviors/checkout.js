@@ -29,9 +29,25 @@ jQuery(document).ready(function () {
 		paymethods.change(paymethod_select).change();
 	}
 
+	$.fn.extend({
+		disableSubmit: function () {
+			var $this = $(this);
+			setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000);
+	   		return $this.data('label',$this.val()).prop('disabled',true).addClass('disabled').val($co.submitting);
+		},
+		enableSubmit: function (){
+			return $(this).prop('disabled', false).removeClass('disabled').val($(this).data('label'));
+		}
+	});
+
 	// Validate paycard number before submit
-	checkoutForm.bind('shopp_validate',function () {
-		if (!validcard()) this.shopp_validation = ["Not a valid card number.",billCard.get(0)];
+	checkoutForm.on('shopp_validate',function () {
+		var submitButtons = checkoutButtons.find('input').disableSubmit();
+		if ( ! validcard() ) checkoutForm.data('error', [$co.badpan, billCard.get(0)]);
+		if ( checkoutForm.data('error').length > 0 ) submitButtons.enableSubmit();
+	}).on('submit', function (e) {
+	    e.preventDefault();
+		setTimeout(function () { checkoutForm.unbind('submit').submit(); }, 1); // Give time for the button style to change
 	});
 
 	// Validate paycard number on entry

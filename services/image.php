@@ -196,7 +196,7 @@ class ImageServer {
 
 		// Post sharpen
 		if ( ! $alpha && $this->sharpen > 0 )
-			$Resized->UnsharpMask($this->sharpen);
+			$Resized->sharpen($this->sharpen);
 
 		$ResizedImage = new ImageAsset();
 		$ResizedImage->copydata($this->Image, false, array());

@@ -1496,7 +1496,7 @@ class SmartCollection extends ProductCollection {
 		return Shopp::__('Collection');
 	}
 
-	public static function slugs ( string $class ) {
+	public static function slugs ( $class ) {
 		return apply_filters( 'shopp_' . strtolower($class) . '_collection_slugs', get_class_property($class, 'slugs') );
 	}
 
@@ -1510,9 +1510,9 @@ class SmartCollection extends ProductCollection {
 
 		if ( isset($options['pagination']) )
 			$this->loading['pagination'] = $options['pagination'];
-			
+
 		if ( isset($options['exclude']) ) {
-			$exclude = $options['exclude'];	
+			$exclude = $options['exclude'];
 
 			if ( is_numeric(str_replace(',','',$exclude)) ) {
 				global $wpdb;
@@ -1520,7 +1520,7 @@ class SmartCollection extends ProductCollection {
 				$this->loading['joins'][] = "INNER JOIN $wpdb->term_taxonomy as tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 				$this->loading['where'][] = "tr.term_taxonomy_id NOT IN ($exclude)";
 				$this->loading['where'][] = "tt.taxonomy = 'shopp_category'";
-			} 
+			}
 		}
 
 		$this->smart($this->loading);
@@ -1902,7 +1902,7 @@ class TagProducts extends SmartCollection {
 
 		$terms = array();
 
-		$term = get_term_by('name',$this->tag,ProductTag::$taxon);
+		$term = get_term_by('name', $this->tag, ProductTag::$taxon);
 
 		if ( false !== strpos($options['tag'], ',') ) {
 			$tags = explode(',', $options['tag']);
@@ -1911,6 +1911,8 @@ class TagProducts extends SmartCollection {
 				$terms[] = $term->term_id;
 			}
 		} else $terms[] = $term->term_id;
+
+		if ( empty($terms) ) return;
 
 		$this->name = isset($options['title']) ? $options['title'] : Shopp::__('Products tagged &quot;%s&quot;', $this->tag);
 		$this->uri = urlencode($this->tag);
@@ -1922,9 +1924,10 @@ class TagProducts extends SmartCollection {
 		$where = array("tt.term_id IN (" . join(',', $terms) . ")");
 		$columns = 'COUNT(p.ID) AS score';
 		$groupby = 'p.ID';
-		$order = 'score DESC';
-		$loading = compact('columns', 'joins', 'where', 'groupby', 'order');
+		$orderby = 'score DESC';
+		$loading = compact('columns', 'joins', 'where', 'groupby', 'orderby');
 		$this->loading = array_merge($options, $loading);
+
 	}
 
 	public function pagelink ($page) {
@@ -1974,7 +1977,7 @@ class RelatedProducts extends SmartCollection {
 		$Cart = $Order->Cart;
 
 		// Use the current product is available
-		if (!empty($Product->id))
+		if ( ! empty($Product->id) )
 			$this->product = ShoppProduct();
 
 		// Or load a product specified
@@ -2000,30 +2003,33 @@ class RelatedProducts extends SmartCollection {
 			$slug = $this->product->slug;
 			$where = array("p.id != {$this->product->id}");
 			// Load the product's tags if they are not available
-			if (empty($this->product->tags))
+			if ( empty($this->product->tags) )
 				$this->product->load_data(array('tags'));
 
-			if (!$scope) $scope = array_keys($this->product->tags);
+			if ( empty($scope) ) $scope = array_keys($this->product->tags);
 		}
-		if (empty($scope)) return false;
+
+		if ( empty($scope) ) return false;
 
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($name)."&quot;";
 		$this->uri = urlencode($slug);
 		$this->controls = false;
 
 		global $wpdb;
-		$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
-		$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
-		$where[] = "tt.term_id IN (".join(',',$scope).")";
+		$joins[ $wpdb->term_relationships ] = "INNER JOIN $wpdb->term_relationships AS tr ON (p.ID=tr.object_id)";
+		$joins[ $wpdb->term_taxonomy ] = "INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id=tt.term_taxonomy_id";
+		$where[] = "tt.term_id IN (" . join(',', $scope) . ")";
 		$columns = 'COUNT(p.ID) AS score';
 		$groupby = 'p.ID';
-		$order = 'score DESC';
-		$loading = compact('columns','joins','where','groupby','order');
-		$this->loading = array_merge($options, $this->loading);
+		$orderby = 'score DESC';
+		$loading = compact('columns', 'joins', 'where', 'groupby', 'orderby');
 
-		if (isset($options['order'])) $this->loading['order'] = $options['order'];
-		if (isset($options['controls']) && Shopp::str_true($options['controls']))
+		$this->loading = array_merge($options, $loading);
+
+		if ( isset($options['order']) ) $this->loading['order'] = $options['order'];
+		if ( isset($options['controls']) && Shopp::str_true($options['controls']) )
 			unset($this->controls);
+
 	}
 
 }

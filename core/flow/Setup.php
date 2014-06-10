@@ -184,7 +184,8 @@ class ShoppAdminSetup extends ShoppAdminController {
 		if ($term_recount) {
 			$taxonomy = ProductCategory::$taxon;
 			$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'ids') );
-			wp_update_term_count_now( $terms, $taxonomy );
+			if ( ! empty($terms) )
+				wp_update_term_count_now( $terms, $taxonomy );
 		}
 
 		// Copy templates to the current WordPress theme

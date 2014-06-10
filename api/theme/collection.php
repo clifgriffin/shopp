@@ -163,7 +163,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'collapse' => true,
 			'wrap' => true,
-			'before' => '<div class="category-description">',
+			'before' => '<div class="category-description">' . "\n\n",
 			'after' => '</div>'
 		);
 		$options = array_merge($defaults,$options);
