@@ -111,7 +111,6 @@ class ShoppOrder {
 		// Initialize/reinitalize the current location
 		add_action('shopp_init', array($this, 'locate'), 20);
 
-
 	}
 
 	function init () {
@@ -779,12 +778,10 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function securecard () {
-		if ( ! empty($this->Billing->card) && strlen($this->Billing->card) > 4 ) {
-			$this->Billing->card = substr($this->Billing->card, -4);
+		$this->Billing->card = '';
 
-			// Card data is truncated, switch the cart to normal mode
-			ShoppShopping()->secured(false);
-		}
+		// Card data is gone, switch the cart to normal mode
+		ShoppShopping()->secured(false);
 	}
 
 	/**

@@ -18,6 +18,7 @@ jQuery(document).ready(function () {
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
 		checkoutButton = $('.payoption-' + decodeURIComponent(d_pm)),
+		submitButtons = checkoutButtons.find('input'),
 		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = $('#checkout.shopp li.locale');
 
@@ -32,22 +33,27 @@ jQuery(document).ready(function () {
 	$.fn.extend({
 		disableSubmit: function () {
 			var $this = $(this);
-			setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000);
+			$this.data('timeout',
+				setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000)
+			);
 	   		return $this.data('label',$this.val()).prop('disabled',true).addClass('disabled').val($co.submitting);
 		},
-		enableSubmit: function (){
-			return $(this).prop('disabled', false).removeClass('disabled').val($(this).data('label'));
-		}
+		enableSubmit: function () {
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
+			return $this.prop('disabled', false).removeClass('disabled').val($this.data('label'));
+		},
+	});
+
+	submitButtons.on('click', function () {
+		$(this).disableSubmit();
+		setTimeout(function () { checkoutForm.submit(); }, 1);
 	});
 
 	// Validate paycard number before submit
-	checkoutForm.on('shopp_validate',function () {
-		var submitButtons = checkoutButtons.find('input').disableSubmit();
+	checkoutForm.on('shopp_validate', function () {
 		if ( ! validcard() ) checkoutForm.data('error', [$co.badpan, billCard.get(0)]);
 		if ( checkoutForm.data('error').length > 0 ) submitButtons.enableSubmit();
-	}).on('submit', function (e) {
-	    e.preventDefault();
-		setTimeout(function () { checkoutForm.unbind('submit').submit(); }, 1); // Give time for the button style to change
 	});
 
 	// Validate paycard number on entry
@@ -60,10 +66,10 @@ jQuery(document).ready(function () {
 			card = paycards[cardtype];
 
 		$('.paycard.xcsc').attr('disabled',true).addClass('disabled');
-		if (!card || !card['inputs']) return;
+		if ( ! card || ! card['inputs'] ) return;
 
-		$.each(card['inputs'],function (input,inputlen) {
-			$('#billing-xcsc-'+input).attr('disabled',false).removeClass('disabled');
+		$.each(card['inputs'], function (input,inputlen) {
+			$('#billing-xcsc-'+input).attr('disabled', false).removeClass('disabled');
 		});
 
 	}).change();
@@ -83,10 +89,10 @@ jQuery(document).ready(function () {
 	if (localeMenu.children().size() == 0) localeFields.hide();
 
 	submitLogin.click(function (e) {
-		checkoutForm.unbind('submit.validate').bind('submit.validlogin',function (e) {
+		checkoutForm.unbind('submit.validate').bind('submit.validlogin', function (e) {
 			var error = false;
-			if ('' == passwordLogin.val()) error = [$co.loginpwd,passwordLogin];
-			if ('' == accountLogin.val()) error = [$co.loginname,accountLogin];
+			if ( '' == passwordLogin.val() ) error = [$co.loginpwd, passwordLogin];
+			if ( '' == accountLogin.val() ) error = [$co.loginname, accountLogin];
 			if (error) {
 				e.preventDefault();
 				checkoutForm.unbind('submit.validlogin').bind('submit.validate',function (e) {
