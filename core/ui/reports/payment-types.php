@@ -17,7 +17,7 @@ class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = "$starts < " . self::unixtime('o.created');
 		$where[] = "$ends > " . self::unixtime('o.created');
-		$where[] = "o.txnstatus IN ('authorized','captured')";
+		$where[] = "o.txnstatus IN ('authed','captured')";
 
 		$where = join(" AND ",$where);
 
