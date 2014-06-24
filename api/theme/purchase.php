@@ -306,7 +306,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_shipping ( $result, $options, $O ) {
-		return ( $O->shipable || ! empty($O->shipmethod) || $O->freight > 0 );
+		return ( $O->shippable || ! empty($O->shipmethod) || $O->freight > 0 );
 	}
 
 	public static function has_tax ( $result, $options, $O ) {

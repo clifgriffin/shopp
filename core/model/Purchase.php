@@ -33,7 +33,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 	public $inventory = false;
 	public $downloads = false;
-	public $shipable = false;
+	public $shippable = false;
 	public $shipped = false;
 	public $stocked = false;
 
@@ -42,7 +42,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$this->init(self::$table);
 		if ( ! $id ) return true;
 		$this->load($id, $key);
-		if ( ! empty($this->shipmethod) ) $this->shipable = true;
+		if ( ! empty($this->shipmethod) ) $this->shippable = true;
 
 	}
 
@@ -117,7 +117,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$index = $record->id;
 
 		if ( ! empty($Purchased->download) ) $this->downloads = true;
-		if ( 'Shipped' == $Purchased->type ) $this->shipable = true;
+		if ( 'Shipped' == $Purchased->type ) $this->shippable = true;
 		if ( isset($record->inventory) ) {
 			$Purchased->inventory = Shopp::str_true($record->inventory);
 			if ( $Purchased->inventory ) $this->stocked = true;
@@ -136,7 +136,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			foreach ( $Purchased->addons->meta as $Addon ) {
 				$addon = $Addon->value;
 				if ( 'Download' == $addon->type ) $this->downloads = true;
-				if ( 'Shipped' == $addon->type ) $this->shipable = true;
+				if ( 'Shipped' == $addon->type ) $this->shippable = true;
 				if ( Shopp::str_true($addon->inventory) ) $this->stocked = true;
 			}
 
