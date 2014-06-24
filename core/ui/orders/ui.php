@@ -5,7 +5,7 @@ function manage_meta_box ($Purchase) {
 ?>
 <form action="<?php echo ShoppAdminController::url( array('id'=>$Purchase->id) ); ?>" method="post">
 
-<?php if ($Purchase->shipable): ?>
+<?php if ($Purchase->shippable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <li class="inline-fields">
@@ -241,7 +241,7 @@ function manage_meta_box ($Purchase) {
 		<?php endif; ?>
 		&nbsp;
 		<?php if ( $Purchase->authorized || 0 == $Purchase->balance ): ?>
-			<?php if ( $Purchase->shipable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
+			<?php if ( $Purchase->shippable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
 			<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
 			<?php endif; ?>
 			<?php if ( current_user_can('shopp_capture') && ! $Purchase->captured && $Gateway && $Gateway->captures ): ?>
