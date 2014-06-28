@@ -226,7 +226,6 @@ class ImageProcessor {
 		$jpeg = strlen(ob_get_clean());
 
 		$this->complexity = 0.7 - ( $jpeg / $source );
-		error_log("Complexity: $this->complexity");
 
 		return $this->complexity;
 
