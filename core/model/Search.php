@@ -105,7 +105,7 @@ class IndexProduct {
 class ContentIndex extends ShoppDatabaseObject {
 	static $table = "index";
 
-	var $_loaded = false;
+	private $_loaded = false;
 
 	/**
 	 * ContentIndex constructor
@@ -261,6 +261,7 @@ class BooleanParser extends SearchTextFilters {
 		add_filter('shopp_boolean_search', array('BooleanParser', 'AccentFilter'));
 		add_filter('shopp_boolean_search', array('BooleanParser', 'StopFilter'));
 		add_filter('shopp_boolean_search', array('BooleanParser', 'LowercaseFilter'));
+		add_filter('shopp_boolean_search', array('BooleanParser', 'HyphensFilter'));
 		add_filter('shopp_boolean_search', array('BooleanParser', 'NormalizeFilter'));
 		add_filter('shopp_boolean_search', array('BooleanParser', 'StemFilter'));
 		add_filter('shopp_boolean_search', array('BooleanParser', 'KeywordFilter'));
@@ -297,6 +298,7 @@ class ShortwordParser extends SearchTextFilters {
 		add_filter('shopp_shortword_search', array('ShortwordParser', 'LowercaseFilter'));
 		add_filter('shopp_shortword_search', array('ShortwordParser', 'ShortwordFilter'));
 		add_filter('shopp_shortword_search', array('ShortwordParser', 'StopFilter'));
+		add_filter('shopp_shortword_search', array('ShortwordParser', 'HyphensFilter'));
 		add_filter('shopp_shortword_search', array('ShortwordParser', 'NormalizeFilter'));
 	}
 
@@ -318,8 +320,43 @@ class ContentParser extends SearchTextFilters {
 		add_filter('shopp_index_content', array('ContentParser', 'MarkupFilter'));
 		add_filter('shopp_index_content', array('ContentParser', 'AccentFilter'));
 		add_filter('shopp_index_content', array('ContentParser', 'LowercaseFilter'));
+		add_filter('shopp_index_content', array('ContentParser', 'HyphensFilter'));
 		add_filter('shopp_index_content', array('ContentParser', 'NormalizeFilter'));
 		add_filter('shopp_index_content', array('ContentParser', 'StemFilter'));
+	}
+
+	/**
+	 * Adds collapsed hyphenated words and expanded hyphenated words to the text for indexing.
+	 *
+	 * This addresses issue #2973 by making sure hypenated words (as found in SKUs and compound
+	 * words) are collapsed and expanded. For example, "ice-skate" is collapsed to "iceskate"
+	 * and expanded into two words "ice" and "skate" and added to the end of the indexed text.
+	 *
+	 * This helps handle hypenated SKUs like KSF-C005951A-TTRU which get added to the index as
+	 * "KSFC005951ATTRU" and "KSF C005951A TTRU" to ensure total recall (classic movie: http://shopp.me/1oerMls).
+	 *
+	 * @since 1.3.5
+	 *
+	 * @param string $text The text with hypenated words to index
+	 * @return string the text with hyphen collapsing and expansions
+	 **/
+	public static function HyphensFilter ( $text ) {
+
+		// Find all hyphenated words
+		preg_match_all("/\b\w+(\-\w+)+\b/", $text, $matched, PREG_SET_ORDER);
+
+		foreach ( $matched as $match ) {
+			list($hyphenated,) = $match;
+
+			// hypens as spaces
+			$text .= ' ' . str_replace('-', ' ', $hyphenated);
+
+			// hyphens ignored
+			$text .= ' ' .  str_replace('-', '', $hyphenated);
+
+		}
+
+		return $text;
 	}
 
 } // END class ContentParser
@@ -346,7 +383,7 @@ abstract class SearchTextFilters {
 	 * @param boolean $symbol (optional) Require currency symbol - required by default
 	 * @return string The current currency regex pattern
 	 **/
-	static function _currency_regex ($symbol=true) {
+	public static function _currency_regex ($symbol=true) {
 		$format = Shopp::currency_format();
 		extract($format);
 
@@ -365,7 +402,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @return string The price match query pattern
 	 **/
-	static function _pricematch_regex () {
+	public static function _pricematch_regex () {
 		$price = self::_currency_regex();
 		$optprice = self::_currency_regex(false);
 		return "[>|<]?\s?($price)(\-($optprice))?";
@@ -383,7 +420,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to process
 	 * @return string text with markup tags removed
 	 **/
-	static function MarkupFilter ( $text ) {
+	public static function MarkupFilter ( $text ) {
 		return strip_tags($text);
 	}
 
@@ -396,7 +433,7 @@ abstract class SearchTextFilters {
 	 * @param string $string The text to transpose
 	 * @return string Transposed text
 	 **/
-	static function LowercaseFilter ( $text ) {
+	public static function LowercaseFilter ( $text ) {
 		return strtolower($text);
 	}
 
@@ -412,7 +449,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to clean up
 	 * @return string The cleaned text
 	 **/
-	static function StopFilter ( $text ) {
+	public static function StopFilter ( $text ) {
 		$stopwords = Lookup::stopwords();
 		$replacements = implode('|', $stopwords);
 		return preg_replace("/\b($replacements)\b/", '', $text);
@@ -430,10 +467,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to normalize
 	 * @return string normalized text
 	 **/
-	static function NormalizeFilter ($text) {
-
-		// Collapse hyphenated prefix words
-		$text = preg_replace("/(\s?\w{1,3})\-(\w+)\b/", "$1$2", $text);
+	public static function NormalizeFilter ($text) {
 
 		// Collapse words with periods and commas
 		$text = preg_replace("/[\.\']/", '', $text);
@@ -448,6 +482,18 @@ abstract class SearchTextFilters {
 	}
 
 	/**
+	 * Ignore hyphens in words
+	 *
+	 * @since 1.3.5
+	 *
+	 * @param string $text Text that might have hypens
+	 * @return string text without hyphens
+	 **/
+	public static function HyphensFilter ( $text ) {
+		return str_replace('-', '', $text);
+	}
+
+	/**
 	 * Collates accented characters to plain text equivalents
 	 *
 	 * @author Jonathan Davis
@@ -456,7 +502,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to convert
 	 * @return string Converted text
 	 **/
-	static function AccentFilter ( $text ) {
+	public static function AccentFilter ( $text ) {
 		if ( ! function_exists('remove_accents') )
 			require( ABSPATH . WPINC . '/formatting.php' );
 		return remove_accents($text);
@@ -471,7 +517,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The query string to parse
 	 * @return string The boolean search string
 	 **/
-	static function KeywordFilter ( $text ) {
+	public static function KeywordFilter ( $text ) {
 		if ( ! defined('SHOPP_SEARCH_LOGIC') ) define('SHOPP_SEARCH_LOGIC', 'OR');
 		$logic = strtoupper(SHOPP_SEARCH_LOGIC) == 'AND' ? '+' : '';
 
@@ -499,7 +545,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The query string to parse
 	 * @return string The shortword search string
 	 **/
-	static function ShortwordFilter ( $text ) {
+	public static function ShortwordFilter ( $text ) {
 		$text = preg_replace('/\b\w{4,}\b/', '', $text);
 		$text = preg_replace('/ +/', '|', $text);
 		return $text;
@@ -514,7 +560,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The search query
 	 * @return string search query without price search
 	 **/
-	static function CurrencyFilter ( $text ) {
+	public static function CurrencyFilter ( $text ) {
 		$pricematch = self::_pricematch_regex();
 		$text = preg_replace("/$pricematch/", '', $text);
 		return $text;
@@ -529,7 +575,7 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to stem
 	 * @return string The text plus the generated word stems
 	 **/
-	static function StemFilter ( $text ) {
+	public static function StemFilter ( $text ) {
 		// Filter out short words for stemming
 		$source = preg_replace("/\b\w{1,3}\b/", '', $text);
 		$_ = array();
