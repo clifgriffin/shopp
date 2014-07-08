@@ -932,14 +932,14 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			'labelpos' => 'before',
 			'label' => '',
 			'options' => '1-15,20,25,30,40,50,75,100',
-			'size' => 3
+			'size' => false
 		);
-		$options = array_merge($defaults,$options);
-		$_options = $options;
-		extract($_options);
+		$options = array_merge($defaults, $options);
+		$attributes = $options;
+		extract($attributes);
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
-		unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
+		unset($attributes['label']); // Interferes with the text input value when passed to inputattrs()
 		if( !empty($label) ) $labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
 
@@ -973,7 +973,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 					else for ($i = $v[0]; $i < $v[1]+1; $i++) $qtys[] = $i;
 				} else $qtys[] = $v;
 			}
-			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'"' . inputattrs($options, $select_attrs) . '>';
+			$_[] = '<select name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'"' . inputattrs($attributes, $select_attrs) . '>';
 			foreach ($qtys as $qty) {
 				$amount = $qty;
 				if ( $variation && 'Donation' == $variation->type && Shopp::str_true($variation->donation['var']) ) {
@@ -989,10 +989,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$_[] = '</select>';
 		} elseif (Shopp::valid_input($input)) {
 			if (  $variation && 'Donation' == $variation->type && Shopp::str_true($variation->donation['var']) ) {
-				if ($variation->donation['min']) $_options['value'] = $variation->price;
-				$_options['class'] .= " currency";
+				if ($variation->donation['min']) $attributes['value'] = $variation->price;
+				$attributes['class'] .= " currency";
 			}
-			$_[] = '<input type="'.$input.'" name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'"'.inputattrs($_options).' />';
+			$_[] = '<input type="'.$input.'" name="products['.$O->id.'][quantity]" id="quantity-'.$O->id.'"'.inputattrs($attributes).' />';
 		}
 
 		if ("after" == $labelpos) $_[] = $labeling;
