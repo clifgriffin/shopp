@@ -122,19 +122,17 @@ abstract class SessionObject {
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 
 		if ( $result = sDB::query($query) ) {
-			if ( '!' == substr($result->data,0,1) ) {
+			if ( '!' == $result->data{0} ) {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
+				$db = sDB::get();
 
 				if ( empty($key) && ! is_ssl() ) Shopp::redirect( Shopp::force_ssl( Shopp::raw_request_url(), true ) );
 
 				$this->secured(true); // Maintain session security
 
-				$readable = sDB::query("SELECT AES_DECRYPT('" .
-										mysql_real_escape_string(
-											base64_decode(
-												substr($result->data, 1)
-											)
-										) . "','$key') AS data", 'auto', 'col', 'data');
+				$encrypted = $db->api->escape(base64_decode(substr($result->data, 1)));
+				$readable = sDB::query("SELECT AES_DECRYPT('" . $encrypted . "','$key') AS data", 'auto', 'col', 'data');
+
 				$result->data = $readable;
 
 			}
