@@ -253,9 +253,21 @@ class sDB extends SingletonFramework {
 		if ( is_array($data) ) array_map(array(__CLASS__, 'escape'), $data);
 		elseif ( is_object($data) ) {
 			foreach ( get_object_vars($data) as $p => $v )
-				$data->$p = sDB::escape($v);
-		} else $data = addslashes(stripslashes($data));
+				$data->$p = self::escape($v);
+		} else {
+			$db = sDB::get();
+			$data = self::unescape($data); // Prevent double-escapes
+			$data = $db->api->escape($data);
+		}
 		return $data;
+	}
+
+	protected static function unescape ( $data ) {
+	    return str_replace(
+			array("\\\\", "\\0", "\\n", "\\r", "\Z",   "\'", '\"'),
+			array("\\",   "\0",  "\n",  "\r",  "\x1a", "'",  '"'),
+			$data
+		);
 	}
 
 	/**
@@ -731,6 +743,7 @@ interface ShoppDBInterface {
 	public function affected ();
 	public function object ( $results = null );
 	public function free ();
+	public function escape ( $string );
 }
 
 /**
@@ -791,6 +804,10 @@ class ShoppMySQLEngine implements ShoppDBInterface {
 		return mysql_free_result($this->result);
 	}
 
+	public function escape ( $string ) {
+		return mysql_real_escape_string($string, $this->connection);
+	}
+
 }
 
 /**
@@ -849,6 +866,10 @@ class ShoppMySQLiEngine implements ShoppDBInterface {
 	public function free () {
 		if ( ! is_a($this->results, 'mysqli_result') ) return false;
 		return $this->results->free();
+	}
+
+	public function escape ( $string ) {
+		return $this->connection->real_escape_string($string);
 	}
 
 }
