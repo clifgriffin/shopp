@@ -156,7 +156,7 @@ At a minimum you should setup a **Base of Operations** location to setup Shopp t
 
 = Do you have a demo version? =
 
-We have an online demo you can play around with. You can also login to the admin.
+We have an [online demo](http://demo.shopplugin.net) you can play around with. You can also [login to the admin](http://demo.shopplugin.net/wp-login.php).
 
 = Where can I see examples of Shopp in action? =
 
