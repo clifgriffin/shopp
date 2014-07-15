@@ -27,6 +27,9 @@ abstract class SessionObject {
 
 	public $secure = false;
 
+	const PHP_SESSION = '__php_session_';
+	const PHP_EXPIRES = '__php_session_expires_';
+
 	/**
 	 * The session manager constructor
 	 *
@@ -119,19 +122,17 @@ abstract class SessionObject {
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 
 		if ( $result = sDB::query($query) ) {
-			if ( '!' == substr($result->data,0,1) ) {
+			if ( '!' == $result->data{0} ) {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
+				$db = sDB::get();
 
 				if ( empty($key) && ! is_ssl() ) Shopp::redirect( Shopp::force_ssl( Shopp::raw_request_url(), true ) );
 
 				$this->secured(true); // Maintain session security
 
-				$readable = sDB::query("SELECT AES_DECRYPT('" .
-										mysql_real_escape_string(
-											base64_decode(
-												substr($result->data, 1)
-											)
-										) . "','$key') AS data", 'auto', 'col', 'data');
+				$encrypted = $db->api->escape(base64_decode(substr($result->data, 1)));
+				$readable = sDB::query("SELECT AES_DECRYPT('" . $encrypted . "','$key') AS data", 'auto', 'col', 'data');
+
 				$result->data = $readable;
 
 			}
@@ -152,9 +153,9 @@ abstract class SessionObject {
 
 		do_action('shopp_session_load');
 
-		// Read standard session data
-		if ( @file_exists("$this->path/sess_$id") )
-			return (string) @file_get_contents("$this->path/sess_$id");
+		// Read PHP session data from WP
+		if ( $php = get_option(self::PHP_SESSION . $id) )
+			return (string) $php;
 
 		return $loaded;
 	}
@@ -174,9 +175,8 @@ abstract class SessionObject {
 		if ( ! sDB::query("DELETE FROM $this->_table WHERE session='$this->session'") )
 			trigger_error("Could not clear session data.");
 
-		// Handle clean-up of file storage sessions
-        if ( is_writable("$this->path/sess_$id") )
-			@unlink($file);
+		// Handle clean-up of PHP sessions
+		delete_option(self::PHP_SESSION . $id);
 
 		unset($this->session, $this->ip, $this->data);
 		return true;
@@ -218,8 +218,21 @@ abstract class SessionObject {
 
 
 		// Save standard session data for compatibility
-		if ( ! empty($session) )
-			return false === file_put_contents("$this->path/sess_$id",$session) ? false : true;
+		if ( ! empty($session) ) {
+			$sessionid = self::PHP_SESSION . $id;
+			$exists = get_option($sessionid);
+
+			$expiresid = self::PHP_EXPIRES . $id;
+			$lifetime = time() + (int) ini_get('session.gc_maxlifetime');
+			$expires = get_option($expiresid);
+			if ( false == $expiresid )
+				add_option($expiresid, $lifetime, '', 'no' );
+			else update_option($expiresid, $lifetime);
+
+			if ( false === $exists ) // Add new global session data, do not autoload
+				return add_option($sessionid, $session, '', 'no');
+			return update_option($sessionid, $session);
+		}
 
 		return true;
 	}
@@ -245,23 +258,14 @@ abstract class SessionObject {
 		if ( ! sDB::query("DELETE FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
 			trigger_error("Could not delete cached session data.");
 
-		// Garbage collection for file-system sessions
-		if( $dh = opendir($this->path) ) {
+		// Garbage collection for PHP sessions
+		global $wpdb;
+		$time = time();
+		$session = self::PHP_SESSION;
+		$expires = self::PHP_EXPIRES;
 
-		    while( ( $file = readdir($dh) ) !== false ) {
-		    	if ( false === strpos($file, 'sess_') ) continue;
-
-		    	$file = $this->path . "/$file";
-
-		        if ( filemtime($file) + $lifetime < time() && is_writable($file) ) {
-			    	if ( @unlink($file) === false ) {
-				    	break;
-			    	}
-		        }
-		    }
-
-		    closedir($dh);
-		}
+		sDB::query("DELETE FROM $wpdb->options AS t1 JOIN {$wpdb->options} AS t2 ON t2.option_name = replace(t1.option_name, '_expires', '')
+				WHERE (t1.option_name LIKE '$session%' OR t1.option_name LIKE '$expires %') AND t1.option_value < '$time'");
 
 		return true;
 	}
@@ -307,6 +311,5 @@ abstract class SessionObject {
 		if ( $success ) return $content;
 		else return false;
 	}
-
 
 }

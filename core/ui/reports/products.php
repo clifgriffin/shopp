@@ -17,7 +17,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where[] = "$starts < " . self::unixtime('o.created');
 		$where[] = "$ends > " . self::unixtime('o.created');
-		$where[] = "orders.txnstatus IN ('authorized','captured')";
+		$where[] = "orders.txnstatus IN ('authed','captured')";
 
 		$where = join(" AND ",$where);
 

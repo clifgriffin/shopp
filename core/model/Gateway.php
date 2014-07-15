@@ -895,6 +895,8 @@ class PayCard {
 	public static function mask ( $value, $mask = null ) {
 		if ( empty($value) ) return $value;
 
+		if ( ! self::checksum($value) ) return $value;
+
 		if ( ! isset($mask) ) $mask = 'X';
 		$n = self::sanitize($value);
 		$length = max(strlen($value) - 4, 12);

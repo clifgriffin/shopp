@@ -111,7 +111,6 @@ class ShoppOrder {
 		// Initialize/reinitalize the current location
 		add_action('shopp_init', array($this, 'locate'), 20);
 
-
 	}
 
 	function init () {
@@ -259,7 +258,6 @@ class ShoppOrder {
 		));
 	}
 
-
 	/**
 	 * Fires an unstock order event for a purchase to deduct stock from inventory
 	 *
@@ -275,10 +273,9 @@ class ShoppOrder {
 		if ( ! isset($Purchase->id) || empty($Purchase->id) || $Event->order != $Purchase->id )
 			$Purchase = new ShoppPurchase($Event->order);
 
-		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load events
-		if ( in_array('unstock', array_keys($Purchase->events)) ) return true; // Unstock already occurred, do nothing
+		if ( $Purchase->did('unstock') ) return true; // Unstock already occurred, do nothing
 
-		$Purchase->load_purchased(); // Reload purchased to esnure we have inventory status
+		$Purchase->load_purchased(); // Reload purchased to ensure we have inventory status
 		if ( ! $Purchase->stocked ) return false;
 
 		shopp_add_order_event($Purchase->id, 'unstock');
@@ -779,12 +776,10 @@ class ShoppOrder {
 	 * @return void
 	 **/
 	public function securecard () {
-		if ( ! empty($this->Billing->card) && strlen($this->Billing->card) > 4 ) {
-			$this->Billing->card = substr($this->Billing->card, -4);
+		$this->Billing->card = '';
 
-			// Card data is truncated, switch the cart to normal mode
-			ShoppShopping()->secured(false);
-		}
+		// Card data is gone, switch the cart to normal mode
+		ShoppShopping()->secured(false);
 	}
 
 	/**
