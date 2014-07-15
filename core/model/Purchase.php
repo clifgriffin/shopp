@@ -373,6 +373,24 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	/**
+	 * Determines if the order has a given order event
+	 *
+	 * @since 1.3.5
+	 *
+	 * @param string $event The event to check for
+	 * @return boolean True if the event occurred
+	 **/
+	public function did ( $event ) {
+
+		if ( empty($this->events) ) $this->load_events(); // Load events
+		foreach ( (array) $this->events as $entry )
+			if ( $event == $entry->name ) return true;
+
+		return false;
+
+	}
+
+	/**
 	 * Updates a purchase order with transaction information from order events
 	 *
 	 * @author Jonathan Davis
@@ -851,7 +869,7 @@ class PurchasesExport {
 			$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 			$joins[ $meta_table ] = "LEFT JOIN $meta_table AS discounts ON discounts.parent = o.id AND discounts.name='discounts' AND discounts.context='purchase'";
 		}
-		
+
 		if ( $addoncols ) {
 			$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 			$joins[ $meta_table.'_2' ] = "LEFT JOIN $meta_table AS addons ON addons.parent = p.id AND addons.type='addon' AND addons.context='purchased'";
