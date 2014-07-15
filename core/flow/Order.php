@@ -277,7 +277,7 @@ class ShoppOrder {
 		if ( ! isset($Purchase->events) || empty($Purchase->events) ) $Purchase->load_events(); // Load events
 		if ( in_array('unstock', array_keys($Purchase->events)) ) return true; // Unstock already occurred, do nothing
 
-		$Purchase->load_purchased(); // Reload purchased to esnure we have inventory status
+		$Purchase->load_purchased(); // Reload purchased to ensure we have inventory status
 		if ( ! $Purchase->stocked ) return false;
 
 		shopp_add_order_event($Purchase->id, 'unstock');
