@@ -66,7 +66,7 @@ class ShoppAdminReport extends ShoppAdminController {
 			'customers' => array( 'class' => 'CustomersReport', 'name' => __('Customers Report','Shopp'), 'label' => __('Customers','Shopp') ),
 			'locations' => array( 'class' => 'LocationsReport', 'name' => __('Locations Report','Shopp'), 'label' => __('Locations','Shopp') ),
 			'products' => array( 'class' => 'ProductsReport', 'name' => __('Products Report','Shopp'), 'label' => __('Products','Shopp') ),
-			'payment-types' => array( 'class' => 'PaymentTypesReport', 'name' => __('Payment Types Report','Shopp'), 'label' => __('Payment Types','Shopp') ),
+			'paytype' => array( 'class' => 'PaymentTypesReport', 'name' => __('Payment Types Report','Shopp'), 'label' => __('Payment Types','Shopp') ),
 		));
 	}
 
@@ -1203,12 +1203,12 @@ abstract class ShoppReportExportFramework {
 	public $data = false;
 
 	public $recordstart = true;
-	public $content_type = "text/plain";
+	public $content_type = "text/plain; charset=UTF-8";
 	public $extension = "txt";
 	public $set = 0;
 	public $limit = 1024;
 
-	public function __construct ( $Report ) {
+	public function __construct ( ShoppReportFramework $Report ) {
 
 		$this->ReportClass = get_class($Report);
 		$this->options = $Report->options;
@@ -1244,7 +1244,7 @@ abstract class ShoppReportExportFramework {
 		$reports = ShoppAdminReport::reports();
 		$name = $reports[$report]['name'];
 
-		header("Content-type: $this->content_type; charset=UTF-8");
+		header("Content-type: $this->content_type");
 		header("Content-Disposition: attachment; filename=\"$sitename $name.$this->extension\"");
 		header("Content-Description: Delivered by " . ShoppVersion::agent());
 		header("Cache-Control: maxage=1");
@@ -1277,8 +1277,8 @@ abstract class ShoppReportExportFramework {
 	 * @return void
 	 **/
 	public function heading () {
-		foreach ($this->selected as $name)
-			$this->export($this->columns[$name]);
+		foreach ( $this->selected as $name )
+			$this->export($this->columns[ $name ]);
 		$this->record();
 	}
 
@@ -1384,7 +1384,7 @@ abstract class ShoppReportExportFramework {
  **/
 class ShoppReportTabExport extends ShoppReportExportFramework {
 
-	public function __construct( $Report ) {
+	public function __construct( ShoppReportFramework $Report ) {
 		parent::__construct( $Report );
 		$this->output();
 	}
@@ -1402,14 +1402,14 @@ class ShoppReportTabExport extends ShoppReportExportFramework {
  **/
 class ShoppReportCSVExport extends ShoppReportExportFramework {
 
-	public function __construct ($Report) {
+	public function __construct ( ShoppReportFramework $Report ) {
 		parent::__construct($Report);
-		$this->content_type = "text/csv";
+		$this->content_type = "text/csv; charset=UTF-8";
 		$this->extension = "csv";
 		$this->output();
 	}
 
-	public function export ($value) {
+	public function export ( $value ) {
 		$value = str_replace('"','""',$value);
 		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
 		echo ($this->recordstart?"":",").$value;
@@ -1429,9 +1429,9 @@ class ShoppReportCSVExport extends ShoppReportExportFramework {
  **/
 class ShoppReportXLSExport extends ShoppReportExportFramework {
 
-	public function __construct ($Report) {
+	public function __construct ( ShoppReportFramework $Report ) {
 		parent::__construct($Report);
-		$this->content_type = "application/vnd.ms-excel";
+		$this->content_type = "application/vnd.ms-excel; charset=Windows-1252";
 		$this->extension = "xls";
 		$this->c = 0; $this->r = 0;
 		$this->output();
@@ -1445,14 +1445,13 @@ class ShoppReportXLSExport extends ShoppReportExportFramework {
 		echo pack("ss", 0x0A, 0x00);
 	}
 
-	public function export ($value) {
-		if (preg_match('/^[\d\.]+$/',$value)) {
-		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
-			echo pack("d", $value);
+	public function export ( $value ) {
+		if ( is_numeric($value) ) {
+		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0) . pack("d", $value);
 		} else {
-			$l = strlen($value);
-			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
-			echo $value;
+			$v = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
+			$l = mb_strlen($v, 'Windows-1252');
+			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l) . $v;
 		}
 		$this->c++;
 	}
