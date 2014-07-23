@@ -330,7 +330,7 @@ class ImageAsset extends FileAsset {
 
 		if (!empty($data)) echo $data;
 		else $Engine->output($this->uri);
-		ob_flush(); flush();
+		@ob_flush(); @flush();
 		return;
 	}
 
