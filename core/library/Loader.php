@@ -224,25 +224,22 @@ class ShoppLoader {
 		$filepath = dirname( ! empty($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : __FILE__ );
 
 		define('SHOPP_LOADER_APC', function_exists('apc_exists'));
+		$apccache = 'shopp_wp_abspath_' . hash('crc32b', $filepath);
 
-		if ( SHOPP_LOADER_APC ) {
-
-			$apccache = 'shopp_wp_abspath_' . hash('crc32b', $filepath);
-			if (apc_exists($apccache) && $cached = apc_fetch($apccache) && file_exists("$cached/$loadfile") )
-				return "$cached/$loadfile";
-
-		}
-
-		if ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
-
-			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
-
-		} elseif ( isset($_SERVER['SHOPP_WP_ABSPATH'] )
+		if ( isset($_SERVER['SHOPP_WP_ABSPATH'] )
 			&& file_exists(self::sanitize($_SERVER['SHOPP_WP_ABSPATH']) . '/' . $loadfile) ) {
 
 			// SetEnv SHOPP_WP_ABSPATH /path/to/wp-load.php
 			// and SHOPP_ABSPATH used on webserver site config
 			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
+
+		} elseif ( SHOPP_LOADER_APC && apc_exists($apccache) && $cached = apc_fetch($apccache) && file_exists("$cached/$loadfile") ) {
+			
+			return "$cached/$loadfile";
+			
+		} elseif ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
+
+			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
 
 		} elseif ( strpos($filepath, $root) !== false ) {
 
