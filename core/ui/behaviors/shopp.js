@@ -254,6 +254,14 @@ jQuery.fn.setDisabled = function (setting) {
 	return this;
 };
 
+jQuery.fn.money = function () {
+	var $this = jQuery(this);
+	$this.on('change', function () {
+		this.value = asMoney(this.value);
+	}).change();
+	return this;
+}
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()
@@ -286,9 +294,7 @@ jQuery.getQueryVar = function (name,url) {
 jQuery(document).ready(function($) {
 
 	// Automatically reformat currency and money inputs
-	$('input.currency, input.money').change(function () {
-		this.value = asMoney(this.value); }).change();
-
+	$('input.currency, input.money').money();
 	$('.click-submit').clickSubmit();
 
 	quickSelects();

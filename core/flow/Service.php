@@ -54,6 +54,7 @@ class ShoppAdminService extends ShoppAdminController {
 				'stg' => __('Send to gateway','Shopp')
 			));
 			shopp_enqueue_script('address');
+			shopp_enqueue_script('selectize');
 			shopp_custom_script( 'address', 'var regions = '.json_encode(Lookup::country_zones()).';');
 
 			add_action('load-' . $this->screen, array($this, 'workflow'));
@@ -495,7 +496,7 @@ class ShoppAdminService extends ShoppAdminController {
 				));
 			}
 
-			if (!empty($_POST['message']))
+			if ( ! empty($_POST['message']) )
 				$this->addnote($Purchase->id,$_POST['message']);
 
 			$Purchase->load_events();
@@ -544,39 +545,112 @@ class ShoppAdminService extends ShoppAdminController {
 			} else $this->notice(__('The selected customer was not found.','Shopp'),'error');
 		}
 
-		if ( isset($_POST['save-item']) && ! empty($_POST['lineid']) ) {
+		if ( isset($_POST['save-item']) && isset($_POST['lineid']) ) {
+
+			if ( isset($_POST['lineid']) && '' == $_POST['lineid'] ) {
+				$lineid = 'new';
+			} else $lineid = (int)$_POST['lineid'];
+
+			$name = $_POST['itemname'];
+			if ( ! empty( $_POST['product']) ) {
+				list($productid, $priceid) = explode('-', $_POST['product']);
+				$Product = new ShoppProduct($productid);
+				$Price = new ShoppPrice($priceid);
+				$name = $Product->name;
+				if ( Shopp::__('Price & Delivery') != $Price->label )
+					$name .= ": $Price->label";
+			}
 
 			// Create a cart representation of the order to recalculate order totals
 			$Cart = new ShoppCart();
-			foreach ($Purchase->purchased as $OrderItem) {
-				$CartItem = new Item($OrderItem);
-				$Cart->contents[$OrderItem->id] = $CartItem;
+
+			$taxcountry = $Purchase->country;
+			$taxstate = $Purchase->state;
+			if ( ! empty($Purchase->shipcountry) && ! empty($Purchase->shipstate) ) {
+				$taxcountry = $Purchase->shipcountry;
+				$taxstate = $Purchase->shipstate;
+			}
+			ShoppOrder()->Tax->location($taxcountry, $taxstate);
+
+			if ( 'new' == $lineid ) {
+				$NewLineItem = new ShoppPurchased();
+				$NewLineItem->purchase = $Purchase->id;
+				$Purchase->purchased[] = $NewLineItem;
 			}
 
-			$purchasedid = (int)$_POST['lineid'];
-			$Purchased = $Purchase->purchased[$purchasedid];
-			if ( $Purchased->id ) {
+			foreach ( $Purchase->purchased as &$Purchased ) {
+				$CartItem = new ShoppCartItem($Purchased);
 
-				$override_total = ( Shopp::floatval($_POST['total']) != $Purchased->total ); // Override total
+				if ( $Purchased->id == $lineid || ('new' == $lineid && empty($Purchased->id) ) ) {
 
-				$Item = $Cart->contents[$purchasedid];
-				$Item->quantity($_POST['quantity']);
-				$Item->unitprice = Shopp::floatval($_POST['unitprice']);
-				$Item->retotal();
-				$Purchased->quantity = $Item->quantity;
-				$Purchased->unitprice = $Item->unitprice;
-				$Purchased->unittax = $Item->unittax;
-				$Purchased->total = $Item->total;
-				if ( $override_total ) $Purchased->total = Shopp::floatval($_POST['total']);
-				$Purchased->save();
+					if ( ! empty( $_POST['product']) ) {
+						list($CartItem->product, $CartItem->priceline) = explode('-', $_POST['product']);
+					} elseif ( ! empty($_POST['id']) ) {
+						list($CartItem->product, $CartItem->priceline) = explode('-', $_POST['id']);
+					}
+
+					$CartItem->name = $name;
+					$CartItem->unitprice = Shopp::floatval($_POST['unitprice']);
+					$Cart->additem((int)$_POST['quantity'], $CartItem);
+					$CartItem = $Cart->get($CartItem->fingerprint());
+
+					$Purchased->name = $CartItem->name;
+					$Purchased->product = $CartItem->product;
+					$Purchased->price = $CartItem->priceline;
+					$Purchased->quantity = $CartItem->quantity;
+					$Purchased->unitprice = $CartItem->unitprice;
+					$Purchased->total = $CartItem->total;
+
+					$Purchased->save();
+
+				} else $Cart->additem($CartItem->quantity, $CartItem);
+
 			}
 
-			$Cart->retotal = true;
-			$Cart->totals();
-			$Purchase->copydata($Cart->Totals);
+			$Cart->Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Purchase->freight ) ) );
+
+			$Purchase->total = $Cart->total();
+			$Purchase->subtotal = $Cart->total('order');
+			$Purchase->discount = $Cart->total('discount');
+			$Purchase->tax = $Cart->total('tax');
+			$Purchase->freight = $Cart->total('shipping');
 			$Purchase->save();
+			$Purchase->load_purchased();
 
 		}
+
+		if ( ! empty($_GET['rmvline']) ) {
+			$lineid = (int)$_GET['rmvline'];
+			if ( isset($Purchase->purchased[ $lineid ]) ) {
+				$Purchase->purchased[ $lineid ]->delete();
+				unset($Purchase->purchased[ $lineid ]);
+			}
+
+			$Cart = new ShoppCart();
+
+			$taxcountry = $Purchase->country;
+			$taxstate = $Purchase->state;
+			if ( ! empty($Purchase->shipcountry) && ! empty($Purchase->shipstate) ) {
+				$taxcountry = $Purchase->shipcountry;
+				$taxstate = $Purchase->shipstate;
+			}
+			ShoppOrder()->Tax->location($taxcountry, $taxstate);
+
+			foreach ( $Purchase->purchased as &$Purchased )
+				$Cart->additem($Purchased->quantity, new ShoppCartItem($Purchased));
+
+			$Cart->Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Purchase->freight ) ) );
+
+			$Purchase->total = $Cart->total();
+			$Purchase->subtotal = $Cart->total('order');
+			$Purchase->discount = $Cart->total('discount');
+			$Purchase->tax = $Cart->total('tax');
+			$Purchase->freight = $Cart->total('shipping');
+			$Purchase->save();
+
+			$Purchase->load_purchased();
+		}
+
 
 		if (isset($_POST['charge']) && $Gateway && $Gateway->captures) {
 			if ( ! current_user_can('shopp_capture') )
@@ -633,6 +707,29 @@ class ShoppAdminService extends ShoppAdminController {
 		if ( empty($statusLabels) ) $statusLabels = array('');
 
 		include $this->ui('order.php');
+	}
+
+	private function retotal ( ShoppPurchase $Purchase ) {
+		$Cart = new ShoppCart();
+
+		$taxcountry = $Purchase->country;
+		$taxstate = $Purchase->state;
+		if ( ! empty($Purchase->shipcountry) && ! empty($Purchase->shipstate) ) {
+			$taxcountry = $Purchase->shipcountry;
+			$taxstate = $Purchase->shipstate;
+		}
+		ShoppOrder()->Tax->location($taxcountry, $taxstate);
+
+		foreach ( $Purchase->purchased as $index => &$Purchased )
+			$Cart->additem($Purchased->quantity, new ShoppCartItem($Purchased));
+
+		$Cart->Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Purchase->freight ) ) );
+
+		$Purchase->total = $Cart->total();
+		$Purchase->subtotal = $Cart->total('order');
+		$Purchase->discount = $Cart->total('discount');
+		$Purchase->tax = $Cart->total('tax');
+		$Purchase->freight = $Cart->total('shipping');
 	}
 
 	/**

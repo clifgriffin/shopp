@@ -463,6 +463,14 @@ class ShoppAdmin extends ShoppFlowController {
 			if ( ! in_array($taxonomy, $taxonomies)) return;
 		}
 
+		$uri = SHOPP_ADMIN_URI . '/styles';
+		$version = ShoppVersion::cache();
+		wp_enqueue_style('shopp.colorbox', "$uri/colorbox.css", array(), $version, 'screen');
+		wp_enqueue_style('shopp.admin', "$uri/admin.css", array(), $version, 'screen');
+		wp_enqueue_style('shopp.icons', "$uri/icons.css", array(), $version, 'screen');
+		wp_enqueue_style('shopp.selectize', "$uri/selectize.css", array(), $version, 'screen');
+
+
 		shopp_enqueue_style('colorbox');
 		shopp_enqueue_style('admin');
 		shopp_enqueue_style('icons');

@@ -312,6 +312,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('reports', '/ui/behaviors/reports.js', array(), $version);
 	$scripts->add_data('reports', 'group', 1);
 
+
+	$scripts->add('selectize', '/ui/behaviors/selectize.min.js', array(), $version);
+	$scripts->add_data('selectize', 'group', 1);
 }
 
 add_action('shopp_default_scripts', 'shopp_default_scripts');

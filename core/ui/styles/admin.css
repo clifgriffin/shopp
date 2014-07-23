@@ -638,6 +638,21 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .update-customer .loginname { display: none; }
 #customer-select-search { height: 300px; }
 
+
+/** Order Admin Editing **/
+#order .edit,
+#order .add { overflow: visible; }
+#order input.focus-edit { border: none; background: none; box-shadow: none; padding: 4px 0;}
+#order .num input  { text-align: center; }
+#order .num .money  { text-align: left; }
+#edit-item { width: 100%; box-sizing: border-box; padding-right: 24px; }
+#order .column-items.edit { width: 50%; }
+#order .items .controls { margin-top: 7px; }
+#order .items { position: relative; }
+#order .choose-product { border: none; background: none; position: absolute; right: 5px; top: 8px; font-size: 1.1em; line-height: 1.5em; color: #999; }
+
+
+
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
 .stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }
 .stamp .ing { background: url('../icons/stamped.png') repeat-x; position: absolute; width: 500px; height: 50px; top: 0px; left: 0px; }

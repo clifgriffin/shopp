@@ -52,6 +52,7 @@ class ShoppAjax {
 
 		add_action('wp_ajax_shopp_category_products', array($this, 'category_products'));
 		add_action('wp_ajax_shopp_order_receipt', array($this, 'receipt'));
+		add_action('wp_ajax_shopp_select_product', array($this, 'select_product'));
 		add_action('wp_ajax_shopp_category_children', array($this, 'category_children'));
 		add_action('wp_ajax_shopp_category_order', array($this, 'category_order'));
 		add_action('wp_ajax_shopp_category_products_order', array($this, 'products_order'));
@@ -491,7 +492,26 @@ class ShoppAjax {
 		}
 		// if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$Customers = sDB::query($query,'array','index','id');
+		$list = sDB::query($query,'array','index','id');
+		$results = array();
+		foreach ( $list as $entry ) {
+			$results[] = array(
+				'id' => $entry->id,
+				'user' => $entry->user,
+				'gravatar' => get_avatar( $Customer->wpuser, 48 ),
+				'firstname' => $entry->firstname,
+				'lastname' => $entry->lastname,
+				'company' => $entry->company,
+				'email' => $entry->email,
+				'lastname' => $entry->lastname,
+			);
+		}
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
+
+
+
 		$url = admin_url('admin-ajax.php');
 		?>
 		<html>
@@ -723,6 +743,29 @@ class ShoppAjax {
 		foreach ($updates as $id => $position)
 			sDB::query("UPDATE $table SET priority='$position' WHERE id='$id'");
 		die('1');
+	}
+
+	public function select_product () {
+
+		$SearchResults = new SearchResults(array('load'=>array('prices'),'search' => $_GET['s'], 'nostock' => 'on', 'published' => 'off', 'paged' => -1, 'limit' => 10));
+		$SearchResults->load();
+		$results = array();
+		foreach ($SearchResults->products as $Product) {
+			foreach ( $Product->prices as $Variant ) {
+				if ( 'N/A' == $Variant->type ) continue; // Skip disabled prices
+				$results[] = array(
+					'id' => "$Product->id-$Variant->id",
+					'name' => $Product->name,
+					'variant' => Shopp::__('Price & Delivery') != $Variant->label ? $Variant->label : '',
+					'unitprice' => $Variant->promoprice,
+				);
+			}
+		}
+
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
+
 	}
 
 	public function products_order () {

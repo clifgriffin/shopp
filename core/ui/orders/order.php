@@ -8,6 +8,71 @@
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
 
+				<?php
+				$columns = get_column_headers($this->screen);
+				$hidden = get_hidden_columns($this->screen);
+			?>
+			<script id="item-editor" type="text/x-jquery-tmpl">
+			<?php $colspan = count(get_column_headers($this->screen)); ob_start(); ?>
+			<?php
+				foreach ($columns as $column => $column_title) {
+			$classes = array($column, "column-$column edit");
+					if ( in_array($column, $hidden) ) $classes[] = 'hidden';
+
+			switch ( $column ) {
+						case 'cb':
+							?>
+								<th scope='row' class='check-column'></th>
+							<?php
+							break;
+						case 'items':
+							?>
+								<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+						<select class="select-product edit" name="product" placeholder="<?php Shopp::_e('Search for a product&hellip;'); ?>"></select>
+						<input type="text" name="itemname" value="${itemname}" size="40" id="edit-item" tabindex="1" /><button class="shoppui-th-list choose-product" title="<?php Shopp::__('Select product&hellip;'); ?>" tabindex="2"><?php Shopp::__('Select product&hellip;'); ?></button>
+						<input type="hidden" name="id" value="${id}" />
+								<div class="controls">
+								<input type="hidden" name="lineid" value="${lineid}"/>
+						<input type="submit" name="cancel-edit-item" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" tabindex="6" />
+								</div>
+								</td>
+							<?php
+							break;
+						case 'qty':
+							$classes[] = 'num';
+							?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><input type="text" name="quantity" value="${quantity}" size="5" class="selectall" id="edit-qty" tabindex="3" /></td>
+							<?php
+							break;
+						case 'price':
+							$classes[] = 'money';
+							?>
+						<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><input type="text" name="unitprice" value="${unitprice}" size="10" class="selectall money" id="edit-unitprice" tabindex="4" /></td>
+							<?php
+							break;
+						case 'total':
+							$classes[] = 'money';
+							?>
+							<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+						<input type="text" name="total" value="${totalprice}" size="10" class="money focus-edit" id="edit-total" />
+								<div class="controls">
+						<input type="submit" name="save-item" value="<?php _e('Save Changes','Shopp'); ?>" class="button-primary alignright" tabindex="5" />
+								</div>
+							</td>
+							<?php
+							break;
+						default:
+							?>
+								<td class="<?php echo esc_attr(join(' ',$classes)); ?>"></td>
+							<?php
+							break;
+					}
+				}
+				?>
+	<?php $itemeditor = ob_get_clean(); echo $itemeditor;?>
+			</script>
+
+
 	<div id="order">
 		<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="order-updates">
 			<div class="title">
@@ -32,68 +97,7 @@
 			</div>
 
 			<?php if ( count($Purchase->purchased) > 0 ): ?>
-				<tbody id="items" class="list items">
-				<?php
-				$columns = get_column_headers($this->screen);
-				$hidden = get_hidden_columns($this->screen);
-			?>
-			<script id="item-editor" type="text/x-jquery-tmpl">
-			<?php $colspan = count(get_column_headers($this->screen)); ob_start(); ?>
-			<?php
-				foreach ($columns as $column => $column_title) {
-					$classes = array($column,"column-$column");
-					if ( in_array($column, $hidden) ) $classes[] = 'hidden';
-
-					switch ($column) {
-						case 'cb':
-							?>
-								<th scope='row' class='check-column'></th>
-							<?php
-							break;
-						case 'items':
-							?>
-								<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
-								<input type="text" name="name" value="${itemname}" size="40" />
-								<div class="controls">
-								<input type="hidden" name="lineid" value="${lineid}"/>
-								<input type="submit" name="cancel-edit-item" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
-								</div>
-								</td>
-							<?php
-							break;
-						case 'qty':
-							$classes[] = 'num';
-							?>
-								<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><input type="text" name="quantity" value="${quantity}" size="5" /></td>
-							<?php
-							break;
-						case 'price':
-							$classes[] = 'money';
-							?>
-								<td class="<?php echo esc_attr(join(' ',$classes)); ?>"><input type="text" name="unitprice" value="${unitprice}" size="10" /></td>
-							<?php
-							break;
-						case 'total':
-							$classes[] = 'money';
-							?>
-							<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
-								<input type="text" name="total" value="${total}" size="10" class="focus-edit" />
-								<div class="controls">
-								<input type="submit" name="save-item" value="<?php _e('Save Changes','Shopp'); ?>" class="button-primary alignright" />
-								</div>
-							</td>
-							<?php
-							break;
-						default:
-							?>
-								<td class="<?php echo esc_attr(join(' ',$classes)); ?>"></td>
-							<?php
-							break;
-					}
-				}
-				?>
-			<?php $itemeditor = ob_get_contents(); ob_end_clean(); ?>
-			</script>
+				<tbody id="order-items" class="list items">
 			<?php endif; ?>
 
 			<table class="widefat" cellspacing="0">
@@ -101,9 +105,10 @@
 					<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 				</thead>
 				<tfoot>
-				<?php $colspan = count(get_column_headers($this->screen))-1; ?>
+				<?php $colspan = count(get_column_headers($this->screen))-2; ?>
 				<tr class="totals">
-					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
+					<td scope="col" rowspan="6" class="add"><select class="add-product" name="product" placeholder="<?php Shopp::_e('Search to add a product&hellip;'); ?>"></select></td>
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
 				<?php if ( $Purchase->discounts() ): ?>
@@ -138,31 +143,30 @@
 				</tr>
 				</tfoot>
 				<?php if ( count($Purchase->purchased) > 0 ): ?>
-					<tbody id="items" class="list items">
+					<tbody id="order-items" class="list items">
 					<?php
 					$columns = get_column_headers($this->screen);
 					$hidden = get_hidden_columns($this->screen);
 
 					$even = false;
 					foreach ($Purchase->purchased as $id => $Item):
+						$itemname = $Item->name . ( ! empty($Item->optionlabel) ?" ($Item->optionlabel)" : '');
 						$taxrate = round($Item->unittax/$Item->unitprice,4);
+						$editing = isset($_GET['editline']) && (int)$_GET['editline'] == $id;
 						$rowclasses = array("lineitem-$id");
+						if ( $editing ) $rowclasses[] = 'editing';
 						if ( ! $even ) $rowclasses[] = 'alternate';
 						$even = ! $even;
-
-						$itemname = $Item->name . ( ! empty($Item->optionlabel) ?" ($Item->optionlabel)" : '');
-
-
 					?>
-						<tr class="<?php echo esc_attr(join(' ',$rowclasses)); ?>">
+						<tr class="<?php echo esc_attr(join(' ', $rowclasses)); ?>">
 					<?php
-						if ( isset($_GET['editline']) && (int)$_GET['editline'] == $id ) {
+						if ( $editing ) {
 							$data = array(
-								'${lineid}'    => (int)$_GET['editline'],
-								'${itemname}'  => $itemname,
-								'${quantity}'  => $Item->quantity,
-								'${unitprice}' => money($Item->unitprice),
-								'${total}'     => money($Item->total)
+								'${lineid}'     => (int)$_GET['editline'],
+								'${itemname}'   => $itemname,
+								'${quantity}'   => $Item->quantity,
+								'${unitprice}'  => money($Item->unitprice),
+								'${totalprice}' => money($Item->total)
 							);
 							echo ShoppUI::template($itemeditor, $data);
 						} else {
@@ -195,8 +199,8 @@
 	                                                echo apply_filters('shopp_purchased_item_name', $itemname); ?>
 	                                            </a>
 												<div class="row-actions">
-													<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-													<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span> -->
+													<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+													<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span>
 													<span class='view'><a href="<?php echo $viewurl;  ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 												</div>
 
@@ -292,91 +296,11 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var carriers = <?php echo json_encode($carriers_json); ?>;
+var carriers = <?php echo json_encode($carriers_json); ?>,
+	noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>',
+	producturl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_select_product'); ?>';
+jQuery(document).ready(function($) {
 
-jQuery(document).ready(function() {
-	var $=jQuery,
-		noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
-
-	// close postboxes that should be closed
-	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-	postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
-
-	$('.postbox a.help').click(function () {
-		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
-		return false;
-	});
-
-	$('#notification').hide();
-	$('#notify-customer').click(function () {
-		$('#notification').animate({
-			height: "toggle",
-			opacity:"toggle"
-		}, 500);
-	});
-
-	$('#notation').hide();
-	$('#add-note-button').click(function (e) {
-		e.preventDefault();
-		$('#add-note-button').hide();
-		$('#notation').animate({
-			height: "toggle",
-			opacity:"toggle"
-		}, 500);
-	});
-
-	$('#cancel-note-button').click(function (e) {
-		e.preventDefault();
-		$('#add-note-button').animate({opacity:"toggle"},500);
-		$('#notation').animate({
-			height: "toggle",
-			opacity:"toggle"
-		}, 500);
-	});
-
-	$('#order-notes table tr').hover(function () {
-		$(this).find('.notectrls').animate({
-			opacity:"toggle"
-		}, 500);
-
-	},function () {
-		$(this).find('.notectrls').animate({
-			opacity:"toggle"
-		}, 100);
-
-	});
-
-	$('td .deletenote').click(function (e) {
-		if (!confirm('Are you sure you want to delete this note?'))
-			e.preventDefault();
-	});
-
-	$('td .editnote').click(function () {
-		var editbtn = $(this).attr('disabled',true).addClass('updating'),
-			cell = editbtn.parents('td'),
-			note = cell.find('div'),
-			ctrls = cell.find('span.notectrls'),
-			meta = cell.find('p.notemeta'),
-			idattr = note.attr('id').split("-"),
-			id = idattr[1];
-		$.get(noteurl+'&action=shopp_order_note_message&id='+id,false,function (msg) {
-			editbtn.removeAttr('disabled').removeClass('updating');
-			if (msg == '1') return;
-			var editor = $('<textarea name="note-editor['+id+']" cols="50" rows="10" />').val(msg).prependTo(cell);
-				ui = $('<div class="controls alignright">'+
-						'<button type="button" name="cancel" class="cancel-edit-note button-secondary">Cancel</button>'+
-						'<button type="submit" name="edit-note['+id+']" class="save-note button-primary">Save Note</button></div>').appendTo(meta),
-				cancel = ui.find('button.cancel-edit-note').click(function () {
-						editor.remove();
-						ui.remove();
-						note.show();
-						ctrls.addClass('notectrls');
-					});
-			note.hide();
-			ctrls.hide().removeClass('notectrls');
-		});
-
-	});
 
 	$('#customer').click(function () {
 		window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";

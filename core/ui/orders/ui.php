@@ -502,7 +502,13 @@ function contact_meta_box ($Purchase) {
 		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
 		if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
 	?>
-	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>><input type="hidden" name="change-customer" value="true" /><input type="hidden" name="action" value="shopp_select_customer" /><input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" /><?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?><p><input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" /></p>
+	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>>
+	<input type="hidden" name="change-customer" value="true" />
+	<input type="hidden" name="action" value="shopp_select_customer" />
+	<input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" />
+	<?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?>
+	<p><select id="select-customer" name="s" placeholder="<?php _e('Search...','Shopp'); ?>"></select>
+		<!--<input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" />--></p>
 	</form>
 	<?php if ( $iframe ): ?>
 	<iframe id="customer-search-results" name="customer-search-results" src="<?php echo esc_url($searchurl); ?>"></iframe>
@@ -510,7 +516,7 @@ function contact_meta_box ($Purchase) {
 	<div><input type="submit" id="cancel-change-customer" name="cancel-change-customer" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" /></div>
 	</form>
 	<?php endif; ?>
-	<?php $search = ob_get_contents(); ob_end_clean(); echo $search; ?>
+	<?php $search = ob_get_clean(); echo $search; ?>
 	</script>
 
 	<script id="change-customer-ui" type="text/x-jquery-tmpl">
@@ -579,6 +585,7 @@ function contact_meta_box ($Purchase) {
 		$edituser_url = add_query_arg('user_id',$Customer->wpuser,admin_url('user-edit.php'));
 		$edituser_url = apply_filters('shopp_order_customer_wpuser_url',$edituser_url);
 	}
+
 	?>
 	<div class="alignleft"><?php echo $avatar; ?></div>
 	<div class="alignleft">
@@ -587,7 +594,9 @@ function contact_meta_box ($Purchase) {
 	<?php if ( ! empty($Purchase->company) ) echo '<br /> <div class="org">'.esc_html($Purchase->company).'</div>'; ?>
 	<?php if ( ! empty($Purchase->email) ) echo '<br /><span class="email"><a href="'.esc_url($email_url).'">'.esc_html($Purchase->email).'</a></span>'; ?>
 	<?php if ( ! empty($Purchase->phone) ) echo '<br /><span class="phone"><a href="'.esc_attr($phone_url).'">'.esc_html($Purchase->phone).'</a></span>'; ?>
+	<?php if ( ! empty($Purchase->customer) ): ?>
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
+	<?php endif; ?>
 	</div>
 	<br class="clear" />
 	</div>
