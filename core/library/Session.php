@@ -265,7 +265,7 @@ abstract class SessionObject {
 		$expires = self::PHP_EXPIRES;
 
 		sDB::query("DELETE FROM $wpdb->options AS t1 JOIN {$wpdb->options} AS t2 ON t2.option_name = replace(t1.option_name, '_expires', '')
-				WHERE (t1.option_name LIKE '$session%' OR t1.option_name LIKE '$expires %') AND t1.option_value < '$time'");
+				WHERE (t1.option_name LIKE '$session%' OR t1.option_name LIKE '$expires%') AND t1.option_value < '$time'");
 
 		return true;
 	}
