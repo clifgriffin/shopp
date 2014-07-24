@@ -685,8 +685,14 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$post_type = ShoppProduct::posttype();
 
 		// Re-index menu options to maintain order in JS #2930
-		foreach ( $Product->options as &$types ) {
-			foreach ( $types as &$menu )
+		if ( isset($Product->options['v']) || $Product->options['a']) {
+			foreach ( $Product->options as &$types ) {
+				foreach ( $types as $id => &$menu )
+					$menu['options'] = array_values($menu['options']);
+			}
+
+		} else {
+			foreach ( $Product->options as &$menu )
 				$menu['options'] = array_values($menu['options']);
 		}
 

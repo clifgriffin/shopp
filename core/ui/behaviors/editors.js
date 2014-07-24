@@ -118,6 +118,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 function loadVariations (options,prices) {
 	if (!options) return;
 	var $=jqnc();
+
 	$.each(options,function (key,option) {
 		if (option && option.id) addVariationOptionsMenu(option);
 	});
@@ -196,7 +197,7 @@ function addVariationOptionsMenu (data) {
 		if (!init) addVariationPrices(optionid);
 		else addVariationPrices();
 
-		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
+		entries.dequeue().animate({ scrollTop: entries.prop('scrollHeight') - entries.height() }, 200);
 		option.label.click().focus().select().keydown(function(e) {
 			var key = e.keyCode || e.which;
 			if (key != 9) return;
