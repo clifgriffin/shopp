@@ -221,6 +221,12 @@ function htmlentities (string) {
 	return string;
 }
 
+jQuery.fn.selectall = function () {
+	var event = 'mouseup.select';
+	jQuery(this).off(event).on(event, function () { this.select(); });
+	return this;
+}
+
 jQuery.fn.fadeRemove = function (duration,callback) {
 	var $this = jQuery(this);
 	$this.fadeOut(duration,function () { $this.remove(); if (callback) callback(); });
@@ -261,6 +267,7 @@ jQuery.fn.money = function () {
 	}).change();
 	return this;
 }
+
 
 /**
  * Parse JSON data with native browser parsing or
