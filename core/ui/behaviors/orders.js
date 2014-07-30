@@ -13,6 +13,8 @@ jQuery(document).ready( function($) {
 	$.template('customer-ui', $('#customer-editor'));
 	$.template('customer-select', $('#customer-selector'));
 	$.template('change-customer', $('#change-customer-ui'));
+	$.template('total-editor', $('#total-editor-ui'));
+	$.template('item-editor', $('#item-editor-ui'));
 
 	var manager = $('#order-manage'),
 		managerui = manager.find('div.manager-ui'),
@@ -310,6 +312,7 @@ jQuery(document).ready( function($) {
 
 
 		function editline (item) {
+			if ( undefined == item.variant ) item.variant = '';
 			data = {
 				id: item.id,
 				itemname: item.name + ( '' != item.variant ? ': ' + item.variant : ''),
@@ -319,6 +322,7 @@ jQuery(document).ready( function($) {
 			ui = $.tmpl('item-editor', data);
 			editui(ui);
 			$('#order-items').append($('<tr></tr>').append(ui)); // @todo: add tr classes for alteranating rows
+			ui.find('#edit-item').focus();
 		}
 
 		function editui ( ui ) {
@@ -398,7 +402,6 @@ jQuery(document).ready( function($) {
 		if ( editing.length > 0 )
 			editui(editing);
 
-		$.template('item-editor', $('#item-editor'));
 		var addproduct = $('.add-product').selectize({
 			valueField:  'id',
 			labelField:  'name',
@@ -406,7 +409,7 @@ jQuery(document).ready( function($) {
 			openOnFocus: true,
 			diacritics: true,
 			maxOptions: 7,
-			create: false,
+			create: true,
 			render: {
 				item: function (item, escape) {
 					editline(item);
@@ -443,6 +446,55 @@ jQuery(document).ready( function($) {
 			}
 		});
 
+		var retotal = function () {
+				var subtotal = parseFloat($('#order-totals .subtotal').attr('data-value')),
+					fees = 0,
+					$fees = $('#order-totals').find('.fees input, .taxes input, .shipping input').each(function () {
+						fees += asNumber($(this).val());
+					}),
+					discounts = 0,
+					$discounts = $('#order-totals .discounts input').each(function () {
+						discounts -= asNumber($(this).val());
+					}),
+					$total = $('#order-total').val(subtotal + discounts + fees).change();
+			},
+			showAddButton = function () {
+				var addButton = $(this).parent().find('.add');
+				if ( 0 == asNumber($(this).val()) ) {
+					addButton.hide();
+				} else {
+					addButton.show();
+				}
+				retotal();
+			},
+			addTotalLine = function (e, insert) {
+				e.preventDefault();
+				var $this = $(this),
+					row = $this.closest('tr'),
+					ui = $.tmpl('total-editor', { label: $this.attr('title'), type: $this.val() }),
+					deleteButton = ui.find('.delete').click(function() {
+						ui.fadeOut('fast', function () { ui.remove(); });
+					}),
+					addButton = ui.find('.add').click(function(e) {
+						addTotalLine(e, ui);
+					})
+					field = ui.find('input.money').money().selectall().change(showAddButton).change(),
+					label = ui.find('input.labeling');
+
+				if (insert) ui.insertBefore(insert);
+				else ui.insertBefore(row);
+
+				label.focus();
+
+				return ui;
+			},
+			editingTotals = function () {
+				$('#order-totals').addClass('editing');
+			};
+
+		$('#order-totals button.add').click(addTotalLine);
+		$('#order-totals input.money').not('.totals.total input.money').change(showAddButton).focus(editingTotals);
+
 		// Handle UPC scanning
 		var scancode = '';
 		$(document).keypress(function (e) {
@@ -453,7 +505,5 @@ jQuery(document).ready( function($) {
 			if ( key.match(/\d/) ) scancode += key;
 			else scancode = '';
 		});
-
-
 
 });

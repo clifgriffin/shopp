@@ -8,13 +8,12 @@ th.textright { text-align: right; }
 .shopp .clickable,
 .shopp button { cursor:pointer; }
 
-.shopp button.add { color: #444; border: 1px solid #a3a3a3; background: -moz-linear-gradient(top, #fafafa, #ccc); background: -webkit-linear-gradient(top, #fafafa, #ccc); box-shadow: inset 0 -1px 2px #fff, inset 0 1px 2px #fff; vertical-align: middle; font-size: 8px; line-height: 8px; width: 16px; height: 16px; border-radius: 999px; padding: 0; }
-.shopp button.add .shoppui-plus { text-shadow: 0 1px 1px #fff; vertical-align: top; }
-.shopp button.add:hover { color: #000; border: 1px solid #777; background: -webkit-linear-gradient(top, #fafafa, #ccc); box-shadow: inset 0 -1px 2px #fff, inset 0 1px 2px #fff; }
+.shopp button.add,
+.shopp button.delete { color: #fff; background: #999; vertical-align: middle; font-size: 9px; line-height:9px; width: 16px; height: 16px; border-radius: 999px; border: none; padding: 0; }
+.shopp button.add:hover { background: #0074a2; }
 
-.shopp button.delete { color: #fff; border: 1px solid #80000D; padding: 0; background: -moz-linear-gradient(top, #E37979, #D13D42); background: -webkit-linear-gradient(top, #E37979, #D13D42); box-shadow: inset 0 -1px 1px #8C0712, inset 0 1px 1px #fff; vertical-align: middle; font-size: 8px; line-height: 8px; width: 16px; height: 16px; border-radius: 999px; padding: 0; }
-.shopp button.delete .shoppui-minus { vertical-align: top; text-shadow: 0 1px 1px #C01E2B; }
-.shopp button.delete:hover { background: -moz-linear-gradient(top, #FC6877, #EB2D3B); background: -webkit-linear-gradient(top, #FDA8B2, #EB2D3B 60%); }
+.shopp button.delete { background: #a00; }
+.shopp button.delete:hover { background: #f00; }
 
 .shopp button img { display:inline;vertical-align:middle; }
 .shopp input.right { text-align:right; float:none; }
@@ -646,13 +645,61 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .num input  { text-align: center; }
 #order .num .money  { text-align: left; }
 #edit-item { width: 100%; box-sizing: border-box; padding-right: 24px; }
-#order .column-items.edit { width: 50%; }
+#order .column-items { width: 50%; }
+#order .column-total { width: 15%; }
 #order .items .controls { margin-top: 7px; }
 #order .items { position: relative; }
 #order .choose-product { border: none; background: none; position: absolute; right: 5px; top: 8px; font-size: 1.1em; line-height: 1.5em; color: #999; }
 
+#order .order-editing td { overflow: visible; }
+#order .order-editing .selectize-control,
+#order .totals button.add,
+#order .totals button.delete,
+#order .order-editing a { visibility: hidden; }
+#order .totals tr.totals:hover button.add,
+#order .totals tr.totals:hover button.delete,
+#order .totals:hover .selectize-control,
+#order .totals:hover a { visibility: visible; }
+#order .selectize-control:focus { visibility: visible; }
 
+#order .totals:focus { background:red; }
+#order .totals td { position:relative; padding: 2px 7px 3px 3px; overflow: visible; }
+#order .totals td.add,
+#order .totals .label { padding: 7px 7px 8px; }
+#order .totals.total .label { padding: 5px 7px; }
+#order .totals .subtotal { padding: 7px 13px 8px 8px;}
 
+#order-totals .total-line input,
+#order .totals td.money input[type=text] { border: 1px solid transparent; -webkit-box-shadow: none; }
+#order .totals #save-totals { visibility: hidden; float: right; }
+#order .totals .empty { position:absolute; left: -999em; }
+#order .totals.editing .empty,
+#order .totals:hover .empty { position:relative; }
+
+#order-totals .total-line:hover input:focus,
+#order-totals .totals:hover td.money input[type=text]:focus,
+#order-totals .totals td.money input[type=text]:focus { border: 1px solid #5b9dd9;	-webkit-box-shadow: 0 0 2px rgba(30,140,190,0.8); box-shadow: 0 0 2px rgba(30,140,190,0.8); }
+#order-totals .total-line:hover input,
+#order-totals .total-line:hover input:hover,
+#order-totals .totals:hover td.money input[type=text],
+#order-totals .totals td.money input[type=text]:hover { border: 1px solid #ddd; -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.07); box-shadow: inset 0 1px 2px rgba(0,0,0,0.07); -webkit-transition: .05s border-color ease-in-out; transition: .05s border-color ease-in-out; }
+
+#order #calculate-tax { visibility: hidden; border: none; background: none; position: absolute; font-size: 1.2em; left: 63px; top:5px; color: #999; }
+#order #calculate-tax:hover { color: #5b9dd9; }
+
+#order tr.totals.taxes:hover #calculate-tax,
+#order tr.totals.total:hover #retotal,
+#order-totals.editing #save-totals,
+#order .totals:hover #save-totals { visibility: visible; }
+
+#order .totals.total td { font-size: 1.2em; padding-bottom: 8px; }
+#order .totals .centered { text-align: center; }
+#order-totals { min-width: 200px; margin: 0 auto; }
+#order-totals .total-line .label { padding: 2px 0px 3px; }
+#order-totals .total-line input.labeling { text-align: right; color: #666; font-weight:normal;}
+#order-totals .total-line input { font-size: 1em; }
+
+/** Order Manager **/
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
 .stamp .type { font: normal normal bold 1.1em/1em Arial, sans-serif; color: #999; -moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px; border: 3px solid #999; display: inline-block; padding: 0 2px; text-transform: uppercase; }
 .stamp .ing { background: url('../icons/stamped.png') repeat-x; position: absolute; width: 500px; height: 50px; top: 0px; left: 0px; }

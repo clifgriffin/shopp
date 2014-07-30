@@ -5,16 +5,20 @@
 
 	<?php $this->notices(); ?>
 
-	<?php include("navigation.php"); ?>
+	<?php include $this->ui('navigation.php'); ?>
 	<br class="clear" />
 
 				<?php
+		$totalsedit = isset($_GET['edit']) && 'totals' == $_GET['edit'];
+
 				$columns = get_column_headers($this->screen);
 				$hidden = get_hidden_columns($this->screen);
+		$colspan = count($columns);
+
 			?>
-			<script id="item-editor" type="text/x-jquery-tmpl">
-			<?php $colspan = count(get_column_headers($this->screen)); ob_start(); ?>
+	<script id="item-editor-ui" type="text/x-jquery-tmpl">
 			<?php
+		ob_start();
 				foreach ($columns as $column => $column_title) {
 			$classes = array($column, "column-$column edit");
 					if ( in_array($column, $hidden) ) $classes[] = 'hidden';
@@ -68,10 +72,31 @@
 							break;
 					}
 				}
+		$itemeditor = ob_get_clean();
+		echo $itemeditor;
 				?>
-	<?php $itemeditor = ob_get_clean(); echo $itemeditor;?>
 			</script>
 
+	<script id="total-editor-ui" type="text/x-jquery-tmpl">
+	<?php
+		$colspan = count($columns) - 1;
+		ob_start();
+	?>
+	<tr class="totals total-line">
+		<td scope="row" colspan="<?php echo $colspan; ?>" class="label">
+			<button type="button" class="delete"><span class="shoppui-minus"><span class="hidden"><?php Shopp::_e('Remove'); ?></span></span></button>
+			<input type="text" name="${type}[labels][]" value="" placeholder="${label}" size="20" class="selectall labeling">
+		</td>
+		<td>
+		<input type="text" name="${type}[]" value="0.00" size="7" class="money selectall">
+		<button type="button" class="add"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button>
+		</td>
+	</tr>
+	<?php
+		$totaleditor = ob_get_clean();
+		echo $totaleditor;
+	?>
+	</script>
 
 	<div id="order">
 		<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="order-updates">
@@ -82,7 +107,7 @@
 					<div class="alignright">
 
 						<?php if ($Purchase->shipped): ?>
-						<div class="stamp shipped<?php if ($Purchase->isvoid()) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<div class="stamp shipped<?php if ( $Purchase->isvoid() ) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php endif; ?>
 
 						<?php if ( $Purchase->ispaid() && ! $Purchase->isvoid() ): ?>
@@ -96,25 +121,29 @@
 				</div>
 			</div>
 
-			<?php if ( count($Purchase->purchased) > 0 ): ?>
-				<tbody id="order-items" class="list items">
-			<?php endif; ?>
-
 			<table class="widefat" cellspacing="0">
+
 				<thead>
 					<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 				</thead>
-				<tfoot>
-				<?php $colspan = count(get_column_headers($this->screen))-2; ?>
+
+				<tfoot id="order-totals" class="totals">
 				<tr class="totals">
-					<td scope="col" rowspan="6" class="add"><select class="add-product" name="product" placeholder="<?php Shopp::_e('Search to add a product&hellip;'); ?>"></select></td>
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
-					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
+					<td scope="col" class="order-editing add"><select class="add-product" name="product" placeholder="<?php Shopp::_e('Search to add a product&hellip;'); ?>"></select></td>
+					<td scope="row" colspan="<?php echo $colspan - 1; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
+					<td class="subtotal money" data-value="<?php echo $Purchase->subtotal; ?>"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
-				<?php if ( $Purchase->discounts() ): ?>
-				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
-					<td class="money"><?php echo money($Purchase->discount); ?>
+				<tr class="totals fees<?php if ( floatval($Purchase->fees) == 0.0 ) echo ' empty'; ?>">
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label">
+						<?php _e('Fees','Shopp'); ?></td>
+					<td class="money"><input type="text" name="fees[]" value="<?php echo money($Purchase->fees); ?>" size="7" class="money selectall fees">
+						<button type="button" class="add" title="<?php Shopp::_e('Fee Label&hellip;'); ?>" value="fees"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button></td>
+				</tr>
+				<tr class="totals discounts<?php if ( floatval($Purchase->discount) == 0.0 ) echo ' empty'; ?>">
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label">
+						<?php _e('Discount','Shopp'); ?></td>
+					<td class="money"><input type="text" name="discount[]" value="<?php echo money($Purchase->discount); ?>" size="7" class="money selectall discount">
+						<button type="button" class="add" title="<?php Shopp::_e('Discount Label&hellip;'); ?>" value="discount"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button>
 						<?php if ( $Purchase->discounts() ): ?>
 						<ul class="promos">
 						<?php foreach ( $Purchase->discounts as $id => $Discount ): ?>
@@ -122,26 +151,30 @@
 						<?php endforeach; ?>
 						</ul>
 						<?php endif; ?>
+
 						</td>
 				</tr>
-				<?php endif; ?>
-				<?php if ( ! empty($Purchase->shipoption) ): ?>
-				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></td>
-					<td class="money"><?php echo money($Purchase->freight); ?></td>
+				<tr class="totals shipping<?php if ( floatval($Purchase->freight) == 0.0 && empty($Purchase->shipoption) ) echo ' empty'; ?>">
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label shipping">
+						<span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></td>
+					<td class="money"><input type="text" name="shipping[]" value="<?php echo money($Purchase->freight); ?>"size="7" class="money selectall shipping">
+						<button type="button" class="add" title="<?php Shopp::_e('Shipping Label&hellip;'); ?>" value="shipping"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button></td>
 				</tr>
-				<?php endif; ?>
-				<?php if ($Purchase->tax > 0): ?>
-				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Tax','Shopp'); ?></td>
-					<td class="money"><?php echo money($Purchase->tax); ?></td>
+				<tr class="totals taxes<?php if ( floatval($Purchase->tax) == 0.0 ) echo ' empty'; ?>">
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label">
+						<?php _e('Tax','Shopp'); ?></td>
+					<td class="money"><input type="text" name="tax[]" value="<?php echo money($Purchase->tax); ?>" size="7" class="money selectall tax"><button class="shoppui-calculator" id="calculate-tax" title="<?php Shopp::__('Calculate Tax&hellip;'); ?>" tabindex="2"><?php Shopp::__('Calculate Tax&hellip;'); ?></button>
+					<button type="button" class="add" title="<?php Shopp::_e('Tax Label&hellip;'); ?>" value="tax"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button>
+				</td>
 				</tr>
-				<?php endif; ?>
 				<tr class="totals total">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Total','Shopp'); ?></td>
-					<td class="money"><?php echo money($Purchase->total); ?></td>
+					<td class="money"><input type="text" id="order-total" name="total" value="<?php echo money($Purchase->total); ?>" size="7" class="money selectall">
+						<input type="submit" id="save-totals" name="save-totals" value="<?php Shopp::_e('Save'); ?>" class="button-primary"></td>
 				</tr>
+
 				</tfoot>
+
 				<?php if ( count($Purchase->purchased) > 0 ): ?>
 					<tbody id="order-items" class="list items">
 					<?php
