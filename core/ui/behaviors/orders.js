@@ -446,64 +446,98 @@ jQuery(document).ready( function($) {
 			}
 		});
 
-		var retotal = function () {
-				var subtotal = parseFloat($('#order-totals .subtotal').attr('data-value')),
-					fees = 0,
-					$fees = $('#order-totals').find('.fees input, .taxes input, .shipping input').each(function () {
-						fees += asNumber($(this).val());
-					}),
-					discounts = 0,
-					$discounts = $('#order-totals .discounts input').each(function () {
-						discounts -= asNumber($(this).val());
-					}),
-					$total = $('#order-total').val(subtotal + discounts + fees).change();
+		// Handle UPC scanning
+		var scancode = '';
+		$(document).keypress(function (e) {
+			var key = String.fromCharCode(e.which);
+			if ( 13 == e.which && '' != scancode )
+				$('.add-product .selectize-input').show().click().find('input').val(scancode).change();
+			if ( key.match(/\d/) ) scancode += key;
+			else scancode = '';
+		});
+
+		var $ordertotals = $('#order-totals'),
+			retotal = function () {
+				var subtotal = parseFloat($ordertotals.find('tr.subtotal td.money').attr('data-value')),
+					fees = [],
+					totals = 0,
+					types = ['fee', 'tax', 'shipping', 'discount'],
+					$fees = $.each(types, function (i,type) {
+						var fields = $ordertotals.find('tr.label-total td.money input.'+type);
+						fees[type] = 0;
+						$ordertotals.find('tr.label-total td.money input.'+type).each(function () {
+							fees[type] += asNumber($(this).val());
+						});
+						if ( fields.length > 0 ) $('#'+type+'-total').val(asMoney(fees[type]));
+						else fees[type] = asNumber($('#'+type+'-total').val());
+						if ( 'discount' == type ) fees['discount'] *= -1;
+						totals += fees[type];
+					});
+					$total = $('#order-total').val(subtotal + totals).change();
 			},
-			showAddButton = function () {
-				var addButton = $(this).parent().find('.add');
-				if ( 0 == asNumber($(this).val()) ) {
+			feeChanges = function () {
+				var $this = $(this),
+					addButton = $this.parent().find('.add');
+				if ( 0 == asNumber($this.val()) ) {
 					addButton.hide();
 				} else {
 					addButton.show();
+					addButton.closest('tr').removeClass('empty');
 				}
 				retotal();
 			},
-			addTotalLine = function (e, insert) {
+			addTotalLine = function (e, insert, complete) {
 				e.preventDefault();
-				var $this = $(this),
+				var $this = $(e.currentTarget),
 					row = $this.closest('tr'),
-					ui = $.tmpl('total-editor', { label: $this.attr('title'), type: $this.val() }),
+					type = $this.val(),
+					ui = $.tmpl('total-editor', { label: $this.attr('title'), type: type }),
+					cells = ui.find('td').hide(), done = false,
 					deleteButton = ui.find('.delete').click(function() {
-						ui.fadeOut('fast', function () { ui.remove(); });
+						ui.fadeOut('fast', function () {
+							ui.remove();
+							if ( $ordertotals.find('tr.label-total td.money input.' + type).length == 0 ) {
+								$('#'+type+'-total').removeAttr('readonly');
+							}
+							retotal();
+						});
 					}),
 					addButton = ui.find('.add').click(function(e) {
 						addTotalLine(e, ui);
 					})
-					field = ui.find('input.money').money().selectall().change(showAddButton).change(),
+					field = ui.find('input.money').money().selectall().change(feeChanges).change(),
 					label = ui.find('input.labeling');
 
 				if (insert) ui.insertBefore(insert);
 				else ui.insertBefore(row);
 
+				cells.fadeIn('fast', function () {
+					if ( done && complete !== undefined ) complete();
+					if ( ! done ) done = true;
+				});
+
 				label.focus();
 
 				return ui;
 			},
-			editingTotals = function () {
-				$('#order-totals').addClass('editing');
+			customizeFees = function (e) {
+				e.preventDefault();
+				var $this = $(this);
+				if ( $ordertotals.find('input.'+$this.val() ).length > 1 )
+					return addTotalLine(e);
+
+				var totalrow = $this.closest('tr'),
+					$total = totalrow.find('input.money').prop('readonly',true).addClass('subtotal'),
+					total = $total.val(),
+					copy = addTotalLine(e, false, function () {
+						addTotalLine(e);
+						copy.find('input.money').val(total).change();
+						copy.find('input.labeling').focus(); // Refocus on first label (for tab order)
+					});
+
 			};
 
-		$('#order-totals button.add').click(addTotalLine);
-		$('#order-totals input.money').not('.totals.total input.money').change(showAddButton).focus(editingTotals);
-
-		// Handle UPC scanning
-		var scancode = '';
-		$(document).keypress(function (e) {
-			var key = String.fromCharCode(e.which);
-			if ( 13 == e.which && '' != scancode ) { // End code
-				$('.add-product .selectize-input').show().click().find('input').val(scancode).change();
-			}
-			if ( key.match(/\d/) ) scancode += key;
-			else scancode = '';
-		});
+		$('#order-totals button.add').click(customizeFees);
+		$('#order-totals input.money').not('#order-total').change(feeChanges);
 
 });
