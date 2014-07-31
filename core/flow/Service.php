@@ -621,26 +621,32 @@ class ShoppAdminService extends ShoppAdminController {
 
 		if ( ! empty($_POST['save-totals']) ) {
 
+
 			$map = array(
-				'fees' => 'fees',
+				'fees' => 'fee',
 				'discount' => 'discount',
 				'freight' => 'shipping',
 				'tax' => 'tax'
 			);
 
+			$totals = 0;
 			foreach ( $map as $property => $field ) {
 				if ( empty($_POST[ $field ]) ) continue;
-				$labels = array_shift($_POST[ $field ]);
-				$total = Shopp::floatval(array_pop($_POST[ $field ]));
+				if ( count($_POST[ $field ]) > 1 ) {
+					$labels = array_shift($_POST[ $field ]);
+					$total = Shopp::floatval(array_pop($_POST[ $field ]));
+				}
 				$sum = array_sum(array_map(array('Shopp', 'floatval'), $_POST[ $field ]));
-				$Purchase->total = $total;
 				if ( $sum > 0 )
 					$Purchase->$property = $sum;
+
+
+				$totals += ('discount' == $field ? $Purchase->$property * -1 : $Purchase->$property );
 			}
 
-			$Purchase->total = Shopp::floatval($_POST['total']);
+			$Purchase->total = $Purchase->subtotal + $totals;
 
-			// $Purchase->save();
+			$Purchase->save();
 
 		}
 
