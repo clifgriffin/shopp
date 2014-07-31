@@ -953,7 +953,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 		// Map out the table definition into our data structure
 		foreach ( $r as $object ) {
 			$var = $object->Field;
-			if ( ! empty($map) &&  ! isset($map[ $var ]) ) continue;
+
 			$this->_datatypes[ $var ] = sDB::datatype($object->Type);
 			$this->_defaults[ $var ] = $object->Default;
 
@@ -962,6 +962,8 @@ abstract class ShoppDatabaseObject implements Iterator {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
 				$this->_lists[$var] = explode(",",$values);
 			}
+
+			if ( ! empty($map) && ! isset($map[ $var ]) ) continue;
 
 			// Remap properties if a property map is available
 			$property = isset($map[$var])?$map[$var]:$var;
