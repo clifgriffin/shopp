@@ -697,8 +697,8 @@ tfoot#order-totals td { position:relative; padding:2px 7px 3px 3px; overflow: vi
 
 #order tr.taxes:hover #calculate-tax,
 #order tr.total:hover #retotal,
-#order-totals.editing #save-totals,
-#order tr:hover #save-totals { visibility: visible; }
+#order-totals:hover #save-totals,
+#order-totals.changed #save-totals { visibility: visible; }
 
 #order-totals .total td { font-size: 1.2em; padding-bottom: 8px; }
 #order-totals .centered { text-align: center; }
