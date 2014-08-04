@@ -478,22 +478,21 @@ jQuery(document).ready( function($) {
 			feeChanges = function () {
 				var $this = $(this),
 					addButton = $this.parent().find('.add');
+
+				if ( $this.data('initialValue') != $this.val() )
+					$ordertotals.addClass('changed');
+
 				if ( 0 == asNumber($this.val()) ) {
 					addButton.hide();
 				} else {
 					addButton.show();
 					addButton.closest('tr').removeClass('empty');
 				}
+
 				retotal();
 			},
-			addTotalLine = function (e, insert, complete) {
-				e.preventDefault();
-				var $this = $(e.currentTarget),
-					row = $this.closest('tr'),
-					type = $this.val(),
-					ui = $.tmpl('total-editor', { label: $this.attr('title'), type: type }),
-					cells = ui.find('td').hide(), done = false,
-					deleteButton = ui.find('.delete').click(function() {
+			lineEditing = function (ui) {
+				var deleteButton = ui.find('button.delete').click(function() {
 						ui.fadeOut('fast', function () {
 							ui.remove();
 							if ( $ordertotals.find('tr.label-total td.money input.' + type).length == 0 ) {
@@ -502,11 +501,21 @@ jQuery(document).ready( function($) {
 							retotal();
 						});
 					}),
-					addButton = ui.find('.add').click(function(e) {
-						addTotalLine(e, ui);
+					addButton = ui.find('button.add').click(function(e) {
+						addLineEditor(e, ui);
 					})
-					field = ui.find('input.money').money().selectall().change(feeChanges).change(),
+					field = ui.find('td.money input.money').change(feeChanges).money().selectall().change();
+			},
+			addLineEditor = function (e, insert, complete) {
+				e.preventDefault();
+				var $this = $(e.currentTarget),
+					row = $this.closest('tr'),
+					type = $this.val(),
+					ui = $.tmpl('total-editor', { placeholder: $this.attr('data-label'), label: $this.attr('data-label'), type: type, amount: 0.00 }),
+					cells = ui.find('td').hide(), done = false,
 					label = ui.find('input.labeling');
+
+				lineEditing(ui);
 
 				if (insert) ui.insertBefore(insert);
 				else ui.insertBefore(row);
@@ -520,24 +529,32 @@ jQuery(document).ready( function($) {
 
 				return ui;
 			},
-			customizeFees = function (e) {
+			addCustomLines = function (e) {
 				e.preventDefault();
-				var $this = $(this);
+				var $this = $(this),
+					$label = $this.parent().parent().find('td.label');
+					console.log($label);
+					$label.html($label.html() + ' ' + $l10n.total);
 				if ( $ordertotals.find('input.'+$this.val() ).length > 1 )
-					return addTotalLine(e);
+					return addLineEditor(e);
 
 				var totalrow = $this.closest('tr'),
 					$total = totalrow.find('input.money').prop('readonly',true).addClass('subtotal'),
 					total = $total.val(),
-					copy = addTotalLine(e, false, function () {
-						addTotalLine(e);
+					copy = addLineEditor(e, false, function () {
+						addLineEditor(e);
 						copy.find('input.money').val(total).change();
 						copy.find('input.labeling').focus(); // Refocus on first label (for tab order)
 					});
 
 			};
 
-		$('#order-totals button.add').click(customizeFees);
-		$('#order-totals input.money').not('#order-total').change(feeChanges);
+		$ordertotals.find('button.add').not('tr.label-total button.add').click(addCustomLines);
+		$ordertotals.find('tr.label-total').each(function () {
+			lineEditing($(this));
+		});
+		$('#order-totals input.money').not('#order-total').change(feeChanges).each(function () {
+			$(this).data('initialValue', $(this).val());
+		});
 
 });

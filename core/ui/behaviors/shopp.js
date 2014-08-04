@@ -261,10 +261,11 @@ jQuery.fn.setDisabled = function (setting) {
 };
 
 jQuery.fn.money = function () {
-	var $this = jQuery(this);
-	$this.on('change', function () {
+	var $this = jQuery(this),
+		event = 'change.money';
+	$this.off(event).on(event, function () {
 		this.value = asMoney(this.value);
-	}).change();
+	}).trigger(event);
 	return this;
 }
 

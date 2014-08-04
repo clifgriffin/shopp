@@ -396,6 +396,12 @@ function shopp_default_script_settings () {
 		'confirm' => __('The changes you made will be lost if you navigate away from this page.', 'Shopp')
 	));
 
+	// Product editor: unsaved changes warning
+	shopp_localize_script('orders', '$l10n', array(
+		'total' => __('Total', 'Shopp')
+	));
+
+
 	$defaults = apply_filters('shopp_js_settings', array_merge($currency, $base));
 	shopp_localize_script('shopp', '$s',$defaults);
 }
