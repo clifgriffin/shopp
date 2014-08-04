@@ -737,6 +737,9 @@ class ShoppAdminService extends ShoppAdminController {
 
 		if ( empty($statusLabels) ) $statusLabels = array('');
 
+		$Purchase->taxes();
+		$Purchase->discounts();
+
 		include $this->ui('order.php');
 	}
 

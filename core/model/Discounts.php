@@ -1246,6 +1246,7 @@ class ShoppPurchaseDiscount {
 		$this->type = $Discount->type();
 		$this->target = $Discount->target();
 		$this->discount = $Discount->discount();
+		$this->amount = $Discount->amount();
 		$this->code = $Discount->code();
 		$this->shipfree = $Discount->shipfree();
 
