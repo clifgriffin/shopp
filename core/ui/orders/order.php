@@ -82,7 +82,7 @@
 		$colspan = count($columns) - 1;
 		ob_start();
 	?>
-	<tr class="label-total">
+	<tr class="total-editor ${type}">
 		<td scope="row" colspan="<?php echo $colspan; ?>" class="label">
 			<button type="button" class="delete"><span class="shoppui-minus"><span class="hidden"><?php Shopp::_e('Remove'); ?></span></span></button>
 			<input type="text" name="${type}[labels][]" value="" placeholder="${placeholder}" size="20" class="selectall labeling">
@@ -133,7 +133,7 @@
 					<td scope="row" colspan="<?php echo $colspan - 1; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
 					<td class="money" data-value="<?php echo $Purchase->subtotal; ?>"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
-				<tr class="fees<?php if ( floatval($Purchase->fees) == 0.0 ) echo ' empty'; ?>">
+				<tr class="fee<?php if ( floatval($Purchase->fees) == 0.0 ) echo ' empty'; ?>">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Fees','Shopp'); ?></td>
 					<td class="money"><input type="text" id="fee-total" name="fee[]" value="<?php echo money($Purchase->fees); ?>" size="7" class="money selectall">
 						<button type="button" class="add" data-label="<?php Shopp::_e('Fee Label&hellip;'); ?>" value="fee"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button></td>
@@ -148,7 +148,7 @@
 						echo ShoppUI::template($totaleditor, $data);
 					}
 				?>
-				<tr class="discounts<?php if ( floatval($Purchase->discount) == 0.0 ) echo ' empty'; ?>">
+				<tr class="discount<?php if ( floatval($Purchase->discount) == 0.0 ) echo ' empty'; ?>">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discounts','Shopp'); ?></td>
 					<td class="money"><input type="text" id="discount-total" name="discount[]" value="<?php echo money($Purchase->discount); ?>" size="7" class="money selectall">
 						<button type="button" class="add" data-label="<?php Shopp::_e('Discount Label&hellip;'); ?>" value="discount"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button>
@@ -179,7 +179,7 @@
 						echo ShoppUI::template($totaleditor, $data);
 					}
 				?>
-				<tr class="taxes<?php if ( floatval($Purchase->tax) == 0.0 ) echo ' empty'; ?>">
+				<tr class="tax<?php if ( floatval($Purchase->tax) == 0.0 ) echo ' empty'; ?>">
 					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Tax','Shopp'); ?></td>
 					<td class="money"><input type="text" id="tax-total" name="tax[]" value="<?php echo money($Purchase->tax); ?>" size="7" class="money selectall tax"><button class="shoppui-calculator" id="calculate-tax" title="<?php Shopp::__('Calculate Tax&hellip;'); ?>" tabindex="2"><?php Shopp::__('Calculate Tax&hellip;'); ?></button>
 					<button type="button" class="add" data-label="<?php Shopp::_e('Tax Label&hellip;'); ?>" value="tax"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button>

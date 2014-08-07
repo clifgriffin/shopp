@@ -12,8 +12,8 @@ th.textright { text-align: right; }
 .shopp button.delete { color: #fff; background: #999; vertical-align: middle; font-size: 9px; line-height:9px; width: 16px; height: 16px; border-radius: 999px; border: none; padding: 0; }
 .shopp button.add:hover { background: #0074a2; }
 
-.shopp button.delete { background: #a00; }
-.shopp button.delete:hover { background: #f00; }
+.shopp button.delete { background: #fff; border: 2px solid #a00; color: #a00; }
+.shopp button.delete:hover { background: #f00; border: 2px solid transparent; color: #fff; }
 
 .shopp button img { display:inline;vertical-align:middle; }
 .shopp input.right { text-align:right; float:none; }
@@ -667,29 +667,29 @@ tfoot#order-totals td { position:relative; padding:2px 7px 3px 3px; overflow: vi
 #order-totals .total .label { padding: 5px 7px; }
 #order-totals .subtotal .money { padding: 7px 13px 8px 8px;}
 
-#order-totals .label-total input,
+#order-totals .total-editor input,
 #order-totals td.money input[type=text] { border: 1px solid transparent; -webkit-box-shadow: none; }
 #save-totals { visibility: hidden; float: right; }
 #order-totals .empty { position:absolute; left: -999em; }
 #order-totals .editing .empty,
 #order-totals:hover .empty { position:relative; left:none; }
 
-#order-totals .label-total:hover input:focus,
+#order-totals .total-editor:hover input:focus,
 #order-totals .tr:hover td.money input[type=text]:focus,
 #order-totals td.money input[type=text]:focus { border: 1px solid #5b9dd9;	-webkit-box-shadow: 0 0 2px rgba(30,140,190,0.8); box-shadow: 0 0 2px rgba(30,140,190,0.8); }
 
-#order-totals .label-total:hover input,
-#order-totals .label-total:hover input:hover,
+#order-totals .total-editor:hover input,
+#order-totals .total-editor:hover input:hover,
 #order-totals tr:hover td.money input[type=text],
 #order-totals td.money input[type=text]:hover { border: 1px solid #ddd; -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.07); box-shadow: inset 0 1px 2px rgba(0,0,0,0.07); -webkit-transition: .05s border-color ease-in-out; transition: .05s border-color ease-in-out; }
 
-#order-totals .label-total input.readonly,
+#order-totals .total-editor input.readonly,
 #order-totals  input[readonly],
-#order-totals .label-total:hover input[readonly],
-#order-totals .label-total:hover input[readonly]:hover,
+#order-totals .total-editor:hover input[readonly],
+#order-totals .total-editor:hover input[readonly]:hover,
 #order-totals tr:hover td.money input[readonly],
 #order-totals .money input[readonly]:hover,
-#order-totals .label-total:hover input[readonly]:focus,
+#order-totals .total-editor:hover input[readonly]:focus,
 #order-totals tr:hover td.money input[readonly]:focus,
 #order-totals td.money input[readonly]:focus { background: none; border: 1px solid transparent; -webkit-box-shadow: none; }
 
@@ -703,9 +703,12 @@ tfoot#order-totals td { position:relative; padding:2px 7px 3px 3px; overflow: vi
 
 #order-totals .total td { font-size: 1.2em; padding-bottom: 8px; }
 #order-totals .centered { text-align: center; }
-#order-totals .label-total .label { padding: 2px 0px 3px; }
-#order-totals .label-total input.labeling { text-align: right; color: #666; font-weight:normal;}
-#order-totals .label-total input { font-size: 1em; }
+#order-totals .total-editor .label { padding: 2px 0px 3px; }
+#order-totals .total-editor input.labeling { text-align: right; color: #666; font-weight:normal;}
+#order-totals .total-editor input { font-size: 1em; }
+
+#order-totals .edit-group td { background: #f9f9f9;}
+
 
 /** Order Manager **/
 .stamp { position: relative; overflow: hidden; vertical-align: top; display: inline-block; margin-top: -8px; margin-left: 20px; }
