@@ -941,6 +941,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		unset($attributes['label']); // Interferes with the text input value when passed to inputattrs()
 		if( !empty($label) ) $labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
+		$labeling = ( empty($label) ) ? '' : '<label for="quantity-'.$O->id.'">'.$label.'</label>';
 
 
 		if ( ! isset($O->_prices_loop) ) reset($O->prices);
