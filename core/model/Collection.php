@@ -1977,7 +1977,7 @@ class RelatedProducts extends SmartCollection {
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
 
-		// Use the current product is available
+		// Use the current product if available
 		if ( ! empty($Product->id) )
 			$this->product = ShoppProduct();
 
