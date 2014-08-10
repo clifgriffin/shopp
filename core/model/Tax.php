@@ -62,6 +62,7 @@ class ShoppTax {
 		if ( ! shopp_setting_enabled('taxes') ) return false;
 
 		$taxrates = shopp_setting('taxrates');
+		if ( empty($taxrates) ) return false;
 
 		$fallbacks = array();
 		$settings = array();
@@ -122,6 +123,7 @@ class ShoppTax {
 		if ( isset($Item) ) $this->Item = $Item;
 
 		$settings = $this->settings();
+		if ( empty($settings) ) return false;
 
 		foreach ( $settings as $key => $setting ) {
 
