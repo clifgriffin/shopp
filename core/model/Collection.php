@@ -35,6 +35,7 @@ class ProductCollection implements Iterator {
 	public $filters = false;
 	public $products = array();
 	public $total = 0;
+	public $pricerange = 'auto';
 
 	private $_keys = array();
 	private $_position = array();
