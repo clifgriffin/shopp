@@ -41,6 +41,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$query = "SELECT CONCAT($id) AS id,
 							CONCAT(p.post_title,' ',pr.label) AS product,
+							pr.sku as sku,
 							SUM(o.quantity) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
 							SUM(o.total) AS grossed
@@ -69,6 +70,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 	function columns () {
 		return array(
 			'product'=>__('Product','Shopp'),
+			'sku'=>__('SKU','Shopp'),
 			'orders'=>__('Orders','Shopp'),
 			'sold'=>__('Items','Shopp'),
 			'grossed'=>__('Grossed','Shopp')
@@ -84,6 +86,8 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 	}
 
 	static function product ($data) { return trim($data->product); }
+
+	static function sku ($data) { return trim($data->sku); }
 
 	static function orders ($data) { return intval($data->orders); }
 
