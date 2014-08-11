@@ -32,16 +32,19 @@ jQuery(document).ready(function () {
 
 	$.fn.extend({
 		disableSubmit: function () {
-			var $this = $(this);
-			$this.data('timeout',
-				setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000)
-			);
-	   		return $this.data('label',$this.val()).prop('disabled',true).addClass('disabled').val($co.submitting);
+			return $(this).each(function() {
+				var $this = $(this);
+				$this.data('label', $this.val()).data('timeout',
+					setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000)
+				).prop('disabled',true).addClass('disabled').val($co.submitting);
+			});
 		},
 		enableSubmit: function () {
-			var $this = $(this);
-			clearTimeout($this.data('timeout'));
-			return $this.prop('disabled', false).removeClass('disabled').val($this.data('label'));
+			return $(this).each(function() {
+				var $this = $(this);
+				clearTimeout($this.data('timeout'));
+				$this.prop('disabled', false).removeClass('disabled').val($this.data('label'));
+			});
 		},
 	});
 
@@ -53,7 +56,9 @@ jQuery(document).ready(function () {
 	// Validate paycard number before submit
 	checkoutForm.on('shopp_validate', function () {
 		if ( ! validcard() ) checkoutForm.data('error', [$co.badpan, billCard.get(0)]);
-		if ( checkoutForm.data('error').length > 0 ) submitButtons.enableSubmit();
+		if ( checkoutForm.data('error').length > 0 ) {
+			submitButtons.enableSubmit();
+		}
 	});
 
 	// Validate paycard number on entry
