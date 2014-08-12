@@ -224,7 +224,7 @@ abstract class SessionObject {
 			$lifetime = time() + (int) ini_get('session.gc_maxlifetime');
 			$expires = get_option($expiresid);
 
-			if ( false == $expiresid )
+			if ( false === $expires )
 				add_option($expiresid, $lifetime, '', 'no' );
 			else update_option($expiresid, $lifetime);
 
