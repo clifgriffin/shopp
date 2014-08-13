@@ -75,7 +75,7 @@
 					</div>
 					<div class="right">
 						<label for="billing-state"><?php _e( 'State / Province', 'Shopp' ); ?></label>
-						<?php shopp( 'checkout.billing-state', 'required=auto&title=' . __( 'State/Provice/Region billing address', 'Shopp' ) ); ?>
+						<?php shopp( 'checkout.billing-state', 'required=auto&title=' . __( 'State/Province/Region billing address', 'Shopp' ) ); ?>
 					</div>
 					<div class="left">
 						<label for="billing-postcode"><?php _e( 'Postal / Zip Code', 'Shopp' ); ?></label>
