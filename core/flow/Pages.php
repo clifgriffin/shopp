@@ -401,22 +401,28 @@ class ShoppAccountPage extends ShoppPage {
 		}
 
 		$widget = ( 'widget' === $request );
-		if ($widget) $request = 'menu'; // Modify widget request to render the account menu
+		if ( $widget ) $request = 'menu'; // Modify widget request to render the account menu
 
+		$orderlookup = '';
 		if ( 'none' == shopp_setting('account_system' ) )
-			return apply_filters( 'shopp_account_template', shopp( 'customer', 'get-order-lookup' ) );
+			$orderlookup = shopp( 'customer', 'get-order-lookup' );
 
 		// $download_request = get_query_var('s_dl');
 		if ( ! $request) $request = ShoppStorefront()->account['request'];
 		$templates = array( 'account-'.$request.'.php', 'account.php' );
-		if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
 		$context = ShoppStorefront::intemplate(); // Set account page context
 
 		$Errors = ShoppErrorStorefrontNotices();
 		ob_start();
 		if ( apply_filters( 'shopp_show_account_errors', true ) && $Errors->exist() )
 			echo ShoppStorefront::errors( array( "errors-$context", 'account-errors.php', 'errors.php' ) );
-		Shopp::locate_template( $templates, true );
+
+		if ( ! empty($orderlookup) ) {
+			echo $orderlookup;
+		} else {
+			if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
+			Shopp::locate_template( $templates, true );
+		}
 		$content = ob_get_clean();
 
 		// Suppress the #shopp div for sidebar widgets

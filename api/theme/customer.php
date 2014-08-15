@@ -390,14 +390,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function order_lookup ( $result, $options, $O ) {
-		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
+		if ( ! empty($_POST['vieworder']) && ! empty($_POST['purchaseid']) ) {
 			ShoppPurchase( new ShoppPurchase((int)$_POST['purchaseid']) );
-			if (ShoppPurchase()->email == $_POST['email']) {
+			if ( ShoppPurchase()->exists() && ShoppPurchase()->email == $_POST['email'] ) {
 				ShoppPurchase()->load_purchased();
 				ob_start();
-				locate_shopp_template(array('receipt.php'),true);
-				$content = ob_get_contents();
-				ob_end_clean();
+				locate_shopp_template(array('receipt.php'), true);
+				$content = ob_get_clean();
 				return apply_filters('shopp_order_lookup',$content);
 			} else {
 				shopp_add_error( __('No order could be found with that information.','Shopp'), SHOPP_AUTH_ERR );
@@ -405,10 +404,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		}
 
 		ob_start();
-		include(SHOPP_ADMIN_PATH."/orders/account.php");
-		$content = ob_get_contents();
-		ob_end_clean();
-		return apply_filters('shopp_order_lookup',$content);
+		include SHOPP_ADMIN_PATH . "/orders/account.php";
+		$content = ob_get_clean();
+		return apply_filters('shopp_order_lookup', $content);
 	}
 
 	public static function password ( $result, $options, $O ) {
