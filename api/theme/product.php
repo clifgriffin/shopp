@@ -940,7 +940,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 
 		unset($attributes['label']); // Interferes with the text input value when passed to inputattrs()
-		if( !empty($label) ) $labeling = '<label for="quantity-'.$O->id.'">'.$label.'</label>';
+		$labeling = empty($label) ? '' : '<label for="quantity-' . $O->id . '">' . $label . '</label>';
 
 
 		if ( ! isset($O->_prices_loop) ) reset($O->prices);
