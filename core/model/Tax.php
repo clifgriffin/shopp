@@ -62,11 +62,10 @@ class ShoppTax {
 		if ( ! shopp_setting_enabled('taxes') ) return false;
 
 		$taxrates = shopp_setting('taxrates');
-		if ( empty($taxrates) ) return false;
 
 		$fallbacks = array();
 		$settings = array();
-		foreach ( $taxrates as $setting ) {
+		foreach ( (array) $taxrates as $setting ) {
 
 			$defaults = array(
 				'rate' => 0,
@@ -123,9 +122,8 @@ class ShoppTax {
 		if ( isset($Item) ) $this->Item = $Item;
 
 		$settings = $this->settings();
-		if ( empty($settings) ) return false;
 
-		foreach ( $settings as $key => $setting ) {
+		foreach ( (array) $settings as $key => $setting ) {
 
 			// Add any local rate to the base rate, then divide by 100 to prepare the rate to be applied
 			$rate = ( self::float($setting['rate']) + self::float($setting['localrate']) ) / 100;
