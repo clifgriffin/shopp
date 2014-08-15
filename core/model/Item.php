@@ -145,6 +145,9 @@ class ShoppCartItem {
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 
+		if ( shopp_setting_enabled('taxes') ) // Must init taxable above addons roll-up #2825
+			$this->taxable = array(); // Re-init during ShoppCart::change() loads #2922
+
 		// Product has variants
 		if ( Shopp::str_true($Product->variants) && empty($this->variants) )
 			$this->variants($Product->prices);
@@ -168,7 +171,6 @@ class ShoppCartItem {
 		$this->unitprice = $baseprice + $this->addonsum;
 
 		if ( shopp_setting_enabled('taxes') ) {
-			$this->taxable = array(); // Re-init during ShoppCart::change() loads #2922
 			if ( Shopp::str_true($Price->tax) ) $this->taxable[] = $baseprice;
 			$this->istaxed =  array_sum($this->taxable) > 0 ;
 			$this->includetax = shopp_setting_enabled('tax_inclusive');
