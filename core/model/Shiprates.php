@@ -117,8 +117,8 @@ class ShoppShiprates extends ListFramework {
 	 *
 	 * @return float The shipping fee amount
 	 **/
-	public function fees () {
-		return (float) apply_filters('shopp_shipping_fees', shopp_setting('order_shipfee') + array_sum($this->fees) );
+	public function fees ( ShoppShiprateService $Service ) {
+		return (float) apply_filters('shopp_shipping_fees', shopp_setting('order_shipfee') + array_sum($this->fees), $Service, $this->fees );
 	}
 
 	/**
@@ -219,7 +219,7 @@ class ShoppShiprates extends ListFramework {
 		do_action('shopp_calculate_shipping_init');		// Initialize shipping modules
 
 		parent::clear();									// clear existing rates before we pull new ones
-		
+
 		$this->items();									// Send items to shipping modules that package them
 
 		$this->modules();								// Calculate active shipping module service methods
@@ -300,7 +300,7 @@ class ShoppShiprates extends ListFramework {
 
 		// Add all order shipping fees and item shipping fees
 		foreach ( $services as $service )
-			$service->amount += $this->fees();
+			$service->amount += $this->fees($service);
 
 		parent::clear();
 		$this->populate($services);
