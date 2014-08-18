@@ -187,6 +187,10 @@ class ShoppPage {
 		return $content;
 	}
 
+	public function nocomment () {
+		return array();
+	}
+
 	/**
 	 * Provides the title for the page from settings
 	 *
@@ -241,6 +245,7 @@ class ShoppPage {
 		add_filter('wp_head', array($this, 'head'), 20);
 		add_filter('the_content', array($this, 'content'), 20);
 		add_filter('the_excerpt', array($this, 'content'), 20);
+		add_filter('comments_array', array($this, 'nocomment'));
 		add_filter('wpseo_replacements', array($this, 'wpseo')); // compatibility helper for WPSEO
 	}
 
