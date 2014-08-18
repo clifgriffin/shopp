@@ -1005,11 +1005,6 @@ class ShoppStorefront extends ShoppFlowController {
 		$this->shortcodes['catalog-buynow'] 	= array('ShoppShortcodes', 'buynow');
 		$this->shortcodes['catalog-collection']	= array('ShoppShortcodes', 'collection');
 
-		// @deprecated shortcodes
-		$this->shortcodes['product']	= array('ShoppShortcodes', 'product');
-		$this->shortcodes['buynow']		= array('ShoppShortcodes', 'buynow');
-		$this->shortcodes['category']	= array('ShoppShortcodes', 'collection');
-
 		foreach ( $this->shortcodes as $name => &$callback )
 			if ( shopp_setting_enabled('maintenance') || ! ShoppSettings()->available() || Shopp::maintenance() )
 				add_shortcode($name, array('', 'maintenance_shortcode') );
