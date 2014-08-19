@@ -229,7 +229,10 @@ class ShoppPage {
 		$templates = array('shopp.php', 'page.php');
 
 		$name = $this->name();
-		if ( ! empty($name) ) array_unshift($templates, "$name.php");
+		if ( ! empty($name) ) {
+			array_unshift($templates, "$name.php"); // @deprecated
+			array_unshift($templates, "shopp-$name.php");
+		}
 
 		$template = $this->pagetemplate();
 		if ( ! empty($template) ) array_unshift($templates, "$template.php");
