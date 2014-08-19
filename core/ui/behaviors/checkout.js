@@ -34,7 +34,7 @@ jQuery(document).ready(function () {
 	$.fn.extend({
 		disableSubmit: function () {
 			return $(this).each(function() {
-				var $this = $(this), label = $this.data('label') ? $co.submitting : $this.val();;
+				var $this = $(this), label = $this.data('label') ? $co.submitting : $this.val();
 				$this.data('timeout',
 					setTimeout(function () { $this.enableSubmit(); alert($co.error); }, $co.timeout * 1000)
 				).setDisabled(true).val($co.submitting);
