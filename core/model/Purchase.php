@@ -539,7 +539,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 *
 	 * @return void
 	 **/
-	public function success ( $Purchase ) {
+	public static function success ( $Purchase ) {
 
 		$templates = array('email-order.php', 'order.php', 'order.html');
 
@@ -581,7 +581,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		else $email['to'] = Shopp::email_to( $address, $addressee );
 		$email['subject'] = $subject;
 		$email['receipt'] = $this->receipt();
-		$email['url'] = get_bloginfo('siteurl');
+		$email['url'] = get_bloginfo('url');
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;
 
