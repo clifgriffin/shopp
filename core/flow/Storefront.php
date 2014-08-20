@@ -139,7 +139,11 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @return int|boolean Number of posts found or, true if a Shopp Storefront request
 	 **/
 	public function found ( $found_posts, WP_Query $wp_query ) {
-		if ( $this->request($wp_query) ) return true;
+		if ( $this->request($wp_query) ) {
+			$Page = new stdClass();
+			$Page->ID = 0;
+			return array( $Page ); // Short page stub to prevent PHP Notices in wp_query
+		}
 		return $found_posts;
 	}
 
