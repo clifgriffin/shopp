@@ -487,7 +487,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'Content-type: text/html';
 		$_[] = '';
 		$_[] = '<p>'.__('A request has been made to reset the password for the following site and account:', 'Shopp').'<br />';
-		$_[] = get_option('siteurl').'</p>';
+		$_[] = get_bloginfo('url').'</p>';
 		$_[] = '';
 		$_[] = '<ul>';
 		if (isset($_POST['email-login']))
@@ -550,7 +550,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'Subject: ' . $subject;
 		$_[] = 'Content-type: text/html';
 		$_[] = '';
-		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_option('siteurl')) . '</p>';
+		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
 		if ( $user_data )
