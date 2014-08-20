@@ -256,7 +256,6 @@ class ShoppShiprates extends ListFramework {
 	 * @return void
 	 **/
 	private function items () {
-
 		foreach ( $this->shippable as $id => $free ) {
 
 			$CartItem = shopp_cart_item($id);
@@ -264,9 +263,8 @@ class ShoppShiprates extends ListFramework {
 
 			$Item = new ShoppShippableItem( $CartItem );
 			$this->item($Item);
-			do_action_ref_array('shopp_calculate_item_shipping', array($id, &$Item));
+			do_action('shopp_calculate_item_shipping', $id, $Item);
 		}
-
 	}
 
 	/**
