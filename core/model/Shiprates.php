@@ -130,7 +130,7 @@ class ShoppShiprates extends ListFramework {
 	 * @param boolean $free Flag to set the free shipping value
 	 * @return boolean True if free, false otherwise
 	 **/
-	public function free ( boolean $free = null ) {
+	public function free ( $free = null ) {
 
 		if ( isset($free) ) // Override the free setting if the free flag is set
 			$this->free = $free;
