@@ -1064,7 +1064,7 @@ class ShoppUI {
 	 * @param string $priority [optional]
 	 * @param array $args [optional]
 	 */
-	public static function addmetabox(string $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null) {
+	public static function addmetabox ( $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null ) {
 		self::$metaboxes[$id] = $callback;
 		$args = (array) $args;
 		array_unshift($args, $id);
