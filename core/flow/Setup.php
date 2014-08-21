@@ -179,6 +179,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			}
 
 			shopp_set_formsettings();
+			$this->notice(Shopp::__('Presentation settings saved.'), 'notice', 20);
 		}
 
 		if ($term_recount) {
@@ -246,7 +247,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 
 
 			shopp_set_formsettings();
-			$updated = __('Shopp checkout settings saved.','Shopp');
+			$this->notice(Shopp::__('Management settings saved.'), 'notice', 20);
 		}
 
 		$states = array(
@@ -336,6 +337,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			check_admin_referer('shopp-settings-pages');
 
 			$CatalogPage = ShoppPages()->get('catalog');
+			$catalog_slug = $CatalogPage->slug();
 			$defaults = ShoppPages()->settings();
 			$_POST['settings']['storefront_pages'] = array_merge($defaults,$_POST['settings']['storefront_pages']);
 			shopp_set_formsettings();
