@@ -8,7 +8,7 @@
 
 	?>
 
-	<form action="<?php echo $this->url; ?>" id="pages" method="post">
+	<form action="<?php echo esc_url($this->url); ?>" id="pages" method="post">
 	<div>
 		<?php wp_nonce_field('shopp-settings-pages'); ?>
 	</div>
