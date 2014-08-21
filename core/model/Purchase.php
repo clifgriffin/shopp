@@ -227,7 +227,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 			if ( 'ShoppCustomer' == $class ) { // hash the password before storage
 				$Object->hashpass();
-				$Record->passhash = $Object->passhash;
+				if ( isset($Object->passhash) )
+					$Record->passhash = $Object->passhash;
 				$Record->loginname = $Object->loginname;
 			}
 
