@@ -107,7 +107,7 @@
 					$quality = ImageSetting::$qualities[ $setting->quality ];
 				} else $quality = $setting->quality;
 
-				$quality = percentage($quality,0);
+				$quality = percentage($quality,array('precision' => 0));
 
 				if ($edit == $setting->id) {
 					$template_data = array(

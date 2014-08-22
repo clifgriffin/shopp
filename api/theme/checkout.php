@@ -125,9 +125,11 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		if ( is_object($Object) && is_a($Object, 'ShoppOrder') && 'checkout' == strtolower($object) ) return $Object;
 		else if ( strtolower($object) != 'checkout' ) return $Object; // not mine, do nothing
 
-		$handler = self::$register[ $tag ];
-		if ( is_array($handler) && 'ShoppCustomerThemeAPI' == $handler[0] )
-			return ShoppCustomer();
+		if ( isset(self::$register[ $tag ]) ) {
+			$handler = self::$register[ $tag ];
+			if ( is_array($handler) && 'ShoppCustomerThemeAPI' == $handler[0] )
+				return ShoppCustomer();
+		}
 
 		return ShoppOrder();
 	}

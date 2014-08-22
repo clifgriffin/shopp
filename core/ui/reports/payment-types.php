@@ -1,18 +1,20 @@
 <?php
-
 class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 
 	function setup () {
 		$this->setchart(array(
-			'series' => array('bars' => array('show' => true,'lineWidth'=>0,'fill'=>true,'barWidth' => 0.75),'points'=>array('show'=>false),'lines'=>array('show'=>false)),
+			'series' => array('bars' => array('show' => true, 'lineWidth' => 0, 'fill' => true, 'barWidth' => 0.75), 'points' => array('show' => false), 'lines' => array('show' => false)),
 			'xaxis' => array('show' => false),
 			'yaxis' => array('tickFormatter' => 'asMoney')
 		));
 	}
 
 	function query () {
+		$this->options = array_merge(array( // Define default URL query parameters
+			'orderby' => 'orders',
+			'order' => 'desc'
+		), $this->options);
 		extract($this->options, EXTR_SKIP);
-
 		$where = array();
 
 		$where[] = "$starts < " . self::unixtime('o.created');
@@ -21,16 +23,9 @@ class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = join(" AND ",$where);
 
-		$orderd = 'desc';
-		if ( in_array( $order, array('asc','desc') ) ) $orderd = strtolower($order);
-
-		$ordercols = 'orders';
-		switch ($orderby) {
-			case 'orders': $ordercols = 'orders'; break;
-			case 'sold': $ordercols = 'sold'; break;
-			case 'grossed': $ordercols = 'grossed'; break;
-		}
-		$ordercols = "$ordercols $orderd";
+		if ( ! in_array( $order, array('asc', 'desc') ) ) $order = 'desc';
+		if ( ! in_array( $orderby, array('orders', 'sold', 'grossed') ) ) $orderby = 'orders';
+		$ordercols = "$orderby $order";
 
 		$id = "o.cardtype";
 
@@ -42,7 +37,7 @@ class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 					FROM $purchase_table AS o
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
-		error_log($query);
+
 		return $query;
 
 	}
@@ -61,27 +56,27 @@ class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 
 	function columns () {
 		return array(
-			'paymenttype'=>__('Payment Type','Shopp'),
-			'orders'=>__('Orders','Shopp'),
-			'grossed'=>__('Grossed','Shopp')
+			'paymenttype' => __('Payment Type', 'Shopp'),
+			'orders'      => __('Orders', 'Shopp'),
+			'grossed'     => __('Grossed', 'Shopp')
 		);
 	}
 
 	function sortcolumns () {
 		return array(
-			'paymenttype'=>'paymenttype',
-			'orders'=>'orders',
-			'sold'=>'sold',
-			'grossed'=>'grossed'
+			'paymenttype' => 'paymenttype',
+			'orders'      => 'orders',
+			'sold'        => 'sold',
+			'grossed'     => 'grossed'
 		);
 	}
 
-	static function paymenttype ($data) { return trim($data->id); }
+	static function paymenttype ( $data ) { return trim($data->id); }
 
-	static function orders ($data) { return intval($data->orders); }
+	static function orders ( $data ) { return intval($data->orders); }
 
-	static function sold ($data) { return intval($data->sold); }
+	static function sold ( $data ) { return intval($data->sold); }
 
-	static function grossed ($data) { return money($data->grossed); }
+	static function grossed ( $data ) { return money($data->grossed); }
 
 }

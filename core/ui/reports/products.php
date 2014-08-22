@@ -2,15 +2,28 @@
 
 class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
-	function setup () {
+	public function setup () {
 		$this->setchart(array(
-			'series' => array('bars' => array('show' => true,'lineWidth'=>0,'fill'=>true,'barWidth' => 0.75),'points'=>array('show'=>false),'lines'=>array('show'=>false)),
+			'series' => array(
+					'bars' => array(
+						'show' => true,
+						'lineWidth' => 0,
+						'fill' => true,
+						'barWidth' => 0.75
+				),
+				'points' => array('show' => false),
+				'lines'  => array('show' => false)
+			),
 			'xaxis' => array('show' => false),
 			'yaxis' => array('tickFormatter' => 'asMoney')
 		));
 	}
 
-	function query () {
+	public function query () {
+		$this->options = array_merge(array( // Define default URL query parameters
+			'orderby' => 'orders',
+			'order' => 'desc'
+		), $this->options);
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
@@ -21,16 +34,9 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = join(" AND ",$where);
 
-		$orderd = 'desc';
-		if ( in_array( $order, array('asc','desc') ) ) $orderd = strtolower($order);
-
-		$ordercols = 'orders';
-		switch ($orderby) {
-			case 'orders': $ordercols = 'orders'; break;
-			case 'sold': $ordercols = 'sold'; break;
-			case 'grossed': $ordercols = 'grossed'; break;
-		}
-		$ordercols = "$ordercols $orderd";
+		if ( ! in_array( $order, array('asc', 'desc') ) ) $order = 'desc';
+		if ( ! in_array( $orderby, array('orders', 'sold', 'grossed') ) ) $orderby = 'orders';
+		$ordercols = "$orderby $order";
 
 		$id = "o.product,' ',o.price";
 
@@ -55,44 +61,44 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 	}
 
-	function chartseries ( $label, array $options = array() ) {
+	public function chartseries ( $label, array $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
 
 		$this->Chart->series($record->product, array( 'color' => '#1C63A8', 'data'=> array( array($index, $record->grossed) ) ));
 	}
 
-	function filters () {
+	public function filters () {
 		ShoppReportFramework::rangefilter();
 		ShoppReportFramework::filterbutton();
 	}
 
-	function columns () {
+	public function columns () {
 		return array(
-			'product'=>__('Product','Shopp'),
-			'sku'=>__('SKU','Shopp'),
-			'orders'=>__('Orders','Shopp'),
-			'sold'=>__('Items','Shopp'),
-			'grossed'=>__('Grossed','Shopp')
+			'product' => __('Product', 'Shopp'),
+			'sku'     => __('SKU', 'Shopp'),
+			'orders'  => __('Orders', 'Shopp'),
+			'sold'    => __('Items', 'Shopp'),
+			'grossed' => __('Grossed', 'Shopp')
 		);
 	}
 
-	function sortcolumns () {
+	public function sortcolumns () {
 		return array(
-			'orders'=>'orders',
-			'sold'=>'sold',
-			'grossed'=>'grossed'
+			'orders'  => 'orders',
+			'sold'    => 'sold',
+			'grossed' => 'grossed'
 		);
 	}
 
-	static function product ($data) { return trim($data->product); }
+	public static function product ( $data ) { return trim($data->product); }
 
-	static function sku ($data) { return trim($data->sku); }
+	public static function sku ( $data ) { return trim($data->sku); }
 
-	static function orders ($data) { return intval($data->orders); }
+	public static function orders ( $data ) { return intval($data->orders); }
 
-	static function sold ($data) { return intval($data->sold); }
+	public static function sold ( $data ) { return intval($data->sold); }
 
-	static function grossed ($data) { return money($data->grossed); }
+	public static function grossed ( $data ) { return money($data->grossed); }
 
 }
