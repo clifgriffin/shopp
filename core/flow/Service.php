@@ -615,12 +615,12 @@ class ShoppAdminService extends ShoppAdminController {
 
 		$carriers_menu['NOTRACKING'] = Shopp::__('No Tracking');
 		$carriers_json['NOTRACKING'] = array(Shopp::__('No Tracking'), false);
-		if ( empty($shipping_carriers) ) {
+		if ( empty($shipping_carriers) || ! is_array($shipping_carriers) ) {
 			$serviceareas = array('*', $base['country']);
 			foreach ( $shipcarriers as $code => $carrier ) {
 				if ( ! in_array($carrier->areas, $serviceareas) ) continue;
 				$carriers_menu[ $code ] = $carrier->name;
-				$carriers_json[ $code ] = array($carrier->name,$carrier->trackpattern);
+				$carriers_json[ $code ] = array($carrier->name, $carrier->trackpattern);
 			}
 		} else {
 			foreach ($shipping_carriers as $code) {
