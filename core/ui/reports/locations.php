@@ -12,6 +12,10 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 	}
 
 	function query () {
+		$this->options = array_merge(array( // Define default URL query parameters
+			'orderby' => 'orders',
+			'order' => 'desc'
+		), $this->options);
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
@@ -22,16 +26,9 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = join(" AND ",$where);
 
-		$orderd = 'desc';
-		if ( in_array( $order, array('asc','desc') ) ) $orderd = strtolower($order);
-
-		$ordercols = 'orders';
-		switch ($orderby) {
-			case 'orders': $ordercols = 'orders'; break;
-			case 'sold': $ordercols = 'sold'; break;
-			case 'grossed': $ordercols = 'grossed'; break;
-		}
-		$ordercols = "$ordercols $orderd";
+		if ( ! in_array( $order, array('asc', 'desc') ) ) $order = 'desc';
+		if ( ! in_array( strtolower($orderby), array('orders', 'sold', 'grossed') ) ) $orderby = 'orders';
+		$ordercols = "$orderby $order";
 
 		$id = "o.country";
 		$orders_table = ShoppDatabaseObject::tablename('purchase');
@@ -50,7 +47,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function chartseries ( $label, $options = array() ) {
+	function chartseries ( $label, array $options = array() ) {
 		extract($options);
 		$this->map[$record->country] = (float)$record->grossed;
 	}
@@ -86,7 +83,12 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		);
 	}
 
-	static function country ($data) { $countries = Lookup::countries(); return $countries[$data->country]['name']; }
+	static function country ($data) {
+		$countries = Lookup::countries();
+		if ( isset($countries[$data->country]) )
+			return $countries[$data->country]['name'];
+		return $data->country;
+	}
 
 	static function orders ($data) { return intval($data->orders); }
 
