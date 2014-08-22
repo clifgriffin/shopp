@@ -31,7 +31,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 							UNIX_TIMESTAMP(o.created) as period,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) as subtotal,
-							( SELECT SUM(IF(p.unittax > 0,p.total,0)) FROM $purchased_table AS p WHERE o.id = p.purchase ) AS taxable,
+							SUM( (SELECT IF(p.unittax > 0,p.total,0) FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS taxable,
 							( SELECT AVG(p.unittax/p.unitprice) FROM $purchased_table AS p WHERE o.id = p.purchase ) AS rate,
 							SUM(o.tax) as tax
 					FROM $orders_table AS o
