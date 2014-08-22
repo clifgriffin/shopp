@@ -26,7 +26,7 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
 		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as period,
-							( SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase AND p.type='Shipped' ) AS items,
+							SUM( ( SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase AND p.type='Shipped' ) ) AS items,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) AS subtotal,
 							SUM(o.freight) AS shipping
