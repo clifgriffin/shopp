@@ -70,9 +70,3 @@
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
-
-<script type="text/javascript">
-/* <![CDATA[ */
-var engines=<?php echo json_encode($engines); ?>,storageset = <?php echo json_encode($storageset); ?>;
-/* ]]> */
-</script>
