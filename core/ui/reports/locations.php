@@ -37,10 +37,9 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		$query = "SELECT CONCAT($id) AS id,
 							o.country AS country,
 							COUNT(DISTINCT o.id) AS orders,
-							COUNT(DISTINCT p.id) AS items,
-							SUM(p.unitprice) AS grossed
+							SUM( (SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase) ) AS items,
+							SUM(o.subtotal) AS grossed
 					FROM $orders_table AS o
-					JOIN $purchased_table AS p ON p.purchase=o.id
 					WHERE $where
 					GROUP BY CONCAT($id) ORDER BY $ordercols";
 

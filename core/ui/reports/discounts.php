@@ -25,7 +25,7 @@ class DiscountsReport extends ShoppReportFramework implements ShoppReport {
 		$purchased_table = ShoppDatabaseObject::tablename('purchased');
 		$query = "SELECT CONCAT($id) AS id,
 							UNIX_TIMESTAMP(o.created) as period,
-							( SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase ) AS items,
+							SUM( ( SELECT SUM(p.quantity) FROM $purchased_table AS p WHERE o.id = p.purchase ) ) AS items,
 							COUNT(DISTINCT o.id) AS orders,
 							SUM(o.subtotal) as subtotal,
 							SUM(o.discount) as discounts
