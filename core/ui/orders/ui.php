@@ -434,11 +434,33 @@ function contact_meta_box ($Purchase) {
 	$pre = 'page_';
 	$page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 	?>
+
+	<script id="customer-s" type="text/x-jquery-tmpl">
+	<?php
+		$s = isset($_REQUEST['s']) ? $_REQUEST['s'] : false;
+		ob_start();
+		if ( isset($_POST['select-customer']) && empty($s) )
+			$searchurl = wp_nonce_url(ShoppAdminController::url( array('page' => $page, 'id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
+		else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'page' => $page, 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
+		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
+		if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
+	?>
+	<p class="customer-chooser">
+		<select id="select-customer" name="s" placeholder="<?php _e('Search...','Shopp'); ?>" data-url="<?php echo $searchurl; ?>"></select>
+	</p>
+	<?php $search = ob_get_clean(); echo $search; ?>
+	</script>
+
 	<script id="customer-editor" type="text/x-jquery-tmpl">
 	<?php ob_start(); ?>
 
+	<h4><?php _e('Choose Customer','Shopp'); ?></h4>
+	<?php echo ShoppUI::template( $search ); ?>
+
+	<h4 class="label-heading"><?php _e('Edit Customer Contact','Shopp'); ?></h4>
 	<div class="editor ${action}">
-		<input type="hidden" name="order-action" value="${action}" />
+		<input type="hidden" name="order-action" value="${action}" id="customer-action" />
+		<input type="hidden" name="customer[customer]" value="${id}" id="customer-id" />
 		<p class="inline-fields">
 			<span>
 			<input type="text" name="customer[firstname]" id="customer-firstname" value="${firstname}" /><br />
@@ -471,20 +493,20 @@ function contact_meta_box ($Purchase) {
 			<input type="submit" id="cancel-edit-customer" name="cancel-edit-customer" value="<?php Shopp::esc_attr_e('Cancel'); ?>" class="button-secondary" />
 			<input type="submit" name="save" value="<?php Shopp::esc_attr_e('Save Customer'); ?>" class="button-primary alignright" />
 		</div>
-		<?php if ( ! isset($_POST['select-customer']) ): ?>
+		<?php if (!true): //if ( ! isset($_POST['select-customer']) ): ?>
 		<p class="change-button"><br class="clear" /><input type="submit" id="change-customer" name="change-customer" value="<?php _e('Change Customer','Shopp'); ?>" class="button-secondary" /></p>
 		<?php endif; ?>
 	</div>
 	<?php $editcustomer = ob_get_contents(); ob_end_clean(); echo $editcustomer;
 
 	$customer = array(
-		'${action}' => 'update-customer',
+		'${action}'    => 'update-customer',
+		'${id}'        => $Purchase->customer,
 		'${firstname}' => $Purchase->firstname,
 		'${lastname}' => $Purchase->lastname,
 		'${company}' => $Purchase->company,
 		'${email}' => $Purchase->email,
 		'${phone}' => $Purchase->phone,
-		'${marketing}' => isset($Purchase->marketing) ? $Purchase->marketing : false,
 		'${login}' => 'wordpress' == shopp_setting('account_system')
 	);
 	$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($customer));
@@ -492,65 +514,23 @@ function contact_meta_box ($Purchase) {
 	?>
 	</script>
 
-	<script id="customer-s" type="text/x-jquery-tmpl">
-	<?php
-		$s = isset($_REQUEST['s']) ? $_REQUEST['s'] : false;
-		ob_start();
-		if ( isset($_POST['select-customer']) && empty($s) )
-			$searchurl = wp_nonce_url(ShoppAdminController::url( array('page' => $page, 'id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
-		else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'page' => $page, 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
-		if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
-		if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
-	?>
-	<form id="customer-search" action="<?php echo $searchurl; ?>" method="post" <?php if ( $iframe ): ?>target="customer-search-results"<?php endif; ?>>
-	<input type="hidden" name="change-customer" value="true" />
-	<input type="hidden" name="action" value="shopp_select_customer" />
-	<input type="hidden" name="page" value="<?php echo esc_attr($page); ?>" />
-	<?php wp_nonce_field('wp_ajax_shopp_select_customer'); ?>
-	<p><select id="select-customer" name="s" placeholder="<?php _e('Search...','Shopp'); ?>"></select>
-		<!--<input type="search" name="s" value="<?php echo esc_attr($s); ?>" placeholder="<?php _e('Search...','Shopp'); ?>" />--></p>
-	</form>
-	<?php if ( $iframe ): ?>
-	<iframe id="customer-search-results" name="customer-search-results" src="<?php echo esc_url($searchurl); ?>"></iframe>
-	<form action="<?php echo ShoppAdminController::url(array('page' => $page, 'id' => (int)$Purchase->id)); ?>" method="POST">
-	<div><input type="submit" id="cancel-change-customer" name="cancel-change-customer" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" /></div>
-	</form>
-	<?php endif; ?>
-	<?php $search = ob_get_clean(); echo $search; ?>
-	</script>
-
-	<script id="change-customer-ui" type="text/x-jquery-tmpl">
-	<?php ob_start();
-	?>
-	<h4><?php _e('Search for Customer','Shopp'); ?></h4>
-	<?php echo ShoppUI::template( $search ); ?>
-	<form id="change-customer" action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
-	<h4><?php _e('Add New Customer','Shopp'); ?></h4>
-	<input type="hidden" name="change-customer" value="true" />
-	<?php echo ShoppUI::template( $editcustomer, array( '${action}' => 'new-customer', '${savelabel}' => __('Add New Customer','Shopp') ) ); ?>
-	</form>
-	<?php $changecustomer = ob_get_contents(); ob_end_clean(); echo $changecustomer; ?>
-	</script>
-
-
 	<?php
 		if ( isset($_POST['select-customer']) ) $customer = array();
 		if ( isset($_REQUEST['s']) && isset($_REQUEST['select-customer']) ) {
 			echo ShoppUI::template($search);
 			return;
-		} elseif ( isset($_POST['select-customer']) ) {
-			echo ShoppUI::template($changecustomer);
+		} elseif ( empty($Purchase->customer) ) {
+			echo ShoppUI::template($editcustomer);
 			return;
 		} elseif ( isset($_REQUEST['edit-customer'])) {
 		?>
 			<form action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
-			<?php echo ShoppUI::template($editcustomer,$customer); ?>
+			<?php echo ShoppUI::template($editcustomer, $customer); ?>
 			</form>
 		<?php
 			return;
 		}
 	?>
-	<div id="change-customer-editor"></div>
 	<form action="<?php echo ShoppAdminController::url(array('id' => (int) $Purchase->id)); ?>" method="post" id="customer-editor-form"></form>
 	<div class="display">
 		<form action="<?php echo ShoppAdminController::url(array('id' => $Purchase->id)); ?>" method="get">
@@ -566,14 +546,14 @@ function contact_meta_box ($Purchase) {
 
 	$avatar = get_avatar( $Purchase->email, 64 );
 
-	$customer_url = add_query_arg(array('page'=>'shopp-customers','id'=>$Purchase->customer),admin_url('admin.php'));
-	$customer_url = apply_filters('shopp_order_customer_url',$customer_url);
+	$customer_url = add_query_arg(array('page' => 'shopp-customers', 'id' => $Purchase->customer), admin_url('admin.php'));
+	$customer_url = apply_filters('shopp_order_customer_url', $customer_url);
 
-	$email_url = 'mailto:'.($Purchase->email).'?subject='.sprintf(__('RE: %s: Order #%s','Shopp'),get_bloginfo('sitename'),$Purchase->id);
-	$email_url = apply_filters('shopp_order_customer_email_url',$email_url);
+	$email_url = 'mailto:' . $Purchase->email . '?subject=' . Shopp::__('RE: %s: Order #%s', get_bloginfo('sitename'), $Purchase->id);
+	$email_url = apply_filters('shopp_order_customer_email_url', $email_url);
 
-	$phone_url = 'callto:'.preg_replace('/[^\d+]/','',$Purchase->phone);
-	$phone_url = apply_filters('shopp_order_customer_phone_url',$phone_url);
+	$phone_url = 'callto:' . preg_replace('/[^\d+]/', '', $Purchase->phone);
+	$phone_url = apply_filters('shopp_order_customer_phone_url', $phone_url);
 
 	$accounts = shopp_setting('account_system');
 	$wp_user = false;
@@ -587,18 +567,18 @@ function contact_meta_box ($Purchase) {
 	}
 
 	?>
-	<div class="alignleft"><?php echo $avatar; ?></div>
-	<div class="alignleft">
-	<span class="fn"><a href="<?php echo esc_url($customer_url); ?>"><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></a></span>
-	<?php if  ( 'wordpress' == $accounts && ! empty($WPUser->user_login) ): ?><br /><span class="wplogin"><a href="<?php echo esc_attr($edituser_url); ?>"><?php echo esc_html($WPUser->user_login); ?></a></span><?php endif; ?>
-	<?php if ( ! empty($Purchase->company) ) echo '<br /> <div class="org">'.esc_html($Purchase->company).'</div>'; ?>
-	<?php if ( ! empty($Purchase->email) ) echo '<br /><span class="email"><a href="'.esc_url($email_url).'">'.esc_html($Purchase->email).'</a></span>'; ?>
-	<?php if ( ! empty($Purchase->phone) ) echo '<br /><span class="phone"><a href="'.esc_attr($phone_url).'">'.esc_html($Purchase->phone).'</a></span>'; ?>
-	<?php if ( ! empty($Purchase->customer) ): ?>
-	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
-	<?php endif; ?>
-	</div>
-	<br class="clear" />
+	<table>
+		<tr>
+			<td class="avatar"><?php echo $avatar; ?></td>
+			<td><span class="fn"><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></span>
+			<?php if ( ! empty($Purchase->company) ) echo '<br /> <div class="org">'.esc_html($Purchase->company).'</div>'; ?>
+			<div class="actions"><a href="<?php echo $customer_url; ?>"><?php Shopp::_e('View'); ?></a><?php if  ( 'wordpress' == $accounts && ! empty($WPUser->user_login) ): ?> | <a href="<?php echo esc_attr($edituser_url); ?>"><span class="dashicons dashicons-admin-users"></span>&nbsp;<?php echo esc_html($WPUser->user_login); ?></a><?php endif; ?></div>
+			</td>
+		</tr>
+		<?php if ( ! empty($Purchase->email) ) echo '<tr><td colspan="2" class="email"><span class="shoppui-envelope-alt shoppui-icons"></span><a href="'.esc_url($email_url).'">'.esc_html($Purchase->email).'</a></td></tr>'; ?>
+	<?php if ( ! empty($Purchase->phone) ) echo '<tr><td colspan="2" class="phone"><span class="shoppui-phone shoppui-icons"></span><a href="'.esc_attr($phone_url).'">'.esc_html($Purchase->phone).'</a></td></tr>'; ?>
+	</table>
+
 	</div>
 	<?php
 }

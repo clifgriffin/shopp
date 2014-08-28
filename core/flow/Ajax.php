@@ -498,12 +498,13 @@ class ShoppAjax {
 			$results[] = array(
 				'id' => $entry->id,
 				'user' => $entry->user,
-				'gravatar' => get_avatar( $Customer->wpuser, 48 ),
+				'gravatar' => get_avatar( $entry->email, 32 ),
 				'firstname' => $entry->firstname,
 				'lastname' => $entry->lastname,
 				'company' => $entry->company,
 				'email' => $entry->email,
 				'lastname' => $entry->lastname,
+				'phone' => $entry->phone
 			);
 		}
 		header('Content-Type: application/json; charset=utf-8');

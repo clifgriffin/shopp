@@ -398,7 +398,8 @@ function shopp_default_script_settings () {
 
 	// Product editor: unsaved changes warning
 	shopp_localize_script('orders', '$l10n', array(
-		'total' => __('Total', 'Shopp')
+		'total' => Shopp::__('Total'),
+		'newc' => Shopp::__('New Customer Contact')
 	));
 
 

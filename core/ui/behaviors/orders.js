@@ -11,8 +11,6 @@ jQuery(document).ready( function($) {
 	$.template('refund-ui', $('#refund-ui'));
 	$.template('address-ui', $('#address-editor'));
 	$.template('customer-ui', $('#customer-editor'));
-	$.template('customer-select', $('#customer-selector'));
-	$.template('change-customer', $('#change-customer-ui'));
 	$.template('total-editor', $('#total-editor-ui'));
 	$.template('item-editor', $('#item-editor-ui'));
 
@@ -156,7 +154,7 @@ jQuery(document).ready( function($) {
 		editcustomer = $('#edit-customer').click(function (e) {
 			e.preventDefault();
 			var $this = $(this),
-				ui = $.tmpl('customer-ui',customer),
+				ui = $.tmpl('customer-ui', customer),
 				editorui = $('#customer-editor-form'),
 				display = $('#order-contact .display'),
 				panel = $('#order-contact .inside'),
@@ -167,36 +165,65 @@ jQuery(document).ready( function($) {
 						display.show();
 					});
 				},
-				change = ui.find('#change-customer').click(function (e) {
-					e.preventDefault();
-					editorui.hide();
-					ui = $.tmpl('change-customer');
-					ui.find('#select-customer').selectize({
-						valueField:  'id',
-						labelField:  'name',
+				setCustomer = function (item) {
+					var fields = ['id','firstname','lastname','company','email','phone'],
+						value = item.email, names;
+
+					if ( undefined == item.id ) {
+						// Set up add new UI, clear fields, change label
+						editorui.find('.label-heading').html($l10n.newc);
+
+						$.each(fields, function (i, field) {
+							$('#customer-' + field).val('');
+						});
+
+						if ( editorui.find('.loginname').length > 0 )
+							editorui.find('.loginname').slideDown();
+
+						$('#customer-action').val('new-customer');
+
+						if ( value.match( // RFC822 & RFC5322 Email validation
+			 			   		new RegExp(/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.([a-z][a-z0-9]+)|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i)) ) {
+			 			   			$('#customer-email').val(value);
+									$('#customer-firstname').focus();
+			 			} else {
+			 				names = value.split(' ');
+							$('#customer-firstname').val(names.shift());
+							$('#customer-lastname').val(names.join(' '));
+							$('#customer-company').focus();
+			 			}
+					} else {
+						$.each(fields, function (i, field) {
+							if ( undefined != item[field] && $('#customer-' + field).length > 0 )
+								$('#customer-' + field).val(item[field]);
+						});
+					}
+				},
+				search = ui.find('#select-customer').selectize({
+						valueField:  'email',
+						labelField:  'email',
 						searchField: ['firstname', 'lastname', 'email'],
 						openOnFocus: true,
 						diacritics: true,
 						maxOptions: 7,
-						create: false,
+						create: true,
 						render: {
 							item: function (item, escape) {
-								editline(item);
-								if ( item.variant != '' )
-									return '<div><span class="name">' + escape(item.name) + '</span><span class="variant">' + escape(item.variant) + '</span></div>';
-								else return '<div><span class="name">' + escape(item.name) + '</span></div>';
+								setCustomer(item);
+								return '';
 							},
 							option: function (item, escape) {
-								if ( item.variant != '' )
-									return '<div><span class="name">' + escape(item.name) + '</span><span class="variant">' + escape(item.variant) + '</span> <span class="price">' + escape(asMoney(item.unitprice)) +  '</span></div>';
-								else return '<div><span class="name">' + escape(item.name) + '</span> <span class="price">' + escape(asMoney(item.unitprice)) +  '</span></div>';
+								var fullname =  '<strong>' + escape(item.firstname) + ' ' + escape(item.lastname) + '</strong>',
+									company = ( '' != item.company ? ', <span class="company">' + escape(item.company) + '</span>' : '' ),
+									email = ( '' != item.email ? '<br /><span class="email">' + escape(item.email) + '</span>' : '' );
+								return '<div>' + item.gravatar + fullname + company + email +'</div>';
 							},
 						},
 					    load: function(query, callback) {
 					        if (!query.length) return callback();
-							var $select = $(this);
+							var $select = $(this), url = $($select[0].$input).attr('data-url');
 					        $.ajax({
-					            url: $select.closest('form').attr('action') + '&s=' + encodeURIComponent(query),
+					            url: url + '&s=' + encodeURIComponent(query),
 					            type: 'GET',
 					            error: function() {
 					                callback();
@@ -208,21 +235,12 @@ jQuery(document).ready( function($) {
 										$select[0].addItem(r[0].id);
 					            }
 					        });
-					    }
-					});
-
-					var changeui = $('#change-customer-editor').empty().append(ui).slideDown('fast');
-
-					var results = changeui.find('#customer-search-results').hide(),
-						changebutton = changeui.find('.change-button').hide(),
-						cancelchange = $('#cancel-change-customer').hide(),
-						editcancel = ui.find('#cancel-edit-customer').click(cancel),
-						searching = $('#customer-search').submit(function (e) {
-							$('#change-customer').hide();
-							cancelchange.show().click(cancel);
-							results.show();
-						});
-				}),
+					    },
+						onItemAdd: function (value, $item) {
+							this.clear();
+							this.clearOptions();
+						}
+					}),
 				caneledit = ui.find('#cancel-edit-customer').click(cancel);
 
 			display.hide();

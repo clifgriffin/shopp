@@ -422,7 +422,6 @@ button.moveto.shoppui-step-bottom {
 span.indent { display: inline-block; width: 36px; }
 
 
-
 /** Postboxes **/
 #poststuff #save-product .inside,
 #poststuff #save-category .inside,
@@ -493,8 +492,9 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #schedule-calendar { margin-left: 18px; }
 
 .shopp #customer #post-body-content .postbox p { width:66%; }
-#customer-login .avatar { float: left; margin-right: 5px;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;overflow:hidden; }
-#order .avatar { float: left; margin-right: 8px;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;overflow:hidden; }
+
+#order .avatar,
+#customer-login .avatar { float: left; margin-right: 5px;border-radius:3px;overflow:hidden; }
 #customer-login #pass-strength-result { line-height:20px;width:94%; }
 
 /** Image cropping UI **/
@@ -583,9 +583,15 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 #order .meta-boxes address { white-space: normal; width: inherit; }
 #order-contact a { text-decoration: none; }
+#order-contact table td { padding: 0 0 8px; line-height: 1.5em; }
+#order-contact table .shoppui-icons { color: #999; display: inline-block; width: 14px; padding: 0 5px 8px 0; }
+
+#order-contact .actions { color: #ddd; visibility: hidden; }
+#order-contact .inside:hover .actions { visibility: visible; }
+
+#order-contact td .avatar { float:none; }
 #order-contact .fn { font-weight: bold; font-size: 1.25em; line-height: 1.25em; }
 #order-contact .org { white-space: nowrap; }
-#order-contact .nomarketing { background-position: -8px -164px; }
 
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
 
@@ -728,6 +734,14 @@ tfoot#order-totals td { position:relative; padding:2px 7px 3px 3px; overflow: vi
 .shopp div.inline div { display: inline; }
 .shopp .actions .filtering { margin-left:10px; }
 .shopp .filtering select { float: none; display:inline-block; }
+
+
+.shopp .postbox .customer-chooser { overflow: visible; }
+#order .selectize-control .items .company,
+#order .selectize-control .items .email,
+#order .selectize-control .selectize-dropdown .company,
+#order .selectize-control .selectize-dropdown .email { overflow:hidden; text-overflow: ellipsis; width: 74%; display: inline-block; } 
+#order .selectize-control .selectize-dropdown .highlight { padding: 0; } /* Overrides .shopp .postbox p span padding */
 
 /* Table list settings */
 .shopp-settings .unit { white-space: nowrap; }

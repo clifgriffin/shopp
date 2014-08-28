@@ -531,9 +531,10 @@ class ShoppAdminService extends ShoppAdminController {
 			else unset($_POST['loginname']);
 			$Customer->save();
 			if ( (int)$Customer->id > 0 ) {
+				$Purchase->customer = $Customer->id;
 				$Purchase->copydata($Customer);
 				$Purchase->save();
-			} else $this->notice(__('An unknown error occured. The customer could not be created.','Shopp'),'error');
+			} else $this->notice(Shopp::__('An unknown error occured. The customer could not be created.'), 'error');
 		}
 
 		if ( isset($_GET['order-action']) && 'change-customer' == $_GET['order-action'] && ! empty($_GET['customerid'])) {
@@ -542,7 +543,7 @@ class ShoppAdminService extends ShoppAdminController {
 				$Purchase->copydata($Customer);
 				$Purchase->customer = $Customer->id;
 				$Purchase->save();
-			} else $this->notice(__('The selected customer was not found.','Shopp'),'error');
+			} else $this->notice(Shopp::__('The selected customer was not found.'), 'error');
 		}
 
 		if ( isset($_POST['save-item']) && isset($_POST['lineid']) ) {
