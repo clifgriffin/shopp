@@ -139,13 +139,15 @@
 						<button type="button" class="add" data-label="<?php Shopp::_e('Fee Label&hellip;'); ?>" value="fee"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button></td>
 				</tr>
 				<?php
-					foreach ($Purchase->discounts as $PurchaseDiscount ) {
-						$data = array(
-							'${type}'  => 'discount',
-							'${label}' => $PurchaseDiscount->name,
-							'${amount}' => $PurchaseDiscount->amount
-						);
-						echo ShoppUI::template($totaleditor, $data);
+					if ( count($Purchase->discounts) > 1 ) {
+						foreach ($Purchase->discounts as $PurchaseDiscount ) {
+							$data = array(
+								'${type}'  => 'discount',
+								'${label}' => $PurchaseDiscount->name,
+								'${amount}' => $PurchaseDiscount->amount
+							);
+							echo ShoppUI::template($totaleditor, $data);
+						}
 					}
 				?>
 				<tr class="discount<?php if ( floatval($Purchase->discount) == 0.0 ) echo ' empty'; ?>">
@@ -169,14 +171,16 @@
 						<button type="button" class="add" data-label="<?php Shopp::_e('Shipping Label&hellip;'); ?>" value="shipping"><span class="shoppui-plus"><span class="hidden"><?php Shopp::_e('Add'); ?></span></span></button></td>
 				</tr>
 				<?php
-					foreach ($Purchase->taxes as $PurchaseTax ) {
-						$data = array(
-							'${type}'  => 'tax',
-							'${placeholder}' => Shopp::__('Tax Label&hellip;'),
-							'${label}' => $PurchaseTax->name,
-							'${amount}' => $PurchaseTax->amount
-						);
-						echo ShoppUI::template($totaleditor, $data);
+					if ( count($Purchase->taxes) > 1 ) {
+						foreach ( $Purchase->taxes as $PurchaseTax ) {
+							$data = array(
+								'${type}'  => 'tax',
+								'${placeholder}' => Shopp::__('Tax Label&hellip;'),
+								'${label}' => $PurchaseTax->name,
+								'${amount}' => $PurchaseTax->amount
+							);
+							echo ShoppUI::template($totaleditor, $data);
+						}
 					}
 				?>
 				<tr class="tax<?php if ( floatval($Purchase->tax) == 0.0 ) echo ' empty'; ?>">
