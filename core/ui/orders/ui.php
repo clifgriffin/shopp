@@ -302,6 +302,7 @@ function order_address_editor () {
 	<?php
 	return ob_get_clean();
 }
+
 function billto_meta_box ($Purchase) {
 	?>
 		<script id="address-editor" type="text/x-jquery-tmpl">
@@ -327,7 +328,7 @@ function billto_meta_box ($Purchase) {
 		?>
 		</script>
 
-	<?php if ( isset($_POST['edit-billing-address']) ): ?>
+	<?php if ( isset($_POST['edit-billing-address']) || empty(ShoppPurchase()->billing) ): ?>
 		<form action="<?php echo ShoppAdminController::url( array('page' => $page, 'id' => $Purchase->id) ); ?>" method="post" id="billing-address-editor">
 		<?php echo ShoppUI::template($editaddress, $address); ?>
 		</form>
@@ -363,6 +364,8 @@ function billto_meta_box ($Purchase) {
 <?php
 }
 ShoppUI::addmetabox('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+
+function shipping_meta_box ( $Purchase ) { ?>
 
 function shipto_meta_box ( $Purchase ) { ?>
 	<?php if ( isset($_POST['edit-shipping-address']) || empty(ShoppPurchase()->shipping) ): ?>
@@ -426,8 +429,8 @@ function shipto_meta_box ( $Purchase ) { ?>
 	</div>
 <?php
 }
-if ( ! empty(ShoppPurchase()->shipaddress) )
-	ShoppUI::addmetabox('order-shipping', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+if ( ! empty(ShoppPurchase()->shipaddress) || 'new' == $_GET['id'] )
+	ShoppUI::addmetabox('order-shipping', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function contact_meta_box ($Purchase) {
 	$screen = get_current_screen();
@@ -491,11 +494,8 @@ function contact_meta_box ($Purchase) {
 		<?php endif; ?>
 		<div>
 			<input type="submit" id="cancel-edit-customer" name="cancel-edit-customer" value="<?php Shopp::esc_attr_e('Cancel'); ?>" class="button-secondary" />
-			<input type="submit" name="save" value="<?php Shopp::esc_attr_e('Save Customer'); ?>" class="button-primary alignright" />
+			<input type="submit" name="save" value="<?php Shopp::esc_attr_e('Update'); ?>" class="button-primary alignright" />
 		</div>
-		<?php if (!true): //if ( ! isset($_POST['select-customer']) ): ?>
-		<p class="change-button"><br class="clear" /><input type="submit" id="change-customer" name="change-customer" value="<?php _e('Change Customer','Shopp'); ?>" class="button-secondary" /></p>
-		<?php endif; ?>
 	</div>
 	<?php $editcustomer = ob_get_contents(); ob_end_clean(); echo $editcustomer;
 
@@ -617,20 +617,6 @@ function history_meta_box ($Purchase) {
 if (count(ShoppPurchase()->events) > 0)
 	ShoppUI::addmetabox('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
-function downloads_meta_box ($Purchase) {
-?>
-	<ul>
-	<?php foreach ($Purchase->purchased as $Item): ?>
-		<?php $price = new ShoppPrice($Item->price); if ($price->type == 'Download'): ?>
-		<li><strong><?php echo $Item->name; ?></strong>: <?php echo $Item->downloads.' '.__('Downloads','Shopp'); ?></li>
-		<?php endif; ?>
-	<?php endforeach; ?>
-	</ul>
-<?php
-}
-// if (ShoppPurchase()->downloads !== false)
-// 	ShoppUI::addmetabox('order-downloads', __('Downloads','Shopp').$Admin->boxhelp('order-manager-downloads'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-
 function notes_meta_box ($Purchase) {
 	global $Notes;
 
@@ -661,8 +647,8 @@ function notes_meta_box ($Purchase) {
 			</div>
 			<p class="notemeta">
 				<span class="notectrls">
-				<button type="submit" name="delete-note[<?php echo $Note->id; ?>]" value="delete" class="button-secondary deletenote"><small>Delete</small></button>
-				<button type="button" name="edit-note[<?php echo $Note->id; ?>]" value="edit" class="button-secondary editnote"><small>Edit</small></button>
+				<button type="submit" name="delete-note[<?php echo $Note->id; ?>]" value="delete" class="button-secondary deletenote"><small><?php Shopp::_e('Delete'); ?></small></button>
+				<button type="button" name="edit-note[<?php echo $Note->id; ?>]" value="edit" class="button-secondary editnote"><small><?php Shopp::_e('Edit'); ?></small></button>
 				<?php do_action('shopp_order_note_controls'); ?>
 				</span>
 			</p>

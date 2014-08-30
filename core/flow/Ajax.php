@@ -71,6 +71,7 @@ class ShoppAjax {
 		add_action('wp_ajax_shopp_import_file', array($this, 'import_file'));
 		add_action('wp_ajax_shopp_storage_suggestions', array($this, 'storage_suggestions'), 11);
 		add_action('wp_ajax_shopp_select_customer', array($this, 'select_customer'));
+		add_action('wp_ajax_shopp_lookup_addresses', array($this, 'lookup_addresses'));
 		add_action('wp_ajax_shopp_suggestions', array($this, 'suggestions'));
 		add_action('wp_ajax_shopp_verify_file', array($this, 'verify_file'));
 		add_action('wp_ajax_shopp_gateway', array($this, 'gateway_ajax'));
@@ -427,7 +428,7 @@ class ShoppAjax {
 	}
 
 	public function select_customer () {
-		// check_admin_referer('wp_ajax_shopp_select_customer');
+		check_admin_referer('wp_ajax_shopp_select_customer');
 		$defaults = array(
 			'page' => false,
 			'paged' => 1,
@@ -492,7 +493,7 @@ class ShoppAjax {
 		}
 		// if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$list = sDB::query($query,'array','index','id');
+		$list = sDB::query($query, 'array', 'index', 'id');
 		$results = array();
 		foreach ( $list as $entry ) {
 			$results[] = array(
@@ -532,8 +533,8 @@ class ShoppAjax {
  			echo get_avatar( $Customer->wpuser, 48 );
 			?>
 			<?php echo "<strong>$Customer->firstname $Customer->lastname</strong>"; ?><?php if (!empty($Customer->company)) echo ", $Customer->company"; ?>
-			<?php if (!empty($Customer->email)) echo "<br />$Customer->email"; ?>
-			<?php if (!empty($Customer->phone)) echo "<br />$Customer->phone"; ?>
+			<?php if ( ! empty($Customer->email) ) echo "<br />$Customer->email"; ?>
+			<?php if ( ! empty($Customer->phone) ) echo "<br />$Customer->phone"; ?>
 			</a>
 			</li>
 			<?php endforeach; ?>
@@ -544,6 +545,37 @@ class ShoppAjax {
 		</body>
 		</html>
 		<?php
+		exit();
+	}
+
+	public function lookup_addresses  () {
+		check_admin_referer('wp_ajax_shopp_lookup_addresses');
+		if ( ! isset($_GET['id']) ) die;
+
+		$customer = (int)$_GET['id'];
+		$address_table = ShoppDatabaseObject::tablename(ShoppAddress::$table);
+
+		$list = sDB::query("SELECT * FROM $address_table WHERE customer=$customer ORDER BY modified ASC", 'array', 'index', 'id');
+		$results = array();
+		foreach ( $list as $entry ) {
+			$names = explode(' ', $entry->name);
+			unset($entry->name);
+			$entry->firstname = array_shift($names);
+			$entry->lastname = join(' ', $names);
+			$results[ $entry->type ] = array(
+				'id' => $entry->id,
+				'firstname' => $entry->firstname,
+				'lastname' => $entry->lastname,
+				'address' => $entry->address,
+				'xaddress' => $entry->xaddress,
+				'city' => $entry->city,
+				'state' => $entry->state,
+				'country' => $entry->country,
+				'postcode' => $entry->postcode
+			);
+		}
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
 		exit();
 	}
 

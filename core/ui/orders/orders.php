@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Orders','Shopp'); ?></h2>
+	<h2><?php Shopp::_e('Orders'); ?> <a href="<?php echo esc_url(add_query_arg(array('page'=> $this->page(), 'id' => 'new'), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
 
 	<?php do_action('shopp_admin_notices'); ?>
 

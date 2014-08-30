@@ -662,6 +662,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order-totals .order-editing a { visibility: hidden; }
 #order-totals tr:hover button.add,
 #order-totals tr:hover button.delete,
+#order-totals.order-editing .selectize-input,
 #order-totals:hover .selectize-input,
 #order-totals:hover a,
 #order-totals .selectize-input.focus { visibility: visible; }
@@ -677,6 +678,7 @@ tfoot#order-totals td { position:relative; padding:2px 7px 3px 3px; overflow: vi
 #order-totals td.money input[type=text] { border: 1px solid transparent; -webkit-box-shadow: none; }
 #save-totals { visibility: hidden; float: right; }
 #order-totals .empty { position:absolute; left: -999em; }
+#order-totals.order-editing .empty,
 #order-totals .editing .empty,
 #order-totals:hover .empty { position:relative; left:none; }
 

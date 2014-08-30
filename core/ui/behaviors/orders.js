@@ -96,17 +96,15 @@ jQuery(document).ready( function($) {
 				managerui.empty().append(ui);
 		}),
 
-		printbtn = $( '#print-button' ).click( function (e) {
+		printbtn = $('#print-button').click( function (e) {
 			e.preventDefault();
-			var frame = $( '#print-receipt' ).get( 0 ), fw = frame.contentWindow;
-
-			// Which browser agent?
-			var trident = ( -1 !== navigator.userAgent.indexOf( "Trident" ) ); // IE
-			var presto = ( -1 !== navigator.userAgent.indexOf( "Presto" ) ); // Opera (pre-webkit)
+			var frame = $('#print-receipt').get( 0 ), fw = frame.contentWindow, preview,
+				trident = ( -1 !== navigator.userAgent.indexOf("Trident") ), // IE
+				presto = ( -1 !== navigator.userAgent.indexOf("Presto") ); // Opera (pre-webkit)
 
 			if ( trident || presto ) {
-				var preview = window.open( fw.location.href+"&print=auto" );
-				$( preview ).load( function () {	preview.close(); } );
+				preview = window.open( fw.location.href+"&print=auto" );
+				$( preview ).load( function () { preview.close(); } );
 			} else {
 				fw.focus();
 				fw.print();
@@ -121,7 +119,6 @@ jQuery(document).ready( function($) {
 				editorui = $('#' + type + '-address-editor'),
 				display = $('#order-' + type + ' .display'),
 
-
 				cancel = ui.find('#cancel-edit-address').click(function (e) {
 					e.preventDefault();
 					ui.fadeRemove('fast',function () {
@@ -132,7 +129,7 @@ jQuery(document).ready( function($) {
 				});
 
 			ui.find('#' + type + '-state-menu').html(data.statemenu);
-			ui.find('#' + type + '-country').html(data.countrymenu).upstate();
+			ui.find('#' + type + '-country').upstate().html(data.countrymenu);
 
 			display.hide();
 			editorui.hide().empty().append(ui).slideDown('fast');
@@ -145,7 +142,7 @@ jQuery(document).ready( function($) {
 			return false;
 		}),
 
-		billaddrctrls = $('#edit-shipping-address, #order-shipto address').click(function (e) {
+		billaddrctrls = $('#edit-shipping-address, #order-shipping address').click(function (e) {
 			e.preventDefault();
 			editaddress('shipping');
 			return false;
@@ -165,11 +162,22 @@ jQuery(document).ready( function($) {
 						display.show();
 					});
 				},
-				setCustomer = function (item) {
-					var fields = ['id','firstname','lastname','company','email','phone'],
-						value = item.email, names;
+				saveCustomerAddresses = function () {
+					var types = ['billing','shipping'];
+					$('#customer-editor-form, #billing-address-editor, #shipping-address-editor').on('submit', function (e) {
+						e.preventDefault();
+						$.each(types, function (t, type) {
+							if ( $('#'+type+'-address-editor').length > 0 )
+								$('#'+type+'-address-editor :input').not(':submit').clone().hide().appendTo('#customer-editor-form');
+						});
 
-					if ( undefined == item.id ) {
+						$('#customer-editor-form').off('submit').submit();
+						return false;
+					});
+				},
+				addNewCustomer = function (item, fields) {
+					var value = item.email, names;
+
 						// Set up add new UI, clear fields, change label
 						editorui.find('.label-heading').html($l10n.newc);
 
@@ -192,12 +200,45 @@ jQuery(document).ready( function($) {
 							$('#customer-lastname').val(names.join(' '));
 							$('#customer-company').focus();
 			 			}
-					} else {
+					editaddress('billing');
+					editaddress('shipping');
+					saveCustomerAddresses();
+
+				},
+				updateCustomer = function (item, fields) {
 						$.each(fields, function (i, field) {
 							if ( undefined != item[field] && $('#customer-' + field).length > 0 )
 								$('#customer-' + field).val(item[field]);
+					});
+			        $.ajax({
+			            url: addressurl + '&action=shopp_lookup_addresses&id=' + encodeURIComponent(item.id),
+			            type: 'GET',
+			            success: function(r) {
+							var fields = ['id','firstname', 'lastname', 'address','xaddress','city','state','postcode','country'],
+								types = ['billing','shipping'];
+
+							editaddress('billing');
+							editaddress('shipping');
+
+							$.each(fields, function (i, field) {
+								$.each(types, function (t, type) {
+									if ( undefined != r[type][field] && $('#' + type + '-' + field).length > 0 )
+										$('#' + type + '-' + field).val(r[type][field]);
 						});
+							});
+
+							saveCustomerAddresses();
+
 					}
+			        });
+				},
+				setCustomer = function (item) {
+					var fields = ['id','firstname','lastname','company','email','phone'];
+
+					if ( undefined == item.id ) addNewCustomer(item, fields);
+					else updateCustomer(item, fields);
+
+
 				},
 				search = ui.find('#select-customer').selectize({
 						valueField:  'email',

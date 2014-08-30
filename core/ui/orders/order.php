@@ -1,7 +1,11 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php printf(__('Order #%d','Shopp'),(int)$Purchase->id); ?></h2>
+	<?php if ( ShoppPurchase()->id > 0 ): ?>
+		<h2><?php Shopp::_e('Order #%d', (int)$Purchase->id); ?> <a href="<?php echo esc_url(add_query_arg(array('page'=> $this->page(), 'id' => 'new'), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
+	<?php else: ?>
+		<h2><?php Shopp::_e('New Order'); ?></h2>
+	<?php endif; ?>
 
 	<?php $this->notices(); ?>
 
@@ -127,7 +131,7 @@
 					<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
 				</thead>
 
-				<tfoot id="order-totals">
+				<tfoot id="order-totals"<?php if ( 'new' == $_GET['id'] ) echo ' class="order-editing"'; ?>>
 				<tr class="subtotal">
 					<td scope="col" class="add"><select class="add-product" name="product" placeholder="<?php Shopp::_e('Search to add a product&hellip;'); ?>"></select></td>
 					<td scope="row" colspan="<?php echo $colspan - 1; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
@@ -197,8 +201,8 @@
 
 				</tfoot>
 
+				<tbody id="order-items" class="list items">
 				<?php if ( count($Purchase->purchased) > 0 ): ?>
-					<tbody id="order-items" class="list items">
 					<?php
 					$columns = get_column_headers($this->screen);
 					$hidden = get_hidden_columns($this->screen);
@@ -320,6 +324,7 @@
 					?>
 					<?php endforeach; ?>
 				<?php endif; ?>
+				</tbody>
 			</table>
 			</form>
 
@@ -351,17 +356,14 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var carriers = <?php echo json_encode($carriers_json); ?>,
-	noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>',
-	producturl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_select_product'); ?>';
+var carriers   = <?php echo json_encode($carriers_json); ?>,
+	noteurl    = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>',
+	producturl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_select_product'); ?>',
+	addressurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_lookup_addresses'); ?>';
+
 jQuery(document).ready(function($) {
 
-
-	$('#customer').click(function () {
-		window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";
-	});
-
-<?php do_action_ref_array('shopp_order_admin_script',array(&$Purchase)); ?>
+<?php do_action('shopp_order_admin_script', $Purchase); ?>
 
 });
 /* ]]> */

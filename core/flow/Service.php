@@ -502,14 +502,20 @@ class ShoppAdminService extends ShoppAdminController {
 			$Purchase->load_events();
 		}
 
-		if (isset($_POST['order-action']) && 'update-address' == $_POST['order-action']) {
+		if ( isset($_POST['billing']) && is_array($_POST['billing']) ) {
 
-			if ( 'shipping' == $_POST['address']['type'] ) {
-				$shipping = array();
-				foreach($_POST['address'] as $name => $value) $shipping[ "ship$name" ] = $value;
-				$Purchase->updates($shipping);
-				$Purchase->shipname = $shipping['shipfirstname'].' '.$shipping['shiplastname'];
-			} else $Purchase->updates($_POST['address']);
+			$Purchase->updates($_POST['billing']);
+			$Purchase->save();
+
+		}
+
+		if ( isset($_POST['shipping']) && is_array($_POST['billing']) ) {
+
+			$shipping = array();
+			foreach( $_POST['shipping'] as $name => $value )
+				$shipping[ "ship$name" ] = $value;
+			$Purchase->updates($shipping);
+			$Purchase->shipname = $shipping['shipfirstname'] . ' ' . $shipping['shiplastname'];
 
 			$Purchase->save();
 		}
@@ -523,6 +529,7 @@ class ShoppAdminService extends ShoppAdminController {
 			unset($_POST['order-action'],$_POST['edit-customer'],$_POST['select-customer']);
 		}
 
+		// Create a new customer
 		if ( isset($_POST['order-action']) && 'new-customer' == $_POST['order-action'] && ! empty($_POST['customer']) && ! isset($_POST['cancel-edit-customer'])) {
 			$Customer = new ShoppCustomer();
 			$Customer->updates($_POST['customer']);
@@ -534,6 +541,21 @@ class ShoppAdminService extends ShoppAdminController {
 				$Purchase->customer = $Customer->id;
 				$Purchase->copydata($Customer);
 				$Purchase->save();
+
+				// New billing address, create record for new customer
+				if ( isset($_POST['billing']) && is_array($_POST['billing']) && empty($_POST['billing']['id']) ) {
+					$Billing = new BillingAddress($_POST['billing']);
+					$Billing->customer = $Customer->id;
+					$Billing->save();
+				}
+
+				// New shipping address, create record for new customer
+				if ( isset($_POST['shipping']) && is_array($_POST['shipping']) && empty($_POST['shipping']['id']) ) {
+					$Shipping = new ShippingAddress($_POST['shipping']);
+					$Shipping->customer = $Customer->id;
+					$Shipping->save();
+				}
+
 			} else $this->notice(Shopp::__('An unknown error occured. The customer could not be created.'), 'error');
 		}
 
@@ -621,7 +643,6 @@ class ShoppAdminService extends ShoppAdminController {
 		}
 
 		if ( ! empty($_POST['save-totals']) ) {
-
 
 			$map = array(
 				'fees' => 'fee',
