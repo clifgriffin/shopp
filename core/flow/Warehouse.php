@@ -890,11 +890,9 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		// Ensure taxonomy counts are updated on status changes, see #2968
 		if ( $status != $_POST['status'] ) {
-			var_dump(__METHOD__ . ': ' . __LINE__);
 			$Post = new StdClass;
 			$Post->ID = $Product->id;
 			$Post->post_type = ShoppProduct::$posttype;
-			var_dump($Post);
 			wp_transition_post_status($_POST['status'], $Product->status, $Post);
 		}
 
