@@ -29,38 +29,49 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param string $order (optional default:DESC) DESC or ASC, for sorting in ascending or descending order.
  * @return array of Purchase objects
  **/
-function shopp_orders ( $from = false, $to = false, $items = true, $customers = array(), $limit = false, $order = 'DESC' ) {
+function shopp_orders ( $from = false, $to = false, $items = true, array $customers = array(), $limit = false, $order = 'DESC', $orderby = 'id', $paidonly = false, $downloads = false ) {
 	$pt = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 	$pd = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
 
 	$where = array();
-	if ( $from ) {
-		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $from) )
-			$where[] = "'$from' < created";
-		else if ( is_int($from) )
-			$where[] = "FROM_UNIXTIME($from) < created";
-	}
+	$dateregex = '/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/';
+	foreach ( array($from, $to) as $datetime ) {
+		if ( ! $datetime ) continue;
 
-	if ( $to ) {
-		if ( 1 == preg_match('/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/', $to) )
-			$where[] = "'$to' >= created";
-		else if ( is_int($from) )
-			$where[] = "FROM_UNIXTIME($to) >= created";
+		if ( 1 == preg_match($dateregex, $datetime) )
+			$where[] = "'$datetime' < p.created";
+		else if ( is_int($datetime) )
+			$where[] = "FROM_UNIXTIME($datetime) < p.created";
+
 	}
 
 	if ( ! empty($customers) ) {
-		$set = db::escape(implode(',',$customers));
-		$where[] = "0 < FIND_IN_SET(customer,'".$set."')";
+		$set = sDB::escape(implode(',', $customers));
+		$where[] = "0 < FIND_IN_SET(p.customer,'" . $set . "')";
 	}
 
-	$where = empty($where)?'':'WHERE '.implode(' AND ', $where);
+	if ( $paidonly )
+		$where[] = "p.txnstatus='captured'";
+
+	if ( $items && $downloads )
+		$where[] = " pd.download > 0";
+
+	$where = empty($where) ? '' : 'WHERE ' . implode(' AND ', $where);
 
 	if ( (int)$limit > 0 ) $limit = " LIMIT $limit";
 	else $limit = '';
 
-	$query = "SELECT * FROM $pt $where ORDER BY id ".('DESC' == $order ? "DESC" : "ASC").$limit;
-	$orders = sDB::query($query, 'array', '_shopp_order_purchase');
-	if ( $items ) $orders = sDB::query("SELECT * FROM $pd AS pd WHERE 0 < FIND_IN_SET(pd.purchase,'".implode(",", array_keys($orders))."')", 'array', '_shopp_order_purchased', $orders);
+	if ( ! in_array(strtolower($orderby), array('id', 'created', 'modified')) )
+		$orderby = 'id';
+
+	if ( $items ) {
+		$query = "SELECT pd.* FROM $pd AS pd INNER JOIN $pt AS p ON pd.purchase = p.id $where ORDER BY p.$orderby " . ( 'DESC' == $order ? 'DESC' : 'ASC' ) . $limit;
+		$purchased = sDB::query($query, 'array', '_shopp_order_purchased');
+		$orders = sDB::query("SELECT * FROM $pt WHERE FIND_IN_SET(id,'" . join(',', array_keys($purchased)) . "')", 'array', '_shopp_order_purchase', $purchased);
+	} else {
+		$query = "SELECT * FROM $pt AS p $where ORDER BY $orderby " . ( 'DESC' == $order ? 'DESC' : 'ASC' ) . $limit;
+		$orders = sDB::query($query, 'array', '_shopp_order_purchase');
+	}
 
 	return $orders;
 }
@@ -72,9 +83,17 @@ function shopp_orders ( $from = false, $to = false, $items = true, $customers = 
  * @since 1.2
  *
  **/
-function _shopp_order_purchase ( &$records, &$record ) {
-	$records[$record->id] = new ShoppPurchase();
-	$records[$record->id]->populate($record);
+function _shopp_order_purchase ( &$records, &$record, $purchased ) {
+
+	$records[ $record->id ] = new ShoppPurchase();
+	$records[ $record->id ]->populate($record);
+
+	// Load purchased if provided
+	if ( ! empty($purchased) && isset($purchased[ $record->id ]) ) {
+		$records[ $record->id ]->purchased = $purchased[ $record->id ];
+	}
+
+
 }
 
 /**
@@ -84,21 +103,21 @@ function _shopp_order_purchase ( &$records, &$record ) {
  * @since 1.2
  *
  **/
-function _shopp_order_purchased ( &$records, &$purchased, $orders ) {
-	if ( isset($orders[$purchased->purchase]) ) {
-		if ( ! isset($records[$purchased->purchase]) ) $records[$purchased->purchase] = $orders[$purchased->purchase];
+function _shopp_order_purchased ( &$records, &$record ) {
 
-		if ( ! isset($records[$purchased->purchase]->purchased) ) {
-			$records[$purchased->purchase]->purchased = array();
-		}
+	$id = $record->id;
+	$order = $record->purchase;
 
-		$records[$purchased->purchase]->purchased[$purchased->id] = new ShoppPurchased();
-		$records[$purchased->purchase]->purchased[$purchased->id]->populate($purchased);
-		if ( "yes" == $purchased->addons ) {
-			$records[$purchased->purchase]->purchased[$purchased->id]->addons = new ObjectMeta($purchased->id, 'purchased', 'addon');
-		}
-	}
+	if ( ! isset($records[ $order ]) )
+		$records[ $order ] = array();
 
+	$Purchased = new ShoppPurchased();
+	$Purchased->populate($record);
+
+	$records[ $order ][ $id ] = $Purchased;
+
+	if ( "yes" == $record->addons )
+		$records[ $order ][ $id ]->addons = new ObjectMeta($id, 'purchased', 'addon');
 }
 
 /**
