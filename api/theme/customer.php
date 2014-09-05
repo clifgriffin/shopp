@@ -271,7 +271,15 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	}
 
 	public static function has_downloads ( $result, $options, $O ) {
-		return $O->has_downloads();
+		$defaults = array(
+			'show' => false,
+			'from' => false,
+			'to' => false,
+			'orderby' => 'created',
+			'order' => 'DESC'
+		);
+		$options = array_merge($defaults, $options);
+		return $O->has_downloads($options);
 	}
 
 	public static function has_info ( $result, $options, $O ) {
