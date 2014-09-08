@@ -23,7 +23,6 @@ abstract class SessionObject {
 	public $stash = 0;
 	public $created;
 	public $modified;
-	public $path = '';
 
 	public $secure = false;
 
@@ -39,6 +38,7 @@ abstract class SessionObject {
 	 * @return void
 	 **/
 	public function __construct () {
+
 		if ( ! defined('SHOPP_SECURE_KEY') )
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 
@@ -80,9 +80,6 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	public function open ( $path, $name ) {
-		$this->path = $path;
-		if ( defined('SHOPP_TEMP_PATH') ) $this->path = sanitize_path(realpath(SHOPP_TEMP_PATH));
-        if ( ! is_dir($this->path) ) mkdir($this->path, 0777);
 
 		if ( empty($this->session) ) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
@@ -91,6 +88,7 @@ abstract class SessionObject {
 
 		if ( ! isset($_COOKIE[ SHOPP_SECURE_KEY ]) ) $this->securekey();
 		return true;
+		
 	}
 
 	/**
