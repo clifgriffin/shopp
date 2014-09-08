@@ -65,9 +65,9 @@ function shopp_orders ( $from = false, $to = false, $items = true, array $custom
 		$orderby = 'id';
 
 	if ( $items ) {
-		$query = "SELECT pd.* FROM $pd AS pd INNER JOIN $pt AS p ON pd.purchase = p.id $where ORDER BY p.$orderby " . ( 'DESC' == $order ? 'DESC' : 'ASC' ) . $limit;
+		$query = "SELECT pd.* FROM $pd AS pd INNER JOIN $pt AS p ON pd.purchase = p.id $where " . $limit;
 		$purchased = sDB::query($query, 'array', '_shopp_order_purchased');
-		$orders = sDB::query("SELECT * FROM $pt WHERE FIND_IN_SET(id,'" . join(',', array_keys($purchased)) . "')", 'array', '_shopp_order_purchase', $purchased);
+		$orders = sDB::query("SELECT * FROM $pt WHERE FIND_IN_SET(id,'" . join(',', array_keys($purchased)) . "') ORDER BY $orderby " . ( 'DESC' == $order ? 'DESC' : 'ASC' ), 'array', '_shopp_order_purchase', $purchased);
 	} else {
 		$query = "SELECT * FROM $pt AS p $where ORDER BY $orderby " . ( 'DESC' == $order ? 'DESC' : 'ASC' ) . $limit;
 		$orders = sDB::query($query, 'array', '_shopp_order_purchase');
