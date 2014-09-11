@@ -103,7 +103,7 @@
 	</script>
 
 	<div id="order">
-		<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="order-updates">
+		<form action="<?php echo ShoppAdminController::url( array('id' => ( $Purchase->id > 0 ? $Purchase->id : 'new' )) ); ?>" method="post" id="order-updates">
 			<div class="title">
 				<div id="titlewrap">
 					<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
