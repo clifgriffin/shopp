@@ -14,6 +14,8 @@ jQuery(document).ready( function($) {
 	$.template('total-editor', $('#total-editor-ui'));
 	$.template('item-editor', $('#item-editor-ui'));
 
+	$('a.shopp-zoom').colorbox({photo:true});
+
 	var manager = $('#order-manage'),
 		managerui = manager.find('div.manager-ui'),
 

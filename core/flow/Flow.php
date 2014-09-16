@@ -539,6 +539,56 @@ abstract class ShoppAdminController extends ShoppFlowController {
 
 }
 
+abstract class ShoppAdminMetabox {
+
+	protected $references = array();
+
+	/** @var string $view The relative path to the metabox view file **/
+	protected $id = '';
+	protected $view = '';
+	protected $title = '';
+
+
+	public function __construct ( $posttype, $context, $priority, array $args = array() ) {
+
+		$this->references = $args;
+
+		$this->init();
+
+		$this->request($_POST);
+
+		$Admin = ShoppAdmin();
+		add_meta_box($this->id, $this->title() . $Admin->boxhelp($id), array($this, 'box'), $posttype, $context, $priority, $args);
+
+	}
+
+	public function box () {
+		extract($this->references);
+		do_action('shopp_metabox_before_' . $this->id);
+		include $this->ui();
+		do_action('shopp_metabox_after_' . $this->id);
+	}
+
+	protected function title () {
+		return 'Untitled';
+	}
+
+	protected function init () {
+		/** Implemented in concrete classes **/
+	}
+
+	protected function request ( array &$post = array() ) {
+		/** Implemented in concrete classes **/
+	}
+
+	private function ui () {
+		$path = join('/', array(SHOPP_ADMIN_PATH, $this->view));
+		if ( is_readable($path) )
+			return $path;
+	}
+
+}
+
 /**
  * Helper to access the Shopp Storefront contoller
  *

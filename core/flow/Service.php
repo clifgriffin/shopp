@@ -80,8 +80,9 @@ class ShoppAdminService extends ShoppAdminController {
 	}
 
 	public function workflow () {
-		if (preg_match("/\d+/", $_GET['id'])) {
-			ShoppPurchase( new ShoppPurchase($_GET['id']) );
+		$id = (int) $_GET['id'];
+		if ( $id > 0 ) {
+			ShoppPurchase( new ShoppPurchase($id) );
 			ShoppPurchase()->load_purchased();
 			ShoppPurchase()->load_events();
 		} else ShoppPurchase( new ShoppPurchase() );
@@ -240,8 +241,6 @@ class ShoppAdminService extends ShoppAdminController {
 		if ( ! current_user_can('shopp_orders') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		global $Shopp,$Orders;
-
 		$defaults = array(
 			'page' => false,
 			'update' => false,
@@ -304,6 +303,7 @@ class ShoppAdminService extends ShoppAdminController {
 		$selected = shopp_setting('purchaselog_columns');
 		if ( empty($selected) ) $selected = array_keys($exportcolumns);
 
+		$Shopp = Shopp::object();
 		$Gateways = array_merge($Shopp->Gateways->modules, array('ShoppFreeOrder' => $Shopp->Gateways->freeorder));
 
 		include $this->ui('orders.php');
@@ -343,16 +343,68 @@ class ShoppAdminService extends ShoppAdminController {
 	 * @return
 	 **/
 	public function layout () {
-		$Shopp = Shopp::object();
-		$Admin =& $Shopp->Flow->Admin;
+
+		$Purchase = ShoppPurchase();
+
 		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
 			'items' => __('Items','Shopp'),
 			'qty' => __('Quantity','Shopp'),
 			'price' => __('Price','Shopp'),
 			'total' => __('Total','Shopp')
 		)));
-		include $this->ui('events.php');
-		include $this->ui('ui.php');
+
+		new ShoppAdminOrderContactBox(
+			$this->screen,
+			'side',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		new ShoppAdminOrderBillingAddressBox(
+			$this->screen,
+			'side',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		if ( ! empty($Purchase->shipaddress) || 'new' == $_GET['id'] )
+			new ShoppAdminOrderShippingAddressBox(
+				$this->screen,
+				'side',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderManageBox(
+			$this->screen,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase, 'Gateway' => $Purchase->gateway())
+		);
+
+		if ( isset($Purchase->data) && '' != join('', (array)$Purchase->data) || apply_filters('shopp_orderui_show_orderdata', false) )
+			new ShoppAdminOrderDataBox(
+				$this->screen,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		if ( count($Purchase->events) > 0 )
+			new ShoppAdminOrderHistoryBox(
+				$this->screen,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderNotesBox(
+			$this->screen,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
 		do_action('shopp_order_manager_layout');
 	}
 
@@ -363,8 +415,6 @@ class ShoppAdminService extends ShoppAdminController {
 	 * @return void
 	 **/
 	public function manager () {
-		global $Shopp,$Notes;
-		global $is_IIS;
 
 		if ( ! current_user_can('shopp_orders') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
@@ -382,24 +432,6 @@ class ShoppAdminService extends ShoppAdminController {
 
 			$Purchase->load_events();
 		}
-
-		// Handle Order note processing
-		if (!empty($_POST['note']))
-			$this->addnote($Purchase->id, stripslashes($_POST['note']), !empty($_POST['send-note']));
-
-		if (!empty($_POST['delete-note'])) {
-			$noteid = key($_POST['delete-note']);
-			$Note = new ShoppMetaObject(array('id' => $noteid,'type'=>'order_note'));
-			$Note->delete();
-		}
-
-		if (!empty($_POST['edit-note'])) {
-			$noteid = key($_POST['note-editor']);
-			$Note = new ShoppMetaObject(array('id' => $noteid, 'type' => 'order_note'));
-			$Note->value->message = stripslashes($_POST['note-editor'][$noteid]);
-			$Note->save();
-		}
-		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
 
 		if (isset($_POST['submit-shipments']) && isset($_POST['shipment']) && !empty($_POST['shipment'])) {
 			$shipments = $_POST['shipment'];
@@ -835,3 +867,179 @@ class ShoppAdminService extends ShoppAdminController {
 	}
 
 } // class Service
+
+class ShoppAdminOrderNotesBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-notes';
+	protected $view = 'orders/notes.php';
+
+	protected function title () {
+		return Shopp::__('Notes');
+	}
+
+	protected function init () {
+
+		add_filter('shopp_order_note', 'esc_html');
+		add_filter('shopp_order_note', 'wptexturize');
+		add_filter('shopp_order_note', 'convert_chars');
+		add_filter('shopp_order_note', 'make_clickable');
+		add_filter('shopp_order_note', 'force_balance_tags');
+		add_filter('shopp_order_note', 'convert_smilies');
+		add_filter('shopp_order_note', 'wpautop');
+
+	}
+
+	protected function request ( array &$post = array() ) {
+		extract($this->references);
+
+		$sent = false;
+
+		if ( ! empty($post['send-note']) ){
+			$user = wp_get_current_user();
+			$sent = shopp_add_order_event($Purchase->id, 'note', array(
+				'note' => $post['note'],
+				'user' => $user->ID
+			));
+
+			$Purchase->load_events();
+		}
+
+		// Handle Order note processing
+		if ( ! empty($post['note']) )
+			$this->add($Purchase->id, stripslashes($post['note']), $sent);
+
+		if ( ! empty($post['delete-note']) )
+			$this->delete(key($post['delete-note']));
+
+
+		if ( ! empty($post['edit-note']) ) {
+			$id = key($post['note-editor']);
+			if ( ! empty($post['note-editor'][ $id ]) )
+				$this->edit($id, stripslashes($post['note-editor'][ $id ]));
+		}
+
+		$this->references['Notes'] = new ObjectMeta($Purchase->id, 'purchase', 'order_note');
+	}
+
+	private function add ( $order, $message, $sent = false ) {
+		$user = wp_get_current_user();
+		$Note = new ShoppMetaObject();
+		$Note->parent = $order;
+		$Note->context = 'purchase';
+		$Note->type = 'order_note';
+		$Note->name = 'note';
+		$Note->value = new stdClass();
+		$Note->value->author = $user->ID;
+		$Note->value->message = stripslashes($message);
+		$Note->value->sent = $sent;
+		$Note->save();
+	}
+
+	private function delete ( $id ) {
+		$Note = new ShoppMetaObject(array('id' => $id, 'type' => 'order_note'));
+		if ( $Note->exists() )
+			$Note->delete();
+
+	}
+
+	private function edit ( $id, $message ) {
+		$Note = new ShoppMetaObject(array('id' => $id, 'type' => 'order_note'));
+		if ( ! $Note->exists() ) return false;
+		$Note->value->message = $message;
+		$Note->save();
+		return true;
+	}
+
+} // end class ShoppAdminOrderNotesBox
+
+
+class ShoppAdminOrderHistoryBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-history';
+	protected $view = 'orders/history.php';
+
+	protected function title () {
+		return Shopp::__('Order History');
+	}
+
+}
+
+class ShoppAdminOrderDataBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-data';
+	protected $view = 'orders/data.php';
+
+	protected function title () {
+		return Shopp::__('Details');
+	}
+
+	public static function name ( $name ) {
+		echo esc_html($name);
+	}
+
+	public static function data ( $name, $data ) {
+
+		if ( $type = Shopp::is_image($data) ) {
+			$src = "data:$type;base64," . base64_encode($data);
+			$result = '<a href="' . $src . '" class="shopp-zoom"><img src="' . $src . '" /></a>';
+		} elseif ( is_string($data) && false !== strpos(data, "\n") ) {
+			$result = '<textarea name="orderdata[' . esc_attr($name) . ']" readonly="readonly" cols="30" rows="4">' . esc_html($data) . '</textarea>';
+		} else {
+			$result = esc_html($data);
+		}
+
+		echo $result;
+
+	}
+
+}
+
+class ShoppAdminOrderContactBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-contact';
+	protected $view = 'orders/contact.php';
+
+	protected function title () {
+		return Shopp::__('Customer');
+	}
+
+}
+
+class ShoppAdminOrderShippingAddressBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-shipping';
+	protected $view = 'orders/shipping.php';
+
+	protected function title () {
+		return Shopp::__('Shipping Address');
+	}
+
+}
+
+class ShoppAdminOrderBillingAddressBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-billing';
+	protected $view = 'orders/billing.php';
+
+	protected function title () {
+		return Shopp::__('Billing Address');
+	}
+
+	public static function editor () {
+		ob_start();
+		include SHOPP_ADMIN_PATH . '/orders/address.php';
+		return ob_get_clean();
+	}
+
+}
+
+class ShoppAdminOrderManageBox extends ShoppAdminMetabox {
+
+	protected $id = 'order-manage';
+	protected $view = 'orders/manage.php';
+
+	protected function title () {
+		return Shopp::__('Management');
+	}
+
+}

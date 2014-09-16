@@ -1083,6 +1083,7 @@ class ShoppUI {
 		call_user_func($callback, $object, $args);
 		do_action('shopp_metabox_after_' . $id);
 	}
+
 } // END class ShoppUI
 
 

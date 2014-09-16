@@ -1130,6 +1130,23 @@ abstract class ShoppCore {
 	}
 
 	/**
+	 * Detects image data in a binary string
+	 *
+	 * @since 1.4
+	 *
+	 * @return string|bool Image mime type if detected, false otherwise
+	 **/
+	public static function is_image ( $string ) {
+
+		$types = array('image/jpeg' => "\xFF\xD8\xFF", 'image/gif' => 'GIF', 'image/png' => "\x89\x50\x4e\x47\x0d\x0a", 'image/bmp' => 'BM', 'image/psd' => '8BPS', 'image/swf' => 'FWS');
+		foreach ( $types as $mimetype => $header )
+			if ( false !== strpos($string, $header) ) return $mimetype;
+
+		return false;
+
+	}
+
+	/**
 	 * Encodes an all parts of a URL
 	 *
 	 * @author Jonathan Davis

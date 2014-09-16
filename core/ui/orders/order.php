@@ -334,19 +334,19 @@
 			<div class="meta-boxes">
 
 				<div id="column-one" class="column left-column">
-					<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
+					<?php do_meta_boxes($this->screen, 'side', $Purchase); ?>
 				</div>
 				<div id="main-column">
 					<div id="column-two" class="column right-column">
-						<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
+						<?php do_meta_boxes($this->screen, 'normal', $Purchase); ?>
 					</div>
 				</div>
 				<br class="clear" />
 			</div>
 
 			<?php wp_nonce_field('shopp-save-order'); ?>
-			<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
-			<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
+			<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false); ?>
+			<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false); ?>
 			</div>
 	</div> <!-- #order -->
 

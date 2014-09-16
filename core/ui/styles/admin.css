@@ -642,6 +642,9 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .update-customer .loginname { display: none; }
 #customer-select-search { height: 300px; }
 
+#order-data textarea { width: 100%; height: auto; }
+#order-data img { max-width: 100%; height: auto; }
+
 /** Order Admin Editing **/
 #order .edit,
 #order .add { overflow: visible; }

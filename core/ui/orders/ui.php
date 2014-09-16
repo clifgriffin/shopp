@@ -363,7 +363,7 @@ function billto_meta_box ($Purchase) {
 	</div>
 <?php
 }
-ShoppUI::addmetabox('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+// ShoppUI::addmetabox('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function shipping_meta_box ( $Purchase ) { ?>
 
@@ -429,8 +429,8 @@ function shipto_meta_box ( $Purchase ) { ?>
 	</div>
 <?php
 }
-if ( ! empty(ShoppPurchase()->shipaddress) || 'new' == $_GET['id'] )
-	ShoppUI::addmetabox('order-shipping', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+// if ( ! empty(ShoppPurchase()->shipaddress) || 'new' == $_GET['id'] )
+// 	ShoppUI::addmetabox('order-shipping', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function contact_meta_box ($Purchase) {
 	$screen = get_current_screen();
@@ -582,7 +582,7 @@ function contact_meta_box ($Purchase) {
 	</div>
 	<?php
 }
-ShoppUI::addmetabox('order-contact', __('Customer','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+// ShoppUI::addmetabox('order-contact', __('Customer','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
 	$_[] = '<table>';
@@ -598,10 +598,10 @@ function orderdata_meta_box ($Purchase) {
 	$_[] = '</table>';
 	echo apply_filters('shopp_orderui_orderdata',join("\n",$_));
 }
-if (!empty(ShoppPurchase()->data) && is_array(ShoppPurchase()->data) && join("",ShoppPurchase()->data) != ""
-		|| apply_filters('shopp_orderui_show_orderdata',false)) {
-			ShoppUI::addmetabox('order-data', __('Details','Shopp').$Admin->boxhelp('order-manager-details'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-		}
+// if (!empty(ShoppPurchase()->data) && is_array(ShoppPurchase()->data) && join("",ShoppPurchase()->data) != ""
+// 		|| apply_filters('shopp_orderui_show_orderdata',false)) {
+// 			ShoppUI::addmetabox('order-data', __('Details','Shopp').$Admin->boxhelp('order-manager-details'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+// 		}
 
 function history_meta_box ($Purchase) {
 	echo '<table class="widefat history">';
@@ -614,8 +614,8 @@ function history_meta_box ($Purchase) {
 	echo '</tbody>';
 	echo '</table>';
 }
-if (count(ShoppPurchase()->events) > 0)
-	ShoppUI::addmetabox('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+// if (count(ShoppPurchase()->events) > 0)
+// 	ShoppUI::addmetabox('order-history', __('Order History','Shopp').$Admin->boxhelp('order-manager-history'), 'history_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function notes_meta_box ($Purchase) {
 	global $Notes;
@@ -677,4 +677,4 @@ function notes_meta_box ($Purchase) {
 </form>
 <?php
 }
-ShoppUI::addmetabox('order-notes', __('Notes','Shopp').$Admin->boxhelp('order-manager-notes'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+//ShoppUI::addmetabox('order-notes', __('Notes','Shopp').$Admin->boxhelp('order-manager-notes'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
