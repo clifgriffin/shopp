@@ -520,6 +520,7 @@ ShoppLoader::map(array(
 	'shoppadminservice' => '/flow/Service.php',
 	'shoppadminsetup' => '/flow/Setup.php',
 	'shoppadminsystem' => '/flow/System.php',
+	'shoppadminupgrade' => '/flow/Upgrade.php',
 	'shoppadminwarehouse' => '/flow/Warehouse.php',
 	'shoppadminwelcome' => '/flow/Welcome.php',
 	'shoppajax' => '/flow/Ajax.php',
