@@ -43,8 +43,8 @@ class Shopping extends ShoppSessionFramework {
 		// Initialize the session handlers
 		parent::__construct();
 
-		add_action('shopp_cart_updated', array($this, 'savecart'));
 		add_action('shopp_init', array($this, 'unlock'), 100);
+		add_action('shopp_cart_updated', array($this, 'savecart'));
 	}
 
 	/**
@@ -344,7 +344,6 @@ class Shopping extends ShoppSessionFramework {
  * @deprecated Use Shopping::restart() and Shopping::restore() instead
  **/
 final class ShoppingObject {
-
 
 	/**
 	 * Do not use. Deprecated.

@@ -134,10 +134,11 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if session data was loaded successfully, false otherwise
 	 */
 	protected function load ( $session = false ) {
-		if ( is_robot() || empty($this->session) || empty($session) ) return false;
 
 		if ( empty($session) )
 			$session = $this->session;
+
+		if ( is_robot() || empty($session) ) return false;
 
 		do_action('shopp_session_load');
 
@@ -215,7 +216,7 @@ abstract class ShoppSessionFramework {
 	public function save () {
 
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
-		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
+		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] ) return false;
 
 		if ( false === $this->data )
 			return false; // Encryption failed because of no SSL, do not save
