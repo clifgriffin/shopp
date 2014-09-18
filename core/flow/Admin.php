@@ -542,7 +542,9 @@ class ShoppAdmin extends ShoppFlowController {
 	 **/
 	public function reactivate () {
 		$Shopp = Shopp::object();
-		include( SHOPP_ADMIN_PATH . '/help/reactivate.php');
+		$uri = SHOPP_ADMIN_URI . '/styles';
+		wp_enqueue_style('shopp.welcome', "$uri/welcome.css", array(), ShoppVersion::cache(), 'screen');
+		include( SHOPP_ADMIN_PATH . '/help/upgrade.php');
 	}
 
 	/**

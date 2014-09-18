@@ -137,7 +137,26 @@ class ShoppInstallation extends ShoppFlowController {
 
 		sDB::loaddata($schema);
 		unset($schema);
+	}
 
+	public function upgrade () {
+
+		// Process any DB upgrades (if needed)
+		$this->upgrades();
+
+		do_action('shopp_setup');
+
+		if ( ShoppSettings()->available() && shopp_setting('db_version') )
+			shopp_set_setting('maintenance', 'off');
+
+		if ( shopp_setting_enabled('show_welcome') )
+			shopp_set_setting('display_welcome', 'on');
+
+		shopp_set_setting('updates', false);
+
+		flush_rewrite_rules();
+
+		return true;
 	}
 
 	/**
@@ -1040,12 +1059,12 @@ class ShoppInstallation extends ShoppFlowController {
  		   	ShoppShopping()->reset();
 			$sessions_table = ShoppDatabaseObject::tablename('shopping');
 			sDB::query("DELETE FROM $sessions_table");
-	
+
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
 			sDB::query("DELETE FROM $meta_table WHERE type='image' AND value LIKE '%O:10:\"ShoppError\"%'"); // clean up garbage from legacy bug
 			sDB::query("DELETE FROM $meta_table WHERE CONCAT('', name *1) = name AND context = 'category' AND type = 'meta'"); // clean up bad category meta
-	
+
 			// Update purchase gateway values to match new prefixed class names
 			$gateways = array(
 				'PayPalStandard' => 'ShoppPayPalStandard',
@@ -1053,11 +1072,11 @@ class ShoppInstallation extends ShoppFlowController {
 				'OfflinePayment' => 'ShoppOfflinePayment',
 				'TestMode' => 'ShoppTestMode',
 				'FreeOrder' => 'ShoppFreeOrder'
-	
+
 			);
 			foreach ($gateways as $name => $classname)
 				sDB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
-	
+
 			$activegateways = explode(',', shopp_setting('active_gateways'));
 			foreach ($activegateways as &$setting)
 				$setting = str_replace(array_keys($gateways),$gateways,$setting);
