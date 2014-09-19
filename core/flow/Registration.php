@@ -155,6 +155,7 @@ class ShoppRegistration extends FormPostFramework {
 	public static function process () {
 
 		if ( true !== apply_filters('shopp_validate_registration', true) ) return;
+		else $this->customer(); // Catch changes from validation
 
 		$Customer = ShoppOrder()->Customer;
 
