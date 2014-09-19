@@ -79,7 +79,7 @@ abstract class ShoppSessionFramework {
 	 * @param bool $resession Generate a new session id
 	 * @return string The generated or current session id
 	 */
-	protected function session ( $resession = false ) {
+	public function session ( $resession = false ) {
 
 		if ( $resession || empty($this->session) ) {
 
@@ -150,6 +150,7 @@ abstract class ShoppSessionFramework {
 		$this->decrypt($loaded->data);
 		if ( empty($loaded->data) ) return false;
 
+		$this->session = $loaded->session;
 		$this->ip = $loaded->ip;
 		$this->data = unserialize($loaded->data);
 		$this->stash = $loaded->stash;
