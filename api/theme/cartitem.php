@@ -23,6 +23,10 @@ add_filter('shopp_cartitem_input_data', 'wpautop');
  *
  **/
 class ShoppCartItemThemeAPI implements ShoppAPI {
+	/**
+	 * @var array $register The registry of available `shopp('cart')` properties
+	 * @internal
+	 **/
 	static $register = array(
 		'_cartitem',
 		'id' => 'id',
@@ -62,6 +66,12 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		'saleprices' => 'saleprices',
 	);
 
+	/**
+	 * Provides the API context name
+	 *
+	 * @internal
+	 * @return string The API context name
+	 */
 	public static function _apicontext () {
 		return 'cartitem';
 	}
@@ -69,14 +79,15 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	/**
 	 * _setobject - returns the global context object used in the shopp('cartitem) call
 	 *
-	 * @author John Dillick
+	 * @internal
 	 * @since 1.2
 	 *
+	 * @return ShoppCartItem|bool The working ShoppCartItem context
 	 **/
 	public static function _setobject ( $Object, $object ) {
 		if ( is_object($Object) && is_a($Object, 'Item') ) return $Object;
 
-		if (strtolower($object) != 'cartitem') return $Object; // not mine, do nothing
+		if ( strtolower($object) != 'cartitem' ) return $Object; // not mine, do nothing
 		else {
 			$Cart = ShoppOrder()->Cart;
 			$Item = false;
@@ -87,6 +98,20 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		}
 	}
 
+	/**
+	 * Filter callback to add standard monetary option behaviors
+	 *
+	 * @internal
+	 * @since 1.2
+	 *
+	 * @param string    $result    The output
+	 * @param array     $options   The options
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * @param string    $property  The tag property name
+	 * @param ShoppCart $O         The working object
+	 * @return ShoppCart The active ShoppCart context
+	 **/
 	public static function _cartitem ( $result, $options, $property, $O ) {
 
 		// Passthru for non-monetary results
@@ -114,36 +139,131 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 
 	}
 
+	/**
+	 * Provides the cart item ID (fingerprint)
+	 *
+	 * @api `shopp('cart.id')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return string The item id (fingerprint)
+	 */
 	public static function id ( $result, $options, $O ) {
 		return $O->_id;
 	}
 
+	/**
+	 * Provides the product ID (or price record ID)
+	 *
+	 * @api
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **priceline**: Requests the currently selected price record ID for the cart item
+	 * @param ShoppCartItem $O       The working object
+	 * @return int The id for the product
+	 */
 	public static function product ( $result, $options, $O ) {
 		if ( isset($options['priceline']) && Shopp::str_true($options['priceline']) )
 			return $O->priceline;
 		return $O->product;
 	}
 
+	/**
+	 * Provides the product name of the cart item
+	 *
+	 * @api `shopp('cart.name')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function name ( $result, $options, $O ) {
 		return $O->name;
 	}
 
+	/**
+	 * The type of product for the cart item
+	 *
+	 * This is currently one of: shipped, download, virtual, donation, or recurring
+	 *
+	 * @api `shopp('cart.type')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return string The product type for the cart item
+	 */
 	public static function type ( $result, $options, $O ) {
 		return $O->type;
 	}
 
+	/**
+	 * The URL of the product for the cart item
+	 *
+	 * @api `shopp('cart.url')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return string The product URL
+	 */
 	public static function url ( $result, $options, $O ) {
 		return Shopp::url( '' == get_option('permalink_structure') ? array(ShoppProduct::$posttype => $O->slug ) : $O->slug, false );
 	}
 
+	/**
+	 * Provides the product SKU (stock keeping unit)
+	 *
+	 * @api `shopp('cart.sku')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return string The product SKU
+	 */
 	public static function sku ( $result, $options, $O ) {
 		return $O->sku;
 	}
 
+	/**
+	 * The product description of the cart item
+	 *
+	 * @api `shopp('cart.description')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return string The product description
+	 */
 	public static function description ( $result, $options, $O ) {
 		return $O->description;
 	}
 
+	/**
+	 * Provides the per-unit discount amount currently applied to the cart item
+	 *
+	 * @api `shopp('cart.discount')`
+	 * @since 1.2
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **catalog**: Provide the catalog discount applied (catalog sale price discount amount, not the entire discount)
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * - **show**: (%, percent) Provide the percent discount instead of the amount
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function discount ( $result, $options, $O ) {
 
 		$defaults = array(
@@ -165,6 +285,23 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return (float) $discount;
 	}
 
+	/**
+	 * Provides the total discounts applied to the cart item
+	 *
+	 * This is the unit discount * quantity
+	 *
+	 * @api `shopp('cart.discounts')`
+	 * @since 1.2
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **catalog**: Provide the catalog discount applied (catalog sale price discount amount, not the entire discount)
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * - **show**: (%, percent) Provide the percent discount instead of the amount
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function discounts ( $result, $options, $O ) {
 		$defaults = array(
 			'catalog' => false,
@@ -185,6 +322,20 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return (float) $discounts;
 	}
 
+	/**
+	 * The unit price of the cart item
+	 *
+	 * @api `shopp('cart.unitprice')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **taxes**: `null` (on, off) On to include taxes in the unit price, off to exclude taxes
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function unitprice ( $result, $options, $O ) {
 
 		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
@@ -194,15 +345,51 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 		return (float) $unitprice;
 	}
 
+	/**
+	 * The unit tax amount applied to the cart item
+	 *
+	 * @api `shopp('cart.unit-tax')`
+	 * @since 1.2
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function unittax ( $result, $options, $O ) {
 		return (float) $O->unittax;
 	}
 
-
+	/**
+	 * The total tax applied to the cart item
+	 *
+	 * @api	`shopp('cart.tax')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function tax ( $result, $options, $O ) {
 		return (float) $O->tax;
 	}
 
+	/**
+	 * The total cost of the cart item
+	 *
+	 * @api `shopp('cart.total')`
+	 * @since 1.0
+	 *
+	 * @param string        $result  The output
+	 * @param array         $options The options
+	 * @param ShoppCartItem $O       The working object
+	 * @return void
+	 */
 	public static function total ( $result, $options, $O ) {
 		$taxes = isset( $options['taxes'] ) ? Shopp::str_true( $options['taxes'] ) : null;
 
