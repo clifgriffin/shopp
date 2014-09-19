@@ -114,6 +114,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 *
 	 * @param string    $result    The output
 	 * @param array     $options   The options
+	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
 	 * @param string    $property  The tag property name
 	 * @param ShoppCart $O         The working object
 	 * @return ShoppCart The active ShoppCart context
@@ -252,6 +255,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 *
 	 * @param string    $result   The output
 	 * @param array     $options  The options
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
 	 * @param ShoppCart $O        The working object
 	 * @return float The current total discount amount applied to the cart
 	 **/
@@ -753,9 +759,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @param array     $options The options
 	 * - **id**: Specify the id for the shipping cost to display (where multiple shipping costs are active)
 	 * - **label**: The label for the shipping costs
-	 * - **money**: `on` (on, off) Format the amount as a currency amount
-	 * - **number**: `off` (on, off) Format the amount as a floating-point number
-	 * - **wrap**: Wrap the amount in markup to make it accessible to JavaScript
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
 	 * @param ShoppCart $O       The working object
 	 * @return string The status or amount of shipping costs
 	 **/
@@ -879,6 +885,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 *
 	 * @param string    $result  The output
 	 * @param array     $options The options
+	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
 	 * - **taxes**: `on` (on, off) Include taxes in the subtotal amount when inclusive taxes are used (or off to exclude them)
 	 * @param ShoppCart $O       The working object
 	 * @return string The subtotal amount
@@ -912,6 +921,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @param array     $options The options
 	 * - **id**: Specify the tax amount to display when multiple taxes are applied to the cart
 	 * - **label**: Provide the tax label instead of the amount
+	 * - **money**: `on` (on, off) Format the amount in the current currency format
+	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
 	 * @param ShoppCart $O       The working object
 	 * @return string The tax amount
 	 **/
@@ -944,6 +956,9 @@ class ShoppCartThemeAPI implements ShoppAPI {
  	 *
  	 * @param string    $result  The output
  	 * @param array     $options The options
+ 	 * - **money**: `on` (on, off) Format the amount in the current currency format
+ 	 * - **number**: `off` (on, off) Provide the unformatted number (floating point)
+ 	 * - **wrap**: `on` (on, off) Wrap the amount in DOM-accessible markup
  	 * @param ShoppCart $O       The working object
  	 * @return string The total amount
  	 **/
