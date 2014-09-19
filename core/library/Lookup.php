@@ -41,7 +41,7 @@ class Lookup {
 		$_[5] = __('Africa','Shopp');
 		$_[6] = __('Asia','Shopp');
 		$_[7] = __('Oceania','Shopp');
-		return apply_filters('shopp_regions',$_);
+		return apply_filters('shopp_regions', $_);
 	}
 
 	/**
@@ -134,6 +134,7 @@ class Lookup {
 		$_['CR'] = array('name'=>__('Costa Rica','Shopp'),'currency'=>array('code'=>'CRC','format'=>'₡#.###,##'),'units'=>'metric','region'=>1);
 		$_['CI'] = array('name'=>__("Côte d'Ivoire",'Shopp'),'currency'=>array('code'=>'XOF','format'=>'# ### CFA'),'units'=>'metric','region'=>5);
 		$_['HR'] = array('name'=>__('Croatia','Shopp'),'currency'=>array('code'=>'HRK','format'=>'#.###,## kn'),'units'=>'metric','region'=>3);
+		$_['CU'] = array('name'=>__('Cuba','Shopp'),'currency'=>array('code'=>'CUP','format'=>'CUP#.###,##'),'units'=>'metric','region'=>1);
 		$_['CW'] = array('name'=>__('Curaçao','Shopp'),'currency'=>array('code'=>'ANG','format'=>'ƒ#.###,##'),'units'=>'metric','region'=>0);
 		$_['CY'] = array('name'=>__('Cyprus','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#.###,##'),'units'=>'metric','region'=>3);
 		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'# ###,## Kč'),'units'=>'metric','region'=>3);
@@ -182,7 +183,8 @@ class Lookup {
 		$_['IS'] = array('name'=>__('Iceland','Shopp'),'currency'=>array('code'=>'ISK','format'=>'#.###.###, kr'),'units'=>'metric','region'=>3);
 		$_['IN'] = array('name'=>__('India','Shopp'),'currency'=>array('code'=>'INR','format'=>'₨#,##,###.##'),'units'=>'metric','region'=>6);
 		$_['ID'] = array('name'=>__('Indonesia','Shopp'),'currency'=>array('code'=>'IDR','format'=>'Rp #.###,##'),'units'=>'metric','region'=>7);
-		$_['IQ'] = array('name'=>__('Iraq','Shopp'),'currency'=>array('code'=>'IQD','format'=>'#.###,## ع.د'),'units'=>'metric','region'=>4);
+		$_['IR'] = array('name'=>__('Iran','Shopp'),'currency'=>array('code'=>'IRR','format'=>'#.###,##﷼'),'units'=>'metric','region'=>4);
+		$_['IQ'] = array('name'=>__('Iraq','Shopp'),'currency'=>array('code'=>'IQD','format'=>'#.###,##د.ع'),'units'=>'metric','region'=>4);
 		$_['IE'] = array('name'=>__('Ireland','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['IM'] = array('name'=>__('Isle of Man','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3);
 		$_['IL'] = array('name'=>__('Israel','Shopp'),'currency'=>array('code'=>'ILS','format'=>'#,###.## ₪'),'units'=>'metric','region'=>4);
@@ -280,6 +282,7 @@ class Lookup {
 		$_['ZA'] = array('name'=>__('South Africa','Shopp'),'currency'=>array('code'=>'ZAR','format'=>'R# ###,##'),'units'=>'metric','region'=>5);
 		$_['GS'] = array('name'=>__('South Georgia','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>2);
 		$_['KR'] = array('name'=>__('South Korea','Shopp'),'currency'=>array('code'=>'KRW','format'=>'₩#,###.##'),'units'=>'metric','region'=>6);
+		$_['SS'] = array('name'=>__('South Sudan','Shopp'),'currency'=>array('code'=>'SSP','format'=>'SSP #,###.##'),'units'=>'metric','region'=>5);
 		$_['ES'] = array('name'=>__('Spain','Shopp'),'currency'=>array('code'=>'EUR','format'=>'#.###,## €'),'units'=>'metric','region'=>3);
 		$_['LK'] = array('name'=>__('Sri Lanka','Shopp'),'currency'=>array('code'=>'LKR','format'=>'SL₨ #,###.##'),'units'=>'metric','region'=>6);
 		$_['SD'] = array('name'=>__('Sudan','Shopp'),'currency'=>array('code'=>'SDG','format'=>'SDG #.###,##'),'units'=>'metric','region'=>5);
@@ -317,7 +320,7 @@ class Lookup {
 		$_['ZM'] = array('name'=>__('Zambia','Shopp'),'currency'=>array('code'=>'ZMK','format'=>'#,###.## ZK'),'units'=>'metric','region'=>5);
 		$_['ZW'] = array('name'=>__('Zimbabwe','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>5);
 
-		return apply_filters('shopp_countries',$_);
+		return apply_filters('shopp_countries', $_);
 	}
 
 	/**
