@@ -1157,6 +1157,7 @@ class ShoppProduct extends WPShoppObject {
 		// Duplicate summary (primarily for summary settings data)
 		$Summary = new ProductSummary($original);
 		$Summary->product = $this->id;
+		$Summary->sold = $Summary->grossed = $Summary->stock = 0;
 		$Summary->save();
 
 		// Re-summarize product pricing
