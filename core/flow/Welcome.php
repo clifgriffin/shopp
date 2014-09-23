@@ -32,8 +32,9 @@ class ShoppAdminWelcome extends ShoppAdminController {
 
 	public function welcome () {
 		$Shopp = Shopp::object();
-		shopp_set_setting('display_welcome', 'off');
 		include $this->ui('welcome.php');
+		// Displayed the welcome, turn display_welcome flag off
+		shopp_set_setting('display_welcome', 'off');
 		return true;
 	}
 
