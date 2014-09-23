@@ -251,10 +251,12 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 			if ( 'shipped' == $Event->name ) {
 				$carriers = Lookup::shipcarriers();
-				$carrier = $carriers[$Event->carrier];
+				$carrier = $carriers[ $Event->carrier ];
 				if ( 'carrier' == $name ) $string = $carrier->name;
-				if ( 'tracking' == $name && Shopp::str_true($link) )
-					return'<a href="' . esc_url(sprintf($carrier->trackurl, $string)) . '">' . esc_html($string) . '</a>';
+				if ( 'tracking' == $name && Shopp::str_true($link) ) {
+					$params = apply_filters('shopp_shipped_trackurl_params', array($string), $Event->order());
+					return'<a href="' . esc_url(vsprintf($carrier->trackurl, $params)) . '">' . esc_html($string) . '</a>';
+				}
 			}
 
 			return esc_html($string);
