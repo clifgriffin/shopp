@@ -256,7 +256,6 @@ class ShoppAdmin extends ShoppFlowController {
 		// Set controller (callback handler)
 		$controller = array($Shopp->Flow, 'admin');
 
-		if ( ShoppFlow::welcome() ) $controller = array($this, 'welcome');
 		if ( Shopp::upgradedb() ) $controller = array($this, 'updatedb');
 
 		$menu = $Page->parent ? $Page->parent : $this->mainmenu;
