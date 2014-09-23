@@ -1712,7 +1712,7 @@ abstract class ShoppCore {
 		$lines = explode("\n", $template);
 
 		// Collect headers
-		while ( ! empty( $line = array_shift($lines) ) ) {
+		while ( $line = array_shift($lines) ) {
 
 			if ( false === strpos($line, ':') ) continue; // Skip invalid header lines
 
