@@ -1127,6 +1127,13 @@ class ShoppInstallation extends ShoppFlowController {
 			sDB::query($query);
 		}
 
+		if ( $db_version <= 1201 ) {
+			// All existing sessions must be cleared and restarted, 1.3.6 sessions are not compatible with any prior version of Shopp
+ 		   	ShoppShopping()->reset();
+			$sessions_table = ShoppDatabaseObject::tablename('shopping');
+			sDB::query("DELETE FROM $sessions_table");
+		}
+
 	}
 
 }
