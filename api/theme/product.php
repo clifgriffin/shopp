@@ -1515,12 +1515,13 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 
 		if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
 
-		$inclusivetax = self::_inclusive_taxes($O);
-		if ( isset($taxoption) ) $taxoption = Shopp::str_true( $taxoption );
+		if ( isset($taxoption) )
+			$taxoption = Shopp::str_true( $taxoption );
 
+		$inclusivetax = self::_inclusive_taxes($O);
 		if ( $inclusivetax ) {
 			$adjustment = ShoppTax::adjustment($taxrates);
-			if ( 1 != $adjustment )
+			if ( 1 != $adjustment && false !== $taxoption ) // Only adjust when taxes are not excluded @see #3041
 				return (float) ($amount / $adjustment);
 		}
 
