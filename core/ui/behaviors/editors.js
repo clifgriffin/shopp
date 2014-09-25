@@ -438,7 +438,7 @@ function variationsToggle () {
 		ui = $('#variations'),
 		baseprice = $('#product-pricing');
 
-	if (toggle.attr('checked')) {
+	if (toggle.prop('checked')) {
 		if (Pricelines.row[0]) Pricelines.row[0].disable();
 		baseprice.hide();
 		ui.show();
@@ -454,7 +454,7 @@ function addonsToggle () {
 		toggle = $(this),
 		ui = $('#addons');
 
-	if (toggle.attr('checked')) ui.show();
+	if (toggle.prop('checked')) ui.show();
 	else ui.hide();
 }
 
