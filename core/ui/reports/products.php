@@ -46,7 +46,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 		$price_table = ShoppDatabaseObject::tablename('price');
 
 		$query = "SELECT CONCAT($id) AS id,
-							CONCAT(p.post_title,' ',pr.label) AS product,
+							CONCAT(p.post_title,' ', IF(pr.context != 'product',pr.label,'')) AS product,
 							pr.sku as sku,
 							SUM(o.quantity) AS sold,
 							COUNT(DISTINCT o.purchase) AS orders,
