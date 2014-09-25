@@ -177,7 +177,7 @@ final class Shopp extends ShoppCore {
 		define('SHOPP_DIR',  $directory );
 
 		define('SHOPP_PLUGINFILE', "$directory/$file" );
-		define('SHOPP_PLUGINURI',  set_url_scheme(WP_PLUGIN_URL . "/$directory") );
+		define('SHOPP_PLUGINURI',  set_url_scheme(plugins_url() . "/$directory") );
 
 		define('SHOPP_ADMIN_DIR', '/core/ui');
 		define('SHOPP_ADMIN_PATH', SHOPP_PATH . SHOPP_ADMIN_DIR);
