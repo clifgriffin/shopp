@@ -476,7 +476,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @return boolean True if the code is applied, false otherwise
 	 **/
 	public function codeapplied ( $code ) {
-		return isset( $this->codes[ strtolower($code) ]);
+		return isset( $this->codes[ trim(strtolower($code)) ]);
 	}
 
 	/**
@@ -631,7 +631,7 @@ class ShoppDiscountRule {
 		if ( $Discounts->codeapplied($this->value) ) return true;
 
 		// Match new codes
-		$request = trim(strtolower($Discounts->request()));
+		$request = trim(strtolower($Discounts->request());
 
 		// No code provided, nothing will match
 		if ( empty($request) ) return false;
