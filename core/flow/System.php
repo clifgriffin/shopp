@@ -732,9 +732,12 @@ class ShoppAdminSystem extends ShoppAdminController {
 			}
 		}
 
+		asort($installed);
+
 		add_action('shopp_gateway_module_settings',array($Gateways,'templates'));
 		include $this->ui('payments.php');
 	}
+	
 	public function payments_help () {
 		$Shopp = Shopp::object();
 		$Gateways = $Shopp->Gateways;

@@ -591,8 +591,11 @@ class ShoppOrder {
 			$this->Billing->copydata($registration['Billing']);
 			$this->Shipping->copydata($registration['Shipping']);
 
-	        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
-	        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+			// Validation already conducted during the checkout process
+	        add_filter('shopp_validate_registration', '__return_true');
+
+			// Prevent redirection to account page after registration
+	        add_filter('shopp_registration_redirect', '__return_false');
 
 		}
 
