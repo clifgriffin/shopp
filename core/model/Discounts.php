@@ -96,7 +96,6 @@ class ShoppDiscounts extends ListFramework {
 
 		// Iterate over each promo to determine whether it applies
 		$discount = 0;
-		$promocode_matched = false;
 		foreach ( $Promotions as $Promo ) {
 
 			// Cancel matching if max number of discounts reached
@@ -114,8 +113,6 @@ class ShoppDiscounts extends ListFramework {
 
 				$Rule = new ShoppDiscountRule($rule, $Promo);
 				if ( $match = $Rule->match() ) {
-					if ( 'promo code' == $Rule->get_property() )
-						$promocode_matched = true;
 					if ( 'any' == $Promo->search ) {
 						$apply = true; // Stop matching rules once **any** of them apply
 						break;
@@ -136,7 +133,7 @@ class ShoppDiscounts extends ListFramework {
 		// Check for failed promo codes
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
 		
-		if( !$promocode_matched && in_array( strtolower($this->request), $Promotions->get_promocodes() ) ) {
+		if( in_array( strtolower($this->request), $Promotions->get_promocodes() ) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; does not apply to the current order.', $this->request) );
 			$this->request = false;	
 		} else {
