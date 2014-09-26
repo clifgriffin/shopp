@@ -625,13 +625,13 @@ class ShoppDiscountRule {
 	 * @return boolean True if match, false for no match
 	 **/
 	private function code () {
-		$this->value = strtolower($this->value);
+		$this->value = trim(strtolower($this->value));
 		// Match previously applied codes
 		$Discounts = ShoppOrder()->Discounts;
 		if ( $Discounts->codeapplied($this->value) ) return true;
 
 		// Match new codes
-		$request = strtolower($Discounts->request());
+		$request = trim(strtolower($Discounts->request()));
 
 		// No code provided, nothing will match
 		if ( empty($request) ) return false;
