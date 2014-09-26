@@ -136,7 +136,7 @@ class ShoppDiscounts extends ListFramework {
 		// Check for failed promo codes
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
 		
-		if( !$promocode_matched && in_array( trim(strtolower($this->request)), $Promotions->get_promocodes() ) ) {
+		if( !$promocode_matched && in_array( strtolower($this->request), $Promotions->get_promocodes() ) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; does not apply to the current order.', $this->request) );
 			$this->request = false;	
 		} else {
@@ -482,7 +482,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @return boolean True if the code is applied, false otherwise
 	 **/
 	public function codeapplied ( $code ) {
-		return isset( $this->codes[ trim(strtolower($code)) ]);
+		return isset( $this->codes[ strtolower($code) ]);
 	}
 
 	/**
@@ -631,13 +631,13 @@ class ShoppDiscountRule {
 	 * @return boolean True if match, false for no match
 	 **/
 	private function code () {
-		$this->value = trim(strtolower($this->value));
+		$this->value = strtolower($this->value);
 		// Match previously applied codes
 		$Discounts = ShoppOrder()->Discounts;
 		if ( $Discounts->codeapplied($this->value) ) return true;
 
 		// Match new codes
-		$request = trim(strtolower($Discounts->request()));
+		$request = strtolower($Discounts->request());
 
 		// No code provided, nothing will match
 		if ( empty($request) ) return false;
@@ -1308,7 +1308,7 @@ class ShoppPromotions extends ListFramework {
 		$this->populate($loaded);
 		foreach($this as $promo) {
 			if( !empty($promo->code) ) {
-				$promo_code = trim(strtolower($promo->code));
+				$promo_code = strtolower($promo->code);
 				$this->promocodes[$promo_code] = $promo_code;
 			}
 		}
