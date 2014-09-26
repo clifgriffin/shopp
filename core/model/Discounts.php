@@ -96,6 +96,7 @@ class ShoppDiscounts extends ListFramework {
 
 		// Iterate over each promo to determine whether it applies
 		$discount = 0;
+		$promocode_matched = false;
 		foreach ( $Promotions as $Promo ) {
 
 			// Cancel matching if max number of discounts reached
@@ -113,6 +114,8 @@ class ShoppDiscounts extends ListFramework {
 
 				$Rule = new ShoppDiscountRule($rule, $Promo);
 				if ( $match = $Rule->match() ) {
+					if ( 'promo code' == $Rule->get_property() )
+						$promocode_matched = true;
 					if ( 'any' == $Promo->search ) {
 						$apply = true; // Stop matching rules once **any** of them apply
 						break;
@@ -131,9 +134,12 @@ class ShoppDiscounts extends ListFramework {
 		} // End promos loop
 
 		// Check for failed promo codes
-
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
-		else {
+		
+		if( !$promocode_matched && in_array( trim(strtolower($this->request)), $Promotions->get_promocodes() ) ) {
+			shopp_add_error( Shopp::__('&quot;%s&quot; does not apply to the current order.', $this->request) );
+			$this->request = false;	
+		} else {
 			shopp_add_error( Shopp::__('&quot;%s&quot; is not a valid code.', $this->request) );
 			$this->request = false;
 		}
@@ -260,7 +266,7 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	public function addcode ( $code, ShoppOrderPromo $Promo ) {
 
-		$code = strtolower($code);
+		$code = trim(strtolower($code));
 		$request = strtolower($this->request());
 
 		// Prevent customers from reapplying codes
@@ -631,7 +637,7 @@ class ShoppDiscountRule {
 		if ( $Discounts->codeapplied($this->value) ) return true;
 
 		// Match new codes
-		$request = trim(strtolower($Discounts->request());
+		$request = trim(strtolower($Discounts->request()));
 
 		// No code provided, nothing will match
 		if ( empty($request) ) return false;
@@ -832,6 +838,10 @@ class ShoppDiscountRule {
 
 		return stripos($subject,$value) === strlen($subject) - strlen($value);
 
+	}
+	
+	public function get_property() {
+		return $this->property;	
 	}
 
 }
@@ -1240,6 +1250,7 @@ class ShoppPromotions extends ListFramework {
 
 	protected $loaded = false;
 	protected $promos = null;
+	protected $promocodes = array();
 
 	/**
 	 * Detect if promotions exist and pre-load if so.
@@ -1295,6 +1306,12 @@ class ShoppPromotions extends ListFramework {
 		if ( ! $loaded || 0 == count($loaded) ) return;
 
 		$this->populate($loaded);
+		foreach($this as $promo) {
+			if( !empty($promo->code) ) {
+				$promo_code = trim(strtolower($promo->code));
+				$this->promocodes[$promo_code] = $promo_code;
+			}
+		}
 		$this->loaded = true;
 	}
 
@@ -1326,6 +1343,10 @@ class ShoppPromotions extends ListFramework {
 		parent::clear();
 		$this->promos = null;
 		$this->loaded = false;
+	}
+	
+	public function get_promocodes() {
+		return $this->promocodes;	
 	}
 
 }
