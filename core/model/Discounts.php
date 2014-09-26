@@ -133,7 +133,7 @@ class ShoppDiscounts extends ListFramework {
 		// Check for failed promo codes
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
 		
-		if( in_array( strtolower($this->request), $Promotions->get_promocodes() ) ) {
+		if( $this->validcode($this->request) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; does not apply to the current order.', $this->request) );
 			$this->request = false;	
 		} else {
@@ -480,6 +480,25 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	public function codeapplied ( $code ) {
 		return isset( $this->codes[ strtolower($code) ]);
+	}
+	
+	/**
+	 * Checks if a given code is attached to a valid rule
+	 *
+	 * @author Matthew Sigley
+	 * @since 1.3
+	 *
+	 * @param string $code The code to check
+	 * @return boolean True if the code is valid, false otherwise
+	 **/
+	public function validcode( $code ) {
+		$Promotions = ShoppOrder()->Promotions;
+		
+		foreach($Promotions as $promo) {
+			if( empty($promo->code) ) continue;
+			if( strtolower($code) == strtolower($promo->code) ) return true;
+		}
+		return false;
 	}
 
 	/**
@@ -1247,7 +1266,6 @@ class ShoppPromotions extends ListFramework {
 
 	protected $loaded = false;
 	protected $promos = null;
-	protected $promocodes = array();
 
 	/**
 	 * Detect if promotions exist and pre-load if so.
@@ -1303,12 +1321,6 @@ class ShoppPromotions extends ListFramework {
 		if ( ! $loaded || 0 == count($loaded) ) return;
 
 		$this->populate($loaded);
-		foreach($this as $promo) {
-			if( !empty($promo->code) ) {
-				$promo_code = strtolower($promo->code);
-				$this->promocodes[$promo_code] = $promo_code;
-			}
-		}
 		$this->loaded = true;
 	}
 
@@ -1340,10 +1352,6 @@ class ShoppPromotions extends ListFramework {
 		parent::clear();
 		$this->promos = null;
 		$this->loaded = false;
-	}
-	
-	public function get_promocodes() {
-		return $this->promocodes;	
 	}
 
 }
