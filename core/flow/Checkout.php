@@ -244,11 +244,12 @@ class ShoppCheckout extends FormPostFramework {
 
 		if ( ! $action || 'process' != $action) return;
 
-		$wasfree = $Cart->orderisfree();	// Get current free status
-		$estimated = $Cart->total();		// Get current total
+		$wasfree = $Cart->orderisfree(); // Get current free status
+		$estimated = $Cart->total();     // Get current total
 
 		$Cart->totals(); // Retotal after checkout to capture order total changes
 
+		// We have to avoid truthiness, hence the strange logic expression
 		if ( true !== apply_filters('shopp_validate_checkout', true) ) return;
 		else $this->customer(); // Catch changes from validation
 
@@ -279,8 +280,11 @@ class ShoppCheckout extends FormPostFramework {
 	 **/
 	public function registration () {
 
-        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
-        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+		// Validation already conducted during the checkout process
+        add_filter('shopp_validate_registration', '__return_true');
+
+		// Prevent redirection to account page after registration
+        add_filter('shopp_registration_redirect', '__return_false');
 
 		ShoppRegistration::process();
 
