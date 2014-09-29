@@ -469,12 +469,16 @@ class ShoppInstallation extends ShoppFlowController {
 	 * @return void
 	 **/
 	public function upgrade_110 () {
+
+		// 1.1 schema changes
+		$db_version = ShoppSettings::dbversion();
+		if ( $db_version < 1100 ) return; // Skip db_version is not less than 1100
+			$this->upschema('schema-110.sql');
+
 		$meta_table = ShoppDatabaseObject::tablename('meta');
 		$setting_table = ShoppDatabaseObject::tablename('setting');
 		$product_table = ShoppDatabaseObject::tablename('product');
 
-		// 1.1 schema changes
-		$this->upschema('schema-110.sql');
 
 		// Update product status from the 'published' column
 		sDB::query("UPDATE $product_table SET status=CAST(published AS unsigned)");
@@ -644,11 +648,13 @@ class ShoppInstallation extends ShoppFlowController {
 	}
 
 	public function upgrade_120 () {
-		// 1.2 schema changes
-		$this->upschema('schema-120.sql');
-		global $wpdb;
 
+		// 1.2 schema changes
 		$db_version = ShoppSettings::dbversion();
+		if ( $db_version < 1120 )
+			$this->upschema('schema-120.sql');
+
+		global $wpdb;
 
 		// Clear the shopping session table
 		$shopping_table = ShoppDatabaseObject::tablename('shopping');
@@ -1050,15 +1056,20 @@ class ShoppInstallation extends ShoppFlowController {
 	}
 
 	public function upgrade_130 () {
-		// 1.3 schema changes
-		$this->upschema();
 		global $wpdb;
+		$db_version = ShoppSettings::dbversion();
 
-		if ( $db_version <= 1200 ) {
-			// All existing sessions must be cleared and restarted, 1.3 sessions are not compatible with any prior version of Shopp
+		if ( $db_version < 1201 ) {
+			// All existing sessions must be cleared and restarted, 1.3 & 1.3.6 sessions are not compatible with any prior version of Shopp
  		   	ShoppShopping()->reset();
 			$sessions_table = ShoppDatabaseObject::tablename('shopping');
 			sDB::query("DELETE FROM $sessions_table");
+		}
+
+		if ( $db_version < 1200 ) {
+
+			// 1.3 schema changes
+			$this->upschema();
 
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
@@ -1074,17 +1085,18 @@ class ShoppInstallation extends ShoppFlowController {
 				'FreeOrder' => 'ShoppFreeOrder'
 
 			);
-			foreach ($gateways as $name => $classname)
+			foreach ( $gateways as $name => $classname )
 				sDB::query("UPDATE $purchase_table SET gateway='$classname' WHERE gateway='$name'");
 
 			$activegateways = explode(',', shopp_setting('active_gateways'));
-			foreach ($activegateways as &$setting)
-				$setting = str_replace(array_keys($gateways),$gateways,$setting);
-			shopp_set_setting('active_gateways',join(',', $activegateways));
+			foreach ( $activegateways as &$setting )
+				if ( false === strpos($setting, 'Shopp') )
+					$setting = str_replace(array_keys($gateways), $gateways, $setting);
+			shopp_set_setting('active_gateways', join(',', $activegateways));
 
 		}
 
-		if ( $db_version <= 1200 && shopp_setting_enabled('tax_inclusive') ) {
+		if ( $db_version < 1200 && shopp_setting_enabled('tax_inclusive') ) {
 
 			$price_table = ShoppDatabaseObject::tablename('price');
 
@@ -1125,13 +1137,6 @@ class ShoppInstallation extends ShoppFlowController {
 			$query = "UPDATE $price_table SET price=price+(price*$taxrate) WHERE tax='on'$done";
 
 			sDB::query($query);
-		}
-
-		if ( $db_version <= 1201 ) {
-			// All existing sessions must be cleared and restarted, 1.3.6 sessions are not compatible with any prior version of Shopp
- 		   	ShoppShopping()->reset();
-			$sessions_table = ShoppDatabaseObject::tablename('shopping');
-			sDB::query("DELETE FROM $sessions_table");
 		}
 
 	}
