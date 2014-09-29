@@ -13,12 +13,12 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-add_filter('shopp_purchase_item_input_data','esc_html');
+add_filter('shopp_purchase_item_input_data', 'esc_html');
 add_filter('shopp_purchase_item_input_data', 'wptexturize');
 add_filter('shopp_purchase_item_input_data', 'convert_chars');
 add_filter('shopp_purchase_item_input_data', 'wpautop');
 
-add_filter('shopp_purchase_item_input_data','esc_html');
+add_filter('shopp_purchase_item_input_data', 'esc_html');
 add_filter('shopp_purchase_item_input_data', 'wptexturize');
 add_filter('shopp_purchase_item_input_data', 'convert_chars');
 add_filter('shopp_purchase_item_input_data', 'wpautop');
@@ -27,6 +27,11 @@ add_filter('shopp_purchase_order_data', 'esc_html');
 add_filter('shopp_purchase_order_data', 'wptexturize');
 add_filter('shopp_purchase_order_data', 'convert_chars');
 add_filter('shopp_purchase_order_data', 'wpautop');
+
+add_filter('shopp_themeapi_purchase_emailnote', 'esc_html');
+add_filter('shopp_themeapi_purchase_emailnote', 'wptexturize');
+add_filter('shopp_themeapi_purchase_emailnote', 'convert_chars');
+add_filter('shopp_themeapi_purchase_emailnote', 'wpautop');
 
 /**
  * Provides shopp('purchase') theme API functionality
@@ -267,7 +272,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 	public static function email_note ( $result, $options, $O ) {
 		if ( isset($O->message['note']) )
-			return esc_html($O->message['note']);
+			return $O->message['note'];
 	}
 
 	public static function first_name ( $result, $options, $O ) {
