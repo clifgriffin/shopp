@@ -255,9 +255,8 @@ class ShoppAdmin extends ShoppFlowController {
 
 		// Set controller (callback handler)
 		$controller = array($Shopp->Flow, 'admin');
-		// if ( shopp_setting_enabled('display_welcome') && empty($_POST['setup']) )
-		// 	$controller = array($this, 'welcome');
-		if ( Shopp::upgradedb() ) $controller = array($this, 'reactivate');
+
+		if ( Shopp::upgradedb() ) $controller = array($this, 'updatedb');
 
 		$menu = $Page->parent ? $Page->parent : $this->mainmenu;
 
@@ -535,14 +534,16 @@ class ShoppAdmin extends ShoppFlowController {
 	}
 
 	/**
-	 * Displays the re-activate screen
+	 * Displays the database update screen
 	 *
 	 * @return boolean
 	 * @author Jonathan Davis
 	 **/
-	public function reactivate () {
+	public function updatedb () {
 		$Shopp = Shopp::object();
-		include( SHOPP_ADMIN_PATH . '/help/reactivate.php');
+		$uri = SHOPP_ADMIN_URI . '/styles';
+		wp_enqueue_style('shopp.welcome', "$uri/welcome.css", array(), ShoppVersion::cache(), 'screen');
+		include( SHOPP_ADMIN_PATH . '/help/update.php');
 	}
 
 	/**

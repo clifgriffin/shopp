@@ -1686,12 +1686,11 @@ abstract class ShoppCore {
 	public static function email ( $template, array $data = array() ) {
 
 		$debug = false;
-		$in_body = false;
 		$headers = array();
-		$message = '';
-		$to = '';
-		$subject = '';
-		$protected = array('from', 'to', 'subject', 'cc', 'bcc');
+		$to = $subject = $message = '';
+
+		$addrs = array('from', 'sender', 'reply-to', 'to', 'cc', 'bcc');
+		$protected = array_merge($addrs, array('subject'));
 
 		if ( false == strpos($template, "\n") && file_exists($template) ) {
 			$templatefile = $template;
@@ -1710,29 +1709,23 @@ abstract class ShoppCore {
 
 		// Sanitize line endings
 		$template = str_replace(array("\r\n", "\r"), "\n", $template);
-		$f = explode("\n", $template);
+		$lines = explode("\n", $template);
 
-		while ( list($linenum, $line) = each($f) ) {
-			$line = rtrim($line);
+		// Collect headers
+		while ( $line = array_shift($lines) ) {
 
-			// Header parse
-			if ( ! $in_body && false !== strpos($line, ':') ) {
-				list($header, $value) = explode(':', $line, 2);
+			if ( false === strpos($line, ':') ) continue; // Skip invalid header lines
 
-				// Protect against header injection
-				if ( in_array(strtolower($header), $protected) )
-					$value = str_replace("\n", "", urldecode($value));
+			list($header, $value) = explode(':', $line, 2);
 
-				if ( 'to' == strtolower($header) ) $to = $value;
-				elseif ( 'subject' == strtolower($header) ) $subject = $value;
-				else $headers[] = $line;
-			}
+			// Protect against header injection
+			if ( in_array(strtolower($header), $protected) )
+				$value = str_replace(array("\n", "\r"), '', rawurldecode($value));
 
-			// Catches the first blank line to begin capturing message body
-			if ( ! $in_body && empty($line) ) $in_body = true;
-			if ( $in_body ) $message .= $line . "\n";
-
+			$headers[ ucfirst($header) ] = $value;
 		}
+
+		$message = join("\n", $lines);
 
 		// If not already in place, setup default system email filters
 		ShoppEmailDefaultFilters::init();
@@ -1741,11 +1734,14 @@ abstract class ShoppCore {
 		$headers = apply_filters('shopp_email_headers', $headers, $message);
 		$message = apply_filters('shopp_email_message', $message, $headers);
 
+		$to = $headers['To']; unset($headers['To']);
+		$subject = $headers['Subject']; unset($headers['Subject']);
+
 		$sent = wp_mail($to, $subject, $message, $headers);
 
 		do_action('shopp_email_completed');
 
-		if ( $debug ) {
+		if ( true ) {
 			shopp_debug("To: " . htmlspecialchars($to) . "\n");
 			shopp_debug("Subject: $subject\n\n");
 			shopp_debug("Headers:\n");
@@ -1808,11 +1804,11 @@ abstract class ShoppCore {
 	 *
 	 *     "Supplies Unlimited"
 	 *
-	 * This should return:
+	 * This will return:
 	 *
 	 *     "Supplies Unlimited" <info@merchant.com>, dispatch@merchant.com, partners@other.co"
 	 *
-	 * However, if there is only a single email address rather than several sepeated by
+	 * However, if there is only a single email address rather than several seperated by
 	 * commas it will simply return:
 	 *
 	 *     "Supplies Unlimited" <info@merchant.com>"

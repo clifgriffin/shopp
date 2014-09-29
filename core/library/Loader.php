@@ -234,9 +234,9 @@ class ShoppLoader {
 			$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
 
 		} elseif ( SHOPP_LOADER_APC && apc_exists($apccache) && $cached = apc_fetch($apccache) && file_exists("$cached/$loadfile") ) {
-			
+
 			return "$cached/$loadfile";
-			
+
 		} elseif ( file_exists(self::sanitize($root) . '/' . $loadfile) ) {
 
 			$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
@@ -486,7 +486,7 @@ ShoppLoader::map(array(
 	'searchparser' => '/model/Search.php',
 	'searchresults' => '/model/Collection.php',
 	'searchtextfilters' => '/model/Search.php',
-	'sessionobject' => '/library/Session.php',
+	'shoppsessionframework' => '/library/Session.php',
 	'shippedorderevent' => '/model/Events.php',
 	'shippedordereventrenderer' => '/ui/orders/events.php',
 	'shippingaddress' => '/model/Address.php',
@@ -520,6 +520,7 @@ ShoppLoader::map(array(
 	'shoppadminservice' => '/flow/Service.php',
 	'shoppadminsetup' => '/flow/Setup.php',
 	'shoppadminsystem' => '/flow/System.php',
+	'shoppadminupgrade' => '/flow/Upgrade.php',
 	'shoppadminwarehouse' => '/flow/Warehouse.php',
 	'shoppadminwelcome' => '/flow/Welcome.php',
 	'shoppajax' => '/flow/Ajax.php',

@@ -375,7 +375,7 @@ class ShoppAdminService extends ShoppAdminController {
 		if (!empty($_POST["send-note"])){
 			$user = wp_get_current_user();
 			shopp_add_order_event($Purchase->id,'note',array(
-				'note' => $_POST['note'],
+				'note' => stripslashes($_POST['note']),
 				'user' => $user->ID
 			));
 

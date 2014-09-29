@@ -42,6 +42,7 @@ class ShoppFlow {
 
 		// Handle AJAX requests
 		add_action( 'admin_init', array($this, 'ajax') );
+		add_action( 'admin_init', array($this, 'upgrades') );
 
 		// Boot up the menus & admin bar
 		add_action( 'admin_menu', array($this, 'menu'), 50 );
@@ -67,6 +68,7 @@ class ShoppFlow {
 
 		if ( defined('WP_ADMIN') ) {
 			if ( ! isset($_GET['page']) ) return;
+
 			if ( false === $this->Admin )
 				$this->Admin = new ShoppAdmin();
 
@@ -169,6 +171,25 @@ class ShoppFlow {
 			$this->Installer = new ShoppInstallation;
 	}
 
+	public function upgrades () {
+
+		if ( 'shopp-upgrade' != $_GET['action'] ) return;
+
+		// Prevent unauthorized users from upgrading (without giving admin's a chance to backup)
+		if ( ! current_user_can('activate_plugins') ) return;
+
+		// Prevent outsiders from the upgrade process
+		check_admin_referer('shopp-upgrade');
+
+		$Installer = new ShoppInstallation();
+		$Installer->upgrade();
+
+		$welcome = add_query_arg( array('page' => $this->Admin->pagename('welcome')), admin_url('admin.php'));
+		Shopp::redirect($welcome, true);
+
+	}
+
+
 	public function save_settings () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
@@ -208,7 +229,6 @@ class ShoppFlow {
 	public static function welcome () {
 		return defined('WP_ADMIN') && shopp_setting_enabled('display_welcome') && empty($_POST['setup']);
 	}
-
 
 } // End class ShoppFlow
 
