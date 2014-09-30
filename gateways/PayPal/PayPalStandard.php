@@ -209,7 +209,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param RefundOrderEvent $Event The 'refund' order event message
 	 * @return void
 	 **/
-	public function refund ( RefundOrderEven8t $Event ) {
+	public function refund ( RefundOrderEvent $Event ) {
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
