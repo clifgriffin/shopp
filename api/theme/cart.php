@@ -6,7 +6,7 @@
  *
  * @copyright Ingenesis Limited, 2012-2014
  * @license   GNU GPL version 3 (or later) {@see license.txt}
- * @package   Shopp\Theme API\Cart
+ * @package   Shopp\API\Theme\Cart
  * @version   1.3
  * @since     1.2
  **/
@@ -20,7 +20,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppCartThemeAPI implements ShoppAPI {
 	/**
-	 * @var array $register The registry of available `shopp('cart')` properties
+	 * @var array The registry of available `shopp('cart')` properties
 	 * @internal
 	 **/
 	static $register = array(

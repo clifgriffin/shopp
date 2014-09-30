@@ -5,10 +5,10 @@
  * ShoppCartItemThemeAPI provides shopp('cartitem') Theme API tags
  *
  * @api
- * @copyright Ingenesis Limited, 2012-2013
- * @package shopp
- * @since 1.2
+ * @copyright Ingenesis Limited, 2012-2014
+ * @package Shopp\API\Theme\CartItem
  * @version 1.3
+ * @since 1.2
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -24,7 +24,7 @@ add_filter('shopp_cartitem_input_data', 'wpautop');
  **/
 class ShoppCartItemThemeAPI implements ShoppAPI {
 	/**
-	 * @var array $register The registry of available `shopp('cart')` properties
+	 * @var array The registry of available `shopp('cart')` properties
 	 * @internal
 	 **/
 	static $register = array(
