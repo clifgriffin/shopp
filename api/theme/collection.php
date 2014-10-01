@@ -394,8 +394,19 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		return $facet->slug;
 	}
 
+	/**
+	 * Display the current facet manu link
+	 *
+	 * @api `shopp('collection.facet-link')`
+	 * @since 1.2
+	 *
+	 * @param string          $result  The output
+	 * @param array           $options The options
+	 * @param ShoppCollection $O       The working object
+	 * @return string The current facet slug
+	 **/
 	public static function facet_link ( $result, $options, $O ) {
-		if (isset($O->_filters_loop)) $facet = $O->facet;
+		if ( isset($O->_filters_loop) ) $facet = $O->facet;
 		else $facet = current($O->facets);
 		return $facet->link;
 	}
