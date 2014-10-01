@@ -32,7 +32,7 @@ add_filter('shopp_checkout_order_data', 'wpautop');
 class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 	/**
-	 * @var array $register The registry of available `shopp('cart')` properties
+	 * @var array The registry of available `shopp('cart')` properties
 	 * @internal
 	 **/
 	static $register = array(

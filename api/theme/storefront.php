@@ -91,6 +91,36 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $Object; // not mine, do nothing
 	}
 
+	/**
+	 * Generates image markup
+	 *
+	 * @internal
+	 *
+	 * @param string $result  The output
+	 * @param array  $options The options
+	 * - **alt**: The alt property of the image
+	 * - **bg**: The background color to use with the matte fit (#rrggbb)
+	 * - **class**: Specifies the CSS class of the image
+	 * - **fit**: The fit of unproportional images to the requested size:
+	 * -- **width**: Scale the image down to fit the image in the new size by the width, cropping any extra height
+	 * -- **height**: Scale the image down to fit the image in the new size by the height, cropping any extra width
+	 * -- **crop**: Scale the image down to fit by the smallest dimension to fill the entire image, cropping the extra off the other dimension (specific cropping adjustments can be made in the product editor)
+	 * -- **matte**: Scale the image down to fit within the new size filling extra space with a background color
+	 * -- **all**: Scale the image down to fit within the new size (the final size may differ from the specified dimensions)
+	 * - **id**: Specify the image to show by the database ID
+	 * - **index**: Specify the index of the image to show
+	 * - **property**: (id,url,src,title,alt,width,height,class) Provide a property of the image rather than the image markup
+	 * - **quality**: The JPEG image quality (0-100%, default is 80)
+	 * - **sharpen**: Apply an unsharp mask to the image (100%-500%, default is none)
+	 * - **size**: The size to use for width and height of the image (used in place of width and height)
+	 * - **title**: The title property of the image
+	 * - **width**: The width of the image in pixels
+	 * - **height**: The height of the image in pixels
+	 * - **zoom**: Enables the image zoom effect to view the original size image in a modal image viewer (Colorbox)
+	 * - **zoomfx**: `shopp-zoom` Enables zoom (also known as lightbox) effects for alternate JavaScript-based modal content viewers.
+	 * @param Object $O       The working object
+	 * @return string The generated image markup
+	 **/
 	public static function image ( $result, $options, $O ) {
 		if ( empty($O->images) ) return;
 
@@ -103,23 +133,23 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( ! $_height ) $_height = $_size;
 
 		$defaults = array(
-			'img' => false,
-			'id' => false,
-			'index' => false,
-			'class' => '',
-			'setting' => '',
-			'width' => false,
-			'height' => false,
-			'size' => false,
-			'fit' => null,
-			'sharpen' => null,
-			'quality' => null,
-			'bg' => false,
 			'alt' => '',
+			'bg' => false,
+			'class' => '',
+			'fit' => null,
+			'height' => false,
+			'id' => false,
+			'img' => false,
+			'index' => false,
+			'property' => false,
+			'quality' => null,
+			'setting' => '',
+			'sharpen' => null,
+			'size' => false,
 			'title' => '',
+			'width' => false,
 			'zoom' => '',
 			'zoomfx' => 'shopp-zoom',
-			'property' => false
 		);
 
 		// Populate defaults from named image settings to allow specific overrides
