@@ -204,11 +204,11 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * - **bg**: The background color to use with the matte fit (#rrggbb)
 	 * - **class**: Specifies the CSS class of the image
 	 * - **fit**: The fit of unproportional images to the requested size:
-	 * -- **width**: Scale the image down to fit the image in the new size by the width, cropping any extra height
-	 * -- **height**: Scale the image down to fit the image in the new size by the height, cropping any extra width
-	 * -- **crop**: Scale the image down to fit by the smallest dimension to fill the entire image, cropping the extra off the other dimension (specific cropping adjustments can be made in the product editor)
-	 * -- **matte**: Scale the image down to fit within the new size filling extra space with a background color
-	 * -- **all**: Scale the image down to fit within the new size (the final size may differ from the specified dimensions)
+	 *   - **all**: Scale the image down to fit within the new size (the final size may differ from the specified dimensions)
+	 *   - **crop**: Scale the image down to fit by the smallest dimension to fill the entire image, cropping the extra off the other dimension (specific cropping adjustments can be made in the product editor)
+	 *   - **height**: Scale the image down to fit the image in the new size by the height, cropping any extra width
+	 *   - **matte**: Scale the image down to fit within the new size filling extra space with a background color
+	 *   - **width**: Scale the image down to fit the image in the new size by the width, cropping any extra height
 	 * - **id**: Specify the image to show by the database ID
 	 * - **property**: (id,url,src,title,alt,width,height,class) Provide a property of the image rather than the image markup
 	 * - **quality**: The JPEG image quality (0-100%, default is 80)

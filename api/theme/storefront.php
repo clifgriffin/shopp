@@ -102,11 +102,11 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * - **bg**: The background color to use with the matte fit (#rrggbb)
 	 * - **class**: Specifies the CSS class of the image
 	 * - **fit**: The fit of unproportional images to the requested size:
-	 * -- **width**: Scale the image down to fit the image in the new size by the width, cropping any extra height
-	 * -- **height**: Scale the image down to fit the image in the new size by the height, cropping any extra width
-	 * -- **crop**: Scale the image down to fit by the smallest dimension to fill the entire image, cropping the extra off the other dimension (specific cropping adjustments can be made in the product editor)
-	 * -- **matte**: Scale the image down to fit within the new size filling extra space with a background color
-	 * -- **all**: Scale the image down to fit within the new size (the final size may differ from the specified dimensions)
+	 *   - **all**: Scale the image down to fit within the new size (the final size may differ from the specified dimensions)
+	 *   - **crop**: Scale the image down to fit by the smallest dimension to fill the entire image, cropping the extra off the other dimension (specific cropping adjustments can be made in the product editor)
+	 *   - **height**: Scale the image down to fit the image in the new size by the height, cropping any extra width
+	 *   - **matte**: Scale the image down to fit within the new size filling extra space with a background color
+	 *   - **width**: Scale the image down to fit the image in the new size by the width, cropping any extra height
 	 * - **id**: Specify the image to show by the database ID
 	 * - **index**: Specify the index of the image to show
 	 * - **property**: (id,url,src,title,alt,width,height,class) Provide a property of the image rather than the image markup
@@ -116,7 +116,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * - **title**: The title property of the image
 	 * - **width**: The width of the image in pixels
 	 * - **height**: The height of the image in pixels
-	 * - **zoom**: Enables the image zoom effect to view the original size image in a modal image viewer (Colorbox)
+	 * - **zoom**: `off` Enables the image zoom effect to view the original size image in a modal image viewer (Colorbox)
 	 * - **zoomfx**: `shopp-zoom` Enables zoom (also known as lightbox) effects for alternate JavaScript-based modal content viewers.
 	 * @param Object $O       The working object
 	 * @return string The generated image markup
@@ -148,7 +148,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'size' => false,
 			'title' => '',
 			'width' => false,
-			'zoom' => '',
+			'zoom' => false,
 			'zoomfx' => 'shopp-zoom',
 		);
 
