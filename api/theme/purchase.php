@@ -929,8 +929,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 *
 	 * @param string        $result  The output
 	 * @param array         $options The options
-	 * - **before**:
-	 * - **after**:
+	 * - **before**: Markup to add before the list
+	 * - **after**: Markup to add after the list
 	 * - **class**:
 	 * - **exclude**:
 	 * @param ShoppPurchase $O       The working object
