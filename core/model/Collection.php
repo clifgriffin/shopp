@@ -342,7 +342,7 @@ class ProductCollection implements Iterator {
 		}
 
 		$item = array();
-		$item['guid'] = shopp($product, 'get-url');
+		$item['guid'] = shopp($product, 'get-id');
 		$item['title'] = $product->name;
 		$item['link'] =  shopp($product, 'get-url');
 		$item['pubDate'] = date('D, d M Y H:i O', $product->publish);
