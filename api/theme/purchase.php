@@ -38,7 +38,6 @@ add_filter('shopp_themeapi_purchase_emailnote', 'wpautop');
  *
  * @author Jonathan Davis, John Dillick
  * @since 1.2
- *
  **/
 class ShoppPurchaseThemeAPI implements ShoppAPI {
 
