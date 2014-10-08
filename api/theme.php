@@ -2,13 +2,11 @@
 /**
  * Shopp Theme API
  *
- * @author Jonathan Davis, John Dillick
- * @version 1.0
- * @copyright Ingenesis Limited, February 25, 2011
- * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package Shopp
- * @since 1.2
- * @subpackage Theme
+ * @copyright Ingenesis Limited, February 2011-2014
+ * @license   GNU GPL version 3 (or later) {@see license.txt}
+ * @package   Shopp\API\Theme API
+ * @version   1.0
+ * @since     1.2
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -18,15 +16,15 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  *
  * Appropriately routes tag calls to the tag handler for the requested object.
  *
+ * @api
  * @since 1.0
- * @version 1.2
  *
- * @param mixed $context The object label or Object to get the tag property from
- * @param $property The property of the object to get/output
- * @param $options Custom options for the property result in query form
- *                   (option1=value&option2=value&...) or alternatively as an associative array
+ * @param mixed        $context  The object label or Object to get the tag property from
+ * @param string       $property The property of the object to get/output
+ * @param string|array $options  Custom options for the property result in query form
+ *                               (option1=value&option2=value&...) or alternatively as an associative array
  */
-function shopp () {
+function shopp ( $context, $property = false, $options = false ) {
 
 	$Object = false;
 	$result = false;
