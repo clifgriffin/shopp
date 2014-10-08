@@ -105,8 +105,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		// Deprecated
 		'hasvariations' => 'has_variants',
-		'variation' => 'variation',
-		'variations' => 'variations'
+		'variation' => 'variant',
+		'variations' => 'variants',
 	);
 
 	/**
