@@ -4,13 +4,11 @@
  *
  * Set of api calls for retrieving, storing, modifying orders, and sending order events.
  *
- * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, June 23, 2011
  * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package shopp
+ * @package Shopp/API/Order
+ * @version 1.0
  * @since 1.0
- * @subpackage shopp
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -18,7 +16,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 /**
  * shopp_orders - get a list of purchases
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
@@ -27,6 +25,9 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param array $customers (optional) list of int customer ids to limit the purchases to.  All customers by default.
  * @param int $limit (optional default:false) maximimum number of results to get, false for no limit
  * @param string $order (optional default:DESC) DESC or ASC, for sorting in ascending or descending order.
+ * @param string $orderby (optional) The column used to sort records
+ * @param bool $paidonly (optional) Restrict to orders where payment has been completed
+ * @param bool $downloads (optional) Restrict to orders that have downloads
  * @return array of Purchase objects
  **/
 function shopp_orders ( $from = false, $to = false, $items = true, array $customers = array(), $limit = false, $order = 'DESC', $orderby = 'id', $paidonly = false, $downloads = false ) {
@@ -77,11 +78,8 @@ function shopp_orders ( $from = false, $to = false, $items = true, array $custom
 }
 
 /**
- * _shopp_order_purchase - helper function for shopp_orders
- *
- * @author John Dillick
+ * @ignore Helper function for shopp_orders
  * @since 1.2
- *
  **/
 function _shopp_order_purchase ( &$records, &$record, $purchased ) {
 
@@ -97,11 +95,8 @@ function _shopp_order_purchase ( &$records, &$record, $purchased ) {
 }
 
 /**
- * _shopp_order_purchased - helper function for shopp_orders
- *
- * @author John Dillick
+ * @ignore Helper function for shopp_orders
  * @since 1.2
- *
  **/
 function _shopp_order_purchased ( &$records, &$record ) {
 
@@ -123,7 +118,7 @@ function _shopp_order_purchased ( &$records, &$record ) {
 /**
  * shopp_order_count - get an order count, total or during or a time period
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param mixed $from (optional) mktime or SQL datetime, get purchases after this date/time.
@@ -137,7 +132,7 @@ function shopp_order_count ( $from = false, $to = false ) {
 /**
  * shopp_customer_orders - get a list of orders for a particular customer
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $customer (required) the customer id to load the orders for
@@ -163,7 +158,7 @@ function shopp_customer_orders ( $customer = false, $from = false, $to = false, 
 /**
  * shopp_recent_orders - load orders for a specified time range in the past
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $time number of time units (period) to go back
@@ -188,7 +183,7 @@ function shopp_recent_orders ($time = 1, $period = 'day') {
 /**
  * shopp_recent_orders - load orders for a specified time range in the past for a particular customer
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $customer (required) the customer id to load the orders for
@@ -219,7 +214,7 @@ function shopp_recent_customer_orders ($customer = false, $time = 1, $period = '
 /**
  * shopp_last_order - get the most recent order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @return ShoppPurchase object or false on failure
@@ -234,7 +229,7 @@ function shopp_last_order () {
 /**
  * shopp_last_customer_order - load the most recent order for a particular customer
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $customer (required) the customer id to load the order for
@@ -254,7 +249,7 @@ function shopp_last_customer_order ( $customer = false ) {
 /**
  * shopp_order - load a specified order by id
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id, or the transaction id
@@ -277,7 +272,7 @@ function shopp_order ( $id = false, $by = 'id' ) {
  *
  * get the current amount balance left uncharged on order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -295,7 +290,7 @@ function shopp_order_amt_balance ( $id = false, $by = 'id' ) {
  *
  * get the current amount invoiced on order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -313,7 +308,7 @@ function shopp_order_amt_invoiced ( $id = false, $by = 'id' ) {
  *
  * get the current amount authorized on order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -331,7 +326,7 @@ function shopp_order_amt_authorized ( $id = false, $by = 'id' ) {
  *
  * get the current amount captured on order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -349,7 +344,7 @@ function shopp_order_amt_captured ( $id = false, $by = 'id' ) {
  *
  * get the current amount refunded on order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -367,7 +362,7 @@ function shopp_order_amt_refunded ( $id = false, $by = 'id' ) {
  *
  * find out if the order has been voided
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id or txn id
@@ -383,7 +378,7 @@ function shopp_order_is_void ( $id = false, $by = 'id' ) {
 /**
  * shopp_order_exists - determine if an order exists with the specified id, or transaction id.
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $id the order id, or the transaction id
@@ -406,7 +401,7 @@ function shopp_order_exists ( $id = false, $by = 'id' ) {
 /**
  * shopp_add_order - create an order from the cart and associate with a customer
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $customer the customer that the order will be created for
@@ -442,7 +437,7 @@ function shopp_add_order ( $customer = false ) {
 /**
  * shopp_rmv_order - remove an order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param init $id id of order to remove
@@ -465,7 +460,7 @@ function shopp_rmv_order ($id) {
 /**
  * shopp_add_order_line - add a line item to an order.
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order (required) the order id to add the line item to
@@ -538,7 +533,7 @@ function shopp_add_order_line ( $order = false, $data = array() ) {
 /**
  * shopp_rmv_order_line - remove an order line by index
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order (required) the order id to remove the line from
@@ -580,7 +575,7 @@ function shopp_rmv_order_line ( $order = false, $line = 0 ) {
 /**
  * shopp_order_lines - get a list of the items associated with an order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order (required) the order id
@@ -595,7 +590,7 @@ function shopp_order_lines ( $order = false ) {
 /**
  * shopp_order_line_count - get the number of line items in a specified order
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id
@@ -610,7 +605,7 @@ function shopp_order_line_count ( $order = false ) {
 /**
  * shopp_add_order_line_download - attach a download asset to a order line
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id to add the download asset to
@@ -646,7 +641,7 @@ function shopp_add_order_line_download ( $order = false, $line = 0, $download = 
 /**
  * shopp_rmv_order_line_download - remove a download asset from a line item
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id to remove the download asset from
@@ -675,7 +670,7 @@ function shopp_rmv_order_line_download ( $order = false, $line = 0 ) {
  *
  * Retrieve one or or all order data entries
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id from which to retrieve the data entry
@@ -695,7 +690,7 @@ function shopp_order_data ( $order = false, $name = false ) {
  *
  * set an order data entry
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id to which to set the order data entry
@@ -721,7 +716,7 @@ function shopp_set_order_data ( $order = false, $name = false, $value = false ) 
  *
  * Remove one or all order data entries.
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id from which to remove the order data
@@ -742,7 +737,7 @@ function shopp_rmv_order_data ( $order = false, $name = false ) {
 /**
  * shopp_order_line_data_count - return the count of the line item data array
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id
@@ -761,7 +756,7 @@ function shopp_order_line_data_count ($order = false, $line = 0 ) {
 /**
  * shopp_order_line_data - return the line item data
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id
@@ -784,7 +779,7 @@ function shopp_order_line_data ($order = false, $line = 0, $name = false) {
 /**
  * shopp_add_order_line_data - add one or more key=>value pair to the line item data array.  The specified data is merged with existing data.
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order the order id
@@ -809,7 +804,7 @@ function shopp_add_order_line_data ( $order = false, $line = 0, $data = array() 
 /**
  * shopp_rmv_order_line_data - remove all or one data key=>value pair from the order line data array
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order (required) the order id
@@ -833,7 +828,7 @@ function shopp_rmv_order_line_data ($order = false, $line = 0, $name = false) {
 /**
  * shopp_add_order_event - log an order event
  *
- * @author John Dillick
+ * @api
  * @since 1.2
  *
  * @param int $order (conditionally required default:false) Will be false for purchase events, but needs the order id otherwise.
