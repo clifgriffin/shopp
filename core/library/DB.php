@@ -402,10 +402,12 @@ class sDB extends SingletonFramework {
 
 		// Handle special cases
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i", $query) ) {
+			if ( ! $result ) return false;
 			$db->affected = $db->api->affected();
 			if ( preg_match("/^\\s*(insert|replace) /i", $query) ) {
 				$insert = $db->api->object( $db->api->query("SELECT LAST_INSERT_ID() AS id") );
-				return (int)$insert->id;
+				if ( ! empty($insert->id) )
+					return (int)$insert->id;
 			}
 
 			if ( $db->affected > 0 ) return $db->affected;

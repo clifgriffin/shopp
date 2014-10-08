@@ -232,8 +232,12 @@ abstract class ShoppSessionFramework {
 			$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'";
 		else $query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
-		if ( ! sDB::query($query) )
-			trigger_error("Could not save session updates to the database.");
+		$result = sDB::query($query);
+
+		if ( ! $result ) {
+			if ( false !== strpos($query, 'INSERT') ) trigger_error("Could not save a new session update to the database.");
+			else trigger_error("Could not save session updates to the database.");
+		}
 
 		do_action('shopp_session_saved');
 
