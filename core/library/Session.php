@@ -227,8 +227,10 @@ abstract class ShoppSessionFramework {
 		$this->encrypt($data);
 
 		$now = current_time('mysql');
-		$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'
-					ON DUPLICATE KEY UPDATE ip='$this->ip',stash='$this->stash',data='$data',modified='$now'";
+
+		if ( empty($this->created) )
+			$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'";
+		else $query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
 		if ( ! sDB::query($query) )
 			trigger_error("Could not save session updates to the database.");
