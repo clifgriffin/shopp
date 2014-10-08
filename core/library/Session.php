@@ -48,7 +48,7 @@ abstract class ShoppSessionFramework {
 	 * Begins the session
 	 *
 	 * @return void
-	 */
+	 **/
 	public function __construct () {
 
 		if ( ! defined('SHOPP_SECURE_KEY') )
@@ -78,7 +78,7 @@ abstract class ShoppSessionFramework {
 	 *
 	 * @param bool $resession Generate a new session id
 	 * @return string The generated or current session id
-	 */
+	 **/
 	public function session ( $resession = false ) {
 
 		if ( $resession || empty($this->session) ) {
@@ -106,7 +106,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.0
 	 *
 	 * @return bool True if a session cookie exists, false otherwise;
-	 */
+	 **/
 	protected function open () {
 
 		// Ensure a secure encryption key is generated
@@ -132,7 +132,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.0
 	 *
 	 * @return bool True if session data was loaded successfully, false otherwise
-	 */
+	 **/
 	protected function load ( $session = false ) {
 
 		if ( empty($session) )
@@ -169,7 +169,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.3.6
 	 *
 	 * @return bool True if a cookie was set, false otherwise
-	 */
+	 **/
 	protected function cook () {
 
 		if ( headers_sent() ) {
@@ -198,7 +198,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.3.6
 	 *
 	 * @return void
-	 */
+	 **/
 	protected function destroy () {
 		unset($this->session, $this->ip, $this->data, $this->created, $this->modified);
 	}
@@ -213,7 +213,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.0
 	 *
 	 * @return bool True if successful, false otherwise
-	 */
+	 **/
 	public function save () {
 
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
@@ -227,11 +227,17 @@ abstract class ShoppSessionFramework {
 		$this->encrypt($data);
 
 		$now = current_time('mysql');
-		$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'
-					ON DUPLICATE KEY UPDATE ip='$this->ip',stash='$this->stash',data='$data',modified='$now'";
 
-		if ( ! sDB::query($query) )
-			trigger_error("Could not save session updates to the database.");
+		if ( empty($this->created) )
+			$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'";
+		else $query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
+
+		$result = sDB::query($query);
+
+		if ( ! $result ) {
+			if ( false !== strpos($query, 'INSERT') ) trigger_error("Could not save a new session update to the database.");
+			else trigger_error("Could not save session updates to the database.");
+		}
 
 		do_action('shopp_session_saved');
 
@@ -239,14 +245,13 @@ abstract class ShoppSessionFramework {
 	}
 
 	/**
-	 * Garbage collection routine for cleaning up old and expired
-	 * sessions.
+	 * Garbage collection routine for cleaning up old and expired sessions.
 	 *
 	 * 1.3 Added support for shopping session cold storage
 	 *
 	 * @since 1.1
 	 *
-	 * @return boolean
+	 * @return bool True if successful, false otherwise
 	 **/
 	public function clean () {
 		if ( empty($this->session) ) return false;
@@ -266,7 +271,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.0
 	 *
 	 * @param bool $setting Sets the secured flag (true or false)
-	 * @return boolean
+	 * @return bool True if the session mode is secure, false otherwise
 	 **/
 	public function secured ( $setting = null ) {
 		if ( is_null($setting) ) return $this->secure;
@@ -289,7 +294,7 @@ abstract class ShoppSessionFramework {
 	 *
 	 * @param string $id The session id to check
 	 * @return bool True if the session exists, false otherwise
-	 */
+	 **/
 	protected function exists ( $id ) {
 
 		$exists = sDB::query("SELECT session FROM $this->_table WHERE session='$id' LIMIT 1", 'auto', 'col', 'id');
@@ -331,7 +336,7 @@ abstract class ShoppSessionFramework {
 	 *
 	 * @param array $data The session data to encrypt
 	 * @return void
-	 */
+	 **/
 	private function encrypt ( &$data ) {
 
 		if ( ! $this->secured() ) return;
@@ -360,7 +365,7 @@ abstract class ShoppSessionFramework {
 	 *
 	 * @param array $data The session data to possibly decrypt
 	 * @return void
-	 */
+	 **/
 	private function decrypt ( &$data ) {
 
 		$BOF = strlen(self::ENCRYPTION);
@@ -385,7 +390,7 @@ abstract class ShoppSessionFramework {
 	 * No default behavior exists. It must be implemented in the concrete class.
 	 *
 	 * @since 1.3.6
-	 */
+	 **/
 	abstract public function unlock ();
 
 	/**
@@ -394,7 +399,7 @@ abstract class ShoppSessionFramework {
 	 * @since 1.3.6
 	 *
 	 * @return string String of random bytes
-	 */
+	 **/
 	private function entropy () {
 
 		$entropy = '';
