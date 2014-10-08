@@ -1620,6 +1620,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$string = '';
 		$id = 'submit-login';
 
+		$request = $_GET;
+		if ( isset($request['acct']) && 'logout' == $request['acct'] ) unset($request['acct']);
+
 		$context = ShoppStorefront::intemplate();
 		if ( 'checkout.php' == $context ) {
 			$id .= '-checkout';
