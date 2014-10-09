@@ -364,9 +364,9 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			// Index addon prices by option
 			$index = array();
-			foreach ($O->prices as $pricetag) {
-				if ($pricetag->context != "addon") continue;
-				$index[$pricetag->optionkey] = $pricetag;
+			foreach ( $O->prices as $pricetag ) {
+				if ( 'addon' != $pricetag->context ) continue;
+				$index[ $pricetag->optionkey ] = $pricetag;
 			}
 
 			foreach ( $addons as $id => $menu ) {
@@ -413,7 +413,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 
 		if ( $required )
-			add_storefrontjs("$('#" . $menuid . "').parents('form').bind('shopp_validate',function () { if ('' == $('#" . $menuid . "').val()) this.shopp_validation = ['" . $required_error . "', $('#" . $menuid . "').get(0) ]; }); ");
+			add_storefrontjs("$('#" . $menuid . "').parents('form').on('shopp_validate',function(){if($('#" . $menuid . "').val()=='')$(this).data('error',['" . $required_error . "',$('#" . $menuid . "').get(0)]);});");
 
 		return join('', $markup);
 	}
