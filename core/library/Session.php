@@ -254,7 +254,7 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if successful, false otherwise
 	 **/
 	public function clean () {
-		if ( empty($this->session) ) return false;
+		if ( mt_rand(0, 99) ) return false; // Randomly clean sessions on 1% of requests
 
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$now = current_time('mysql');
