@@ -1302,6 +1302,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * - **rows**: Specifies the visible number of lines in a `<textarea>`
 	 * - **title**: Specifies extra information about an element
 	 * - **value**: Specifies the value of an `<input>` element
+	 * - **slug**: Provides the current payoption slug
 	 * @param ShoppOrder $O       The working object
 	 * @return string The markup for the current payment option
 	 **/
@@ -1316,7 +1317,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options, EXTR_SKIP);
 
-		if ( Shopp::str_true($return) ) return $value;
+		if ( isset($options['slug']) ) return $value;
 
 		$types = array('radio', 'checkbox', 'hidden');
 		if ( ! in_array($type, $types) ) $type = 'hidden';
