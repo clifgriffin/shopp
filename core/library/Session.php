@@ -61,11 +61,11 @@ abstract class ShoppSessionFramework {
 		$this->trim();
 		$this->open();
 		$this->load();
-		$this->cook();
+
+		if ( $this->cook() )
+			add_action('shutdown', array($this, 'save'));
 
 		shopp_debug('Session started ' . str_repeat('-', 64));
-
-		add_action('shutdown', array($this, 'save'));
 
 	}
 
@@ -108,7 +108,7 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if a session cookie exists, false otherwise;
 	 **/
 	protected function open () {
-		error_log(__METHOD__);
+
 		// Ensure a secure encryption key is generated
 		$this->securekey();
 
@@ -219,6 +219,8 @@ abstract class ShoppSessionFramework {
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] ) return false;
 
+		if ( empty($this->session) ) return false; // Do not save if there is no session id
+
 		if ( false === $this->data )
 			return false; // Encryption failed because of no SSL, do not save
 
@@ -227,8 +229,7 @@ abstract class ShoppSessionFramework {
 		$this->encrypt($data);
 
 		$now = current_time('mysql');
-
-		if ( empty($this->created) )
+		if ( is_null($this->created) )
 			$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'";
 		else $query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
@@ -242,6 +243,17 @@ abstract class ShoppSessionFramework {
 		do_action('shopp_session_saved');
 
 		return true;
+	}
+
+	/**
+	 * Disable the session for this request
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function disable () {
+		$this->session = null;
 	}
 
 	/**
