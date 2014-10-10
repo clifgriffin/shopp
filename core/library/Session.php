@@ -58,7 +58,7 @@ abstract class ShoppSessionFramework {
 			define('SHOPP_SESSION_COOKIE', 'wp_shopp_' . COOKIEHASH);
 
 
-		$this->clean();
+		$this->trim();
 		$this->open();
 		$this->load();
 		$this->cook();
@@ -108,7 +108,7 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if a session cookie exists, false otherwise;
 	 **/
 	protected function open () {
-
+		error_log(__METHOD__);
 		// Ensure a secure encryption key is generated
 		$this->securekey();
 
@@ -245,6 +245,18 @@ abstract class ShoppSessionFramework {
 	}
 
 	/**
+	 * Randomly clean up stale sessions
+	 *
+	 * Clean up stale sessions on 1% of connections
+	 *
+	 * @return void
+	 **/
+	private function trim () {
+		if ( ! mt_rand(0, 99) )
+			$this->clean();
+	}
+
+	/**
 	 * Garbage collection routine for cleaning up old and expired sessions.
 	 *
 	 * 1.3 Added support for shopping session cold storage
@@ -254,8 +266,6 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if successful, false otherwise
 	 **/
 	public function clean () {
-		if ( mt_rand(0, 99) ) return false; // Randomly clean sessions on 1% of requests
-
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$now = current_time('mysql');
 
