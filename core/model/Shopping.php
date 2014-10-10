@@ -126,8 +126,6 @@ class Shopping extends ShoppSessionFramework {
 	 * @return void
 	 */
 	public function clean () {
-		if ( empty($this->session) ) return false;
-
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$expired = SHOPP_CART_EXPIRES;
 		$now = current_time('mysql');
@@ -144,7 +142,6 @@ class Shopping extends ShoppSessionFramework {
 		sDB::query("DELETE FROM $meta_table WHERE context='purchase' AND name='registration' AND type='meta' AND $expired < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)");
 
 		return parent::clean();
-
 	}
 
 	/**
