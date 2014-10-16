@@ -54,7 +54,7 @@ abstract class ShoppCore {
 			array_push($errors, 'wpversion', 'wp35');
 
 		// Check for GD
-		if ( ! function_exists('gd_info') ) $errors[] = 'gd';
+		if ( ! function_exists('gd_info') ) $errors[] = 'gdsupport';
 		elseif ( ! array_keys( gd_info(), array('JPG Support', 'JPEG Support')) ) $errors[] = 'jpgsupport';
 
 		if ( empty($errors) ) {
