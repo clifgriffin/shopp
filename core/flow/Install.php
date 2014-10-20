@@ -1060,6 +1060,9 @@ class ShoppInstallation extends ShoppFlowController {
 		$db_version = ShoppSettings::dbversion();
 
 		if ( $db_version < 1201 ) {
+			// 1.3 schema changes
+			$this->upschema();
+
 			// All existing sessions must be cleared and restarted, 1.3 & 1.3.6 sessions are not compatible with any prior version of Shopp
  		   	ShoppShopping()->reset();
 			$sessions_table = ShoppDatabaseObject::tablename('shopping');
@@ -1067,9 +1070,6 @@ class ShoppInstallation extends ShoppFlowController {
 		}
 
 		if ( $db_version < 1200 ) {
-
-			// 1.3 schema changes
-			$this->upschema();
 
 			$meta_table = ShoppDatabaseObject::tablename('meta');
 			sDB::query("UPDATE $meta_table SET value='on' WHERE name='theme_templates' AND (value != '' AND value != 'off')");
