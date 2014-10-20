@@ -439,7 +439,6 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( ! is_shopp_collection() ) return $template;
 
 		$Page = new ShoppCollectionPage();
-		$Page->poststub();
 
 		return locate_template( $Page->templates() );
 	}
