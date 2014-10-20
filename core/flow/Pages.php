@@ -981,6 +981,7 @@ class ShoppCollectionPage extends ShoppPage {
 		global $wp_query;
 		// Only modify content for Shopp collections (Shopp smart collections and taxonomies)
 		if ( ! $wp_query->is_main_query() ||  ! is_shopp_collection() ) return $content;
+		remove_filter('the_content', array($this, 'content'), 20);
 
 		$Collection = ShoppCollection();
 
