@@ -35,7 +35,7 @@
 		<p class="freeshipping"><?php _e( 'Free Shipping!', 'Shopp' ); ?></p>
 	<?php endif; ?>
 
-	<form action="<?php shopp( 'cart.url' ); ?>" method="post" class="shopp addtocart validate validation-alerts">
+	<form action="<?php shopp( 'cart.url' ); ?>" method="post" class="shopp validate validation-alerts">
 		<?php if ( shopp( 'product.has-variants' ) ) : ?>
 			<ul class="variations">
 				<?php shopp( 'product.variants', 'mode=multiple&label=true&defaults=' . __( 'Select an option', 'Shopp') . '&before_menu=<li>&after_menu=</li>' ); ?>
