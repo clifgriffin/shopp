@@ -167,7 +167,9 @@ class ShoppRegistration extends FormPostFramework {
 		do_action('shopp_customer_registration', $Customer);
 
 		if ( $Customer->session(ShoppCustomer::GUEST) ) {
-			$Customer->type = __('Guest', 'Shopp');
+			$Customer->type = __('Guest', 'Shopp'); // No cuts
+			$Customer->wpuser = 0;                  // No buts
+			unset($Customer->password);             // No coconuts
 		} else {
 
 			// WordPress account integration used, customer has no wp user
