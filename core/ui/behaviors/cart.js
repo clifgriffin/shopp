@@ -121,7 +121,7 @@ jQuery(document).ready(function($) {
 	// "Add to cart" button behaviors
 	$('input.addtocart').each(function() {
 		var button = $(this),
-			form = button.parents('form.product');
+			form = button.closest('form');
 		if (!form) return false;
 		form.unbind('submit.validate').bind('submit.addtocart',function (e) {
 			e.preventDefault();
