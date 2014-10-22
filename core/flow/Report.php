@@ -463,9 +463,7 @@ abstract class ShoppReportFramework {
 	 * @return string Date index column SQL statement
 	 **/
 	public function timecolumn ( $column ) {
-		$tzoffset = date('Z')/3600;
-		$column = "CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00')";
-		switch (strtolower($this->options['scale'])) {
+		switch ( strtolower($this->options['scale']) ) {
 			case 'hour':	$_ = "HOUR($column)"; break;
 			case 'week':	$_ = "WEEK($column,3),' ',YEAR($column)"; break;
 			case 'month':	$_ = "MONTH($column),' ',YEAR($column)"; break;
@@ -473,20 +471,6 @@ abstract class ShoppReportFramework {
 			default:		$_ = "DAY($column),' ',MONTH($column),' ',YEAR($column)";
 		}
 		return $_;
-	}
-
-	/**
-	 * Gets the timezone-offset corrected unix_timestamp value for a MySQL column
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param string $column The column name
-	 * @return string The UNIX_TIMESTAMP SQL column fragment
-	 **/
-	static function unixtime ( $column ) {
-		$tzoffset = date('Z')/3600;
-		return "UNIX_TIMESTAMP(CONVERT_TZ($column,'+00:00','".($tzoffset>=0?'+':'-')."$tzoffset:00'))";
 	}
 
 	/**

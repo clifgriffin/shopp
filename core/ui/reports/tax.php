@@ -18,8 +18,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = array();
 
-		$where[] = "$starts < " . self::unixtime('o.created');
-		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.created BETWEEN '" . sDB::mkdatetime($starts) . "' AND '" . sDB::mkdatetime($ends) . "'";
 		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
 
 		$where = join(" AND ",$where);

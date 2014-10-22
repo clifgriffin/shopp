@@ -17,8 +17,7 @@ class ShippingReport extends ShoppReportFramework implements ShoppReport {
 
 		$where = array();
 		$where[] = "o.freight > 0";
-		$where[] = "$starts < " . self::unixtime('o.created');
-		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.created BETWEEN '" . sDB::mkdatetime($starts) . "' AND '" . sDB::mkdatetime($ends) . "'";
 
 		$where = join(" AND ", $where);
 		$id = $this->timecolumn('o.created');
