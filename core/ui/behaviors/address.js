@@ -11,8 +11,8 @@
 			var $this = $(this),
 				prefix = $this.attr('id').split('-')[0],
 				country = $this.val(),
-				state = $('#'+prefix+'-state'),
-				menu = $('#'+prefix+'-state-menu'),
+				state = $this.parents().find('#' + prefix + '-state'),
+				menu = $this.parents().find('#' + prefix + '-state-menu'),
 				options = '<option value=""></option>';
 
 			if (menu.length == 0) return true;
