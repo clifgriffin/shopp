@@ -1263,8 +1263,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 				return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
 				break;
 			case "menu":
-				if (is_string($options)) $options = explode(',',$options);
-				return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+				$menuvalues = true;			
+				if ( is_string($options) ) {
+					$menuvalues = false;
+					$options = explode(',',$options);
+				}
+				return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value,$menuvalues).'</select>';
 				break;
 			default:
 				return '<input type="'.$type.'" name="data['.$name.']" id="'.$id.'" '.inputattrs($op).' />';
