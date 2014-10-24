@@ -1685,7 +1685,7 @@ abstract class ShoppCore {
 	 **/
 	public static function email ( $template, array $data = array() ) {
 
-		$debug = false;
+		$debug = defined('SHOPP_DEBUG_EMAIL') && SHOPP_DEBUG_EMAIL;
 		$headers = array();
 		$to = $subject = $message = '';
 
@@ -1741,7 +1741,7 @@ abstract class ShoppCore {
 
 		do_action('shopp_email_completed');
 
-		if ( true ) {
+		if ( $debug ) {
 			shopp_debug("To: " . htmlspecialchars($to) . "\n");
 			shopp_debug("Subject: $subject\n\n");
 			shopp_debug("Headers:\n");

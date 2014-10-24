@@ -95,6 +95,7 @@ abstract class ShoppSessionFramework {
 			}
 
 		    $this->session = $session;
+			$this->created = null; // Reset created timestamp for new sessions
 		}
 
 		return $this->session;
@@ -215,6 +216,9 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if successful, false otherwise
 	 **/
 	public function save () {
+
+		// Don't create sessions for robots
+		if ( is_robot() ) return false;
 
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] ) return false;
