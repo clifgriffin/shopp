@@ -1067,6 +1067,9 @@ class ShoppInstallation extends ShoppFlowController {
  		   	ShoppShopping()->reset();
 			$sessions_table = ShoppDatabaseObject::tablename('shopping');
 			sDB::query("DELETE FROM $sessions_table");
+
+			// Remove all the temporary PHP native session data from the options table
+			sDB::query("DELETE FROM from $wpdb->options WHERE option_name LIKE '__php_session_*'");
 		}
 
 		if ( $db_version < 1200 ) {
