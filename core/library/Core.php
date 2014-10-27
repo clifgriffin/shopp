@@ -689,16 +689,16 @@ abstract class ShoppCore {
 			'grouping' => 3
 		);
 
-		$default = array_merge($default, $format);
-
-		if ( ! empty($format) ) return $default;
-
+		// Merge base of operations locale settings
 		$locale = shopp_setting('base_operations');
+		if ( ! empty($locale['currency']) && ! empty($locale['currency']['format']) )
+			$default = array_merge($default, $locale['currency']['format']);
 
-		if ( ! isset($locale['currency']) || ! isset($locale['currency']['format']) ) return $default;
-		if ( empty($locale['currency']['format']['currency']) ) return $default;
+		// No format provided, use default
+		if ( empty($format) ) return $default;
 
-		return array_merge($default, $locale['currency']['format']);
+		// Merge the format options with the default
+		return array_merge($default, $format);
 
 	}
 
