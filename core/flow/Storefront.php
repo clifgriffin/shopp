@@ -732,7 +732,7 @@ class ShoppStorefront extends ShoppFlowController {
 			$script .= "\t".join("\t\n",$this->behaviors) . "\n";
 			$script .= '});' . "\n";
 		}
-		shopp_custom_script('catalog', $script);
+		shopp_custom_script('shopp', $script);
 	}
 
 	/**

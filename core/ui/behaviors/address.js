@@ -7,6 +7,8 @@
 (function($) {
 	jQuery.fn.upstate = function () {
 
+		if ( typeof regions === 'undefined' ) return;
+
 		$(this).change(function (e,init) {
 			var $this = $(this),
 				prefix = $this.attr('id').split('-')[0],
@@ -47,10 +49,11 @@
 })(jQuery);
 
 
-jQuery(document).ready(function($) {
-	var sameaddr = $('.sameaddress');
-	var shipFields = $('#shipping-address-fields');
-	var billFields = $('#billing-address-fields');
+jQuery(document).ready(function() {
+	var $ = jqnc(),
+		sameaddr = $('.sameaddress'),
+		shipFields = $('#shipping-address-fields'),
+		billFields = $('#billing-address-fields');
 
 	// Update name fields
 	$('#firstname,#lastname').change(function () {
