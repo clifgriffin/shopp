@@ -50,7 +50,7 @@
 
 
 jQuery(document).ready(function() {
-	var $ = jqnc(),
+	var $ = jQuery,
 		sameaddr = $('.sameaddress'),
 		shipFields = $('#shipping-address-fields'),
 		billFields = $('#billing-address-fields');

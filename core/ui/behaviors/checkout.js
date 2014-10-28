@@ -5,7 +5,7 @@
  */
 
 jQuery(document).ready(function () {
-	var $ = jqnc(),login=false,
+	var $ = jQuery,login=false,
 		submitLogin = $('#submit-login-checkout'),
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),

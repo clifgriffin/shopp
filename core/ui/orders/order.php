@@ -295,7 +295,7 @@
 var carriers = <?php echo json_encode($carriers_json); ?>;
 
 jQuery(document).ready(function() {
-	var $=jqnc(),
+	var $=jQuery,
 		noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
 
 	// close postboxes that should be closed

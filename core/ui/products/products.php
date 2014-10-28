@@ -243,7 +243,7 @@
 <script type="text/javascript">
 /* <![CDATA[ */
 jQuery(document).ready( function() {
-	var $=jqnc(),
+	var $=jQuery,
 		featureurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_feature_product'); ?>';
 
 	$('input.current-page').unbind('mouseup.select').bind('mouseup.select',function () { this.select(); });

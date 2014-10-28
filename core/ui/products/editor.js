@@ -152,7 +152,7 @@ jQuery(document).ready(function($) {
 });
 
 function categories () {
-	var $=jqnc();
+	var $=jQuery;
 	$('#product .category-metabox').each(function () {
 		var $this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
@@ -271,7 +271,7 @@ function categories () {
 }
 
 function tags () {
-	var $=jqnc();
+	var $=jQuery;
 	$('#product .tags-metabox').each(function () {
 		var $this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
