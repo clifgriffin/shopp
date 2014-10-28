@@ -5,7 +5,7 @@
  */
 
 function Pricelines () {
-	var $=jqnc(),_ = this;
+	var $=jQuery,_ = this;
 	_.idx = 0;
 	_.row = new Object();
 	_.variations = new Array();
@@ -150,7 +150,7 @@ function Pricelines () {
 }
 
 jQuery.fn.toggler = function (s,ui,f) {
-	var $ = jqnc(), $this = $(this);
+	var $ = jQuery, $this = $(this);
 	$this.closest('tr').on('change.toggle', $this, function () {
 		if ($this.prop('checked')) { s.hide(); ui.show(); }
 		else { s.show(); ui.hide(); }
@@ -159,7 +159,7 @@ jQuery.fn.toggler = function (s,ui,f) {
 };
 
 function Priceline (id,options,data,target,attachment) {
-	var $ = jqnc(),
+	var $ = jQuery,
 		_ = this,
 		tmp = template,
 		controller = Pricelines,

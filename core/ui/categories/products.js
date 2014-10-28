@@ -1,5 +1,5 @@
 jQuery(document).ready( function() {
-	var $ = jqnc();
+	var $ = jQuery;
 
 	$.fn.dragrow = function(settings) {
 		var $this = $(this),

@@ -8,7 +8,7 @@
  * Nested Menu behaviors
  **/
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
-	var $=jqnc(), _ = this;
+	var $=jQuery, _ = this;
 	if (!sortoptions) sortoptions = {'axis':'y'};
 
 	_.items = items;
@@ -72,13 +72,13 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 }
 
 function NestedMenuContent (i,target,dataname,data) {
-	var $=jqnc();
+	var $=jQuery;
 	this.contents = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
 	if (data && data.value) this.contents.val(htmlentities(data.value));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
-	var $=jqnc(), _ = this;
+	var $=jQuery, _ = this;
 
 	_.index = $(target).contents().length;
 	_.element = $('<li class="option"><div class="move"></div>'+
@@ -117,7 +117,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
  **/
 function loadVariations (options,prices) {
 	if (!options) return;
-	var $=jqnc();
+	var $=jQuery;
 
 	$.each(options,function (key,option) {
 		if (option && option.id) addVariationOptionsMenu(option);
@@ -140,7 +140,7 @@ function loadVariations (options,prices) {
 }
 
 function addVariationOptionsMenu (data) {
-	var $=jqnc(),
+	var $=jQuery,
 	 	menus = $('#variations-menu'),
 	 	entries = $('#variations-list'),
 		addMenuButton = $('#addVariationMenu'),
@@ -248,7 +248,7 @@ function addVariationOptionsMenu (data) {
  * buildVariations()
  * Creates an array of all possible combinations of the product variation options */
 function buildVariations () {
-	var $=jqnc(),i,setid,fields,index,
+	var $=jQuery,i,setid,fields,index,
 	 	combos = new Array(),							// Final list of possible variations
 	 	optionSets = $('#variations-list ul'),			// Reference to the DOM-stored option set
 	 	totalSets = optionSets.length,					// Total number of sets
@@ -297,7 +297,7 @@ function buildVariations () {
 
 function addVariationPrices (data) {
 	if (data) return;
-	var $=jqnc(), key, preKey,
+	var $=jQuery, key, preKey,
 	 	updated = buildVariations(),
 	 	variationPricing = $('#variations-pricing'),
 	 	variationPricelines = $(variationPricing).children(),
@@ -327,7 +327,7 @@ function addVariationPrices (data) {
 }
 
 function deleteVariationPrices (optionids,reduce) {
-	var $=jqnc(),
+	var $=jQuery,
 	 	updated = buildVariations(),
 	 	reduced = false,
 		i,key,modOptions,newkey,dbPriceId;
@@ -375,7 +375,7 @@ function deleteVariationPrices (optionids,reduce) {
 
 function optionMenuExists (label) {
 	if (!label) return false;
-	var $=jqnc(),
+	var $=jQuery,
 		found = false;
 	$.each(optionMenus,function (id,menu) {
 		if (menu && $(menu.label).val() == label) return (found = id);
@@ -386,7 +386,7 @@ function optionMenuExists (label) {
 
 function optionMenuItemExists (menu,label) {
 	if (!menu || !menu.items || !label) return false;
-	var $=jqnc(),
+	var $=jQuery,
 		found = false;
 	$.each(menu.items,function (id,item) {
 		if (item && $(item.label).val() == label) return (found = true);
@@ -395,7 +395,7 @@ function optionMenuItemExists (menu,label) {
 }
 
 function updateVariationLabels () {
-	var $=jqnc(),
+	var $=jQuery,
 	 	updated = buildVariations();
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
@@ -404,7 +404,7 @@ function updateVariationLabels () {
 }
 
 function orderOptions (menus,options) {
-	var $=jqnc();
+	var $=jQuery;
 	$(menus).find("ul li").not('.ui-sortable-helper').find('input.id').each(function (i,menuid) {
 		if (menuid) $(optionMenus[$(menuid).val()].itemsElement).appendTo(options);
 	});
@@ -412,7 +412,7 @@ function orderOptions (menus,options) {
 }
 
 function orderVariationPrices () {
-	var $=jqnc(), key,
+	var $=jQuery, key,
 	 	updated = buildVariations();
 
 	$(updated).each(function (id,options) {
@@ -433,7 +433,7 @@ function xorkey (ids) {
 }
 
 function variationsToggle () {
-	var $=jqnc(),
+	var $=jQuery,
 		toggle = $(this),
 		ui = $('#variations'),
 		baseprice = $('#product-pricing');
@@ -450,7 +450,7 @@ function variationsToggle () {
 }
 
 function addonsToggle () {
-	var $=jqnc(),
+	var $=jQuery,
 		toggle = $(this),
 		ui = $('#addons');
 
@@ -463,7 +463,7 @@ function clearLinkedIcons () {
 }
 
 function linkVariationsButton () {
-	var $=jqnc();
+	var $=jQuery;
 	if (selectedMenuOption) {
 		if (selectedMenuOption.linked.val() == 'off') {
 			// If all are linked, unlink everything first
@@ -488,7 +488,7 @@ function linkVariationsButton () {
 }
 
 function linkVariationsButtonLabel () {
-	var $=jqnc();
+	var $=jQuery;
 	if (selectedMenuOption) {
 		if (selectedMenuOption.linked.val() == 'on') $(this).find('small').html(' '+UNLINK_VARIATIONS);
 		else $(this).find('small').html(' '+LINK_VARIATIONS);
@@ -503,7 +503,7 @@ function linkVariationsButtonLabel () {
  * Addons support
  **/
 function loadAddons (addons,prices) {
-	var $=jqnc();
+	var $=jQuery;
 	if (!addons) return;
 
 	$.each(addons,function (key,addon) {
@@ -522,7 +522,7 @@ function loadAddons (addons,prices) {
 }
 
 function newAddonGroup (data) {
-	var $=jqnc(),
+	var $=jQuery,
 	 	menus = $('#addon-menu'),
 	 	entries = $('#addon-list'),
 		addMenuButton = $('#newAddonGroup'),
@@ -647,7 +647,7 @@ function newAddonGroup (data) {
 }
 
 function orderAddonGroups () {
-	var $=jqnc(),menu;
+	var $=jQuery,menu;
 	$('#addon-menu ul li').not('.ui-sortable-helper').find('input.id').each(function (i,menuid) {
 		menu = addonGroups[$(menuid).val()];
 		menu.pricegroup.appendTo('#addon-pricing');
@@ -655,7 +655,7 @@ function orderAddonGroups () {
 }
 
 function orderAddonPrices (index) {
-	var $=jqnc(),menu = addonGroups[index];
+	var $=jQuery,menu = addonGroups[index];
 	$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
 		Pricelines.reorderAddon($(option).val(),menu.pricegroup);
 	});
@@ -677,7 +677,7 @@ function readableFileSize (size) {
  * Add a product spec/detail
  **/
 function addDetail (data) {
-	var $=jqnc(),i,optionsmenu,
+	var $=jQuery,i,optionsmenu,
 	 	menus = $('#details-menu'),
 	 	entries = $('#details-list'),
 	 	id = detailsidx++,
@@ -710,7 +710,7 @@ function addDetail (data) {
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
 function ImageUploads (id,type) {
-	var $ = jqnc(),
+	var $ = jQuery,
 	swfu,
 	settings = {
 		button_text: '<span class="button">'+ADD_IMAGE_BUTTON_TEXT+'</span>',
@@ -976,7 +976,7 @@ function ImageUploads (id,type) {
 }
 
 jQuery.fn.FileChooser = function (line, status) {
-	var $ = jqnc(),
+	var $ = jQuery,
 		_ = this,
 		chooser = $('#chooser'),
 		importurl = chooser.find('.fileimport'),
@@ -1088,7 +1088,7 @@ jQuery.fn.FileChooser = function (line, status) {
  * File upload handlers for product download files using SWFupload
  **/
 function FileUploader (button,defaultButton) {
-	var $ = jqnc(), _ = this;
+	var $ = jQuery, _ = this;
 
 	_.swfu = false;
 	_.settings = {
@@ -1251,7 +1251,7 @@ function FileUploader (button,defaultButton) {
 }
 
 function SlugEditor (id,type) {
-	var $ = jqnc(), _ = this,
+	var $ = jQuery, _ = this,
 		editbs = $('#edit-slug-buttons'),
  		edit = editbs.find('.edit'),
 		view = editbs.find('.view'),

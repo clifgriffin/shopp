@@ -863,7 +863,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			'checked' => $this->settings['testmode']
 		));
 
-		$script = "var s='shopppaypalstandard';jQuery(document).bind(s+'Settings',function(){var $=jqnc(),p='#'+s+'-pdt',v=$(p+'verify'),t=$(p+'token');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
+		$script = "var s='shopppaypalstandard';jQuery(document).bind(s+'Settings',function(){var $=jQuery,p='#'+s+'-pdt',v=$(p+'verify'),t=$(p+'token');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
 		$this->ui->behaviors($script);
 
 	}

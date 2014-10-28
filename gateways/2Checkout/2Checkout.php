@@ -282,7 +282,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 			'label' => __('Copy as the <strong>Approved URL</strong> & <strong>Pending URL</strong> in your 2Checkout Vendor Area under the <strong>Account &rarr; Site Management</strong> settings page.','Shopp')
 		));
 
-		$script = "var tc ='shopp2checkout';jQuery(document).bind(tc+'Settings',function(){var $=jqnc(),p='#'+tc+'-',v=$(p+'verify'),t=$(p+'secret');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
+		$script = "var tc ='shopp2checkout';jQuery(document).bind(tc+'Settings',function(){var $=jQuery,p='#'+tc+'-',v=$(p+'verify'),t=$(p+'secret');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
 		$this->ui->behaviors( $script );
 	}
 
