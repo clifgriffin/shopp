@@ -858,6 +858,12 @@ class ShoppProductPage extends ShoppPage {
 		return ShoppStorefront::wrapper($content);
 	}
 
+
+	public function filters () {
+		parent::filters();
+		remove_filter('comments_array', array($this, 'nocomment'));
+	}
+
 }
 
 /**
