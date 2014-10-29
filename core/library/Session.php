@@ -51,19 +51,21 @@ abstract class ShoppSessionFramework {
 	 **/
 	public function __construct () {
 
+		// No sessions for robots
+		if ( Shopp::is_robot() ) return false;
+
 		if ( ! defined('SHOPP_SECURE_KEY') )
 			define('SHOPP_SECURE_KEY','shopp_sec_' . COOKIEHASH);
 
 		if ( ! defined('SHOPP_SESSION_COOKIE') )
 			define('SHOPP_SESSION_COOKIE', 'wp_shopp_' . COOKIEHASH);
 
+		$this->trim(); // Cleanup stale sessions
+		$this->open(); // Initialize the session
+		$this->load(); // Load any existing session data (if available)
 
-		$this->trim();
-		$this->open();
-		$this->load();
-
-		if ( $this->cook() )
-			add_action('shutdown', array($this, 'save'));
+		if ( $this->cook() ) // Cook the cookie
+			add_action('shutdown', array($this, 'save')); // Save on shutdown
 
 		shopp_debug('Session started ' . str_repeat('-', 64));
 
@@ -84,18 +86,20 @@ abstract class ShoppSessionFramework {
 		if ( $resession || empty($this->session) ) {
 
 			$exists = true;
+
 			while ( $exists ) {
-				$entropy = $this->entropy();
 				// Hash the IP address, current time with high-entropy salt
-				$hash = hash('sha256', $this->ip . microtime() . $entropy);
+				$hash = hash('sha256', $this->ip . microtime() . $this->entropy());
 				// Choose a randomish 32-byte segment of the hash
 				$session = substr($hash, mt_rand(0, 32), 32);
 				// Ensure the session ID doesn't already exist, or try again
 				$exists = $this->exists($session);
+				// When a unique ID is found, try to create the session record
+				if ( ! $exists && ! $this->create($session) )
+					$exists = true; // If it fails, consider it existing and try again
 			}
 
 		    $this->session = $session;
-			$this->created = null; // Reset created timestamp for new sessions
 		}
 
 		return $this->session;
@@ -122,6 +126,7 @@ abstract class ShoppSessionFramework {
 			$this->ip = $_SERVER['REMOTE_ADDR'];
 		}
 
+
 		if ( ! empty( $_COOKIE[ SHOPP_SESSION_COOKIE ] ) )
 			return ( $this->session = $_COOKIE[ SHOPP_SESSION_COOKIE ] );
 
@@ -139,7 +144,7 @@ abstract class ShoppSessionFramework {
 		if ( empty($session) )
 			$session = $this->session;
 
-		if ( is_robot() || empty($session) ) return false;
+		if ( empty($session) ) return false;
 
 		do_action('shopp_session_load');
 
@@ -185,23 +190,14 @@ abstract class ShoppSessionFramework {
 		return setcookie(
 			SHOPP_SESSION_COOKIE,                          // Shopp session cookie name
 			$this->session(),                              // Generated session id
-			$this->modified + SHOPP_SESSION_TIMEOUT,       // Expiration
+			false,
+			//$this->modified + SHOPP_SESSION_TIMEOUT,       // Expiration
 			COOKIEPATH,                                    // Path
 			COOKIE_DOMAIN,                                 // Domain
 			false,                                         // Secure
 			apply_filters('shopp_httponly_session', false) // HTTP only
 		);
-	}
 
-	/**
-	 * Destroys the session
-	 *
-	 * @since 1.3.6
-	 *
-	 * @return void
-	 **/
-	protected function destroy () {
-		unset($this->session, $this->ip, $this->data, $this->created, $this->modified);
 	}
 
 	/**
@@ -217,9 +213,6 @@ abstract class ShoppSessionFramework {
 	 **/
 	public function save () {
 
-		// Don't create sessions for robots
-		if ( is_robot() ) return false;
-
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] ) return false;
 
@@ -229,20 +222,15 @@ abstract class ShoppSessionFramework {
 			return false; // Encryption failed because of no SSL, do not save
 
 		$data = sDB::escape( addslashes(serialize($this->data)) );
-
 		$this->encrypt($data);
 
 		$now = current_time('mysql');
-		if ( is_null($this->created) )
-			$query = "INSERT $this->_table SET session='$this->session',ip='$this->ip',stash='$this->stash',data='$data',created='$now',modified='$now'";
-		else $query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
+		$query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
 		$result = sDB::query($query);
 
-		if ( ! $result ) {
-			if ( false !== strpos($query, 'INSERT') ) trigger_error("Could not save a new session update to the database.");
-			else trigger_error("Could not save session updates to the database.");
-		}
+		if ( ! $result )
+			trigger_error("Could not save session updates to the database.");
 
 		do_action('shopp_session_saved');
 
@@ -314,6 +302,17 @@ abstract class ShoppSessionFramework {
 	}
 
 	/**
+	 * Destroys the session
+	 *
+	 * @since 1.3.6
+	 *
+	 * @return void
+	 **/
+	protected function destroy () {
+		unset($this->session, $this->ip, $this->data, $this->created, $this->modified);
+	}
+
+	/**
 	 * Checks if a given session ID exists in the database.
 	 *
 	 * @since 1.3.6
@@ -325,6 +324,14 @@ abstract class ShoppSessionFramework {
 
 		$exists = sDB::query("SELECT session FROM $this->_table WHERE session='$id' LIMIT 1", 'auto', 'col', 'id');
 		return ( ! empty($exists) );
+
+	}
+
+	protected function create ( $session ) {
+
+		$now = current_time('mysql');
+		$query = "INSERT $this->_table SET session='$session',data='',ip='$this->ip',created='$now',modified='$now'";
+		return sDB::query($query);
 
 	}
 
@@ -343,7 +350,7 @@ abstract class ShoppSessionFramework {
 			return $_COOKIE[ SHOPP_SECURE_KEY ];
 
 		$entropy = $this->entropy();
-		$key = hash('sha256', $this->session . microtime() . $this->ip . $entropy);
+		$key = hash('sha256', $this->session . microtime(true) . $this->ip . $entropy);
 		$success = setcookie(SHOPP_SECURE_KEY, $key, 0, COOKIEPATH, COOKIE_DOMAIN, true, true);
 
 		if ( $success ) return $key;
