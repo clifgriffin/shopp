@@ -290,7 +290,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 			if ( false !== current($O->prices) ) return true;
 			else {
-				$O->_addon_loop = false;
+				unset($O->_addon_loop);
 				return false;
 			}
 		}
@@ -2095,12 +2095,13 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				reset($O->prices);
 				$O->_prices_loop = true;
 			} else next($O->prices);
+
 			$price = current($O->prices);
 
 			while ( false !== $price && ('N/A' == $price->type || 'variation' != $price->context) )
 				$price = next($O->prices);
 
-			if (false !== current($O->prices) ) return true;
+			if ( false !== current($O->prices) ) return true;
 			else {
 				$O->_prices_loop = false;
 				return false;
