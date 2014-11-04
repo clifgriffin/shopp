@@ -51,23 +51,21 @@ abstract class ShoppSessionFramework {
 	 **/
 	public function __construct () {
 
-		// No sessions for robots
-		if ( Shopp::is_robot() ) return false;
-
 		if ( ! defined('SHOPP_SECURE_KEY') )
-			define('SHOPP_SECURE_KEY','shopp_sec_' . COOKIEHASH);
+			define('SHOPP_SECURE_KEY', 'shopp_sec_' . COOKIEHASH);
 
 		if ( ! defined('SHOPP_SESSION_COOKIE') )
 			define('SHOPP_SESSION_COOKIE', 'wp_shopp_' . COOKIEHASH);
 
 		$this->trim(); // Cleanup stale sessions
-		$this->open(); // Initialize the session
+
+		if ( $this->open() ) // Reopen an existing session
+			add_action('shutdown', array($this, 'save')); // Save on shutdown
+		else $this->cook(); // Cook a new session cookie
+
 		$this->load(); // Load any existing session data (if available)
 
-		if ( $this->cook() ) // Cook the cookie
-			add_action('shutdown', array($this, 'save')); // Save on shutdown
-
-		shopp_debug('Session started ' . str_repeat('-', 64));
+		shopp_debug('Session started ' . str_repeat('-', 64) . ' ' . var_export($_SERVER,true));
 
 	}
 
@@ -125,7 +123,6 @@ abstract class ShoppSessionFramework {
 		} else {
 			$this->ip = $_SERVER['REMOTE_ADDR'];
 		}
-
 
 		if ( ! empty( $_COOKIE[ SHOPP_SESSION_COOKIE ] ) )
 			return ( $this->session = $_COOKIE[ SHOPP_SESSION_COOKIE ] );
@@ -189,15 +186,13 @@ abstract class ShoppSessionFramework {
 
 		return setcookie(
 			SHOPP_SESSION_COOKIE,                          // Shopp session cookie name
-			$this->session(),                              // Generated session id
-			false,
-			//$this->modified + SHOPP_SESSION_TIMEOUT,       // Expiration
+			$this->session(),                   // Generated session id
+			false,                                         // Expiration (false makes it expire with the session)
 			COOKIEPATH,                                    // Path
 			COOKIE_DOMAIN,                                 // Domain
 			false,                                         // Secure
 			apply_filters('shopp_httponly_session', false) // HTTP only
 		);
-
 	}
 
 	/**
@@ -238,17 +233,6 @@ abstract class ShoppSessionFramework {
 	}
 
 	/**
-	 * Disable the session for this request
-	 *
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	public function disable () {
-		$this->session = null;
-	}
-
-	/**
 	 * Randomly clean up stale sessions
 	 *
 	 * Clean up stale sessions on 1% of connections
@@ -273,7 +257,7 @@ abstract class ShoppSessionFramework {
 		$timeout = SHOPP_SESSION_TIMEOUT;
 		$now = current_time('mysql');
 
-		if ( ! sDB::query("DELETE FROM $this->_table WHERE $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
+		if ( ! sDB::query("DELETE FROM $this->_table WHERE data='' OR $timeout < UNIX_TIMESTAMP('$now') - UNIX_TIMESTAMP(modified)") )
 			trigger_error("Could not delete expired sessions.");
 
 		return true;
@@ -327,12 +311,18 @@ abstract class ShoppSessionFramework {
 
 	}
 
+	/**
+	 * Inserts a new empty session
+	 *
+	 * @since 1.3.6
+	 *
+	 * @param string $session The session ID to create a record for
+	 * @return bool True if successful, false otherwise
+	 **/
 	protected function create ( $session ) {
-
 		$now = current_time('mysql');
 		$query = "INSERT $this->_table SET session='$session',data='',ip='$this->ip',created='$now',modified='$now'";
 		return sDB::query($query);
-
 	}
 
 	/**

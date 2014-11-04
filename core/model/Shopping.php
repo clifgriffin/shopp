@@ -40,6 +40,8 @@ class Shopping extends ShoppSessionFramework {
 		// Set the database table to use
 		$this->_table = ShoppDatabaseObject::tablename('shopping');
 
+		if ( Shopp::is_robot() ) return;
+
 		// Initialize the session handlers
 		parent::__construct();
 
