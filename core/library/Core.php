@@ -1373,16 +1373,15 @@ abstract class ShoppCore {
 	 * @param int $num The number to format
 	 * @return array A list of phone number components
 	 **/
+	public static function parse_phone ( $num ) {
+		if ( empty($num) ) return '';
+		$raw = preg_replace('/[^\d]/', '', $num);
 
-	public static function parse_phone ($num) {
-		if (empty($num)) return '';
-		$raw = preg_replace('/[^\d]/','',$num);
+		if ( strlen($raw) == 7 ) sscanf($raw, "%3s%4s", $prefix, $exchange);
+		if ( strlen($raw) == 10 ) sscanf($raw, "%3s%3s%4s", $area, $prefix, $exchange);
+		if ( strlen($raw) == 11 ) sscanf($raw, "%1s%3s%3s%4s", $country, $area, $prefix, $exchange);
 
-		if (strlen($raw) == 7) sscanf($raw, "%3s%4s", $prefix, $exchange);
-		if (strlen($raw) == 10) sscanf($raw, "%3s%3s%4s", $area, $prefix, $exchange);
-		if (strlen($raw) == 11) sscanf($raw, "%1s%3s%3s%4s",$country, $area, $prefix, $exchange);
-
-		return compact('country','area','prefix','exchange','raw');
+		return compact('country', 'area', 'prefix', 'exchange', 'raw');
 	}
 
 	/**
@@ -1394,17 +1393,19 @@ abstract class ShoppCore {
 	 * @param int $num The number to format
 	 * @return string The formatted telephone number
 	 **/
-	public static function phone ($num) {
-		if (empty($num)) return '';
+	public static function phone ( $num ) {
+		if ( empty($num) ) return '';
+
 		$parsed = Shopp::parse_phone($num);
 		extract($parsed);
 
-		$string = "";
-		$string .= (isset($country))?"$country ":"";
-		$string .= (isset($area))?"($area) ":"";
-		$string .= (isset($prefix))?$prefix:"";
-		$string .= (isset($exchange))?"-$exchange":"";
-		$string .= (isset($ext))?" x$ext":"";
+		$string = '';
+		$string .= ( isset($country) )  ? "$country "  : '';
+		$string .= ( isset($area) )     ? "($area) "   : '';
+		$string .= ( isset($prefix) )   ? $prefix      : '';
+		$string .= ( isset($exchange) ) ? "-$exchange" : '';
+		$string .= ( isset($ext) )      ? " x$ext"     : '';
+
 		return $string;
 	}
 
