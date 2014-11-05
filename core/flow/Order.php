@@ -180,10 +180,18 @@ class ShoppOrder {
 	 **/
 	public function txnupdates () {
 
-		add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
-
-		if ( ! empty($_REQUEST['_txnupdate']) )
+		// Check for remote transaction update messages
+		if ( ! empty($_REQUEST['_txnupdate']) ) {
+			add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
 			return do_action('shopp_txn_update');
+		}
+
+		// Check if an in progress order was already completed
+		if ( ! empty($this->inprogress) ) {
+			$Purchase = new ShoppPurchase($this->inprogress);
+			if ( $Purchase->exists() && in_array($Purchase->txnstatus, array('authed', 'captured')) )
+				do_action( 'shopp_order_success' );
+		}
 
 	}
 
@@ -643,13 +651,15 @@ class ShoppOrder {
 	 **/
 	public function success () {
 
-		$this->purchase = $this->inprogress;
-		ShoppPurchase(new ShoppPurchase($this->purchase));
-		$this->inprogress = false;
+		if ( ! empty($this->inprogress) ) {
+			$this->purchase = $this->inprogress;
+			ShoppPurchase(new ShoppPurchase($this->purchase));
+			$this->inprogress = false;
 
-		do_action('shopp_order_success', ShoppPurchase());
+			do_action('shopp_order_success', ShoppPurchase());
 
-		Shopping::resession();
+			Shopping::resession();
+		}
 
 		if ( false !== $this->purchase )
 			Shopp::redirect( Shopp::url(false, 'thanks') );
