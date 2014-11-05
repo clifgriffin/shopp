@@ -427,7 +427,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['email']					= $Customer->email;
 
 		$phone = parse_phone($Order->Customer->phone);
-		if ( in_array($Order->Billing->country,array('US', 'CA')) ) {
+		if ( ! empty($phone) && in_array($Order->Billing->country, array('US', 'CA')) ) {
 			$_['night_phone_a']		= $phone['area'];
 			$_['night_phone_b']		= $phone['prefix'];
 			$_['night_phone_c']		= $phone['exchange'];

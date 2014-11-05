@@ -74,6 +74,7 @@ class Shopping extends ShoppSessionFramework {
 	 **/
 	public function reset () {
 		$this->destroy(); // Clear the session data
+		$this->open();    // Reset session info
 		$this->cook();    // Bake me a session as fast as you can
 		do_action('shopp_session_reset');
 	}

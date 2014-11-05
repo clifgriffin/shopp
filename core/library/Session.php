@@ -65,7 +65,7 @@ abstract class ShoppSessionFramework {
 
 		$this->load(); // Load any existing session data (if available)
 
-		shopp_debug('Session started ' . str_repeat('-', 64) . ' ' . var_export($_SERVER,true));
+		shopp_debug('Session started ' . str_repeat('-', 64));
 
 	}
 
