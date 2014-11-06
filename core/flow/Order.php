@@ -149,6 +149,13 @@ class ShoppOrder {
 	 **/
 	public function request () {
 
+		// Check if an in progress order was already completed
+		if ( ! empty($this->inprogress) ) {
+			$Purchase = new ShoppPurchase($this->inprogress);
+			if ( $Purchase->exists() && in_array($Purchase->txnstatus, array('authed', 'captured')) )
+				return $this->success();
+		}
+
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
@@ -180,18 +187,11 @@ class ShoppOrder {
 	 **/
 	public function txnupdates () {
 
-		// Check for remote transaction update messages
-		if ( ! empty($_REQUEST['_txnupdate']) ) {
-			add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
-			return do_action('shopp_txn_update');
-		}
+		if ( empty($_REQUEST['_txnupdate']) ) return;
 
-		// Check if an in progress order was already completed
-		if ( ! empty($this->inprogress) ) {
-			$Purchase = new ShoppPurchase($this->inprogress);
-			if ( $Purchase->exists() && in_array($Purchase->txnstatus, array('authed', 'captured')) )
-				do_action( 'shopp_order_success' );
-		}
+		// Check for remote transaction update messages
+		add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
+		do_action('shopp_txn_update');
 
 	}
 
