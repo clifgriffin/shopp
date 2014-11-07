@@ -148,7 +148,11 @@ abstract class ShoppSessionFramework {
 		$query = "SELECT * FROM $this->_table WHERE session='$session'";
 		$loaded = sDB::query($query, 'object');
 
-		if ( empty($loaded) ) return false;
+		if ( empty($loaded) ) {
+			if ( ! empty($this->session) )
+				$this->create(); // Recreate sessions for pre-existing session cookies
+			return false;
+		}
 
 		$this->decrypt($loaded->data);
 		if ( empty($loaded->data) ) return false;
