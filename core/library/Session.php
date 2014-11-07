@@ -63,9 +63,9 @@ abstract class ShoppSessionFramework {
 			add_action('shutdown', array($this, 'save')); // Save on shutdown
 		else $this->cook(); // Cook a new session cookie
 
-		$this->load(); // Load any existing session data (if available)
-
 		shopp_debug('Session started ' . str_repeat('-', 64));
+
+		$this->load(); // Load any existing session data (if available)
 
 	}
 
@@ -148,7 +148,11 @@ abstract class ShoppSessionFramework {
 		$query = "SELECT * FROM $this->_table WHERE session='$session'";
 		$loaded = sDB::query($query, 'object');
 
-		if ( empty($loaded) ) return false;
+		if ( empty($loaded) ) {
+			if ( ! empty($this->session) )
+				$this->create(); // Recreate sessions for pre-existing session cookies
+			return false;
+		}
 
 		$this->decrypt($loaded->data);
 		if ( empty($loaded->data) ) return false;
@@ -159,7 +163,7 @@ abstract class ShoppSessionFramework {
 		$this->stash = $loaded->stash;
 		$this->created = sDB::mktime($loaded->created);
 		$this->modified = sDB::mktime($loaded->modified);
-
+		shopp_debug(__METHOD__);
 		do_action('shopp_session_loaded');
 
 		return true;
@@ -223,6 +227,7 @@ abstract class ShoppSessionFramework {
 		$query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
 		$result = sDB::query($query);
+		shopp_debug(__METHOD__);
 
 		if ( ! $result )
 			trigger_error("Could not save session updates to the database.");

@@ -107,6 +107,9 @@ class Shopping extends ShoppSessionFramework {
 
 		do_action('shopp_pre_resession', $session);
 
+		// Save the current session
+		$Shopping->save();
+
 		if ( $session ) { // loading session
 
 			$Shopping->preload($session);
