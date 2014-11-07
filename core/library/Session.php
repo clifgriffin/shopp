@@ -150,7 +150,7 @@ abstract class ShoppSessionFramework {
 
 		if ( empty($loaded) ) {
 			if ( ! empty($this->session) )
-				$this->create(); // Recreate sessions for pre-existing session cookies
+				$this->create($this->session); // Recreate sessions for pre-existing session cookies
 			return false;
 		}
 
