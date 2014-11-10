@@ -1320,13 +1320,18 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 **/
 	public function copydata ( $data, $prefix = '', array $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified') ) {
 		if ( ! is_array($ignores) ) $ignores = array();
-		if ( is_object($data) ) $properties = get_object_vars($data);
-		else $properties = $data;
+		$properties = is_object($data) ? get_object_vars($data) : $data;
 		foreach ( (array)$properties as $property => $value ) {
 			$property = $prefix . $property;
 			if ( property_exists($this, $property) && ! in_array($property, $ignores) )
 					$this->$property = sDB::clean($value);
 		}
+	}
+
+	public function clear () {
+		$ObjectClass = get_class($this);
+		$new = new $ObjectClass();
+		$this->copydata($new, '', array());
 	}
 
 	/**
@@ -1338,10 +1343,10 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @return array JSON-ready data set
 	 **/
 	public function json ( array $ignores = array() ) {
-		$this->_ignores = array_merge($this->_ignores,$ignores);
+		$this->_ignores = array_merge($this->_ignores, $ignores);
 		$this->_properties = $this->_properties(true);
 		$json = array();
-		foreach ($this as $name => $property) $json[$name] = $property;
+		foreach ( $this as $name => $property ) $json[ $name ] = $property;
 		return $json;
 	}
 

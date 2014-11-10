@@ -39,9 +39,9 @@ class ShoppLogin {
 	 **/
 	public function __construct () {
 
-		$this->Customer = ShoppOrder()->Customer;
-		$this->Billing = ShoppOrder()->Billing;
-		$this->Shipping = ShoppOrder()->Shipping;
+		$this->Customer = &ShoppOrder()->Customer;
+		$this->Billing = &ShoppOrder()->Billing;
+		$this->Shipping = &ShoppOrder()->Shipping;
 
 		if ( 'none' == shopp_setting('account_system') ) return; // Disabled
 
@@ -255,13 +255,18 @@ class ShoppLogin {
 	 * @return void
 	 **/
 	public function logout () {
+		$Shopp = Shopp::object();
+		$Order = ShoppOrder();
+		$Shopping = ShoppShopping();
 
-		$this->Customer = new ShoppCustomer();
-		$this->Billing = new BillingAddress();
-		$this->Shipping = new ShippingAddress();
+
+		$this->Customer->clear();
+		$this->Billing->clear();
+		$this->Shipping->clear();
 		$this->Shipping->locate();
 
-		do_action_ref_array('shopp_logged_out', array($this->Customer));
+		do_action('shopp_logged_out', $this->Customer);
+
 	}
 
 	/**
@@ -277,8 +282,6 @@ class ShoppLogin {
 		$redirect = false;
 		$secure = ShoppOrder()->security();
 
-		session_commit(); // Save the session just prior to redirect
-
 		if ( isset($_REQUEST['redirect']) && ! empty($_REQUEST['redirect']) ) {
 			if ( ShoppPages()->exists($_REQUEST['redirect']) ) $redirect = Shopp::url(false, $_REQUEST['redirect'], $secure);
 			else $redirect = $_REQUEST['redirect'];
@@ -287,7 +290,6 @@ class ShoppLogin {
 		if ( ! $redirect ) $redirect = apply_filters('shopp_login_redirect', Shopp::url(false, 'account', $secure));
 
 		Shopp::safe_redirect($redirect);
-		exit;
 	}
 
 	/**
