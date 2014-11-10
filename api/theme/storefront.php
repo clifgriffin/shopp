@@ -305,7 +305,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( is_account_page() ) {
 			$Page = shopp_get_page('account');
 
-			$breadcrumb .= array($Page->title() => Shopp::url(false, 'account'));
+			$breadcrumb += array($Page->title() => Shopp::url(false, 'account'));
 
 			$request = $Storefront->account['request'];
 			if (isset($Storefront->dashboard[$request]))
@@ -313,22 +313,22 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		} elseif ( is_cart_page() ) {
 			$Page = shopp_get_page('cart');
-			$breadcrumb .= array($Page->title() => Shopp::url(false, 'cart'));
+			$breadcrumb += array($Page->title() => Shopp::url(false, 'cart'));
 		} elseif ( is_checkout_page() ) {
 			$Cart = shopp_get_page('cart');
 			$Checkout = shopp_get_page('checkout');
-			$breadcrumb .= array($Cart->title() => Shopp::url(false, 'cart'));
-			$breadcrumb .= array($Checkout->title() => Shopp::url(false, 'checkout'));
+			$breadcrumb += array($Cart->title() => Shopp::url(false, 'cart'));
+			$breadcrumb += array($Checkout->title() => Shopp::url(false, 'checkout'));
 		} elseif ( is_confirm_page() ) {
 			$Cart = shopp_get_page('cart');
 			$Checkout = shopp_get_page('checkout');
 			$Confirm = shopp_get_page('confirm');
-			$breadcrumb .= array($Cart->title() => Shopp::url(false, 'cart'));
-			$breadcrumb .= array($Checkout->title() => Shopp::url(false, 'checkout'));
-			$breadcrumb .= array($Confirm->title() => Shopp::url(false, 'confirm'));
+			$breadcrumb += array($Cart->title() => Shopp::url(false, 'cart'));
+			$breadcrumb += array($Checkout->title() => Shopp::url(false, 'checkout'));
+			$breadcrumb += array($Confirm->title() => Shopp::url(false, 'confirm'));
 		} elseif ( is_thanks_page() ) {
 			$Page = shopp_get_page('thanks');
-			$breadcrumb .= array($Page->title() => Shopp::url(false, 'thanks'));
+			$breadcrumb += array($Page->title() => Shopp::url(false, 'thanks'));
 		} elseif ( is_shopp_taxonomy() ) {
 			$taxonomy = ShoppCollection()->taxonomy;
 			$ancestors = array_reverse(get_ancestors(ShoppCollection()->id, $taxonomy));
