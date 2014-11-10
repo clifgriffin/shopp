@@ -40,8 +40,7 @@ final class Shopp extends ShoppCore {
 		// Initialize application control processing
 		$this->Flow = new ShoppFlow();
 
-		// Init deprecated properties for legacy add-on module compatibility
-		$this->Shopping = ShoppShopping();
+		// Initialize Settings
 		$this->Settings = ShoppSettings();
 
 		// Hooks
@@ -106,6 +105,9 @@ final class Shopp extends ShoppCore {
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
 		$this->APIs = new ShoppAPIModules();
+
+		// Start the shopping session
+		$this->Shopping = ShoppShopping();
 
 		new ShoppLogin();
 		do_action('shopp_init');

@@ -441,9 +441,9 @@ abstract class ShoppSessionFramework {
 	    $entropy .= uniqid(mt_rand(), true);
 
 		// Try adding entropy from the Unix random number generator
-	    if ( is_readable('/dev/urandom') ) {
-	        $h = fopen('/dev/urandom', 'rb');
-	        $entropy .= fread($h, 64);
+	    if ( is_readable('/dev/urandom') && $h = fopen('/dev/urandom', 'rb') ) {
+			stream_set_read_buffer($h, 0);
+	        $entropy .= @fread($h, 64);
 	        fclose($h);
 	    }
 
