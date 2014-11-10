@@ -575,6 +575,8 @@ class ShoppCart extends ListFramework {
 		$ShippingAddress = $Order->Shipping;
 		$Shiprates = $Order->Shiprates;
 
+		if ( empty($Shiprates) ) return;
+
 		// Tell Shiprates to track changes for this data...
 		$Shiprates->track('shipcountry', $ShippingAddress->country);
 		$Shiprates->track('shipstate', $ShippingAddress->state);

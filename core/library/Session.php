@@ -163,7 +163,7 @@ abstract class ShoppSessionFramework {
 		$this->stash = $loaded->stash;
 		$this->created = sDB::mktime($loaded->created);
 		$this->modified = sDB::mktime($loaded->modified);
-		shopp_debug(__METHOD__);
+
 		do_action('shopp_session_loaded');
 
 		return true;
@@ -227,7 +227,6 @@ abstract class ShoppSessionFramework {
 		$query = "UPDATE $this->_table SET ip='$this->ip',stash='$this->stash',data='$data',modified='$now' WHERE session='$this->session'";
 
 		$result = sDB::query($query);
-		shopp_debug(__METHOD__);
 
 		if ( ! $result )
 			trigger_error("Could not save session updates to the database.");
