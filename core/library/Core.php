@@ -1952,6 +1952,10 @@ abstract class ShoppCore {
 	 **/
 	public static function redirect ($uri,$exit=true,$status=302) {
 		shopp_debug("Redirecting to: $uri");
+
+		remove_action('shutdown', array(ShoppShopping(), 'save'));
+		ShoppShopping()->save();
+
 		wp_redirect($uri, $status);
 		if ($exit) exit();
 	}
@@ -1988,7 +1992,7 @@ abstract class ShoppCore {
 		if ( isset($lp['host']) && ( !in_array($lp['host'], $allowed_hosts) && $lp['host'] != strtolower($wpp['host'])) )
 			$location = Shopp::url(false,'account');
 
-		wp_redirect($location, $status);
+		self::redirect($location, true, $status);
 	}
 
 	/**
