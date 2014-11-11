@@ -830,7 +830,7 @@ class ShoppUI {
 			$options = array_merge($buttons[ $button ], $options);
 
 		$types = array('submit','button');
-		if ( ! in_array($options['type'], $types))
+		if ( ! in_array($options['type'], $types) )
 			$options['type'] = 'submit';
 
 		extract($options, EXTR_SKIP);
@@ -838,9 +838,9 @@ class ShoppUI {
 		return '<button type="' . $type . '" name="' . $name . '"' . inputattrs($options) . '><span class="' . $icon . '"><span class="hidden">' . $title . '</span></span></button>';
 	}
 
-	public static function template ($ui,$data=array()) {
-		$ui = str_replace(array_keys($data),$data,$ui);
-		return preg_replace('/\${[-\w]+}/','',$ui);
+	public static function template ( $ui, array $data = array() ) {
+		$ui = str_replace(array_keys($data), $data, $ui);
+		return preg_replace('/\${[-\w]+}/', '', $ui);
 	}
 
 
@@ -855,7 +855,7 @@ class ShoppUI {
 	 * @param array $columns An array of columns with column IDs as the keys and translated column names as the values
 	 * @see get_column_headers(), print_column_headers(), get_hidden_columns()
 	 */
-	public static function register_column_headers ($screen, $columns) {
+	public static function register_column_headers ( $screen, $columns ) {
 		$wp_list_table = new ShoppAdminListTable($screen, $columns);
 	}
 
@@ -864,16 +864,16 @@ class ShoppUI {
 	 *
 	 * @since 1.2
 	 */
-	public static function print_column_headers ($screen, $id = true) {
+	public static function print_column_headers ( $screen, $id = true ) {
 		$wp_list_table = new ShoppAdminListTable($screen);
 
 		$wp_list_table->print_column_headers($id);
 	}
 
-	public static function table_set_pagination ($screen, $total_items, $total_pages, $per_page ) {
+	public static function table_set_pagination ( $screen, $total_items, $total_pages, $per_page ) {
 		$wp_list_table = new ShoppAdminListTable($screen);
 
-		$wp_list_table->set_pagination_args( array(
+		$wp_list_table->set_pagination( array(
 			'total_items' => $total_items,
 			'total_pages' => $total_pages,
 			'per_page' => $per_page
@@ -881,7 +881,6 @@ class ShoppUI {
 
 		return $wp_list_table;
 	}
-
 
 	/**
 	 * Registers the Shopp Collections meta box in the WordPress theme menus screen
@@ -1150,6 +1149,12 @@ class ShoppAdminListTable extends WP_List_Table {
 		if (isset($sortables[ $screen->id ])) return $sortables[ $screen->id ];
 
 		return array();
+	}
+
+	// public wrapper to set pagination
+	// @todo refactor this whole class to be used more effectively with Shopp MVC style UI
+	public function set_pagination ( array $args ) {
+		$this->set_pagination_args($args);
 	}
 
 }

@@ -287,8 +287,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			case 'bestselling': $is_bestselling = true; break;
 		}
 
-
-
 		if ( $is_inventory ) $per_page = 50;
 		$pagenum = absint( $paged );
 		$start = ( $per_page * ( $pagenum - 1 ) );
