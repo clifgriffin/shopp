@@ -1242,7 +1242,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: Specifies the value of an `<input>` element
+	 * - **label**: Specifies the label of the button
 	 * @param ShoppCustomer $O       The working object
 	 * @return string The button markup
 	 **/
@@ -1253,7 +1253,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults, $options);
 		extract($options);
 
-		$submit_attrs = array('title', 'class', 'value', 'disabled', 'tabindex', 'accesskey');
+		$submit_attrs = array('title', 'class', 'label', 'value', 'disabled', 'tabindex', 'accesskey');
 
 		return '<input type="submit" name="shopp_registration" ' . inputattrs($options, $submit_attrs) . ' />';
 	}
@@ -1381,7 +1381,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: Specifies the value of an `<input>` element
+	 * - **label**: Specifies the value of the button element
 	 * @param ShoppCustomer $O       The working object
 	 * @return string The button markup
 	 **/
@@ -1611,12 +1611,12 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: Specifies the value of an `<input>` element
+	 * - **label**: Specifies the value of the button element
 	 * @param ShoppCustomer $O       The working object
 	 * @return string The button markup
 	 **/
 	public static function submit_login ( $result, $options, $O ) {
-		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Login');
+		if ( ! isset($options['label']) ) $options['label'] = Shopp::__('Login');
 		$string = '';
 		$id = 'submit-login';
 

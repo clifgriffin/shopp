@@ -156,7 +156,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @param array    $options The options
 	 * - **before**: `<p class="error">` Markup to add before the widget
 	 * - **after**: `</p>` Markup to add after the widget
-	 * - **value**: The label to use for the submit button
+	 * - **label**: The label to use for the submit button
 	 * - **autocomplete**: (on, off) Specifies whether an `<input>` element should have autocomplete enabled
 	 * - **accesskey**: Specifies a shortcut key to activate/focus an element. Linux/Windows: `[Alt]`+`accesskey`, Mac: `[Ctrl]` `[Opt]`+`accesskey`
 	 * - **class**: The class attribute specifies one or more class-names for an element
@@ -175,16 +175,15 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		// Skip if discounts are not available
 		if ( ! self::discounts_available(false, false, $O) ) return false;
 
-		if ( ! isset($options['value']) ) $options['value'] = __('Apply Discount', 'Shopp');
-
-		$result = '<div class="applycode">';
-
 		$defaults = array(
 			'before' => '<p class="error">',
-			'after' => '</p>'
+			'after' => '</p>',
+			'label' => Shopp::__('Apply Discount')
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
+
+		$result = '<div class="applycode">';
 
 		$Errors = ShoppErrorStorefrontNotices();
 		if ( $Errors->exist() ) {
@@ -208,7 +207,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @param array     $options The options
 	 * - **before**: `<p class="error">` Markup to add before the widget
 	 * - **after**: `</p>` Markup to add after the widget
-	 * - **value**: The label to use for the submit button
+	 * - **label**: The label to use for the submit button
 	 * - **autocomplete**: (on, off) Specifies whether an `<input>` element should have autocomplete enabled
 	 * - **accesskey**: Specifies a shortcut key to activate/focus an element. Linux/Windows: `[Alt]`+`accesskey`, Mac: `[Ctrl]``[Opt]`+`accesskey`
 	 * - **class**: The class attribute specifies one or more class-names for an element
@@ -222,18 +221,17 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 **/
 	public static function applygiftcard ( $result, $options, $O ) {
 
-		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
-
-		if ( ! isset($options['value']) ) $options['value'] = Shopp::__('Add Gift Card');
-
-		$result = '<div class="apply-giftcard">';
-
 		$defaults = array(
 			'before' => '<p class="error">',
-			'after' => '</p>'
+			'after' => '</p>',
+			'label' => Shopp::__('Add Gift Card')
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
+
+		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
+
+		$result = '<div class="apply-giftcard">';
 
 		$Errors = ShoppErrorStorefrontNotices();
 		if ( $Errors->exist() ) {
@@ -467,13 +465,21 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: `Empty Cart` Specifies the label value of the button
+	 * - **label**: `Empty Cart` Specifies the label value of the button
 	 * @param ShoppCart $O       The working object
 	 * @return string The empty button markup
 	 **/
 	public static function empty_button ( $result, $options, $O ) {
 		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
-		if ( ! isset($options['value']) ) $options['value'] = __('Empty Cart', 'Shopp');
+
+		$defaults = array(
+			'label' => Shopp::__('Empty Cart'),
+			'class' => 'empty-button'
+		);
+		$options = array_merge($defaults, $options);
+
+		if ( false !== strpos($options['class'], 'empty-button') ) $options['class'] .= ' empty-button';
+
 		return '<input type="submit" name="empty" id="empty-button" ' . inputattrs($options, $submit_attrs) . ' />';
 	}
 
@@ -813,7 +819,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	public static function shipping_estimates ( $result, $options, $O ) {
 		$defaults = array(
 			'postcode' => 'on',
-			'class' => 'ship-estimates'
+			'class' => 'ship-estimates',
+			'label' => Shopp::__('Estimate Shipping & Taxes')
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
@@ -831,8 +838,6 @@ class ShoppCartThemeAPI implements ShoppAPI {
 		else $selected = $base['country'];
 		$postcode = ( Shopp::str_true($postcode) || $O->showpostcode );
 
-		$button = isset($button) ? esc_attr($button) : __('Estimate Shipping & Taxes', 'Shopp');
-
 		$_ = '<div class="' . $class . '">';
 		if ( count($countries) > 1 ) {
 			$_ .= '<span>';
@@ -847,7 +852,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			$_ .= '<span>';
 			$_ .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="' . $Shipping->postcode . '"' . inputattrs($options) . ' />&nbsp;';
 			$_ .= '</span>';
-			$_ .= shopp('cart','get-update-button', array('value' => $button));
+			$_ .= shopp('cart','get-update-button', array('value' => $label));
 		}
 
 		return $_ . '</div>';
@@ -1031,14 +1036,20 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: Specifies the button label value
+	 * - **label**: Specifies the button label value
 	 * @return string The markup for the update button
 	 */
 	public static function update_button ( $result, $options, $O ) {
 		$submit_attrs = array( 'title', 'value', 'disabled', 'tabindex', 'accesskey', 'class', 'autocomplete', 'placeholder', 'required' );
-		if ( ! isset($options['value']) ) $options['value'] = __('Update Subtotal', 'Shopp');
-		if ( isset($options['class']) ) $options['class'] .= ' update-button';
-		else $options['class'] = 'update-button';
+
+		$defaults = array(
+			'label' => Shopp::__('Update Subtotal'),
+			'class' => 'update-button'
+		);
+		$options = array_merge($defaults, $options);
+
+		if ( false !== strpos($options['class'], 'update-button') ) $options['class'] .= ' update-button';
+
 		return '<input type="submit" name="update"' . inputattrs($options, $submit_attrs) . ' />';
 	}
 

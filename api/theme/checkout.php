@@ -784,19 +784,19 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * - **disabled**: Specifies that an `<input>` element should be disabled
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: `Confirm Order` Specifies the value of an `<input>` element
+	 * - **label**: `Confirm Order` Specifies the label of the button element
 	 * - **errorlabel**: `Return to Checkout` The label to use when an error occurs to prompt the shopper to return to the checkout page
 	 * @param ShoppOrder $O       The working object
 	 * @return string The confirm order button markup
 	 **/
 	public static function confirm_button ( $result, $options, $O ) {
-		$submit_attrs = array('title', 'class', 'value', 'disabled', 'tabindex', 'accesskey');
+		$submit_attrs = array('title', 'class', 'label', 'value', 'disabled', 'tabindex', 'accesskey');
 
 		if ( empty($options['errorlabel']) )
 			$options['errorlabel'] = Shopp::__('Return to Checkout');
 
-		if ( empty($options['value']) )
-			$options['value'] = Shopp::__('Confirm Order');
+		if ( empty($options['label']) )
+			$options['label'] = Shopp::__('Confirm Order');
 
 		$checkouturl = Shopp::url(false, 'checkout', $O->security());
 
@@ -1263,7 +1263,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 				return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
 				break;
 			case "menu":
-				$menuvalues = true;			
+				$menuvalues = true;
 				if ( is_string($options) ) {
 					$menuvalues = false;
 					$options = explode(',',$options);
@@ -1601,16 +1601,16 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * - **disabled**: Specifies that an `<input>` element should be disabled
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **value**: `Submit Order` Specifies the label of the submit button element
+	 * - **label**: `Submit Order` Specifies the label of the submit button element
 	 * - **wrapclass**: The class attribute for the submit button `<span>` wrapper
 	 * @param ShoppOrder $O       The working object
 	 * @return string The submit button markup
 	 **/
 	public static function submit ( $result, $options, $O ) {
-		$submit_attrs = array('title', 'class', 'value', 'disabled', 'tabindex', 'accesskey');
+		$submit_attrs = array('title', 'class', 'label', 'value', 'disabled', 'tabindex', 'accesskey');
 
-		if ( ! isset($options['value']) )
-			$options['value'] = Shopp::__('Submit Order');
+		if ( ! isset($options['label']) )
+			$options['label'] = Shopp::__('Submit Order');
 
 		$options['class'] = isset($options['class']) ? $options['class'] . ' checkout-button' : 'checkout-button';
 

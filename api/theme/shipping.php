@@ -324,7 +324,7 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 *
 	 * @param string         $result  The output
 	 * @param array          $options The options
-	 * - **value**: `Update Shipping` The label for the submit button
+	 * - **label**: `Update Shipping` The label for the submit button
 	 * - **class**: `update-button hide-if-js`
 	 * - **autocomplete**: (on, off) Specifies whether an `<input>` element should have autocomplete enabled
 	 * - **accesskey**: Specifies a shortcut key to activate/focus an element. Linux/Windows: `[Alt]`+`accesskey`, Mac: `[Ctrl]``[Opt]`+`accesskey`
@@ -338,10 +338,10 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 * @return string The button markup
 	 **/
 	public static function update_button ( $result, $options, $O ) {
-		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
+		$submit_attrs = array('title','label','disabled','tabindex','accesskey','class');
 		$stdclasses = 'update-button hide-if-js';
 		$defaults = array(
-			'value' => __('Update Shipping','Shopp'),
+			'label' => Shopp::__('Update Shipping'),
 			'class' => ''
 		);
 		$options = array_merge($defaults, $options);
