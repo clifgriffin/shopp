@@ -342,10 +342,6 @@ final class Shopp extends ShoppCore {
  				=> 'index.php?src=download&shopp_download=$matches[1]',
  		);
 
- 		// Image URL rewrite
- 		$images = array( ShoppPages()->baseslug(), 'images', '(\d+)', "?\??(.*)$" );
- 		add_rewrite_rule(join('/', $images), $path . '/image.php?siid=$1&$2');
-
  		return $rules + (array) $wp_rewrite_rules;
  	}
 
