@@ -92,12 +92,10 @@ class ShoppScripts extends WP_Scripts {
 
 		$debug = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '&debug=1' : '';
 
-		if ( !empty($this->concat) ) {
-			$ver = md5("$this->concat_version");
-			if (shopp_setting('script_server') == 'plugin') {
-				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
-				if (is_ssl()) $src = str_replace('http://','https://',$src);
-			} else $src = SHOPP_PLUGINURI . "/services/scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver" . $debug;
+		if ( ! empty($this->concat) ) {
+			$ver = md5($this->concat_version);
+			$src = trailingslashit(get_bloginfo('url')) . "shopp-scripts.js?load=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
+			if ( is_ssl() ) $src = str_replace('http://', 'https://', $src);
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
 
