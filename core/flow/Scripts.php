@@ -4,29 +4,14 @@
  *
  * Controller for browser script queueing and delivery
  *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, May  5, 2010
+ * @copyright Ingenesis Limited, May 2010-2014
  * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package shopp
+ * @package Shopp\Scripts
+ * @version 1.0
  * @since 1.0
- * @subpackage scripts
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
-
-/**
- * Scripts
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package shopp
- **/
-/** From BackPress */
-if ( ! class_exists('WP_Scripts') ) {
-	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
-	require( ABSPATH . WPINC . '/class.wp-scripts.php' );
-}
 
 class ShoppScripts extends WP_Scripts {
 
@@ -94,7 +79,7 @@ class ShoppScripts extends WP_Scripts {
 
 		if ( ! empty($this->concat) ) {
 			$ver = md5($this->concat_version);
-			$src = trailingslashit(get_bloginfo('url')) . "shopp-scripts.js?load=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
+			$src = trailingslashit(get_bloginfo('url')) . "sp-scripts.js?load=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
 			if ( is_ssl() ) $src = str_replace('http://', 'https://', $src);
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
