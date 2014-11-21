@@ -357,7 +357,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults, $options);
 
-		if ( 'value' == $options['mode'] ) return date('m', $O->Billing->cardexpires);
+		if ( 'value' == $options['mode'] ) return date('y', $O->Billing->cardexpires);
 
 		if ( 'text' == $options['type'] )
 			return '<input type="text" name="' . $name . '" id="' . $id . '" ' . inputattrs($options) . ' />';
@@ -1263,7 +1263,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 				return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
 				break;
 			case "menu":
-				$menuvalues = true;			
+				$menuvalues = true;
 				if ( is_string($options) ) {
 					$menuvalues = false;
 					$options = explode(',',$options);
