@@ -31,27 +31,94 @@
 // Prevent direct access
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit;
 
-// Image Server request handling
-if ( isset($_GET['siid']) || 1 == preg_match('{^/.+?/images/\d+/.*$}', $_SERVER['REQUEST_URI']) )
-	return shopp_service_load();
+if ( empty($Shopp) ) // Only load in mu-plugins context
+	ShoppServices::load();
 
-// Script Server request handling
-if ( isset($_GET['load']) && 1 == preg_match('/shopp-scripts.js/', $_SERVER['REQUEST_URI']) )
-	return shopp_service_load();
+final class ShoppServices {
 
-function shopp_service_load () {
-	if ( ! defined('SHOPP_SERVICE') )
-		define('SHOPP_SERVICE', true);
-
-	add_filter( 'option_active_plugins', 'shopp_services_exclude_plugins');
-	add_filter( 'site_option_active_sitewide_plugins', 'shopp_services_exclude_plugins');
-}
-
-function shopp_services_exclude_plugins ( array $plugins = array() ) {
-	$load = (array) get_option('shopp_services_plugins');
-	foreach ( $plugins as $i => $name ) {
-		if ( false !== strpos( $name, 'Shopp.php' ) || isset($load[ $name ]) ) continue;
-		unset($plugins[ $i ]);
+	/**
+	 * Detects script requests
+	 *
+	 * @return bool True if a script request, false otherwise
+	 **/
+	private static function scripts () {
+		return ( isset($_GET['load']) && false !== strpos($_SERVER['REQUEST_URI'], 'sp-scripts.js') );
 	}
-	return $plugins;
+
+	/**
+	 * Detects style requests
+	 *
+	 * @return bool True if a style request, false otherwise
+	 **/
+	private static function styles () {
+		return ( isset($_GET['load']) && false !== strpos($_SERVER['REQUEST_URI'], 'sp-styles.css') );
+	}
+
+	/**
+	 * Detects image requests
+	 *
+	 * @return bool True if a image request, false otherwise
+	 **/
+	private static function images () {
+		return ( isset($_GET['siid']) || 1 == preg_match('{^/.+?/images/\d+/.*$}', $_SERVER['REQUEST_URI']) );
+	}
+
+	/**
+	 * Detects any ShoppServices requests
+	 *
+	 * @return bool True if a image request, false otherwise
+	 **/
+	private static function requested () {
+		return ( self::scripts() || self::styles() || self::images() );
+	}
+
+	/**
+	 * Routes service requests to the proper service
+	 *
+	 * @return void
+	 **/
+	public static function serve () {
+		$services = dirname(ShoppLoader()->basepath()) . '/services';
+
+		// Image Server request handling
+		if ( self::images() )
+			return require "$services/image.php";
+
+		// Script Server request handling
+		if ( self::scripts() )
+			return require "$services/scripts.php";
+
+		// Script Server request handling
+		if ( self::styles() )
+			return require "$services/styles.php";
+	}
+
+	/**
+	 * Handles loading service requests without third-party plugin interference
+	 *
+	 * @return void
+	 **/
+	public static function load () {
+		if ( ! self::requested() ) return;
+
+		$excludes = array('ShoppServices', 'excludes');
+		add_filter( 'option_active_plugins', $excludes);
+		add_filter( 'site_option_active_sitewide_plugins', $excludes);
+	}
+
+	/**
+	 * Filters to exclude third-party plugins while loading Shopp and other select plugins
+	 *
+	 * @param array $plugins The plugins list that WordPress will load
+	 * @return array Modified list of plugins for WordPress to load
+	 **/
+	private static function excludes ( array $plugins = array() ) {
+		$load = (array) get_option('shopp_services_plugins');
+		foreach ( $plugins as $i => $name ) {
+			if ( false !== strpos( $name, 'Shopp.php' ) || isset($load[ $name ]) ) continue;
+			unset($plugins[ $i ]);
+		}
+		return $plugins;
+	}
+
 }
