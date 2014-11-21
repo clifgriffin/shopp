@@ -242,7 +242,7 @@ abstract class GatewayFramework {
 			'body' => $data,
 			'compress' => false,
 			'decompress' => true,
-			'sslverify' => false
+			'sslverify' => true,
 		);
 		$params = array_merge($defaults, $options);
 

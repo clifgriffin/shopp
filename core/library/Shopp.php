@@ -40,8 +40,7 @@ final class Shopp extends ShoppCore {
 		// Initialize application control processing
 		$this->Flow = new ShoppFlow();
 
-		// Init deprecated properties for legacy add-on module compatibility
-		$this->Shopping = ShoppShopping();
+		// Initialize Settings
 		$this->Settings = ShoppSettings();
 
 		// Hooks
@@ -107,6 +106,9 @@ final class Shopp extends ShoppCore {
 		$this->Storage = new StorageEngines();
 		$this->APIs = new ShoppAPIModules();
 
+		// Start the shopping session
+		$this->Shopping = ShoppShopping();
+
 		new ShoppLogin();
 		do_action('shopp_init');
 	}
@@ -159,14 +161,7 @@ final class Shopp extends ShoppCore {
 		// This should only run once
 		if ( defined( 'SHOPP_PATH' ) ) return;
 
-		global $plugin, $mu_plugin, $network_plugin;
-
-		if ( isset($plugin) ) $filepath = $plugin;
-		elseif ( isset($mu_plugin) ) $filepath = $mu_plugin;
-		elseif ( isset($network_plugin) ) $filepath = $network_plugin;
-
-		if ( false === strpos($filepath, WP_PLUGIN_DIR) )
-			$filepath = WP_PLUGIN_DIR . "/$filepath";
+		$filepath = dirname(ShoppLoader::basepath()) . "/Shopp.php";
 
 		$path = sanitize_path(dirname($filepath));
 		$file = basename($filepath);
@@ -177,7 +172,7 @@ final class Shopp extends ShoppCore {
 		define('SHOPP_DIR',  $directory );
 
 		define('SHOPP_PLUGINFILE', "$directory/$file" );
-		define('SHOPP_PLUGINURI',  set_url_scheme(WP_PLUGIN_URL . "/$directory") );
+		define('SHOPP_PLUGINURI',  set_url_scheme(plugins_url() . "/$directory") );
 
 		define('SHOPP_ADMIN_DIR', '/core/ui');
 		define('SHOPP_ADMIN_PATH', SHOPP_PATH . SHOPP_ADMIN_DIR);
@@ -359,7 +354,7 @@ final class Shopp extends ShoppCore {
 	 **/
 	public function queryvars ($vars) {
 
-		$vars[] = 's_iid';			// Shopp image id
+		$vars[] = 'siid';			// Shopp image id
 		$vars[] = 's_cs';			// Catalog (search) flag
 		$vars[] = 's_ff';			// Category filters
 		$vars[] = 'src';			// Shopp resource
@@ -387,7 +382,7 @@ final class Shopp extends ShoppCore {
 			return require "$services/image.php";
 
 		// Script Server request handling
-		if ( isset($_GET['sjsl']) )
+		if ( isset($_GET['load']) && 1 == preg_match('/shopp-scripts.js/', $_SERVER['REQUEST_URI']) )
 			return require "$services/scripts.php";
 	}
 

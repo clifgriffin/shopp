@@ -149,6 +149,13 @@ class ShoppOrder {
 	 **/
 	public function request () {
 
+		// Check if an in progress order was already completed
+		if ( ! empty($this->inprogress) ) {
+			$Purchase = new ShoppPurchase($this->inprogress);
+			if ( $Purchase->exists() && in_array($Purchase->txnstatus, array('authed', 'captured')) )
+				return $this->success();
+		}
+
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
@@ -180,10 +187,11 @@ class ShoppOrder {
 	 **/
 	public function txnupdates () {
 
-		add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
+		if ( empty($_REQUEST['_txnupdate']) ) return;
 
-		if ( ! empty($_REQUEST['_txnupdate']) )
-			return do_action('shopp_txn_update');
+		// Check for remote transaction update messages
+		add_action('shopp_txn_update', create_function('',"status_header('200'); exit();"), 101); // Default shopp_txn_update requests to HTTP status 200
+		do_action('shopp_txn_update');
 
 	}
 
@@ -460,7 +468,7 @@ class ShoppOrder {
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
 		$Purchase->freight = $this->Cart->total('shipping');
-		$Purchase->shipoption = $shipoption->name;
+		$Purchase->shipoption = isset($shipoption->name) ? $shipoption->name : '';
 		$Purchase->ip = $Shopping->ip;
 		$Purchase->created = current_time('mysql');
 		unset($Purchase->order);
@@ -591,8 +599,11 @@ class ShoppOrder {
 			$this->Billing->copydata($registration['Billing']);
 			$this->Shipping->copydata($registration['Shipping']);
 
-	        add_filter('shopp_validate_registration', create_function('', 'return true;') ); // Validation already conducted during the checkout process
-	        add_filter('shopp_registration_redirect', create_function('', 'return false;') ); // Prevent redirection to account page after registration
+			// Validation already conducted during the checkout process
+	        add_filter('shopp_validate_registration', '__return_true');
+
+			// Prevent redirection to account page after registration
+	        add_filter('shopp_registration_redirect', '__return_false');
 
 		}
 
@@ -640,13 +651,15 @@ class ShoppOrder {
 	 **/
 	public function success () {
 
-		$this->purchase = $this->inprogress;
-		ShoppPurchase(new ShoppPurchase($this->purchase));
-		$this->inprogress = false;
+		if ( ! empty($this->inprogress) ) {
+			$this->purchase = $this->inprogress;
+			ShoppPurchase(new ShoppPurchase($this->purchase));
+			$this->inprogress = false;
 
-		do_action('shopp_order_success', ShoppPurchase());
+			do_action('shopp_order_success', ShoppPurchase());
 
-		Shopping::resession();
+			Shopping::resession();
+		}
 
 		if ( false !== $this->purchase )
 			Shopp::redirect( Shopp::url(false, 'thanks') );

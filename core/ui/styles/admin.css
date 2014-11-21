@@ -433,6 +433,7 @@ span.indent { display: inline-block; width: 36px; }
 #poststuff #order-status .inside { margin:0;padding:0; }
 .shopp #major-publishing-actions { text-align:right; clear: none; }
 #save-category #major-publishing-actions input { min-width: 75px; }
+#save-customer #misc-publishing-actions { padding: 6px 12px 12px;}
 
 #major-publishing-actions select { font-size: 1em; }
 .postbox #summary { width:100%; }

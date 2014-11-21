@@ -330,7 +330,7 @@ class ImageAsset extends FileAsset {
 
 		if (!empty($data)) echo $data;
 		else $Engine->output($this->uri);
-		ob_flush(); flush();
+		@ob_flush(); @flush();
 		return;
 	}
 
@@ -605,7 +605,8 @@ class DownloadAsset extends FileAsset {
 		header('Content-Description: Delivered by ' . ShoppVersion::agent());
 
 		ignore_user_abort(true);
-		while(@ob_end_flush()); // Don't use the PHP output buffer
+		if ( ob_get_length() !== false )
+			while(@ob_end_flush()); // Clear all open output buffers
 
 		$this->send();	// Send the file data using the storage engine
 

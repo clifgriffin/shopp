@@ -375,7 +375,7 @@ class ShoppAdminService extends ShoppAdminController {
 		if (!empty($_POST["send-note"])){
 			$user = wp_get_current_user();
 			shopp_add_order_event($Purchase->id,'note',array(
-				'note' => $_POST['note'],
+				'note' => stripslashes($_POST['note']),
 				'user' => $user->ID
 			));
 
@@ -615,12 +615,12 @@ class ShoppAdminService extends ShoppAdminController {
 
 		$carriers_menu['NOTRACKING'] = Shopp::__('No Tracking');
 		$carriers_json['NOTRACKING'] = array(Shopp::__('No Tracking'), false);
-		if ( empty($shipping_carriers) ) {
+		if ( empty($shipping_carriers) || ! is_array($shipping_carriers) ) {
 			$serviceareas = array('*', $base['country']);
 			foreach ( $shipcarriers as $code => $carrier ) {
 				if ( ! in_array($carrier->areas, $serviceareas) ) continue;
 				$carriers_menu[ $code ] = $carrier->name;
-				$carriers_json[ $code ] = array($carrier->name,$carrier->trackpattern);
+				$carriers_json[ $code ] = array($carrier->name, $carrier->trackpattern);
 			}
 		} else {
 			foreach ($shipping_carriers as $code) {

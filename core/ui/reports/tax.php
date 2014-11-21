@@ -2,9 +2,9 @@
 
 class TaxReport extends ShoppReportFramework implements ShoppReport {
 
-	var $periods = true;
+	public $periods = true;
 
-	function setup () {
+	public function setup () {
 		$this->setchart(array(
 			'yaxis' => array('tickFormatter' => 'asMoney')
 		));
@@ -13,13 +13,12 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 		$this->chartseries( __('Total Tax','Shopp'), array('column' => 'tax') );
 	}
 
-	function query () {
+	public function query () {
 		extract($this->options, EXTR_SKIP);
 
 		$where = array();
 
-		$where[] = "$starts < " . self::unixtime('o.created');
-		$where[] = "$ends > " . self::unixtime('o.created');
+		$where[] = "o.created BETWEEN '" . sDB::mkdatetime($starts) . "' AND '" . sDB::mkdatetime($ends) . "'";
 		$where[] = "o.txnstatus IN ('authed', 'captured', 'CHARGED')";
 
 		$where = join(" AND ",$where);
@@ -41,7 +40,7 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function columns () {
+	public function columns () {
 		return array(
 			'period'   => Shopp::__('Period'),
 			'orders'   => Shopp::__('Orders'),
@@ -52,14 +51,14 @@ class TaxReport extends ShoppReportFramework implements ShoppReport {
 		);
 	}
 
-	static function orders ( $data ) { return intval($data->orders); }
+	public static function orders ( $data ) { return intval($data->orders); }
 
-	static function subtotal ( $data ) { return money($data->subtotal); }
+	public static function subtotal ( $data ) { return money($data->subtotal); }
 
-	static function taxable ( $data ) { return money($data->taxable); }
+	public static function taxable ( $data ) { return money($data->taxable); }
 
-	static function tax ( $data ) { return money($data->tax); }
+	public static function tax ( $data ) { return money($data->tax); }
 
-	static function rate ( $data ) { return percentage($data->rate * 100); }
+	public static function rate ( $data ) { return percentage($data->rate * 100); }
 
 }

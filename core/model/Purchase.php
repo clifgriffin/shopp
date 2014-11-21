@@ -227,7 +227,8 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 			if ( 'ShoppCustomer' == $class ) { // hash the password before storage
 				$Object->hashpass();
-				$Record->passhash = $Object->passhash;
+				if ( isset($Object->passhash) )
+					$Record->passhash = $Object->passhash;
 				$Record->loginname = $Object->loginname;
 			}
 
@@ -539,7 +540,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 *
 	 * @return void
 	 **/
-	public function success ( $Purchase ) {
+	public static function success ( $Purchase ) {
 
 		$templates = array('email-order.php', 'order.php', 'order.html');
 
@@ -555,7 +556,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 				shopp_setting('merchant_email'),									// Recipient email address
 				Shopp::__('New Order - %s', $Purchase->id),								// Subject
 				array_merge(array('email-merchant-order.php'), $templates))			// Templates
-		));
+		), $Purchase);
 
 		// Remove merchant notification if disabled in receipt copy setting
 		if ( ! shopp_setting_enabled('receipt_copy') ) unset($messages['merchant']);
@@ -581,7 +582,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		else $email['to'] = Shopp::email_to( $address, $addressee );
 		$email['subject'] = $subject;
 		$email['receipt'] = $this->receipt();
-		$email['url'] = get_bloginfo('siteurl');
+		$email['url'] = get_bloginfo('url');
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;
 

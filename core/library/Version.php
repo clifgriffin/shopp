@@ -18,19 +18,19 @@ class ShoppVersion {
 	const MAJOR = 1;
 
 	/** @type int MINOR The minor version number */
-	const MINOR = 3;
+	const MINOR = 4;
 
 	/** @type int PATCH The maintenance patch version number */
-	const PATCH = 4;
+	const PATCH = 0;
 
 	/** @type string PRERELEASE The prerelease designation (dev, beta, RC1) */
-	const PRERELEASE = '';
+	const PRERELEASE = 'dev';
 
 	/** @type string CODENAME The release project code name */
-	const CODENAME = 'Sojourner';
+	const CODENAME = 'Orion';
 
 	/** @type int DB The database schema version */
-	const DB = 1200;
+	const DB = 1201;
 
 	/**
 	 * Provides the full plugin release version string

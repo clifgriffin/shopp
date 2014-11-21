@@ -253,9 +253,8 @@ class ShoppAdmin extends ShoppFlowController {
 
 		// Set controller (callback handler)
 		$controller = array($Shopp->Flow, 'admin');
-		// if ( shopp_setting_enabled('display_welcome') && empty($_POST['setup']) )
-		// 	$controller = array($this, 'welcome');
-		if ( Shopp::upgradedb() ) $controller = array($this, 'reactivate');
+
+		if ( Shopp::upgradedb() ) $controller = array($this, 'updatedb');
 
 		$menu = $Page->parent ? $Page->parent : $this->mainmenu;
 
@@ -526,14 +525,16 @@ class ShoppAdmin extends ShoppFlowController {
 	}
 
 	/**
-	 * Displays the re-activate screen
+	 * Displays the database update screen
 	 *
 	 * @return boolean
 	 * @author Jonathan Davis
 	 **/
-	public function reactivate () {
+	public function updatedb () {
 		$Shopp = Shopp::object();
-		include( SHOPP_ADMIN_PATH . '/help/reactivate.php');
+		$uri = SHOPP_ADMIN_URI . '/styles';
+		wp_enqueue_style('shopp.welcome', "$uri/welcome.css", array(), ShoppVersion::cache(), 'screen');
+		include( SHOPP_ADMIN_PATH . '/help/update.php');
 	}
 
 	/**
@@ -820,7 +821,7 @@ class ShoppUI {
 			$options = array_merge($buttons[ $button ], $options);
 
 		$types = array('submit','button');
-		if ( ! in_array($options['type'], $types))
+		if ( ! in_array($options['type'], $types) )
 			$options['type'] = 'submit';
 
 		extract($options, EXTR_SKIP);
@@ -828,9 +829,9 @@ class ShoppUI {
 		return '<button type="' . $type . '" name="' . $name . '"' . inputattrs($options) . '><span class="' . $icon . '"><span class="hidden">' . $title . '</span></span></button>';
 	}
 
-	public static function template ($ui,$data=array()) {
-		$ui = str_replace(array_keys($data),$data,$ui);
-		return preg_replace('/\${[-\w]+}/','',$ui);
+	public static function template ( $ui, array $data = array() ) {
+		$ui = str_replace(array_keys($data), $data, $ui);
+		return preg_replace('/\${[-\w]+}/', '', $ui);
 	}
 
 
@@ -845,7 +846,7 @@ class ShoppUI {
 	 * @param array $columns An array of columns with column IDs as the keys and translated column names as the values
 	 * @see get_column_headers(), print_column_headers(), get_hidden_columns()
 	 */
-	public static function register_column_headers ($screen, $columns) {
+	public static function register_column_headers ( $screen, $columns ) {
 		$wp_list_table = new ShoppAdminListTable($screen, $columns);
 	}
 
@@ -854,16 +855,16 @@ class ShoppUI {
 	 *
 	 * @since 1.2
 	 */
-	public static function print_column_headers ($screen, $id = true) {
+	public static function print_column_headers ( $screen, $id = true ) {
 		$wp_list_table = new ShoppAdminListTable($screen);
 
 		$wp_list_table->print_column_headers($id);
 	}
 
-	public static function table_set_pagination ($screen, $total_items, $total_pages, $per_page ) {
+	public static function table_set_pagination ( $screen, $total_items, $total_pages, $per_page ) {
 		$wp_list_table = new ShoppAdminListTable($screen);
 
-		$wp_list_table->set_pagination_args( array(
+		$wp_list_table->set_pagination( array(
 			'total_items' => $total_items,
 			'total_pages' => $total_pages,
 			'per_page' => $per_page
@@ -871,7 +872,6 @@ class ShoppUI {
 
 		return $wp_list_table;
 	}
-
 
 	/**
 	 * Registers the Shopp Collections meta box in the WordPress theme menus screen
@@ -1055,7 +1055,7 @@ class ShoppUI {
 	 * @param string $priority [optional]
 	 * @param array $args [optional]
 	 */
-	public static function addmetabox(string $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null) {
+	public static function addmetabox ( $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null ) {
 		self::$metaboxes[$id] = $callback;
 		$args = (array) $args;
 		array_unshift($args, $id);
@@ -1140,6 +1140,12 @@ class ShoppAdminListTable extends WP_List_Table {
 		if (isset($sortables[ $screen->id ])) return $sortables[ $screen->id ];
 
 		return array();
+	}
+
+	// public wrapper to set pagination
+	// @todo refactor this whole class to be used more effectively with Shopp MVC style UI
+	public function set_pagination ( array $args ) {
+		$this->set_pagination_args($args);
 	}
 
 }

@@ -402,10 +402,12 @@ class sDB extends SingletonFramework {
 
 		// Handle special cases
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i", $query) ) {
+			if ( ! $result ) return false;
 			$db->affected = $db->api->affected();
 			if ( preg_match("/^\\s*(insert|replace) /i", $query) ) {
 				$insert = $db->api->object( $db->api->query("SELECT LAST_INSERT_ID() AS id") );
-				return (int)$insert->id;
+				if ( ! empty($insert->id) )
+					return (int)$insert->id;
 			}
 
 			if ( $db->affected > 0 ) return $db->affected;
@@ -953,7 +955,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 		// Map out the table definition into our data structure
 		foreach ( $r as $object ) {
 			$var = $object->Field;
-			if ( ! empty($map) &&  ! isset($map[ $var ]) ) continue;
+
 			$this->_datatypes[ $var ] = sDB::datatype($object->Type);
 			$this->_defaults[ $var ] = $object->Default;
 
@@ -962,6 +964,8 @@ abstract class ShoppDatabaseObject implements Iterator {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
 				$this->_lists[$var] = explode(",",$values);
 			}
+
+			if ( ! empty($map) && ! isset($map[ $var ]) ) continue;
 
 			// Remap properties if a property map is available
 			$property = isset($map[$var])?$map[$var]:$var;
@@ -1316,13 +1320,18 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 **/
 	public function copydata ( $data, $prefix = '', array $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified') ) {
 		if ( ! is_array($ignores) ) $ignores = array();
-		if ( is_object($data) ) $properties = get_object_vars($data);
-		else $properties = $data;
+		$properties = is_object($data) ? get_object_vars($data) : $data;
 		foreach ( (array)$properties as $property => $value ) {
 			$property = $prefix . $property;
 			if ( property_exists($this, $property) && ! in_array($property, $ignores) )
 					$this->$property = sDB::clean($value);
 		}
+	}
+
+	public function clear () {
+		$ObjectClass = get_class($this);
+		$new = new $ObjectClass();
+		$this->copydata($new, '', array());
 	}
 
 	/**
@@ -1334,10 +1343,10 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @return array JSON-ready data set
 	 **/
 	public function json ( array $ignores = array() ) {
-		$this->_ignores = array_merge($this->_ignores,$ignores);
+		$this->_ignores = array_merge($this->_ignores, $ignores);
 		$this->_properties = $this->_properties(true);
 		$json = array();
-		foreach ($this as $name => $property) $json[$name] = $property;
+		foreach ( $this as $name => $property ) $json[ $name ] = $property;
 		return $json;
 	}
 

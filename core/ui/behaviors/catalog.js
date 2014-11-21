@@ -8,7 +8,7 @@
  * Product variation option menu behaviors
  **/
 function ProductOptionsMenus (target,settings) {
-	var $ = jqnc(),
+	var $ = jQuery,
 		i = 0,
 		previous = false,
 		current = false,
@@ -154,7 +154,7 @@ function ProductOptionsMenus (target,settings) {
  * Toggles catalog grid and list view changes
  **/
 function catalogViewHandler () {
-	var $=jqnc(),
+	var $=jQuery,
 		display = $('#shopp'),
 		expires = new Date(),
 		toggles = {'list':'grid','grid':'list'};
@@ -172,7 +172,7 @@ function catalogViewHandler () {
  * Create a gallery viewing for a set of images
  **/
 function ShoppGallery (id,evt,tw) {
-	var $ = jqnc(),
+	var $ = jQuery,
 		gallery = $(id),
 		previews = gallery.find('ul.previews'),
 		thumbnails = gallery.find('ul.thumbnails li');
@@ -198,7 +198,7 @@ function ShoppGallery (id,evt,tw) {
  * Generate a slideshow from a list of images
  **/
 function ShoppSlideshow (element,duration,delay,fx,order) {
-	var $ = jqnc(),_ = this,effects;
+	var $ = jQuery,_ = this,effects;
 	_.element = $(element);
 	var effects = {
 		'fade':[{'display':'none'},{'opacity':'show'}],
@@ -265,7 +265,7 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
  * Auto-initialize slideshow behaviors for ul's with a 'slideshow' class
  **/
 function slideshows () {
-	var $ = jqnc(),classes,options,map;
+	var $ = jQuery,classes,options,map;
 	$('ul.slideshow').each(function () {
 		classes = $(this).attr('class');
 		options = {};
@@ -286,7 +286,7 @@ function slideshows () {
  * Generate a carousel (looping slider) of images
  **/
 function ShoppCarousel (element,duration) {
-	var $ = jqnc(),spacing,
+	var $ = jQuery,spacing,
 		_ = this,
 		visible=1,
 		carousel = $(element),
@@ -354,7 +354,7 @@ function ShoppCarousel (element,duration) {
  * Auto-initialize carousel behaviors for divs with a 'carousel' class
  **/
 function carousels () {
-	var $ = jqnc(),classes,options,map;
+	var $ = jQuery,classes,options,map;
 	$('div.carousel').each(function () {
 		classes = $(this).attr('class');
 		options = {};
@@ -371,7 +371,7 @@ function carousels () {
  **/
 function validate (form) {
 	if (!form) return false;
-	var $ = jqnc(),
+	var $ = jQuery,
 		$form = $(form),
 		passed = true,
 		passwords = [],

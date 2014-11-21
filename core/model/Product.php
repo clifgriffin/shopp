@@ -269,6 +269,8 @@ class ShoppProduct extends WPShoppObject {
 			sDB::query("SELECT * FROM $table WHERE context='product' AND type != 'image' AND parent IN ($ids) ORDER BY sortorder", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 			sDB::query("SELECT * FROM $table WHERE context='product' AND type = 'image' AND parent IN ($ids) ORDER BY $imagesort", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 		}
+
+		do_action('shopp_product_load_meta', $ids, $this);
 	}
 
 	/**
@@ -1029,7 +1031,7 @@ class ShoppProduct extends WPShoppObject {
 
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		wp_delete_object_term_relationships($id, get_object_taxonomies(ShoppProduct::$posttype));
-		
+
 		// Delete product meta (dimensions)
 		$table_meta = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 		$table_price = ShoppDatabaseObject::tablename(ShoppPrice::$table);
@@ -1157,6 +1159,7 @@ class ShoppProduct extends WPShoppObject {
 		// Duplicate summary (primarily for summary settings data)
 		$Summary = new ProductSummary($original);
 		$Summary->product = $this->id;
+		$Summary->sold = $Summary->grossed = $Summary->stock = 0;
 		$Summary->save();
 
 		// Re-summarize product pricing
@@ -1202,7 +1205,7 @@ class ShoppProduct extends WPShoppObject {
 	 * @param string $status The status to set: publish, draft, trash
 	 * @return boolean
 	 **/
-	static function publishset ($ids,$status) {
+	static function publishset ( array $ids, $status ) {
 
 		if ( empty($ids) || ! is_array($ids) ) return false;
 		$settings = array('publish', 'draft', 'trash');
@@ -1215,6 +1218,13 @@ class ShoppProduct extends WPShoppObject {
 		$post_date = sDB::mkdatetime($time);
 
 		sDB::query("UPDATE $table SET post_status='$status', post_date='$post_date', post_date_gmt='$post_date_gmt', post_modified='$post_date', post_modified_gmt='$post_date_gmt' WHERE ID in (" . join(',', $ids) . ")");
+
+		foreach ( $ids as $id ) { // Recount taxonomy counts #2968
+			$Post = new StdClass;
+			$Post->ID = $id;
+			$Post->post_type = ShoppProduct::$posttype;
+			wp_transition_post_status($_POST['status'], $Product->status, $Post);
+		}
 
 		return true;
 	}

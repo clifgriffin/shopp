@@ -157,7 +157,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 		extract($request, EXTR_SKIP);
 
 		if ( Shopp::str_true($this->settings['verify']) && ! $this->verify($key) ) {
-			shopp_add_error(Shopp::__('The order submitted to 2Checkout could not be verified.'), SHOPP_TRXN_ERR);
+			shopp_add_error(Shopp::__('The order submitted by 2Checkout could not be verified.'), SHOPP_TRXN_ERR);
 			Shopp::redirect(Shopp::url(false, 'checkout'));
 		}
 
@@ -183,6 +183,8 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 			Shopp::redirect(Shopp::url(false, 'checkout'));
 		}
 
+
+		$this->Order->inprogress = $Purchase->id;
 		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'notify' ) );
 		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'accounts' ) );
 		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'success' ) );
@@ -198,9 +200,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 			'capture' => true           // Capture flag
 		));
 
-		ShoppOrder()->purchase = ShoppPurchase()->id;
 		Shopp::redirect( Shopp::url(false, 'thanks', false) );
-
 	}
 
 	public function authed ( ShoppPurchase $Order ) {
@@ -282,7 +282,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 			'label' => __('Copy as the <strong>Approved URL</strong> & <strong>Pending URL</strong> in your 2Checkout Vendor Area under the <strong>Account &rarr; Site Management</strong> settings page.','Shopp')
 		));
 
-		$script = "var tc ='shopp2checkout';jQuery(document).bind(tc+'Settings',function(){var $=jqnc(),p='#'+tc+'-',v=$(p+'verify'),t=$(p+'secret');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
+		$script = "var tc ='shopp2checkout';jQuery(document).bind(tc+'Settings',function(){var $=jQuery,p='#'+tc+'-',v=$(p+'verify'),t=$(p+'secret');v.change(function(){v.prop('checked')?t.parent().fadeIn('fast'):t.parent().hide();}).change();});";
 		$this->ui->behaviors( $script );
 	}
 

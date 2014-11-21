@@ -35,6 +35,7 @@ class ProductCollection implements Iterator {
 	public $filters = false;
 	public $products = array();
 	public $total = 0;
+	public $pricerange = 'auto';
 
 	private $_keys = array();
 	private $_position = array();
@@ -340,14 +341,8 @@ class ProductCollection implements Iterator {
 			if ( ! $product ) return false; // No products, bail
 		}
 
-		$taxrate = 0;
-	    if ( shopp_setting_enabled('tax_inclusive') ) {
-			$TaxProduct = new ShoppProduct($product->id);
-	        $taxrate = shopp_taxrate(null, true, $TaxProduct);
-	    }
-
 		$item = array();
-		$item['guid'] = shopp($product, 'get-url');
+		$item['guid'] = shopp($product, 'get-id');
 		$item['title'] = $product->name;
 		$item['link'] =  shopp($product, 'get-url');
 		$item['pubDate'] = date('D, d M Y H:i O', $product->publish);
@@ -357,31 +352,23 @@ class ProductCollection implements Iterator {
 
 		$item['description'] .= '<table><tr>';
 		$Image = current($product->images);
-		if (!empty($Image)) {
+		if ( ! empty($Image) ) {
 			$item['description'] .= '<td><a href="' . $item['link'] . '" title="' . $product->name . '">';
 			$item['description'] .= '<img src="' . esc_attr(add_query_string($Image->resizing(75, 75, 0), Shopp::url($Image->id, 'images'))) . '" alt="' . $product->name . '" width="75" height="75" />';
 			$item['description'] .= '</a></td>';
 		}
 
 		$pricing = "";
-		if ( Shopp::str_true($product->sale) ) {
-			if ( $taxrate ) $product->min['saleprice'] += $product->min['saleprice'] * $taxrate;
-			if ( $product->min['saleprice'] != $product->max['saleprice'] )
-				$pricing .= Shopp::__('from') . ' ';
-			$pricing .= money($product->min['saleprice']);
-		} else {
-			if ($taxrate) {
-				$product->min['price'] += $product->min['price'] * $taxrate;
-				$product->max['price'] += $product->max['price'] * $taxrate;
-			}
+		$priceindex = 'price';
+		if ( Shopp::str_true($product->sale) ) $priceindex = 'saleprice';
 
-			if ( $product->min['price'] != $product->max['price'] )
-				$pricing .= Shopp::__('from') . ' ';
-			$pricing .= money($product->min['price']);
-		}
+		if ( $product->min[ $priceindex ] != $product->max[ $priceindex ] )
+			$pricing .= Shopp::__('from') . ' ';
+		$pricing .= money($product->min[ $priceindex ]);
+
 		$item['description'] .= "<td><p><big>$pricing</big></p>";
 
-		$item['description'] .= apply_filters('shopp_rss_description', ($product->summary), $product) . '</td></tr></table>';
+		$item['description'] .= apply_filters('shopp_rss_description', $product->summary, $product) . '</td></tr></table>';
 		$item['description'] =
 		 	'<![CDATA[' . $item['description'] . ']]>';
 
@@ -391,7 +378,8 @@ class ProductCollection implements Iterator {
 		// Below are Google Base specific attributes
 		// You can use the shopp_rss_item filter hook to add new item attributes or change the existing attributes
 
-		if ( $Image ) $item['g:image_link'] = add_query_string($Image->resizing(400, 400, 0), Shopp::url($Image->id, 'images'));
+		if ( $Image )
+			$item['g:image_link'] = add_query_string($Image->resizing(400, 400, 0), Shopp::url($Image->id, 'images'));
 		$item['g:condition'] = 'new';
 		$item['g:availability'] = shopp_setting_enabled('inventory') && $product->outofstock ? 'out of stock' : 'in stock';
 
@@ -1976,7 +1964,7 @@ class RelatedProducts extends SmartCollection {
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
 
-		// Use the current product is available
+		// Use the current product if available
 		if ( ! empty($Product->id) )
 			$this->product = ShoppProduct();
 

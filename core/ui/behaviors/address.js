@@ -7,12 +7,14 @@
 (function($) {
 	jQuery.fn.upstate = function () {
 
+		if ( typeof regions === 'undefined' ) return;
+
 		$(this).change(function (e,init) {
 			var $this = $(this),
 				prefix = $this.attr('id').split('-')[0],
 				country = $this.val(),
-				state = $('#'+prefix+'-state'),
-				menu = $('#'+prefix+'-state-menu'),
+				state = $this.parents().find('#' + prefix + '-state'),
+				menu = $this.parents().find('#' + prefix + '-state-menu'),
 				options = '<option value=""></option>';
 
 			if (menu.length == 0) return true;
@@ -47,10 +49,11 @@
 })(jQuery);
 
 
-jQuery(document).ready(function($) {
-	var sameaddr = $('.sameaddress');
-	var shipFields = $('#shipping-address-fields');
-	var billFields = $('#billing-address-fields');
+jQuery(document).ready(function() {
+	var $ = jQuery,
+		sameaddr = $('.sameaddress'),
+		shipFields = $('#shipping-address-fields'),
+		billFields = $('#billing-address-fields');
 
 	// Update name fields
 	$('#firstname,#lastname').change(function () {

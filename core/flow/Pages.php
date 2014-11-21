@@ -187,6 +187,10 @@ class ShoppPage {
 		return $content;
 	}
 
+	public function nocomment () {
+		return array();
+	}
+
 	/**
 	 * Provides the title for the page from settings
 	 *
@@ -225,7 +229,10 @@ class ShoppPage {
 		$templates = array('shopp.php', 'page.php');
 
 		$name = $this->name();
-		if ( ! empty($name) ) array_unshift($templates, "$name.php");
+		if ( ! empty($name) ) {
+			array_unshift($templates, "$name.php"); // @deprecated
+			array_unshift($templates, "shopp-$name.php");
+		}
 
 		$template = $this->pagetemplate();
 		if ( ! empty($template) ) array_unshift($templates, "$template.php");
@@ -241,6 +248,7 @@ class ShoppPage {
 		add_filter('wp_head', array($this, 'head'), 20);
 		add_filter('the_content', array($this, 'content'), 20);
 		add_filter('the_excerpt', array($this, 'content'), 20);
+		add_filter('comments_array', array($this, 'nocomment'));
 		add_filter('wpseo_replacements', array($this, 'wpseo')); // compatibility helper for WPSEO
 	}
 
@@ -401,22 +409,28 @@ class ShoppAccountPage extends ShoppPage {
 		}
 
 		$widget = ( 'widget' === $request );
-		if ($widget) $request = 'menu'; // Modify widget request to render the account menu
+		if ( $widget ) $request = 'menu'; // Modify widget request to render the account menu
 
+		$orderlookup = '';
 		if ( 'none' == shopp_setting('account_system' ) )
-			return apply_filters( 'shopp_account_template', shopp( 'customer', 'get-order-lookup' ) );
+			$orderlookup = shopp( 'customer', 'get-order-lookup' );
 
 		// $download_request = get_query_var('s_dl');
 		if ( ! $request) $request = ShoppStorefront()->account['request'];
 		$templates = array( 'account-'.$request.'.php', 'account.php' );
-		if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
 		$context = ShoppStorefront::intemplate(); // Set account page context
 
 		$Errors = ShoppErrorStorefrontNotices();
 		ob_start();
 		if ( apply_filters( 'shopp_show_account_errors', true ) && $Errors->exist() )
 			echo ShoppStorefront::errors( array( "errors-$context", 'account-errors.php', 'errors.php' ) );
-		Shopp::locate_template( $templates, true );
+
+		if ( ! empty($orderlookup) ) {
+			echo $orderlookup;
+		} else {
+			if ( 'login' == $request || ! ShoppCustomer()->loggedin() ) $templates = array( 'login-' . $request . '.php', 'login.php' );
+			Shopp::locate_template( $templates, true );
+		}
 		$content = ob_get_clean();
 
 		// Suppress the #shopp div for sidebar widgets
@@ -473,7 +487,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'Content-type: text/html';
 		$_[] = '';
 		$_[] = '<p>'.__('A request has been made to reset the password for the following site and account:', 'Shopp').'<br />';
-		$_[] = get_option('siteurl').'</p>';
+		$_[] = get_bloginfo('url').'</p>';
 		$_[] = '';
 		$_[] = '<ul>';
 		if (isset($_POST['email-login']))
@@ -536,7 +550,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = 'Subject: ' . $subject;
 		$_[] = 'Content-type: text/html';
 		$_[] = '';
-		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_option('siteurl')) . '</p>';
+		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
 		if ( $user_data )
@@ -844,6 +858,12 @@ class ShoppProductPage extends ShoppPage {
 		return ShoppStorefront::wrapper($content);
 	}
 
+
+	public function filters () {
+		parent::filters();
+		remove_filter('comments_array', array($this, 'nocomment'));
+	}
+
 }
 
 /**
@@ -967,6 +987,7 @@ class ShoppCollectionPage extends ShoppPage {
 		global $wp_query;
 		// Only modify content for Shopp collections (Shopp smart collections and taxonomies)
 		if ( ! $wp_query->is_main_query() ||  ! is_shopp_collection() ) return $content;
+		remove_filter('the_content', array($this, 'content'), 20);
 
 		$Collection = ShoppCollection();
 
