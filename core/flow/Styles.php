@@ -4,21 +4,14 @@
  *
  * Controller for browser stylesheet queueing and delivery
  *
- * @author Jonathan Davis
- * @version 1.0
  * @copyright Ingenesis Limited, May 2014
  * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package shopp
+ * @package Shopp\Styles
+ * @version 1.0
  * @since 1.0
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
-
-/** From BackPress */
-if ( ! class_exists('WP_Scripts') ) {
-	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
-	require( ABSPATH . WPINC . '/class.wp-styles.php' );
-}
 
 add_action('shopp_default_styles', array('ShoppStyles', 'defaults'));
 
@@ -27,9 +20,6 @@ class ShoppStyles extends WP_Styles {
 	public function __construct() {
 
 		do_action('shopp_default_styles', $this);
-
-		// add_action('wp_enqueue_scripts', array($this, 'wp_dependencies'), 1);
-		// add_action('admin_head', array($this, 'wp_dependencies'), 1);
 
 		add_action('wp_head', array($this, 'dostyles'), 8);
 		add_action('admin_print_styles', array($this, 'dostyles'), 15);
@@ -89,16 +79,12 @@ class ShoppStyles extends WP_Styles {
 
 			if ( ! empty($this->concat) ) {
 
-				$url = trailingslashit(get_bloginfo('url'));
-				$script = SHOPP_PLUGINURI . '/services/styles.php';
 				$ver = hash('crc32b', "$this->concat_version");
 				$stylesheets = trim($this->concat, ', ');
-
-				if ( shopp_setting('script_server') == 'plugin' ) {
-					$url = add_query_arg('scss', $stylesheets, $url);
-				} else $url = add_query_arg('load', $stylesheets, $script);
+				$url = trailingslashit(get_bloginfo('url')) . 'sp-styles.css';
 
 				$href = add_query_arg(array(
+					'load' => $stylesheets,
 					'c' => $zip,
 					'ver' => $ver,
 					'debug' => $debug
@@ -112,7 +98,7 @@ class ShoppStyles extends WP_Styles {
 				echo $this->print_html;
 	}
 
-	public function in_default_dir($src) {
+	public function in_default_dir ( $src ) {
 		if ( ! $this->default_dirs )
 			return true;
 

@@ -12,54 +12,11 @@
  * @since 1.4
  **/
 
-$queryvars = array('load', 'scss');
+$load = isset($_GET['load']) ? $_GET['load'] : '';
+$load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
+$load = (array) explode(',', $load);
 
-$load = '';
-foreach ($queryvars as $var) {
-	if ( isset($_GET[ $var ]) ) {
-		$load = $_GET[ $var ];
-		break;
-	}
-}
-
-$load = preg_replace( '/[^a-z0-9,_\.-]+/i', '', $load );
-$load = explode(',', $load);
-
-if ( empty($load) ) exit();
-
-/**
- * @ignore
- */
-if ( ! function_exists('add_action') ) { function add_action() {} }
-
-/**
- * @ignore
- */
-if ( ! function_exists('do_action') ) { function do_action() {} }
-
-function get_file( $path ) {
-
-	if ( function_exists('realpath') )
-		$path = realpath($path);
-
-	if ( ! $path || ! @is_file($path) )
-		return '';
-
-	return @file_get_contents($path);
-}
-
-if ( ! defined('SHORTINIT') ) {
-	define('SHORTINIT',true);
-
-	require dirname(dirname(__FILE__)) . '/core/library/Loader.php';
-
-	if ( ! defined('ABSPATH') && $loadfile = ShoppLoader::find_wpload() )
-		define('ABSPATH', dirname($loadfile) . '/');
-
-	if ( ! defined('WPINC') ) define('WPINC', 'wp-includes');
-
-	date_default_timezone_set('UTC');
-}
+if ( empty($load) ) exit;
 
 $ShoppStyles = new ShoppStyles();
 ShoppStyles::defaults($ShoppStyles);
@@ -74,7 +31,9 @@ foreach( $load as $handle ) {
 		continue;
 
 	$path = ShoppLoader::basepath() . $ShoppStyles->registered[ $handle ]->src;
-	$out .= get_file($path) . "\n";
+	if ( ! $path || ! @is_file($path) ) continue;
+
+	$out .= @file_get_contents($path) . "\n";
 
 }
 
