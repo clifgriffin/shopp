@@ -357,7 +357,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		);
 		$options = array_merge($defaults, $options);
 
-		if ( 'value' == $options['mode'] ) return date('m', $O->Billing->cardexpires);
+		if ( 'value' == $options['mode'] ) return date('y', $O->Billing->cardexpires);
 
 		if ( 'text' == $options['type'] )
 			return '<input type="text" name="' . $name . '" id="' . $id . '" ' . inputattrs($options) . ' />';
