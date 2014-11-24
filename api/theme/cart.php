@@ -309,6 +309,7 @@ class ShoppCartThemeAPI implements ShoppAPI {
 			case ShoppOrderDiscount::BOGOF:			list($buy, $get) = $Discount->discount(); $string .= ucfirst(strtolower(Shopp::esc_html__('Buy %s Get %s Free', $buy, $get))); break;
 		}
 
+		$options['label'] = '';
 		if ( Shopp::str_true($remove) )
 			$string .= '&nbsp;' . self::discount_remove('', $options, $O);
 
