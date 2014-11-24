@@ -1687,23 +1687,19 @@ abstract class ShoppCore {
 	public static function email ( $template, array $data = array() ) {
 
 		$debug = defined('SHOPP_DEBUG_EMAIL') && SHOPP_DEBUG_EMAIL;
+
 		$headers = array();
 		$to = $subject = $message = '';
-
 		$addrs = array('from', 'sender', 'reply-to', 'to', 'cc', 'bcc');
 		$protected = array_merge($addrs, array('subject'));
-
 		if ( false == strpos($template, "\n") && file_exists($template) ) {
 			$templatefile = $template;
-
 			// Include to parse the PHP and Theme API tags
-
 			ob_start();
 			ShoppStorefront::intemplate($templatefile);
 			include $templatefile;
 			ShoppStorefront::intemplate('');
 			$template = ob_get_clean();
-
 			if ( empty($template) )
 				return shopp_add_error(Shopp::__('Could not open the email template because the file does not exist or is not readable.'), SHOPP_ADMIN_ERR, array('template' => $templatefile));
 		}
@@ -1714,29 +1710,27 @@ abstract class ShoppCore {
 
 		// Collect headers
 		while ( $line = array_shift($lines) ) {
-
 			if ( false === strpos($line, ':') ) continue; // Skip invalid header lines
 
 			list($header, $value) = explode(':', $line, 2);
+			$header = strtolower($header);
 
-			// Protect against header injection
-			if ( in_array(strtolower($header), $protected) )
+			if ( in_array($header, $protected) ) // Protect against header injection
 				$value = str_replace(array("\n", "\r"), '', rawurldecode($value));
 
-			$headers[ ucfirst($header) ] = $value;
+			if ( in_array($header, array('to', 'subject')) )
+				$headers[ $header ] = trim($value);
+			else $headers[ $header ] = $line;
 		}
-
 		$message = join("\n", $lines);
-
 		// If not already in place, setup default system email filters
 		ShoppEmailDefaultFilters::init();
-
 		// Message filters first
-		$headers = apply_filters('shopp_email_headers', $headers, $message);
 		$message = apply_filters('shopp_email_message', $message, $headers);
 
-		$to = $headers['To']; unset($headers['To']);
-		$subject = $headers['Subject']; unset($headers['Subject']);
+		$headers = apply_filters('shopp_email_headers', $headers, $message);
+		$to = $headers['to']; unset($headers['to']);
+		$subject = $headers['subject']; unset($headers['subject']);
 
 		$sent = wp_mail($to, $subject, $message, $headers);
 
