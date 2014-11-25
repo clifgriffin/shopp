@@ -423,7 +423,7 @@ class ShoppAdminService extends ShoppAdminController {
 		$Purchase->Customer = new ShoppCustomer($Purchase->customer);
 		$Gateway = $Purchase->gateway();
 
-		if (!empty($_POST["send-note"])){
+		if ( ! empty($_POST['send-note']) ){
 			$user = wp_get_current_user();
 			shopp_add_order_event($Purchase->id,'note',array(
 				'note' => stripslashes($_POST['note']),
@@ -433,7 +433,7 @@ class ShoppAdminService extends ShoppAdminController {
 			$Purchase->load_events();
 		}
 
-		if (isset($_POST['submit-shipments']) && isset($_POST['shipment']) && !empty($_POST['shipment'])) {
+		if ( isset($_POST['submit-shipments']) && isset($_POST['shipment']) && !empty($_POST['shipment']) ) {
 			$shipments = $_POST['shipment'];
 			foreach ((array)$shipments as $shipment) {
 				shopp_add_order_event($Purchase->id,'shipped',array(
@@ -676,32 +676,59 @@ class ShoppAdminService extends ShoppAdminController {
 
 		if ( ! empty($_POST['save-totals']) ) {
 
-			$map = array(
-				'fees' => 'fee',
-				'discount' => 'discount',
-				'freight' => 'shipping',
-				'tax' => 'tax'
+			$totals = array();
+			if ( ! empty($_POST['totals']) )
+				$totals = $_POST['totals'];
+
+			$objects = array(
+				'tax' => 'OrderAmountTax',
+				'shipping' => 'OrderAmountShipping',
+				'discount' => 'OrderAmountDiscount'
 			);
 
-			$totals = 0;
-			foreach ( $map as $property => $field ) {
-				if ( empty($_POST[ $field ]) ) continue;
-				if ( count($_POST[ $field ]) > 1 ) {
-					$labels = array_shift($_POST[ $field ]);
-					$total = Shopp::floatval(array_pop($_POST[ $field ]));
-				}
-				$sum = array_sum(array_map(array('Shopp', 'floatval'), $_POST[ $field ]));
-				if ( $sum > 0 )
-					$Purchase->$property = $sum;
+			$methods = array(
+				'fee' => 'fees',
+				'tax' => 'taxes',
+				'shipping' => 'shipfees',
+				'discount' => 'discounts'
+			);
 
+			$total = 0;
+			foreach ( $totals as $property => $fields ) {
+				if ( empty($fields) ) continue;
 
-				$totals += ('discount' == $field ? $Purchase->$property * -1 : $Purchase->$property );
+				if ( count($fields) > 1 ) {
+					if ( isset($fields['labels']) ) {
+						$labels = $fields['labels'];
+						unset($fields['labels']);
+						if ( count($fields) > count($labels) )
+							$totalfield = array_pop($fields);
+
+						$fields = array_combine($labels, $fields);
+					}
+
+					$fields = array_map(array('Shopp', 'floatval'), $fields);
+
+					$entries = array();
+					$OrderAmountObject = isset($objects[ $property ]) ? $objects[ $property ] : 'OrderAmountFee';
+					foreach ( $fields as $label => $amount )
+						$entries[] = new $OrderAmountObject(array('id' => count($entries) + 1, 'label' => $label, 'amount' => $amount));
+
+					$savetotal = isset($methods[ $property ]) ? $methods[ $property ] : $fees;
+					$Purchase->$savetotal($entries);
+
+					$sum = array_sum($fields);
+					if ( $sum > 0 )
+						$Purchase->$property = $sum;
+
+				} else $Purchase->$property = Shopp::floatval($fields[0]);
+
+				$total += ('discount' == $property ? $Purchase->$property * -1 : $Purchase->$property );
+
 			}
 
-			$Purchase->total = $Purchase->subtotal + $totals;
-
+			$Purchase->total = $Purchase->subtotal + $total;
 			$Purchase->save();
-
 		}
 
 		if ( ! empty($_GET['rmvline']) ) {

@@ -17,7 +17,7 @@
 		'${statemenu}' => Shopp::menuoptions($Purchase->_shipping_states,$Purchase->shipstate,true),
 		'${countrymenu}' => Shopp::menuoptions($Purchase->_countries,$Purchase->shipcountry,true)
 	);
-	echo ShoppUI::template(order_address_editor(), $address); ?>
+	echo ShoppUI::template(ShoppAdminOrderBillingAddressBox::editor(), $address); ?>
 	</form>
 <?php return; endif; ?>
 

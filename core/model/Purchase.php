@@ -154,46 +154,77 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @param ShoppDiscounts $ShoppDiscounts The ShoppDiscounts object from the order to add to this purchase
 	 * @return array List of discounts applied
 	 **/
-	public function discounts ( ShoppDiscounts $ShoppDiscounts = null ) {
-		if ( empty($this->id) ) return false;
+	public function discounts ( $ShoppDiscounts = null ) {
+		if ( is_a($ShoppDiscounts, 'ShoppDiscounts') )
+			return $this->linefees($ShoppDiscounts, 'discounts', 'ShoppPurchaseDiscount');
+		else return $this->linefees($ShoppDiscounts, 'discounts', 'ShoppPurchaseOrderDiscount');
 
-		if ( isset($ShoppDiscounts) ) { // Save the given discounts
-			$discounts = array();
-			foreach ( $ShoppDiscounts as $Discount )
-				$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
-
-			shopp_set_meta($this->id, 'purchase', 'discounts', $discounts);
-			$this->discounts = $discounts;
-			ShoppPromo::used(array_keys($discounts));
-		}
-
-		if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
-		return $this->discounts;
+		// if ( empty($this->id) ) return false;
+		//
+		// if ( isset($ShoppDiscounts) ) { // Save the given discounts
+		// 	$discounts = array();
+		// 	foreach ( $ShoppDiscounts as $Discount )
+		// 		$discounts[ $Discount->id() ] = new ShoppPurchaseDiscount($Discount);
+		//
+		// 	shopp_set_meta($this->id, 'purchase', 'discounts', $discounts);
+		// 	$this->discounts = $discounts;
+		// 	ShoppPromo::used(array_keys($discounts));
+		// }
+		//
+		// if ( empty($this->discounts) ) $this->discounts = shopp_meta($this->id, 'purchase', 'discounts');
+		// return $this->discounts;
 	}
 
 	/**
 	 * Set or load the taxes applied to this order
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
 	 * @param array $OrderTaxes A list of OrderAmountItemTax entries
 	 * @return array The list of taxes applied to the order
 	 **/
 	public function taxes ( array $OrderTaxes = array() ) {
+		return $this->linefees($OrderTaxes, 'taxes', 'ShoppPurchaseTax');
+		// if ( empty($this->id) ) return false;
+		//
+		// if ( ! empty($OrderTaxes) ) { // Save the given taxes
+		// 	$taxes = array();
+		// 	foreach ( (array) $OrderTaxes as $Tax )
+		// 		$taxes[ $Tax->id() ] = new ShoppPurchaseTax($Tax);
+		// 	shopp_set_meta($this->id, 'purchase', 'taxes', $taxes);
+		// 	$this->taxes = $taxes;
+		// }
+		//
+		// if ( empty($this->taxes) ) $this->taxes = shopp_meta($this->id, 'purchase', 'taxes');
+		// return $this->taxes;
+	}
+
+
+	public function shipfees ( array $OrderShipping = array() ) {
+		return $this->linefees($OrderShipping, 'shipfees', 'ShoppPurchaseShipping');
+	}
+
+	public function fees ( array $OrderFees = array() ) {
+		return $this->linefees($OrderFees);
+	}
+
+	private function linefees ( $list = array(), $property = 'orderfees', $class = 'ShoppPurchaseFee' ) {
 		if ( empty($this->id) ) return false;
 
-		if ( ! empty($OrderTaxes) ) { // Save the given taxes
-			$taxes = array();
-			foreach ( (array) $OrderTaxes as $Tax )
-				$taxes[ $Tax->id() ] = new ShoppPurchaseTax($Tax);
-			shopp_set_meta($this->id, 'purchase', 'taxes', $taxes);
-			$this->taxes = $taxes;
+		if ( ! class_exists($class) ) $class = 'ShoppPurchaseFee';
+
+		if ( ! empty($list) ) { // Save the given list of fees
+			$fees = array();
+			foreach ( $list as $Entry )
+				$fees[ $Entry->id() ] = new $class($Entry);
+			shopp_set_meta($this->id, 'purchase', $property, $fees);
+			$this->$property = $fees;
 		}
 
-		if ( empty($this->taxes) ) $this->taxes = shopp_meta($this->id, 'purchase', 'taxes');
-		return $this->taxes;
+		if ( empty($this->$property) ) $this->$property = shopp_meta($this->id, 'purchase', $property);
+		return $this->$property;
 	}
+
 
 	/**
 	 * Creates or retrieves temporary account registration information for the order
@@ -1096,7 +1127,7 @@ class PurchasesIIFExport extends PurchasesExport {
 		</script>
 		<?php
 	}
-}
+} // End class ShoppPurchase
 
 // Attach the notification system to order events
 add_action('shopp_order_event', array('ShoppPurchase', 'notifications'));
@@ -1109,3 +1140,52 @@ foreach ( $updates as $event ) // Scheduled before default actions so updates ar
 
 // Handle unstock event
 add_action('shopp_unstock_order_event', array('ShoppPurchase', 'unstock'));
+
+
+class ShoppPurchaseFee {
+
+	public $id = false;	   // The originating object id
+	public $name = '';	   // The name of the fee
+	public $amount = 0.00; // The total amount of fees
+
+	public function __construct ( OrderAmountFee $Fee ) {
+
+		$this->id = $Fee->id();
+		$this->name = $Fee->label();
+		$this->amount = $Fee->amount();
+
+	}
+
+}
+
+class ShoppPurchaseShipping {
+
+	public $id = false;	   // The originating object id
+	public $name = '';	   // The name of the shipping fee
+	public $amount = 0.00; // The total amount of shipping fees
+
+	public function __construct ( OrderAmountShipping $Shipping ) {
+
+		$this->id = $Shipping->id();
+		$this->name = $Shipping->label();
+		$this->amount = $Shipping->amount();
+
+	}
+
+}
+
+class ShoppPurchaseOrderDiscount{
+
+	public $id = false;	   // The originating object id
+	public $name = '';	   // The name of the shipping fee
+	public $amount = 0.00; // The total amount of shipping fees
+
+	public function __construct ( OrderAmountDiscount $Discount ) {
+
+		$this->id = $Discount->id();
+		$this->name = $Discount->label();
+		$this->amount = $Discount->amount();
+
+	}
+
+}

@@ -132,10 +132,10 @@ class ShoppDiscounts extends ListFramework {
 
 		// Check for failed promo codes
 		if ( empty($this->request) || $this->codeapplied( $this->request ) ) return;
-		
+
 		if( $this->validcode($this->request) ) {
 			shopp_add_error( Shopp::__('&quot;%s&quot; does not apply to the current order.', $this->request) );
-			$this->request = false;	
+			$this->request = false;
 		} else {
 			shopp_add_error( Shopp::__('&quot;%s&quot; is not a valid code.', $this->request) );
 			$this->request = false;
@@ -481,7 +481,7 @@ class ShoppDiscounts extends ListFramework {
 	public function codeapplied ( $code ) {
 		return isset( $this->codes[ strtolower($code) ]);
 	}
-	
+
 	/**
 	 * Checks if a given code is attached to a valid rule
 	 *
@@ -493,7 +493,7 @@ class ShoppDiscounts extends ListFramework {
 	 **/
 	public function validcode( $code ) {
 		$Promotions = ShoppOrder()->Promotions;
-		
+
 		foreach($Promotions as $promo) {
 			if( empty($promo->code) ) continue;
 			if( strtolower($code) == strtolower($promo->code) ) return true;
@@ -855,9 +855,9 @@ class ShoppDiscountRule {
 		return stripos($subject,$value) === strlen($subject) - strlen($value);
 
 	}
-	
+
 	public function get_property() {
-		return $this->property;	
+		return $this->property;
 	}
 
 }
