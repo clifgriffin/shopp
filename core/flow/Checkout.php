@@ -61,10 +61,10 @@ class ShoppCheckout extends FormPostFramework {
 
 		add_action('shopp_process_checkout', array($this, 'data'));
 		add_action('shopp_process_checkout', array($this, 'customer'));
-		add_action('shopp_process_checkout', array($this, 'payment'));
 		add_action('shopp_process_checkout', array($this, 'shipaddress'));
 		add_action('shopp_process_checkout', array($this, 'shipmethod'));
 		add_action('shopp_process_checkout', array($this, 'billaddress'));
+		add_action('shopp_process_checkout', array($this, 'payment'));
 		add_action('shopp_process_checkout', array($this, 'process'));
 
 		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'names'));

@@ -269,9 +269,9 @@
 	                                                $Product = new ShoppProduct($Item->product);
 	                                                $Product->load_data( array('images') );
 	                                                $Image = reset($Product->images);
-	                                                $image_id = apply_filters('shopp_order_item_image_id', $Image->id, $Item, $Product);
 
-	                                                if ( ! empty($Image) ) { ?>
+	                                                if ( ! empty($Image) ) { 
+	                                                    $image_id = apply_filters('shopp_order_item_image_id', $Image->id, $Item, $Product); ?>
 	                                                    <img src="?siid=<?php echo $image_id ?>&amp;<?php echo $Image->resizing(38, 0, 1) ?>" width="38" height="38" class="alignleft" />
 	                                                <?php
 	                                                }
