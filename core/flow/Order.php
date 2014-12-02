@@ -156,6 +156,13 @@ class ShoppOrder {
 				return $this->success();
 		}
 
+		// Check if an in progress order processing (from another process/tab/window) completed
+		if ( ! empty($_REQUEST['inprogress']) && ! empty($this->purchase) ) {
+				$Purchase = new ShoppPurchase($this->purchase);
+				if ( $Purchase->exists() ) // Verify it exists and redirect to thanks
+					Shopp::redirect(Shopp::url(false, 'thanks'));
+		}
+
 		if ( ! empty($_REQUEST['rmtpay']) )
 			return do_action('shopp_remote_payment');
 
@@ -238,17 +245,41 @@ class ShoppOrder {
 	/**
 	 * Submits the order to create a Purchase record
 	 *
-	 * @author Jonathan Davis
+	 * Uses WP Transients API to establish a lock on order creation for the session to
+	 * prevent duplicate orders.
+	 *
 	 * @since 1.2
 	 *
 	 * @return void
 	 **/
 	public function submit () {
+
 		if ( ! $this->Payments->processor() ) return; // Don't do anything if there is no payment processor
+
+		// Duplicate purchase prevention #3142
+		$lockid = 'shopp_order_' . ShoppShopping()->session();
+		if ( get_transient($lockid) ) {
+			shopp_debug("Lock $lockid already established, waiting for other process to complete...");
+
+			// Wait until the lock is cleared
+			$waited = 0; $timeout = SHOPP_GATEWAY_TIMEOUT + 5;
+			while ( get_transient($lockid) && $waited++ < $timeout )
+				sleep(1);
+
+			shopp_debug("Lock $lockid process appears to have completed, redirecting...");
+
+			// Otherwise an error must have occured, bounce back to checkout
+			Shopp::redirect(Shopp::url(array('inprogress' => '1'), 'checkout', $this->security()));
+			return;
+
+		} else set_transient($lockid, true, $timeout);
 
 		shopp_add_order_event(false, 'purchase', array(
 			'gateway' => $this->Payments->processor()
 		));
+
+		delete_transient( $lockid ); // Remove the lock
+
 	}
 
 	/**
@@ -652,9 +683,13 @@ class ShoppOrder {
 	public function success () {
 
 		if ( ! empty($this->inprogress) ) {
+
 			$this->purchase = $this->inprogress;
 			ShoppPurchase(new ShoppPurchase($this->purchase));
 			$this->inprogress = false;
+
+			// Remove the order processing lock
+			delete_transient( 'shopp_order_' . ShoppShopping()->session() );
 
 			do_action('shopp_order_success', ShoppPurchase());
 
