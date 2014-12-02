@@ -49,7 +49,8 @@ jQuery(document).ready(function () {
 		},
 	});
 
-	submitButtons.on('click', function () {
+	submitButtons.on('click', function (e) {
+		e.preventDefault();
 		$(this).disableSubmit();
 		setTimeout(function () { checkoutForm.submit(); }, 1);
 	}).each(function () {
