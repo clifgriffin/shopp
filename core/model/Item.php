@@ -946,7 +946,7 @@ class ShoppCartItem {
 				$this->taxprice = $this->unitprice;
 
 			// Modify the unitprice from the original tax inclusive price and update the discounted price
-			$this->unitprice = ($this->taxprice / $adjustment);
+			$this->unitprice = ( $this->taxprice / $adjustment );
 			$this->priced = ( $this->unitprice - $this->discount );
 
 		} elseif ( isset($this->taxprice) ) { // Undo tax price adjustments
