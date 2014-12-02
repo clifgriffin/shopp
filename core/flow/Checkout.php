@@ -172,7 +172,6 @@ class ShoppCheckout extends FormPostFramework {
 
 		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'paycard'));
 
-
 		$form = $this->form('billing');
 
 		// If the card number is provided over a secure connection
@@ -182,8 +181,7 @@ class ShoppCheckout extends FormPostFramework {
 
 		// Sanitize the card number to ensure it only contains numbers
 		if ( ! empty($form['card']) )
-			$form['card'] = preg_replace('/[^\d]/', '', $form['card']);
-
+			$Billing->card = preg_replace('/[^\d]/', '', $form['card']);
 
 		$form['cardexpires'] = sprintf('%02d%02d', $form['cardexpires-mm'], $form['cardexpires-yy']);
 
