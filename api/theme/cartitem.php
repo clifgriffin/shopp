@@ -411,7 +411,27 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	 * @return string The tax rate percentage (10.1%)
 	 **/
 	public static function taxrate ( $result, $options, $O ) {
-		return percentage( $O->taxrate * 100, array( 'precision' => 1 ) );
+
+		if ( count($O->taxes) == 1 ) {
+			$Tax = reset($O->taxes);
+			return percentage( $Tax->rate * 100, array( 'precision' => 1 ) );
+		}
+
+		$compounding = false;
+		$rate = 0;
+		foreach ( $O->taxes as $Tax ) {
+			$rate += $Tax->rate;
+			if ( Shopp::str_true($Tax->compound) ) {
+				$compounding = true;
+				break;
+			}
+		}
+
+		if ( $compounding )
+			$rate = $O->unittax / $O->unitprice;
+
+		return percentage( $rate * 100, array( 'precision' => 1 ) );
+
 	}
 
 	/**
