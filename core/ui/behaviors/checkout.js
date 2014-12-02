@@ -20,6 +20,7 @@ jQuery(document).ready(function () {
 		checkoutButtons = checkoutForm.find('.payoption-button'),
 		checkoutButton = checkoutForm.find('.payoption-' + defaultPaymethod),
 		submitButtons = checkoutButtons.find('input'),
+		confirmButton = $('#confirm-button'),
 		checkoutProcess = $('#shopp-checkout-function'),
 		localeFields = checkoutForm.find('li.locale');
 
@@ -49,7 +50,16 @@ jQuery(document).ready(function () {
 		},
 	});
 
-	submitButtons.on('click', function () {
+	submitButtons.on('click', function (e) {
+		e.preventDefault();
+		$(this).disableSubmit();
+		setTimeout(function () { checkoutForm.submit(); }, 1);
+	}).each(function () {
+		$(this).data('label', $(this).val());
+	});
+
+	confirmButton.on('click', function (e) {
+		e.preventDefault();
 		$(this).disableSubmit();
 		setTimeout(function () { checkoutForm.submit(); }, 1);
 	}).each(function () {
