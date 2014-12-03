@@ -382,7 +382,7 @@ final class Shopp extends ShoppCore {
 			return require "$services/image.php";
 
 		// Script Server request handling
-		if ( isset($_GET['load']) && 1 == preg_match('/shopp-scripts.js/', $_SERVER['REQUEST_URI']) )
+		if ( isset($_GET['sjsl']) )
 			return require "$services/scripts.php";
 	}
 
