@@ -34,16 +34,18 @@ function shopp_orders ( $from = false, $to = false, $items = true, array $custom
 	$pt = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 	$pd = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
 
+	$op = '<';
 	$where = array();
 	$dateregex = '/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/';
 	foreach ( array($from, $to) as $datetime ) {
 		if ( ! $datetime ) continue;
 
 		if ( 1 == preg_match($dateregex, $datetime) )
-			$where[] = "'$datetime' < p.created";
+			$where[] = "'$datetime' $op p.created";
 		else if ( is_int($datetime) )
-			$where[] = "FROM_UNIXTIME($datetime) < p.created";
+			$where[] = "FROM_UNIXTIME($datetime) $op p.created";
 
+		$op = '>=';
 	}
 
 	if ( ! empty($customers) ) {
