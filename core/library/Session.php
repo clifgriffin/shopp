@@ -134,6 +134,7 @@ abstract class ShoppSessionFramework {
 	 *
 	 * @since 1.0
 	 *
+	 * @param string $session (optional) A session id to load
 	 * @return bool True if session data was loaded successfully, false otherwise
 	 **/
 	protected function load ( $session = false ) {
@@ -149,8 +150,14 @@ abstract class ShoppSessionFramework {
 		$loaded = sDB::query($query, 'object');
 
 		if ( empty($loaded) ) {
-			if ( ! empty($this->session) )
-				$this->create($this->session); // Recreate sessions for pre-existing session cookies
+
+			// No session found in the database
+
+			if ( ! empty($this->session) ) {
+				$this->session(true); // Cookie exists, but no session in the database, re-session (new id)
+				$this->cook();        // Ensure leftover session cookies are replaced for security reasons
+			}
+
 			return false;
 		}
 
