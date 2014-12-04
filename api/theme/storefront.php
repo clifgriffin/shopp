@@ -524,6 +524,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * - **selected**: The category term ID to auto-select when using the drop-down menu
 	 * - **smart**: (before,after) Include smart collections either before or after the categories list
 	 * - **title**: The title label to show above the list
+	 * - **title_before**: `<h3 class="shopp-categories-title">` Markup to add before the title label
+	 * - **title_after**: `</h3>` Markup to add after the title label
 	 * - **taxonomy**: `shopp_category` The taxonomy to use
 	 * - **wraplist**: `on` (on,off) Wrap list in <ul></ul> (when dropdown is off)
 	 * @param ShoppStorefront $O       The working object
@@ -557,6 +559,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'selected' => false,	// Selected term_id to auto-select option when dropdown=true
 			'smart' => false,		// Include smart collections either before or after other collections (before, after)
 			'title' => '',			// Title/label to show above the list/menu
+			'title_after' => '</h3>',	// After title/label
+			'title_before' => '<h3 class="shopp-categories-title">',	// Before title/label
 			'taxonomy' => ProductCategory::$taxon,	// Taxonomy to use
 			'wraplist' => true,		// Wrap list in <ul></ul> (only works when dropdown=false)
 
@@ -564,8 +568,11 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'linkcount' => false,
 			'showsmart' => false,
 		);
-
+		
 		$options = array_merge($defaults, $options);
+		
+		//Depreciated option support
+		if( $options['linkcount'] ) $options['products'] = true;
 
 		$options['style'] = '';
 		if ( Shopp::str_true($options['dropdown']) )
@@ -577,7 +584,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			$options['smart'] = $options['showsmart'];
 
 		extract($options, EXTR_SKIP);
-
+		
 		if ( ! taxonomy_exists($taxonomy) )
 			return false;
 
@@ -585,7 +592,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( Shopp::str_true($section) ) {
 
 			if ( ! isset(ShoppCollection()->id) && empty($sectionterm) ) return false;
-			$sectionterm = ShoppCollection()->id;
+			if ( empty($sectionterm) ) $sectionterm = ShoppCollection()->id;
 
 			if ( 0 == ShoppCollection()->parent )
 				$childof = $sectionterm;
@@ -692,7 +699,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $before . $menu . $after;
 	}
 
-	/**
+/**
 	 * Builds markup for an unordered list of categories
 	 *
 	 * @internal
@@ -712,13 +719,13 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$class = empty($classes) ? '' : ' class="' . trim(join(' ', $classes)) . '"';
 
 		$list = '';
+		if ( ! empty($title) ) $list .= $title_before . $title . $title_after;
+		
 		if ( Shopp::str_true($wraplist) ) $list .= '<ul' . $class . '>';
-		if ( ! empty($title) ) $list .= '<li>' . $title . '<ul>';
-
+		
 		$list .= $Categories->walk($terms, $depth, $options);
-
+		
 		if ( Shopp::str_true($wraplist) ) $list .= '</ul>';
-		if ( ! empty($title) ) $list .= '</li>';
 		return $before . $list . $after;
 	}
 
@@ -1727,7 +1734,9 @@ class ShoppCategoryWalker extends Walker {
 
 		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'title', 'total'));
 		extract($filtered, EXTR_OVERWRITE);
-
+		
+		$link_url = $link;
+		
 		$link = '<a href="' . esc_url( $link ) . '" title="' . esc_attr( $title ) . '" class="' . $classes . '"';
 		$link .= '>';
 		$link .= $categoryname . '</a>';
@@ -1737,7 +1746,9 @@ class ShoppCategoryWalker extends Walker {
 
 		if ( false !== $total && Shopp::str_true($products) )
 			$link .= ' (' . intval($total) . ')';
-
+		
+		$link = apply_filters('shopp_storefront_categorylist_item', $link, compact('link_url', 'classes', 'categoryname', 'title', 'total', 'products', 'linkall', 'smartcollection'));
+		
 		if ( 'list' == $args['style'] ) {
 			$output .= "\t<li";
 			if ( ! empty($classes) ) $output .=  ' class="' . $classes . '"';
