@@ -307,7 +307,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		foreach($allowed as $key) {
 		   $select[$key] = $options[$key];
 		}
-		shopp_debug("MM: " . print_r($select,true));
 
 		$menu = array();
 		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($select) . '>';
@@ -380,7 +379,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		foreach($allowed as $key) {
 		   $select[$key] = $options[$key];
 		}
-		shopp_debug("YY: " . print_r($select,true));
+
 		$menu = array();
 		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($select) . '>';
 		$menu[] = '<option></option>';
