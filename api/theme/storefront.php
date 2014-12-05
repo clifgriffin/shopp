@@ -568,10 +568,10 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			'linkcount' => false,
 			'showsmart' => false,
 		);
-		
+
 		$options = array_merge($defaults, $options);
-		
-		//Depreciated option support
+
+		// Deprecated linkcount support
 		if( $options['linkcount'] ) $options['products'] = true;
 
 		$options['style'] = '';
@@ -584,15 +584,17 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			$options['smart'] = $options['showsmart'];
 
 		extract($options, EXTR_SKIP);
-		
+
 		if ( ! taxonomy_exists($taxonomy) )
 			return false;
 
 		$baseparent = 0;
 		if ( Shopp::str_true($section) ) {
 
-			if ( ! isset(ShoppCollection()->id) && empty($sectionterm) ) return false;
-			if ( empty($sectionterm) ) $sectionterm = ShoppCollection()->id;
+			if ( empty(ShoppCollection()->id) && empty($sectionterm) ) return false;
+
+			if ( empty($sectionterm) )                // If sectionterm option is not specified,
+				$sectionterm = ShoppCollection()->id; // use the current collection as target
 
 			if ( 0 == ShoppCollection()->parent )
 				$childof = $sectionterm;
@@ -699,7 +701,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		return $before . $menu . $after;
 	}
 
-/**
+	/**
 	 * Builds markup for an unordered list of categories
 	 *
 	 * @internal
@@ -720,11 +722,11 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		$list = '';
 		if ( ! empty($title) ) $list .= $title_before . $title . $title_after;
-		
+
 		if ( Shopp::str_true($wraplist) ) $list .= '<ul' . $class . '>';
-		
+
 		$list .= $Categories->walk($terms, $depth, $options);
-		
+
 		if ( Shopp::str_true($wraplist) ) $list .= '</ul>';
 		return $before . $list . $after;
 	}
@@ -1714,7 +1716,7 @@ class ShoppCategoryWalker extends Walker {
 
 		$categoryname = $category->name;
 
-		$link = get_term_link($category);
+		$href = get_term_link($category);
 
 		$classes = '';
 		if ( 'list' == $args['style'] ) {
@@ -1730,15 +1732,12 @@ class ShoppCategoryWalker extends Walker {
 
 		$total = isset($category->count) ? $category->count : false;
 
-		$title = sprintf(__( 'View all &quot;%s&quot; products' ), $categoryname);
+		$title = sprintf(Shopp::__( 'View all &quot;%s&quot; products' ), $categoryname);
 
-		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('link', 'classes', 'categoryname', 'title', 'total'));
+		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('href', 'classes', 'categoryname', 'title', 'total'));
 		extract($filtered, EXTR_OVERWRITE);
-		
-		$link_url = $link;
-		
-		$link = '<a href="' . esc_url( $link ) . '" title="' . esc_attr( $title ) . '" class="' . $classes . '"';
-		$link .= '>';
+
+		$link = '<a href="' . esc_url( $href ) . '" title="' . esc_attr( $title ) . '" class="' . $classes . '">';
 		$link .= $categoryname . '</a>';
 
 		if ( empty($total) && ! Shopp::str_true($linkall) && ! $smartcollection )
@@ -1746,9 +1745,9 @@ class ShoppCategoryWalker extends Walker {
 
 		if ( false !== $total && Shopp::str_true($products) )
 			$link .= ' (' . intval($total) . ')';
-		
-		$link = apply_filters('shopp_storefront_categorylist_item', $link, compact('link_url', 'classes', 'categoryname', 'title', 'total', 'products', 'linkall', 'smartcollection'));
-		
+
+		$link = apply_filters('shopp_storefront_categorylist_item', $link, compact('href', 'classes', 'categoryname', 'title', 'total', 'products', 'linkall', 'smartcollection'));
+
 		if ( 'list' == $args['style'] ) {
 			$output .= "\t<li";
 			if ( ! empty($classes) ) $output .=  ' class="' . $classes . '"';
