@@ -1732,7 +1732,7 @@ class ShoppCategoryWalker extends Walker {
 
 		$total = isset($category->count) ? $category->count : false;
 
-		$title = sprintf(Shopp::__( 'View all &quot;%s&quot; products' ), $categoryname);
+		$title = Shopp::__('View all &quot;%s&quot; products', $categoryname);
 
 		$filtered = apply_filters('shopp_storefront_categorylist_link', compact('href', 'classes', 'categoryname', 'title', 'total'));
 		extract($filtered, EXTR_OVERWRITE);
