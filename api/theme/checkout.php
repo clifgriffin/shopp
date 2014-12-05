@@ -281,13 +281,14 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_mm ( $result, $options, $O ) {
-
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-mm]';
 		$id = 'billing-cardexpires-mm';
 
 		$defaults = array(
 			'mode' => 'input',
 			'class' => 'paycard',
+			'required' => true,
 			'autocomplete' => 'off',
 			'type' => 'menu',
 			'value' => $O->Billing->cardexpires > 0 ? date("m",$O->Billing->cardexpires) : '',
@@ -302,7 +303,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$months = array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12');
 
 		$menu = array();
-		$menu[] = '<select name="' . $name . '" id="' . $id . '">';
+		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>';
 		$menu[] = '<option></option>';
 		$menu[] = menuoptions($months, $options['value']);
 		$menu[] = '</select>';
@@ -343,13 +344,14 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_yy ( $result, $options, $O ) {
-
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-yy]';
 		$id = 'billing-cardexpires-yy';
 
 		$defaults = array(
 			'mode' => 'input',
 			'class' => 'paycard',
+			'required' => true,
 			'autocomplete' => 'off',
 			'type' => 'menu',
 			'value' => $O->Billing->cardexpires > 0 ? date('y', $O->Billing->cardexpires) : '',
@@ -367,7 +369,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$years = array_map( create_function('$n','return sprintf("%02d", $n);'), range((int)$thisyear, (int)$thisyear + $options['max'] ) );
 
 		$menu = array();
-		$menu[] = '<select name="' . $name . '" id="' . $id . '">';
+		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>';
 		$menu[] = '<option></option>';
 		$menu[] = menuoptions($years, $options['value']);
 		$menu[] = '</select>';
@@ -501,6 +503,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 **/
 	public static function billing_cvv ( $result, $options, $O ) {
 		if ( ! isset($options['autocomplete']) ) $options['autocomplete'] = 'off';
+		if ( ! isset($options['required']) ) $options['required'] = true;
 		if ( ! empty($_POST['billing']['cvv']) )
 			$options['value'] = $_POST['billing']['cvv'];
 		$options['class'] = isset($options['class']) ? $options['class'] . ' paycard' : 'paycard';
@@ -529,7 +532,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	public static function billing_locale ( $result, $options, $O ) {
 		$Shopp = Shopp::object();
 
-		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
+		$select_attrs = array('title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 		$output = false;
 
 		$defaults = array(
@@ -908,7 +911,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		/// Allowable attributes for textarea inputs
 		$textarea_attrs = array('accesskey', 'title', 'tabindex', 'class', 'disabled', 'required');
-		$select_attrs = array( 'title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 
 		if ( ! $name ) {// Iterator for customer info fields
 			if ( ! isset($O->_customer_info_loop) ) {
@@ -1204,7 +1207,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The custom order data field markup
 	 **/
 	public static function order_data ( $result, $options, $O ) {
-		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
+		$select_attrs = array('title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 		$defaults = array(
 			'name' => false, // REQUIRED
 			'data' => false,
@@ -1376,7 +1379,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return void
 	 **/
 	public static function payoptions ( $result, $options, $O ) {
-		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
+		$select_attrs = array('title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 
 		if ( $O->Cart->orderisfree() ) return false;
 		$Payments = $O->Payments;
