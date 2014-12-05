@@ -303,8 +303,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$months = array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12');
 
 		$select = array();
-		$allowKeys = array('class', 'required', 'title', 'accesskey');		
-		foreach($allowKeys as $key) {
+		$allowed = array('class', 'required', 'title', 'accesskey');		
+		foreach($allowed as $key) {
 		   $select[$key] = $options[$key];
 		}
 		shopp_debug("MM: " . print_r($select,true));
@@ -376,8 +376,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$years = array_map( create_function('$n','return sprintf("%02d", $n);'), range((int)$thisyear, (int)$thisyear + $options['max'] ) );
 
 		$select = array();
-		$allowKeys = array('class', 'required', 'title', 'accesskey');		
-		foreach($allowKeys as $key) {
+		$allowed = array('class', 'required', 'title', 'accesskey');		
+		foreach($allowed as $key) {
 		   $select[$key] = $options[$key];
 		}
 		shopp_debug("YY: " . print_r($select,true));
