@@ -281,7 +281,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_mm ( $result, $options, $O ) {
-
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-mm]';
 		$id = 'billing-cardexpires-mm';
 
@@ -302,14 +302,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 
 		$months = array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12');
 
-		$select = array();
-		$allowed = array('class', 'required', 'title', 'accesskey');		
-		foreach($allowed as $key) {
-		   $select[$key] = $options[$key];
-		}
-
 		$menu = array();
-		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($select) . '>';
+		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>';
 		$menu[] = '<option></option>';
 		$menu[] = menuoptions($months, $options['value']);
 		$menu[] = '</select>';
@@ -350,7 +344,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_yy ( $result, $options, $O ) {
-
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-yy]';
 		$id = 'billing-cardexpires-yy';
 
@@ -374,14 +368,8 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$thisyear = date('y', $time);
 		$years = array_map( create_function('$n','return sprintf("%02d", $n);'), range((int)$thisyear, (int)$thisyear + $options['max'] ) );
 
-		$select = array();
-		$allowed = array('class', 'required', 'title', 'accesskey');		
-		foreach($allowed as $key) {
-		   $select[$key] = $options[$key];
-		}
-
 		$menu = array();
-		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($select) . '>';
+		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>';
 		$menu[] = '<option></option>';
 		$menu[] = menuoptions($years, $options['value']);
 		$menu[] = '</select>';
