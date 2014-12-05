@@ -440,7 +440,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_type ( $result, $options, $O ) {
-		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
+		$select_attrs = array('title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 
 		if ( ! isset($options['mode']) ) $options['mode'] = 'input';
 		if ( 'value' == $options['mode'] ) return $O->Billing->cardtype;
