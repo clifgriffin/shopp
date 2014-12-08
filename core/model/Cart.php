@@ -363,7 +363,7 @@ class ShoppCart extends ListFramework {
 
 		$Shipping->takeoff( $id );
 
-		do_action_ref_array('shopp_cart_remove_item', array($Item->fingerprint(), $Item));
+		do_action('shopp_cart_remove_item', $id, $Item);
 
 		return $this->remove($id);
 	}
