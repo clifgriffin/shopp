@@ -508,17 +508,25 @@ class ShoppAdminService extends ShoppAdminController {
 			$Purchase->load_events();
 		}
 
-		if (isset($_POST['order-action']) && 'update-address' == $_POST['order-action']) {
+		if ( isset($_POST['billing']) && is_array($_POST['billing']) ) {
 
-			if ( 'shipping' == $_POST['address']['type'] ) {
-				$shipping = array();
-				foreach($_POST['address'] as $name => $value) $shipping[ "ship$name" ] = $value;
-				$Purchase->updates($shipping);
-				$Purchase->shipname = $shipping['shipfirstname'].' '.$shipping['shiplastname'];
-			} else $Purchase->updates($_POST['address']);
+			$Purchase->updates($_POST['billing']);
+			$Purchase->save();
+
+		}
+
+		if ( isset($_POST['shipping']) && is_array($_POST['shipping']) ) {
+
+			$shipping = array();
+			foreach( $_POST['shipping'] as $name => $value )
+				$shipping[ "ship$name" ] = $value;
+
+			$Purchase->updates($shipping);
+			$Purchase->shipname = $shipping['shipfirstname'] . ' ' . $shipping['shiplastname'];
 
 			$Purchase->save();
 		}
+
 
 		if ( isset($_POST['order-action']) && 'update-customer' == $_POST['order-action'] && ! empty($_POST['customer'])) {
 			$Purchase->updates($_POST['customer']);
