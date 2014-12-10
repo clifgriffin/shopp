@@ -414,6 +414,8 @@ class ShoppDiscounts extends ListFramework {
 			if ( $Discount->type() != ShoppOrderDiscount::CREDIT ) continue;
 			$Discount->calculate(); // Recalculate based on current total to apply an appropriate amount
 			$credits[] = $Discount->amount();
+			// need to save the credit to the discount register before calculating again
+			$CartTotals->register( new OrderAmountDiscount( array('id' => 'credit', 'amount' => $Discount->amount() ) ) );
 		}
 
 		$amount = array_sum($credits);
