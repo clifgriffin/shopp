@@ -97,6 +97,12 @@ class ProductAPITests extends ShoppTestCase {
 			)
 		));
 
+
+		shopp_add_product(array(
+			'name' => 'Unpublished',
+			'publish' => array('flag' => false),
+		));
+
 		$path = dirname(__FILE__) . '/data/';
 		self::$image = shopp_add_image ( $Product->id, 'product', $path . '1.png' );
 		$Product = shopp_product($Product->id); // Load after image is added
@@ -153,9 +159,15 @@ class ProductAPITests extends ShoppTestCase {
 	function test_product_found () {
         // $this->markTestSkipped('The '.__CLASS__.' unit tests have not been re-implemented.');
 		$this->assertTrue(shopp('product','found'));
+
 		$original = ShoppProduct();
 		ShoppProduct(new ShoppProduct(-1));
 		$this->assertFalse(shopp('product','found'));
+
+		// Test product.found should be false for unpublished products
+		ShoppProduct(new ShoppProduct('unpublished', 'slug'));
+		$this->assertFalse(shopp('product','found'));
+
 		ShoppProduct($original);
 	}
 
