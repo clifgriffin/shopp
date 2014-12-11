@@ -97,10 +97,8 @@ class ShoppAdmin extends ShoppFlowController {
 
 		global $wp_version;
 	    if ( ! ( defined( 'MP6' ) && MP6 ) && version_compare( $wp_version, '3.8', '<' ) )
-			$menucss = 'backmenu.css';
-		else $menucss = 'menu.css';
-
-		wp_enqueue_style('shopp.menu', SHOPP_ADMIN_URI . '/styles/' . $menucss, array(), ShoppVersion::cache(), 'screen');
+			shopp_enqueue_style('backmenu');
+		else shopp_enqueue_style('menus');
 
 		// Set the currently requested page and menu
 		if ( isset($_GET['page']) && false !== strpos($_GET['page'], basename(SHOPP_PATH)) ) $page = $_GET['page'];
@@ -465,19 +463,12 @@ class ShoppAdmin extends ShoppFlowController {
 			if ( ! in_array($taxonomy, $taxonomies)) return;
 		}
 
-		$uri = SHOPP_ADMIN_URI . '/styles';
-		$version = ShoppVersion::cache();
-		wp_enqueue_style('shopp.colorbox', "$uri/colorbox.css", array(), $version, 'screen');
-		wp_enqueue_style('shopp.admin', "$uri/admin.css", array(), $version, 'screen');
-		wp_enqueue_style('shopp.icons', "$uri/icons.css", array(), $version, 'screen');
-
-
-		$page = isset($_GET['page']) ? $_GET['page'] : '';
-		$pageparts = explode('-', $page);
-		$pagename = sanitize_key(end($pageparts));
+		shopp_enqueue_style('colorbox');
+		shopp_enqueue_style('admin');
+		shopp_enqueue_style('icons');
 
 		if ( 'rtl' == get_bloginfo('text_direction') )
-			wp_enqueue_style('shopp.admin-rtl', "$uri/rtl.css", array(), $version, 'all');
+			shopp_enqueue_style('admin-rtl');
 
 	}
 
