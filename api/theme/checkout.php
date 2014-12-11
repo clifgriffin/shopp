@@ -281,7 +281,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_mm ( $result, $options, $O ) {
-		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-mm]';
 		$id = 'billing-cardexpires-mm';
 
@@ -344,7 +344,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 	 * @return string The generated markup or value
 	 **/
 	public static function billing_card_expires_yy ( $result, $options, $O ) {
-		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey', 'placeholder' );
+		$select_attrs = array( 'title', 'class', 'disabled', 'required', 'tabindex', 'accesskey', 'placeholder' );
 		$name = 'billing[cardexpires-yy]';
 		$id = 'billing-cardexpires-yy';
 
