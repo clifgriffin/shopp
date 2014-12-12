@@ -121,8 +121,8 @@ class ShoppAdmin extends ShoppFlowController {
 	private function pages () {
 
 		// Orders menu
-		$this->addpage('orders',    			Shopp::__('Orders'),		'ShoppAdminService');
-		$this->addpage('orders-new',    		Shopp::__('+ New Order'),	'ShoppAdminService');
+		$this->addpage('orders',    			Shopp::__('All Orders'),		'ShoppAdminService');
+		$this->addpage('orders-new',    		Shopp::__('New Order'),	'ShoppAdminService');
 		$this->addpage('customers', 			Shopp::__('Customers'),		'ShoppAdminAccount');
 		$this->addpage('reports',  				Shopp::__('Reports'),		'ShoppAdminReport');
 
