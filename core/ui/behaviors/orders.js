@@ -320,9 +320,7 @@ jQuery(document).ready( function($) {
 
 			});
 		};
-		postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
-
-
+		postboxes.add_postbox_toggles(pagenow);
 
 		$('.postbox a.help').click(function () {
 			$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
