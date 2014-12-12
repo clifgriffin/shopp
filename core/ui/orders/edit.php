@@ -19,33 +19,28 @@
 		$colspan = count($columns);
 	?>
 	<div id="order">
-		<div class="title">
-			<div id="titlewrap">
-				<span class="date"><?php
-					$datetime = $Purchase->exists() ? $Purchase->created : current_time('timestamp');
+			<div class="title">
+				<div id="titlewrap">
+					<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
 
-					echo Shopp::_d(get_option('date_format'), $datetime); ?> <small><?php echo date(get_option('time_format'), $datetime); ?></small>
+					<div class="alignright">
 
-				<div class="alignright">
+						<?php if ($Purchase->shipped): ?>
+						<div class="stamp shipped<?php if ( $Purchase->isvoid() ) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<?php endif; ?>
 
-					<?php if ($Purchase->shipped): ?>
-					<div class="stamp shipped<?php if ( $Purchase->isvoid() ) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
-					<?php endif; ?>
+						<?php if ( $Purchase->ispaid() && ! $Purchase->isvoid() ): ?>
+						<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<?php elseif ($Purchase->isvoid()): ?>
+						<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<?php endif; ?>
 
-					<?php if ( $Purchase->ispaid() && ! $Purchase->isvoid() ): ?>
-					<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
-					<?php elseif ($Purchase->isvoid()): ?>
-					<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
-					<?php endif; ?>
+					</div>
 
 				</div>
-
 			</div>
-		</div>
 
 		<div id="poststuff" class="poststuff">
-
-			<?php if ( $this->new ): ?>
 			<div class="meta-boxes">
 
 				<div id="topside" class="third-column first-third-column box-stretch">
@@ -60,12 +55,9 @@
 
 			</div>
 
-			<br class="clear" />
-			<?php endif; ?>
-
 			<?php include $this->ui('editor.php'); ?>
 
-			<?php if ( $this->new ): ?>
+			<?php if ( 'new' == $_GET['id'] ): ?>
 			<div class="meta-boxes">
 
 				<div id="underside" class="third-column first-third-column  box-stretch">

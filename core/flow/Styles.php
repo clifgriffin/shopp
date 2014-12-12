@@ -47,6 +47,7 @@ class ShoppStyles extends WP_Styles {
 		$styles->add('icons', '/ui/styles/icons.css');
 		$styles->add('menus', '/ui/styles/menu.css');
 		$styles->add('welcome', '/ui/styles/welcome.css'); // Fix icons
+		$styles->add('selectize', '/ui/styles/selectize.css');
 
 	}
 
@@ -81,7 +82,7 @@ class ShoppStyles extends WP_Styles {
 
 				$ver = hash('crc32b', "$this->concat_version");
 				$stylesheets = trim($this->concat, ', ');
-				$url = trailingslashit(get_bloginfo('url')) . 'sp-styles.css';
+				$url = trailingslashit(SHOPP_PLUGINURI) . 'core/ui/styles/sp-styles.css';
 
 				$href = add_query_arg(array(
 					'load' => $stylesheets,

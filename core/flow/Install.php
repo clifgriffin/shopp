@@ -283,7 +283,7 @@ class ShoppInstallation extends ShoppFlowController {
 		$shopp_roles = apply_filters('shopp_user_roles', array(
 			'administrator'		=>	'Administrator',
 			'shopp-merchant'	=>	__('Merchant', 'Shopp'),
-			'shopp-csr'			=>	__('Customer Service Rep', 'Shopp')
+			'shopp-csr'			=>	__('Customer Service', 'Shopp')
 		));
 
 		$caps['shopp-csr'] = array(

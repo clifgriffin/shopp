@@ -36,7 +36,8 @@ class ShoppAdmin extends ShoppFlowController {
 	 **/
 	public $caps = array(                                      // Initialize the capabilities, mapping to pages
 		'main' => 'shopp_menu',                                //
-		'orders' => 'shopp_orders',                            // Capabilities                  Role
+		'orders' => 'shopp_orders',                            //
+		'orders-new' => 'shopp_orders',                        // Capabilities                  Role
 		'customers' => 'shopp_customers',                      // _______________________________________________
 		'reports' => 'shopp_financials',                       //
 		'memberships' => 'shopp_products',                     // shopp_settings                administrator
@@ -58,8 +59,8 @@ class ShoppAdmin extends ShoppFlowController {
 		'setup-checkout' => 'shopp_settings_checkout',         // shopp_products
 		'setup-downloads' => 'shopp_settings_checkout',        // shopp_products
 		'setup-images' => 'shopp_settings_presentation',       // shopp_categories
-		'welcome' => 'shopp_menu',                             // shopp_categories
-		'credits' => 'shopp_menu',                             // shopp_categories
+		'welcome' => 'shopp_menu',
+		'credits' => 'shopp_menu',
 	);
 
 	/**
@@ -121,6 +122,7 @@ class ShoppAdmin extends ShoppFlowController {
 
 		// Orders menu
 		$this->addpage('orders',    			Shopp::__('Orders'),		'ShoppAdminService');
+		$this->addpage('orders-new',    		Shopp::__('+ New Order'),	'ShoppAdminService');
 		$this->addpage('customers', 			Shopp::__('Customers'),		'ShoppAdminAccount');
 		$this->addpage('reports',  				Shopp::__('Reports'),		'ShoppAdminReport');
 
@@ -156,7 +158,6 @@ class ShoppAdmin extends ShoppFlowController {
 			$this->addpage($pagehook, $t->labels->menu_name, 'ShoppAdminCategorize',  'products');
 		}
 		$this->addpage('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounter', 'products');
-
 
 		$this->addpage('welcome', Shopp::__('Welcome'), 'ShoppAdminWelcome', 'welcome');
 		$this->addpage('credits', Shopp::__('Credits'), 'ShoppAdminWelcome', 'credits');
@@ -463,17 +464,10 @@ class ShoppAdmin extends ShoppFlowController {
 			if ( ! in_array($taxonomy, $taxonomies)) return;
 		}
 
-		$uri = SHOPP_ADMIN_URI . '/styles';
-		$version = ShoppVersion::cache();
-		wp_enqueue_style('shopp.colorbox', "$uri/colorbox.css", array(), $version, 'screen');
-		wp_enqueue_style('shopp.admin', "$uri/admin.css", array(), $version, 'screen');
-		wp_enqueue_style('shopp.icons', "$uri/icons.css", array(), $version, 'screen');
-		wp_enqueue_style('shopp.selectize', "$uri/selectize.css", array(), $version, 'screen');
-
-
 		shopp_enqueue_style('colorbox');
 		shopp_enqueue_style('admin');
 		shopp_enqueue_style('icons');
+		shopp_enqueue_style('selectize');
 
 		if ( 'rtl' == get_bloginfo('text_direction') )
 			shopp_enqueue_style('admin-rtl');

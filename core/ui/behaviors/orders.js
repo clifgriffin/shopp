@@ -150,8 +150,7 @@ jQuery(document).ready( function($) {
 			return false;
 		}),
 
-		editcustomer = $('#edit-customer').click(function (e) {
-			e.preventDefault();
+		editcustomer = function (e) {
 			var $this = $(this),
 				ui = $.tmpl('customer-ui', customer),
 				editorui = $('#customer-editor-form'),
@@ -286,14 +285,44 @@ jQuery(document).ready( function($) {
 					}),
 				caneledit = ui.find('#cancel-edit-customer').click(cancel);
 
-			display.hide();
-			editorui.hide().empty().append(ui).slideDown('fast');
-			return false;
+			// display.hide();
+			// editorui.hide().empty().append(ui).slideDown('fast');
+		},
+
+		editcustomerbtn = $('#edit-customer').click(function (e) {
+			e.preventDefault();
+			editcustomer(e);
 		});
+
+		if ( $('#order-contact .editor').length == 1 ) {
+			editcustomer();
+		}
 
 		// close postboxes that should be closed
 		$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+
+		$('.meta-box-sortables').on( "sortstart", function( event, ui ) {
+			$('.meta-box-sortables').addClass('sortables-sorting');
+		}).on( "sortstop", function ( event, ui ) {
+			$('.meta-box-sortables').removeClass('sortables-sorting');
+		});
+
+		postboxes._mark_area  = function() {
+			var boxes = $('#side-sortables, #topside-sortables, #topic-sortables, #topsider-sortables, #underside-sortables, #underic-sortables, #undersider-sortables');
+
+			boxes.each(function () {
+				var $this = $(this);
+				if ( $this.length ) {
+					if ( $this.children('.postbox:visible').length )
+						$this.removeClass('empty-container');
+					else $this.addClass('empty-container');
+				}
+
+			});
+		};
 		postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
+
+
 
 		$('.postbox a.help').click(function () {
 			$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});

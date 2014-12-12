@@ -26,6 +26,7 @@ class ShoppAdminService extends ShoppAdminController {
 	public $ordercount = false;
 
 	protected $ui = 'orders';
+	protected $new = false;
 
 	/**
 	 * Service constructor
@@ -36,7 +37,10 @@ class ShoppAdminService extends ShoppAdminController {
 	public function __construct () {
 		parent::__construct();
 
-		if ( isset($_GET['id']) ) {
+		$this->new = false !== strpos($this->screen, 'orders-new');
+
+		if ( isset($_GET['id']) || $this->new ) {
+
 			wp_enqueue_script('postbox');
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('jquery-tmpl');
@@ -58,7 +62,9 @@ class ShoppAdminService extends ShoppAdminController {
 			shopp_custom_script( 'address', 'var regions = '.json_encode(Lookup::country_zones()).';');
 
 			add_action('load-' . $this->screen, array($this, 'workflow'));
-			add_action('load-' . $this->screen, array($this, 'layout'));
+			$layout = $this->new ? array($this, 'newlayout') : array($this, 'layout');
+
+			add_action('load-' . $this->screen, $layout);
 			do_action('shopp_order_management_scripts');
 
 		} else {
@@ -75,7 +81,8 @@ class ShoppAdminService extends ShoppAdminController {
 	 * @author Jonathan Davis
 	 **/
 	public function admin () {
-		if ( ! empty($_GET['id']) ) $this->manager();
+
+		if ( ! empty($_GET['id']) || $this->new) $this->manager();
 		else $this->orders();
 	}
 
@@ -330,6 +337,72 @@ class ShoppAdminService extends ShoppAdminController {
 			'date'=>__('Date','Shopp'),
 			'total'=>__('Total','Shopp'))
 		);
+	}
+
+	public function newlayout () {
+
+		$Purchase = ShoppPurchase();
+
+		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
+			'items' => __('Items','Shopp'),
+			'qty' => __('Quantity','Shopp'),
+			'price' => __('Price','Shopp'),
+			'total' => __('Total','Shopp')
+		)));
+
+		new ShoppAdminOrderContactBox(
+			$this->screen,
+			'topside',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		new ShoppAdminOrderBillingAddressBox(
+			$this->screen,
+			'topic',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		if ( ! empty($Purchase->shipaddress) || $this->new )
+			new ShoppAdminOrderShippingAddressBox(
+				$this->screen,
+				'topsider',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderManageBox(
+			$this->screen,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase, 'Gateway' => $Purchase->gateway())
+		);
+
+		if ( isset($Purchase->data) && '' != join('', (array)$Purchase->data) || apply_filters('shopp_orderui_show_orderdata', false) )
+			new ShoppAdminOrderDataBox(
+				$this->screen,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		if ( count($Purchase->events) > 0 )
+			new ShoppAdminOrderHistoryBox(
+				$this->screen,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderNotesBox(
+			$this->screen,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		do_action('shopp_order_new_layout');
 	}
 
 	/**

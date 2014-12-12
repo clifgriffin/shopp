@@ -21,10 +21,7 @@
 	<div id="order">
 		<div class="title">
 			<div id="titlewrap">
-				<span class="date"><?php
-					$datetime = $Purchase->exists() ? $Purchase->created : current_time('timestamp');
-
-					echo Shopp::_d(get_option('date_format'), $datetime); ?> <small><?php echo date(get_option('time_format'), $datetime); ?></small>
+				<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
 
 				<div class="alignright">
 
@@ -44,8 +41,6 @@
 		</div>
 
 		<div id="poststuff" class="poststuff">
-
-			<?php if ( $this->new ): ?>
 			<div class="meta-boxes">
 
 				<div id="topside" class="third-column first-third-column box-stretch">
@@ -60,12 +55,8 @@
 
 			</div>
 
-			<br class="clear" />
-			<?php endif; ?>
-
 			<?php include $this->ui('editor.php'); ?>
 
-			<?php if ( $this->new ): ?>
 			<div class="meta-boxes">
 
 				<div id="underside" class="third-column first-third-column  box-stretch">
@@ -82,25 +73,12 @@
 					<?php do_meta_boxes($this->screen, 'normal', $Purchase); ?>
 				</div>
 			</div>
-			<?php else: ?>
-			<div class="meta-boxes">
-
-				<div id="column-one" class="column left-column">
-					<?php do_meta_boxes($this->screen, 'side', $Purchase); ?>
-				</div>
-				<div id="main-column">
-					<div id="column-two" class="column right-column">
-						<?php do_meta_boxes($this->screen, 'normal', $Purchase); ?>
-					</div>
-				</div>
-				<br class="clear" />
-			</div>
-			<?php endif; ?>
 
 			<?php wp_nonce_field('shopp-save-order'); ?>
 			<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false); ?>
 			<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false); ?>
-			</div>
+		</div> <!-- #poststuff -->
+		
 	</div> <!-- #order -->
 
 </div>
