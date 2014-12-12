@@ -1712,7 +1712,7 @@ function shopp_product_set_subscription ( $product = false, $settings = array() 
  * @return array variant Price objects that have been created on the product.
  *
  **/
-function shopp_product_set_variant_options ( $product = false, $options = array(), $summary = 'save' ) {
+function shopp_product_set_variant_options ( $product = false, array $options = array(), $summary = 'save' ) {
 	if ( ! $product || empty($options) ) {
 		shopp_debug(__FUNCTION__ . " failed: Missing required parameters.");
 		return false;
@@ -1722,24 +1722,24 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 		shopp_debug(__FUNCTION__ . " failed: Product not found for product id $product.");
 		return false;
 	}
-	$Product->load_data( array( 'summary' ) );
+	$Product->load_data(array( 'summary' ));
 
-
-	// clean up old variations
-	$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
-	db::query("DELETE FROM $table WHERE product=$product AND context='variation'");
+	// Clean up old variations and variation meta
+	$price_table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
+	$meta_table = ShoppDatabaseObject::tablename(MetasetObject::$table);
+	sDB::query("DELETE p,m FROM $price_table p LEFT JOIN $meta_table m ON m.parent = p.id AND m.context='price' WHERE p.product='$product' AND p.context='variation'");
 
 	$prices = array();
-	$combos = _optioncombinations( array(), $options);
+	$combos = _optioncombinations(array(), $options);
 	$mapping = array();
 	foreach ( $combos as $combo ) {
 		$Price = new ShoppPrice();
 		$Price->type = 'Shipped';
 		$Price->product = $product;
 		$Price->context = 'variation';
-		list( $Price->optionkey, $Price->options, $Price->label, $mapping ) = $Product->optionmap($combo, $options);
+		list($Price->optionkey, $Price->options, $Price->label, $mapping) = $Product->optionmap($combo, $options);
 		$Price->save();
-		shopp_set_meta ( $Price->id, 'price', 'options', $Price->options );
+		shopp_set_meta ($Price->id, 'price', 'options', $Price->options);
 		$prices[] = $Price;
 	}
 
@@ -1747,22 +1747,23 @@ function shopp_product_set_variant_options ( $product = false, $options = array(
 	$metaopts['v'] = array();
 
 	$i = 1;
-	foreach ($options as $optname => $option) {
-		if ( ! isset($metaopts['v'][$i]) )
-			$metaopts['v'][$i] = array('id' => $i, 'name' => $optname, 'options' => array() );
+	foreach ( $options as $optname => $option ) {
+		if ( ! isset($metaopts['v'][ $i ]) )
+			$metaopts['v'][ $i ] = array('id' => $i, 'name' => $optname, 'options' => array());
 
-		foreach ($option as $value) {
-			$metaopts['v'][$i]['options'][$mapping[$optname][$value]]
-				= array('id' => $mapping[$optname][$value], 'name' => $value, 'linked' => "off");
+		foreach ( $option as $value ) {
+			$metaopts['v'][ $i ]['options'][ $mapping[ $optname ][ $value ] ]
+				= array('id' => $mapping[ $optname ][ $value ], 'name' => $value, 'linked' => 'off');
 		}
 
 		$i++;
 	}
 
-	shopp_set_product_meta ( $product, 'options', $metaopts);
+	shopp_set_product_meta ($product, 'options', $metaopts);
 
-	$Product->variants = "on";
-	if ( 'save' == $summary ) $Product->sumup();
+	$Product->variants = 'on';
+	if ( 'save' == $summary )
+		$Product->sumup();
 
 	return $prices;
 }

@@ -443,6 +443,13 @@ class ShoppAdminService extends ShoppAdminController {
 			}
 			$updated = __('Shipping notice sent.','Shopp');
 
+			// Save shipping carrier default preference for the user
+			$userid = get_current_user_id();
+			$setting = 'shopp_shipping_carrier';
+			if ( ! get_user_meta($userid, $setting, true) )
+				add_user_meta($userid, $setting, $shipment['carrier']);
+			else update_user_meta($userid, $setting, $shipment['carrier']);
+
 			unset($_POST['ship-notice']);
 			$Purchase->load_events();
 		}
@@ -541,16 +548,18 @@ class ShoppAdminService extends ShoppAdminController {
 
 		}
 
-		if ( isset($_POST['shipping']) && is_array($_POST['billing']) ) {
+		if ( isset($_POST['shipping']) && is_array($_POST['shipping']) ) {
 
 			$shipping = array();
 			foreach( $_POST['shipping'] as $name => $value )
 				$shipping[ "ship$name" ] = $value;
+
 			$Purchase->updates($shipping);
 			$Purchase->shipname = $shipping['shipfirstname'] . ' ' . $shipping['shiplastname'];
 
 			$Purchase->save();
 		}
+
 
 		if ( isset($_POST['order-action']) && 'update-customer' == $_POST['order-action'] && ! empty($_POST['customer'])) {
 			$Purchase->updates($_POST['customer']);
@@ -655,7 +664,6 @@ class ShoppAdminService extends ShoppAdminController {
 					$Purchased->quantity = $CartItem->quantity;
 					$Purchased->unitprice = $CartItem->unitprice;
 					$Purchased->total = $CartItem->total;
-
 					$Purchased->save();
 
 				} else $Cart->additem($CartItem->quantity, $CartItem);
@@ -795,26 +803,34 @@ class ShoppAdminService extends ShoppAdminController {
 		$Purchase->_billing_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->country ]);
 		$Purchase->_shipping_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->shipcountry ]);
 
+		// Setup shipping carriers menu and JS data
 		$carriers_menu = $carriers_json = array();
-		$shipping_carriers = shopp_setting('shipping_carriers');
-		$shipcarriers = Lookup::shipcarriers();
+		$shipping_carriers = (array) shopp_setting('shipping_carriers'); // The store-preferred shipping carriers
+		$shipcarriers = Lookup::shipcarriers(); // The full list of available shipping carriers
+		$notrack = Shopp::__('No Tracking'); // No tracking label
+		$default = get_user_meta(get_current_user_id(), 'shopp_shipping_carrier', true);
 
-		$carriers_menu['NOTRACKING'] = Shopp::__('No Tracking');
-		$carriers_json['NOTRACKING'] = array(Shopp::__('No Tracking'), false);
-		if ( empty($shipping_carriers) || ! is_array($shipping_carriers) ) {
+		if ( isset($shipcarriers[ $default ]) ) {
+			$carriers_menu[ $default ] = $shipcarriers[ $default ]->name;
+			$carriers_json[ $default ] = array($shipcarriers[ $default ]->name, $shipcarriers[ $default ]->trackpattern);
+		} else {
+			$carriers_menu['NOTRACKING'] = $notrack;
+			$carriers_json['NOTRACKING'] = array($notrack, false);
+		}
+
 			$serviceareas = array('*', $base['country']);
 			foreach ( $shipcarriers as $code => $carrier ) {
+			if ( $code == $default ) continue;
+			if ( ! empty($shipping_carriers) && ! in_array($code, $shipping_carriers) ) continue;
 				if ( ! in_array($carrier->areas, $serviceareas) ) continue;
 				$carriers_menu[ $code ] = $carrier->name;
 				$carriers_json[ $code ] = array($carrier->name, $carrier->trackpattern);
 			}
-		} else {
-			foreach ($shipping_carriers as $code) {
-				$carriers_menu[ $code ] = $shipcarriers[ $code ]->name;
-				$carriers_json[ $code ] = array($shipcarriers[ $code ]->name, $shipcarriers[ $code ]->trackpattern);
-			}
+
+		if ( isset($shipcarriers[ $default ]) ) {
+			$carriers_menu['NOTRACKING'] = $notrack;
+			$carriers_json['NOTRACKING'] = array($notrack, false);
 		}
-		unset($carrierdata);
 
 		if ( empty($statusLabels) ) $statusLabels = array('');
 

@@ -48,17 +48,17 @@
 
 })(jQuery);
 
-
-jQuery(document).ready(function() {
-	var $ = jQuery,
-		sameaddr = $('.sameaddress'),
+jQuery(document).ready(function($) {
+	var sameaddr = $('.sameaddress'),
 		shipFields = $('#shipping-address-fields'),
 		billFields = $('#billing-address-fields');
 
 	// Update name fields
-	$('#firstname,#lastname').change(function () {
-		$('#billing-name,#shipping-name').val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
-	});
+    $('#firstname,#lastname').change(function () {
+        $('#billing-name,#shipping-name').filter(function() {
+            return ( this.value === '' );
+        }).val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
+    });
 
 	// Update state/province
 	$('#billing-country,#shipping-country').upstate();
