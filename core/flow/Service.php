@@ -364,6 +364,7 @@ class ShoppAdminService extends ShoppAdminController {
 			array('Purchase' => $Purchase)
 		);
 
+
 		if ( ! empty($Purchase->shipaddress) || $this->new )
 			new ShoppAdminOrderShippingAddressBox(
 				$this->screen,
@@ -1130,6 +1131,12 @@ class ShoppAdminOrderShippingAddressBox extends ShoppAdminMetabox {
 		return Shopp::__('Shipping Address');
 	}
 
+	public static function editor ( $Purchase, $type = 'shipping' ) {
+		ob_start();
+		include SHOPP_ADMIN_PATH . '/orders/address.php';
+		return ob_get_clean();
+	}
+
 }
 
 class ShoppAdminOrderBillingAddressBox extends ShoppAdminMetabox {
@@ -1141,7 +1148,8 @@ class ShoppAdminOrderBillingAddressBox extends ShoppAdminMetabox {
 		return Shopp::__('Billing Address');
 	}
 
-	public static function editor () {
+	public static function editor ( $Purchase, $type = 'billing' ) {
+		shopp_custom_script('orders', 'var address = [];');
 		ob_start();
 		include SHOPP_ADMIN_PATH . '/orders/address.php';
 		return ob_get_clean();

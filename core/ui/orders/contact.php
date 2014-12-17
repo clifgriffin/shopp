@@ -16,7 +16,7 @@ $page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 	if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
 ?>
 <p class="customer-chooser">
-	<select id="select-customer" name="s" placeholder="<?php _e('Search...','Shopp'); ?>" data-url="<?php echo $searchurl; ?>"></select>
+	<select id="select-customer" name="s" placeholder="<?php _e('Search for customer&hellip;','Shopp'); ?>" data-url="<?php echo $searchurl; ?>"></select>
 </p>
 <?php $search = ob_get_clean(); echo $search; ?>
 </script>
@@ -24,60 +24,60 @@ $page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 <script id="customer-editor" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 
-<h4><?php _e('Choose Customer','Shopp'); ?></h4>
 <?php echo ShoppUI::template( $search ); ?>
 
-<h4 class="label-heading"><?php _e('Edit Customer Contact','Shopp'); ?></h4>
 <div class="editor ${action}">
 	<input type="hidden" name="order-action" value="${action}" id="customer-action" />
 	<input type="hidden" name="customer[customer]" value="${id}" id="customer-id" />
 	<p class="inline-fields">
 		<span>
-		<input type="text" name="customer[firstname]" id="customer-firstname" value="${firstname}" /><br />
 		<label for="address-city"><?php _e('First Name','Shopp'); ?></label>
-		</span>
-		<span>
-		<input type="text" name="customer[lastname]" id="customer-lastname" value="${lastname}" /><br />
+		<input type="text" name="customer[firstname]" id="customer-firstname" value="${firstname}" /><br />
+		</span><span>
 		<label for="address-city"><?php _e('Last Name','Shopp'); ?></label>
+		<input type="text" name="customer[lastname]" id="customer-lastname" value="${lastname}" /><br />
 		</span>
 	</p>
 	<p>
-		<input type="text" name="customer[company]" id="customer-company" value="${company}" /><br />
 		<label for="address-address"><?php _e('Company','Shopp'); ?></label>
+		<input type="text" name="customer[company]" id="customer-company" value="${company}" /><br />
 	</p>
 	<p>
-		<input type="text" name="customer[email]" id="customer-email" value="${email}" /><br />
 		<label for="customer-email"><?php _e('Email','Shopp'); ?></label>
+		<input type="text" name="customer[email]" id="customer-email" value="${email}" /><br />
 	</p>
 	<p>
-		<input type="text" name="customer[phone]" id="customer-phone" value="${phone}" /><br />
 		<label for="customer-phone"><?php _e('Phone','Shopp'); ?></label>
+		<input type="text" name="customer[phone]" id="customer-phone" value="${phone}" /><br />
 	</p>
 	<?php if ( 'wordpress' == shopp_setting('account_system') ): ?>
 	<p class="loginname">
-		<input type="text" name="customer[loginname]" id="customer-loginname" value="${loginname}" /><br />
 		<label for="customer-loginname"><?php _e('Login Name','Shopp'); ?></label>
+		<input type="text" name="customer[loginname]" id="customer-loginname" value="${loginname}" /><br />
 	</p>
 	<?php endif; ?>
-	<div>
+	<div class="editing-controls">
 		<input type="submit" id="cancel-edit-customer" name="cancel-edit-customer" value="<?php Shopp::esc_attr_e('Cancel'); ?>" class="button-secondary" />
 		<input type="submit" name="save" value="<?php Shopp::esc_attr_e('Update'); ?>" class="button-primary alignright" />
 	</div>
 </div>
-<?php $editcustomer = ob_get_contents(); ob_end_clean(); echo $editcustomer;
+<?php 
+	$editcustomer = ob_get_clean();
 
-$customer = array(
-	'${action}'    => 'update-customer',
-	'${id}'        => $Purchase->customer,
-	'${firstname}' => $Purchase->firstname,
-	'${lastname}' => $Purchase->lastname,
-	'${company}' => $Purchase->company,
-	'${email}' => $Purchase->email,
-	'${phone}' => $Purchase->phone,
-	'${login}' => 'wordpress' == shopp_setting('account_system')
-);
-$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($customer));
-shopp_custom_script('orders','var customer = '.$js.';');
+	echo $editcustomer;
+
+	$customer = array(
+		'${action}'    => 'update-customer',
+		'${id}'        => $Purchase->customer,
+		'${firstname}' => $Purchase->firstname,
+		'${lastname}' => $Purchase->lastname,
+		'${company}' => $Purchase->company,
+		'${email}' => $Purchase->email,
+		'${phone}' => $Purchase->phone,
+		'${login}' => 'wordpress' == shopp_setting('account_system')
+	);
+	$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($customer));
+	shopp_custom_script('orders','var customer = '.$js.';');
 ?>
 </script>
 

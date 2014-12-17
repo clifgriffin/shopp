@@ -23,19 +23,37 @@
 			if (regions[country] || (init && menu.find('option').length > 1)) {
 				state.setDisabled(true).addClass('_important').hide();
 				if (regions[country]) {
-					$.each(regions[country], function (value,label) {
-						options += '<option value="'+value+'">'+label+'</option>';
-					});
-					if (!init) menu.empty().append(options).setDisabled(false).show().focus();
+
+
+					if ( menu.hasClass('selectized') ) {
+						console.log(menu[0].selectize);
+						$.each(regions[country], function (value,label) {
+							menu[0].selectize.addOption({value:value, text:label});
+						});
+					} else {
+						$.each(regions[country], function (value,label) {
+							options += '<option value="'+value+'">'+label+'</option>';
+						});
+
+						if (!init) menu.empty().append(options).setDisabled(false).show().focus();
+					}
 					if (menu.hasClass('auto-required')) menu.addClass('required');
 				} else {
 					if (menu.hasClass('auto-required')) menu.removeClass('required');
 				}
-				menu.setDisabled(false).show();
-				$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
+
+				if ( menu.hasClass('selectized') ) {
+
+				} else {
+					menu.setDisabled(false).show();
+					$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
+				}
 			} else {
-				menu.empty().setDisabled(true).hide();
-				state.setDisabled(false).show().removeClass('_important');
+				if ( menu.hasClass('selectized') ) {
+				} else {
+					menu.empty().setDisabled(true).hide();
+					state.setDisabled(false).show().removeClass('_important');
+				}
 
 				$('label[for='+menu.attr('id')+']').attr('for',state.attr('id'));
 				if (!init) state.val('').focus();

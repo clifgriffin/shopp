@@ -17,7 +17,10 @@
 		'${statemenu}' => Shopp::menuoptions($Purchase->_shipping_states,$Purchase->shipstate,true),
 		'${countrymenu}' => Shopp::menuoptions($Purchase->_countries,$Purchase->shipcountry,true)
 	);
-	echo ShoppUI::template(ShoppAdminOrderBillingAddressBox::editor(), $address); ?>
+	echo ShoppUI::template(ShoppAdminOrderShippingAddressBox::editor($Purchase, 'shipping'), $address);
+	$js = preg_replace('/\${([-\w]+)}/', '$1', json_encode($address));
+	shopp_custom_script('orders', 'address["shipping"] = ' . $js . ';');
+	?>
 	</form>
 <?php return; endif; ?>
 
@@ -25,30 +28,7 @@
 <div class="display">
 	<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post">
 	<?php $targets = shopp_setting('target_markets'); ?>
-		<input type="hidden" id="edit-shipping-address-data" value="<?php
-			$shipname = explode(' ',$Purchase->shipname);
-			$shipfirst = array_shift($shipname);
-			$shiplast = join(' ',$shipname);
-			$address = array(
-				'action' => 'update-address',
-				'type' => 'shipping',
-				'firstname' => $shipfirst,
-				'lastname' => $shiplast,
-				'address' => $Purchase->shipaddress,
-				'xaddress' => $Purchase->shipxaddress,
-				'city' => $Purchase->shipcity,
-				'state' => $Purchase->shipstate,
-				'postcode' => $Purchase->shippostcode,
-				'country' => $Purchase->shipcountry,
-				'statemenu' => Shopp::menuoptions($Purchase->_shipping_states,$Purchase->shipstate,true),
-				'countrymenu' => Shopp::menuoptions($Purchase->_countries,$Purchase->shipcountry,true)
-
-			);
-			$js = preg_replace('/\${([-\w]+)}/','$1',json_encode($address));
-			shopp_custom_script('orders','address["shipping"] = '.$js.';');
-			echo esc_attr(json_encode($address));
-		?>" />
-		<input type="submit" id="edit-shipping-address" name="edit-shipping-address" value="<?php _e('Edit','Shopp'); ?>" class="button-secondary button-edit" />
+	<input type="submit" id="edit-shipping-address" name="edit-shipping-address" value="<?php Shopp::_e('Edit'); ?>" class="button-secondary button-edit" />
 	</form>
 
 	<address><big><?php echo esc_html($Purchase->shipname); ?></big><br />

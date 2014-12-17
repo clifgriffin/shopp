@@ -1,6 +1,6 @@
 	<script id="address-editor" type="text/x-jquery-tmpl">
 	<?php
-		$editaddress = ShoppAdminOrderBillingAddressBox::editor();
+		$editaddress = ShoppAdminOrderBillingAddressBox::editor($Purchase, 'billing');
 		echo $editaddress;
 		$address = array(
 			'${action}' => 'update-address',
@@ -17,7 +17,7 @@
 			'${countrymenu}' => Shopp::menuoptions($Purchase->_countries, $Purchase->country, true)
 		);
 		$js = preg_replace('/\${([-\w]+)}/', '$1', json_encode($address));
-		shopp_custom_script('orders', 'var address = []; address["billing"] = ' . $js . ';');
+		shopp_custom_script('orders', 'address["billing"] = ' . $js . ';');
 	?>
 	</script>
 

@@ -117,7 +117,7 @@ jQuery(document).ready( function($) {
 		editaddress = function (type) {
 			var $this = $(this),
 				data = address[ type ],
-				ui = $.tmpl('address-ui',data),
+				ui = $.tmpl('address-ui', data),
 				editorui = $('#' + type + '-address-editor'),
 				display = $('#order-' + type + ' .display'),
 
@@ -130,11 +130,27 @@ jQuery(document).ready( function($) {
 
 				});
 
-			ui.find('#' + type + '-state-menu').html(data.statemenu);
-			ui.find('#' + type + '-country').upstate().html(data.countrymenu);
+			if ( data && data.statemenu )
+				$('#' + type + '-state-menu').html(data.statemenu).selectize({
+					openOnFocus: true,
+					diacritics: true,
+					allowEmptyOption: true,
+					selectOnTab: true,
+					create: true
+				});
 
-			display.hide();
-			editorui.hide().empty().append(ui).slideDown('fast');
+			$('#' + type + '-country').upstate().selectize({
+				openOnFocus: true,
+				diacritics: true,
+				allowEmptyOption: true,
+				selectOnTab: true,
+				create: false
+			});
+
+			// if ( ui ) {
+			// 	display.hide();
+			// 	editorui.hide().empty().append(ui).slideDown('fast');
+			// }
 
 		},
 
@@ -150,9 +166,8 @@ jQuery(document).ready( function($) {
 			return false;
 		}),
 
-		editcustomer = function (e) {
+		editcustomer = function (e, ui) {
 			var $this = $(this),
-				ui = $.tmpl('customer-ui', customer),
 				editorui = $('#customer-editor-form'),
 				display = $('#order-contact .display'),
 				panel = $('#order-contact .inside'),
@@ -258,7 +273,7 @@ jQuery(document).ready( function($) {
 								var fullname =  '<strong>' + escape(item.firstname) + ' ' + escape(item.lastname) + '</strong>',
 									company = ( '' != item.company ? ', <span class="company">' + escape(item.company) + '</span>' : '' ),
 									email = ( '' != item.email ? '<br /><span class="email">' + escape(item.email) + '</span>' : '' );
-								return '<div>' + item.gravatar + fullname + company + email +'</div>';
+								return '<div>' + item.gravatar + '<div class="contact">' + fullname + company + email +'</div></div>';
 							},
 						},
 					    load: function(query, callback) {
@@ -285,17 +300,20 @@ jQuery(document).ready( function($) {
 					}),
 				caneledit = ui.find('#cancel-edit-customer').click(cancel);
 
-			// display.hide();
-			// editorui.hide().empty().append(ui).slideDown('fast');
+			display.hide();
+			editorui.hide().empty().append(ui).slideDown('fast');
 		},
 
 		editcustomerbtn = $('#edit-customer').click(function (e) {
 			e.preventDefault();
-			editcustomer(e);
+			var ui = $.tmpl('customer-ui', customer);
+			editcustomer(e, ui);
 		});
 
 		if ( $('#order-contact .editor').length == 1 ) {
-			editcustomer();
+			editcustomer(false, $('#order-contact .inside'));
+			editaddress('billing');
+			editaddress('shipping');
 		}
 
 		// close postboxes that should be closed
@@ -321,6 +339,14 @@ jQuery(document).ready( function($) {
 			});
 		};
 		postboxes.add_postbox_toggles(pagenow);
+		$('.meta-box-sortables .hndle').on('mousedown', function( event, ui ) {
+			$('.empty-container').height('420px');
+		} );
+
+		$('.meta-box-sortables').on('sortstop', function( event, ui ) {
+			$('.empty-container').height('0px');
+		} );;
+
 
 		$('.postbox a.help').click(function () {
 			$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});

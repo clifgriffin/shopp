@@ -46,7 +46,7 @@
 		<div id="poststuff" class="poststuff">
 
 			<?php if ( $this->new ): ?>
-			<div class="meta-boxes">
+			<div class="meta-boxes clearfix">
 
 				<div id="topside" class="third-column first-third-column box-stretch">
 					<?php do_meta_boxes($this->screen, 'topside', $Purchase); ?>
@@ -60,13 +60,12 @@
 
 			</div>
 
-			<br class="clear" />
 			<?php endif; ?>
 
 			<?php include $this->ui('editor.php'); ?>
 
 			<?php if ( $this->new ): ?>
-			<div class="meta-boxes">
+			<div class="meta-boxes clearfix">
 
 				<div id="underside" class="third-column first-third-column  box-stretch">
 					<?php do_meta_boxes($this->screen, 'underside', $Purchase); ?>
@@ -83,7 +82,7 @@
 				</div>
 			</div>
 			<?php else: ?>
-			<div class="meta-boxes">
+			<div class="meta-boxes clearfix">
 
 				<div id="column-one" class="column left-column">
 					<?php do_meta_boxes($this->screen, 'side', $Purchase); ?>

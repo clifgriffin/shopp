@@ -609,11 +609,25 @@ function &ShoppStorefront () {
  *
  * @since 1.2
  *
- * @return ShoppAdminController|bool The ShoppAdminController instance or false
+ * @return ShoppAdminController|bool The ShoppAdmin super-controller instance or false
  **/
 function &ShoppAdmin() {
 	$false = false;
 	$Shopp = Shopp::object();
 	if ( ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Admin) || empty($Shopp->Flow->Admin) ) return $false;
 	return $Shopp->Flow->Admin;
+}
+
+/**
+ * Provides the current Admin screen controller instance
+ *
+ * @since 1.3.8
+ *
+ * @return ShoppAdminController|bool The ShoppAdminController instance or false
+ **/
+function &ShoppAdminController() {
+	$false = false;
+	$Shopp = Shopp::object();
+	if ( ! defined('WP_ADMIN') && ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Controller) || empty($Shopp->Flow->Controller) ) return $false;
+	return $Shopp->Flow->Controller;
 }
