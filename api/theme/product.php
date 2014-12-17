@@ -637,12 +637,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 **/
 	public static function found ( $result, $options, $O ) {
 		if ( empty($O->id) ) return false;
-
-		if ( ! $O->published() ) return false;
-
 		// Prevent re-loading individual product data in category loops
 		if ( ShoppCollection() && shopp('collection.products', 'looping=true') ) return true;
-
 		$loadable = array('prices', 'coverimages', 'images', 'specs', 'tags', 'categories', 'summary');
 		$defaults = array(
 			'load' => false

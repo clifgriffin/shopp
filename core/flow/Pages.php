@@ -1048,7 +1048,7 @@ class ShoppShortcodes {
 	static function product ($atts) {
 		$atts['template'] = array('product-shortcode.php', 'product.php');
 		ShoppStorefront()->shortcoded[] = get_the_ID();
-		return apply_filters('shopp_product_shortcode', shopp('storefront.get-product', $atts));
+		return apply_filters('shopp_product_shortcode', shopp('catalog.get-product', $atts));
 	}
 
 	/**
