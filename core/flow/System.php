@@ -698,6 +698,11 @@ class ShoppAdminSystem extends ShoppAdminController {
 				if ( ! empty($gateway) && isset($Gateways->active[ $gateway ])
 						&& ! in_array($gateway . $indexed, $gateways) ) {
 					$gateways[] =  $gateway . $indexed;
+
+					// Cleanup any invalid entries
+					$gateways = array_filter($gateways); // Remove empty entries
+					$gateways = array_flip(array_flip($gateways)); // Remove duplicates
+
 					shopp_set_setting('active_gateways', join(',', $gateways));
 				}
 

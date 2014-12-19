@@ -94,17 +94,17 @@ abstract class ShoppEmailFilters {
  * Textify
  * Convert HTML markup to plain text Markdown
  *
- * @copyright Copyright (c) 2011 Ingenesis Limited
+ * @copyright Copyright (c) 2011-2014 Ingenesis Limited
  * @author Jonathan Davis
  * @since 1.2
- * @package textify
+ * @package Textify
  **/
 class Textify {
 
 	private $markup = false;
 	private $DOM = false;
 
-	public function __construct ($markup) {
+	public function __construct ( $markup ) {
 		$this->markup = $markup;
         $DOM = new DOMDocument();
         $DOM->loadHTML($markup);
@@ -138,10 +138,10 @@ class TextifyTag {
 
 	static $_marks = array(		// Default text decoration marks registry
 		'inline' => '',
-		'padding' => array('top'=>' ','right'=>' ','bottom' =>' ','left'=>' '),
-		'margins' => array('top'=>' ','right'=>' ','bottom' =>' ','left'=>' '),
-		'borders' => array('top'=>'-','right'=>'|','bottom' =>'-','left'=>'|'),
-		'corners' => array('top-left'=>'&middot;','top-right' => '&middot;','bottom-right' => '&middot;','bottom-left' => '&middot;','middle-middle'=> '&middot;','top-middle'=>'&middot;','middle-left'=>'&middot;','middle-right'=>'&middot;','bottom-middle'=>'&middot;')
+		'padding' => array('top' => ' ','right' => ' ','bottom'  => ' ','left' => ' '),
+		'margins' => array('top' => ' ','right' => ' ','bottom'  => ' ','left' => ' '),
+		'borders' => array('top' => '-','right' => '|','bottom'  => '-','left' => '|'),
+		'corners' => array('top-left' => '&middot;', 'top-right' => '&middot;', 'bottom-right' => '&middot;', 'bottom-left' => '&middot;', 'middle-middle'=> '&middot;', 'top-middle' => '&middot;', 'middle-left' => '&middot;', 'middle-right' => '&middot;', 'bottom-middle' => '&middot;')
 		);
 
 	protected $node = false;		// The DOM node for the tag
@@ -160,10 +160,10 @@ class TextifyTag {
 
 	protected $marks = array();		// Override-able text decoration marks registry
 
-	protected $borders = array('top'=>0,'right'=>0,'bottom'=>0,'left'=>0);
-	protected $margins = array('top'=>0,'right'=>0,'bottom'=>0,'left'=>0);
+	protected $borders = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
 
-	public function __construct (&$tag) {
+	public function __construct ( DOMNode &$tag ) {
 		$this->node = $tag;
 		$this->tag = $tag->tagName;
 
@@ -185,13 +185,13 @@ class TextifyTag {
 	 * @param DOMNode $node The DOMNode to render out
 	 * @return string The rendered content
 	 **/
-	public function render ($node = false) {
+	public function render ( DOMNode $node = null ) {
 
-		if ( !$node ) {
+		if ( ! $node ) {
 			$node = $this->node;
-			if (!$node) return false;
+			if ( ! $node ) return false;
 		}
-		if ($node->hasAttributes()) {
+		if ( $node->hasAttributes() ) {
 			foreach ($node->attributes as $name => $attr) {
 				if ('style' == $name) $this->styles($attr->value);
 				else $this->attrs[$name] = $attr->value;
@@ -224,7 +224,7 @@ class TextifyTag {
 	 *
 	 * @return string The final assembled content for the element
 	 **/
-	public function layout () {
+	protected function layout () {
 		// Follows box model standards
 
 		$this->prepend( $this->before() );	// Add before content
@@ -238,64 +238,64 @@ class TextifyTag {
 		$this->margins();					// Add margins box
 
 		// Send the string back to the parent renderer
-		return join(TextifyTag::NEWLINE,$this->content);
+		return join(TextifyTag::NEWLINE, $this->content);
  	}
 
-
-	public function append ($content,$block=false) {
+	protected function append ( $content, $block = false ) {
 		$lines = array_filter($this->lines($content));
-		if (empty($lines)) return;
+		if ( empty($lines) ) return;
 
-		if (!$block) {
+		if ( ! $block ) {
 			// Stitch the content of the first new line to the last content in the line list
 			$firstline = array_shift($lines);
-			if (!is_null($firstline) && !empty($this->content)) {
+			if ( ! is_null($firstline) && ! empty($this->content) ) {
 				$id = count($this->content)-1;
 				$this->content[ $id ] .= $firstline;
 
 				// Determine if max width has changed
-				$this->width['max'] = max($this->width['max'],strlen($this->content[$id]));
+				$this->width['max'] = max($this->width['max'], strlen($this->content[ $id ]));
 			} else $this->content[] = $firstline;
 		}
 
-		$this->content = array_merge($this->content,$lines);
+		$this->content = array_merge($this->content, $lines);
 	}
 
-	public function prepend ($content) {
+	protected function prepend ( $content ) {
 		$lines = array_filter($this->lines($content));
-		if (empty($lines)) return;
+		if ( empty($lines) ) return;
 
 		// Stitch the content of the last new line to the first line of the current content line list
 		$lastline = array_pop($lines);
-		$this->content[0] = $lastline.$this->content[0];
-		$this->width['max'] = max($this->width['max'],strlen($this->content[0]));
+		$firstline = isset($this->content[0]) ? $this->content[0] : '';
+		$this->content[0] = $lastline . $firstline;
+		$this->width['max'] = max($this->width['max'], strlen($this->content[0]));
 		$this->content[0] = TextifyTag::whitespace($this->content[0]);
 
-		$this->content = array_merge($lines,$this->content);
+		$this->content = array_merge($lines, $this->content);
 	}
 
-	public function lines ($content) {
-		if (is_array($content)) $content = join('',$content);
+	protected function lines ( $content ) {
+		if ( is_array($content) ) $content = join('', $content);
 
-		if (empty($content)) return array();
+		if ( empty($content) ) return array();
 		$linebreaks = TextifyTag::NEWLINE;
 		$wordbreaks = " \t";
 
 		$maxline = 0; $maxword = 0;
-		$lines = explode($linebreaks,$content);
-		foreach ((array)$lines as $line) {
-			$maxline = max($maxline,strlen($line));
+		$lines = explode($linebreaks, $content);
+		foreach ( (array) $lines as $line ) {
+			$maxline = max($maxline, strlen($line));
 
 			$word = false;
-			$word = strtok($line,$wordbreaks);
-			while (false !== $word) {
-				$maxword = max($maxword,strlen($word));
+			$word = strtok($line, $wordbreaks);
+			while ( false !== $word ) {
+				$maxword = max($maxword, strlen($word));
 				$word = strtok($wordbreaks);
 			}
 		}
 
-		$this->width['min'] = max($this->width['min'],$maxword);
-		$this->width['max'] = max($this->width['max'],$maxline);
+		$this->width['min'] = max($this->width['min'], $maxword);
+		$this->width['max'] = max($this->width['max'], $maxline);
 
 		return $lines;
 	}
@@ -312,27 +312,27 @@ class TextifyTag {
 	 * @param string $content The content to calculate
 	 * @return void
 	 **/
-	public function dimensions () {
-		$this->lines(join(TextifyTag::NEWLINE,$this->content));
+	protected function dimensions () {
+		$this->lines(join(TextifyTag::NEWLINE, $this->content));
 	}
 
-	public function before () {
+	protected function before () {
 		// if (TextifyTag::DEBUG) return "&lt;$this->tag&gt;";
 	}
 
-	public function format ($text) {
+	protected function format ( $text ) {
 		return TextifyTag::whitespace($text);
 	}
 
-	public function after () {
+	protected function after () {
 		// if (TextifyTag::DEBUG) return "&lt;/$this->tag&gt;";
 	}
 
-	public function padding () { /* placeholder */ }
+	protected function padding () { /* placeholder */ }
 
-	public function borders () { /* placeholder */ }
+	protected function borders () { /* placeholder */ }
 
-	public function margins () { /* placeholder */ }
+	protected function margins () { /* placeholder */ }
 
 
 	/**
@@ -343,11 +343,11 @@ class TextifyTag {
 	 *
 	 * @return string
 	 **/
-	public function marks ($repeat = 1) {
-		return str_repeat($this->marks['inline'],$repeat);
+	protected function marks ( $repeat = 1 ) {
+		return str_repeat($this->marks['inline'], $repeat);
 	}
 
-	public function linebreak () {
+	protected function linebreak () {
 		return self::NEWLINE;
 	}
 
@@ -359,29 +359,29 @@ class TextifyTag {
 	 *
 	 * @return void
 	 **/
-	static function whitespace ($text) {
+	static function whitespace ( $text ) {
 		return preg_replace('/\s+/', ' ', $text);
 	}
 
-	public function renderer ($tag) {
-		if (isset($tag->Renderer)) {
+	protected function renderer ( DOMElement $tag ) {
+		if ( isset($tag->Renderer) ) {
 			$tag->Renderer->content = array();
 			return $tag->Renderer;
 		}
 
 		$Tagname = ucfirst($tag->tagName);
-		$Renderer = self::CLASSPREFIX.$Tagname;
-		if (!class_exists($Renderer)) $Renderer = __CLASS__;
+		$Renderer = self::CLASSPREFIX . $Tagname;
+		if ( ! class_exists($Renderer) ) $Renderer = __CLASS__;
 
 		$tag->Renderer = new $Renderer($tag);
 		return $tag->Renderer;
 	}
 
-	public function parent () {
+	protected function parent () {
 		return $this->node->parentNode->Renderer;
 	}
 
-	public function styles ($string) {
+	protected function styles ( $string ) {
 
 	}
 
@@ -403,30 +403,30 @@ class TextifyA extends TextifyInlineElement {
 
 	public function after () {
 		$string = '';
-		if (isset($this->attrs['href']) && !empty($this->attrs['href'])) {
+		if ( isset($this->attrs['href']) && ! empty($this->attrs['href']) ) {
 			$href = $this->attrs['href'];
-			if ('#' != $href{0}) $string .= ': '.$href;
+			if ( '#' != $href{0} ) $string .= ': ' . $href;
 		}
-		return $string.'>';
+		return $string . '>';
 	}
 
 }
 
 class TextifyEm extends TextifyInlineElement {
 
-	var $marks = array('inline' => '_');
+	protected $marks = array('inline' => '_');
 
 }
 
 class TextifyStrong extends TextifyInlineElement {
 
-	var $marks = array('inline' => '**');
+	protected $marks = array('inline' => '**');
 
 }
 
 class TextifyCode extends TextifyInlineElement {
 
-	var $marks = array('inline' => '`');
+	protected $marks = array('inline' => '`');
 
 }
 
@@ -434,7 +434,7 @@ class TextifyCode extends TextifyInlineElement {
 class TextifyBr extends TextifyInlineElement {
 
 	public function layout () {
-		$this->content = array(' ',' ');
+		$this->content = array(' ', ' ');
 		return parent::layout();
 	}
 
@@ -444,68 +444,68 @@ class TextifyBlockElement extends TextifyTag {
 
 	protected $block = true;
 
-	protected $margins = array('top' => 0,'right' => 0,'bottom' => 0,'left' => 0);
-	protected $borders = array('top' => 0,'right' => 0,'bottom' => 0,'left' => 0);
-	protected $padding = array('top' => 0,'right' => 0,'bottom' => 0,'left' => 0);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+	protected $borders = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+	protected $padding = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
 
-	public function width () {
+	protected function width () {
 		return $this->width['max'];
 	}
 
-	public function box (&$lines,$type='margins') {
-		if (!isset($this->marks[$type])) return;
+	protected function box ( &$lines, $type = 'margins' ) {
+		if ( ! isset($this->marks[ $type ]) ) return;
 
 		$size = 0;
 		$marks = array('top' => '','right' => '', 'bottom' => '', 'left' => '');
-		if (isset($this->marks[ $type ]) && !empty($this->marks[ $type ]))
-			$marks = array_merge($marks,$this->marks[ $type ]);
+		if ( isset($this->marks[ $type ]) && ! empty($this->marks[ $type ]) )
+			$marks = array_merge($marks, $this->marks[ $type ]);
 
  		if ( isset($this->$type) ) $sizes = $this->$type;
 
-		$left = str_repeat($marks['left'],$sizes['left']);
-		$right = str_repeat($marks['right'],$sizes['right']);
+		$left = str_repeat($marks['left'], $sizes['left']);
+		$right = str_repeat($marks['right'], $sizes['right']);
 
 		$width = $this->width();
 		$boxwidth = $width;
-		foreach ($lines as &$line) {
-			if (empty($line)) $line = $left.str_repeat(TextifyTag::STRPAD,$width).$right;
+		foreach ( $lines as &$line ) {
+			if ( empty($line) ) $line = $left . str_repeat(TextifyTag::STRPAD, $width) . $right;
 
-			else $line = $left.str_pad($line,$width,TextifyTag::STRPAD).$right;
-			$boxwidth = max($boxwidth,strlen($line));
+			else $line = $left . str_pad($line, $width, TextifyTag::STRPAD) . $right;
+			$boxwidth = max($boxwidth, strlen($line));
 		}
 
 		if ( $sizes['top'] ) {
-			for ($i = 0; $i < $sizes['top']; $i++) {
-				$top = str_repeat($marks['top'],$boxwidth);
-				if ('borders' == $type) $this->legend($top);
-				array_unshift( $lines, $top );
+			for ( $i = 0; $i < $sizes['top']; $i++ ) {
+				$top = str_repeat($marks['top'], $boxwidth);
+				if ( 'borders' == $type ) $this->legend($top);
+				array_unshift($lines, $top);
 			}
 		}
 
 
 		if ( $sizes['bottom']  )
 			for ($i = 0; $i < $sizes['bottom']; $i++)
-				array_push( $lines, str_repeat($marks['bottom'],$boxwidth) );
+				array_push( $lines, str_repeat($marks['bottom'], $boxwidth) );
 
 	}
 
-	public function padding () {
-		$this->box($this->content,'padding');
+	protected function padding () {
+		$this->box($this->content, 'padding');
 	}
 
-	public function borders () {
-		$this->box($this->content,'borders');
+	protected function borders () {
+		$this->box($this->content, 'borders');
 	}
 
-	public function margins () {
-		$this->box($this->content,'margins');
+	protected function margins () {
+		$this->box($this->content, 'margins');
 	}
 
-	public function legend ($string) {
-		if (TextifyTag::DEBUG) $legend = $this->tag;
+	protected function legend ( $string ) {
+		if ( TextifyTag::DEBUG ) $legend = $this->tag;
 		else $legend = $this->legend;
 
-		return substr($string,0,2).$legend.substr($string,(2+strlen($legend)));
+		return substr($string, 0, 2) . $legend . substr($string, ( 2 + strlen($legend) ));
 	}
 
 }
@@ -515,18 +515,18 @@ class TextifyDiv extends TextifyBlockElement {
 
 class TextifyHeader extends TextifyBlockElement {
 
-	var $level = 1;
-	var $marks = array('inline' => '#');
-	var $margins = array('top' => 1,'right' => 0,'bottom' => 1,'left' => 0);
+	protected $level = 1;
+	protected $marks = array('inline' => '#');
+	protected $margins = array('top' => 1, 'right' => 0, 'bottom' => 1, 'left' => 0);
 
-	public function before () {
+	protected function before () {
 		$text = parent::before();
-		$text .= $this->marks($this->level).' ';
+		$text .= $this->marks($this->level) . ' ';
 		return $text;
 	}
 
-	public function after () {
-		$text = ' '.$this->marks($this->level);
+	protected function after () {
+		$text = ' ' . $this->marks($this->level);
 		$text .= parent::after();
 		return $text;
 	}
@@ -534,7 +534,7 @@ class TextifyHeader extends TextifyBlockElement {
 }
 
 class TextifyH1 extends TextifyHeader {
-	var $marks = array('inline' => '=');
+	protected $marks = array('inline' => '=');
 
 	public function before () {}
 
@@ -547,34 +547,34 @@ class TextifyH1 extends TextifyHeader {
 }
 
 class TextifyH2 extends TextifyH1 {
-	var $level = 2;
-	var $marks = array('inline' => '-');
+	protected $level = 2;
+	protected $marks = array('inline' => '-');
 }
 
 class TextifyH3 extends TextifyHeader {
-	var $level = 3;
+	protected $level = 3;
 }
 
 class TextifyH4 extends TextifyHeader {
-	var $level = 4;
+	protected $level = 4;
 }
 
 class TextifyH5 extends TextifyHeader {
-	var $level = 5;
+	protected $level = 5;
 }
 
 class TextifyH6 extends TextifyHeader {
-	var $level = 6;
+	protected $level = 6;
 }
 
 class TextifyP extends TextifyBlockElement {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 0);
+	protected $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 0);
 }
 
 class TextifyBlockquote extends TextifyBlockElement {
 
 	public function layout () {
-		$this->content = array_map(array($this,'quote'),$this->content);
+		$this->content = array_map(array($this, 'quote'), $this->content);
 		return parent::layout();
  	}
 
@@ -585,8 +585,8 @@ class TextifyBlockquote extends TextifyBlockElement {
 }
 
 class TextifyListContainer extends TextifyBlockElement {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 4);
-	var $counter = 0;
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 1, 'left' => 4);
+	protected $counter = 0;
 
 	public function additem () {
 		return ++$this->counter;
@@ -595,38 +595,38 @@ class TextifyListContainer extends TextifyBlockElement {
 }
 
 class TextifyDl extends TextifyListContainer {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 0);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 1, 'left' => 0);
 }
 
 class TextifyDt extends TextifyBlockElement {
 }
 
 class TextifyDd extends TextifyBlockElement {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 0,'left' => 4);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 4);
 }
 
 class TextifyUl extends TextifyListContainer {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 4);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 1, 'left' => 4);
 }
 
 class TextifyOl extends TextifyListContainer {
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 4);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 1, 'left' => 4);
 }
 
 class TextifyLi extends TextifyBlockElement {
 
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 0,'left' => 0);
-	var $num = false;
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+	protected $num = false;
 
-	public function __construct(&$tag) {
+	public function __construct ( DOMNode &$tag ) {
 		parent::__construct($tag);
 		$parent = $this->parent();
-		if ($parent && method_exists($parent,'additem'))
+		if ( $parent && method_exists($parent, 'additem') )
 			$this->num = $parent->additem();
 	}
 
 	public function before () {
-		if ('TextifyOl' == get_class($this->parent())) return $this->num.'. ';
+		if ( 'TextifyOl' == get_class($this->parent()) ) return $this->num . '. ';
 		else return '* ';
 	}
 
@@ -634,8 +634,8 @@ class TextifyLi extends TextifyBlockElement {
 
 class TextifyHr extends TextifyBlockElement {
 
-	var $margins = array('top' => 1,'right' => 0,'bottom' => 1,'left' => 0);
-	var $marks = array('inline' => '-');
+	protected $margins = array('top' => 1, 'right' => 0, 'bottom' => 1, 'left' => 0);
+	protected $marks = array('inline' => '-');
 
 	public function layout () {
 		$this->content = array($this->marks(75));
@@ -646,7 +646,7 @@ class TextifyHr extends TextifyBlockElement {
 
 class TextifyTable extends TextifyBlockElement {
 
-	var $margins = array('top' => 0,'right' => 0,'bottom' => 1,'left' => 0);
+	protected $margins = array('top' => 0, 'right' => 0, 'bottom' => 1, 'left' => 0);
 
 	private $rows = 0; // Total number of rows
 	private $colwidths = array();
@@ -663,20 +663,20 @@ class TextifyTable extends TextifyBlockElement {
 	 * @param DOMNode $node The DOMNode to render out
 	 * @return string The rendered content
 	 **/
-	public function render ($node = false) {
+	public function render ( DOMNode $node = null ) {
 
-		if ( !$node ) {
+		if ( ! $node ) {
 			$node = $this->node;
-			if (!$node) return false;
+			if ( ! $node ) return false;
 		}
 		// No child nodes, render it out to and send back the parent container
 		if ( ! $node->hasChildNodes() ) return $this->layout();
 
 		// Step 1: Determine min/max dimensions from rendered content
-		foreach ($node->childNodes as $index => $child) {
+		foreach ( $node->childNodes as $index => $child ) {
 			if ( XML_TEXT_NODE == $child->nodeType || XML_CDATA_SECTION_NODE == $child->nodeType ) {
-				$text = trim($child->nodeValue,"\t\n\r\0\x0B");
-				if (!empty($text)) $this->append( $this->format($text) );
+				$text = trim($child->nodeValue, "\t\n\r\0\x0B");
+				if ( ! empty($text) ) $this->append( $this->format($text) );
 			} elseif ( XML_ELEMENT_NODE == $child->nodeType) {
 				$Renderer = $this->renderer($child);
 				$this->append( $Renderer->render() );
@@ -685,11 +685,11 @@ class TextifyTable extends TextifyBlockElement {
 
 		// Step 2: Reflow content based on width constraints
 		$this->content = array();
-		foreach ($node->childNodes as $index => $child) {
+		foreach ( $node->childNodes as $index => $child ) {
 			if ( XML_TEXT_NODE == $child->nodeType || XML_CDATA_SECTION_NODE == $child->nodeType ) {
-				$text = trim($child->nodeValue,"\t\n\r\0\x0B");
-				if (!empty($text)) $this->append( $this->format($text) );
-			} elseif ( XML_ELEMENT_NODE == $child->nodeType) {
+				$text = trim($child->nodeValue, "\t\n\r\0\x0B");
+				if ( ! empty($text) ) $this->append( $this->format($text) );
+			} elseif ( XML_ELEMENT_NODE == $child->nodeType ) {
 				$Renderer = $this->renderer($child);
 				$this->append( $Renderer->render() );
 			}
@@ -700,43 +700,43 @@ class TextifyTable extends TextifyBlockElement {
 
 	}
 
-	public function append ($content,$block=true) {
+	protected function append ( $content, $block = true ) {
 		$lines = array_filter($this->lines($content));
-		if (empty($lines)) return;
+		if ( empty($lines) ) return;
 
 		// Stitch the content of the first new line to the last content in the line list
 		$firstline = $lines[0];
 		$lastline = false;
 
 		if ( ! empty($this->content) )
-			$lastline = $this->content[ count($this->content)-1 ];
+			$lastline = $this->content[ count($this->content) - 1 ];
 
-		if (!empty($lastline) && $lastline === $firstline) array_shift($lines);
+		if ( ! empty($lastline) && $lastline === $firstline ) array_shift($lines);
 
-		$this->content = array_merge($this->content,$lines);
+		$this->content = array_merge($this->content, $lines);
 	}
 
-	public function borders () { /* disabled */ }
+	protected function borders () { /* disabled */ }
 
 	public function addrow () {
-		$this->layout[$this->rows] = array();
+		$this->layout[ $this->rows ] = array();
 		return $this->rows++;
 	}
 
-	public function addrowcolumn ($row = 0) {
+	public function addrowcolumn ( $row = 0 ) {
 		$col = false;
-		if (isset($this->layout[$row])) {
-			$col = count($this->layout[$row]);
-			$this->layout[$row][$col] = array();
+		if ( isset($this->layout[ $row ]) ) {
+			$col = count($this->layout[ $row ]);
+			$this->layout[ $row ][ $col ] = array();
 		}
 		return $col;
 	}
 
-	public function colwidth ($column,$width=false) {
-		if ( ! isset($this->colwidths[$column]) ) $this->colwidths[$column] = 0;
-		if (false !== $width)
-			$this->colwidths[$column] = max($this->colwidths[$column],$width);
-		return $this->colwidths[$column];
+	public function colwidth ( $column, $width = false ) {
+		if ( ! isset($this->colwidths[ $column ]) ) $this->colwidths[ $column ] = 0;
+		if ( false !== $width )
+			$this->colwidths[ $column ] = max($this->colwidths[ $column ], $width);
+		return $this->colwidths[ $column ];
 	}
 
 }
@@ -745,11 +745,11 @@ class TextifyTableTag extends TextifyBlockElement {
 
 	protected $table = false; // Parent table layout
 
-	public function __construct ($tag) {
+	public function __construct ( DOMNode &$tag ) {
 		parent::__construct($tag);
 
 		$tablenode = $this->tablenode();
-		if (!$tablenode) return; // Bail, can't determine table layout
+		if ( ! $tablenode ) return; // Bail, can't determine table layout
 
 		$this->table = $tablenode->Renderer;
 	}
@@ -764,10 +764,10 @@ class TextifyTableTag extends TextifyBlockElement {
 	 **/
 	public function tablenode () {
 		$path = $this->node->getNodePath();
-		if (false === strpos($path,'table')) return false;
+		if ( false === strpos($path, 'table') ) return false;
 
 		$parent = $this->node;
-		while ('table' != $parent->parentNode->tagName) {
+		while ( 'table' != $parent->parentNode->tagName ) {
 			$parent = $parent->parentNode;
 		}
 		return $parent->parentNode;
@@ -780,47 +780,48 @@ class TextifyTr extends TextifyTableTag {
 	private $row = 0;
 	private $cols = 0;
 
-	public function __construct ($tag) {
+	public function __construct ( DOMNode &$tag ) {
 		parent::__construct($tag);
 
 		$this->row = $this->table->addrow();
 	}
 
-	public function layout () {
+	protected function layout () {
 		$_ = array();
 		$lines = array();
-		foreach ($this->content as $cells) {
-			$segments = explode("\n",$cells);
-			$total = max(count($lines),count($segments));
+		foreach ( $this->content as $cells ) {
+			$segments = explode("\n", $cells);
+			$total = max(count($lines), count($segments));
 
-			for ($i = 0; $i < $total; $i++) {
+			for ( $i = 0; $i < $total; $i++ ) {
 
-				if (!isset($segments[$i])) continue;
+				if ( ! isset($segments[ $i ]) ) continue;
 
-				if (isset($lines[$i]) && !empty($lines[$i])) {
-					$eol = strlen($lines[$i])-1;
+				if ( isset($lines[ $i ]) && ! empty($lines[ $i ]) ) {
+					$eol = strlen($lines[ $i ]) - 1;
 
-					if (!empty($segments[$i]) &&  $lines[$i]{$eol} == $segments[$i]{0}) $lines[$i] .= substr($segments[$i],1);
-					else $lines[$i] .= $segments[$i];
+					if ( ! empty($segments[ $i ]) && $lines[ $i ]{$eol} == $segments[ $i ]{0} )
+						$lines[ $i ] .= substr($segments[ $i ], 1);
+					else $lines[ $i ] .= $segments[ $i ];
 
 				} else {
-					if (!isset($lines[$i])) $lines[$i] = '';
-					$lines[$i] .= $segments[$i];
+					if ( ! isset($lines[ $i ])) $lines[ $i ] = '';
+					$lines[ $i ] .= $segments[ $i ];
 				}
 			}
 
 		}
-		$_[] = join("\n",$lines);
-		return join('',$_);
+		$_[] = join("\n", $lines);
+		return join('', $_);
 	}
 
-	public function append ($content,$block=true) {
+	protected function append ( $content, $block = true ) {
 		$this->content[] = $content;
 	}
 
-	public function format ($text) { /* disabled */ }
+	protected function format ( $text ) { /* disabled */ }
 
-	public function addcolumn ($column = 0) {
+	public function addcolumn ( $column = 0 ) {
 		$id = $this->table->addrowcolumn($this->row);
 		$this->cols++;
 		return $id;
@@ -830,33 +831,39 @@ class TextifyTr extends TextifyTableTag {
 		return $this->row;
 	}
 
-	public function padding () { /* Disabled */ }
+	protected function padding () { /* Disabled */ }
 
 }
 
 class TextifyTd extends TextifyTableTag {
 
-	var $row = false;
-	var $col = 0;
+	protected $row = false;
+	protected $col = 0;
 
-	protected $padding = array('top' => 0,'right' => 1,'bottom' => 0,'left' => 1);
+	protected $padding = array('top' => 0, 'right' => 1, 'bottom' => 0, 'left' => 1);
 
 	private $reported = false;
 
-	public function __construct ($tag) {
+	public function __construct ( DOMNode &$tag ) {
 		parent::__construct($tag);
 
 		$row = $this->getrow();
+
+		if ( 'TextifyTr' != get_class($row) ) {
+			trigger_error(sprintf('A <%s> tag must occur inside a <tr>, not a <%s> tag.', $this->tag, $row->tag), E_USER_WARNING);
+			return;
+		}
+
 		$this->row = $row->tablerow();
 		$this->col = $row->addcolumn();
 	}
 
-	public function margins () { /* disabled */ }
+	protected function margins () { /* disabled */ }
 
-	public function dimensions () {
+	protected function dimensions () {
 		parent::dimensions();
-		if ($this->reported) return;
-		$this->table->colwidth($this->col,$this->width['max']);
+		if ( $this->reported ) return;
+		$this->table->colwidth($this->col, $this->width['max']);
 		$this->reported = true;
 	}
 
@@ -873,6 +880,7 @@ class TextifyTd extends TextifyTableTag {
 class TextifyTh extends TextifyTd {
 
 	public function before () { return '['; }
+
 	public function after () { return ']'; }
 
 }
@@ -899,7 +907,6 @@ class TextifyAddress extends TextifyBlockElement {
 	// 	$this->content = array_merge($this->content,$lines);
 	//
 	// }
-
 
 }
 
