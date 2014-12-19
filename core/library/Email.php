@@ -847,8 +847,14 @@ class TextifyTd extends TextifyTableTag {
 		parent::__construct($tag);
 
 		$row = $this->getrow();
-		$this->row = $row->tablerow();
-		$this->col = $row->addcolumn();
+
+		if ( 'TextifyTr' != get_class($row) ) {
+			trigger_error(sprintf('A <%s> tag must occur inside a <tr>, not a <%s> tag.', $this->tag, $row->tag), E_USER_WARNING);
+			return;
+		}
+
+		$this->row = method_exists($row, 'tablerow') ? $row->tablerow() : 0;
+		$this->col = method_exists($row, 'addcolumn') ? $row->addcolumn() : 0;
 	}
 
 	public function margins () { /* disabled */ }
@@ -873,6 +879,7 @@ class TextifyTd extends TextifyTableTag {
 class TextifyTh extends TextifyTd {
 
 	public function before () { return '['; }
+
 	public function after () { return ']'; }
 
 }
