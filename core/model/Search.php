@@ -452,7 +452,15 @@ abstract class SearchTextFilters {
 	public static function StopFilter ( $text ) {
 		$stopwords = Lookup::stopwords();
 		$replacements = implode('|', $stopwords);
-		return preg_replace("/\b($replacements)\b/", '', $text);
+
+		// Protect quoted strings
+		$result = '';
+		$unquoted = preg_split('/("[^"]*"|\'[^\']*\')/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+		while ( $unquoted )
+			$result .= preg_replace("/\b($replacements)\b/", '', array_shift($unquoted)) . array_shift($unquoted);
+
+		return $result;
 	}
 
 	/**
@@ -467,10 +475,10 @@ abstract class SearchTextFilters {
 	 * @param string $text The text to normalize
 	 * @return string normalized text
 	 **/
-	public static function NormalizeFilter ($text) {
+	public static function NormalizeFilter ( $text ) {
 
-		// Collapse words with periods and commas
-		$text = preg_replace("/[\.\']/", '', $text);
+		// Collapse words with periods, commas and apostrophes
+		$text = preg_replace("/[\.\',]/", '', $text);
 
 		// Translate any other non-word characters to spaces
 		$text = preg_replace("/[^\w\d\s\p{L}\_\"]/u", ' ', $text);
@@ -964,3 +972,64 @@ class PorterStemmer {
     }
 
 } // END class PorterStemmer
+
+/**
+ * A helper class to preserve token patterns in a string
+ *
+ * Used when token patterns need preserved through other string manipulation/transformations,
+ * leaving the preserved tokens untouched.
+ *
+ * @since 1.3.8
+ **/
+class ShoppStringShield {
+
+	private $pattern = false;
+	private $tokens = array();
+
+	/**
+	 * Object constructor
+	 *
+	 * @param string $pattern The regex pattern for tokens to preserve
+	 * @return void
+	 **/
+	public function __construct ( $pattern ) {
+		$this->pattern = $pattern;
+	}
+
+	/**
+	 * Protect all matching string tokens
+	 *
+	 * @param string $string The string to protect
+	 * @return string The modified string with tokenized values
+	 **/
+	public function shield ( $string ) {
+		return preg_replace_callback($this->pattern, array($this, 'tokenize'), $string);
+	}
+
+	/**
+	 * Helper callback to do token replacement
+	 *
+	 * Builds a dictionary of tokens and the real string they represent.
+	 *
+	 * @internal
+	 *
+	 * @param array $matches The preg matches to preserve
+	 * @return string The token representation of the string
+	 **/
+	public function tokenize ( $matches ) {
+		$token = str_rot13($matches[0]);
+		$this->tokens[ $token ] = $matches[0];
+		return $token;
+	}
+
+	/**
+	 * Restore the preserved tokens to the given string
+	 *
+	 * @param string $string The string with preserved tokens to restore
+	 * @return string The modified string with tokens restored to the original strings
+	 **/
+	public function restore ( $string ) {
+		return str_replace(array_keys($this->tokens), $this->tokens, $string);
+	}
+
+}
