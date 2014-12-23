@@ -6,7 +6,7 @@
  * Version: 1.4dev
  * Author: Ingenesis Limited
  * Author URI: http://ingenesis.net
- * Requires at least: 3.5
+ * Requires at least: 3.8
  * Tested up to: 4.0.1
  *
  *    Portions created by Ingenesis Limited are Copyright © 2008-2014 by Ingenesis Limited

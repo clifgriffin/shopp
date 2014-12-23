@@ -28,6 +28,10 @@ final class ShoppFlow {
 	/** @var ShoppInstallation $Installer The installer instance */
 	private $Installer = false;
 
+	private $request = array(
+		'page' => false
+	);
+
 	/**
 	 * Constructor
 	 *
@@ -50,7 +54,7 @@ final class ShoppFlow {
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
 		// Parse the request
-		if ( defined('WP_ADMIN') ) add_action( 'current_screen', array($this, 'parse') );
+		if ( is_admin() ) add_action( 'current_screen', array($this, 'parse') );
 		else add_action( 'parse_request', array($this, 'parse') );
 	}
 
@@ -64,15 +68,15 @@ final class ShoppFlow {
 	 **/
 	public function parse ( $request = false ) {
 
-		if ( is_a($request,'WP') )
-			$request = empty($request->query_vars) ? $_GET : $request->query_vars;
-		else $request = $_GET;
+		if ( is_a($request, 'WP') )
+			$this->request = array_merge($this->request, empty($request->query_vars) ? $_GET : $request->query_vars );
+		else $this->request = array_merge($this->request, $_GET);
 
-		if ( isset($request['src']) )
-			$this->resources($request);
+		if ( isset($this->request['src']) )
+			$this->resources($this->request);
 
-		if ( defined('WP_ADMIN') ) {
-			if ( ! isset($_GET['page']) ) return;
+		if ( is_admin() ) {
+			if ( ! $this->request['page'] ) return;
 
 			if ( false === $this->Admin )
 				$this->Admin = new ShoppAdmin();
@@ -92,8 +96,9 @@ final class ShoppFlow {
 	 * @return bool True if a controller is set and initialized, false otherwise
 	 **/
 	public function handler ( $controller = null ) {
-		if ( defined('WP_ADMIN') && is_null($controller) && isset($_GET['page']) )
-			$controller = $this->Admin->controller($_GET['page']);
+
+		if ( is_admin() && is_null($controller) && $this->request['page'] )
+			$controller = $this->Admin->controller($this->request['page']);
 
 		if ( ! $controller ) return false;
 		if ( is_a($this->Controller, $controller) ) return true; // Already initialized
@@ -115,7 +120,7 @@ final class ShoppFlow {
 	 * @return boolean True if the admin controller is established, false otherwise
 	 **/
 	public function admin () {
-		if ( ! defined('WP_ADMIN') ) return false;
+		if ( ! is_admin() ) return false;
 
 		if ( $this->handler() ) {
 			$this->Controller->admin();
@@ -133,10 +138,14 @@ final class ShoppFlow {
 	 * @return void
 	 **/
 	public function menu () {
-		if ( ! defined('WP_ADMIN') ) return;
-		$this->Admin = new ShoppAdmin;
-		$this->Admin->menus();
+		if ( ! is_admin() ) return;
+		$this->Admin = new ShoppAdmin();
+
 		do_action('shopp_admin_menu');
+
+		$Menus = $this->Admin->menus();
+		$Menus->build();
+
 	}
 
 	/**
@@ -535,56 +544,6 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Oops.</h2></div>';
 		do_action('shopp_admin_notices');
 		return false;
-	}
-
-}
-
-abstract class ShoppAdminMetabox {
-
-	protected $references = array();
-
-	/** @var string $view The relative path to the metabox view file **/
-	protected $id = '';
-	protected $view = '';
-	protected $title = '';
-
-
-	public function __construct ( $posttype, $context, $priority, array $args = array() ) {
-
-		$this->references = $args;
-
-		$this->init();
-
-		$this->request($_POST);
-
-		$Admin = ShoppAdmin();
-		add_meta_box($this->id, $this->title() . $Admin->boxhelp($id), array($this, 'box'), $posttype, $context, $priority, $args);
-
-	}
-
-	public function box () {
-		extract($this->references);
-		do_action('shopp_metabox_before_' . $this->id);
-		include $this->ui();
-		do_action('shopp_metabox_after_' . $this->id);
-	}
-
-	protected function title () {
-		return 'Untitled';
-	}
-
-	protected function init () {
-		/** Implemented in concrete classes **/
-	}
-
-	protected function request ( array &$post = array() ) {
-		/** Implemented in concrete classes **/
-	}
-
-	private function ui () {
-		$path = join('/', array(SHOPP_ADMIN_PATH, $this->view));
-		if ( is_readable($path) )
-			return $path;
 	}
 
 }

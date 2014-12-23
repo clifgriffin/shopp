@@ -40,7 +40,6 @@ class ShoppStyles extends WP_Styles {
 
 		$styles->add('admin', '/ui/styles/admin.css');
 		$styles->add('admin-rtl', '/ui/styles/rtl.css');
-		$styles->add('backmenu', '/ui/styles/backmenu.css');
 		$styles->add('catalog', '/ui/styles/catalog.css');
 		$styles->add('colorbox', '/ui/styles/colorbox.css');
 		$styles->add('dashboard', '/ui/styles/dashboard.css');
