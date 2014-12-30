@@ -82,6 +82,7 @@
 						<?php shopp( 'purchase.item-sku' ); ?><br />
 						<?php shopp( 'purchase.item-download' ); ?>
 						<?php shopp( 'purchase.item-addons-list' ); ?>
+						<?php shopp( 'purchase.item-inputs-list' ); ?>
 					</td>
 					<td><?php shopp( 'purchase.item-quantity' ); ?></td>
 					<td class="money"><?php shopp( 'purchase.item-unitprice' ); ?></td>
