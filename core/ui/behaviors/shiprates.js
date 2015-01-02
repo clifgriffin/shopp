@@ -53,7 +53,7 @@ jQuery(document).ready( function($) {
 							selected[key] = selection[index];
 						index++;
 					}
-
+					console.log(selected);
 					for (index in lookup.regions) { // World regions
 
 						if (index == selected.region && lookup.regionmap[index]) { // Selected region's countries

@@ -15,12 +15,12 @@
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="base_operations"><?php _e('Base of Operations','Shopp'); ?></label></th>
-				<td><select name="settings[base_operations][country]" id="base_operations">
+				<td><select name="settings[base_locale][country]" id="base_operations">
 					<option value="">&nbsp;</option>
-						<?php echo Shopp::menuoptions($countries,$operations['country'],true); ?>
+						<?php echo $countrymenu; ?>
 					</select>
-					<select name="settings[base_operations][zone]" id="base_operations_zone"<?php if (!isset($zones)): ?>disabled="disabled" class="hide-if-no-js"<?php endif; ?>>
-						<?php echo Shopp::menuoptions($zones,$operations['zone'],true); ?>
+					<select name="settings[base_locale][state]" id="base_operations_zone"<?php if ( empty($statesmenu) ): ?>disabled="disabled" class="hide-if-no-js"<?php else: ?>  placeholder="<?php Shopp::_e('Select your %s&hellip;', strtolower(ShoppBaseLocale()->division())); ?>"<?php endif; ?>>
+						<?php echo $statesmenu; ?>
 					</select>
 					<br />
 	            	<?php _e('Select your primary business location.','Shopp'); ?><br />

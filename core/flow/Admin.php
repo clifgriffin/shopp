@@ -22,6 +22,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 class ShoppAdmin extends ShoppFlowController {
 
+	private $Menus = false;
+
 	/**
 	 * Admin constructor
 	 *
@@ -858,7 +860,7 @@ abstract class ShoppAdminMetabox {
 		$this->init();
 		$this->request($_POST);
 
-		add_meta_box($this->id, $this->title() . $this->help($this->id), array($this, 'box'), $posttype, $context, $priority, $args);
+		add_meta_box($this->id, $this->title() . self::help($this->id), array($this, 'box'), $posttype, $context, $priority, $args);
 
 	}
 
@@ -871,13 +873,6 @@ abstract class ShoppAdminMetabox {
 
 	protected function title () {
 		return 'Untitled';
-	}
-
-	protected function help ( $id ) {
-		if ( ! ShoppSupport::activated() ) return '';
-
-		$helpurl = add_query_arg(array('src' => 'help', 'id' => $id), admin_url('admin.php'));
-		return apply_filters('shopp_admin_boxhelp', '<a href="' . esc_url($helpurl) . '" class="help shoppui-question"></a>');
 	}
 
 	protected function init () {
@@ -893,6 +888,13 @@ abstract class ShoppAdminMetabox {
 		$path = join('/', array(SHOPP_ADMIN_PATH, $this->view));
 		if ( is_readable($path) )
 			return $path;
+	}
+
+	public static function help ( $id ) {
+		if ( ! ShoppSupport::activated() ) return '';
+
+		$helpurl = add_query_arg(array('src' => 'help', 'id' => $id), admin_url('admin.php'));
+		return apply_filters('shopp_admin_boxhelp', '<a href="' . esc_url($helpurl) . '" class="help shoppui-question"></a>');
 	}
 
 
@@ -986,7 +988,6 @@ class ShoppUI {
 			$options['type'] = 'submit';
 
 		$type = $options['type'];
-		$name = $options['name'];
 		$title = $options['title'];
 		$icon = $options['icon'];
 
@@ -997,7 +998,6 @@ class ShoppUI {
 		$ui = str_replace(array_keys($data), $data, $ui);
 		return preg_replace('/\${[-\w]+}/', '', $ui);
 	}
-
 
 	/**
 	 * Register column headers for a particular screen.

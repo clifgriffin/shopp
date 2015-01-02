@@ -828,15 +828,14 @@ class ShoppCartThemeAPI implements ShoppAPI {
 
 		if ( empty($O->shipped) ) return '';
 
-		$base = shopp_setting('base_operations');
 		$markets = shopp_setting('target_markets');
 		$Shipping = ShoppOrder()->Shipping;
 
 		if ( empty($markets) ) return '';
 
-		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		if ( ! empty($Shipping->country) ) $selected = $Shipping->country;
-		else $selected = $base['country'];
+		else $selected = ShoppBaseLocale()->country();
+
 		$postcode = ( Shopp::str_true($postcode) || $O->showpostcode );
 
 		$_ = '<div class="' . $class . '">';

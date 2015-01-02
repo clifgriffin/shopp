@@ -30,12 +30,48 @@ function copyOf (src) {
  * Provides indexOf method for browsers that
  * that don't implement JavaScript 1.6 (IE for example)
  **/
-if (!Array.indexOf) {
+if ( ! Array.indexOf ) {
 	Array.prototype.indexOf = function(obj) {
-		for (var i = 0; i < this.length; i++)
-			if (this[i] == obj) return i;
+		for ( var i = 0; i < this.length; i++ )
+			if ( this[i] == obj ) return i;
 		return -1;
 	};
+}
+
+/**
+ * Provides a feature limited, fast implementation of sprintf
+ **/
+if ( ! sprintf ) {
+	function sprintf (format, args) {
+		if ( ! format ) return;
+		var result, i, type, prev = 0, arg = 0,
+	        escapes = {
+	        	'\n': '\\n',
+	            '\'': '\\\'',
+	        },
+			result = '';
+
+		for ( i = 0; i < format.length; i++ ) {
+			if ( '%' === format[i] ) {
+
+	            result += format.slice(prev, i);
+				param = args[ arg++ ];
+	            switch ( format[ i + 1 ] ) {
+					case 's': result += param; break;
+				    case 'j': result += JSON.strigify(param); break;
+					case 'd': result += parseInt(param) ? parseInt(param) : 0; break;
+					case 'f': result += parseFloat(param) ? parseFloat(param) : 0.0; break;
+				    case '%': i++; arg--; break;
+				}
+	            prev = i + 2;
+			} else if ( escapes[ format[ i ] ] ) {
+				result += format.slice(prev, i) + escapes[ format[ i ] ];
+				prev = i + 1;
+			}
+		}
+
+		return result + format.slice(prev);
+	}
 }
 
 /**

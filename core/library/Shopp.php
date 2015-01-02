@@ -100,6 +100,7 @@ final class Shopp extends ShoppCore {
 	public function init () {
 
 		$this->Collections = array();
+		$this->Locale = new ShoppBaseLocale();
 		$this->Order = new ShoppOrder();
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();

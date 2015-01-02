@@ -121,10 +121,14 @@ class ShoppAjax {
 
 	public function country_zones () {
 		check_admin_referer('wp_ajax_shopp_country_zones');
-		$zones = Lookup::country_zones();
-		if ( isset($_GET['country']) && isset($zones[$_GET['country']]))
-			echo json_encode($zones[$_GET['country']]);
-		else echo json_encode(false);
+		if ( isset($_GET['country']) ) $country = $_GET['country'];
+
+		$states = ShoppLookup::country_zones(array($country));
+		if ( ! empty($states) && isset($states[ $country] )) {
+			$labels = ShoppLookup::country_divisions($country);
+			array_unshift($states[ $country ], strtolower($labels[0]));
+			echo json_encode($states[ $country ]);
+		} else echo json_encode(false);
 		exit();
 	}
 

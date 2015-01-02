@@ -473,8 +473,6 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( ! is_shopp_collection()) return;
 		$Collection = ShoppCollection();
 
-	    $base = shopp_setting('base_operations');
-
 		add_filter( 'shopp_rss_description', 'wptexturize' );
 		add_filter( 'shopp_rss_description', 'convert_chars' );
 		add_filter( 'shopp_rss_description', 'make_clickable', 9 );

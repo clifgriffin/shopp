@@ -2760,6 +2760,11 @@ tfoot#order-totals td {
 	border-top-color: transparent;
 }
 
+.form-table .selectize-control {
+	display: inline-block;
+	width: 30%;
+}
+
 /** Tax Rates **/
 #taxrates .column-local,
 #taxrates .column-conditional {

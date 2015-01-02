@@ -1794,11 +1794,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if ( 'value' == $mode ) return $value;
 
-		$base = shopp_setting('base_operations');
 		$countries = shopp_setting('target_markets');
 		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 
-		if ( empty($selected) ) $selected = $base['country'];
+		if ( empty($selected) ) $selected = ShoppBaseLocale()->country();
 
 		return '<select name="' . $address . '[country]" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>' .
 			 		menuoptions($countries, $selected, true) .
@@ -1845,11 +1844,10 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 
 		if ( 'value' == $mode ) return $value;
 
-		$base = (array) shopp_setting('base_operations');
 		$countries = (array) shopp_setting('target_markets');
 		$select_attrs = array('title', 'required', 'class', 'disabled', 'required', 'size', 'tabindex', 'accesskey');
 
-		$country = $base['country'];
+		$country = ShoppBaseLocale()->country();
 
 		if ( ! empty($Address->country) )
 			$country = $Address->country;

@@ -862,20 +862,13 @@ class ShoppAdminService extends ShoppAdminController {
 			$Purchase->load_events();
 		}
 
-		$base = shopp_setting('base_operations');
 		$targets = shopp_setting('target_markets');
-
-		$countries = array(''=>'&nbsp;');
-		$countrydata = Lookup::countries();
-		foreach ($countrydata as $iso => $c) {
-			if ($base['country'] == $iso) $base_region = $c['region'];
-			$countries[ $iso ] = $c['name'];
-		}
-		$Purchase->_countries = $countries;
+		$default = array('' => '&nbsp;');
+		$Purchase->_countries = array_merge($default, ShoppLookup::countries());
 
 		$regions = Lookup::country_zones();
-		$Purchase->_billing_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->country ]);
-		$Purchase->_shipping_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->shipcountry ]);
+		$Purchase->_billing_states = array_merge($default, (array)$regions[ $Purchase->country ]);
+		$Purchase->_shipping_states = array_merge($default, (array)$regions[ $Purchase->shipcountry ]);
 
 		// Setup shipping carriers menu and JS data
 		$carriers_menu = $carriers_json = array();
@@ -892,7 +885,7 @@ class ShoppAdminService extends ShoppAdminController {
 			$carriers_json['NOTRACKING'] = array($notrack, false);
 		}
 
-			$serviceareas = array('*', $base['country']);
+			$serviceareas = array('*', ShoppBaseLocale()->country());
 			foreach ( $shipcarriers as $code => $carrier ) {
 			if ( $code == $default ) continue;
 			if ( ! empty($shipping_carriers) && ! in_array($code, $shipping_carriers) ) continue;

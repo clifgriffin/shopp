@@ -372,18 +372,13 @@ class ShoppAdminAccount extends ShoppAdminController {
 		}
 
 
-		$countries = array(''=>'&nbsp;');
-		$countrydata = Lookup::countries();
-		foreach ($countrydata as $iso => $c) {
-			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso)
-				$base_region = $c['region'];
-			$countries[$iso] = $c['name'];
-		}
+		$default = array('' => '&nbsp;');
+		$countries = array_merge($default, ShoppLookup::countries());
 		$Customer->countries = $countries;
 
-		$regions = Lookup::country_zones();
-		$Customer->billing_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Customer->Billing->country]);
-		$Customer->shipping_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Customer->Shipping->country]);
+		$regions = ShoppLookup::country_zones();
+		$Customer->billing_states = array_merge($default, (array)$regions[ $Customer->Billing->country ]);
+		$Customer->shipping_states = array_merge($default, (array)$regions[ $Customer->Shipping->country ]);
 
 		include $this->ui('editor.php');
 	}

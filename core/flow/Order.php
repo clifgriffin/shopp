@@ -212,7 +212,7 @@ class ShoppOrder {
 	 **/
 	public function locate () {
 
-		$request = isset($_REQUEST['shipping']) ? $_REQUEST['shipping'] : false;
+		$request = isset($_REQUEST['shipping']) ? $_REQUEST['shipping'] : array();
 
 		$this->Billing->locate($request);
 		$this->Shipping->locate($request);

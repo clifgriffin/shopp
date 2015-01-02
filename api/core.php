@@ -120,6 +120,20 @@ function ShoppSettings () {
 	return ShoppSettings::object();
 }
 
+
+function ShoppBaseLocale () {
+	$Shopp = Shopp::object();
+	if ( empty($Shopp) ) return false;
+	return $Shopp->Locale;
+}
+
+
+function ShoppBaseCurrency () {
+	$Shopp = Shopp::object();
+	if ( empty($Shopp) ) return false;
+	return $Shopp->Locale->currency();
+}
+
 /**
  * Helper to access the Shopp-ing session instance
  *

@@ -122,6 +122,7 @@
 
 </div>
 
+
 <?php do_action('shopp_shipping_module_settings'); ?>
 
 <script type="text/javascript">

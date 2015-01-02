@@ -26,8 +26,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 	/**
 	 * Setup constructor
 	 *
-	 * @return voidtax
-	 * @author Jonathan Davis
+	 * @return void
 	 **/
 	public function __construct () {
 		parent::__construct();
@@ -56,6 +55,11 @@ class ShoppAdminSetup extends ShoppAdminController {
 			case 'core':
 			case 'setup':
 				shopp_enqueue_script('setup');
+				shopp_localize_script('setup', '$ss', array(
+					'loading' => Shopp::__('Loading&hellip;'),
+					'prompt' => Shopp::__('Select your %s&hellip;', '%s'),
+				));
+				shopp_enqueue_script('selectize');
 				break;
 		}
 
@@ -94,57 +98,55 @@ class ShoppAdminSetup extends ShoppAdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		// Welcome screen handling
-		if ( ! empty($_POST['setup']) ) {
-			$_POST['settings']['display_welcome'] = 'off';
-			shopp_set_formsettings();
-		}
+		if ( ! empty($_POST['setup']) )
+			shopp_set_setting('display_welcome', 'off');
 
-		$country = (isset($_POST['settings']) && isset($_POST['settings']['base_operations']))?$_POST['settings']['base_operations']['country']:'';
-		$countries = array();
-		$countrydata = Lookup::countries();
-		$country_zones = Lookup::country_zones();
-		foreach ($countrydata as $iso => $c) {
-			if ($country == $iso) $base_region = $c['region'];
-			$countries[$iso] = $c['name'];
-		}
+		$countries = ShoppLookup::countries();
+		$states = array();
 
 		// Save settings
-		if ( ! empty($_POST['save']) && isset($_POST['settings'])) {
+		if ( ! empty($_POST['save']) && isset($_POST['settings']) ) {
 			check_admin_referer('shopp-setup');
 
-			if (isset($_POST['settings']['base_operations'])) {
-				$baseop = &$_POST['settings']['base_operations'];
-
-				$zone = isset($baseop['zone']) && isset($country_zones[ $country ]) && isset($country_zones[ $country ][ $baseop['zone'] ]) ? $baseop['zone']:false;
-				if (isset($countrydata[$country])) $baseop = $countrydata[$country];
-				$baseop['country'] = $country;
-				$baseop['zone'] = $zone;
-				$baseop['currency']['format'] = scan_money_format($baseop['currency']['format']);
-				if ( is_array($baseop['currency']['format']) ) {
-					$fields = array_keys($baseop['currency']['format']);
-					foreach ($fields as $field)
-						if (isset($baseop['currency'][$field])) $baseop['currency']['format'][$field] = $baseop['currency'][$field];
-				}
-
-				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
-					(in_array($country, Lookup::country_inclusive_taxes()) ? 'on' : 'off')
-				);
-			}
-
-			if (!isset($_POST['settings']['target_markets']))
+			if ( ! isset($_POST['settings']['target_markets']) )
 				asort($_POST['settings']['target_markets']);
 
 			shopp_set_formsettings();
+
+			if ( isset($_POST['settings']['base_locale']) ) {
+				$baseop = &$_POST['settings']['base_locale'];
+
+				if ( isset($countries[ strtoupper($baseop['country']) ]) ) { // Validate country
+					$country = strtoupper($baseop['country']);
+					$state = '';
+
+					if ( ! empty($baseop['state']) ) { // Valid state
+						$states = ShoppLookup::country_zones(array($country));
+						if ( isset($states[ $country ][ strtoupper($baseop['state']) ]) )
+							$state = strtoupper($baseop['state']);
+					}
+
+					ShoppBaseLocale()->save($country, $state);
+
+				}
+
+				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
+					( in_array($country, Lookup::country_inclusive_taxes()) ? 'on' : 'off' )
+				);
+			}
+
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
-		$operations = shopp_setting('base_operations');
-		if (isset($country_zones[ $operations['country'] ]))
-			$zones = $country_zones[ $operations['country'] ];
+		$basecountry = ShoppBaseLocale()->country();
+		$countrymenu = Shopp::menuoptions($countries, $basecountry, true);
+		$basestates = ShoppLookup::country_zones(array($basecountry));
+		$statesmenu = Shopp::menuoptions($basestates[ $basecountry ], ShoppBaseLocale()->state(), true);
 
 		$targets = shopp_setting('target_markets');
-		if (is_array($targets))	$targets = array_map('stripslashes',$targets);
-		if (!$targets) $targets = array();
+		if ( is_array($targets) )
+			$targets = array_map('stripslashes', $targets);
+		if ( ! $targets ) $targets = array();
 
 		include $this->ui('setup.php');
 	}

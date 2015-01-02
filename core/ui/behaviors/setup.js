@@ -5,29 +5,47 @@
  */
 
 jQuery(document).ready(function ($) {
-	var baseop = $('#base_operations'),
-		baseopZone = $('#base_operations_zone');
 
-	if (!baseop.val() || baseop.val() == '') baseopZone.hide();
-	if (!baseopZone.val()) baseopZone.hide();
-
-	baseop.change(function() {
-		if (baseop.val() == '') {
-			baseopZone.hide().attr('disabled',true);
-			return true;
-		}
-
-		$.getJSON(zones_url+'&action=shopp_country_zones&country='+baseop.val(),
-			function(data) {
-				baseopZone.hide().empty().attr('disabled',true);
-				if (!data) return true;
-
-				$.each(data, function(value,label) {
-					option = $('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
+	var xhr,
+		$states = $('#base_operations_zone').selectize(),
+		states = $states[0].selectize,
+		$base = $('#base_operations').selectize({
+			onChange: function (value) {
+				if ( value == '' ) {
+					states.disable();
+					return true;
+				}
+				states.disable();
+				states.settings.placeholder = $ss.loading;
+				states.updatePlaceholder();
+				states.clearOptions();
+				states.load(function(callback) {
+					xhr && xhr.abort();
+					xhr = $.getJSON(zones_url+'&action=shopp_country_zones&country='+value,
+						function (data) {
+							if ( false == data || data.length == 0 ) {
+								states.settings.placeholder = ' ';
+								states.updatePlaceholder();
+								return;
+							}
+							states.enable();
+							$.each(data, function(value, label) {
+								if ( 0 == value ) {
+									states.settings.placeholder = sprintf($ss.prompt, [label]);
+									states.updatePlaceholder();
+									return;
+								}
+								states.addOption({text:label, value:value});
+							});
+							states.open();
+						},
+						function () {
+							callback();
+						}
+					);
 				});
-				baseopZone.show().removeAttr('disabled');
 
-		});
+			}
 	});
 
 	$('#selectall_targetmarkets').change(function () {

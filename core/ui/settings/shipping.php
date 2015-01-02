@@ -72,18 +72,10 @@
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
-						<?php
-							if ($base['units'] == "imperial") $units = array("oz" => __("ounces (oz)","Shopp"),"lb" => __("pounds (lbs)","Shopp"));
-							else $units = array("g"=>__("gram (g)","Shopp"),"kg"=>__("kilogram (kg)","Shopp"));
-							echo menuoptions($units,shopp_setting('weight_unit'),true);
-						?>
+						<?php echo $weightsmenu; ?>
 				</select>
 				<select name="settings[dimension_unit]" id="dimension-unit">
-						<?php
-							if ($base['units'] == "imperial") $units = array("in" => __("inches (in)","Shopp"),"ft" => __("feet (ft)","Shopp"));
-							else $units = array("cm"=>__("centimeters (cm)","Shopp"),"m"=>__("meters (m)","Shopp"));
-							echo menuoptions($units,shopp_setting('dimension_unit'),true);
-						?>
+						<?php echo $dimsmenu; ?>
 				</select><br />
 				<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
 			</tr>
