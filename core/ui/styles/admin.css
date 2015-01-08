@@ -2709,7 +2709,7 @@ tfoot#order-totals td {
 	margin-left: 10px;
 }
 
-.shopp .filtering select {
+.shopp .tablenav .actions .filtering select {
 	float: none;
 	display: inline-block;
 }
