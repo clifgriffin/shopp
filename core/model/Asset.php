@@ -129,6 +129,7 @@ class FileAsset extends ShoppMetaObject {
 	public function &engine () {
 		global $Shopp; // Must remain global reference, not singleton to prevent loading core plugin in image server context
 
+		if ( empty($Shopp) ) $Shopp = new StdClass();
 		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines;
 		$StorageEngines = $Shopp->Storage;
 

@@ -1,12 +1,36 @@
 <?php
+/**
+ * UI.php
+ *
+ * Shopp user interface library
+ *
+ * @copyright Ingenesis Limited, January 2015
+ * @license   GNU GPL version 3 (or later) {@see license.txt}
+ * @package   Shopp/Library/UI
+ * @version   1.0
+ * @since     1.4
+ **/
+
+defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 abstract class ShoppAdminMetabox {
 
+	/** @var type $var Description **/
+	protected $defaults = array(
+		'page' => '',
+		'id' => false
+	);
+
+	/** @var type $var Description **/
 	protected $references = array();
 
-	/** @var string $view The relative path to the metabox view file **/
+	/** @var type $var Description **/
 	protected $id = '';
+
+	/** @var type $var Description **/
 	protected $view = '';
+
+	/** @var type $var Description **/
 	protected $title = '';
 
 
@@ -46,13 +70,19 @@ abstract class ShoppAdminMetabox {
 			return $path;
 	}
 
+	public function url ( $params = array(), $resource = 'admin.php' ) {
+		$request = ShoppRequestProcessing::process($_GET, $this->defaults);
+		$defaults = array_intersect_key($request, $this->defaults);
+		$params = array_merge($defaults, $params);
+		return add_query_arg(array_map('esc_attr', $params), admin_url($resource));
+	}
+
 	public static function help ( $id ) {
 		if ( ! ShoppSupport::activated() ) return '';
 
 		$helpurl = add_query_arg(array('src' => 'help', 'id' => $id), admin_url('admin.php'));
 		return apply_filters('shopp_admin_boxhelp', '<a href="' . esc_url($helpurl) . '" class="help shoppui-question"></a>');
 	}
-
 
 } // end ShoppAdminMetaBox
 

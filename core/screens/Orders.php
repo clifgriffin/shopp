@@ -13,6 +13,51 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
+class ShoppAdminOrders extends ShoppAdminController {
+
+	protected $ui = 'orders';
+
+	protected function route () {
+		if ( $this->request('new') )
+			return 'ShoppScreenOrderEntry';
+		elseif ( ! empty($this->request('id') ) )
+			return 'ShoppScreenOrderManager';
+		else return 'ShoppScreenOrders';
+	}
+
+	/**
+	 * Retrieves the number of orders in each customized order status label
+	 *
+	 * @author Jonathan Davis
+	 * @return void
+	 **/
+	public static function status_counts () {
+		$table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
+		$labels = shopp_setting('order_status');
+
+		if (empty($labels)) return false;
+		$status = array();
+
+		$alltotal = sDB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
+		$r = sDB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC", 'array', 'index', 'status');
+		$all = array('' => Shopp::__('All Orders'));
+
+		$labels = $all+$labels;
+
+		foreach ($labels as $id => $label) {
+			$_ = new StdClass();
+			$_->label = $label;
+			$_->id = $id;
+			$_->total = 0;
+			if ( isset($r[ $id ]) ) $_->total = (int)$r[$id]->total;
+			if ('' === $id) $_->total = $alltotal;
+			$status[$id] = $_;
+		}
+
+		return $status;
+	}
+}
+
 /**
  * Service
  *
@@ -20,7 +65,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @since 1.1
  * @author Jonathan Davis
  **/
-class ShoppAdminService extends ShoppScreenController {
+class ShoppScreenOrders extends ShoppScreenController {
 
 	public $orders = array();
 	public $ordercount = false;
@@ -34,46 +79,50 @@ class ShoppAdminService extends ShoppScreenController {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	public function __construct () {
-		parent::__construct();
+	// public function __construct () {
+	// 	parent::__construct();
+	//
+	// 	$this->new = false !== strpos($this->id, 'orders-new');
+	//
+	// 	if ( isset($_GET['id']) || $this->new ) {
+	//
+	// 		wp_enqueue_script('postbox');
+	// 		shopp_enqueue_script('colorbox');
+	// 		shopp_enqueue_script('jquery-tmpl');
+	// 		shopp_enqueue_script('orders');
+	// 		shopp_localize_script( 'orders', '$om', array(
+	// 			'co' => __('Cancel Order','Shopp'),
+	// 			'mr' => __('Mark Refunded','Shopp'),
+	// 			'pr' => __('Process Refund','Shopp'),
+	// 			'dnc' => __('Do Not Cancel','Shopp'),
+	// 			'ro' => __('Refund Order','Shopp'),
+	// 			'cancel' => __('Cancel','Shopp'),
+	// 			'rr' => __('Reason for refund','Shopp'),
+	// 			'rc' => __('Reason for cancellation','Shopp'),
+	// 			'mc' => __('Mark Cancelled','Shopp'),
+	// 			'stg' => __('Send to gateway','Shopp')
+	// 		));
+	// 		shopp_enqueue_script('address');
+	// 		shopp_enqueue_script('selectize');
+	// 		shopp_custom_script( 'address', 'var regions = '.json_encode(Lookup::country_zones()).';');
+	//
+	// 		add_action('load-' . $this->id, array($this, 'workflow'));
+	// 		$layout = $this->new ? array($this, 'newlayout') : array($this, 'layout');
+	//
+	// 		add_action('load-' . $this->id, $layout);
+	// 		do_action('shopp_order_management_scripts');
+	//
+	// 	} else {
+	// 		add_action('load-' . $this->id, array($this, 'loader'));
+	// 		add_action('admin_print_scripts', array($this, 'columns'));
+	// 	}
+	// 	do_action('shopp_order_admin_scripts');
+	// }
 
-		$this->new = false !== strpos($this->screen, 'orders-new');
-
-		if ( isset($_GET['id']) || $this->new ) {
-
-			wp_enqueue_script('postbox');
-			shopp_enqueue_script('colorbox');
-			shopp_enqueue_script('jquery-tmpl');
-			shopp_enqueue_script('orders');
-			shopp_localize_script( 'orders', '$om', array(
-				'co' => __('Cancel Order','Shopp'),
-				'mr' => __('Mark Refunded','Shopp'),
-				'pr' => __('Process Refund','Shopp'),
-				'dnc' => __('Do Not Cancel','Shopp'),
-				'ro' => __('Refund Order','Shopp'),
-				'cancel' => __('Cancel','Shopp'),
-				'rr' => __('Reason for refund','Shopp'),
-				'rc' => __('Reason for cancellation','Shopp'),
-				'mc' => __('Mark Cancelled','Shopp'),
-				'stg' => __('Send to gateway','Shopp')
-			));
-			shopp_enqueue_script('address');
-			shopp_enqueue_script('selectize');
-			shopp_custom_script( 'address', 'var regions = '.json_encode(Lookup::country_zones()).';');
-
-			add_action('load-' . $this->screen, array($this, 'workflow'));
-			$layout = $this->new ? array($this, 'newlayout') : array($this, 'layout');
-
-			add_action('load-' . $this->screen, $layout);
-			do_action('shopp_order_management_scripts');
-
-		} else {
-			add_action('load-' . $this->screen, array($this, 'loader'));
-			add_action('admin_print_scripts', array($this, 'columns'));
-		}
-		do_action('shopp_order_admin_scripts');
+	public function __construct ( $ui ) {
+		parent::__construct($ui);
+		add_action('load-' . $this->id, array($this, 'loader'));
 	}
-
 	/**
 	 * admin
 	 *
@@ -127,7 +176,7 @@ class ShoppAdminService extends ShoppScreenController {
 		$args = array_merge($defaults, $_GET);
 		extract($args, EXTR_SKIP);
 
-		$url = add_query_arg(array_merge($_GET, array('page' => $this->Admin->pagename('orders'))), admin_url('admin.php'));
+		$url = $this->url($_GET);
 
 		if ( $page == "shopp-orders"
 						&& !empty($deleting)
@@ -237,6 +286,33 @@ class ShoppAdminService extends ShoppScreenController {
 
 	}
 
+	public function assets () {
+		shopp_enqueue_script('calendar');
+		shopp_enqueue_script('daterange');
+		do_action('shopp_order_admin_scripts');
+	}
+
+	/**
+	 * Registers the column headers for the orders list interface
+	 *
+	 * Uses the WordPress 2.7 function register_column_headers to provide
+	 * customizable columns that can be toggled to show or hide
+	 *
+	 * @author Jonathan Davis
+	 * @return void
+	 **/
+	public function layout () {
+		register_column_headers($this->id, array(
+			'cb'=>'<input type="checkbox" />',
+			'order'=>__('Order','Shopp'),
+			'name'=>__('Name','Shopp'),
+			'destination'=>__('Destination','Shopp'),
+			'txn'=>__('Transaction','Shopp'),
+			'date'=>__('Date','Shopp'),
+			'total'=>__('Total','Shopp'))
+		);
+	}
+
 	/**
 	 * Interface processor for the orders list interface
 	 *
@@ -244,7 +320,7 @@ class ShoppAdminService extends ShoppScreenController {
 	 *
 	 * @return void
 	 **/
-	public function orders () {
+	public function screen () {
 		if ( ! current_user_can('shopp_orders') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
@@ -276,7 +352,7 @@ class ShoppAdminService extends ShoppScreenController {
 		$ordercount = $this->ordercount;
 		$num_pages = ceil($ordercount->total / $per_page);
 
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $ordercount->total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination ($this->id, $ordercount->total, $num_pages, $per_page );
 
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
@@ -316,94 +392,83 @@ class ShoppAdminService extends ShoppScreenController {
 		include $this->ui('orders.php');
 	}
 
-	/**
-	 * Registers the column headers for the orders list interface
-	 *
-	 * Uses the WordPress 2.7 function register_column_headers to provide
-	 * customizable columns that can be toggled to show or hide
-	 *
-	 * @author Jonathan Davis
-	 * @return void
-	 **/
-	public function columns () {
-		shopp_enqueue_script('calendar');
-		shopp_enqueue_script('daterange');
-		register_column_headers($this->screen, array(
-			'cb'=>'<input type="checkbox" />',
-			'order'=>__('Order','Shopp'),
-			'name'=>__('Name','Shopp'),
-			'destination'=>__('Destination','Shopp'),
-			'txn'=>__('Transaction','Shopp'),
-			'date'=>__('Date','Shopp'),
-			'total'=>__('Total','Shopp'))
-		);
+	private function retotal ( ShoppPurchase $Purchase ) {
+		$Cart = new ShoppCart();
+
+		$taxcountry = $Purchase->country;
+		$taxstate = $Purchase->state;
+		if ( ! empty($Purchase->shipcountry) && ! empty($Purchase->shipstate) ) {
+			$taxcountry = $Purchase->shipcountry;
+			$taxstate = $Purchase->shipstate;
+		}
+		ShoppOrder()->Tax->location($taxcountry, $taxstate);
+
+		foreach ( $Purchase->purchased as $index => &$Purchased )
+			$Cart->additem($Purchased->quantity, new ShoppCartItem($Purchased));
+
+		$Cart->Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Purchase->freight ) ) );
+
+		$Purchase->total = $Cart->total();
+		$Purchase->subtotal = $Cart->total('order');
+		$Purchase->discount = $Cart->total('discount');
+		$Purchase->tax = $Cart->total('tax');
+		$Purchase->freight = $Cart->total('shipping');
 	}
 
-	public function newlayout () {
+} // class ShoppScreenOrders
 
-		$Purchase = ShoppPurchase();
+class ShoppScreenOrderManager extends ShoppScreenController {
 
-		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
-			'items' => __('Items','Shopp'),
-			'qty' => __('Quantity','Shopp'),
-			'price' => __('Price','Shopp'),
-			'total' => __('Total','Shopp')
-		)));
+	public function addnote ($order, $message, $sent = false) {
+		$user = wp_get_current_user();
+		$Note = new ShoppMetaObject();
+		$Note->parent = $order;
+		$Note->context = 'purchase';
+		$Note->type = 'order_note';
+		$Note->name = 'note';
+		$Note->value = new stdClass();
+		$Note->value->author = $user->ID;
+		$Note->value->message = $message;
+		$Note->value->sent = $sent;
+		$Note->save();
+	}
 
-		new ShoppAdminOrderContactBox(
-			$this->screen,
-			'topside',
-			'core',
-			array('Purchase' => $Purchase)
-		);
+	public function load () {
+		$id = (int) $_GET['id'];
+		if ( $id > 0 ) {
+			ShoppPurchase( new ShoppPurchase($id) );
+			ShoppPurchase()->load_purchased();
+			ShoppPurchase()->load_events();
+		} else ShoppPurchase( new ShoppPurchase() );
+	}
 
-		new ShoppAdminOrderBillingAddressBox(
-			$this->screen,
-			'topic',
-			'core',
-			array('Purchase' => $Purchase)
-		);
+	public function assets () {
+
+		wp_enqueue_script('postbox');
+
+		shopp_enqueue_script('colorbox');
+		shopp_enqueue_script('jquery-tmpl');
+		shopp_enqueue_script('selectize');
+
+		shopp_enqueue_script('orders');
+		shopp_localize_script( 'orders', '$om', array(
+			'co' => __('Cancel Order','Shopp'),
+			'mr' => __('Mark Refunded','Shopp'),
+			'pr' => __('Process Refund','Shopp'),
+			'dnc' => __('Do Not Cancel','Shopp'),
+			'ro' => __('Refund Order','Shopp'),
+			'cancel' => __('Cancel','Shopp'),
+			'rr' => __('Reason for refund','Shopp'),
+			'rc' => __('Reason for cancellation','Shopp'),
+			'mc' => __('Mark Cancelled','Shopp'),
+			'stg' => __('Send to gateway','Shopp')
+		));
 
 
-		if ( ! empty($Purchase->shipaddress) || $this->new )
-			new ShoppAdminOrderShippingAddressBox(
-				$this->screen,
-				'topsider',
-				'core',
-				array('Purchase' => $Purchase)
-			);
+		shopp_enqueue_script('address');
+		shopp_custom_script( 'address', 'var regions = ' . json_encode(ShoppLookup::country_zones()) . ';');
 
-		new ShoppAdminOrderManageBox(
-			$this->screen,
-			'normal',
-			'core',
-			array('Purchase' => $Purchase, 'Gateway' => $Purchase->gateway())
-		);
-
-		if ( isset($Purchase->data) && '' != join('', (array)$Purchase->data) || apply_filters('shopp_orderui_show_orderdata', false) )
-			new ShoppAdminOrderDataBox(
-				$this->screen,
-				'normal',
-				'core',
-				array('Purchase' => $Purchase)
-			);
-
-		if ( count($Purchase->events) > 0 )
-			new ShoppAdminOrderHistoryBox(
-				$this->screen,
-				'normal',
-				'core',
-				array('Purchase' => $Purchase)
-			);
-
-		new ShoppAdminOrderNotesBox(
-			$this->screen,
-			'normal',
-			'core',
-			array('Purchase' => $Purchase)
-		);
-
-		do_action('shopp_order_new_layout');
+		do_action('shopp_order_management_scripts');
 	}
 
 	/**
@@ -420,66 +485,33 @@ class ShoppAdminService extends ShoppScreenController {
 
 		$Purchase = ShoppPurchase();
 
-		ShoppUI::register_column_headers($this->screen, apply_filters('shopp_order_manager_columns',array(
-			'items' => __('Items','Shopp'),
-			'qty' => __('Quantity','Shopp'),
-			'price' => __('Price','Shopp'),
-			'total' => __('Total','Shopp')
+		ShoppUI::register_column_headers($this->id, apply_filters('shopp_order_manager_columns', array(
+			'items' => Shopp::__('Items'),
+			'qty'   => Shopp::__('Quantity'),
+			'price' => Shopp::__('Price'),
+			'total' => Shopp::__('Total')
 		)));
 
-		new ShoppAdminOrderContactBox(
-			$this->screen,
-			'side',
-			'core',
-			array('Purchase' => $Purchase)
-		);
+		$references = array('Purchase' => $Purchase);
 
-		new ShoppAdminOrderBillingAddressBox(
-			$this->screen,
-			'side',
-			'core',
-			array('Purchase' => $Purchase)
-		);
+		new ShoppAdminOrderContactBox($this->id, 'side', 'core', $references);
+		new ShoppAdminOrderBillingAddressBox($this->id, 'side', 'core', $references);
 
-		if ( ! empty($Purchase->shipaddress) || 'new' == $_GET['id'] )
-			new ShoppAdminOrderShippingAddressBox(
-				$this->screen,
-				'side',
-				'core',
-				array('Purchase' => $Purchase)
-			);
+		if ( ! empty($Purchase->shipaddress) )
+			new ShoppAdminOrderShippingAddressBox($this->id, 'side', 'core', $references);
 
-		new ShoppAdminOrderManageBox(
-			$this->screen,
-			'normal',
-			'core',
-			array('Purchase' => $Purchase, 'Gateway' => $Purchase->gateway())
-		);
+		new ShoppAdminOrderManageBox($this->id,'normal','core',$references);
 
 		if ( isset($Purchase->data) && '' != join('', (array)$Purchase->data) || apply_filters('shopp_orderui_show_orderdata', false) )
-			new ShoppAdminOrderDataBox(
-				$this->screen,
-				'normal',
-				'core',
-				array('Purchase' => $Purchase)
-			);
+			new ShoppAdminOrderDataBox($this->id, 'normal', 'core', $references);
 
 		if ( count($Purchase->events) > 0 )
-			new ShoppAdminOrderHistoryBox(
-				$this->screen,
-				'normal',
-				'core',
-				array('Purchase' => $Purchase)
-			);
+			new ShoppAdminOrderHistoryBox($this->id, 'normal', 'core', $references);
 
-		new ShoppAdminOrderNotesBox(
-			$this->screen,
-			'normal',
-			'core',
-			array('Purchase' => $Purchase)
-		);
+		new ShoppAdminOrderNotesBox($this->id, 'normal', 'core', $references);
 
 		do_action('shopp_order_manager_layout');
+
 	}
 
 	/**
@@ -488,7 +520,7 @@ class ShoppAdminService extends ShoppScreenController {
 	 * @author Jonathan Davis
 	 * @return void
 	 **/
-	public function manager () {
+	public function screen () {
 
 		if ( ! current_user_can('shopp_orders') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
@@ -904,79 +936,84 @@ class ShoppAdminService extends ShoppScreenController {
 		$Purchase->taxes();
 		$Purchase->discounts();
 
+		$columns = get_column_headers($this->id);
+		$hidden = get_hidden_columns($this->id);
+
 		include $this->ui('order.php');
 	}
 
-	private function retotal ( ShoppPurchase $Purchase ) {
-		$Cart = new ShoppCart();
+} // class ShoppScreenOrderManager
 
-		$taxcountry = $Purchase->country;
-		$taxstate = $Purchase->state;
-		if ( ! empty($Purchase->shipcountry) && ! empty($Purchase->shipstate) ) {
-			$taxcountry = $Purchase->shipcountry;
-			$taxstate = $Purchase->shipstate;
-		}
-		ShoppOrder()->Tax->location($taxcountry, $taxstate);
+class ShoppScreenOrderEntry extends ShoppScreenController {
 
-		foreach ( $Purchase->purchased as $index => &$Purchased )
-			$Cart->additem($Purchased->quantity, new ShoppCartItem($Purchased));
+	public function layout () {
 
-		$Cart->Totals->register( new OrderAmountShipping( array('id' => 'cart', 'amount' => $Purchase->freight ) ) );
+		$Purchase = ShoppPurchase();
 
-		$Purchase->total = $Cart->total();
-		$Purchase->subtotal = $Cart->total('order');
-		$Purchase->discount = $Cart->total('discount');
-		$Purchase->tax = $Cart->total('tax');
-		$Purchase->freight = $Cart->total('shipping');
+		ShoppUI::register_column_headers($this->id, apply_filters('shopp_order_manager_columns',array(
+			'items' => __('Items','Shopp'),
+			'qty' => __('Quantity','Shopp'),
+			'price' => __('Price','Shopp'),
+			'total' => __('Total','Shopp')
+		)));
+
+		new ShoppAdminOrderContactBox(
+			$this->id,
+			'topside',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		new ShoppAdminOrderBillingAddressBox(
+			$this->id,
+			'topic',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+
+		if ( ! empty($Purchase->shipaddress) || $this->new )
+			new ShoppAdminOrderShippingAddressBox(
+				$this->id,
+				'topsider',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderManageBox(
+			$this->id,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase, 'Gateway' => $Purchase->gateway())
+		);
+
+		if ( isset($Purchase->data) && '' != join('', (array)$Purchase->data) || apply_filters('shopp_orderui_show_orderdata', false) )
+			new ShoppAdminOrderDataBox(
+				$this->id,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		if ( count($Purchase->events) > 0 )
+			new ShoppAdminOrderHistoryBox(
+				$this->id,
+				'normal',
+				'core',
+				array('Purchase' => $Purchase)
+			);
+
+		new ShoppAdminOrderNotesBox(
+			$this->id,
+			'normal',
+			'core',
+			array('Purchase' => $Purchase)
+		);
+
+		do_action('shopp_order_new_layout');
 	}
 
-	/**
-	 * Retrieves the number of orders in each customized order status label
-	 *
-	 * @author Jonathan Davis
-	 * @return void
-	 **/
-	public function status_counts () {
-		$table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$labels = shopp_setting('order_status');
-
-		if (empty($labels)) return false;
-		$status = array();
-
-		$alltotal = sDB::query("SELECT count(*) AS total FROM $table",'auto','col','total');
-		$r = sDB::query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",'array','index','status');
-		$all = array('' => __('All Orders','Shopp'));
-
-		$labels = $all+$labels;
-
-		foreach ($labels as $id => $label) {
-			$_ = new StdClass();
-			$_->label = $label;
-			$_->id = $id;
-			$_->total = 0;
-			if ( isset($r[ $id ]) ) $_->total = (int)$r[$id]->total;
-			if ('' === $id) $_->total = $alltotal;
-			$status[$id] = $_;
-		}
-
-		return $status;
-	}
-
-	public function addnote ($order, $message, $sent = false) {
-		$user = wp_get_current_user();
-		$Note = new ShoppMetaObject();
-		$Note->parent = $order;
-		$Note->context = 'purchase';
-		$Note->type = 'order_note';
-		$Note->name = 'note';
-		$Note->value = new stdClass();
-		$Note->value->author = $user->ID;
-		$Note->value->message = $message;
-		$Note->value->sent = $sent;
-		$Note->save();
-	}
-
-} // class Service
+} // class ShoppScreenOrderEditor
 
 class ShoppAdminOrderNotesBox extends ShoppAdminMetabox {
 
@@ -1157,6 +1194,15 @@ class ShoppAdminOrderManageBox extends ShoppAdminMetabox {
 
 	protected function title () {
 		return Shopp::__('Management');
+	}
+
+	public function box () {
+		extract($this->references);
+		$Gateway = $Purchase->gateway();
+		$this->references['gateway_name'] = $Gateway ? $Gateway->name : '';
+		$this->references['gateway_refunds'] = $Gateway ? $Gateway->refunds : false;
+		$this->references['gateway_captures'] = $Gateway ? $Gateway->captures : false;
+		parent::box();
 	}
 
 }

@@ -404,8 +404,8 @@ class ShoppAdminPages {
 	private function __construct () {
 
 		// Orders menu
-		$this->addpage('orders',     Shopp::__('All Orders'), 'ShoppAdminService');
-		$this->addpage('orders-new', Shopp::__('New Order'),  'ShoppAdminService');
+		$this->addpage('orders',     Shopp::__('All Orders'), 'ShoppAdminOrders');
+		$this->addpage('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
 		$this->addpage('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
 		$this->addpage('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
 
@@ -488,6 +488,7 @@ class ShoppAdminPages {
 	 * @return void
 	 **/
 	public function menus () {
+
 		global $menu, $plugin_page;
 
 		$access = 'shopp_menu';
@@ -510,14 +511,6 @@ class ShoppAdminPages {
 			$plugin_page = $parent;
 			add_action('adminmenu', create_function('','global $plugin_page; $plugin_page = "' . $current_page. '";'));
 		}
-
-		if ( Shopp::maintenance() ) return;
-
-		// Add contextual help menus
-		// foreach ( $this->menus as $screen ) {
-		// 	add_action("load-$screen", array('ShoppAdmin', 'help'));
-		// }
-
 
 	}
 

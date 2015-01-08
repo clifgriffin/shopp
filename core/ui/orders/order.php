@@ -2,7 +2,7 @@
 
 	<div class="icon32"></div>
 	<?php if ( ShoppPurchase()->id > 0 ): ?>
-		<h2><?php Shopp::_e('Order #%d', (int)$Purchase->id); ?> <a href="<?php echo esc_url(add_query_arg(array('page'=> $this->page(), 'id' => 'new'), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
+		<h2><?php Shopp::_e('Order #%d', (int)$Purchase->id); ?> <a href="<?php echo esc_url($this->url(array('id' => 'new'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
 	<?php else: ?>
 		<h2><?php Shopp::_e('New Order'); ?></h2>
 	<?php endif; ?>
@@ -14,8 +14,8 @@
 
 	<?php
 		$totalsedit = isset($_GET['edit']) && 'totals' == $_GET['edit'];
-		$columns = get_column_headers($this->screen);
-		$hidden = get_hidden_columns($this->screen);
+		$columns = get_column_headers($this->id);
+		$hidden = get_hidden_columns($this->id);
 		$colspan = count($columns);
 	?>
 	<div id="order">
@@ -45,17 +45,17 @@
 
 		<div id="poststuff" class="poststuff">
 
-			<?php if ( $this->new ): ?>
+			<?php if ( $this->request('new') ): ?>
 			<div class="meta-boxes clearfix">
 
 				<div id="topside" class="third-column first-third-column box-stretch">
-					<?php do_meta_boxes($this->screen, 'topside', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'topside', $Purchase); ?>
 				</div>
 				<div id="topic" class="third-column  box-stretch">
-					<?php do_meta_boxes($this->screen, 'topic', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'topic', $Purchase); ?>
 				</div>
 				<div id="topsider" class="third-column  box-stretch">
-					<?php do_meta_boxes($this->screen, 'topsider', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'topsider', $Purchase); ?>
 				</div>
 
 			</div>
@@ -64,32 +64,32 @@
 
 			<?php include $this->ui('editor.php'); ?>
 
-			<?php if ( $this->new ): ?>
+			<?php if ( $this->request('new') ): ?>
 			<div class="meta-boxes clearfix">
 
 				<div id="underside" class="third-column first-third-column  box-stretch">
-					<?php do_meta_boxes($this->screen, 'underside', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'underside', $Purchase); ?>
 				</div>
 				<div id="underic" class="third-column  box-stretch">
-					<?php do_meta_boxes($this->screen, 'underic', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'underic', $Purchase); ?>
 				</div>
 				<div id="undersider" class="third-column  box-stretch">
-					<?php do_meta_boxes($this->screen, 'undersider', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'undersider', $Purchase); ?>
 				</div>
 
 				<div id="management">
-					<?php do_meta_boxes($this->screen, 'normal', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'normal', $Purchase); ?>
 				</div>
 			</div>
 			<?php else: ?>
 			<div class="meta-boxes clearfix">
 
 				<div id="column-one" class="column left-column">
-					<?php do_meta_boxes($this->screen, 'side', $Purchase); ?>
+					<?php do_meta_boxes($this->id, 'side', $Purchase); ?>
 				</div>
 				<div id="main-column">
 					<div id="column-two" class="column right-column">
-						<?php do_meta_boxes($this->screen, 'normal', $Purchase); ?>
+						<?php do_meta_boxes($this->id, 'normal', $Purchase); ?>
 					</div>
 				</div>
 				<br class="clear" />

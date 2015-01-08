@@ -447,7 +447,7 @@ ShoppLoader::map(array(
 	'shoppadminpage' => '/flow/Admin.php',
 	'shoppadminpages' => '/flow/Admin.php',
 	'shoppadminreports' => '/screens/Reports.php',
-	'shoppadminservice' => '/flow/Service.php',
+	'shoppadminorders' => '/screens/Orders.php',
 	'shoppadminsetup' => '/flow/Setup.php',
 	'shoppadminsystem' => '/flow/System.php',
 	'shoppadminupgrade' => '/flow/Upgrade.php',

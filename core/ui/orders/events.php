@@ -421,15 +421,20 @@ class ShippedOrderEventRenderer extends OrderEventRenderer {
 	}
 
 	public function details () {
-		if ( 'NOTRACKING' == $this->carrier_name() )
-			return Shopp::__('No Tracking');
 		return sprintf('%s: %s',$this->carrier_name(),$this->tracklink());
 	}
 
 	public function carrier () {
-		if (isset($this->Carrier)) return;
-		$carriers = Lookup::shipcarriers();
-		$this->Carrier = $carriers[$this->carrier];
+		if ( isset($this->Carrier) ) return;
+
+		if ( 'NOTRACKING' == $this->carrier ) {
+			$notrack = new StdClass();
+			$notrack->name = Shopp::__('No Tracking');
+			return $notrack;
+		}
+
+		$carriers = ShoppLookup::shipcarriers();
+		$this->Carrier = $carriers[ $this->carrier ];
 	}
 
 	public function carrier_name () {

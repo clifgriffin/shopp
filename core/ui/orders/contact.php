@@ -10,7 +10,7 @@ $page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 	$s = isset($_REQUEST['s']) ? $_REQUEST['s'] : false;
 	ob_start();
 	if ( isset($_POST['select-customer']) && empty($s) )
-		$searchurl = wp_nonce_url(ShoppAdminController::url( array('page' => $page, 'id'=>$Purchase->id) ),'wp_ajax_shopp_select_customer');
+		$searchurl = wp_nonce_url($this->url(),'wp_ajax_shopp_select_customer');
 	else $searchurl = wp_nonce_url(add_query_arg(array('action' => 'shopp_select_customer', 'page' => $page, 'id' => $Purchase->id),admin_url('admin-ajax.php')), 'wp_ajax_shopp_select_customer');
 	if ( ! isset($_POST['select-customer']) || ( isset($_POST['select-customer']) && ! empty($s) ) ) $iframe = true;
 	if ( ! empty($s) ) $searchurl = add_query_arg('s', $s, $searchurl);
@@ -61,7 +61,7 @@ $page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 		<input type="submit" name="save" value="<?php Shopp::esc_attr_e('Update'); ?>" class="button-primary alignright" />
 	</div>
 </div>
-<?php 
+<?php
 	$editcustomer = ob_get_clean();
 
 	echo $editcustomer;
@@ -91,16 +91,16 @@ $page = substr($screen->id, strpos($screen->id, $pre) + strlen($pre));
 		return;
 	} elseif ( isset($_REQUEST['edit-customer'])) {
 	?>
-		<form action="<?php echo ShoppAdminController::url(array('id' => (int)$Purchase->id)); ?>" method="POST">
+		<form action="<?php echo $this->url(array('id' => (int)$Purchase->id)); ?>" method="POST">
 		<?php echo ShoppUI::template($editcustomer, $customer); ?>
 		</form>
 	<?php
 		return;
 	}
 ?>
-<form action="<?php echo ShoppAdminController::url(array('id' => (int) $Purchase->id)); ?>" method="post" id="customer-editor-form"></form>
+<form action="<?php echo $this->url(array('id' => (int) $Purchase->id)); ?>" method="post" id="customer-editor-form"></form>
 <div class="display">
-	<form action="<?php echo ShoppAdminController::url(array('id' => $Purchase->id)); ?>" method="get">
+	<form action="<?php echo $this->url(array('id' => $Purchase->id)); ?>" method="get">
 	<?php $targets = shopp_setting('target_markets'); ?>
 		<input type="hidden" id="edit-customer-data" value="<?php
 			echo esc_attr(json_encode($customer));

@@ -1,5 +1,5 @@
 <?php if ( isset($_POST['edit-shipping-address']) || empty(ShoppPurchase()->shipping) ): ?>
-	<form action="<?php echo ShoppAdminController::url( array('page' => $page, 'id' => $Purchase->id) ); ?>" method="post" id="shipping-address-editor">
+	<form action="<?php echo $this->url(); ?>" method="post" id="shipping-address-editor">
 	<?php
 	$names = explode(' ', $Purchase->shipname);
 	$firstname = array_shift($names);
@@ -24,9 +24,9 @@
 	</form>
 <?php return; endif; ?>
 
-<form action="<?php echo ShoppAdminController::url(array('id' => $Purchase->id)); ?>" method="post" id="shipping-address-editor"></form>
+<form action="<?php echo $this->url(); ?>" method="post" id="shipping-address-editor"></form>
 <div class="display">
-	<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post">
+	<form action="<?php echo $this->url(); ?>" method="post">
 	<?php $targets = shopp_setting('target_markets'); ?>
 	<input type="submit" id="edit-shipping-address" name="edit-shipping-address" value="<?php Shopp::_e('Edit'); ?>" class="button-secondary button-edit" />
 	</form>

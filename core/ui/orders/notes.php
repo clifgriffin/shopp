@@ -1,4 +1,4 @@
-<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post">
+<form action="<?php echo $this->url(); ?>" method="post">
 <?php if ( ! empty($Notes->meta) ): ?>
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>

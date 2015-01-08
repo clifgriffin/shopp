@@ -24,7 +24,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 abstract class ShoppScreenController extends ShoppRequestFormFramework {
 
 	/** @var string The current page of the screen pagination */
-	protected $id = false;
+	public $id = false;
 
 	/** @var string The current page of the screen pagination */
 	protected $page = false;

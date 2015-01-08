@@ -1,6 +1,6 @@
 <ul class="subsubsub">
 	<?php
-		$counts = $this->status_counts();
+		$counts = ShoppAdminOrders::status_counts();
 		foreach((array)$counts as $id => $state):
 			if ('' === $id) $id = null;
 			$status = isset($_GET['status']) && array_key_exists((int)$_GET['status'],$counts)?(int)$_GET['status']:null;

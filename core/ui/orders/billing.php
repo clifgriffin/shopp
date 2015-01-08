@@ -22,14 +22,14 @@
 	</script>
 
 <?php if ( isset($_POST['edit-billing-address']) || empty(ShoppPurchase()->billing) ): ?>
-	<form action="<?php echo ShoppAdminController::url( array('page' => $page, 'id' => $Purchase->id) ); ?>" method="post" id="billing-address-editor">
+	<form action="<?php echo $this->url(); ?>" method="post" id="billing-address-editor">
 	<?php echo ShoppUI::template($editaddress, $address); ?>
 	</form>
 <?php return; endif; ?>
 
-<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="billing-address-editor"></form>
+<form action="<?php echo $this->url(); ?>" method="post" id="billing-address-editor"></form>
 <div class="display">
-<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post"><?php
+<form action="<?php echo $this->url(); ?>" method="post"><?php
 $targets = shopp_setting('target_markets');
 ?>
 	<input type="hidden" id="edit-billing-address-data" value="<?php

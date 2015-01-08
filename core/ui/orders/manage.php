@@ -1,4 +1,4 @@
-<form action="<?php echo ShoppAdminController::url( array('id'=>$Purchase->id) ); ?>" method="post">
+<form action="<?php echo $this->url(); ?>" method="post">
 
 <?php if ($Purchase->shippable): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
@@ -72,7 +72,7 @@
 			<div class="alignright">
 			<span class="mark-status">
 				<input type="hidden" name="send" value="off" />
-				<label title="<?php printf(__('Enable to process through the payment gateway (%s) and set the Shopp payment status. Disable to update only the Shopp payment status.','Shopp'),$Gateway->name); ?>"><input type="checkbox" name="send" value="on" <?php if ($Gateway && $Gateway->refunds) echo ' checked="checked"'; ?>/>&nbsp;${send}</label>
+				<label title="<?php Shopp::__('Enable to process through the payment gateway (%s) and set the Shopp payment status. Disable to update only the Shopp payment status.', $gateway_name); ?>"><input type="checkbox" name="send" value="on" <?php if ($gateway_refunds) echo ' checked="checked"'; ?>/>&nbsp;${send}</label>
 			</span>
 
 			<input type="submit" name="process-refund" value="${process}" class="button-primary" />
@@ -80,7 +80,7 @@
 		</div>
 	</div>
 </div>
-<?php $refundui = ob_get_contents(); ob_end_clean(); echo $refundui; ?>
+<?php $refundui = ob_get_clean(); echo $refundui; ?>
 </script>
 <?php endif; ?>
 
@@ -239,7 +239,7 @@
 			<?php if ( $Purchase->shippable && 'ship-notice' != $action && is_array(shopp_setting('shipping_carriers')) ): ?>
 			<input type="submit" id="shipnote-button" name="ship-notice" value="<?php _e('Send Shipment Notice','Shopp'); ?>" class="button-primary" />
 			<?php endif; ?>
-			<?php if ( current_user_can('shopp_capture') && ! $Purchase->captured && $Gateway && $Gateway->captures ): ?>
+			<?php if ( current_user_can('shopp_capture') && ! $Purchase->captured && $gateway_captures ): ?>
 			<input type="submit" name="charge" value="<?php _e('Charge Order','Shopp'); ?>" class="button-primary" />
 			<?php endif; ?>
 		<?php endif; ?>

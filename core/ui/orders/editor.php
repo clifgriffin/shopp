@@ -80,15 +80,15 @@
 ?>
 </script>
 
-<form action="<?php echo ShoppAdminController::url( array('id' => ( $Purchase->id > 0 ? $Purchase->id : 'new' )) ); ?>" method="post" id="order-updates">
+<form action="<?php echo $this->url( array('id' => ( $Purchase->id > 0 ? $Purchase->id : 'new' )) ); ?>" method="post" id="order-updates">
 
 	<table class="widefat" cellspacing="0">
 
 		<thead>
-			<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
+			<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 
-		<tfoot id="order-totals"<?php if ( $this->new ) echo ' class="order-editing"'; ?>>
+		<tfoot id="order-totals"<?php if ( $this->request('new') ) echo ' class="order-editing"'; ?>>
 		<tr class="subtotal">
 			<td scope="col" class="add"><select class="add-product" name="product" placeholder="<?php Shopp::_e('Search to add a product&hellip;'); ?>"></select></td>
 			<td scope="row" colspan="<?php echo $colspan - 1; ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
@@ -114,7 +114,6 @@
 		</tr>
 		<?php
 			if ( count($Purchase->discounts()) > 1 ) {
-				var_dump(__LINE__);
 				foreach ($Purchase->discounts as $PurchaseDiscount ) {
 					$data = array(
 						'${type}'  => 'discount',
@@ -181,8 +180,8 @@
 		<tbody id="order-items" class="list items">
 		<?php if ( count($Purchase->purchased) > 0 ): ?>
 			<?php
-			$columns = get_column_headers($this->screen);
-			$hidden = get_hidden_columns($this->screen);
+			$columns = get_column_headers($this->id);
+			$hidden = get_hidden_columns($this->id);
 
 			$even = false;
 			foreach ($Purchase->purchased as $id => $Item):
@@ -216,9 +215,9 @@
 							case 'items':
 							ShoppProduct( new ShoppProduct($Item->product) ); // @todo Find a way to make this more efficient by loading product slugs with load_purchased()?
 							$viewurl = shopp('product.get-url');
-							$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=> $id) );
-							$rmvurl = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=> $id) );
-							$producturl = add_query_arg( array('page' => 'shopp-products', 'id' => $Item->product), admin_url('admin.php') );
+							$editurl = $this->url( array('id' => $Purchase->id, 'editline'=> $id) );
+							$rmvurl = $this->url( array('id' => $Purchase->id, 'rmvline'=> $id) );
+							$producturl = $this->url( array('id' => $Item->product) );
 								?>
 									<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 										<a href="<?php echo $producturl; ?>">

@@ -304,8 +304,10 @@ class ShoppImageServer {
 		if ( ! defined('SHOPP_ADDONS') )
 			define('SHOPP_ADDONS', WP_CONTENT_DIR . '/shopp-addons');
 
-		$Shopp = Shopp::plugin();
-		$Shopp->Storage = new StorageEngines();
+		ShoppDeveloperAPI::load( SHOPP_PATH );
+		ShoppSettings();
+		// $Shopp = Shopp::plugin();
+		// $Shopp->Storage = new StorageEngines();
 
 		$modules = shopp_setting('imaging_modules');
 
