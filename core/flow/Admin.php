@@ -407,7 +407,7 @@ class ShoppAdminPages {
 		$this->addpage('orders',     Shopp::__('All Orders'), 'ShoppAdminService');
 		$this->addpage('orders-new', Shopp::__('New Order'),  'ShoppAdminService');
 		$this->addpage('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
-		$this->addpage('reports',  	 Shopp::__('Reports'),    'ShoppAdminReport');
+		$this->addpage('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
 
 		// Setup tabs
 		$this->addpage('settings',           Shopp::__('Settings'));
