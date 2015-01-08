@@ -250,6 +250,8 @@ class ShoppPage {
 		add_filter('the_excerpt', array($this, 'content'), 20);
 		add_filter('comments_array', array($this, 'nocomment'));
 		add_filter('wpseo_replacements', array($this, 'wpseo')); // compatibility helper for WPSEO
+	    add_filter('get_the_excerpt', create_function('$c', 'remove_filter("get_the_excerpt", "wp_trim_excerpt"); return $c;'), 5);
+
 	}
 
 	public function wpseo ( $replacements ) {
@@ -1002,8 +1004,7 @@ class ShoppCollectionPage extends ShoppPage {
 			}
 			locate_shopp_template($templates, true);
 		}
-		$content = ob_get_contents();
-		ob_end_clean();
+		$content = ob_get_clean();
 
 		return apply_filters('shopp_category_template', $content);
 	}
@@ -1049,7 +1050,7 @@ class ShoppShortcodes {
 		$atts['template'] = array('product-shortcode.php', 'product.php');
 		$atts['published'] = 'hide';
 		ShoppStorefront()->shortcoded[] = get_the_ID();
-		return apply_filters('shopp_product_shortcode', shopp('catalog.get-product', $atts));
+		return apply_filters('shopp_product_shortcode', shopp('storefront.get-product', $atts));
 	}
 
 	/**
