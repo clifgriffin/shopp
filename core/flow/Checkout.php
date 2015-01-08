@@ -22,7 +22,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @version 1.2
  * @package order
  **/
-class ShoppCheckout extends FormPostFramework {
+class ShoppCheckout extends ShoppFormPostFramework {
 
 	private $confirmed = false;		// Flag to indicate
 	private $Register = false;		// The ShoppRegistration manager
@@ -43,11 +43,11 @@ class ShoppCheckout extends FormPostFramework {
 
 	public function __construct () {
 
-		Shopping::restore('confirmed',$this->confirmed);
+		Shopping::restore('confirmed', $this->confirmed);
 
-		if ( empty($_POST) ) return;
+		if ( is_admin() ) return;
 
-		$this->updateform();
+		if ( ! $this->posted() ) return;
 
 		$action = $this->form('checkout');
 

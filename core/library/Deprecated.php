@@ -20,7 +20,6 @@ if ( defined('SHOPP_DEPRECATED_CLASSES') && false === SHOPP_DEPRECATED_CLASSES )
 
 // Straightforward aliases for deprecated classes
 if ( ! class_exists('Address', false) ) { class Address extends ShoppAddress {} }
-if ( ! class_exists('AdminController', false) ) { class AdminController extends ShoppAdminController {} }
 if ( ! class_exists('Customer', false) ) { class Customer extends ShoppCustomer {} }
 if ( ! class_exists('FlowController', false) ) { class FlowController extends ShoppFlowController {} }
 if ( ! class_exists('MetaObject', false) ) { class MetaObject extends ShoppMetaObject {} }
@@ -32,6 +31,13 @@ if ( ! class_exists('Purchased', false) ) { class Purchased extends ShoppPurchas
 if ( ! class_exists('Storefront', false) ) { class Storefront extends ShoppStorefront {} }
 if ( ! class_exists('DatabaseObject', false) ) { class DatabaseObject extends ShoppDatabaseObject {} }
 if ( ! class_exists('Item', false) ) { class Item extends ShoppCartItem {} }
+
+if ( ! class_exists('AdminController', false) ) {
+	class AdminController extends ShoppScreenController {
+		public function route () {
+		}
+	}
+}
 
 // The Cart class additionally needs stub methods for backwards compatibility
 if ( ! class_exists('Cart', false) ) {

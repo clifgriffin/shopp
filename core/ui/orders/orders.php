@@ -54,16 +54,16 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers(ShoppAdmin()->screen()); ?></tr>
+		<tr><?php print_column_headers(get_current_screen()->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers(ShoppAdmin()->screen(),false); ?></tr>
+		<tr><?php print_column_headers(get_current_screen()->id, false); ?></tr>
 		</tfoot>
 	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
-			$columns = get_column_headers(ShoppAdmin()->screen());
-			$hidden = get_hidden_columns(ShoppAdmin()->screen());
+			$columns = get_column_headers(get_current_screen()->id);
+			$hidden = get_hidden_columns(get_current_screen()->id);
 
 			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
 

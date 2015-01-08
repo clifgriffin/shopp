@@ -133,8 +133,8 @@ class ShoppOrder {
 		Shopping::restore('txnid', $this->txnid);
 		Shopping::restore('orderstate', $this->state);
 
-		$this->Promotions = new ShoppPromotions;
 		$this->Payments = new ShoppPayments;
+		$this->Promotions = new ShoppPromotions;
 		$this->Checkout = new ShoppCheckout;
 
 	}

@@ -2,10 +2,10 @@
 /**
  * Flow.php
  *
- * Super controller and base controller classes for handling low level request processing
+ * Shopp application domain router
  *
- * @copyright Ingenesis Limited, January 2010-2014
- * @version 1.3
+ * @copyright Ingenesis Limited, January 2010-2015
+ * @version 1.4
  * @package Shopp\Flow
  **/
 
@@ -17,20 +17,13 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @since 1.1
  * @package Shopp\Flow
  **/
-final class ShoppFlow {
+final class ShoppFlow extends ShoppFlowController {
 
 	/** @var ShoppFlowController $Controller The current flow controller instance */
-	public $Controller = false; // @todo make this private
-
-	/** @var ShoppAdminController $Admin The admin flow controller */
-	public $Admin = false; // @todo Make this private or move the Admin to a singleton?
+	private $Controller = false; // @todo make this private
 
 	/** @var ShoppInstallation $Installer The installer instance */
 	private $Installer = false;
-
-	private $request = array(
-		'page' => false
-	);
 
 	/**
 	 * Constructor
@@ -45,17 +38,45 @@ final class ShoppFlow {
 		register_deactivation_hook( SHOPP_PLUGINFILE, array($this, 'deactivate') );
 		register_activation_hook( SHOPP_PLUGINFILE, array($this, 'activate') );
 
-		// Handle AJAX requests
-		add_action( 'admin_init', array($this, 'ajax') );
-		add_action( 'admin_init', array($this, 'upgrades') );
+		// Handle AJAX & download requests as quickly as possible
+		$this->resources();
 
 		// Boot up the menus & admin bar
 		add_action( 'admin_menu', array($this, 'menu'), 50 );
 		add_action( 'admin_bar_menu', array($this, 'adminbar'), 50 );
 
-		// Parse the request
-		if ( is_admin() ) add_action( 'current_screen', array($this, 'parse') );
-		else add_action( 'parse_request', array($this, 'parse') );
+		add_action( 'parse_request', array($this, 'parse') );
+
+		// add_action( 'admin_init', array($this, 'upgrades') );
+
+	}
+
+	public function query ( $request = false ) {
+
+		if ( is_a($request,'WP') )
+			$request = empty($request->query_vars) ? $_GET : $request->query_vars;
+		else $request = $_GET;
+
+		$this->request = ShoppRequestProcessing::process($request, $this->defaults);
+
+	}
+
+	public function resources () {
+
+		$this->query();
+
+		$controller = null;
+		// Check for src (Shopp Resource) requests
+		if ( defined('DOING_AJAX') )
+			$controller = 'ShoppAjax';
+		elseif ( isset($this->request['src']) )
+			$controller = 'ShoppResources';
+		elseif ( is_admin() )
+			$controller = 'ShoppAdmin';
+		else apply_filters('shopp_flow_controller', false);
+
+		$this->controller($controller);
+
 	}
 
 	/**
@@ -68,66 +89,26 @@ final class ShoppFlow {
 	 **/
 	public function parse ( $request = false ) {
 
-		if ( is_a($request, 'WP') )
-			$this->request = array_merge($this->request, empty($request->query_vars) ? $_GET : $request->query_vars );
-		else $this->request = array_merge($this->request, $_GET);
-
-		if ( isset($this->request['src']) )
-			$this->resources($this->request);
-
-		if ( is_admin() ) {
-			if ( ! $this->request['page'] ) return;
-
-			if ( false === $this->Admin )
-				$this->Admin = new ShoppAdmin();
-
-			$this->handler();
-
-		} else $this->handler('ShoppStorefront');
+		$this->query($request);
+		$this->controller('ShoppStorefront');
 
 	}
 
 	/**
-	 * Loads a specified flow controller
+	 * Get the current domain controller or setup a new domain controller
 	 *
-	 * @since 1.1
+	 * @since 1.4
 	 *
-	 * @param string|ShoppFlowController $controller The name of the controller class or a controller instance
-	 * @return bool True if a controller is set and initialized, false otherwise
+	 * @param string $ControllerClass (optional) The class name to setup a new domain controller
+	 * @return ShoppFlowController|boolean The current domain flow controller or false otherwise
 	 **/
-	public function handler ( $controller = null ) {
+	public function controller ( $ControllerClass = null ) {
+		if ( empty($ControllerClass) ) return $this->Controller;
 
-		if ( is_admin() && is_null($controller) && $this->request['page'] )
-			$controller = $this->Admin->controller($this->request['page']);
+		$this->Controller = new $ControllerClass( $this->request );
+		do_action('shopp_' . sanitize_key($ControllerClass) . '_init');
 
-		if ( ! $controller ) return false;
-		if ( is_a($this->Controller, $controller) ) return true; // Already initialized
-		if ( ! class_exists($controller) ) return false;
-
-		if ( ShoppFlow::welcome() ) $controller = 'ShoppAdminWelcome';
-
-		$this->Controller = new $controller();
-		do_action('shopp_' . sanitize_key($controller) . '_init');
-
-		return true;
-	}
-
-	/**
-	 * Initializes the Admin controller
-	 *
-	 * @since 1.0
-	 *
-	 * @return boolean True if the admin controller is established, false otherwise
-	 **/
-	public function admin () {
-		if ( ! is_admin() ) return false;
-
-		if ( $this->handler() ) {
-			$this->Controller->admin();
-			return true;
-		}
-
-		return false;
+		return $this->Controller;
 	}
 
 	/**
@@ -139,34 +120,11 @@ final class ShoppFlow {
 	 **/
 	public function menu () {
 		if ( ! is_admin() ) return;
-		$this->Admin = new ShoppAdmin();
 
+		$Pages = ShoppAdminPages();
 		do_action('shopp_admin_menu');
+		$Pages->menus();
 
-		$Menus = $this->Admin->menus();
-		$Menus->build();
-
-	}
-
-	/**
-	 * Start the AJAX controller to handle AJAX requests
-	 **/
-	public function ajax () {
-		if ( ! isset($_REQUEST['action']) || ! defined('DOING_AJAX') ) return;
-		new ShoppAjax;
-	}
-
-	/**
-	 * Start the resource controller to handle resource requests
-	 *
-	 * Resources requests refers to requests for file resources such as
-	 * product downloads or exports
-	 *
-	 * @param array $request The resource request to process
-	 * @return void
-	 **/
-	public function resources ( array $request ) {
-		$this->Controller = new ShoppResources( $request );
 	}
 
 	/**
@@ -237,20 +195,6 @@ final class ShoppFlow {
 	}
 
 	/**
-	 * Saves form settings in bulk
-	 *
-	 * @since 1.2
-	 *
-	 * @return bool True if settings are saved, false otherwise
-	 **/
-	public function save_settings () {
-		if ( empty($_POST['settings']) || ! is_array($_POST['settings']) ) return false;
-		foreach ( $_POST['settings'] as $setting => $value )
-			shopp_set_setting($setting, $value);
-		return true;
-	}
-
-	/**
 	 * Adds Shopp shortcuts to the WordPress Admin Bar
 	 *
 	 * @since 1.2
@@ -306,7 +250,7 @@ final class ShoppFlow {
  * @package shopp
  * @author Jonathan Davis
  **/
-abstract class ShoppFlowController  {
+abstract class ShoppFlowController extends ShoppRequestFramework {
 
 	/**
 	 * ShoppFlowController constructor
@@ -317,235 +261,20 @@ abstract class ShoppFlowController  {
 	 * @return void
 	 **/
 	public function __construct () {
-		/* Implemented in concrete classes */
+		$this->query();
 	}
-
 
 } // END class ShoppFlowController
 
-/**
- * ShoppAdminController
- *
- * Provides a template for admin controllers
- *
- * @since 1.1
- * @package Shopp\Flow
- **/
-abstract class ShoppAdminController extends ShoppFlowController {
+function ShoppFlow () {
+	$Shopp = Shopp::object();
+	if ( isset($Shopp->Flow) ) return $Shopp->Flow;
+	else return false;
+}
 
-	/** @var ShoppAdmin The ShoppAdmin instance for backwards compatibility */
-	public $Admin = false;
-
-	/** @var string The URL for this admin screen */
-	public $url;
-
-	/** @var string The current screen id */
-	public $screen;
-
-	/** @var string The current page of the screen pagination */
-	public $page;
-
-	/** @var string The current screen page name */
-	public $pagename;
-
-	/** @var array The list of registered notices to show on the screen */
-	protected $notices = array();
-
-	/**
-	 * ShoppAdminController constructor
-	 *
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function __construct () {
-
-		$request = isset($_GET['page']) ? $_GET['page'] : null;
-
-		$Admin = ShoppAdmin();
-		if ( ! empty($Admin) ) $this->Admin = $Admin;
-
-		if ( is_null($request) ) return;
-
-		global $plugin_page;
-		$this->page = $plugin_page;
-		$this->url = add_query_arg('page', $request, admin_url('admin.php'));
-
-		if ( function_exists('get_current_screen') && $screen = get_current_screen() )
-			$this->screen = $screen->id;
-
-		if ( false !== strpos($request, '-') ) {
-			$pages = explode('-', $_GET['page']);
-			$this->pagename = end($pages);
-		}
-
-		Shopping::restore('admin_notices', $this->notices);
-		add_action('shopp_admin_notices', array($this, 'notices'));
-
-		$this->maintenance();
-
-	}
-
-	/**
-	 * Admin screen routing
-	 *
-	 * Implemented in the concrete classes
-	 *
-	 * @since 1.1
-	 **/
-	public function admin () {
-		/* Implemented in the concrete classes */
-	}
-
-	/**
-	 * Adds a notice to the screen
-	 *
-	 * @since 1.3
-	 *
-	 * @param string $message The message to add
-	 * @param string $style `updated` (optional) The notice style class to use
-	 * @param int $priority The priority (order) of the message
-	 * @return void
-	 **/
-	public function notice ( $message, $style = 'updated', $priority = 10 ) {
-
-		$styles = array('updated', 'error');
-
-		$notice = new StdClass();
-		$notice->message = $message;
-		$notice->style = in_array($style, $styles) ? $style : $styles[0];
-
-		// Prevent duplicates
-		$notices = array_map('md5', array_map('json_encode', $this->notices));
-		if ( in_array(md5(json_encode($notice)), $notices) ) return;
-
-		array_splice($this->notices, $priority, 0, array($notice));
-	}
-
-	/**
-	 * Displays registered screen notices
-	 *
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	public function notices () {
-
-		if ( empty($this->notices) && ShoppSupport::activated() ) return;
-
-		$markup = array();
-		foreach ( $this->notices as $notice ) {
-			$markup[] = '<div class="' . $notice->style . '">';
-			$markup[] = '<p>' . $notice->message . '</p>';
-			$markup[] = '</div>';
-		}
-
-		$markup[] = ShoppSupport::reminder();
-
-		if ( ! empty($markup) ) echo join('', $markup);
-		$this->notices = array(); // Reset output buffer
-
-	}
-
-	/**
-	 * Provides the admin screen page value
-	 *
-	 * @since 1.3
-	 *
-	 * @return string The prefixed admin page name
-	 **/
-	public function page () {
-		return ShoppAdmin()->pagename($this->pagename);
-	}
-
-	/**
-	 * Renders screen tabs from a given associative array
-	 *
-	 * The tab array uses a tab page slug as the key and the
-	 * localized title as the value.
-	 *
-	 * @since 1.3
-	 *
-	 * @param array $tabs The tab map array
-	 * @return void
-	 **/
-	protected function tabs ( array $tabs = array() ) {
-		global $plugin_page;
-
-		$pagehook = sanitize_key($plugin_page);
-
-		$markup = array();
-		if ( empty($tabs) ) $tabs = $this->tabs;
-		$default = key($this->tabs);
-
-		foreach ( $tabs as $tab => $title ) {
-			$classes = array('nav-tab');
-			if ( (! isset($this->tabs[ $plugin_page ]) && $default == $tab) || $plugin_page == $tab )
-				$classes[] = 'nav-tab-active';
-			$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
-		}
-
-		echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
-	}
-
-	/**
-	 * Handles maintenance mode messages
-	 **/
-	private function maintenance () {
-		if ( ShoppLoader::is_activating() || Shopp::upgradedb() ) return;
-
-		if ( isset($_POST['settings']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'shopp-setup') ) {
-			if ( isset($_POST['settings']['maintenance']))
-				shopp_set_setting('maintenance', $_POST['settings']['maintenance']);
-
-		}
-
-		if ( Shopp::maintenance() ) {
-			if ( isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'shopp_disable_maintenance') ) {
-				shopp_set_setting('maintenance', 'off');
-			} else {
-				$url = wp_nonce_url(add_query_arg('page', $this->Admin->pagename('setup'), admin_url('admin.php')), 'shopp_disable_maintenance');
-				$this->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
-			}
-		}
-	}
-
-	/**
-	 * Generates the full URL for the current admin screen
-	 *
-	 * @since 1.3
-	 *
-	 * @param array $params (optional) The parameters to include in the URL
-	 * @return string The generated URL with parameters
-	 **/
-	static function url ( $params = array() ) {
-		$params = array_map('esc_attr', $params);
-		$params['page'] = esc_attr($_GET['page']);
-		return add_query_arg($params, admin_url('admin.php'));
-	}
-
-	/**
-	 * Helper to load a UI view template
-	 *
-	 * Used with `include` statements so that any local variables
-	 * are still in scope when the template is included.
-	 *
-	 * @since 1.3
-	 *
-	 * @param string $file The file to include
-	 * @return string|bool The file path or false if not found
-	 **/
-	protected function ui ( $file ) {
-		$path = join('/', array(SHOPP_ADMIN_PATH, $this->ui, $file));
-		if ( is_readable($path) )
-			return $path;
-
-		$this->notice(Shopp::__('The requested setting screen was not found.'),'error');
-		echo '<div class="wrap shopp"><div class="icon32"></div><h2>Oops.</h2></div>';
-		do_action('shopp_admin_notices');
-		return false;
-	}
-
+function ShoppFlowController () {
+	if ( ! ( $Flow = ShoppFlow() ) || ! $Flow->controller() ) return false;
+	return $Flow->controller();
 }
 
 /**
@@ -555,12 +284,10 @@ abstract class ShoppAdminController extends ShoppFlowController {
  *
  * @return ShoppStorefront|false
  **/
-function &ShoppStorefront () {
-	$false = false;
-	$Shopp = Shopp::object();
-	if ( ! isset($Shopp->Flow) || ! is_object($Shopp->Flow->Controller) ) return $false;
-	if ( get_class($Shopp->Flow->Controller) != 'ShoppStorefront' ) return $false;
-	return $Shopp->Flow->Controller;
+function ShoppStorefront () {
+	$Controller = ShoppFlowController();
+	if ( ! $Controller || 'ShoppStorefront' != get_class($Controller) ) return false;
+	return $Controller;
 }
 
 /**
@@ -570,23 +297,12 @@ function &ShoppStorefront () {
  *
  * @return ShoppAdminController|bool The ShoppAdmin super-controller instance or false
  **/
-function &ShoppAdmin() {
-	$false = false;
-	$Shopp = Shopp::object();
-	if ( ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Admin) || empty($Shopp->Flow->Admin) ) return $false;
-	return $Shopp->Flow->Admin;
+function ShoppAdmin () {
+	$Controller = ShoppFlowController();
+	if ( ! $Controller || 'ShoppAdmin' != get_class($Controller) ) return false;
+	return $Controller;
 }
 
-/**
- * Provides the current Admin screen controller instance
- *
- * @since 1.3.8
- *
- * @return ShoppAdminController|bool The ShoppAdminController instance or false
- **/
-function &ShoppAdminController() {
-	$false = false;
-	$Shopp = Shopp::object();
-	if ( ! defined('WP_ADMIN') && ! isset($Shopp->Flow) || ! isset($Shopp->Flow->Controller) || empty($Shopp->Flow->Controller) ) return $false;
-	return $Shopp->Flow->Controller;
+function ShoppAdminPages () {
+	return ShoppAdminPages::object();
 }

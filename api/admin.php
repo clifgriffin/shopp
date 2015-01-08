@@ -30,7 +30,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 function shopp_admin_add_menu ( $label, $page, $position = null, $handler = false, $access = null, $icon = null ) {
 
 	global $menu;
-	$ShoppMenus = ShoppAdmin()->menus();
+	$AdminPages = ShoppAdminPages();
 
 	if ( is_null($position) ) $position = 35;
 	if ( is_null($access) ) $access = 'manage_options';	// Restrictive access by default (for admins only)
@@ -53,7 +53,7 @@ function shopp_admin_add_menu ( $label, $page, $position = null, $handler = fals
 		$position					 // Menu position
 	);
 
-	$ShoppMenus->menu($page, $menupage);
+	$AdminPages->menu($page, $menupage);
 
 	do_action_ref_array("shopp_add_topmenu_$page", array($menupage)); // @deprecated
 	do_action_ref_array("shopp_add_menu_$page", array($menupage));
@@ -76,9 +76,9 @@ function shopp_admin_add_menu ( $label, $page, $position = null, $handler = fals
  **/
 function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false, $access = null ) {
 
-	$ShoppMenus = ShoppAdmin()->menus();
-	$ShoppMenus->mainmenu();
-	if ( is_null($menu) ) $ShoppMenus->mainmenu();
+	$AdminPages = ShoppAdminPages();
+	$AdminPages->mainmenu();
+	if ( is_null($menu) ) $AdminPages->mainmenu();
 	if ( is_null($access) ) $access = 'none'; // Restrict access by default
 	if ( false === $handler ) $handler = array(Shopp::object()->Flow, 'admin');
 
@@ -96,8 +96,8 @@ function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false
 		$handler
 	);
 
-	$ShoppMenus->menu($page, $menupage);
-	$ShoppMenus->addtab($page, $menu);
+	$AdminPages->menu($page, $menupage);
+	$AdminPages->addtab($page, $menu);
 
 	do_action("shopp_add_menu_$page");
 
@@ -116,7 +116,7 @@ function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false
 function shopp_admin_screen_tabs () {
 	global $plugin_page;
 
-	$tabs = ShoppAdmin()->menus()->tabs( $plugin_page );
+	$tabs = ShoppAdminPages()->tabs( $plugin_page );
 	$first = current($tabs);
 	$default = $first[1];
 
@@ -134,7 +134,7 @@ function shopp_admin_screen_tabs () {
 }
 
 function is_shopp_admin_screen () {
-	$Menus = ShoppAdmin()->menus();
+	$Pages = ShoppAdminPages();
 
 
 }

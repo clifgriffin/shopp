@@ -12,7 +12,7 @@
  **/
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-class ShoppAdminWelcome extends ShoppAdminController {
+class ShoppAdminWelcome extends ShoppScreenController {
 
 	protected $ui = 'help';
 
@@ -23,7 +23,7 @@ class ShoppAdminWelcome extends ShoppAdminController {
 		shopp_enqueue_style('welcome');
 	}
 
-	public function admin () {
+	public function route () {
 		switch ( $this->pagename ) {
 			case 'credits': return $this->credits();
 			default: return $this->welcome();
@@ -36,6 +36,17 @@ class ShoppAdminWelcome extends ShoppAdminController {
 		// Displayed the welcome, turn display_welcome flag off
 		shopp_set_setting('display_welcome', 'off');
 		return true;
+	}
+
+	/**
+	 * Disable the help tab
+	 *
+	 * @since 1.4
+	 *
+	 * @return string Empty string
+	 **/
+	public function help () {
+		return '';
 	}
 
 	public function heading () {

@@ -125,7 +125,7 @@ class ShoppLoader {
 	protected function classmap ( $class ) {
 		$classname = strtolower($class);
 		if ( isset(self::$classmap[ $classname ]) )
-			return (1 == require self::$classmap[ $classname ]);
+			return ( 1 == require self::$classmap[ $classname ] );
 		return false;
 	}
 
@@ -280,7 +280,6 @@ ShoppLoader::map(array(
 	'featuredproducts' => '/model/Collection.php',
 	'fileasset' => '/model/Asset.php',
 	'flowcontroller' => '/library/Deprecated.php',
-	'formpostframework' => '/library/Framework.php',
 	'shoppfreeorder' => '/model/Gateway.php',
 	'gatewayframework' => '/model/Gateway.php',
 	'gatewaymodule' => '/model/Gateway.php',
@@ -434,20 +433,26 @@ ShoppLoader::map(array(
 	'shoppaddon_upgrader' => '/flow/Install.php',
 	'shoppaddress' => '/model/Address.php',
 	'shoppadmin' => '/flow/Admin.php',
-	'shoppadminaccount' => '/flow/Account.php',
+
+	'shoppadminmetabox' => '/library/UI.php',
+	'shoppadminmenusmetabox' => '/library/UI.php',
+	'shopppagesmenusbox' => '/Library/UI.php',
+
+	'shoppadmincustomers' => '/screens/Customers.php',
 	'shoppadmincategorize' => '/flow/Categorize.php',
-	'shoppadmincontroller' => '/flow/Flow.php',
+	'shoppadmincontroller' => '/flow/Admin.php',
 	'shoppadmindashboard' => '/flow/Dashboard.php',
 	'shoppadmindiscounter' => '/flow/Discounter.php',
 	'shoppadminlisttable' => '/flow/Admin.php',
 	'shoppadminpage' => '/flow/Admin.php',
+	'shoppadminpages' => '/flow/Admin.php',
 	'shoppadminreport' => '/flow/Report.php',
 	'shoppadminservice' => '/flow/Service.php',
 	'shoppadminsetup' => '/flow/Setup.php',
 	'shoppadminsystem' => '/flow/System.php',
 	'shoppadminupgrade' => '/flow/Upgrade.php',
 	'shoppadminwarehouse' => '/flow/Warehouse.php',
-	'shoppadminwelcome' => '/flow/Welcome.php',
+	'shoppadminwelcome' => '/screens/Welcome.php',
 	'shoppajax' => '/flow/Ajax.php',
 	'shoppapi' => '/library/API.php',
 	'shoppapifile' => '/library/API.php',
@@ -483,6 +488,7 @@ ShoppLoader::map(array(
 	'shoppfacetedmenuwidget' => '/ui/widgets/facetedmenu.php',
 	'shoppflow' => '/flow/Flow.php',
 	'shoppflowcontroller' => '/flow/Flow.php',
+	'shoppformpostframework' => '/library/Framework.php',
 	'shoppformvalidation' => '/library/Validation.php',
 	'shoppimageserver' => '/image.php',
 	'shoppimagingmodule' => '/model/Image.php',
@@ -523,6 +529,8 @@ ShoppLoader::map(array(
 	'shoppreporttabexport' => '/flow/Report.php',
 	'shoppreportxlsexport' => '/flow/Report.php',
 	'shoppresources' => '/flow/Resources.php',
+	'shoppscreencontroller' => '/library/Screen.php',
+	'shoppscreensettings' => '/screens/Settings.php',
 	'shoppscripts' => '/flow/Scripts.php',
 	'shoppsearchwidget' => '/ui/widgets/search.php',
 	'shoppservices' => '/library/ShoppServices.php',
@@ -540,7 +548,7 @@ ShoppLoader::map(array(
 	'shopptaxableitem' => '/model/Tax.php',
 	'shoppthankspage' => '/flow/Pages.php',
 	'shopptmceloader' => '/ui/behaviors/tinymce/dialog.php',
-	'shoppui' => '/flow/Admin.php',
+	'shoppui' => '/library/UI.php',
 	'shopp_upgrader' => '/flow/Install.php',
 	'shopp_upgrader_skin' => '/flow/Install.php',
 	'shoppversion' => '/library/Version.php',

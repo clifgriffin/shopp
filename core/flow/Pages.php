@@ -4,16 +4,14 @@
  *
  * Storefront page management classes
  *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, April 2013
+ * @copyright Ingenesis Limited, April 2013-2014
  * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package storefront
- * @subpackage storefront
+ * @package Shopp/Storefront/Pages
+ * @version 1.0
+ * @since 1.3
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
-
 
 // @todo Pages.php needs code documentation
 class ShoppPages extends ListFramework {

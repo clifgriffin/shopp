@@ -20,7 +20,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @since 1.1
  * @author Jonathan Davis
  **/
-class ShoppAdminService extends ShoppAdminController {
+class ShoppAdminService extends ShoppScreenController {
 
 	public $orders = array();
 	public $ordercount = false;
@@ -80,7 +80,7 @@ class ShoppAdminService extends ShoppAdminController {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	public function admin () {
+	public function route () {
 
 		if ( ! empty($_GET['id']) || $this->new) $this->manager();
 		else $this->orders();
