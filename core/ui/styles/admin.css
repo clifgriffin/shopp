@@ -1582,7 +1582,7 @@ span.indent {
 /** Postboxes **/
 #poststuff #save-product .inside,
 #poststuff #save-category .inside,
-#poststuff #save-customer .inside,
+#poststuff #customer-save .inside,
 #poststuff #save-promotion .inside,
 #poststuff #save-membership .inside,
 #poststuff #order-status .inside {
@@ -1599,7 +1599,7 @@ span.indent {
 	min-width: 75px;
 }
 
-#save-customer #misc-publishing-actions {
+#customer-save #misc-publishing-actions {
 	padding: 6px 12px 12px;
 }
 
@@ -1826,8 +1826,8 @@ p.controls {
 	margin-left: 18px;
 }
 
-.shopp #customer #post-body-content .postbox p {
-	width: 66%;
+#customer #post-body-content .postbox p {
+	max-width: 430px;
 }
 
 #order .avatar,
@@ -1836,6 +1836,10 @@ p.controls {
 	margin-right: 5px;
 	border-radius: 3px;
 	overflow: hidden;
+}
+
+#customer-login .avatar {
+	margin-top: 5px;
 }
 
 #customer-login #pass-strength-result {
@@ -2348,14 +2352,12 @@ p.controls {
 	padding-right: 1px;
 }
 
+#customer .editor input[type=text],
 #order .editor input[type=text] {
 	width: 100%;
 }
 
-#order .editor input[type=text] {
-	width: 100%;
-}
-
+#customer .editor .inline-fields > span,
 #order .editor .inline-fields > span {
 	display: inline-block;
 	box-sizing: border-box;
@@ -2366,10 +2368,12 @@ p.controls {
 	text-align: left;
 }
 
+#customer .editor .inline-fields > span:first-child,
 #order .editor .inline-fields > span:first-child {
 	padding-left: 0;
 }
 
+#customer .editor .inline-fields select,
 #order .editor .inline-fields select {
 	min-width: 100%;
 }

@@ -37,11 +37,12 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
+	var address = [],
+		regions = <?php echo json_encode($regions); ?>;
 
 jQuery(document).ready( function() {
 
 var $=jQuery,
-	regions = <?php echo json_encode($regions); ?>,
 	suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
 	userlogin = $('#userlogin').unbind('keydown').unbind('keypress').suggest(
 		suggurl+'&action=shopp_suggestions&s=wp_users',
@@ -49,6 +50,7 @@ var $=jQuery,
 	);
 
 postboxes.add_postbox_toggles('shopp_page_shopp-customers');
+
 // close postboxes that should be closed
 $('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 
@@ -63,44 +65,6 @@ $('.postbox a.help').click(function () {
 // 	if (url) document.location.href = url;
 // });
 
-updateStates('#billing-country','#billing-state-inputs');
-updateStates('#shipping-country','#shipping-state-inputs');
-
-function updateStates (country,state)  {
-	var selector = $(state).find('select');
-	var text = $(state).find('input');
-	var label = $(state).find('label');
-
-	function toggleStateInputs () {
-		if ($(selector).children().length > 1) {
-			$(selector).show().attr('disabled',false);
-			$(text).hide().attr('disabled',true);
-			$(label).attr('for',$(selector).attr('id'))
-		} else {
-			$(selector).hide().attr('disabled',true);
-			$(text).show().attr('disabled',false);
-			$(label).attr('for',$(text).attr('id'))
-		}
-
-	}
-
-	$(country).change(function() {
-		if ($(selector).children().length > 1) $(text).val('');
-		if ($(selector).attr('type') == "text") return true;
-		$(selector).empty().attr('disabled',true);
-		$('<option><\/option>').val('').html('').appendTo(selector);
-		if (regions[this.value]) {
-			$.each(regions[this.value], function (value,label) {
-				option = $('<option><\/option>').val(value).html(label).appendTo(selector);
-			});
-			$(selector).attr('disabled',false);
-		}
-		toggleStateInputs();
-	});
-
-	toggleStateInputs();
-
-}
 
 // Derived from the WP password strength meter
 // Copyright by WordPress.org

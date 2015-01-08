@@ -515,6 +515,10 @@ class ShoppScreenCustomerEditor extends ShoppScreenController {
 
 		shopp_enqueue_script('suggest');
 		shopp_enqueue_script('colorbox');
+		shopp_enqueue_script('jquery-tmpl');
+		shopp_enqueue_script('selectize');
+		shopp_enqueue_script('address');
+		shopp_enqueue_script('customers');
 
 		do_action('shopp_customer_editor_scripts');
 	}
@@ -529,7 +533,29 @@ class ShoppScreenCustomerEditor extends ShoppScreenController {
 		$Shopp = Shopp::object();
 		$Admin = ShoppAdmin();
 
-		include $this->ui('ui.php');
+		$Customer = $this->Model;
+
+		$default = array('' => '&nbsp;');
+		$countries = array_merge($default, ShoppLookup::countries());
+		$Customer->_countries = $countries;
+
+		$states = ShoppLookup::country_zones(array($Customer->Billing->country,$Customer->Shipping->country));
+
+		$Customer->_billing_states = array_merge($default, (array)$states[ $Customer->Billing->country ]);
+		$Customer->_shipping_states = array_merge($default, (array)$states[ $Customer->Shipping->country ]);
+
+		new ShoppAdminCustomerSaveBox($this->id, 'side', 'core', array('Customer' => $Customer));
+		new ShoppAdminCustomerSettingsBox($this->id, 'side', 'core', array('Customer' => $Customer));
+		new ShoppAdminCustomerLoginBox($this->id, 'side', 'core', array('Customer' => $Customer));
+
+		new ShoppAdminCustomerContactBox($this->id, 'normal', 'core', array('Customer' => $Customer));
+
+		if ( ! empty($Customer->info->meta) && is_array($Customer->info->meta) )
+			new ShoppAdminCustomerInfoBox($this->id, 'normal', 'core', array('Customer' => $Customer));
+
+		new ShoppAdminCustomerBillingAddressBox($this->id, 'normal', 'core', array('Customer' => $Customer));
+		new ShoppAdminCustomerShippingAddressBox($this->id, 'normal', 'core', array('Customer' => $Customer));
+
 	}
 
 	/**
@@ -548,10 +574,8 @@ class ShoppScreenCustomerEditor extends ShoppScreenController {
 
 		$Customer = $this->load();
 
-		if ( empty($Customer->info->meta) )
-			remove_meta_box('customer-info','shopp_page_shopp-customers','normal');
 
-		if ($Customer->id > 0) {
+		if ( $Customer->exists() ) {
 			$purchase_table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 			$r = sDB::query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
 
@@ -559,16 +583,109 @@ class ShoppScreenCustomerEditor extends ShoppScreenController {
 			$Customer->total = $r->total;
 		}
 
-
-		$default = array('' => '&nbsp;');
-		$countries = array_merge($default, ShoppLookup::countries());
-		$Customer->countries = $countries;
-
 		$regions = ShoppLookup::country_zones();
-		$Customer->billing_states = array_merge($default, (array)$regions[ $Customer->Billing->country ]);
-		$Customer->shipping_states = array_merge($default, (array)$regions[ $Customer->Shipping->country ]);
+
 
 		include $this->ui('editor.php');
+	}
+
+}
+
+class ShoppAdminCustomerSaveBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-save';
+	protected $view = 'customers/save.php';
+
+	protected function title () {
+		return Shopp::__('Save');
+	}
+
+}
+
+class ShoppAdminCustomerSettingsBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-settings';
+	protected $view = 'customers/settings.php';
+
+	protected function title () {
+		return Shopp::__('Settings');
+	}
+
+}
+
+class ShoppAdminCustomerLoginBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-login';
+	protected $view = 'customers/login.php';
+
+	protected function title () {
+		return Shopp::__('Login &amp; Password');
+	}
+
+	public function box () {
+		extract($this->references);
+
+		$this->references['wp_user'] = get_userdata($Customer->wpuser);
+		$this->references['avatar'] = get_avatar($Customer->wpuser, 48);
+		$this->references['userlink'] = add_query_arg('user_id', $Customer->wpuser, admin_url('user-edit.php'));
+
+		parent::box();
+	}
+}
+
+class ShoppAdminCustomerContactBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-contact';
+	protected $view = 'customers/contact.php';
+
+	protected function title () {
+		return Shopp::__('Contact');
+	}
+
+}
+
+class ShoppAdminCustomerInfoBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-info';
+	protected $view = 'customers/info.php';
+
+	protected function title () {
+		return Shopp::__('Details');
+	}
+
+}
+
+class ShoppAdminCustomerShippingAddressBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-shipping';
+	protected $view = 'customers/shipping.php';
+
+	protected function title () {
+		return Shopp::__('Shipping Address');
+	}
+
+	public static function editor ( $Customer, $type = 'shipping' ) {
+		ob_start();
+		include SHOPP_ADMIN_PATH . '/customers/address.php';
+		return ob_get_clean();
+	}
+
+}
+
+class ShoppAdminCustomerBillingAddressBox extends ShoppAdminMetabox {
+
+	protected $id = 'customer-billing';
+	protected $view = 'customers/billing.php';
+
+	protected function title () {
+		return Shopp::__('Billing Address');
+	}
+
+	public static function editor ( $Customer, $type = 'billing' ) {
+		shopp_custom_script('orders', 'var address = [];');
+		ob_start();
+		include SHOPP_ADMIN_PATH . '/customers/address.php';
+		return ob_get_clean();
 	}
 
 }

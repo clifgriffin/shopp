@@ -243,6 +243,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('category-arrange', '/ui/categories/arrange.js', array('jquery','shopp'), $version);
 	$scripts->add_data('category-arrange', 'group', 1);
 
+	$scripts->add('customers', '/ui/behaviors/customers.js', array('jquery', 'jquery-tmpl'), $version);
+	$scripts->add_data('customers', 'group', 1);
+
 	$scripts->add('products-arrange', '/ui/categories/products.js', array('jquery'), $version);
 	$scripts->add_data('products-arrange', 'group', 1);
 

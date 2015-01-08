@@ -7,7 +7,7 @@
 (function($) {
 	jQuery.fn.upstate = function () {
 
-		if ( typeof regions === 'undefined' ) return;
+		if ( typeof regions === 'undefined' ) return $(this);
 
 		$(this).change(function (e,init) {
 			var $this = $(this),
@@ -15,7 +15,9 @@
 				country = $this.val(),
 				state = $this.parents().find('#' + prefix + '-state'),
 				menu = $this.parents().find('#' + prefix + '-state-menu'),
-				options = '<option value=""></option>';
+				original = state.val(),
+				options = '<option value=""></option>',
+				selected = '';
 
 			if (menu.length == 0) return true;
 			if (menu.hasClass('hidden')) menu.removeClass('hidden').hide();
@@ -23,13 +25,14 @@
 			if (regions[country] || (init && menu.find('option').length > 1)) {
 				state.setDisabled(true).addClass('_important').hide();
 				if (regions[country]) {
-
-
 					if ( menu.hasClass('selectized') ) {
-						console.log(menu[0].selectize);
+						selected = menu[0].selectize.getValue();
+						menu[0].selectize.clearOptions();
 						$.each(regions[country], function (value,label) {
 							menu[0].selectize.addOption({value:value, text:label});
 						});
+						if ( ! selected ) selected = original;
+						menu[0].selectize.setValue(selected);
 					} else {
 						$.each(regions[country], function (value,label) {
 							options += '<option value="'+value+'">'+label+'</option>';
@@ -43,13 +46,14 @@
 				}
 
 				if ( menu.hasClass('selectized') ) {
-
+					menu[0].selectize.enable();
 				} else {
 					menu.setDisabled(false).show();
 					$('label[for='+state.attr('id')+']').attr('for',menu.attr('id'));
 				}
 			} else {
 				if ( menu.hasClass('selectized') ) {
+					menu[0].selectize.clearOptions();
 				} else {
 					menu.empty().setDisabled(true).hide();
 					state.setDisabled(false).show().removeClass('_important');
