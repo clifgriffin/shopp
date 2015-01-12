@@ -1,13 +1,13 @@
 	<div class="wrap shopp">
 
 		<div class="icon32"></div>
-		<h2><?php _e('Discount Editor','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'shopp-discounts','id'=>'new')),admin_url('admin.php'))); ?>" class="add-new-h2"><?php _e('Add New','Shopp'); ?></a> </h2>
+		<h2><?php _e('Discount Editor','Shopp'); ?> <a href="<?php echo esc_url($this->url(array('id' => 'new'))); ?>" class="add-new-h2"><?php _e('Add New','Shopp'); ?></a> </h2>
 
 		<?php do_action('shopp_admin_notices'); ?>
 
 		<div id="ajax-response"></div>
 
-		<form name="promotion" id="promotion" action="<?php echo esc_url($this->url); ?>" method="post">
+		<form name="promotion" id="promotion" action="<?php echo esc_url($this->url()); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-discount'); ?>
 
 			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>
@@ -17,7 +17,7 @@
 				<div id="side-info-column" class="inner-sidebar">
 				<?php
 				do_action('submitpage_box');
-				$side_meta_boxes = do_meta_boxes("shopp_page_$this->page", 'side', $Promotion);
+				$side_meta_boxes = do_meta_boxes($this->id, 'side', $Promotion);
 				?>
 				</div>
 
@@ -31,11 +31,13 @@
 							<input name="name" id="title" type="text" value="<?php echo esc_attr($Promotion->name); ?>" size="30" tabindex="1" autocomplete="off" />
 						</div>
 					</div>
+					
+					<br class="clear" />
 
 				<?php
 
-				do_meta_boxes("shopp_page_$this->page", 'normal', $Promotion);
-				do_meta_boxes("shopp_page_$this->page", 'advanced', $Promotion);
+				do_meta_boxes($this->id, 'normal', $Promotion);
+				do_meta_boxes($this->id, 'advanced', $Promotion);
 				wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false);
 
 				?>
@@ -67,11 +69,11 @@ var suggurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_sho
 		else titlePrompt.hide();
 	}),
 
-	SCOPEPROP_LANG = <?php ShoppAdminDiscounter::scopes(); ?>,
-	TARGET_LANG = <?php ShoppAdminDiscounter::targets(); ?>,
-	RULES_LANG = <?php ShoppAdminDiscounter::rules(); ?>,
-	conditions = <?php ShoppAdminDiscounter::conditions(); ?>,
-	logic = <?php ShoppAdminDiscounter::logic(); ?>,
+	SCOPEPROP_LANG = <?php ShoppScreenDiscountEditor::scopes(); ?>,
+	TARGET_LANG = <?php ShoppScreenDiscountEditor::targets(); ?>,
+	RULES_LANG = <?php ShoppScreenDiscountEditor::rules(); ?>,
+	conditions = <?php ShoppScreenDiscountEditor::conditions(); ?>,
+	logic = <?php ShoppScreenDiscountEditor::logic(); ?>,
 
 	Conditional = function (type,settings,location) {
 		var target = $('#promotion-target').val(),

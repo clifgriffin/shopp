@@ -49,14 +49,14 @@ function save_meta_box ($Product) {
 	</div>
 <?php
 }
-ShoppUI::addmetabox(
-	'save-product',
-	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
-	'save_meta_box',
-	Product::$posttype,
-	'side',
-	'core'
-);
+// ShoppUI::addmetabox(
+// 	'save-product',
+// 	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
+// 	'save_meta_box',
+// 	Product::$posttype,
+// 	'side',
+// 	'core'
+// );
 
 function shopp_popular_terms_checklist( $post_ID, $taxonomy, $default = 0, $number = 10, $echo = true ) {
 	if ( $post_ID )
@@ -155,9 +155,9 @@ $Shopp = Shopp::object();
 foreach ( get_object_taxonomies(ShoppProduct::$posttype) as $taxonomy_name ) {
 	$taxonomy = get_taxonomy($taxonomy_name);
 	$label = $taxonomy->labels->name;
-	if ( is_taxonomy_hierarchical($taxonomy_name) )
-		ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
-	else ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	// if ( is_taxonomy_hierarchical($taxonomy_name) )
+	// 	ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	// else ShoppUI::addmetabox($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', ShoppProduct::$posttype, 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
 
 }
 
@@ -194,14 +194,14 @@ function settings_meta_box ($Product) {
 
 <?php
 }
-ShoppUI::addmetabox(
-	'product-settings',
-	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
-	'settings_meta_box',
-	ShoppProduct::$posttype,
-	'side',
-	'core'
-);
+// ShoppUI::addmetabox(
+// 	'product-settings',
+// 	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
+// 	'settings_meta_box',
+// 	ShoppProduct::$posttype,
+// 	'side',
+// 	'core'
+// );
 
 function summary_meta_box ($Product) {
 ?>

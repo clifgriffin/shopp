@@ -157,15 +157,11 @@ class ShoppAjax {
 	}
 
 	public function upload_image () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->images();
-		exit();
+		ShoppScreenProductEditor::images();
 	}
 
 	public function upload_file () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->downloads();
-		exit();
+		ShoppScreenProductEditor::downloads();
 	}
 
 	public function add_category () {

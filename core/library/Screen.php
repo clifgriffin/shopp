@@ -196,6 +196,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		elseif ( method_exists($Object, 'save') )
 			$Object->save();
 
+		return $Object;
 	}
 
 	/**
@@ -237,8 +238,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	 * @return string The generated URL with parameters
 	 **/
 	public function url ( $params = array() ) {
-		$defaults = array_intersect_key($this->request, $this->defaults);
-		$params = array_merge($defaults, $params);
+		$params = array_merge($this->request, $params);
 		return add_query_arg(array_map('esc_attr', $params), admin_url('admin.php'));
 	}
 

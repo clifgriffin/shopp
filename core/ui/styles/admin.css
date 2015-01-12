@@ -1580,11 +1580,11 @@ span.indent {
 
 
 /** Postboxes **/
-#poststuff #save-product .inside,
-#poststuff #save-category .inside,
+#poststuff #product-save .inside,
+#poststuff #category-save .inside,
 #poststuff #customer-save .inside,
-#poststuff #save-promotion .inside,
-#poststuff #save-membership .inside,
+#poststuff #discount-save .inside,
+#poststuff #membership-save .inside,
 #poststuff #order-status .inside {
 	margin: 0;
 	padding: 0;

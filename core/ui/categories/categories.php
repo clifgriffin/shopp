@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<h2><?php Shopp::_e('Categories'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET), array('page'=> $this->page(), 'id'=> 'new')), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a></h2>
+	<h2><?php Shopp::_e('Categories'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET), array('page'=> ShoppAdmin::pagename('categories'), 'id'=> 'new')), admin_url('admin.php'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a></h2>
 
 	<?php do_action('shopp_admin_notices'); ?>
 
@@ -13,7 +13,6 @@
 	</p>
 
 	<div class="clear">
-		<input type="hidden" name="page" value="<?php echo $this->page(); ?>" />
 		<?php wp_nonce_field('shopp_categories_manager'); ?>
 	</div>
 
@@ -31,16 +30,16 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php ShoppUI::print_column_headers($this->screen,false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id,false); ?></tr>
 		</tfoot>
 	<?php if (count($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
 		<?php
-		$columns = get_column_headers($this->screen);
-		$hidden = get_hidden_columns($this->screen);
+		$columns = get_column_headers($this->id);
+		$hidden = get_hidden_columns($this->id);
 
 		$even = false;
 		foreach ($Categories as $Category):
@@ -59,7 +58,7 @@
 				break;
 
 				case 'name':
-					$adminurl = add_query_arg(array_merge($_GET, array('page' => $this->Admin->pagename('categories'))), admin_url('admin.php'));
+					$adminurl = add_query_arg(array_merge($_GET, array('page' => ShoppAdmin::pagename('categories'))), admin_url('admin.php'));
 					$editurl = wp_nonce_url(add_query_arg('id', $Category->id, $adminurl), 'shopp_categories_manager');
 					$deleteurl = wp_nonce_url(add_query_arg('action', 'delete', $editurl), 'shopp_categories_manager');
 

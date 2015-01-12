@@ -2,14 +2,15 @@
 /**
  * Welcome.php
  *
- * Flow controller for the Shopp welcome screen
+ * Welcome screen controllers
  *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, August 2013
- * @package shopp
- * @subpackage shopp
+ * @copyright Ingenesis Limited, August 2013-2015
+ * @license   GNU GPL version 3 (or later) {@see license.txt}
+ * @package   Shopp/Screens/Welcome
+ * @version   1.0
+ * @since     1.4
  **/
+
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppAdminWelcome extends ShoppScreenController {

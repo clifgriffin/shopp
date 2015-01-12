@@ -1,0 +1,2 @@
+<textarea name="summary" id="summary" rows="2" cols="50" tabindex="6"><?php echo $Product->summary ?></textarea><br />
+<label for="summary"><?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></label>

@@ -6,9 +6,6 @@
 	<?php do_action('shopp_admin_notices'); ?>
 
 	<form action="<?php echo esc_url($url); ?>" id="discounts" method="get">
-	<div>
-		<input type="hidden" name="page" value="<?php echo esc_attr($this->page); ?>" />
-	</div>
 
 	<p id="post-search" class="search-box">
 		<input type="text" id="discounts-search-input" name="s" class="search-input" value="<?php echo esc_attr($s); ?>" />
@@ -45,23 +42,24 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers($this->screen); ?></tr>
+		<tr><?php print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers($this->screen, false); ?></tr>
+		<tr><?php print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 	<?php if ( sizeof($Promotions) > 0 ): ?>
 		<tbody class="list discounts">
 		<?php
-			$hidden = get_hidden_columns($this->screen);
+			$hidden = get_hidden_columns($this->id);
 
 			$even = false;
 			foreach ( $Promotions as $Promotion ):
-			$editurl = add_query_arg(array('id' => $Promotion->id), $url);
-			$deleteurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'delete'), $url);
-			$duplicateurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'duplicate'), $url);
-			$enableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'enable'), $url);
-			$disableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'disable'), $url);
+
+			$editurl = $this->url(array('id' => $Promotion->id));
+			$deleteurl = $this->url(array('selected' => $Promotion->id, 'action' => 'delete'));
+			$duplicateurl = $this->url(array('selected' => $Promotion->id, 'action' => 'duplicate'));
+			$enableurl = $this->url(array('selected' => $Promotion->id, 'action' => 'enable'));
+			$disableurl = $this->url(array('selected' => $Promotion->id, 'action' => 'disable'));
 
 			$PromotionName = empty($Promotion->name)?'('.__('no discount name').')':$Promotion->name;
 		?>

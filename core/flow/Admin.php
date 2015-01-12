@@ -63,8 +63,8 @@ class ShoppAdmin extends ShoppFlowController {
 		add_filter('wp_dropdown_pages', array($this, 'storepages'));
 		add_filter('pre_update_option_page_on_front', array($this, 'frontpage'));
 
-		// @todo Move these to screen controllers
-		add_action('load-update.php', array($this, 'styles'));
+		// @todo is this necessary any longer?
+		// add_action('load-update.php', array($this, 'styles'));
 
 	}
 
@@ -269,11 +269,10 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		add_action('admin_enqueue_scripts', array($this, 'assets'), 50);
 
 		// Screen setup
-		$screen = ShoppAdmin::screen();;
+		$screen = ShoppAdmin::screen();
 		add_action('load-' . $screen, array($this, 'help'));
 		add_action('load-' . $screen, array($this, 'layout'));
 		add_action('load-' . $screen, array($this, 'maintenance'));
-
 
 	}
 
@@ -325,27 +324,57 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	 *
 	 * @return void
 	 **/
-	private function maintenance () {
+	public function maintenance () {
+
 		if ( ShoppLoader::is_activating() || Shopp::upgradedb() ) return;
 
 		$setting = isset($_POST['settings']['maintenance']) ? $_POST['settings']['maintenance'] : false;
-
-		$nonce = false;
-		if ( isset($_GET['_wpnonce']) )      $nonce = $_GET['_wpnonce'];
-		elseif ( isset($_POST['_wpnonce']) ) $nonce = $_POST['_wpnonce'];
+		$nonce = isset($_POST['_wpnonce']) ? $_POST['_wpnonce'] : false;
 
 		if ( false !== $setting && wp_verify_nonce($nonce, 'shopp-setup') )
 			shopp_set_setting('maintenance', $setting);
 
-		if ( Shopp::maintenance() ) {
-			if ( wp_verify_nonce($nonce, 'shopp_disable_maintenance') ) {
-				shopp_set_setting('maintenance', 'off');
-			} else {
-				$url = wp_nonce_url(add_query_arg('page', ShoppAdmin::pagename('setup'), admin_url('admin.php')), 'shopp_disable_maintenance');
-				$this->Screen->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
-			}
+		if ( ! Shopp::maintenance() ) return;
+
+		if ( wp_verify_nonce($this->request('_wpnonce'), 'shopp_disable_maintenance') ) {
+			shopp_set_setting('maintenance', 'off');
+		} else {
+			$url = wp_nonce_url(add_query_arg('page', ShoppAdmin::pagename('setup'), admin_url('admin.php')), 'shopp_disable_maintenance');
+			$this->Screen->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 		}
 	}
+
+}
+
+class ShoppAdminPostController extends ShoppAdminController {
+
+	public function __construct () {
+
+		if ( ! ShoppAdminPages()->shoppscreen() ) return;
+
+		// Get the query request
+		$this->query();
+
+		// Setup the screen controller
+		$ControllerClass = $this->route();
+		if ( false == $ControllerClass || ! class_exists($ControllerClass) ) return;
+
+		$this->Screen = new $ControllerClass($this->ui);
+
+		// Queue JavaScript & CSS
+		add_action('admin_enqueue_scripts', array($this, 'assets'), 50);
+
+		// Screen setup
+		global $pagenow;
+		$screen = ShoppAdmin::screen();
+		if ( $screen == $this->request('post_type') )
+			$screen = $pagenow;
+		add_action('load-' . $screen, array($this, 'help'));
+		add_action('load-' . $screen, array($this, 'layout'));
+		add_action('load-' . $screen, array($this, 'maintenance'));
+
+	}
+
 
 }
 
@@ -431,16 +460,16 @@ class ShoppAdminPages {
 			$this->addpage('system-log', Shopp::__('Log'), 'ShoppAdminSystem', 'system');
 
 		// Catalog menu
-		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminWarehouse',  'products');
-		$this->addpage('categories', Shopp::__('Categories'), 'ShoppAdminCategorize', 'products');
+		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminProducts',  'products');
+		$this->addpage('categories', Shopp::__('Categories'), 'ShoppAdminCategories', 'products');
 
 		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'object');
 		foreach ( $taxonomies as $t ) {
 			if ( 'shopp_category' == $t->name ) continue;
 			$pagehook = str_replace('shopp_', '', $t->name);
-			$this->addpage($pagehook, $t->labels->menu_name, 'ShoppAdminCategorize',  'products');
+			$this->addpage($pagehook, $t->labels->menu_name, 'ShoppAdminCategories',  'products');
 		}
-		$this->addpage('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounter', 'products');
+		$this->addpage('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounts', 'products');
 
 		$this->addpage('welcome', Shopp::__('Welcome'), 'ShoppAdminWelcome', 'welcome');
 		$this->addpage('credits', Shopp::__('Credits'), 'ShoppAdminWelcome', 'credits');
@@ -458,6 +487,7 @@ class ShoppAdminPages {
 
 		// Set the currently requested page and menu
 		$page = ShoppFlow()->request('page');
+		if ( self::posteditor() ) $page = 'shopp-products';
 		if ( empty($page) ) return;
 
 		if ( isset($this->pages[ $page ]) ) $this->Page = $this->pages[ $page ];
@@ -688,6 +718,7 @@ class ShoppAdminPages {
 	public function shoppscreen () {
 		global $hook_suffix, $taxonomy;
 
+		if ( self::posteditor() ) return true;
 		if ( in_array($hook_suffix, $this->menus) ) return true;
 
 		if ( isset($taxonomy) ) { // Prevent loading styles if not on Shopp taxonomy editor
@@ -696,6 +727,10 @@ class ShoppAdminPages {
 		}
 
 		return false;
+	}
+
+	public static function posteditor () {
+		return ShoppProduct::posttype() == ShoppFlow()->request('post_type') &&  'edit' == ShoppFlow()->request('action');
 	}
 
 } // end ShoppAdminMenus

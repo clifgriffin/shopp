@@ -15,7 +15,7 @@
 
 			<?php
 			do_action('submitpage_box');
-			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-category', 'side', $Category);
+			$side_meta_boxes = do_meta_boxes($this->id, 'side', $Category);
 			?>
 			</div>
 
@@ -48,8 +48,8 @@
 				</div>
 
 			<?php
-			do_meta_boxes('shopp_page_shopp-category', 'normal', $Category);
-			do_meta_boxes('shopp_page_shopp-category', 'advanced', $Category);
+			do_meta_boxes($this->id, 'normal', $Category);
+			do_meta_boxes($this->id, 'advanced', $Category);
 			?>
 
 			</div>
@@ -76,9 +76,9 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	addcategory_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "shopp-ajax_add_category"); ?>',
 	editslug_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',
 	fileverify_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "shopp-ajax_verify_file"); ?>',
-	adminpage = '<?php echo $this->Admin->pagename('categories'); ?>',
+	adminpage = '<?php echo ShoppAdmin::pagename('categories'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
-	worklist = <?php echo json_encode($this->categories(true)); ?>,
+	worklist = <?php echo json_encode($this->categories()); ?>,
 	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
 	priceTypes = <?php echo json_encode($priceTypes) ?>,
 	billPeriods = <?php echo json_encode($billPeriods) ?>,
