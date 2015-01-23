@@ -112,7 +112,7 @@ final class ShoppServices {
 	 * @param array $plugins The plugins list that WordPress will load
 	 * @return array Modified list of plugins for WordPress to load
 	 **/
-	private static function excludes ( array $plugins = array() ) {
+	public static function excludes ( array $plugins = array() ) {
 		$load = (array) get_option('shopp_services_plugins');
 		foreach ( $plugins as $i => $name ) {
 			if ( false !== strpos( $name, 'Shopp.php' ) || isset($load[ $name ]) ) continue;
