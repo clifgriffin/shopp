@@ -916,7 +916,7 @@ class ShoppCartItem {
 	 * @return void
 	 **/
 	public function taxes ( $quantity = 1 ) {
-		if ( ! $this->istaxed ) return;
+		if ( ! $this->istaxed ) return do_action('shopp_cart_item_taxes', $this);
 
 		$Tax = ShoppOrder()->Tax;
 		if ( empty($Tax) ) $Tax = new ShoppTax; // ShoppTax support for Dev API calls
@@ -954,6 +954,7 @@ class ShoppCartItem {
 			unset($this->taxprice);
 		}
 
+		do_action('shopp_cart_item_taxes', $this);
 	}
 
 }

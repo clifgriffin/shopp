@@ -87,7 +87,7 @@ class ShoppCart extends ListFramework {
 		add_action('shopp_session_reset', array($this, 'clear') );
 
 		add_action('shopp_cart_item_retotal', array($this, 'processtime') );
-		add_action('shopp_cart_item_retotal', array($this, 'itemtaxes') );
+		add_action('shopp_cart_item_taxes', array($this, 'itemtaxes') );
 
 		add_action('shopp_init', array($this, 'tracking'));
 
