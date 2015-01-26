@@ -93,7 +93,7 @@ class ShoppCartItem {
 	 *
 	 * @author John Dillick, Jonathan Davis
 	 * @since 1.2
-	 *
+	 *I
 	 * @param object $Product Product object
 	 * @param mixed $pricing A list of price IDs; The option key of a price object; or a Price object
 	 * @param int $category (optional)The breadcrumb category ID where the product was added from
