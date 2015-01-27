@@ -449,8 +449,10 @@ ShoppLoader::map(array(
 	'shoppadminproducts' => '/screens/Products.php',
 	'shoppadminreports' => '/screens/Reports.php',
 	'shoppadminorders' => '/screens/Orders.php',
-	'shoppadminsetup' => '/flow/Setup.php',
-	'shoppadminsystem' => '/flow/System.php',
+	'shoppadminsettings' => '/screens/Settings.php',
+
+	// 'shoppadminsetup' => '/flow/Setup.php',
+	// 'shoppadminsystem' => '/flow/System.php',
 	'shoppadminupgrade' => '/flow/Upgrade.php',
 	'shoppadminwarehouse' => '/flow/Warehouse.php',
 	'shoppadminwelcome' => '/screens/Welcome.php',

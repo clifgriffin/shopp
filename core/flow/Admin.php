@@ -289,7 +289,12 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	}
 
 	public function screen () {
+
+		if ( ! current_user_can(ShoppAdminPages()->Page->capability) )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		$this->Screen->screen();
+
 	}
 
 	/**
@@ -395,32 +400,32 @@ class ShoppAdminPages {
 	 * @public $caps
 	 **/
 	 private $caps = array(                                    // Initialize the capabilities, mapping to pages
-		'main' => 'shopp_menu',                                //
-		'orders' => 'shopp_orders',                            //
-		'orders-new' => 'shopp_orders',                        // Capabilities                  Role
-		'customers' => 'shopp_customers',                      // _______________________________________________
-		'reports' => 'shopp_financials',                       //
-		'memberships' => 'shopp_products',                     // shopp_settings                administrator
-		'products' => 'shopp_products',                        // shopp_settings_checkout
-		'categories' => 'shopp_categories',                    // shopp_settings_payments
-		'discounts' => 'shopp_promotions',                     // shopp_settings_shipping
-		'system' => 'shopp_settings',                          // shopp_settings_taxes
-		'system-payments' => 'shopp_settings_payments',        // shopp_settings_system
-		'system-shipping' => 'shopp_settings_shipping',        // shopp_settings_update
-		'system-taxes' => 'shopp_settings_taxes',              // shopp_financials              shopp-merchant
-		'system-advanced' => 'shopp_settings_system',          // shopp_financials              shopp-merchant
-		'system-storage' => 'shopp_settings_system',           // shopp_financials              shopp-merchant
-		'system-log' => 'shopp_settings_system',               // shopp_financials              shopp-merchant
-		'settings' => 'shopp_settings',                        // shopp_settings_taxes
-		'setup-core' => 'shopp_settings',                      // shopp_settings_taxes
-		'setup-management' => 'shopp_settings',                // shopp_settings_presentation
-		'setup-pages' => 'shopp_settings_presentation',        // shopp_promotions
-		'setup-presentation' => 'shopp_settings_presentation', // shopp_products
-		'setup-checkout' => 'shopp_settings_checkout',         // shopp_products
-		'setup-downloads' => 'shopp_settings_checkout',        // shopp_products
-		'setup-images' => 'shopp_settings_presentation',       // shopp_categories
-		'welcome' => 'shopp_menu',
-		'credits' => 'shopp_menu'
+		'main'        => 'shopp_menu',                         // Capabilities                  Role
+		'orders'      => 'shopp_orders',                       // _______________________________________________
+		'orders-new'  => 'shopp_orders',                       //
+		'customers'   => 'shopp_customers',                    // shopp_settings                administrator
+		'reports'     => 'shopp_financials',                   // shopp_settings_checkout
+		'memberships' => 'shopp_products',                     // shopp_settings_payments
+		'products'    => 'shopp_products',                     // shopp_settings_shipping
+		'categories'  => 'shopp_categories',                   // shopp_settings_taxes
+		'discounts'   => 'shopp_promotions',                   // shopp_settings_system
+															   // shopp_settings_update
+		'settings'              => 'shopp_settings',           // shopp_financials              shopp-merchant
+		'settings-payments'     => 'shopp_settings_payments',  // shopp_settings_taxes
+		'settings-shipping'     => 'shopp_settings_shipping',  // shopp_settings_presentation
+		'settings-shiprates'    => 'shopp_settings_shipping',  // shopp_promotions
+		'settings-taxes'        => 'shopp_settings_taxes',     // shopp_products
+		'settings-advanced'     => 'shopp_settings_system',    // shopp_categories
+		'settings-storage'      => 'shopp_settings_system',
+		'settings-log'          => 'shopp_settings_system',
+		'settings-core'         => 'shopp_settings',
+		'settings-orders'       => 'shopp_settings_checkout',
+		'settings-downloads'    => 'shopp_settings_checkout',
+		'settings-presentation' => 'shopp_settings_presentation',
+		'settings-images'       => 'shopp_settings_presentation',
+		'settings-pages'        => 'shopp_settings_presentation',
+		'welcome'               => 'shopp_menu',
+		'credits'               => 'shopp_menu'
 	);
 
 	/**
@@ -437,27 +442,24 @@ class ShoppAdminPages {
 		$this->addpage('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
 		$this->addpage('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
 		$this->addpage('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
+		$this->addpage('settings',   Shopp::__('Settings'),   'ShoppAdminSettings');
 
-		// Setup tabs
-		$this->addpage('settings',           Shopp::__('Settings'));
-		$this->addpage('setup-core',         Shopp::__('Shopp Setup'),  'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-management',   Shopp::__('Management'),   'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-checkout',     Shopp::__('Checkout'),     'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-downloads',    Shopp::__('Downloads'),    'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-presentation', Shopp::__('Presentation'),	'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-pages',        Shopp::__('Pages'),        'ShoppAdminSetup', 'setup');
-		$this->addpage('setup-images',       Shopp::__('Images'),       'ShoppAdminSetup', 'setup');
-
-		// System tabs
-		$this->addpage('system',          Shopp::__('System'),   'ShoppAdminSystem');
-		$this->addpage('system-payments', Shopp::__('Payments'), 'ShoppAdminSystem', 'system');
-		$this->addpage('system-shipping', Shopp::__('Shipping'), 'ShoppAdminSystem', 'system');
-		$this->addpage('system-taxes',    Shopp::__('Taxes'),	 'ShoppAdminSystem', 'system');
-		$this->addpage('system-storage',  Shopp::__('Storage'),  'ShoppAdminSystem', 'system');
-		$this->addpage('system-advanced', Shopp::__('Advanced'), 'ShoppAdminSystem', 'system');
+		// Settings pages
+		$this->addpage('settings-core',         Shopp::__('Setup'),          'ShoppAdminSettings', 'settings', 'shoppui-th-list');
+		$this->addpage('settings-shiprates',    Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-truck');
+		$this->addpage('settings-shipping',     Shopp::__('Shipping'),       'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
+		$this->addpage('settings-downloads',    Shopp::__('Downloads'),      'ShoppAdminSettings', 'settings', 'shoppui-download');
+		$this->addpage('settings-orders',       Shopp::__('Orders'),         'ShoppAdminSettings', 'settings', 'shoppui-flag');
+		$this->addpage('settings-payments',     Shopp::__('Payments'),       'ShoppAdminSettings', 'settings', 'shoppui-credit');
+		$this->addpage('settings-taxes',        Shopp::__('Taxes'),	         'ShoppAdminSettings', 'settings', 'shoppui-money');
+		$this->addpage('settings-presentation', Shopp::__('Presentation'),   'ShoppAdminSettings', 'settings', 'shoppui-th-large');
+		$this->addpage('settings-pages',        Shopp::__('Pages'),          'ShoppAdminSettings', 'settings', 'shoppui-file');
+		$this->addpage('settings-images',       Shopp::__('Images'),         'ShoppAdminSettings', 'settings', 'shoppui-picture');
+		$this->addpage('settings-storage',      Shopp::__('Storage'),        'ShoppAdminSettings', 'settings', 'shoppui-cloud');
+		$this->addpage('settings-advanced',     Shopp::__('Advanced'),       'ShoppAdminSettings', 'settings', 'shoppui-cog');
 
 		if ( ShoppErrorLogging()->size() > 0 )
-			$this->addpage('system-log', Shopp::__('Log'), 'ShoppAdminSystem', 'system');
+			$this->addpage('settings-log', Shopp::__('Log'), 'ShoppAdminSettings', 'settings', 'shoppui-info-2');
 
 		// Catalog menu
 		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminProducts',  'products');
@@ -583,11 +585,12 @@ class ShoppAdminPages {
 	 * @param string $parent The internal reference for the parent page
 	 * @return void
 	 **/
-	private function addpage ( $name, $label, $controller = null, $parent = null ) {
+	private function addpage ( $name, $label, $controller = null, $parent = null, $icon = null ) {
 		$page = ShoppAdmin::pagename($name);
 
 		if ( isset($parent) ) $parent = ShoppAdmin::pagename($parent);
-		$this->pages[ $page ] = new ShoppAdminPage($name, $page, $label, $controller, $parent);
+		$capability = isset($this->caps[ $name ]) ? $this->caps[ $name ] : 'shopp_menu';
+		$this->pages[ $page ] = new ShoppAdminPage($name, $page, $label, $capability, $controller, $parent, $icon);
 	}
 
 	/**
@@ -659,10 +662,16 @@ class ShoppAdminPages {
 				$title = $entry[0];
 				$tab = $entry[2];
 
+				if ( isset($this->pages[ $tab ]) ) {
+					$ShoppPage = $this->pages[ $tab ];
+					$icon = $ShoppPage->icon;
+				}
+
 				$tabs[ $tab ] = array(
 					$title,
 					$tab,
-					$parent
+					$parent,
+					$icon
 				);
 
 			}
@@ -791,15 +800,19 @@ class ShoppAdminPage {
 	public $name = '';
 	public $page = '';
 	public $label = '';
+	public $capability = 'shopp_menu';
 	public $controller = '';
 	public $parent = false;
+	public $icon = false;
 
-	public function __construct ( $name, $page, $label, $controller, $parent = null ) {
+	public function __construct ( $name, $page, $label, $capability, $controller, $parent = null, $icon = null ) {
 		$this->name = $name;
 		$this->page = $page;
 		$this->label = $label;
+		$this->capability = $capability;
 		$this->controller = $controller;
 		$this->parent = $parent;
+		$this->icon = $icon;
 	}
 
 	public function hook () {

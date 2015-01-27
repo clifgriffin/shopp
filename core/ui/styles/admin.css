@@ -3255,6 +3255,95 @@ tr.inline-edit-row td {
 }
 
 
+/** New Settings UI **/
+.shopp_page_shopp-settings #wpcontent,
+.shopp_page_shopp-settings #wpfooter {
+	padding-left: 180px;
+}
+
+body.shopp_page_shopp-settings ul#adminmenu a.wp-has-current-submenu::after, 
+body.shopp_page_shopp-settings ul#adminmenu > li.current > a.current::after {
+	border-right-color: #fff;
+}
+
+#shopp-settings-menu {
+	background: #fff;
+	color: #454545;
+	position: fixed;
+	left: 160px;
+	top: 0;
+	bottom: 0;
+	height: auto;
+	min-height: 100%;
+	width: 160px;
+	-webkit-font-smoothing: subpixel-antialiased;
+	z-index: 9888;
+	padding-top: 32px;
+	overflow-y: scroll;
+}
+
+#shopp-settings-menu a {
+	display: block;
+	text-decoration: none;
+	font-size: 13px;
+	line-height: 1.2;
+	margin: 0;
+	color: #454545;
+	padding: 6px 12px;
+}
+
+#shopp-settings-menu a:hover {
+	color: #45bbe6;
+}
+
+#shopp-settings-menu .current a {
+	font-weight: 600;
+	color: #0074a2;
+}
+
+#shopp-settings-menu {
+	text-align: center;
+}
+
+#shopp-settings-menu li {
+	overflow: hidden;
+}
+
+.shopp-settings-icon {
+	font-size: 32px;
+	margin-bottom: 6px;
+}
+
+@media only screen and (max-width: 960px) {
+	.shopp_page_shopp-settings #wpcontent,
+	.shopp_page_shopp-settings #wpfooter {
+		padding-left: 56px;
+	}
+	
+	#shopp-settings-menu {
+		width: 36px;
+		left: 36px;
+	}
+
+	#shopp-settings-menu a {
+		padding: 0;
+	} 
+	.shopp-settings-icon {
+		font-size: 20px;
+	}
+	
+	.shopp-settings-label {
+		display: none;
+	}
+}
+
+@media screen and ( max-width: 782px ) {
+
+	#shopp-settings-menu {
+		display: none;
+	}
+
+}
 
 /** General Overrides **/
 .shopp .hidden,

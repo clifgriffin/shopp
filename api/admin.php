@@ -74,7 +74,7 @@ function shopp_admin_add_menu ( $label, $page, $position = null, $handler = fals
  * @param string $access The access capability required to see the menu
  * @return integer The position the menu was added
  **/
-function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false, $access = null ) {
+function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false, $access = null, $icon = 'shoppui-cog' ) {
 
 	$AdminPages = ShoppAdminPages();
 	$AdminPages->mainmenu();
@@ -96,7 +96,7 @@ function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false
 		$handler
 	);
 
-	$AdminPages->menu($page, $menupage);
+	$AdminPages->menu($page, $menupage, $icon);
 	$AdminPages->addtab($page, $menu);
 
 	do_action("shopp_add_menu_$page");
@@ -120,17 +120,23 @@ function shopp_admin_screen_tabs () {
 	$first = current($tabs);
 	$default = $first[1];
 
-	$markup = array();
+	$markup = '';
 	foreach ( $tabs as $index => $entry ) {
-		list($title, $tab, $parent) = $entry;
-		$classes = array('nav-tab');
+		list($title, $tab, $parent, $icon) = $entry;
+		$classes = array();
 		if ( ($plugin_page == $parent && $default == $tab) || $plugin_page == $tab )
-			$classes[] = 'nav-tab-active';
-		$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+			$classes[] = 'current';
+		// $markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+
+		$url = add_query_arg(array('page' => $tab), admin_url('admin.php'));
+		$markup .= '<li class="' . esc_attr(join(' ', $classes)) . '"><a href="' . esc_url($url) . '">'
+				. '	<div class="shopp-settings-icon ' . $icon . '"></div>'
+				. '	<div class="shopp-settings-label">' . esc_html($title) . '</div>'
+				. '</a></li>';
 	}
 
 	$pagehook = sanitize_key($plugin_page);
-	echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
+	echo '<div id="shopp-settings-menu"><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
 }
 
 function is_shopp_admin_screen () {

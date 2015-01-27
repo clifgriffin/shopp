@@ -1,132 +1,176 @@
-<div class="wrap shopp">
+<script id="delivery-menu" type="text/x-jquery-tmpl"><?php
+	$deliverymenu = Lookup::timeframes_menu();
+	echo Shopp::menuoptions($deliverymenu, false, true);
+?></script>
 
-	<div class="icon32"></div>
+<div>
+	<?php wp_nonce_field('shopp-settings-shiprate'); ?>
+</div>
+
+<div class="tablenav">
+	<div class="actions">
+		<select name="id" id="shipping-option-menu">
+		<option value=""><?php _e('Add a shipping method&hellip;','Shopp'); ?></option>
+		<?php echo Shopp::menuoptions($installed,false,true); ?>
+		</select>
+		<button type="submit" name="add-shipping-option" id="add-shipping-option" class="button-secondary hide-if-js" tabindex="9999"><?php _e('Add Shipping Option','Shopp'); ?></button>
+	</div>
+</div>
+
+<table class="widefat" cellspacing="0">
+	<thead>
+	<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
+	</thead>
+	<tfoot>
+	<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
+	</tfoot>
+	<tbody id="shiprates" class="list">
 	<?php
 
-		shopp_admin_screen_tabs();
-		do_action('shopp_admin_notices');
+		if ( $edit && ! isset($shiprates[ $edit ]) ) {
+			$template_data = array(
+				'${mindelivery_menu}' => Shopp::menuoptions($deliverymenu, false, true),
+				'${maxdelivery_menu}' => Shopp::menuoptions($deliverymenu, false, true),
+				'${cancel_href}' => $this->url
+			);
+			$editor = str_replace(array_keys($template_data),$template_data,$editor);
+			$editor = preg_replace('/\${\w+}/','',$editor);
 
-	?>
+			echo $editor;
+		}
 
+		if (count($shiprates) == 0 && !$edit): ?>
+			<tr id="no-shiprate-settings"><td colspan="6"><?php _e('No shipping methods, yet.','Shopp'); ?></td></tr>
+		<?php
+		endif;
 
-	<?php $this->shipping_menu(); ?>
+		$hidden = get_hidden_columns('shopp_page_shopp-settings-shiprates');
+		$even = false;
+		foreach ($shiprates as $setting => $module):
+			$shipping = shopp_setting($setting);
+			$service = $Shipping->modules[$module]->name;
+			if ( isset($shipping['fallback']) && Shopp::str_true($shipping['fallback']) ) $service = '<big title="'.__('Fallback shipping real-time rate lookup failures','Shopp').'">&#9100;</big>  '.$service;
+			$destinations = array();
 
-	<form name="settings" id="shipping" action="<?php echo esc_url($this->url); ?>" method="post">
-		<?php wp_nonce_field('shopp-settings-shipping'); ?>
+			$min = $max = false;
+			if (isset($shipping['table']) && is_array($shipping['table']))
+			foreach ($shipping['table'] as $tablerate) {
 
-		<table class="form-table">
-			<tr>
-				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th>
-				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ( shopp_setting_enabled('shipping') ) echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
-	            <?php _e('Enables shipping cost calculations. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Track Inventory','Shopp'); ?></label></th>
-				<td><p><input type="hidden" name="settings[inventory]" value="off" /><input type="checkbox" name="settings[inventory]" value="on" id="inventory-toggle"<?php if ( shopp_setting_enabled('inventory') ) echo ' checked="checked"'?> /><label for="inventory-toggle"> <?php _e('Enable inventory tracking','Shopp'); ?></label><br />
-	            <?php _e('Enables inventory tracking. Disable if you are exclusively selling intangible products or not keeping track of product stock.','Shopp'); ?></p>
+				$destination = false;
+				$d = ShippingSettingsUI::parse_location($tablerate['destination']);
+				if (!empty($d['zone'])) $destinations[] = $d['zone'].' ('.$d['countrycode'].')';
+				elseif (!empty($d['area'])) $destinations[] = $d['area'];
+				elseif (!empty($d['country'])) $destinations[] = $d['country'];
+				elseif (!empty($d['region'])) $destinations[] = $d['region'];
+			}
+			if (!empty($destinations)) $destinations = array_keys(array_flip($destinations)); // Combine duplicate destinations
+			if (isset($Shipping->active[$module]) && $Shipping->active[$module]->realtime) $destinations = array($Shipping->active[$module]->destinations);
 
+			$label = $service;
+			if (isset($shipping['label'])) $label = $shipping['label'];
 
-				<input type="hidden" name="settings[backorders]" value="off" /><input type="checkbox" name="settings[backorders]" value="on" id="backorders-toggle"<?php if ( shopp_setting_enabled('backorders') ) echo ' checked="checked"'?> /><label for="backorders-toggle"> <?php _e('Allow backorders','Shopp'); ?></label><br />
-				<?php _e('Allows customers to order products that cannot be fulfilled because of a lack of available product in-stock. Disable to prevent customers from ordering more product than is available in-stock.','Shopp'); ?>
-			</td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label><?php _e('Shipping Carriers','Shopp'); ?></label></th>
-				<td>
-				<div id="carriers" class="multiple-select">
-					<ul>
-						<li<?php $even = true;
-						$classes[] = 'odd hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall"  id="selectall" /><label for="selectall"><strong><?php _e('Select All','Shopp'); ?></strong></label><input type="hidden" name="settings[shipping_carriers]" value="off" /></li>
-						<?php
-							foreach ($carriers as $code => $carrier):
-								$classes = array();
-								if ($even) $classes[] = 'odd';
-						?>
-							<li<?php if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; ?>><input type="checkbox" name="settings[shipping_carriers][]" value="<?php echo $code; ?>" id="carrier-<?php echo $code; ?>"<?php if (in_array($code,$shipping_carriers)) echo ' checked="checked"'; ?> /><label for="carrier-<?php echo $code; ?>" accesskey="<?php echo substr($code,0,1); ?>"><?php echo $carrier; ?></label></li>
-						<?php $even = !$even; endforeach; ?>
-					</ul>
-				</div><br />
-				<label><?php _e('Select the shipping carriers you will be using for shipment tracking.','Shopp'); ?></label>
-				</td>
-			</tr>
-			<?php $Shopp = Shopp::object(); if ($Shopp->Shipping->realtime): ?>
-			<tr>
-				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
-				<td>
-				<select name="settings[shipping_packaging]" id="packaging">
-						<?php echo menuoptions(Lookup::packaging_types(), shopp_setting('shipping_packaging'),true); ?>
-				</select><br />
-				<?php _e('Determines packaging method used for real-time shipping quotes.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="packaging"><?php _e('Package Limit','Shopp'); ?></label></th>
-				<td>
-				<select name="settings[shipping_package_weight_limit]" id="packaging_weight_limit">
-						<?php echo menuoptions(apply_filters('shopp_package_weight_limits', array('-1'=>'∞','10'=>10,'20'=>20,'30'=>30,'40'=>40,'50'=>50,'60'=>60,'70'=>70,'80'=>80,'90'=>90,'100'=>100,'150'=>150,'200'=>200,'250'=>250,'300'=>300,'350'=>350,'400'=>400,'450'=>450,'500'=>500,'550'=>550,'600'=>600,'650'=>650,'700'=>700,'750'=>750,'800'=>800)),
-								shopp_setting('shipping_package_weight_limit'),true); ?>
-				</select><br />
-				<?php _e('The maximum weight allowed for a package.','Shopp'); ?></td>
-			</tr>
-			<?php endif; ?>
-			<tr>
-				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
-				<td>
-				<select name="settings[weight_unit]" id="weight-unit">
-						<?php echo $weightsmenu; ?>
-				</select>
-				<select name="settings[dimension_unit]" id="dimension-unit">
-						<?php echo $dimsmenu; ?>
-				</select><br />
-				<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="order-processing-min"><?php _e('Order Processing','Shopp'); ?></label></th>
-				<td>
-				<select name="settings[order_processing_min]" id="order-processing">
-						<?php echo menuoptions(Lookup::timeframes_menu(),shopp_setting('order_processing_min'),true); ?>
-				</select> &mdash; <select name="settings[order_processing_max]" id="order-processing">
-							<?php echo menuoptions(Lookup::timeframes_menu(),shopp_setting('order_processing_max'),true); ?>
-				</select><br />
-				<?php _e('Set the estimated time range for processing orders for shipment.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th>
-				<td>
-					<?php
-						$values = array_reverse(array_merge(range(0,25),range(30,50,5),range(60,100,10)));
-						$labels = $values;
-						array_walk($labels,create_function('&$val','$val = "$val%";'));
-						$levels = array_combine($values,$labels);
-					?>
-					<select name="settings[lowstock_level]" id="lowstock-level">
-					<?php echo menuoptions($levels,$lowstock,true); ?>
-					</select><br />
-	            	<?php _e('Select the level for low stock warnings.','Shopp'); ?>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money(shopp_setting('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall money" /><br />
-	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo esc_attr(shopp_setting('free_shipping_text')); ?>" id="free_shipping_text" /><br />
-	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[outofstock_text]" value="<?php echo esc_attr(shopp_setting('outofstock_text')); ?>" id="outofstock-text" /><br />
-	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
-			</tr>
-		</table>
+			$editurl = wp_nonce_url(add_query_arg(array('id'=>$setting),$this->url));
+			$deleteurl = wp_nonce_url(add_query_arg(array('delete'=>$setting),$this->url),'shopp_delete_shiprate');
 
-		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
-	</form>
-</div>
+			$classes = array();
+			if (!$even) $classes[] = 'alternate'; $even = !$even;
+
+			if ($edit && $edit == $setting) {
+				$template_data = array(
+					'${mindelivery_menu}' => menuoptions($deliverymenu,$shipping['mindelivery'],true),
+					'${maxdelivery_menu}' => menuoptions($deliverymenu,$shipping['maxdelivery'],true),
+					'${fallbackon}' => ('on' == $shipping['fallback'])?'checked="checked"':'',
+					'${cancel_href}' => $this->url
+				);
+				$editor = str_replace(array_keys($template_data),$template_data,$editor);
+				$editor = preg_replace('/\${\w+}/','',$editor);
+
+				echo $editor;
+				if ($edit == $setting) continue;
+			}
+
+		?>
+	<tr class="<?php echo join(' ',$classes); ?>" id="shipping-setting-<?php echo sanitize_title_with_dashes($module); ?>">
+		<td class="name column-name"><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="edit row-title"><?php echo esc_html($label); ?></a>
+			<div class="row-actions">
+				<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="edit"><?php _e('Edit','Shopp'); ?></a> | </span><span class='delete'><a href="<?php echo esc_url($deleteurl); ?>" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($label); ?>&quot;" class="delete"><?php _e('Delete','Shopp'); ?></a></span>
+			</div>
+		</td>
+		<td class="type column-type"><?php echo $service; ?></td>
+		<td class="supported column-supported"><?php echo join(', ',$destinations); ?></td>
+
+	</tr>
+	<?php endforeach; ?>
+	</tbody>
+</table>
+
+<?php wp_nonce_field('shopp-settings-shipping'); ?>
+
+<table class="form-table">
+
+	<tr>
+		<th scope="row" valign="top"><label><?php _e('Shipping Carriers','Shopp'); ?></label></th>
+		<td>
+		<div id="carriers" class="multiple-select">
+			<ul>
+				<li<?php $even = true;
+				$classes[] = 'odd hide-if-no-js'; if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; $even = !$even; ?>><input type="checkbox" name="selectall"  id="selectall" /><label for="selectall"><strong><?php _e('Select All','Shopp'); ?></strong></label><input type="hidden" name="settings[shipping_carriers]" value="off" /></li>
+				<?php
+					foreach ($carriers as $code => $carrier):
+						$classes = array();
+						if ($even) $classes[] = 'odd';
+				?>
+					<li<?php if (!empty($classes)) echo ' class="'.join(' ',$classes).'"'; ?>><input type="checkbox" name="settings[shipping_carriers][]" value="<?php echo $code; ?>" id="carrier-<?php echo $code; ?>"<?php if (in_array($code,$shipping_carriers)) echo ' checked="checked"'; ?> /><label for="carrier-<?php echo $code; ?>" accesskey="<?php echo substr($code,0,1); ?>"><?php echo $carrier; ?></label></li>
+				<?php $even = !$even; endforeach; ?>
+			</ul>
+		</div><br />
+		<label><?php _e('Select the shipping carriers you will be using for shipment tracking.','Shopp'); ?></label>
+		</td>
+	</tr>
+	<?php $Shopp = Shopp::object(); if ($Shopp->Shipping->realtime): ?>
+	<tr>
+		<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
+		<td>
+		<select name="settings[shipping_packaging]" id="packaging">
+				<?php echo menuoptions(Lookup::packaging_types(), shopp_setting('shipping_packaging'),true); ?>
+		</select><br />
+		<?php _e('Determines packaging method used for real-time shipping quotes.','Shopp'); ?></td>
+	</tr>
+	<tr>
+		<th scope="row" valign="top"><label for="packaging"><?php _e('Package Limit','Shopp'); ?></label></th>
+		<td>
+		<select name="settings[shipping_package_weight_limit]" id="packaging_weight_limit">
+				<?php echo menuoptions(apply_filters('shopp_package_weight_limits', array('-1'=>'∞','10'=>10,'20'=>20,'30'=>30,'40'=>40,'50'=>50,'60'=>60,'70'=>70,'80'=>80,'90'=>90,'100'=>100,'150'=>150,'200'=>200,'250'=>250,'300'=>300,'350'=>350,'400'=>400,'450'=>450,'500'=>500,'550'=>550,'600'=>600,'650'=>650,'700'=>700,'750'=>750,'800'=>800)),
+						shopp_setting('shipping_package_weight_limit'),true); ?>
+		</select><br />
+		<?php _e('The maximum weight allowed for a package.','Shopp'); ?></td>
+	</tr>
+	<?php endif; ?>
+	<tr>
+		<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
+		<td>
+		<select name="settings[weight_unit]" id="weight-unit">
+				<?php echo $weightsmenu; ?>
+		</select>
+		<select name="settings[dimension_unit]" id="dimension-unit">
+				<?php echo $dimsmenu; ?>
+		</select><br />
+		<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
+	</tr>
+
+</table>
+
+<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+
+<?php do_action('shopp_shipping_module_settings'); ?>
 
 <script type="text/javascript">
 /* <![CDATA[ */
+var shipping = <?php echo json_encode(array_map('sanitize_title_with_dashes',array_keys($installed))); ?>,
+	defaults = <?php echo json_encode($defaults); ?>,
+	settings = <?php echo json_encode($settings); ?>,
+	lookup = <?php echo json_encode($lookup); ?>;
+
 jQuery(document).ready(function($) {
 	quickSelects();
 	$('#selectall').change(function () {

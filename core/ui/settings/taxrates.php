@@ -110,10 +110,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-taxrates'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-taxrates',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 		<tbody id="taxrates-table" class="list">
 		<?php

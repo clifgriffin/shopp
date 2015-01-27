@@ -1,14 +1,12 @@
+<?php shopp_admin_screen_tabs(); ?>
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<?php
 
-		shopp_admin_screen_tabs();
-		do_action('shopp_admin_notices');
+	<h2><?php _e('Images','Shopp'); ?></h2>
 
-	?>
+	<?php do_action('shopp_admin_notices'); ?>
 
-	<!-- <h2><?php _e('Image Settings','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('settings-images'),'id'=>'new'),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2> -->
 
 	<form action="<?php echo esc_url(wp_nonce_url($this->url,'shopp-settings-images')); ?>" id="images" method="post">
 	<div>
@@ -77,10 +75,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-settings-images'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php ShoppUI::print_column_headers('shopp_page_shopp-settings-images',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 	<?php if (count($settings) > 0 || 'new' == $edit): ?>
 		<tbody id="image-setting-table" class="list">

@@ -1,12 +1,9 @@
+<?php shopp_admin_screen_tabs(); ?>
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<?php
-
-		shopp_admin_screen_tabs();
-		do_action('shopp_admin_notices');
-
-	?>
+	<h2><?php Shopp::_e('Payments'); ?>
+	<?php do_action('shopp_admin_notices'); ?>
 
 <form action="<?php echo $this->url; ?>" id="payments" method="post">
 <div>
@@ -24,10 +21,10 @@
 
 <table class="widefat" cellspacing="0">
 	<thead>
-	<tr><?php print_column_headers('shopp_page_shopp-settings-payments'); ?></tr>
+	<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 	</thead>
 	<tfoot>
-	<tr><?php print_column_headers('shopp_page_shopp-settings-payments',false); ?></tr>
+	<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 	</tfoot>
 	<tbody id="payments-settings-table" class="list">
 	<?php

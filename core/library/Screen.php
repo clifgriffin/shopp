@@ -210,7 +210,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	 * @param array $tabs The tab map array
 	 * @return void
 	 **/
-	protected function tabs ( array $tabs = array() ) {
+	protected function tabs () {
 
 		$pagehook = sanitize_key($this->pagename);
 
@@ -226,6 +226,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		}
 
 		echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
+
 	}
 
 

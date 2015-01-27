@@ -1,12 +1,11 @@
+<?php shopp_admin_screen_tabs(); ?>
+
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<?php
-
-		shopp_admin_screen_tabs();
-		do_action('shopp_admin_notices');
-
-	?>
+	<h2><?php Shopp::_e('Pages'); ?>
+		
+	<?php do_action('shopp_admin_notices'); ?>
 
 	<form action="<?php echo esc_url($this->url); ?>" id="pages" method="post">
 	<div>
@@ -39,10 +38,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-pages'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-pages',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 	<?php if (sizeof($pages) > 0): ?>
 		<tbody id="customers-table" class="list">
@@ -93,7 +92,7 @@
 		<tbody><tr><td colspan="6"><?php _e('No Shopp pages available! The sky is falling! Contact the Help Desk, stat!','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
-	
+
 	</form>
 </div>
 <script type="text/javascript">

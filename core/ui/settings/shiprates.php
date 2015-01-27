@@ -1,19 +1,14 @@
+<?php shopp_admin_screen_tabs(); ?>
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<?php
-
-		shopp_admin_screen_tabs();
-		do_action('shopp_admin_notices');
-
-	?>
-
+	<h2><?php Shopp:_e('Shipping Rates'); ?>
+	<?php do_action('shopp_admin_notices'); ?>
 
 	<script id="delivery-menu" type="text/x-jquery-tmpl"><?php
 		$deliverymenu = Lookup::timeframes_menu();
 		echo Shopp::menuoptions($deliverymenu,false,true);
 	?></script>
 
-	<?php $this->shipping_menu(); ?>
 
 	<form action="<?php echo esc_url($this->url); ?>" id="shipping" method="post">
 	<div>
@@ -33,10 +28,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-shipping'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-shipping',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 		<tbody id="shiprates" class="list">
 		<?php
