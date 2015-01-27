@@ -272,7 +272,10 @@ class ShoppOrder {
 			Shopp::redirect(Shopp::url(array('inprogress' => '1'), 'checkout', $this->security()));
 			return;
 
-		} else set_transient($lockid, true, $timeout);
+		} else {
+			set_transient($lockid, true, $timeout);
+			add_action('shutdown', create_function('', 'delete_transient("' . $lockid . '");'));
+		}
 
 		shopp_add_order_event(false, 'purchase', array(
 			'gateway' => $this->Payments->processor()
