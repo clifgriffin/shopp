@@ -91,9 +91,18 @@ class ShoppSettingsScreenController extends ShoppScreenController {
 		$markup = '';
 		foreach ( $tabs as $index => $entry ) {
 			list($title, $tab, $parent, $icon) = $entry;
-			$classes = array();
+
+			$slug = substr($tab, strrpos($tab, '-') + 1);
+
+			// Check settings to ensure enabled
+			if ( $this->hiddentab($slug) )
+				continue;
+
+			$classes = array($tab);
+
 			if ( ($plugin_page == $parent && $default == $tab) || $plugin_page == $tab )
 				$classes[] = 'current';
+
 			// $markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
 
 			$url = add_query_arg(array('page' => $tab), admin_url('admin.php'));
@@ -104,8 +113,41 @@ class ShoppSettingsScreenController extends ShoppScreenController {
 		}
 
 		$pagehook = sanitize_key($plugin_page);
-		return '<div id="shopp-settings-menu"><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
+		return '<div id="shopp-settings-menu" class="clearfix"><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
 
+	}
+
+	/**
+	 * Determines hidden settings screens
+	 *
+	 * @since 1.4
+	 *
+	 * @param string $slug The tab slug name
+	 * @return bool True if the tab should be hidden, false otherwise
+	 **/
+	protected function hiddentab ( $slug ) {
+
+		$settings = array(
+			'shipping'  => 'shipping',
+			'boxes'     => 'shipping',
+			'taxes'     => 'taxes',
+			'orders'    => 'shopping_cart',
+			'payments'  => 'shopping_cart',
+			'downloads' => 'shopping_cart'
+		);
+
+		if ( ! isset($settings[ $slug ]) ) return false;
+		$setting = $settings[ $slug ];
+
+		return ( ! shopp_setting_enabled($setting) );
+
+	}
+
+	public function posted () {
+		if ( empty($_POST) ) return false;
+		if ( empty($_POST['settings']) ) return false;
+		$this->form = ShoppRequestProcessing::process($_POST['settings'], $this->defaults);
+		return true;
 	}
 
 }
@@ -121,6 +163,52 @@ class ShoppScreenSetup extends ShoppSettingsScreenController {
 		shopp_enqueue_script('selectize');
 	}
 
+	public function ops () {
+		add_action('shopp_admin_settings_ops', array($this, 'updates') );
+	}
+
+	public function updates () {
+		if ( ! isset($_POST['settings']['target_markets']) )
+			asort($_POST['settings']['target_markets']);
+
+		// Save all other settings
+		shopp_set_formsettings();
+
+		$update = false;
+
+		// Update country changes
+		$country = ShoppBaseLocale()->country();
+		if ( $country != $this->form('country') ) {
+			$country = strtoupper($this->form('country'));
+			$countries = ShoppLookup::countries();
+
+			// Validate the country
+			if ( ! isset($countries[ $country ]) )
+				return $this->notice(Shopp::__('The country provided is not valid.'), 'error');
+
+			$update = true;
+		}
+
+		// Update state changes
+		$state = ShoppBaseLocale()->state();
+		if ( ShoppBaseLocale()->state() != $this->form('state') ) {
+			$state = strtoupper($this->form('state'));
+			$states = ShoppLookup::country_zones(array($country));
+
+			// Validate the state
+			if ( ! isset($states[ $country ][ $state ]) )
+				return $this->notice(Shopp::__('The %s provided is not valid.', ShoppBaseLocale()->division()), 'error');
+
+			$update = true;
+		}
+
+		// Save base locale changes
+		if ( $update )
+			ShoppBaseLocale()->save($country, $state);
+
+		$this->notice(Shopp::__('Shopp settings saved.'));
+	}
+
 	public function screen () {
 
 		if ( ! current_user_can('shopp_settings') )
@@ -131,42 +219,6 @@ class ShoppScreenSetup extends ShoppSettingsScreenController {
 			shopp_set_setting('display_welcome', 'off');
 
 		$countries = ShoppLookup::countries();
-		$states = array();
-
-		// Save settings
-		if ( ! empty($_POST['save']) && isset($_POST['settings']) ) {
-			check_admin_referer('shopp-setup');
-
-			if ( ! isset($_POST['settings']['target_markets']) )
-				asort($_POST['settings']['target_markets']);
-
-			shopp_set_formsettings();
-
-			if ( isset($_POST['settings']['base_locale']) ) {
-				$baseop = &$_POST['settings']['base_locale'];
-
-				if ( isset($countries[ strtoupper($baseop['country']) ]) ) { // Validate country
-					$country = strtoupper($baseop['country']);
-					$state = '';
-
-					if ( ! empty($baseop['state']) ) { // Valid state
-						$states = ShoppLookup::country_zones(array($country));
-						if ( isset($states[ $country ][ strtoupper($baseop['state']) ]) )
-							$state = strtoupper($baseop['state']);
-					}
-
-					ShoppBaseLocale()->save($country, $state);
-
-				}
-
-				shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
-					( in_array($country, Lookup::country_inclusive_taxes()) ? 'on' : 'off' )
-				);
-			}
-
-			$updated = __('Shopp settings saved.', 'Shopp');
-		}
-
 		$basecountry = ShoppBaseLocale()->country();
 		$countrymenu = Shopp::menuoptions($countries, $basecountry, true);
 		$basestates = ShoppLookup::country_zones(array($basecountry));
@@ -176,6 +228,8 @@ class ShoppScreenSetup extends ShoppSettingsScreenController {
 		if ( is_array($targets) )
 			$targets = array_map('stripslashes', $targets);
 		if ( ! $targets ) $targets = array();
+
+		$zones_ajaxurl = wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones');
 
 		include $this->ui('setup.php');
 
@@ -268,10 +322,19 @@ class ShoppScreenShipping extends ShoppSettingsScreenController {
 		));
 	}
 
-	public function screen () {
-		if ( ! current_user_can('shopp_settings_shipping') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
+	public function ops () {
+		// check_admin_referer('shopp-settings-shipping');
 
+		// add_action('shopp_admin_settings_ops', array($this, 'updates') );
+
+	}
+
+	public function shiprate () {
+
+	}
+
+
+	public function screen () {
 		$sub = 'settings';
 		$term_recount = false;
 		if (shopp_setting_enabled('shipping')) $sub = 'rates';
@@ -279,7 +342,6 @@ class ShoppScreenShipping extends ShoppSettingsScreenController {
 			$sub = $_GET['sub'];
 
 		if (!empty($_POST['save']) && empty($_POST['module']) ) {
-			check_admin_referer('shopp-settings-shipping');
 
 			$_POST['settings']['order_shipfee'] = Shopp::floatval($_POST['settings']['order_shipfee']);
 
