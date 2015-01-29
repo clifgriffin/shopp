@@ -1,11 +1,11 @@
 <table class="form-table">
 	<tr>
 		<th scope="row" valign="top"><label for="base_operations"><?php _e('Base of Operations','Shopp'); ?></label></th>
-		<td><select name="settings[base_locale][country]" id="base_operations">
+		<td><select name="settings[country]" id="base_operations">
 			<option value="">&nbsp;</option>
 				<?php echo $countrymenu; ?>
 			</select>
-			<select name="settings[base_locale][state]" id="base_operations_zone"<?php if ( empty($statesmenu) ): ?>disabled="disabled" class="hide-if-no-js"<?php else: ?>  placeholder="<?php Shopp::_e('Select your %s&hellip;', strtolower(ShoppBaseLocale()->division())); ?>"<?php endif; ?>>
+			<select name="settings[state]" id="base_operations_zone"<?php if ( empty($statesmenu) ): ?>disabled="disabled" class="hide-if-no-js"<?php else: ?>  placeholder="<?php Shopp::_e('Select your %s&hellip;', strtolower(ShoppBaseLocale()->division())); ?>"<?php endif; ?>>
 				<?php echo $statesmenu; ?>
 			</select>
 			<br />
@@ -69,7 +69,7 @@
 		<td><input type="hidden" name="settings[dashboard]" value="off" /><input type="checkbox" name="settings[dashboard]" value="on" id="dashboard-toggle"<?php if (shopp_setting('dashboard') == "on") echo ' checked="checked"'?> /><label for="dashboard-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
         <?php _e('Check this to display store performance metrics and more on the WordPress Dashboard.','Shopp'); ?></td>
 	</tr>
-	
+
 	<tr>
 		<th scope="row" valign="top"><label for="shopping-cart-toggle"><?php _e('Shopping Cart','Shopp'); ?></label></th>
 		<td><input type="hidden" name="settings[shopping_cart]" value="off" /><input type="checkbox" name="settings[shopping_cart]" value="on" id="shopping-cart-toggle"<?php if (shopp_setting_enabled('shopping_cart')) echo ' checked="checked"'?> /><label for="shopping-cart-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
@@ -96,3 +96,9 @@
 </table>
 
 <p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+	var zones_url = '<?php echo $zones_ajaxurl; ?>';
+/* ]]> */
+</script>

@@ -157,6 +157,10 @@ class ShoppBaseLocale extends ShoppLocale {
 
 		shopp_set_setting('base_locale', array($country, $state));
 
+		shopp_set_setting('tax_inclusive', // Automatically set the inclusive tax setting
+			in_array($country, ShoppLookup::country_inclusive_taxes()) ? 'on' : 'off'
+		);
+
 		$this->lookup($country);
 
 	}
