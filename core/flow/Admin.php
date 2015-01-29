@@ -344,7 +344,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		if ( wp_verify_nonce($this->request('_wpnonce'), 'shopp_disable_maintenance') ) {
 			shopp_set_setting('maintenance', 'off');
 		} else {
-			$url = wp_nonce_url(add_query_arg('page', ShoppAdmin::pagename('setup'), admin_url('admin.php')), 'shopp_disable_maintenance');
+			$url = wp_nonce_url(add_query_arg('page', ShoppAdmin::pagename('settings'), admin_url('admin.php')), 'shopp_disable_maintenance');
 			$this->Screen->notice(Shopp::__('Shopp is currently in maintenance mode. %sDisable Maintenance Mode%s', '<a href="' . $url . '" class="button">', '</a>'), 'error', 1);
 		}
 	}
@@ -413,7 +413,7 @@ class ShoppAdminPages {
 		'settings'              => 'shopp_settings',           // shopp_financials              shopp-merchant
 		'settings-payments'     => 'shopp_settings_payments',  // shopp_settings_taxes
 		'settings-shipping'     => 'shopp_settings_shipping',  // shopp_settings_presentation
-		'settings-shiprates'    => 'shopp_settings_shipping',  // shopp_promotions
+		'settings-boxes'        => 'shopp_settings_shipping',  // shopp_promotions
 		'settings-taxes'        => 'shopp_settings_taxes',     // shopp_products
 		'settings-advanced'     => 'shopp_settings_system',    // shopp_categories
 		'settings-storage'      => 'shopp_settings_system',
@@ -446,8 +446,8 @@ class ShoppAdminPages {
 
 		// Settings pages
 		$this->addpage('settings-core',         Shopp::__('Setup'),          'ShoppAdminSettings', 'settings', 'shoppui-th-list');
-		$this->addpage('settings-shiprates',    Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-truck');
-		$this->addpage('settings-shipping',     Shopp::__('Shipping'),       'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
+		$this->addpage('settings-shipping',     Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
+		$this->addpage('settings-boxes',        Shopp::__('Shipment Boxes'), 'ShoppAdminSettings', 'settings', 'shoppui-archive');
 		$this->addpage('settings-downloads',    Shopp::__('Downloads'),      'ShoppAdminSettings', 'settings', 'shoppui-download');
 		$this->addpage('settings-orders',       Shopp::__('Orders'),         'ShoppAdminSettings', 'settings', 'shoppui-flag');
 		$this->addpage('settings-payments',     Shopp::__('Payments'),       'ShoppAdminSettings', 'settings', 'shoppui-credit');
