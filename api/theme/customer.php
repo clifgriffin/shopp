@@ -1612,11 +1612,13 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
 	 * - **label**: Specifies the value of the button element
+	 * - **redirect**: Specifies the url the customer to redirected to after login. Defaults to $_REQUEST['redirect'].
 	 * @param ShoppCustomer $O       The working object
 	 * @return string The button markup
 	 **/
 	public static function submit_login ( $result, $options, $O ) {
 		if ( ! isset($options['label']) ) $options['label'] = Shopp::__('Login');
+		if ( ! isset($options['redirect']) ) $options['redirect'] = $_REQUEST['redirect'];
 		$string = '';
 		$id = 'submit-login';
 
@@ -1624,7 +1626,9 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		if ( isset($request['acct']) && 'logout' == $request['acct'] ) unset($request['acct']);
 
 		$context = ShoppStorefront::intemplate();
-		if ( 'checkout.php' == $context ) {
+		if ( !empty($options['redirect']) ) {
+			$string .= '<input type="hidden" name="redirect" value="' . esc_url($_REQUEST['redirect']) . '" />';
+		} elseif ( 'checkout.php' == $context ) {
 			$id .= '-checkout';
 			$string .= '<input type="hidden" name="redirect" value="checkout" />';
 		} else $string .= '<input type="hidden" name="redirect" value="' . esc_attr(Shopp::url($request, 'account', ShoppOrder()->security())) . '" />';
