@@ -317,7 +317,9 @@ abstract class ShoppCore {
 	}
 
 	public static function _n ( $single, $plural, $number ) {
-		return _n($single, $plural, $number, $domain);
+		$args = array_slice(func_get_args(), 2);
+		$translated = _n($single, $plural, $number, 'Shopp');
+		return vsprintf($translated, $args);
 	}
 
 	public static function _ne ( $single, $plural, $number ) {

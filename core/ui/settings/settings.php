@@ -7,9 +7,9 @@
 
 	<?php do_action('shopp_admin_notices'); ?>
 
-	<form name="settings" id="<?php echo esc_attr($this->id); ?>" action="<?php echo esc_url($this->url()); ?>" method="post">
+	<form name="settings" id="<?php echo esc_attr($this->id); ?>" action="<?php echo esc_url($this->url()); ?>" method="post"<?php $this->formattrs(); ?>>
 
-		<?php wp_nonce_field('shopp-setup'); ?>
+		<?php $this->nonce('field'); ?>
 
 		<?php do_action('shopp_settings_' . $this->id . '_screen_before'); ?>
 

@@ -337,7 +337,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 		// Determine if any of the default settings exist to prevent overwriting changes
 		$defaults = array_keys($settings);
-		$ImageSetting = new ImageSetting();
+		$ImageSetting = new ShoppImageSetting();
 		$options = array(
 			'columns' => 'name',
 			'table' => $ImageSetting->_table,

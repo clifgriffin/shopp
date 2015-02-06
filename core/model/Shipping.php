@@ -843,7 +843,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$logo = (strpos($this->label,'data:image') !== false);
 
 		$_ = array();
-		$_[] = '<tr><td colspan="5">';
+		$_[] = '<tr><td colspan="3">';
 
 		if ($logo) $_[] = '<style type="text/css">.shipper-logo { background: url('.$this->label.') no-repeat 10px 10px; text-indent: -9999em; height: 30px; }</style>';
 

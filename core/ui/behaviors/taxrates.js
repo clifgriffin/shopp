@@ -6,11 +6,11 @@
 
 jQuery(document).ready( function($) {
 
-	$.template('editor',$('#editor'));
-	$.template('conditional',$('#conditional'));
-	$.template('localrate',$('#localrate'));
-	$.template('property-menu',$('#property-menu'));
-	$.template('countries-menu',$('#countries-menu'));
+	$.template('editor', $('#editor'));
+	$.template('conditional', $('#conditional'));
+	$.template('localrate', $('#localrate'));
+	$.template('property-menu', $('#property-menu'));
+	$.template('countries-menu', $('#countries-menu'));
 
 	var editing = false,
 		notice = $('#no-taxrates');
@@ -22,9 +22,17 @@ jQuery(document).ready( function($) {
 		var $this = $(this),
 			ratesidx = rates.length, rulesidx = 0,
 			row = $this.parents('tr').hide(),
-			setting = $.getQueryVar('id',$this.attr('href')),
+			setting = $.getQueryVar('id', $this.attr('href')),
 			settings = rates[setting]?rates[setting]:{},
-			data = $.extend({'id':setting?setting:ratesidx++,'rate':0,'compound':'off','country':false,'zone':false,'logic':'any','rules':[]},settings),
+			data = $.extend({
+				'id'       : setting ? setting : 'new',
+				'rate'     : 0,
+				'compound' : 'off',
+				'country'  : false,
+				'zone'     : false,
+				'logic'    : 'any',
+				'rules'    : []
+			}, settings),
 			ui = $.tmpl('editor',data),
 			conditionsui = ui.find('div.conditionals').hide().removeClass('no-conditions'),
 			rulesui = conditionsui.find('ul'),
@@ -173,7 +181,7 @@ jQuery(document).ready( function($) {
 
 		/** Add to DOM **/
 		if (row.size() > 0) ui.insertAfter(row);
-		else ui.prependTo('#taxrates-table');
+		else ui.prependTo('#the-list');
 
 		quickSelects();
 

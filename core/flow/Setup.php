@@ -397,7 +397,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 			if (!empty($_GET['delete'])) $selected[] = (int)$_GET['delete'];
 			$selected = array_filter($selected);
 			foreach ($selected as $delete) {
-				$Record = new ImageSetting( (int)$delete );
+				$Record = new ShoppImageSetting( (int)$delete );
 				$Record->delete();
 			}
 		}
@@ -405,7 +405,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-images');
 
-			$ImageSetting = new ImageSetting($edit);
+			$ImageSetting = new ShoppImageSetting($edit);
 			$_POST['name'] = sanitize_title_with_dashes($_POST['name']);
 			$_POST['sharpen'] = floatval(str_replace('%','',$_POST['sharpen']));
 			$ImageSetting->updates($_POST);
@@ -414,7 +414,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 
 		$start = ($per_page * ($paged-1));
 
-		$ImageSetting = new ImageSetting($edit);
+		$ImageSetting = new ShoppImageSetting($edit);
 		$table = $ImageSetting->_table;
 		$columns = 'SQL_CALC_FOUND_ROWS *';
 		$where = array(

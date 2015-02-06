@@ -320,6 +320,8 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		// Screen assets (scripts & styles)
 		$this->Screen->assets();
 
+		do_action('shopp_' . $this->Screen->slug(). '_admin_scripts');
+
 	}
 
 	/**
@@ -438,43 +440,43 @@ class ShoppAdminPages {
 	private function __construct () {
 
 		// Orders menu
-		$this->addpage('orders',     Shopp::__('All Orders'), 'ShoppAdminOrders');
-		$this->addpage('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
-		$this->addpage('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
-		$this->addpage('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
-		$this->addpage('settings',   Shopp::__('Settings'),   'ShoppAdminSettings');
+		$this->add('orders',     Shopp::__('All Orders'), 'ShoppAdminOrders');
+		$this->add('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
+		$this->add('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
+		$this->add('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
+		$this->add('settings',   Shopp::__('Settings'),   'ShoppAdminSettings');
 
 		// Settings pages
-		$this->addpage('settings-core',         Shopp::__('Setup'),          'ShoppAdminSettings', 'settings', 'shoppui-th-list');
-		$this->addpage('settings-shipping',     Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
-		$this->addpage('settings-boxes',        Shopp::__('Shipment Boxes'), 'ShoppAdminSettings', 'settings', 'shoppui-archive');
-		$this->addpage('settings-downloads',    Shopp::__('Downloads'),      'ShoppAdminSettings', 'settings', 'shoppui-download');
-		$this->addpage('settings-orders',       Shopp::__('Orders'),         'ShoppAdminSettings', 'settings', 'shoppui-flag');
-		$this->addpage('settings-payments',     Shopp::__('Payments'),       'ShoppAdminSettings', 'settings', 'shoppui-credit');
-		$this->addpage('settings-taxes',        Shopp::__('Taxes'),	         'ShoppAdminSettings', 'settings', 'shoppui-money');
-		$this->addpage('settings-presentation', Shopp::__('Presentation'),   'ShoppAdminSettings', 'settings', 'shoppui-th-large');
-		$this->addpage('settings-pages',        Shopp::__('Pages'),          'ShoppAdminSettings', 'settings', 'shoppui-file');
-		$this->addpage('settings-images',       Shopp::__('Images'),         'ShoppAdminSettings', 'settings', 'shoppui-picture');
-		$this->addpage('settings-storage',      Shopp::__('Storage'),        'ShoppAdminSettings', 'settings', 'shoppui-cloud');
-		$this->addpage('settings-advanced',     Shopp::__('Advanced'),       'ShoppAdminSettings', 'settings', 'shoppui-cog');
+		$this->add('settings-core',         Shopp::__('Setup'),          'ShoppAdminSettings', 'settings', 'shoppui-th-list');
+		$this->add('settings-shipping',     Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
+		$this->add('settings-boxes',        Shopp::__('Shipment Boxes'), 'ShoppAdminSettings', 'settings', 'shoppui-archive');
+		$this->add('settings-downloads',    Shopp::__('Downloads'),      'ShoppAdminSettings', 'settings', 'shoppui-download');
+		$this->add('settings-orders',       Shopp::__('Orders'),         'ShoppAdminSettings', 'settings', 'shoppui-flag');
+		$this->add('settings-payments',     Shopp::__('Payments'),       'ShoppAdminSettings', 'settings', 'shoppui-credit');
+		$this->add('settings-taxes',        Shopp::__('Taxes'),	         'ShoppAdminSettings', 'settings', 'shoppui-money');
+		$this->add('settings-presentation', Shopp::__('Presentation'),   'ShoppAdminSettings', 'settings', 'shoppui-th-large');
+		$this->add('settings-pages',        Shopp::__('Pages'),          'ShoppAdminSettings', 'settings', 'shoppui-file');
+		$this->add('settings-images',       Shopp::__('Images'),         'ShoppAdminSettings', 'settings', 'shoppui-picture');
+		$this->add('settings-storage',      Shopp::__('Storage'),        'ShoppAdminSettings', 'settings', 'shoppui-cloud');
+		$this->add('settings-advanced',     Shopp::__('Advanced'),       'ShoppAdminSettings', 'settings', 'shoppui-cog');
 
 		if ( ShoppErrorLogging()->size() > 0 )
-			$this->addpage('settings-log', Shopp::__('Log'), 'ShoppAdminSettings', 'settings', 'shoppui-info-2');
+			$this->add('settings-log', Shopp::__('Log'), 'ShoppAdminSettings', 'settings', 'shoppui-info-2');
 
 		// Catalog menu
-		$this->addpage('products',   Shopp::__('Products'),   'ShoppAdminProducts',  'products');
-		$this->addpage('categories', Shopp::__('Categories'), 'ShoppAdminCategories', 'products');
+		$this->add('products',   Shopp::__('Products'),   'ShoppAdminProducts',  'products');
+		$this->add('categories', Shopp::__('Categories'), 'ShoppAdminCategories', 'products');
 
 		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'object');
 		foreach ( $taxonomies as $t ) {
 			if ( 'shopp_category' == $t->name ) continue;
 			$pagehook = str_replace('shopp_', '', $t->name);
-			$this->addpage($pagehook, $t->labels->menu_name, 'ShoppAdminCategories',  'products');
+			$this->add($pagehook, $t->labels->menu_name, 'ShoppAdminCategories',  'products');
 		}
-		$this->addpage('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounts', 'products');
+		$this->add('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounts', 'products');
 
-		$this->addpage('welcome', Shopp::__('Welcome'), 'ShoppAdminWelcome', 'welcome');
-		$this->addpage('credits', Shopp::__('Credits'), 'ShoppAdminWelcome', 'credits');
+		$this->add('welcome', Shopp::__('Welcome'), 'ShoppAdminWelcome', 'welcome');
+		$this->add('credits', Shopp::__('Credits'), 'ShoppAdminWelcome', 'credits');
 
 		// Filter hook for adding/modifying Shopp page definitions
 		$this->pages = apply_filters('shopp_admin_pages', $this->pages);
@@ -585,7 +587,7 @@ class ShoppAdminPages {
 	 * @param string $parent The internal reference for the parent page
 	 * @return void
 	 **/
-	private function addpage ( $name, $label, $controller = null, $parent = null, $icon = null ) {
+	private function add ( $name, $label, $controller = null, $parent = null, $icon = null ) {
 		$page = ShoppAdmin::pagename($name);
 
 		if ( isset($parent) ) $parent = ShoppAdmin::pagename($parent);

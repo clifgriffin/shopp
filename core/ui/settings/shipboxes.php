@@ -1,6 +1,6 @@
 <script id="editor" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
-<tr class="inline-edit-row ${classnames}" id="edit-image-setting-${id}">
+<tr class="inline-edit-row ${classnames}" id="edit-boxes-setting-${id}">
 	<td colspan="2">
 	<input type="hidden" name="id" value="${id}" /><label><input type="text" name="name" value="${name}" /><br /><?php Shopp::_e('Name'); ?></label>
 	<p class="submit">

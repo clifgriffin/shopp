@@ -519,7 +519,7 @@ class GatewayModules extends ModuleLoader {
 		foreach ( $gateways as $gateway ) {
 			$moduleclass = $this->moduleclass($gateway);
 			if ( ! empty($moduleclass) )
-				$this->activated[] = $moduleclass;
+				$this->activated[ $gateway ] = $moduleclass;
 		}
 
 		return $this->activated;

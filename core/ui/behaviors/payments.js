@@ -46,7 +46,7 @@ jQuery(document).ready( function($) {
 			cancel.click($this.cancel);
 
 			if (row.size() > 0) ui.insertAfter(row);
-			else ui.prependTo('#payments-settings-table');
+			else ui.prependTo('#the-list');
 
 			$(document).trigger(gateway+'Settings',[ui]);
 			quickSelects(ui);
@@ -55,13 +55,12 @@ jQuery(document).ready( function($) {
 
 		};
 
-	$('#payments a.edit').click(AddPayment);
+	$('#the-list a.edit').click(AddPayment);
 	$('#payment-option-menu').change(AddPayment);
 
-	$('#payments a.delete').click(function() {
+	$('#the-list a.delete').click(function() {
 		if (confirm($ps.confirm)) return true;
 		else return false;
 	});
-
 
 });

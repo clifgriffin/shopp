@@ -3155,7 +3155,7 @@ div.storage-settings {
 }
 
 /** Inline editors **/
-tr.inline-edit-row td {
+.shopp tr.inline-edit-row td {
 	padding: 10px;
 	border-bottom: 1px solid #e1e1e1;
 	border-top: 1px solid #e1e1e1;

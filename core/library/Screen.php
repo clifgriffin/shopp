@@ -46,6 +46,9 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		'id' => false
 	);
 
+	/** @var ShoppAdminTable A ShoppAdminTable object */
+	protected $Table = false;
+
 	/** @var Object The object model for the screen */
 	protected $Model = false;
 
@@ -66,16 +69,19 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		$this->id = ShoppAdmin::screen();
 		$this->pagename = $plugin_page;
 
-		// Parse query request
-		$this->query();
-
-		// Flag new model requests
-		if ( 'new' == $this->request('id') )
-			$this->request['new'] = true;
-
-		// Setup notices before process ops
+		// Setup notices before actions and process ops
 		Shopping::restore('admin_notices', $this->notices);
 		add_action('shopp_admin_notices', array($this, 'notices'));
+
+		// Parse query request
+		if ( $this->query() ) {
+			// Flag new model requests
+			if ( 'new' == $this->request('id') )
+				$this->request['new'] = true;
+
+			$this->actions();
+			do_action('shopp_admin_' . $this->slug() . '_actions');
+		}
 
 		// Setup the working object model
 		$this->Model = $this->process( $this->load() );
@@ -87,6 +93,10 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	}
 
 	public function load () {
+		/** Optionally implemented in the concrete class **/
+	}
+
+	public function actions () {
 		/** Optionally implemented in the concrete class **/
 	}
 
@@ -105,7 +115,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	/**
 	 * Dynamically includes necessary JavaScript and stylesheets for the screen
 	 *
-	 * @since 1.0
+	 * @since 1.4
 	 *
 	 * @return void
 	 **/
@@ -179,7 +189,34 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 
 	}
 
+	/**
+	 * Create or get the admin table for this screen
+	 *
+	 * @since 1.4
+	 *
+	 * @param string $classname The class name for the admin table renderer
+	 * @return ShoppAdminTable|bool The ShoppAdminTable object or false
+	 **/
+	protected function table ( $classname = null ) {
+		if ( isset($classname) ) {
+			$classname = apply_filters('shopp_screen_' . $this->slug() . '_table_class', $classname);
+			if ( class_exists($classname) )
+				$this->table = new $classname(array('screen' => get_current_screen()));
+		}
+
+		return $this->table;
+	}
+
+	/**
+	 * Process posted form data and/or request action operations
+	 *
+	 * @since 1.4
+	 *
+	 * @param Object $Object The model object for this screen
+	 * @return Object The model object for this screen
+	 **/
 	protected function process ( $Object ) {
+		if ( ! $this->query() ) $this->actions();
 		if ( ! $this->posted() ) return $Object; // Passthru if no data is submitted
 
 		if ( ! empty($this->nonce) )
@@ -229,7 +266,6 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 
 	}
 
-
 	/**
 	 * Generates the full URL for the current admin screen
 	 *
@@ -243,6 +279,28 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		return add_query_arg(array_map('esc_attr', $params), admin_url('admin.php'));
 	}
 
+	/**
+	 * Generate a nonce field, nonce URL or get the current nonce name
+	 *
+	 * @since 1.4
+	 *
+	 * @param string $nonce The nonce type ('field', 'url') or the nonce name
+	 * @param string $url (optional) The URL to nonce
+	 * @return string|void The nonce URL, nonce name or void when genrating the nonce field
+	 **/
+	public function nonce ( $nonce, $url = null ) {
+		if ( empty($this->nonce) )
+			$this->nonce = $this->id;
+
+		if ( 'field' == $nonce ) {
+			wp_nonce_field($this->nonce);
+		} elseif ( 'url' == $nonce ) {
+			$url = isset($url) ? $url : $this->url();
+			return wp_nonce_url($url, $this->nonce);
+		} elseif ( ! empty($nonce) ) {
+			$this->nonce = $nonce;
+		} else return $this->nonce;
+	}
 	/**
 	 * Helper to load a UI view template
 	 *

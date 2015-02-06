@@ -1,5 +1,5 @@
 /*!
- * imageset.js - Image settings UI behaviors
+ * boxesset.js - Boxes settings UI behaviors
  * Copyright © 2011 by Ingenesis Limited. All rights reserved.
  * Licensed under the GPLv3 {@see license.txt}
  */

@@ -155,7 +155,6 @@ class ShoppUI {
 	 */
 	protected static $metaboxes = array();
 
-
 	public static function cacheversion () {
 		return hash('crc32b', ABSPATH . ShoppVersion::release());
 	}
