@@ -373,7 +373,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$label = ( ! empty($options['label']) ) ? $options['label'] : '';
 		$menu[] = '<select name="' . $name . '" id="' . $id . '" ' . inputattrs($options, $select_attrs) . '>';
 		$menu[] = '<option>' . $label . '</option>';
-		$menu[] = menuoptions($months, $options['value']);
+		$menu[] = menuoptions($years, $options['value']);
 		$menu[] = '</select>';
 
 		return join('', $menu);
