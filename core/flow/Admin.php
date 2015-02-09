@@ -14,25 +14,26 @@
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 /**
- * ShoppAdmin
+ * The Shopp admin flow controller.
  *
- * @author Jonathan Davis
- * @package admin
  * @since 1.1
  **/
 class ShoppAdmin extends ShoppFlowController {
 
+	/** @var ShoppAdminController $Controller The current page admin controller. */
 	protected $Controller = false;
 
+	/** @var array $request The list of default request parameters. */
 	protected $request = array(
 		'page' => ''
 	);
 
 	/**
-	 * Admin constructor
+	 * Constructor.
 	 *
 	 * @since 1.1
 	 *
+	 * @param array $request The list of page request parameters.
 	 * @return void
 	 **/
 	public function __construct ( array $request = array() ) {
@@ -63,17 +64,28 @@ class ShoppAdmin extends ShoppFlowController {
 		add_filter('wp_dropdown_pages', array($this, 'storepages'));
 		add_filter('pre_update_option_page_on_front', array($this, 'frontpage'));
 
-		// @todo is this necessary any longer?
-		// add_action('load-update.php', array($this, 'styles'));
-
 	}
 
+	/**
+	 * Bootloader for the current page controller.
+	 *
+	 * @since 1.4
+	 *
+	 * @return void
+	 **/
 	public function controller () {
 		$ControllerClass = ShoppAdminPages()->controller();
 		if ( ! $ControllerClass ) return;
 		$this->Controller = new $ControllerClass($this->request);
 	}
 
+	/**
+	 * Routes the screen display to the page controller's screen handler.
+	 *
+	 * @since 1.4
+	 *
+	 * @return void
+	 **/
 	public function route () {
 		$this->Controller->screen();
 	}
@@ -112,8 +124,9 @@ class ShoppAdmin extends ShoppFlowController {
 	/**
 	 * Displays the database update screen
 	 *
+	 * @since 1.3
+	 *
 	 * @return boolean
-	 * @author Jonathan Davis
 	 **/
 	public static function updatedb () {
 		$uri = SHOPP_ADMIN_URI . '/styles';
@@ -124,7 +137,6 @@ class ShoppAdmin extends ShoppFlowController {
 	/**
 	 * Adds a 'New Product' shortcut to the WordPress admin favorites menu
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @param array $actions List of actions in the menu
@@ -142,7 +154,6 @@ class ShoppAdmin extends ShoppFlowController {
 	 * Automatically updates the Shopp theme path setting when the
 	 * a new theme is activated.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
@@ -168,7 +179,6 @@ class ShoppAdmin extends ShoppFlowController {
 	/**
 	 * Adds Shopp pages to the page_on_front menu
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
 	 * @param string $menu The current page_on_front menu
@@ -195,7 +205,6 @@ class ShoppAdmin extends ShoppFlowController {
 	/**
 	 * Filters the page_on_front option during save to handle the bigint on non 64-bit environments
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.3
 	 *
 	 * @param mixed $value The value to save
@@ -208,6 +217,13 @@ class ShoppAdmin extends ShoppFlowController {
 		else return $value;
 	}
 
+	/**
+	 * Gets the current screen id.
+	 *
+	 * @since 1.4
+	 *
+	 * @return string The current screen ID.
+	 **/
 	public static function screen () {
 		return get_current_screen()->id;
 	}
@@ -252,6 +268,13 @@ abstract class ShoppAdminController extends ShoppFlowController {
 	/** @var ShoppScreen The URL for this admin screen */
 	protected $Screen = false;
 
+	/**
+	 * Constructor.
+	 *
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
 	public function __construct () {
 
 		if ( ! ShoppAdminPages()->shoppscreen() ) return;
@@ -385,371 +408,19 @@ class ShoppAdminPostController extends ShoppAdminController {
 
 }
 
-class ShoppAdminPages {
-
-	private static $object = false;
-
-	private $pages = array();	// Defines a map of pages to create menus from
-	private $menus = array();	// Map of page names to WP screen ids for initialized Shopp menus
-	private $tabs = array();
-	private $mainmenu = false;	// The hook name of the main menu (Orders)
-
-	public $Ajax = array();		// List of AJAX controllers
-	public $Page = false;		// The current Page
-	public $menu = false;		// The current menu
-
-	/**
-	 * @public $caps
-	 **/
-	 private $caps = array(                                    // Initialize the capabilities, mapping to pages
-		'main'        => 'shopp_menu',                         // Capabilities                  Role
-		'orders'      => 'shopp_orders',                       // _______________________________________________
-		'orders-new'  => 'shopp_orders',                       //
-		'customers'   => 'shopp_customers',                    // shopp_settings                administrator
-		'reports'     => 'shopp_financials',                   // shopp_settings_checkout
-		'memberships' => 'shopp_products',                     // shopp_settings_payments
-		'products'    => 'shopp_products',                     // shopp_settings_shipping
-		'categories'  => 'shopp_categories',                   // shopp_settings_taxes
-		'discounts'   => 'shopp_promotions',                   // shopp_settings_system
-															   // shopp_settings_update
-		'settings'              => 'shopp_settings',           // shopp_financials              shopp-merchant
-		'settings-payments'     => 'shopp_settings_payments',  // shopp_settings_taxes
-		'settings-shipping'     => 'shopp_settings_shipping',  // shopp_settings_presentation
-		'settings-boxes'        => 'shopp_settings_shipping',  // shopp_promotions
-		'settings-taxes'        => 'shopp_settings_taxes',     // shopp_products
-		'settings-advanced'     => 'shopp_settings_system',    // shopp_categories
-		'settings-storage'      => 'shopp_settings_system',
-		'settings-log'          => 'shopp_settings_system',
-		'settings-core'         => 'shopp_settings',
-		'settings-orders'       => 'shopp_settings_checkout',
-		'settings-downloads'    => 'shopp_settings_checkout',
-		'settings-presentation' => 'shopp_settings_presentation',
-		'settings-images'       => 'shopp_settings_presentation',
-		'settings-pages'        => 'shopp_settings_presentation',
-		'welcome'               => 'shopp_menu',
-		'credits'               => 'shopp_menu'
-	);
-
-	/**
-	 * Defines the Shopp pages used to create WordPress menus
-	 *
-	 * @since 1.3
-	 *
-	 * @return void
-	 **/
-	private function __construct () {
-
-		// Orders menu
-		$this->add('orders',     Shopp::__('All Orders'), 'ShoppAdminOrders');
-		$this->add('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
-		$this->add('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
-		$this->add('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
-		$this->add('settings',   Shopp::__('Settings'),   'ShoppAdminSettings');
-
-		// Settings pages
-		$this->add('settings-core',         Shopp::__('Setup'),          'ShoppAdminSettings', 'settings', 'shoppui-th-list');
-		$this->add('settings-shipping',     Shopp::__('Shipping Rates'), 'ShoppAdminSettings', 'settings', 'shoppui-map-marker');
-		$this->add('settings-boxes',        Shopp::__('Shipment Boxes'), 'ShoppAdminSettings', 'settings', 'shoppui-archive');
-		$this->add('settings-downloads',    Shopp::__('Downloads'),      'ShoppAdminSettings', 'settings', 'shoppui-download');
-		$this->add('settings-orders',       Shopp::__('Orders'),         'ShoppAdminSettings', 'settings', 'shoppui-flag');
-		$this->add('settings-payments',     Shopp::__('Payments'),       'ShoppAdminSettings', 'settings', 'shoppui-credit');
-		$this->add('settings-taxes',        Shopp::__('Taxes'),	         'ShoppAdminSettings', 'settings', 'shoppui-money');
-		$this->add('settings-presentation', Shopp::__('Presentation'),   'ShoppAdminSettings', 'settings', 'shoppui-th-large');
-		$this->add('settings-pages',        Shopp::__('Pages'),          'ShoppAdminSettings', 'settings', 'shoppui-file');
-		$this->add('settings-images',       Shopp::__('Images'),         'ShoppAdminSettings', 'settings', 'shoppui-picture');
-		$this->add('settings-storage',      Shopp::__('Storage'),        'ShoppAdminSettings', 'settings', 'shoppui-cloud');
-		$this->add('settings-advanced',     Shopp::__('Advanced'),       'ShoppAdminSettings', 'settings', 'shoppui-cog');
-
-		if ( ShoppErrorLogging()->size() > 0 )
-			$this->add('settings-log', Shopp::__('Log'), 'ShoppAdminSettings', 'settings', 'shoppui-info-2');
-
-		// Catalog menu
-		$this->add('products',   Shopp::__('Products'),   'ShoppAdminProducts',  'products');
-		$this->add('categories', Shopp::__('Categories'), 'ShoppAdminCategories', 'products');
-
-		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'object');
-		foreach ( $taxonomies as $t ) {
-			if ( 'shopp_category' == $t->name ) continue;
-			$pagehook = str_replace('shopp_', '', $t->name);
-			$this->add($pagehook, $t->labels->menu_name, 'ShoppAdminCategories',  'products');
-		}
-		$this->add('discounts', Shopp::__('Discounts'), 'ShoppAdminDiscounts', 'products');
-
-		$this->add('welcome', Shopp::__('Welcome'), 'ShoppAdminWelcome', 'welcome');
-		$this->add('credits', Shopp::__('Credits'), 'ShoppAdminWelcome', 'credits');
-
-		// Filter hook for adding/modifying Shopp page definitions
-		$this->pages = apply_filters('shopp_admin_pages', $this->pages);
-		$this->caps = apply_filters('shopp_admin_caps', $this->caps);
-
-		reset($this->pages);
-		$this->mainmenu = key($this->pages);
-
-		add_action('admin_menu', array($this, 'taxonomies'), 100);
-
-		shopp_enqueue_style('menus');
-
-		// Set the currently requested page and menu
-		$page = ShoppFlow()->request('page');
-		if ( self::posteditor() ) $page = 'shopp-products';
-		if ( empty($page) ) return;
-
-		if ( isset($this->pages[ $page ]) ) $this->Page = $this->pages[ $page ];
-		if ( isset($this->menus[ $page ]) ) $this->menu = $this->menus[ $page ];
-
-	}
-
-	/**
-	 * The singleton access method
-	 *
-	 * @author Jonathan Davis
-	 * @since
-	 *
-	 * @return
-	 **/
-	public static function object () {
-		if ( ! self::$object instanceof self )
-			self::$object = new self;
-		return self::$object;
-	}
-
-	/**
-	 * Generates the Shopp admin menus
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void
-	 **/
-	public function menus () {
-
-		global $menu, $plugin_page;
-
-		$access = 'shopp_menu';
-		if ( Shopp::maintenance() ) $access = 'manage_options';
-
-		// Add main menus
-		$position = shopp_admin_add_menu(Shopp::__('Shopp'), 'orders', 40, false, 'shopp_orders', Shopp::clearpng());
-		shopp_admin_add_menu(Shopp::__('Catalog'), 'products', $position, false, 'shopp_products', Shopp::clearpng());
-
-		// Add after the Shopp menus to avoid being purged by the duplicate separator check
-		$menu[ $position - 1 ] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
-
-		// Add menus to WordPress admin
-		foreach ( $this->pages as $page ) $this->submenus($page);
-
-		$parent = get_admin_page_parent();
-
-		if ( isset($this->menus[ $parent ]) && false === strpos($this->menus[ $parent ], 'toplevel') ) {
-			$current_page = $plugin_page;
-			$plugin_page = $parent;
-			add_action('adminmenu', create_function('','global $plugin_page; $plugin_page = "' . $current_page. '";'));
-		}
-
-	}
-
-	/**
-	 * Provide admin support for custom Shopp taxonomies
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	public function taxonomies () {
-		global $submenu;
-		if ( ! is_array($submenu) ) return;
-
-		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype);
-		foreach ( $submenu['shopp-products'] as &$submenus ) {
-			$name = str_replace('-', '_', $submenus[2]);
-			if ( ! in_array($name, $taxonomies) ) continue;
-
-			$submenus[2] = "edit-tags.php?taxonomy=$name";
-
-			add_filter('manage_edit-' . $name . '_columns', array('ShoppAdminTaxonomies', 'columns'));
-			add_filter('manage_' . $name . '_custom_column', array('ShoppAdminTaxonomies', 'products'), 10, 3);
-		}
-
-		add_action('admin_print_styles-edit-tags.php',array(ShoppAdmin(), 'styles'));
-		add_action('admin_head-edit-tags.php', array('ShoppAdminTaxonomies', 'parentmenu'));
-	}
-
-	/**
-	 * Registers a new page to the Shopp admin pages
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $name The internal reference name for the page
-	 * @param string $label The label displayed in the WordPress admin menu
-	 * @param string $controller The name of the controller to use for the page
-	 * @param string $parent The internal reference for the parent page
-	 * @return void
-	 **/
-	private function add ( $name, $label, $controller = null, $parent = null, $icon = null ) {
-		$page = ShoppAdmin::pagename($name);
-
-		if ( isset($parent) ) $parent = ShoppAdmin::pagename($parent);
-		$capability = isset($this->caps[ $name ]) ? $this->caps[ $name ] : 'shopp_menu';
-		$this->pages[ $page ] = new ShoppAdminPage($name, $page, $label, $capability, $controller, $parent, $icon);
-	}
-
-	/**
-	 * Adds a ShoppAdminPage entry to the WordPress menus under the Shopp menus
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param mixed $page A ShoppAdminPage object
-	 * @return void
-	 **/
-	private function submenus ( ShoppAdminPage $Page ) {
-
-		$name = $Page->name;
-		$pagehook = $Page->page;
-
-		// Set capability
-		$capability = isset($this->caps[ $name ]) ? $this->caps[ $name ] : 'none';
-		$taxonomies = get_object_taxonomies(ShoppProduct::$posttype, 'names');
-		if ( in_array("shopp_$name", $taxonomies) ) $capability = 'shopp_categories';
-
-		// Set controller (callback handler)
-		$controller = array(ShoppAdmin(), 'route');
-
-		if ( Shopp::upgradedb() ) $controller = array('ShoppAdmin', 'updatedb');
-
-		$menu = $Page->parent ? $Page->parent : $this->mainmenu;
-
-		shopp_admin_add_submenu(
-			$Page->label,
-			$pagehook,
-			$menu,
-			$controller,
-			$capability
-		);
-
-	}
-
-	/**
-	 * Gets or add a ShoppAdmin menu entry
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.3
-	 *
-	 * @param string $name The Shopp-internal name of the menu
-	 * @param string $menu The WordPress screen ID
-	 * @return string The screen id of the given menu name
-	 **/
-	public function menu ( $name, $menu = null ) {
-
-		if ( isset($menu) ) $this->menus[ $name ] = $menu;
-		if ( isset($this->menus[ $name ]) ) return $this->menus[ $name ];
-
-		return false;
-
-	}
-
-	/**
-	 * Provides an array of tabs for the current screen
-	 **/
-	public function tabs ( $page ) {
-		global $submenu;
-		if ( ! isset($this->tabs[ $page ]) ) return array();
-		$parent = $this->tabs[ $page ];
-
-		if ( isset($submenu[ $parent ]) ) {
-			$tabs = array();
-			foreach ( $submenu[ $parent ] as $entry ) {
-				$title = $entry[0];
-				$tab = $entry[2];
-
-				if ( isset($this->pages[ $tab ]) ) {
-					$ShoppPage = $this->pages[ $tab ];
-					$icon = $ShoppPage->icon;
-				}
-
-				$tabs[ $tab ] = array(
-					$title,
-					$tab,
-					$parent,
-					$icon
-				);
-
-			}
-			return $tabs;
-		}
-
-		return array();
-	}
-
-	public function addtab ( $tab, $parent ) {
-		$this->tabs[ $parent ] = $parent;
-		$this->tabs[ $tab ] = $parent;
-	}
-
-	/**
-	 * Gets the name of the controller for the current request or the specified page resource
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $page (optional) The fully qualified reference name for the page
-	 * @return string|boolean The name of the controller or false if not available
-	 **/
-	public function controller ( $page = false ) {
-
-		if ( ! $page && isset($this->Page->controller) )
-			return $this->Page->controller;
-
-		if ( isset($this->pages[ $page ]) && isset($this->pages[ $page ]->controller) )
-			return $this->pages[ $page ]->controller;
-
-		return false;
-	}
-
-	/**
-	 * Gets the Shopp-internal name of the main menu
-	 *
-	 * @since 1.3
-	 *
-	 * @return string The menu name
-	 **/
-	public function mainmenu () {
-		return $this->mainmenu;
-	}
-
-	/**
-	 * Determines if the current request is a Shopp admin screen
-	 *
-	 * @since 1.4
-	 *
-	 * @return boolean True if the current screen is Shopp admin screen, false otherwise
-	 **/
-	public function shoppscreen () {
-		global $hook_suffix, $taxonomy;
-
-		if ( self::posteditor() ) return true;
-		if ( in_array($hook_suffix, $this->menus) ) return true;
-
-		if ( isset($taxonomy) ) { // Prevent loading styles if not on Shopp taxonomy editor
-			$taxonomies = get_object_taxonomies(ShoppProduct::$posttype);
-			if ( in_array($taxonomy, $taxonomies)) return true;
-		}
-
-		return false;
-	}
-
-	public static function posteditor () {
-		return ShoppProduct::posttype() == ShoppFlow()->request('post_type') &&  'edit' == ShoppFlow()->request('action');
-	}
-
-} // end ShoppAdminMenus
-
+/**
+ * Customizes Shopp taxonomy screens.
+ *
+ * @since 1.4
+ **/
 class ShoppAdminTaxonomies {
 
 	/**
-	 * Resets the parent menu to the Shopp Catalog menu
+	 * Resets the parent menu to the Shopp Catalog menu.
+	 *
+	 * @since 1.4
+	 *
+	 * @return void
 	 **/
 	public function parentmenu () {
 		global $parent_file, $taxonomy;
@@ -758,23 +429,32 @@ class ShoppAdminTaxonomies {
 	}
 
 	/**
-	 * Defines the column layout for Shopp taxonomy list screens
+	 * Defines the column layout for Shopp taxonomy list screens.
+	 *
+	 * @since 1.4
+	 *
+	 * @param array $cols The default columns for taxonomy screens.
+	 * @return Defines the columns for Shopp taxonomy screens.
 	 **/
 	public function columns ( array $cols ) {
-
-		$cols = array(
-			'cb' => '<input type="checkbox" />',
-			'name' => __('Name'),
+		return array(
+			'cb'          => '<input type="checkbox" />',
+			'name'        => __('Name'),
 			'description' => __('Description'),
-			'slug' => __('Slug'),
-			'products' => Shopp::__('Products')
+			'slug'        => __('Slug'),
+			'products'    => Shopp::__('Products')
 		);
-
-		return $cols;
 	}
 
 	/**
 	 * Generates the product column markup for taxonomy list screens
+	 *
+	 * @since 1.2
+	 *
+	 * @param string $markup The markup for the product column.
+	 * @param string $name The name of the taxonomy term.
+	 * @param int $term_id The taxonomy term ID.
+	 * @return string The markup for the product column.
 	 **/
 	public function products ( $markup, $name, $term_id ) {
 		global $taxonomy;
@@ -789,49 +469,33 @@ class ShoppAdminTaxonomies {
 } // end ShoppAdminTaxonomies
 
 /**
- * ShoppAdminPage class
+ * Adds the Shopp button to the TinyMCE toolbar.
  *
- * A property container for Shopp's admin page meta
+ * @access private
  *
- * @author Jonathan Davis
- * @since 1.1
- * @package admin
+ * @since 1.4
  **/
-class ShoppAdminPage {
-
-	public $name = '';
-	public $page = '';
-	public $label = '';
-	public $capability = 'shopp_menu';
-	public $controller = '';
-	public $parent = false;
-	public $icon = false;
-
-	public function __construct ( $name, $page, $label, $capability, $controller, $parent = null, $icon = null ) {
-		$this->name = $name;
-		$this->page = $page;
-		$this->label = $label;
-		$this->capability = $capability;
-		$this->controller = $controller;
-		$this->parent = $parent;
-		$this->icon = $icon;
-	}
-
-	public function hook () {
-		global $admin_page_hooks;
-		if ( isset($admin_page_hooks[ $this->parent ]) ) return $admin_page_hooks[ $this->parent ];
-		return 'shopp';
-	}
-
-} // END class ShoppAdminPage
-
 class ShoppTinyMCE {
 
+	/**
+	 * Initializes the runtime object.
+	 *
+	 * @since 1.4
+	 *
+	 * @return void
+	 **/
 	public static function init () {
 		if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'edit_pages' ) ) return;
 		new self();
 	}
 
+	/**
+	 * Constructor.
+	 *
+	 * @since 1.4
+	 *
+	 * @return void
+	 **/
 	public function __construct () {
 
 		$len = strlen( ABSPATH );
@@ -862,7 +526,6 @@ class ShoppTinyMCE {
 	/**
 	 * Adds the Shopp TinyMCE plugin to the list of loaded plugins
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
 	 * @param array $plugins The current list of plugins to load
@@ -878,7 +541,6 @@ class ShoppTinyMCE {
 	/**
 	 * Adds the Shopp button to the TinyMCE editor
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
 	 * @param array $buttons The current list of buttons in the editor
@@ -892,10 +554,21 @@ class ShoppTinyMCE {
 }
 
 /**
- * Adds ShoppPages and SmartCollection support to WordPress theme menus system
+ * Adds ShoppPages and SmartCollection support to WordPress theme menus system.
+ *
+ * @access private
+ *
+ * @since 1.4
  **/
 class ShoppCustomThemeMenus {
 
+	/**
+	 * Initializes the runtime object.
+	 *
+	 * @since
+	 *
+	 * @return void Description...
+	 **/
 	public static function init () {
 		new self();
 	}
@@ -971,5 +644,4 @@ class ShoppCustomThemeMenus {
 		return $menuitem;
 	}
 
-}
-
+} // class ShoppCustomThemeMenu

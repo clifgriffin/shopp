@@ -444,8 +444,8 @@ ShoppLoader::map(array(
 	'shoppadmindashboard' => '/flow/Dashboard.php',
 	'shoppadmindiscounts' => '/screens/Discounts.php',
 	'shoppadminlisttable' => '/flow/Admin.php',
-	'shoppadminpage' => '/flow/Admin.php',
-	'shoppadminpages' => '/flow/Admin.php',
+	'shoppadminpage' => '/flow/AdminPages.php',
+	'shoppadminpages' => '/flow/AdminPages.php',
 	'shoppadminproducts' => '/screens/Products.php',
 	'shoppadminreports' => '/screens/Reports.php',
 	'shoppadminorders' => '/screens/Orders.php',
@@ -555,7 +555,6 @@ ShoppLoader::map(array(
 	'shoppscreenstorage' => '/screens/Storage.php',
 	'shoppscreenadvanced' => '/screens/Advanced.php',
 	'shoppscreenlog' => '/screens/Log.php',
-
 
 	'shoppscripts' => '/flow/Scripts.php',
 	'shoppsearchwidget' => '/ui/widgets/search.php',
