@@ -1388,6 +1388,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	public static function save_button ( $result, $options, $O ) {
 		if ( ! isset($options['label']) ) $options['label'] = Shopp::__('Save');
 		$result = '<input type="hidden" name="customer" value="true" />';
+		$result .= wp_nonce_field('shopp_profile_update', '_wpnonce', true, false);
 		$result .= '<input type="submit" name="save" id="save-button"' . inputattrs($options) . ' />';
 		return $result;
 	}
