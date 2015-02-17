@@ -4,12 +4,10 @@
  *
  * Handles checkout form processing
  *
- * @author Jonathan Davis
- * @version 1.3
  * @copyright Ingenesis Limited, April 2013
  * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package shopp
- * @subpackage order
+ * @version 1.3
+ * @package Shopp/Flow/Checkout
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -17,33 +15,42 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 /**
  * Checkout manager
  *
- * @author Jonathan Davis
  * @since 1.1
  * @version 1.2
- * @package order
  **/
 class ShoppCheckout extends FormPostFramework {
 
-	private $confirmed = false;		// Flag to indicate
-	private $Register = false;		// The ShoppRegistration manager
+	/** @var boolean $confirmed Flag to indicate confirmed orders. */
+	private $confirmed = false;
 
+	/** @var ShoppRegistration $Register The ShoppRegistration manager. */
+	private $Register = false;
+
+	/** @var array $defaults The default inputs of the checkout form. */
 	protected $defaults = array(
-		'guest' => false,
+		'guest'       => false,
 		'sameaddress' => 'off',
-		'firstname' => '',
-		'lastname' => '',
-		'phone' => '',
-		'company' => '',
-		'shipmethod' => false,
-		'billing' => array(),
-		'shipping' => array(),
-		'info' => array(),
-		'data' => array()
+		'firstname'   => '',
+		'lastname'    => '',
+		'phone'       => '',
+		'company'     => '',
+		'shipmethod'  => false,
+		'billing'     => array(),
+		'shipping'    => array(),
+		'info'        => array(),
+		'data'        => array()
 	);
 
-	public function __construct () {
+	/**
+	 * Constructor.
+	 *
+	 * @since 1.1
+	 *
+	 * @return void
+	 **/
+	public function __construct() {
 
-		Shopping::restore('confirmed',$this->confirmed);
+		Shopping::restore('confirmed', $this->confirmed);
 
 		if ( empty($_POST) ) return;
 
@@ -75,14 +82,28 @@ class ShoppCheckout extends FormPostFramework {
 		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'billaddress'));
 	}
 
-	public function data () {
+	/**
+	 * Adds custom order data to the order data registry.
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function data() {
 
 		if ( $this->form('data') )
 			ShoppOrder()->data = $this->form('data');
 
 	}
 
-	public function customer () {
+	/**
+	 * Processes customer account fields.
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function customer() {
 
 		$Customer = ShoppOrder()->Customer;
 
@@ -96,7 +117,14 @@ class ShoppCheckout extends FormPostFramework {
 
 	}
 
-	public function shipaddress () {
+	/**
+	 * Processes changes to the shipping address.
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function shipaddress() {
 
 		$Cart = ShoppOrder()->Cart;
 		$ShippingAddress = ShoppOrder()->Shipping;
@@ -112,17 +140,16 @@ class ShoppCheckout extends FormPostFramework {
 	}
 
 	/**
-	 * Processes changes to the shipping method
+	 * Processes changes to the shipping method.
 	 *
 	 * Handles changes to the shipping method outside of other
-	 * checkout processes
+	 * checkout processes.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
 	 **/
-	public function shipmethod () {
+	public function shipmethod() {
 		$Shiprates = ShoppOrder()->Shiprates;
 		$ShippingAddress = ShoppOrder()->Shipping;
 
@@ -145,7 +172,14 @@ class ShoppCheckout extends FormPostFramework {
 	}
 
 
-	public function billaddress () {
+	/**
+	 * Processes changes to the billing address.
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function billaddress() {
 		$Cart = ShoppOrder()->Cart;
 		$BillingAddress = ShoppOrder()->Billing;
 
@@ -161,16 +195,23 @@ class ShoppCheckout extends FormPostFramework {
 
 	}
 
-	public function payment () {
+	/**
+	 * Processes payment information changes.
+	 *
+	 * @since 1.3
+	 *
+	 * @return void
+	 **/
+	public function payment() {
+		if ( ! $this->paycard() ) return;
+
+		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'paycard'));
+
 		$Billing = ShoppOrder()->Billing;
 		$Payments = ShoppOrder()->Payments;
 
 		// Change the cardtype to the selected payment service option label
 		$Billing->cardtype = $Payments->selected()->label;
-
-		if ( ! $this->paycard() ) return;
-
-		add_filter('shopp_validate_checkout', array('ShoppFormValidation', 'paycard'));
 
 		$form = $this->form('billing');
 
@@ -180,26 +221,21 @@ class ShoppCheckout extends FormPostFramework {
 			ShoppShopping()->secured(true);
 
 		// Sanitize the card number to ensure it only contains numbers
-		if ( ! empty($form['card']) ) {
-			$PAN = preg_replace('/[^\d]/', '', $form['card']);
-			if ( strlen($PAN) > 4 )
-				$Billing->card = $PAN;
-		}
+		if ( strlen( $PAN = self::digitsonly($form['card']) ) > 4 )
+			$Billing->card = $PAN;
 
-		$form['cardexpires'] = sprintf('%02d%02d', $form['cardexpires-mm'], $form['cardexpires-yy']);
-
-		if ( ! empty($form['cardexpires-mm']) && ! empty($form['cardexpires-yy'])) {
-			$exmm = preg_replace('/[^\d]/', '', $form['cardexpires-mm']);
-			$exyy = preg_replace('/[^\d]/', '', $form['cardexpires-yy']);
-			$Billing->cardexpires = mktime(0,0,0,$exmm,1,($exyy)+2000);
+		if ( ! empty($form['cardexpires-mm']) && ! empty($form['cardexpires-yy']) ) {
+			$exmm = self::digitsonly($form['cardexpires-mm']);
+			$exyy = self::digitsonly($form['cardexpires-yy']);
+			$Billing->cardexpires = mktime(0, 0, 0, $exmm, 1, $exyy + 2000);
 		} else $Billing->cardexpires = 0;
 
-		$Billing->cvv = preg_replace('/[^\d]/', '', $form['cvv']);
+		$Billing->cvv = self::digitsonly($form['cvv']);
 
 		// Extra card security check fields
 		if ( ! empty($form['xcsc']) ) {
 			$Billing->xcsc = array();
-			foreach ( (array)$form['xcsc'] as $field => $value ) {
+			foreach ( (array) $form['xcsc'] as $field => $value ) {
 				$Billing->Billing->xcsc[] = $field;	// Add to the XCSC registry of fields
 				$Billing->$field = $value;			// Add the property
 			}
@@ -208,15 +244,14 @@ class ShoppCheckout extends FormPostFramework {
 	}
 
 	/**
-	 * Determine if payment card data has been submitted
+	 * Determine if payment card data has been submitted.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
-	 * @return boolean
+	 * @return boolean True if payment card information was submitted, false otherwise.
 	 **/
-	public function paycard () {
-		$fields = array('card','cardexpires-mm','cardexpires-yy','cvv');
+	public function paycard() {
+		$fields = array('card', 'cardexpires-mm', 'cardexpires-yy', 'cvv');
 		$billing = $this->form('billing');
 		foreach ( $fields as $field )
 			if ( isset($billing[ $field ]) ) return true;
@@ -225,26 +260,24 @@ class ShoppCheckout extends FormPostFramework {
 
 
 	/*
-	 * Checkout form processing
+	 * Checkout form processing.
 	 *
 	 * Handles taking user input from the checkout form and
-	 * processing the information into useable order data
+	 * processing the information into useable order data.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
 	 **/
-	public function process () {
+	public function process() {
+
+		$action = $this->form('checkout');
+		if ( 'process' != $action ) return;
+
 		$Payments = ShoppOrder()->Payments;
 		$Cart = ShoppOrder()->Cart;
 
 		$forcedconfirm = 'always' == shopp_setting('order_confirmation');
-
-		$action = $this->form('checkout');
-
-		if ( ! $action || 'process' != $action) return;
-
 		$wasfree = $Cart->orderisfree(); // Get current free status
 		$estimated = $Cart->total();     // Get current total
 
@@ -256,8 +289,8 @@ class ShoppCheckout extends FormPostFramework {
 
 		// Catch originally free orders that get extra (shipping) costs added to them
 		if ( $wasfree && $Payments->count() > 1 && ! $Cart->orderisfree() && empty($Payments->selected()->cards) ) {
-			shopp_add_error( __('The order amount changed and requires that you select a payment method.','Shopp') );
-			Shopp::redirect( Shopp::url(false,'checkout', ShoppOrder()->security()) );
+			shopp_add_error( Shopp::__('The order amount changed and requires that you select a payment method.') );
+			Shopp::redirect( Shopp::url(false, 'checkout', ShoppOrder()->security()) );
 		}
 
 		// Do not use shopp_checkout_processed for payment gateway redirect actions
@@ -274,12 +307,11 @@ class ShoppCheckout extends FormPostFramework {
 	}
 
 	/**
-	 * Account registration processing
+	 * Account registration processing.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.3
 	 **/
-	public function registration () {
+	public function registration() {
 
 		// Validation already conducted during the checkout process
         add_filter('shopp_validate_registration', '__return_true');
@@ -292,20 +324,32 @@ class ShoppCheckout extends FormPostFramework {
 	}
 
 	/**
-	 * Confirms the order and starts order processing
+	 * Confirms the order and starts order processing.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void
 	 **/
-	public function confirmed () {
+	public function confirmed() {
 
 		if ( 'confirmed' == $this->form('checkout') ) {
 			$this->confirmed = true;
 			do_action('shopp_process_order');
 		}
 
+	}
+
+	/**
+	 * Filters a string to provide only the digits found in the string.
+	 *
+	 * @since 1.3.9
+	 *
+	 * @param string $string The string to filter
+	 * @return string The string of digits
+	 **/
+	protected static function digitsonly( $string ) {
+		$filtered = filter_var($string, FILTER_SANITIZE_NUMBER_INT);
+		return str_replace(array('+', '-'), '', $filtered);
 	}
 
 }
