@@ -215,7 +215,7 @@
 													<?php endforeach; ?>
 												<?php endif; ?>
 												<?php foreach ( (array)$Item->data as $name => $value ): ?>
-													<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value); ?></strong></small></li>
+													<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
 												<?php endforeach; ?>
 												<?php endif; ?>
 												<?php do_action_ref_array('shopp_after_purchased_data', array($Item, $Purchase)); ?>
