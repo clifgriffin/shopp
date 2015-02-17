@@ -180,8 +180,11 @@ class ShoppCheckout extends FormPostFramework {
 			ShoppShopping()->secured(true);
 
 		// Sanitize the card number to ensure it only contains numbers
-		if ( ! empty($form['card']) )
-			$Billing->card = preg_replace('/[^\d]/', '', $form['card']);
+		if ( ! empty($form['card']) ) {
+			$PAN = preg_replace('/[^\d]/', '', $form['card']);
+			if ( strlen($PAN) > 4 )
+				$Billing->card = $PAN;
+		}
 
 		$form['cardexpires'] = sprintf('%02d%02d', $form['cardexpires-mm'], $form['cardexpires-yy']);
 
