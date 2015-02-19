@@ -985,7 +985,8 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$options = wp_parse_args($options, array(
 			'dropdown' => false,
 			'default' => $default,
-			'title' => ''
+			'title' => '',
+			'class' => ''
 		));
 		extract($options, EXTR_SKIP);
 
@@ -1003,7 +1004,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				foreach ($_GET as $key => $value)
 					if ( 'sort' != $key ) $_[] = '<input type="hidden" name="' . $key . '" value="' . $value . '" />';
 			}
-			$_[] = '<select name="sort" class="shopp-orderby-menu">';
+			$_[] = '<select name="sort" class="shopp-orderby-menu '.$class.'">';
 			$_[] = menuoptions($menuoptions,$default,true);
 			$_[] = '</select>';
 			$_[] = '</form>';
