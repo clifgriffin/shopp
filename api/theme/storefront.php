@@ -1004,7 +1004,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				foreach ($_GET as $key => $value)
 					if ( 'sort' != $key ) $_[] = '<input type="hidden" name="' . $key . '" value="' . $value . '" />';
 			}
-			$_[] = '<select name="sort" class="shopp-orderby-menu '.$class.'">';
+			$_[] = '<select name="sort" class="shopp-orderby-menu ' . esc_attr($class) . '">';
 			$_[] = menuoptions($menuoptions,$default,true);
 			$_[] = '</select>';
 			$_[] = '</form>';
