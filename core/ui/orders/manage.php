@@ -1,6 +1,6 @@
 <form action="<?php echo $this->url(); ?>" method="post">
 
-<?php if ($Purchase->shippable): ?>
+<?php if ( $Purchase->shippable ): ?>
 <script id="shipment-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <li class="inline-fields">
@@ -13,7 +13,7 @@
 	<label><?php _e('Carrier'); ?></label>
 	</span>
 </li>
-<?php $shipmentui = ob_get_contents(); ob_end_clean(); echo $shipmentui; ?>
+<?php echo $shipmentui = ob_get_clean(); ?>
 </script>
 
 <script id="shipnotice-ui" type="text/x-jquery-tmpl">
@@ -28,19 +28,17 @@
 			<li><span class="number">${shipmentnum}.</span> <input type="submit" id="addship-button" name="add-shipment" value="<?php _e('Add Shipment','Shopp'); ?>" class="button-secondary" /></li>
 		</ol>
 
+		<input type="submit" id="cancel-ship" name="cancel-shipments" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
 		<div class="submit">
-			<input type="submit" id="cancel-ship" name="cancel-shipments" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
-			<div class="alignright">
 			<input type="submit" name="submit-shipments" value="<?php _e('Send Shipping Notice','Shopp'); ?>" class="button-primary" />
-			</div>
 		</div>
 	</div>
 </div>
-<?php $shipnotice_ui = ob_get_contents(); ob_end_clean(); echo $shipnotice_ui; ?>
+<?php echo $shipnotice_ui = ob_get_clean(); ?>
 </script>
 <?php endif; ?>
 
-<?php if (!$Purchase->isvoid()): ?>
+<?php if ( ! $Purchase->isvoid() ): ?>
 <script id="refund-ui" type="text/x-jquery-tmpl">
 <?php ob_start(); ?>
 <div class="refund misc-pub-section">
@@ -80,7 +78,7 @@
 		</div>
 	</div>
 </div>
-<?php $refundui = ob_get_clean(); echo $refundui; ?>
+<?php echo $refundui = ob_get_clean(); ?>
 </script>
 <?php endif; ?>
 
@@ -133,24 +131,34 @@
 
 			if (isset($_POST['cancel-shipments']) && 'ship-notice' == $action) $action = false;
 			if (isset($_POST['cancel-refund']) && 'refund-order' == $action) $action = false;
-			if ('ship-notice' == $action) {
-				unset($_POST['cancel-order'],$_POST['refund-order']);
-				$default = array('tracking'=>'','carrier'=>'');
-				$shipment = isset($_POST['shipment'])?$_POST['shipment']:array($default);
+
+
+
+			if ( 'ship-notice' == $action ) {
+
+				unset($_POST['cancel-order'],$_POST['refund-order']); // ???
+
+				$default = array('tracking' => '', 'carrier' => '');
+				$shipment = isset($_POST['shipment']) ? $_POST['shipment'] : array($default);
+
 				$shipments = (int)$_POST['shipments'];
-				if (isset($_POST['delete-shipment'])) {
+
+				if ( isset($_POST['delete-shipment']) ) {
 					$queue = array_keys($_POST['delete-shipment']);
 					foreach ($queue as $index) array_splice($shipment,$index,1);
 				}
-				if (isset($_POST['add-shipment'])) $shipment[] = $default;
+				if ( isset($_POST['add-shipment']) )
+					$shipment[] = $default;
 
-				global $carriers_menu;
-				foreach ($shipment as $id => $package) {
+				// Build the shipment entry UIs
+				foreach ( $shipment as $id => $package ) {
 					extract($package);
 					$menu = Shopp::menuoptions($carriers_menu,$carrier,true);
 					$shipmentuis = ShoppUI::template($shipmentui, array('${id}' => $id,'${num}' => ($id+1),'${tracking}'=>$tracking,'${carriermenu}'=>$menu ));
 				}
-				echo ShoppUI::template($shipnotice_ui,array('${shipments}'=>$shipmentuis,'${shipmentnum}'=>count($shipment)+1));
+
+
+				echo ShoppUI::template($shipnotice_ui, array('${shipments}'=>$shipmentuis, '${shipmentnum}'=>count($shipment)+1));
 			}
 
 			if ('refund-order' == $action) {
@@ -175,55 +183,17 @@
 					);
 				}
 
-				echo ShoppUI::template($refundui,$data);
+				echo ShoppUI::template($refundui, $data);
 			}
 
-			if ('edit-address' == $action) {
-				if ( isset($_POST['edit-billing-address']) ) {
-					$data = array(
-						'${type}' => 'billing',
-						'${title}' => __('Edit Billing Address','Shopp'),
-						'${firstname}' => $Purchase->firstname,
-						'${lastname}' => $Purchase->lastname,
-						'${address}' => $Purchase->address,
-						'${xaddress}' => $Purchase->xaddress,
-						'${city}' => $Purchase->city,
-						'${state}' => $Purchase->state,
-						'${postcode}' => $Purchase->postcode,
-					);
-					$data['${statemenu}'] = Shopp::menuoptions($Purchase->_billing_states,$Purchase->state,true);
-					$data['${countrymenu}'] = Shopp::menuoptions($Purchase->_countries,$Purchase->country,true);
-				}
 
-				if ( isset($_POST['edit-shipping-address']) ) {
-					$shipname = explode(' ',$Purchase->shipname);
-					$shipfirst = array_shift($shipname);
-					$shiplast = join(' ',$shipname);
-					$data = array(
-						'${type}' => 'shipping',
-						'${title}' => __('Edit Shipping Address','Shopp'),
-						'${firstname}' => $shipfirst,
-						'${lastname}' => $shiplast,
-						'${address}' => $Purchase->shipaddress,
-						'${xaddress}' => $Purchase->shipxaddress,
-						'${city}' => $Purchase->shipcity,
-						'${state}' => $Purchase->shipstate,
-						'${postcode}' => $Purchase->shippostcode,
-					);
-
-					$data['${statemenu}'] = Shopp::menuoptions($Purchase->_shipping_states, $Purchase->shipstate, true);
-					$data['${countrymenu}'] = Shopp::menuoptions($Purchase->_countries, $Purchase->shipcountry, true);
-				}
-				$data['${action}'] = 'update-address';
-				echo ShoppUI::template($editaddress, $data);
-			}
 		?>
 		</div>
 	</div>
 </div>
-<?php if (!($Purchase->isvoid() && $Purchase->refunded)): ?>
+<?php if ( ! ( $Purchase->isvoid() && $Purchase->refunded ) ): ?>
 	<div id="major-publishing-actions">
-		<?php if (!$Purchase->isvoid()): ?>
+		<?php if ( ! $Purchase->isvoid() ): ?>
 		<div class="alignleft">
 			<?php if ( current_user_can('shopp_void') && ! $Purchase->captured ): ?>
 				<input type="submit" id="cancel-order" name="cancel-order" value="<?php _e('Cancel Order','Shopp'); ?>" class="button-secondary cancel" />

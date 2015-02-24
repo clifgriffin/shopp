@@ -2,7 +2,7 @@
 	<p class="clearfix">
 		<div class="address-controls button-group">
 		<input type="button" id="load-${type}-address" name="load-${type}-customer" value="<?php Shopp::_e('Load Address'); ?>" class="button button-secondary button-edit">
-		<input type="button" id="load-${type}-address" name="load-${type}-customer" value="<?php Shopp::_e('Copy from %s', 'billing' == $type ? Shopp::__('Billing') : Shopp::__('Shipping')); ?>" class="button button-secondary button-edit">
+		<input type="button" id="load-${type}-address" name="load-${type}-customer" value="<?php Shopp::_e('Copy %s', 'billing' == $type ? Shopp::__('Shipping') : Shopp::__('Billing')); ?>" class="button button-secondary button-edit">
 		</div>
 	</p>
 	<p class="inline-fields">
@@ -28,7 +28,7 @@
 		<span id="${type}-state-inputs">
 			<label for="address-state"><?php _e('State / Province','Shopp'); ?></label>
 			<select name="${type}[state]" id="${type}-state-menu">${statemenu}</select>
-			<input type="text" name="${type}[state]" id="${type}-state" value="${state}" size="12" disabled="disabled"  class="hidden" />
+			<input type="text" name="${type}[state]" id="${type}-state" value="${state}" size="12" disabled="disabled" class="hidden" />
 		</span>
 	</p>
 	<p class="inline-fields">

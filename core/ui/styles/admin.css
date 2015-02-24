@@ -1889,9 +1889,9 @@ p.controls {
 	text-decoration: line-through;
 }
 
-#orders .summary li {
+.wrap h2 span.summary {
 	display: inline;
-	margin-right: 20px;
+	margin-left: 20px;
 	font-size: 14px;
 }
 

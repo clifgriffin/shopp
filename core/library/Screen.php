@@ -79,7 +79,7 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 			if ( 'new' == $this->request('id') )
 				$this->request['new'] = true;
 
-			$this->actions();
+			$this->handlers('actions', (array)$this->actions());
 			do_action('shopp_admin_' . $this->slug() . '_actions');
 		}
 
@@ -98,10 +98,12 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 
 	public function actions () {
 		/** Optionally implemented in the concrete class **/
+		return array();
 	}
 
 	public function ops () {
 		/** Optionally implemented in the concrete class **/
+		return array();
 	}
 
 	public function layout () {
@@ -201,10 +203,10 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		if ( isset($classname) ) {
 			$classname = apply_filters('shopp_screen_' . $this->slug() . '_table_class', $classname);
 			if ( class_exists($classname) )
-				$this->table = new $classname(array('screen' => get_current_screen()));
+				$this->Table = new $classname(array('screen' => get_current_screen()));
 		}
 
-		return $this->table;
+		return $this->Table;
 	}
 
 	/**
@@ -216,13 +218,12 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	 * @return Object The model object for this screen
 	 **/
 	protected function process ( $Object ) {
-		if ( ! $this->query() ) $this->actions();
 		if ( ! $this->posted() ) return $Object; // Passthru if no data is submitted
 
 		if ( ! empty($this->nonce) )
 			check_admin_referer($this->nonce);   // Validate the ops nonce
 
-		$this->ops(); // Setup the implementation screen's filter callbacks
+		$this->handlers('ops', (array)$this->ops()); // Setup the implementation screen's operations callbacks
 
 		// Run the implemented screen's processing filters
 		$Object = apply_filters('shopp_admin_' . $this->slug() . '_ops', $Object);
@@ -275,8 +276,10 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 	 * @return string The generated URL with parameters
 	 **/
 	public function url ( $params = array() ) {
+		$params['_wpnonce'] = $params['_wp_http_referer'] = false;
 		$params = array_merge($this->request, $params);
-		return add_query_arg(array_map('esc_attr', $params), admin_url('admin.php'));
+
+		return add_query_arg($params, admin_url('admin.php'));
 	}
 
 	/**
@@ -321,6 +324,23 @@ abstract class ShoppScreenController extends ShoppRequestFormFramework {
 		$this->notice(Shopp::__('The requested screen was not found.'), 'error');
 		do_action('shopp_admin_notices');
 		return false;
+	}
+
+	/**
+	 * Registers callback handlers for actions or ops
+	 *
+	 * @since 1.4
+	 *
+	 *
+	 * @return void
+	 **/
+	private function handlers ( $action, array $methods = array() ) {
+		if ( empty($methods) ) return;
+		if ( ! in_array($action, array('actions', 'ops')) ) return;
+		foreach ( $methods as $method ) {
+			if ( is_callable(array($this, $method)) )
+			add_action('shopp_admin_' . $this->slug() . '_' . $action, array($this, $method));
+		}
 	}
 
 }

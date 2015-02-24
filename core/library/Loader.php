@@ -510,6 +510,7 @@ ShoppLoader::map(array(
 	'shopporder' => '/flow/Order.php',
 	'shopporderdiscount' => '/model/Discounts.php',
 	'shopporderpromo' => '/model/Discounts.php',
+	'shoppadminordertable' => '/screens/Orders.php',
 	'shopppage' => '/flow/Pages.php',
 	'shopppages' => '/flow/Pages.php',
 	'shopppaymentoption' => '/model/Payments.php',

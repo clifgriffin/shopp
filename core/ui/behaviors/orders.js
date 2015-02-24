@@ -117,6 +117,7 @@ jQuery(document).ready( function($) {
 		editaddress = function (type) {
 			var $this = $(this),
 				data = address[ type ],
+				statemenu = data && data.statemenu ? data.statemenu : [],
 				ui = $.tmpl('address-ui', data),
 				editorui = $('#' + type + '-address-editor'),
 				display = $('#order-' + type + ' .display'),
@@ -130,14 +131,19 @@ jQuery(document).ready( function($) {
 
 				});
 
-			if ( data && data.statemenu )
-				$('#' + type + '-state-menu').html(data.statemenu).selectize({
-					openOnFocus: true,
-					diacritics: true,
-					allowEmptyOption: true,
-					selectOnTab: true,
-					create: true
-				});
+
+			if ( ui ) {
+				display.hide();
+				editorui.hide().empty().append(ui).slideDown('fast');
+			}
+
+			$('#' + type + '-state-menu').html(statemenu).selectize({
+				openOnFocus: true,
+				diacritics: true,
+				allowEmptyOption: true,
+				selectOnTab: true,
+				create: true
+			});
 
 			$('#' + type + '-country').upstate().selectize({
 				openOnFocus: true,
@@ -146,11 +152,6 @@ jQuery(document).ready( function($) {
 				selectOnTab: true,
 				create: false
 			});
-
-			// if ( ui ) {
-			// 	display.hide();
-			// 	editorui.hide().empty().append(ui).slideDown('fast');
-			// }
 
 		},
 

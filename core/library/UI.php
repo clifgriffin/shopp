@@ -13,7 +13,7 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-abstract class ShoppAdminMetabox {
+abstract class ShoppAdminMetabox extends ShoppRequestFormFramework {
 
 	/** @var type $var Description **/
 	protected $defaults = array(
@@ -33,14 +33,32 @@ abstract class ShoppAdminMetabox {
 	/** @var type $var Description **/
 	protected $title = '';
 
+	/** @var ShoppScreen The URL for this admin screen */
+	protected $Screen = false;
 
-	public function __construct ( $posttype, $context, $priority, array $args = array() ) {
+	public function __construct ( ShoppScreenController $Screen, $context, $priority, array $args = array() ) {
+		Shopping::restore('admin_notices', $this->notices);
 
+		$this->Screen = $Screen;
 		$this->references = $args;
-		$this->init();
-		$this->request($_POST);
 
-		add_meta_box($this->id, $this->title() . self::help($this->id), array($this, 'box'), $posttype, $context, $priority, $args);
+		add_meta_box($this->id, $this->title() . self::help($this->id), array($this, 'box'), $Screen->id, $context, $priority, $args);
+
+		// Parse query request
+		if ( $this->query() ) {
+			$this->actions();
+			$this->handlers('actions', (array)$this->actions());
+			do_action('shopp_metabox_' . $this->id . '_actions');
+		}
+
+		// Parse posted form
+		if ( $this->posted() ) {
+			$this->handlers('ops', (array)$this->ops());
+			do_action('shopp_metabox_' . $this->id . '_ops');
+		}
+
+		$this->references();
+		$this->init();
 
 	}
 
@@ -59,13 +77,22 @@ abstract class ShoppAdminMetabox {
 		/* Optionally implemented in concrete class */
 	}
 
-	protected function request ( array &$post = array() ) {
+	protected function actions () {
 		/* Optionally implemented in concrete class */
-		if ( ! $post ) $post = array();
 	}
 
-	protected function ui () {
-		$path = join('/', array(SHOPP_ADMIN_PATH, $this->view));
+	protected function ops () {
+		/* Optionally implemented in concrete class */
+	}
+
+	protected function references () {
+		/* Optionally implemented in concrete class */
+	}
+
+	protected function ui ( $view = null ) {
+		if ( is_null($view) )
+			$view = $this->view;
+		$path = join('/', array(SHOPP_ADMIN_PATH, $view));
 		if ( is_readable($path) )
 			return $path;
 	}
@@ -82,6 +109,29 @@ abstract class ShoppAdminMetabox {
 
 		$helpurl = add_query_arg(array('src' => 'help', 'id' => $id), admin_url('admin.php'));
 		return apply_filters('shopp_admin_boxhelp', '<a href="' . esc_url($helpurl) . '" class="help shoppui-question"></a>');
+	}
+
+	/**
+	 * Adds a notice to the screen
+	 *
+	 * @since 1.3
+	 *
+	 * @param string $message The message to add
+	 * @param string $style `updated` (optional) The notice style class to use
+	 * @param int $priority The priority (order) of the message
+	 * @return void
+	 **/
+	protected function notice ( $message, $style = 'updated', $priority = 10 ) {
+		$this->Screen->notice($message, $style, $priority);
+	}
+
+	private function handlers ( $action, array $methods = array() ) {
+		if ( empty($methods) ) return;
+		if ( ! in_array($action, array('actions', 'ops')) ) return;
+		foreach ( $methods as $method ) {
+			if ( is_callable(array($this, $method)) )
+			add_action('shopp_metabox_' . $this->id . '_' . $action, array($this, $method));
+		}
 	}
 
 } // end ShoppAdminMetaBox

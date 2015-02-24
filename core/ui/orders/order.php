@@ -9,7 +9,8 @@
 
 	<?php $this->notices(); ?>
 
-	<?php include $this->ui('navigation.php'); ?>
+	<?php ShoppScreenOrders::navigation(); ?>
+
 	<br class="clear" />
 
 	<?php
@@ -108,8 +109,7 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var carriers   = <?php echo json_encode($carriers_json); ?>,
-	noteurl    = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>',
+var noteurl    = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>',
 	producturl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_select_product'); ?>',
 	addressurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_lookup_addresses'); ?>';
 

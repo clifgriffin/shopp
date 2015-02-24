@@ -399,7 +399,7 @@ abstract class ShoppAdminTable extends ShoppRequestFramework {
 	 *
 	 * @return array
 	 */
-	protected function get_bulk_actions() {
+	protected function get_bulk_actions( $which ) {
 		return array();
 	}
 
