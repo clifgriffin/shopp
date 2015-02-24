@@ -116,7 +116,7 @@ jQuery(document).ready(function($) {
 		this.form.submit();
 	});
 
-	$('input[type=image]').click(function () { $(this.form).submit(); });
+	$('#cart input[type=image]').click(function () { $(this.form).submit(); });
 
 	// "Add to cart" button behaviors
 	$('input.addtocart').each(function() {
