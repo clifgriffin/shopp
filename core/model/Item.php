@@ -194,6 +194,10 @@ class ShoppCartItem {
 				$trial = $this->trial();
 				$this->unitprice = $trial['price'];
 			}
+		} else {
+			// remove subscription labels in case they were set earlier
+			unset($this->data[_x('Subscription','Subscription terms label','Shopp')]);
+			unset($this->data[_x('Trial Period','Item trial period label','Shopp')]);
 		}
 
 		// Map out the selected menu name and option
