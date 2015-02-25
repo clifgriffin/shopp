@@ -1609,7 +1609,7 @@ class FeaturedProducts extends SmartCollection {
 
 	public function smart ( array $options = array() ) {
 		$this->loading['where'] = array("s.featured='on'");
-		$this->loading['order'] = 'newest';
+		$this->loading['order'] = empty($options['order']) ? 'newest' : $options['order']; // Default order to newest
 	}
 
 }
