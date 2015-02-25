@@ -227,7 +227,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 * @return string The last 4 digits
 	 **/
 	public static function card ( $result, $options, $O ) {
-		return ( ! empty($O->card) ) ? sprintf("%'X16d", $O->card) : '';
+		return ( ! empty($O->card) ) ? sprintf("%'X16s", $O->card) : '';
 	}
 
 	/**
