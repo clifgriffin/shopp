@@ -587,6 +587,9 @@ class ShoppCartItem {
 			}
 
 			$this->data[_x('Trial Period','Item trial period label','Shopp')] = $trial_label;
+		} else {
+			// catches variant changes when a different subscription variant doesn't have a trial
+			unset($this->data[_x('Trial Period','Item trial period label','Shopp')]);
 		}
 
 		// pick untranslated label
