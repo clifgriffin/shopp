@@ -805,6 +805,24 @@ abstract class ShoppCore {
 	}
 
 	/**
+	 * Outputs debug structures to the browser console.
+	 *
+	 * @since 1.3.9
+	 *
+	 * @param mixed $data The data to display in the console.
+	 * @return void
+	 **/
+	public static function debug_console ( $data ) {
+		$callstack = debug_caller();
+		shopp_custom_script('shopp', "
+			var shopp_debug = " . json_encode($data) . ",
+				shopp_callstack = '" . $callstack . "';
+				console.log(shopp_debug);
+				console.log(shopp_callstack);
+		");
+	}
+
+	/**
 	 * Returns the duration (in days) between two timestamps
 	 *
 	 * @author Jonathan Davis
