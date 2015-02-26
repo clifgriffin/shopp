@@ -752,12 +752,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$item = current($O->purchased);
 		if ( empty($item->addons) || ( is_string($item->addons) && ! Shopp::str_true($item->addons) ) ) return false;
 		$defaults = array(
-			'prices' => 'on',
-			'download' => Shopp::__('Download'),
-			'before' => '',
 			'after' => '',
+			'before' => '',
 			'class' => '',
-			'excludes' => ''
+			'download' => Shopp::__('Download'),
+			'excludes' => '',
+			'prices' => true,
+			'separator' => ': '
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
@@ -769,6 +770,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			$taxrate = round($item->unittax / $item->unitprice, 4);
 
 		$result = $before.'<ul' . $class . '>';
+		list($menus, $menumap) = self::_addon_menus();
+
 		foreach ( $item->addons->meta as $id => $addon ) {
 			if ( in_array($addon->name, $excludes) ) continue;
 			if ( 'inclusive' == $O->taxing )
@@ -783,8 +786,10 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 				$link = '<br /><a href="' . $url . '">' . $download . '</a>';
 			}
 
+			$menu = isset( $menumap[ $addon->value->options ]) ? $menus[ $menumap[ $addon->value->options ] ] : '';
+
 			$pricing = Shopp::str_true($prices) ? " (" . money($price) . ")" : '';
-			$result .= '<li>' . esc_html($addon->name . $pricing) . $link . '</li>';
+			$result .= '<li>' . esc_html($menu . $separator . $addon->name . $pricing) . $link . '</li>';
 		}
 		$result .= '</ul>' . $after;
 		return $result;
@@ -858,8 +863,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 **/
 	public static function item_has_addons ( $result, $options, $O ) {
 		$item = current($O->purchased);
-		reset($item->addons);
-		return ( count($item->addons) > 0 );
+		reset($item->addons->meta);
+		return ( count($item->addons->meta) > 0 );
 	}
 
 	/**
