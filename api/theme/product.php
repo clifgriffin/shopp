@@ -2382,4 +2382,27 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'",$select_coll
 		return $amount;
 	}
 
+	/**
+	 * Helper function that maps the current cart item's addons to the cart item's configured product menu options
+	 *
+	 * @internal
+	 * @since 1.3
+	 *
+	 * @return array A combined list of the menu labels list and addons menu map
+	 **/
+	public static function _addon_menus ( $productid ) {
+		$menus = shopp_meta($productid, 'product', 'options');
+		$addonmenus = array();
+		$menulabels = array();
+		if ( isset($menus['a']) ) {
+			foreach ( $menus['a'] as $addonmenu ) {
+				$menulabels[ $addonmenu['id'] ] = $addonmenu['name'];
+				foreach ( $addonmenu['options'] as $menuoption )
+					$addonmenus[ $menuoption['id'] ] = $addonmenu['id'];
+			}
+		}
+		return array($menulabels, $addonmenus);
+	}
+
+
 }

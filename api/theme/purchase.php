@@ -676,35 +676,59 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 **/
 	public static function item_addon ( $result, $options, $O ) {
 		$item = current($O->purchased);
-		$addon = current($item->addons->meta);
+		$addon = current($item->addons->meta)->value;
 		if ( false === $item || false === $addon ) return '';
 
-		if ( isset($options['id']) ) return esc_html($addon->id);
-		if ( isset($options['name']) ) return esc_html($addon->name);
-		if ( isset($options['label']) ) return esc_html($addon->name);
-		if ( isset($options['type']) ) return esc_html($addon->value->type);
-		if ( isset($options['onsale']) ) return $addon->value->sale;
-		if ( isset($options['inventory']) ) return $addon->value->inventory;
-		if ( isset($options['sku']) ) return esc_html($addon->value->sku);
-		if ( isset($options['unitprice']) ) return (float) $addon->value->unitprice;
+		$defaults = array(
+			'separator' => ' '
+		);
+		$options = array_merge($defaults, $options);
 
-		if ( isset($options['download']) ) {
+		$fields = array('id', 'type', 'menu', 'label', 'sale', 'saleprice', 'price', 'inventory', 'stock', 'sku', 'weight', 'shipfee', 'unitprice');
+
+		$fieldset = array_intersect($fields, array_keys($options));
+		if ( empty($fieldset) ) $fieldset = array('label');
+
+		$_ = array();
+		foreach ( $fieldset as $field ) {
+			switch ( $field ) {
+				case 'menu':
+					list($menus, $menumap) = self::_addon_menus();
+					$_[] = isset( $menumap[ $addon->options ]) ? $menus[ $menumap[ $addon->options ] ] : '';
+					break;
+				case 'weight': $_[] = $addon->dimensions['weight'];
+				case 'saleprice':
+				case 'price':
+				case 'shipfee':
+				case 'unitprice':
+					if ( $field === 'saleprice' ) $field = 'promoprice';
+					if ( isset($addon->$field) ) {
+						$_[] = ( isset($options['currency']) && Shopp::str_true($options['currency']) ) ?
+							 money($addon->$field) : $addon->$field;
+					}
+					break;
+				case 'download':
 			$link = false;
-			if ( isset($addon->value->download) && isset($addon->value->dkey) ) {
+					if ( isset($addon->download) && isset($addon->dkey) ) {
 				$label = __('Download', 'Shopp');
 				if ( isset($options['linktext']) && $options['linktext'] != '' ) $label = $options['linktext'];
 
-				$dkey = $addon->value->dkey;
+						$dkey = $addon->dkey;
 				$request = '' == get_option('permalink_structure') ? "download/$dkey" : array('shopp_download' => $dkey);
 				$url = Shopp::url($request, 'catalog');
 
 				$link = '<a href="' . $url . '">' . $label . '</a>';
 				return esc_html($link);
 			}
-			return '';
+					break;
+				default:
+					if ( isset($addon->$field) )
+						$_[] = $addon->$field;
+			}
+
 		}
 
-		return (float) $addon->value->unitprice;
+		return join($options['separator'], $_);
 	}
 
 	/**
@@ -728,12 +752,13 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		$item = current($O->purchased);
 		if ( empty($item->addons) || ( is_string($item->addons) && ! Shopp::str_true($item->addons) ) ) return false;
 		$defaults = array(
-			'prices' => 'on',
-			'download' => Shopp::__('Download'),
-			'before' => '',
 			'after' => '',
+			'before' => '',
 			'class' => '',
-			'excludes' => ''
+			'download' => Shopp::__('Download'),
+			'excludes' => '',
+			'prices' => true,
+			'separator' => ': '
 		);
 		$options = array_merge($defaults, $options);
 		extract($options);
@@ -745,6 +770,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 			$taxrate = round($item->unittax / $item->unitprice, 4);
 
 		$result = $before.'<ul' . $class . '>';
+		list($menus, $menumap) = self::_addon_menus();
+
 		foreach ( $item->addons->meta as $id => $addon ) {
 			if ( in_array($addon->name, $excludes) ) continue;
 			if ( 'inclusive' == $O->taxing )
@@ -759,8 +786,10 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 				$link = '<br /><a href="' . $url . '">' . $download . '</a>';
 			}
 
+			$menu = isset( $menumap[ $addon->value->options ]) ? $menus[ $menumap[ $addon->value->options ] ] : '';
+
 			$pricing = Shopp::str_true($prices) ? " (" . money($price) . ")" : '';
-			$result .= '<li>' . esc_html($addon->name . $pricing) . $link . '</li>';
+			$result .= '<li>' . esc_html($menu . $separator . $addon->name . $pricing) . $link . '</li>';
 		}
 		$result .= '</ul>' . $after;
 		return $result;
@@ -834,8 +863,8 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 **/
 	public static function item_has_addons ( $result, $options, $O ) {
 		$item = current($O->purchased);
-		reset($item->addons);
-		return ( count($item->addons) > 0 );
+		reset($item->addons->meta);
+		return ( count($item->addons->meta) > 0 );
 	}
 
 	/**
@@ -1623,6 +1652,19 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 		}
 
 		return (float) $amount;
+	}
+
+	/**
+	 * Helper function that maps the current cart item's addons to the cart item's configured product menu options
+	 *
+	 * @internal
+	 * @since 1.3
+	 *
+	 * @param int $id The product ID to retrieve addon menus from
+	 * @return array A combined list of the menu labels list and addons menu map
+	 **/
+	private static function _addon_menus () {
+		return ShoppProductThemeAPI::_addon_menus(shopp('purchase.get-item-product'));
 	}
 
 }
