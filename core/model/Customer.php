@@ -476,6 +476,9 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		$this->updated(self::PROFILE, true);
 
+		if ( $this->_password_change )
+			Shopp::redirect(Shopp::url(false, 'account'));
+
 	}
 
 	/**
