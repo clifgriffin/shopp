@@ -209,11 +209,10 @@ class ShoppCheckout extends FormPostFramework {
 
 		$Billing = ShoppOrder()->Billing;
 		$Payments = ShoppOrder()->Payments;
-
-		// Change the cardtype to the selected payment service option label
-		$Billing->cardtype = $Payments->selected()->label;
-
 		$form = $this->form('billing');
+
+		// Change the default cardtype to the selected payment service option label
+		$Billing->cardtype = empty($form['cardtype']) ? $Payments->selected()->label : $form['cardtype'];
 
 		// If the card number is provided over a secure connection
 		// Change the cart to operate in secure mode
