@@ -1489,7 +1489,7 @@ class SmartCollection extends ProductCollection {
 	}
 
 	public function load ( array $options = array() ) {
-		$this->loading = array_merge( $this->_options, $options );
+		$this->loading = $options = array_merge( $this->_options, $options );
 
 		if ( isset($this->loading['show']) ) {
 			$this->loading['limit'] = $this->loading['show'];
