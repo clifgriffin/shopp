@@ -214,7 +214,7 @@ class ShoppCartItem {
 
 		if ( ! empty($Price->download) ) $this->download = $Price->download;
 
-		if ( 'Shipped' == $Price->type ) $this->shipped = true;
+		$this->shipped = ( 'Shipped' == $Price->type );
 
 		if ( $this->shipped ) {
 			$dimensions = array(
