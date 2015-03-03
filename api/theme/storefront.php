@@ -1811,7 +1811,8 @@ class ShoppCategoryDropdownWalker extends Walker {
 			$output .= ' selected="selected"';
 		$output .= '>';
 		$output .= $pad.$cat_name;
-		if ( $args['products'] && isset($category->count) )
+
+		if ( Shopp::str_true($args['products']) && isset($category->count) )
 			$output .= '&nbsp;&nbsp;('. $category->count .')';
 		$output .= "</option>\n";
 	}
