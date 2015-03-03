@@ -82,7 +82,10 @@ class ShoppShiprates extends ListFramework {
 	 **/
 	public function item ( ShoppShippableItem $Item ) {
 
-		if ( ! $Item->shippable ) return; // Don't track the item
+		if ( ! $Item->shippable ) {
+			$this->takeoff($Item->id);
+			return; // Don't track the item
+		}
 
 		$this->shippable[ $Item->id ] = $Item->shipsfree;
 		$this->fees[ $Item->id ] = ($Item->fees * $Item->quantity);
@@ -433,7 +436,7 @@ if ( ! class_exists('ShippingOption',false) ) {
 }
 
 /**
- * Converts a line item object to on that is compatible with the ShoppShiprates system
+ * Converts a line item object to one that is compatible with the ShoppShiprates system
  *
  * @author Jonathan Davis
  * @since 1.3
