@@ -428,42 +428,48 @@ class ShoppAdminService extends ShoppAdminController {
 			$user = wp_get_current_user();
 			$reason = (int)$_POST['reason'];
 			$amount = Shopp::floatval($_POST['amount']);
+			$Purchase->load_events();
 
 			if (!empty($_POST['message'])) {
 				$message = $_POST['message'];
 				$Purchase->message['note'] = $message;
 			}
 
-			if (!Shopp::str_true($_POST['send'])) { // Force the order status
-				shopp_add_order_event($Purchase->id,'notice',array(
-					'user' => $user->ID,
-					'kind' => 'refunded',
-					'notice' => __('Marked Refunded','Shopp')
-				));
-				shopp_add_order_event($Purchase->id,'refunded',array(
-					'txnid' => $Purchase->txnid,
-					'gateway' => $Gateway->module,
-					'amount' => $amount
-				));
-				shopp_add_order_event($Purchase->id,'voided',array(
-					'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
-					'txnid' => time(),					// Transaction ID for the VOID event
-					'gateway' => $Gateway->module		// Gateway handler name (module name from @subpackage)
-				));
-			} else {
-				shopp_add_order_event($Purchase->id,'refund',array(
-					'txnid' => $Purchase->txnid,
-					'gateway' => $Gateway->module,
-					'amount' => $amount,
-					'reason' => $reason,
-					'user' => $user->ID
-				));
-			}
+			if ( $amount <= $Purchase->captured - $Purchase->refunded ) {
 
-			if (!empty($_POST['message']))
-				$this->addnote($Purchase->id,$_POST['message']);
+				if ( ! Shopp::str_true($_POST['send']) ) { // Force the order status
+					shopp_add_order_event($Purchase->id,'notice',array(
+						'user' => $user->ID,
+						'kind' => 'refunded',
+						'notice' => __('Marked Refunded','Shopp')
+					));
+					shopp_add_order_event($Purchase->id,'refunded',array(
+						'txnid' => $Purchase->txnid,
+						'gateway' => $Gateway->module,
+						'amount' => $amount
+					));
+					shopp_add_order_event($Purchase->id,'voided',array(
+						'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)
+						'txnid' => time(),					// Transaction ID for the VOID event
+						'gateway' => $Gateway->module		// Gateway handler name (module name from @subpackage)
+					));
+				} else {
+					shopp_add_order_event($Purchase->id,'refund',array(
+						'txnid' => $Purchase->txnid,
+						'gateway' => $Gateway->module,
+						'amount' => $amount,
+						'reason' => $reason,
+						'user' => $user->ID
+					));
+				}
 
-			$Purchase->load_events();
+				if ( ! empty($_POST['message']) )
+					$this->addnote($Purchase->id, $_POST['message']);
+
+				$Purchase->load_events();
+
+			} else $this->notice(Shopp::__('Refund failed. Cannot refund more than the current balance.'), 'error');
+
 		}
 
 		if (isset($_POST['order-action']) && 'cancel' == $_POST['order-action']) {
