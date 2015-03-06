@@ -612,7 +612,8 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @return bool True if shipping methods are available, false otherwise
 	 **/
 	public static function has_shipping_methods ( $result, $options, $O ) {
-		return ShoppShippingThemeAPI::has_options( $result, $options, $O );
+		if ($O->shipped)
+			return ShoppShippingThemeAPI::has_options( $result, $options, $O );
 	}
 
 	/**
