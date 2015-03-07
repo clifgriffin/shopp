@@ -265,7 +265,7 @@ class ShoppAdminDashboard {
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchasedtable = ShoppDatabaseObject::tablename(Purchased::$table);
-		$txnstatus_labels = Lookup::txnstatus_labels();
+		$txnlabels = Lookup::txnstatus_labels();
 
 		if ( ! ( $Orders = get_transient('shopp_dashboard_orders') ) ) {
 			$Orders = sDB::query("SELECT p.*,count(*) as items FROM (SELECT * FROM $purchasetable WHERE txnstatus != 'purchased' AND txnstatus != 'invoiced' ORDER BY created DESC LIMIT 6) AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY p.id ORDER BY p.id DESC", 'array');
@@ -273,27 +273,45 @@ class ShoppAdminDashboard {
 		}
 
 		if ( ! empty($Orders) ) {
-			echo '<table class="widefat">';
-			echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
-			echo '<tbody id="orders" class="list orders">';
+
+			echo  '<table class="widefat">'
+				. '<thead>'
+				. '	<tr>'
+				. '		<th scope="col">' . __('Name','Shopp') . '</th>'
+				. '		<th scope="col">' . __('Date','Shopp') . '</th>'
+				. '		<th scope="col" class="num">' . Shopp::__('Items') . '</th>'
+				. '		<th scope="col" class="num">' . Shopp::__('Total') . '</th>'
+				. '		<th scope="col" class="num">' . Shopp::__('Status') . '</th>'
+				. '	</tr>'
+				. '</thead>'
+				. '	<tbody id="orders" class="list orders">';
+
 			$even = false;
 			foreach ( $Orders as $Order ) {
 				$classes = array();
 				if ( $even = !$even ) $classes[] = 'alternate';
-				$txnstatus = isset($txnstatus_labels[ $Order->txnstatus ]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
+				$txnstatus = isset($txnlabels[ $Order->txnstatus ]) ?
+					$txnlabels[$Order->txnstatus] : $Order->txnstatus;
+				$status = isset($statusLabels[ $Order->status ]) ?
+					$statusLabels[ $Order->status ] : $Order->status;
+				$contact = '' == $Order->firstname . $Order->lastname ?
+					'(no contact name)' : $Order->firstname . ' ' . $Order->lastname;
+				$url = add_query_arg(array('page' => ShoppAdmin()->pagename('orders'), 'id' => $Order->id), admin_url('admin.php'));
 				$classes[] = strtolower(preg_replace('/[^\w]/', '_', $Order->txnstatus));
 
-				echo '<tr class="' . join(' ',$classes) . '">';
-				echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>ShoppAdmin()->pagename('orders'),'id'=>$Order->id),admin_url('admin.php')).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
-				echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
-				echo '<td class="num items">'.$Order->items.'</td>';
-				echo '<td class="num total">'.money($Order->total).'</td>';
-				echo '<td class="num status">'.$statusLabels[ $Order->status ].'</td>';
-				echo '</tr>';
+				echo  '<tr class="' . join(' ',$classes) . '">'
+					. '	<td><a class="row-title" href="' . $url . '" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>'
+					. '	<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>'
+					. '	<td class="num items">'.$Order->items.'</td>'
+					. '	<td class="num total">'.money($Order->total).'</td>'
+					. '	<td class="num status">'.$statusLabels[ $Order->status ].'</td>'
+					. '</tr>';
 			}
+
 			echo '</tbody></table>';
+
 		} else {
-			echo '<p>'.__('No orders, yet.','Shopp').'</p>';
+			echo '<p>' . Shopp::__('No orders, yet.') . '</p>';
 		}
 
 		echo $after_widget;
