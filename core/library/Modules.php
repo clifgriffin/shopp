@@ -396,9 +396,19 @@ class ModuleFile {
 		return true;
 	}
 
+	/**
+	 * Parse the base version number from the module.
+	 *
+	 * This method just grabs the numbers out of version
+	 * and avoids version tags like 'dev' or 'beta'.
+	 *
+	 * @since 1.2
+	 *
+	 * @return string|bool The version number string, or false otherwise
+	 **/
 	public static function baseversion ( $version ) {
 		preg_match('/^[\d\.]+/', $version, $baseversion);
-		return $baseversion[0];
+		return isset($baseversion[0]) ? $baseversion[0] : false;
 	}
 
 	/**
