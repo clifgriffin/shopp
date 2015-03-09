@@ -981,16 +981,13 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		$error = false;
 		if ( isset($_FILES['Filedata']['error']) ) $error = $_FILES['Filedata']['error'];
-		if ( $error ) die( json_encode(array("error" => Lookup::errors('uploads', $error))) );
+		if ( $error ) die( json_encode(array('error' => Lookup::errors('uploads', $error))) );
 
-		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
+		if ( ! @is_uploaded_file($_FILES['Filedata']['tmp_name']) )
+			die(json_encode(array('error' => Shopp::__('The file could not be saved because the upload was not found on the server.'))));
 
-		if (!is_readable($_FILES['Filedata']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
-
-		if ($_FILES['Filedata']['size'] == 0)
-			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
+		if ( 0 == $_FILES['Filedata']['size'] )
+			die(json_encode(array('error' => Shopp::__('The file could not be saved because the uploaded file is empty.'))));
 
 		FileAsset::mimetypes();
 
@@ -1002,24 +999,30 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$File->name = $_FILES['Filedata']['name'];
 		$File->filename = $File->name;
 
-		list($extension, $mimetype, $properfile) = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'],$File->name);
+		list($extension, $mimetype, $properfile) = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'], $File->name);
 		if ( empty($mimetype) ) $mimetype = 'application/octet-stream';
 		$File->mime = $mimetype;
 
-		if ( ! empty($properfile))
+		if ( ! empty($properfile) )
 			$File->name = $File->filename = $properfile;
 
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->store($_FILES['Filedata']['tmp_name'],'upload');
+		$File->store($_FILES['Filedata']['tmp_name'], 'upload');
 
 		$Error = ShoppErrors()->code('storage_engine_save');
-		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+		if ( ! empty($Error) )
+			die( json_encode( array('error' => $Error->message(true)) ) );
 
 		$File->save();
 
 		do_action('add_product_download', $File,$_FILES['Filedata']);
 
-		echo json_encode(array('id' => $File->id, 'name' => stripslashes($File->name), 'type' => $File->mime, 'size' => $File->size));
+		echo json_encode(array(
+			'id' => $File->id,
+			'name' => stripslashes($File->name),
+			'type' => $File->mime,
+			'size' => $File->size
+		));
 	}
 
 	/**
@@ -1030,54 +1033,70 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	 **/
 	public static function images () {
 		$context = false;
-
 		$error = false;
-		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
-		if ( $error ) die( json_encode(array("error" => Lookup::errors('uploads', $error))) );
+		$valid_contexts = array('product', 'category');
 
-		$valid_contexts = array('product','category');
+		if ( isset($_FILES['Filedata']['error']) )
+			$error = $_FILES['Filedata']['error'];
+		if ( $error ) die( json_encode(array('error' => Lookup::errors('uploads', $error))) );
 
-		if (isset($_REQUEST['type']) && in_array(strtolower($_REQUEST['type']),$valid_contexts) ) {
+		if ( isset($_REQUEST['type']) && in_array(strtolower($_REQUEST['type']), $valid_contexts ) ) {
 			$parent = $_REQUEST['parent'];
 			$context = strtolower($_REQUEST['type']);
 		}
 
-		if (!$context)
-			die(json_encode(array("error" => __('The file could not be saved because the server cannot tell whether to attach the asset to a product or a category.','Shopp'))));
+		if ( ! $context )
+			die(json_encode(array('error' => Shopp::__('The file could not be saved because the server cannot tell whether to attach the asset to a product or a category.'))));
 
-		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
+		if ( ! @is_uploaded_file($_FILES['Filedata']['tmp_name']) )
+			die(json_encode(array('error' => Shopp::__('The file could not be saved because the upload was not found on the server.'))));
 
-		if (!is_readable($_FILES['Filedata']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload from the server\'s temporary directory.','Shopp'))));
-
-		if ($_FILES['Filedata']['size'] == 0)
-			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
+		if ( 0 == $_FILES['Filedata']['size'] )
+			die(json_encode(array('error' => Shopp::__('The file could not be saved because the uploaded file is empty.'))));
 
 		// Save the source image
-		if ($context == "category") $Image = new CategoryImage();
+		if ( 'category' == $context )
+			$Image = new CategoryImage();
 		else $Image = new ProductImage();
 
 		$Image->parent = $parent;
-		$Image->type = "image";
-		$Image->name = "original";
+		$Image->type = 'image';
+		$Image->name = 'original';
 		$Image->filename = $_FILES['Filedata']['name'];
-		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($_FILES['Filedata']['tmp_name']);
+
+		$context = 'upload';
+		$tempfile = $_FILES['Filedata']['tmp_name'];
+
+		if ( ! @is_readable($tempfile) ) {
+
+			$context = 'file';
+			$tempfile = get_temp_dir() . $Image->filename;
+
+			if ( ! @move_uploaded_file($_FILES['Filedata']['tmp_name'], $tempfile) )
+				die(json_encode(array('error' => Shopp::__('The file could not be saved because the web server does not have permission to read the upload.'))));
+
+		}
+
+		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($tempfile);
 		$Image->mime = image_type_to_mime_type($Image->mime);
-		$Image->size = filesize($_FILES['Filedata']['tmp_name']);
+		$Image->size = filesize($tempfile);
 
-		if ( ! $Image->unique() ) die(json_encode(array("error" => __('The image already exists, but a new filename could not be generated.','Shopp'))));
+		if ( ! $Image->unique() ) die(json_encode(array('error' => Shopp::__('The image already exists, but a new filename could not be generated.'))));
 
-		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
+		$Image->store($tempfile, $context);
+
+		if( 'file' == $context )
+			unlink($tempfile);
+
 		$Error = ShoppErrors()->code('storage_engine_save');
-		if (!empty($Error)) die( json_encode( array('error' => $Error->message(true)) ) );
+		if ( ! empty($Error) ) die( json_encode( array('error' => $Error->message(true)) ) );
 
 		$Image->save();
 
-		if (empty($Image->id))
-			die(json_encode(array("error" => __('The image reference was not saved to the database.','Shopp'))));
+		if ( empty($Image->id) )
+			die(json_encode(array('error' => Shopp::__('The image reference was not saved to the database.'))));
 
-		echo json_encode(array("id"=>$Image->id));
+		echo json_encode(array('id' => $Image->id));
 		exit;
 	}
 

@@ -62,22 +62,21 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		$error = false;
 		if (empty($data)) $error = "$this->module: There is no file data to store.";
-
+		
+		$filepath = self::sanitize($this->path.'/'.$asset->filename);
 		switch ($type) {
 			case 'upload':
-
-				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
-				elseif (move_uploaded_file($data,self::sanitize($this->path.'/'.$asset->filename))) return $asset->filename;
+				if (move_uploaded_file($data,$filepath)) break;
 				else $error = "$this->module: Could not move the uploaded file to the storage repository.";
 				$buffer = ob_get_contents();
 				break;
 			case 'file':
 				if ( ! is_readable($data) ) $error = "$this->module: Could not read the file.";
-				elseif (copy($data,self::sanitize($this->path.'/'.$asset->filename))) return $asset->filename;
+				elseif (copy($data,$filepath)) break;
 				else $error = "$this->module: Could not move the file to the storage repository.";
 				break;
 			default:
-				if (file_put_contents(self::sanitize($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
+				if (file_put_contents($filepath,$data) > 0) break;
 				else $error = "$this->module: Could not store the file data.";
 		}
 
@@ -85,7 +84,14 @@ class FSStorage extends StorageModule implements StorageEngine {
 			$error = new ShoppError($error,'storage_engine_save',SHOPP_ADMIN_ERR);
 			return $error;
 		}
-
+		
+		// Set correct file permissions
+		$filestat = stat($filepath);
+		$perms = $filestat['mode'] & 0000666;
+		@ chmod( $filepath, $perms );
+		
+		return $asset->filename;
+		
 	}
 
 	public function exists ($uri) {
