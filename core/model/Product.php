@@ -1223,7 +1223,8 @@ class ShoppProduct extends WPShoppObject {
 			$Post = new StdClass;
 			$Post->ID = $id;
 			$Post->post_type = ShoppProduct::$posttype;
-			wp_transition_post_status($status, $Product->status, $Post);
+			$old_status = if ( ! empty($Product->status) ) ? $Product->status : get_post_status($id);
+			wp_transition_post_status($status, $old_status, $Post);
 		}
 
 		return true;
