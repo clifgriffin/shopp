@@ -1220,11 +1220,11 @@ class ShoppProduct extends WPShoppObject {
 		sDB::query("UPDATE $table SET post_status='$status', post_date='$post_date', post_date_gmt='$post_date_gmt', post_modified='$post_date', post_modified_gmt='$post_date_gmt' WHERE ID in (" . join(',', $ids) . ")");
 
 		foreach ( $ids as $id ) { // Recount taxonomy counts #2968
+			$laststatus = get_post_status($id);
 			$Post = new StdClass;
 			$Post->ID = $id;
 			$Post->post_type = ShoppProduct::$posttype;
-			$old_status = if ( ! empty($Product->status) ) ? $Product->status : get_post_status($id);
-			wp_transition_post_status($status, $old_status, $Post);
+			wp_transition_post_status($status, $laststatus, $Post);
 		}
 
 		return true;
