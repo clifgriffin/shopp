@@ -87,8 +87,8 @@ class FSStorage extends StorageModule implements StorageEngine {
 		
 		// Set correct file permissions
 		$filestat = stat($filepath);
-		$perms = $stat['mode'] & 0000666;
-		chmod( $filepath, $perms );
+		$perms = $filestat['mode'] & 0000666;
+		@ chmod( $filepath, $perms );
 		
 		return $asset->filename;
 		
