@@ -301,6 +301,9 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$processor = $this->gateway;
 		if ( 'ShoppFreeOrder' == $processor ) return $Gateways->freeorder;
 		if ( isset($Gateways->active[ $processor ]) ) return $Gateways->active[ $processor ];
+		// Work around gateway renaming in 1.3.x:
+		// https://github.com/ingenesis/shopp/issues/3253
+		if ( isset($Gateways->active[ 'Shopp'.$processor ]) ) return $Gateways->active[ 'Shopp'.$processor ];
 		else {
 			foreach ( $Gateways->active as $Gateway ) {
 				if ($processor != $Gateway->name) continue;
