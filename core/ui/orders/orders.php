@@ -77,8 +77,9 @@
 
 			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
-			$gateway = $Gateways[$Order->gateway]->name;
 
+			$Gateway = $Gateways->get($Order->gateway);
+			if ( $Gateway ) $gateway = $Gateway->name;
 
 			$addrfields = array('city','state','country');
 			$format = '%3$s, %2$s &mdash; %1$s';

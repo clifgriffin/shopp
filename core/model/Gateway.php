@@ -550,12 +550,21 @@ class GatewayModules extends ModuleLoader {
 	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
-	 * @return void
+	 * @param string $gateway The gateway hook name
+	 * @return GatewayFramework The activated gateway object.
 	 **/
 	public function &get ( $gateway ) {
-		if ( empty($this->active) ) $this->settings();
-		if ( ! isset($this->active[ $gateway ]) ) return false;
-		return $this->active[ $gateway ];
+
+		if ( empty($this->active) )
+			$this->settings(); // Reload settings
+
+		if ( isset($this->active[ $gateway ]) )
+			return $this->active[ $gateway ];
+		elseif ( isset($this->active[ "Shopp$gateway" ]) ) // @see #3256
+			return $Gateways->active[ "Shopp$gateway" ];
+
+		return false;
+
 	}
 
 	/**
