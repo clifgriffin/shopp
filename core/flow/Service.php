@@ -630,7 +630,6 @@ class ShoppAdminService extends ShoppAdminController {
 		$Purchase->_billing_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->country ]);
 		$Purchase->_shipping_states = array_merge(array('' => '&nbsp;'), (array)$regions[ $Purchase->shipcountry ]);
 
-
 		// Setup shipping carriers menu and JS data
 		$carriers_menu = $carriers_json = array();
 		$shipping_carriers = (array) shopp_setting('shipping_carriers'); // The store-preferred shipping carriers
