@@ -525,12 +525,13 @@ class ProductTaxonomy extends ProductCollection {
 		$taxonomy = get_class_property($class, 'taxon');
 		$hierarchical = get_class_property($class, 'hierarchical');
 		$slug = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug() . '/' . $namespace : $namespace;
+		$rewrite = apply_filters($taxonomy.'_rewrite_args', array( 'slug' => $slug, 'with_front' => false ));
 		register_taxonomy($taxonomy, array(ShoppProduct::$posttype), array(
 			'hierarchical' => $hierarchical,
 			'labels' => call_user_func(array($class,'labels'),$class),
 			'show_ui' => true,
 			'query_var' => true,
-			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
+			'rewrite' => $rewrite,
 			'update_count_callback' => array('ProductTaxonomy', 'recount'),
 			'capabilities' => array(
 				'manage_terms' => 'shopp_categories',
