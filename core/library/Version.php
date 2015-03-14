@@ -18,16 +18,16 @@ class ShoppVersion {
 	const MAJOR = 1;
 
 	/** @type int MINOR The minor version number */
-	const MINOR = 4;
+	const MINOR = 3;
 
 	/** @type int PATCH The maintenance patch version number */
-	const PATCH = 0;
+	const PATCH = 9;
 
 	/** @type string PRERELEASE The prerelease designation (dev, beta, RC1) */
 	const PRERELEASE = 'dev';
 
 	/** @type string CODENAME The release project code name */
-	const CODENAME = 'Orion';
+	const CODENAME = 'Cydonia';
 
 	/** @type int DB The database schema version */
 	const DB = 1201;
