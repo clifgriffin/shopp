@@ -519,48 +519,53 @@ class ProductTaxonomy extends ProductCollection {
 	}
 
 	static function register ( $class ) {
-		global $Shopp,$ShoppTaxonomies;
+		global $ShoppTaxonomies;
 
 		$namespace = get_class_property($class, 'namespace');
 		$taxonomy = get_class_property($class, 'taxon');
 		$hierarchical = get_class_property($class, 'hierarchical');
-		$slug = SHOPP_NAMESPACE_TAXONOMIES ? ShoppPages()->baseslug() . '/' . $namespace : $namespace;
-		register_taxonomy($taxonomy, array(ShoppProduct::$posttype), array(
-			'hierarchical' => $hierarchical,
-			'labels' => call_user_func(array($class,'labels'),$class),
-			'show_ui' => true,
-			'query_var' => true,
-			'rewrite' => array( 'slug' => $slug, 'with_front' => false ),
-			'update_count_callback' => array('ProductTaxonomy', 'recount'),
-			'capabilities' => array(
-				'manage_terms' => 'shopp_categories',
-				'edit_terms'   => 'shopp_categories',
-				'delete_terms' => 'shopp_categories',
-				'assign_terms' => 'shopp_categories',
-			)
-		));
 
-		add_filter($taxonomy.'_rewrite_rules',array('ProductCollection','pagerewrites'));
+		$slug = SHOPP_NAMESPACE_TAXONOMIES ?
+			ShoppPages()->baseslug() . '/' . $namespace : $namespace;
 
-		$ShoppTaxonomies[$taxonomy] = $class;
+		register_taxonomy($taxonomy,
+			array(ShoppProduct::$posttype),
+			apply_filters('shopp_register_taxonomy_' . $taxonomy, array(
+				'hierarchical' => $hierarchical,
+				'labels' => call_user_func(array($class, 'labels'), $class),
+				'show_ui' => true,
+				'query_var' => true,
+				'rewrite' => array('slug' => $slug, 'with_front' => false),
+				'update_count_callback' => array('ProductTaxonomy', 'recount'),
+				'capabilities' => array(
+					'manage_terms' => 'shopp_categories',
+					'edit_terms'   => 'shopp_categories',
+					'delete_terms' => 'shopp_categories',
+					'assign_terms' => 'shopp_categories',
+				)
+		)));
+
+		add_filter($taxonomy . '_rewrite_rules', array('ProductCollection', 'pagerewrites'));
+
+		$ShoppTaxonomies[ $taxonomy ] = $class;
 	}
 
 	static function labels () {
 		return array(
-			'name' => __('Catalog Groups','Shopp'),
-			'singular_name' => __('Catalog Group','Shopp'),
-			'search_items' => __('Search Catalog Group','Shopp'),
-			'popular_items' => __('Popular','Shopp'),
-			'all_items' => __('Show All','Shopp'),
-			'parent_item' => __('Parent Catalog Group','Shopp'),
-			'parent_item_colon' => __('Parent Catalog Group:','Shopp'),
-			'edit_item' => __('Edit Catalog Group','Shopp'),
-			'update_item' => __('Update Catalog Group','Shopp'),
-			'add_new_item' => __('New Catalog Group','Shopp'),
-			'new_item_name' => __('New Catalog Group Name','Shopp'),
-			'separate_items_with_commas' => __('Separate catalog groups with commas','Shopp'),
-			'add_or_remove_items' => __('Add or remove catalog groups','Shopp'),
-			'choose_from_most_used' => __('Choose from the most used catalog groups','Shopp')
+			'name'                       => Shopp::__('Catalog Groups'),
+			'singular_name'              => Shopp::__('Catalog Group'),
+			'search_items'               => Shopp::__('Search Catalog Group'),
+			'popular_items'              => Shopp::__('Popular'),
+			'all_items'                  => Shopp::__('Show All'),
+			'parent_item'                => Shopp::__('Parent Catalog Group'),
+			'parent_item_colon'          => Shopp::__('Parent Catalog Group:'),
+			'edit_item'                  => Shopp::__('Edit Catalog Group'),
+			'update_item'                => Shopp::__('Update Catalog Group'),
+			'add_new_item'               => Shopp::__('New Catalog Group'),
+			'new_item_name'              => Shopp::__('New Catalog Group Name'),
+			'separate_items_with_commas' => Shopp::__('Separate catalog groups with commas'),
+			'add_or_remove_items'        => Shopp::__('Add or remove catalog groups'),
+			'choose_from_most_used'      => Shopp::__('Choose from the most used catalog groups')
 		);
 	}
 
