@@ -1612,29 +1612,36 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 	 * - **required**: Adds a class that specified an input field must be filled out before submitting the form, enforced by JS
 	 * - **tabindex**: Specifies the tabbing order of an element
 	 * - **title**: Specifies extra information about an element
-	 * - **label**: Specifies the value of the button element
-	 * - **redirect**: Specifies the url the customer to redirected to after login. Defaults to $_REQUEST['redirect'].
+	 * - **label**: Specifies the value of the button element. Defaults to `Login`
+	 * - **redirect**: Specifies the URL the customer is redirected to after login. Defaults to `$_REQUEST['redirect']`.
 	 * @param ShoppCustomer $O       The working object
 	 * @return string The button markup
 	 **/
 	public static function submit_login ( $result, $options, $O ) {
-		if ( ! isset($options['label']) ) $options['label'] = Shopp::__('Login');
-		if ( ! isset($options['redirect']) ) $options['redirect'] = $_REQUEST['redirect'];
+		$request = $_GET;
+		$defaults = array(
+			'label' => Shopp::__('Login'),
+			'redirect' => isset($_REQUEST['redirect']) ?
+				$_REQUEST['redirect'] : Shopp::url($request, 'account', ShoppOrder()->security())
+		);
+		$options = array_merge($defaults, $options);
+		extract($options, EXTR_SKIP);
+
 		$string = '';
 		$id = 'submit-login';
-
-		$request = $_GET;
-		if ( isset($request['acct']) && 'logout' == $request['acct'] ) unset($request['acct']);
-
 		$context = ShoppStorefront::intemplate();
-		if ( !empty($options['redirect']) ) {
-			$string .= '<input type="hidden" name="redirect" value="' . esc_url($_REQUEST['redirect']) . '" />';
-		} elseif ( 'checkout.php' == $context ) {
-			$id .= '-checkout';
-			$string .= '<input type="hidden" name="redirect" value="checkout" />';
-		} else $string .= '<input type="hidden" name="redirect" value="' . esc_attr(Shopp::url($request, 'account', ShoppOrder()->security())) . '" />';
-		$string .= '<input type="submit" name="submit-login" id="' . $id . '"' . inputattrs($options) . ' />';
-		return $string;
+
+		if ( isset($request['acct']) && 'logout' == $request['acct'] )
+			unset($request['acct']);
+
+		if ( 'checkout.php' == $context ) {
+			$redirect = 'checkout';
+			$id .= '-' . $redirect;
+		}
+
+		return '<input type="hidden" name="redirect" value="' . esc_attr($redirect) . '" />'
+			 . '<input type="submit" name="submit-login" id="' . $id . '"' . inputattrs($options) . ' />';
+
 	}
 
 	/**
