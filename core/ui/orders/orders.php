@@ -77,12 +77,9 @@
 
 			$txnstatus = isset($txnstatus_labels[$Order->txnstatus]) ? $txnstatus_labels[$Order->txnstatus] : $Order->txnstatus;
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$Order->txnstatus));
-			$gateway = $Gateways[$Order->gateway]->name;
-			if (empty($gateway)) {
-				// Work around gateway renaming in 1.3.x:
-				// https://github.com/ingenesis/shopp/issues/3253
-				$gateway = $Gateways['Shopp'.$Order->gateway]->name;
-			}
+
+			$Gateway = $Gateways->get($Order->gateway);
+			if ( $Gateway ) $gateway = $Gateway->name;
 
 			$addrfields = array('city','state','country');
 			$format = '%3$s, %2$s &mdash; %1$s';
