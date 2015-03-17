@@ -78,15 +78,15 @@ jQuery(document).ready(function ($) {
 	var labels = <?php echo json_encode($statusLabels); ?>,
 		states = <?php echo json_encode($statesLabels); ?>,
 		reasons = <?php echo json_encode($reasonLabels); ?>;
-	$('#order-statuslabels').labelset(labels,'#statusLabel');
-	$("#order-statuslabels select").each(function(i,menu){
-		var menuid = $(menu).attr('id'),
-			id = menuid.substr(menuid.indexOf('-')+1);
+	$('#order-statuslabels').labelset(labels, '#statusLabel');
+	$("#order-statuslabels select").each(function(){
+		var menuid = $(this).attr('id'),
+			id = menuid.substr(menuid.indexOf('-') + 1);
 
-		if(states != null && states[id] != undefined)
-			$(this).find("option[value="+states[id]+"]").attr("selected", "selected");
+		if ( states != null && states[id] != undefined )
+			$(this).val(states[id]);
 	});
-	$('#order-cancelreasons').labelset(reasons,'#reasonLabel');
+	$('#order-cancelreasons').labelset(reasons, '#reasonLabel');
 });
 /* ]]> */
 </script>
