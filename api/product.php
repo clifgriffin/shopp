@@ -60,7 +60,7 @@ function shopp_add_product ( $data = array() ) {
 
 	// Set Product slug
 	if ( ! empty($data['slug'])) $Product->slug = $data['slug'];
-	if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($Product->name);
+	if (empty($Product->slug)) $Product->slug = sanitize_title($Product->name);
 	$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, ShoppProduct::posttype(), 0);
 
 	$Product->updates($data, array('meta','categories','prices','tags', 'publish'));
