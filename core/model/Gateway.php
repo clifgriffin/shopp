@@ -558,7 +558,9 @@ class GatewayModules extends ModuleLoader {
 		if ( empty($this->active) )
 			$this->settings(); // Reload settings
 
-		if ( isset($this->active[ $gateway ]) )
+		if ( 'ShoppFreeOrder' == $gateway )
+			return $this->freeorder;
+		elseif ( isset($this->active[ $gateway ]) )
 			return $this->active[ $gateway ];
 		elseif ( isset($this->active[ "Shopp$gateway" ]) ) // @see #3256
 			return $Gateways->active[ "Shopp$gateway" ];

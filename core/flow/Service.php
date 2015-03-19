@@ -302,9 +302,9 @@ class ShoppAdminService extends ShoppAdminController {
 		$exportcolumns = array_merge(ShoppPurchase::exportcolumns(),ShoppPurchased::exportcolumns());
 		$selected = shopp_setting('purchaselog_columns');
 		if ( empty($selected) ) $selected = array_keys($exportcolumns);
-
-		$Gateways = array_merge($Shopp->Gateways->modules, array('ShoppFreeOrder' => $Shopp->Gateways->freeorder));
-
+		
+		$Gateways = $Shopp->Gateways;
+		
 		include $this->ui('orders.php');
 	}
 
