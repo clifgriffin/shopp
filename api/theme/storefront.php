@@ -1063,8 +1063,6 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		$Product = ShoppProduct();
 
-		if ( isset($options['published']) && 'hide' == $options['published'] && ! $Product->published() ) return true;
-
 		// Expand base template file names to support product-id and product-slug specific versions
 		// product-id templates will be highest priority, followed by slug versions and the generic names
 		$templates = isset($options['template']) ? $options['template'] : array('product.php');
