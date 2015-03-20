@@ -45,92 +45,103 @@ class ShoppPromo extends ShoppDatabaseObject {
 		$product_table = WPDatabaseObject::tablename(ShoppProduct::$table);
 		$price_table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
 
-		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
+		// $where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
 		$where = array();
+		$excludes = array();
+
 		// Go through each rule to construct an SQL query
 		// that gets all applicable product & price ids
-		if (!empty($this->rules) && is_array($this->rules)) {
-			foreach ($this->rules as $rule) {
+		foreach ( (array) $this->rules as $rule ) {
 
-				if (ShoppPromo::$values[$rule['property']] == "price")
-					$value = Shopp::floatval($rule['value']);
-				else $value = $rule['value'];
+			if ( 'price' == ShoppPromo::$values[ $rule['property'] ] )
+				$value = Shopp::floatval($rule['value']);
+			else $value = $rule['value'];
 
-				switch($rule['logic']) {
-					case "Is equal to": $match = "='$value'"; break;
-					case "Is not equal to": $match = "!='$value'"; break;
-					case "Contains": $match = " LIKE '%$value%'"; break;
-					case "Does not contain": $match = " NOT LIKE '%$value%'"; break;
-					case "Begins with": $match = " LIKE '$value%'"; break;
-					case "Ends with": $match = " LIKE '%$value'"; break;
-					case "Is greater than": $match = "> $value"; break;
-					case "Is greater than or equal to": $match = ">= $value"; break;
-					case "Is less than": $match = "< $value"; break;
-					case "Is less than or equal to": $match = "<= $value"; break;
-				}
+			switch( $rule['logic'] ) {
+				case "Is equal to": $match = "='$value'"; break;
+				case "Is not equal to": $match = "!='$value'"; break;
+				case "Contains": $match = " LIKE '%$value%'"; break;
+				case "Does not contain": $match = " NOT LIKE '%$value%'"; break;
+				case "Begins with": $match = " LIKE '$value%'"; break;
+				case "Ends with": $match = " LIKE '%$value'"; break;
+				case "Is greater than": $match = "> $value"; break;
+				case "Is greater than or equal to": $match = ">= $value"; break;
+				case "Is less than": $match = "< $value"; break;
+				case "Is less than or equal to": $match = "<= $value"; break;
+			}
 
-				switch($rule['property']) {
-					case "Name":
-						$where[] = "p.post_title$match";
-						$joins[$product_table] = "INNER JOIN $product_table as p ON prc.product=p.id";
-						break;
-					case "Category":
-						$where[] = "tm.name$match";
-						global $wpdb;
-						$joins[$wpdb->term_relationships] = "INNER JOIN $wpdb->term_relationships AS tr ON (prc.product=tr.object_id)";
-						$joins[$wpdb->term_taxonomy] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id)";
-						$joins[$wpdb->terms] = "INNER JOIN $wpdb->terms AS tm ON (tm.term_id=tt.term_id)";
-						break;
-					case "Variation": $where[] = "prc.label$match"; break;
-					case "Price": $where[] = "prc.price$match"; break;
-					case "Sale price": $where[] = "(prc.onsale='on' AND prc.saleprice$match)"; break;
-					case "Type": $where[] = "prc.type$match"; break;
-					case "In stock": $where[] = "(prc.inventory='on' AND prc.stock$match)"; break;
-				}
-
+			switch( $rule['property'] ) {
+				case "Name":
+					$where[] = "p.post_title$match";
+					$joins[ $product_table ] = "INNER JOIN $product_table as p ON prc.product=p.id";
+					break;
+				case "Category":
+					$where[] = "tm.name$match";
+					if ( '!' == $match{0} )
+						$excludes[] = "tm.name" . ltrim($match, '!');
+					global $wpdb;
+					$joins[ $wpdb->term_relationships ] = "INNER JOIN $wpdb->term_relationships AS tr ON (prc.product=tr.object_id)";
+					$joins[ $wpdb->term_taxonomy ] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id)";
+					$joins[ $wpdb->terms ] = "INNER JOIN $wpdb->terms AS tm ON (tm.term_id=tt.term_id)";
+					break;
+				case "Variation": $where[] = "prc.label$match"; break;
+				case "Price": $where[] = "prc.price$match"; break;
+				case "Sale price": $where[] = "(prc.onsale='on' AND prc.saleprice$match)"; break;
+				case "Type": $where[] = "prc.type$match"; break;
+				case "In stock": $where[] = "(prc.inventory='on' AND prc.stock$match)"; break;
 			}
 
 		}
 
-		$operator = 'all' == strtolower($this->search)?' AND ': ' OR ';
-		if (!empty($where)) $where = "WHERE ".join($operator,$where);
+
+		$operator = 'all' == strtolower($this->search) ? ' AND ' : ' OR ';
+
+		if ( ! empty($where) ) $where = "WHERE " . join($operator, $where);
 		else $where = false;
 
-		if (!empty($joins)) $joins = join(' ',$joins);
+		if ( ! empty($joins) ) $joins = join(' ', $joins);
 		else $joins = false;
 
 		// Find all the pricetags the promotion is *currently assigned* to
 		$query = "SELECT id FROM $price_table WHERE 0 < FIND_IN_SET($this->id,discounts)";
-		$current = sDB::query($query,'array','col','id');
+		$current = sDB::query($query, 'array', 'col', 'id');
+
+		$exclude = '';
+		if ( ! empty($excludes) ) {
+			// Find all the pricetags the promotion should exclude
+			$subquery = "SELECT prc.id FROM $price_table AS prc $joins WHERE " . join( ' OR ', $excludes);
+			$exclude = " AND prc.id NOT IN ($subquery)";
+		}
 
 		// Find all the pricetags the promotion is *going to apply* to
 		$query = "SELECT prc.id,prc.product,prc.discounts FROM $price_table AS prc
 					$joins
-					$where";
-		$updates = sDB::query($query,'array','col','id');
+					$where $exclude";
+		$updates = sDB::query($query, 'array', 'col', 'id');
 
 		// Determine which records need promo added to and removed from
-		$added = array_diff($updates,$current);
-		$removed = array_diff($current,$updates);
+		$added = array_diff($updates, $current);
+		$removed = array_diff($current, $updates);
 
 		// Add discounts to specific rows
 		$query = "UPDATE $price_table
 					SET discounts=CONCAT(discounts,IF(discounts='','$this->id',',$this->id'))
-					WHERE id IN (".join(',',$added).")";
-		if (!empty($added)) sDB::query($query);
+					WHERE id IN (" . join(',', $added) . ")";
+		if ( ! empty($added) ) sDB::query($query);
 
 		// Remove discounts from pricetags that now don't match the conditions
-		if (!empty($removed)) $this->uncatalog($removed);
+		if ( ! empty($removed) ) $this->uncatalog($removed);
 
 		// Recalculate product stats for products with pricetags that have changed
 		$Collection = new PromoProducts(array('id' => $this->id));
-		$Collection->load( array('load'=>array('prices'),'pagination' => false) );
+		$Collection->load( array('load' => array('prices'), 'pagination' => false) );
 	}
 
 	function uncatalog ( $pricetags ) {
 		if ( empty($pricetags) ) return;
 
 		$table = ShoppDatabaseObject::tablename(ShoppPrice::$table);
+		//echo "SELECT id,product,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $table WHERE id IN ('" . join(',', $pricetags) . "')";
 		$discounted = sDB::query("SELECT id,product,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $table WHERE id IN ('" . join(',', $pricetags) . "')", 'array');
 
 		$products = array();
@@ -138,11 +149,13 @@ class ShoppPromo extends ShoppDatabaseObject {
 			$products[] = $pricetag->product;
 			$promos = explode(',', $pricetag->discounts);
 			array_splice($promos, ($pricetag->offset - 1), 1); // Remove the located promotion ID from the discounts list
+			//echo "UPDATE $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id";
 			sDB::query("UPDATE $table SET discounts='" . join(',', $promos) . "' WHERE id=$pricetag->id");
 		}
 
 		// Force resum on products next load
 		$summary = ShoppDatabaseObject::tablename('summary');
+		//echo "UPDATE $summary SET modified='" . ProductSummary::RECALCULATE . "' WHERE product IN (" . join(',', $products). ")";
 		sDB::query("UPDATE $summary SET modified='" . ProductSummary::RECALCULATE . "' WHERE product IN (" . join(',', $products). ")");
 	}
 
