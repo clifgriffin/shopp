@@ -78,7 +78,7 @@ class ShoppPromo extends ShoppDatabaseObject {
 				case "Category":
 					$where[] = "tm.name$match";
 					if ( '!' == $match{0} )
-						$excludes[] = str_replace('!', '', "tm.name");
+						$excludes[] = "tm.name" . ltrim($match, '!');
 					global $wpdb;
 					$joins[ $wpdb->term_relationships ] = "INNER JOIN $wpdb->term_relationships AS tr ON (prc.product=tr.object_id)";
 					$joins[ $wpdb->term_taxonomy ] = "INNER JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id=tt.term_taxonomy_id)";
