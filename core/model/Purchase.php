@@ -285,11 +285,13 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	}
 
 	public function capturable () {
+		if ( empty($this->events) ) $this->load_events();
 		if ( ! $this->authorized ) return 0.0;
 		return ($this->authorized - (float)$this->captured);
 	}
 
 	public function refundable () {
+		if ( empty($this->events) ) $this->load_events();
 		if (!$this->captured) return 0.0;
 		return ($this->captured - (float)$this->refunded);
 	}
