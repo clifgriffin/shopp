@@ -287,17 +287,8 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('system', '/ui/behaviors/system.js', array('jquery'), $version);
 	$scripts->add_data('system', 'group', 1);
 
-	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.min.js', array(), $version);
-	$scripts->add_data('shopp-swfobject', 'group', 1);
-
-	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.min.js', array(), $version);
-	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
-
 	$scripts->add('spin', '/ui/behaviors/spin.js', array('jquery'), $version);
 	$scripts->add_data('spin', 'group', 1);
-
-	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.min.js', array('jquery','shopp-swfobject'), $version);
-	$scripts->add_data('swfupload', 'group', 1);
 
 	$scripts->add('suggest', '/ui/behaviors/suggest.js', array('jquery'), $version);
 	$scripts->add_data('suggest', 'group', 1);
