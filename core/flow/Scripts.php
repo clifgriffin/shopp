@@ -4,14 +4,29 @@
  *
  * Controller for browser script queueing and delivery
  *
- * @copyright Ingenesis Limited, May 2010-2014
- * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package Shopp\Scripts
+ * @author Jonathan Davis
  * @version 1.0
+ * @copyright Ingenesis Limited, May  5, 2010
+ * @license GNU GPL version 3 (or later) {@see license.txt}
+ * @package shopp
  * @since 1.0
+ * @subpackage scripts
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
+
+/**
+ * Scripts
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
+/** From BackPress */
+if ( ! class_exists('WP_Scripts') ) {
+	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
+	require( ABSPATH . WPINC . '/class.wp-scripts.php' );
+}
 
 class ShoppScripts extends WP_Scripts {
 
@@ -77,10 +92,12 @@ class ShoppScripts extends WP_Scripts {
 
 		$debug = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '&debug=1' : '';
 
-		if ( ! empty($this->concat) ) {
-			$ver = md5($this->concat_version);
-			$src = trailingslashit(get_bloginfo('url')) . "sp-scripts.js?load=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
-			if ( is_ssl() ) $src = str_replace('http://', 'https://', $src);
+		if ( !empty($this->concat) ) {
+			$ver = md5("$this->concat_version");
+			if (shopp_setting('script_server') == 'plugin') {
+				$src = trailingslashit(get_bloginfo('url')) . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver" . $debug;
+				if (is_ssl()) $src = str_replace('http://','https://',$src);
+			} else $src = SHOPP_PLUGINURI . "/services/scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver" . $debug;
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
 
@@ -270,17 +287,8 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('system', '/ui/behaviors/system.js', array('jquery'), $version);
 	$scripts->add_data('system', 'group', 1);
 
-	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.min.js', array(), $version);
-	$scripts->add_data('shopp-swfobject', 'group', 1);
-
-	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.min.js', array(), $version);
-	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
-
 	$scripts->add('spin', '/ui/behaviors/spin.js', array('jquery'), $version);
 	$scripts->add_data('spin', 'group', 1);
-
-	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.min.js', array('jquery','shopp-swfobject'), $version);
-	$scripts->add_data('swfupload', 'group', 1);
 
 	$scripts->add('suggest', '/ui/behaviors/suggest.js', array('jquery'), $version);
 	$scripts->add_data('suggest', 'group', 1);

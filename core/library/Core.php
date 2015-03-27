@@ -2298,7 +2298,7 @@ abstract class ShoppCore {
 	}
 
 	/**
-	 * Trim whitespace from the beginning
+	 * Trim whitespace from the beggingin
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.3
