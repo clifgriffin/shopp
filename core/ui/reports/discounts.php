@@ -35,7 +35,7 @@ class DiscountsReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function columns () {
+	function columns() {
 	 	return array(
 			'period'    => __('Period', 'Shopp'),
 			'orders'    => __('Orders', 'Shopp'),
@@ -45,12 +45,20 @@ class DiscountsReport extends ShoppReportFramework implements ShoppReport {
 		);
 	}
 
-	static function orders ( $data ) { return intval($data->orders); }
+	static function orders( $data ) {
+		return intval( isset($data->orders) ? $data->orders : 0);
+	}
 
-	static function items ( $data ) { return intval($data->items); }
+	static function items( $data ) {
+		return intval( isset($data->items) ? $data->items : 0);
+	}
 
-	static function subtotal ( $data ) { return money($data->subtotal); }
+	static function subtotal( $data ) {
+		return money( isset($data->subtotal) ? $data->subtotal : 0 );
+	}
 
-	static function discounts ( $data ) { return money($data->discounts); }
+	static function discounts( $data ) {
+		return money( isset($data->discounts) ? $data->discounts : 0 );
+	}
 
 }
