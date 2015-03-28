@@ -447,8 +447,11 @@ abstract class ShoppSessionFramework {
 
 	    $entropy .= uniqid(mt_rand(), true);
 
+		// Check for open_basedir restrictions
+		$openbasedir = false === strpos(ini_get('open_basedir'), DIRECTORY_SEPARATOR);
+
 		// Try adding entropy from the Unix random number generator
-	    if ( @is_readable('/dev/urandom') && $h = fopen('/dev/urandom', 'rb') ) {
+	    if ( $openbasedir && @is_readable('/dev/urandom') && $h = fopen('/dev/urandom', 'rb') ) {
 			if ( function_exists('stream_set_read_buffer') )
 				stream_set_read_buffer($h, 0);
 	        $entropy .= @fread($h, 64);

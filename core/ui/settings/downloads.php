@@ -7,7 +7,7 @@
 
 	?>
 
-	<form name="settings" id="checkout" action="<?php echo add_query_arg('tab', $this->tab, esc_url($this->url)); ?>" method="post">
+	<form name="settings" id="checkout" action="<?php echo esc_url($this->url); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-downloads'); ?>
 
 		<table class="form-table">

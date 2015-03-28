@@ -412,7 +412,7 @@ class ShoppErrorLogging {
 	private function __construct () {
 		$this->loglevel = shopp_setting('error_logging');
 
-		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : sys_get_temp_dir();
+		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : get_temp_dir();
 		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
 
 		$siteurl = parse_url(get_bloginfo('url'));
@@ -466,7 +466,7 @@ class ShoppErrorLogging {
 			$debug = ' ' . apply_filters('shopp_error_message_debugdata', $debug, $error->debug);
 		}
 		$message = date("Y-m-d H:i:s", time())." - ".$error->message(false, true)."$debug\n";
-		error_log($message, 3, $this->logfile);		// Log to Shopp error log file
+		@error_log($message, 3, $this->logfile);		// Log to Shopp error log file
 		error_log($error->message(false, true));	// Log to PHP error log file
 	}
 
@@ -479,9 +479,9 @@ class ShoppErrorLogging {
 	 * @return void
 	 **/
 	public function reset () {
-		$this->log = fopen($this->logfile, 'w');
+		$this->log = @fopen($this->logfile, 'w');
 		fwrite($this->log, '');
-		fclose($this->log);
+		@fclose($this->log);
 	}
 
 	/**

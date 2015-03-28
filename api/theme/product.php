@@ -2127,7 +2127,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		extract($options);
 
 		$taxes = isset($taxes) ? Shopp::str_true($taxes) : null;
-		$taxrates = self::_taxes($O);
+		$taxrates = self::_taxes($O, 'price');
 		$collection_class = ShoppCollection() && isset(ShoppCollection()->slug) ? 'category-' . ShoppCollection()->slug : '';
 
 		if ( 'single' == $mode ) {
@@ -2141,7 +2141,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				if ( 'variation' != $pricing->context ) continue;
 
 				$currently = Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price;
-				$disable = ( $pricetag->type == 'N/A' || ( Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ) );
+				$disable = ( $pricing->type == 'N/A' || ( Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ) );
 				$currently = self::_taxed((float)$currently, $O, $pricing->tax, $taxes);
 
 				$discount = 0 == $pricing->price ? 0 : 100 - round( $pricing->promoprice * 100 / $pricing->price );
@@ -2175,7 +2175,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			foreach ($O->pricekey as $key => $pricing) {
 
 				$currently = Shopp::str_true($pricing->sale) ? $pricing->promoprice : $pricing->price;
-				$disable = ( $pricetag->type == 'N/A' || ( Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ) );
+				$disable = ( $pricing->type == 'N/A' || ( Shopp::str_true($pricing->inventory) && $pricing->stock == 0 ) );
 				$currently = self::_taxed((float)$currently, $O, $pricing->tax, $taxes);
 
 				$discount = 100-round($pricing->promoprice * 100 / $pricing->price);
