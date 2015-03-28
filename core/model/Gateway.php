@@ -565,7 +565,8 @@ class GatewayModules extends ModuleLoader {
 		elseif ( isset($this->active[ "Shopp$gateway" ]) ) // @see #3256
 			return $Gateways->active[ "Shopp$gateway" ];
 
-		return false;
+		$false = false;
+		return $false;
 
 	}
 
