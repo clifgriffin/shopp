@@ -197,7 +197,7 @@ class ProductCollection implements Iterator {
 			$alphaquery = sDB::select($a);
 
 			$cachehash = 'collection_alphanav_' . md5($alphaquery);
-			$cached = Shopp::cache_get($cachehash, 'shopp_collection');
+			$cached = Shopp::cache_get($cachehash, 'shopp_collection_alphanav');
 			if ($cached) { // Load from object cache,  if available
 				$this->alpha = $cached;
 				$cached = false;
