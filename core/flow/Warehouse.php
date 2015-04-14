@@ -164,14 +164,13 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
 			}
-			wp_cache_flush();
+			wp_cache_delete( 'shopp_product_subcounts' );
 			$redirect = add_query_arg( $_GET, $adminurl );
 			$redirect = remove_query_arg( array('action','selected','delete_all'), $redirect );
 			Shopp::redirect( $redirect );
 		}
 
 		if ($duplicate) {
-			wp_cache_flush();
 			$Product = new ShoppProduct($duplicate);
 			$Product->duplicate();
 			$this->index($Product);
@@ -189,7 +188,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		} else $Shopp->Product = new ShoppProduct();
 
 		if ($save) {
-			wp_cache_flush();
+			wp_cache_delete('shopp_product_subcounts');
 			$this->save($Shopp->Product);
 			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );
 
