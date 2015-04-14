@@ -204,7 +204,7 @@ class ProductCollection implements Iterator {
 			} else { // Run query and cache results
 				$expire = apply_filters('shopp_collection_cache_expire', 43200);
 				$alpha = sDB::query($alphaquery, 'array', array($this, 'alphatable'));
-				wp_cache_set($cachehash, $alpha, 'shopp_collection_alphanav');
+				wp_cache_set($cachehash, $alpha, 'shopp_collection_alphanav', $expire);
 			}
 
 			$this->paged = true;
@@ -239,7 +239,7 @@ class ProductCollection implements Iterator {
 			// Don't use the limit if it is offset
 			if ($limited && false === strpos($limit, ',')) $cache->total = $this->total = min($limit, $this->total);
 
-			wp_cache_set($cachehash,$cache,'shopp_collection');
+			wp_cache_set($cachehash, $cache, 'shopp_collection', $expire);
 		}
 		if ( false === $this->products ) $this->products = array();
 
