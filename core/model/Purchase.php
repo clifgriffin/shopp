@@ -319,8 +319,6 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		$Purchase = $Event->order();
 		if ( ! $Purchase->stocked ) return true; // no inventory in purchase
 		
-		wp_cache_flush(); //Clear product collection caches
-
 		$prices = array();
 		$allocated = array();
 		foreach ( $Purchase->purchased as $Purchased ) {
