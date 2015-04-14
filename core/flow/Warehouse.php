@@ -164,14 +164,19 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 						$P = new ShoppProduct($id); $P->delete();
 					} break;
 			}
-			wp_cache_flush();
+			
+			// Gracefully invalidate Shopp object caching
+			Shopp::invalidate_cache();
+			
 			$redirect = add_query_arg( $_GET, $adminurl );
 			$redirect = remove_query_arg( array('action','selected','delete_all'), $redirect );
 			Shopp::redirect( $redirect );
 		}
 
 		if ($duplicate) {
-			wp_cache_flush();
+			// Gracefully invalidate Shopp object caching
+			Shopp::invalidate_cache();
+			
 			$Product = new ShoppProduct($duplicate);
 			$Product->duplicate();
 			$this->index($Product);
@@ -189,7 +194,9 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		} else $Shopp->Product = new ShoppProduct();
 
 		if ($save) {
-			wp_cache_flush();
+			// Gracefully invalidate Shopp object caching
+			Shopp::invalidate_cache();
+			
 			$this->save($Shopp->Product);
 			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );
 
@@ -421,7 +428,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ( $workflow ) return $this->products->worklist();
 
 		// Get sub-screen counts
-		$subcounts = wp_cache_get('shopp_product_subcounts','shopp_admin');
+		$subcounts = Shopp::cache_get('shopp_product_subcounts','shopp_admin');
 		if ( $subcounts ) {
 			foreach ($subcounts as $name => $total)
 				if ( isset($subs[ $name ]) ) $subs[ $name ]['total'] = $total;
@@ -446,7 +453,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				$subquery['total'] = sDB::query($query, 'auto', 'col', 'total');
 				$subcounts[ $name ] = $subquery['total'];
 			}
-			wp_cache_set('shopp_product_subcounts', $subcounts, 'shopp_admin');
+			Shopp::cache_set('shopp_product_subcounts', $subcounts, 'shopp_admin');
 		}
 
 		$this->subs = $subs;
