@@ -2102,7 +2102,7 @@ class AlsoBoughtProducts extends SmartCollection {
 		if ( $cached ) $matches = $cached;
 		else {
 			$matches = sDB::query($query, 'array', 'col', 'p2');
-			Shopp::cache_set($cachehash, $matches, 'shopp_collection_alsobought');
+			Shopp::cache_set($cachehash, $matches, 'shopp_collection_alsobought', 14400); //Expires in 4 hours
 		}
 
 		if ( empty($matches) ) {
