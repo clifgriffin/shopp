@@ -1,13 +1,13 @@
 /*!
  * shopp.js - Shopp behavioral utility library
- * Copyright © 2008-2010 by Ingenesis Limited
+ * Copyright © 2008-2015 by Ingenesis Limited
  * Licensed under the GPLv3 {@see license.txt}
  */
 
 /**
- * Provides shorthand for returning a clean jQuery object
+ * Provides shorthand for returning a clean jQuery object.
  **/
-function jqnc () { return jQuery.noConflict(); }
+function jqnc() { return jQuery.noConflict(); }
 
 jQuery.ua={chrome:false,mozilla:false,opera:false,msie:false,safari:false};
 jQuery.each(jQuery.ua,function(c,a){
@@ -27,15 +27,66 @@ function copyOf (src) {
 }
 
 /**
- * Provides indexOf method for browsers that
+ * Provides indexOf pollyfill method for browsers that
  * that don't implement JavaScript 1.6 (IE for example)
  **/
-if (!Array.indexOf) {
-	Array.prototype.indexOf = function(obj) {
-		for (var i = 0; i < this.length; i++)
-			if (this[i] == obj) return i;
+if (!Array.prototype.indexOf) {
+	Array.prototype.indexOf = function(searchElement, fromIndex) {
+
+		if (this == null)
+			throw new TypeError('"this" is null or not defined');
+
+		var i, O = Object(this), len = O.length >>> 0, n = +fromIndex || 0;
+
+		if (len === 0) return -1;
+		if (Math.abs(n) === Infinity) n = 0;
+		if (n >= len) return -1;
+
+		i = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+		while (i < len) {
+			if (i in O && O[i] === searchElement) return i;
+			i++;
+		}
+
 		return -1;
 	};
+}
+
+/**
+ * Provides a feature limited, fast implementation of sprintf
+ **/
+if ( ! sprintf ) {
+	function sprintf (format, args) {
+		if ( ! format ) return;
+		var result, i, type, prev = 0, arg = 0,
+	        escapes = {
+	        	'\n': '\\n',
+	            '\'': '\\\'',
+	        },
+			result = '';
+
+		for ( i = 0; i < format.length; i++ ) {
+			if ( '%' === format[i] ) {
+
+	            result += format.slice(prev, i);
+				param = args[ arg++ ];
+	            switch ( format[ i + 1 ] ) {
+					case 's': result += param; break;
+				    case 'j': result += JSON.strigify(param); break;
+					case 'd': result += parseInt(param) ? parseInt(param) : 0; break;
+					case 'f': result += parseFloat(param) ? parseFloat(param) : 0.0; break;
+				    case '%': i++; arg--; break;
+				}
+	            prev = i + 2;
+			} else if ( escapes[ format[ i ] ] ) {
+				result += format.slice(prev, i) + escapes[ format[ i ] ];
+				prev = i + 1;
+			}
+		}
+
+		return result + format.slice(prev);
+	}
 }
 
 /**
@@ -221,6 +272,12 @@ function htmlentities (string) {
 	return string;
 }
 
+jQuery.fn.selectall = function () {
+	var event = 'mouseup.select';
+	jQuery(this).off(event).on(event, function () { this.select(); });
+	return this;
+}
+
 jQuery.fn.fadeRemove = function (duration,callback) {
 	var $this = jQuery(this);
 	$this.fadeOut(duration,function () { $this.remove(); if (callback) callback(); });
@@ -254,6 +311,16 @@ jQuery.fn.setDisabled = function (setting) {
 	return this;
 };
 
+jQuery.fn.money = function () {
+	var $this = jQuery(this),
+		event = 'change.money';
+	$this.off(event).on(event, function () {
+		this.value = asMoney(this.value);
+	}).trigger(event);
+	return this;
+}
+
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()
@@ -286,9 +353,7 @@ jQuery.getQueryVar = function (name,url) {
 jQuery(document).ready(function($) {
 
 	// Automatically reformat currency and money inputs
-	$('input.currency, input.money').change(function () {
-		this.value = asMoney(this.value); }).change();
-
+	$('input.currency, input.money').money();
 	$('.click-submit').clickSubmit();
 
 	quickSelects();
