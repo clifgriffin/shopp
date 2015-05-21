@@ -60,7 +60,7 @@ jQuery(document).ready(function($) {
 	$('#firstname,#lastname').change( function() {
 		// If other name field is empty, bail
 		var other_field_id = $(this).attr('id') == 'firstname' ? 'lastname' : 'firstname';
-		if ( ! $('#' + other_field_id).val().trim() ) return;
+		if ( ! $('#' + other_field_id).val().trim() || ! $(this).val().trim() ) return;
 		
 		// Otherwise, proceed with setting billing and shipping name 
 		$('#billing-name,#shipping-name').filter(function() {
