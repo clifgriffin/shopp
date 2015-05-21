@@ -55,37 +55,18 @@ jQuery(document).ready(function($) {
 		keepLastValue = function () { // Save the current value of the field
 			$(this).attr('data-last', $(this).val());
 		};
-
-	// Handle changes to the firstname and lastname fields
-    $('#firstname,#lastname').each(keepLastValue).change(function () {
-		var namefield = $(this); // Reference to the modified field
-			lastfirstname = $('#firstname').attr('data-last'),
-			lastlastname = $('#lastname').attr('data-last'),
-			firstlast = ( ( $('#firstname').val() ).trim() + " " + ( $('#lastname').val() ).trim() ).trim();
-
-			namefield.val( (namefield.val()).trim() );
-
-		// Update the billing name and shipping name
-		$('#billing-name,#shipping-name').each(function() {
-			var value = $(this).val();
-
-			if ( value.trim().length == 0 ) {
-				// Empty billing or shipping name
-				$('#billing-name,#shipping-name').val(firstlast);
-			} else if ( '' != value && ( $('#firstname').val() == value || $('#lastname').val() == value ) ) {
-				// Only one name entered (so far), add the other name
-				$(this).val(firstlast);
-			} else if ( 'firstname' == namefield.attr('id') && value.indexOf(lastlastname) != -1 ) {
-				// firstname changed & last lastname matched
-				$(this).val( value.replace(lastfirstname, namefield.val()).trim() );
-			} else if ( 'lastname' == namefield.attr('id') && value.indexOf(lastfirstname) != -1 ) {
-				// lastname changed & last firstname matched
-				$(this).val( value.replace(lastlastname, namefield.val()).trim() );
-			}
-
-		});
-
-    }).change(keepLastValue);
+	
+	// When first and last name are changed, pre-fill billing name and shipping name if empty
+	$('#firstname,#lastname').change( function() {
+		// If other name field is empty, bail
+		var other_field_id = $(this).attr('id') == 'firstname' ? 'lastname' : 'firstname';
+		if ( ! $('#' + other_field_id).val().trim() ) return;
+		
+		// Otherwise, proceed with setting billing and shipping name 
+		$('#billing-name,#shipping-name').filter(function() {
+	            return ( this.value === '' );
+		}).val(new String($('#firstname').val()+" "+$('#lastname').val()).trim());
+	} );
 
 	// Update state/province
 	$('#billing-country,#shipping-country').upstate();
