@@ -40,7 +40,13 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppTagCloudWidget') ) {
 	    function form($options) {
 			?>
 			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
-			<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
+				<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>">
+			</p>
+			<p>
+				<label for="<?php echo $this->get_field_id('exclude'); ?>"><?php _e( 'Exclude' ); ?></label> <input type="text" value="<?php echo $options['exclude']; ?>" name="<?php echo $this->get_field_name('exclude'); ?>" id="<?php echo $this->get_field_id('exclude'); ?>" class="widefat" />
+				<br />
+				<small><?php _e( 'Tags, separated by commas.', 'Shopp' ); ?></small>
+			</p>
 			<?php
 	    }
 
