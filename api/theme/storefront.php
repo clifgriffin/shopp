@@ -1390,9 +1390,9 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( empty($tags) ) return false;
 		
 		if ( ! empty($exclude) ) {
-			$excludes = explode( ',', $exclude);
+			$excludes = explode(',', $exclude);
 			
-			foreach ($tags as $key => $tag ) {
+			foreach ( $tags as $key => $tag ) {
 				if ( in_array($tag->name, $excludes) ) unset($tags[ $key ]);
 			}	
 		}
