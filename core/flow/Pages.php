@@ -565,7 +565,6 @@ class ShoppAccountPage extends ShoppPage {
 
 		if ( ! Shopp::email(join("\n", $message)) ) {
 			shopp_add_error(Shopp::__('Your password was reset to: '.$password));
-			Shopp::redirect( add_query_arg( 'acct', 'recover', Shopp::url(false, 'account') ) );
 		} else shopp_add_error(Shopp::__('Your new password has been emailed to you for your records. Your password was reset to: '.$password));
 
 		unset($_GET['acct']);
