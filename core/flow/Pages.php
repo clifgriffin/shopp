@@ -520,11 +520,11 @@ class ShoppAccountPage extends ShoppPage {
 
 		$errors = array();
 		if ( empty($activation) || ! is_string($activation) )
-			$errors[] = new ShoppError(Shopp::__('Invalid key'));
+			$errors[] = new ShoppError(Shopp::__('Invalid password reset key. Try copy/pasting the url in password reset email into your web browser\'s address bar.'));
 
 		$RecoveryCustomer = new ShoppCustomer($activation, 'activation');
 		if ( empty($RecoveryCustomer->id) )
-			$errors[] = new ShoppError(Shopp::__('Invalid key'));
+			$errors[] = new ShoppError(Shopp::__('Invalid or expired password reset key. If you filled out the password recovery form multiple times, you must use the reset link in the last email you recieved.'));
 
 		if ( ! empty($errors) ) return false;
 
