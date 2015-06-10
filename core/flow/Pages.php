@@ -568,6 +568,9 @@ class ShoppAccountPage extends ShoppPage {
 		} else shopp_add_error(Shopp::__('Your new password has been emailed to you for your records. Your password was reset to: '.$password));
 
 		unset($_GET['acct']);
+		
+		//Allow prepopulation of account-login fields
+		$_POST['account-login'] = $RecoveryCustomer->email;
 	}
 
 }
