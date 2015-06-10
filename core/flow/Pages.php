@@ -513,7 +513,7 @@ class ShoppAccountPage extends ShoppPage {
 	}
 
 	static function resetpassword ($activation) {
-		if ( 'none' == shopp_setting('account_system') ) return;
+		if ( 'none' == shopp_setting('account_system') || ShoppCustomer()->loggedin() ) return;
 
 		$user_data = false;
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
