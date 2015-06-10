@@ -492,11 +492,9 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = get_bloginfo('url').'</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if (isset($_POST['email-login']))
+		if (!empty($RecoveryCustomer->email))
 			$_[] = '<li>'.sprintf(__('Email: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
-		if (isset($_POST['loginname-login']))
-			$_[] = '<li>'.sprintf(__('Login name: %s', 'Shopp'), $user_data->user_login).'</li>';
-		if (isset($_POST['account-login']))
+		if (!empty($user_data->user_login))
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
 		$_[] = '</ul>';
 		$_[] = '';
