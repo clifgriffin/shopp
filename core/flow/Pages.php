@@ -553,8 +553,10 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if ( $user_data )
-			$_[] = '<li>' . Shopp::__('Login name: %s', $user_data->user_login) . '</li>';
+		if (!empty($RecoveryCustomer->email))
+			$_[] = '<li>'.sprintf(__('Email: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
+		if (!empty($user_data->user_login))
+			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
 		$_[] = '<li>' . Shopp::__('Password: %s', $password) . '</li>';
 		$_[] = '</ul>';
 		$_[] = '';
