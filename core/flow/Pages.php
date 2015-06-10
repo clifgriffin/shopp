@@ -570,6 +570,7 @@ class ShoppAccountPage extends ShoppPage {
 		unset($_GET['acct']);
 		
 		// Auto-login
+		//TODO: Fix error in logic using shopp_add_error like this.
 		shopp_add_error(Shopp::__('You are now logged into your account. If you wish, please use the form below to change your password to one of your choosing.'));
 		$RecoveryCustomer->login(); // Login the customer
 		if ( ! empty($user_data) ) // Log the WordPress user in
