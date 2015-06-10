@@ -569,8 +569,12 @@ class ShoppAccountPage extends ShoppPage {
 
 		unset($_GET['acct']);
 		
-		//Allow prepopulation of account-login fields
-		$_POST['account-login'] = $RecoveryCustomer->email;
+		// Auto-login
+		shopp_add_error(Shopp::__('You are now logged into your account. If you wish, please use the form below to change your password to one of your choosing.'));
+		$RecoveryCustomer->login(); // Login the customer
+		if ( ! empty($user_data) ) // Log the WordPress user in
+			ShoppLogin::wpuser($user_data);
+		Shopp::redirect( add_query_arg('profile', '', Shopp::url(false, 'account')) );
 	}
 
 }
