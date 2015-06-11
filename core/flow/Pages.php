@@ -529,7 +529,7 @@ class ShoppAccountPage extends ShoppPage {
 		if ( ! empty($errors) ) return false;
 
 		// Generate a new random password
-		$password = wp_generate_password();
+		$password = wp_generate_password(10, false);
 
 		do_action_ref_array('password_reset', array($RecoveryCustomer, $password));
 
@@ -553,11 +553,10 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if (!empty($user_data->user_login)) {
+		if (!empty($user_data->user_login))
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
-		} else if (!empty($RecoveryCustomer->email)) {
+		elseif (!empty($RecoveryCustomer->email))
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
-		}
 		$_[] = '<li>' . Shopp::__('Password: %s', $password) . '</li>';
 		$_[] = '</ul>';
 		$_[] = '';
@@ -576,7 +575,7 @@ class ShoppAccountPage extends ShoppPage {
 		$RecoveryCustomer->login(); // Login the customer
 		if ( ! empty($user_data) ) // Log the WordPress user in
 			ShoppLogin::wpuser($user_data);
-		if ( apply_filters('shopp_resetpassword_redirect', false) )
+		if ( apply_filters('shopp_resetpassword_redirect', true) )
 			Shopp::redirect( add_query_arg('profile', '', Shopp::url(false, 'account')) );
 	}
 
