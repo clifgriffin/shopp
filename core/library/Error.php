@@ -101,12 +101,14 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	public function add ( ShoppError $ShoppError ) {
-		if ( isset($ShoppError->code) ) $this->errors[ $ShoppError->code ] = $ShoppError;
-		else $this->errors[] = $ShoppError;
+		if ( isset($ShoppError->code) && false !== $ShoppError->code ) 
+			$this->errors[ $ShoppError->code ] = $ShoppError;
+		else 
+			$this->errors[] = $ShoppError;
 
 		do_action('shopp_error', $ShoppError);
 	}
-
+	
 	/**
 	 * Gets all errors up to a specified error level
 	 *
