@@ -510,7 +510,6 @@ class ShoppAccountPage extends ShoppPage {
 
 		new ShoppError(__('Check your email address for instructions on resetting the password for your account.', 'Shopp'), 'password_recovery_email', SHOPP_ERR);
 		Shopp::redirect( Shopp::url(false, 'account') );
-
 	}
 
 	static function resetpassword ($activation) {
@@ -572,12 +571,14 @@ class ShoppAccountPage extends ShoppPage {
 
 		// Auto-login
 		//TODO: Fix error in logic using shopp_add_error like this.
-		shopp_add_error(Shopp::__('You are now logged into your account. If you wish, please use the form below to change your password to one of your choosing.'));
+		shopp_add_error(Shopp::__('You are now logged into your account.'));
 		$RecoveryCustomer->login(); // Login the customer
 		if ( ! empty($user_data) ) // Log the WordPress user in
 			ShoppLogin::wpuser($user_data);
-		if ( apply_filters('shopp_resetpassword_redirect', true) )
+		if ( apply_filters('shopp_resetpassword_redirect', true) ) {
+			shopp_add_error(Shopp::__('If you wish, please use the form below to change your password to one of your choosing.'));
 			Shopp::redirect( add_query_arg('profile', '', Shopp::url(false, 'account')) );
+		}
 	}
 
 }
