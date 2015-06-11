@@ -576,7 +576,8 @@ class ShoppAccountPage extends ShoppPage {
 		$RecoveryCustomer->login(); // Login the customer
 		if ( ! empty($user_data) ) // Log the WordPress user in
 			ShoppLogin::wpuser($user_data);
-		Shopp::redirect( add_query_arg('profile', '', Shopp::url(false, 'account')) );
+		if ( apply_filters('shopp_resetpassword_redirect', false) )
+			Shopp::redirect( add_query_arg('profile', '', Shopp::url(false, 'account')) );
 	}
 
 }
