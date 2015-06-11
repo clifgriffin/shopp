@@ -553,10 +553,11 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if (!empty($RecoveryCustomer->email))
-			$_[] = '<li>'.sprintf(__('Email: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
-		if (!empty($user_data->user_login))
+		if (!empty($user_data->user_login)) {
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
+		} else if (!empty($RecoveryCustomer->email)) {
+			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
+		}
 		$_[] = '<li>' . Shopp::__('Password: %s', $password) . '</li>';
 		$_[] = '</ul>';
 		$_[] = '';
@@ -568,7 +569,7 @@ class ShoppAccountPage extends ShoppPage {
 		} else shopp_add_error(Shopp::__('Your new password has been emailed to you for your records. Your password was reset to: '.$password));
 
 		unset($_GET['acct']);
-		
+
 		// Auto-login
 		//TODO: Fix error in logic using shopp_add_error like this.
 		shopp_add_error(Shopp::__('You are now logged into your account. If you wish, please use the form below to change your password to one of your choosing.'));
