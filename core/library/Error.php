@@ -645,11 +645,12 @@ class ShoppErrorStorefrontNotices implements Iterator {
 
 	public function init () {
 		Shopping::restore('notices', $this->notices);
+		$this->notices = array_reverse($this->notices);
 	}
 
 	public function notice ( $Error ) {
 		if ( $Error->level > SHOPP_COMM_ERR ) return;
-		$this->notices += $Error->messages;
+		$this->notices = array_merge($this->notices, $Error->messages);
 	}
 
 	public function exist () {
@@ -657,7 +658,7 @@ class ShoppErrorStorefrontNotices implements Iterator {
 	}
 
 	public function message () {
-		return array_shift($this->notices);
+		return array_pop($this->notices);
 	}
 
 	public function count () {
