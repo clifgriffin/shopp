@@ -474,11 +474,15 @@ class ShoppAccountPage extends ShoppPage {
 
 		// return errors
 		if ( ! empty($errors) ) return;
-
-		// Generate new key
-		$RecoveryCustomer->activation = wp_generate_password(20, false);
-		do_action_ref_array('shopp_generate_password_key', array(&$RecoveryCustomer));
-		$RecoveryCustomer->save();
+		
+		//Use existing activation keys for multiple requests starting in the same hour
+		if( empty($RecoveryCustomer->activation) 
+			|| current_time('timestamp') - $RecoveryCustomer->modified > HOUR_IN_SECONDS ) {  
+			// Generate new key
+			$RecoveryCustomer->activation = wp_generate_password(20, false);
+			do_action_ref_array('shopp_generate_password_key', array(&$RecoveryCustomer));
+			$RecoveryCustomer->save();
+		}
 
 		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request', 'Shopp'), get_option('blogname')));
 
@@ -519,13 +523,13 @@ class ShoppAccountPage extends ShoppPage {
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
 
 		$errors = array();
-		if ( empty($activation) || ! is_string($activation) )
+		if ( empty($activation) || ! is_string($activation) ) {
 			$errors[] = new ShoppError(Shopp::__('Invalid password reset key. Try copy/pasting the url in password reset email into your web browser\'s address bar.'));
-
-		$RecoveryCustomer = new ShoppCustomer($activation, 'activation');
-		if ( empty($RecoveryCustomer->id) )
-			$errors[] = new ShoppError(Shopp::__('Invalid or expired password reset key. If you filled out the password recovery form multiple times, you must use the reset link in the last email you recieved.'));
-
+		} else {
+			$RecoveryCustomer = new ShoppCustomer($activation, 'activation');
+			if ( empty($RecoveryCustomer->id) )
+				$errors[] = new ShoppError(Shopp::__('Invalid password reset key. Try copy/pasting the url in password reset email into your web browser\'s address bar.'));
+		}
 		if ( ! empty($errors) ) return false;
 
 		// Generate a new random password
