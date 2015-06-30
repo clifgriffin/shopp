@@ -321,7 +321,7 @@ class ShoppProduct extends WPShoppObject {
 		if ( empty($ids) ) return;
 		$purchase  = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 		$purchased = ShoppDatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT p.product as id, sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus IN ('authorized', 'captured') GROUP BY p.product";
+		$query     = "SELECT p.product as id, sum(p.quantity) AS sold,sum(p.total) AS grossed FROM $purchased as p INNER JOIN $purchase AS o ON p.purchase=o.id WHERE p.product IN ($ids) AND o.txnstatus IN ('authed','captured') GROUP BY p.product";
 		sDB::query($query, 'array', array($this, 'sold'));
 	}
 
