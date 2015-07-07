@@ -48,7 +48,6 @@ class ShoppAdminPages {
 	private $caps = array(                                     // Initialize the capabilities, mapping to pages
 		'main'        => 'shopp_menu',                         // Capabilities                  Role
 		'orders'      => 'shopp_orders',                       // _______________________________________________
-		'orders-new'  => 'shopp_orders',                       //
 		'customers'   => 'shopp_customers',                    // shopp_settings                administrator
 		'reports'     => 'shopp_financials',                   // shopp_settings_checkout
 		'memberships' => 'shopp_products',                     // shopp_settings_payments
@@ -85,7 +84,6 @@ class ShoppAdminPages {
 
 		// Orders menu
 		$this->add('orders',     Shopp::__('All Orders'), 'ShoppAdminOrders');
-		$this->add('orders-new', Shopp::__('New Order'),  'ShoppAdminOrders');
 		$this->add('customers',  Shopp::__('Customers'),  'ShoppAdminCustomers');
 		$this->add('reports',  	 Shopp::__('Reports'),    'ShoppAdminReports');
 		$this->add('settings',   Shopp::__('Settings'),   'ShoppAdminSettings');
