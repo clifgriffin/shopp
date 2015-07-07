@@ -103,8 +103,8 @@ function ShoppPurchase ( $Object = false ) {
  **/
 function ShoppOrder ( $Object = false ) {
 	$Shopp = Shopp::object();
-	if (empty($Shopp)) return false;
-	if ($Object !== false) $Shopp->Order = $Object;
+	if ( empty($Shopp) ) return false;
+	if ( false !== $Object ) $Shopp->Order = $Object;
 	return $Shopp->Order;
 }
 
@@ -118,6 +118,20 @@ function ShoppOrder ( $Object = false ) {
  **/
 function ShoppSettings () {
 	return ShoppSettings::object();
+}
+
+
+function ShoppBaseLocale () {
+	$Shopp = Shopp::object();
+	if ( empty($Shopp) ) return false;
+	return $Shopp->Locale;
+}
+
+
+function ShoppBaseCurrency () {
+	$Shopp = Shopp::object();
+	if ( empty($Shopp) ) return false;
+	return $Shopp->Locale->currency();
 }
 
 /**

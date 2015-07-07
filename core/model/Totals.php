@@ -511,10 +511,13 @@ class OrderAmountDiscount extends OrderAmountCredit {
 
 	protected $setting = false;	// The related discount/promo setting
 	protected $code = false;	// The code used
+	protected $label = '';
 
 	public function label () {
-		return Shopp::__('Discounts');
+		if ( empty($this->label) ) return Shopp::__('Discounts');
+		return $this->label;
 	}
+
 
 }
 OrderTotalRegisters::register('OrderAmountDiscount');
@@ -573,10 +576,13 @@ OrderTotalRegisters::register('OrderAmountGiftCard');
 class OrderAmountFee extends OrderAmountDebit {
 	static public $register = 'fee';
 	protected $quantity = 0;
+	protected $label = '';
 
 	public function label () {
-		return Shopp::__('Fee');
+		if ( empty($this->label) ) return Shopp::__('Fee');
+		return $this->label;
 	}
+
 }
 OrderTotalRegisters::register('OrderAmountFee');
 
@@ -666,9 +672,11 @@ class OrderAmountTax extends OrderAmountDebit {
 	protected $setting = false;	// The related tax setting
 	protected $rate = 0.0;	// The applied rate
 	protected $items = array();
+	protected $label = '';
 
 	public function label () {
-		return Shopp::__('Tax');
+		if ( empty($this->label) ) return Shopp::__('Tax');
+		return $this->label;
 	}
 
 	public function rate () {
@@ -744,11 +752,6 @@ class OrderAmountItemTax extends OrderAmountTax {
 		return parent::amount($this->total());
 	}
 
-	public function label () {
-		if ( empty($this->label) ) return Shopp::__('Tax');
-		return $this->label;
-	}
-
 }
 OrderTotalRegisters::register('OrderAmountItemTax');
 
@@ -812,11 +815,13 @@ class OrderAmountShipping extends OrderAmountDebit {
 
 	static public $register = 'shipping';
 	protected $setting = false;
+	protected $label = '';
 	protected $delivery = false;
 	protected $items = array();
 
 	public function label () {
-		return Shopp::__('Shipping');
+		if ( empty($this->label) ) return Shopp::__('Shipping');
+		return $this->label;
 	}
 }
 OrderTotalRegisters::register('OrderAmountShipping');

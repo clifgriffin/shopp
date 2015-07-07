@@ -1005,7 +1005,6 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 		$regions = Lookup::country_zones();
-		$base = shopp_setting('base_operations');
 
 		$js = "var regions=" . json_encode($regions) . "," .
 				  "c_upd='" . $updating . "'," .

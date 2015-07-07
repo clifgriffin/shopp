@@ -286,9 +286,8 @@ class ShoppTax {
 
 	public static function baserates ( $Item = null ) {
 		// Get base tax rate
-		$base = shopp_setting('base_operations');
-		$BaseTax = new ShoppTax;
-		$BaseTax->location($base['country'], false, false);
+		$BaseTax = new ShoppTax();
+		$BaseTax->location(ShoppBaseLocale()->country(), false, false);
 
 		// Calculate the deduction
 		$baserates = array();
@@ -322,9 +321,8 @@ class ShoppTax {
 	 * @return float The float amount
 	 **/
 	private static function float ( $amount ) {
-		$base = shopp_setting('base_operations');
-		$format = $base['currency']['format'];
-		$format['precision'] = 6;
+		$format = ShoppBaseCurrency()->settings();
+		$format['precision'] = 6; // Override the precision to 6 digits
 		return Shopp::floatval($amount, true, $format);
 	}
 

@@ -52,6 +52,7 @@ class ShoppAjax {
 
 		add_action('wp_ajax_shopp_category_products', array($this, 'category_products'));
 		add_action('wp_ajax_shopp_order_receipt', array($this, 'receipt'));
+		add_action('wp_ajax_shopp_select_product', array($this, 'select_product'));
 		add_action('wp_ajax_shopp_category_children', array($this, 'category_children'));
 		add_action('wp_ajax_shopp_category_order', array($this, 'category_order'));
 		add_action('wp_ajax_shopp_category_products_order', array($this, 'products_order'));
@@ -70,6 +71,7 @@ class ShoppAjax {
 		add_action('wp_ajax_shopp_import_file', array($this, 'import_file'));
 		add_action('wp_ajax_shopp_storage_suggestions', array($this, 'storage_suggestions'), 11);
 		add_action('wp_ajax_shopp_select_customer', array($this, 'select_customer'));
+		add_action('wp_ajax_shopp_lookup_addresses', array($this, 'lookup_addresses'));
 		add_action('wp_ajax_shopp_suggestions', array($this, 'suggestions'));
 		add_action('wp_ajax_shopp_verify_file', array($this, 'verify_file'));
 		add_action('wp_ajax_shopp_gateway', array($this, 'gateway_ajax'));
@@ -119,10 +121,14 @@ class ShoppAjax {
 
 	public function country_zones () {
 		check_admin_referer('wp_ajax_shopp_country_zones');
-		$zones = Lookup::country_zones();
-		if ( isset($_GET['country']) && isset($zones[$_GET['country']]))
-			echo json_encode($zones[$_GET['country']]);
-		else echo json_encode(false);
+		if ( isset($_GET['country']) ) $country = $_GET['country'];
+
+		$states = ShoppLookup::country_zones(array($country));
+		if ( ! empty($states) && isset($states[ $country] )) {
+			$labels = ShoppLookup::country_divisions($country);
+			array_unshift($states[ $country ], strtolower($labels[0]));
+			echo json_encode($states[ $country ]);
+		} else echo json_encode(false);
 		exit();
 	}
 
@@ -151,15 +157,11 @@ class ShoppAjax {
 	}
 
 	public function upload_image () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->images();
-		exit();
+		ShoppScreenProductEditor::images();
 	}
 
 	public function upload_file () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->downloads();
-		exit();
+		ShoppScreenProductEditor::downloads();
 	}
 
 	public function add_category () {
@@ -426,7 +428,7 @@ class ShoppAjax {
 	}
 
 	public function select_customer () {
-		// check_admin_referer('wp_ajax_shopp_select_customer');
+		check_admin_referer('wp_ajax_shopp_select_customer');
 		$defaults = array(
 			'page' => false,
 			'paged' => 1,
@@ -491,7 +493,27 @@ class ShoppAjax {
 		}
 		// if (!empty($starts) && !empty($ends)) $where[] = ' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$Customers = sDB::query($query,'array','index','id');
+		$list = sDB::query($query, 'array', 'index', 'id');
+		$results = array();
+		foreach ( $list as $entry ) {
+			$results[] = array(
+				'id' => $entry->id,
+				'user' => $entry->user,
+				'gravatar' => get_avatar( $entry->email, 32 ),
+				'firstname' => $entry->firstname,
+				'lastname' => $entry->lastname,
+				'company' => $entry->company,
+				'email' => $entry->email,
+				'lastname' => $entry->lastname,
+				'phone' => $entry->phone
+			);
+		}
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
+
+
+
 		$url = admin_url('admin-ajax.php');
 		?>
 		<html>
@@ -511,8 +533,8 @@ class ShoppAjax {
  			echo get_avatar( $Customer->wpuser, 48 );
 			?>
 			<?php echo "<strong>$Customer->firstname $Customer->lastname</strong>"; ?><?php if (!empty($Customer->company)) echo ", $Customer->company"; ?>
-			<?php if (!empty($Customer->email)) echo "<br />$Customer->email"; ?>
-			<?php if (!empty($Customer->phone)) echo "<br />$Customer->phone"; ?>
+			<?php if ( ! empty($Customer->email) ) echo "<br />$Customer->email"; ?>
+			<?php if ( ! empty($Customer->phone) ) echo "<br />$Customer->phone"; ?>
 			</a>
 			</li>
 			<?php endforeach; ?>
@@ -523,6 +545,37 @@ class ShoppAjax {
 		</body>
 		</html>
 		<?php
+		exit();
+	}
+
+	public function lookup_addresses  () {
+		check_admin_referer('wp_ajax_shopp_lookup_addresses');
+		if ( ! isset($_GET['id']) ) die;
+
+		$customer = (int)$_GET['id'];
+		$address_table = ShoppDatabaseObject::tablename(ShoppAddress::$table);
+
+		$list = sDB::query("SELECT * FROM $address_table WHERE customer=$customer ORDER BY modified ASC", 'array', 'index', 'id');
+		$results = array();
+		foreach ( $list as $entry ) {
+			$names = explode(' ', $entry->name);
+			unset($entry->name);
+			$entry->firstname = array_shift($names);
+			$entry->lastname = join(' ', $names);
+			$results[ $entry->type ] = array(
+				'id' => $entry->id,
+				'firstname' => $entry->firstname,
+				'lastname' => $entry->lastname,
+				'address' => $entry->address,
+				'xaddress' => $entry->xaddress,
+				'city' => $entry->city,
+				'state' => $entry->state,
+				'country' => $entry->country,
+				'postcode' => $entry->postcode
+			);
+		}
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
 		exit();
 	}
 
@@ -723,6 +776,29 @@ class ShoppAjax {
 		foreach ($updates as $id => $position)
 			sDB::query("UPDATE $table SET priority='$position' WHERE id='$id'");
 		die('1');
+	}
+
+	public function select_product () {
+
+		$SearchResults = new SearchResults(array('load'=>array('prices'),'search' => $_GET['s'], 'nostock' => 'on', 'published' => 'off', 'paged' => -1, 'limit' => 10));
+		$SearchResults->load();
+		$results = array();
+		foreach ($SearchResults->products as $Product) {
+			foreach ( $Product->prices as $Variant ) {
+				if ( 'N/A' == $Variant->type ) continue; // Skip disabled prices
+				$results[] = array(
+					'id' => "$Product->id-$Variant->id",
+					'name' => $Product->name,
+					'variant' => Shopp::__('Price & Delivery') != $Variant->label ? $Variant->label : '',
+					'unitprice' => $Variant->promoprice,
+				);
+			}
+		}
+
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results);
+		exit;
+
 	}
 
 	public function products_order () {

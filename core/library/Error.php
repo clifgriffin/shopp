@@ -525,6 +525,17 @@ class ShoppErrorLogging {
 
 	}
 
+	/**
+	 * Provide the file size of the log file
+	 *
+	 * @since 1.4
+	 *
+	 * @return int The size of the file in bytes
+	 **/
+	public function size () {
+		return (int) filesize($this->logfile);
+	}
+
 }
 add_action('shopp_errors_init', array('ShoppErrorLogging', 'object'));
 

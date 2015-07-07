@@ -377,7 +377,7 @@ class SingletonFramework {
  * @version 1.3
  * @package shopp
  **/
-class AutoObjectFramework {
+abstract class AutoObjectFramework {
 
 	/**
 	 * Constructor
@@ -425,29 +425,92 @@ class AutoObjectFramework {
 
 }
 
-class FormPostFramework {
+class ShoppRequestProcessing {
 
-	protected $form = array();
-	protected $defaults = array();
-
-	public function form ( $key = null, $latest = null ) {
-
-		if ( true === $latest ) $this->updateform();
+	public static function get ( $key = null, array $data = array() ) {
 
 		if ( isset($key) ) {
-			if ( isset($this->form[ $key ]) )
-				return $this->form[ $key ];
+			if ( isset($data[ $key ]) )
+				return $data[ $key ];
 			else return false;
 		}
 
-		return $this->form;
+		return $data;
+
 	}
 
-	public function updateform () {
-		$submitted = stripslashes_deep($_POST);					// Clean it up
-		$this->form = array_merge($this->defaults, $submitted);	// Capture it
+	public static function process ( array $source = array(), array $defaults = array() ) {
+		$submitted = stripslashes_deep($source);   // Clean it up
+		return array_merge($defaults, $submitted); // Capture it
 	}
 
+}
+
+abstract class ShoppRequestFramework {
+
+	protected $defaults = array();
+
+	protected $request = array();
+
+	public function request ( $key = null ) {
+		return ShoppRequestProcessing::get($key, $this->request);
+	}
+
+	public function query () {
+		if ( empty($_GET) ) return false;
+		$this->request = ShoppRequestProcessing::process($_GET, $this->defaults);
+		return true;
+	}
+
+}
+
+abstract class ShoppFormPostFramework {
+
+	protected $defaults = array();
+
+	protected $form = array();
+
+	protected function form ( $key = null, $latest = false ) {
+		if ( true === $latest ) $this->posted();
+		return ShoppRequestProcessing::get($key, $this->form);
+	}
+
+	public function posted () {
+		if ( empty($_POST) ) return false;
+		$this->form = ShoppRequestProcessing::process($_POST, $this->defaults);
+		return true;
+	}
+
+}
+
+abstract class ShoppRequestFormFramework extends ShoppFormPostFramework {
+
+	public function request ( $key = null ) {
+		return ShoppRequestProcessing::get($key, $this->request);
+	}
+
+	public function query () {
+		if ( empty($_GET) ) return false;
+		$this->request = ShoppRequestProcessing::process($_GET, $this->defaults);
+		return true;
+	}
+
+}
+
+if ( ! class_exists('FormPostFramework', false) ) {
+
+	/** @deprecated Provides legacy support */
+	class FormPostFramework extends ShoppFormPostFramework {
+
+		/**
+		 * @deprecated Use ShoppFormPostFramework::posted() instead
+		 * @since 1.3
+		 **/
+		public function updateform () {
+			$this->posted();
+		}
+
+	}
 }
 
 /**

@@ -13,6 +13,17 @@
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
+class ShoppAdminReports extends ShoppAdminController {
+
+	protected $ui = 'reports';
+
+	protected function route () {
+		return 'ShoppScreenReports';
+	}
+
+}
+
+
 /**
  * Report
  *
@@ -20,34 +31,16 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @since 1.3
  * @author Jonathan Davis
  **/
-class ShoppAdminReport extends ShoppAdminController {
+class ShoppScreenReports extends ShoppScreenController {
 
 	public $records = array();
 	public $count = false;
 
-	private $view = 'dashboard';
 	protected $ui = 'reports';
 
-	private $defaults = array();	// Default request options
+	private $view = 'dashboard';
 	private $options = array();		// Processed options
 	private $Report = false;
-
-	/**
-	 * Service constructor
-	 *
-	 * @return void
-	 * @author Jonathan Davis
-	 **/
-	public function __construct () {
-		parent::__construct();
-
-		shopp_enqueue_script('calendar');
-		shopp_enqueue_script('daterange');
-		shopp_enqueue_script('reports');
-
-		add_filter('shopp_reports', array(__CLASS__, 'xreports'));
-		add_action('load-'.$this->screen, array($this, 'loader'));
-	}
 
 	/**
 	 * Provides a list of available reports
@@ -93,7 +86,7 @@ class ShoppAdminReport extends ShoppAdminController {
 	 *
 	 * @return array The defined request options
 	 **/
-	static function request () {
+	public static function options () {
 		$defaults = array(
 			'start' => date('n/j/Y',mktime(0,0,0)),
 			'end' => date('n/j/Y',mktime(23,59,59)),
@@ -143,15 +136,14 @@ class ShoppAdminReport extends ShoppAdminController {
 	 *
 	 * @return Report The loaded Report object
 	 **/
-	static function load () {
-		$options = self::request();
+	static function report () {
+		$options = self::options();
 		extract($options, EXTR_SKIP);
 
 		$reports = self::reports();
 
 		// Load the report
 		$report = isset($_GET['report']) ? $_GET['report'] : 'sales';
-
 		if ( empty($reports[ $report ]['class']) )
 			return wp_die(Shopp::__('The requested report does not exist.'));
 
@@ -171,10 +163,17 @@ class ShoppAdminReport extends ShoppAdminController {
 	 *
 	 * @return void
 	 **/
-	public function loader () {
+	public function load () {
 		if ( ! current_user_can('shopp_financials') ) return;
-		$this->options = self::request();
-		$this->Report = self::load();
+		add_filter('shopp_reports', array(__CLASS__, 'xreports'));
+		$this->options = self::options();
+		$this->Report = self::report();
+	}
+
+	public function assets () {
+		shopp_enqueue_script('calendar');
+		shopp_enqueue_script('daterange');
+		shopp_enqueue_script('reports');
 	}
 
 	/**
@@ -185,7 +184,7 @@ class ShoppAdminReport extends ShoppAdminController {
 	 *
 	 * @return void
 	 **/
-	public function admin () {
+	public function screen () {
 		if ( ! current_user_can('shopp_financials') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 

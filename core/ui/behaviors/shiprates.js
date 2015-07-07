@@ -5,6 +5,15 @@
  */
 
 jQuery(document).ready( function($) {
+
+	quickSelects();
+
+	$('#selectall').change(function () {
+		if ($(this).attr('checked')) $('#carriers input').not(this).attr('checked',true);
+		else $('#carriers input').not(this).attr('checked',false);
+	});
+
+
 	if ($('#flatrates-editor').size() > 0) {
 		$.each(shipping,function (index,shipping) {
 			$.template(shipping+'-editor',$('#'+shipping+'-editor'));
@@ -53,7 +62,7 @@ jQuery(document).ready( function($) {
 							selected[key] = selection[index];
 						index++;
 					}
-
+					console.log(selected);
 					for (index in lookup.regions) { // World regions
 
 						if (index == selected.region && lookup.regionmap[index]) { // Selected region's countries
@@ -289,9 +298,13 @@ jQuery(document).ready( function($) {
 		},
 
 		AddShipping = function (e) {
-			var editortable = false;
 			e.preventDefault();
-			if (editing) editing.cancel(false);
+
+			var editortable = false;
+
+			if ( editing )
+				editing.cancel(false);
+
 			notice.hide();
 
 			var $this = $(this),
@@ -299,12 +312,12 @@ jQuery(document).ready( function($) {
 				selected = menu.val()?menu.val().toLowerCase():setting,
 				data = settings[selected] ? settings[selected] : (defaults[selected]?defaults[selected]:{}),
 				row = $this.parents('tr').hide(),
-				rowid = row.size() > 0?row.attr('id').substr(17):false,
-				id = data.type ? data.type : (rowid?rowid:selected),
-				ui = $.tmpl(id+'-editor',data),
+				rowid = row.size() > 0?row.attr('id').substr(10):false,
+				id = data.type ? data.type : ( rowid ? rowid : selected ),
+				ui = $.tmpl(id+'-editor', data)
 				cancel = ui.find('a.cancel'),
 				fb = ui.find('input.fallback').attr('checked','on' == data.fallback?'checked':false),
-				maxd = ui.find('select.maxdelivery').html($.tmpl('delivery-menu')).val(data.maxdelivery),
+				maxd = ui.find('select.maxdelivery').html($.tmpl('delivery-menu')).val(data.maxdelivery)
 				mind = ui.find('select.mindelivery').html($.tmpl('delivery-menu')).val(data.mindelivery).change(function () {
 					var $this = $(this),selection = $this.attr('selectedIndex'),maxselected = maxd.attr('selectedIndex');
 					maxd.find('option').attr('disabled',false).each(function (i,option) {
@@ -319,7 +332,6 @@ jQuery(document).ready( function($) {
 				}),
 				ratetable = (ui.find('table.rate-table-shipping').size() > 0);
 
-			if (row.size() == 0) row = $('#shipping-setting-'+id).hide();
 			menu.get(0).selectedIndex = 0;
 
 			$this.cancel = function (e) {
@@ -339,16 +351,18 @@ jQuery(document).ready( function($) {
 				if (editortable.size() > 0) TableRates(editortable,data);
 			}
 
+			console.log(ui);
+
 			if (row.size() > 0) ui.insertAfter(row);
-			else ui.prependTo('#shiprates');
+			else ui.prependTo('#the-list');
 
 			editing = $this;
 		};
 
-	$('#shipping a.edit').click(AddShipping);
+	$('#the-list a.edit').click(AddShipping);
 	menu.change(AddShipping);
 
-	$('#shipping a.delete').click(function() {
+	$('#the-list a.delete').click(function() {
 		if (confirm($ps.confirm)) return true;
 		else return false;
 	});

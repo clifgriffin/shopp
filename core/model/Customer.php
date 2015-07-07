@@ -34,7 +34,6 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	public $_download = false;      // Current download item in loop
 	protected $downloads = array(); // List of purchased downloadable items
 
-
 	public function __construct ( $id = false, $key = 'id' ) {
 		$this->init(self::$table);
 		$this->load($id, $key);

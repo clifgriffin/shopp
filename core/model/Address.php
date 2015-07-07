@@ -89,29 +89,26 @@ class ShoppAddress extends ShoppDatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
+	 * @param array $data New address data to update
 	 * @return void
 	 **/
-	public function locate ( $data = false ) {
-		$base = shopp_setting('base_operations');
-		$markets = shopp_setting('target_markets');
-		$countries = Lookup::countries();
-		$regions = Lookup::regions();
+	public function locate ( array $data = null ) {
 
 		if ( $data ) $this->updates($data);
 
 		if ( empty($this->country) ) {
-			// If the target markets are set to single country, use that target as default country
-			// otherwise default to the base of operations for tax and shipping estimates
-			if (1 == count($markets)) $this->country = key($markets);
-			else $this->country = $base['country'];
+
+			if ( 1 == count($markets) )          // If the target markets are set to single country,
+				$this->country = key($markets);  // use it as the default country, otherwise use the
+			else $this->country = ShoppBaseLocale()->country(); // base of operations
+
 		}
 
-		// Update state if postcode changes for tax updates
-		if ( isset($this->postcode) ) $this->postmap();
+		$Locale = new ShoppLocale($this->country);
+		$this->region = $Locale->region();
 
-		$this->region = false;
-		if ( isset($countries[ $this->country ]) && isset($regions[ $countries[ $this->country ]['region'] ]) )
-			$this->region = $regions[ $countries[ $this->country ]['region'] ];
+		// Update state if the postcode exists for tax updates
+		if ( isset($this->postcode) ) $this->postmap();
 
 	}
 

@@ -18,7 +18,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @since 1.1
  * @version 1.2
  **/
-class ShoppCheckout extends FormPostFramework {
+class ShoppCheckout extends ShoppFormPostFramework {
 
 	/** @var boolean $confirmed Flag to indicate confirmed orders. */
 	private $confirmed = false;
@@ -52,9 +52,9 @@ class ShoppCheckout extends FormPostFramework {
 
 		Shopping::restore('confirmed', $this->confirmed);
 
-		if ( empty($_POST) ) return;
+		if ( is_admin() ) return;
 
-		$this->updateform();
+		if ( ! $this->posted() ) return;
 
 		$action = $this->form('checkout');
 

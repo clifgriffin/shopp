@@ -53,7 +53,7 @@ class ShoppStorefront extends ShoppFlowController {
 		Shopping::restore( 'viewed',	$this->viewed );
 
 		// Setup WP_Query overrides
-		add_action( 'parse_query',		array($this, 'query') );
+		add_action( 'parse_query',		array($this, 'wpquery') );
 		add_filter( 'posts_request',	array($this, 'noquery'), 10, 2 );
 		add_filter( 'posts_request',	array($this, 'onfront'), 10, 2 );
 		add_filter( 'posts_results',	array($this, 'found'), 10, 2);
@@ -195,7 +195,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp_query The WP_Query object (passed via parse_query action)
 	 * @return void
 	 **/
-	public function query ( WP_Query $wp_query ) {
+	public function wpquery ( WP_Query $wp_query ) {
 		if ( ! $this->request($wp_query) ) return;
 
 		$page	 	= $wp_query->get( ShoppPages::QUERYVAR );
@@ -472,8 +472,6 @@ class ShoppStorefront extends ShoppFlowController {
 	public function feed () {
 		if ( ! is_shopp_collection()) return;
 		$Collection = ShoppCollection();
-
-	    $base = shopp_setting('base_operations');
 
 		add_filter( 'shopp_rss_description', 'wptexturize' );
 		add_filter( 'shopp_rss_description', 'convert_chars' );

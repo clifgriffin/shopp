@@ -77,7 +77,7 @@
 			</td>
 				<td>
 					<div class="local-rates panel subpanel no-local-rates">
-						<div class="label"><label><?php _e('Local Rates','Shopp'); echo ShoppAdmin()->boxhelp('settings-taxes-localrates'); ?> <span class="counter"></span><input type="hidden" name="settings[taxrates][${id}][haslocals]" value="${haslocals}" class="has-locals" /></label></div>
+						<div class="label"><label><?php _e('Local Rates','Shopp'); echo ShoppAdminMetabox::help('settings-taxes-localrates'); ?> <span class="counter"></span><input type="hidden" name="settings[taxrates][${id}][haslocals]" value="${haslocals}" class="has-locals" /></label></div>
 						<div class="ui">
 							<p class="instructions"><?php Shopp::_e('No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.'); ?></p>
 							${errors}
@@ -110,10 +110,10 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-taxrates'); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers('shopp_page_shopp-settings-taxrates',false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 		<tbody id="taxrates-table" class="list">
 		<?php

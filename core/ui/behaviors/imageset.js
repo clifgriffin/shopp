@@ -5,16 +5,16 @@
  */
 
 jQuery(document).ready( function($) {
-	$.template('editor',$('#editor'));
+	$.template('editor', $('#editor'));
 
 	var editing = false,
-		table = $('#image-setting-table');
+		table = $('.wp-list-table');
 
-	$('#images a.edit, a.add-new').click(function (e) {
+	$('.wp-list-table a.edit, a.add-new').click(function (e) {
 		e.preventDefault();
 		var $this = $(this),
 			row = $this.parents('tr').hide(),
-			id = row.size() > 0?row.attr('id').substr(14):false,
+			id = row.size() > 0?row.attr('id').substr(10):false,
 			data = images[id]?images[id]:{name:''},
 			ui = $.tmpl('editor',data),
 			emptylabel = table.find('tr.empty'),

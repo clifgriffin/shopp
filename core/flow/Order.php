@@ -133,8 +133,8 @@ class ShoppOrder {
 		Shopping::restore('txnid', $this->txnid);
 		Shopping::restore('orderstate', $this->state);
 
-		$this->Promotions = new ShoppPromotions;
 		$this->Payments = new ShoppPayments;
+		$this->Promotions = new ShoppPromotions;
 		$this->Checkout = new ShoppCheckout;
 
 	}
@@ -212,7 +212,7 @@ class ShoppOrder {
 	 **/
 	public function locate () {
 
-		$request = isset($_REQUEST['shipping']) ? $_REQUEST['shipping'] : false;
+		$request = isset($_REQUEST['shipping']) ? $_REQUEST['shipping'] : array();
 
 		$this->Billing->locate($request);
 		$this->Shipping->locate($request);

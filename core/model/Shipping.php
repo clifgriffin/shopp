@@ -324,7 +324,7 @@ abstract class ShippingFramework {
 			}
 		}
 
-		$this->base = shopp_setting('base_operations');
+		$this->base = ShoppBaseLocale()->settings();
 		$this->units = shopp_setting('weight_unit');
 
 		// Setup default packaging for shipping module
@@ -486,44 +486,28 @@ abstract class ShippingFramework {
 	/**
 	 * Identify the applicable column rate from the Order shipping information
 	 *
-	 * @author Jonathan Davis
+	 * @deprecated removing in favor of tablerate()
+	 * @todo remove ShippingFramework::ratecolumn() in favor of tablerate()
 	 * @since 1.1
 	 *
 	 * @param array $rate The shipping rate to be used
 	 * @return string The column index name
 	 **/
-	// @todo remove ShippingFramework::ratecolumn() in favor of tablerate()
-	public function ratecolumn ($rate) {
-
-		return false; // @deprecated removing in favor of tablerate()
-		$Order = &ShoppOrder();
-
-		$Shipping = &$Order->Shipping;
-
-		if ($Shipping->country == $this->base['country']) {
-			// Use country/domestic region
-			if (isset($rate[$this->base['country']]))
-				$column = $this->base['country'];  // Use the country rate
-			else $column = $Shipping->postarea(); // Try to get domestic regional rate
-		} else if (isset($rate[$Shipping->region])) {
-			// Global region rate
-			$column = $Shipping->region;
-		} else $column = 'Worldwide';
-
-		return $column;
+	public function ratecolumn ( $rate ) {
+		return false;
 	}
 
 	public function tablerate ( $table ) {
 		$Order = ShoppOrder();
 
 		$Address = $Order->Shipping;
-		$countries = Lookup::countries();
-		$zones = Lookup::country_zones();
+		$countries = ShoppLookup::countries();
+		$zones = ShoppLookup::country_zones();
 
 		$target = array('region' => false, 'country' => false, 'area' => false, 'zone' => false, 'postcode' => false);
 
 		// Prepare address for comparison
-		$target['region'] = (int)$countries[ $Address->country ]['region'];
+		$target['region'] = ShoppLookup::region($Address->country, int);
 		$target['country'] = $Address->country;
 
 		if ( isset($Address->postcode) && ! empty($Address->postcode) ) {
@@ -859,7 +843,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$logo = (strpos($this->label,'data:image') !== false);
 
 		$_ = array();
-		$_[] = '<tr><td colspan="5">';
+		$_[] = '<tr><td colspan="3">';
 
 		if ($logo) $_[] = '<style type="text/css">.shipper-logo { background: url('.$this->label.') no-repeat 10px 10px; text-indent: -9999em; height: 30px; }</style>';
 
@@ -1208,8 +1192,8 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		if ( ! $module ) $module = $this->module;
 		$menuarrow = ' &#x25be;';
 		$tab = str_repeat('&sdot;',3).'&nbsp;';
-		$regions = Lookup::regions();
-		$countries = Lookup::countries();
+		$regions = ShoppLookup::regions();
+		$countries = ShoppLookup::countries();
 		$regional_countries = array();
 		$country_areas = array();
 		$country_zones = array();
@@ -1235,7 +1219,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$keys = array_slice(array_keys($selected),0,count($selection));
 		$selected = array_merge( $selected,array_combine($keys,$selection) );
 
-		$regional_countries = array_filter($countries,create_function('$c','return (\''.($selected['region']).'\' === (string)$c[\'region\']);'));
+		// $regional_countries = array_filter($countries, create_function('$c','return (\''.($selected['region']).'\' === (string)$c[\'region\']);'));
 
 		if (!empty($selected['country'])) {
 			$ca = Lookup::country_areas();

@@ -243,6 +243,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('category-arrange', '/ui/categories/arrange.js', array('jquery','shopp'), $version);
 	$scripts->add_data('category-arrange', 'group', 1);
 
+	$scripts->add('customers', '/ui/behaviors/customers.js', array('jquery', 'jquery-tmpl'), $version);
+	$scripts->add_data('customers', 'group', 1);
+
 	$scripts->add('products-arrange', '/ui/categories/products.js', array('jquery'), $version);
 	$scripts->add_data('products-arrange', 'group', 1);
 
@@ -303,6 +306,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('reports', '/ui/behaviors/reports.js', array(), $version);
 	$scripts->add_data('reports', 'group', 1);
 
+
+	$scripts->add('selectize', '/ui/behaviors/selectize.min.js', array(), $version);
+	$scripts->add_data('selectize', 'group', 1);
 }
 
 add_action('shopp_default_scripts', 'shopp_default_scripts');
@@ -384,8 +390,14 @@ function shopp_default_script_settings () {
 		'confirm' => __('The changes you made will be lost if you navigate away from this page.', 'Shopp')
 	));
 
+	// Order editor
+	shopp_localize_script('orders', '$l10n', array(
+		'total' => Shopp::__('Total'),
+		'newc' => Shopp::__('New Customer Contact')
+	));
+
 	$defaults = apply_filters('shopp_js_settings', array_merge($currency, $base));
-	shopp_localize_script('shopp', '$s',$defaults);
+	shopp_localize_script('shopp', '$s', $defaults);
 }
 
 add_action('shopp_print_scripts', 'shopp_default_script_settings', 100);

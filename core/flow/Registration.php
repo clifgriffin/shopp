@@ -22,7 +22,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @version 1
  * @package order
  **/
-class ShoppRegistration extends FormPostFramework {
+class ShoppRegistration extends ShoppFormPostFramework {
 
 	const PROCESS = 'shopp_registration';
 

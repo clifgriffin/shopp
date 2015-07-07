@@ -1,12 +1,12 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Product Editor','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php'))); ?>" class="add-new-h2"><?php _e('Add New','Shopp'); ?></a> </h2>
+	<h2><?php _e('Product Editor','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>ShoppAdmin::pagename('products'),'id'=>'new'),admin_url('admin.php'))); ?>" class="add-new-h2"><?php _e('Add New','Shopp'); ?></a> </h2>
 
 	<?php do_action('shopp_admin_notices'); ?>
 
 	<div id="ajax-response"></div>
-	<form name="product" id="product" action="<?php echo esc_url($this->url); ?>" method="post">
+	<form name="product" id="product" action="<?php echo esc_url($this->url()); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-product'); ?>
 		<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false ); ?>
 		<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false ); ?>
@@ -49,7 +49,7 @@
 						<?php endif; ?>
 					</div>
 				</div>
-				
+
 				<?php do_action( 'edit_form_after_title', $Product ); ?>
 
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
@@ -99,7 +99,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	fileverify_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "wp_ajax_shopp_verify_file"); ?>',
 	fileimport_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "wp_ajax_shopp_import_file"); ?>',
 	imageul_url = '<?php echo wp_nonce_url(admin_url()."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>',
-	adminpage = '<?php echo $this->Admin->pagename('products'); ?>',
+	adminpage = '<?php echo ShoppAdmin::pagename('products'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
 	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
 	weightUnit = '<?php echo shopp_setting('weight_unit'); ?>',

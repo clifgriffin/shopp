@@ -2168,8 +2168,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$menuoptions = $O->options;
 			if ( ! empty($O->options['v']) ) $menuoptions = $O->options['v'];
 
-			$baseop = shopp_setting('base_operations');
-			$precision = $baseop['currency']['format']['precision'];
+			$precision = ShoppBaseCurrency()->precision();
 
 			$pricekeys = array();
 			foreach ($O->pricekey as $key => $pricing) {

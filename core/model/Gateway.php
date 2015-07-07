@@ -108,9 +108,9 @@ abstract class GatewayFramework {
 		if ( ! isset($this->settings['label']) && $this->cards )
 			$this->settings['label'] = __('Credit Card', 'Shopp');
 
-		$this->baseop = shopp_setting('base_operations');
-		$this->currency = $this->baseop['currency']['code'];
-		$this->precision = $this->baseop['currency']['format']['precision'];
+		$this->baseop = ShoppBaseLocale()->settings();
+		$this->currency = ShoppBaseCurrency()->code();
+		$this->precision = ShoppBaseCurrency()->precision();
 
 		$this->_loadcards();
 
@@ -519,7 +519,7 @@ class GatewayModules extends ModuleLoader {
 		foreach ( $gateways as $gateway ) {
 			$moduleclass = $this->moduleclass($gateway);
 			if ( ! empty($moduleclass) )
-				$this->activated[] = $moduleclass;
+				$this->activated[ $gateway ] = $moduleclass;
 		}
 
 		return $this->activated;

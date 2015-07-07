@@ -2,17 +2,18 @@
 /**
  * Welcome.php
  *
- * Flow controller for the Shopp welcome screen
+ * Welcome screen controllers
  *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, August 2013
- * @package shopp
- * @subpackage shopp
+ * @copyright Ingenesis Limited, August 2013-2015
+ * @license   GNU GPL version 3 (or later) {@see license.txt}
+ * @package   Shopp/Screens/Welcome
+ * @version   1.0
+ * @since     1.4
  **/
+
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
-class ShoppAdminWelcome extends ShoppAdminController {
+class ShoppAdminWelcome extends ShoppScreenController {
 
 	protected $ui = 'help';
 
@@ -23,7 +24,7 @@ class ShoppAdminWelcome extends ShoppAdminController {
 		shopp_enqueue_style('welcome');
 	}
 
-	public function admin () {
+	public function route () {
 		switch ( $this->pagename ) {
 			case 'credits': return $this->credits();
 			default: return $this->welcome();
@@ -36,6 +37,17 @@ class ShoppAdminWelcome extends ShoppAdminController {
 		// Displayed the welcome, turn display_welcome flag off
 		shopp_set_setting('display_welcome', 'off');
 		return true;
+	}
+
+	/**
+	 * Disable the help tab
+	 *
+	 * @since 1.4
+	 *
+	 * @return string Empty string
+	 **/
+	public function help () {
+		return '';
 	}
 
 	public function heading () {

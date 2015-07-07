@@ -55,9 +55,11 @@ abstract class ModuleLoader {
 
 		if ( $detected = shopp_setting(self::MODULES_SETTING) ) {
 			$this->modules = array_filter($detected, array($this, 'interfaces'));
+
 			foreach ( $detected as $moduleclass => $Module )
 				$known[ $moduleclass ] = $Module->file;
 		}
+
 
 		$files = array();
 		$found = self::files('php', $this->paths, $files);
@@ -75,10 +77,9 @@ abstract class ModuleLoader {
 			$Loader = $this->loader;
 			$Module = new $Loader($file);
 
-			if ( apply_filters("shopp_modules_valid_$interface_hook", $Module->valid(), $Module) ) {
+			if ( apply_filters("shopp_modules_valid_$interface_hook", $Module->valid() && $this->interfaces($Module), $Module) ) {
 				$detected[ $Module->classname ] = $Module;
-				if ( $this->interfaces($Module) )
-					$this->modules[ $Module->classname ] = $Module;
+				$this->modules[ $Module->classname ] = $Module;
 			}
 			else $invalid[] = $Module->file;
 
@@ -221,6 +222,7 @@ abstract class ModuleLoader {
 	 **/
 	public function activate ( $module ) {
 		$ModuleFile = $this->module($module);
+		$moduleclass = get_class($ModuleFile);
 		if ( false === $ModuleFile ) return false;
 
 		if ( $ModuleFile->modified() ) {
@@ -233,6 +235,8 @@ abstract class ModuleLoader {
 			$module = $ModuleFile->classname;
 			$this->modules[ $module ] = $ModuleFile;
 		}
+
+		if ( isset($this->active[ $module ]) ) return;
 
 		ShoppLoader::add($module, $ModuleFile->file);
 		$Module = $ModuleFile->load();

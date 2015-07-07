@@ -129,6 +129,7 @@ class FileAsset extends ShoppMetaObject {
 	public function &engine () {
 		global $Shopp; // Must remain global reference, not singleton to prevent loading core plugin in image server context
 
+		if ( empty($Shopp) ) $Shopp = new StdClass();
 		if ( ! isset($Shopp->Storage) )	$Shopp->Storage = new StorageEngines;
 		$StorageEngines = $Shopp->Storage;
 
@@ -644,7 +645,7 @@ if ( !class_exists('ListFramework') ) return;
  * @since 1.2
  * @package shopp
  **/
-class ImageSetting extends ShoppMetaObject {
+class ShoppImageSetting extends ShoppMetaObject {
 
 	static $qualities = array(100, 92, 80, 70, 60);
 	static $fittings = array('all', 'matte', 'crop', 'width', 'height');
@@ -671,7 +672,7 @@ class ImageSetting extends ShoppMetaObject {
 	 *
 	 * @return array List of translated settings labels
 	 **/
-	public function fit_menu () {
+	public static function fit_menu () {
 		return array(
 			Shopp::__('All'),
 			Shopp::__('Fill'),
@@ -688,7 +689,7 @@ class ImageSetting extends ShoppMetaObject {
 	 *
 	 * @return array List of quality labels
 	 **/
-	public function quality_menu () {
+	public static function quality_menu () {
 		return array(
 			Shopp::__('Highest quality, largest file size'),
 			Shopp::__('Higher quality, larger file size'),
@@ -759,7 +760,7 @@ class ImageSettings extends ListFramework {
 	private static $object;
 
 	private function __construct () {
-		$ImageSetting = new ImageSetting();
+		$ImageSetting = new ShoppImageSetting();
 		$table = $ImageSetting->_table;
 		$where = array(
 			"type='$ImageSetting->type'",

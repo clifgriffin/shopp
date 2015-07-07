@@ -159,7 +159,6 @@ class ShoppAdminSystem extends ShoppAdminController {
 		// Handle ship rates UI
 		if ('rates' == $sub && 'on' == shopp_setting('shipping')) return $this->shiprates();
 
-
 		if ($term_recount) {
 			$taxonomy = ProductCategory::$taxon;
 			$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'ids') );
@@ -167,19 +166,8 @@ class ShoppAdminSystem extends ShoppAdminController {
 				wp_update_term_count_now( $terms, $taxonomy );
 		}
 
-		$base = shopp_setting('base_operations');
-		$regions = Lookup::regions();
-		$region = $regions[$base['region']];
-		$useRegions = shopp_setting('shipping_regions');
-
-		$areas = Lookup::country_areas();
-		if (is_array($areas[$base['country']]) && $useRegions == 'on')
-			$areas = array_keys($areas[$base['country']]);
-		else $areas = array($base['country'] => $base['name']);
-		unset($countries,$regions);
-
 		$carrierdata = Lookup::shipcarriers();
-		$serviceareas = array('*',substr($base['country'],0,2));
+		$serviceareas = array('*', ShoppBaseLocale()->code());
 		foreach ($carrierdata as $c => $record) {
 			if (!in_array($record->areas,$serviceareas)) continue;
 			$carriers[$c] = $record->name;
@@ -187,6 +175,19 @@ class ShoppAdminSystem extends ShoppAdminController {
 		unset($carrierdata);
 		$shipping_carriers = shopp_setting('shipping_carriers');
 		if (empty($shipping_carriers)) $shipping_carriers = array_keys($carriers);
+
+		$imperial = 'imperial' == ShoppBaseLocale()->units();
+		$weights = $imperial ?
+					array('oz' => Shopp::__('ounces (oz)'), 'lb' => Shopp::__('pounds (lbs)')) :
+					array('g'  => Shopp::__('gram (g)'),    'kg' => Shopp::__('kilogram (kg)'));
+
+		$weightsmenu = menuoptions($weights, shopp_setting('weight_unit'), true);
+
+		$dimensions = $imperial ?
+				 		array('in' => Shopp::__('inches (in)'),      'ft' => Shopp::__('feet (ft)')) :
+						array('cm' => Shopp::__('centimeters (cm)'), 'm'  => Shopp::__('meters (m)'));
+
+		$dimsmenu = menuoptions($dimensions, shopp_setting('dimension_unit'), true);
 
 		$rates = shopp_setting('shipping_rates');
 		if (!empty($rates)) ksort($rates);
@@ -379,28 +380,16 @@ class ShoppAdminSystem extends ShoppAdminController {
 
 		asort($installed);
 
-		$countrydata = Lookup::countries();
-		$countries = $regionmap = $postcodes = array();
-		$postcodedata = Lookup::postcodes();
-		foreach ($countrydata as $code => $country) {
-			$countries[$code] = $country['name'];
-			if ( !isset($regionmap[ $country['region'] ]) ) $regionmap[ $country['region'] ] = array();
-			$regionmap[ $country['region'] ][] = $code;
-			if ( isset($postcodedata[$code])) {
-				if ( !isset($postcodes[ $code ]) ) $postcodes[ $code ] = array();
-				$postcodes[$code] = true;
-			}
-		}
-		unset($countrydata);
-		unset($postcodedata);
-
+		$postcodes = ShoppLookup::postcodes();
+		foreach ( $postcodes as &$postcode)
+			$postcode = ! empty($postcode);
 
 		$lookup = array(
-			'regions' => array_merge(array('*' => __('Anywhere','Shopp')),Lookup::regions()),
-			'regionmap' => $regionmap,
-			'countries' => $countries,
-			'areas' => Lookup::country_areas(),
-			'zones' => Lookup::country_zones(),
+			'regions' => array_merge(array('*' => Shopp::__('Anywhere')), ShoppLookup::regions()),
+			'regionmap' => ShoppLookup::regions('id'),
+			'countries' => ShoppLookup::countries(),
+			'areas' => ShoppLookup::country_areas(),
+			'zones' => ShoppLookup::country_zones(),
 			'postcodes' => $postcodes
 		);
 
@@ -523,14 +512,12 @@ class ShoppAdminSystem extends ShoppAdminController {
 		if (isset($_POST['addrate'])) $edit = count($rates);
 		if (isset($_POST['submit'])) $edit = false;
 
-		$base = shopp_setting('base_operations');
 		$specials = array(ShoppTax::ALL => Shopp::__('All Markets'));
 
-		if ( ShoppTax::euvat(false, $base['country'], ShoppTax::EUVAT) )
+		if ( ShoppTax::euvat(false, ShoppBaseLocale()->country(), ShoppTax::EUVAT) )
 			$specials[ ShoppTax::EUVAT ] = Shopp::__('European Union');
 
 		$countries = array_merge($specials, (array)shopp_setting('target_markets'));
-
 
 		$zones = Lookup::country_zones();
 
@@ -549,23 +536,23 @@ class ShoppAdminSystem extends ShoppAdminController {
 	 * @param array $rates The tax rate settings to sort
 	 * @return int The sorting value
 	 **/
-	public function taxrates_sorting ($a, $b) {
+	public function taxrates_sorting ( $a, $b ) {
 
 		$args = array('a' => $a, 'b' => $b);
 		$scoring = array('a' => 0 ,'b' => 0);
 
-		foreach ($args as $key => $rate) {
-			$score = &$scoring[$key];
+		foreach ( $args as $key => $rate ) {
+			$score = &$scoring[ $key ];
 
 			// More conditional rules are more specific
 			$score += count($rate['rules']);
 
 			// If there are local rates add to specificity
-			if (isset($rate['haslocals']) && $rate['haslocals']) $score++;
+			if ( isset($rate['haslocals']) && $rate['haslocals'] ) $score++;
 
-			if (isset($rate['zone']) && $rate['zone']) $score++;
+			if ( isset($rate['zone']) && $rate['zone'] ) $score++;
 
-			if ('*' != $rate['country']) $score++;
+			if ( '*' != $rate['country'] ) $score++;
 
 			$score += $rate['rate'] / 100;
 		}

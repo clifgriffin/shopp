@@ -316,6 +316,17 @@ abstract class ShoppCore {
 		echo esc_html(call_user_func_array(array(__CLASS__, '__'), $args));
 	}
 
+	public static function _n ( $single, $plural, $number ) {
+		$args = array_slice(func_get_args(), 2);
+		$translated = _n($single, $plural, $number, 'Shopp');
+		return vsprintf($translated, $args);
+	}
+
+	public static function _ne ( $single, $plural, $number ) {
+		$args = func_get_args();
+		echo esc_html(call_user_func_array(array(__CLASS__, '_n'), $args));
+	}
+
 	/**
 	 * Converts timestamps to formatted localized date/time strings
 	 *
@@ -466,6 +477,26 @@ abstract class ShoppCore {
 			if ( !in_array($key,$mask) ) unset($array[$key]);
 
 		return $array;
+	}
+
+	/**
+	 * Recursively searches a nested array and returns the matching key
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.4
+	 *
+	 * @param string $needle The string to find
+	 * @param array $haystack The array to search
+	 * @return string The matching key
+	 **/
+	public static function array_search_deep ( $needle, array $haystack = array() ) {
+		if ( empty($haystack) ) return false;
+
+	    foreach ( $haystack as $key => $value ) {
+	        if ( $needle === $value || ( is_array($value) && self::array_search_deep($needle, $value) !== false ) )
+	            return $key;
+	    }
+	    return false;
 	}
 
 	/**
@@ -680,19 +711,7 @@ abstract class ShoppCore {
 	 **/
 	public static function currency_format ( array $format = array() ) {
 
-		$default = array(
-			'cpos' => true,
-			'currency' => '$',
-			'precision' => 2,
-			'decimals' => '.',
-			'thousands' => ',',
-			'grouping' => 3
-		);
-
-		// Merge base of operations locale settings
-		$locale = shopp_setting('base_operations');
-		if ( ! empty($locale['currency']) && ! empty($locale['currency']['format']) )
-			$default = array_merge($default, $locale['currency']['format']);
+		$default = ShoppBaseCurrency()->settings();
 
 		// No format provided, use default
 		if ( empty($format) ) return $default;
@@ -714,38 +733,38 @@ abstract class ShoppCore {
 	 * @param int $year The year, uses current year if none provided
 	 * @return void
 	 **/
-	public static function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
-		$weekdays = array("sunday" => 0, "monday" => 1, "tuesday" => 2, "wednesday" => 3, "thursday" => 4, "friday" => 5, "saturday" => 6);
-		$weeks = array("first" => 1, "second" => 2, "third" => 3, "fourth" => 4, "last" => -1);
+	public static function datecalc ( $week = -1, $dayOfWeek = -1, $month = -1, $year = -1 ) {
+		$weekdays = array('sunday' => 0, 'monday' => 1, 'tuesday' => 2, 'wednesday' => 3, 'thursday' => 4, 'friday' => 5, 'saturday' => 6);
+		$weeks = array('first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4, 'last' => -1);
 
-		if ($month == -1) $month = date ("n");	// No month provided, use current month
-		if ($year == -1) $year = date("Y");   	// No year provided, use current year
+		if ( $month == -1 ) $month = date ('n'); // No month provided, use current month
+		if ( $year == -1 ) $year = date('Y');    // No year provided, use current year
 
 		// Day of week is a string, look it up in the weekdays list
-		if (!is_numeric($dayOfWeek)) {
-			foreach ($weekdays as $dayName => $dayNum) {
-				if (strtolower($dayOfWeek) == substr($dayName,0,strlen($dayOfWeek))) {
+		if ( ! is_numeric($dayOfWeek) ) {
+			foreach ( $weekdays as $dayName => $dayNum ) {
+				if ( strtolower($dayOfWeek) == substr($dayName, 0, strlen($dayOfWeek)) ) {
 					$dayOfWeek = $dayNum;
 					break;
 				}
 			}
 		}
-		if ($dayOfWeek < 0 || $dayOfWeek > 6) return false;
+		if ( $dayOfWeek < 0 || $dayOfWeek > 6 ) return false;
 
-		if (!is_numeric($week)) $week = $weeks[$week];
+		if ( ! is_numeric($week) ) $week = $weeks[ $week ];
 
-		if ($week == -1) {
-			$lastday = date("t", mktime(0,0,0,$month,1,$year));
-			$tmp = (date("w",mktime(0,0,0,$month,$lastday,$year)) - $dayOfWeek) % 7;
-			if ($tmp < 0) $tmp += 7;
+		if ( $week == -1 ) {
+			$lastday = date('t', mktime(0, 0, 0, $month, 1, $year));
+			$tmp = ( date("w", mktime(0, 0, 0, $month, $lastday, $year)) - $dayOfWeek ) % 7;
+			if ( $tmp < 0 ) $tmp += 7;
 			$day = $lastday - $tmp;
 		} else {
-			$tmp = ($dayOfWeek - date("w",mktime(0,0,0,$month,1,$year))) % 7;
-			if ($tmp < 0) $tmp += 7;
-			$day = (7 * $week) - 6 + $tmp;
+			$tmp = ( $dayOfWeek - date('w', mktime(0, 0, 0, $month, 1, $year)) ) % 7;
+			if ( $tmp < 0 ) $tmp += 7;
+			$day = ( 7 * $week ) - 6 + $tmp;
 		}
 
-		return mktime(0,0,0,$month,$day,$year);
+		return mktime(0, 0, 0, $month, $day, $year);
 	}
 
 	/**
@@ -1165,6 +1184,23 @@ abstract class ShoppCore {
 	}
 
 	/**
+	 * Detects image data in a binary string
+	 *
+	 * @since 1.4
+	 *
+	 * @return string|bool Image mime type if detected, false otherwise
+	 **/
+	public static function is_image ( $string ) {
+
+		$types = array('image/jpeg' => "\xFF\xD8\xFF", 'image/gif' => 'GIF', 'image/png' => "\x89\x50\x4e\x47\x0d\x0a", 'image/bmp' => 'BM', 'image/psd' => '8BPS', 'image/swf' => 'FWS');
+		foreach ( $types as $mimetype => $header )
+			if ( false !== strpos($string, $header) ) return $mimetype;
+
+		return false;
+
+	}
+
+	/**
 	 * Encodes an all parts of a URL
 	 *
 	 * @author Jonathan Davis
@@ -1366,14 +1402,14 @@ abstract class ShoppCore {
 	 * @param int|array $grouping The number grouping pattern [default: array(3)]
 	 * @return string The formatted number
 	 **/
-	public static function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $grouping=array(3)) {
-		$n = sprintf("%0.{$precision}F",$number);
+	public static function numeric_format ( $number, $precision = 2, $decimals = '.', $separator=',', $grouping = array(3) ) {
+		$n = sprintf("%0.{$precision}F", $number);
 		$whole = $fraction = 0;
 
-		if (strpos($n,'.') !== false) list($whole,$fraction) = explode('.',$n);
+		if ( strpos($n,'.') !== false ) list($whole, $fraction) = explode('.', $n);
 		else $whole = $n;
 
-		if (!is_array($grouping)) $grouping = array($grouping);
+		if ( ! is_array($grouping) ) $grouping = array($grouping);
 
 		$i = 0;
 		$lg = count($grouping)-1;

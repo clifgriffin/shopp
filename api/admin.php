@@ -30,7 +30,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 function shopp_admin_add_menu ( $label, $page, $position = null, $handler = false, $access = null, $icon = null ) {
 
 	global $menu;
-	$Admin = ShoppAdmin();
+	$AdminPages = ShoppAdminPages();
 
 	if ( is_null($position) ) $position = 35;
 	if ( is_null($access) ) $access = 'manage_options';	// Restrictive access by default (for admins only)
@@ -44,16 +44,16 @@ function shopp_admin_add_menu ( $label, $page, $position = null, $handler = fals
 	while ( isset($menu[ $position ]) ) $position++;
 
 	$menupage = add_menu_page(
-		$label,										// Page title
-		$label,										// Menu title
-		$access,									// Access level
-		$Admin->pagename($page),					// Page
-		$handler,									// Handler
-		$icon,										// Icon
-		$position									// Menu position
+		$label,						 // Page title
+		$label,						 // Menu title
+		$access,					 // Access level
+		ShoppAdmin::pagename($page), // Page
+		$handler,					 // Handler
+		$icon,						 // Icon
+		$position					 // Menu position
 	);
 
-	$Admin->menu($page, $menupage);
+	$AdminPages->menu($page, $menupage);
 
 	do_action_ref_array("shopp_add_topmenu_$page", array($menupage)); // @deprecated
 	do_action_ref_array("shopp_add_menu_$page", array($menupage));
@@ -74,10 +74,11 @@ function shopp_admin_add_menu ( $label, $page, $position = null, $handler = fals
  * @param string $access The access capability required to see the menu
  * @return integer The position the menu was added
  **/
-function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false, $access = null ) {
+function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false, $access = null, $icon = 'shoppui-cog' ) {
 
-	$Admin = ShoppAdmin();
-	if ( is_null($menu) ) $Admin->mainmenu();
+	$AdminPages = ShoppAdminPages();
+	$AdminPages->mainmenu();
+	if ( is_null($menu) ) $AdminPages->mainmenu();
 	if ( is_null($access) ) $access = 'none'; // Restrict access by default
 	if ( false === $handler ) $handler = array(Shopp::object()->Flow, 'admin');
 
@@ -95,8 +96,8 @@ function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false
 		$handler
 	);
 
-	$Admin->menu($page, $menupage);
-	$Admin->addtab($page, $menu);
+	$AdminPages->menu($page, $menupage, $icon);
+	$AdminPages->addtab($page, $menu);
 
 	do_action("shopp_add_menu_$page");
 
@@ -115,19 +116,31 @@ function shopp_admin_add_submenu ( $label, $page, $menu = null, $handler = false
 function shopp_admin_screen_tabs () {
 	global $plugin_page;
 
-	$tabs = ShoppAdmin()->tabs( $plugin_page );
+	$tabs = ShoppAdminPages()->tabs( $plugin_page );
 	$first = current($tabs);
 	$default = $first[1];
 
-	$markup = array();
+	$markup = '';
 	foreach ( $tabs as $index => $entry ) {
-		list($title, $tab, $parent) = $entry;
-		$classes = array('nav-tab');
+		list($title, $tab, $parent, $icon) = $entry;
+		$classes = array();
 		if ( ($plugin_page == $parent && $default == $tab) || $plugin_page == $tab )
-			$classes[] = 'nav-tab-active';
-		$markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+			$classes[] = 'current';
+		// $markup[] = '<a href="' . add_query_arg(array('page' => $tab), admin_url('admin.php')) . '" class="' . join(' ', $classes) . '">' . $title . '</a>';
+
+		$url = add_query_arg(array('page' => $tab), admin_url('admin.php'));
+		$markup .= '<li class="' . esc_attr(join(' ', $classes)) . '"><a href="' . esc_url($url) . '">'
+				. '	<div class="shopp-settings-icon ' . $icon . '"></div>'
+				. '	<div class="shopp-settings-label">' . esc_html($title) . '</div>'
+				. '</a></li>';
 	}
 
 	$pagehook = sanitize_key($plugin_page);
-	echo '<h2 class="nav-tab-wrapper">' . join('', apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup)) . '</h2>';
+	echo '<div id="shopp-settings-menu"><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
+}
+
+function is_shopp_admin_screen () {
+	$Pages = ShoppAdminPages();
+
+
 }

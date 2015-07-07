@@ -1,11 +1,11 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Orders','Shopp'); ?></h2>
+	<h2><?php Shopp::_e('Orders'); ?> <a href="<?php echo esc_url($this->url(array('id' => 'new'))); ?>" class="add-new-h2"><?php Shopp::_e('Add New'); ?></a> </h2>
 
 	<?php do_action('shopp_admin_notices'); ?>
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
+	<form action="<?php echo esc_url($this->url()); ?>" id="orders" method="get">
 	<?php include("navigation.php"); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
@@ -54,16 +54,16 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php print_column_headers(ShoppAdmin()->screen()); ?></tr>
+		<tr><?php print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php print_column_headers(ShoppAdmin()->screen(),false); ?></tr>
+		<tr><?php print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 	<?php if (count($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php
-			$columns = get_column_headers(ShoppAdmin()->screen());
-			$hidden = get_hidden_columns(ShoppAdmin()->screen());
+			$columns = get_column_headers($this->id);
+			$hidden = get_hidden_columns($this->id);
 
 			$url = add_query_arg('page','shopp-orders', admin_url('admin.php') );
 

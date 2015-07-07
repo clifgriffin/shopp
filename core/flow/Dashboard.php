@@ -36,12 +36,12 @@ class ShoppAdminDashboard {
 		);
 
 		wp_add_dashboard_widget('dashboard_shopp_orders', __('Recent Orders','Shopp'), array(__CLASS__, 'orders_widget'),
-			array('all_link' => 'admin.php?page=' . ShoppAdmin()->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
+			array('all_link' => 'admin.php?page=' . ShoppAdmin::pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
 		if ( shopp_setting_enabled('inventory') ) {
 			wp_add_dashboard_widget('dashboard_shopp_inventory', __('Inventory Monitor','Shopp'), array(__CLASS__, 'inventory_widget'),
-				array('all_link' => 'admin.php?page=' . ShoppAdmin()->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
+				array('all_link' => 'admin.php?page=' . ShoppAdmin::pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 			);
 		}
 
@@ -168,8 +168,8 @@ class ShoppAdminDashboard {
 		echo $widget_name;
 		echo $after_title;
 
-		$orderscreen = add_query_arg('page',ShoppAdmin()->pagename('orders'),admin_url('admin.php'));
-		$productscreen = add_query_arg(array('page'=>ShoppAdmin()->pagename('products')),admin_url('admin.php'));
+		$orderscreen = add_query_arg('page',ShoppAdmin::pagename('orders'),admin_url('admin.php'));
+		$productscreen = add_query_arg(array('page'=>ShoppAdmin::pagename('products')),admin_url('admin.php'));
 
 		?>
 		<div class="table"><table>
@@ -368,7 +368,7 @@ class ShoppAdminDashboard {
 		$Collection = new ProductCollection();
 		$Collection->load($loading);
 
-		$productscreen = add_query_arg(array('page'=>ShoppAdmin()->pagename('products')),admin_url('admin.php'));
+		$productscreen = add_query_arg(array('page'=>ShoppAdmin::pagename('products')),admin_url('admin.php'));
 
 		echo $before_widget;
 

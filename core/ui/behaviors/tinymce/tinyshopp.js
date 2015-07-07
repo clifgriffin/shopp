@@ -19,8 +19,7 @@
 			// Register button
 			ed.addButton('Shopp', {
 				title : ShoppDialog.desc,
-				cmd : 'mceShopp',
-				image : url + '/shopp.png'
+				cmd : 'mceShopp'
 			});
 
 		}

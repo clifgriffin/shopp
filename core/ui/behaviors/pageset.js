@@ -5,17 +5,21 @@
  */
 
 jQuery(document).ready( function($) {
-	$.template('editor',$('#editor'));
+	$.template('editor', $('#editor'));
 	var editing = false;
 
 	$('#pages a.edit').click(function (e) {
 		e.preventDefault();
 		var $this = $(this),
 			row = $this.parents('tr').hide(),
-			name = row.attr('id').substr(5),
-			setting = pages[name]?pages[name]:{},
-			data = $.extend({id:'edit-'+name+'-page',name:name,classnames:row.attr('class')},setting),
-			ui = $.tmpl('editor',data),
+			name = row.attr('id').substr(10),
+			setting = pages[name] ? pages[name] : {},
+			data = $.extend({
+				id : 'edit-' + name + '-page',
+				name : name,
+				classnames : row.attr('class')
+			}, setting),
+			ui = $.tmpl('editor', data),
 			cancel = ui.find('a.cancel');
 
 		$this.cancel = function (e) {

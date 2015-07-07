@@ -6,13 +6,12 @@
 
 	<form action="" id="products" method="get">
 	<div>
-		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
 		<input type="hidden" name="category" id="category-id" value="<?php echo $CategoryProducts->term_taxonomy_id; ?>" />
 	</div>
 
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php printf(__('Return to %s','Shopp'),$CategoryProducts->name); ?></a>
+			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>ShoppAdmin::pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php printf(__('Return to %s','Shopp'),$CategoryProducts->name); ?></a>
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -20,16 +19,16 @@
 
 	<table id="arrange-products" class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php ShoppUI::print_column_headers($this->screen); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id); ?></tr>
 		</thead>
 		<tfoot>
-		<tr><?php ShoppUI::print_column_headers($this->screen, false); ?></tr>
+		<tr><?php ShoppUI::print_column_headers($this->id, false); ?></tr>
 		</tfoot>
 	<?php if (sizeof($CategoryProducts) > 0): ?>
 		<tbody id="categories-table" class="list categories">
 		<?php
-		$columns = get_column_headers($this->screen);
-		$hidden = get_hidden_columns($this->screen);
+		$columns = get_column_headers($this->id);
+		$hidden = get_hidden_columns($this->id);
 
 		$even = false;
 		foreach ( $CategoryProducts as $Product ): ?>
@@ -48,7 +47,7 @@
 
 				case 'title':
 					$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
-						array('page'=>$this->Admin->pagename('products'),
+						array('page'=>ShoppAdmin::pagename('products'),
 								'id'=>$Product->id)),
 								admin_url('admin.php'))));
 

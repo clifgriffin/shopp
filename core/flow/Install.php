@@ -283,7 +283,7 @@ class ShoppInstallation extends ShoppFlowController {
 		$shopp_roles = apply_filters('shopp_user_roles', array(
 			'administrator'		=>	'Administrator',
 			'shopp-merchant'	=>	__('Merchant', 'Shopp'),
-			'shopp-csr'			=>	__('Customer Service Rep', 'Shopp')
+			'shopp-csr'			=>	__('Customer Service', 'Shopp')
 		));
 
 		$caps['shopp-csr'] = array(
@@ -337,7 +337,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 		// Determine if any of the default settings exist to prevent overwriting changes
 		$defaults = array_keys($settings);
-		$ImageSetting = new ImageSetting();
+		$ImageSetting = new ShoppImageSetting();
 		$options = array(
 			'columns' => 'name',
 			'table' => $ImageSetting->_table,
