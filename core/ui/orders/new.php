@@ -9,19 +9,20 @@
 
 	<?php $this->notices(); ?>
 
-	<?php include $this->ui('navigation.php'); ?>
-	<br class="clear" />
 
 	<?php
 		$totalsedit = isset($_GET['edit']) && 'totals' == $_GET['edit'];
 		$columns = get_column_headers($this->screen);
 		$hidden = get_hidden_columns($this->screen);
 		$colspan = count($columns);
+
+		$timestamp = empty($Purchase->created) ? current_time('timestamp') : $Purchase->created;
+
 	?>
 	<div id="order">
 		<div class="title">
 			<div id="titlewrap">
-				<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
+				<span class="date"><?php echo Shopp::_d(get_option('date_format'), $timestamp); ?> <small><?php echo date(get_option('time_format'), $timestamp); ?></small>
 
 				<div class="alignright">
 
@@ -78,7 +79,7 @@
 			<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false); ?>
 			<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false); ?>
 		</div> <!-- #poststuff -->
-		
+
 	</div> <!-- #order -->
 
 </div>

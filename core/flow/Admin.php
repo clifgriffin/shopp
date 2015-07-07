@@ -589,7 +589,6 @@ class ShoppCustomThemeMenus {
 		new ShoppCollectionsMenusBox('nav-menus', 'side', 'low');
 	}
 
-
 	/**
 	 * Modify the request for ShoppPages
 	 *
@@ -622,7 +621,6 @@ class ShoppCustomThemeMenus {
 			$menuitem['menu-item-type'] = ShoppPages::QUERYVAR;
 			$menuitem['menu-item-title'] = $Page->title();
 		}
-
 
 	}
 

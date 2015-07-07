@@ -54,13 +54,15 @@
 			} else {
 				if ( menu.hasClass('selectized') ) {
 					menu[0].selectize.clearOptions();
+					menu[0].selectize.addOption({value:state.val(), text:state.val()});
+					menu[0].selectize.setValue(state.val());
 				} else {
 					menu.empty().setDisabled(true).hide();
 					state.setDisabled(false).show().removeClass('_important');
 				}
 
 				$('label[for='+menu.attr('id')+']').attr('for',state.attr('id'));
-				if (!init) state.val('').focus();
+				if ( ! init ) state.val('').focus();
 			}
 		}).trigger('change',[true]);
 
