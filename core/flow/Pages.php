@@ -557,9 +557,9 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = '<p>' . Shopp::__('Your new password for %s:', get_bloginfo('url')) . '</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if ( !empty($user_data->user_login) )
+		if ( apply_filters('shopp_reset_password_wpuser', true) && !empty($user_data->user_login) )
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
-		elseif ( apply_filters('shopp_reset_password_wpuser', true) && !empty($RecoveryCustomer->email) )
+		elseif ( !empty($RecoveryCustomer->email) )
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
 		$_[] = '<li>' . Shopp::__('Password: %s', $password) . '</li>';
 		$_[] = '</ul>';
