@@ -496,7 +496,7 @@ class ShoppAccountPage extends ShoppPage {
 		$_[] = get_bloginfo('url').'</p>';
 		$_[] = '';
 		$_[] = '<ul>';
-		if ( !empty($RecoveryCustomer->email) )
+		if ( ! empty($RecoveryCustomer->email) )
 			$_[] = '<li>'.sprintf(__('Email: %s', 'Shopp'), $RecoveryCustomer->email).'</li>';
 		if ( apply_filters('shopp_reset_password_wpuser', true) && !empty($user_data->user_login) )
 			$_[] = '<li>'.sprintf(__('Login: %s', 'Shopp'), $user_data->user_login).'</li>';
