@@ -533,7 +533,7 @@ class ShoppAccountPage extends ShoppPage {
 		if ( ! empty($errors) ) return false;
 
 		// Generate a new random password
-		$password = wp_generate_password(10, false);
+		$password = wp_generate_password(12, false);
 
 		do_action_ref_array('password_reset', array($RecoveryCustomer, $password));
 
