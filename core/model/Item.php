@@ -187,7 +187,7 @@ class ShoppCartItem {
 		$this->data = stripslashes_deep(esc_attrs($data));
 
 		// Handle Recurrences
-		if ($this->has_recurring()) {
+		if ( $this->has_recurring() ) {
 			$this->subprice = $this->unitprice;
 			$this->recurrences();
 			if ( $this->is_recurring() && $this->has_trial() ) {
@@ -195,9 +195,9 @@ class ShoppCartItem {
 				$this->unitprice = $trial['price'];
 			}
 		} else {
-			// remove subscription labels in case they were set earlier
-			unset($this->data[_x('Subscription','Subscription terms label','Shopp')]);
-			unset($this->data[_x('Trial Period','Item trial period label','Shopp')]);
+			// Remove subscription labels in case they were set earlier
+			unset($this->data[ Shopp::_x('Subscription', 'Subscription terms label') ]);
+			unset($this->data[ Shopp::_x('Trial Period', 'Item trial period label') ]);
 		}
 
 		// Map out the selected menu name and option
