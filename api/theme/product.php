@@ -1002,7 +1002,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * Checks if the product has a subscription price line
 	 *
 	 * @api `shopp('product.has-subscription')`
-	 * @since 1.0
+	 * @since 1.4
 	 *
 	 * @param string       $result  The output
 	 * @param array        $options The options
@@ -1011,9 +1011,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 **/
 	public static function has_subscription ( $result, $options, $O ) {
 
-		foreach ( $O->prices as $price ){
-			if ( "Subscription" == $price->type ) return true;
-		}
+		foreach ( $O->prices as $price )
+			if ( 'Subscription' == $price->type ) return true;
+
+		return false;
 
 	}
 
@@ -2057,33 +2058,23 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			else $_[] = $saleprice;
 		}
 
-		// return recurring interval, period, cycles
-		if ( array_key_exists('recurring', $options) ) {
-			if ("Subscription" == $variation->type) return true;
-		}
-		if ( array_key_exists('recurring-interval', $options) ) {
+		if ( array_key_exists('recurring-interval', $options) )
 			$_[] = $variation->recurring['interval'];
-		}
-		if ( array_key_exists('recurring-period', $options) ) {
+
+		if ( array_key_exists('recurring-period', $options) )
 			$_[] = $variation->recurring['period'];
-		}
-		if ( array_key_exists('recurring-cycles', $options) ) {
+
+		if ( array_key_exists('recurring-cycles', $options) )
 			$_[] = $variation->recurring['cycles'];
-		}
-		// trial period, if it exists, and interval, period, cycles
-		if ( array_key_exists('trial', $options) ) {
-		// shopp_debug("Object: " . print_r($O, true));
-			return Shopp::str_true($variation->recurring['trial']);
-		}
-		if ( array_key_exists('trial-price', $options) ) {
+
+		if ( array_key_exists('trial-price', $options) )
 			$_[] = $variation->recurring['trialprice'];
-		}
-		if ( array_key_exists('trial-interval', $options) ) {
+
+		if ( array_key_exists('trial-interval', $options) )
 			$_[] = $variation->recurring['trialint'];
-		}
-		if ( array_key_exists('trial-period', $options) ) {
+
+		if ( array_key_exists('trial-period', $options) )
 			$_[] = $variation->recurring['trialperiod'];
-		}
 
 		if ( array_key_exists('weight', $options) )
 			$_[] = round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
@@ -2106,7 +2097,15 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( array_key_exists('inventory', $options) )
 			return Shopp::str_true($variation->inventory);
 
-		return join($separator,$_);
+		// return recurring interval, period, cycles
+		if ( array_key_exists('recurring', $options) && 'Subscription' == $variation->type )
+			return true;
+
+		// return trial period, if it exists, and interval, period, cycles
+		if ( array_key_exists('trial', $options) )
+			return Shopp::str_true($variation->recurring['trial']);
+
+		return join($separator, $_);
 	}
 
 	/**
