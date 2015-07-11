@@ -1391,6 +1391,15 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$tags = get_terms( ProductTag::$taxon, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
 
 		if ( empty($tags) ) return false;
+		
+		if ( ! empty($exclude) ) {
+			$excludes = explode(',', $exclude);
+			
+			foreach ( $tags as $key => $tag ) {
+				if ( in_array($tag->name, $excludes) )
+					unset($tags[ $key ]);
+			}	
+		}
 
 		$min = $max = false;
 		foreach ( $tags as &$entry ) {
