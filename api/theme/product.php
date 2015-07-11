@@ -69,6 +69,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'hasvariants' => 'has_variants',
 		'hasimages' => 'has_images',
 		'hasspecs' => 'has_specs',
+		'hassubscription' => 'has_subscription',
 		'hastags' => 'has_tags',
 		'id' => 'id',
 		'image' => 'image',
@@ -994,6 +995,25 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if ( count($O->specs) > 0 ) return true;
 		else return false;
+
+	}
+
+	/**
+	 * Checks if the product has a subscription price line
+	 *
+	 * @api `shopp('product.has-subscription')`
+	 * @since 1.0
+	 *
+	 * @param string       $result  The output
+	 * @param array        $options The options
+	 * @param ShoppProduct $O       The working object
+	 * @return bool True if specs exist, false otherwise
+	 **/
+	public static function has_subscription ( $result, $options, $O ) {
+
+		foreach ( $O->prices as $price ){
+			if ( "Subscription" == $price->type ) return true;
+		}
 
 	}
 
@@ -2035,6 +2055,34 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$saleprice = Shopp::roundprice( self::_taxed((float)$saleprice, $O, $variation->tax, $taxes) );
 			if ( Shopp::str_true($money) ) $_[] = money($saleprice);
 			else $_[] = $saleprice;
+		}
+
+		// return recurring interval, period, cycles
+		if ( array_key_exists('recurring', $options) ) {
+			if ("Subscription" == $variation->type) return true;
+		}
+		if ( array_key_exists('recurring-interval', $options) ) {
+			$_[] = $variation->recurring['interval'];
+		}
+		if ( array_key_exists('recurring-period', $options) ) {
+			$_[] = $variation->recurring['period'];
+		}
+		if ( array_key_exists('recurring-cycles', $options) ) {
+			$_[] = $variation->recurring['cycles'];
+		}
+		// trial period, if it exists, and interval, period, cycles
+		if ( array_key_exists('trial', $options) ) {
+		// shopp_debug("Object: " . print_r($O, true));
+			return Shopp::str_true($variation->recurring['trial']);
+		}
+		if ( array_key_exists('trial-price', $options) ) {
+			$_[] = $variation->recurring['trialprice'];
+		}
+		if ( array_key_exists('trial-interval', $options) ) {
+			$_[] = $variation->recurring['trialint'];
+		}
+		if ( array_key_exists('trial-period', $options) ) {
+			$_[] = $variation->recurring['trialperiod'];
 		}
 
 		if ( array_key_exists('weight', $options) )

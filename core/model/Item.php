@@ -194,6 +194,10 @@ class ShoppCartItem {
 				$trial = $this->trial();
 				$this->unitprice = $trial['price'];
 			}
+		} else {
+			// remove subscription labels in case they were set earlier
+			unset($this->data[_x('Subscription','Subscription terms label','Shopp')]);
+			unset($this->data[_x('Trial Period','Item trial period label','Shopp')]);
 		}
 
 		// Map out the selected menu name and option
@@ -587,6 +591,9 @@ class ShoppCartItem {
 			}
 
 			$this->data[_x('Trial Period','Item trial period label','Shopp')] = $trial_label;
+		} else {
+			// catches variant changes when a different subscription variant doesn't have a trial
+			unset($this->data[_x('Trial Period','Item trial period label','Shopp')]);
 		}
 
 		// pick untranslated label
