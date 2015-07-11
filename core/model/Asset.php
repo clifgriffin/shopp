@@ -755,7 +755,7 @@ class ShoppImageSetting extends ShoppMetaObject {
  * @since 1.2
  * @package shopp
  **/
-class ImageSettings extends ListFramework {
+class ShoppImageSettings extends ListFramework {
 
 	private static $object;
 
