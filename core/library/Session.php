@@ -59,9 +59,10 @@ abstract class ShoppSessionFramework {
 
 		$this->trim(); // Cleanup stale sessions
 
-		if ( $this->open() ) // Reopen an existing session
-			add_action('shutdown', array($this, 'save')); // Save on shutdown
-		else $this->cook(); // Cook a new session cookie
+		if ( ! $this->open() ) // Reopen an existing session
+			$this->cook(); // Cook a new session cookie
+			
+		add_action('shutdown', array($this, 'save')); // Save on shutdown
 
 		shopp_debug('Session started ' . str_repeat('-', 64));
 
