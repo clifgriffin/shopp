@@ -288,7 +288,7 @@ ShoppLoader::map(array(
 	'imageasset' => '/model/Asset.php',
 	'imageprocessor' => '/model/Image.php',
 	'shoppimagesetting' => '/model/Asset.php',
-	'imagesettings' => '/model/Asset.php',
+	'shoppimagesettings' => '/model/Asset.php',
 	'indexproduct' => '/model/Search.php',
 	'inventoryreport' => '/ui/reports/inventory.php',
 	'invoicedorderevent' => '/model/Events.php',

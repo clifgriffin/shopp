@@ -4,10 +4,9 @@
  *
  * Catalog assets classes (metadata, images, downloads)
  *
- * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
- * @package shopp
+ * @package Shopp\Asset
  **/
 
 defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
@@ -18,10 +17,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * Foundational class to provide a useable asset framework built on the meta
  * system introduced in Shopp 1.1.
  *
- * @author Jonathan Davis
  * @since 1.1
- * @package shopp
- * @subpackage asset
+ * @package Shopp\Asset
  **/
 class FileAsset extends ShoppMetaObject {
 
@@ -206,14 +203,13 @@ class FileAsset extends ShoppMetaObject {
 } // END class FileAsset
 
 /**
- * ImageAsset class
+ * ImageAsset
  *
  * A specific implementation of the FileAsset class that provides helper
  * methods for imaging-specific tasks.
  *
- * @author Jonathan Davis
  * @since 1.1
- * @package shopp
+ * @package Shopp\Asset
  **/
 class ImageAsset extends FileAsset {
 
@@ -476,13 +472,12 @@ class ImageAsset extends FileAsset {
 }
 
 /**
- * ProductImage class
+ * ProductImage
  *
  * An ImageAsset used in a product context.
  *
- * @author Jonathan Davis
  * @since 1.1
- * @package shopp
+ * @package Shopp\Asset
  **/
 class ProductImage extends ImageAsset {
 	public $context = 'product';
@@ -494,7 +489,6 @@ class ProductImage extends ImageAsset {
 	 * strip out unnecessary fields here to keep the session data as small as
 	 * possible.
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return array
@@ -517,10 +511,8 @@ class ProductImage extends ImageAsset {
  *
  * An ImageAsset used in a category context.
  *
- * @author Jonathan Davis
  * @since 1.1
- * @package shopp
- * @subpackage asset
+ * @package Shopp\Asset
  **/
 class CategoryImage extends ImageAsset {
 	public $context = 'category';
@@ -532,10 +524,8 @@ class CategoryImage extends ImageAsset {
  * A specific implementation of a FileAsset that includes helper methods
  * for downloading routines.
  *
- * @author Jonathan Davis
  * @since 1.1
- * @package shopp
- * @subpackage asset
+ * @package Shopp\Asset
  **/
 class DownloadAsset extends FileAsset {
 
@@ -630,6 +620,14 @@ class DownloadAsset extends FileAsset {
 
 }
 
+/**
+ * ProductDownload
+ *
+ * Data model for product downloads
+ *
+ * @since 1.1
+ * @package Shopp\Asset
+ **/
 class ProductDownload extends DownloadAsset {
 	public $context = 'price';
 }
@@ -638,12 +636,12 @@ class ProductDownload extends DownloadAsset {
 if ( !class_exists('ListFramework') ) return;
 
 /**
- * ImageSetting
+ * ShoppImageSetting
  *
  * Data model for handling image setting data
  *
  * @since 1.2
- * @package shopp
+ * @package Shopp\Asset
  **/
 class ShoppImageSetting extends ShoppMetaObject {
 
@@ -747,15 +745,15 @@ class ShoppImageSetting extends ShoppMetaObject {
 		return $settings;
 	}
 
-} // END class ImageSetting
+} // END class ShoppImageSetting
 
 /**
  * Loads the collection of image settings
  *
  * @since 1.2
- * @package shopp
+ * @package Shopp\Asset
  **/
-class ImageSettings extends ListFramework {
+class ShoppImageSettings extends ListFramework {
 
 	private static $object;
 
@@ -801,4 +799,4 @@ class ImageSettings extends ListFramework {
 		return self::$object;
 	}
 
-} // END class ImageSettings
+} // END class ShoppImageSettings

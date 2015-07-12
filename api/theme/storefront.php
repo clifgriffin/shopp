@@ -187,7 +187,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		// Populate defaults from named image settings to allow specific overrides
 		if ( ! empty($options['setting']) ) {
 			$setting = $options['setting'];
-			$ImageSettings = ImageSettings::object();
+			$ImageSettings = ShoppImageSettings::object();
 			$settings = $ImageSettings->get($setting);
 			if ( $settings ) $defaults = array_merge($defaults, $settings->options());
 		}
@@ -222,7 +222,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		if ( ! $width ) $width = $_width;
 		if ( ! $height ) $height = $_height;
 
-		$lowest_quality = min(ImageSetting::$qualities);
+		$lowest_quality = min(ShoppImageSetting::$qualities);
 
 		$scale = $fit ? array_search( $fit, ImageAsset::$defaults['scaling'] ) : null;
 		$sharpen = $sharpen ? max( $sharpen, ImageAsset::$defaults['sharpen'] ) : null;
