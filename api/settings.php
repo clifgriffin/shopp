@@ -144,8 +144,8 @@ function shopp_set_image_setting ( $name, array $settings = array() ) {
 
 	$settings = array_merge($defaults,$settings);
 
-	if (in_array($settings['fit'],ImageSetting::$fittings))
-		$settings['fit'] = array_search($settings['fit'],ImageSetting::$fittings);
+	if (in_array($settings['fit'], ShoppImageSetting::$fittings))
+		$settings['fit'] = array_search($settings['fit'], ShoppImageSetting::$fittings);
 
 	// Load/update an existing one there is one
 	$ImageSetting = new ShoppImageSetting($name,'name');
