@@ -362,23 +362,23 @@ class ShoppLookup {
 		$_ = array();
 
 		// Postal carriers
-		$_['usps'] = new ShippingCarrier(__('US Postal Service', 'Shopp'), 'http://usps.com/', 'US', 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=%s',
+		$_['usps'] = new ShippingCarrier(Shopp::__('US Postal Service'), 'http://usps.com/', 'US', 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels=%s',
 		'/^(91\d{18}|91\d{20})$/');
-		$_['auspost'] = new ShippingCarrier(__('Australia Post', 'Shopp'), 'http://auspost.com.au/', 'AU', 'http://auspost.com.au/track/track.html?trackIds=%s', '/^(Z|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
-		$_['capost'] = new ShippingCarrier(__('Canada Post', 'Shopp'), 'http://canadapost.ca/', 'CA', 'http://www.canadapost.ca/cpotools/apps/track/personal/findByTrackNumber?trackingNumber=%s', '/^(\d{16}|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
-		$_['china-post'] = new ShippingCarrier(__('China Air Post', 'Shopp'), 'http://183.com.cn/', 'CN');
-		$_['ems-china'] = new ShippingCarrier(__('EMS China', 'Shopp'), 'http://www.ems.com.cn/', 'CN'); // EEXXXXXXXXXHK??
-		$_['hongkong-post'] = new ShippingCarrier(__('Hong Kong Post', 'Shopp'), 'http://www.ems.com.cn/', 'CN');
-		$_['india-post'] = new ShippingCarrier(__('India Post', 'Shopp'), 'http://www.indiapost.gov.in/', 'IN');
-		$_['japan-post'] = new ShippingCarrier(__('Japan Post', 'Shopp'), 'http://www.indiapost.gov.in/', 'IN');
-		$_['parcelforce'] = new ShippingCarrier(__('Parcelforce', 'Shopp'), 'http://parcelforce.com/', 'UK');
-		$_['post-danmark'] = new ShippingCarrier(__('Post Danmark', 'Shopp'), 'http://www.postdanmark.dk/', 'DK');
-		$_['posten-norway'] = new ShippingCarrier(__('Posten Norway', 'Shopp'), 'http://www.posten.no/', 'NO');
-		$_['posten-sweden'] = new ShippingCarrier(__('Posten Sweden', 'Shopp'), 'http://www.posten.se/', 'NO');
-		$_['purolator'] = new ShippingCarrier(__('Purolator', 'Shopp'), 'http://purolator.com/', 'CA', 'http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=%s');
-		$_['russian-post'] = new ShippingCarrier(__('Russian Post', 'Shopp'), 'http://www.russianpost.ru/', 'RU', 'http://www.russianpost.ru/rp/servise/ru/home/postuslug/trackingpo');
-		$_['thailand-post'] = new ShippingCarrier(__('Thailand Post', 'Shopp'), 'http://www.thailandpost.com/', 'NO');
-		$_['nz-post'] = new ShippingCarrier(__('New Zealand Post', 'Shopp'), 'http://www.nzpost.co.nz/', 'NZ', 'http://www.nzpost.co.nz/tools/tracking-new?trackid=%s', '/[A-Z]{2}\d{9}[A-Z]{2}/i');
+		$_['auspost'] = new ShippingCarrier(Shopp::__('Australia Post'), 'http://auspost.com.au/', 'AU', 'http://auspost.com.au/track/track.html?trackIds=%s', '/^(Z|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
+		$_['capost'] = new ShippingCarrier(Shopp::__('Canada Post'), 'http://canadapost.ca/', 'CA', 'http://www.canadapost.ca/cpotools/apps/track/personal/findByTrackNumber?trackingNumber=%s', '/^(\d{16}|[A-Z]{2}[A-Z0-9]{9}[A-Z]{2})/');
+		$_['china-post'] = new ShippingCarrier(Shopp::__('China Air Post'), 'http://183.com.cn/', 'CN');
+		$_['ems-china'] = new ShippingCarrier(Shopp::__('EMS China'), 'http://www.ems.com.cn/', 'CN'); // EEXXXXXXXXXHK??
+		$_['hongkong-post'] = new ShippingCarrier(Shopp::__('Hong Kong Post'), 'http://hongkongpost.hk', 'HK');
+		$_['india-post'] = new ShippingCarrier(Shopp::__('India Post'), 'http://www.indiapost.gov.in/', 'IN');
+		$_['japan-post'] = new ShippingCarrier(Shopp::__('Japan Post'), 'http://www.post.japanpost.jp/', 'JP');
+		$_['parcelforce'] = new ShippingCarrier(Shopp::__('Parcelforce'), 'http://parcelforce.com/', 'UK');
+		$_['post-danmark'] = new ShippingCarrier(Shopp::__('Post Danmark'), 'http://www.postdanmark.dk/', 'DK');
+		$_['posten-norway'] = new ShippingCarrier(Shopp::__('Posten Norway'), 'http://www.posten.no/', 'NO');
+		$_['posten-sweden'] = new ShippingCarrier(Shopp::__('Posten Sweden'), 'http://www.posten.se/', 'SE', 'http://www.posten.se/sv/Kundservice/Sidor/Sok-brev-paket.aspx?search=%s');
+		$_['purolator'] = new ShippingCarrier(Shopp::__('Purolator'), 'http://purolator.com/', 'CA', 'http://shipnow.purolator.com/shiponline/track/purolatortrack.asp?pinno=%s');
+		$_['russian-post'] = new ShippingCarrier(Shopp::__('Russian Post'), 'http://www.russianpost.ru/', 'RU', 'http://www.russianpost.ru/rp/servise/ru/home/postuslug/trackingpo');
+		$_['thailand-post'] = new ShippingCarrier(Shopp::__('Thailand Post'), 'http://www.thailandpost.com/', 'TH');
+		$_['nz-post'] = new ShippingCarrier(Shopp::__('New Zealand Post'), 'http://www.nzpost.co.nz/', 'NZ', 'http://www.nzpost.co.nz/tools/tracking-new?trackid=%s', '/[A-Z]{2}\d{9}[A-Z]{2}/i');
 
 		// Global carriers - don't translate global carrier brand names
 		$_['ups'] = new ShippingCarrier('UPS', 'http://ups.com/', '*', 'http://wwwapps.ups.com/WebTracking/track?track=yes&trackNums=%s', '/^(1Z[0-9A-Z]{16}|[\dT]\d{10})$/');
