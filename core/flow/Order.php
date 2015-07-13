@@ -540,12 +540,12 @@ class ShoppOrder {
 
 				add_action( 'shopp_order_event', array($Purchase, 'notifications') );
 			} elseif ( 'voided' == $Purchase->txnstatus ) {
-                $this->invoice($Purchase); // Re-invoice cancelled orders that are still in-progress @see #1930
-            } elseif ( $Purchase->did('invoiced') ) {
+				$this->invoice($Purchase); // Re-invoice cancelled orders that are still in-progress @see #1930
+			} elseif ( $Purchase->did('invoiced') ) {
 				// Reet the order status to invoiced without invoicing it again @see #3301
-                $Purchase->txnstatus = 'invoiced';
-                $Purchase->save();
-            }
+				$Purchase->txnstatus = 'invoiced';
+				$Purchase->save();
+			}
 
 			$this->process($Purchase);
 			return;
