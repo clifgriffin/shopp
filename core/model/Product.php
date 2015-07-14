@@ -278,16 +278,23 @@ class ShoppProduct extends WPShoppObject {
 	/**
 	 * Loads the cover image (first image) of the product image set
 	 *
-	 * @author Jonathan Davis
 	 * @since 1.2
 	 *
+	 * @param array $ids A single or list of IDs
 	 * @return void
 	 **/
-	public function load_coverimages ( $ids ) {
+	public function load_coverimages( $ids ) {
 		if ( empty($ids) ) return;
 		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+		$metaquery = "SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids)";
 		$sortorder = $this->image_order();
-		sDB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder LIMIT 18446744073709551615 ) AS img GROUP BY parent",'array',array($this, 'metasetloader'),'parent','metatype','name',false);
+
+		// Avoid the sub-query if we can, otherwise use LIMIT to work around compatibility issues with MariaDB
+		if ( 'sortorder ASC' == $sortorder )
+			$query = "$metaquery AND sortorder=0";
+		else $query = "SELECT * FROM ($metaquery ORDER BY $sortorder LIMIT 18446744073709551615) AS img GROUP BY parent";
+
+		sDB::query($query, 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 	}
 
 	/**
@@ -1030,11 +1037,11 @@ class ShoppProduct extends WPShoppObject {
 	public function delete () {
 		$id = $this->id;
 		if (empty($id)) return false;
-		
+
 		if ( false === has_action('shopp_product_delete',array($this,'deletepost')))
 			add_action('shopp_product_delete',array($this,'deletepost'));
 		do_action_ref_array('shopp_product_delete',array($this));
-		
+
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		wp_delete_object_term_relationships($id, get_object_taxonomies(ShoppProduct::$posttype));
 
@@ -1074,7 +1081,7 @@ class ShoppProduct extends WPShoppObject {
 		do_action_ref_array('shopp_product_deleted',array($this));
 
 	}
-	
+
 	/**
 	 * Provides compatibility with other plugins that handle custom post types
 	 *
@@ -1105,7 +1112,7 @@ class ShoppProduct extends WPShoppObject {
 			add_action('shopp_product_trashed',array($this,'trashpost'));
 		do_action_ref_array('shopp_product_trashed',array($this));
 	}
-	
+
 	/**
 	 * Provides compatibility with other plugins that handle custom post types
 	 *
@@ -1270,7 +1277,7 @@ class ShoppProduct extends WPShoppObject {
 			}
 			if( function_exists('clean_post_cache') )
 				clean_post_cache($id);
-			
+
 			wp_transition_post_status($status, $Product->status, $Post);
 		}
 
