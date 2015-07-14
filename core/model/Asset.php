@@ -698,11 +698,11 @@ class ShoppImageSetting extends ShoppMetaObject {
 	}
 
 	/**
-	 * Converts a numeric ImageSetting fit setting to a Theme API compatible option name
+	 * Converts a numeric ShoppImageSetting fit setting to a Theme API compatible option name
 	 *
 	 * @since 1.3
 	 *
-	 * @param integer $setting The numeric ImageSetting value
+	 * @param integer $setting The numeric ShoppImageSetting value
 	 * @return string The option name
 	 **/
 	public function fit ( $setting ) {
@@ -712,11 +712,11 @@ class ShoppImageSetting extends ShoppMetaObject {
 	}
 
 	/**
-	 * Converts a numeric ImageSetting quality setting to a Theme API compatible option value
+	 * Converts a numeric ShoppImageSetting quality setting to a Theme API compatible option value
 	 *
 	 * @since 1.3
 	 *
-	 * @param integer $setting The numeric ImageSetting value
+	 * @param integer $setting The numeric ShoppImageSetting value
 	 * @return integer The option value
 	 **/
 	public function quality ( $setting ) {
@@ -726,7 +726,7 @@ class ShoppImageSetting extends ShoppMetaObject {
 	}
 
 	/**
-	 * Convert the ImageSetting values to a Theme API compatible array of image options
+	 * Convert the ShoppImageSetting values to a Theme API compatible array of image options
 	 *
 	 * @since 1.3
 	 *
@@ -785,7 +785,7 @@ class ShoppImageSettings extends ListFramework {
 	/**
 	 * Provides a reference to the instantiated singleton
 	 *
-	 * The ImageSettings class uses a singleton to ensure only one DB object is
+	 * The ShoppImageSettings class uses a singleton to ensure only one DB object is
 	 * instantiated at any time
 	 *
 	 * @author Jonathan Davis
