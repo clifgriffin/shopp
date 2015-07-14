@@ -131,6 +131,8 @@ function ShoppBaseLocale () {
 function ShoppBaseCurrency () {
 	$Shopp = Shopp::object();
 	if ( empty($Shopp) ) return false;
+	if ( empty($Shopp->Locale) )
+		$Shopp->Locale = new ShoppBaseLocale();
 	return $Shopp->Locale->currency();
 }
 
