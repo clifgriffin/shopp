@@ -37,7 +37,6 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		if (!empty($_GET['id']) && !isset($_GET['a'])) {
 
 			wp_enqueue_script('postbox');
-			wp_enqueue_script('swfupload-all');
 
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');

@@ -1137,6 +1137,7 @@ class ShoppScreenProductEditor extends ShoppScreenController {
 		wp_enqueue_script('jquery-ui-draggable');
 		wp_enqueue_script('postbox');
 		wp_enqueue_script('wp-lists');
+
 		if ( user_can_richedit() ) {
 			wp_enqueue_script('editor');
 			wp_enqueue_script('quicktags');

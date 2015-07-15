@@ -50,7 +50,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
-			wp_enqueue_script('swfupload-all');
 
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
@@ -65,6 +64,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			shopp_enqueue_script('product-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
+			shopp_enqueue_script('swfupload');
 			shopp_enqueue_script('jquery-tmpl');
 			shopp_enqueue_script('suggest');
 			shopp_enqueue_script('search-select');
@@ -167,7 +167,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 			// Gracefully invalidate Shopp object caching
 			Shopp::invalidate_cache();
-			
+
 			$redirect = add_query_arg( $_GET, $adminurl );
 			$redirect = remove_query_arg( array('action','selected','delete_all'), $redirect );
 			Shopp::redirect( $redirect );
