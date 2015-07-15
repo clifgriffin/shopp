@@ -721,7 +721,7 @@ function ImageUploads (id,type) {
 		button_image_url: uidir+'/icons/buttons.png',
 		button_placeholder_id: "swf-uploader-button",
 		upload_url : ajaxurl,
-		flash_url : uidir+'/behaviors/swfupload.swf',
+		flash_url : uidir+'/behaviors/swfupload/swfupload.swf',
 		file_queue_limit : 0,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
