@@ -30,7 +30,7 @@ class CatalogAPITests extends ShoppTestCase {
 	static function setUpBeforeClass () {
 
 		$Shopp = Shopp::object();
-		$Shopp->Flow->handler('ShoppStorefront');
+		$Shopp->Flow->controller('ShoppStorefront');
 
 		$Product = shopp_add_product($product);
 		self::$HeavyCruiser = shopp_add_product_category('Battle Cruiser');
