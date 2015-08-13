@@ -926,13 +926,13 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			if ( ! empty($previous) && $O->page > 1 ) {
 				$prev = $O->page-1;
 				$link = $O->pagelink($prev);
-				$_[] = '<li class="previous"><span><a href="' . esc_url_raw($link) . '" rel="prev">' . $previous . '</a></span></li>';
-			} else $_[] = '<li class="previous disabled"><span>' . $previous . '</span></li>';
+				$_[] = '<li class="' . esc_attr($classprevious) . '"><span><a href="' . esc_url_raw($link) . '" rel="prev">' . $previous . '</a></span></li>';
+			} else $_[] = '<li class="' . esc_attr($classprevious) . ' ' . esc_attr($classdisabled) . '"><span>' . $previous . '</span></li>';
 			// end previous button
 
 			while ( $i < $visible_pages ) {
 				$link = $O->pagelink($i);
-				if ( $i == $O->page ) $_[] = '<li class="active"><span>' . $i . '</span></li>';
+				if ( $i == $O->page ) $_[] = '<li class="' . esc_attr($classactive) . '"><span>' . $i . '</span></li>';
 				else $_[] = '<li><span><a href="' . esc_url_raw($link) . '">' . $i . '</a></span></li>';
 				$i++;
 			}
@@ -949,8 +949,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			if ( ! empty($next) && $O->page < $O->pages) {
 				$pagenum = $O->page + 1;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li class="next"><span><a href="' . esc_url_raw($link) . '" rel="next">' . $next . '</a></span></li>';
-			} else $_[] = '<li class="next disabled"><span>' . $next . '</span></li>';
+				$_[] = '<li class="' . esc_attr($classnext) . '"><span><a href="' . esc_url_raw($link) . '" rel="next">' . $next . '</a></span></li>';
+			} else $_[] = '<li class="' . esc_attr($classnext) . ' ' . esc_attr($classdisabled) . '"><span>' . $next . '</span></li>';
 
 			$_[] = '</ul>';
 			$_[] = $after;
