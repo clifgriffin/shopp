@@ -398,8 +398,8 @@ class ShoppOrder {
 	 **/
 	public function auth ( $Purchase ) {
 
-		add_action('shopp_authed_order_event', array($this, 'notify'));
 		add_action('shopp_authed_order_event', array($this, 'accounts'));
+		add_action('shopp_authed_order_event', array($this, 'notify'));
 		add_action('shopp_authed_order_event', array($this, 'success'));
 
 		shopp_add_order_event($Purchase->id,'auth',array(
@@ -419,8 +419,8 @@ class ShoppOrder {
 	 **/
 	public function sale ( $Purchase ) {
 
-		add_action('shopp_captured_order_event', array($this, 'notify'));
 		add_action('shopp_captured_order_event', array($this, 'accounts'));
+		add_action('shopp_captured_order_event', array($this, 'notify'));
 		add_action('shopp_captured_order_event', array($this, 'success'));
 
 		shopp_add_order_event($Purchase->id,'sale',array(
