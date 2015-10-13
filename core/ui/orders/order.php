@@ -187,12 +187,12 @@
 	                                                $Product->load_data( array('images') );
 	                                                $Image = reset($Product->images);
 
-	                                                if ( ! empty($Image) ) { 
+	                                                if ( ! empty($Image) ) {
 	                                                    $image_id = apply_filters('shopp_order_item_image_id', $Image->id, $Item, $Product); ?>
 	                                                    <img src="?siid=<?php echo $image_id ?>&amp;<?php echo $Image->resizing(38, 0, 1) ?>" width="38" height="38" class="alignleft" />
 	                                                <?php
 	                                                }
-	                                                echo apply_filters('shopp_purchased_item_name', $itemname); ?>
+	                                                echo apply_filters('shopp_purchased_item_name', $itemname, $Item); ?>
 	                                            </a>
 												<div class="row-actions">
 													<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
