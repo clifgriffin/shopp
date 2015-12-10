@@ -38,7 +38,7 @@
 		<input type="submit" id="filter-button" value="<?php Shopp::esc_attr_e('Filter'); ?>" class="button-secondary" />
 		</div>
 
-		<?php $ListTable->pagination('top'); ?>
+		<?php $ListTable->page_navigation('top'); ?>
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
@@ -106,7 +106,7 @@
 	</table>
 	</form>
 	<div class="tablenav">
-		<?php $ListTable->pagination('bottom'); ?>
+		<?php $ListTable->page_navigation('bottom'); ?>
 		<div class="clear"></div>
 	</div>
 </div>

@@ -26,7 +26,7 @@
 		<input type="submit" value="<?php esc_attr_e('Apply','Shopp'); ?>" id="apply" class="button action" />
 		</div>
 
-		<?php $ListTable->pagination( 'top' ); ?>
+		<?php $ListTable->page_navigation( 'top' ); ?>
 	</div>
 
 	<table class="widefat" cellspacing="0">
@@ -134,7 +134,7 @@
 	<?php endif; ?>
 	</table>
 	</form>
-	<div class="tablenav"><?php $ListTable->pagination( 'bottom' ); ?></div>
+	<div class="tablenav"><?php $ListTable->page_navigation( 'bottom' ); ?></div>
 </div>
 
 <script type="text/javascript">

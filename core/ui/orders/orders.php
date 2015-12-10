@@ -46,7 +46,7 @@
 				<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
 		</div>
 
-			<?php $ListTable->pagination('top'); ?>
+			<?php $ListTable->page_navigation('top'); ?>
 
 		<div class="clear"></div>
 	</div>
