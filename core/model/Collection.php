@@ -782,6 +782,10 @@ class ProductTaxonomy extends ProductCollection {
 
 	}
 
+	public function filter( $filter ) {
+		sanitize_term( $this, $this->taxon, $filter );
+	}
+
 }
 
 /**
