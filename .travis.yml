@@ -54,5 +54,6 @@ before_script:
     - sed -i "s/testdb/shopp_tests/" wp-tests-config.php
     - sed -i "s/testuser/travis/" wp-tests-config.php
     - cat wp-tests-config.php
+    - ls
 
 script: phpunit
