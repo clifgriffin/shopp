@@ -24,14 +24,14 @@ env:
 # along with 2 versions of WordPress (which would build 8 configs otherwise).
 # This takes half as long to run while still providing adequate coverage.
 
-matrix:
-  include:
-    - php: "5.3"
-      env: WP_VERSION=master
-    - php: "5.4"
-      env: WP_VERSION=3.8
-    - php: "5.2"
-      env: WP_VERSION=3.8
+#matrix:
+#  include:
+#    - php: "5.3"
+#      env: WP_VERSION=master
+#    - php: "5.4"
+#      env: WP_VERSION=3.8
+#    - php: "5.2"
+#      env: WP_VERSION=3.8
 
 # Clones WordPress and configures our testing environment.
 before_script:
@@ -50,6 +50,6 @@ before_script:
     - sed -i "s/testdb/shopp_tests/" wp-tests-config.php
     - sed -i "s/testuser/travis/" wp-tests-config.php
     - sed -i "s/testpwd//" wp-tests-config.php
-    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/tests"
 
 script: phpunit
