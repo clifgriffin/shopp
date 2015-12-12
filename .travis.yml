@@ -53,6 +53,6 @@ before_script:
     - mysql -e "CREATE DATABASE shopp_tests;" -uroot
     - sed -i "s/testdb/shopp_tests/" wp-tests-config.php
     - sed -i "s/testuser/travis/" wp-tests-config.php
-	- cat wp-tests-config.php
+    - cat wp-tests-config.php
 
 script: phpunit
