@@ -1,38 +1,56 @@
-<?php
+# Travis CI Configuration File
 
-/* Path to the WordPress codebase you'd like to test. Add a slash to the end. */
-define( 'ABSPATH', '/path/to/wordpress-tests/wordpress/' );
+# Tell Travis CI we're using PHP
+language: php
 
-// Test with multisite enabled: (previously -m)
-// define( 'WP_TESTS_MULTISITE', true );
+# PHP version used in first build configuration.
+php:
+    - "5.5"
 
-// Force known bugs: (previously -f)
-// define( 'WP_TESTS_FORCE_KNOWN_BUGS', true );
+# WordPress version used in first build configuration.
+env:
+    - WP_VERSION=master
 
-// Test with WordPress debug mode on (previously -d)
-// define( 'WP_DEBUG', true );
+# Next we define our matrix of additional build configurations to test against.
+# The versions listed above will automatically create our first configuration,
+# so it doesn't need to be re-defined below.
 
-// ** MySQL settings ** //
+# WP_VERSION specifies the tag to use. The way these tests are configured to run
+# requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
 
-// This configuration file will be used by the copy of WordPress being tested.
-// wordpress/wp-config.php will be ignored.
+# Note that Travis CI supports listing these above to automatically build a
+# matrix of configurations, but we're being nice here by manually building a
+# total of four configurations even though we're testing 4 versions of PHP
+# along with 2 versions of WordPress (which would build 8 configs otherwise).
+# This takes half as long to run while still providing adequate coverage.
 
-// WARNING WARNING WARNING!
-// These tests will DROP ALL TABLES in the database with the prefix named below.
-// DO NOT use a production database or one that is shared with something else.
+matrix:
+  include:
+    - php: "5.3"
+      env: WP_VERSION=master
+    - php: "5.4"
+      env: WP_VERSION=3.8
+    - php: "5.2"
+      env: WP_VERSION=3.8
 
-define( 'DB_NAME', 'testdb' );    // The name of the database
-define( 'DB_USER', 'testuser' );     // Your MySQL username
-define( 'DB_PASSWORD', 'testpwd' ); // ...and password
-define( 'DB_HOST', 'localhost' );    // 99% chance you won't need to change this value
-define( 'DB_CHARSET', 'utf8' );
-define( 'DB_COLLATE', '' );
+# Clones WordPress and configures our testing environment.
+before_script:
+	# Setup WordPress
+    - export WP_DEVELOP_DIR=/tmp/wordpress/
+    - mkdir -p $WP_DEVELOP_DIR
+    - git clone --depth=1 --branch="$WP_VERSION" git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
+	
+    - export PLUGIN_SLUG=$(basename $(pwd))
+    - cd ..
+    - mv $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - cd /tmp/wordpress/
+    - git checkout $WP_VERSION
+    - mysql -e "CREATE DATABASE shopp_tests;" -uroot
+    - cp wp-tests-config-sample.php wp-tests-config.php
+    - sed -i "s/\/path\/to\/wordpress-tests\/wordpress\//\/tmp\/wordpress\//" wp-tests-config.php
+    - sed -i "s/testdb/shopp_tests/" wp-tests-config.php
+    - sed -i "s/testuser/travis/" wp-tests-config.php
+    - sed -i "s/testpwd//" wp-tests-config.php
+    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
 
-define( 'WP_TESTS_DOMAIN', 'shopptest' );
-define( 'WP_TESTS_EMAIL', 'admin@example.org' );
-define( 'WP_TESTS_TITLE', 'Test Blog' );
-
-define( 'WP_PHP_BINARY', 'php' );
-
-define ( 'WPLANG', '' );
-$table_prefix  = 'wp_';   // Only numbers, letters, and underscores please!
+script: phpunit
