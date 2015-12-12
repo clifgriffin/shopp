@@ -24,14 +24,16 @@ env:
 # along with 2 versions of WordPress (which would build 8 configs otherwise).
 # This takes half as long to run while still providing adequate coverage.
 
-#matrix:
-#  include:
-#    - php: "5.3"
-#      env: WP_VERSION=master
-#    - php: "5.4"
-#      env: WP_VERSION=3.8
-#    - php: "5.2"
-#      env: WP_VERSION=3.8
+matrix:
+  include:
+     - php: "5.3"
+       env: WP_VERSION=4.4
+    # - php: "5.4"
+    #   env: WP_VERSION=4.4
+    # - php: "5.3"
+    #   env: WP_VERSION=4.2
+    # - php: "5.2"
+    #   env: WP_VERSION=4.0
 
 # Clones WordPress and configures our testing environment.
 before_script:
