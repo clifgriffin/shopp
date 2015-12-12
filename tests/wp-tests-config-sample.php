@@ -21,9 +21,9 @@ define( 'ABSPATH', '/path/to/wordpress-tests/wordpress/' );
 // These tests will DROP ALL TABLES in the database with the prefix named below.
 // DO NOT use a production database or one that is shared with something else.
 
-define( 'DB_NAME', 'shopptest' );    // The name of the database
-define( 'DB_USER', 'shopptest' );     // Your MySQL username
-define( 'DB_PASSWORD', '' ); // ...and password
+define( 'DB_NAME', 'testdb' );    // The name of the database
+define( 'DB_USER', 'testuser' );     // Your MySQL username
+define( 'DB_PASSWORD', 'testpwd' ); // ...and password
 define( 'DB_HOST', 'localhost' );    // 99% chance you won't need to change this value
 define( 'DB_CHARSET', 'utf8' );
 define( 'DB_COLLATE', '' );
