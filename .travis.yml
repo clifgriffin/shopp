@@ -35,11 +35,10 @@ matrix:
 
 # Clones WordPress and configures our testing environment.
 before_script:
-	# Setup WordPress
+    # Setup WordPress
     - export WP_DEVELOP_DIR=/tmp/wordpress/
     - mkdir -p $WP_DEVELOP_DIR
     - git clone --depth=1 --branch="$WP_VERSION" git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
-	
     - export PLUGIN_SLUG=$(basename $(pwd))
     - cd ..
     - mv $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
