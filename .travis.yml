@@ -43,7 +43,7 @@ before_script:
     - git clone --depth=1 --branch="$WP_VERSION" git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
     - # Move plugin into place
     - cd ..
-    - cp -R $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - mv $PLUGIN_SLUG "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
     - # Checkout WP version
     - cd /tmp/wordpress/
     - git checkout $WP_VERSION
@@ -51,7 +51,7 @@ before_script:
     - cd "$WP_DEVELOP_DIR/src/wp-content/plugins/$PLUGIN_SLUG/tests"
     - cp wp-tests-config-sample.php wp-tests-config.php
     - mysql -e "CREATE DATABASE shopp_tests;" -uroot
-    - sed -i '' "s/testdb/shopp_tests/" wp-tests-config.php
-    - sed -i '' "s/testuser/travis/" wp-tests-config.php
+    - sed -i "s/testdb/shopp_tests/" wp-tests-config.php
+    - sed -i "s/testuser/travis/" wp-tests-config.php
 
 script: phpunit
