@@ -663,7 +663,7 @@ class ShoppCartItem {
 	 * @return boolean
 	 **/
 	public function instock ( $qty = false ) {
-		if ( ! shopp_setting_enabled('inventory') ) return true;
+		if ( ! shopp_setting_enabled('inventory') || shopp_setting_enabled('backorders') ) return true;
 
 		if ( ! $this->inventory ) {
 			// base item doesn't track inventory and no addons
