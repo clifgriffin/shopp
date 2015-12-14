@@ -148,7 +148,7 @@ function shopp_tests_settings () {
 
 }
 
-tests_add_filter('plugins_loaded', 'shopp_tests_install');
+tests_add_filter('shopp_loaded', 'shopp_tests_install');
 tests_add_filter('shopp_loaded', 'shopp_tests_setup');
 tests_add_filter('shopp_loaded', 'shopp_tests_settings');
 
