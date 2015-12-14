@@ -166,7 +166,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			}
 
 			// Gracefully invalidate Shopp object caching
-			Shopp::invalidate_cache();
+			Shopp::cache_invalidate();
 			
 			$redirect = add_query_arg( $_GET, $adminurl );
 			$redirect = remove_query_arg( array('action','selected','delete_all'), $redirect );
@@ -175,7 +175,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 		if ($duplicate) {
 			// Gracefully invalidate Shopp object caching
-			Shopp::invalidate_cache();
+			Shopp::cache_invalidate();
 
 			$Product = new ShoppProduct($duplicate);
 			$Product->duplicate();
@@ -196,7 +196,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ($save) {
 
 			// Gracefully invalidate Shopp object caching
-			Shopp::invalidate_cache();
+			Shopp::cache_invalidate();
 
 			$this->save($Shopp->Product);
 			$this->notice( sprintf(__('%s has been saved.','Shopp'),'<strong>'.stripslashes($Shopp->Product->name).'</strong>') );

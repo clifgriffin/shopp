@@ -2375,10 +2375,10 @@ abstract class ShoppCore {
 	 *
 	 * @return void
 	 */
-	public static function invalidate_cache() {
+	public static function cache_invalidate() {
 		wp_cache_incr( 'shopp_cache_key' );
 		
-		do_action('shopp_invalidate_cache');
+		do_action('shopp_cache_invalidate');
 	}
 
 } // End abstract class ShoppCore

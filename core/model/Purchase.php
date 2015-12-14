@@ -377,7 +377,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		// If out of stock products should be hidden from catalog, 
 		// go ahead and invalidate the cache after unstock
 		if ( ! Shopp::str_true( shopp_setting('outofstock_catalog') ) )
-			Shopp::invalidate_cache();
+			Shopp::cache_invalidate();
 	}
 
 	/**
