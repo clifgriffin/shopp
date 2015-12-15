@@ -1,5 +1,8 @@
 # Travis CI Configuration File
 
+# Use container infrastructure
+sudo: false
+
 # Tell Travis CI we're using PHP
 language: php
 
@@ -26,14 +29,10 @@ env:
 
 matrix:
   include:
-     - php: "5.3"
+     - php: "7.0"
+       env: WP_VERSION=master
+     - php: "5.6"
        env: WP_VERSION=4.4
-    # - php: "5.4"
-    #   env: WP_VERSION=4.4
-    # - php: "5.3"
-    #   env: WP_VERSION=4.2
-    # - php: "5.2"
-    #   env: WP_VERSION=4.0
 
 # Clones WordPress and configures our testing environment.
 before_script:
