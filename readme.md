@@ -1,6 +1,4 @@
-<span class="float-right">
-[![build status](http://ci.shopp.net/projects/2/status.png?ref=master)](http://ci.shopp.net/projects/2?ref=master)
-</span>
+[![Build Status](https://api.travis-ci.org/ingenesis/shopp.svg)](https://travis-ci.org/ingenesis/shopp)
 
 ![Shopp Logo](https://shopplugin.com/logo.png)
 
