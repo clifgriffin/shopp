@@ -2356,10 +2356,10 @@ abstract class ShoppCore {
 		return $value;
 
 	}
-	
+
 	/**
 	 * Keyed wrapper for wp_cache_set
-	 * 
+	 *
 	 * @author Clifton Griffin
 	 * @since 1.4
 	 *
@@ -2379,13 +2379,13 @@ abstract class ShoppCore {
 			$ns_key = 1;
 			wp_cache_set( 'shopp_cache_key', $ns_key );
 		}
-			
+
 		return wp_cache_set($key . $ns_key, $data, $group, $expire);
 	}
-	
+
 	/**
 	 * Keyed wrapper for wp_cache_get function.
-	 * 
+	 *
 	 * @author Clifton Griffin
 	 * @since 1.4
 	 *
@@ -2399,10 +2399,10 @@ abstract class ShoppCore {
 	public static function cache_get ( $key, $group = null, $force = null, $found = null ) {
 		// Seed request for cache
 		$ns_key = wp_cache_get( 'shopp_cache_key' );
-		
+
 		return wp_cache_get( $key . $ns_key, $group, $force, $found );
 	}
-	
+
 	/**
 	 * Increment the cache key to gracefully invalidate Shopp specific caches
 	 *
@@ -2413,7 +2413,7 @@ abstract class ShoppCore {
 	 */
 	public static function invalidate_cache() {
 		wp_cache_incr( 'shopp_cache_key' );
-		
+
 		do_action('shopp_invalidate_cache');
 	}
 
@@ -2666,13 +2666,6 @@ function findfile ($filename, $directory, $root, &$found) {
  **/
 function file_mimetype ($file,$name=false) {
 	return Shopp::file_mimetype($file,$name);
-}
-
-/**
- * @deprecated Use Shopp::floatval()
- **/
-function floatvalue ($value, $round=true, $format = array()) {
-	return Shopp::floatval($value, $round, $format);
 }
 
 /**
