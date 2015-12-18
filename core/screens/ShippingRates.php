@@ -208,7 +208,7 @@ class ShoppScreenShipping extends ShoppSettingsScreenController {
 		$ShippingTemplates = new TemplateShippingUI();
 		add_action('shopp_shipping_module_settings', array($Shipping, 'templates'));
 
-		$Table = $this->table;
+		$Table = $this->table();
 		$Table->prepare_items();
 
 		include $this->ui('shipping.php');
