@@ -332,7 +332,7 @@ class ShoppShippingRatesTable extends ShoppAdminTable {
 			'countries' => ShoppLookup::countries(),
 			'areas'     => ShoppLookup::country_areas(),
 			'zones'     => ShoppLookup::country_zones(),
-			'postcodes' => $postcodesscre
+			'postcodes' => $postcodes
 		);
 
 		shopp_custom_script('shiprates', '
