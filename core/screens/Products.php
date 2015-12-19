@@ -1182,8 +1182,6 @@ class ShoppScreenProductEditor extends ShoppScreenController {
 			$label = $taxonomy->labels->name;
 
 			if ( is_taxonomy_hierarchical($taxonomy_name) )
-
-			if ( is_taxonomy_hierarchical($taxonomy_name) )
 				new ShoppAdminProductCategoriesBox(ShoppProduct::posttype(), 'side', 'core', array( 'Product' => $Product, 'taxonomy' => $taxonomy_name, 'label' => $label ));
 			else new ShoppAdminProductTaggingBox(ShoppProduct::posttype(), 'side', 'core', array( 'Product' => $Product, 'taxonomy' => $taxonomy_name, 'label' => $label ));
 
