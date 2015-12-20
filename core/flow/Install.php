@@ -32,7 +32,7 @@ class ShoppInstallation extends ShoppFlowController {
 		add_action('shopp_setup', array($this, 'roles'));
 		add_action('shopp_setup', array($this, 'maintenance'));
 
-		$this->errors = array(
+		self::$errors = array(
 			'header' => __('Shopp Activation Error','Shopp'),
 			'intro' => __('Sorry! Shopp cannot be activated for this WordPress install.'),
 			'dbprivileges' => __('Shopp cannot be installed because the database privileges do not allow Shopp to create new tables.', 'Shopp'),
