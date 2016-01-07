@@ -769,7 +769,7 @@ class ShoppCustomerThemeAPI implements ShoppAPI {
 		$options = array_merge($defaults, $options);
 		extract($options, EXTR_SKIP);
 
-		if ( $O->_info_looping )
+		if ( isset($O->_info_looping) && $O->_info_looping )
 			$info = current($fields->meta);
 		elseif ( $name !== false && is_object($fields->named[ $name ]) )
 			$info = $fields->named[ $name ];
