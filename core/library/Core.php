@@ -1902,7 +1902,7 @@ abstract class ShoppCore {
 		$xml .= "<language>".get_option('rss_language')."</language>\n";
 		$xml .= "<copyright>".esc_html("Copyright ".date('Y').", ".$data['sitename'])."</copyright>\n";
 
-		if (is_array($data['items'])) {
+		if ( isset($data['items']) && is_array($data['items']) ) {
 			foreach($data['items'] as $item) {
 				$xml .= "\t<item>\n";
 				foreach ($item as $key => $value) {
