@@ -1887,7 +1887,7 @@ abstract class ShoppCore {
 		add_filter('shopp_rss_description','ent2ncr');
 
 		$xmlns = '';
-		if (is_array($data['xmlns']))
+		if ( isset($data['xmlns']) && is_array($data['xmlns']) )
 			foreach ($data['xmlns'] as $key => $value)
 				$xmlns .= 'xmlns:'.$key.'="'.$value.'" ';
 
