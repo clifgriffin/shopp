@@ -596,7 +596,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if ( empty($sectionterm) )                // If sectionterm option is not specified,
 				$sectionterm = ShoppCollection()->id; // use the current collection as target
 
-			if ( 0 == ShoppCollection()->parent )
+			if ( ! empty(ShoppCollection()->id) && 0 == ShoppCollection()->parent )
 				$childof = $sectionterm;
 			else {
 				$ancestors = get_ancestors($sectionterm, $options['taxonomy']);
@@ -654,15 +654,17 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 		$collections = array();
 		foreach ( $Shopp->Collections as $slug => $CollectionClass ) {
 			if ( ! get_class_property($CollectionClass, '_menu') ) continue;
-
+            
+            // Stubs out a WP_Term compatible StdClass object
 			$Collection = new StdClass;
-		    $Collection->term_id = 0;
-		    $Collection->name = call_user_func(array($CollectionClass, 'name'));
-		    $Collection->slug = $slug;
-		    $Collection->term_group = 0;
-		    $Collection->taxonomy = get_class_property('SmartCollection','taxon');
-		    $Collection->description = '';
-		    $Collection->parent = 0;
+			$Collection->term_id = 0;
+			$Collection->name = call_user_func(array($CollectionClass, 'name'));
+			$Collection->slug = $slug;
+			$Collection->term_group = 0;
+			$Collection->taxonomy = get_class_property('SmartCollection','taxon');
+			$Collection->description = '';
+			$Collection->parent = 0;
+			$Collection->query_var = $Collection->taxonomy;
 			$collections[] = $Collection;
 		}
 
