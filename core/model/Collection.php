@@ -1919,7 +1919,9 @@ class TagProducts extends SmartCollection {
 				$term = get_term_by('name', $tag, ProductTag::$taxon);
 				$terms[] = $term->term_id;
 			}
-		} else $terms[] = $term->term_id;
+		} elseif ( ! empty($term->term_id) )  {
+            $terms[] = $term->term_id;
+		}
 
 		if ( empty($terms) ) return;
 
