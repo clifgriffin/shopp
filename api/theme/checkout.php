@@ -1018,9 +1018,12 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 		$regions = Lookup::country_zones();
 		$base = shopp_setting('base_operations');
 
+        $DefaultPayment = $Payments->selected();
+        $payslug = isset($DefaultPayment->slug) ? $DefaultPayment->slug : '';
+        
 		$js = "var regions=" . json_encode($regions) . "," .
 				  "c_upd='" . $updating . "'," .
-				  "d_pm='" . $Payments->selected()->slug . "'," .
+				  "d_pm='" . $payslug . "'," .
 				  "pm_cards={};";
 
 		foreach ( $Payments as $slug => $option ) {
