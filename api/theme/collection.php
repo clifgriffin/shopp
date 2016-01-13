@@ -1238,9 +1238,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$slug = $O->slug;
 			$termlink = $wp_rewrite->get_extra_permastruct($O->taxonomy);
 			if ( empty($termlink) ) {
-				if ( isset($O->query_var) )
-					$termlink = "?$O->query_var=$slug";
-				else $termlink = "?taxonomy=$O->taxonomy&term=$slug";
+				$termlink = "?$O->taxonomy=$slug";
 				$url = home_url($termlink);
 			} else {
 				$termlink = str_replace("%$O->taxonomy%", $slug, $termlink);
