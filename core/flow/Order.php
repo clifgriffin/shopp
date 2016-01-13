@@ -498,12 +498,11 @@ class ShoppOrder {
 		$Purchase->copydata($this->Billing);
 		$Purchase->copydata($this->Shipping, 'ship');
 		$Purchase->copydata($this->Cart->Totals->data());
-
-		$Purchase->subtotal   = $Purchase->order; // Remap order to subtotal
-		$Purchase->paymethod  = $Paymethod->slug;
-		$Purchase->customer   = $this->Customer->id;
-		$Purchase->taxing     = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
-		$Purchase->freight    = $this->Cart->total('shipping');
+		$Purchase->subtotal = $Purchase->order; // Remap order to subtotal
+		$Purchase->paymethod = isset($Paymethod->slug) ? $Paymethod->slug : '';
+		$Purchase->customer = $this->Customer->id;
+		$Purchase->taxing = shopp_setting_enabled('tax_inclusive') ? 'inclusive' : 'exclusive';
+		$Purchase->freight = $this->Cart->total('shipping');
 		$Purchase->shipoption = isset($shipoption->name) ? $shipoption->name : '';
 		$Purchase->ip         = $Shopping->ip;
 		$Purchase->created    = current_time('mysql');
