@@ -409,7 +409,6 @@ ob_get_contents();
 			$this->assertTrue(shopp('cartitem', 'hasinputs'));
 
 			while( shopp('cartitem', 'inputs') ) {
-				$this->assertTrue(shopp('cartitem', 'hasinputs'));
 
 				$actual = shopp('cartitem.get-inputslist');
 				$this->assertTrue( ! empty($actual) );
@@ -425,8 +424,6 @@ With Newline</p>
 				$this->assertEquals($expected, $actual, $actual);
 				$this->assertValidMarkup($actual);
 
-				$this->assertTrue(shopp('cartitem', 'hasinputs'));
-
 				$actual = shopp('cartitem.get-inputslist','before=<div>&after=</div>&class=customdata&exclude=merryxmas');
 				$this->assertTrue(!empty($actual));
 
@@ -440,6 +437,7 @@ With Newline</p>
 				$this->assertEquals($expected, $actual, $actual);
 				$this->assertValidMarkup($actual);
 			}
+
 		}
 	}
 
