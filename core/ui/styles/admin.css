@@ -3250,7 +3250,7 @@ div.storage-settings {
 
 .address-controls.button-group .button {
 	width: 50%;
-	padding-left: 0; 
+	padding-left: 0;
 	padding-right: 0;
 }
 
@@ -3261,13 +3261,18 @@ div.storage-settings {
 	padding-left: 180px;
 }
 
-body.shopp_page_shopp-settings ul#adminmenu a.wp-has-current-submenu::after, 
+body.shopp_page_shopp-settings ul#adminmenu a.wp-has-current-submenu::after,
 body.shopp_page_shopp-settings ul#adminmenu > li.current > a.current::after {
-	border-right-color: #fff;
+	border-right-color: #d8d8d8;
 }
 
+.wp-submenu {
+	margin-top: 0;
+}
+
+
 #shopp-settings-menu {
-	background: #fff;
+	background: #D8D8D8;
 	color: #454545;
 	position: fixed;
 	left: 160px;
@@ -3288,17 +3293,14 @@ body.shopp_page_shopp-settings ul#adminmenu > li.current > a.current::after {
 	line-height: 1.2;
 	margin: 0;
 	color: #454545;
-	padding: 6px 12px;
+	padding: 30px 0;
 	text-align: center;
-}
-
-#shopp-settings-menu a:hover {
-	color: #45bbe6;
+	transition: all 0.2s ease-in-out;
 }
 
 #shopp-settings-menu .current a {
 	font-weight: 600;
-	color: #0074a2;
+	color: white;
 }
 
 #shopp-settings-menu ul {
@@ -3306,7 +3308,70 @@ body.shopp_page_shopp-settings ul#adminmenu > li.current > a.current::after {
 }
 
 #shopp-settings-menu li {
+	border-bottom: 1px solid #f1f1f1;
+	margin-bottom: 0;
 	overflow: hidden;
+	transition: all 0.2s ease-in-out;
+}
+
+#shopp-settings-menu li.current {
+	background: #45bbe6;
+}
+
+.admin-color-blue #shopp-settings-menu li.current {
+	background: #096484;
+}
+
+.admin-color-coffee #shopp-settings-menu li.current {
+	background: #c7a589;
+}
+
+.admin-color-ectoplasm #shopp-settings-menu li.current {
+	background: #a3b745;
+}
+
+.admin-color-midnight #shopp-settings-menu li.current {
+	background: #e14d43;
+}
+
+.admin-color-ocean #shopp-settings-menu li.current {
+	background: #9ebaa0;
+}
+
+.admin-color-sunrise #shopp-settings-menu li.current {
+	background: #dd823b;
+}
+
+#shopp-settings-menu li:hover {
+	background: #f1f1f1;
+}
+
+#shopp-settings-menu li:hover a {
+	color: #45bbe6;
+}
+
+.admin-color-blue #shopp-settings-menu li:hover a {
+	color: #096484;
+}
+
+.admin-color-coffee #shopp-settings-menu li:hover a {
+	color: #c7a589;
+}
+
+.admin-color-ectoplasm #shopp-settings-menu li:hover a {
+	color: #a3b745;
+}
+
+.admin-color-midnight #shopp-settings-menu li:hover a {
+	color: #e14d43;
+}
+
+.admin-color-ocean #shopp-settings-menu li:hover a {
+	color: #9ebaa0;
+}
+
+.admin-color-sunrise #shopp-settings-menu li:hover a {
+	color: #dd823b;
 }
 
 .shopp-settings-icon {
@@ -3314,33 +3379,110 @@ body.shopp_page_shopp-settings ul#adminmenu > li.current > a.current::after {
 	margin-bottom: 6px;
 }
 
+.shopp-settings-menu-trigger {
+	display: none;
+}
+
 @media only screen and (max-width: 960px) {
 	.shopp_page_shopp-settings #wpcontent,
 	.shopp_page_shopp-settings #wpfooter {
 		padding-left: 56px;
 	}
-	
+
 	#shopp-settings-menu {
 		width: 36px;
 		left: 36px;
 	}
 
+	#shopp-settings-menu li {
+		border: none;
+	}
+
+	#shopp-settings-menu li:hover {
+		background: #eee;
+	}
+
 	#shopp-settings-menu a {
-		padding: 0;
-	} 
+		padding: 10px 0;
+	}
+
+	#shopp-settings-menu li:hover a {
+		color: #45bbe6;
+	}
 	.shopp-settings-icon {
 		font-size: 20px;
+		margin-bottom: 0;
 	}
-	
+
 	.shopp-settings-label {
-		display: none;
+		position: absolute;
+		left: -10000px;
+		top: auto;
+		width: 0;
+		height: 0;
+		overflow: hidden;
 	}
 }
 
 @media screen and ( max-width: 782px ) {
-
 	#shopp-settings-menu {
-		display: none;
+		background: white;
+		left: 0;
+		margin-right: 10px;
+		margin-top: 20px;
+		padding-top: 0;
+		position: static;
+		width: auto;
+	}
+
+	#shopp-settings-menu ul {
+		display: block;
+		margin-bottom: 0;
+	}
+
+	#shopp-settings-menu li {
+		display: block;
+	}
+
+	#shopp-settings-menu a {
+		padding: 10px;
+		text-align: left;
+	}
+
+	#shopp-settings-menu .shopp-settings-icon {
+		display: inline-block;
+		margin-right: 10px;
+	}
+
+	#shopp-settings-menu li .shopp-settings-label {
+		display: inline-block;
+		height: auto;
+		left: 0;
+		position: static;
+		width: auto;
+	}
+
+	.shopp-settings-menu-trigger {
+		background: white;
+		border-bottom: 1px solid #eee;
+		display: block;
+		font-weight: bold;
+		padding: 5px 10px;
+		width: auto;
+	}
+
+	.shopp-settings-menu-trigger .shopp-settings-menu-trigger-icon {
+		display: inline-block;
+		font-size: 32px;
+		margin-left: -5px;
+		margin-right: 6px;
+		height: auto;
+		width: auto;
+	}
+
+	.shopp-settings-menu-trigger .shopp-settings-menu-trigger-label {
+		display: inline-block;
+		line-height: 32px;
 	}
 
 }

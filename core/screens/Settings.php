@@ -131,7 +131,7 @@ class ShoppSettingsScreenController extends ShoppScreenController {
 		}
 
 		$pagehook = sanitize_key($plugin_page);
-		return '<div id="shopp-settings-menu" class="clearfix"><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
+		return '<div id="shopp-settings-menu" class="clearfix"><div class="shopp-settings-menu-trigger"><div class="dashicons dashicons-menu shopp-settings-menu-trigger-icon"></div><div class="shopp-settings-menu-trigger-label">Shopp Menu</div></div><ul class="wp-submenu">' . apply_filters('shopp_admin_' . $pagehook . '_screen_tabs', $markup) . '</ul></div>';
 
 	}
 
