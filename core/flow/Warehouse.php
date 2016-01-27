@@ -275,14 +275,14 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		$url = ShoppAdminController::url($_GET);
 
 		$subs = array(
-			'all' =>        array('label' => Shopp::__('All'),         'where' => array("p.post_status!='trash'")),
-			'published' =>  array('label' => Shopp::__('Published'),   'where' => array("p.post_status='publish'")),
-			'drafts' =>     array('label' => Shopp::__('Drafts'),      'where' => array("p.post_status='draft'")),
-			'onsale' =>     array('label' => Shopp::__('On Sale'),     'where' => array("s.sale='on' AND p.post_status != 'trash'")),
-			'featured' =>   array('label' => Shopp::__('Featured'),	   'where' => array("s.featured='on' AND p.post_status != 'trash'")),
-			'bestselling'=> array('label' => Shopp::__('Bestselling'), 'where' => array("p.post_status!='trash'", BestsellerProducts::threshold() . " < s.sold"),'order' => 'bestselling'),
-			'inventory' => 	array('label' => Shopp::__('Inventory'),   'where' => array("s.inventory='on' AND p.post_status != 'trash'")),
-			'trash' =>      array('label' => Shopp::__('Trash'),       'where' => array("p.post_status='trash'"))
+			'all' =>        array('label' => Shopp::__('All'),                'where' => array("p.post_status!='trash'")),
+			'published' =>  array('label' => Shopp::__('Published'),          'where' => array("p.post_status='publish'")),
+			'drafts' =>     array('label' => Shopp::__('Drafts'),             'where' => array("p.post_status='draft'")),
+			'trash' =>      array('label' => Shopp::__('Trash'),              'where' => array("p.post_status='trash'")),			
+			'onsale' =>     array('label' => Shopp::__('On Sale'),            'where' => array("s.sale='on' AND p.post_status != 'trash'")),
+			'featured' =>   array('label' => Shopp::__('Featured'),	          'where' => array("s.featured='on' AND p.post_status != 'trash'")),
+			'bestselling'=> array('label' => Shopp::__('Bestselling'),        'where' => array("p.post_status!='trash'", BestsellerProducts::threshold() . " < s.sold"),'order' => 'bestselling'),
+			'inventory' => 	array('label' => Shopp::__('Inventory Manager'),  'where' => array("s.inventory='on' AND p.post_status != 'trash'"))
 		);
 
 		if ( ! shopp_setting_enabled('inventory') ) unset($subs['inventory']);
