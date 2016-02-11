@@ -529,7 +529,9 @@ class ShoppInstallation extends ShoppFlowController {
 				$value->storage = "FSStorage";
 				$value->uri = $name;
 			}
-			$value = sDB::escape(serialize($value));
+
+			$value = sDB::escape( serialize($value) );
+
 			sDB::query("UPDATE $meta_table set name='original', value='$value' WHERE id=$r->id");
 		}
 
@@ -554,7 +556,11 @@ class ShoppInstallation extends ShoppFlowController {
 				$value->storage = "FSStorage";
 				$value->uri = $name;
 			}
+<<<<<<< HEAD
 			$value = sDB::escape(serialize($value));
+=======
+			$value = sDB::escape( serialize($value) );
+>>>>>>> 64c4df8... Use sDB::escape() calls instead of api calls.
 			sDB::query("UPDATE $meta_table set name='$name', value='$value' WHERE id=$r->id");
 		}
 
