@@ -131,7 +131,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 				);
 			}
 
-			if (!isset($_POST['settings']['target_markets']))
+			if ( isset($_POST['settings']['target_markets']) )
 				asort($_POST['settings']['target_markets']);
 
 			shopp_set_formsettings();
