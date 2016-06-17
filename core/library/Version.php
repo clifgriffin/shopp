@@ -24,7 +24,7 @@ class ShoppVersion {
 	const PATCH = 10;
 
 	/** @type string PRERELEASE The prerelease designation (dev, beta, RC1) */
-	const PRERELEASE = '';
+	const PRERELEASE = '.1';
 
 	/** @type string CODENAME The release project code name */
 	const CODENAME = 'Ares';
