@@ -2384,21 +2384,6 @@ abstract class ShoppCore {
 		do_action('shopp_cache_invalidate');
 	}
 
-	/**
-	 * Transform array or string into array with key == value structure
-	 *
-	 * @param string or array
-	 * @since 1.3.10.1
-	 *  
-	 * @return False on failure to combine or array on success
-	 **/
-	public static function to_assoc ( $input ) {
-		if ( ! is_array($input) )
-			$input = explode(',', $input);
-		
-		return array_combine($input, $input);
-	}
-
 } // End abstract class ShoppCore
 
 

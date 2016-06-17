@@ -186,7 +186,7 @@ class ShoppAdmin extends ShoppFlowController {
 		if ( Shopp::maintenance() ) $access = 'manage_options';
 
 		// Add main menus
-		$position = shopp_admin_add_menu(Shopp::__('Webshop1310'), 'orders', 40, false, 'shopp_orders', Shopp::clearpng());
+		$position = shopp_admin_add_menu(Shopp::__('Shopp'), 'orders', 40, false, 'shopp_orders', Shopp::clearpng());
 		shopp_admin_add_menu(Shopp::__('Catalog'), 'products', $position, false, 'shopp_products', Shopp::clearpng());
 
 		// Add after the Shopp menus to avoid being purged by the duplicate separator check
