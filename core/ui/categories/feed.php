@@ -8,7 +8,7 @@
 	<language><?php echo get_option('rss_language'); ?></language>
 	<copyright><?php echo esc_html("Copyright ".date('Y').", ".$rss['sitename']); ?></copyright>
 	<?php while (false !== $item = ShoppCollection()->feed()): ?>
-		<?php if( empty($item) ) continue; ?>
+		<?php if ( empty($item) ) continue; ?>
 		<item>
 			<?php ShoppCollection()->feeditem($item); ?>
 		</item>
