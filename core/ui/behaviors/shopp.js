@@ -75,6 +75,7 @@ function asMoney (n,f) {
 	f = getCurrencyFormat(f);
 
 	n = formatNumber(n,f);
+
 	if (f.cpos) return f.currency+n;
 	return n+f.currency;
 }
