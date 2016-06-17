@@ -924,10 +924,10 @@ class Lookup {
 
 		$_ = array();
 		$_['contact'] = array(
-			'shopp-support'  => Shopp::__('For help with this, contact the Shopp %ssupport team%s.'),
-			'shopp-cs'       => Shopp::__('For help with this, contact Shopp %scustomer service%s.'),
+			'shopp-support'  => __('For help with this, contact the Shopp %ssupport team%s.', 'Shopp'),
+			'shopp-cs'       => __('For help with this, contact Shopp %scustomer service%s.', 'Shopp'),
 			'server-manager' => Shopp::__('For help with this, contact your web hosting provider or server administrator.'),
-			'webmaster'	     => Shopp::__('For help with this, contact your website developer.'),
+			'webmaster'	 => Shopp::__('For help with this, contact your website developer.'),
 			'admin'	         => Shopp::__('For help with this, contact the website administrator.'),
 		);
 
