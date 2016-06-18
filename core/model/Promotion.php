@@ -277,41 +277,44 @@ class ShoppPromo extends ShoppDatabaseObject {
 		// UTC-based timestamp from the Jan 1, 1970 00:00:00 epoch
 		// 43200 to represents 12-hours (UTC +/- 12 hours), then we
 		// add 1 to account for the default amount set in the editor
-		$offset = 43200 + 1;
-
+		$offset    = 43200 + 1;
+		$timestamp = '+TIMESTAMPDIFF(second, UTC_TIMESTAMP(), NOW())';
+		$start     = 'UNIX_TIMESTAMP(starts)' . $timestamp;
+		$end       = 'UNIX_TIMESTAMP(ends)' . $timestamp;
+		
 		return "(
 		    -- Promo is not date based
 		    (
-		        UNIX_TIMESTAMP(starts) <= $offset
+		        $start <= $offset
 		        AND
-		        UNIX_TIMESTAMP(ends) <= $offset
+		        $end <= $offset
 		    )
 		    OR
 		    -- Promo has start and end dates, check that we are in between
 		    (
-		        UNIX_TIMESTAMP(starts) > $offset
+		        $start > $offset
 		        AND
-		        UNIX_TIMESTAMP(ends) > $offset
+		        $end > $offset
 		        AND
-		        (" . current_time('timestamp') . " BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
+		        (" . current_time('timestamp') . " BETWEEN $start AND $end)
 		    )
 		    OR
 		    -- Promo has _only_ a start date, check that we are after it
 		    (
-		        UNIX_TIMESTAMP(starts) > $offset
+		        $start > $offset
 		        AND
-		        UNIX_TIMESTAMP(ends) <= $offset
+		        $end <= $offset
 		        AND
-		        UNIX_TIMESTAMP(starts) < " . current_time('timestamp') . "
+		        $start < " . current_time('timestamp') . "
 		    )
 		    OR
 		    -- Promo has _only_ an end date, check that we are before it
 		    (
-		        UNIX_TIMESTAMP(starts) <= $offset
+		        $start <= $offset
 		        AND
-		        UNIX_TIMESTAMP(ends) > $offset
+		        $end > $offset
 		        AND
-		        " . current_time('timestamp') . " < UNIX_TIMESTAMP(ends)
+		        " . current_time('timestamp') . " < $end
 			)
 	    )";
 	}
