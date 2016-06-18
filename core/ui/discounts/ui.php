@@ -26,7 +26,7 @@ function save_meta_box ( $Promotion ) {
 		 		if ( 'month' == $type ): ?><input type="text" name="starts[month]" id="starts-month" title="<?php Shopp::_e('Month'); ?>" size="3" maxlength="2" value="<?php echo ( $Promotion->starts > 1 ) ? date('n', $Promotion->starts) : ''; ?>" class="selectall" /><?php elseif ('day' == $type): ?><input type="text" name="starts[date]" id="starts-date" title="<?php Shopp::_e('Day'); ?>" size="3" maxlength="2" value="<?php echo ( $Promotion->starts > 1 ) ? date('j', $Promotion->starts) : ''; ?>" class="selectall" /><?php elseif ('year' == $type): ?><input type="text" name="starts[year]" id="starts-year" title="<?php Shopp::_e('Year'); ?>" size="5" maxlength="4" value="<?php echo ( $Promotion->starts > 1 ) ? date('Y', $Promotion->starts) : ''; ?>" class="selectall" /><?php elseif ($type[0] == "s"): echo "/"; endif; $previous = $type[0];  endforeach; ?>
 		</div>
 		<div>
-			<select name="starts[hour]" id="starts-hour"><?php echo Shopp::menuoptions($hours, ( $Promotion->starts > 1 ) ? intval(date('H', $Promotion->starts)) : 23, true);?></select> : <select name="starts[minute]" id="starts-minute"><?php echo Shopp::menuoptions($minutes, ( $Promotion->starts > 1 ) ?  intval(date('i', $Promotion->starts)) : 0, true); ?></select> : 00
+			<select name="starts[hour]" id="starts-hour"><?php echo Shopp::menuoptions($hours, ( $Promotion->starts > 1 ) ? intval(date('H', $Promotion->starts)) : 0, true);?></select> : <select name="starts[minute]" id="starts-minute"><?php echo Shopp::menuoptions($minutes, ( $Promotion->starts > 1 ) ?  intval(date('i', $Promotion->starts)) : 0, true); ?></select> : 00
 		</div>
 		<p><?php Shopp::_e('Start promotion on this date (and time).'); ?></p>
 
