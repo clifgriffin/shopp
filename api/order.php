@@ -168,9 +168,9 @@ function shopp_customer_orders ( $customer = false, $from = false, $to = false, 
  * @return array of Purchase objects
  **/
 function shopp_recent_orders ($time = 1, $period = 'day') {
-	$periods = array('day' => 'day', 'days' => 'days', 'week' => 'week', 'weeks' => 'weeks', 'month' => 'month', 'months' => 'months', 'year' => 'year', 'years' => 'years');
+	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
 
-	if ( ! isset($periods[ $period ]) ) {
+	if ( ! in_array($period, $periods) ) {
 		shopp_debug(__FUNCTION__ . " failed: Invalid period $period.  Use one of (" . implode(", ", $periods) . ")");
 		return false;
 	}
@@ -199,9 +199,9 @@ function shopp_recent_customer_orders ($customer = false, $time = 1, $period = '
 		return false;
 	}
 
-	$periods = array('day' => 'day', 'days' => 'days', 'week' => 'week', 'weeks' => 'weeks', 'month' => 'month', 'months' => 'months', 'year' => 'year', 'years' => 'years');
+	$periods = array('day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years');
 
-	if ( ! isset($periods[ $period ]) ) {
+	if ( ! in_array($period, $periods) ) {
 		shopp_debug(__FUNCTION__." failed: Invalid period $period.  Use one of (" . implode(", ", $periods) . ")");
 		return false;
 	}
