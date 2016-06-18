@@ -71,13 +71,13 @@ abstract class ShoppCore {
 		$_ = array(
 			'header'	    => Shopp::_x('Shopp Activation Error', 'Shopp activation error'),
 			'intro'	        => Shopp::_x('Sorry! Shopp cannot be activated for this WordPress install.', 'Shopp activation error'),
-			'phpversion'	=> sprintf(_x('Your server is running PHP %s!', 'Shopp activation error', 'Shopp'), PHP_VERSION),
+			'phpversion'	=> Shopp::_x(Shopp::__('Your server is running PHP %s!', PHP_VERSION), 'Shopp activation error'),
 			'php524'	    => Shopp::_x('Shopp requires PHP 5.2.4+.', 'Shopp activation error'),
-			'wpversion'	    => sprintf(_x('This site is running WordPress %s!', 'Shopp activation error', 'Shopp'), get_bloginfo('version')),
+			'wpversion'	    => Shopp::_x(Shopp::__('This site is running WordPress %s!', get_bloginfo('version')), 'Shopp activation error'),
 			'wp35'	        => Shopp::_x('Shopp requires WordPress 3.5.', 'Shopp activation error'),
 			'gdsupport'	    => Shopp::_x('Your server does not have GD support! Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.', 'Shopp activation error'),
 			'jpgsupport'	=> Shopp::_x('Your server does not have JPEG support for the GD library! Shopp requires JPEG support in the GD image library to generate JPEG images.', 'Shopp activation error'),
-			'nextstep'	    => sprintf(_x('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s', 'Shopp activation error', 'Shopp'), '<a href="' . ShoppSupport::DOCS . 'system-requirements">', '</a>'),
+			'nextstep'	    => Shopp::_x(Shopp::__('Try contacting your web hosting provider or server administrator to upgrade your server. For more information about the requirements for running Shopp, see the %sShopp Documentation%s', '<a href="' . ShoppSupport::DOCS . 'system-requirements">', '</a>'), 'Shopp activation error'),
 			'continue'	    => Shopp::_x('Return to Plugins page', 'Shopp activation error')
 		);
 

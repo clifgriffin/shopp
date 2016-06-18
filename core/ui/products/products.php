@@ -111,7 +111,7 @@
 							<div class="row-actions">
 								<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit'); ?></a> | </span>
 								<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate'); ?></a> | </span>
-								<span class='delete'><a class="delete" title="<?php echo esc_attr(sprintf(__('Move %s to the trash', 'Shopp'), "&quot;$ProductName&quot;")); ?>" href="<?php echo $trashurl; ?>" rel="<?php echo $Product->id; ?>"><?php Shopp::_e('Trash'); ?></a> | </span>
+								<span class='delete'><a class="delete" title="<?php echo esc_attr(Shopp::__('Move %s to the trash', "&quot;$ProductName&quot;")); ?>" href="<?php echo $trashurl; ?>" rel="<?php echo $Product->id; ?>"><?php Shopp::_e('Trash'); ?></a> | </span>
 								<span class='view'><a href="<?php echo $Product->tag('url'); ?>" title="<?php Shopp::_e('View'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php Shopp::_e('View'); ?></a></span>
 							</div>
 							<?php endif; ?>

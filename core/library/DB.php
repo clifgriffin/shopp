@@ -394,7 +394,7 @@ class sDB extends SingletonFramework {
 
 		// Error handling
 		if ( $db->dbh && $error = $db->api->error() ) {
-			shopp_add_error( sprintf('Query failed: %s - DB Query: %s', $error, str_replace("\n", "", $query) ), SHOPP_DB_ERR);
+			shopp_add_error( Shopp::__('Query failed: %s - DB Query: %s', $error, str_replace("\n", "", $query) ), SHOPP_DB_ERR);
 			return false;
 		}
 

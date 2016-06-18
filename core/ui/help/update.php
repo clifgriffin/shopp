@@ -33,9 +33,9 @@ To protect your database, the storefront has been switched to maintenance mode u
 				$_ = array();
 				$_[] = 'From: "' . $blogname . '" <' . shopp_setting('merchant_email') . '>';
 				$_[] = 'To: ' . $admin;
-				$_[] = sprintf('Subject: Shopp Upgraded on %s', $site['host']);
+				$_[] = Shopp::__('Subject: Shopp Upgraded on %s', $site['host']);
 				$_[] = '';
-				$_[] = sprintf(__('The Shopp installation on %1$s has been upgraded to %2$s and requires a database upgrade. Please login to %1$s and perform the upgrade by deactivating and reactivating the Shopp plugin.', 'Shopp'), $homeurl, ShoppVersion::release());
+				$_[] = Shopp::__('The Shopp installation on %1$s has been upgraded to %2$s and requires a database upgrade. Please login to %1$s and perform the upgrade by deactivating and reactivating the Shopp plugin.', $homeurl, ShoppVersion::release());
 
 				$message = apply_filters('shopp_upgrade_notice_message', join("\n", $_));
 
