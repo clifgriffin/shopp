@@ -187,8 +187,8 @@ $('#discount-type').change(function () {
 			value = new Number(this.value);
 			loading = !loading;
 		}
-		if (type == "Percentage Off") this.value = asPercent(value);
-		if (type == "Amount Off") this.value = asMoney(value);
+		if (type == "Percentage Off") this.value = asPercent(this.value.match(/[^(\d,\. )]/) ? asNumber(this.value) : new Number(this.value));
+		if (type == "Amount Off") this.value = asMoney(this.value.match(/[^(\d,\. )]/) ? asNumber(this.value) : new Number(this.value));
 	}).change();
 
 }).change();
