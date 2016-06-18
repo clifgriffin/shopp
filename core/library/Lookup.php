@@ -933,13 +933,12 @@ class Lookup {
 
 		/* PHP file upload errors */
 		$_['uploads'] = array(
-			UPLOAD_ERR_INI_SIZE   => sprintf(
-				__('The uploaded file is too big for the server.%s','Shopp'),
-					sprintf(' '.__('Files must be less than %s.','Shopp')." {$_['contact']['server-manager']}",
+			UPLOAD_ERR_INI_SIZE   => Shopp::__('The uploaded file is too big for the server.%s',
+					' ' . Shopp::__('Files must be less than %s.' . " {$_['contact']['server-manager']}",
 					Shopp::ini_size('upload_max_filesize'))
 			),
-			UPLOAD_ERR_FORM_SIZE  => sprintf(__('The uploaded file is too big.%s','Shopp'),
-				isset($_POST['MAX_FILE_SIZE']) ? sprintf(' '.__('Files must be less than %s. Please try again with a smaller file.','Shopp'),readableFileSize($_POST['MAX_FILE_SIZE'])) : ''
+			UPLOAD_ERR_FORM_SIZE  => Shopp::__('The uploaded file is too big.%s',
+				isset($_POST['MAX_FILE_SIZE']) ? ' ' . Shopp::__('Files must be less than %s. Please try again with a smaller file.', readableFileSize($_POST['MAX_FILE_SIZE'])) : ''
 			),
 			UPLOAD_ERR_PARTIAL    => Shopp::__('The file upload did not complete correctly.'),
 			UPLOAD_ERR_NO_FILE    => Shopp::__('No file was uploaded.'),
