@@ -15,7 +15,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppAdminWarehouse extends ShoppAdminController {
 
-	public $views = array('published' => 'published', 'drafts' => 'drafts', 'onsale' => 'onsale', 'featured' => 'featured', 'bestselling' => 'bestselling', 'inventory' => 'inventory', 'trash' => 'trash');
+	public $views = array('published', 'drafts', 'onsale', 'featured', 'bestselling', 'inventory', 'trash');
 	public $view = 'all';
 	public $worklist = array();
 	public $products = array();
@@ -38,8 +38,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		Shopping::restore('worklist', $this->worklist);
 
 		if ( 'off' == shopp_setting('inventory') )
-			// JM array_splice($this->views, 4, 1);
-			unset($this->views['inventory']);
+			array_splice($this->views, 4, 1);
 
 		if ( isset($_GET['view']) && isset($this->views[ $_GET['view'] ]) )
 			$this->view = $_GET['view'];
