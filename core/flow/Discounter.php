@@ -180,13 +180,16 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 			$Promotion = new ShoppPromo($_POST['id']);
 			$wascatalog = ( 'Catalog' == $Promotion->target );
 		} else $Promotion = new ShoppPromo();
+		
+		$start = $_POST['starts'];
+		$end   = $_POST['ends'];
 
-		if ( ! empty($_POST['starts']['month']) && ! empty($_POST['starts']['date']) && ! empty($_POST['starts']['year']) )
-			$_POST['starts'] = mktime(0, 0, 0, $_POST['starts']['month'], $_POST['starts']['date'], $_POST['starts']['year']);
+		if ( ! empty($start['month']) && ! empty($start['date']) && ! empty($start['year']) ) 
+			$_POST['starts'] = mktime($start['hour'], $start['minute'] , 0, $start['month'], $start['date'], $start['year']);
 		else $_POST['starts'] = 1;
 
-		if ( ! empty($_POST['ends']['month']) && ! empty($_POST['ends']['date']) && ! empty($_POST['ends']['year']) )
-			$_POST['ends'] = mktime(23, 59, 59, $_POST['ends']['month'], $_POST['ends']['date'], $_POST['ends']['year']);
+		if ( ! empty($end['month']) && ! empty($end['date']) && ! empty($end['year']) )
+			$_POST['ends'] = mktime($end['hour'], $end['minute'], 59, $end['month'], $end['date'], $end['year']);
 		else $_POST['ends'] = 1;
 
 		if ( isset($_POST['rules']) ) {
