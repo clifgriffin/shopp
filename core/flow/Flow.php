@@ -464,8 +464,7 @@ abstract class ShoppAdminController extends ShoppFlowController {
 		global $plugin_page;
 
 		$pagehook = sanitize_key($plugin_page);
-		new ShoppError('tabs'._object_r($tabs), false, 'SHOPP_DEBUGERR');
-		new ShoppError('thistabs'._object_r($this->tabs), false, 'SHOPP_DEBUGERR');
+
 		$markup = array();
 		if ( empty($tabs) ) $tabs = $this->tabs;
 		$default = key($this->tabs);
