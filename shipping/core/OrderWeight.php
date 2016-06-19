@@ -7,7 +7,7 @@
  * @author Jonathan Davis
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
- * @version 1.2
+ * @version 1.2.1
  * @since 1.2
  *
  **/
@@ -40,17 +40,17 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 			$amount = 0;
 			$matched = false;
 			$tiers = array_reverse($tiers);
-			
+
 			foreach ( $tiers as $tier ) {
 				extract($tier);
 				$amount = Shopp::floatval($rate);			// Capture the rate amount
-				
+				$weight = Shopp::floatval($threshold);
 				if ( $this->weight >= $threshold ) {
 					$matched = true;
-					break;	
-				} 
+					break;
+				}
 			}
-			
+
 			if ( ! $matched ) return $options;
 
 			$rate = array(
