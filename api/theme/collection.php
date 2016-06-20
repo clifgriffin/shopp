@@ -853,17 +853,18 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * @api `shopp('collection.pagination')`
 	 * @since 1.0
 	 *
-	 * @param string          $result  The output
-	 * @param array           $options The options
-	 * - **after**: `</div>` Markup to add after the pagination
-	 * - **before**: `<div>` Markup to add before the pagination
-	 * - **jumpback**: `&laquo;` The label for the jump backward link (jumps to the first page)
-	 * - **jumpfwd**: `&raquo;` The label for the jump forward link (jumps to the last page)
-	 * - **label**: `Pages:` The label for the pagination list
-	 * - **next**: `next` The label for the next button
-	 * - **previous**: `previous` The label for the previous button
-	 * - **show**: `1000` The maximum number of pages to show
-	 * @param ShoppCollection $O       The working object
+	 * @param string          	$result  The output
+	 * @param array           	$options The options
+	 * - **after**: 				`</div>` Markup to add after the pagination
+	 * - **before**: 				`<div>` Markup to add before the pagination
+	 * - **jump**: 					`true` Use interval jump between pages. Set to `false` unlinked dots will be used
+	 * - **jumpback**: 				`&laquo;` The label for the jump backward link (jumps to the first page)
+	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward link (jumps to the last page)
+	 * - **label**: 				`Pages:` The label for the pagination list
+	 * - **next**: 					`next` The label for the next button
+	 * - **previous**: 				`previous` The label for the previous button
+	 * - **show**: 					`1000` The maximum number of pages to show
+	 * @param ShoppCollection 	$O       The working object
 	 * @return string The pagination markup
 	 **/
 	public static function pagination ( $result, $options, $O ) {
@@ -872,94 +873,112 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'after'    => '</div>',
 			'before'   => '<div>',
+			'jump'     => true,
 			'jumpback' => '&laquo;',
 			'jumpfwd'  => '&raquo;',
 			'label'    => Shopp::__('Pages:'),
-			'next'     => Shopp::__('next'),
-			'previous' => Shopp::__('previous'),
+			'next'     => Shopp::__('Next'),
+			'previous' => Shopp::__('Previous'),
 			'show'     => 1000
 		);
+
 		$options = array_merge($defaults, $options);
 		extract($options);
 
 		$_ = array();
+
 		if ( isset($O->alpha) && $O->paged ) {
 			$_[] = $before . $label;
 			$_[] = '<ul class="paging">';
 
 			foreach ( $O->alpha as $letter => $products ) {
 				$link = $O->pagelink($letter);
-
-				if ( $products > 0 ) $_[] = '<li><a href="' . esc_url_raw($link) . '">' . $letter . '</a></li>';
+				if ( $products > 0 ) $_[] = '<li><a href="' . esc_url($link) . '">' . $letter . '</a></li>';
 				else $_[] = '<li><span>' . $letter . '</span></li>';
 			}
 
 			$_[] = '</ul>';
 			$_[] = $after;
+
 			return join("\n", $_);
 		}
 
 		if ( $O->pages > 1 ) {
-
-			if ( $O->pages > $show ) $visible_pages = $show + 1;
+			if ( $O->pages > $show ) $visible_pages = $show + 2;
 			else $visible_pages = $O->pages + 1;
 			$jumps = ceil( $visible_pages / 2 );
-			$_[] = $before . $label;
 
+			$_[] = $before . $label;
 			$_[] = '<ul class="paging">';
+
+			// Add previous button
+			if ( ! empty($previous) && $O->page > 1 ) {
+				$prev = $O->page-1;
+				$link = $O->pagelink($prev);
+				$_[]  = '<li class="previous"><a href="' . esc_url($link) . '" rel="prev">' . $previous . '</a></li>';
+			} else $_[] = '<li class="previous disabled">' . $previous . '</li>';
+			// end previous button
 
 			if ( $O->page <= floor( $show / 2) ) {
 				$i = 1;
 			} else {
 				$i = $O->page - floor( $show / 2 );
 				$visible_pages = $O->page + floor( $show / 2 ) + 1;
-				if ( $visible_pages > $O->pages ) $visible_pages = $O->pages + 1;
+				if ( $visible_pages > $O->pages ) {
+					$visible_pages = $O->pages + 1;
+					$i = $O->pages - $show;
+				}
+
 				if ( $i > 1 ) {
 					$link = $O->pagelink(1);
-					$_[]  = '<li><a href="' . esc_url_raw($link) . '">1</a></li>';
-
+					$_[]  = '<li><a href="' . esc_url($link) . '">1</a></li>';
 					$pagenum = ( $O->page - $jumps );
 					if ( $pagenum < 1 ) $pagenum = 1;
 					$link = $O->pagelink($pagenum);
-					$_[] = '<li><a href="' . esc_url_raw($link) . '">' . $jumpback . '</a></li>';
+
+					if ( $i > 2 ) {
+						if ( $jump === true )
+							$_[] = '<li><a href="' . esc_url($link) . '">' . $jumpback . '</a></li>';
+						else
+							$_[] = '<li> ... </li>';
+					}
 				}
 			}
-
-			// Add previous button
-			if ( ! empty($previous) && $O->page > 1 ) {
-				$prev = $O->page-1;
-				$link = $O->pagelink($prev);
-				$_[]  = '<li class="previous"><a href="' . esc_url_raw($link) . '" rel="prev">' . $previous . '</a></li>';
-			} else $_[] = '<li class="previous disabled">' . $previous . '</li>';
-			// end previous button
 
 			while ( $i < $visible_pages ) {
 				$link = $O->pagelink($i);
 				if ( $i == $O->page ) $_[] = '<li class="active">' . $i . '</li>';
-				else $_[] = '<li><a href="' . esc_url_raw($link) . '">' . $i . '</a></li>';
+				else $_[] = '<li><a href="' . esc_url($link) . '">' . $i . '</a></li>';
 				$i++;
 			}
+
 			if ( $O->pages > $visible_pages ) {
 				$pagenum = ( $O->page + $jumps );
 				if ( $pagenum > $O->pages ) $pagenum = $O->pages;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li><a href="' . esc_url_raw($link) . '">' . $jumpfwd . '</a></li>';
+				if ( $jump === true )
+					$_[] = '<li><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></li>';
+				else
+					$_[] = '<li> ... </li>';
+			}
+
+			if ( $O->pages >= $visible_pages ) {
 				$link = $O->pagelink($O->pages);
-				$_[] = '<li><a href="' . esc_url_raw($link) . '">' . $O->pages . '</a></li>';
+				$_[] = '<li><a href="' . esc_url($link) . '">' . $O->pages . '</a></li>';
 			}
 
 			// Add next button
 			if ( ! empty($next) && $O->page < $O->pages) {
 				$pagenum = $O->page + 1;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li class="next"><a href="' . esc_url_raw($link) . '" rel="next">' . $next . '</a></li>';
+				$_[] = '<li class="next"><a href="' . esc_url($link) . '" rel="next">' . $next . '</a></li>';
 			} else $_[] = '<li class="next disabled">' . $next . '</li>';
-
 			$_[] = '</ul>';
 			$_[] = $after;
 		}
 		return join("\n", $_);
 	}
+
 
 	/**
 	 * Provides the category ID of the parent category for sub-categories
