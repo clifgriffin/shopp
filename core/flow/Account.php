@@ -85,6 +85,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 		);
 
 		$args = array_merge($defaults, $_GET);
+
 		extract($args, EXTR_SKIP);
 
 		if ( $page == $this->Admin->pagename('customers')
@@ -96,14 +97,18 @@ class ShoppAdminAccount extends ShoppAdminController {
 			foreach ( $selected as $deletion ) {
 				$Customer = new ShoppCustomer($deletion);
 				$Billing  = new BillingAddress($Customer->id, 'customer');
+
 				$Billing->delete();
+
 				$Shipping = new ShippingAddress($Customer->id, 'customer');
+				
 				$Shipping->delete();
 				$Customer->delete();
 			}
 		}
 
 		$updated = false;
+
 		if ( ! empty($_POST['save']) ) {
 			check_admin_referer('shopp-save-customer');
 			$wp_integration = ('wordpress' === shopp_setting( 'account_system' ));
@@ -122,13 +127,16 @@ class ShoppAdminAccount extends ShoppAdminController {
 			// Reassign WordPress login
 			if ( $wp_integration && isset($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login ) {
 				$newlogin = get_user_by('login', $_POST['userlogin']);
+		
 				if ( ! empty($newlogin->ID) ) {
-					if (sDB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0) {
+		
+					if ( sDB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0 ) {
 						$Customer->wpuser = $newlogin->ID;
 						$updated = Shopp::__('Updated customer login to %s.', "<strong>$newlogin->user_login</strong>");
 					} else $updated = Shopp::__('Could not update customer login to &quot;%s&quot; because that user is already assigned to another customer.', '<strong>' . sanitize_user($_POST['userlogin']) . '</strong>');
 
 				} else $updated = Shopp::__('Could not update customer login to &quot;%s&quot; because the user does not exist in WordPress.', '<strong>' . sanitize_user($_POST['userlogin']) . '</strong>');
+		
 				if ( empty($_POST['userlogin']) ) $Customer->wpuser = 0;
 			}
 
@@ -139,7 +147,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 				}
 
 			$valid_email = filter_var( $_POST['email'], FILTER_VALIDATE_EMAIL );
-			$password = !empty( $_POST['new_password'] );
+			$password    = ! empty( $_POST['new_password'] );
 
 			if ( $wp_integration && $new_customer && $valid_email && $password ) {
 				$Customer->loginname = $_POST['userlogin'];
@@ -154,20 +162,20 @@ class ShoppAdminAccount extends ShoppAdminController {
 				} else {
 					$updated = Shopp::__( 'Could not create a WordPress account for customer &quot;%s&quot;.', '<strong>' . sanitize_user($_POST['userlogin']) . '</strong>');
 				}
-			}
-			elseif ($new_customer && ( !$valid_email || !$password ) ) {
+			} elseif ($new_customer && ( ! $valid_email || ! $password ) ) {
 				$updated = Shopp::__( 'Could not create new user. You must enter a valid email address and a password first.' );
 				$no_save = true;
 			}
 
-			if ( !isset( $new_save ) ) {
+			if ( ! isset( $new_save ) ) {
 				$Customer->info = false; // No longer used from DB
 				$Customer->save();
 			}
 
 
-			if (isset($_POST['info']) && !empty($_POST['info'])) {
-				foreach ((array)$_POST['info'] as $id => $info) {
+			if ( isset($_POST['info']) && ! empty($_POST['info']) ) {
+				
+				foreach ( (array)$_POST['info'] as $id => $info ) {
 					$Meta = new ShoppMetaObject($id);
 					$Meta->value = $info;
 					$Meta->save();
@@ -175,18 +183,23 @@ class ShoppAdminAccount extends ShoppAdminController {
 			}
 
 			if ( isset($Customer->id) ) $Billing->customer = $Customer->id;
+			
 			$Billing->updates($_POST['billing']);
 			$Billing->save();
 
 			if ( isset($Customer->id) ) $Shipping->customer = $Customer->id;
+			
 			$Shipping->updates($_POST['shipping']);
 			$Shipping->save();
-			if ( ! $updated) Shopp::__('Customer updated.');
+			
+			if ( ! $updated ) Shopp::__('Customer updated.');
+			
 			$Customer = false;
 
 		}
 
 		$pagenum = absint( $paged );
+
 		if ( empty($pagenum) )
 			$pagenum = 1;
 		if( ! $per_page || $per_page < 0 )
@@ -195,26 +208,31 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 		if ( ! empty($start) ) {
 			$startdate                = $start;
-			list($month, $day, $year) = explode("/", $startdate);
+			list($month, $day, $year) = explode('/', $startdate);
 			$starts                   = mktime(0, 0, 0, $month, $day, $year);
 		}
+
 		if ( ! empty($end) ) {
 			$enddate                  = $end;
-			list($month, $day, $year) = explode("/", $enddate);
+			list($month, $day, $year) = explode('/', $enddate);
 			$ends                     = mktime(23, 59, 59, $month, $day, $year);
 		}
 
 		$customer_table = ShoppDatabaseObject::tablename(Customer::$table);
 		$billing_table  = ShoppDatabaseObject::tablename(BillingAddress::$table);
 		$purchase_table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$users_table = $wpdb->users;
+		$users_table    = $wpdb->users;
 
 		$where = array();
+
 		if ( ! empty($s) ) {
 			$s = stripslashes($s);
+
 			if ( preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/', $s, $props, PREG_SET_ORDER) ) {
+			
 				foreach ( $props as $search ) {
 					$keyword = ! empty($search[2]) ? $search[2] : $search[3];
+			
 					switch ( strtolower($search[1]) ) {
 						case "company":  $where[] = "c.company LIKE '%$keyword%'"; break;
 						case "login":    $where[] = "u.user_login LIKE '%$keyword%'"; break;
@@ -235,7 +253,8 @@ class ShoppAdminAccount extends ShoppAdminController {
 			} else $where[] = "(CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";
 
 		}
-		if (! empty($starts) && ! empty($ends) ) $where[] = ' (UNIX_TIMESTAMP(c.created) >= ' . $starts . ' AND UNIX_TIMESTAMP(c.created) <= ' . $ends . ')';
+
+		if ( ! empty($starts) && ! empty($ends) ) $where[] = ' (UNIX_TIMESTAMP(c.created) >= ' . $starts . ' AND UNIX_TIMESTAMP(c.created) <= ' . $ends . ')';
 
 		$select = array(
 			'columns' => 'SQL_CALC_FOUND_ROWS c.*,city,state,country,user_login',
@@ -249,22 +268,25 @@ class ShoppAdminAccount extends ShoppAdminController {
 			'orderby' => "c.created DESC",
 			'limit'   => "$index,$per_page"
 		);
-		$query = sDB::select($select);
+		$query     = sDB::select($select);
 		$Customers = sDB::query($query, 'array', 'index', 'id');
 
 		$total = sDB::found();
 
 		// Add order data to customer records in this view
 		$orders = sDB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (" . join(',', array_keys($Customers)) . ") GROUP BY customer", 'array', 'index', 'customer');
+		
 		foreach ( $Customers as &$record ) {
 			$record->total = 0; $record->orders = 0;
+
 			if ( ! isset($orders[ $record->id ]) ) continue;
-			$record->total = $orders[ $record->id ]->total;
+			
+			$record->total  = $orders[ $record->id ]->total;
 			$record->orders = $orders[ $record->id ]->orders;
 		}
 
 		$num_pages = ceil($total / $per_page);
-		$ListTable = ShoppUI::table_set_pagination ($this->screen, $total, $num_pages, $per_page );
+		$ListTable = ShoppUI::table_set_pagination($this->screen, $total, $num_pages, $per_page);
 
 		$ranges = array(
 			'all'           => Shopp::__('Show New Customers'),
@@ -292,10 +314,12 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 
 		$formatPref = shopp_setting('customerexport_format');
+
 		if ( ! $formatPref ) $formatPref = 'tab';
 
-		$columns = array_merge(Customer::exportcolumns(), BillingAddress::exportcolumns(), ShippingAddress::exportcolumns());
+		$columns  = array_merge(Customer::exportcolumns(), BillingAddress::exportcolumns(), ShippingAddress::exportcolumns());
 		$selected = shopp_setting('customerexport_columns');
+		
 		if ( empty($selected) ) $selected = array_keys($columns);
 
 		$authentication = shopp_setting('account_system');
@@ -359,6 +383,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 			$Customer = new ShoppCustomer($_GET['id']);
 			$Customer->Billing = new BillingAddress($Customer->id, 'customer');
 			$Customer->Shipping = new ShippingAddress($Customer->id, 'customer');
+		
 			if ( empty($Customer->id) )
 				wp_die(Shopp::__('The requested customer record does not exist.'));
 		} else { 
@@ -374,21 +399,25 @@ class ShoppAdminAccount extends ShoppAdminController {
 			$r = sDB::query("SELECT count(id) AS purchases, SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
 
 			$Customer->orders = $r->purchases;
-			$Customer->total = $r->total;
+			$Customer->total  = $r->total;
 		}
 
 
 		$countries   = array(''=>'&nbsp;');
 		$countrydata = Lookup::countries();
+
 		foreach ( $countrydata as $iso => $c ) {
-			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso)
+
+			if ( isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso )
 				$base_region = $c['region'];
 
 			$countries[ $iso ] = $c['name'];
 		}
+
 		$Customer->countries = $countries;
 
 		$regions = Lookup::country_zones();
+		
 		if ( ! $new_customer ) {
 			$Customer->billing_states  = isset($regions[ $Customer->Billing->country ]) ? array_merge(array('' => '&nbsp;'), (array)$regions[ $Customer->Billing->country ]) : array();
 			$Customer->shipping_states = isset($regions[ $Customer->Shipping->country ]) ? array_merge(array('' => '&nbsp;'), (array)$regions[ $Customer->Shipping->country ]) : array();
