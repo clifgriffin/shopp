@@ -858,8 +858,8 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * - **after**: 				`</div>` Markup to add after the pagination
 	 * - **before**: 				`<div>` Markup to add before the pagination
 	 * - **jump**: 					`true` Use interval jump between pages. Set to `false` unlinked dots will be used
-	 * - **jumpback**: 				`&laquo;` The label for the jump backward link (jumps to the first page)
-	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward link (jumps to the last page)
+	 * - **jumpback**: 				`&laquo;` The label for the jump backward link
+	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward link
 	 * - **label**: 				`Pages:` The label for the pagination list
 	 * - **next**: 					`next` The label for the next button
 	 * - **previous**: 				`previous` The label for the previous button

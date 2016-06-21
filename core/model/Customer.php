@@ -16,22 +16,22 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 
 class ShoppCustomer extends ShoppDatabaseObject {
 
-	const LOGIN = 1;
-	const GUEST = 2;
+	const LOGIN  = 1;
+	const GUEST  = 2;
 	const WPUSER = 4;
 
 	const PASSWORD = 1;
-	const PROFILE = 2;
+	const PROFILE  = 2;
 
 	static $table = 'customer';
 
-	public $info = false;			// Custom customer info fields
+	public $info      = false;		// Custom customer info fields
 	public $loginname = false;		// Account login name
 
 	protected $session = 0;         // Tracks Customer session flags
 	protected $updates = 0;         // Tracks updated setting flags
 
-	public $_download = false;      // Current download item in loop
+	public $_download    = false;   // Current download item in loop
 	protected $downloads = array(); // List of purchased downloadable items
 
 
@@ -162,19 +162,21 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		parent::save();
 
-		if (empty($this->info) || !is_array($this->info)) return true;
-		foreach ((array)$this->info as $name => $value) {
+		if ( empty($this->info) || !is_array($this->info) ) return true;
+
+		foreach ( (array)$this->info as $name => $value ) {
 			$Meta = new ShoppMetaObject(array(
-				'parent' => $this->id,
+				'parent'  => $this->id,
 				'context' => 'customer',
-				'type' => 'meta',
-				'name' => $name
+				'type'    => 'meta',
+				'name'    => $name
 			));
-			$Meta->parent = $this->id;
+			$Meta->parent  = $this->id;
 			$Meta->context = 'customer';
-			$Meta->type = 'meta';
-			$Meta->name = $name;
-			$Meta->value = $value;
+			$Meta->type    = 'meta';
+			$Meta->name    = $name;
+			$Meta->value   = $value;
+
 			$Meta->save();
 		}
 	}
@@ -244,9 +246,9 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$_[] = Shopp::__('New customer registration on your &quot;%s&quot; store:', $blogname);
 		$_[] = Shopp::__('E-mail: %s', stripslashes($this->email));
 
-		$_ = apply_filters('shopp_merchant_new_customer_notification',$_);
+		$_ = apply_filters('shopp_merchant_new_customer_notification', $_);
 
-		if ( ! Shopp::email(join("\n", $_)) )
+		if ( ! Shopp::email(join('\n', $_)) )
 			shopp_add_error('The new account notification e-mail could not be sent.', SHOPP_ADMIN_ERR);
 		else shopp_debug('A new account notification e-mail was sent to the merchant.');
 		if ( empty($this->password) ) return;
@@ -294,10 +296,10 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		$where = join(' AND ', $where);
 
 		$orders = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
-		$query = "SELECT o.* FROM $orders AS o WHERE $where ORDER BY created DESC";
+		$query  = "SELECT o.* FROM $orders AS o WHERE $where ORDER BY created DESC";
 
 		$PurchaseLoader = new ShoppPurchase();
-		$purchases = sDB::query($query, 'array', array($PurchaseLoader, 'loader'));
+		$purchases      = sDB::query($query, 'array', array($PurchaseLoader, 'loader'));
 
 		$Storefront->purchases = (array)$purchases;
 	}
@@ -371,22 +373,25 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			shopp_add_error(Shopp::__('This login name is invalid because it uses illegal characters. Valid login names include: letters, numbers, spaces, . - @ _'));
 			return false;
 		}
+
 		if ( username_exists($this->loginname) ) {
 			shopp_add_error(Shopp::__('The login name is already registered. Please choose another login name.'));
 			return false;
 		}
+
 		if ( empty($this->password) ) $this->password = wp_generate_password(12, true);
 
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
-			'user_login' => $this->loginname,
-			'user_pass' => $this->password,
-			'user_email' => $this->email,
-			'display_name' => $this->firstname.' '.$this->lastname,
-			'nickname' => $this->firstname,
-			'first_name' => $this->firstname,
-			'last_name' => $this->lastname
+			'user_login'   => $this->loginname,
+			'user_pass'    => $this->password,
+			'user_email'   => $this->email,
+			'display_name' => $this->firstname . ' ' . $this->lastname,
+			'nickname'     => $this->firstname,
+			'first_name'   => $this->firstname,
+			'last_name'    => $this->lastname
 		));
+
 		if ( ! $wpuser ) return false;
 
 		// Link the WP user ID to this customer record
@@ -425,12 +430,12 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		check_admin_referer('shopp_profile_update');
 
 		$defaults = array(
-			'phone' => '',
-			'password' => null,
+			'phone'            => '',
+			'password'         => null,
 			'confirm-password' => null,
-			'info' => null,
-			'billing' => array(),
-			'shipping' => array()
+			'info'             => null,
+			'billing'          => array(),
+			'shipping'         => array()
 		);
 		$updates = array_merge($defaults, $_POST);
 		extract($updates, EXTR_SKIP);
@@ -468,8 +473,9 @@ class ShoppCustomer extends ShoppDatabaseObject {
 		foreach ( $addresses as $type => $Address ) {
 			if ( empty($updates[ $type ]) ) continue;
 
-			$Updated = ShoppOrder()->$Address;
+			$Updated           = ShoppOrder()->$Address;
 			$Updated->customer = $this->id;
+
 			$Updated->updates($updates[ $type ]);
 			$Updated->save();
 		}
@@ -496,11 +502,11 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 */
 	public function load_downloads ( array $options = array() ) {
 		$defaults = array(
-			'show' => false,
-			'from' => false,
-			'to' => false,
+			'show'    => false,
+			'from'    => false,
+			'to'      => false,
 			'orderby' => 'created',
-			'order' => 'DESC'
+			'order'   => 'DESC'
 		);
 		$options = array_merge($defaults, $options);
 		extract($options, EXTR_SKIP);
@@ -535,7 +541,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 			if ( empty($Purchased->download) ) continue;
 
 			// Load download file data
-			$this->downloads[ $Purchased->dkey ] = $Purchased;
+			$this->downloads[ $Purchased->dkey ]    = $Purchased;
 			$this->_filemap[ $Purchased->download ] = $Purchased->dkey;
 		}
 
@@ -607,42 +613,43 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	public static function exportcolumns () {
 		$prefix = "c.";
 		return array(
-			$prefix.'firstname'	    => Shopp::__('Customer\'s First Name'),
-			$prefix.'lastname'	    => Shopp::__('Customer\'s Last Name'),
-			$prefix.'email'	        => Shopp::__('Customer\'s Email Address'),
-			$prefix.'phone'	        => Shopp::__('Customer\'s Phone Number'),
-			$prefix.'company'	    => Shopp::__('Customer\'s Company'),
-			$prefix.'type'	        => Shopp::__('Customer Type'),
-			$prefix.'marketing'	    => Shopp::__('Customer\'s Marketing Preference'),
+			$prefix . 'firstname' => Shopp::__('Customer\'s First Name'),
+			$prefix . 'lastname'  => Shopp::__('Customer\'s Last Name'),
+			$prefix . 'email'     => Shopp::__('Customer\'s Email Address'),
+			$prefix . 'phone'     => Shopp::__('Customer\'s Phone Number'),
+			$prefix . 'company'   => Shopp::__('Customer\'s Company'),
+			$prefix . 'type'      => Shopp::__('Customer Type'),
+			$prefix . 'marketing' => Shopp::__('Customer\'s Marketing Preference'),
+			$prefix . 'created'   => Shopp::__('Customer Created Date'),
+			$prefix . 'modified'  => Shopp::__('Customer Last Updated Date'),
 			// $prefix.'info' => Shopp::__('Customer\'s Custom Information'), @todo Re-enable by switching to customer meta data in 1.2
-			$prefix . 'created'	    => Shopp::__('Customer Created Date'),
-			$prefix . 'modified'	=> Shopp::__('Customer Last Updated Date'),
-			);	}
+			);
+	}
 
 } // END class ShoppCustomer
 
 class CustomersExport {
 
-	public $sitename = "";
-	public $headings = false;
-	public $data = false;
-	public $defined = array();
+	public $sitename      = '';
+	public $headings      = false;
+	public $data          = false;
+	public $defined       = array();
 	public $customer_cols = array();
-	public $billing_cols = array();
+	public $billing_cols  = array();
 	public $shipping_cols = array();
-	public $selected = array();
-	public $recordstart = true;
-	public $content_type = "text/plain";
-	public $extension = "txt";
-	public $set = 0;
-	public $limit = 1024;
+	public $selected      = array();
+	public $recordstart   = true;
+	public $content_type  = 'text/plain';
+	public $extension     = 'txt';
+	public $set           = 0;
+	public $limit         = 1024;
 
 	public function __construct () {
 
 		$this->customer_cols = ShoppCustomer::exportcolumns();
-		$this->billing_cols = BillingAddress::exportcolumns();
+		$this->billing_cols  = BillingAddress::exportcolumns();
 		$this->shipping_cols = ShippingAddress::exportcolumns();
-		$this->defined = array_merge($this->customer_cols, $this->billing_cols, $this->shipping_cols);
+		$this->defined       = array_merge($this->customer_cols, $this->billing_cols, $this->shipping_cols);
 
 		$this->sitename = get_bloginfo('name');
 		$this->headings = (shopp_setting('customerexport_headers') == 'on');
@@ -654,26 +661,29 @@ class CustomersExport {
 		if ( empty($request) ) $request = $_GET;
 
 		if ( ! empty($request['start']) ) {
-			list($month, $day, $year) = explode("/", $request['start']);
-			$starts = mktime(0, 0, 0, $month, $day, $year);
+			list($month, $day, $year) = explode('/', $request['start']);
+			$starts                   = mktime(0, 0, 0, $month, $day, $year);
 		}
 
 		if ( ! empty($request['end']) ) {
-			list($month, $day, $year) = explode("/", $request['end']);
-			$ends = mktime(0, 0, 0, $month, $day, $year);
+			list($month, $day, $year) = explode('/', $request['end']);
+			$ends                     = mktime(0, 0, 0, $month, $day, $year);
 		}
 
 		$where = "WHERE c.id IS NOT NULL ";
-		if ( isset($request['s']) && !empty($request['s']) ) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
-		if ( ! empty($request['start']) && !empty($request['end']) ) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
+		if ( isset($request['s']) && ! empty($request['s']) ) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
+		if ( ! empty($request['start']) && ! empty($request['end']) ) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
 
 		$customer_table = ShoppDatabaseObject::tablename(Customer::$table);
-		$billing_table = ShoppDatabaseObject::tablename(BillingAddress::$table);
+		$billing_table  = ShoppDatabaseObject::tablename(BillingAddress::$table);
 		$shipping_table = ShoppDatabaseObject::tablename(ShippingAddress::$table);
-		$offset = $this->set*$this->limit;
+		$offset         = $this->set*$this->limit;
 
-		$c = 0; $columns = array();
-		foreach ($this->selected as $column) $columns[] = "$column AS col" . $c++;
+		$c       = 0;
+		$columns = array();
+
+		foreach ( $this->selected as $column ) $columns[] = "$column AS col" . $c++;
+		
 		$query = "SELECT " . join(",", $columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where GROUP BY c.id ORDER BY c.created ASC LIMIT $offset,$this->limit";
 		$this->data = sDB::query($query, 'array');
 	}
@@ -689,7 +699,7 @@ class CustomersExport {
 		header("Pragma: public");
 
 		$this->begin();
-		if ($this->headings) $this->heading();
+		if ( $this->headings ) $this->heading();
 		$this->records();
 		$this->end();
 	}
@@ -699,14 +709,18 @@ class CustomersExport {
 	public function heading () {
 		foreach ( $this->selected as $name )
 			$this->export($this->defined[$name]);
+
 		$this->record();
 	}
 
 	public function records () {
 		while ( ! empty($this->data) ) {
+		
 			foreach ( $this->data as $record ) {
+		
 				foreach( get_object_vars($record) as $column )
 					$this->export($this->parse($column));
+		
 				$this->record();
 			}
 			$this->set++;
@@ -714,12 +728,12 @@ class CustomersExport {
 		}
 	}
 
-	public function parse ($column) {
+	public function parse ( $column ) {
 		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/", $column)) {
-			$list = unserialize($column);
-			$column = "";
-			foreach ($list as $name => $value)
-				$column .= (empty($column)?"":";") . "$name:$value";
+			$list   = unserialize($column);
+			$column = '';
+			foreach ( $list as $name => $value )
+				$column .= ( empty($column) ? '' : ';' ) . "$name:$value";
 		}
 
 		return $this->escape($column);
@@ -728,17 +742,17 @@ class CustomersExport {
 	public function end() {}
 
 	// Implement for exporting a single value
-	public function export ($value) {
-		echo ($this->recordstart?"":"\t") . $this->escape($value);
+	public function export ( $value ) {
+		echo ($this->recordstart ? '' : '\t') . $this->escape($value);
 		$this->recordstart = false;
 	}
 
 	public function record () {
-		echo "\n";
+		echo '\n';
 		$this->recordstart = true;
 	}
 
-	public function escape ($value) {
+	public function escape ( $value ) {
 		return $value;
 	}
 
@@ -752,9 +766,11 @@ class CustomersTabExport extends CustomersExport {
 	}
 
 	public function escape ($value) {
-		$value = str_replace(array("\n", "\r"), ' ', $value); // No newlines
-		if ( false !== strpos($value, "\t") && false === strpos($value,'"') )	// Quote tabs
+		$value = str_replace(array('\n', '\r'), ' ', $value); // No newlines
+		
+		if ( false !== strpos($value, '\t') && false === strpos($value,'"') )	// Quote tabs
 			$value = '"' . $value . '"';
+		
 		return $value;
 	}
 
@@ -764,17 +780,17 @@ class CustomersCSVExport extends CustomersExport {
 
 	public function __construct () {
 		parent::__construct();
-		$this->content_type = "text/csv";
-		$this->extension = "csv";
+		$this->content_type = 'text/csv';
+		$this->extension    = 'csv';
 		$this->output();
 	}
 
-	public function export ($value) {
-		echo ($this->recordstart?"":",") . $value;
+	public function export ( $value ) {
+		echo ( $this->recordstart ? '' : ',' ) . $value;
 		$this->recordstart = false;
 	}
 
-	public function escape ($value) {
+	public function escape ( $value ) {
 		$value = str_replace('"','""', $value);
 		if ( preg_match('/^\s|[,"\n\r]|\s$/', $value) )
 			$value = '"' . $value . '"';
@@ -787,27 +803,27 @@ class CustomersXLSExport extends CustomersExport {
 
 	public function __construct () {
 		parent::__construct();
-		$this->content_type = "application/vnd.ms-excel";
-		$this->extension = "xls";
+		$this->content_type    = 'application/vnd.ms-excel';
+		$this->extension       = 'xls';
 		$this->c = 0; $this->r = 0;
 		$this->output();
 	}
 
 	public function begin () {
-		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
+		echo pack('ssssss', 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
 	}
 
 	public function end () {
-		echo pack("ss", 0x0A, 0x00);
+		echo pack('ss', 0x0A, 0x00);
 	}
 
-	public function export ($value) {
-		if (preg_match('/^[\d\.]+$/',$value)) {
-		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
-			echo pack("d", $value);
+	public function export ( $value ) {
+		if ( preg_match('/^[\d\.]+$/', $value) ) {
+		 	echo pack('sssss', 0x203, 14, $this->r, $this->c, 0x0);
+			echo pack('d', $value);
 		} else {
 			$l = strlen($value);
-			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
+			echo pack('ssssss', 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
 			echo $value;
 		}
 		$this->c++;
