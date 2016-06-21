@@ -486,7 +486,7 @@ class DecryptOrderEventRenderer extends OrderEventRenderer {
 		return Shopp::__('by %s', sprintf(' <a href="%s">%s</a> (<a href="%s">%s</a>)',
 			"mailto:$user->user_email?subject=RE: Order #{$this->Event->order}",
 			"$user->user_firstname $user->user_lastname",
-			add_query_arg(array('user_id'=>$this->user),
+			add_query_arg(array('user_id' => $this->user),
 			admin_url('user-edit.php')), $user->user_login
 		));
 	}

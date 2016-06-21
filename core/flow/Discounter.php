@@ -180,7 +180,7 @@ class ShoppAdminDiscounter extends ShoppAdminController {
 			$Promotion = new ShoppPromo($_POST['id']);
 			$wascatalog = ( 'Catalog' == $Promotion->target );
 		} else $Promotion = new ShoppPromo();
-		
+
 		$start = $_POST['starts'];
 		$end   = $_POST['ends'];
 

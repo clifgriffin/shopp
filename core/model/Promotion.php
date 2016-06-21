@@ -281,7 +281,7 @@ class ShoppPromo extends ShoppDatabaseObject {
 		$timestamp = '+TIMESTAMPDIFF(second, UTC_TIMESTAMP(), NOW())';
 		$start     = 'UNIX_TIMESTAMP(starts)' . $timestamp;
 		$end       = 'UNIX_TIMESTAMP(ends)' . $timestamp;
-		
+
 		return "(
 		    -- Promo is not date based
 		    (
