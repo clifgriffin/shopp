@@ -54,16 +54,16 @@
 		<tbody class="list discounts">
 		<?php
 			$hidden = get_hidden_columns($this->screen);
+			$even   = false;
 
-			$even = false;
 			foreach ( $Promotions as $Promotion ):
-			$editurl = add_query_arg(array('id' => $Promotion->id), $url);
-			$deleteurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'delete'), $url);
-			$duplicateurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'duplicate'), $url);
-			$enableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'enable'), $url);
-			$disableurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'disable'), $url);
+				$editurl      = add_query_arg(array('id' => $Promotion->id), $url);
+				$deleteurl    = add_query_arg(array('selected' => $Promotion->id, 'action' => 'delete'), $url);
+				$duplicateurl = add_query_arg(array('selected' => $Promotion->id, 'action' => 'duplicate'), $url);
+				$enableurl    = add_query_arg(array('selected' => $Promotion->id, 'action' => 'enable'), $url);
+				$disableurl   = add_query_arg(array('selected' => $Promotion->id, 'action' => 'disable'), $url);
 
-			$PromotionName = empty($Promotion->name)?'('.__('no discount name').')':$Promotion->name;
+				$PromotionName = empty($Promotion->name) ? '(' . __('no discount name') . ')' : $Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Promotion->id; ?>' class="selected" /></th>
@@ -87,14 +87,14 @@
 				if ($Promotion->type == "Free Shipping") echo shopp_setting("free_shipping_text");
 				if ($Promotion->type == "Buy X Get Y Free") Shopp::esc_html_e('Buy %s Get %s Free', $Promotion->buyqty, $Promotion->getqty);
 			?></td>
-			<td class="applied column-applied<?php echo in_array('applied',$hidden)?' hidden':''; ?>"><?php echo $Promotion->target; ?></td>
-			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo $states[ $Promotion->status ]; ?></strong><?php
+			<td class="applied column-applied<?php echo in_array('applied', $hidden) ? ' hidden' : ''; ?>"><?php echo $Promotion->target; ?></td>
+			<td class="eff column-eff<?php echo in_array('eff', $hidden) ? ' hidden' : ''; ?>"><strong><?php echo $states[ $Promotion->status ]; ?></strong><?php
 				$starts = (mktimestamp($Promotion->starts) > 1) ?
 				                 Shopp::_d(get_option('date_format'), Shopp::mktimestamp($Promotion->starts)) :
 				                 Shopp::_d(get_option('date_format'), Shopp::mktimestamp($Promotion->created));
 				$ends = (Shopp::mktimestamp($Promotion->ends) > 1) ?
-				               " — " . Shopp::_d(get_option('date_format'), Shopp::mktimestamp($Promotion->ends)) :
-				               ", " . Shopp::__('does not expire');
+				               ' — ' . Shopp::_d(get_option('date_format'), Shopp::mktimestamp($Promotion->ends)) :
+				               ', ' . Shopp::__('does not expire');
 				echo "<br />".$starts.$ends;
 			?></td>
 		</tr>
