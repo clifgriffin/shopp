@@ -297,7 +297,8 @@ class ShoppProduct extends WPShoppObject {
 	 **/
 	public function load_coverimages ( $ids ) {
 		if ( empty($ids) ) return;
-		$table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+		$table     = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
+		$metaquery = "SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids)";
 		$sortorder = $this->image_order();
 		
 		// Avoid the sub-query if we can, otherwise use LIMIT to work around compatibility issues with MariaDB
