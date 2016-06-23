@@ -907,7 +907,7 @@ class ShoppUI {
 
 		?>
 		<br />
-		<div class="shopp-collections-menu-item customlinkdiv" id="shopp-collections-menu-item">
+		<div class="shopp-collections-menu-item taxonomydiv" id="shopp-collections-menu-item">
 			<div id="tabs-panel-shopp-collections" class="tabs-panel tabs-panel-active">
 
 				<ul class="categorychecklist form-no-clear">
@@ -985,7 +985,7 @@ class ShoppUI {
 				</span>
 			</p>
 
-		</div><!-- /.customlinkdiv -->
+		</div><!-- /.taxonomydiv -->
 		<?php
 
 	}
@@ -1004,7 +1004,7 @@ class ShoppUI {
 
 		?>
 		<br />
-		<div class="shopp-pages-menu-item customlinkdiv" id="shopp-pages-menu-item">
+		<div class="shopp-pages-menu-item taxonomydiv" id="shopp-pages-menu-item">
 			<div id="tabs-panel-shopp-pages" class="tabs-panel tabs-panel-active">
 
 				<ul class="categorychecklist form-no-clear">
@@ -1050,7 +1050,7 @@ class ShoppUI {
 				</span>
 			</p>
 
-		</div><!-- /.customlinkdiv -->
+		</div><!-- /.taxonomydiv -->
 		<?php
 
 	}
