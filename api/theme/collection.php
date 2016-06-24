@@ -857,9 +857,9 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * @param array           	$options The options
 	 * - **after**: 				`</div>` Markup to add after the pagination
 	 * - **before**: 				`<div>` Markup to add before the pagination
-	 * - **jump**: 					`true` Use interval jump between pages. Set to `false` unlinked dots will be used
-	 * - **jumpback**: 				`&laquo;` The label for the jump backward link
-	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward link
+	 * - **link**: 					`true` Add link to jump backward, jump forward label
+	 * - **jumpback**: 				`&laquo;` The label for the jump backward
+	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward
 	 * - **label**: 				`Pages:` The label for the pagination list
 	 * - **next**: 					`next` The label for the next button
 	 * - **previous**: 				`previous` The label for the previous button
@@ -873,7 +873,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'after'    => '</div>',
 			'before'   => '<div>',
-			'jump'     => true,
+			'link'     => true,
 			'jumpback' => '&laquo;',
 			'jumpfwd'  => '&raquo;',
 			'label'    => Shopp::__('Pages:'),
@@ -906,7 +906,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if ( $O->pages > 1 ) {
 			if ( $O->pages > $show ) $visible_pages = $show + 2;
 			else $visible_pages = $O->pages + 1;
-			$jumps = ceil( $visible_pages / 2 );
+			$jumpsize = ceil( $visible_pages / 2 );
 
 			$_[] = $before . $label;
 			$_[] = '<ul class="paging">';
@@ -932,15 +932,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				if ( $i > 1 ) {
 					$link = $O->pagelink(1);
 					$_[]  = '<li><a href="' . esc_url($link) . '">1</a></li>';
-					$pagenum = ( $O->page - $jumps );
+					
+					$pagenum = ( $O->page - $jumpsize );
 					if ( $pagenum < 1 ) $pagenum = 1;
 					$link = $O->pagelink($pagenum);
 
 					if ( $i > 2 ) {
-						if ( $jump === true )
-							$_[] = '<li><a href="' . esc_url($link) . '">' . $jumpback . '</a></li>';
-						else
-							$_[] = '<li> ... </li>';
+						if ( $link === true ) $_[] = '<li><a href="' . esc_url($link) . '">' . $jumpback . '</a></li>';
+						else $_[] = '<li>' . $jumpback . '</li>';
 					}
 				}
 			}
@@ -953,13 +952,11 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			}
 
 			if ( $O->pages > $visible_pages ) {
-				$pagenum = ( $O->page + $jumps );
+				$pagenum = ( $O->page + $jumpsize );
 				if ( $pagenum > $O->pages ) $pagenum = $O->pages;
 				$link = $O->pagelink($pagenum);
-				if ( $jump === true )
-					$_[] = '<li><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></li>';
-				else
-					$_[] = '<li> ... </li>';
+				if ( $link === true ) $_[] = '<li><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></li>';
+				else $_[] = '<li>' . $jumpfwd . '</li>';
 			}
 
 			if ( $O->pages >= $visible_pages ) {
