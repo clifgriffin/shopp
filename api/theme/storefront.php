@@ -1003,14 +1003,14 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 				foreach ($_GET as $key => $value)
 					if ( 'sort' != $key ) $_[] = '<input type="hidden" name="' . $key . '" value="' . $value . '" />';
 			}
-			$_[] = '<select name="sort" class="shopp-orderby-menu">';
-			$_[] = menuoptions($menuoptions,$default,true);
+			$_[] = '<select name="sort" class="shopp-orderby-menu ' . esc_attr($class) . '">';
+			$_[] = menuoptions($menuoptions, $default, true);
 			$_[] = '</select>';
 			$_[] = '</form>';
 		} else {
 			foreach ( $menuoptions as $value => $label ) {
-				$href  = esc_url(add_query_arg(array('sort' => $value),$request));
-				$class = ($default == $value?' class="current"':'');
+				$href  = esc_url(add_query_arg(array('sort' => $value), $request));
+				$class = ( $default == $value ? ' class="current"' : '' );
 				$_[]   = '<li><a href="' . $href . '"' . $class . '>' . $label . '</a></li>';
 			}
 		}

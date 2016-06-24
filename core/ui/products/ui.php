@@ -125,7 +125,7 @@ function shopp_categories_meta_box ($Product,$options) {
 	<ul id="<?php echo $taxonomy; ?>-tabs" class="category-tabs">
 		<li class="tabs"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"><?php Shopp::_e('Show All'); ?></a></li>
 		<li class="hide-if-no-js"><a href="#<?php echo $taxonomy; ?>-pop" tabindex="3"><?php Shopp::_e( 'Popular' ); ?></a></li>
-		<li class="hide-if-no-js new-category"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"  class="new-category-tab"><?php _e( 'New Category' ); ?></a></li>
+		<li class="hide-if-no-js new-category"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"  class="new-category-tab"><?php echo $tax->labels->add_new_item ?></a></li>
 	</ul>
 </div><?php
 }
