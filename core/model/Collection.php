@@ -76,6 +76,7 @@ class ProductCollection implements Iterator {
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults, $options);
+		$loading = apply_filters('shopp_collection_load_options', $loading);
 		$loading = apply_filters("shopp_{$slug}_collection_load_options", $loading);
 		extract($loading);
 
