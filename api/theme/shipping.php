@@ -338,14 +338,16 @@ class ShoppShippingThemeAPI implements ShoppAPI {
 	 * @return string The button markup
 	 **/
 	public static function update_button ( $result, $options, $O ) {
-		$submit_attrs = array('title', 'label', 'disabled', 'tabindex', 'accesskey', 'class');
-		$stdclasses = 'update-button hide-if-js';
+		$submit_attrs = array('title', 'label', 'value', 'disabled', 'tabindex', 'accesskey', 'class');
+		$stdclasses   = 'update-button hide-if-js';
 		$defaults = array(
 			'label' => Shopp::__('Update Shipping'),
 			'class' => ''
 		);
 		$options = array_merge($defaults, $options);
 		$options['class'] .= " $stdclasses";
+		$options['value'] = $options['label'];
+		unset($options['label']);
 		return '<input type="submit" name="update-shipping"' . inputattrs($options, $submit_attrs) . ' />';
 	}
 
