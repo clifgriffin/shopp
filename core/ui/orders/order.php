@@ -220,9 +220,9 @@
 														<?php foreach ( (array)$Item->data as $name => $value ): ?>
 															<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
 														<?php endforeach; ?>
+													</ul>
 												<?php endif; ?>
 												<?php do_action_ref_array('shopp_after_purchased_data', array($Item, $Purchase)); ?>
-												</ul>
 											</td>
 										<?php
 										break;
@@ -270,28 +270,28 @@
 
 			<div id="poststuff" class="poststuff">
 
-			<div class="meta-boxes">
+				<div class="meta-boxes">
 
-				<div id="column-one" class="column left-column">
-					<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
-				</div>
-				<div id="main-column">
-					<div id="column-two" class="column right-column">
-						<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
+					<div id="column-one" class="column left-column">
+						<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
 					</div>
+					<div id="main-column">
+						<div id="column-two" class="column right-column">
+							<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
+						</div>
+					</div>
+					<br class="clear" />
 				</div>
-				<br class="clear" />
-			</div>
 
-			<?php wp_nonce_field('shopp-save-order'); ?>
-			<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
-			<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
+				<?php wp_nonce_field('shopp-save-order'); ?>
+				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
+				<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 			</div>
 	</div> <!-- #order -->
 
 </div>
 
-<iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
+<iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php') . '?action=shopp_order_receipt&amp;id=' . $Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
 /* <![CDATA[ */
