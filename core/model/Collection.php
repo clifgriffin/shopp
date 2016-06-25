@@ -76,6 +76,7 @@ class ProductCollection implements Iterator {
 			'debug' => false		// Output the query for debugging
 		);
 		$loading = array_merge($defaults, $options);
+		$loading = apply_filters('shopp_collection_load_options', $loading);
 		$loading = apply_filters("shopp_{$slug}_collection_load_options", $loading);
 		extract($loading);
 
@@ -783,6 +784,16 @@ class ProductTaxonomy extends ProductCollection {
 
 	}
 
+	/**
+	 * Sanitizes term fields, according to the filter type provided.
+	 *
+	 * Stub functionality from WP_Term
+	 *
+	 * @since 1.3.11
+	 * @access public
+	 *
+	 * @param string $filter Filter context. Accepts 'edit', 'db', 'display', 'attribute', 'js', 'raw'.
+	 **/
 	public function filter( $filter ) {
 		sanitize_term( $this, $this->taxon, $filter );
 	}
