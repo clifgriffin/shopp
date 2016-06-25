@@ -268,7 +268,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 				$setting = $_POST['id'];
 				if ( empty($setting) ) { // Determine next available setting ID
 					$index = 0;
-					if ( is_array($active[$module]) ) $index = count($active[ $module ]);
+					if ( isset($active[ $module ]) && is_array($active[ $module ]) ) $index = count($active[ $module ]);
 					$setting = "$module-$index";
 				}
 
