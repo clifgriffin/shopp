@@ -175,9 +175,9 @@
 								switch ( $column ) {
 									case 'items':
 									ShoppProduct( new ShoppProduct($Item->product) ); // @todo Find a way to make this more efficient by loading product slugs with load_purchased()?
-									$viewurl = shopp('product.get-url');
-									$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=> $id) );
-									$rmvurl = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=> $id) );
+									$viewurl    = shopp('product.get-url');
+									$editurl    = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=> $id) );
+									$rmvurl     = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=> $id) );
 									$producturl = add_query_arg( array('page' => 'shopp-products', 'id' => $Item->product), admin_url('admin.php') );
 										?>
 											<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
@@ -195,28 +195,31 @@
 	                                                echo apply_filters('shopp_purchased_item_name', $itemname, $Item); ?>
 	                                            </a>
 												<div class="row-actions">
-													<?php /*<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit'); ?></a> | </span>
-													<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(Shopp::_e('Remove %s from the order', "&quot;$Item->name&quot;")); ?>" class="delete"><?php Shopp::_e('Remove'); ?></a> | </span> --> */ ?>
 													<span class='view'><a href="<?php echo $viewurl;  ?>" title="<?php Shopp::_e('View'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php Shopp::_e('View'); ?></a></span>
 												</div>
 
 												<?php if ( (is_array($Item->data) && ! empty($Item->data))  || ! empty($Item->sku) || (! empty($Item->addons) && 'no' != $Item->addons) ): ?>
-												<ul>
-												<?php if (!empty($Item->sku)): ?><li><small><?php Shopp::_e('SKU'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
+													<ul>
+														<?php if ( ! empty($Item->sku)): ?><li><small><?php Shopp::_e('SKU'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
 
-												<?php if ( isset($Item->addons) && isset($Item->addons->meta) ): ?>
-													<?php foreach ( (array)$Item->addons->meta as $id => $addon ):
-														if ( "inclusive" != $Purchase->taxing )
-															$addonprice = $addon->value->unitprice + ( $addon->value->unitprice * $taxrate );
-														else $addonprice = $addon->value->unitprice;
+														<?php if ( isset($Item->addons) && isset($Item->addons->meta) ): ?>
 
-														?>
-														<li><small><?php echo apply_filters('shopp_purchased_addon_name', $addon->name); ?><?php if ( ! empty($addon->value->sku) ) echo apply_filters('shopp_purchased_addon_sku',' [SKU: ' . $addon->value->sku . ']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice', money($addonprice)); ?></strong></small></li>
-													<?php endforeach; ?>
-												<?php endif; ?>
-												<?php foreach ( (array)$Item->data as $name => $value ): ?>
-													<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
-												<?php endforeach; ?>
+															<?php foreach ( (array)$Item->addons->meta as $id => $addon ):
+
+																if ( 'inclusive' != $Purchase->taxing )
+																	$addonprice  = $addon->value->unitprice + ( $addon->value->unitprice * $taxrate );
+																else $addonprice = $addon->value->unitprice;
+
+															?>
+																<li><small><?php echo apply_filters('shopp_purchased_addon_name', $addon->name); ?><?php if ( ! empty($addon->value->sku) ) echo apply_filters('shopp_purchased_addon_sku',' [SKU: ' . $addon->value->sku . ']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice', money($addonprice)); ?></strong></small></li>
+
+															<?php endforeach; ?>
+
+														<?php endif; ?>
+
+														<?php foreach ( (array)$Item->data as $name => $value ): ?>
+															<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
+														<?php endforeach; ?>
 												<?php endif; ?>
 												<?php do_action_ref_array('shopp_after_purchased_data', array($Item, $Purchase)); ?>
 												</ul>
