@@ -212,7 +212,7 @@ class ShoppCartItem {
 
 		$this->packaging = Shopp::str_true( shopp_product_meta($Product->id, 'packaging') );
 
-		if ( ! empty($Price->download) ) $this->download = $Price->download;
+		$this->download = ( ! empty($Price->download) ) ? $Price->download : false;
 
 		$this->shipped = ( 'Shipped' == $Price->type );
 
