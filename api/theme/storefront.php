@@ -996,14 +996,17 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 
 		$_ = array();
 		$request = $_SERVER['REQUEST_URI'];
+		
 		if ( Shopp::str_true($dropdown) ) {
 			$_[] = $title;
 			$_[] = '<form action="' . esc_url($request) . '" method="get" id="shopp-' . $Collection->slug . '-orderby-menu">';
+
 			if ( '' == get_option('permalink_structure') ) {
 				foreach ($_GET as $key => $value)
 					if ( 'sort' != $key ) $_[] = '<input type="hidden" name="' . $key . '" value="' . $value . '" />';
 			}
-			$_[] = '<select name="sort" class="shopp-orderby-menu ' . esc_attr($class) . '">';
+
+			$_[] = '<select name="sort" class="shopp-orderby-menu ' . ( isset($class) ? esc_attr($class) : '' ) . '">';			
 			$_[] = menuoptions($menuoptions, $default, true);
 			$_[] = '</select>';
 			$_[] = '</form>';
