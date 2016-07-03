@@ -855,15 +855,20 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 *
 	 * @param string          	$result  The output
 	 * @param array           	$options The options
-	 * - **after**: 				`</div>` Markup to add after the pagination
-	 * - **before**: 				`<div>` Markup to add before the pagination
-	 * - **link**: 					`true` Add link to jump backward, jump forward label
-	 * - **jumpback**: 				`&laquo;` The label for the jump backward
-	 * - **jumpfwd**: 				`&raquo;` The label for the jump forward
-	 * - **label**: 				`Pages:` The label for the pagination list
-	 * - **next**: 					`next` The label for the next button
-	 * - **previous**: 				`previous` The label for the previous button
-	 * - **show**: 					`1000` The maximum number of pages to show
+	 * - **activeclass**: `active` The class attribute specifies one or more class-names for the active element
+	 * - **after**: `</div>` Markup to add after the pagination
+	 * - **before**: `<div>` Markup to add before the pagination
+	 * - **class**: `paging` The class attribute specifies one or more class-names for the <ul> tag.		
+	 * - **disabledclass**: `disabled` The class attribute specifies one or more class-names for the disabled element
+	 * - **jumpback**: `&laquo;` The label for the jump backward
+	 * - **jumpfwd**: `&raquo;` The label for the jump forward
+	 * - **label**: `Pages:` The label for the pagination list
+	 * - **link**: `true` Add link to jump backward, jump forward label
+	 * - **next**: `Next` The label for the next button
+	 * - **nextclass**: `next` The class attribute specifies one or more class-names for the next element
+	 * - **previous**: `Previous` The label for the previous button
+	 * - **previousclass**: `previous` The class attribute specifies one or more class-names for the previous element
+	 * - **show**: `1000` The maximum number of pages to show
 	 * @param ShoppCollection 	$O       The working object
 	 * @return string The pagination markup
 	 **/
@@ -871,15 +876,20 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 		if ( ! $O->paged ) return '';
 
 		$defaults = array(
-			'after'    => '</div>',
-			'before'   => '<div>',
-			'link'     => true,
-			'jumpback' => '&laquo;',
-			'jumpfwd'  => '&raquo;',
-			'label'    => Shopp::__('Pages:'),
-			'next'     => Shopp::__('Next'),
-			'previous' => Shopp::__('Previous'),
-			'show'     => 1000
+			'activeclass'    => 'active',
+			'after'          => '</div>',
+			'before'         => '<div>',
+			'class'          => 'paging',
+			'disabledclass'  => 'disabled',
+			'jumpback'       => '&laquo;',
+			'jumpfwd'        => '&raquo;',
+			'label'          => Shopp::__('Pages:'),
+			'link'           => true,
+			'next'           => Shopp::__('Next'),
+			'nextclass'     => 'next',
+			'previous'       => Shopp::__('Previous'),
+			'previousclass' => 'previous',
+			'show'           => 1000
 		);
 
 		$options = array_merge($defaults, $options);
@@ -889,11 +899,11 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 		if ( isset($O->alpha) && $O->paged ) {
 			$_[] = $before . $label;
-			$_[] = '<ul class="paging">';
+			$_[] = '<ul class="' . esc_attr($class) . '">';
 
 			foreach ( $O->alpha as $letter => $products ) {
 				$link = $O->pagelink($letter);
-				if ( $products > 0 ) $_[] = '<li><a href="' . esc_url($link) . '">' . $letter . '</a></li>';
+				if ( $products > 0 ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $letter . '</a></span></li>';
 				else $_[] = '<li><span>' . $letter . '</span></li>';
 			}
 
@@ -909,14 +919,14 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			$jumpsize = ceil( $visible_pages / 2 );
 
 			$_[] = $before . $label;
-			$_[] = '<ul class="paging">';
+			$_[] = '<ul class="' . esc_attr($class) . '">';
 
 			// Add previous button
 			if ( ! empty($previous) && $O->page > 1 ) {
 				$prev = $O->page-1;
 				$link = $O->pagelink($prev);
-				$_[]  = '<li class="previous"><a href="' . esc_url($link) . '" rel="prev">' . $previous . '</a></li>';
-			} else $_[] = '<li class="previous disabled">' . $previous . '</li>';
+				$_[]  = '<li class="' . esc_attr($previousclass) . '"><span><a href="' . esc_url($link) . '" rel="prev">' . $previous . '</a></span></li>';
+			} else $_[] = '<li class="' . esc_attr($previousclass) . ' ' . esc_attr($disabledclass) . '"><span>' . $previous . '</span></li>';
 			// end previous button
 
 			if ( $O->page <= floor( $show / 2) ) {
@@ -931,23 +941,23 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 
 				if ( $i > 1 ) {
 					$link = $O->pagelink(1);
-					$_[]  = '<li><a href="' . esc_url($link) . '">1</a></li>';
+					$_[]  = '<li><span><a href="' . esc_url($link) . '">1</a></span></li>';
 					
 					$pagenum = ( $O->page - $jumpsize );
 					if ( $pagenum < 1 ) $pagenum = 1;
 					$link = $O->pagelink($pagenum);
 
 					if ( $i > 2 ) {
-						if ( $link === true ) $_[] = '<li><a href="' . esc_url($link) . '">' . $jumpback . '</a></li>';
-						else $_[] = '<li>' . $jumpback . '</li>';
+						if ( $link === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpback . '</a></span></li>';
+						else $_[] = '<li><span>' . $jumpback . '</span></li>';
 					}
 				}
 			}
 
 			while ( $i < $visible_pages ) {
 				$link = $O->pagelink($i);
-				if ( $i == $O->page ) $_[] = '<li class="active">' . $i . '</li>';
-				else $_[] = '<li><a href="' . esc_url($link) . '">' . $i . '</a></li>';
+				if ( $i == $O->page ) $_[] = '<li class="' . esc_attr($activeclass) . '"><span>' . $i . '</span></li>';
+				else $_[] = '<li><span><a href="' . esc_url($link) . '">' . $i . '</a></span></li>';
 				$i++;
 			}
 
@@ -955,21 +965,21 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				$pagenum = ( $O->page + $jumpsize );
 				if ( $pagenum > $O->pages ) $pagenum = $O->pages;
 				$link = $O->pagelink($pagenum);
-				if ( $link === true ) $_[] = '<li><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></li>';
-				else $_[] = '<li>' . $jumpfwd . '</li>';
+				if ( $link === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></span></li>';
+				else $_[] = '<li><span>' . $jumpfwd . '</span></li>';
 			}
 
 			if ( $O->pages >= $visible_pages ) {
 				$link = $O->pagelink($O->pages);
-				$_[] = '<li><a href="' . esc_url($link) . '">' . $O->pages . '</a></li>';
+				$_[] = '<li><span><a href="' . esc_url($link) . '">' . $O->pages . '</a></span></li>';
 			}
 
 			// Add next button
 			if ( ! empty($next) && $O->page < $O->pages) {
 				$pagenum = $O->page + 1;
 				$link = $O->pagelink($pagenum);
-				$_[] = '<li class="next"><a href="' . esc_url($link) . '" rel="next">' . $next . '</a></li>';
-			} else $_[] = '<li class="next disabled">' . $next . '</li>';
+				$_[] = '<li class="' . esc_attr($nextclass) . '"><span><a href="' . esc_url($link) . '" rel="next">' . $next . '</a></span></li>';
+			} else $_[] = '<li class="' . esc_attr($nextclass) . ' ' . esc_attr($disabledclass) . '"><span>' . $next . '</span></li>';
 			$_[] = '</ul>';
 			$_[] = $after;
 		}
