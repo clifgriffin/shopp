@@ -863,7 +863,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 	 * - **jumpback**: `&laquo;` The label for the jump backward
 	 * - **jumpfwd**: `&raquo;` The label for the jump forward
 	 * - **label**: `Pages:` The label for the pagination list
-	 * - **link**: `true` Add link to jump backward, jump forward label
+	 * - **linked**: `true` Add link to jump backward, jump forward label
 	 * - **next**: `Next` The label for the next button
 	 * - **nextclass**: `next` The class attribute specifies one or more class-names for the next element
 	 * - **previous**: `Previous` The label for the previous button
@@ -884,7 +884,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			'jumpback'       => '&laquo;',
 			'jumpfwd'        => '&raquo;',
 			'label'          => Shopp::__('Pages:'),
-			'link'           => true,
+			'linked'         => true,
 			'next'           => Shopp::__('Next'),
 			'nextclass'     => 'next',
 			'previous'       => Shopp::__('Previous'),
@@ -948,7 +948,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 					$link = $O->pagelink($pagenum);
 
 					if ( $i > 2 ) {
-						if ( $link === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpback . '</a></span></li>';
+						if ( $linked === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpback . '</a></span></li>';
 						else $_[] = '<li><span>' . $jumpback . '</span></li>';
 					}
 				}
@@ -965,7 +965,7 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 				$pagenum = ( $O->page + $jumpsize );
 				if ( $pagenum > $O->pages ) $pagenum = $O->pages;
 				$link = $O->pagelink($pagenum);
-				if ( $link === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></span></li>';
+				if ( $linked === true ) $_[] = '<li><span><a href="' . esc_url($link) . '">' . $jumpfwd . '</a></span></li>';
 				else $_[] = '<li><span>' . $jumpfwd . '</span></li>';
 			}
 
