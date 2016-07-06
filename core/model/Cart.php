@@ -24,23 +24,23 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppCart extends ListFramework {
 
 	// properties
-	public $shipped = array();		// Reference list of shippable Items
-	public $downloads = array();	// Reference list of digital Items
-	public $recurring = array();	// Reference list of recurring Items
+	public $shipped    = array();		// Reference list of shippable Items
+	public $downloads  = array();	// Reference list of digital Items
+	public $recurring  = array();	// Reference list of recurring Items
 	public $processing = array(		// Min-Max order processing timeframe
 		'min' => 0, 'max' => 0
 	);
 	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
-	public $Added = false;			// Last Item added
+	public $Added  = false;			// Last Item added
 	public $Totals = false;			// Cart OrderTotals system
 
 	// Internal properties
 	public $changed = false;		// Flag when Cart updates and needs retotaled
-	public $added = false;			// The index of the last item added
+	public $added   = false;			// The index of the last item added
 
-	public $retotal = false;
+	public $retotal  = false;
 	public $handlers = false;
 
 	/**
@@ -123,11 +123,11 @@ class ShoppCart extends ListFramework {
 
 		$allowed = array(
 			'quantity' => 1,
-			'product' => false,
+			'product'  => false,
 			'products' => array(),
-			'item' => false,
-			'items' => array(),
-			'remove' => array(),
+			'item'     => false,
+			'items'    => array(),
+			'remove'   => array(),
 		);
 		$request = array_intersect_key($_REQUEST,$allowed); // Filter for allowed arguments
 		$request = array_merge($allowed, $request);			// Merge to defaults
@@ -182,14 +182,14 @@ class ShoppCart extends ListFramework {
 
 		$defaults = array(
 			'quantity' => 1,
-			'product' => false,
-			'price' => false,
-			'prices' => array(),
+			'product'  => false,
+			'price'    => false,
+			'prices'   => array(),
 			'category' => false,
-			'item' => false,
-			'options' => array(),
-			'data' => array(),
-			'addons' => array()
+			'item'     => false,
+			'options'  => array(),
+			'data'     => array(),
+			'addons'   => array()
 		);
 		$request = array_merge($defaults, $request);
 		extract($request, EXTR_SKIP);
@@ -231,8 +231,8 @@ class ShoppCart extends ListFramework {
 		if ( ! $CartItem ) return;
 		$defaults = array(
 			'quantity' => 1,
-			'product' => false,
-			'price' => false
+			'product'  => false,
+			'price'    => false
 		);
 		$request = array_merge($defaults, $request);
 		extract($request, EXTR_SKIP);
