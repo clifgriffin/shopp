@@ -495,12 +495,15 @@ class ShoppCart extends ListFramework {
 			return true;
 
 		// Maintain item state, change variant
-		$Item = $this->get($item);
-		$category = $Item->category;
-		$data = $Item->data;
+		$Item 		= $this->get($item);
+		$quantity 	= $Item->quantity;
+		$category 	= $Item->category;
+		$data 		= $Item->data;
 
-		$Item->load(new ShoppProduct($product), $pricing, $category, $data, $addons);
-		ShoppOrder()->Shiprates->item( new ShoppShippableItem($Item) );
+		// remove original product/variant
+		$this->rmvitem($item);
+		// add new product/variant
+		$this->additem($quantity, new ShoppProduct($product), $pricing, $category, $data, $addons);
 
 		return true;
 	}
