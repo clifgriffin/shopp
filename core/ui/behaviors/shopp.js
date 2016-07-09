@@ -156,7 +156,9 @@ function asNumber (n,f) {
 
 	n = n.toString().replace(f.currency,''); // Remove the currency symbol
 	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.\-])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
-	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
+	// only perform when thousands separator is present
+	if ( '' != f.thousands )
+		n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
 
 	if (f.precision > 0)
 		n = n.toString().replace(new RegExp('\\'+f.decimals,'g'),'.'); // Convert decimal delimter
