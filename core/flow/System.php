@@ -557,7 +557,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 			$score = &$scoring[ $key ];
 
 			// More conditional rules are more specific
-			$score += count($rate['rules']);
+			if ( isset($rate['rules']) ) $score += count($rate['rules']);
 
 			// If there are local rates add to specificity
 			if ( isset($rate['haslocals']) && $rate['haslocals'] ) $score++;
