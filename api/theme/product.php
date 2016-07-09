@@ -388,9 +388,10 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 					$currently = self::_taxed((float)$currently, $O, $pricing->tax, $taxes);
 
+					$discount = 0;
+					// Only calculate for non free add-ons
 					if ( $pricing->price > 0 )
 						$discount = 100 - round($pricing->promoprice * 100 / $pricing->price);
-					else $discount = 0;
 
 					$_ = new StdClass();
 					$_->p   = 'Donation' != $pricing->type ? money($currently) : false;
