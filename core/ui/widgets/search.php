@@ -29,7 +29,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppSearchWidget') ) {
 			if (empty($options['title'])) $options['title'] = Shopp::__('Shop Search');
 			$title = $before_title.$options['title'].$after_title;
 
-			$content = shopp('catalog','get-searchform');
+			$content = shopp('storefront.get-searchform');
 			echo $before_widget.$title.$content.$after_widget;
 	    }
 

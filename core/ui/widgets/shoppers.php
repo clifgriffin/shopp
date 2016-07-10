@@ -28,7 +28,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppShoppersWidget') ) {
 
 			if (empty($options['title'])) $options['title'] = Shopp::__('Recent Shoppers');
 			$title = $before_title . $options['title'] . $after_title;
-			$content = shopp('catalog', 'get-recent-shoppers', $options);
+			$content = shopp('storefront.get-recent-shoppers', $options);
 
 			if (empty($content)) return false; // No recent shoppers, hide it
 

@@ -29,7 +29,7 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppTagCloudWidget') ) {
 			if (empty($options['title'])) $options['title'] = "Product Tags";
 			$title = $before_title.$options['title'].$after_title;
 
-			$tagcloud = shopp('catalog','get-tagcloud',$options);
+			$tagcloud = shopp('storefront.get-tagcloud', $options);
 			echo $before_widget.$title.$tagcloud.$after_widget;
 	    }
 
