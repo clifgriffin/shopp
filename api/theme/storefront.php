@@ -873,7 +873,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * @return bool True if it is the catalog page, false otherwise
 	 **/
 	public static function is_catalog ( $result, $options, $O ) {
-		return is_catalog_page();
+		return is_shopp_catalog_page();
 	}
 
 	/**

@@ -343,8 +343,8 @@ class ShoppStorefront extends ShoppFlowController {
 		if ( ! is_shopp_catalog_page() || is_shopp_cart_page() ) return;
 
 		 // Track referrer for the cart referrer URL
-		$referrer = get_bloginfo('url') . '/' . $wp->request;
-		if ( ! empty($_GET) ) $referrer = add_query_arg($_GET, $referrer);
+		$referrer = get_bloginfo('url') . '/' . $_SERVER['REQUEST_URI'];
+
 		$this->referrer = user_trailingslashit($referrer);
 
 	}
