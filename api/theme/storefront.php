@@ -311,22 +311,22 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 			if (isset($Storefront->dashboard[ $request ]))
 				$breadcrumb += array($Storefront->dashboard[ $request ]->label => Shopp::url(false, 'account'));
 
-		} elseif ( is_cart_page() ) {
+		} elseif ( is_shopp_cart_page() ) {
 			$Page        = shopp_get_page('cart');
 			$breadcrumb += array($Page->title() => Shopp::url(false, 'cart'));
-		} elseif ( is_checkout_page() ) {
+		} elseif ( is_shopp_checkout_page() ) {
 			$Cart = shopp_get_page('cart');
 			$Checkout    = shopp_get_page('checkout');
 			$breadcrumb += array($Cart->title() => Shopp::url(false, 'cart'));
 			$breadcrumb += array($Checkout->title() => Shopp::url(false, 'checkout'));
-		} elseif ( is_confirm_page() ) {
+		} elseif ( is_shopp_confirm_page() ) {
 			$Cart        = shopp_get_page('cart');
 			$Checkout    = shopp_get_page('checkout');
 			$Confirm     = shopp_get_page('confirm');
 			$breadcrumb += array($Cart->title() => Shopp::url(false, 'cart'));
 			$breadcrumb += array($Checkout->title() => Shopp::url(false, 'checkout'));
 			$breadcrumb += array($Confirm->title() => Shopp::url(false, 'confirm'));
-		} elseif ( is_thanks_page() ) {
+		} elseif ( is_shopp_thanks_page() ) {
 			$Page        = shopp_get_page('thanks');
 			$breadcrumb += array($Page->title() => Shopp::url(false, 'thanks'));
 		} elseif ( is_shopp_taxonomy() ) {
@@ -843,7 +843,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * @return bool True if it is the account page, false otherwise
 	 **/
 	public static function is_account ( $result, $options, $O ) {
-		return is_account_page();
+		return is_shopp_account_page();
 	}
 
 	/**
@@ -858,7 +858,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * @return bool True if it is the cart page, false otherwise
 	 **/
 	public static function is_cart ( $result, $options, $O ) {
-		return is_cart_page();
+		return is_shopp_cart_page();
 	}
 
 	/**
@@ -888,7 +888,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * @return bool True if it is the checkout page, false otherwise
 	 **/
 	public static function is_checkout ( $result, $options, $O ) {
-		return is_checkout_page();
+		return is_shopp_checkout_page();
 	}
 
 	/**
@@ -918,7 +918,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	 * @return bool True if it is the frontpage page, false otherwise
 	 **/
 	public static function is_frontpage ( $result, $options, $O ) {
-		return is_catalog_frontpage();
+		return is_shopp_catalog_frontpage();
 	}
 
 	/**
