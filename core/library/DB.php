@@ -236,7 +236,16 @@ class sDB extends SingletonFramework {
 	 * @return string An SQL datetime formatted string
 	 **/
 	public static function mkdatetime ( $timestamp ) {
-		return date('Y-m-d H:i:s', $timestamp);
+		$datetime = '0000-00-00 00:00:00';
+
+		if ( is_string($timestamp) && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $timestamp) )
+				return $timestamp; // Ignore already properly formatted strings
+
+		// Check > 0 to prevent 0 from becoming epoch datetime and passthrough negative integers
+		if ( is_int($timestamp) && $timestamp > 0 ) 
+				return date('Y-m-d H:i:s', $timestamp);
+
+		return $datetime;
 	}
 
 	/**
@@ -494,9 +503,10 @@ class sDB extends SingletonFramework {
 	 * @return int The number of records found
 	 **/
 	public static function found () {
-		$db = sDB::get();
-		$found = $db->found;
-		$db->found = false;
+		$db         = sDB::get();
+		$found      = $db->found;
+		$db->found  = false;
+
 		return $found;
 	}
 
@@ -560,15 +570,13 @@ class sDB extends SingletonFramework {
 					break;
 				case 'date':
 					// If it's an empty date, set it to the current time
-					if ( is_null($value) ) {
-						$value = current_time('mysql');
-					// If the date is an integer, convert it to an
-					// sql YYYY-MM-DD HH:MM:SS format
-					} elseif ( ! empty($value) && ( is_int($value) || intval($value) > 86400) ) {
-						$value = sDB::mkdatetime( intval($value) );
-					}
+					if ( is_null($value) )
+						$value = current_time( 'mysql' );
 
-					$data[$property] = "'$value'";
+					// SQL YYYY-MM-DD HH:MM:SS format
+					$value = sDB::mkdatetime($value);
+
+					$data[ $property ] = "'$value'";
 					break;
 				case 'float':
 
