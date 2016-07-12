@@ -40,7 +40,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ( 'off' == shopp_setting('inventory') )
 			array_splice($this->views, 4, 1);
 
-		if ( isset($_GET['view']) && isset($this->views[ $_GET['view'] ]) )
+		if ( isset($_GET['view']) && in_array($_GET['view'], $this->views) )
 			$this->view = $_GET['view'];
 
 		if ( get_current_screen() )
