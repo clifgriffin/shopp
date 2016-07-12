@@ -777,7 +777,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 
 		foreach ( $item->addons->meta as $id => $addon ) {
 			if ( in_array($addon->name, (array)$excludes) ) continue;
-			if ( 'inclusive' == $O->taxing )
+			if ( 'inclusive' != $O->taxing )
 				$price = $addon->value->unitprice + ( $addon->value->unitprice * $taxrate );
 			else $price = $addon->value->unitprice;
 
