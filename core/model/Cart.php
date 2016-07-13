@@ -273,9 +273,11 @@ class ShoppCart extends ListFramework {
 			$AjaxCart->Contents[] = $CartItem;
 		}
 
-		if ( isset($this->added) )
+		if ( isset($this->added) ) {
 			$AjaxCart->Item = clone($this->added());
-		else $AjaxCart->Item = new ShoppCartItem();
+			if ( isset($AjaxCart->Item->image) && ! empty($AjaxCart->Item->image) )
+				$AjaxCart->imguri = '' != get_option('permalink_structure') ? user_trailingslashit($AjaxCart->imguri . $AjaxCart->Item->image->id) : $AjaxCart->imguri . $AjaxCart->Item->image->id;
+		} else $AjaxCart->Item = new ShoppCartItem();
 		unset($AjaxCart->Item->options);
 
 		echo json_encode($AjaxCart);
