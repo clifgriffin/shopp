@@ -555,6 +555,10 @@ abstract class ShoppCore {
 
 		if ($unit == $from) return $value;
 
+		// If we don't know about unit, return 0.
+		if ( ! isset($table[$chart][$from]) ) return 0;
+		if ( ! isset($table[$chart][$unit]) ) return 0;
+
 		$siv = $value * $table[$chart][$from];	// Convert to SI unit value
 		return $siv/$table[$chart][$unit];		// Return target units
 	}
@@ -1300,7 +1304,7 @@ abstract class ShoppCore {
 		// Extend the options if the selected value doesn't exist
 		if ( ( ! in_array($selected, $list) && ! isset($list[ $selected ])) && $extend )
 			$_[] = '<option value="' . esc_attr($selected) . '">' . esc_html($selected) . '</option>';
-		
+
 		foreach ( $list as $value => $text ) {
 
 			$valueattr = $selectedattr = '';
@@ -2323,10 +2327,10 @@ abstract class ShoppCore {
 		return $value;
 
 	}
-	
+
 	/**
 	 * Keyed wrapper for wp_cache_set
-	 * 
+	 *
 	 * @author Clifton Griffin
 	 * @since 1.4
 	 *
@@ -2346,13 +2350,13 @@ abstract class ShoppCore {
 			$ns_key = 1;
 			wp_cache_set( 'shopp_cache_key', $ns_key );
 		}
-			
+
 		return wp_cache_set($key . $ns_key, $data, $group, $expire);
 	}
-	
+
 	/**
 	 * Keyed wrapper for wp_cache_get function.
-	 * 
+	 *
 	 * @author Clifton Griffin
 	 * @since 1.4
 	 *
@@ -2366,10 +2370,10 @@ abstract class ShoppCore {
 	public static function cache_get ( $key, $group = null, $force = null, $found = null ) {
 		// Seed request for cache
 		$ns_key = wp_cache_get( 'shopp_cache_key' );
-		
+
 		return wp_cache_get( $key . $ns_key, $group, $force, $found );
 	}
-	
+
 	/**
 	 * Increment the cache key to gracefully invalidate Shopp specific caches
 	 *
@@ -2380,7 +2384,7 @@ abstract class ShoppCore {
 	 */
 	public static function cache_invalidate() {
 		wp_cache_incr( 'shopp_cache_key' );
-		
+
 		do_action('shopp_cache_invalidate');
 	}
 
