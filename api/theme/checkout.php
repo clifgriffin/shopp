@@ -912,7 +912,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 			$defaults['rows'] = '3';
 		}
 		$op = array_merge($defaults, $options);
-		extract($op, $EXTR_SKIP);
+		extract($op, EXTR_SKIP);
 
 		// Allowed input types
 		$allowed_types = array('text', 'hidden', 'password', 'checkbox', 'radio', 'textarea', 'menu');
@@ -1456,15 +1456,15 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 					$options['checked'] = ( $SelectedPayment->slug == $Payoption->slug ) ? true : false;
 
 					if ( false === $options['checked'] ) unset($options['checked']);
-					
+
 					$label = $Payoption->label;
 
 					if ( $logos ) {
 						$label = '&nbsp;<span class="' . esc_attr($logoclasses) . '">';
-					
+
 						if ( empty($Payoption->cards) ) $label .= '<span class="shoppui-' . esc_attr($Payoption->slug) . '">' . esc_html($Payoption->label) . '</span>&nbsp;';
 						else {
-					
+
 							foreach ( $Payoption->cards as $card )
 								$label .= '<span class="shoppui-' . esc_attr($card) . '">' . esc_html($card) . '</span>';
 						}
@@ -1483,7 +1483,7 @@ class ShoppCheckoutThemeAPI implements ShoppAPI {
 				foreach ( $payoptions as $value ) {
 
 					if ( in_array($value, $excludes) ) continue;
-					
+
 					$Payoption = $Payments->get($value);
 					$selected  = ( $SelectedPayment->slug == $Payoption->slug ) ? ' selected="selected"' : '';
 					$output .= '<option value="' . $value . '"' . $selected . '>' . $Payoption->label . '</option>';
