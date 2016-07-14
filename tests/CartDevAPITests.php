@@ -289,8 +289,12 @@ class CartDevAPITests extends ShoppTestCase {
 
 		$this->assertTrue( shopp_add_cart_item_addon($itemkey, $addon->id) );
 
+		$Items = shopp_cart_items(); // Get new items list after the item is changed
+		$itemkey = key($Items); // Reliably obtain the itemkey
+
 		$successfully_added = false;
-		foreach ( shopp_cart_item_addons($itemkey) as $existing )
+		$item_addons = shopp_cart_item_addons($itemkey);
+		foreach ( (array)$item_addons as $existing )
 			if ( $existing->id == $addon->id ) $successfully_added = true;
 
 		$this->assertTrue($successfully_added);
@@ -309,10 +313,16 @@ class CartDevAPITests extends ShoppTestCase {
 
 		shopp_add_cart_item_addon($itemkey, $addon->id);
 
+		$Items = shopp_cart_items();
+		$itemkey = key($Items); // Reliably obtain the itemkey
+
 		$this->assertTrue(shopp_rmv_cart_item_addon($itemkey, $addon->id));
 
+		$itemkey = key(shopp_cart_items()); // Reliably obtain the updated itemkey
+
 		$successfully_removed = true;
-		foreach ( shopp_cart_item_addons($itemkey) as $existing )
+		$item_addons = shopp_cart_item_addons($itemkey);
+		foreach ( (array)$item_addons as $existing )
 			if ( $existing->id == $addon->id ) $successfully_removed = false;
 
 		$this->assertTrue($successfully_removed);
@@ -331,12 +341,16 @@ class CartDevAPITests extends ShoppTestCase {
 		$addon_q = array_shift($addons); // 2nd available addon
 
 		shopp_add_cart_item_addon($itemkey, $addon_p->id);
+		$itemkey = key(shopp_cart_items()); // Reliably obtain the updated itemkey
 		$added = shopp_cart_item_addons($itemkey);
+
 		$this->assertTrue(is_array($added));
 		$this->assertCount(1, $added);
 
 		shopp_add_cart_item_addon($itemkey, $addon_q->id);
+		$itemkey = key(shopp_cart_items()); // Reliably obtain the updated itemkey
 		$added = shopp_cart_item_addons($itemkey);
+
 		$this->assertCount(2, $added);
 	}
 
@@ -356,10 +370,12 @@ class CartDevAPITests extends ShoppTestCase {
 		$addon_q = array_shift($addons); // 2nd available addon
 
 		shopp_add_cart_item_addon($itemkey, $addon_p->id);
+		$itemkey = key(shopp_cart_items()); // Reliably obtain the updated itemkey
 		$count = shopp_cart_item_addons_count($itemkey);
 		$this->assertEquals(1, $count);
 
 		shopp_add_cart_item_addon($itemkey, $addon_q->id);
+		$itemkey = key(shopp_cart_items()); // Reliably obtain the updated itemkey
 		$count = shopp_cart_item_addons_count($itemkey);
 		$this->assertEquals(2, $count);
 	}
