@@ -5,7 +5,7 @@
  * @author Jonathan Davis, John Dillick
  * @copyright Ingenesis Limited, May 2009
  * @package shopp
- * @version 1.3.2
+ * @version 1.3.3
  * @since 1.2
  **/
 
@@ -417,7 +417,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
         $_['address_override']      = apply_filters( 'shopp_paypalstandard_addressoverride', 1 );
 		$_['address1']				= $Address->address;
-		
+
 		if ( ! empty($Address->xaddress) )
 			$_['address2']			= $Address->xaddress;
 
@@ -526,7 +526,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 						$_[ 'amount_' . $id ]           = $shopp_price;
 						$_[ 'quantity_' . $id ]         = 1;
 					}
-				}				
+				}
 			}
 
 			// Workaround a PayPal limitation of not correctly handling no subtotals or
