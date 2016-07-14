@@ -1063,7 +1063,7 @@ class ShoppOrderDiscount {
 	 * @param boolean $shipfree The setting for free shipping
 	 * @return boolean The free shipping status of the discount
 	 **/
-	public function shipfree ( boolean $shipfree = null ) {
+	public function shipfree ( bool $shipfree = null ) {
 		if ( isset($shipfree) ) {
 			$this->shipfree = $shipfree;
 			ShoppOrder()->Shiprates->free($shipfree);
