@@ -216,8 +216,11 @@ class ShoppInstallation extends ShoppFlowController {
 		foreach ( $tests as $testquery ) {
 			$db = sDB::get();
 			sDB::query($testquery);
-			$error = ( extension_loaded(mysqli) ) ? mysqli_error($db->dbh) : mysql_error($db->dbh);
-			if ( ! empty($error) ) $this->error('dbprivileges');
+			$error = $db->api->error();
+
+			if ( ! empty($error) ) {
+				$this->error('dbprivileges');
+			}
 		}
 
 		// Make sure dbDelta() is available
@@ -773,7 +776,7 @@ class ShoppInstallation extends ShoppFlowController {
 							elseif ( 1 == $oldthreshold )
 								$tier['threshold'] = 1;
 							else $tier['threshold'] = $prior+1;
-							
+
 							$prior        = $oldthreshold;
 							$tier['rate'] = $old[ $old_dest ][ $index ];
 							$_['tiers'][] = $tier;
@@ -869,7 +872,7 @@ class ShoppInstallation extends ShoppFlowController {
 
 					if ( ! isset($mapping[ $taxonomy ]) ) $mapping[ $taxonomy ] = array();
 					if ( ! isset($children[ $taxonomy ]) ) $children[ $taxonomy ] = array();
-					
+
 					$name        = $term->name;
 					$parent      = $term->parent;
 					$description = $term->description;
