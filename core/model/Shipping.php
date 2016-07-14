@@ -439,7 +439,7 @@ abstract class ShippingFramework {
 		$result     = $connection->request($url, $params);
 
 		if ( is_wp_error($result) ) {
-			$errors = array(); 
+			$errors = array();
 			foreach ($result->errors as $errname => $msgs) $errors[] = join(' ', $msgs);
 			$errors = join(' ', $errors);
 			new ShoppError(Lookup::errors('shipping', 'fail') . " $errors " . Lookup::errors('contact', 'admin') . " (WP_HTTP)", 'shipping_comm_error', SHOPP_COMM_ERR);
@@ -567,7 +567,7 @@ abstract class ShippingFramework {
 				$rule['postcode'] = $rate['postcode'];
 			$match = array_intersect_key($target, $rule);
 
-			$d = array_diff($rule, $match);
+			$d = @array_diff($rule, $match);
 
 			// Use the rate if the destination rule is for anywhere
 			if ( '*' == $rule['region'] ) return $r;
@@ -2176,7 +2176,7 @@ class ShippingPackageItem {
  * ShippingCarrier class
  *
  * Class for constructing shipping carriers
- * 
+ *
  *
  * @author Jonathan Davis
  * @since 1.1
