@@ -485,7 +485,7 @@ class ShoppStorefront extends ShoppFlowController {
 
 		do_action_ref_array( 'shopp_collection_feed', array($Collection) );
 
-		$rss = array( 
+		$rss = array(
 			'title'       => trim( get_bloginfo('name') . ' ' . $Collection->name ),
 		 	'link'        => shopp($Collection, 'get-feed-url'),
 		 	'description' => $Collection->description,
@@ -930,14 +930,23 @@ class ShoppStorefront extends ShoppFlowController {
 		$request = 'menu';
 		$id      = false;
 
-		foreach ( $query as $queryvar ) {
-			$value = false;
-			if ( false !== strpos($queryvar, '=') ) list($key, $value) = explode('=', $queryvar);
-			else $key = $queryvar;
+		$query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : false;
 
-			if ( in_array($key, array_keys($this->dashboard)) ) {
-				$request = $key;
-				$id      = $value;
+		if ( $query !== false ) {
+			$query = html_entity_decode($query);
+			$query = array_filter( explode('&', $query) ); // filter out empty arrays
+
+			if ( is_array($query) ) {
+				foreach ( $query as $queryvar ) {
+					$value = false;
+					if ( false !== strpos($queryvar, '=') ) list($key, $value) = explode('=', $queryvar);
+					else $key = $queryvar;
+
+					if ( in_array($key, array_keys($this->dashboard)) ) {
+						$request = $key;
+						$id = $value;
+					}
+				}
 			}
 		}
 
