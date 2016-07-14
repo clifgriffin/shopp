@@ -683,7 +683,7 @@ class CustomersExport {
 		$columns = array();
 
 		foreach ( $this->selected as $column ) $columns[] = "$column AS col" . $c++;
-		
+
 		$query = "SELECT " . join(",", $columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where GROUP BY c.id ORDER BY c.created ASC LIMIT $offset,$this->limit";
 		$this->data = sDB::query($query, 'array');
 	}
@@ -715,12 +715,12 @@ class CustomersExport {
 
 	public function records () {
 		while ( ! empty($this->data) ) {
-		
+
 			foreach ( $this->data as $record ) {
-		
+
 				foreach( get_object_vars($record) as $column )
 					$this->export($this->parse($column));
-		
+
 				$this->record();
 			}
 			$this->set++;
@@ -767,10 +767,10 @@ class CustomersTabExport extends CustomersExport {
 
 	public function escape ($value) {
 		$value = str_replace(array('\n', '\r'), ' ', $value); // No newlines
-		
+
 		if ( false !== strpos($value, '\t') && false === strpos($value,'"') )	// Quote tabs
 			$value = '"' . $value . '"';
-		
+
 		return $value;
 	}
 
@@ -798,39 +798,3 @@ class CustomersCSVExport extends CustomersExport {
 	}
 
 } // END class CustomersCSVExport
-
-class CustomersXLSExport extends CustomersExport {
-
-	public function __construct () {
-		parent::__construct();
-		$this->content_type    = 'application/vnd.ms-excel';
-		$this->extension       = 'xls';
-		$this->c = 0; $this->r = 0;
-		$this->output();
-	}
-
-	public function begin () {
-		echo pack('ssssss', 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
-	}
-
-	public function end () {
-		echo pack('ss', 0x0A, 0x00);
-	}
-
-	public function export ( $value ) {
-		if ( preg_match('/^[\d\.]+$/', $value) ) {
-		 	echo pack('sssss', 0x203, 14, $this->r, $this->c, 0x0);
-			echo pack('d', $value);
-		} else {
-			$l = strlen($value);
-			echo pack('ssssss', 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
-			echo $value;
-		}
-		$this->c++;
-	}
-
-	public function record () {
-		$this->c = 0;
-		$this->r++;
-	}
-} // END class CustomerXLSExport

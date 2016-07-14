@@ -101,7 +101,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 				$Billing->delete();
 
 				$Shipping = new ShippingAddress($Customer->id, 'customer');
-				
+
 				$Shipping->delete();
 				$Customer->delete();
 			}
@@ -127,16 +127,16 @@ class ShoppAdminAccount extends ShoppAdminController {
 			// Reassign WordPress login
 			if ( $wp_integration && isset($_POST['userlogin']) && $_POST['userlogin'] !=  $user->user_login ) {
 				$newlogin = get_user_by('login', $_POST['userlogin']);
-		
+
 				if ( ! empty($newlogin->ID) ) {
-		
+
 					if ( sDB::query("SELECT count(*) AS used FROM $Customer->_table WHERE wpuser=$newlogin->ID",'auto','col','used') == 0 ) {
 						$Customer->wpuser = $newlogin->ID;
 						$updated = Shopp::__('Updated customer login to %s.', "<strong>$newlogin->user_login</strong>");
 					} else $updated = Shopp::__('Could not update customer login to &quot;%s&quot; because that user is already assigned to another customer.', '<strong>' . sanitize_user($_POST['userlogin']) . '</strong>');
 
 				} else $updated = Shopp::__('Could not update customer login to &quot;%s&quot; because the user does not exist in WordPress.', '<strong>' . sanitize_user($_POST['userlogin']) . '</strong>');
-		
+
 				if ( empty($_POST['userlogin']) ) $Customer->wpuser = 0;
 			}
 
@@ -174,7 +174,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 
 			if ( isset($_POST['info']) && ! empty($_POST['info']) ) {
-				
+
 				foreach ( (array)$_POST['info'] as $id => $info ) {
 					$Meta = new ShoppMetaObject($id);
 					$Meta->value = $info;
@@ -183,17 +183,17 @@ class ShoppAdminAccount extends ShoppAdminController {
 			}
 
 			if ( isset($Customer->id) ) $Billing->customer = $Customer->id;
-			
+
 			$Billing->updates($_POST['billing']);
 			$Billing->save();
 
 			if ( isset($Customer->id) ) $Shipping->customer = $Customer->id;
-			
+
 			$Shipping->updates($_POST['shipping']);
 			$Shipping->save();
-			
+
 			if ( ! $updated ) Shopp::__('Customer updated.');
-			
+
 			$Customer = false;
 
 		}
@@ -229,10 +229,10 @@ class ShoppAdminAccount extends ShoppAdminController {
 			$s = stripslashes($s);
 
 			if ( preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/', $s, $props, PREG_SET_ORDER) ) {
-			
+
 				foreach ( $props as $search ) {
 					$keyword = ! empty($search[2]) ? $search[2] : $search[3];
-			
+
 					switch ( strtolower($search[1]) ) {
 						case "company":  $where[] = "c.company LIKE '%$keyword%'"; break;
 						case "login":    $where[] = "u.user_login LIKE '%$keyword%'"; break;
@@ -275,12 +275,12 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 		// Add order data to customer records in this view
 		$orders = sDB::query("SELECT customer,SUM(total) AS total,count(id) AS orders FROM $purchase_table WHERE customer IN (" . join(',', array_keys($Customers)) . ") GROUP BY customer", 'array', 'index', 'customer');
-		
+
 		foreach ( $Customers as &$record ) {
 			$record->total = 0; $record->orders = 0;
 
 			if ( ! isset($orders[ $record->id ]) ) continue;
-			
+
 			$record->total  = $orders[ $record->id ]->total;
 			$record->orders = $orders[ $record->id ]->orders;
 		}
@@ -303,13 +303,12 @@ class ShoppAdminAccount extends ShoppAdminController {
 			'lastquarter'   => Shopp::__('Last Quarter'),
 			'lastyear'      => Shopp::__('Last Year'),
 			'lastexport'    => Shopp::__('Last Export'),
-			'custom'        => Shopp::__('Custom Dates') 
+			'custom'        => Shopp::__('Custom Dates')
 			);
 
 		$exports = array(
 			'tab' => Shopp::__('Tab-separated.txt'),
-			'csv' => Shopp::__('Comma-separated.csv'),
-			'xls' => Shopp::__('Microsoft&reg; Excel.xls')
+			'csv' => Shopp::__('Comma-separated.csv'),			
 			);
 
 
@@ -319,7 +318,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 		$columns  = array_merge(Customer::exportcolumns(), BillingAddress::exportcolumns(), ShippingAddress::exportcolumns());
 		$selected = shopp_setting('customerexport_columns');
-		
+
 		if ( empty($selected) ) $selected = array_keys($columns);
 
 		$authentication = shopp_setting('account_system');
@@ -383,10 +382,10 @@ class ShoppAdminAccount extends ShoppAdminController {
 			$Customer = new ShoppCustomer($_GET['id']);
 			$Customer->Billing = new BillingAddress($Customer->id, 'customer');
 			$Customer->Shipping = new ShippingAddress($Customer->id, 'customer');
-		
+
 			if ( empty($Customer->id) )
 				wp_die(Shopp::__('The requested customer record does not exist.'));
-		} else { 
+		} else {
 			$Customer = new ShoppCustomer();
 			$new_customer = true;
 		}
@@ -417,7 +416,7 @@ class ShoppAdminAccount extends ShoppAdminController {
 		$Customer->countries = $countries;
 
 		$regions = Lookup::country_zones();
-		
+
 		if ( ! $new_customer ) {
 			$Customer->billing_states  = isset($regions[ $Customer->Billing->country ]) ? array_merge(array('' => '&nbsp;'), (array)$regions[ $Customer->Billing->country ]) : array();
 			$Customer->shipping_states = isset($regions[ $Customer->Shipping->country ]) ? array_merge(array('' => '&nbsp;'), (array)$regions[ $Customer->Shipping->country ]) : array();

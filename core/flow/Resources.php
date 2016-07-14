@@ -75,7 +75,6 @@ class ShoppResources {
 
 		switch ( $format ) {
 			case 'csv': new PurchasesCSVExport(); break;
-			case 'xls': new PurchasesXLSExport(); break;
 			case 'iif': new PurchasesIIFExport(); break;
 			default: new PurchasesTabExport();
 		}
@@ -108,7 +107,6 @@ class ShoppResources {
 
 		switch ( $format ) {
 			case 'csv': new ShoppReportCSVExport($Report); break;
-			case 'xls': new ShoppReportXLSExport($Report); break;
 			default: new ShoppReportTabExport($Report);
 		}
 		exit();
@@ -141,8 +139,7 @@ class ShoppResources {
 		if (empty($format)) $format = 'tab';
 
 		switch ( $format ) {
-			case 'csv': new CustomersCSVExport(); break;
-			case 'xls': new CustomersXLSExport(); break;
+			case 'csv': new CustomersCSVExport(); break;			
 			default: new CustomersTabExport();
 		}
 

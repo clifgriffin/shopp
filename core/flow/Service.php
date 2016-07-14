@@ -297,8 +297,7 @@ class ShoppAdminService extends ShoppAdminController {
 
 		$exports = array(
 			'tab' => Shopp::__('Tab-separated.txt'),
-			'csv' => Shopp::__('Comma-separated.csv'),
-			'xls' => Shopp::__('Microsoft&reg; Excel.xls'),
+			'csv' => Shopp::__('Comma-separated.csv'),			
 			'iif' => Shopp::__('Intuit&reg; QuickBooks.iif')
 			);
 
@@ -308,9 +307,9 @@ class ShoppAdminService extends ShoppAdminController {
 		$exportcolumns = array_merge(ShoppPurchase::exportcolumns(),ShoppPurchased::exportcolumns());
 		$selected = shopp_setting('purchaselog_columns');
 		if ( empty($selected) ) $selected = array_keys($exportcolumns);
-		
+
 		$Gateways = $Shopp->Gateways;
-		
+
 		include $this->ui('orders.php');
 	}
 
@@ -628,7 +627,7 @@ class ShoppAdminService extends ShoppAdminController {
 		$countrydata = Lookup::countries();
 		foreach ( $countrydata as $iso => $c ) {
 
-			if ( $base['country'] == $iso ) 
+			if ( $base['country'] == $iso )
 				$base_region = $c['region'];
 			$countries[ $iso ] = $c['name'];
 		}

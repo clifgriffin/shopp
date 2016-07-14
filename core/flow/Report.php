@@ -215,7 +215,6 @@ class ShoppAdminReport extends ShoppAdminController {
 		$exports = array(
 			'tab' => Shopp::__('Tab-separated.txt'),
 			'csv' => Shopp::__('Comma-separated.csv'),
-			'xls' => Shopp::__('Microsoft&reg; Excel.xls'),
 			);
 
 		$format = shopp_setting('report_format');
@@ -315,13 +314,13 @@ abstract class ShoppReportFramework {
 		if ( $this->periods && $this->Chart ) {
 
 			foreach ( $this->data as $index => &$record ) {
-			
+
 				if ( count(get_object_vars($record)) <= 1 ) {
-			
+
 					foreach ( $this->columns as $column )
 						$record->$column = null;
 				}
-			
+
 				foreach ( $this->chartseries as $series => $column ) {
 					$data = isset($record->$column) ? $record->$column : 0;
 					$this->chartdata($series, $record->period, $data);
@@ -353,11 +352,11 @@ abstract class ShoppReportFramework {
 		}
 
 		foreach ( $columns as $column => $value ) {
-			
+
 			if ( is_numeric($value) && 0 !== $value ) {
-			
+
 				if ( ! isset($this->totals->$column) ) $this->totals->$column = 0;
-			
+
 				$this->totals->$column += $value;
 			} else $this->totals->$column = null;
 		}
@@ -370,9 +369,9 @@ abstract class ShoppReportFramework {
 		}
 
 		if ( $collate ) {
-			
+
 			if ( ! isset($records[ $index ]) ) $records[ $index ] = $record;
-			
+
 			$records[ $index ][] = $record;
 			return;
 		}
@@ -1441,51 +1440,6 @@ class ShoppReportCSVExport extends ShoppReportExportFramework {
 		if ( preg_match('/^\s|[,"\n\r]|\s$/', $value) ) $value = '"' . $value . '"';
 		echo ($this->recordstart ? "" : ",") . $value;
 		$this->recordstart = false;
-	}
-
-}
-
-/**
- * ShoppReportXLSExport
- *
- * Exports report data into Microsoft Excel file format
- *
- * @author Jonathan Davis
- * @since 1.3
- * @package report
- **/
-class ShoppReportXLSExport extends ShoppReportExportFramework {
-
-	public function __construct ( ShoppReportFramework $Report ) {
-		parent::__construct($Report);
-		$this->content_type = "application/vnd.ms-excel; charset=Windows-1252";
-		$this->extension = "xls";
-		$this->c = 0; $this->r = 0;
-		$this->output();
-	}
-
-	public function begin () {
-		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
-	}
-
-	public function end () {
-		echo pack("ss", 0x0A, 0x00);
-	}
-
-	public function export ( $value ) {
-		if ( is_numeric($value) ) {
-		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0) . pack("d", $value);
-		} else {
-			$v = mb_convert_encoding($value, 'Windows-1252', 'UTF-8');
-			$l = mb_strlen($v, 'Windows-1252');
-			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l) . $v;
-		}
-		$this->c++;
-	}
-
-	public function record () {
-		$this->c = 0;
-		$this->r++;
 	}
 
 }
