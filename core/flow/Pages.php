@@ -392,7 +392,6 @@ class ShoppAccountPage extends ShoppPage {
 		);
 
 		if ( 'none' == shopp_setting('account_system') ) {
-			$defaults['title'] = Shopp::__('Order Lookup'); //JM
 
 			$defaults = array(
 				'title'       => Shopp::__('Order Lookup'),
