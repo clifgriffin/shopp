@@ -37,6 +37,10 @@ jQuery(document).ready(function () {
 
 	updateWorkflow();
 	$('#category').submit(function () {
+		if ( '' == title.val() ) {
+			alert(ENTER_CATEGORY_NAME);
+			return false;
+		}
 		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
 		return true;
 	});
