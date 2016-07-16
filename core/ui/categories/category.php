@@ -24,6 +24,7 @@
 
 				<div id="titlediv">
 					<div id="titlewrap">
+						<label class="hide-if-no-js<?php if ( ! empty($Category->name) ) echo ' hidden'; ?>" id="title-prompt-text" for="title"><?php Shopp::_e('Enter category name'); ?></label>
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Category->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
