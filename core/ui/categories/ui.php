@@ -16,7 +16,7 @@ function save_meta_box ($Category) {
 		<select name="settings[workflow]" id="workflow">
 		<?php echo Shopp::menuoptions($workflows,shopp_setting('workflow'),true); ?>
 		</select>
-		<input type="submit" class="button-primary" name="save" value="<?php Shopp::_e('Update'); ?>" />
+		<input type="submit" class="button-primary" name="save" value="<?php Shopp::_e('Save'); ?>" />
 	</div>
 <?php
 }
