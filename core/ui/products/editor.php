@@ -113,6 +113,7 @@ var flashuploader 	    = <?php echo ($uploader == 'flash' && !(false !== strpos(
 	calendarTitle	    = '<?php $df = date_format_order(true); $format = $df["month"]." ".$df["year"]; echo $format; ?>',
 
 	// Warning/Error Dialogs
+	ENTER_PRODUCT_NAME		    = <?php Shopp::_jse('Please, enter a product name before saving.'); ?>,
 	DELETE_IMAGE_WARNING	    = <?php Shopp::_jse('Are you sure you want to delete this product image?'); ?>,
 	SERVER_COMM_ERROR	        = <?php Shopp::_jse('There was an error communicating with the server.'); ?>,
 

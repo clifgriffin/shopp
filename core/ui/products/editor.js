@@ -124,6 +124,10 @@ jQuery(document).ready(function($) {
 
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
 		e.stopPropagation();
+		if ( '' == title.val() ) {
+			alert(ENTER_PRODUCT_NAME);
+			return false;
+		}
 		var url = $('#product').attr('action').split('?'),
 			action = url[0]+"?"+$.param(request); 		// Add our workflow request parameters before submitting
 		$('#product')[0].setAttribute('action',action); // More compatible for **stupid** IE
