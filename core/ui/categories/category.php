@@ -92,7 +92,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>,
 
 	// Warning/Error Dialogs
-	ENTER_CATEGORY_NAME = "<?php Shopp::_e('Please, enter a category name before saving.'); ?>",
+	ENTER_CATEGORY_NAME = "<?php Shopp::_e('You forgot to enter a name for this category.'); ?>",
 	DELETE_IMAGE_WARNING = "<?php Shopp::_e('Are you sure you want to delete this category image?'); ?>",
 	SERVER_COMM_ERROR = "<?php Shopp::_e('There was an error communicating with the server.'); ?>",
 
