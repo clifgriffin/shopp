@@ -152,7 +152,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	public static function _setobject ($Object, $object) {
 		if ( is_object($Object) && is_a($Object, 'ShoppProduct') ) return $Object;
 
-		if ( strtolower($object) != 'product' ) return $Object; // not mine, do nothing
+		if ( 'product' != strtolower($object) ) return $Object; // not mine, do nothing
 		else {
 			return ShoppProduct();
 		}
@@ -184,23 +184,25 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		$defaults = array(
 			'separator' => ' ',
 			'units'     => 'on',
-			// 'promos' => 'on', @deprecated option use 'discounts'
 			'discounts' => 'on',
 			'taxes'     => null,
 			'input'     => null,
 			'money'     => 'on',
 			'number'    => 'off'
+
+			// 'promos' => 'on', @deprecated option use 'discounts'
 		);
+
 		$options = array_merge($defaults, $options);
 		extract($options, EXTR_SKIP);
 
 		if ( isset($promos) ) $discounts = $promos; // @deprecated support for deprecated `promos` option
 
-		$types = array('hidden','checkbox','radio');
+		$types = array('hidden', 'checkbox', 'radio');
 
 		$addon = current($O->prices);
 
-		$taxes = isset($taxes) ?  Shopp::str_true($taxes) : null;
+		$taxes 		= isset($taxes) ?  Shopp::str_true($taxes) : null;
 		$weightunit = Shopp::str_true($units) ? shopp_setting('weight_unit') : '';
 
 		$_ = array();
@@ -211,6 +213,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 
 		if ( array_key_exists('price', $options) ) {
 			$price = Shopp::roundprice(self::_taxed((float)$addon->price, $O, $addon->tax, $taxes));
+
 			if ( Shopp::str_true($money) ) $_[] = Shopp::money($price);
 			else $_[] = $price;
 		}
@@ -218,6 +221,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( array_key_exists('saleprice', $options) ) {
 			$saleprice = Shopp::str_true($discounts) ? $addon->promoprice : $addon->saleprice;
 			$saleprice = Shopp::roundprice( self::_taxed((float)$addon->promoprice, $O, $addon->tax, $taxes) );
+
 			if ( Shopp::str_true($money) ) $_[] = Shopp::money($saleprice);
 			else $_[] = $saleprice;
 		}
@@ -374,7 +378,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$menuid = $idprefix . $menu['id'];
 				if ( Shopp::str_true($label) ) $markup[] = '<label for="' . esc_attr($menuid) . '">' . esc_html($menu['name']) . '</label> ';
 
-				$category_class = shopp('collection','get-slug');
+				$category_class = shopp('collection.get-slug');
 				$classes = array($class, $category_class, 'addons');
 
 				$markup[] = '<select name="products[' . $O->id . '][addons][]" class="' . trim(join(' ', $classes)). '" id="' . esc_attr($menuid) . '" title="' . esc_attr($menu['name']) . '">';
@@ -473,7 +477,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			$string .= '<input type="hidden" name="products[' . $O->id . '][price]" value="' . $default->id . '" />';
 		}
 
-		$collection = isset(ShoppCollection()->slug) ? shopp('collection', 'get-slug') : false;
+		$collection = isset(ShoppCollection()->slug) ? shopp('collection.get-slug') : false;
 		if ( ! empty($collection) ) {
 			$string .= '<input type="hidden" name="products[' . $O->id . '][category]" value="' . esc_attr($collection) . '" />';
 		}
