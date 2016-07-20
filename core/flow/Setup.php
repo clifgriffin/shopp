@@ -194,7 +194,7 @@ class ShoppAdminSetup extends ShoppAdminController {
 		// Copy templates to the current WordPress theme
 		if ( ! empty($_POST['install']) ) {
 			check_admin_referer('shopp-settings-presentation');
-			copy_shopp_templates($builtin_path,$theme_path);
+			Shopp::copy_templates($builtin_path, $theme_path);
 		}
 
 		$status = 'available';
