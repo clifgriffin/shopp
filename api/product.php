@@ -1149,7 +1149,7 @@ function shopp_product_set_variant ( $variant = false, $data = array(), $context
 	$Price->type = $data['type'];
 
 	// 'taxed' => 'bool',		// bool - flag variant as taxable
-	if ( ! isset($data['taxed']) ) $Price->tax == 'on'; // default to on
+	if ( ! isset($data['taxed']) ) $Price->tax = "on"; // default to on
 	else $Price->tax = ( true == $data['taxed'] ? 'on' : 'off' );
 
 	// 'price' => 'float',		// float - Price of variant
