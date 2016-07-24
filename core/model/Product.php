@@ -1182,7 +1182,8 @@ class ShoppProduct extends WPShoppObject {
 				if ( isset($price->$name) ) $settings[ $name ] = $price->$name;
 
 			shopp_set_meta($Price->id, 'price', 'settings', $settings);
-			shopp_set_meta($Price->id, 'price', 'options', $price->options);
+			if ( isset($price->options) )
+				shopp_set_meta($Price->id, 'price', 'options', $price->options);
 
 		}
 
@@ -1204,7 +1205,7 @@ class ShoppProduct extends WPShoppObject {
 
 		$metadata = array('specs', 'images', 'settings', 'meta');
 		foreach ( $metadata as $metaset ) {
-			if ( ! is_array($this->$metaset) ) continue;
+			if ( ! isset($this->metaset) || ! is_array($this->$metaset) ) continue;
 			foreach ( $this->$metaset as $metaobjects ) {
 				if ( ! is_array($metaobjects) ) $metaobjects = array($metaobjects);
 				foreach ( $metaobjects as $meta ) {
@@ -1293,7 +1294,7 @@ class ShoppProduct extends WPShoppObject {
 			if ( function_exists('clean_post_cache') )
 				clean_post_cache($id);
 			
-			wp_transition_post_status($status, $Product->status, $Post);
+			wp_transition_post_status($status, $Post->status, $Post);
 		}
 
 		return true;
