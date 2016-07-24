@@ -1205,7 +1205,7 @@ class ShoppProduct extends WPShoppObject {
 
 		$metadata = array('specs', 'images', 'settings', 'meta');
 		foreach ( $metadata as $metaset ) {
-			if ( ! isset($this->metaset) || ! is_array($this->$metaset) ) continue;
+			if ( ! isset($this->$metaset) || ! is_array($this->$metaset) ) continue;
 			foreach ( $this->$metaset as $metaobjects ) {
 				if ( ! is_array($metaobjects) ) $metaobjects = array($metaobjects);
 				foreach ( $metaobjects as $meta ) {
