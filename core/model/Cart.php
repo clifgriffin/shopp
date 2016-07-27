@@ -501,6 +501,7 @@ class ShoppCart extends ListFramework {
 		$quantity 	= $Item->quantity;
 		$category 	= $Item->category;
 		$data 		= $Item->data;
+		if ( empty($addons) && ! empty($Item->addons) ) $addons = array_keys($Item->addons);
 
 		// remove original product/variant
 		$this->rmvitem($item);
