@@ -82,9 +82,9 @@ class ShoppProduct extends WPShoppObject {
 		$this->type = self::$posttype;
 		$this->load($id, $key);
 		// use default WordPress setting on new product
-		if ( ! $id ) { 
+		if ( ! $id ) {
  			$this->ping_status = get_option('default_ping_status');
- 			$this->comment_status = get_option('default_comment_status');			
+ 			$this->comment_status = get_option('default_comment_status');
  		}
 	}
 
@@ -155,7 +155,7 @@ class ShoppProduct extends WPShoppObject {
 	 *
 	 * @return void
 	 **/
-	public function load_data ( array $options = array('prices', 'specs', 'images', 'categories', 'tags', 'meta', 'summary'), array &$products = array() ) {
+	public function load_data ( $options = array('prices', 'specs', 'images', 'categories', 'tags', 'meta', 'summary'), &$products = array() ) {
 		// Load summary before prices to ensure summary can be overridden by fresh pricing aggregation
 		$loaders = array(
 		//  'name'           'callback_method'
@@ -300,12 +300,12 @@ class ShoppProduct extends WPShoppObject {
 		$table     = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
 		$metaquery = "SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids)";
 		$sortorder = $this->image_order();
-		
+
 		// Avoid the sub-query if we can, otherwise use LIMIT to work around compatibility issues with MariaDB
 		if ( 'sortorder ASC' == $sortorder )
 			$query = "$metaquery AND sortorder=0";
 		else $query = "SELECT * FROM ($metaquery ORDER BY $sortorder LIMIT 18446744073709551615) AS img GROUP BY parent";
-		
+
 		sDB::query("SELECT * FROM ( SELECT * FROM $table WHERE context='product' AND type='image' AND parent IN ($ids) ORDER BY $sortorder ) AS img GROUP BY parent", 'array', array($this, 'metasetloader'), 'parent', 'metatype', 'name', false);
 	}
 
@@ -749,7 +749,7 @@ class ShoppProduct extends WPShoppObject {
 		$this->maxprice = $this->minprice  = false;
 		$this->min      = $this->max       = array();
 		$this->freeship                    = 'off';
-		
+
 		foreach ( ProductSummary::$_ranges as $index ) {
 			$this->min[ $index ] = false;
 			$this->max[ $index ] = false;
@@ -1051,11 +1051,11 @@ class ShoppProduct extends WPShoppObject {
 	public function delete () {
 		$id = $this->id;
 		if ( empty($id) ) return false;
-		
+
 		if ( false === has_action('shopp_product_delete', array($this,'deletepost')))
 			add_action('shopp_product_delete', array($this, 'deletepost'));
 		do_action_ref_array('shopp_product_delete', array($this));
-		
+
 		// Delete assignment to taxonomies (categories, tags, custom taxonomies)
 		wp_delete_object_term_relationships($id, get_object_taxonomies(ShoppProduct::$posttype));
 
@@ -1095,7 +1095,7 @@ class ShoppProduct extends WPShoppObject {
 		do_action_ref_array('shopp_product_deleted', array($this));
 
 	}
-	
+
 	/**
 	 * Provides compatibility with other plugins that handle custom post types
 	 *
@@ -1126,7 +1126,7 @@ class ShoppProduct extends WPShoppObject {
 			add_action('shopp_product_trashed', array($this, 'trashpost'));
 		do_action_ref_array('shopp_product_trashed', array($this));
 	}
-	
+
 	/**
 	 * Provides compatibility with other plugins that handle custom post types
 	 *
@@ -1197,7 +1197,7 @@ class ShoppProduct extends WPShoppObject {
 
 			if ( ! isset($terms[ $term->taxonomy ]) )
 				$terms[ $term->taxonomy ] = array();
-				
+
 			$terms[ $term->taxonomy ][] = (int)$term->term_id;
 		}
 		foreach ( $terms as $taxonomy => $termlist )
@@ -1293,7 +1293,7 @@ class ShoppProduct extends WPShoppObject {
 			}
 			if ( function_exists('clean_post_cache') )
 				clean_post_cache($id);
-			
+
 			wp_transition_post_status($status, $Post->status, $Post);
 		}
 
