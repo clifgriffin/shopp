@@ -1106,7 +1106,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	public static function image ( $result, $options, $O ) {
 		$loadset = array('images', 'coverimages');
 		if ( empty($options['load']) || ! in_array($options['load'], $loadset) )
-			$options['load'] = $loading[0];
+			$options['load'] = $loadset[0];
 
 		// Load images if no images are loaded or we're loading all images after the coverimage was loaded
 		if ( empty($O->images) || 'images' == $options['load'] )
@@ -2280,7 +2280,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 			$max = convert_unit($max, $convert);
 
 			if ( is_null($units) ) $units = true;
-			
+
 			$unit = $convert;
 		}
 
