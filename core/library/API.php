@@ -109,7 +109,7 @@ class ShoppAPIFile extends ModuleFile {
 	public function register () {
 		// Hook _context
 		$api = $this->classname;
-		$apicontext = call_user_func(array($api, '_apicontext'));
+		$apicontext = method_exists($api,'_apicontext') ? call_user_func(array($api, '_apicontext')) : false;
 
 		$setobject_call = method_exists($api,'_setobject') ? array($api, '_setobject') : array($this, 'setobject');
 		add_filter('shopp_themeapi_object', $setobject_call, 10, 3);
@@ -147,7 +147,7 @@ class ShoppAPIFile extends ModuleFile {
 		if ( is_object($Object) ) return $Object;  // always use if first argument is an object
 
 		$api = $this->classname;
-		$apicontext = call_user_func(array($api, '_apicontext'));
+		$apicontext = method_exists($api,'_apicontext') ? call_user_func(array($api, '_apicontext')) : false;
 
 		if (strtolower($context) != strtolower($apicontext)) return $Object; // do nothing
 
