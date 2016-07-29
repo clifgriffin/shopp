@@ -146,6 +146,10 @@ abstract class ShoppCore {
 	public static function translate ( $text, $context = null ) {
 		$domain = 'Shopp';
 
+		// Fix edge case where directly loaded image server throws fatal
+		// error because WP functions are not available. Remove after mu-plugin. 		
+		if ( ! function_exists('translate') ) return $text;
+
 		if ( is_null($context) ) $string = translate( $text, $domain );
 		else $string = translate_with_gettext_context($text, $context, $domain);
 
