@@ -521,6 +521,8 @@ class GatewayModules extends ModuleLoader {
 			if ( ! empty($moduleclass) )
 				$this->activated[] = $moduleclass;
 		}
+		
+		$this->activated =  array_unique($this->activated);
 
 		return $this->activated;
 	}
