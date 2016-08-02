@@ -1016,7 +1016,7 @@ class ProductCategory extends ProductTaxonomy {
 				}
 
 				$sumtable = ShoppDatabaseObject::tablename(ProductSummary::$table);
-				$query = "SELECT count(*) AS total, $casewhen END AS rangeid
+				$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
 					FROM $sumtable
 					WHERE product IN ($ids) GROUP BY rangeid";
 				$counts = sDB::query($query,'array','col','total','rangeid');
@@ -1132,7 +1132,7 @@ class ProductCategory extends ProductTaxonomy {
 								$casewhen .= " WHEN (spec.numeral >= {$r['min']}$max) THEN $index";
 							}
 
-							$query = "SELECT count(*) AS total, $casewhen END AS rangeid
+							$query = "SELECT count(*) AS total, CASE $casewhen END AS rangeid
 								FROM $spectable AS spec
 								WHERE spec.parent IN ($ids) AND spec.name='$Facet->name' AND spec.context='product' AND spec.type='spec' AND spec.numeral > 0 GROUP BY rangeid";
 							$counts = sDB::query($query, 'array', 'col', 'total',' rangeid');
