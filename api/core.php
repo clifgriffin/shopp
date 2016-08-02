@@ -22,7 +22,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param ShoppProduct $Object (optional) The product object to set to the global context.
  * @return mixed if the global Product context isn't set, bool false will be returned, otherwise the global Product object will be returned
  **/
-function ShoppProduct ( ShoppProduct $Object = null ) {
+function ShoppProduct ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) )
 		$Shopp->Product = $Object;
@@ -54,7 +54,7 @@ function ShoppCustomer ( $Object = false ) {
  * @param ShoppCollection $Object (optional) The ShoppCollection object to set to the global context.
  * @return mixed if the global ShoppCollection context isn't set, bool false will be returned, otherwise the global ShoppCollection object will be returned
  **/
-function ShoppCollection ( ProductCollection $Object = null ) {
+function ShoppCollection ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) ) $Shopp->Category = $Object;
 	return $Shopp->Category;
@@ -69,7 +69,7 @@ function ShoppCollection ( ProductCollection $Object = null ) {
  * @param ShoppCatalog $Object (optional) the ShoppCatalog object to set to the global context.
  * @return mixed if the global ShoppCatalog context isn't set, bool false will be returned, otherwise the global ShoppCatalog object will be returned
  **/
-function ShoppCatalog ( ShoppCatalog $Object = null ) {
+function ShoppCatalog ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) ) $Shopp->Catalog = $Object;
 	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new ShoppCatalog();
@@ -258,7 +258,7 @@ if ( ! function_exists('is_catalog_page') ) {
  *
  * @api
  * @since 1.2
- * 
+ *
  * @return boolean
  **/
 function is_shopp_catalog_frontpage () {
