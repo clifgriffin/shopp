@@ -1646,7 +1646,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 * @param array $taxrates A list of taxrates that apply to the product and amount
 	 * @return float The amount with tax added or tax excluded
 	 **/
-	private static function _taxes ( $amount, ShoppPurchased $Item, $taxoption = null, $quantity = 1) {
+	private static function _taxes ( $amount, $Item, $taxoption = null, $quantity = 1) {
 
 		$inclusivetax = self::_inclusive_taxes(ShoppPurchase());
 		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {

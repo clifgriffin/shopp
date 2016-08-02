@@ -914,7 +914,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		echo join("",$_)."\n\n";
 	}
 
-	public function flatrates ( $column = 0, array $attributes = array() ) {
+	public function flatrates ( $column = 0, $attributes = array() ) {
 		$defaults = array(
 			'name'    => '',
 			'classes' => '',
@@ -968,7 +968,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$this->ui(join('', $_), $column);
 	}
 
-	public function flatrate_row ( $row = 0, array $setting = array(), $norates = false ) {
+	public function flatrate_row ( $row = 0, $setting = array(), $norates = false ) {
 		$defaults = array(
 			'rate' => '${rate}',
 		);
@@ -989,7 +989,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return join('', $_);
 	}
 
-	public function tablerates ( $column = 0, array $attributes = array() ) {
+	public function tablerates ( $column = 0, $attributes = array() ) {
 		$defaults = array(
 			'id'              => '',
 			'name'            => '',
@@ -1041,7 +1041,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		$this->ui(join('', $_), $column);
 	}
 
-	public function tablerate_row ( $row = 0, array $attrs = array(), array $table = array() ) {
+	public function tablerate_row ( $row = 0, $attrs = array(), $table = array() ) {
 		$unit = isset($attrs['unit']) ? $attrs['unit'] : array('', '');
 
 		// Handle adding rate tiers
@@ -1131,7 +1131,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 		return join('', $_);
 	}
 
-	public function tablerate_row_tier ( $row = 0, $tier = 0, array $attrs = array(), array $setting = array() ) {
+	public function tablerate_row_tier ( $row = 0, $tier = 0, $attrs = array(), $setting = array() ) {
 		$unit = isset($attrs['unit'][1]) ? $attrs['unit'][1] : false;
 		$threshold_class = ! empty($attrs['threshold_class']) ? $attrs['threshold_class'] : '';
 		$rate_class = ! empty($attrs['rate_class']) ? $attrs['rate_class'] : 'money';
@@ -1310,7 +1310,7 @@ class ShippingSettingsUI extends ModuleSettingsUI {
 
 	}
 
-	public function location_fields ( $row = 0, array $setting = array() ) {
+	public function location_fields ( $row = 0, $setting = array() ) {
 
 		$menuarrow = ' &#x25be;';
 		$destination = isset($setting['destination']) ? $setting['destination'] : '';
@@ -1377,27 +1377,27 @@ class TemplateShippingUI extends ShippingSettingsUI {
 		$this->widget('location-fields', $markup);
 	}
 
-	public function flatrates ( $column = 0, array $attributes = array() ) {
+	public function flatrates ( $column = 0, $attributes = array() ) {
 		parent::flatrates();
 		$this->template('flatrates-editor');
 	}
 
-	public function flatrate_row ( $row = 0, array $setting = array(), $norates = false ) {
+	public function flatrate_row ( $row = 0, $setting = array(), $norates = false ) {
 		$markup = parent::flatrate_row();
 		$this->widget('flatrate-row', $markup);
 	}
 
-	public function tablerates ( $column = 0, array $attributes = array() ) {
+	public function tablerates ( $column = 0, $attributes = array() ) {
 		parent::tablerates();
 		$this->template('tablerates-editor');
 	}
 
-	public function tablerate_row ( $row = 0, array $attrs = array(), array $table = array() ) {
+	public function tablerate_row ( $row = 0, $attrs = array(), $table = array() ) {
 		$markup = parent::tablerate_row(0,array(), array());
 		$this->widget('tablerate-row', $markup);
 	}
 
-	public function tablerate_row_tier ( $row = 0, $tier = 0, array $attrs = array(), array $setting = array() ) {
+	public function tablerate_row_tier ( $row = 0, $tier = 0, $attrs = array(), $setting = array() ) {
 		$markup = parent::tablerate_row_tier(0,array(), array());
 		$this->widget('tablerate-row-tier', $markup);
 	}

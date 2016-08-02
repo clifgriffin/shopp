@@ -1262,7 +1262,7 @@ if ( ! class_exists('nusoap_base') ) {
 							$this->elements[$type]['extensionBase'] = $etype['extensionBase'];
 						}
 					} elseif ($ns == 'http://www.w3.org/2001/XMLSchema') {
-						$this->xdebug("in getTypeDef, element $type is an XSD type");
+						$this->xdebug("in getTypeDef, $type is an XSD type");
 						$this->elements[$type]['phpType'] = 'scalar';
 					}
 				}
@@ -1525,7 +1525,7 @@ if ( ! class_exists('nusoap_base') ) {
 
 
 		function connect($connection_timeout=0,$response_timeout=30){
-		  			  			  			  												$this->debug("connect connection_timeout $connection_timeout, response_timeout $response_timeout, scheme $this->scheme, host $this->host, port $this->port");
+		  			  			  			  												$this->debug("connect connection_timeout $connection_timeout, $response_timeout, $this->scheme, $this->host, $this->port");
 		  if ($this->io_method() == 'socket') {
 			if (!is_array($this->proxy)) {
 				$host = $this->host;
@@ -3527,7 +3527,7 @@ if ( ! class_exists('nusoap_base') ) {
 						}
 						$contents = '';
 						foreach($value as $k => $v) {
-							$this->debug("serializing map element: key $k, value $v");
+							$this->debug("serializing map element: key $k, $v");
 							$contents .= '<item>';
 							$contents .= $this->serialize_val($k,'key',false,false,false,false,$use);
 							$contents .= $this->serialize_val($v,'value',false,false,false,false,$use);
@@ -4104,7 +4104,7 @@ if ( ! class_exists('nusoap_base') ) {
 				$this->root_struct_name = $name;
 				$this->root_struct = $pos;
 				$this->message[$pos]['type'] = 'struct';
-				$this->debug("found root struct $this->root_struct_name, pos $this->root_struct");
+				$this->debug("found root struct $this->root_struct_name, $this->root_struct");
 			}
 						$this->message[$pos]['status'] = $this->status;
 						$this->message[$pos]['name'] = htmlspecialchars($name);
@@ -4169,7 +4169,7 @@ if ( ! class_exists('nusoap_base') ) {
 					$this->status = 'method';
 					$this->root_struct_name = $name;
 					$this->root_struct = $pos;
-					$this->debug("found root struct $this->root_struct_name, pos $pos");
+					$this->debug("found root struct $this->root_struct_name, $pos");
 				}
 	            	            $attstr .= " $key=\"$value\"";
 			}

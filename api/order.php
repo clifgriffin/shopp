@@ -30,7 +30,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param bool $downloads (optional) Restrict to orders that have downloads
  * @return array of Purchase objects
  **/
-function shopp_orders ( $from = false, $to = false, $items = true, array $customers = array(), $limit = false, $order = 'DESC', $orderby = 'id', $paidonly = false, $downloads = false ) {
+function shopp_orders ( $from = false, $to = false, $items = true, $customers = array(), $limit = false, $order = 'DESC', $orderby = 'id', $paidonly = false, $downloads = false ) {
 	$pt = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 	$pd = ShoppDatabaseObject::tablename(ShoppPurchased::$table);
 

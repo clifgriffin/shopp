@@ -532,7 +532,7 @@ class sDB extends SingletonFramework {
 	 * @param ShoppDatabaseObject $Object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
-	public static function prepare ( $Object, array $mapping = array() ) {
+	public static function prepare ( $Object, $mapping = array() ) {
 		$data = array();
 
 		// Go through each data property of the object
@@ -1293,7 +1293,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param array $ignores (optional) A list of properties to skip updating
 	 * @return void
 	 **/
-	public function updates ( array $data, array $ignores = array() ) {
+	public function updates ( $data, $ignores = array() ) {
 		if ( ! is_array($data)) return;
 		foreach ($data as $key => $value) {
 			if (!is_null($value)
@@ -1321,7 +1321,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param array $ignores (optional) List of property names to ignore copying from
 	 * @return void
 	 **/
-	public function copydata ( $data, $prefix = '', array $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified') ) {
+	public function copydata ( $data, $prefix = '', $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified') ) {
 		if ( ! is_array($ignores) ) $ignores = array();
 		$properties = is_object($data) ? get_object_vars($data) : $data;
 		foreach ( (array)$properties as $property => $value ) {
@@ -1365,7 +1365,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param array $options (optional) The tag options to process
 	 * @return mixed
 	 **/
-	public function tag ( $property, array $options = array() ) {
+	public function tag ( $property, $options = array() ) {
 		$options = array_merge( array('return' => true), shopp_parse_options($options) );
 		return shopp($this, $property, $options);
 	}

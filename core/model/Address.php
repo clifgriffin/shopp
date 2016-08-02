@@ -253,7 +253,7 @@ class PostcodeMapping {
 	 * @param ShoppAddress $Address
 	 * @return void
 	 **/
-	public static function prefixcode ( $prefix, ShoppAddress $Address ) {
+	public static function prefixcode ( $prefix, $Address ) {
 		$postcodes = Lookup::postcodes();
 		if ( ! isset($postcodes[ $Address->country ]) ) return;
 

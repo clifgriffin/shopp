@@ -1009,7 +1009,7 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	 * @param array $taxrates A list of taxrates that apply to the product and amount
 	 * @return float The amount with tax added or tax excluded
 	 **/
-	private static function _taxes ( $amount, ShoppCartItem $O, $taxoption = null, $quantity = 1) {
+	private static function _taxes ( $amount, $O, $taxoption = null, $quantity = 1) {
 		// if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
 
 		if ( ! $O->istaxed ) return $amount;

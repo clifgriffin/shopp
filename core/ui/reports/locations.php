@@ -45,7 +45,7 @@ class LocationsReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function chartseries ( $label, array $options = array() ) {
+	function chartseries ( $label, $options = array() ) {
 		extract($options);
 		$this->map[ $record->country ] = (float)$record->grossed;
 	}

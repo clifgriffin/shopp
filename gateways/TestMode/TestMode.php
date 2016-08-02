@@ -79,7 +79,7 @@ class ShoppTestMode extends GatewayFramework implements GatewayModule {
 		$this->handler('voided', $Event);
 	}
 
-	public function handler ( $type, OrderEventMessage $Event ) {
+	public function handler ( $type, $Event ) {
 		if ( ! isset($Event->txnid) || empty($Event->txnid) ) $Event->txnid = time();
 		if ( Shopp::str_true($this->settings['error']) ) {
 			$error = Shopp::__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.");

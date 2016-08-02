@@ -125,7 +125,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 *
 	 * @return string|boolean The request, or false if a Shopp Storefront request
 	 **/
-	public function noquery ( $request, WP_Query $wp_query ) {
+	public function noquery ( $request, $wp_query ) {
 		if ( $this->request($wp_query) ) return false;
 		return $request;
 	}
@@ -138,7 +138,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 *
 	 * @return int|boolean Number of posts found or, true if a Shopp Storefront request
 	 **/
-	public function found ( $found_posts, WP_Query $wp_query ) {
+	public function found ( $found_posts, $wp_query ) {
 		if ( $this->request($wp_query) ) {
 			$Page     = new stdClass();
 			$Page->ID = 0;
@@ -157,7 +157,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp_query The working WP_Query object
 	 * @return array List of posts, or a list with the post stub for Shopp Storefront requests
 	 **/
-	public function posts ( $posts, WP_Query $wp_query ) {
+	public function posts ( $posts, $wp_query ) {
 
 		if ( $this->request($wp_query) ) {
 
@@ -382,7 +382,7 @@ class ShoppStorefront extends ShoppFlowController {
 		return locate_template( $Page->templates() );
 	}
 
-	public function onfront ( $request, WP_Query $wp_query ) {
+	public function onfront ( $request, $wp_query ) {
 
 		if ( ShoppCatalogPage::frontid() == get_option('page_on_front') ) {
 

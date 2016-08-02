@@ -54,7 +54,7 @@ class CustomersReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function chartseries ( $label, array $options = array() ) {
+	function chartseries ( $label, $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
 		$this->Chart->series($record->customer, array( 'color' => '#1C63A8', 'data' => array( array($index, $record->grossed) ) ));

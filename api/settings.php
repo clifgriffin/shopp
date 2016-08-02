@@ -134,7 +134,7 @@ function shopp_set_formsettings () {
  * @param array  $settings A named array of settings and values, accepts: width, height, size, fit, quality, sharpen, bg
  * @return bool true on success, false on failure.
  **/
-function shopp_set_image_setting ( $name, array $settings = array() ) {
+function shopp_set_image_setting ( $name, $settings = array() ) {
 	if ( empty($name) ) {
 		shopp_debug(__FUNCTION__ . ' failed: Setting name parameter required.');
 		return false;

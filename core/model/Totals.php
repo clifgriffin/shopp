@@ -300,7 +300,7 @@ class OrderTotalRegisters {
 	 * @param array $message The amount options
 	 * @return OrderTotalAmount An constructed OrderTotalAmount object
 	 **/
- 	static public function add ( OrderTotals $Totals, $register, array $options = array() ) {
+ 	static public function add ( $Totals, $register, $options = array() ) {
 		$RegisterClass = self::handler($register);
 
  		if ( false === $RegisterClass )

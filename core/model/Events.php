@@ -37,7 +37,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  		$Dispatch->handlers[$type] = $class;
  	}
 
- 	static function add ( $order, $type, array $message = array() ) {
+ 	static function add ( $order, $type, $message = array() ) {
  		$Dispatch = self::object();
 
  		if ( ! isset($Dispatch->handlers[ $type ]) )

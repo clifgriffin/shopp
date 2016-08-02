@@ -412,7 +412,7 @@ class ShoppShiprateService {
 	 * @param boolean $estimate Flag to be included/excluded from estimates
 	 * @return void
 	 **/
-	public function __construct ( array $rate, $estimate = true ) {
+	public function __construct ( $rate, $estimate = true ) {
 
 		if (!isset($rate['slug'])) // Fire off an error if the slug is not provided
 			return ( ! shopp_debug('A slug (string) value is required in the $rate array parameter when constructing a new ShoppShiprateService') );

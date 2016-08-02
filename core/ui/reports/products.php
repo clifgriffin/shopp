@@ -60,7 +60,7 @@ class ProductsReport extends ShoppReportFramework implements ShoppReport {
 
 	}
 
-	public function chartseries ( $label, array $options = array() ) {
+	public function chartseries ( $label, $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
 

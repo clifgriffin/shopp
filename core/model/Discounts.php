@@ -199,7 +199,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param ShoppOrderDiscount $Discount A discount object
 	 * @return void
 	 **/
-	private function items ( ShoppOrderPromo $Promo, ShoppOrderDiscount $Discount ) {
+	private function items ( $Promo, $Discount ) {
 		$Cart = ShoppOrder()->Cart;
 
 		$rules = $Promo->rules['item'];
@@ -261,7 +261,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param ShoppOrderPromo $Promo The promotion the code comes from
 	 * @return boolean True if successful, false otherwise
 	 **/
-	public function addcode ( $code, ShoppOrderPromo $Promo ) {
+	public function addcode ( $code, $Promo ) {
 
 		$code = trim(strtolower($code));
 		$request = strtolower($this->request());
@@ -561,7 +561,7 @@ class ShoppDiscountRule {
 	 * @param ShoppOrderPromo $Promo The originating promotion object for the rule
 	 * @return void
 	 **/
-	public function __construct ( array $rule, ShoppOrderPromo $Promo ) {
+	public function __construct ( $rule, $Promo ) {
 
 		$this->promo = $Promo;
 

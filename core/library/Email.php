@@ -1288,7 +1288,7 @@ class Emogrifier {
      * @param array $newStyles
      * @return string
      */
-    private function generateStyleStringFromDeclarationsArrays(array $oldStyles, array $newStyles) {
+    private function generateStyleStringFromDeclarationsArrays( $oldStyles, $newStyles) {
         $combinedStyles = array_merge($oldStyles, $newStyles);
         $style = '';
         foreach ($combinedStyles as $attributeName => $attributeValue) {
@@ -1305,7 +1305,7 @@ class Emogrifier {
      * @param \DOMDocument $xmlDocument
      * @return void
      */
-    public function copyCssWithMediaToStyleNode(array $cssParts, DOMDocument $xmlDocument) {
+    public function copyCssWithMediaToStyleNode( $cssParts, $xmlDocument) {
         if (isset($cssParts['media']) && $cssParts['media'] !== '') {
             $this->addStyleElementToDocument($xmlDocument, $cssParts['media']);
         }
@@ -1341,7 +1341,7 @@ class Emogrifier {
      * @param string $css
      * @return void
      */
-    private function addStyleElementToDocument(DOMDocument $document, $css) {
+    private function addStyleElementToDocument( $document, $css) {
         $styleElement = $document->createElement('style', $css);
         $styleAttribute = $document->createAttribute('type');
         $styleAttribute->value = 'text/css';
@@ -1465,7 +1465,7 @@ class Emogrifier {
      *
      * @return integer
      */
-    private function sortBySelectorPrecedence(array $a, array $b) {
+    private function sortBySelectorPrecedence( $a, $b) {
         $precedenceA = $this->getCssSelectorPrecedence($a['selector']);
         $precedenceB = $this->getCssSelectorPrecedence($b['selector']);
 

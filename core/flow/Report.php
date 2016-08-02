@@ -537,7 +537,7 @@ abstract class ShoppReportFramework {
 	 * @param array $formats The starting and ending date() formats
 	 * @return string Formatted week range label
 	 **/
-	static function weekrange ( $ts, array $formats = array('F j', 'F j Y') ) {
+	static function weekrange ( $ts, $formats = array('F j', 'F j Y') ) {
 		$weekday = date('w', $ts);
 		$startweek = $ts - ( $weekday * 86400 );
 		$endweek = $startweek + ( 6 * 86400 );
@@ -557,7 +557,7 @@ abstract class ShoppReportFramework {
 	 * @param array $options The options for this report
 	 * @return void
 	 **/
-	static function period ( $data, $column, $title, array $options ) {
+	static function period ( $data, $column, $title, $options ) {
 
 		if ( Shopp::__('Total') == $data->period ) { echo Shopp::__('Total'); return; }
 		if ( Shopp::__('Average') == $data->period ) { echo Shopp::__('Average'); return; }
@@ -985,7 +985,7 @@ abstract class ShoppReportFramework {
 	 * @param array $options The series settings (and possible the data)
 	 * @return void
 	 **/
-	protected function chartseries ( $label, array $options = array() ) {
+	protected function chartseries ( $label, $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		if ( isset($options['column']) ) $this->chartseries[] = $options['column'];	// Register the column to the data series index
 		$this->Chart->series($label, $options);										// Initialize the series in the chart
@@ -1129,7 +1129,7 @@ class ShoppReportChart {
 	 * @param array $options Associative array of setting options
 	 * @return void
 	 **/
-	public function series ( $label, array $options = array() ) {
+	public function series ( $label, $options = array() ) {
 		if ( count($this->data) > $this->options['series']['limit'] ) return;
 		$defaults = array(
 			'label' => $label,

@@ -1712,7 +1712,7 @@ function shopp_product_set_subscription ( $product = false, $settings = array() 
  * @return array variant Price objects that have been created on the product.
  *
  **/
-function shopp_product_set_variant_options ( $product = false, array $options = array(), $summary = 'save' ) {
+function shopp_product_set_variant_options ( $product = false, $options = array(), $summary = 'save' ) {
 	if ( ! $product || empty($options) ) {
 		shopp_debug(__FUNCTION__ . ' failed: Missing required parameters.');
 		return false;
