@@ -58,24 +58,24 @@ class ShoppTestMode extends GatewayFramework implements GatewayModule {
 		return true;
 	}
 
-	public function sale ( OrderEventMessage $Event ) {
+	public function sale ( $Event ) {
 		$this->handler('authed', $Event);
 		$this->handler('captured', $Event);
 	}
 
-	public function auth ( OrderEventMessage $Event ) {
+	public function auth ( $Event ) {
 		$this->handler('authed', $Event);
 	}
 
-	public function capture ( OrderEventMessage $Event ) {
+	public function capture ( $Event ) {
 		$this->handler('captured', $Event);
 	}
 
-	public function refund ( OrderEventMessage $Event ) {
+	public function refund ( $Event ) {
 		$this->handler('refunded', $Event);
 	}
 
-	public function void ( OrderEventMessage $Event ) {
+	public function void ( $Event ) {
 		$this->handler('voided', $Event);
 	}
 

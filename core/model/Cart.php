@@ -178,7 +178,7 @@ class ShoppCart extends ListFramework {
 	 * @param array $request The request to process
 	 * @return void
 	 **/
-	private function addrequest ( array $request ) {
+	private function addrequest ( $request ) {
 
 		$defaults = array(
 			'quantity' => 1,
@@ -438,7 +438,7 @@ class ShoppCart extends ListFramework {
 	 * @param int|CartItem $item The index of an item in the cart or a cart Item
 	 * @return boolean
 	 **/
-	public function xitemstock ( ShoppCartItem $Item ) {
+	public function xitemstock ( $Item ) {
 		if ( ! shopp_setting_enabled('inventory') || shopp_setting_enabled('backorders') ) return true;
 
 		// Build a cross-product map of the total quantity of ordered products to known stock levels
@@ -520,7 +520,7 @@ class ShoppCart extends ListFramework {
 	 * @param Item $NewItem The new Item object to look for
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
-	public function hasitem ( ShoppCartItem $NewItem ) {
+	public function hasitem ( $NewItem ) {
 		$fingerprint = $NewItem->fingerprint();
 		if ( $this->exists($fingerprint) )
 			return $fingerprint;
@@ -535,7 +535,7 @@ class ShoppCart extends ListFramework {
 	 *
 	 * @return void
 	 **/
-	public function processtime ( ShoppCartItem $Item ) {
+	public function processtime ( $Item ) {
 
 		if ( isset($Item->processing['min']) )
 			$this->processing['min'] = ShippingFramework::daytimes($this->processing['min'], $Item->processing['min']);
@@ -554,7 +554,7 @@ class ShoppCart extends ListFramework {
 	 * @param ShoppCartItem $Item The cart item from shopp_cart_item_retotal
 	 * @return void
 	 **/
-	public function itemtaxes ( ShoppCartItem $Item ) {
+	public function itemtaxes ( $Item ) {
 
 		$itemid = $Item->fingerprint();
 		if ( ! $this->exists($itemid) ) return;

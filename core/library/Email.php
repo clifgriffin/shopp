@@ -366,7 +366,7 @@ class TextifyTag {
 		return preg_replace('/\s+/', ' ', $text);
 	}
 
-	protected function renderer ( DOMElement $tag ) {
+	protected function renderer ( $tag ) {
 		if ( isset($tag->Renderer) ) {
 			$tag->Renderer->content = array();
 			return $tag->Renderer;
@@ -1317,7 +1317,7 @@ class Emogrifier {
      * @param \DOMXPath $xpath
      * @return string
      */
-    private function getCssFromAllStyleNodes(DOMXPath $xpath) {
+    private function getCssFromAllStyleNodes ( $xpath ) {
         $styleNodes = $xpath->query('//style');
 
         if ($styleNodes === FALSE) {
@@ -1357,7 +1357,7 @@ class Emogrifier {
      * @param \DOMDocument $document
      * @return \DOMNode the head element
      */
-    private function getOrCreateHeadElement(DOMDocument $document) {
+    private function getOrCreateHeadElement ( $document ) {
         $head = $document->getElementsByTagName('head')->item(0);
 
         if ($head === NULL) {
@@ -1581,7 +1581,7 @@ class Emogrifier {
      *
      * @return string
      */
-    private function matchIdAttributes(array $match) {
+    private function matchIdAttributes ( $match ) {
         return (strlen($match[1]) ? $match[1] : '*') . '[@id="' . $match[2] . '"]';
     }
 
@@ -1590,7 +1590,7 @@ class Emogrifier {
      *
      * @return string
      */
-    private function matchClassAttributes(array $match) {
+    private function matchClassAttributes ( $match ) {
         return (strlen($match[1]) ? $match[1] : '*') . '[contains(concat(" ",@class," "),concat(" ","' .
             implode(
                 '"," "))][contains(concat(" ",@class," "),concat(" ","',
@@ -1603,7 +1603,7 @@ class Emogrifier {
      *
      * @return string
      */
-    private function translateNthChild(array $match) {
+    private function translateNthChild ( $match ) {
         $result = $this->parseNth($match);
 
         if (isset($result[self::MULTIPLIER])) {
@@ -1623,7 +1623,7 @@ class Emogrifier {
      *
      * @return string
      */
-    private function translateNthOfType(array $match) {
+    private function translateNthOfType ( $match ) {
         $result = $this->parseNth($match);
 
         if (isset($result[self::MULTIPLIER])) {
@@ -1643,7 +1643,7 @@ class Emogrifier {
      *
      * @return array
      */
-    private function parseNth(array $match) {
+    private function parseNth ( $match ) {
         if (in_array(strtolower($match[2]), array('even','odd'))) {
             $index = strtolower($match[2]) == 'even' ? 0 : 1;
             return array(self::MULTIPLIER => 2, self::INDEX => $index);

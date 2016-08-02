@@ -195,7 +195,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp_query The WP_Query object (passed via parse_query action)
 	 * @return void
 	 **/
-	public function query ( WP_Query $wp_query ) {
+	public function query ( $wp_query ) {
 		if ( ! $this->request($wp_query) ) return;
 
 		$page	 	= $wp_query->get( ShoppPages::QUERYVAR );
@@ -295,7 +295,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp The main WP object from the 'wp' action
 	 * @return void
 	 **/
-	public function loaded ( WP $wp ) {
+	public function loaded ( $wp ) {
 		if ( ! is_shopp_product() ) return;
 
 		// Get the loaded object (a Shopp product post type)
@@ -319,7 +319,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp The main WP object from the 'wp' action
 	 * @return void
 	 **/
-	public function viewed ( WP $wp ) {
+	public function viewed ( $wp ) {
 
 		if ( ! is_shopp_product() ) return;
 		if ( in_array($this->Requested->id, $this->viewed) ) return;
@@ -338,7 +338,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param object $wp The main WP object from the 'wp' action
 	 * @return void
 	 **/
-	public function trackurl ( WP $wp ) {
+	public function trackurl ( $wp ) {
 
 		if ( ! is_shopp_catalog_page() || is_shopp_cart_page() ) return;
 
@@ -567,7 +567,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param array $headers The current WP HTTP headers
 	 * @return array Modified headers
 	 **/
-	public function nocache ( array $headers ) {
+	public function nocache ( $headers ) {
 		$headers = array_merge( $headers, wp_get_nocache_headers() );
 		return $headers;
 	}
@@ -811,7 +811,7 @@ class ShoppStorefront extends ShoppFlowController {
 	 * @param array $items Menu items from WordPress
 	 * @return array Shopp-enabled menu items
 	 **/
-	public function menulinks ( array $items ) {
+	public function menulinks ( $items ) {
 		foreach ( $items as &$item ) {
 			switch ( strtolower($item->type) ) {
 				case ShoppPages::QUERYVAR: $item->url = Shopp::url(false, $item->object); break;

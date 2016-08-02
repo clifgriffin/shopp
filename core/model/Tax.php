@@ -280,7 +280,7 @@ class ShoppTax {
 	 * @param ShoppCustomer	$Customer The session customer to use for Customer rule conditions
 	 * @return void
 	 **/
-	public function customer ( ShoppCustomer $Customer ) {
+	public function customer ( $Customer ) {
 		$this->Customer = $Customer;
 	}
 
@@ -553,7 +553,7 @@ class ShoppPurchaseTax {
 	public $rate = 0.00;					// Tax rate
 	public $amount = 0.00;					// The total amount of taxes
 
-	public function __construct ( OrderAmountTax $Tax ) {
+	public function __construct ( $Tax ) {
 
 		$this->id = $Tax->id();
 		$this->name = $Tax->label();

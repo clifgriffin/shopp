@@ -992,7 +992,7 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	 * @param ShoppCartItem $O The cart item to evaluate
 	 * @return bool True if inclusive taxes apply, false otherwise
 	 **/
-	private static function _inclusive_taxes ( ShoppCartItem $O ) {
+	private static function _inclusive_taxes ( $O ) {
 		return shopp_setting_enabled('tax_inclusive') && $O->includetax;
 	}
 

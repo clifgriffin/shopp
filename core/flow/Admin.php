@@ -242,7 +242,7 @@ class ShoppAdmin extends ShoppFlowController {
 	 * @param mixed $page A ShoppAdminPage object
 	 * @return void
 	 **/
-	private function submenus ( ShoppAdminPage $Page ) {
+	private function submenus ( $Page ) {
 
 		$Shopp    = Shopp::object();
 		$name     = $Page->name;
@@ -1156,7 +1156,7 @@ class ShoppAdminListTable extends WP_List_Table {
 
 	// public wrapper to set pagination
 	// @todo refactor this whole class to be used more effectively with Shopp MVC style UI
-	public function set_pagination ( array $args ) {
+	public function set_pagination ( $args ) {
 		$this->set_pagination_args($args);
 	}
 

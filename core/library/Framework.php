@@ -72,7 +72,7 @@ class ListFramework implements Iterator {
 	 * @param array $records The associative array to add
 	 * @return void
 	 **/
-	public function populate ( array $records ) {
+	public function populate ( $records ) {
 		$this->_list = array_merge($this->_list, $records);
 	}
 

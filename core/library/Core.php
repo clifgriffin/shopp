@@ -1495,7 +1495,7 @@ abstract class ShoppCore {
 	 * @return string _e translated string
 	 * @deprecated 1.3
 	 **/
-	public static function preg_e_callback ( array $matches ) {
+	public static function preg_e_callback ( $matches ) {
 		return ( 'e' == $matches[1] ) ? Shopp::__($matches[2]) : "'" . Shopp::__($matches[2]) . "'";
 	}
 

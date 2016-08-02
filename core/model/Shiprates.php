@@ -80,7 +80,7 @@ class ShoppShiprates extends ListFramework {
 	 * @param ShoppShippableItem $Item A ShoppShippableItem compatible item
 	 * @return void
 	 **/
-	public function item ( ShoppShippableItem $Item ) {
+	public function item ( $Item ) {
 
 		if ( ! $Item->shippable ) {
 			$this->takeoff($Item->id);
@@ -120,7 +120,7 @@ class ShoppShiprates extends ListFramework {
 	 *
 	 * @return float The shipping fee amount
 	 **/
-	public function fees ( ShoppShiprateService $Service ) {
+	public function fees ( $Service ) {
 		return (float) apply_filters('shopp_shipping_fees', shopp_setting('order_shipfee') + array_sum($this->fees), $Service, $this->fees );
 	}
 

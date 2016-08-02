@@ -165,7 +165,7 @@ class MarkdownText extends ArrayObject {
      * @throws \InvalidArgumentException
      * @return array
      */
-    public function setFilters(array $filters) {
+    public function setFilters ( $filters ) {
         $this->_filters = array();
 
         foreach ($filters as $key => $filter) {
@@ -227,7 +227,7 @@ class MarkdownText extends ArrayObject {
      * @param array $filters
      * @return Filter
      */
-    public static function setDefaultFilters(array $filters) {
+    public static function setDefaultFilters ( $filters ) {
         self::$_defaultFilters = $filters;
     }
 }
@@ -261,9 +261,9 @@ abstract class MarkdownFilter {
         'footer', 'nav', 'section', 'figure', 'figcaption'
     );
 
-    abstract public function filter(MarkdownText $text);
-    public function preFilter(MarkdownText $text) {}
-    public function postFilter(MarkdownText $text) {}
+    abstract public function filter ( $text );
+    public function preFilter ( $text ) {}
+    public function postFilter ( $text ) {}
 }
 
 class MarkdownLine implements ArrayAccess {
@@ -405,7 +405,7 @@ class MarkdownStack extends SplStack {
         return $text;
     }
 
-    public function addItem(array $lines) {
+    public function addItem ( $lines ) {
         $this->push($lines);
 
         return $this;
@@ -470,7 +470,7 @@ class MarkdownBlockquote extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         $stack = null;
 
         foreach($text as $no => $line) {
@@ -534,7 +534,7 @@ class MarkdownCode extends MarkdownFilter {
      *
      * @see \Markdown\MarkdownFilter::preMarkdownFilter()
      */
-    public function preMarkdownFilter(MarkdownText $text) {
+    public function preMarkdownFilter ( $text ) {
         foreach($text as $no => $line) {
             if ($line->isIndented()) {
                 $line->flags |= MarkdownLine::NOMARKDOWN + MarkdownLine::CODEBLOCK;
@@ -566,7 +566,7 @@ class MarkdownCode extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         $insideCodeBlock = false;
 
         foreach ($text as $no => $line) {
@@ -628,7 +628,7 @@ class MarkdownEmphasis extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach ($text as $no => $line) {
             if ($line->flags & MarkdownLine::NOMARKDOWN) {
                 continue;
@@ -686,7 +686,7 @@ class MarkdownEntities extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             // escape & outside of html entity
             $line->gist = preg_replace('/&(?!(?:#\d+|#x[a-fA-F0-9]+|\w+);)/uS', '&amp;', $line);
@@ -720,7 +720,7 @@ class MarkdownHeaderAtx extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             if ($line->flags & MarkdownLine::NOMARKDOWN) continue;
 
@@ -757,7 +757,7 @@ class MarkdownHeaderSetext extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             if ($no == 0) continue; // processing 1st line makes no sense
             if ($line->flags & MarkdownLine::NOMARKDOWN) continue;
@@ -801,7 +801,7 @@ class MarkdownHr extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             if ($line->flags & MarkdownLine::NOMARKDOWN) continue;
 
@@ -840,7 +840,7 @@ class MarkdownImg extends MarkdownLink {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         $this->_mark = '!';
         $this->_format = '<img src="%s"%s alt="%s" />';
 
@@ -870,7 +870,7 @@ class MarkdownLinebreak extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             if (substr($line, -2) === '  ') {
                 $line->gist = substr($line, 0, -2) . '<br />';
@@ -907,7 +907,7 @@ class MarkdownLink extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         $links = array();
         foreach($text as $no => $line) {
             if (preg_match('/^ {0,3}[!]?\[([\w ]+)\]:\s+<?(.+?)>?(\s+[\'"(].*?[\'")])?\s*$/uS', $line, $match)) {
@@ -1010,7 +1010,7 @@ abstract class MarkdownLists extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         $stack = new MarkdownStack();
 
 		$class = get_class($this); // @todo remove with PHP 5.3 requirement
@@ -1174,7 +1174,7 @@ class MarkdownParagraph extends MarkdownFilter {
      *
      * @see MarkdownFilter::preMarkdownFilter()
      */
-    public function preMarkdownFilter(MarkdownText $text) {
+    public function preMarkdownFilter ( $text ) {
         $ex = sprintf('/^<(%s)/iuS', implode('|', self::$_blockTags));
 
         $inHtml = false;
@@ -1206,7 +1206,7 @@ class MarkdownParagraph extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         // FIXME
         // code below flags HTML blocks again
         $ex = sprintf('/^<(%s)/iuS', implode('|', self::$_blockTags));
@@ -1273,7 +1273,7 @@ class MarkdownUnescape extends MarkdownFilter {
      * @param string $text
      * @return string $text
      */
-    public function filter(MarkdownText $text) {
+    public function filter ( $text ) {
         foreach($text as $no => $line) {
             $line->gist = preg_replace(
                 '/\\\\([' . preg_quote(implode('', self::$_escapableChars), '/') . '])/uS',

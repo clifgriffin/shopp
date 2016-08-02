@@ -207,7 +207,7 @@ class ShoppLogin {
 	/**
 	 * Helper to log a user into WordPress
 	 */
-	public static function wpuser ( WP_User $User ) {
+	public static function wpuser ( $User ) {
 		if ( ! is_a($User, 'WP_User') ) return false;
 
 		wp_set_auth_cookie($User->ID, false, is_ssl());

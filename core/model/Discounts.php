@@ -153,7 +153,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param float $discount The calculated discount amount
 	 * @return void
 	 **/
-	private function apply ( ShoppOrderPromo $Promo ) {
+	private function apply ( $Promo ) {
 
 		$exists = $this->exists($Promo->id);
 		$itemrules = isset($Promo->rules['item']);
@@ -185,7 +185,7 @@ class ShoppDiscounts extends ListFramework {
 
 	}
 
-	private function applied ( ShoppOrderPromo $Promo ) {
+	private function applied ( $Promo ) {
 		return $this->exists($Promo->id);
 	}
 
@@ -232,7 +232,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param ShoppOrderPromo $Promo A promotion object
 	 * @return void
 	 **/
-	private function applycode ( ShoppOrderPromo $Promo ) {
+	private function applycode ( $Promo ) {
 		$request = $this->request();
 
 		if ( empty($request) ) return; // Skip if there is no code request was made
@@ -322,7 +322,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param ShoppOrderPromo $Promo A promotion object
 	 * @return void
 	 **/
-	private function reset ( ShoppOrderPromo $Promo ) {
+	private function reset ( $Promo ) {
 		$this->undiscount((int)$Promo->id);
 	}
 
@@ -335,7 +335,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param ShoppOrderPromo $Promo A promotion object
 	 * @return boolean True if the max was reached, false otherwise
 	 **/
-	private function maxed ( ShoppOrderPromo $Promo ) {
+	private function maxed ( $Promo ) {
 
 		$promolimit = (int)shopp_setting('promo_limit');
 
@@ -467,7 +467,7 @@ class ShoppDiscounts extends ListFramework {
 	 * @param array $rule The rule to test
 	 * @return boolean
 	 **/
-	public function coderules ( array $rule ) {
+	public function coderules ( $rule ) {
 		return isset($rule['property']) && 'promo code' == strtolower($rule['property']);
 	}
 
@@ -905,7 +905,7 @@ class ShoppOrderDiscount {
 	 * @param ShoppOrderPromo $Promo The promotion object to convert
 	 * @return void
 	 **/
-	public function ShoppOrderPromo ( ShoppOrderPromo $Promo ) {
+	public function ShoppOrderPromo ( $Promo ) {
 		$this->id((int)$Promo->id);
 		$this->name($Promo->name);
 		$this->code($Promo->code);
@@ -1159,7 +1159,7 @@ class ShoppOrderDiscount {
 	 * @param ShoppCartItem $Item The item object to calculate a discount from
 	 * @return float The item discount amount
 	 **/
-	public function item ( ShoppCartItem $Item ) {
+	public function item ( $Item ) {
 
 		// These must result in the discount applied to the *unit price*!
 		switch ( $this->type ) {
@@ -1243,7 +1243,7 @@ class ShoppPurchaseDiscount {
 	public $code 		= false;				// The code associated with the discount
 	public $shipfree 	= false;				// A flag for free shipping
 
-	public function __construct ( ShoppOrderDiscount $Discount ) {
+	public function __construct ( $Discount ) {
 
 		$this->id 	= $Discount->id();
 		$this->name 	= $Discount->name();
