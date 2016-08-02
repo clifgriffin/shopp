@@ -147,7 +147,7 @@ abstract class ShoppCore {
 		$domain = 'Shopp';
 
 		// Fix edge case where directly loaded image server throws fatal
-		// error because WP functions are not available. Remove after mu-plugin. 		
+		// error because WP functions are not available. Remove after mu-plugin.
 		if ( ! function_exists('translate') ) return $text;
 
 		if ( is_null($context) ) $string = translate( $text, $domain );
@@ -1491,7 +1491,7 @@ abstract class ShoppCore {
 	 * @author John Dillick
 	 * @since 1.1
 	 *
-	 * @param array $matches preg matches array, $1 to be type and $2 to be string
+	 * @param array $matches preg matches array, expects $1 to be type and $2 to be string
 	 * @return string _e translated string
 	 * @deprecated 1.3
 	 **/
