@@ -221,7 +221,7 @@ class PostcodeMapping {
 	 *
 	 * @param ShoppAddress $Address
 	 */
-	public static function numericrange ( $Address ) {
+	public static function numericrange ( ShoppAddress $Address ) {
 		$postcode  = $Address->postcode;
 		$postcodes = Lookup::postcodes();
 		if ( ! isset($postcodes[$Address->country]) ) return;
