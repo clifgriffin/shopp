@@ -42,7 +42,7 @@ class InventoryReport extends ShoppReportFramework implements ShoppReport {
 		return $query;
 	}
 
-	function chartseries ( $label, $options = array() ) {
+	function chartseries ( $label, array $options = array() ) {
 
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);

@@ -1525,7 +1525,7 @@ if ( ! class_exists('nusoap_base') ) {
 
 
 		function connect($connection_timeout=0,$response_timeout=30){
-		  			  			  			  												$this->debug("connect connection_timeout $connection_timeout, $response_timeout, $this->scheme, $this->host, $this->port");
+		  			  			  			  												$this->debug("connect connection_timeout $connection_timeout, response_timeout $response_timeout, scheme $this->scheme, host $this->host, port $this->port");
 		  if ($this->io_method() == 'socket') {
 			if (!is_array($this->proxy)) {
 				$host = $this->host;

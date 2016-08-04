@@ -78,7 +78,7 @@ class ShoppCartItem {
 	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	public function __construct ( ShoppProduct $Product = null, $pricing = null, $category = false, $data = array(), $addons = array() ) {
+	public function __construct ( ShoppProduct $Product = null, $pricing = null, $category = false, array $data = array(), array $addons = array() ) {
 
 		$args = func_get_args();
 		if ( empty($args) ) return;
@@ -443,7 +443,7 @@ class ShoppCartItem {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	public function addons ( &$sum, $addons, $prices, $property = 'pricing' ) {
+	public function addons ( &$sum, array $addons, array $prices, $property = 'pricing' ) {
 
 		foreach ( $prices as $p )	{
 			if ( 'N/A' == $p->type || 'addon' != $p->context ) continue;

@@ -41,7 +41,7 @@ class PaymentTypesReport extends ShoppReportFramework implements ShoppReport {
 
 	}
 
-	function chartseries ( $label, $options = array() ) {
+	function chartseries ( $label, array $options = array() ) {
 		if ( ! $this->Chart ) $this->initchart();
 		extract($options);
 

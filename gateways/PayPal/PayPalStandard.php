@@ -259,7 +259,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return array The modified list of button tags
 	 **/
-	public function submit ( $tag = false, $options = array(), $attrs = array() ) {
+	public function submit ( $tag = false, array $options = array(), array $attrs = array() ) {
 		$tag[ $this->settings['label'] ] = '<input type="image" name="process" src="' . esc_url( $this->buttonurl() ) . '" class="checkout-button" ' . inputattrs($options, $attrs) . ' />';
 		return $tag;
 	}
@@ -272,7 +272,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string
 	 **/
-	public function confirm ( $tag = false, $options = array(), $O = null ) {
+	public function confirm ( $tag = false, array $options = array(), $O = null ) {
 		$attrs = array( 'title', 'class', 'value', 'disabled', 'tabindex', 'accesskey' );
 		return join( '', $this->submit( array(), $options, $attrs ) );
 	}
@@ -556,7 +556,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		return $this->format($_);
 	}
 
-	private function process ( $event, $Purchase ) {
+	private function process ( $event, ShoppPurchase $Purchase ) {
 
 		if ( ! $Purchase->lock() ) return false; // Only process order updates if this process can get a lock
 

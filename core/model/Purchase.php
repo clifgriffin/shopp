@@ -578,7 +578,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 
 	}
 
-	public function email ( $addressee, $address, $subject, $templates = array() ) {
+	public function email ( $addressee, $address, $subject, array $templates = array() ) {
 		global $is_IIS;
 
 		shopp_debug("ShoppPurchase::email(): $addressee,$address,$subject,"._object_r($templates));
@@ -629,7 +629,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @param array $ignores A list of properties to ignore
 	 * @return void
 	 **/
-	public function copydata ( $Object, $prefix = '', $ignores = array() ) {
+	public function copydata ( $Object, $prefix = '', array $ignores = array() ) {
 
 		$ignores = array_merge(array('_datatypes', '_table', '_key', '_lists', 'id', 'created', 'modified'), $ignores);
 

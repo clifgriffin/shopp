@@ -1267,7 +1267,7 @@ class ShoppProduct extends WPShoppObject {
 	 * @param string $status The status to set: publish, draft, trash
 	 * @return boolean
 	 **/
-	static function publishset ( $ids, $status ) {
+	static function publishset ( array $ids, $status ) {
 
 		if ( empty($ids) || ! is_array($ids) ) return false;
 		$settings = array('publish', 'draft', 'trash');
@@ -1407,7 +1407,7 @@ class Spec extends ShoppMetaObject {
 		$this->type    = 'spec';
 	}
 
-	public function updates ( $data, $ignores = array() ) {
+	public function updates ( array $data, array $ignores = array() ) {
 		parent::updates($data, $ignores);
 		if ( preg_match('/^.*?(\d+[\.\,\d]*).*$/', $this->value) )
 			$this->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/', '$1', $this->value);

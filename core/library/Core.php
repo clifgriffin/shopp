@@ -1030,7 +1030,7 @@ abstract class ShoppCore {
 	 * @param array $format (optional) The currency format to use for precision (defaults to the current base of operations)
 	 * @return float
 	 **/
-	public static function floatval ( $value, $round = true, $format = array() ) {
+	public static function floatval ( $value, $round = true, array $format = array() ) {
 		$format = ShoppCore::currency_format($format); // Use ShoppCore here instead of Shopp here
 		extract($format, EXTR_SKIP);
 
@@ -1113,7 +1113,7 @@ abstract class ShoppCore {
 	 * @param array $allowed (optional) Allowable attribute options for the element
 	 * @return string Attribute markup fragment
 	 **/
-	public static function inputattrs ( $options, $allowed = array() ) {
+	public static function inputattrs ( $options, array $allowed = array() ) {
 
 		if ( ! is_array($options) ) return '';
 		if ( empty($allowed) ) {
@@ -1351,7 +1351,7 @@ abstract class ShoppCore {
 	 * @param array $format The currency format to use
 	 * @return string The formatted amount
 	 **/
-	public static function money ( $amount, $format = array() ) {
+	public static function money ( $amount, array $format = array() ) {
 
 		$format = apply_filters('shopp_money_format', Shopp::currency_format($format) );
 		extract($format, EXTR_SKIP);
@@ -1730,7 +1730,7 @@ abstract class ShoppCore {
 	 * @param array $data The data to populate the template with
 	 * @return boolean True on success, false on failure
 	 **/
-	public static function email ( $template, $data = array() ) {
+	public static function email ( $template, array $data = array() ) {
 
 		$debug = defined('SHOPP_DEBUG_EMAIL') && SHOPP_DEBUG_EMAIL;
 

@@ -79,7 +79,7 @@ class MarkdownText extends ArrayObject {
      * @param array $filters   Optional filters instead of defaults.
      * @throws \InvalidArgumentException
      */
-    public function __construct($markdown = array(), $filters = null) {
+    public function __construct($markdown = array(), array $filters = null) {
         // break string by newlines, platform-independent
         if (is_string($markdown) || method_exists($markdown, '__toString')) {
             $markdown = explode("\n", (string) $markdown);
@@ -365,7 +365,7 @@ class MarkdownStack extends SplStack {
 
     protected $_paragraphs = false;
 
-    public function apply( $text, $tag) {
+    public function apply(MarkdownText $text, $tag) {
         $listOpened = false;
         $itemOpened = false;
 
@@ -411,7 +411,7 @@ class MarkdownStack extends SplStack {
         return $this;
     }
 
-    public function appendMarkdownLine( $line, $flags = 0) {
+    public function appendMarkdownLine(array $line, $flags = 0) {
         $item = $this->pop();
         $item += $line;
         $this->push($item);

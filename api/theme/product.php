@@ -2343,7 +2343,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 	 * @param boolean $taxoption The Theme API tax option given the the tag
 	 * @return array The minimum and maximum prices with or without taxes
 	 **/
-	private static function _taxes ( $O, $property, $taxoption = null ) {
+	private static function _taxes ( ShoppProduct $O, $property, $taxoption = null ) {
 		$min = 0; $max = 0;
 		$levels = array('min', 'max');
 		foreach ( $levels as $level )
@@ -2371,7 +2371,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 	 * @param array $taxrates A list of taxrates that apply to the product and amount
 	 * @return float The amount with tax added or tax excluded
 	 **/
-	private static function _taxed ( $amount, $O, $istaxed, $taxoption = null, $taxrates = array() ) {
+	private static function _taxed ( $amount, ShoppProduct $O, $istaxed, $taxoption = null, array $taxrates = array() ) {
 		if ( ! $istaxed ) return $amount;
 
 		if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);

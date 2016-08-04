@@ -226,7 +226,7 @@ class ShoppCart extends ListFramework {
 	 * @param array $request The update request
 	 * @return void
 	 **/
-	private function updates ( $item, $request ) {
+	private function updates ( $item, array $request ) {
 		$CartItem = $this->get($item);
 		if ( ! $CartItem ) return;
 		$defaults = array(
@@ -490,7 +490,7 @@ class ShoppCart extends ListFramework {
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
 	 * @return boolean
 	 **/
-	public function change ( $item, $product, $pricing, $addons = array() ) {
+	public function change ( $item, $product, $pricing, array $addons = array() ) {
 
 		// Don't change anything if everything is the same
 		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->priceline == $pricing) && empty($addons) )

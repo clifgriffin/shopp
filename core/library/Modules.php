@@ -526,7 +526,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function checkbox ( $column = 0, $attributes = array() ) {
+	public function checkbox ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
 			'label' => '',
 			'type' => 'checkbox',
@@ -561,7 +561,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function menu ( $column = 0, $attributes = array(), $options = array() ) {
+	public function menu ( $column = 0, array $attributes = array(), array $options = array() ) {
 		$defaults = array(
 			'label' => '',
 			'selected' => '',
@@ -599,7 +599,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function multimenu ( $column = 0, $attributes = array(), $options = array() ) {
+	public function multimenu ( $column = 0, array $attributes = array(), array $options = array() ) {
 
 		$defaults = array(
 			'label' => '',
@@ -649,7 +649,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function input ( $column = 0, $attributes = array() ) {
+	public function input ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
 			'type' => 'hidden',
 			'label' => '',
@@ -679,7 +679,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function text ( $column = 0, $attributes = array() ) {
+	public function text ( $column = 0, array $attributes = array() ) {
 		$attributes['type'] = 'text';
 		$this->input($column, $attributes);
 	}
@@ -695,7 +695,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function password ( $column = 0, $attributes = array() ) {
+	public function password ( $column = 0, array $attributes = array() ) {
 		$attributes['type'] = 'password';
 		$this->input($column, $attributes);
 	}
@@ -711,7 +711,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function hidden ( $column = 0, $attributes = array() ) {
+	public function hidden ( $column = 0, array $attributes = array() ) {
 		$attributes['type'] = 'hidden';
 		$this->input($column,$attributes);
 	}
@@ -727,7 +727,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function textarea ( $column = 0, $attributes = array() ) {
+	public function textarea ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
 			'label' => '',
 			'readonly' => false,
@@ -759,7 +759,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function button ( $column = 0, $attributes = array() ) {
+	public function button ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
 			'type'	    => 'button',
 			'label'	    => '',
@@ -789,7 +789,7 @@ class ModuleSettingsUI {
 	 *
 	 * @return void
 	 **/
-	public function p ( $column = 0, $attributes = array() ) {
+	public function p ( $column = 0, array $attributes = array() ) {
 		$defaults = array(
 			'id'	    => '',
 			'label'	    => '',

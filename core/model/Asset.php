@@ -421,7 +421,7 @@ class ImageAsset extends FileAsset {
 	 * @param array $args The parameters array
 	 * @return string The generated checksum
 	 **/
-	public static function checksum ( $id, $args ) {
+	public static function checksum ( $id, array $args ) {
 		$key = defined('SECRET_AUTH_KEY') && '' != SECRET_AUTH_KEY ? SECRET_AUTH_KEY : DB_PASSWORD;
 		array_unshift($args, $id);
 		$args = array_filter($args, array(__CLASS__, 'notempty'));

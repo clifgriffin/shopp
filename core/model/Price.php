@@ -167,7 +167,7 @@ class ShoppPrice extends ShoppDatabaseObject {
 	 * @param array $ignores A list of properties to ignore updating
 	 * @return void
 	 **/
-	public function updates ( $data, $ignores = array() ) {
+	public function updates ( array $data, array $ignores = array() ) {
 		parent::updates($data, $ignores);
 		do_action('shopp_price_updates');
 	}

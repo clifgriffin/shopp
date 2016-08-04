@@ -822,7 +822,7 @@ class ShoppUI {
 		return hash('crc32b', ABSPATH . ShoppVersion::release());
 	}
 
-	public static function button ( $button, $name, $options = array() ) {
+	public static function button ( $button, $name, array $options = array() ) {
 		$buttons = array(
 			'add'    => array('class' => 'add', 'title' => __('Add'), 'icon' => 'shoppui-plus', 'type' => 'submit'),
 			'delete' => array('class' => 'delete', 'title' => __('Delete'), 'icon' => 'shoppui-minus', 'type' => 'submit')
@@ -840,7 +840,7 @@ class ShoppUI {
 		return '<button type="' . $type . '" name="' . $name . '"' . inputattrs($options) . '><span class="' . $icon . '"><span class="hidden">' . $title . '</span></span></button>';
 	}
 
-	public static function template ( $ui, $data = array() ) {
+	public static function template ( $ui, array $data = array() ) {
 		$ui = str_replace(array_keys($data), $data, $ui);
 		return preg_replace('/\${[-\w]+}/', '', $ui);
 	}
@@ -1066,7 +1066,7 @@ class ShoppUI {
 	 * @param string $priority [optional]
 	 * @param array $args [optional]
 	 */
-	public static function addmetabox ( $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', $args = null ) {
+	public static function addmetabox ( $id, $title, $callback, $posttype, $context = 'advanced', $priority = 'default', array $args = null ) {
 		self::$metaboxes[ $id ] = $callback;
 		$args = (array) $args;
 		array_unshift($args, $id);

@@ -117,7 +117,7 @@ class ShoppTax {
 	 * @param Object $Item A taxable item object
 	 * @return array The list of applicable tax rates as ShoppItemTax entries for a given item
 	 **/
-	public function rates ( array &$rates, $Item = null  ) {
+	public function rates ( array &$rates, ShoppTaxableItem $Item = null  ) {
 
 		if ( isset($Item) ) $this->Item = $Item;
 		if ( ! is_array($rates) ) $rates = array();
@@ -192,7 +192,7 @@ class ShoppTax {
 	 * @param array $rules The list of tax rules to test
 	 * @return boolean True if the rules match enough to apply, false otherwise
 	 **/
-	protected function taxrules ( $rules, $logic ) {
+	protected function taxrules ( array $rules, $logic ) {
 		if ( empty($rules) ) return true;
 
 		$apply = false;
@@ -230,7 +230,7 @@ class ShoppTax {
 	 * @param boolean $shipped Flag if the order is shippable
 	 * @return array An associative array containing the country, zone and locale
 	 **/
-	public function address ( $Billing, $Shipping = null, $shipped = false ) {
+	public function address ( BillingAddress $Billing, ShippingAddress $Shipping = null, $shipped = false ) {
 		$Address = $Billing;
 		if ( $shipped && null !== $Shipping || shopp_setting_enabled('tax_destination') ) // @todo add setting for "Apply tax to the shipping address"
 			$Address = $Shipping;
