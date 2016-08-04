@@ -737,7 +737,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	 * @param Product $Product
 	 * @return void
 	 **/
-	public function save ( $Product ) {
+	public function save ( ShoppProduct $Product ) {
 		check_admin_referer('shopp-save-product');
 
 		if ( ! current_user_can('shopp_products') )

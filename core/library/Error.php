@@ -100,7 +100,7 @@ class ShoppErrors {
 	 * @param ShoppError $ShoppError The ShoppError object to add
 	 * @return void
 	 **/
-	public function add ( $ShoppError ) {
+	public function add ( ShoppError $ShoppError ) {
 		if ( isset($ShoppError->code) ) $this->errors[ $ShoppError->code ] = $ShoppError;
 		else $this->errors[] = $ShoppError;
 
@@ -203,7 +203,7 @@ class ShoppErrors {
 	 * @param ShoppError $error The ShoppError object to remove
 	 * @return boolean True when removed, false if removal failed
 	 **/
-	public function remove ( $Error ) {
+	public function remove ( ShoppError $Error ) {
 		if ( ! isset($this->errors[ $Error->code ]) ) return false;
 		$this->errors[ $Error->code ]->remove = true;
 		return true;

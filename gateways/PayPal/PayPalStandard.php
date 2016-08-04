@@ -100,7 +100,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param Purchase $Purchase The purchase order to process a sale for
 	 * @return void
 	 **/
-	public function sale ( $Purchase ) {
+	public function sale ( ShoppPurchase $Purchase ) {
 
 		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'notify' ) );
 		add_action( 'shopp_authed_order_event', array( ShoppOrder(), 'accounts' ) );
@@ -124,7 +124,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param AuthOrderEvent|SaleOrderEvent $Event The 'auth' event message
 	 * @return void
 	 **/
-	public function auth ( $Event ) {
+	public function auth ( OrderEventMessage $Event ) {
 
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
@@ -180,7 +180,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param CaptureOrderEvent $Event The 'capture' event message
 	 * @return void
 	 **/
-	public function capture ( $Event ) {
+	public function capture ( CaptureOrderEvent $Event ) {
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
@@ -209,7 +209,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param RefundOrderEvent $Event The 'refund' order event message
 	 * @return void
 	 **/
-	public function refund ( $Event ) {
+	public function refund ( RefundOrderEvent $Event ) {
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
@@ -238,7 +238,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param OrderEventMessage $Event A RefundOrderEvent or VoidOrderEvent message
 	 * @return void
 	 **/
-	public function void ( $Event ) {
+	public function void ( OrderEventMessage $Event ) {
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
@@ -345,7 +345,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string PayPal cart form
 	 **/
-	public function uploadcart ( $Purchase ) {
+	public function uploadcart ( ShoppPurchase $Purchase ) {
 		$id = sanitize_key( $this->module );
 		$title = Shopp::__( 'Sending order to PayPal&hellip;' );
 		$message = '<form id="' . $id . '" action="' . $this->url() . '" method="POST">' .
@@ -370,7 +370,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 	 * @param ShoppPurchase $Purchase The order to submit to PayPal
 	 * @return string PayPal order form contents
 	 **/
-	public function form ( $Purchase ) {
+	public function form ( ShoppPurchase $Purchase ) {
 		$Shopping = ShoppShopping();
 		$Order = ShoppOrder();
 		$Cart = $Order->Cart;
@@ -953,7 +953,7 @@ class ShoppPayPalStandardMessage {
 	protected static $reversals   = array();
 	protected static $types       = array();
 
-	public function __construct ( $data ) {
+	public function __construct ( array $data ) {
 
 		$data = array_map('rawurldecode', $data);
 

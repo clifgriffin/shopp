@@ -294,7 +294,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function invoice ( $Purchase ) {
+	public function invoice ( ShoppPurchase $Purchase ) {
 		shopp_add_order_event($Purchase->id, 'invoiced', array(
 			'gateway' => $Purchase->gateway,			// Gateway handler name (module name from @subpackage)
 			'amount'  => $Purchase->total				// Capture of entire order amount
@@ -309,7 +309,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	function unstock ( $Event ) {
+	function unstock ( AuthedOrderEvent $Event ) {
 		if ( ! shopp_setting_enabled('inventory') ) return false;
 
 		$Purchase = ShoppPurchase();
@@ -457,7 +457,7 @@ class ShoppOrder {
 	 *
 	 * @return void
 	 **/
-	public function purchase ( $Event ) {
+	public function purchase ( PurchaseOrderEvent $Event ) {
 
 		$Shopping = ShoppShopping();
 		$changed  = $this->changed();
@@ -583,7 +583,7 @@ class ShoppOrder {
 		$this->checksum = $this->Cart->checksum;	// Track the cart contents checksum to detect changes.
 	}
 
-	public function meta ( $Purchase ) {
+	public function meta ( ShoppPurchase $Purchase ) {
 		// Save the discounts applied
 		if ( $this->Discounts->count() > 0 )
 			$Purchase->discounts($this->Discounts);

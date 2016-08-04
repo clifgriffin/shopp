@@ -37,7 +37,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 		return array($this, 'submit');
 	}
 
-	public function form ( $Purchase ) {
+	public function form ( ShoppPurchase $Purchase ) {
 
 		$purchasetable = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 
@@ -124,7 +124,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 	 *
 	 * @return string PayPal cart form
 	 **/
-	public function submit ( $Purchase ) {
+	public function submit ( ShoppPurchase $Purchase ) {
 		$id = sanitize_key( $this->module );
 		$title = Shopp::__( 'Sending order to 2Checkout&hellip;' );
 		$message = '<form id="' . $id . '" action="' . self::LIVEURL . '" method="POST">' .
@@ -203,7 +203,7 @@ class Shopp2Checkout extends GatewayFramework implements GatewayModule {
 		Shopp::redirect( Shopp::url(false, 'thanks', false) );
 	}
 
-	public function authed ( $Order ) {
+	public function authed ( ShoppPurchase $Order ) {
 
 		$Paymethod = $this->Order->paymethod();
 		$Billing = $this->Order->Billing;

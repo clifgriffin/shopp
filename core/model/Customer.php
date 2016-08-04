@@ -492,7 +492,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 	 *
 	 * @return bool
 	 */
-	public function has_downloads ( $options ) {
+	public function has_downloads ( array $options ) {
 		$this->load_downloads($options);
 		return ( ! empty($this->downloads) );
 	}

@@ -313,7 +313,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 		return false;
 	}
 
-	public static function unstock ( $Event ) {
+	public static function unstock ( UnstockOrderEvent $Event ) {
 		if ( empty($Event->order) ) return shopp_debug('Can not unstock. No event order.');
 
 		$Purchase = $Event->order();

@@ -1234,7 +1234,7 @@ abstract class ShoppReportExportFramework {
 	public $set          = 0;
 	public $limit        = 1024;
 
-	public function __construct ( $Report ) {
+	public function __construct ( ShoppReportFramework $Report ) {
 
 		$this->ReportClass = get_class($Report);
 		$this->options     = $Report->options;
@@ -1410,7 +1410,7 @@ abstract class ShoppReportExportFramework {
  **/
 class ShoppReportTabExport extends ShoppReportExportFramework {
 
-	public function __construct ( $Report ) {
+	public function __construct( ShoppReportFramework $Report ) {
 		parent::__construct( $Report );
 		$this->output();
 	}
@@ -1428,7 +1428,7 @@ class ShoppReportTabExport extends ShoppReportExportFramework {
  **/
 class ShoppReportCSVExport extends ShoppReportExportFramework {
 
-	public function __construct ( $Report ) {
+	public function __construct ( ShoppReportFramework $Report ) {
 		parent::__construct($Report);
 		$this->content_type = "text/csv; charset=UTF-8";
 		$this->extension = "csv";

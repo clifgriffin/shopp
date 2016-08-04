@@ -1273,7 +1273,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @param array $data The prepared data
 	 * @return string The query fragment of column value updates
 	 **/
-	public static function dataset ( $data ) {
+	public static function dataset ( array $data ) {
 		$sets = array();
 		foreach ( $data as $property => $value )
 			$sets[] = "$property=$value";

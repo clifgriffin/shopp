@@ -279,7 +279,7 @@ abstract class GatewayFramework {
 	 * @param array $data Key/value pairs of data to encode
 	 * @return string
 	 **/
-	public function encode ( $data ) {
+	public function encode ( array $data ) {
 		$data = stripslashes_deep($data);
 		return http_build_query($data);
 	}
@@ -293,7 +293,7 @@ abstract class GatewayFramework {
 	 * @param array $data Key/value pairs of data to format into form elements
 	 * @return string
 	 **/
-	public function format ( $data ) {
+	public function format ( array $data ) {
 		$query = '';
 		foreach( $data as $key => $value ) {
 			if ( is_array($value) ) {
@@ -390,7 +390,7 @@ abstract class GatewayFramework {
 		return preg_replace('/[^\x20-\x7F]/', '', $string);
 	}
 
-	public function cancelorder ( $Refunded ) {
+	public function cancelorder ( RefundedOrderEvent $Refunded ) {
 		$order = $Refunded->order;
 		$Purchase = new ShoppPurchase($order);
 		if ( $Refunded->amount != $Purchase->total ) return;
@@ -780,7 +780,7 @@ class ShoppFreeOrder extends GatewayFramework {
 		add_action('shopp_freeorder_void', array($this, 'void'));
 	}
 
-	public function capture ( $Event ) {
+	public function capture ( OrderEventMessage $Event ) {
 		shopp_add_order_event($Event->order, 'captured', array(
 			'txnid'     => time(),
 			'fees'      => 0,
@@ -792,7 +792,7 @@ class ShoppFreeOrder extends GatewayFramework {
 		));
 	}
 
-	public function void ( $Event ) {
+	public function void ( OrderEventMessage $Event ) {
 		$Purchase = new ShoppPurchase($Event->order);
 		shopp_add_order_event($Purchase->id, 'voided', array(
 			'txnorigin' => $Purchase->txnid,	// Original transaction ID (txnid of original Purchase record)

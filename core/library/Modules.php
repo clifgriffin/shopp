@@ -100,7 +100,7 @@ abstract class ModuleLoader {
 
 	}
 
-	protected function interfaces ( $Module ) {
+	protected function interfaces ( ModuleFile $Module ) {
 		return $Module->interface == $this->interface;
 	}
 

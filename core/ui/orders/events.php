@@ -35,7 +35,7 @@ class OrderEventRenderer {
 	 *
 	 * @return void
 	 **/
-	function __construct ( $Event ) {
+	function __construct ( OrderEventMessage $Event ) {
 		$this->Event = $Event;
 		$this->load();
 	}
@@ -57,14 +57,14 @@ class OrderEventRenderer {
 
 	}
 
-	static function renderer ( $Event ) {
+	static function renderer ( OrderEventMessage $Event ) {
 		$Renderer = get_class($Event) . 'Renderer';
 		if ( ! class_exists($Renderer) ) $Renderer = __CLASS__;
 
 		return new $Renderer($Event);
 	}
 
-	static function display ( $Event ) {
+	static function display ( OrderEventMessage $Event ) {
 		$UI = self::renderer($Event);
 		$UI->render();
 	}
@@ -154,7 +154,7 @@ class TxnOrderEventRenderer extends OrderEventRenderer {
 	var $credit = false;
 	var $debit  = false;
 
-	function __construct ( $Event ) {
+	function __construct ( OrderEventMessage $Event ) {
 		parent::__construct($Event);
 
 		if ( isset($Event->transactional) ) {

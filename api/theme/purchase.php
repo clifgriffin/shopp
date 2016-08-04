@@ -1629,7 +1629,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 * @param ShoppPurchase $O       The working object
 	 * @return void
 	 **/
-	private static function _inclusive_taxes ( $O ) {
+	private static function _inclusive_taxes ( ShoppPurchase $O ) {
 		return ( 'inclusive' == $O->taxing );
 	}
 

@@ -156,7 +156,7 @@ final class ShoppFlow {
 	 * @param array $request The resource request to process
 	 * @return void
 	 **/
-	public function resources ( $request ) {
+	public function resources ( array $request ) {
 		$this->Controller = new ShoppResources( $request );
 	}
 

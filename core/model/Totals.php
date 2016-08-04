@@ -42,7 +42,7 @@ class OrderTotals extends ListFramework {
 	 * @param OrderTotalAmount $Entry A new OrderTotalAmount class entry object
 	 * @return void
 	 **/
-	public function register ( $Entry ) {
+	public function register ( OrderTotalAmount $Entry ) {
 		$register = $Entry->register($this);
 
 		if ( ! isset($this->register[ $register ]) ) $this->register[ $register ] = array();
@@ -358,7 +358,7 @@ abstract class OrderTotalAmount {
 	 * @param array $options An associative array to define construction of the object state
 	 * @return void
 	 **/
-	protected function populate ( $options ) {
+	protected function populate ( array $options ) {
 		foreach ($options as $name => $value)
 			if ( isset($this->$name) ) $this->$name = $value;
 	}
@@ -386,7 +386,7 @@ abstract class OrderTotalAmount {
 	 * @param OrderTotals $OrderTotals The OrderTotals parent controller
 	 * @return string The totals "register" this object will belong to
 	 **/
-	public function register ( $OrderTotals ) {
+	public function register ( OrderTotals $OrderTotals ) {
 		$this->parent = $OrderTotals;
 		$class = get_class($this);
 
@@ -407,7 +407,7 @@ abstract class OrderTotalAmount {
 	 * @param OrderTotalAmount $OrderTotalAmount The OrderTotalAmount object to update
 	 * @return void
 	 **/
-	public function update ( $OrderTotalAmount ) {
+	public function update ( OrderTotalAmount $OrderTotalAmount ) {
 		$this->amount( $OrderTotalAmount->amount() );
 	}
 
@@ -600,7 +600,7 @@ class OrderAmountCartItem extends OrderAmountDebit {
 	 * @param ShoppCartItem $Item The Cart Item to construct from
 	 * @return void
 	 **/
-	public function __construct ( $Item ) {
+	public function __construct ( ShoppCartItem $Item ) {
 		$this->unit = &$Item->unitprice;
 		$this->amount = &$Item->total;
 		$this->id = $Item->fingerprint();
@@ -634,7 +634,7 @@ class OrderAmountItemDiscounts extends OrderAmountDebit {
 	 * @param ShoppCartItem $Item The Cart Item to construct from
 	 * @return void
 	 **/
-	public function __construct ( $Discount ) {
+	public function __construct ( ShoppOrderDiscount $Discount ) {
 		$this->amount = $Discount->amount();
 		$this->id = $Discount->promo;
 	}
@@ -718,7 +718,7 @@ class OrderAmountItemTax extends OrderAmountTax {
 		else $this->amount();		// Recalculate total tax amount
 	}
 
-	public function update ( $Updates ) {
+	public function update ( OrderTotalAmount $Updates ) {
 		$this->items( $Updates->items() );
 		$this->amount();
 	}
@@ -790,7 +790,7 @@ OrderTotalRegisters::register('OrderAmountShippingTax');
 class OrderAmountCartItemQuantity extends OrderTotalAmount {
 	static public $register = 'quantity';
 
-	public function __construct ( $Item ) {
+	public function __construct ( ShoppCartItem $Item ) {
 		$this->amount = &$Item->quantity;
 		$this->id = $Item->fingerprint();
 	}
