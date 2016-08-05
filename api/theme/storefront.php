@@ -1743,7 +1743,7 @@ class ShoppCategoryWalker extends Walker {
 		$smartcollection = $category->taxonomy == get_class_property( 'SmartCollection', 'taxon');
 		$categoryname = $category->name;
 
-        $href = shopp($category, 'get-url');
+        $href = get_term_link($category);
 
 		$classes = '';
 		if ( 'list' == $args['style'] ) {
