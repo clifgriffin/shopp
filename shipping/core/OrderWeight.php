@@ -7,7 +7,7 @@
  * @author Jonathan Davis
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
- * @version 1.2
+ * @version 1.2.1
  * @since 1.2
  *
  **/
@@ -32,7 +32,7 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 
 	public function calculate ( &$options, $Order ) {
 
-		foreach ($this->methods as $slug => $method) {
+		foreach ( $this->methods as $slug => $method ) {
 
 			$tiers = isset($method['table']) ? $this->tablerate($method['table']) : false;
 			if ( false === $tiers ) continue; // Skip methods that don't match at all
@@ -40,25 +40,26 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 			$amount = 0;
 			$matched = false;
 			$tiers = array_reverse($tiers);
-			
+
 			foreach ( $tiers as $tier ) {
 				extract($tier);
 				$amount = Shopp::floatval($rate);			// Capture the rate amount
-				
+				$threshold = Shopp::floatval($threshold);		// Convert to float so comparison is correct
+
 				if ( $this->weight >= $threshold ) {
 					$matched = true;
-					break;	
-				} 
+					break;
+				}
 			}
-			
+
 			if ( ! $matched ) return $options;
 
 			$rate = array(
-				'slug' => $slug,
-				'name' => $method['label'],
-				'amount' => $amount,
+				'slug'     => $slug,
+				'name'     => $method['label'],
+				'amount'   => $amount,
 				'delivery' => $this->delivery($method),
-				'items' => false
+				'items'    => false
 			);
 
 			$options[ $slug ] = new ShippingOption($rate);
@@ -73,8 +74,8 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 		$this->setup('table');
 
 		$this->ui->tablerates(0, array(
-			'unit' => array(Shopp::__('Weight'), shopp_setting('weight_unit')),
-			'table' => $this->settings['table'],
+			'unit'       => array(Shopp::__('Weight'), shopp_setting('weight_unit')),
+			'table'      => $this->settings['table'],
 			'rate_class' => 'money'
 		));
 

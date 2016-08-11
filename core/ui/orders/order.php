@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php printf(__('Order #%d','Shopp'),(int)$Purchase->id); ?></h2>
+	<h2><?php Shopp::_e('Order #%d', (int)$Purchase->id); ?></h2>
 
 	<?php $this->notices(); ?>
 
@@ -12,18 +12,18 @@
 		<form action="<?php echo ShoppAdminController::url( array('id' => $Purchase->id) ); ?>" method="post" id="order-updates">
 			<div class="title">
 				<div id="titlewrap">
-					<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small>
+					<span class="date"><?php echo Shopp::_d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'), $Purchase->created); ?></small>
 
 					<div class="alignright">
 
 						<?php if ($Purchase->shipped): ?>
-						<div class="stamp shipped<?php if ($Purchase->isvoid()) echo ' void'; ?>"><div class="type"><?php _e('Shipped','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<div class="stamp shipped<?php if ($Purchase->isvoid()) echo ' void'; ?>"><div class="type"><?php Shopp::_e('Shipped'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php endif; ?>
 
 						<?php if ( $Purchase->ispaid() && ! $Purchase->isvoid() ): ?>
-						<div class="stamp paid"><div class="type"><?php _e('Paid','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<div class="stamp paid"><div class="type"><?php Shopp::_e('Paid'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php elseif ($Purchase->isvoid()): ?>
-						<div class="stamp void"><div class="type"><?php _e('Void','Shopp'); ?></div><div class="ing">&nbsp;</div></div>
+						<div class="stamp void"><div class="type"><?php Shopp::_e('Void'); ?></div><div class="ing">&nbsp;</div></div>
 						<?php endif; ?>
 
 					</div>
@@ -56,7 +56,7 @@
 								<input type="text" name="name" value="${itemname}" size="40" />
 								<div class="controls">
 								<input type="hidden" name="lineid" value="${lineid}"/>
-								<input type="submit" name="cancel-edit-item" value="<?php _e('Cancel','Shopp'); ?>" class="button-secondary" />
+								<input type="submit" name="cancel-edit-item" value="<?php _e('Cancel'); ?>" class="button-secondary" />
 								</div>
 								</td>
 							<?php
@@ -79,7 +79,7 @@
 							<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
 								<input type="text" name="total" value="${total}" size="10" class="focus-edit" />
 								<div class="controls">
-								<input type="submit" name="save-item" value="<?php _e('Save Changes','Shopp'); ?>" class="button-primary alignright" />
+								<input type="submit" name="save-item" value="<?php _e('Save Changes'); ?>" class="button-primary alignright" />
 								</div>
 							</td>
 							<?php
@@ -103,12 +103,12 @@
 				<tfoot>
 				<?php $colspan = count(get_column_headers($this->screen))-1; ?>
 				<tr class="totals">
-					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php _e('Subtotal','Shopp'); ?></td>
+					<td scope="row" colspan="<?php echo ($colspan); ?>" class="label"><?php Shopp::_e('Subtotal'); ?></td>
 					<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 				</tr>
 				<?php if ( $Purchase->discounts() ): ?>
 				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Discount','Shopp'); ?></td>
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php Shopp::_e('Discount'); ?></td>
 					<td class="money"><?php echo money($Purchase->discount); ?>
 						<?php if ( $Purchase->discounts() ): ?>
 						<ul class="promos">
@@ -122,18 +122,18 @@
 				<?php endif; ?>
 				<?php if ( ! empty($Purchase->shipoption) ): ?>
 				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php _e('Shipping','Shopp'); ?></td>
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label shipping"><span class="method"><?php echo apply_filters('shopp_order_manager_shipping_method',$Purchase->shipoption); ?></span> <?php Shopp::_e('Shipping'); ?></td>
 					<td class="money"><?php echo money($Purchase->freight); ?></td>
 				</tr>
 				<?php endif; ?>
 				<?php if ($Purchase->tax > 0): ?>
 				<tr class="totals">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Tax','Shopp'); ?></td>
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php Shopp::_e('Tax'); ?></td>
 					<td class="money"><?php echo money($Purchase->tax); ?></td>
 				</tr>
 				<?php endif; ?>
 				<tr class="totals total">
-					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php _e('Total','Shopp'); ?></td>
+					<td scope="row" colspan="<?php echo $colspan; ?>" class="label"><?php Shopp::_e('Total'); ?></td>
 					<td class="money"><?php echo money($Purchase->total); ?></td>
 				</tr>
 				</tfoot>
@@ -175,12 +175,12 @@
 								switch ( $column ) {
 									case 'items':
 									ShoppProduct( new ShoppProduct($Item->product) ); // @todo Find a way to make this more efficient by loading product slugs with load_purchased()?
-									$viewurl = shopp('product.get-url');
-									$editurl = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=> $id) );
-									$rmvurl = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=> $id) );
+									$viewurl    = shopp('product.get-url');
+									$editurl    = ShoppAdminController::url( array('id' => $Purchase->id, 'editline'=> $id) );
+									$rmvurl     = ShoppAdminController::url( array('id' => $Purchase->id, 'rmvline'=> $id) );
 									$producturl = add_query_arg( array('page' => 'shopp-products', 'id' => $Item->product), admin_url('admin.php') );
 										?>
-											<td class="<?php echo esc_attr(join(' ',$classes)); ?>">
+											<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
 												<a href="<?php echo $producturl; ?>">
 	                                                <?php
 	                                                $Product = new ShoppProduct($Item->product);
@@ -195,31 +195,34 @@
 	                                                echo apply_filters('shopp_purchased_item_name', $itemname, $Item); ?>
 	                                            </a>
 												<div class="row-actions">
-													<!-- <span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-													<span class='delete'><a href="<?php echo $rmvurl; ?>" title="<?php echo esc_attr(sprintf(__('Remove %s from the order','Shopp'), "&quot;$Item->name&quot;")); ?>" class="delete"><?php _e('Remove','Shopp'); ?></a> | </span> -->
-													<span class='view'><a href="<?php echo $viewurl;  ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+													<span class='view'><a href="<?php echo $viewurl;  ?>" title="<?php Shopp::_e('View'); ?> &quot;<?php echo esc_attr($Item->name); ?>&quot;" target="_blank"><?php Shopp::_e('View'); ?></a></span>
 												</div>
 
 												<?php if ( (is_array($Item->data) && ! empty($Item->data))  || ! empty($Item->sku) || (! empty($Item->addons) && 'no' != $Item->addons) ): ?>
-												<ul>
-												<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
+													<ul>
+														<?php if ( ! empty($Item->sku)): ?><li><small><?php Shopp::_e('SKU'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
 
-												<?php if ( isset($Item->addons) && isset($Item->addons->meta) ): ?>
-													<?php foreach ( (array)$Item->addons->meta as $id => $addon ):
-														if ( "inclusive" != $Purchase->taxing )
-															$addonprice = $addon->value->unitprice + ( $addon->value->unitprice * $taxrate );
-														else $addonprice = $addon->value->unitprice;
+														<?php if ( isset($Item->addons) && isset($Item->addons->meta) ): ?>
 
-														?>
-														<li><small><?php echo apply_filters('shopp_purchased_addon_name', $addon->name); ?><?php if ( ! empty($addon->value->sku) ) echo apply_filters('shopp_purchased_addon_sku',' [SKU: ' . $addon->value->sku . ']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice', money($addonprice)); ?></strong></small></li>
-													<?php endforeach; ?>
-												<?php endif; ?>
-												<?php foreach ( (array)$Item->data as $name => $value ): ?>
-													<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
-												<?php endforeach; ?>
+															<?php foreach ( (array)$Item->addons->meta as $id => $addon ):
+
+																if ( 'inclusive' != $Purchase->taxing )
+																	$addonprice  = $addon->value->unitprice + ( $addon->value->unitprice * $taxrate );
+																else $addonprice = $addon->value->unitprice;
+
+															?>
+																<li><small><?php echo apply_filters('shopp_purchased_addon_name', $addon->name); ?><?php if ( ! empty($addon->value->sku) ) echo apply_filters('shopp_purchased_addon_sku',' [SKU: ' . $addon->value->sku . ']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice', money($addonprice)); ?></strong></small></li>
+
+															<?php endforeach; ?>
+
+														<?php endif; ?>
+
+														<?php foreach ( (array)$Item->data as $name => $value ): ?>
+															<li><small><?php echo apply_filters('shopp_purchased_data_name', $name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value', $value, $name); ?></strong></small></li>
+														<?php endforeach; ?>
+													</ul>
 												<?php endif; ?>
 												<?php do_action_ref_array('shopp_after_purchased_data', array($Item, $Purchase)); ?>
-												</ul>
 											</td>
 										<?php
 										break;
@@ -267,28 +270,28 @@
 
 			<div id="poststuff" class="poststuff">
 
-			<div class="meta-boxes">
+				<div class="meta-boxes">
 
-				<div id="column-one" class="column left-column">
-					<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
-				</div>
-				<div id="main-column">
-					<div id="column-two" class="column right-column">
-						<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
+					<div id="column-one" class="column left-column">
+						<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase); ?>
 					</div>
+					<div id="main-column">
+						<div id="column-two" class="column right-column">
+							<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase); ?>
+						</div>
+					</div>
+					<br class="clear" />
 				</div>
-				<br class="clear" />
-			</div>
 
-			<?php wp_nonce_field('shopp-save-order'); ?>
-			<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
-			<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
+				<?php wp_nonce_field('shopp-save-order'); ?>
+				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
+				<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 			</div>
 	</div> <!-- #order -->
 
 </div>
 
-<iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
+<iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php') . '?action=shopp_order_receipt&amp;id=' . $Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
 /* <![CDATA[ */

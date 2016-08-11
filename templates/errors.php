@@ -12,7 +12,7 @@
 ?>
 
 <div class="shopp shopp-errors">
-	<h3><?php _e( 'Errors', 'Shopp' ); ?></h3>
+	<h3><?php Shopp::_e( 'Notification' ); ?></h3>
 	<ul>
 		<?php shopp( 'storefront.errors' ); ?>
 	</ul>

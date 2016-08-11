@@ -90,7 +90,7 @@ function ShoppCartAjaxHandler ( cart, response ) {
 		label = ' ('+Item.option.label+')';
 
 	if (Item.image)
-		$('<p><img src="'+cart.imguri+cart.Item.image.id+'" alt="" width="96"  height="96" /></p>').appendTo(item);
+		$('<p><img src="'+cart.imguri+'" alt="" width="96"  height="96" /></p>').appendTo(item);
 	$('<p />').html('<strong>'+Item.name+'</strong>'+label).appendTo(item);
 
 	$('<p />').html(asMoney(new Number(Item.unitprice))).appendTo(item);

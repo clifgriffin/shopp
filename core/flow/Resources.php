@@ -75,7 +75,6 @@ class ShoppResources {
 
 		switch ( $format ) {
 			case 'csv': new PurchasesCSVExport(); break;
-			case 'xls': new PurchasesXLSExport(); break;
 			case 'iif': new PurchasesIIFExport(); break;
 			default: new PurchasesTabExport();
 		}
@@ -108,7 +107,6 @@ class ShoppResources {
 
 		switch ( $format ) {
 			case 'csv': new ShoppReportCSVExport($Report); break;
-			case 'xls': new ShoppReportXLSExport($Report); break;
 			default: new ShoppReportTabExport($Report);
 		}
 		exit();
@@ -141,8 +139,7 @@ class ShoppResources {
 		if (empty($format)) $format = 'tab';
 
 		switch ( $format ) {
-			case 'csv': new CustomersCSVExport(); break;
-			case 'xls': new CustomersXLSExport(); break;
+			case 'csv': new CustomersCSVExport(); break;			
 			default: new CustomersTabExport();
 		}
 
@@ -212,21 +209,21 @@ class ShoppResources {
 			}
 
 			// Download limit checking
-			if (shopp_setting('download_limit') // Has download credits available
-					&& $Purchased->downloads + 1 > shopp_setting('download_limit')) {
+			if ( shopp_setting('download_limit') // Has download credits available
+					&& $Purchased->downloads + 1 > shopp_setting('download_limit') ) {
 				shopp_add_error(Shopp::__('&quot;%s&quot; is no longer available for download because the download limit has been reached.', $name));
 				$forbidden = true;
 			}
 
 			// Download expiration checking
-			if (shopp_setting('download_timelimit') // Within the timelimit
+			if ( shopp_setting('download_timelimit') // Within the timelimit
 					&& $Purchased->created+shopp_setting('download_timelimit') < current_time('timestamp') ) {
-				shopp_add_error(Shopp::__('&quot;%s&quot; is no longer available for download because it has expired.','Shopp', $name));
+				shopp_add_error(Shopp::__('&quot;%s&quot; is no longer available for download because it has expired.', $name));
 				$forbidden = true;
 			}
 
 			// IP restriction checks
-			if ( 'ip' == shopp_setting('download_restriction') && ! empty($Purchase->ip) && $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
+			if ( 'ip' == shopp_setting('download_restriction') && ! empty($Purchase->ip) && $Purchase->ip != $_SERVER['REMOTE_ADDR'] ) {
 				shopp_add_error(Shopp::__('&quot;%s&quot; cannot be downloaded because your computer could not be verified as the system the file was purchased from.', $name));
 				$forbidden = true;
 			}
@@ -241,17 +238,17 @@ class ShoppResources {
 		// Send the download
 		$download = $Download->download();
 
-		if ( is_a($download,'ShoppError') ) {
+		if ( is_a($download, 'ShoppError') ) {
 			// If the result is an error redirect to the account downloads page
 			Shopp::redirect( add_query_arg( 'downloads', '', Shopp::url(false, 'account') ), true, 303 );
 		} else {
-			do_action_ref_array('shopp_download_success',array($Purchased, $Purchase, $Download)); // @deprecated use shopp_download_order_event instead
+			do_action_ref_array('shopp_download_success', array($Purchased, $Purchase, $Download)); // @deprecated use shopp_download_order_event instead
 
 			shopp_add_order_event($Purchase->id, 'download', array(
 				'purchased' => $Purchased->id,		// Purchased line item ID (or add-on meta record ID)
-				'download' => $Download->id,		// Download ID (meta record)
-				'ip' => ShoppShopping()->ip,		// IP address of the download
-				'customer' => ShoppCustomer()->id	// Authenticated customer
+				'download'  => $Download->id,		// Download ID (meta record)
+				'ip'        => ShoppShopping()->ip,		// IP address of the download
+				'customer'  => ShoppCustomer()->id	// Authenticated customer
 			));
 		}
 

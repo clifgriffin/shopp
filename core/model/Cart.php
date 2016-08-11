@@ -24,23 +24,23 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppCart extends ListFramework {
 
 	// properties
-	public $shipped = array();		// Reference list of shippable Items
-	public $downloads = array();	// Reference list of digital Items
-	public $recurring = array();	// Reference list of recurring Items
+	public $shipped    = array();		// Reference list of shippable Items
+	public $downloads  = array();	// Reference list of digital Items
+	public $recurring  = array();	// Reference list of recurring Items
 	public $processing = array(		// Min-Max order processing timeframe
 		'min' => 0, 'max' => 0
 	);
 	public $checksum = false;		// Cart contents checksum to track changes
 
 	// Object properties
-	public $Added = false;			// Last Item added
+	public $Added  = false;			// Last Item added
 	public $Totals = false;			// Cart OrderTotals system
 
 	// Internal properties
 	public $changed = false;		// Flag when Cart updates and needs retotaled
-	public $added = false;			// The index of the last item added
+	public $added   = false;			// The index of the last item added
 
-	public $retotal = false;
+	public $retotal  = false;
 	public $handlers = false;
 
 	/**
@@ -123,11 +123,11 @@ class ShoppCart extends ListFramework {
 
 		$allowed = array(
 			'quantity' => 1,
-			'product' => false,
+			'product'  => false,
 			'products' => array(),
-			'item' => false,
-			'items' => array(),
-			'remove' => array(),
+			'item'     => false,
+			'items'    => array(),
+			'remove'   => array(),
 		);
 		$request = array_intersect_key($_REQUEST,$allowed); // Filter for allowed arguments
 		$request = array_merge($allowed, $request);			// Merge to defaults
@@ -182,14 +182,14 @@ class ShoppCart extends ListFramework {
 
 		$defaults = array(
 			'quantity' => 1,
-			'product' => false,
-			'price' => false,
-			'prices' => array(),
+			'product'  => false,
+			'price'    => false,
+			'prices'   => array(),
 			'category' => false,
-			'item' => false,
-			'options' => array(),
-			'data' => array(),
-			'addons' => array()
+			'item'     => false,
+			'options'  => array(),
+			'data'     => array(),
+			'addons'   => array()
 		);
 		$request = array_merge($defaults, $request);
 		extract($request, EXTR_SKIP);
@@ -231,8 +231,8 @@ class ShoppCart extends ListFramework {
 		if ( ! $CartItem ) return;
 		$defaults = array(
 			'quantity' => 1,
-			'product' => false,
-			'price' => false
+			'product'  => false,
+			'price'    => false
 		);
 		$request = array_merge($defaults, $request);
 		extract($request, EXTR_SKIP);
@@ -260,9 +260,9 @@ class ShoppCart extends ListFramework {
 
 		$AjaxCart = new StdClass();
 		$AjaxCart->url = Shopp::url(false, 'cart');
-		$AjaxCart->label = __('Edit shopping cart', 'Shopp');
+		$AjaxCart->label = Shopp::__('Edit shopping cart');
 		$AjaxCart->checkouturl = Shopp::url(false, 'checkout', ShoppOrder()->security());
-		$AjaxCart->checkoutLabel = __('Proceed to Checkout', 'Shopp');
+		$AjaxCart->checkoutLabel = Shopp::__('Proceed to Checkout');
 		$AjaxCart->imguri = '' != get_option('permalink_structure') ? trailingslashit(Shopp::url('images')) : Shopp::url() . '&siid=';
 		$AjaxCart->Totals = json_decode( (string)$this->Totals );
 		$AjaxCart->Contents = array();
@@ -273,9 +273,11 @@ class ShoppCart extends ListFramework {
 			$AjaxCart->Contents[] = $CartItem;
 		}
 
-		if ( isset($this->added) )
+		if ( isset($this->added) ) {
 			$AjaxCart->Item = clone($this->added());
-		else $AjaxCart->Item = new ShoppCartItem();
+			if ( isset($AjaxCart->Item->image) && ! empty($AjaxCart->Item->image) )
+				$AjaxCart->imguri = '' != get_option('permalink_structure') ? user_trailingslashit($AjaxCart->imguri . $AjaxCart->Item->image->id) : $AjaxCart->imguri . $AjaxCart->Item->image->id;
+		} else $AjaxCart->Item = new ShoppCartItem();
 		unset($AjaxCart->Item->options);
 
 		echo json_encode($AjaxCart);
@@ -416,7 +418,7 @@ class ShoppCart extends ListFramework {
 
 		// Subscription products must be alone in the cart
 		if ( 'Subscription' == $Item->type && $this->count() > 0 || $this->recurring() ) {
-			new ShoppError(__('A subscription must be purchased separately. Complete your current transaction and try again.','Shopp'),'cart_valid_add_failed',SHOPP_ERR);
+			new ShoppError(Shopp::__('A subscription must be purchased separately. Complete your current transaction and try again.'), 'cart_valid_add_failed', SHOPP_ERR);
 			return false;
 		}
 
@@ -465,13 +467,13 @@ class ShoppCart extends ListFramework {
 
 		// Reduce ordered amount or remove item with error
 		if ($overage < $Item->quantity) {
-			new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
+			new ShoppError(Shopp::__('Not enough of the product is available in stock to fulfill your request.'), 'item_low_stock');
 			$Item->quantity -= $overage;
 			$Item->qtydelta -= $overage;
 			return true;
 		}
 
-		new ShoppError(__('The product could not be added to the cart because it is not in stock.','Shopp'),'cart_item_invalid',SHOPP_ERR);
+		new ShoppError(Shopp::__('The product could not be added to the cart because it is not in stock.'), 'cart_item_invalid', SHOPP_ERR);
 		return false;
 
 	}
@@ -491,16 +493,20 @@ class ShoppCart extends ListFramework {
 	public function change ( $item, $product, $pricing, array $addons = array() ) {
 
 		// Don't change anything if everything is the same
-		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->price == $pricing) )
+		if ( ! $this->exists($item) || ($this->get($item)->product == $product && $this->get($item)->priceline == $pricing) && empty($addons) )
 			return true;
 
 		// Maintain item state, change variant
-		$Item = $this->get($item);
-		$category = $Item->category;
-		$data = $Item->data;
+		$Item 		= $this->get($item);
+		$quantity 	= $Item->quantity;
+		$category 	= $Item->category;
+		$data 		= $Item->data;
+		if ( empty($addons) && ! empty($Item->addons) ) $addons = array_keys($Item->addons);
 
-		$Item->load(new ShoppProduct($product), $pricing, $category, $data, $addons);
-		ShoppOrder()->Shiprates->item( new ShoppShippableItem($Item) );
+		// remove original product/variant
+		$this->rmvitem($item);
+		// add new product/variant
+		$this->additem($quantity, new ShoppProduct($product), $pricing, $category, $data, $addons);
 
 		return true;
 	}

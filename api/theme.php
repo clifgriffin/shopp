@@ -32,6 +32,8 @@ function shopp ( $context, $property = false, $options = false ) {
 
 	$parameters = array('first', 'second', 'third'); // Parameter prototype
 	$num = func_num_args();							 // Determine number of arguments provided
+	
+	$fargs = func_get_args();						 // Grab the arguments (up to 3) before resetting $context and $options
 	$context = $tag = false;						 // object API to use and tag name
 	$options = array();								 // options to pass to API call
 
@@ -40,8 +42,6 @@ function shopp ( $context, $property = false, $options = false ) {
 		return;
 	}
 
-	// Grab the arguments (up to 3)
-	$fargs = func_get_args();
 	$args = array_combine( array_slice($parameters, 0, $num), $fargs);
 	extract($args);
 
@@ -73,7 +73,7 @@ function shopp ( $context, $property = false, $options = false ) {
 
 	if ( 'hascontext' == $tag ) return ($Object);
 
-	if ( ! $Object ) shopp_add_error(Shopp::__("The shopp('%s') tag cannot be used in this context because the object responsible for handling it doesn't exist.", $context), SHOPP_PHP_ERR);
+	if ( ! $Object ) shopp_add_error(Shopp::__("The shopp('%s.%s') tag cannot be used in this context because the object responsible for handling it doesn't exist.", $context, isset($sescond) ? $second : $tag), SHOPP_PHP_ERR);
 
 	$themeapi = apply_filters('shopp_themeapi_context_name', $context);
 	$result   = apply_filters('shopp_themeapi_' . strtolower($themeapi . '_' . $tag), $result, $options, $Object); // tag specific tag filter

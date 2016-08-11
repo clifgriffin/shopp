@@ -8,6 +8,6 @@
 			$classes = $this_report === $id?' class="current"':'';
 			$separator = ! isset($separator) ? '' : '| ';
 	?>
-		<li><?php echo $separator; ?><a href="<?php echo esc_url($url); ?>"<?php echo $classes; ?>><?php esc_html_e($reports[$id]['label']); ?></a></li>
+		<li><?php echo $separator; ?><a href="<?php echo esc_url($url); ?>"<?php echo $classes; ?>><?php esc_html_e($reports[ $id ]['label']); ?></a></li>
 	<?php endforeach; ?>
 </ul>

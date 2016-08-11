@@ -15,7 +15,16 @@ var Pricelines = new Pricelines(),
 jQuery(document).ready(function () {
 	var $=jQuery,
 		editslug = new SlugEditor(category,'category'),
-		imageUploads = new ImageUploads($('#image-category-id').val(),'category');
+		imageUploads = new ImageUploads($('#image-category-id').val(),'category')
+		titlePrompt = $('#title-prompt-text'),
+
+		// Give the product name initial focus
+		title = $('#title').bind('focus keydown',function () {
+			titlePrompt.hide();
+		}).blur(function () {
+			if (title.val() == '') titlePrompt.show();
+			else titlePrompt.hide();
+		});
 
 	postboxes.add_postbox_toggles('shopp_page_shopp-categories');
 	// close postboxes that should be closed
@@ -28,6 +37,10 @@ jQuery(document).ready(function () {
 
 	updateWorkflow();
 	$('#category').submit(function () {
+		if ( '' == title.val() ) {
+			alert(ENTER_CATEGORY_NAME);
+			return false;
+		}
 		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
 		return true;
 	});

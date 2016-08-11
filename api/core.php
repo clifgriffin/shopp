@@ -22,7 +22,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  * @param ShoppProduct $Object (optional) The product object to set to the global context.
  * @return mixed if the global Product context isn't set, bool false will be returned, otherwise the global Product object will be returned
  **/
-function ShoppProduct ( ShoppProduct $Object = null ) {
+function ShoppProduct ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) )
 		$Shopp->Product = $Object;
@@ -54,7 +54,7 @@ function ShoppCustomer ( $Object = false ) {
  * @param ShoppCollection $Object (optional) The ShoppCollection object to set to the global context.
  * @return mixed if the global ShoppCollection context isn't set, bool false will be returned, otherwise the global ShoppCollection object will be returned
  **/
-function ShoppCollection ( ProductCollection $Object = null ) {
+function ShoppCollection ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) ) $Shopp->Category = $Object;
 	return $Shopp->Category;
@@ -69,7 +69,7 @@ function ShoppCollection ( ProductCollection $Object = null ) {
  * @param ShoppCatalog $Object (optional) the ShoppCatalog object to set to the global context.
  * @return mixed if the global ShoppCatalog context isn't set, bool false will be returned, otherwise the global ShoppCatalog object will be returned
  **/
-function ShoppCatalog ( ShoppCatalog $Object = null ) {
+function ShoppCatalog ( $Object = null ) {
 	$Shopp = Shopp::object();
 	if ( isset($Object) ) $Shopp->Catalog = $Object;
 	if ( ! $Object && ! $Shopp->Catalog ) $Shopp->Catalog = new ShoppCatalog();
@@ -128,7 +128,7 @@ function ShoppSettings () {
  *
  * @return Shopping
  **/
-function ShoppShopping() {
+function ShoppShopping () {
 	return Shopping::object();
 }
 
@@ -221,8 +221,8 @@ function shopp_register_page ( $classname ) {
  * @param object $e The object to test
  * @return boolean True if the object is a ShoppError
  **/
-function is_shopperror ($e) {
-	return ( get_class($e) == 'ShoppError' );
+function is_shopperror ( $e ) {
+	return ( 'ShoppError' == get_class($e) );
 }
 
 /**
@@ -259,12 +259,12 @@ if ( ! function_exists('is_catalog_page') ) {
  * @api
  * @since 1.2
  *
- * @param WP_Query $wp_query (optional) will use the global wp_query by default if false, or the WP_Query object to evaluation
  * @return boolean
  **/
-function is_shopp_catalog_frontpage ( $wp_query = false ) {
-	if ( false === $wp_query ) { global $wp_the_query; $wp_query =& $wp_the_query; }
-	return is_shopp_page('catalog', $wp_query) && ! ( is_shopp_product($wp_query) || is_shopp_collection($wp_query) );
+function is_shopp_catalog_frontpage () {
+	$Page = ShoppPages()->requested();
+
+	return $Page !== false && $Page->name() == 'catalog';
 }
 
 if ( ! function_exists('is_catalog_frontpage') ) {
@@ -431,7 +431,7 @@ function is_shopp_page ( $page = false, $wp_query = false ) {
 	$is_shopp_page = false;
 	$Page = ShoppPages()->requested();
 
-	if ( false === $page ) { // Check if the current request is a shopp page request
+	if ( 'catalog' == $page || false === $page ) { // Check if the current request is a shopp page request
 		// Product and collection pages are considered a Shopp page request
 		if ( is_shopp_product($wp_query) || $wp_query->get('post_type') == ShoppProduct::$posttype ) $is_shopp_page = true;
 		if ( is_shopp_collection($wp_query) ) $is_shopp_page = true;
