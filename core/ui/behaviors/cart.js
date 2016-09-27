@@ -116,7 +116,7 @@ jQuery(document).ready(function($) {
 		this.form.submit();
 	});
 
-	$("#cart input[name*='[quantity]']").change(function() {
+	$('#cart input[name*="[quantity]"]').change(function() {
 		$('#cart input.update-button[type="submit"]').click();
 	});	
 	
