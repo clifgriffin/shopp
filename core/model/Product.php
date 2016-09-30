@@ -588,6 +588,8 @@ class ShoppProduct extends WPShoppObject {
 
 		// Build secondary lookup table using the price id as the key
 		$target->priceid[ $price->id ] = $price;
+		if( isset($this->products) && !empty($this->products) )
++			$this->priceid[$price->id] = $price;
 
 		// Set promoprice before data aggregation
 		if ( Shopp::str_true($price->sale) ) $price->promoprice = $price->saleprice;
