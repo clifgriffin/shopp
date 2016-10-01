@@ -14,7 +14,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 	// Settings
-	public $secure = false; // do not require SSL or session encryption
+	public $secure = true; // do not require SSL or session encryption
 	public $saleonly = true; // force sale event on processing (no auth)
 	public $recurring = true; // support for recurring payment
 
@@ -129,7 +129,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		$Message = $this->Message;
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
-		shopp_debug(__METHOD__ . ': ' . _object_r($Message));
+		shopp_debug(__METHOD__ . ': ' . Shopp::object_r($Message));
 
 		if ( $payer_status = $Message->payer() ) { // Note the payer status
 			shopp_add_order_event( $Event->order, 'review', array(
@@ -154,13 +154,13 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		$authed = array(
-			'txnid'	    => $Message->txnid(),					// Transaction ID
-			'amount'	=> $Message->amount(),					// Gross amount authorized
-			'gateway'	=> $this->module,						// Gateway handler name (module name from @subpackage)
+			'txnid'	    	=> $Message->txnid(),				// Transaction ID
+			'amount'	=> $Message->amount(),				// Gross amount authorized
+			'gateway'	=> $this->module,				// Gateway handler name (module name from @subpackage)
 			'paymethod'	=> $this->settings['label'],			// Payment method (payment method label from payment settings)
-			'paytype'	=> $Message->paytype(),					// Type of payment (eCheck, or instant payment)
-			'payid'	    => $Message->email(),					// PayPal account email address
-			'capture'	=> ( $captured = $Message->captured() )	// Capture flag
+			'paytype'	=> $Message->paytype(),				// Type of payment (eCheck, or instant payment)
+			'payid'	   	=> $Message->email(),				// PayPal account email address
+			'capture'	=> ( $captured = $Message->captured() )		// Capture flag
 		);
 
 		if ( $captured && $fees = $Message->fees() )
@@ -192,9 +192,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		shopp_add_order_event($Event->order, 'captured', array(
-			'txnid'	    => $Message->txnid(),	// Transaction ID of the CAPTURE event
+			'txnid'		=> $Message->txnid(),		// Transaction ID of the CAPTURE event
 			'amount'	=> $Event->amount,		// Amount captured
-			'fees'	    => $Event->fees,		// Transaction fees taken by the gateway net revenue = amount-fees
+			'fees'		=> $Event->fees,		// Transaction fees taken by the gateway net revenue = amount-fees
 			'gateway'	=> $this->module		// Gateway handler name (module name from @subpackage)
 		));
 	}
@@ -243,9 +243,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		if ( ! $Message ) return; // Requires an IPN/PDT message
 
 		shopp_add_order_event($Event->order, 'voided', array(
-			'txnid'	    => $Message->txnid(),		// Transaction ID
+			'txnid'		=> $Message->txnid(),		// Transaction ID
 			'txnorigin'	=> $Message->txnorigin(),	// Original Transaction ID
-			'gateway'	=> $this->module			// Gateway handler name (module name from @subpackage)
+			'gateway'	=> $this->module		// Gateway handler name (module name from @subpackage)
 		));
 	}
 
@@ -378,7 +378,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		$_ = array();
 
-		$_['cmd'] 					= '_cart';
+		$_['cmd'] 				= '_cart';
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
 		$_['invoice']				= $Purchase->id;
@@ -391,12 +391,12 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 		$_['cancel_return']			= Shopp::url(false, 'cart');
 		$_['notify_url']			= $this->ipnurl();
-		$_['rm']					= 1; // Return with no transaction data
+		$_['rm']				= 1; // Return with no transaction data
 
 		// Pre-populate PayPal Checkout
-		$_['lc']					= $this->baseop['country'];
+		$_['lc']				= $this->baseop['country'];
 		$_['charset']				= 'utf-8';
-		$_['bn']					= 'shopplugin.net[WPS]';
+		$_['bn']				= 'shopplugin.net[WPS]';
 
 		$_['first_name']			= $Customer->firstname;
 		$_['last_name']				= $Customer->lastname;
@@ -415,30 +415,30 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			$_['last_name'] = join(' ', $shipname);
 		}
 
-        $_['address_override']      = apply_filters( 'shopp_paypalstandard_addressoverride', 1 );
+        	$_['address_override']     		= apply_filters( 'shopp_paypalstandard_addressoverride', 1 );
 		$_['address1']				= $Address->address;
 
 		if ( ! empty($Address->xaddress) )
 			$_['address2']			= $Address->xaddress;
 
-		$_['city']					= $Address->city;
-		$_['state']					= $Address->state;
-		$_['zip']					= $Address->postcode;
+		$_['city']				= $Address->city;
+		$_['state']				= $Address->state;
+		$_['zip']				= $Address->postcode;
 		$_['country']				= $Address->country;
-		$_['email']					= $Customer->email;
+		$_['email']				= $Customer->email;
 
 		$phone = parse_phone($Order->Customer->phone);
 		if ( ! empty($phone) && in_array($Order->Billing->country, array('US', 'CA')) ) {
 			$_['night_phone_a']		= $phone['area'];
 			$_['night_phone_b']		= $phone['prefix'];
 			$_['night_phone_c']		= $phone['exchange'];
-		} else $_['night_phone_b']	= $phone['raw'];
+		} else $_['night_phone_b']		= $phone['raw'];
 
 		// Include page style option, if provided
 		if ( isset($_GET['pagestyle']) ) $_['pagestyle'] = $_GET['pagestyle'];
 
 		// Transaction
-		$_['currency_code']	= $this->currency();
+		$_['currency_code']			= $this->currency();
 
 		// Recurring Non-Free Item
 		$Cart->recurring();
@@ -518,8 +518,8 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 				// to customers outside the VAT region
 				// When the issue occurs the product will be set to be one set with one price
 				if ( $Item->quantity > 1 ) {
-		            $pp_price   = $this->amount($_[ 'amount_' . $id ] * $_[ 'quantity_' . $id ]) ;
-		            $shopp_price    = $this->amount($Item->totald);
+					$pp_price   = $this->amount($_[ 'amount_' . $id ] * $_[ 'quantity_' . $id ]) ;
+					$shopp_price    = $this->amount($Item->totald);
 
 					if ( $pp_price != $shopp_price ) {
 						$_[ 'item_name_' . $id ]        = Shopp::__('Set of %d %s', $Item->quantity, $_[ 'item_name_' . $id ]);
@@ -538,16 +538,15 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 			if ( (float) $this->amount('order') == 0 || (float) $this->amount('order') - (float) $this->amount('discount') == 0 ) {
 				$id++;
 				$_['item_number_'.$id]		= $id;
-				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
-															Shopp::__('Shipping & Handling'));
-				$_['amount_'.$id]			= $this->amount( max((float)$this->amount('shipping'), 0.01) );
-				$_['quantity_'.$id]			= 1;
+				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label', Shopp::__('Shipping & Handling'));
+				$_['amount_'.$id]		= $this->amount( max((float)$this->amount('shipping'), 0.01) );
+				$_['quantity_'.$id]		= 1;
 			} else
-				$_['handling_cart']			= $this->amount('shipping');
+				$_['handling_cart']		= $this->amount('shipping');
 
 			$_['discount_amount_cart'] 		= $this->amount('discount');
-			$_['tax_cart']					= $this->amount('tax');
-			$_['amount']					= $this->amount('total');
+			$_['tax_cart']				= $this->amount('tax');
+			$_['amount']				= $this->amount('total');
 
 		}
 
@@ -801,7 +800,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 
 		$this->Message = new ShoppPayPalStandardMessage($response);
-		shopp_debug('PayPal PDT response protocol: ' . _object_r($this->Message));
+		shopp_debug('PayPal PDT response protocol: ' . Shopp::object_r($this->Message));
 
 		// Everything looks good, return true and let the order PDT order processing handle it from here
 		return true;
@@ -976,7 +975,7 @@ class ShoppPayPalStandardMessage {
 		);
 
 		self::$reasons = array(
-			'address' 	     => Shopp::__('The customer did not include a confirmed shipping address.'),
+			'address'        => Shopp::__('The customer did not include a confirmed shipping address.'),
 			'echeck'         => Shopp::__('The eCheck has not yet cleared.'),
 			'intl'           => Shopp::__('You must manually accept or deny transactions for your non-US account.'),
 			'multi-currency' => Shopp::__('You must manually accept or deny a transaction in this currency.'),
