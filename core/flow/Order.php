@@ -789,7 +789,7 @@ class ShoppOrder {
 			if ( $Shiprates->count() == 0 && ! $Shiprates->free() ) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 
-				$message = Shopp::__('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', '<a href="' . shopp('checkout.url') . '">', '</a>');
+				$message = Shopp::__('The order cannot be processed. No shipping is available to the address you provided. Please return to %scheckout%s and try again.', '<a href="' . shopp('checkout.get-url') . '">', '</a>');
 
 				if ( $Shiprates->realtime() )
 					$message = Shopp::__('The order cannot be processed. The shipping rate service did not provide rates because of a problem and no other shipping is available to the address you provided. Please return to %scheckout%s and try again or contact the store administrator.');
