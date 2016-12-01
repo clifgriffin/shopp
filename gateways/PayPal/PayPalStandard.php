@@ -14,7 +14,7 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
 class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 
 	// Settings
-	public $secure = true; // do not require SSL or session encryption
+	public $secure = false; // do not require SSL or session encryption
 	public $saleonly = true; // force sale event on processing (no auth)
 	public $recurring = true; // support for recurring payment
 
