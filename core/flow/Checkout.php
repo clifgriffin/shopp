@@ -235,7 +235,7 @@ class ShoppCheckout extends FormPostFramework {
 		if ( ! empty($form['xcsc']) ) {
 			$Billing->xcsc = array();
 			foreach ( (array) $form['xcsc'] as $field => $value ) {
-				$Billing->Billing->xcsc[] = $field;	// Add to the XCSC registry of fields
+				$Billing->xcsc[] = $field;	// Add to the XCSC registry of fields
 				$Billing->$field = $value;			// Add the property
 			}
 		}
