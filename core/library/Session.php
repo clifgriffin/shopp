@@ -221,13 +221,18 @@ abstract class ShoppSessionFramework {
 	 **/
 	public function save () {
 
-		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
-		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] ) return false;
+		// Don't update the session for prefetch requests (via <link rel="next" /> or <link rel="prefetch" /> tags)
+		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] // Firefox
+			|| isset($_SERVER['HTTP_X_PURPOSE']) // Chrome/Safari
+				&& in_array($_SERVER['HTTP_X_PURPOSE'], array('preview', 'instant')) )
+			return false;
 
 		if ( empty($this->session) ) return false; // Do not save if there is no session id
 
 		if ( false === $this->data )
 			return false; // Encryption failed because of no SSL, do not save
+
+        do_action('shopp_session_save');
 
 		$data = sDB::escape( addslashes(serialize($this->data)) );
 		$this->encrypt($data);
