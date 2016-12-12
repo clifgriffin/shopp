@@ -166,7 +166,7 @@ var flashuploader 	    = <?php echo ($uploader == 'flash' && !(false !== strpos(
 	FILE_NOT_FOUND_TEXT	        = <?php Shopp::_jse('The file you specified could not be found.'); ?>,
 	FILE_NOT_READ_TEXT	        = <?php Shopp::_jse('The file you specified is not readable and cannot be used.'); ?>,
 	FILE_ISDIR_TEXT	            = <?php Shopp::_jse('The file you specified is a directory and cannot be used.'); ?>,
-	FILE_UNKNOWN_IMPORT_ERROR	= <?php Shopp::_jse('An unknown error occured while attempting to attach the file.'); ?>,
+	FILE_UNKNOWN_IMPORT_ERROR	= <?php Shopp::_jse('An unknown error occurred while attempting to attach the file.'); ?>,
 	IMAGE_DETAILS_TEXT	        = <?php Shopp::_jse('Image Details'); ?>,
 	IMAGE_DETAILS_TITLE_LABEL	= <?php Shopp::_jse('Title'); ?>,
 	IMAGE_DETAILS_ALT_LABEL	    = <?php Shopp::_jse('Alt'); ?>,
