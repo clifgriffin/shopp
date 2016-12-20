@@ -98,7 +98,7 @@ abstract class ShoppSessionFramework {
 					$exists = true; // If it fails, consider it existing and try again
 			}
 
-		    $this->session = $session;
+			$this->session = $session;
 		}
 
 		return $this->session;
@@ -126,7 +126,7 @@ abstract class ShoppSessionFramework {
 		}
 
 		if ( ! empty( $_COOKIE[ SHOPP_SESSION_COOKIE ] ) )
-			return ( $this->session = $_COOKIE[ SHOPP_SESSION_COOKIE ] );
+			return (bool)( $this->session = $_COOKIE[ SHOPP_SESSION_COOKIE ] );
 
 	}
 
@@ -186,9 +186,10 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if a cookie was set, false otherwise
 	 **/
 	protected function cook () {
-		if ( ! $this->can_cook() ) return false;
+		if ( ! $this->cookable() )
+			return false;
 
-		if ( headers_sent() ) {
+		if ( headers_sent() && PHP_SAPI !== 'cli' ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG )
 				trigger_error('Shopp session cookie cannot be set after output headers have been sent.', E_USER_NOTICE );
 			return false;
@@ -197,15 +198,35 @@ abstract class ShoppSessionFramework {
 		if ( empty($this->modified) )
 			$this->modified = time();
 
-		return setcookie(
+		return $this->setcookie(
 			SHOPP_SESSION_COOKIE,                          // Shopp session cookie name
-			$this->session(),                   // Generated session id
+			$this->session(),                              // Generated session id
 			false,                                         // Expiration (false makes it expire with the session)
 			COOKIEPATH,                                    // Path
 			COOKIE_DOMAIN,                                 // Domain
 			false,                                         // Secure
 			apply_filters('shopp_httponly_session', false) // HTTP only
 		);
+	}
+	
+	/**
+	 * Determine whether Shopp should cook a new session.
+	 *
+	 * @since 1.3.10
+	 *
+	 * @return void
+	 **/
+	public function cookable () {
+		/**
+		 *
+		 * Allow plugins to prevent Shopp from generating a new session. Example: for performance,
+		 * a site could prevent creating a session on non-Shopp pages.
+		 *
+		 * @since 1.3.10
+		 *
+		 * @param boolean  $session Allow Shopp to create a session. true or false
+		 */
+		return apply_filters('shopp_session_cook', true);
 	}
 
 	/**
@@ -220,12 +241,8 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if successful, false otherwise
 	 **/
 	public function save () {
-
-		// Don't update the session for prefetch requests (via <link rel="next" /> or <link rel="prefetch" /> tags)
-		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] // Firefox
-			|| isset($_SERVER['HTTP_X_PURPOSE']) // Chrome/Safari
-				&& in_array($_SERVER['HTTP_X_PURPOSE'], array('preview', 'instant')) )
-			return false;
+		if ( ! $this->cookable() )
+			return true;
 
 		if ( empty($this->session) ) return false; // Do not save if there is no session id
 
@@ -338,6 +355,9 @@ abstract class ShoppSessionFramework {
 	 * @return bool True if successful, false otherwise
 	 **/
 	protected function create ( $session ) {
+		if ( ! $this->cookable() )
+			return true;
+		
 		$now = current_time('mysql');
 		$query = "INSERT $this->_table SET session='$session',data='',ip='$this->ip',created='$now',modified='$now'";
 		return sDB::query($query);
@@ -352,7 +372,7 @@ abstract class ShoppSessionFramework {
 	 * @return string|bool The secure key, or false if not available
 	 **/
 	private function securekey () {
-		if ( ! $this->can_cook() ) return false;
+		if ( ! $this->cookable() ) return false;
 		if ( ! is_ssl() ) return false;
 
 		if ( ! empty($_COOKIE[ SHOPP_SECURE_KEY ]) )
@@ -360,7 +380,7 @@ abstract class ShoppSessionFramework {
 
 		$entropy = $this->entropy();
 		$key = hash('sha256', $this->session . microtime(true) . $this->ip . $entropy);
-		$success = setcookie(SHOPP_SECURE_KEY, $key, 0, COOKIEPATH, COOKIE_DOMAIN, true, true);
+		$success = $this->setcookie(SHOPP_SECURE_KEY, $key, 0, COOKIEPATH, COOKIE_DOMAIN, true, true);
 
 		if ( $success ) return $key;
 		else return false;
@@ -389,7 +409,7 @@ abstract class ShoppSessionFramework {
 		$secure = self::ENCRYPTION . sDB::query("SELECT AES_ENCRYPT('$data','$key') AS data", 'auto', 'col', 'data');
 
 		$db = sDB::object();
-		$data = $db->api->escape($secure);
+		$data = sDB::escape($secure);
 
 	}
 
@@ -410,10 +430,8 @@ abstract class ShoppSessionFramework {
 	 **/
 	private function decrypt ( &$data ) {
 
-		$BOF = strlen(self::ENCRYPTION);
-
 		// Set the secured flag if the data is encrypted
-		$this->secured = ( self::ENCRYPTION == substr($data, 0, $BOF) );
+		$this->secured = ( 0 === strpos($data, self::ENCRYPTION) );
 		if ( ! $this->secured ) return;
 
 		if ( empty($_COOKIE[ SHOPP_SECURE_KEY ]) )
@@ -422,7 +440,7 @@ abstract class ShoppSessionFramework {
 		$key = $_COOKIE[ SHOPP_SECURE_KEY ];
 
 		$db = sDB::object();
-		$data = sDB::query("SELECT AES_DECRYPT('" . $db->api->escape(substr($data, $BOF)) . "','$key') AS data", 'auto', 'col', 'data');
+		$data = sDB::query("SELECT AES_DECRYPT('" . sDB::escape(ltrim($data, self::ENCRYPTION)) . "','$key') AS data", 'auto', 'col', 'data');
 
 	}
 
@@ -476,25 +494,13 @@ abstract class ShoppSessionFramework {
 
 		return $entropy;
 	}
-
-	/**
-	 * Determine whether Shopp can cook a new session.
-	 *
-	 * @since 1.4.0
-	 *
-	 * @return void
-	 **/
-	public function can_cook() {
-		/**
-		 *
-		 * Allow plugins to prevent Shopp from sessioning. Example: for performance,
-		 * a site could prevent sessioning on non-Shopp pages.
-		 *
-		 * @since 1.3.10.x
-		 *
-		 * @param boolean  $session Allow Shopp to create a session. true or false
-		 */
-		return apply_filters('shopp_session_cook', true);
+		
+	private function setcookie($name, $value, $expires, $path, $domain, $secure, $httponly) {
+		if ( PHP_SAPI === 'cli' ) {
+			$_COOKIE[ $name ] = $value;
+			return true;
+		}
+		return setcookie($name, $value, $expires, $path, $domain, $secure, $httponly);
 	}
 
 }
