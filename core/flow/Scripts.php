@@ -24,6 +24,8 @@ defined( 'WPINC' ) || header( 'HTTP/1.1 403' ) & exit; // Prevent direct access
  **/
 /** From BackPress */
 if ( ! class_exists('WP_Scripts') ) {
+	if ( file_exists( ABSPATH . WPINC . '/class-wp-dependency.php' ) )
+		require( ABSPATH . WPINC . '/class-wp-dependency.php' ); // Fix for Wordpress 4.7
 	require( ABSPATH . WPINC . '/class.wp-dependencies.php' );
 	require( ABSPATH . WPINC . '/class.wp-scripts.php' );
 }
