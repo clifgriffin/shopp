@@ -61,7 +61,7 @@ abstract class ShoppSessionFramework {
 
 		if ( ! $this->open() ) // Reopen an existing session
 			$this->cook(); // Cook a new session cookie
-			
+
 		add_action('shutdown', array($this, 'save')); // Save on shutdown
 
 		shopp_debug('Session started ' . str_repeat('-', 64));
@@ -199,8 +199,8 @@ abstract class ShoppSessionFramework {
 
 		return setcookie(
 			SHOPP_SESSION_COOKIE,                          // Shopp session cookie name
-			$this->session(),                   // Generated session id
-			false,                                         // Expiration (false makes it expire with the session)
+			$this->session(),                              // Generated session id
+			time() + 60 * 60 *24 * 30,                     // Expiration - 30 days - (false makes it expire with the session)
 			COOKIEPATH,                                    // Path
 			COOKIE_DOMAIN,                                 // Domain
 			false,                                         // Secure
