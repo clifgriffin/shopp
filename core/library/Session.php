@@ -360,7 +360,7 @@ abstract class ShoppSessionFramework {
 
 		$entropy = $this->entropy();
 		$key = hash('sha256', $this->session . microtime(true) . $this->ip . $entropy);
-		$success = setcookie(SHOPP_SECURE_KEY, $key, 0, COOKIEPATH, COOKIE_DOMAIN, true, true);
+		$success = setcookie(SHOPP_SECURE_KEY, $key, time() + 60 * 60 *24 * 30, COOKIEPATH, COOKIE_DOMAIN, true, true);
 
 		if ( $success ) return $key;
 		else return false;
