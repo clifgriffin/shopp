@@ -200,7 +200,7 @@ abstract class ShoppSessionFramework {
 		return setcookie(
 			SHOPP_SESSION_COOKIE,                          // Shopp session cookie name
 			$this->session(),                              // Generated session id
-			time() + 60 * 60 *24 * 30,                     // Expiration - 30 days - (false makes it expire with the session)
+			time() + SHOPP_SESSION_TIMEOUT,                     // Expiration - 30 days - (false makes it expire with the session)
 			COOKIEPATH,                                    // Path
 			COOKIE_DOMAIN,                                 // Domain
 			false,                                         // Secure
@@ -360,7 +360,7 @@ abstract class ShoppSessionFramework {
 
 		$entropy = $this->entropy();
 		$key = hash('sha256', $this->session . microtime(true) . $this->ip . $entropy);
-		$success = setcookie(SHOPP_SECURE_KEY, $key, time() + 60 * 60 *24 * 30, COOKIEPATH, COOKIE_DOMAIN, true, true);
+		$success = setcookie(SHOPP_SECURE_KEY, $key, time() + SHOPP_SESSION_TIMEOUT, COOKIEPATH, COOKIE_DOMAIN, true, true);
 
 		if ( $success ) return $key;
 		else return false;
