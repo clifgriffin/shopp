@@ -1322,7 +1322,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @return void
 	 **/
 	public function copydata ( $data, $prefix = '', $ignores = false ) {
-		if ( ! is_array($ignores) || ! $ignores ) $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified');
+		if ( ! is_array($ignores) || $ignores === false ) $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified');
 
 		$properties = is_object($data) ? get_object_vars($data) : $data;
 		foreach ( (array)$properties as $property => $value ) {
