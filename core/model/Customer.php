@@ -248,7 +248,7 @@ class ShoppCustomer extends ShoppDatabaseObject {
 
 		$_ = apply_filters('shopp_merchant_new_customer_notification', $_);
 
-		if ( ! Shopp::email(join('\n', $_)) )
+		if ( ! Shopp::email(join("\n", $_)) )
 			shopp_add_error('The new account notification e-mail could not be sent.', SHOPP_ADMIN_ERR);
 		else shopp_debug('A new account notification e-mail was sent to the merchant.');
 		if ( empty($this->password) ) return;
@@ -743,12 +743,12 @@ class CustomersExport {
 
 	// Implement for exporting a single value
 	public function export ( $value ) {
-		echo ($this->recordstart ? '' : '\t') . $this->escape($value);
+		echo ($this->recordstart ? '' : "\t") . $this->escape($value);
 		$this->recordstart = false;
 	}
 
 	public function record () {
-		echo '\n';
+		echo "\n";
 		$this->recordstart = true;
 	}
 
@@ -766,9 +766,9 @@ class CustomersTabExport extends CustomersExport {
 	}
 
 	public function escape ($value) {
-		$value = str_replace(array('\n', '\r'), ' ', $value); // No newlines
+		$value = str_replace(array("\n", "\r"), ' ', $value); // No newlines
 
-		if ( false !== strpos($value, '\t') && false === strpos($value,'"') )	// Quote tabs
+		if ( false !== strpos($value, "\t") && false === strpos($value,'"') )	// Quote tabs
 			$value = '"' . $value . '"';
 
 		return $value;
