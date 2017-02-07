@@ -102,73 +102,68 @@
 				$classes = array($column,"column-$column");
 				if ( in_array($column, $hidden) ) $classes[] = 'hidden';
 
+				$wrap_open = $column == "cb" ? "<th scope='row' class='check-column'>" : '<td class="' . esc_attr(join(' ', $classes)) .'">';
+				echo apply_filters('shopp_manage_orders_column_wrap_close', $wrap_open, $column, $Order );
+
+				do_action("shopp_manage_orders_column_{$column}_before");
+
 				switch ( $column ) {
 					case 'cb':
 					?>
-						<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo esc_attr($Order->id); ?>' /></th>
+						<input type='checkbox' name='selected[]' value='<?php echo esc_attr($Order->id); ?>' />
 					<?php
 					break;
 
 					case 'order':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php Shopp::_e('View Order #%d', $Order->id); ?>'><?php Shopp::_e('Order #%d', $Order->id); ?></a>
-						</td>
+						<a class='row-title' href='<?php echo esc_url($viewurl); ?>' title='<?php Shopp::_e('View Order #%d', $Order->id); ?>'><?php Shopp::_e('Order #%d', $Order->id); ?></a>
 					<?php
 					break;
 
 					case 'name':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?>
-						</td>
+						<a href="<?php echo esc_url($customerurl); ?>"><?php echo esc_html($customer); ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?>
 					<?php
 					break;
 
 					case 'destination':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php echo esc_html($location); ?>
-						</td>
+						<?php echo esc_html($location); ?>
 					<?php
 					break;
 
 					case 'txn':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?>
-						</td>
+						<?php echo $Order->txnid; ?><br /><?php echo esc_html($gateway); ?>
 					<?php
 					break;
 
 					case 'date':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php echo date("Y/m/d", mktimestamp($Order->created)); ?><br />
-							<strong><?php echo $statusLabels[$Order->status]; ?></strong>
-						</td>
+						<?php echo date("Y/m/d", mktimestamp($Order->created)); ?><br />
+						<strong><?php echo $statusLabels[$Order->status]; ?></strong>
 					<?php
 					break;
 
 					case 'total':
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php echo money($Order->total); ?><br /><span class="status"><?php echo $txnstatus; ?></span>
-						</td>
+						<?php echo money($Order->total); ?><br /><span class="status"><?php echo $txnstatus; ?></span>
 					<?php
 					break;
 
 					default:
 					?>
-						<td class="<?php echo esc_attr(join(' ', $classes)); ?>">
-							<?php do_action( 'shopp_manage_orders_custom_column', $column, $Order ); ?>
-							<?php do_action( 'shopp_manage_orders_' . sanitize_key($column) . '_column', $column, $Order ); ?>
-						</td>
+						<?php do_action( 'shopp_manage_orders_custom_column', $column, $Order ); ?>
+						<?php do_action( 'shopp_manage_orders_' . sanitize_key($column) . '_column', $column, $Order ); ?>
 					<?php
 					break;
 
-
 				} // end switch ( $column )
+
+				do_action("shopp_manage_orders_column_{$column}_after");
+
+				$wrap_close = $column == "cb" ? "</th>" : "</td>";
+				echo apply_filters('shopp_manage_orders_column_wrap_close', $wrap_close, $column, $Order );
 
 			} // end foreach ( $columns…)
 		?>
