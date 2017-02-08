@@ -160,7 +160,8 @@
 
 				} // end switch ( $column )
 
-				do_action("shopp_manage_orders_column_{$column}_after");
+				do_action("shopp_manage_orders_column_after", $column, $Order);
+				do_action("shopp_manage_orders_column_{$column}_after", $Order);
 
 				$wrap_close = $column == "cb" ? "</th>" : "</td>";
 				echo apply_filters('shopp_manage_orders_column_wrap_close', $wrap_close, $column, $Order );
