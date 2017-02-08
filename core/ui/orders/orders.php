@@ -26,7 +26,9 @@
 	<?php endif; ?>
 
 	<div class="tablenav">
-		<div class="alignleft actions">
+		<?php do_action('shopp_manage_orders_before_actions'); ?>
+
+		<div class="alignleft actions">	
 		<?php if (current_user_can('shopp_delete_orders')): ?><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete'); ?></button><?php endif; ?>
 		</div>
 		<div class="alignleft actions">
@@ -45,6 +47,8 @@
 				</div>
 				<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php Shopp::_e('Filter'); ?></button>
 		</div>
+
+		<?php do_action('shopp_manage_orders_after_actions'); ?>
 
 			<?php $ListTable->page_navigation('top'); ?>
 
