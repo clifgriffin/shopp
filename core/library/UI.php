@@ -321,7 +321,7 @@ class ShoppAdminListTable extends WP_List_Table {
 
 		if ( !empty( $columns ) ) {
 			$this->_columns = $columns;
-			add_filter( 'manage_' . $screen->id . '_columns', array( &$this, 'get_columns' ), 0 );
+			add_filter( 'manage_' . $screen->id . '_columns', array( &$this, 'get_columns' ), 1 );
 		}
 
 	}
@@ -331,7 +331,7 @@ class ShoppAdminListTable extends WP_List_Table {
 		$hidden = get_hidden_columns( $this->_screen );
 		$screen = get_current_screen();
 
-		$_sortable = apply_filters( "manage_{$screen->id}_sortable_columns", $this->get_sortable_columns() );
+		$_sortable = apply_filters( "manage_{$screen->id}_sortable_columns", $this->get_sortable_columns(), 1 );
 
 		$sortable = array();
 		foreach ( $_sortable as $id => $data ) {

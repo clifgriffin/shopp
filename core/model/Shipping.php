@@ -1534,8 +1534,7 @@ class ShippingPackager implements ShippingPackagingInterface {
 		else {
 			unset($this->_loop);
 			return false;
-		}
-		break;
+		}		
 	}
 
 	/**
