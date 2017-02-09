@@ -39,7 +39,7 @@
 		</div>
 		<?php endif; ?>
 
-		<?php $ListTable->pagination('top'); ?>
+		<?php $ListTable->page_navigation('top'); ?>
 
 		<br class="clear" />
 	</div>
@@ -234,7 +234,7 @@
 	</table>
 	</form>
 	<div class="tablenav bottom">
-		<?php $ListTable->pagination( 'bottom' ); ?>
+		<?php $ListTable->page_navigation( 'bottom' ); ?>
 		<br class="clear" />
 	</div>
 </div>

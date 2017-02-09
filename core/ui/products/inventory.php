@@ -26,7 +26,7 @@
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
 
-		<?php $ListTable->pagination('top'); ?>
+		<?php $ListTable->page_navigation('top'); ?>
 
 		<br class="clear" />
 	</div>
@@ -73,7 +73,7 @@
 	</table>
 	</form>
 	<div class="tablenav">
-		<?php $ListTable->pagination( 'bottom' ); ?>
+		<?php $ListTable->page_navigation( 'bottom' ); ?>
 		<br class="clear" />
 	</div>
 </div>

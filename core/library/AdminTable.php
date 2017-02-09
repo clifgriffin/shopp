@@ -908,7 +908,7 @@ abstract class ShoppAdminTable extends ShoppRequestFramework {
 			if ( !empty( $class ) )
 				$class = "class='" . join( ' ', $class ) . "'";
 
-			echo "<th scope='col' $id $class $style>$column_display_name</th>";
+			echo "<td scope='col' $id $class $style>$column_display_name</td>";
 		}
 	}
 

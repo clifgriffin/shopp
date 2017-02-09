@@ -317,7 +317,7 @@ class ShoppAdminListTable extends WP_List_Table {
 		if ( is_string( $screen ) )
 			$screen = convert_to_screen( $screen );
 
-		$this->_screen = $screen;
+		$this->screen = $this->_screen = $screen;
 
 		if ( !empty( $columns ) ) {
 			$this->_columns = $columns;
@@ -376,5 +376,8 @@ class ShoppAdminListTable extends WP_List_Table {
 	public function set_pagination ( array $args ) {
 		$this->set_pagination_args($args);
 	}
-
+	
+	public function page_navigation ( $which ) {
+		return call_user_func_array( array( $this, 'pagination' ), func_get_args() );
+	}
 }

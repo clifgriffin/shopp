@@ -20,7 +20,7 @@
 			</div>
 		</div>
 
-		<?php $ListTable->pagination( 'top' ); ?>
+		<?php $ListTable->page_navigation( 'top' ); ?>
 
 		<div class="clear"></div>
 	</div>
@@ -70,7 +70,7 @@
 		<?php endif; ?>
 
 
-		<?php $ListTable->pagination('bottom'); ?>
+		<?php $ListTable->page_navigation('bottom'); ?>
 
 		<div class="clear"></div>
 	</div>
