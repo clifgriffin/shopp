@@ -285,7 +285,7 @@ abstract class ShoppReportFramework {
 
 		add_action('shopp_report_filter_controls', array($this, 'filters'));
 		add_action("manage_{$this->screen}_columns", array($this, 'screencolumns'), 0);
-		add_action("manage_{$this->screen}_sortable_columns", array($this, 'sortcolumns'));
+		add_action("manage_{$this->screen}_sortable_columns", array($this, 'sortcolumns'), 0);
 	}
 
 	/**
