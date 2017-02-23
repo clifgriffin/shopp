@@ -258,7 +258,7 @@
 								}
 								$output = ob_get_contents();
 								ob_end_clean();
-								echo apply_filters('shopp_manage_order_' . $column . '_column', $output);
+								echo apply_filters('shopp_manage_order_' . $column . '_column', $output, $Product, $Item, $Purchase);
 							}
 						}
 					?>
