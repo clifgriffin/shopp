@@ -629,7 +629,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @param array $ignores A list of properties to ignore
 	 * @return void
 	 **/
-	public function copydata ( $data, $prefix = '', $ignores = false ) {
+	public function copydata ( $Object, $prefix = '', $ignores = false ) {
 		if ( ! is_array($ignores) || ! $ignores ) 
 			$ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified');
 		else
