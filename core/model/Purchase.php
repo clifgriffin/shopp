@@ -630,7 +630,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 	 * @return void
 	 **/
 	public function copydata ( $Object, $prefix = '', $ignores = false ) {
-		if ( ! is_array($ignores) || ! $ignores ) 
+		if ( ! is_array($ignores) || $ignores === false ) 
 			$ignores = array('_datatypes', '_table', '_key', '_lists', 'id', 'created', 'modified');
 		else
 			$ignores = array_merge(array('_datatypes', '_table', '_key', '_lists', 'id', 'created', 'modified'), $ignores);
