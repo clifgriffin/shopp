@@ -330,7 +330,7 @@ class ShoppCatalogPage extends ShoppPage {
 	public function content ($content) {
 		global $wp_query;
 		// Test that this is the main query and it is a catalog page
-		if ( ! $wp_query->is_main_query() || ! is_shopp_catalog_frontpage( ) return $content;
+		if ( ! $wp_query->is_main_query() || ! is_shopp_catalog_frontpage() ) return $content;
 
 		shopp_debug('Displaying catalog page request: ' . $_SERVER['REQUEST_URI']);
 
