@@ -929,14 +929,16 @@ class ShoppCollectionThemeAPI implements ShoppAPI {
 			} else $_[] = '<li class="' . esc_attr($previousclass) . ' ' . esc_attr($disabledclass) . '"><span>' . $previous . '</span></li>';
 			// end previous button
 
-			if ( $O->page <= floor( $show / 2) ) {
+			$center = floor( $show / 2);
+			if ( $O->page <= $center ) {
 				$i = 1;
 			} else {
-				$i = $O->page - floor( $show / 2 );
-				$visible_pages = $O->page + floor( $show / 2 ) + 1;
+				$i = $O->page - $center;
+				$visible_pages = $O->page + $center + 1;
 				if ( $visible_pages > $O->pages ) {
 					$visible_pages = $O->pages + 1;
-					$i = $O->pages - $show;
+					// to prevent negative pagenumbers
+					$i = max( 1, $O->pages - $show);
 				}
 
 				if ( $i > 1 ) {
