@@ -165,6 +165,7 @@ class ShoppRegistration extends FormPostFramework {
 
 		$Customer = ShoppOrder()->Customer;
 		do_action('shopp_customer_registration', $Customer);
+        $registration = false;
 
 		if ( $Customer->session(ShoppCustomer::GUEST) ) {
 			$Customer->type = Shopp::__('Guest');   // No cuts
@@ -178,9 +179,12 @@ class ShoppRegistration extends FormPostFramework {
 				else $Customer->create_wpuser(); // not logged in, create new account
 			}
 
-			if ( ! $Customer->exists(true) ) {
+            $registration = ! $Customer->exists(true);
+
+			if ( $registration ) {
 				$Customer->id = false;
 				shopp_debug('Creating new Shopp customer record');
+                
 				if ( empty($Customer->password) )
 					$Customer->password = wp_generate_password(12, true);
 
@@ -191,7 +195,7 @@ class ShoppRegistration extends FormPostFramework {
 
 		}
 
-		// New customer, save hashed password
+		// New customer, save hashed password        
 		$Customer->save();
         $Customer->password = '';
 
@@ -204,7 +208,9 @@ class ShoppRegistration extends FormPostFramework {
 			$Address->save();
 		}
 
-		do_action('shopp_customer_registered', $Customer);
+		if ( $registration )
+            do_action('shopp_customer_registered', $Customer);
+        else do_action('shopp_customer_registration_updated', $Customer);
 
 		// Auto-login
 		$Customer->login(); // Login the customer
