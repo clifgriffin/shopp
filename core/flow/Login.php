@@ -281,7 +281,7 @@ class ShoppLogin {
 	public function redirect () {
 
 		$redirect = false;
-		$secure = ShoppOrder()->security();
+		$secure = ( is_ssl() || ShoppOrder()->security() );
 
 		if ( isset($_REQUEST['redirect']) && ! empty($_REQUEST['redirect']) ) {
 			if ( ShoppPages()->exists($_REQUEST['redirect']) ) $redirect = Shopp::url(false, $_REQUEST['redirect'], $secure);
