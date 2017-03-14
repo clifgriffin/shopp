@@ -625,7 +625,7 @@ function shopp_rebuild_search_index () {
 	$set = 10; // Process 10 at a time
 	$index_table = ShoppDatabaseObject::tablename(ContentIndex::$table);
 
-	$total = sDB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "'");
+	$total = sDB::query("SELECT count(*) AS products,now() as start FROM $wpdb->posts WHERE post_status='publish' AND post_type='" . ShoppProduct::$posttype . "'");
 	if ( empty($total->products) ) return false;
 
 	set_time_limit(0); // Prevent timeouts
@@ -633,7 +633,7 @@ function shopp_rebuild_search_index () {
 	$indexed = 0;
 	do_action_ref_array('shopp_rebuild_search_index_init', array($indexed, $total->products, $total->start));
 	for ( $i = 0; $i * $set < $total->products; $i++ ) { // Outer loop to support buffering
-		$products = sDB::query("SELECT ID FROM $wpdb->posts WHERE post_type='" . ShoppProduct::$posttype . "' LIMIT " . ($i * $set) . ",$set", 'array', 'col', 'ID');
+		$products = sDB::query("SELECT ID FROM $wpdb->posts WHERE post_status='publish' AND post_type='" . ShoppProduct::$posttype . "' LIMIT " . ($i * $set) . ",$set", 'array', 'col', 'ID');
 		foreach ( $products as $id ) {
 			$Indexer = new IndexProduct($id);
 			$Indexer->index();
