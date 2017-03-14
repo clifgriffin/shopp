@@ -22,24 +22,25 @@ if ( class_exists('WP_Widget') && ! class_exists('ShoppCartWidget') ) {
 			);
 	    }
 
-	    function widget($args, $options) {
-			if (!empty($args)) extract($args);
+	    function widget ($args, $options) {
+			if ( ! empty($args) ) extract($args);
 
-			if (empty($options['title'])) $options['title'] = Shopp::__('Your Cart');
-			$title = $before_title.$options['title'].$after_title;
+			if ( empty($options['title']) ) $options['title'] = Shopp::__('Your Cart');
+			$title = $before_title . $options['title'] . $after_title;
 
-			if ('on' == $options['hide-empty'] && shopp_cart_items_count() == 0) return;
+			if ( isset($options['hide-empty']) )
+				if ('on' == $options['hide-empty'] && shopp_cart_items_count() == 0) return;
 
-			$sidecart = shopp('cart','get-sidecart',$options);
-			if (empty($sidecart)) return;
-			echo $before_widget.$title.$sidecart.$after_widget;
+			$sidecart = shopp('cart.get-sidecart', $options);
+			if ( empty($sidecart) ) return;
+			echo $before_widget . $title . $sidecart . $after_widget;
 	    }
 
-	    function update($new_instance, $old_instance) {
+	    function update ($new_instance, $old_instance) {
 	        return $new_instance;
 	    }
 
-	    function form($options) {
+	    function form ($options) {
 	    	$defaults = array(
 				'title'	        => '',
 				'hide-empty'	=> '',
