@@ -736,6 +736,11 @@ class ShoppDiscountRule {
 		$op       = strtolower($this->logic);
 		$value    = $this->value;
 
+		// To make evaluate work correctly when
+		// $subject includes htmlencoded characters like &amp;
+        foreach ( $subject as $key => $sub )
+        	$subject[ $key ] = htmlspecialchars_decode($sub);
+
 		switch( $op ) {
 			// String or Numeric operations
 			case 'is equal to':
