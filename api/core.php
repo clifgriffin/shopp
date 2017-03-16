@@ -263,8 +263,7 @@ if ( ! function_exists('is_catalog_page') ) {
  **/
 function is_shopp_catalog_frontpage () {
 	$Page = ShoppPages()->requested();
-
-	return $Page !== false && $Page->name() == 'catalog';
+	return $Page !== false && $Page->name() == 'catalog' && ! is_shopp_smart_collection();
 }
 
 if ( ! function_exists('is_catalog_frontpage') ) {
