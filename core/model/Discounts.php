@@ -738,8 +738,12 @@ class ShoppDiscountRule {
 
 		// To make evaluate work correctly when
 		// $subject includes htmlencoded characters like &amp;
-        foreach ( $subject as $key => $sub )
-        	$subject[ $key ] = htmlspecialchars_decode($sub);
+		if ( is_array($subject) ) {
+        	foreach ( $subject as $key => $sub )
+        		$subject[ $key ] = htmlspecialchars_decode($sub);
+        } elseif ( is_string($subject) ) {
+			$subject = htmlspecialchars_decode($subject);
+		}
 
 		switch( $op ) {
 			// String or Numeric operations
