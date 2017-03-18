@@ -246,9 +246,10 @@ class sDB extends SingletonFramework {
 	 * @since 1.0
 	 *
 	 * @param string|array|object $data Data to be escaped
+	 * @param boolean $unescape Whether or not to unescape() before escape()
 	 * @return string Database-safe data
 	 **/
-	public static function escape ( $data ) {
+	public static function escape ( $data, $unescape = true ) {
 		// Prevent double escaping by stripping any existing escapes out
 		if ( is_array($data) ) array_map(array(__CLASS__, 'escape'), $data);
 		elseif ( is_object($data) ) {
@@ -256,7 +257,9 @@ class sDB extends SingletonFramework {
 				$data->$p = self::escape($v);
 		} else {
 			$db = sDB::get();
-			$data = self::unescape($data); // Prevent double-escapes
+			if ( $unescape === true )
+				$data = self::unescape($data); // Prevent double-escapes
+
 			$data = $db->api->escape($data);
 		}
 		return $data;
