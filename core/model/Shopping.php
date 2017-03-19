@@ -257,6 +257,25 @@ class Shopping extends ShoppSessionFramework {
 		add_action('shopp_init', array($this, 'bouncer'), 100);
 
 	}
+    
+    /**
+     * Override to ensure we don't create sessions for special types of browser requests.
+     * 
+     * @since 1.3.13
+     * 
+     * @return bool True if the session should be created/updated, false otherwise
+     */
+    public function cookable () {
+        $cookable = parent::cookable();
+        
+		// Don't update the session for prefetch requests (via <link rel="next" /> or <link rel="prefetch" /> tags)
+		if ( isset($_SERVER['HTTP_X_MOZ']) && 'prefetch' == $_SERVER['HTTP_X_MOZ'] // Firefox
+			|| isset($_SERVER['HTTP_X_PURPOSE']) // Chrome/Safari
+				&& in_array($_SERVER['HTTP_X_PURPOSE'], array('preview', 'instant')) )
+			return false;
+        
+        return $cookable;
+    }
 
 	/**
 	 * Bounce the browser to the secure unlock request

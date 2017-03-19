@@ -114,48 +114,46 @@ class ProductCollection implements Iterator {
 		}
 
 		// Sort Order
-		if ( ! $orderby ) {
+		$titlesort = "p.post_title ASC";
+		$defaultsort = empty($order) ? $titlesort : $order;
 
-			$titlesort = "p.post_title ASC";
-			$defaultsort = empty($order) ? $titlesort : $order;
+		// Define filterable built-in sort methods (you're welcome)
+		$sortmethods = apply_filters('shopp_collection_sort_methods', array(
+			'bestselling' => "s.sold DESC,$titlesort",
+			'highprice'   => "maxprice DESC,$titlesort",
+			'lowprice'    => "minprice ASC,$titlesort",
+			'newest'      => "p.post_date DESC,$titlesort",
+			'oldest'      => "p.post_date ASC,$titlesort",
+			'random'      => "RAND(".crc32($Shopping->session).")",
+			'chaos'       => "RAND(".time().")",
+			'reverse'     => "p.post_title DESC",
+			'title'       => $titlesort,
+			'custom'      => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+			'recommended' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
+			'default'     => $defaultsort
+		));
 
-			// Define filterable built-in sort methods (you're welcome)
-			$sortmethods = apply_filters('shopp_collection_sort_methods', array(
-				'bestselling' => "s.sold DESC,$titlesort",
-				'highprice'   => "maxprice DESC,$titlesort",
-				'lowprice'    => "minprice ASC,$titlesort",
-				'newest'      => "p.post_date DESC,$titlesort",
-				'oldest'      => "p.post_date ASC,$titlesort",
-				'random'      => "RAND(".crc32($Shopping->session).")",
-				'chaos'       => "RAND(".time().")",
-				'reverse'     => "p.post_title DESC",
-				'title'       => $titlesort,
-				'custom'      => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
-				'recommended' => is_subclass_of($this,'ProductTaxonomy') ? "tr.term_order ASC,$titlesort" : $defaultsort,
-				'default'     => $defaultsort
-			));
+		// Handle valid user browsing sort change requests
+		if ( isset($_REQUEST['sort']) && !empty($_REQUEST['sort']) && array_key_exists(strtolower($_REQUEST['sort']), $sortmethods) )
+			$Storefront->browsing['sortorder'] = strtolower($_REQUEST['sort']);
 
-			// Handle valid user browsing sort change requests
-			if ( isset($_REQUEST['sort']) && !empty($_REQUEST['sort']) && array_key_exists(strtolower($_REQUEST['sort']), $sortmethods) )
-				$Storefront->browsing['sortorder'] = strtolower($_REQUEST['sort']);
+		// Collect sort setting sources (Shopp admin setting, User browsing setting, programmer specified setting)
+		$sortsettings = array(
+			shopp_setting('default_product_order'),
+			isset($Storefront->browsing['sortorder']) ? $Storefront->browsing['sortorder'] : false,
+			!empty($order) ? $order : false
+		);
 
-			// Collect sort setting sources (Shopp admin setting, User browsing setting, programmer specified setting)
-			$sortsettings = array(
-				shopp_setting('default_product_order'),
-				isset($Storefront->browsing['sortorder']) ? $Storefront->browsing['sortorder'] : false,
-				!empty($order) ? $order : false
-			);
+		// Go through setting sources to determine most applicable setting
+		$sorting = 'title';
+		foreach ($sortsettings as $setting)
+			if ( ! empty($setting) && isset($sortmethods[ strtolower($setting) ]) )
+				$sorting = strtolower($setting);
 
-			// Go through setting sources to determine most applicable setting
-			$sorting = 'title';
-			foreach ($sortsettings as $setting)
-				if ( ! empty($setting) && isset($sortmethods[ strtolower($setting) ]) )
-					$sorting = strtolower($setting);
-
+		if ( ! $orderby )
 			$orderby = $sortmethods[ $sorting ];
-		}
-
-		if ( empty($orderby) ) $orderby = 'p.post_title ASC';
+		else
+			$orderby = $orderby . ',' . $sortmethods[ $sorting ];
 
 		// Pagination
 		if ( empty($limit) ) {
@@ -277,7 +275,7 @@ class ProductCollection implements Iterator {
 		$prettyurl = "$namespace/$this->slug" . ($page > 1 || $alpha ? "/page/$page" : "");
 
 		// Handle catalog landing page category pagination
-		if ( is_catalog_frontpage() ) $prettyurl = ($page > 1 || $alpha ? "page/$page" : "");
+		if ( is_shopp_catalog_frontpage() ) $prettyurl = ($page > 1 || $alpha ? "page/$page" : "");
 
 		$queryvars = array($this->taxonomy => $this->uri);
 		if ( $page > 1 || $alpha ) $queryvars['paged'] = $page;

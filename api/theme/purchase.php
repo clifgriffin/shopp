@@ -632,7 +632,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	/**
 	 * Iterates over the addons from the current item in the items loop
 	 *
-	 * @api `shopp('purcahse.item-addons')`
+	 * @api `shopp('purchase.item-addons')`
 	 * @since 1.1
 	 *
 	 * @param string        $result  The output
@@ -1426,7 +1426,7 @@ class ShoppPurchaseThemeAPI implements ShoppAPI {
 	 **/
 	public static function ship_state ( $result, $options, $O ) {
 		$state = esc_html($O->shipstate);
-		if ( strlen( $O->state > 2 ) ) return $state;
+		if ( strlen( $O->shipstate > 2 ) ) return $state;
 		$regions = Lookup::country_zones();
 
 		if ( isset($regions[ $O->country ])) {

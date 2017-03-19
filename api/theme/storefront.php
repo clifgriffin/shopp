@@ -1657,7 +1657,7 @@ class ShoppStorefrontThemeAPI implements ShoppAPI {
 	public static function account_menuitem ( $result, $options, $O ) {
 		$Storefront = ShoppStorefront();
 		$page = current($Storefront->menus);
-		if ( array_key_exists('url', $options) ) return add_query_arg($page->request, '', Shopp::url(false, 'account'));
+		if ( array_key_exists('url', $options) ) return add_query_arg($page->request, '', Shopp::url(false, 'account', is_ssl()));
 		if ( array_key_exists('action', $options) ) return $page->request;
 		if ( array_key_exists('classes', $options) ) {
 			$classes = array($page->request);

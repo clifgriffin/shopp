@@ -246,9 +246,10 @@ class sDB extends SingletonFramework {
 	 * @since 1.0
 	 *
 	 * @param string|array|object $data Data to be escaped
+	 * @param boolean $unescape Whether or not to unescape() before escape()
 	 * @return string Database-safe data
 	 **/
-	public static function escape ( $data ) {
+	public static function escape ( $data, $unescape = true ) {
 		// Prevent double escaping by stripping any existing escapes out
 		if ( is_array($data) ) array_map(array(__CLASS__, 'escape'), $data);
 		elseif ( is_object($data) ) {
@@ -256,7 +257,9 @@ class sDB extends SingletonFramework {
 				$data->$p = self::escape($v);
 		} else {
 			$db = sDB::get();
-			$data = self::unescape($data); // Prevent double-escapes
+			if ( $unescape === true )
+				$data = self::unescape($data); // Prevent double-escapes
+
 			$data = $db->api->escape($data);
 		}
 		return $data;
@@ -1322,7 +1325,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 	 * @return void
 	 **/
 	public function copydata ( $data, $prefix = '', $ignores = false ) {
-		if ( ! is_array($ignores) || ! $ignores ) $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified');
+		if ( ! is_array($ignores) || $ignores === false ) $ignores = array('_datatypes', '_table', '_key', '_lists', '_map', 'id', 'created', 'modified');
 
 		$properties = is_object($data) ? get_object_vars($data) : $data;
 		foreach ( (array)$properties as $property => $value ) {
