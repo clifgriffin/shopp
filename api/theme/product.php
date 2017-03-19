@@ -84,6 +84,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'onsale'        => 'on_sale',
 		'outofstock'    => 'out_of_stock',
 		'price'         => 'price',
+		'processing'    => 'processing',
 		'saleprice'     => 'saleprice',
 		'relevance'     => 'relevance',
 		'savings'       => 'savings',
@@ -1419,27 +1420,36 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	}
 
 	/**
-	 * Provide the sale price or sale price range of the product
+	 * Provides the processing time of the product
 	 *
-	 * @api `shopp('product.saleprice')`
-	 * @since 1.0
+	 * @api `shopp('product.processing')`
+	 * @since 1.3
 	 *
 	 * @param string       $result  The output
 	 * @param array        $options The options
-	 * - **disabled**: `Currently unavailable` The label to show when the product is disabled (no valid, active prices)
-	 * - **high**: `off` (on,off) Show only the highest price of the variant price range
-	 * - **low**: `off` (on,off) Show only the lowest price of the variant price range
-	 * - **money**: `on` (on,off) Format the number with the current currency format for the store
-	 * - **number**: `off` (on,off) Provide the pure numeric value without currency formatting
-	 * - **separator**: `&mdash; ` The separator used for the price range
-	 * - **starting**: Provides a label and displays the lowest price with the label as a prefix (@example "Starting at $9.99")
-	 * - **taxes**: (on,off) Include taxes in the price or exclude taxes from the price
 	 * @param ShoppProduct $O       The working object
-	 * @return string The sale price markup
+	 * @return string|boolean The product processing time markup | False when turned off
 	 **/
-	public static function saleprice ( $result, $options, $O ) {
-		$options['property'] = 'saleprice';
-		return self::price( $result, $options, $O );
+	public static function processing ( $result, $options, $O ) {
+		if ( 'off' == $O->processing ) return false;
+
+		$singleperiod = array( 'd' => Shopp::__('day'), 'w' => Shopp::__('week'), 'm' => Shopp::__('month'));
+		$multiperiod  = array( 'd' => Shopp::__('days'), 'w' => Shopp::__('weeks'), 'm' => Shopp::__('months'));
+
+		$min = preg_split('/(?<=[0-9])(?=[a-z]+)/i', $O->minprocess); 
+		$max = preg_split('/(?<=[0-9])(?=[a-z]+)/i', $O->maxprocess);
+
+		if ( $min[0] == 1 )
+			$minprocess = $min[0] . ' ' . $singleperiod[ $min[1] ];
+		else
+			$minprocess = $min[0] . ' ' . $multiperiod[ $min[1] ];
+
+		if ( $max[0] == 1 )
+			$maxprocess = $max[0] . ' ' . $singleperiod[ $max[1] ];
+		else
+			$maxprocess = $max[0] . ' ' . $multiperiod[ $max[1] ];
+
+		return $minprocess . ' - ' . $maxprocess;
 	}
 
 	/**
@@ -1572,6 +1582,30 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	public static function relevance ( $result, $options, $O ) {
 		return (string) $O->score;
 	}
+
+	/**
+	 * Provide the sale price or sale price range of the product
+	 *
+	 * @api `shopp('product.saleprice')`
+	 * @since 1.0
+	 *
+	 * @param string       $result  The output
+	 * @param array        $options The options
+	 * - **disabled**: `Currently unavailable` The label to show when the product is disabled (no valid, active prices)
+	 * - **high**: `off` (on,off) Show only the highest price of the variant price range
+	 * - **low**: `off` (on,off) Show only the lowest price of the variant price range
+	 * - **money**: `on` (on,off) Format the number with the current currency format for the store
+	 * - **number**: `off` (on,off) Provide the pure numeric value without currency formatting
+	 * - **separator**: `&mdash; ` The separator used for the price range
+	 * - **starting**: Provides a label and displays the lowest price with the label as a prefix (@example "Starting at $9.99")
+	 * - **taxes**: (on,off) Include taxes in the price or exclude taxes from the price
+	 * @param ShoppProduct $O       The working object
+	 * @return string The sale price markup
+	 **/
+	public static function saleprice ( $result, $options, $O ) {
+		$options['property'] = 'saleprice';
+		return self::price( $result, $options, $O );
+	}	
 
 	/**
 	 * Provides the amount of cost savings between the regular price and the sale price
