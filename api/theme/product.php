@@ -85,8 +85,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		'outofstock'    => 'out_of_stock',
 		'price'         => 'price',
 		'processing'    => 'processing',
-		'saleprice'     => 'saleprice',
 		'relevance'     => 'relevance',
+		'saleprice'     => 'saleprice',
 		'savings'       => 'savings',
 		'schema'        => 'schema',
 		'slug'          => 'slug',
@@ -1433,21 +1433,20 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	public static function processing ( $result, $options, $O ) {
 		if ( 'off' == $O->processing ) return false;
 
-		$singleperiod = array( 'd' => Shopp::__('day'), 'w' => Shopp::__('week'), 'm' => Shopp::__('month'));
-		$multiperiod  = array( 'd' => Shopp::__('days'), 'w' => Shopp::__('weeks'), 'm' => Shopp::__('months'));
+		$period  = array( 'd' => Shopp::__('day'), 'w' => Shopp::__('week'), 'm' => Shopp::__('month'));
+		$periods = array( 'd' => Shopp::__('days'), 'w' => Shopp::__('weeks'), 'm' => Shopp::__('months'));
 
-		$min = preg_split('/(?<=[0-9])(?=[a-z]+)/i', $O->minprocess); 
-		$max = preg_split('/(?<=[0-9])(?=[a-z]+)/i', $O->maxprocess);
+		$minprocess = 0;
+		$maxprocess = 0;
+		$processes  = array('minprocess', 'maxprocess');
 
-		if ( $min[0] == 1 )
-			$minprocess = $min[0] . ' ' . $singleperiod[ $min[1] ];
-		else
-			$minprocess = $min[0] . ' ' . $multiperiod[ $min[1] ];
-
-		if ( $max[0] == 1 )
-			$maxprocess = $max[0] . ' ' . $singleperiod[ $max[1] ];
-		else
-			$maxprocess = $max[0] . ' ' . $multiperiod[ $max[1] ];
+		foreach ($processes as $process) {
+			$timespan = preg_split('/(?<=[0-9])(?=[a-z]+)/i', $O->$process);
+			if ( $timespan[0] == 1 )
+				$$process = $timespan[0] . ' ' . $period[ $timespan[1] ];
+			else
+				$$process = $timespan[0] . ' ' . $periods[ $timespan[1] ];
+		}
 
 		return $minprocess . ' - ' . $maxprocess;
 	}
