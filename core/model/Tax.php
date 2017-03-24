@@ -297,19 +297,21 @@ class ShoppTax {
 		return (array)$baserates;
 	}
 
-	public static function adjustment ( $rates ) {
+	public static function adjustment ( $rates, $Item = null ) {
 
-		if ( ! shopp_setting_enabled('tax_inclusive') ) return 1;
+		$inclusive = shopp_setting_enabled('tax_inclusive');
 
-		$baserates = ShoppTax::baserates();
+		$baserates = ShoppTax::baserates( $Item );
 		$baserate = reset($baserates);
 		$appliedrate = reset($rates);
 
 		$baserate = isset($baserate->rate) ? $baserate->rate : 0;
 		$appliedrate = isset($appliedrate->rate) ? $appliedrate->rate : 0;
 
-		return 1 + ($baserate - $appliedrate);
-
+		if ( $inclusive )
+			return 1 + ($baserate - $appliedrate);
+		else
+			return 1 / (1 + $appliedrate);
 	}
 
 	/**
