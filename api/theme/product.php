@@ -300,7 +300,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 		}
 
-		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return false; // Completely out of stock, hide menus
+		if ( ! self::availability($result, $options, $O) ) return false; // Completely out of stock, hide menus
 		if ( ! isset($O->options['a']) ) return false; // There are no addons, don't render menus
 
 		$defaults = array(
@@ -458,7 +458,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 		if ( ! empty($class) ) $classes = explode(' ', $class);
 
 		$string = '';
-		if ( shopp_setting_enabled('inventory') && $O->outofstock )
+		if ( ! self::availability($result, $options, $O) )
 			return apply_filters('shopp_product_outofstock_text', '<span class="outofstock">' . esc_html(shopp_setting('outofstock_text')) . '</span>');
 
 		if ( $redirect )
@@ -510,7 +510,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * @return bool True if available, false otherwise
 	 **/
 	public static function availability ( $result, $options, $O ) {
-		return ! ( shopp_setting_enabled('inventory') && $O->outofstock );
+		return ! ( shopp_setting_enabled('inventory') && $O->outofstock && ! shopp_setting_enabled('backorders') );
 	}
 
 	/**
@@ -1493,7 +1493,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 **/
 	public static function quantity ( $result, $options, $O ) {
 		if ( ! shopp_setting_enabled('shopping_cart') ) return '';
-		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return '';
+		if ( ! self::availability($result, $options, $O) ) return '';
 
 		$inputs = array('text','menu');
 		$defaults = array(
@@ -2157,7 +2157,7 @@ class ShoppProductThemeAPI implements ShoppAPI {
 			}
 		}
 
-		if ( shopp_setting_enabled('inventory') && $O->outofstock ) return false; // Completely out of stock, hide menus
+		if ( ! self::availability($result, $options, $O) ) return false; // Completely out of stock, hide menus
 		if ( ! isset($options['taxes']) ) $options['taxes'] = null;
 
 		$defaults = array(
