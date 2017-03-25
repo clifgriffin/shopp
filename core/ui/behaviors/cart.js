@@ -120,6 +120,10 @@ jQuery(document).ready(function($) {
 		$('#cart input.update-button[type="submit"]').click();
 	});	
 	
+	$('#cart select[name*="[price]"]').change(function() {
+		$('#cart input.update-button[type="submit"]').click();
+	});
+
 	$('#cart input[type=image]').click(function () { $(this.form).submit(); });
 
 	// "Add to cart" button behaviors
