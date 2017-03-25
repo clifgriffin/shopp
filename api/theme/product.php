@@ -1336,26 +1336,31 @@ class ShoppProductThemeAPI implements ShoppAPI {
 	 * @param string       $result  The output
 	 * @param array        $options The options
 	 * - **label**: Show a label if the product is out of stock
+	 * - **mode**: `text` (text|value) Return 'Out of stock' text or boolean true or false
 	 * @param ShoppProduct $O       The working object
 	 * @return bool|string True if out-of-stock, false otherwise, or the given label
 	 **/
 	public static function out_of_stock ( $result, $options, $O ) {
-
 		if ( ! shopp_setting_enabled('inventory') ) return false;
 		if ( ! $O->outofstock ) return false;
+		
+		$defaults = array(
+			'label' => shopp_setting('outofstock_text'),// @deprecated Removing label setting
+			'mode'  => 'text',
+			);
 
-		if ( isset($options['label']) ) { // If label option is set at all, show the label instead
-			$classes = array('outofstock');
-			if ( isset($options['class']) )
-				$classes = array_merge($classes, explode(' ', $options['class']));
+		$options = array_merge($defaults, $options);
+		extract($options);
+		
+		if ( 'value' == $mode ) return true;
 
-			$label = shopp_setting('outofstock_text'); // @deprecated Removing label setting
-			if ( empty($label) ) $label = Shopp::__('Out of stock');
-			if ( ! Shopp::str_true($options['label']) ) $label = $options['label'];
-			return '<span class="' . esc_attr(join(' ', $classes)). '">' . esc_html($label) . '</span>';
+		$classes = array('outofstock');
+		if ( isset($class) )
+			$classes = array_merge($classes, explode(' ', $class));
 
-		} else return true;
+		if ( empty($label) ) $label = Shopp::__('Out of stock');
 
+		return '<span class="' . esc_attr(join(' ', $classes)). '">' . esc_html($label) . '</span>';
 	}
 
 	/**
