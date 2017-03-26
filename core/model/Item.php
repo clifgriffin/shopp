@@ -964,7 +964,7 @@ class ShoppCartItem {
 		$this->tax = $Tax->total($this->taxes, (int) $taxableqty);
 
 		// Handle inclusive tax price adjustments for non-EU markets or alternate tax rate markets
-		$adjustment = ShoppTax::adjustment($this->taxes);
+		$adjustment = ShoppTax::adjustment($this->taxes, $this);
 		if ( 1 != $adjustment ) {
 
 			if ( ! isset($this->taxprice) )
