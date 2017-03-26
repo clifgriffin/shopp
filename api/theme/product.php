@@ -2418,9 +2418,11 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 			$taxoption = Shopp::str_true( $taxoption );
 
 		$inclusivetax = self::_inclusive_taxes($O);
-		$adjustment = ShoppTax::adjustment($taxrates, $O);
-		if ( 1 != $adjustment && false !== $taxoption ) // Only adjust when taxes are not excluded @see #3041
-			return (float) ($amount / $adjustment);
+		if ( $inclusivetax ) {
+			$adjustment = ShoppTax::adjustment($taxrates);
+			if ( 1 != $adjustment && false !== $taxoption ) // Only adjust when taxes are not excluded @see #3041
+				return (float) ($amount / $adjustment);
+		}
 
 		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
 		// If the 'taxes' option is specified and the item either has inclusive taxes that apply,
