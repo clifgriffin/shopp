@@ -440,7 +440,7 @@ class sDB extends SingletonFramework {
 		if ( isset($rows->found) ) $db->found = (int) $rows->found;
 
 		// Free the results immediately to save memory
-		// JM Added check for empty result to prevent warning 'Could not fetch mysqli_result'
+		// Added check for empty result to prevent warning 'Could not fetch mysqli_result'
 		if ( isset($db->found) && $db->found > 0 ) $db->api->free();
 
 		// Handle result format post processing

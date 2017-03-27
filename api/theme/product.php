@@ -2419,7 +2419,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 
 		$inclusivetax = self::_inclusive_taxes($O);
 		if ( $inclusivetax ) {
-			$adjustment = ShoppTax::adjustment($taxrates);
+			$adjustment = ShoppTax::adjustment($taxrates, $O);
 			if ( 1 != $adjustment && false !== $taxoption ) // Only adjust when taxes are not excluded @see #3041
 				return (float) ($amount / $adjustment);
 		}

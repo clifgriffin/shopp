@@ -396,10 +396,27 @@ class ShoppCartItem {
 		if ( empty($this->variants) ) return '';
 
 		$string = '';
+		$priceline = $this->priceline;
+		if ( isset($this->taxprice) )
+			$adjustment = $this->taxprice/$this->unitprice;
+		else
+			$adjustment = $this->taxrate;
+
 		foreach( $this->variants as $option ) {
 			if ( $option->type == 'N/A' ) continue;
-			$currently = (Shopp::str_true($option->sale)?$option->promoprice:$option->price)+$this->addonsum;
-			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
+
+			if ( $priceline != $option->id ) {
+				$currently = ( Shopp::str_true($option->sale) ) ? $option->promoprice : $option->price;
+				if ( $adjustment < 0 )
+					$adjustment = 1 + $adjustment;
+
+				if ( 0 == $adjustment )
+					$difference = (float)($currently-$this->unitprice);
+				else
+					$difference = (float)(($currently / $adjustment) - $this->unitprice);
+			} else {
+				$difference = 0;
+			}
 
 			$price = '';
 			if ( $difference > 0 ) $price = '  (+' . money($difference) . ')';
@@ -408,7 +425,7 @@ class ShoppCartItem {
 			$selected = '';
 			if ( $selection == $option->id ) $selected = ' selected="selected"';
 			$disabled = '';
-			if ( Shopp::str_true($option->inventory) && $option->stock < $this->quantity )
+			if ( Shopp::str_true($option->inventory) && $option->stock < $this->quantity && ! shopp_setting_enabled('backorders') )
 				$disabled = ' disabled="disabled"';
 
 			$string .= '<option value="' . $option->id . '"' . $selected.$disabled . '>' . $option->label . $price . '</option>';
@@ -939,7 +956,7 @@ class ShoppCartItem {
 		$this->tax = $Tax->total($this->taxes, (int) $taxableqty);
 
 		// Handle inclusive tax price adjustments for non-EU markets or alternate tax rate markets
-		$adjustment = ShoppTax::adjustment($this->taxes);
+		$adjustment = ShoppTax::adjustment($this->taxes, $this);
 		if ( 1 != $adjustment ) {
 
 			if ( ! isset($this->taxprice) )

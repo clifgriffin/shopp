@@ -392,7 +392,6 @@ class ShoppAdminAccount extends ShoppAdminController {
 
 		if ( empty($Customer->info->meta) ) remove_meta_box('customer-info', 'shopp_page_shopp-customers', 'normal');
 
-		//JM if ($Customer->id > 0) {
 		if ( ! $new_customer ) {
 			$purchase_table = ShoppDatabaseObject::tablename(ShoppPurchase::$table);
 			$r = sDB::query("SELECT count(id) AS purchases, SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
