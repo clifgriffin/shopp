@@ -396,35 +396,10 @@ class ShoppCartItem {
 		if ( empty($this->variants) ) return '';
 
 		$string = '';
-		$priceline = $this->priceline;
-		if ( isset($this->taxprice) )
-			$adjustment = $this->taxprice/$this->unitprice;
-		else
-			$adjustment = $this->taxrate;
-
 		foreach( $this->variants as $option ) {
 			if ( $option->type == 'N/A' ) continue;
-
-			if ( $priceline != $option->id ) {
-				$currently = ( Shopp::str_true($option->sale) ) ? $option->promoprice : $option->price;
-				//new ShoppError('== this priceline =='._object_r($this), false, SHOPP_DEBUG_ERR);
-				new ShoppError('== option price =='._object_r($option), false, SHOPP_DEBUG_ERR);
-				new ShoppError('== currently =='._object_r($currently), false, SHOPP_DEBUG_ERR);
-				new ShoppError('== unitprice =='._object_r($this->unitprice), false, SHOPP_DEBUG_ERR);
-				new ShoppError('== unittax =='._object_r($this->unittax), false, SHOPP_DEBUG_ERR);
-
-				new ShoppError('== adjustment before == '._object_r($adjustment), false, SHOPP_DEBUG_ERR);
-				if ( $adjustment < 0 )
-					$adjustment = 1 + $adjustment;
-				new ShoppError('== adjustment after == '._object_r($adjustment), false, SHOPP_DEBUG_ERR);
-
-				if ( 0 == $adjustment )
-					$difference = (float)($currently-$this->unitprice);
-				else
-					$difference = (float)(($currently / $adjustment) - $this->unitprice);
-			} else {
-				$difference = 0;
-			}
+			$currently = (Shopp::str_true($option->sale)?$option->promoprice:$option->price)+$this->addonsum;
+			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
 
 			$price = '';
 			if ( $difference > 0 ) $price = '  (+' . money($difference) . ')';
