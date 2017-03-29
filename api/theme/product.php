@@ -2430,7 +2430,7 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 		// This is an exclusive or known as XOR, the lesser known brother of Thor that gets left out of the family get togethers
 		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
 
-			if ( $taxoption === true )
+			if ( $taxoption )
 				// runs when 'taxes=on' and tax-inclusive prices disabled
 				return $amount + ShoppTax::calculate($taxrates, (float)$amount);
 			elseif ( empty($taxrates) )
