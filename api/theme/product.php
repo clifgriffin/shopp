@@ -2431,9 +2431,14 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
 
 			if ( $taxoption )
-				return ShoppTax::calculate($taxrates, (float)$amount);
-			else return ShoppTax::exclusive($taxrates, (float)$amount);
-
+				// runs when 'taxes=on' and tax-inclusive prices disabled
+				return $amount + ShoppTax::calculate($taxrates, (float)$amount);
+			elseif ( empty($taxrates) )
+				// runs when 'taxes=off' and tax-inclusive prices enabled and product not taxable
+				return $amount / $adjustment;
+			else
+				// runs when 'taxes=off' and tax-inclusive prices enabled and product is taxable
+				return ShoppTax::exclusive($taxrates, (float)$amount);
 		}
 
 		return $amount;
