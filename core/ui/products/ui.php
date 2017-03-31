@@ -274,7 +274,7 @@ function images_meta_box ($Product) {
 	<?php endforeach; ?>
 	</ul>
 	<div class="clear"></div>
-	<input type="hidden" name="product" value="<?php echo $_GET['id']; ?>" id="image-product-id" />
+	<input type="hidden" name="product" value="<?php echo preg_replace('/[^0-9]/', '', $_GET['id']); ?>" id="image-product-id" />
 	<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 	<div id="swf-uploader-button"></div>
 	<div id="browser-uploader">
