@@ -735,11 +735,23 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 			$menu = isset( $menumap[ $addon->options ]) ? $menus[ $menumap[ $addon->options ] ] . $separator : false;
 
 			$price = ( Shopp::str_true($addon->sale) ? $addon->promoprice : $addon->price );
+
+			if ( isset($O->taxprice) )
+				$adjustment = $O->taxprice/$O->unitprice;
+			else
+				$adjustment = $O->taxrate;
+
+			if ( $adjustment < 0 )
+				$adjustment = 1 + $adjustment;
+
+			if ( 0 != $adjustment )
+				$price = $price / $adjustment;
+
 			if ( $taxes && $O->taxrate > 0 )
 				$price = $price + ( $price * $O->taxrate );
 
-			if ( $prices ) $pricing = " (" . ( $addon->price < 0 ?'-' : '+' ) . money($price) . ')';
-			$result .= '<li>' . $menu . $addon->label . $pricing . '</li>';
+			if ( $prices ) $pricing = " (" . ( $addon->price < 0 ? '-' : '+' ) . money($price) . ')';
+				$result .= '<li>' . $menu . $addon->label . $pricing . '</li>';
 		}
 		$result .= '</ul>' . $after;
 		return $result;
