@@ -597,10 +597,9 @@ class Lookup {
 
 	public static function country_euvat () {
 		$_ = array( // Includes 28 core member countries plus dependent territories
-			'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'ES', 'ET', 'EE',
-			'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IM', 'IT', 'LB',
-			'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI',
-			'SK');
+			'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'ES', 'EE', 'FI',
+			'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IM', 'IT', 'LB', 'LT',
+			'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK');
 		return (array)apply_filters('shopp_country_euvat', $_);
 	}
 
