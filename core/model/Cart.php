@@ -506,7 +506,8 @@ class ShoppCart extends ListFramework {
 		// remove original product/variant
 		$this->rmvitem($item);
 		// add new product/variant
-		$this->additem($quantity, new ShoppProduct($product), $pricing, $category, $data, $addons);
+		$product = new ShoppProduct($product);
+		$this->additem($quantity, $product, $pricing, $category, $data, $addons);
 
 		return true;
 	}
