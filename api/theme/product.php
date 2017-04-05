@@ -2426,6 +2426,10 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 
 		if ( $baserate == $appliedrate && 0 == $baserate ) return $amount;
 
+		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
+		// If the 'taxes' option is specified and the item either has inclusive taxes that apply,
+		// or the 'taxes' option is forced on (but not both) then handle taxes by either adding or excluding taxes
+		// This is an exclusive or known as XOR, the lesser known brother of Thor that gets left out of the family get togethers
 		if ( $inclusivetax ) {
 			if ( $taxoption ) {
 				if ( $baserate == $appliedrate ) return $amount;
