@@ -2414,32 +2414,35 @@ new ProductOptionsMenus(<?php printf("'select%s.product%d.options'", $select_col
 
 		if ( empty($taxrates) ) $taxrates = Shopp::taxrates($O);
 
+		$inclusivetax = self::_inclusive_taxes($O);
+
 		if ( isset($taxoption) )
 			$taxoption = Shopp::str_true( $taxoption );
+		else
+			$taxoption = $inclusivetax;
 
-		$inclusivetax = self::_inclusive_taxes($O);
-		if ( $inclusivetax ) {
-			$adjustment = ShoppTax::adjustment($taxrates, $O);
-			if ( 1 != $adjustment && false !== $taxoption ) // Only adjust when taxes are not excluded @see #3041
-				return (float) ($amount / $adjustment);
-		}
+		$adjustment = ShoppTax::adjustment($taxrates, $O);
+		extract($adjustment);
+
+		if ( $baserate == $appliedrate && 0 == $baserate ) return $amount;
 
 		// Handle inclusive/exclusive tax presentation options (product editor setting or api option)
 		// If the 'taxes' option is specified and the item either has inclusive taxes that apply,
 		// or the 'taxes' option is forced on (but not both) then handle taxes by either adding or excluding taxes
 		// This is an exclusive or known as XOR, the lesser known brother of Thor that gets left out of the family get togethers
-		if ( isset($taxoption) && ( $inclusivetax ^ $taxoption ) ) {
-
+		if ( $inclusivetax ) {
+			if ( $taxoption ) {
+				if ( $baserate == $appliedrate ) return $amount;
+				//return (float)($amount * ( 1 / ( 1 + $baserate ) ) ) * ( 1 + $appliedrate );
+				return (float)($amount / ( 1 + $baserate ) ) * ( 1 + $appliedrate );
+			} else {
+				//return (float)$amount * ( 1 / ( 1 + $baserate ) );
+				return (float)$amount / ( 1 + $baserate );
+			}
+		} else {
 			if ( $taxoption )
-				// runs when 'taxes=on' and tax-inclusive prices disabled
-				return $amount + ShoppTax::calculate($taxrates, (float)$amount);
-			elseif ( empty($taxrates) )
-				// runs when 'taxes=off' and tax-inclusive prices enabled and product not taxable
-				return $amount / $adjustment;
-			else
-				// runs when 'taxes=off' and tax-inclusive prices enabled and product is taxable
-				return ShoppTax::exclusive($taxrates, (float)$amount);
-		}
+				return (float)$amount * ( 1 + $appliedrate );
+		}		
 
 		return $amount;
 	}
