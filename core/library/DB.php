@@ -1494,7 +1494,7 @@ class WPDatabaseObject extends ShoppDatabaseObject {
 	 **/
 	function save () {
 		parent::save();
-		do_action('save_post',$this->id,get_post($this->id));
+		do_action('save_post', $this->id, get_post($this->id), $update = true);
 	}
 
 }

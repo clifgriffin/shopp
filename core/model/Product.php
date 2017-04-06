@@ -114,7 +114,7 @@ class ShoppProduct extends WPShoppObject {
 	 **/
 	public function savepost () {
 		if ( empty($this->id) ) return;
-		do_action('save_post', $this->id, get_post($this->id));
+		do_action('save_post', $this->id, get_post($this->id), $update = true);
 		if ( function_exists('clean_post_cache') )
 			clean_post_cache($this->id);
 	}
@@ -1290,7 +1290,7 @@ class ShoppProduct extends WPShoppObject {
 					do_action('wp_trash_post', $id);
 					break;
 				default:
-					do_action('save_post', $id, $Post);
+					do_action('save_post', $id, $Post, $update = true);
 					break;
 			}
 			if ( function_exists('clean_post_cache') )
