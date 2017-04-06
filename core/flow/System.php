@@ -530,7 +530,6 @@ class ShoppAdminSystem extends ShoppAdminController {
 
 		$countries = array_merge($specials, (array)shopp_setting('target_markets'));
 
-
 		$zones = Lookup::country_zones();
 
 		include $this->ui('taxrates.php');
@@ -566,7 +565,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 
 			if ( '*' != $rate['country'] ) $score++;
 
-			$score += $rate['rate'] / 100;
+			$score += (float)$rate['rate'] / 100;
 		}
 
 		if ( $scoring['a'] == $scoring['b'] ) return 0;
