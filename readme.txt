@@ -3,7 +3,7 @@ Contributors: jond, barry.hughes, clifgriffin, jdillick, lorenzocaum, chaoix, cr
 Donate link: http://shopp.me/shopp-donate
 Tags: ecommerce, e-commerce, wordpress ecommerce, shopp, shop, shopping, cart, store, storefront, sales, sell, catalog, checkout, accounts, secure, variations, variants, reports, downloads, digital, downloadable, inventory, stock, shipping, taxes, shipped, addons, widgets, shortcodes
 Requires at least: 3.5
-Tested up to: 4.5.3
+Tested up to: 4.7.3
 Stable tag: trunk
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -22,7 +22,7 @@ Run sales, add new products, update inventory, ship orders. It’s all there, an
 
 E-commerce software shouldn’t tell you how to manage your business. You should be able tell your e-commerce software how you manage your business. Shopp lets you do just that. Create your own order processing labels and easily move orders through each step of the order fulfillment workflow either automatically or take control of it yourself.
 
-Export orders to accounting systems like Intuit® QuickBooks®, or to spreadsheets like Microsoft® Excel®. Shopp remembers your last export date so its easy to do ongoing exports on a regular basis.
+Export orders to accounting systems like Intuit® QuickBooks®, or to CSV files. Shopp remembers your last export date so its easy to do ongoing exports on a regular basis.
 
 = Safe & Sound =
 
