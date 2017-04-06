@@ -91,7 +91,7 @@ class ShoppAdmin extends ShoppFlowController {
 		add_action('wp_setup_nav_menu_item',array($this, 'navmenu_setup'));
 
 		add_filter('wp_dropdown_pages', array($this, 'storefront_pages'));
-		add_filter('pre_update_option_page_on_front', array($this, 'frontpage'));
+		add_filter('pre_update_option_page_on_front', array($this, 'frontpage'), 10, 2);
 
 		$this->pages();
 
