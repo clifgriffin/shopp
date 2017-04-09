@@ -35,9 +35,9 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		'US' => 'en_US'
 	);
 
-	const APIURL = 'https://ipnpb.paypal.com/cgi-bin/webscr';
-	const DEVURL = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
-	const BUTTON = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+    const APIURL = 'https://www.paypal.com/cgi-bin/webscr';
+    const DEVURL = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
+    const BUTTON = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 
 	public function __construct () {
 
@@ -677,7 +677,7 @@ class ShoppPayPalStandard extends GatewayFramework implements GatewayModule {
 		$_ = array();
 		$_['cmd'] = '_notify-validate';
 
-		$message = $this->encode( array_merge( $_, $_POST ) );
+		$message = $this->encode( array_merge($_POST, $_ ) );
 		$response = $this->send( $message );
 
 		shopp_debug( 'PayPal IPN validation response: ' . var_export( $response, true ) );
