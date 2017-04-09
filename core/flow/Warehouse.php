@@ -412,6 +412,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				'published' => false,
 				// 'debug'  => true
 			);
+		} elseif ( 'sku' == $orderby ) {
+			$loading['joins'] = array_merge(array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"), $joins);			
 		}
 
 		// Override loading product meta and limiting by pagination in the workflow list
