@@ -670,6 +670,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			$prefix.'shipcountry'	=> Shopp::__('Shipping Country'),
 			$prefix.'shippostcode'	=> Shopp::__('Shipping Postal Code'),
 			$prefix.'shipmethod'	=> Shopp::__('Shipping Method'),
+			$prefix.'shipoption'	=> Shopp::__('Shipping Option'),
 			'discounts.value'	    => Shopp::__('Discounts Applied'),
 			$prefix.'subtotal'	    => Shopp::__('Order Subtotal'),
 			$prefix.'discount'	    => Shopp::__('Order Discount'),
@@ -680,6 +681,7 @@ class ShoppPurchase extends ShoppDatabaseObject {
 			$prefix.'txnid'	        => Shopp::__('Transaction ID'),
 			$prefix.'txnstatus'	    => Shopp::__('Transaction Status'),
 			$prefix.'gateway'	    => Shopp::__('Payment Gateway'),
+			$prefix.'paymethod'	    => Shopp::__('Payment Method'),
 			$prefix.'status'	    => Shopp::__('Order Status'),
 			$prefix.'data'	        => Shopp::__('Order Data'),
 			$prefix.'created'	    => Shopp::__('Order Date'),
@@ -974,7 +976,7 @@ class PurchasesTabExport extends PurchasesExport {
 
 	public function escape ($value) {
 		$value = str_replace(array("\n", "\r"), ' ', $value); // No newlines
-		if ( false !== strpos($value, "\t") && false === strpos($value,'"') )	// Quote tabs
+		if ( false !== strpos($value, "\t") && false === strpos($value, '"') )	// Quote tabs
 			$value = '"' . $value . '"';
 		return $value;
 	}
@@ -991,12 +993,12 @@ class PurchasesCSVExport extends PurchasesExport {
 	}
 
 	public function export ($value) {
-		echo ($this->recordstart?"":",").$value;
+		echo ( $this->recordstart ? "" : "," ) . $value;
 		$this->recordstart = false;
 	}
 
 	public function escape ($value) {
-		$value = str_replace('"','""',$value);
+		$value = str_replace('"', '""', $value);
 		if ( preg_match('/^\s|[,"\n\r]|\s$/',$value) )
 			$value = '"'.$value.'"';
 		return $value;
