@@ -379,7 +379,8 @@ class ShoppProductThemeAPI implements ShoppAPI {
 				$menuid = $idprefix . $menu['id'];
 				if ( Shopp::str_true($label) ) $markup[] = '<label for="' . esc_attr($menuid) . '">' . esc_html($menu['name']) . '</label> ';
 
-				$category_class = shopp('collection.get-slug');
+				$category_slug = array_column($O->categories, 'slug');
+				$category_class = implode(' ', $category_slug);
 				$classes = array($class, $category_class, 'addons');
 
 				$markup[] = '<select name="products[' . $O->id . '][addons][]" class="' . trim(join(' ', $classes)). '" id="' . esc_attr($menuid) . '" title="' . esc_attr($menu['name']) . '">';
