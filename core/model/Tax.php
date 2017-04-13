@@ -37,7 +37,6 @@ class ShoppTax {
 	private $Item = false;		// The ShoppTaxableItem to calculate taxes for
 	private $Customer = false;	// The current ShoppCustomer to calculate taxes for
 
-	public $override =  array(); // Track taxrate overrides
 
 	/**
 	 * Converts a provided item to a ShoppTaxableItem
@@ -61,25 +60,25 @@ class ShoppTax {
 	 * @return array A list of tax rate settings
 	 **/
 	public function settings () {
-		$eu = false;
 		if ( ! shopp_setting_enabled('taxes') ) return false;
 
-		$taxrates = shopp_setting('taxrates');
-
+		$eu        = false;    // Track EU tax key
+		$override  =  array(); // Track taxrate overrides
+		$taxrates  = shopp_setting('taxrates');
 		$fallbacks = array();
-		$settings = array();
+		$settings  = array();
 		foreach ( (array) $taxrates as $setting ) {
 
 			$defaults = array(
-				'rate' => 0,
-				'country' => '',
-				'zone' => '',
+				'rate'      => 0,
+				'country'   => '',
+				'zone'      => '',
 				'haslocals' => false,
-				'logic' => 'any',
-				'rules' => array(),
+				'logic'     => 'any',
+				'rules'     => array(),
 				'localrate' => 0,
-				'compound' => false,
-				'label' => Shopp::__('Tax')
+				'compound'  => false,
+				'label'     => Shopp::__('Tax')
 
 			);
 			$setting = array_merge($defaults, $setting);
@@ -104,13 +103,13 @@ class ShoppTax {
 			$settings[ $key ] = $setting;
 
 			if ( self::EUVAT == $country ) $eu = $key;
-			if ( in_array($country, Lookup::country_euvat()) ) $this->override[$key] = $country;
+			if ( in_array($country, Lookup::country_euvat()) ) $override[ $key ] = $country;
 		}
 
 		if ( empty($settings) && ! empty($fallbacks) )
 			$settings = $fallbacks;
 
-		if ( $eu !== false && ! empty($this->override) ) unset($settings[ $eu ]) ;
+		if ( false !== $eu && ! empty($override) ) unset($settings[ $eu ]) ;
 
 		$settings = apply_filters('shopp_cart_taxrate_settings', $settings); // @deprecated Use shopp_tax_rate_settings instead
 		return apply_filters('shopp_tax_rate_settings', $settings);
