@@ -980,7 +980,7 @@ abstract class ShoppDatabaseObject implements Iterator {
 		}
 
 		if ( $Settings->available() ) {
-
+			if ( empty($Tables) ) $Tables = array();
 			$Tables[ $this->_table ] = new StdClass();
 			$Tables[ $this->_table ]->_datatypes =& $this->_datatypes;
 			$Tables[ $this->_table ]->_lists =& $this->_lists;
