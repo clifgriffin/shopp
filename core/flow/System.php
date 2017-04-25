@@ -982,14 +982,14 @@ class ShoppAdminSystem extends ShoppAdminController {
 	}
 
 	public static function reindex_init ( $indexed, $total, $start ) {
-		echo str_pad('<html><body><script type="text/javascript">var indexProgress = 0;</script>' . "\n", 2048, ' ');
+		echo str_pad(header("X-Accel-Buffering: no").header("Content-Encoding: none").'<html><body><script type="text/javascript">var indexProgress = 0;</script>' . "\n", 4096, ' ');
 		@ob_flush();
 		@flush();
 	}
 
 	public static function reindex_progress ( $indexed, $total, $start ) {
 		if ( $total == 0 ) return;
-		echo str_pad('<script type="text/javascript">indexProgress = ' . $indexed/(int)$total . ';</script>' . "\n", 2048, ' ');
+		echo str_pad('<script type="text/javascript">indexProgress = ' . $indexed/(int)$total . ';</script>' . "\n", 4096, ' ');
 		if ( ob_get_length() ) {
 			@ob_flush();
 			@flush();
@@ -997,7 +997,7 @@ class ShoppAdminSystem extends ShoppAdminController {
 	}
 
 	public static function reindex_completed ( $indexed, $total, $start ) {
-		echo str_pad('</body><html>'."\n", 2048, ' ');
+		echo str_pad('</body><html>'."\n", 4096, ' ');
 		if ( ob_get_length() )
 			@ob_end_flush();
 	}
