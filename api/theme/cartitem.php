@@ -84,10 +84,10 @@ class ShoppCartItemThemeAPI implements ShoppAPI {
 	 *
 	 * @return ShoppCartItem|bool The working ShoppCartItem context
 	 **/
-	public static function _setobject ( $Object, $object ) {
+	public static function _setobject ( $Object, $context ) {
 		if ( is_object($Object) && is_a($Object, 'Item') ) return $Object;
 
-		if ( strtolower($object) != 'cartitem' ) return $Object; // not mine, do nothing
+		if ( strtolower($context) != 'cartitem' ) return $Object; // not mine, do nothing
 		else {
 			$Cart = ShoppOrder()->Cart;
 			$Item = false;
