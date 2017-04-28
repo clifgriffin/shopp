@@ -94,13 +94,13 @@ class ShoppCartThemeAPI implements ShoppAPI {
 	 * @since 1.2
 	 *
 	 * @param ShoppCart $Object The ShoppCart object to set as the working context
-	 * @param string    $object The context being worked on by the Theme API
+	 * @param string    $context The context being worked on by the Theme API
 	 * @return ShoppCart The active ShoppCart context
 	 **/
-	public static function _setobject ( $Object, $object ) {
-		if ( is_object($Object) && is_a($Object, 'ShoppOrder') && isset($Object->Cart) && 'cart' == strtolower($object) )
+	public static function _setobject ( $Object, $context ) {
+		if ( is_object($Object) && is_a($Object, 'ShoppOrder') && isset($Object->Cart) && 'cart' == strtolower($context) )
 			return $Object->Cart;
-		else if ( strtolower($object) != 'cart' ) return $Object; // not mine, do nothing
+		else if ( strtolower($context) != 'cart' ) return $Object; // not mine, do nothing
 
 		$Order = ShoppOrder();
 		return $Order->Cart;
