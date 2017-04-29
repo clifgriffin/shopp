@@ -147,14 +147,14 @@ class ShoppTestCase extends WP_UnitTestCase {
 		return call_user_func_array( array($Image, 'resizing'), $args );
 	}
 
-	function assertTag($matcher, $actual, $message = '', $isHtml = true) {
+	static function assertTag($matcher, $actual, $message = '', $isHtml = true) {
 		$dom     = Shopp_PHPUnit_Util_XML::load($actual, $isHtml);
         $tags    = Shopp_PHPUnit_Util_XML::findNodes($dom, $matcher, $isHtml);
         $matched = count($tags) > 0 && $tags[0] instanceof DOMNode;
         self::assertTrue($matched, $message);
 	}
 
-	function assertNotTag($matcher, $actual, $message = '', $isHtml = true) {
+	static function assertNotTag($matcher, $actual, $message = '', $isHtml = true) {
 		$dom     = Shopp_PHPUnit_Util_XML::load($actual, $isHtml);
         $tags    = Shopp_PHPUnit_Util_XML::findNodes($dom, $matcher, $isHtml);
         $matched = count($tags) > 0 && $tags[0] instanceof DOMNode;
