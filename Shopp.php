@@ -3,7 +3,7 @@
  * Plugin Name: Shopp
  * Plugin URI: http://shopplugin.com
  * Description: An ecommerce framework for WordPress.
- * Version: 1.3.13
+ * Version: 1.3.14dev
  * Author: Ingenesis Limited
  * Author URI: http://ingenesis.net
  * Requires at least: 3.5
