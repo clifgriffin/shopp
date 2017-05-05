@@ -62,8 +62,8 @@ class ShoppTax {
 	public function settings () {
 		if ( ! shopp_setting_enabled('taxes') ) return false;
 
-		$eu        = false;    // Track EU tax key
-		$override  =  array(); // Track taxrate overrides
+		$eukeys    = array();  // Track EUVAT keys
+		$override  = array();  // Track EU country VAT overrides
 		$taxrates  = shopp_setting('taxrates');
 		$fallbacks = array();
 		$settings  = array();
