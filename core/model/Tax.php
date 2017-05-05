@@ -62,8 +62,8 @@ class ShoppTax {
 	public function settings () {
 		if ( ! shopp_setting_enabled('taxes') ) return false;
 
-		$eu        = false;    // Track EU tax key
-		$override  =  array(); // Track taxrate overrides
+		$eukeys    = array();  // Track EUVAT keys
+		$override  = array();  // Track EU country VAT overrides
 		$taxrates  = shopp_setting('taxrates');
 		$fallbacks = array();
 		$settings  = array();
@@ -102,14 +102,34 @@ class ShoppTax {
 
 			$settings[ $key ] = $setting;
 
-			if ( self::EUVAT == $country ) $eu = $key;
+			if ( self::EUVAT == $country ) $eukeys[] = $key; 
 			if ( in_array($country, Lookup::country_euvat()) ) $override[ $key ] = $country;
 		}
 
 		if ( empty($settings) && ! empty($fallbacks) )
 			$settings = $fallbacks;
 
-		if ( false !== $eu && ! empty($override) ) unset($settings[ $eu ]) ;
+		if ( count($eukeys) > 0 && count($override) > 0 ) {
+		    // Overall EUVAT and EUVAT for specific EU country detected, unset overall EUVAT 
+			foreach ( $eukeys as $eukey )
+				unset($settings[ $eukey ]) ;
+                }
+
+		if ( count($eukeys) > 1 ) {
+			//Multiple EUVAT detected, unset least specific ones
+			$arr = array();
+			foreach ( $eukeys as $eukey ){
+				$score = 0;
+				if ( ! empty($settings[ $eukey ]['zone']) ) $score++;
+				if ( ! empty($settings[ $eukey ]['rules']) ) $score++;
+				$arr[ $score ] = $eukey;
+			}
+
+			$eukeys = array_slice($arr, 0, count($arr)-1 );
+
+			foreach ( $eukeys as $eukey )
+				unset($settings[ $eukey ]) ;
+		}
 
 		$settings = apply_filters('shopp_cart_taxrate_settings', $settings); // @deprecated Use shopp_tax_rate_settings instead
 		return apply_filters('shopp_tax_rate_settings', $settings);
