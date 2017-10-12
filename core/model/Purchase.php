@@ -880,7 +880,7 @@ class PurchasesExport {
 
 		if ( $addoncols ) {
 			$meta_table = ShoppDatabaseObject::tablename(ShoppMetaObject::$table);
-			$joins[ $meta_table.'_2' ] = "LEFT JOIN $meta_table AS addons ON addons.parent = p.id AND addons.type='addon' AND addons.context='purchased' AND addons.name = addons.name"; // addons.name eval forces use of lookup INDEX
+			$joins[ $meta_table.'_2' ] = "LEFT JOIN $meta_table AS addons ON addons.parent = o.id AND addons.type='addon' AND addons.context='purchased' AND addons.name = addons.name"; // addons.name eval forces use of lookup INDEX
 		}
 
 		$joins = join(' ', $joins);
