@@ -245,41 +245,45 @@ ShoppUI::addmetabox(
 
 function images_meta_box ($Product) {
 ?>
-	<div id="confirm-delete-images" class="notice hidden"><p><?php Shopp::_e('Save the product to confirm deleted images.'); ?></p></div>
-	<ul id="lightbox">
-	<?php foreach ( (array) $Product->images as $i => $Image ): ?>
-		<li id="image-<?php echo (int)$Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
-			<div id="image-<?php echo (int)$Image->id; ?>-details" title="<?php Shopp::_e('Double-click images to edit their details&hellip;'); ?>">
-				<img src="?siid=<?php echo (int)$Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
-				<input type="hidden" name="imagedetails[<?php echo (int)$i; ?>][id]" value="<?php echo (int)$Image->id; ?>" />
-				<input type="hidden" name="imagedetails[<?php echo (int)$i; ?>][title]" value="<?php echo $Image->title; ?>" class="imagetitle" />
-				<input type="hidden" name="imagedetails[<?php echo (int)$i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
-				<?php
-					if ( isset($Product->cropped) && count($Product->cropped) > 0 && isset($Product->cropped[ $Image->id ]) ):
-
-						$cropped = is_array($Product->cropped[ $Image->id ]) ? $Product->cropped[ $Image->id ] : array($Product->cropped[$Image->id]);
-
-						foreach ($cropped as $cache):
-							$cropimage = unserialize($cache->value);
-							$cropdefaults = array('dx' => '','dy' => '','cropscale' => '');
-							$cropsettings = array_intersect_key($cropimage->settings, $cropdefaults);
-							$cropping = ( array_filter($cropsettings) == array() ) ? '' : join(',', array_merge($cropdefaults, $cropsettings));
-							$c = "$cropimage->width:$cropimage->height";
-				?>
-					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
-				<?php endforeach; endif; ?>
+	<script id="lightbox-image-template" type="text/x-jquery-tmpl">
+		<div>
+		<?php ob_start(); ?>
+		<li class="dz-preview dz-file-preview">
+			<div class="dz-details" title="<?php Shopp::_e('Double-click images to edit their details&hellip;'); ?>">
+				<img data-dz-thumbnail width="120" height="120" class="dz-image" />
 			</div>
-			<?php echo ShoppUI::button('delete', 'deleteImage', array('type' => 'button', 'class' => 'delete', 'value' => $Image->id, 'title' => Shopp::__('Remove image&hellip;')) ); ?>
-			</li>
-	<?php endforeach; ?>
+			<div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+			<div class="dz-error-mark"><span>&times;</span></div>
+			<div class="dz-error-message"><span data-dz-errormessage></span></div>
+			<?php echo ShoppUI::button('delete', 'deleteImage', array('type' => 'button', 'class' => 'delete', 'value' => '${imageid}', 'title' => Shopp::__('Remove image&hellip;'), 'data-dz-remove' => true) ); ?>
+
+			<input type="hidden" name="images[]" value="${imageid}" class="imageid"/>
+			<input type="hidden" name="imagedetails[${index}][id]" value="${imageid}" class="imageid"/>
+			<input type="hidden" name="imagedetails[${index}][title]" value="${title}" class="imagetitle" />
+			<input type="hidden" name="imagedetails[${index}][alt]" value="${alt}"  class="imagealt" />
+		</li>
+		<?php $preview = ob_get_clean(); echo $preview; ?>
+		</div>
+	</script>
+
+	<div id="confirm-delete-images" class="notice hidden"><p><?php _e('Save the product to confirm deleted images.','Shopp'); ?></p></div>
+	<ul class="lightbox-dropzone">
+	<?php foreach ( (array) $Product->images as $i => $Image ) {
+			echo ShoppUI::template($preview, array(
+				'${index}' => $i,
+				'${imageid}' => $Image->id,
+				'${title}' => $Image->title,
+				'${alt}' => $Image->alt,
+				'data-dz-thumbnail' => sprintf('src="?siid=%d&amp;%s"', $Image->id, $Image->resizing(120, 0, 1)),
+			));
+	} ?>
 	</ul>
 	<div class="clear"></div>
-	<input type="hidden" name="product" value="<?php echo preg_replace('/[^0-9]/', '', $_GET['id']); ?>" id="image-product-id" />
+
+	<input type="hidden" name="product" value="<?php echo $_GET['id']; ?>" id="image-product-id" />
 	<input type="hidden" name="deleteImages" id="deleteImages" value="" />
-	<div id="swf-uploader-button"></div>
-	<div id="browser-uploader">
-		<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php Shopp::_e('Add New Image'); ?></small></button><br class="clear"/>
-	</div>
+
+	<button type="button" name="image_upload" class="button-secondary image-upload"><small><?php Shopp::_e('Add New Image'); ?></small></button>
 <?php
 }
 ShoppUI::addmetabox(
@@ -355,12 +359,23 @@ function pricing_meta_box ($Product) {
 <div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
 	<input type="hidden" name="prices" value="" id="prices" /></div>
 
-<div id="chooser">
+<div id="filechooser">
 	<p><label for="import-url"><?php Shopp::_e('Attach file by URL'); ?>&hellip;</label></p>
-	<p><span class="fileimporter"><input type="text" name="url" id="import-url" class="fileimport" /><span class="shoppui-spin-align"><span class="status"></span></span></span><button class="button-secondary" id="attach-file"><small><?php Shopp::_e('Attach File'); ?></small></button><br /><span><label for="import-url">file:///path/to/file.zip<?php if ( ! in_array('http', stream_get_wrappers()) ): ?>, http://server.com/file.zip<?php endif; ?></label></span></p>
-	<label class="alignleft"><?php Shopp::_e('Select a file from your computer'); ?>:</label>
-	<div class=""><div id="flash-upload-file"></div><button id="ajax-upload-file" class="button-secondary"><small><?php Shopp::_e('Upload File'); ?></small></button></div>
+	<p><span class="fileimporter"><input type="text" name="url" id="import-url" class="fileimport" /><span class="shoppui-spin-align"><span class="status"></span></span></span><button class="button-secondary" id="attach-file"><small><?php Shopp::_e('Attach File'); ?></small></button><br /><span><label for="import-url">file:///path/to/file.zip<?php if (!in_array('http',stream_get_wrappers())): ?>, http://server.com/file.zip<?php endif; ?></label></span></p>
+	<div><button id="filechooser-upload-file" class="button-secondary filechooser-upload"><small><?php Shopp::_e('Upload a file from your device'); ?></small></button></div>
 </div>
+
+<script id="filechooser-upload-template" type="text/x-jquery-tmpl">
+<div>
+    <div class="dz-preview dz-file-preview">
+    	<div class="icon shoppui-file"></div>
+        <span class="name dz-filename" data-dz-name></span>
+        <small class="size dz-size" data-dz-size></small>
+    	<div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+    	<div class="dz-error-message"><span data-dz-errormessage></span></div>
+    </div>
+</div>
+</script>
 
 <?php
 }

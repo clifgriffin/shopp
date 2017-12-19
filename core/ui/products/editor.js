@@ -20,7 +20,6 @@ var Pricelines = new Pricelines(),
  	fileUploader = false,
  	changes = false,
  	saving = false,
- 	flashUploader = false,
 	template = false,
  	fileUploads = false,
 	changesMade = false,
@@ -92,7 +91,7 @@ jQuery(document).ready(function($) {
 	$('#addDetail').click(function() { addDetail(); });
 
 	// Initialize file uploads before the pricelines
-	fileUploads = new FileUploader('flash-upload-file',$('#ajax-upload-file'));
+    fileUploads = new FileUploader('#filechooser');
 
 	// Initalize the base price line
 	basePrice = $(prices).get(0);
@@ -145,14 +144,14 @@ jQuery(document).ready(function($) {
 	});
 
 	// We don't need an AYS dialog when saving
-	$("input[name='save']").click(function() { isSave = true });
+	$("input[name='save']").click(function() { isSave = true; });
 
 	// Confirm navigation dialog (avoid people accidentally losing work upon navigation)
 	window.onbeforeunload = function() {
 		var editor = (typeof(tinymce) != 'undefined') ? tinymce.activeEditor : false;
 		if (!isSave && (changesMade || (editor && editor.isDirty() && !editor.isHidden())) )
 			return $msg.confirm;
-	}
+	};
 });
 
 function categories () {

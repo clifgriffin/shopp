@@ -37,7 +37,7 @@ class ShoppAjax {
 			new ShoppAdmin();
 		}
 
-		// Flash uploads require unprivileged access
+		// File uploads require unprivileged access
 		add_action('wp_ajax_nopriv_shopp_upload_image', array($this, 'upload_image'));
 		add_action('wp_ajax_nopriv_shopp_upload_file', array($this, 'upload_file'));
 		add_action('wp_ajax_shopp_upload_image', array($this, 'upload_image'));
@@ -156,15 +156,15 @@ class ShoppAjax {
 	}
 
 	public function upload_image () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->images();
-		exit();
+		$file = isset($_FILES['file']) ? $_FILES['file'] : false;
+		$parent = isset($_GET['parent']) ? (int)$_GET['parent'] : false;
+		$type = isset($_GET['type']) ? $_GET['type'] : false;
+		ShoppAdminWarehouse::images($file, $parent, $type);
 	}
 
 	public function upload_file () {
-		$Warehouse = new ShoppAdminWarehouse;
-		echo $Warehouse->downloads();
-		exit();
+		$file = isset($_FILES['file']) ? $_FILES['file'] : false;
+		ShoppAdminWarehouse::downloads($file, $_POST);
 	}
 
 	public function add_category () {
@@ -412,7 +412,7 @@ class ShoppAjax {
 						$joins[] = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
 						$where[] = "tt.taxonomy = '" . $taxonomy . "'";
 						if ( 'shopp_popular_tags' == strtolower($q) ) {
-							$q = ''; 
+							$q = '';
 							$orderlimit = "ORDER BY tt.count DESC LIMIT 15";
 						}
 					}

@@ -37,7 +37,7 @@ class ShoppAdminCategorize extends ShoppAdminController {
 		if ( ! empty($_GET['id']) && !isset($_GET['a']) ) {
 
 			wp_enqueue_script('postbox');
-			wp_enqueue_script('swfupload-all');
+			wp_enqueue_script('dropzone');
 
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
@@ -50,8 +50,6 @@ class ShoppAdminCategorize extends ShoppAdminController {
 			shopp_enqueue_script('category-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
-			//shopp_enqueue_script('swfupload');
-			//shopp_enqueue_script('shopp-swfupload-queue');
 
 			do_action('shopp_category_editor_scripts');
 			add_action('admin_head', array($this, 'layout'));
@@ -353,16 +351,13 @@ class ShoppAdminCategorize extends ShoppAdminController {
 			"custom"   => Shopp::__('Use custom price ranges'),
 		);
 
-		$uploader = shopp_setting('uploader_pref');
-		if ( ! $uploader ) $uploader = 'flash';
-
 		$workflows = array(
 			"continue"  => Shopp::__('Continue Editing'),
 			"close"     => Shopp::__('Categories Manager'),
 			"new"       => Shopp::__('New Category'),
 			"next"      => Shopp::__('Edit Next'),
 			"previous"  => Shopp::__('Edit Previous')
-			);
+		);
 
 		do_action('add_meta_boxes', ProductCategory::$taxon, $Category);
 		do_action('add_meta_boxes_' . ProductCategory::$taxon, $Category);

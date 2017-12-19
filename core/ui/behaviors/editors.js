@@ -706,107 +706,46 @@ function addDetail (data) {
 	}
 }
 
-/**
- * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
- **/
-function ImageUploads (id,type) {
-	var $ = jQuery,
-	swfu,
-	settings = {
-		button_text: ADD_IMAGE_BUTTON_TEXT,
-		button_text_style: '.buttonText{text-align:center;font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,_sans;font-size:9px;color:#333333;}',
-		button_text_top_padding: 3,
-		button_height: "18",
-		button_width: "100",
-		button_image_url: uidir+'/icons/buttons.png',
-		button_placeholder_id: "swf-uploader-button",
-		upload_url : ajaxurl,
-		flash_url : uidir+'/behaviors/swfupload.swf',
-		file_queue_limit : 0,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.jpg;*.jpeg;*.png;*.gif",
-		file_types_description : "Web-compatible Image Files",
-		file_upload_limit : filesizeLimit,
-		post_params : {
-			action:'shopp_upload_image',
-			parent:id,
-			type:type
-		},
+function ImageUploads(parent, type) {
+	var $ = jQuery;
+	Dropzone.autoDiscover = false;
 
-		swfupload_loaded_handler : swfuLoaded,
-		file_queue_error_handler : imageFileQueueError,
-		file_dialog_complete_handler : imageFileDialogComplete,
-		upload_start_handler : startImageUpload,
-		upload_progress_handler : imageUploadProgress,
-		upload_error_handler : imageUploadError,
-		upload_success_handler : imageUploadSuccess,
+	$.template('image-preview-template', $('#lightbox-image-template'));
 
-		custom_settings : {
-			loaded: false,
-			targetHolder : false,
-			progressBar : false,
-			sorting : false
+	var myDropzone = new Dropzone('ul.lightbox-dropzone', {
+		url: imgul_url + "&type=" + type + '&parent=' + parent,
+		maxFilesize: uploadLimit / 1024 / 1024,
+		autoDiscover: false,
+		parallelUploads: 5,
+		autoProcessQueue: true,
+		previewTemplate: $.tmpl('image-preview-template').html(),
+		acceptedFiles: "image/*",
+		init: function () {
+			var self = this;
+			$('.image-upload').on('click', function () {
+				self.hiddenFileInput.click();
+			});
 
-		},
-		prevent_swf_caching: $.ua.msie, // Prevents Flash caching issues in IE
-		debug: imageupload_debug
-
-	};
-
-	// Initialize image uploader
-	if (flashuploader)
-		swfu = new SWFUpload(settings);
-
-	// Browser image uploader
-	$('#image-upload').upload({
-		name: 'Filedata',
-		action: ajaxurl,
-		params: {
-			action:'shopp_upload_image',
-			type:type
-		},
-		onSubmit: function() {
-			this.targetHolder = $('<li id="image-uploading"><input type="hidden" name="images[]" value="" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo('#lightbox');
-			this.progressBar = this.targetHolder.find('div.bar');
-			this.sorting = this.targetHolder.find('input');
-		},
-		onComplete: function(results) {
-			var image = false,img,deleteButton,targetHolder = this.targetHolder;
-
-			try {
-				image = $.parseJSON(results);
-			} catch (ex) {
-				image.error = results;
-			}
-
-			if (!image || !image.id) {
-				targetHolder.remove();
-				if (image.error) alert(image.error);
-				else alert(UNKNOWN_UPLOAD_ERROR);
-				return false;
-			}
-
-			targetHolder.attr({'id':'image-'+image.id});
-			this.sorting.val(image.id);
-			img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(targetHolder).hide();
-			deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" class="delete"><span class="shoppui-minus"></span></button>').appendTo($(targetHolder)).hide();
-
-			$(this.progressBar).animate({'width':'76px'},250,function () {
-				$(this).parent().fadeOut(500,function() {
-					$(this).remove();
-					$(img).fadeIn('500');
-					enableDeleteButton(deleteButton);
+			self.on('error', function(file, message) {
+				$('.lightbox-dropzone li.dz-error').on('click', function () {
+					$(this).fadeOut(300, function () {
+						$(this).remove();
+					});
 				});
+			});
+
+			self.on('success', function (file, response) {
+				$(file.previewElement).find('.imageid').attr('value', response.id);
+			});
+
+			self.on('complete', function (file, response) {
+				sorting();
 			});
 		}
 	});
 
-	$(document).load(function() {
-		if (!swfu.loaded) $('#product-images .swfupload').remove();
-	});
-
 	sorting();
-	$('#lightbox li').each(function () {
+	$('.lightbox-dropzone li:not(.dz-upload-control)').each(function () {
 		$(this).dblclick(function () {
 			var id = $(this).attr('id')+"-details",
 				src = $('#'+id),
@@ -878,76 +817,9 @@ function ImageUploads (id,type) {
 		enableDeleteButton($(this).find('button.delete'));
 	});
 
-	function swfuLoaded () {
-		$('#browser-uploader').hide();
-		swfu.loaded = true;
-	}
-
 	function sorting () {
-		if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
-	}
-
-	function imageFileQueueError (file, error, message) {
-
-		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
-			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
-			return;
-		} else alert(message);
-
-	}
-
-	function imageFileDialogComplete (selected, queued) {
-		try {
-			this.startUpload();
-		} catch (ex) {
-			this.debug(ex);
-		}
-	}
-
-	function startImageUpload (file) {
-		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'));
-		this.progressBar = this.targetHolder.find('div.bar');
-		this.sorting = this.targetHolder.find('input');
-	}
-
-	function imageUploadProgress (file, loaded, total) {
-		this.progressBar.animate({'width':Math.ceil((loaded/total)*76)+'px'},100);
-	}
-
-	function imageUploadError (file, error, message) {
-		//debuglog(error+": "+message);
-	}
-
-	function imageUploadSuccess (file, results) {
-		var image = false,img,deleteButton,targetHolder = this.targetHolder;
-		try {
-			image = $.parseJSON(results);
-		} catch (ex) {
-			targetHolder.remove();
-			alert(results);
-			return false;
-		}
-
-		if (!image.id) {
-			targetHolder.remove();
-			if (image.error) alert(image.error);
-			else alert(UNKNOWN_UPLOAD_ERROR);
-			return true;
-		}
-
-		targetHolder.attr({'id':'image-'+image.id});
-		this.sorting.val(image.id);
-		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(targetHolder).hide();
-		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" class="delete"><span class="shoppui-minus"></span></button>').appendTo(targetHolder).hide();
-		sorting();
-
-		this.progressBar.animate({'width':'76px'},250,function () {
-			$(this).parent().fadeOut(500,function() {
-				$(this).remove();
-				$(img).fadeIn('500');
-				enableDeleteButton(deleteButton);
-			});
-		});
+		if ($('.lightbox-dropzone li').length > 0)
+			$('.lightbox-dropzone').sortable({'opacity':0.8});
 	}
 
 	function enableDeleteButton (button) {
@@ -972,13 +844,12 @@ function ImageUploads (id,type) {
 			}
 		});
 	}
-
 }
 
 jQuery.fn.FileChooser = function (line, status) {
 	var $ = jQuery,
 		_ = this,
-		chooser = $('#chooser'),
+		chooser = $('#filechooser'),
 		importurl = chooser.find('.fileimport'),
 		importstatus = chooser.find('.status'),
 		attach = $('#attach-file'),
@@ -1011,13 +882,21 @@ jQuery.fn.FileChooser = function (line, status) {
 	});
 
 	importurl.unbind('keydown').unbind('keypress').suggest(
-		sugg_url+'&action=shopp_storage_suggestions&t=download',
-		{ delay:500, minchars:3, multiple:false, onSelect:function () { importurl.trigger('change'); } }
+		sugg_url + '&action=shopp_storage_suggestions&t=download', {
+			delay: 500,
+			minchars: 3,
+			multiple:false,
+			onSelect:function () {
+				importurl.trigger('change');
+			}
+		}
 	);
 
 	$(this).click(function () {
-		fileUploads.updateLine(line,status);
 		importstatus.attr('class','status');
+
+		fileUploads.dropzone.previewsContainer = file[0];
+		fileUploads.priceline = _.line;
 
 		attach.unbind('click').click(function () {
 			$.colorbox.hide();
@@ -1083,172 +962,59 @@ jQuery.fn.FileChooser = function (line, status) {
 	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':chooser});
 };
 
+function FileUploader(container) {
+	var $ = jQuery,
+		_ = this;
 
-/**
- * File upload handlers for product download files using SWFupload
- **/
-function FileUploader (button, defaultButton) {
-	var $ = jQuery, _ = this;
+	this.priceline = false;
 
-	_.swfu = false;
-	_.settings = {
-		button_text: UPLOAD_FILE_BUTTON_TEXT,
-		button_text_style: '.buttonText{text-align:center;font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,_sans;font-size:9px;color:#333333; }',
-		button_text_top_padding: 3,
-		button_height: "22",
-		button_width: "100",
-		button_image_url: uidir+'/icons/buttons.png',
-		button_placeholder_id: button,
-		button_action: SWFUpload.BUTTON_ACTION.SELECT_FILE,
-		flash_url : uidir+'/behaviors/swfupload.swf',
-		upload_url : ajaxurl,
-		file_queue_limit : 1,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.*",
-		file_types_description : "All Files",
-		file_upload_limit : filesizeLimit,
-		post_params : {
-			action:'shopp_upload_file'
-		},
+	$.template('filechooser-upload-template', $('#filechooser-upload-template'));
 
-		swfupload_loaded_handler : swfuLoaded,
-		file_queue_error_handler : fileQueueError,
-		file_dialog_complete_handler : fileDialogComplete,
-		upload_start_handler : startUpload,
-		upload_progress_handler : uploadProgress,
-		upload_success_handler : uploadSuccess,
+	this.dropzone = new Dropzone(container, {
+		url: fileupload_url,
+		autoDiscover: false,
+		uploadMultiple: false,
+		autoQueue: true,
+		autoProcessQueue: true,
+		chunking: true,
+		forceChunking: true,
+		chunkSize: uploadLimit - 1024,
+		maxFilesize: 4096,
+		parallelChunkUploads: false,
+		retryChunks: true,
+		parallelConnectionLimit: uploadMaxConnections,
+		previewTemplate: $.tmpl('filechooser-upload-template').html(),
+		init: function () {
+			var self = this;
 
-		custom_settings : {
-			loaded : false,
-			targetCell : false,
-			targetLine : false,
-			progressBar : false
-		},
-		prevent_swf_caching: $.ua.msie, // Prevents Flash caching issues in IE
-		debug: fileupload_debug 
-
-	};
-
-	// Initialize file uploader
-
-	if (flashuploader)
-		_.swfu = new SWFUpload(_.settings);
-
-	// Browser-based AJAX uploads
-	defaultButton.upload({
-		name: 'Filedata',
-		action: ajaxurl,
-		params: { action:'shopp_upload_file' },
-		onSubmit: function() {
-			$.colorbox.hide();
-			_.targetCell.attr('class','').html('');
-			$('<div class="progress"><div class="bar"></div><div class="gloss"></div></div>').appendTo(_.targetCell);
-			_.progressBar = _.targetCell.find('div.bar');
-		},
-		onComplete: function(results) {
-			$.colorbox.close();
-
-			var filedata = false,targetHolder = _.targetCell;
-			try {
-				filedata = $.parseJSON(results);
-			} catch (ex) {
-				filedata.error = results;
-			}
-
-			if (!filedata.id && !filedata.name) {
-				targetHolder.html(NO_DOWNLOAD);
-				if (filedata.error) alert(filedata.error);
-				else alert(UNKNOWN_UPLOAD_ERROR);
-				return false;
-			}
-			filedata.type = filedata.type.replace(/\//gi," ");
-			$(_.progressBar).animate({'width':'76px'},250,function () {
-				$(this).parent().fadeOut(500,function() {
-					targetHolder.attr('class', 'file').html(
-						'<div class="icon shoppui-file ' + filedata.type + '"></div>' +
-						filedata.name + '<br /><small>' + readableFileSize(filedata.size)+'</small>' +
-						'<input type="hidden" name="price[' + _.targetLine + '][download]" value="' + filedata.id + '" />'
-					);
-					$(this).remove();
-				});
+			$('.filechooser-upload').on('mousedown', function () {
+				self.hiddenFileInput.click();
+				$(self.previewsContainer).empty();
 			});
-		}
-	});
 
-	$(_).load(function () {
-		if (!_.swfu || !_.swfu.loaded) $(defaultButton).parent().parent().find('.swfupload').remove();
-	});
-
-	function swfuLoaded () {
-		$(defaultButton).hide();
-		this.loaded = true;
-	}
-
-	_.updateLine = function (line,status) {
-		if (!_.swfu) {
-			_.targetLine = line;
-			_.targetCell = status;
-		} else {
-			_.swfu.targetLine = line;
-			_.swfu.targetCell = status;
-		}
-	};
-
-	function fileQueueError (file, error, message) {
-		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
-			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
-			return;
-		} else {
-			alert(message);
-		}
-
-	}
-
-	function fileDialogComplete (selected, queued) {
-		$.colorbox.hide();
-		if (!selected) return;
-		try { this.startUpload(); }
-		catch (ex) { this.debug(ex); }
-
-	}
-
-	function startUpload (file) {
-		this.targetCell.attr('class','').html('');
-		$('<div class="progress"><div class="bar"></div><div class="gloss"></div></div>').appendTo(this.targetCell);
-		this.progressBar = this.targetCell.find('div.bar');
-	}
-
-	function uploadProgress (file, loaded, total) {
-		this.progressBar.animate({'width':Math.ceil((loaded/total)*76)+'px'},100);
-	}
-
-	function uploadSuccess (file, results) {
-		 var filedata = false,targetCell = this.targetCell,i = this.targetLine;
-
-		$.colorbox.close();
-		try { filedata = $.parseJSON(results); }
-		catch (ex) { filedata.error = results; }
-		if (!filedata.id && !filedata.name) {
-			targetCell.html(NO_DOWNLOAD);
-			if (filedata.error) alert(filedata.error);
-			else alert(UNKNOWN_UPLOAD_ERROR);
-			return false;
-		}
-
-		filedata.type = filedata.type.replace(/\//gi," ");
-		$(this.progressBar).animate({'width':'76px'},250,function () {
-			$(this).parent().fadeOut(500,function() {
-				$(this).remove();
-				$(targetCell).attr('class', 'file').html(
-					'<div class="icon shoppui-file ' + filedata.type + '"></div>' +
-					filedata.name + '<br /><small>' + readableFileSize(filedata.size)+'</small>' +
-					'<input type="hidden" name="price[' + i + '][download]" value="' + filedata.id + '" />'
-				);
+			self.on('addedfile', function (file) {
+				$.colorbox.hide();
+				self.processQueue();
+				self.options.parallelChunkUploads = false;
+				if ( file.size / self.options.chunkSize <= self.options.parallelConnectionLimit)
+					self.options.parallelChunkUploads = true;
+				$(self.previewsContainer).find('.icon.shoppui-file').addClass(file.type.replace('/',' '));
 			});
-		}); 
-	}
 
-}
+			self.on('success', function (file) {
+				var response = JSON.parse(file.xhr.response);
+				if ( response.id )
+					$('<input>').attr({
+						type: 'hidden',
+						name: 'price[' + _.priceline + '][download]',
+						value: response.id
+					}).appendTo($(self.previewsContainer));
+			});
+
+		} //init
+	}); // this.dropzone
+
+} // FileUploader
 
 function SlugEditor (id,type) {
 	var $ = jQuery, _ = this,

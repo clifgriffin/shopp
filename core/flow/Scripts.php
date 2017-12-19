@@ -204,7 +204,7 @@ function shopp_default_scripts ( &$scripts ) {
 	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 
 	$scripts->base_url = $url;
-	$scripts->default_version = mktime(false,false,false,1,1,2010);
+	$scripts->default_version = mktime(false,false,false,1,1,2017);
 	$scripts->default_dirs = array('/ui/behaviors/','/ui/products');
 
 	// Short checksum for cache control that changes with Shopp versions while masking it somewhat
@@ -240,6 +240,9 @@ function shopp_default_scripts ( &$scripts ) {
 
 	$scripts->add('ocupload', '/ui/behaviors/ocupload.js', array('jquery'), $version);
 	$scripts->add_data('ocupload', 'group', 1);
+
+	$scripts->add('dropzone', '/ui/behaviors/dropzone.js', array(), $version);
+	$scripts->add_data('dropzone', 'group', 1);
 
 	$scripts->add('orders', '/ui/behaviors/orders.js', array('jquery'), $version);
 	$scripts->add_data('orders', 'group', 1);
@@ -321,7 +324,6 @@ function shopp_default_scripts ( &$scripts ) {
 
 	$scripts->add('reports', '/ui/behaviors/reports.js', array(), $version);
 	$scripts->add_data('reports', 'group', 1);
-
 }
 
 add_action('shopp_default_scripts', 'shopp_default_scripts');
@@ -357,7 +359,7 @@ function shopp_default_script_settings () {
 
 	// Address Helper
 	shopp_localize_script('address', '$shopp_address', array(
-		'country_no_postal_codes' => Lookup::country_no_postal_codes() 
+		'country_no_postal_codes' => Lookup::country_no_postal_codes()
 	));
 
 	// Checkout page settings & localization

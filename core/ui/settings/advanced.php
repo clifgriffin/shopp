@@ -14,11 +14,6 @@
 		<table class="form-table">
 
 			<tr>
-				<th scope="row" valign="top"><label for="uploader-toggle"><?php Shopp::_e('Upload System'); ?></label></th>
-				<td><input type="hidden" name="settings[uploader_pref]" value="browser" /><input type="checkbox" name="settings[uploader_pref]" value="flash" id="uploader-toggle"<?php if (shopp_setting('uploader_pref') == "flash") echo ' checked="checked"'?> /><label for="uploader-toggle"> <?php Shopp::_e('Enable Flash-based uploading'); ?></label><br />
-	            <?php Shopp::_e('Enable to use Adobe Flash uploads for accurate upload progress. Disable this setting if you are having problems uploading.'); ?></td>
-			</tr>
-			<tr>
 				<th scope="row" valign="top"><label for="script-server"><?php Shopp::_e('Script Loading'); ?></label></th>
 				<td><input type="hidden" name="settings[script_server]" value="script" /><input type="checkbox" name="settings[script_server]" value="plugin" id="script-server"<?php if (shopp_setting('script_server') == "plugin") echo ' checked="checked"'?> /><label for="script-server"> <?php Shopp::_e('Load behavioral scripts through WordPress'); ?></label><br />
 	            <?php Shopp::_e('Enable this setting when experiencing problems loading scripts with the Shopp Script Server'); ?>
@@ -31,7 +26,7 @@
 				<th scope="row" valign="top"><label for="image-server"><?php Shopp::_e('Image Server'); ?></label></th>
 				<td><input type="hidden" name="settings[image_server]" value="off" /><input type="checkbox" name="settings[image_server]" value="on" id="image-server"<?php if ( "on" == shopp_setting('image_server') ) echo ' checked="checked"'; ?> /><label for="image-server"> <?php Shopp::_e('Toggle this option if images don\'t show on storefront.<br /> <small>(Needs resaving of permalinks.)<small>'); ?></label>
 				</td>
-			</tr>			
+			</tr>
 
 			<tr>
 				<th scope="row" valign="top"><label for="error-notifications"><?php Shopp::_e('Error Notifications'); ?></label></th>

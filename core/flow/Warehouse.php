@@ -50,7 +50,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('postbox');
 			wp_enqueue_script('wp-lists');
-			wp_enqueue_script('swfupload-all');
 
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
@@ -65,6 +64,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			shopp_enqueue_script('product-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
+			shopp_enqueue_script('dropzone');
 			shopp_enqueue_script('jquery-tmpl');
 			shopp_enqueue_script('suggest');
 			shopp_enqueue_script('search-select');
@@ -167,7 +167,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 
 			// Gracefully invalidate Shopp object caching
 			Shopp::cache_invalidate();
-			
+
 			$redirect = add_query_arg( $_GET, $adminurl );
 			$redirect = remove_query_arg( array('action', 'selected', 'delete_all'), $redirect );
 			Shopp::redirect( $redirect );
@@ -278,7 +278,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 			'all'	        =>	array('label' => Shopp::__('All'),                'where' => array("p.post_status!='trash'")),
 			'published'	    =>	array('label' => Shopp::__('Published'),          'where' => array("p.post_status='publish'")),
 			'drafts'	    =>	array('label' => Shopp::__('Drafts'),             'where' => array("p.post_status='draft'")),
-			'trash'	        =>	array('label' => Shopp::__('Trash'),              'where' => array("p.post_status='trash'")),			
+			'trash'	        =>	array('label' => Shopp::__('Trash'),              'where' => array("p.post_status='trash'")),
 			'onsale'	    =>	array('label' => Shopp::__('On Sale'),            'where' => array("s.sale='on' AND p.post_status != 'trash'")),
 			'featured'	    =>	array('label' => Shopp::__('Featured'),	          'where' => array("s.featured='on' AND p.post_status != 'trash'")),
 			'bestselling'	=>	array('label' => Shopp::__('Bestselling'),        'where' => array("p.post_status!='trash'", BestsellerProducts::threshold() . " < s.sold"),'order' => 'bestselling'),
@@ -350,7 +350,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 					if ( empty($ls) ) $ls = '0';
 					$where[] = "(s.inventory='on' AND s.lowstock != 'none')";
 					break;
-				case "is": 
+				case "is":
 					$where[] = "(s.inventory='on' AND s.stock > 0)";
 			}
 		}
@@ -413,7 +413,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				// 'debug'  => true
 			);
 		} elseif ( 'sku' == $orderby ) {
-			$loading['joins'] = array_merge(array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"), $joins);			
+			$loading['joins'] = array_merge(array($pt => "LEFT JOIN $pt AS pt ON p.ID=pt.product"), $joins);
 		}
 
 		// Override loading product meta and limiting by pagination in the workflow list
@@ -692,9 +692,6 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		if ( ! empty($shiprates) )
 			ksort($shiprates);
 
-		$uploader = shopp_setting('uploader_pref');
-		if ( ! $uploader ) $uploader = 'flash';
-
 		$process = empty($Product->id) ? 'new' : $Product->id;
 		$_POST['action'] = add_query_arg(array_merge($_GET, array('page' => $this->Admin->pagename('products'))), admin_url('admin.php'));
 		$post_type = ShoppProduct::posttype();
@@ -833,7 +830,7 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 				if ( $Price->stock != $priceline['stocked'] ) {
 					$priceline['stock'] = (int) $priceline['stocked'];
 					if ( ! isset($Price->stocklevel) ) $Price->stocklevel = $priceline['stock'];
-					do_action('shopp_stock_product', $priceline['stock'], $Price, $Price->stock, $Price->stocklevel); 
+					do_action('shopp_stock_product', $priceline['stock'], $Price, $Price->stock, $Price->stocklevel);
 				} else unset($priceline['stocked']);
 
 				$Price->updates($priceline);
@@ -990,135 +987,132 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	}
 
 	/**
-	 * AJAX behavior to process uploaded files intended as digital downloads
+	 * AJAX behavior to process uploaded files intended as digital product downloads
 	 *
 	 * Handles processing a file upload from a temporary file to a
 	 * the correct storage container (DB, file system, etc)
 	 *
-	 * @author Jonathan Davis
+	 * @since 1.3
+	 * @param array $file File upload data
+	 * @param array $data Posted data
 	 * @return string JSON encoded result with DB id, filename, type & size
 	 **/
-	public static function downloads () {
+	public static function downloads ($file, $data) {
 
-		$error = false;
-		if ( isset($_FILES['Filedata']['error']) ) $error = $_FILES['Filedata']['error'];
-		if ( $error ) die( json_encode(array('error' => Lookup::errors('uploads', $error))) );
+        self::uploaderrs($file);
 
-		if ( ! @is_uploaded_file($_FILES['Filedata']['tmp_name']) )
-			die(json_encode(array('error' => Shopp::__('The file could not be saved because the upload was not found on the server.'))));
+		$stagedfile = $file['tmp_name'];
 
-		if ( 0 == $_FILES['Filedata']['size'] )
-			die(json_encode(array('error' => Shopp::__('The file could not be saved because the uploaded file is empty.'))));
+		// Handle chunked file uploads
+		if ( isset($data['dzchunkindex']) && isset($data['dztotalchunkcount']) ) {
+			$PartialUpload = new ShoppPartialUpload($file, $data);
+			$stagedfile = $PartialUpload->process();
+		}
 
 		FileAsset::mimetypes();
 
 		// Save the uploaded file
-		$File = new ProductDownload();
-		$File->parent = 0;
-		$File->context = "price";
-		$File->type = "download";
-		$File->name = $_FILES['Filedata']['name'];
-		$File->filename = $File->name;
+		$DownloadFile = new ProductDownload();
+		$DownloadFile->parent = 0;
+		$DownloadFile->context = "price";
+		$DownloadFile->type = "download";
+		$DownloadFile->name = $file['name'];
+		$DownloadFile->filename = $DownloadFile->name;
 
-		list($extension, $mimetype, $properfile) = wp_check_filetype_and_ext($_FILES['Filedata']['tmp_name'], $File->name);
-		if ( empty($mimetype) ) $mimetype = 'application/octet-stream';
-		$File->mime = $mimetype;
+		$mimedata = wp_check_filetype_and_ext($stagedfile, $DownloadFile->name);
+		$DownloadFile->mime = ! empty($mimedata['type']) ? $mimedata['type'] : 'application/octet-stream';
+		if ( ! empty($mimedata['proper_filename']) )
+			$DownloadFile->name = $DownloadFile->filename = $mimedata['proper_filename'];
 
-		if ( ! empty($properfile) )
-			$File->name = $File->filename = $properfile;
-
-		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->store($_FILES['Filedata']['tmp_name'], 'upload');
+		$DownloadFile->size = filesize($stagedfile);
+		$DownloadFile->store($stagedfile, 'file');
 
 		$Error = ShoppErrors()->code('storage_engine_save');
 		if ( ! empty($Error) )
-			die( json_encode( array('error' => $Error->message(true)) ) );
+            wp_die($Error->message(true), 500);
 
-		$File->save();
+		$DownloadFile->save();
 
-		do_action('add_product_download', $File,$_FILES['Filedata']);
+		do_action('add_product_download', $DownloadFile, $file);
 
-		echo json_encode(array(
-			'id'	=> $File->id,
-			'name'	=> stripslashes($File->name),
-			'type'	=> $File->mime,
-			'size'	=> $File->size
-		));
+		header('Content-Type: application/json');
+        wp_die(json_encode(array('id' => $DownloadFile->id, 'name' => stripslashes($DownloadFile->name), 'type' => $DownloadFile->mime, 'size' => $DownloadFile->size)));
 	}
+
+	/**
+	 * Provide upload errors back to the browser
+	 *
+	 * @since 1.4
+	 * @param array $file The uploaded file data
+	 * @return boolean False if no errors, exits if there are errors
+	 **/
+    private static function uploaderrs ($file) {
+		$error = array();
+
+		if ( ! empty($file['error']) )
+			$error[500] = ShoppLookup::errors('uploads', $file['error']);
+
+		if ( ! is_uploaded_file($file['tmp_name']) )
+			$error[500] = Shopp::__('The file could not be saved because the uploaded file was not found on the server.');
+
+		if ( ! is_readable($file['tmp_name']) )
+			$error[500] = Shopp::__('The file could not be saved because the web server does not have permission to read the upload from the server\'s temporary directory.');
+
+		if ( 0 == $file['size'] )
+			$error[400] = Shopp::__('The file could not be saved because the selected file is empty.');
+
+		if ( 0 == filesize($file['tmp_name']) )
+			$error[500] = Shopp::__('The file could not be saved because the uploaded file is empty.');
+
+		if ( ! empty($error) )
+            wp_die(current($error), key($error));
+
+        return false;
+    }
 
 	/**
 	 * AJAX behavior to process uploaded images
 	 *
-	 * @author Jonathan Davis
+	 * @since 1.3
 	 * @return string JSON encoded result with thumbnail id and src
 	 **/
-	public static function images () {
-		$context = false;
-		$error = false;
-		$valid_contexts = array('product', 'category');
+	public static function images ($file, $parent = false, $context = false) {
 
-		if ( isset($_FILES['Filedata']['error']) )
-			$error = $_FILES['Filedata']['error'];
-		if ( $error ) die( json_encode(array('error' => Lookup::errors('uploads', $error))) );
+		$ContextClasses = array(
+			'category' => 'CategoryImage',
+			'product' => 'ProductImage'
+		);
 
-		if ( isset($_REQUEST['type']) && in_array(strtolower($_REQUEST['type']), $valid_contexts ) ) {
-			$parent = $_REQUEST['parent'];
-			$context = strtolower($_REQUEST['type']);
-		}
+		if ( ! in_array(strtolower($context), array_keys($ContextClasses)) )
+            wp_die(Shopp::__('The file could not be saved because the request did not specify whether it is a product or a category image.'), 400);
 
-		if ( ! $context )
-			die(json_encode(array('error' => Shopp::__('The file could not be saved because the server cannot tell whether to attach the asset to a product or a category.'))));
-
-		if ( ! @is_uploaded_file($_FILES['Filedata']['tmp_name']) )
-			die(json_encode(array('error' => Shopp::__('The file could not be saved because the upload was not found on the server.'))));
-
-		if ( 0 == $_FILES['Filedata']['size'] )
-			die(json_encode(array('error' => Shopp::__('The file could not be saved because the uploaded file is empty.'))));
+        self::uploaderrs($file);
 
 		// Save the source image
-		if ( 'category' == $context )
-			$Image = new CategoryImage();
-		else $Image = new ProductImage();
-
+		$Image = new $ContextClasses[ $context ]();
 		$Image->parent = $parent;
 		$Image->type = 'image';
 		$Image->name = 'original';
-		$Image->filename = $_FILES['Filedata']['name'];
-
-		$context = 'upload';
-		$tempfile = $_FILES['Filedata']['tmp_name'];
-
-		if ( ! @is_readable($tempfile) ) {
-
-			$context = 'file';
-			$tempfile = get_temp_dir() . $Image->filename;
-
-			if ( ! @move_uploaded_file($_FILES['Filedata']['tmp_name'], $tempfile) )
-				die(json_encode(array('error' => Shopp::__('The file could not be saved because the web server does not have permission to read the upload.'))));
-
-		}
-
-		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($tempfile);
+		$Image->filename = $file['name'];
+		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($file['tmp_name']);
 		$Image->mime = image_type_to_mime_type($Image->mime);
-		$Image->size = filesize($tempfile);
+		$Image->size = filesize($file['tmp_name']);
 
-		if ( ! $Image->unique() ) die(json_encode(array('error' => Shopp::__('The image already exists, but a new filename could not be generated.'))));
+		if ( ! $Image->unique() )
+			wp_die(Shopp::__('Server error: the image already exists and a new file could not be generated.'), 500);
 
-		$Image->store($tempfile, $context);
-
-		if( 'file' == $context )
-			unlink($tempfile);
-
+		$Image->store($file['tmp_name'], 'upload');
 		$Error = ShoppErrors()->code('storage_engine_save');
-		if ( ! empty($Error) ) die( json_encode( array('error' => $Error->message(true)) ) );
+		if ( ! empty($Error) )
+            wp_die($Error->message(true), 500);
 
 		$Image->save();
 
 		if ( empty($Image->id) )
-			die(json_encode(array('error' => Shopp::__('The image reference was not saved to the database.'))));
+            wp_die(Shopp::__('The image reference was not saved to the database.'), 500);
 
-		echo json_encode(array('id' => $Image->id));
-		exit;
+		header('Content-Type: application/json');
+		wp_die(json_encode(array('id' => $Image->id)));
 	}
 
 	/**

@@ -8,3 +8,5 @@ tests/wp-tests-config.php
 tests/phpunit.xml
 tests/clover.xml
 node_modules/*
+
+.tm_properties
