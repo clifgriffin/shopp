@@ -6,7 +6,6 @@ var Pricelines = new Pricelines(),
 	optionsidx = 1,
 	pricingidx = 1,
 	pricelevelsidx = 1,
-	fileUploader = false,
 	changes = false,
 	saving = false,
 	template = true;
@@ -14,7 +13,7 @@ var Pricelines = new Pricelines(),
 jQuery(document).ready(function () {
 	var $=jQuery,
 		editslug = new SlugEditor(category,'category'),
-		imageUploads = new ImageUploads($('#image-category-id').val(),'category')
+		imageUploads = new ImageUploads($('#image-category-id').val(), 'category')
 		titlePrompt = $('#title-prompt-text'),
 
 		// Give the product name initial focus
