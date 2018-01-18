@@ -999,7 +999,8 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 	 **/
 	public static function downloads ($file, $data) {
 
-        self::uploaderrs($file);
+		set_time_limit(0);        // Try to prevent timeouts
+		self::uploaderrs($file);  // Catch any upload errors before proceeding
 
 		$stagedfile = $file['tmp_name'];
 
@@ -1036,7 +1037,12 @@ class ShoppAdminWarehouse extends ShoppAdminController {
 		do_action('add_product_download', $DownloadFile, $file);
 
 		header('Content-Type: application/json');
-        wp_die(json_encode(array('id' => $DownloadFile->id, 'name' => stripslashes($DownloadFile->name), 'type' => $DownloadFile->mime, 'size' => $DownloadFile->size)));
+        wp_die(json_encode(array(
+			'id' => $DownloadFile->id,
+			'name' => stripslashes($DownloadFile->name),
+			'type' => $DownloadFile->mime,
+			'size' => $DownloadFile->size
+		)));
 	}
 
 	/**
