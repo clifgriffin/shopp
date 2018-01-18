@@ -367,7 +367,7 @@ function pricing_meta_box ($Product) {
 
 <script id="filechooser-upload-template" type="text/x-jquery-tmpl">
 <div>
-    <div class="dz-preview dz-file-preview">
+    <div class="file dz-preview dz-file-preview">
     	<div class="icon shoppui-file"></div>
         <span class="name dz-filename" data-dz-name></span>
         <small class="size dz-size" data-dz-size></small>
