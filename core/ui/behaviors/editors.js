@@ -978,7 +978,7 @@ function FileUploader(container) {
 		autoProcessQueue: true,
 		chunking: true,
 		forceChunking: true,
-		chunkSize: uploadLimit - 1024,
+		chunkSize: chunkSize,
 		maxFilesize: 4096,
 		parallelChunkUploads: false,
 		retryChunks: true,
@@ -996,7 +996,7 @@ function FileUploader(container) {
 				$.colorbox.hide();
 				self.processQueue();
 				self.options.parallelChunkUploads = false;
-				if ( file.size / self.options.chunkSize <= self.options.parallelConnectionLimit)
+				if (file.size / self.options.chunkSize <= self.options.parallelConnectionLimit)
 					self.options.parallelChunkUploads = true;
 				$(self.previewsContainer).find('.icon.shoppui-file').addClass(file.type.replace('/',' '));
 			});
@@ -1016,7 +1016,7 @@ function FileUploader(container) {
 
 } // FileUploader
 
-function SlugEditor (id,type) {
+function SlugEditor(id,type) {
 	var $ = jQuery, _ = this,
 		editbs = $('#edit-slug-buttons'),
  		edit = editbs.find('.edit'),
