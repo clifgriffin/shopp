@@ -982,10 +982,14 @@ function FileUploader(container) {
 		maxFilesize: 4096,
 		parallelChunkUploads: false,
 		retryChunks: true,
-		parallelConnectionLimit: uploadMaxConnections,
+		parallelConnectionsLimit: uploadMaxConnections,
 		previewTemplate: $.tmpl('filechooser-upload-template').html(),
 		init: function () {
 			var self = this;
+			self.startTime = false;
+			self.samples = [];
+			self.samplesLimit = 5;
+			self.connections = 0;
 
 			$('.filechooser-upload').on('mousedown', function () {
 				self.hiddenFileInput.click();
@@ -995,9 +999,6 @@ function FileUploader(container) {
 			self.on('addedfile', function (file) {
 				$.colorbox.hide();
 				self.processQueue();
-				self.options.parallelChunkUploads = false;
-				if (file.size / self.options.chunkSize <= self.options.parallelConnectionLimit)
-					self.options.parallelChunkUploads = true;
 				$(self.previewsContainer).find('.icon.shoppui-file').addClass(file.type.replace('/',' '));
 			});
 
@@ -1010,6 +1011,161 @@ function FileUploader(container) {
 						value: response.id
 					}).appendTo($(self.previewsContainer));
 			});
+
+			self.options.params = function (files, xhr, chunk) {
+				if (chunk) {
+					return {
+						dzuuid: chunk.file.upload.uuid,
+						dzchunkindex: chunk.index,
+						dztotalfilesize: chunk.file.size,
+						dzchunksize: chunk.chunkSize,
+						dztotalchunkcount: chunk.file.upload.totalChunkCount,
+						dzchunkbyteoffset: chunk.end
+					};
+				}
+			};
+
+			self.uploadFiles = function (files) {
+				var _this15 = this;
+
+				this._transformFiles(files, function (transformedFiles) {
+					if (files[0].upload.chunked) {
+						// This file should be sent in chunks!
+
+						// If the chunking option is set, we **know** that there can only be **one** file, since
+						// uploadMultiple is not allowed with this option.
+						var file = files[0];
+						var transformedFile = transformedFiles[0];
+						var startedChunkCount = 0;
+
+						file.upload.chunks = [];
+
+						var handleNextChunk = function handleNextChunk() {
+							var chunkIndex = 0;
+
+							// Find the next item in file.upload.chunks that is not defined yet.
+							while (file.upload.chunks[chunkIndex] !== undefined) {
+								chunkIndex++;
+							}
+
+							// This means, that all chunks have already been started.
+							if (chunkIndex >= file.upload.totalChunkCount) return;
+
+							startedChunkCount++;
+
+							var start = chunkIndex * _this15.options.chunkSize;
+							var end = Math.min(start + _this15.options.chunkSize, file.size);
+
+							/** Added for dynamic bandwidth **/
+							if ( self.startTime === false )
+								self.startTime = (new Date()).getTime();
+
+						    var nowTime = (new Date()).getTime();
+
+							if (self.samples.length <= self.samplesLimit && file.upload.bytesSent > 0) {
+								self.samples.push(file.upload.bytesSent / ( (nowTime - self.startTime) / 1000 ));
+							}
+
+							if ( self.samples.length == self.samplesLimit ) {
+								var sum = self.samples.reduce(function(a, b) { return a + b; });
+								var avgSpeed = sum / self.samples.length;
+
+								self.options.chunkSize = Math.min(Math.floor(avgSpeed), uploadLimit - 1024);
+								file.upload.totalChunkCount = Math.ceil((file.size - file.upload.bytesSent) / self.options.chunkSize) + self.samplesLimit;
+
+								// Determine if there is spare bandwidth for parallel chunk uploads and set limits
+								var parallelConnectionsLimit = Math.floor(avgSpeed / self.options.chunkSize);
+								if ( parallelConnectionsLimit > 1 ) {
+									self.options.parallelChunkUploads = true;
+									self.options.parallelConnectionsLimit = Math.min(parallelConnectionsLimit, self.options.parallelConnectionsLimit);
+								}
+
+							}
+
+							if ( chunkIndex > 0 ) {
+								start = file.upload.chunks[chunkIndex - 1].end;
+								end = Math.min(start + self.options.chunkSize, file.size);
+							}
+							/** End dynamic bandwidth handler **/
+
+							var dataBlock = {
+								name: _this15._getParamName(0),
+								data: transformedFile.webkitSlice ? transformedFile.webkitSlice(start, end) : transformedFile.slice(start, end),
+								filename: file.upload.filename,
+								chunkIndex: chunkIndex
+							};
+
+							file.upload.chunks[chunkIndex] = {
+								file: file,
+								index: chunkIndex,
+								dataBlock: dataBlock, // In case we want to retry.
+								status: Dropzone.UPLOADING,
+								progress: 0,
+								start: start, // Added for dynamic bandiwdth handling
+								end: end, // Added for dynamic bandiwdth handling
+								chunkSize: self.options.chunkSize, // Added for dynamic bandiwdth handling
+								retries: 0 // The number of times this block has been retried.
+							};
+
+							_this15._uploadData(files, [dataBlock]);
+						};
+
+						var parallelChunkUpload = function() {
+							if ( self.connections > 0 )
+								self.connections--; // Finished an upload
+
+							for ( ; self.connections < self.options.parallelConnectionsLimit; self.connections++ )
+								handleNextChunk();
+						};
+
+						file.upload.finishedChunkUpload = function (chunk) {
+							var allFinished = true;
+							chunk.status = Dropzone.SUCCESS;
+
+							// Clear the data from the chunk
+							chunk.dataBlock = null;
+
+							for (var i = 0; i < file.upload.totalChunkCount; i++) {
+								if (file.upload.chunks[i] === undefined) {
+									// Handle parallel chunk upload connections
+									if ( self.options.parallelChunkUploads ) {
+										return parallelChunkUpload();
+									} else {
+										return handleNextChunk();
+									}
+								}
+								if (file.upload.chunks[i].status !== Dropzone.SUCCESS) {
+									allFinished = false;
+								}
+							}
+
+							if (allFinished) {
+								_this15.options.chunksUploaded(file, function () {
+									_this15._finished(files, '', null);
+								});
+							}
+						};
+
+						if (_this15.options.parallelChunkUploads) {
+							for (var i = 0; i < file.upload.totalChunkCount; i++) {
+								handleNextChunk();
+							}
+						} else {
+							handleNextChunk();
+						}
+					} else {
+						var dataBlocks = [];
+						for (var _i22 = 0; _i22 < files.length; _i22++) {
+							dataBlocks[_i22] = {
+								name: _this15._getParamName(_i22),
+								data: transformedFiles[_i22],
+								filename: files[_i22].upload.filename
+							};
+						}
+						_this15._uploadData(files, dataBlocks);
+					}
+				});
+			}
 
 		} //init
 	}); // this.dropzone
