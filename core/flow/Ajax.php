@@ -573,7 +573,8 @@ class ShoppAjax {
 		$Engine =& $Shopp->Storage->engines['download'];
 
 		$error    = create_function('$s', 'die(json_encode(array("error" => $s)));');
-		if (empty($_REQUEST['url'])) $error(Shopp::__('No file import URL was provided.'));
+		if ( empty($_REQUEST['url']) )
+			$error(Shopp::__('No file import URL was provided.'));
 		$url      = $_REQUEST['url'];
 		$request  = parse_url($url);
 		$headers  = array();
@@ -603,10 +604,10 @@ class ShoppAjax {
 			if ( $mime == "application/octet-stream" || $mime == "text/plain" )
 				$_->mime = $mime;
 		} else {
-			if ( ! $importfile = @tempnam(sanitize_path(realpath(SHOPP_TEMP_PATH) ), 'shp')) $error(Shopp::__('A temporary file could not be created for importing the file.', $importfile));
-			if ( ! $incoming   = @fopen($importfile,'w') ) $error(Shopp::__('A temporary file at %s could not be opened for importing.', $importfile));
+			if ( ! ($importfile = @tempnam(sanitize_path(realpath(SHOPP_TEMP_PATH) ), 'shp')) ) $error(Shopp::__('A temporary file could not be created for importing the file.', $importfile));
+			if ( ! ($incoming   = @fopen($importfile, 'w')) ) $error(Shopp::__('A temporary file at %s could not be opened for importing.', $importfile));
 
-			if ( ! $file = @fopen(linkencode($url), 'rb') ) $error(Shopp::__('The file at %s could not be opened for importing.', $url));
+			if ( ! ($file = @fopen(linkencode($url), 'rb')) ) $error(Shopp::__('The file at %s could not be opened for importing.', $url));
 			$data = @stream_get_meta_data($file);
 
 			if ( isset($data['timed_out']) && $data['timed_out'] ) $error(Shopp::__('The connection timed out while trying to get information about the target file.'));
@@ -621,7 +622,6 @@ class ShoppAjax {
 			}
 
 			$tmp = basename($importfile);
-			// $Settings =& ShoppSettings();
 
 			$_->path = $importfile;
 			if (empty($headers)) {
@@ -638,10 +638,11 @@ class ShoppAjax {
 		// Mimetype must be set or we'll have problems in the UI
 		if ( ! $_->mime ) $_->mime = "application/octet-stream";
 
-		echo str_repeat(' ', 1024); // Minimum browser data
+		echo str_repeat(' ', 1024) . "\n"; // Minimum browser data
 		echo '<script type="text/javascript">var importFile = ' . json_encode($_) . ';</script>'."\n";
 		echo '<script type="text/javascript">var importProgress = 0;</script>' . "\n";
-		if ( $_->stored ) exit();
+		if ( $_->stored )
+			exit();
 		@ob_flush();
 		@flush();
 
@@ -656,7 +657,7 @@ class ShoppAjax {
 			if ( ! empty($buffer) ) {
 				fwrite($incoming, $buffer);
 				$bytesread += strlen($buffer);
-				echo '<script type="text/javascript">importProgress = ' . $bytesread/(int)$_->size . ';</script>'."\n";
+				echo '<script type="text/javascript">importProgress = ' . ( $bytesread / (int)$_->size ) . ';</script>'."\n";
 				@ob_flush();
 				@flush();
 			}
@@ -665,7 +666,7 @@ class ShoppAjax {
 		fclose($file);
 		fclose($incoming);
 
-		exit();
+		wp_die('');
 	}
 
 	public function storage_suggestions () { exit(); }
