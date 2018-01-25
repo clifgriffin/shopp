@@ -849,117 +849,150 @@ function ImageUploads(parent, type) {
 jQuery.fn.FileChooser = function (line, status) {
 	var $ = jQuery,
 		_ = this,
-		chooser = $('#filechooser'),
-		importurl = chooser.find('.fileimport'),
-		importstatus = chooser.find('.status'),
-		attach = $('#attach-file'),
-		dlpath = $('#download_path-'+line),
-		dlname = $('#download_file-'+line),
+		uiChooser = $('#filechooser'),
+		uiImportURL = uiChooser.find('.fileimport'),
+		uiImportStatus = uiChooser.find('.status'),
+		uiAttachFile = $('#attach-file'),
+		uiDownloadPath = $('#download_path-'+line),
+		uiDownloadFilename = $('#download_file-'+line),
 		file = $('#file-'+line),
-		stored = false,
-		nostatus = 0,
-		progressbar = false;
+		stored = false;
 
 	_.line = line;
 	_.status = status;
 
-	chooser.unbind('change').on('change', '.fileimport', function (e) {
-		importstatus.attr('class','status').addClass('shoppui-spinner shoppui-spinfx shoppui-spinfx-steps8');
+	uiChooser.unbind('change').on('change', '.fileimport', function (e) {
+		uiImportStatus.attr('class','status').addClass('shoppui-spinner shoppui-spinfx shoppui-spinfx-steps8');
 		$.ajax({url:fileverify_url+'&action=shopp_verify_file&t=download',
 				type:"POST",
-				data:'url='+importurl.val(),
+				data:'url='+uiImportURL.val(),
 				timeout:10000,
 				dataType:'text',
 				success:function (results) {
-					importstatus.attr('class','status');
-					if (results == "OK") return importstatus.addClass('shoppui-ok-sign');
-					if (results == "NULL") importstatus.attr('title',FILE_NOT_FOUND_TEXT);
-					if (results == "ISDIR") importstatus.attr('title',FILE_ISDIR_TEXT);
-					if (results == "READ") importstatus.attr('title',FILE_NOT_READ_TEXT);
-					importstatus.addClass("shoppui-warning-sign");
+					uiImportStatus.attr('class','status');
+					if (results == "OK") return uiImportStatus.addClass('shoppui-ok-sign');
+					if (results == "NULL") uiImportStatus.attr('title',FILE_NOT_FOUND_TEXT);
+					if (results == "ISDIR") uiImportStatus.attr('title',FILE_ISDIR_TEXT);
+					if (results == "READ") uiImportStatus.attr('title',FILE_NOT_READ_TEXT);
+					uiImportStatus.addClass("shoppui-warning-sign");
 				}
 		});
 	});
 
-	importurl.unbind('keydown').unbind('keypress').suggest(
+	uiImportURL.unbind('keydown').unbind('keypress').suggest(
 		sugg_url + '&action=shopp_storage_suggestions&t=download', {
 			delay: 500,
 			minchars: 3,
 			multiple:false,
 			onSelect:function () {
-				importurl.trigger('change');
+				uiImportURL.trigger('change');
 			}
 		}
 	);
 
 	$(this).click(function () {
-		importstatus.attr('class','status');
+		uiImportStatus.attr('class','status');
 
 		fileUploads.dropzone.previewsContainer = file[0];
 		fileUploads.priceline = _.line;
 
-		attach.unbind('click').click(function () {
+		// File import handling
+		uiAttachFile.unbind('click').click(function () {
 			$.colorbox.hide();
+
 			if (stored) {
-				dlpath.val(importurl.val());
-				importurl.val('').attr('class','fileimport');
+				uiDownloadPath.val(uiImportURL.val());
+				uiImportURL.val('').attr('class','fileimport');
 				return true;
 			}
 
-			var importid = false,
-				importdata = false,
-				importfile = importurl.val(),
+			var importId = false,
+				uiSetup = false,
+				noProgressTimeout = 0,
+				importFile = uiImportURL.val(),
 
-				completed = function (f) {
-					if (!f.name) return $this.attr('class','');
-					file.attr('class','file').html('<span class="icon shoppui-file '+f.mime.replace('/',' ')+'"></span>'+f.name+'<br /><small>'+readableFileSize(f.size)+'</small>');
-					dlpath.val(f.path); dlname.val(f.name);
-					importurl.val('').attr('class','fileimport');
+				completed = function (filedata) {
+					if ( ! filedata.name )
+						return $this.attr('class', '');
+					uiDownloadPath.val(filedata.path);
+					uiDownloadFilename.val(filedata.name);
+					uiImportURL.val('').attr('class', 'fileimport');
 				},
 
-				importing = function () {
-					var ui = file.find('div.progress'),
-						progressbar = ui.find('div.bar'),
-						scale = ui.outerWidth(),
-						dataframe = $('#import-file-'+line).get(0).contentWindow,
-						p = dataframe['importProgress'],
-						f = dataframe['importFile'];
+				error = function (message) {
+					if ( ! message ) message = FILE_UNKNOWN_IMPORT_ERROR;
+					file.attr('class', 'error').html('<small>' + message + '</small>');
+				},
 
-					if (f !== undefined) {
-						if (f.error) return file.attr('class','error').html('<small>'+f.error+'</small>');
-						if (!f.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+				process = function () {
+					var progress = dataFrame.importProgress,
+						filedata = dataFrame.importFile;
 
-						if (f.stored) {
-							return completed(f);
-						} else {
-							savepath = f.path.split('/');
-							importid = savepath[savepath.length-1];
-						}
+					if ( filedata === undefined )
+						return waitForUploadProgress();
+
+					// Handle errors
+					if ( ! filedata.path )
+						return error();
+					if ( filedata.error )
+						return error(filedata.error);
+
+					// Allow a passthrough on already imported, stored files
+					if ( filedata.stored )
+						return completed(filedata);
+
+					if ( progress === undefined )
+						progress = 0;
+
+					savepath = filedata.path.split('/');
+					importId = savepath[ savepath.length - 1 ];
+
+					// Initialize the UI with file data
+					if ( ! uiSetup ) {
+						uiIcon.addClass(filedata.mime.replace('/',' '));
+						uiFilename.text(filedata.name);
+						uiFilesize.text(readableFileSize(filedata.size));
+						uiProgressBar.css('opacity',1);
+						uiSetup = true;
 					}
 
-					if (!p) p = 0;
+					if ( progress === 0 && noProgressTimeout++ > 60)
+						return error();
 
-					// No status timeout failure
-					if (p === 0 && nostatus++ > 60) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+					var uploadProgress = Math.floor(progress * 100);
 
-					progressbar.animate({'width': Math.ceil(p*scale) +'px'},100);
-					if (p == 1) { // Completed
-						if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () { completed(f); });
-						return;
-					}
-					setTimeout(importing,100);
+					uiUploadProgress[0].style.width = uploadProgress + "%";
+
+					if ( uploadProgress >= 100 )
+						uiProgressBar.fadeOut(500, function() {
+							completed(filedata);
+						});
+					else waitForUploadProgress();
+
+				},
+
+				waitForUploadProgress = function () {
+					setTimeout(process, 100);
 				};
 
-			setTimeout(importing,100);
-			file.attr('class','').html(
-				'<div class="progress"><div class="bar"></div><div class="gloss"></div></div>'+
-				'<iframe id="import-file-'+line+'" width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>'
-			);
-		});
+			$.template('filechooser-upload-template', $('#filechooser-upload-template'));
 
-	});
+			file.attr('class','').html($.tmpl('filechooser-upload-template').html()).append('<iframe id="import-file-'+line+'" width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importFile+'"></iframe>');
 
-	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':chooser});
+			var dataFrame = $('#import-file-'+line)[0].contentWindow,
+				uiIcon = file.find('.icon'),
+				uiFilename = file.find('.dz-filename'),
+				uiFilesize = file.find('.dz-size'),
+				uiProgressBar = file.find('.dz-progress'),
+				uiUploadProgress = file.find('.dz-upload');
+
+			waitForUploadProgress();
+
+		}); // uiAttachFile click handler
+
+	}); // file chooser click handler
+
+	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':uiChooser});
 };
 
 function FileUploader(container) {
