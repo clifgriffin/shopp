@@ -1195,7 +1195,7 @@ class ShoppOrderDiscount {
 
 		}
 
-		$amount                              = apply_filters( 'shopp_discount_item_amount', (float) $amount, $Item );
+		$amount                              = apply_filters( 'shopp_discount_item_amount', (float) $amount, $Item, $this );
 		$this->items[ $Item->fingerprint() ] = $amount;
 
 		return $amount;
